@@ -1,0 +1,213 @@
+{
+  "checkpoint": "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+  "findings": [
+    {
+      "id": "F01",
+      "severity": "high",
+      "status": "SOURCE_PROVEN_CONTROL_FLOW_NOT_EXECUTED",
+      "title": "Escaping provider failure leaves admitted cooperative parent jobs uncancelled",
+      "anchors": [
+        {
+          "file": "lifecycle.ts",
+          "lines": [
+            80,
+            85,
+            86,
+            103,
+            105,
+            120,
+            122,
+            125,
+            126,
+            129
+          ]
+        },
+        {
+          "file": "host.ts",
+          "lines": [
+            128,
+            170
+          ]
+        },
+        {
+          "file": "index.ts",
+          "lines": [
+            89,
+            98,
+            100
+          ]
+        }
+      ],
+      "scenario": "A real FS read is admitted with owner.signal and will reject when that signal aborts. Before it settles, provider.start rejects an actual Worker/control error. Provider retirement can observe exit, but the parent read remains pending.",
+      "trace": [
+        "start catch captures execution reason only",
+        "execute finally calls close",
+        "close marks closed and cutoff clears the admission timer",
+        "close calls session.cancel/retire but never aborts owner.#controller",
+        "while #jobs.size awaits the still-live cooperative read indefinitely"
+      ],
+      "consequence": "No caller abort or uncooperative callback is required: the supplied local signal simply never receives cancellation. Numeric result/raw failure cannot settle until external release. Admission timer is already cleared.",
+      "recommendation": "On fatal execution/control/profile failure, abort the invocation-owned parent-work signal as well as cancelling the provider; retain raw presence/priority. Keep normal entry cutoff non-aborting for preadmitted work, and never abort root/siblings.",
+      "families": [
+        "N29",
+        "N30",
+        "N31",
+        "N34",
+        "N35"
+      ],
+      "qualification": "Static code path only. A future finite raw-owner test must label synthetic receipts; actual Worker exit proof requires separate E execution."
+    },
+    {
+      "id": "F02",
+      "severity": "high",
+      "status": "SOURCE_PROVEN_CLASSIFICATION_CONCERN_NOT_EXECUTED",
+      "title": "FS-origin shape is accepted without genuine FsError recognition",
+      "anchors": [
+        {
+          "file": "host.ts",
+          "lines": [
+            9,
+            13,
+            20,
+            21,
+            23,
+            128,
+            237,
+            238,
+            243,
+            244,
+            252,
+            256
+          ]
+        }
+      ],
+      "scenario": "An actual bound FileSystem method rejects an ordinary own-data object {name:\"FsError\",message:\"lookalike\",code:\"ENOENT\",errno:-1,path:\"/missing\"}. It is not an instance recognized by the accepted core isFsError helper.",
+      "trace": [
+        "#fs wraps any rejection in FsOperationFailure",
+        "fsDescriptor checks descriptors/name/code/negative safe errno, not isFsError",
+        "request emits fsError DTO and retains original only until delivered",
+        "delivered clears pending.failure; a guest may catch this converted error and return normally"
+      ],
+      "consequence": "Unexpected raw failure may become an acknowledgeable guest FS error. FS call provenance excludes sinks but does not establish typed error authenticity. This is not a hostile-host containment claim.",
+      "recommendation": "Use the declared genuine error recognition route before finite field extraction, or obtain explicit root adjudication allowing structural FS-origin errors. Preserve existing unread stack and optional-field rules; do not replace cross-realm DTO validation with generic prototype equality.",
+      "families": [
+        "N17",
+        "N18",
+        "N36"
+      ],
+      "qualification": "Custom fault-injection scenario, not an executed adapter attack or a claim all RealFS errors fail."
+    },
+    {
+      "id": "F03",
+      "severity": "medium",
+      "status": "SOURCE_PROVEN_DIAGNOSTIC_PATH_NOT_EXECUTED",
+      "title": "Early usage/profile failures silently skip a granted diagnostic",
+      "anchors": [
+        {
+          "file": "index.ts",
+          "lines": [
+            37,
+            38,
+            41,
+            46,
+            54,
+            94,
+            95,
+            107
+          ]
+        },
+        {
+          "file": "cli.ts",
+          "lines": [
+            30,
+            33
+          ]
+        }
+      ],
+      "scenario": "Valid explicitly injected provider, grants.stderrWrite=true, argv [\"--inspect\"] (or [\"-e\"] with missing operand), live signal and writable stderr.",
+      "trace": [
+        "invocation throws NodeUsageError before host is constructed",
+        "catch calls diagnose",
+        "diagnose has no write branch when host is undefined",
+        "cleanup completes and exitCode2 returns with no stderr write"
+      ],
+      "consequence": "The inherited bounded diagnostic profile has no line despite an explicit stderr grant. Invalid CLI still correctly avoids stdin/source/provider acquisition.",
+      "recommendation": "Make bounded early diagnostic output available independently of source-host construction, through the same owned sink/ledger/shared budget and raw error handling. Do not acquire stdin/VFS/provider solely to diagnose.",
+      "families": [
+        "N05",
+        "N06",
+        "N25",
+        "N33"
+      ],
+      "qualification": "Exact static early branch; not a measured stdout/stderr result."
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "title": "Private profile error forwarded through start loses origin",
+      "anchors": [
+        {
+          "file": "lifecycle.ts",
+          "lines": [
+            85,
+            86,
+            114,
+            115
+          ]
+        },
+        {
+          "file": "index.ts",
+          "lines": [
+            79,
+            80,
+            105,
+            107
+          ]
+        },
+        {
+          "file": "host.ts",
+          "lines": [
+            249
+          ]
+        }
+      ],
+      "scenario": "services.reserve or request records a local profile failure; a provider faithfully propagates that rejected operation through start(). start catch captures it again as execution and upgrades the owner origin.",
+      "need": "Bind whether provider must produce profileFailure versus reject for locally selected private failure, and provide a trustworthy owner disposition if needed. NodeReason alone carries present/value, not origin. Do not classify by error class/equality; externally thrown NodeProfileError must remain raw.",
+      "role": "Node-local handoff ambiguity/source trace, not counted as an executed bug; do not duplicate unfinished provider implementation."
+    },
+    {
+      "id": "Q02",
+      "title": "Publisher helper only captures synchronous callback throws",
+      "anchors": [
+        {
+          "file": "diagnostics.ts",
+          "lines": [
+            26,
+            28,
+            29
+          ]
+        }
+      ],
+      "scenario": "An asynchronous publish callback returns a rejected Promise; the helper does not inspect/await its return and reports publisherFault undefined. The nine files do not call this helper yet.",
+      "need": "Explicitly bind a synchronous publisher-only contract and enforce it in the provider, or enroll/await real asynchronous publication and retain raw rejection. A TS void callback is not by itself a runtime completion guarantee. Future N33 must target actual publisher ownership, not a successful helper return.",
+      "role": "Existing helper/interface readiness question; real publisher wiring intentionally unfinished, no dynamic/typechecker claim."
+    },
+    {
+      "id": "Q03",
+      "title": "Strict field whitelist excludes a genuine FsError cause",
+      "anchors": [
+        {
+          "file": "host.ts",
+          "lines": [
+            13,
+            15
+          ]
+        }
+      ],
+      "scenario": "The public FsError constructor accepts ErrorOptions.cause, but fsDescriptor refuses every own field except its whitelist/stack.",
+      "need": "Confirm whether the finite error-transport profile intentionally leaves genuine FsError-with-cause raw. Do not blindly allow/serialize arbitrary fields. Accepted RealFS operation() reconstructs public errors without cause; therefore this review does NOT claim its ordinary missing-file route fails.",
+      "role": "Unscored compatibility question, not an adapter regression assertion."
+    }
+  ]
+}

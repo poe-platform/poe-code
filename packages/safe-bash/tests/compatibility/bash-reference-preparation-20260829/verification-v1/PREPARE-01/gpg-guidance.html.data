@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>UsingGpg</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="stylesheet" href="../style.css" type="text/css" />
+
+<link rel="stylesheet" href="../local.css" type="text/css" />
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+<div class="page">
+
+<div class="pageheader">
+<div class="header">
+<span>
+<span class="parentlinks">
+
+<a href="../">Savannah documentation</a>/ 
+
+</span>
+<span class="title">
+UsingGpg
+
+</span>
+</span>
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+<div id="pagebody">
+
+<div id="content" role="main">
+<h1>Using GnuPG on Savannah</h1>
+
+<p>Savannah maintains tree kinds of GPG keys:</p>
+
+<ul>
+<li>Savannah key for signing notifications.</li>
+<li>Users' personal keys.</li>
+<li>Group release keys.</li>
+</ul>
+
+
+<p>Savannah provides a basic testing facility, you can use it when
+adding keys.  The test button imports the entered keys to a temporary
+keyring, then lists them and (for personal keys) encrypts a sample
+text.  Make sure that you only register the keys you intended,
+and that you can decrypt the generated message.</p>
+
+<h2>Savannah signing key</h2>
+
+<p>Since 2024-07, Savannah signs its notifications with a GPG key;
+the public key is available on its
+<a href="https://savannah.gnu.org/contact.php">Contact page</a>.</p>
+
+<h2>Personal keys</h2>
+
+<p>Personal GPG keys are used for encrypted communications
+with users and <a href="../LostAccounts/">recovering their accounts</a>.</p>
+
+<p>You can also use your registered key to
+<a href="https://git.savannah.nongnu.org/cgit/administration/savane.git/tree/doc/comments-via-email?h=frontend">comment on trackers via email</a>.</p>
+
+<p>To begin, please add your GPG key by logging in to
+Savannah using
+<a href="https://savannah.gnu.org/my/admin/change.php?item=gpgkey">https://savannah.gnu.org/my/admin/change.php?item=gpgkey</a></p>
+
+<p>Your GPG key should have at least one usable subkey with encryption
+capability.</p>
+
+<p>Now, you can enable encryption checking the "Encrypt emails when
+resetting password" in <a href="https://savannah.gnu.org/my/admin/">https://savannah.gnu.org/my/admin/</a>.
+Please keep your key current: GnuPG won't encrypt messages to
+expired keys.</p>
+
+<p>Other people can get your key via the "Download GPG Key" link
+on https://savannah.gnu.org/users/<em>user</em>, where <em>user</em> is your account name.</p>
+
+<h2>Group release keys</h2>
+
+<p>Group release keys are used for verifying the integrity of files in the Download
+Area.  These keys are registered in the Public Information of each Savannah
+project; you need to be an admin of the group in order to edit it.</p>
+
+<p>The registered keys are available via
+https://savannah.gnu.org/project/release-gpgkeys.php?group=<em>project</em>, where
+<em>project</em> is the "system name" of your group.</p>
+
+<p><a href="../DownloadArea/">How to upload a signed release</a>.
+<a href="../GpgKeyrings/">Hints on handling GnuPG keyrings</a>.</p>
+
+<h2>Group member keyring</h2>
+
+<p>Historically, the Main page of Savannah projects linked to concatenated
+GPG keys of all members as
+https://savannah.gnu.org/project/memberlist-gpgkeys.php?group=<em>project</em>,
+and it was supposed to be used as the release keys for the group.
+This URL still works, but in March, 2021 the link on the Main page
+of the project was replaced with a link to Group Release Keys.</p>
+
+<p>The old approach had a number of shortcomings:</p>
+
+<ul>
+<li>no way to register keys for personal contact separate
+from the keys for releases;</li>
+<li>no way to register separate keys for different groups;</li>
+<li>GnuPG couldn't import keys when some members provided
+ASCII-armored keys while other ones used the binary format;</li>
+<li>for projects with many members, the visitors were offered
+many more keys than needed; moreover, a mistake in the account
+of any member (like exporting the whole local keyring) could
+compromise the releases.</li>
+</ul>
+
+
+<h2>More info</h2>
+
+<ul>
+<li><a href="../GpgAgent/">Caching your GnuPG passphrase</a></li>
+<li><a href="https://www.gnupg.org/">GnuPG website</a> has more tutorials, manuals
+and other documentation.</li>
+</ul>
+
+
+<p>Copyright &copy; 2023, 2024 Ineiev</p>
+
+<p>Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without any warranty.</p>
+
+</div>
+
+
+
+
+
+
+
+</div>
+
+<div id="footer" class="pagefooter" role="contentinfo">
+
+<div id="pageinfo">
+
+
+
+
+
+
+<div id="backlinks">
+Links:
+
+<a href="../AccountCredentials/">AccountCredentials</a>
+
+<a href="../FrontPage/">FrontPage</a>
+
+<a href="../GpgKeyrings/">GpgKeyrings</a>
+
+<a href="../LostPassword/">LostPassword</a>
+
+<a href="../back-page/">back-page</a>
+
+
+</div>
+
+
+
+
+
+
+<div class="pagedate">
+Last edited <span class="date">Mon Jul 21 10:29:08 2025</span>
+<!-- Created <span class="date">Mon Oct  3 21:26:01 2016</span> -->
+</div>
+
+</div>
+
+
+<!-- from Savannah documentation -->
+</div>
+
+</div>
+
+</body>
+</html>

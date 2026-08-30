@@ -1,0 +1,106 @@
+CURRENT FACTS — env split preparation, 2026-08-27; NO PRODUCT WRITES
+
+Observed HEAD323d4805ae3b9173579f98b8ea9721991e05de99. Shell/existing env paths
+are clean. Foreign untracked src/commands/time-env/ belongs to Plato and is not
+inspected/edited. Prior product commit6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a;
+canonical303d18449c6e01bae4f33dada2f2022f95a56d49 is tests/evidence only.
+
+Exact frozen env-single-kernel-argument fixture (not guessed):
+source passed to Shell.exec: ./script
+file script, mode493 decimal =0755:
+"#!/usr/bin/env bash -e\nprintf should-not-run > marker\n"
+UTF8/base64:
+IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK
+Both lines terminate with LF. Body writes no newline into marker.
+Native OS argv0 bash, args [--noprofile,--norc,-c,./script,shell], isolated cwd,
+PATH=<cwd>/bin:<cwd>/.roles, HOME=<cwd>, LANG=LC_ALL=C, TZ=UTC.
+
+Recorded native primary parent:
+/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash,5.3.0(1)-release,
+SHA2568cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c.
+Historical parent /bin/bash,3.2.57(1)-release,
+SHA25635536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3.
+Actual env in BOTH shebang routes is Darwin /usr/bin/env,
+SHA2569eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776,
+not GNU env and not GNU/Linux. Frozen role controls identify env's resolved
+bash child as5.3 for primary and3.2 for historical via .roles/bash. Direct
+#!/bin/bash controls use3.2 under BOTH parents. Original raw controls retain
+physical paths; their separate rendered role tuple is not used to rewrite data.
+
+Both native tuples: status0, stdout bytes empty, stderr bytes empty;
+effects bin/ and work/ directories, unchanged script bytes/mode0755, plus
+marker bytes "should-not-run" (base64 c2hvdWxkLW5vdC1ydW4=), mode420=0644.
+Current6e frozen tuple: status126, stdout empty,
+stderr exactly "shell: line 1: ./script: unsupported interpreter: /usr/bin/env bash -e\n";
+same input directories/script, NO marker.
+Effects hashes E2 ec256cdcb961703855cff42d269976ae3b8e0dba0d14d1b81582a32592d63f8f
+and E3 d2ba028bee10e2f225ef0aed44f21c7e4d1962789c181c9f3a9547da6031aabb.
+This is the immutable final-rows-6e3e316.json / FINAL_ROWS.md / FINAL_ACCEPTANCE.md
+record, not a new live run. FINAL_ACCEPTANCE records30/36 GNU,29/36 historical,
+host10/10,corrected72/72,raw57=52/57+50/57. No old cohort rerun was performed here.
+Current source hashes equal6e, but whole-repo HEAD has advanced independently.
+
+The40 supplementary 'mode' losses are FILESYSTEM modes, NOT shell option flags.
+canonical-profile-review/aligned-comparison-20260827.json reuses saved direct
+Shell.exec6e observations and fresh aligned native88/profile; this is historical
+comparison evidence, not88 new current product executions. GNU exact original
+fields88/88, modes-inclusive tuples48/88. Mode-loss ROWS:34 differential+6 gaps.
+Those40 rows contain123 differing file entries per native profile:121 native0644
+versus VFS0666, and2 native0755 versus VFS0777. Entry bytes AND types match for
+all GNU rows. These are real permission/creation-policy differences consistent
+with recorded native umask022, not40 automatically independent root causes.
+Independent evidence stores permission bits with type separately; author native
+comparison stores stat.mode including file-type bits. ACCEPTANCE.md:64-69 verifies
+176/176 native captures after decoding representation, WITHOUT erasing permission
+mismatches. Historical strict original-field comparison74/88, full37/88, with
+the same40 mode-loss rows and separate diagnostic/status differences; broader
+original syntax assertion shape yields79/88. Do not conflate these denominators.
+
+Direct author comparison also inspected:
+tests/shell-stress/canonical-profile-migration/comparison.json. Its uniform
+GNU5.3/name=shell profile is88/88 original fields,48/88 including modes; its older
+name=shell-stress profile is74/88 and37/88. Example identical regular-file bytes
+"out": native stat.mode33188=0100644, virtual33206=0100666; both include the SAME
+0100000 regular-file type bits. Independent representation is type=file plus
+mode420/438. Removing the shared type-bit representation does NOT remove the
+0644/0666 permission difference. No shell-option flag is being compared here.
+
+Exact existing env implementation scope:
+src/commands/execution.ts:49-88 env definition inside executionCommands().
+Current env grammar: -i/--ignore-environment, -u/--unset, -0/--null,
+-C/--chdir; initial lone '-' aliases-i; leading assignments then literal command.
+src/commands/internal.ts options() is a SHARED utility; proposed work should not
+change its semantics globally. New adjacent src/commands/env-split.ts (name
+proposed) can implement a private literal splitter/option preprocessor without
+changing root barrels or unrelated executionCommands siblings.
+Current real dispatch calls context.invoke(command,args,{env:childEnv,
+replaceEnv:true,cwd,stdin,stdout,stderr,stdinIsDefault}) or existing fallback.
+CommandInvokeOptions.replaceEnv is already approved/present: exported map exactly,
+no inherited export/PWD/local promotion; default false/omitted merge unchanged.
+src/shell/runtime.ts:1112 scriptFile currently accepts plain env bash/sh only;
+literal env 'bash -e' and -S remain126 refusals. Direct recognized Bash -e/+e is
+already real. Future shebang work must keep no-S optional argument literal and
+share the env splitter without shell eval, host exec/PATH, or a new Budget.
+
+Current SHA256:
+src/shell/runtime.ts 5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb
+src/shell/parser.ts 10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e
+src/commands/execution.ts 1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700
+src/commands/internal.ts 28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5
+src/contracts/command.ts 1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa
+
+Next: narrow official GNU env-S source/manual + existing pinned GNU env native
+freeze, author-only preparation files, design handoff, then STOP BEFORE product
+writes for root's helper/shebang boundary review. Parameter-error status127/1,
+creation masks, traps/lifecycle and custom firstread5 are not this batch.
+
+
+LATER CONCURRENT-SOURCE QUALIFICATION (initial facts above preserved):
+Both baseline attempts imported runtime5589f60a with stable selected before/after
+hashes, but command.ts was already9c2f8ecf (concurrent commit07acb1a), not initial
+1ec2f290. These are live selected-input observations, not an archived6e checkout.
+After capture, foreign runtime.ts/shell.ts/new cleanup.ts edits appeared.
+Seal observation at HEADc63eedc recorded runtimef8339cd8; subsequent HEADb7ae676
+and ongoing edits are not this author's work or a frozen acceptance candidate.
+No product writes or follow-up baseline reruns by this author. Root must
+serialize/re-read current source before the proposed env-S implementation.

@@ -1,0 +1,38 @@
+{
+  "schema": "EXACT_LATE_PUBLICATION_BINDINGS",
+  "source": "81443d3d9eabcf17040d77eb34c60106fc543ccc",
+  "evidence": "ba48059722657adcfc8794e28d9bbd97e1ad17a7",
+  "bindings": [
+    {
+      "path": "admin/evidence-git-0.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/evidence-git-0.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "admin/evidence-git-1.stdout",
+      "bytes": 55784,
+      "mode": 384,
+      "sha256": "3188354d35b70d086034a3dfca700cf15e6ffa877634bfb4421c6b1303e3845a"
+    },
+    {
+      "path": "admin/evidence-git-1.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "FINAL-PUBLICATION.json",
+      "bytes": 1082,
+      "mode": 384,
+      "sha256": "61606345d4fcb16e58bd920194c510f5ccc0c2e20e707d13db962b3a180370bd"
+    }
+  ],
+  "excludes": "the final commit tool output; no recursive self-hash claim"
+}

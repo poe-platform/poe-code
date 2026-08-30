@@ -1,0 +1,560 @@
+{
+  "auditTime": "2026-08-27T06:30:26.192Z",
+  "snapshots": {
+    "baseline": {
+      "head": "511a3370f928aca05726e042087cfe3d7ab91cce",
+      "time": "2026-08-27T05:43:00.623Z",
+      "count": 148,
+      "dirtyConsumed": [],
+      "manifestSha256": "772f035871d070c7b2966a003ae51fa670faa608010265286dd2feaacc92a645"
+    },
+    "production-first": {
+      "head": "35249954c1994940a8a89bad295ab34e4285bbee",
+      "time": "2026-08-27T06:11:06.992Z",
+      "count": 152,
+      "dirtyConsumed": [],
+      "manifestSha256": "d5d6cc3bbef736294edd0d16fd333ab6f2650050e400b03aa0be63b0d0e85d36",
+      "emittedCount": 588
+    },
+    "production-final": {
+      "head": "edaa35f5c2d7d2498c5719d3f2d19ce8039531b9",
+      "time": "2026-08-27T06:25:51.257Z",
+      "count": 152,
+      "dirtyConsumed": [],
+      "manifestSha256": "85eade4d9ad59335fe9d7bcfdc0f3120a4c8cb376701d9d6606aff5af90c6645",
+      "emittedCount": 588
+    }
+  },
+  "baselineToFirstChanges": [
+    "package.json",
+    "src/commands/grep.ts",
+    "src/commands/index.ts",
+    "src/commands/regex-execution/client.ts",
+    "src/commands/regex-execution/matching.ts",
+    "src/commands/regex-execution/protocol.ts",
+    "src/commands/regex-execution/worker.ts",
+    "src/commands/search/matcher.ts",
+    "src/commands/search/options.ts",
+    "src/commands/search/rg.ts",
+    "src/fs/webdav/webdav.ts",
+    "src/index.ts",
+    "tsconfig.json"
+  ],
+  "firstToFinalChanges": [
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+      "headSha256": "79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139",
+      "dirty": false
+    }
+  ],
+  "liveDrift": [],
+  "historical": {
+    "checked": 659,
+    "drift": [],
+    "archiveSha256": "2196b5a17cd1bdbd0b262b093f0fb58f9e872e97dbeba2cfc4801af1b15fdb57"
+  },
+  "guardedChildCount": 11,
+  "observedWorkerCount": 80,
+  "pendingWorkerObservations": 4,
+  "runs": [
+    {
+      "snapshot": "baseline",
+      "file": "early-selection.json",
+      "summary": {
+        "passed": 2,
+        "total": 2,
+        "active": 0,
+        "peak": 0,
+        "workers": 0
+      },
+      "pass": true,
+      "failures": [],
+      "metricsCount": 0,
+      "unresolvedAtObservation": 0
+    },
+    {
+      "snapshot": "baseline",
+      "file": "guarded-cohort.json",
+      "summary": {
+        "passed": 24,
+        "total": 24,
+        "active": 0,
+        "peak": 0,
+        "workers": 0
+      },
+      "pass": true,
+      "failures": [],
+      "metricsCount": 0,
+      "unresolvedAtObservation": 0
+    },
+    {
+      "snapshot": "production-first",
+      "file": "cohort.json",
+      "summary": {
+        "passed": 24,
+        "total": 25,
+        "active": 1,
+        "peak": 2,
+        "workers": 25
+      },
+      "pass": false,
+      "failures": [
+        {
+          "name": "job-final",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: zero live workers at final settlement\n\n1 !== 0\n\n    at process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:201:12)"
+        }
+      ],
+      "metricsCount": 25,
+      "unresolvedAtObservation": 1
+    },
+    {
+      "snapshot": "production-first",
+      "file": "early-selection.json",
+      "summary": {
+        "passed": 2,
+        "total": 2,
+        "active": 0,
+        "peak": 1,
+        "workers": 2
+      },
+      "pass": true,
+      "failures": [],
+      "metricsCount": 2,
+      "unresolvedAtObservation": 0
+    },
+    {
+      "snapshot": "production-first",
+      "file": "lifecycle.json",
+      "summary": {
+        "passed": 5,
+        "total": 7,
+        "active": 1,
+        "peak": 2,
+        "workers": 7
+      },
+      "pass": false,
+      "failures": [
+        {
+          "name": "early-downstream-zero-active",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:133:181\n    at async caseCheck (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:46:25)\n    at async lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:131:3)\n    at async process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:195:35)"
+        },
+        {
+          "name": "job-final",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: zero live workers at final settlement\n\n1 !== 0\n\n    at process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:201:12)"
+        }
+      ],
+      "metricsCount": 7,
+      "unresolvedAtObservation": 1
+    },
+    {
+      "snapshot": "production-first",
+      "file": "transport.json",
+      "summary": {
+        "passed": 14,
+        "total": 15,
+        "active": 0,
+        "peak": 0,
+        "workers": 0
+      },
+      "pass": false,
+      "failures": [
+        {
+          "name": "worker-messageerror",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'REQUEST_TIMEOUT'\n- 'PROTOCOL'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/transport.mjs:132:14\n    at async caseCheck (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:46:25)\n    at async Module.runTransport (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/transport.mjs:119:93)\n    at async process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:197:35)"
+        }
+      ],
+      "metricsCount": 0,
+      "unresolvedAtObservation": 0
+    },
+    {
+      "snapshot": "production-final",
+      "file": "benchmark.json",
+      "summary": {
+        "passed": 12,
+        "total": 12,
+        "active": 0,
+        "peak": 1,
+        "workers": 12
+      },
+      "pass": true,
+      "failures": [],
+      "metricsCount": 12,
+      "unresolvedAtObservation": 0
+    },
+    {
+      "snapshot": "production-final",
+      "file": "cohort.json",
+      "summary": {
+        "passed": 24,
+        "total": 25,
+        "active": 1,
+        "peak": 2,
+        "workers": 25
+      },
+      "pass": false,
+      "failures": [
+        {
+          "name": "job-final",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: zero live workers at final settlement\n\n1 !== 0\n\n    at process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:204:12)"
+        }
+      ],
+      "metricsCount": 25,
+      "unresolvedAtObservation": 1
+    },
+    {
+      "snapshot": "production-final",
+      "file": "early-selection.json",
+      "summary": {
+        "passed": 2,
+        "total": 2,
+        "active": 0,
+        "peak": 1,
+        "workers": 2
+      },
+      "pass": true,
+      "failures": [],
+      "metricsCount": 2,
+      "unresolvedAtObservation": 0
+    },
+    {
+      "snapshot": "production-final",
+      "file": "lifecycle.json",
+      "summary": {
+        "passed": 5,
+        "total": 7,
+        "active": 1,
+        "peak": 2,
+        "workers": 7
+      },
+      "pass": false,
+      "failures": [
+        {
+          "name": "early-downstream-zero-active",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:135:181\n    at async caseCheck (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:48:25)\n    at async lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:133:3)\n    at async process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:198:35)"
+        },
+        {
+          "name": "job-final",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: zero live workers at final settlement\n\n1 !== 0\n\n    at process.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/child.mjs:204:12)"
+        }
+      ],
+      "metricsCount": 7,
+      "unresolvedAtObservation": 1
+    },
+    {
+      "snapshot": "production-final",
+      "file": "transport.json",
+      "summary": {
+        "passed": 15,
+        "total": 15,
+        "active": 0,
+        "peak": 0,
+        "workers": 0
+      },
+      "pass": true,
+      "failures": [],
+      "metricsCount": 0,
+      "unresolvedAtObservation": 0
+    }
+  ],
+  "nativeAgreement": [
+    {
+      "id": "grep-basic",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-extended",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-fixed",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-word",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": false,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-empty",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-invert",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-case",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-patterns",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "grep-invalid",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 2,
+      "productStatus": 2
+    },
+    {
+      "id": "grep-nomatch",
+      "profile": "primary Darwin BSD grep",
+      "sameStdoutStatus": true,
+      "nativeStatus": 1,
+      "productStatus": 1
+    },
+    {
+      "id": "rg-unicode",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-fixed",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-case",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-empty",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-onlyempty",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-word",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-patterns",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-crlf",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 0,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-namedbackref",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": false,
+      "nativeStatus": 2,
+      "productStatus": 0
+    },
+    {
+      "id": "rg-lookahead",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 2,
+      "productStatus": 2
+    },
+    {
+      "id": "rg-invalid",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 2,
+      "productStatus": 2
+    },
+    {
+      "id": "rg-nomatch",
+      "profile": "primary default-engine rg",
+      "sameStdoutStatus": true,
+      "nativeStatus": 1,
+      "productStatus": 1
+    }
+  ],
+  "timingSummary": {
+    "small-grep -E '^a'": {
+      "observations": 3,
+      "baselineMs": [
+        6.058166,
+        0.7718750000000227,
+        0.346917000000019
+      ],
+      "productionMs": [
+        27.783375000000007,
+        14.257416000000006,
+        13.972082999999998
+      ],
+      "baselineMedianMs": 0.7718750000000227,
+      "productionMedianMs": 14.257416000000006,
+      "workerReadyMs": [
+        22.062499999999986,
+        12.26362499999999,
+        12.56245800000002
+      ],
+      "equalOutputs": true
+    },
+    "small-rg '^a'": {
+      "observations": 3,
+      "baselineMs": [
+        1.1759999999999877,
+        0.6132499999999936,
+        0.2949169999999981
+      ],
+      "productionMs": [
+        14.910791999999987,
+        14.234291000000013,
+        13.302249999999987
+      ],
+      "baselineMedianMs": 0.6132499999999936,
+      "productionMedianMs": 14.234291000000013,
+      "workerReadyMs": [
+        12.510083000000009,
+        12.287041999999985,
+        11.790666999999985
+      ],
+      "equalOutputs": true
+    },
+    "medium-grep -E '^a'": {
+      "observations": 3,
+      "baselineMs": [
+        8.420083000000005,
+        6.078750000000014,
+        5.0033750000000055
+      ],
+      "productionMs": [
+        26.53045800000001,
+        23.860416999999984,
+        22.99579200000005
+      ],
+      "baselineMedianMs": 6.078750000000014,
+      "productionMedianMs": 23.860416999999984,
+      "workerReadyMs": [
+        13.774124999999998,
+        13.328958,
+        13.874874999999975
+      ],
+      "equalOutputs": true
+    },
+    "medium-rg '^a'": {
+      "observations": 3,
+      "baselineMs": [
+        6.154833999999994,
+        4.523459000000003,
+        4.814125000000047
+      ],
+      "productionMs": [
+        23.851208999999983,
+        24.168292000000008,
+        20.991750000000025
+      ],
+      "baselineMedianMs": 4.814125000000047,
+      "productionMedianMs": 23.851208999999983,
+      "workerReadyMs": [
+        13.646583000000021,
+        13.653957999999989,
+        13.304917000000046
+      ],
+      "equalOutputs": true
+    }
+  },
+  "package": {
+    "correctedPass": true,
+    "consumerResult": {
+      "pass": true,
+      "stdout": "ab\n",
+      "node": "v22.22.2",
+      "packageLocation": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-review/.temporary/moved-production-final-package-corrected/node_modules/virtual-bash/dist/index.js"
+    },
+    "packedAssets": [
+      {
+        "path": "dist/commands/regex-execution/client.js",
+        "sha256": "627f25268bc2febdfb1f0d7182efe432ef8ec422b7978a345bcf68322e2b37f0"
+      },
+      {
+        "path": "dist/commands/regex-execution/client.d.ts",
+        "sha256": "a631170c0ca560d417b6465bdb0ab91142a7051435fd3e87029a14147c4cf651"
+      },
+      {
+        "path": "dist/commands/regex-execution/matching.js",
+        "sha256": "a2776c26652bce68aaf894b32a4f14ba71a2beff6178030059e9a045153e359b"
+      },
+      {
+        "path": "dist/commands/regex-execution/matching.d.ts",
+        "sha256": "8ddead02f26cef42501c154a542cbf86ce554c9670226546fc439f411c55e0ce"
+      },
+      {
+        "path": "dist/commands/regex-execution/protocol.js",
+        "sha256": "49d00f6303d439fb13f3277bd57d26ad710abcdc8c773e84fb86e6118d9e2d03"
+      },
+      {
+        "path": "dist/commands/regex-execution/protocol.d.ts",
+        "sha256": "d51698a04277f9c8762a9f12f4814b6e597ad36b8c762c7d39d2ed3fad9b9de8"
+      },
+      {
+        "path": "dist/commands/regex-execution/worker.js",
+        "sha256": "169fc5b63881cd1a709616b7d835cb188b73cb1cbbefc01900ead6549678e431"
+      },
+      {
+        "path": "dist/commands/regex-execution/worker.d.ts",
+        "sha256": "14e7397ad7aab084b1c5b23b9f101c079611e43e872d5b4250f2be5499a6a273"
+      }
+    ],
+    "initialFalsePositive": "evidence/audit.json packagePass and evidence/production-final/package.json pass erroneously accepted repository self-reference; retained unchanged, superseded only for package claim"
+  },
+  "risk": {
+    "historicalArchived": 12,
+    "previousRevision": 0,
+    "author": "0/2 as reported",
+    "independent": "0/4",
+    "reason": "Root deferred entire six-probe tranche at confirmed lifecycle blocker"
+  }
+}

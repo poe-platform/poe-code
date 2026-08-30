@@ -1,0 +1,17 @@
+{
+  "label": "old16-corrected-H16",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"H16\",\"verdict\":\"PASS\",\"records\":[{\"firstAcceptedWithoutRead\":true,\"secondBackpressured\":true,\"exactCallerReason\":true,\"ownedChunkCopy\":true},{\"kind\":\"separation\",\"firstWrites\":0,\"started\":1,\"returned\":1,\"active\":0,\"events\":[{\"sequence\":0,\"name\":\"operation.enrolled\",\"monotonicMs\":59.245792},{\"sequence\":1,\"name\":\"source.started\",\"monotonicMs\":59.392958},{\"sequence\":2,\"name\":\"downstream.completed\",\"monotonicMs\":59.570875},{\"sequence\":3,\"name\":\"operation.aborted\",\"monotonicMs\":59.675833},{\"sequence\":4,\"name\":\"source.returned\",\"monotonicMs\":59.874292},{\"sequence\":5,\"name\":\"independent.effect\",\"monotonicMs\":60.027417},{\"sequence\":6,\"name\":\"cleanup.completed\",\"monotonicMs\":60.029667},{\"sequence\":7,\"name\":\"exec.settled\",\"monotonicMs\":60.456}],\"operationAborted\":true,\"stageAbortedAtClose\":false,\"callerAbortedAtClose\":false}]}\n",
+    "bytes": 836,
+    "base64": "eyJpZCI6IkgxNiIsInZlcmRpY3QiOiJQQVNTIiwicmVjb3JkcyI6W3siZmlyc3RBY2NlcHRlZFdpdGhvdXRSZWFkIjp0cnVlLCJzZWNvbmRCYWNrcHJlc3N1cmVkIjp0cnVlLCJleGFjdENhbGxlclJlYXNvbiI6dHJ1ZSwib3duZWRDaHVua0NvcHkiOnRydWV9LHsia2luZCI6InNlcGFyYXRpb24iLCJmaXJzdFdyaXRlcyI6MCwic3RhcnRlZCI6MSwicmV0dXJuZWQiOjEsImFjdGl2ZSI6MCwiZXZlbnRzIjpbeyJzZXF1ZW5jZSI6MCwibmFtZSI6Im9wZXJhdGlvbi5lbnJvbGxlZCIsIm1vbm90b25pY01zIjo1OS4yNDU3OTJ9LHsic2VxdWVuY2UiOjEsIm5hbWUiOiJzb3VyY2Uuc3RhcnRlZCIsIm1vbm90b25pY01zIjo1OS4zOTI5NTh9LHsic2VxdWVuY2UiOjIsIm5hbWUiOiJkb3duc3RyZWFtLmNvbXBsZXRlZCIsIm1vbm90b25pY01zIjo1OS41NzA4NzV9LHsic2VxdWVuY2UiOjMsIm5hbWUiOiJvcGVyYXRpb24uYWJvcnRlZCIsIm1vbm90b25pY01zIjo1OS42NzU4MzN9LHsic2VxdWVuY2UiOjQsIm5hbWUiOiJzb3VyY2UucmV0dXJuZWQiLCJtb25vdG9uaWNNcyI6NTkuODc0MjkyfSx7InNlcXVlbmNlIjo1LCJuYW1lIjoiaW5kZXBlbmRlbnQuZWZmZWN0IiwibW9ub3RvbmljTXMiOjYwLjAyNzQxN30seyJzZXF1ZW5jZSI6NiwibmFtZSI6ImNsZWFudXAuY29tcGxldGVkIiwibW9ub3RvbmljTXMiOjYwLjAyOTY2N30seyJzZXF1ZW5jZSI6NywibmFtZSI6ImV4ZWMuc2V0dGxlZCIsIm1vbm90b25pY01zIjo2MC40NTZ9XSwib3BlcmF0aW9uQWJvcnRlZCI6dHJ1ZSwic3RhZ2VBYm9ydGVkQXRDbG9zZSI6ZmFsc2UsImNhbGxlckFib3J0ZWRBdENsb3NlIjpmYWxzZX1dfQo=",
+    "sha256": "1ed33649fc112b82b1cc0e2bd5fcfee79a9f8742975c3fcb061a57483d64cfc6"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

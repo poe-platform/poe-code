@@ -1,0 +1,20 @@
+{
+  "name": "over1GiB-short-stream",
+  "expectedBoundary": "STREAM_SIZE",
+  "started": "2026-08-27T22:49:15.025Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:STREAM_SIZE 1073807360 != 1073872896",
+    "code": "STREAM_SIZE",
+    "stack": "Error: BOUNDARY:STREAM_SIZE 1073807360 != 1073872896\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:174:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:193:19)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:85:1",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "{\"emitted\":1073807360,\"drains\":16093}\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:15.526Z"
+}

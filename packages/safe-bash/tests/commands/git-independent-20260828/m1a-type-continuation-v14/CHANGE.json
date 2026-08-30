@@ -1,0 +1,25 @@
+{
+  "priorPreseal": "1d981b9f0c4874bc129691d8ef0c2781b341da40",
+  "priorEvidence": "dc380b18d38e72afa7083adcb139fc6f4a28e293",
+  "candidate": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "changes": [
+    "remove only emitSkipped acceptance assertion",
+    "record actual emitSkipped without accepting/rejecting its value",
+    "retain raw wrapper failure as primary and empty/invalid JSON as secondary"
+  ],
+  "unchanged": [
+    "compiler/options/noEmit=true",
+    "both consumer bytes and logical paths",
+    "exact TS2724 diagnostic and related information",
+    "source/package/declarations",
+    "guard implementation"
+  ],
+  "scratchRelocation": {
+    "from": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/work",
+    "to": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v14/work"
+  },
+  "proof": "CompilerHost refuses output writes; complete work/source/tool censuses verify no emitted files, membership or content changes",
+  "startedPreparation": "2026-08-28T22:09:49Z",
+  "preparationScriptMs": 1364.445041,
+  "execution": "one positive plus negative, no retry/build/npm/runtime"
+}

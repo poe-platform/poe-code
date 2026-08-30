@@ -1,0 +1,1100 @@
+{
+  "cases": [
+    {
+      "id": "nested-inactive-prefix-no-locale",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "|",
+        "length",
+        "index",
+        "HIDDEN",
+        "H",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "independent-unsupported"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-substr-no-allocation-or-number",
+      "args": [
+        "0",
+        "&",
+        "substr",
+        "HIDDEN",
+        "999",
+        "999"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 1,
+        "stdout": "0\n",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "0",
+        "0"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stdout-start",
+          "bytes": 2
+        },
+        {
+          "kind": "stdout-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "nested-inactive-arity-still-errors",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "0",
+        "&",
+        "index",
+        "HIDDEN",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected ')'\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 35
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-regex-plus-late-close",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "match",
+        "HIDDEN",
+        "["
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '['\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: expecting ')' after '['\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "0",
+        "["
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 44
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "nested-runtime-before-late-token",
+      "args": [
+        "(",
+        "(",
+        "9",
+        "/",
+        "0",
+        ")",
+        ")",
+        "junk"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "observed": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "9",
+        "0"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 23
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "prefix-regex-before-late-token",
+      "args": [
+        "length",
+        "match",
+        "a",
+        "a",
+        "junk"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'junk'\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999969
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exitCode",
+        "stderr"
+      ],
+      "passed": false
+    },
+    {
+      "id": "three-workers-once-encounter-order",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")",
+        "+",
+        "(",
+        "c",
+        ":",
+        "c",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 19957
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exitCode",
+        "stdout",
+        "stderr",
+        "exact encounter-order submissions"
+      ],
+      "passed": false
+    },
+    {
+      "id": "active-then-inactive-then-active",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a",
+        "|",
+        "match",
+        "HIDDEN",
+        "[",
+        ")",
+        "+",
+        "(",
+        "b",
+        ":",
+        "b",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999952
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exitCode",
+        "stdout",
+        "stderr",
+        "exact encounter-order submissions"
+      ],
+      "passed": false
+    },
+    {
+      "id": "abort-result-before-late-close",
+      "args": [
+        "(",
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "caller"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999983
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "rejection identity/output"
+      ],
+      "passed": false
+    },
+    {
+      "id": "abort-in-stdout-after-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "caller"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "rejection identity/output"
+      ],
+      "passed": false
+    },
+    {
+      "id": "await-stdout-after-worker",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "exitCode",
+        "stdout",
+        "stderr",
+        "stdout not awaited"
+      ],
+      "passed": false
+    },
+    {
+      "id": "stdout-failure-no-regex-replay",
+      "args": [
+        "a",
+        ":",
+        "a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "sink"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: execution or output failure\n"
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999985
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [
+        "rejection identity/output"
+      ],
+      "passed": false
+    },
+    {
+      "id": "stderr-failure-after-regex",
+      "args": [
+        "a",
+        ":",
+        "a",
+        "junk"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "rejected": "sink"
+      },
+      "observed": {
+        "rejected": "sink",
+        "message": "independent sink failure",
+        "stdout": "",
+        "stderr": ""
+      },
+      "jobs": [
+        {
+          "subject": "a",
+          "pattern": "a",
+          "allowance": 7999980
+        }
+      ],
+      "encodes": [
+        "a",
+        "a"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 1,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "match-enter",
+          "index": 1
+        },
+        {
+          "kind": "match-settled"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-prefix-node-limit",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "length",
+        "HIDDEN",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: AST node limit exceeded\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "0"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 30
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-nested-parser-limit",
+      "args": [
+        "0",
+        "&",
+        "(",
+        "(",
+        "length",
+        "HIDDEN",
+        ")",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "0"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "inactive-chain-structural-depth",
+      "args": [
+        "1",
+        "|",
+        "(",
+        "2",
+        "+",
+        "3",
+        "+",
+        "4",
+        "+",
+        "5",
+        ")"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "expected": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "observed": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "expr: parser depth limit exceeded\n"
+      },
+      "jobs": [],
+      "encodes": [
+        "1"
+      ],
+      "budgetCount": 1,
+      "sessionCount": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "stderr-start",
+          "bytes": 34
+        },
+        {
+          "kind": "stderr-end"
+        },
+        {
+          "kind": "close-start"
+        },
+        {
+          "kind": "close-end",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        },
+        {
+          "kind": "overlapping-cleanups-awaited",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  ],
+  "imports": [],
+  "activeWorkers": 0
+}

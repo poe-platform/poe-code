@@ -1,0 +1,37 @@
+TAP version 13
+# node:internal/modules/esm/resolve:275
+#     throw new ERR_MODULE_NOT_FOUND(
+#           ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v2-hNinUu/emitted/src/commands/regex-execution/protocol.js' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v2-hNinUu/emitted/tests/commands/expr/regex-protocol.test.js
+#     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+#     at moduleResolve (node:internal/modules/esm/resolve:861:10)
+#     at defaultResolve (node:internal/modules/esm/resolve:985:11)
+#     at \#cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+#     at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+#     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+#     at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {
+#   code: 'ERR_MODULE_NOT_FOUND',
+#   url: 'file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v2-hNinUu/emitted/src/commands/regex-execution/protocol.js'
+# }
+# Node.js v22.22.2
+# Subtest: /Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v2-hNinUu/emitted/tests/commands/expr/regex-protocol.test.js
+not ok 1 - /Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v2-hNinUu/emitted/tests/commands/expr/regex-protocol.test.js
+  ---
+  duration_ms: 61.067916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/glob-typing-review-20260827/independent/node_modules/review-baseline-v2-hNinUu/emitted/tests/commands/expr/regex-protocol.test.js:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.963709

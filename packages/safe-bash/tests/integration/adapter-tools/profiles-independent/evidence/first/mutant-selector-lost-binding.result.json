@@ -1,0 +1,43 @@
+{
+  "name": "mutant-selector-lost-binding",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq/source/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+    "--unhandled-rejections=strict",
+    "--test",
+    "--test-reporter=tap",
+    "out/tests/integration/adapter-tools/profiles-independent/controls.test.js"
+  ],
+  "cwd": "outside-consumer",
+  "status": 1,
+  "signal": null,
+  "durationMs": 512.8157080000001,
+  "counts": {
+    "tests": 14,
+    "pass": 13,
+    "fail": 1,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "names": [
+    "new verifier: configured selector does not contaminate subsequent stock defaults",
+    "new verifier: loopback fixture rmdir refuses binding-time late descendant",
+    "new verifier: loopback fixture rm -d refuses binding-time late descendant",
+    "new verifier: fixture active lock /work preserves namespace",
+    "new verifier: fixture active lock /work/target preserves namespace",
+    "new verifier: fixture active lock /work/target/descendant preserves namespace",
+    "new verifier: fixture mismatched receipt reports completed effect without recursive retry",
+    "new verifier: fixture factory rejects mismatched namespace before workload",
+    "new verifier: configured fixture readonly-mount never hides nonempty descendants",
+    "new verifier: configured fixture webdav-upper never hides nonempty descendants",
+    "new verifier: configured fixture webdav-lower never hides nonempty descendants",
+    "new verifier: S3 snapshot marker late-child disclosure mounted=false",
+    "new verifier: S3 snapshot marker late-child disclosure mounted=true",
+    "new verifier: readonly S3 mount refuses deletion without erasing or elevating snapshot authority"
+  ],
+  "failures": [
+    "new verifier: configured selector does not contaminate subsequent stock defaults"
+  ]
+}

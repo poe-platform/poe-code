@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "phase": "input freeze before v2 product execution",
+  "reviewerThreadId": "01a042ef-2082-7a20-a1b5-c3ba7235ff76",
+  "authorThreadId": "01a042ee-bfce-7b80-b667-af14bd426f64",
+  "authorFixtureCommit": "8b6bcf83745727a45232c96de79a030fe98fb388",
+  "authorSealNotAnOracle": "cddbde09386fb8a92c64a5df1c1cedb8cc58fd18",
+  "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "tarballSha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+  "criteriaCommit": "2fdc16ae8130830dc6f51c70cba540ca3716bc4c",
+  "previousReviewCommit": "b4263e7748ed21078e67ac4af640a07273900c28",
+  "previousRawAttemptSha256": "e444533f6eca373015b92b980032e876516552c591a568b922cdff3c863d8b36",
+  "authorAudit": {
+    "all15V1FilesUnchanged": true,
+    "consumerExactlyFourAuthorizedReplacements": true,
+    "controllerOnlyVersionedBindingsChanged": true,
+    "sourceAndNativeInputsUnchanged": true,
+    "authorPassCountsUsed": false
+  },
+  "controlGroups": [
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6"
+  ],
+  "runtimeVariants": 14,
+  "limits": {
+    "commandControls": [
+      2,
+      3
+    ],
+    "outputControls": [
+      7,
+      6
+    ],
+    "originalPackedCommands": 4,
+    "setupCharges": {
+      "assignment": 1,
+      "export": 1,
+      "parentbefore": 1
+    },
+    "revisedPackedCommands": 7
+  },
+  "files": {
+    "accept-v2.mjs": "7b67675a23fbf24bea9fc39b6d0a24164d7602c03481c4ed45a6f78c256972c1",
+    "independent-controls-v2.mjs": "167f9ae16ca159c9e4d5321a38a59d13e2e075263dd28b99a5ef3aeadf2a057e",
+    "v2-binding-source-proof.json": "62f2aa37a25600cef67a83e0669144438326c610c814e7780670417a94a3b0ba",
+    "V2_INPUTS.md": "9f33f1f77ef06fc9f5cb08696a941299035b9370101b4b6ba914742ad6317035",
+    "reviewer-v1-v2.diff": "31823c62db632b0dd437dcc96399a0ab26a92ca0c8898414a416efcd154c867b"
+  }
+}

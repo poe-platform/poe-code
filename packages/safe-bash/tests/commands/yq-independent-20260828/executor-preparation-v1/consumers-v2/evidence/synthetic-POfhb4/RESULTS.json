@@ -1,0 +1,320 @@
+{
+  "schema": 1,
+  "started": "2026-08-28T09:02:02.720Z",
+  "finished": "2026-08-28T09:02:03.295Z",
+  "presealCommit": "61cec1d71bf1121234de8ee727da990ff29c54e8",
+  "originalV1Commit": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+  "fixtureRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers",
+  "declaredChecks": 36,
+  "completedChecks": 36,
+  "matchedChecks": 36,
+  "observations": [
+    {
+      "id": "valid-tree",
+      "expected": "accept",
+      "actual": "accept",
+      "matched": true,
+      "message": null,
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "readme-absent",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "actual": "PACKAGE_MEMBERSHIP",
+      "matched": true,
+      "message": "PACKAGE_MEMBERSHIP: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "readme-wrong-bytes",
+      "expected": "PACKAGE_FILE",
+      "actual": "PACKAGE_FILE",
+      "matched": true,
+      "message": "PACKAGE_FILE: README.md",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "baseline-omitted",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "actual": "PACKAGE_MEMBERSHIP",
+      "matched": true,
+      "message": "PACKAGE_MEMBERSHIP: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "unapproved-addition",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "actual": "PACKAGE_MEMBERSHIP",
+      "matched": true,
+      "message": "PACKAGE_MEMBERSHIP: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "symlink-entry",
+      "expected": "SYMLINK",
+      "actual": "SYMLINK",
+      "matched": true,
+      "message": "SYMLINK: dist/synthetic.js",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "hardlink-entry",
+      "expected": "HARDLINK",
+      "actual": "HARDLINK",
+      "matched": true,
+      "message": "HARDLINK: README.md",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "mode-mismatch",
+      "expected": "PACKAGE_FILE",
+      "actual": "PACKAGE_FILE",
+      "matched": true,
+      "message": "PACKAGE_FILE: README.md",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "binding-mismatch",
+      "expected": "BINDING",
+      "actual": "BINDING",
+      "matched": true,
+      "message": "BINDING: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "hash-mismatch",
+      "expected": "RECEIPT_HASH",
+      "actual": "RECEIPT_HASH",
+      "matched": true,
+      "message": "RECEIPT_HASH: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "workspace-fallback",
+      "expected": "WORKSPACE",
+      "actual": "WORKSPACE",
+      "matched": true,
+      "message": "WORKSPACE: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/workspace-fallback/fake-workspace/package/dist/synthetic.js",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "in-place-not-moved",
+      "expected": "NOT_MOVED",
+      "actual": "NOT_MOVED",
+      "matched": true,
+      "message": "NOT_MOVED: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "source-import",
+      "expected": "IMPORT_KIND",
+      "actual": "IMPORT_KIND",
+      "matched": true,
+      "message": "IMPORT_KIND: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/source-import/moved/dist/synthetic.ts",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "declaration-tampered",
+      "expected": "PACKAGE_FILE",
+      "actual": "PACKAGE_FILE",
+      "matched": true,
+      "message": "PACKAGE_FILE: dist/synthetic.d.ts",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "declaration-omitted",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "actual": "PACKAGE_MEMBERSHIP",
+      "matched": true,
+      "message": "PACKAGE_MEMBERSHIP: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "new-empty-directory",
+      "expected": "PACKAGE_DIRECTORIES",
+      "actual": "PACKAGE_DIRECTORIES",
+      "matched": true,
+      "message": "PACKAGE_DIRECTORIES: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "symlink-root",
+      "expected": "SYMLINK",
+      "actual": "SYMLINK",
+      "matched": true,
+      "message": "SYMLINK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/symlink-root/fake-alias",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "node-modules-fallback",
+      "expected": "IMPORT_BINDING",
+      "actual": "IMPORT_BINDING",
+      "matched": true,
+      "message": "IMPORT_BINDING: synthetic-private-package",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "unapproved-builtin",
+      "expected": "IMPORT_BINDING",
+      "actual": "IMPORT_BINDING",
+      "matched": true,
+      "message": "IMPORT_BINDING: node:fs",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "unknown-receipt-field",
+      "expected": "RECEIPT_SCHEMA",
+      "actual": "RECEIPT_SCHEMA",
+      "matched": true,
+      "message": "RECEIPT_SCHEMA: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "duplicate-receipt-key",
+      "expected": "JSON_DUPLICATE",
+      "actual": "JSON_DUPLICATE",
+      "matched": true,
+      "message": "JSON_DUPLICATE: schema",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "source-delta",
+      "expected": "SOURCE_BINDING",
+      "actual": "SOURCE_BINDING",
+      "matched": true,
+      "message": "SOURCE_BINDING: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "fake-readme-authority",
+      "expected": "README_IDENTITY",
+      "actual": "README_IDENTITY",
+      "matched": true,
+      "message": "README_IDENTITY: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "projection-only",
+      "expected": "README_IDENTITY",
+      "actual": "README_IDENTITY",
+      "matched": true,
+      "message": "README_IDENTITY: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "positive-compiler-outcome",
+      "expected": "accept",
+      "actual": "accept",
+      "matched": true,
+      "message": null,
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "negative-compiler-outcome",
+      "expected": "accept",
+      "actual": "accept",
+      "matched": true,
+      "message": null,
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "negative-unrelated-diagnostic",
+      "expected": "COMPILER_DIAGNOSTICS",
+      "actual": "COMPILER_DIAGNOSTICS",
+      "matched": true,
+      "message": "COMPILER_DIAGNOSTICS: [{\"code\":2307,\"line\":2,\"message\":\"Expected 0 arguments, but got 1.\",\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/negative-unrelated-diagnostic/synthetic-consumer.mts\"}]",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "negative-status-zero",
+      "expected": "COMPILER_STATUS",
+      "actual": "COMPILER_STATUS",
+      "matched": true,
+      "message": "COMPILER_STATUS: synthetic",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "compiler-child-signal",
+      "expected": "COMPILER_STATUS",
+      "actual": "COMPILER_STATUS",
+      "matched": true,
+      "message": "COMPILER_STATUS: synthetic",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "compiler-outside-binding",
+      "expected": "COMPILER_BINDING",
+      "actual": "COMPILER_BINDING",
+      "matched": true,
+      "message": "COMPILER_BINDING: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/compiler-outside-binding/foreign.d.ts",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "raw-source-fallback",
+      "expected": "COMPILER_BINDING",
+      "actual": "COMPILER_BINDING",
+      "matched": true,
+      "message": "COMPILER_BINDING: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/raw-source-fallback/moved/dist/synthetic.ts",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "public-export-gap",
+      "expected": "PUBLIC_EXPORT_GAP",
+      "actual": "PUBLIC_EXPORT_GAP",
+      "matched": true,
+      "message": "PUBLIC_EXPORT_GAP: v1 authorizes no root/package export changes; direct module proof cannot admit MOV-02 or public TYPE jobs",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "mutable-binding",
+      "expected": "BINDING",
+      "actual": "BINDING",
+      "matched": true,
+      "message": "BINDING: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "post-check-added-file",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "actual": "PACKAGE_MEMBERSHIP",
+      "matched": true,
+      "message": "PACKAGE_MEMBERSHIP: ",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "import-parent-outside",
+      "expected": "IMPORT_BINDING",
+      "actual": "IMPORT_BINDING",
+      "matched": true,
+      "message": "IMPORT_BINDING: parent",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    },
+    {
+      "id": "import-url-fragment",
+      "expected": "IMPORT_BINDING",
+      "actual": "IMPORT_BINDING",
+      "matched": true,
+      "message": "IMPORT_BINDING: file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/.synthetic-BcFJDZ/import-url-fragment/moved/dist/synthetic.js#escape",
+      "proofRole": "SYNTHETIC_GUARD_ONLY"
+    }
+  ],
+  "hashes": {
+    "guards.mjs": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a",
+    "type-worker.mjs": "5570bd8a754880a7aef0da8f2c48b6524869b46d08f28478f89be296aa53152f",
+    "synthetic-check.mjs": "fdf8310e09557ebedebfa0808d2aa0b563d20509831950792ce63c162406bd0d",
+    "PRESEAL.json": "96f51db6ea5641d181a4213fd8716d712154d1bba4809d34e0e31cba93bdfdd2",
+    "PRETEST-CLARIFICATIONS.md": "e8b680ed25d4c45f9165ec5a4218f5d4fb123b9f4f6398c9ea7d3af586346ee1"
+  },
+  "selectedManifestSha256": "ddc5af63c9e8876329f90cce96f5124198fa22cfa61b32572cd2984e4bf301a0",
+  "scope": "Fake regular files, copied/moved only within this owned subtree with a synthetic workspace boundary; not actual relocated product evidence.",
+  "productExecutions": 0,
+  "productImports": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "packReplays": 0,
+  "nativeOracles": 0,
+  "semanticResults": [],
+  "actualCandidate": "PENDING",
+  "publicAdmission": "PUBLIC_EXPORT_GAP",
+  "failure": null
+}

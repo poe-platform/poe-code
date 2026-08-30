@@ -1,0 +1,16 @@
+{"atMs":0.334,"kind":"group-admitted","pid":86648,"pgid":86648,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-w3lrWQ","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-w3lrWQ","TMPDIR":"/private/tmp/safe-bash-execution-author-w3lrWQ","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":40.168,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"engine-spawn","pid":86651,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":100.598,"kind":"request-start","absoluteDeadlineMs":1500.5944580000003}
+{"atMs":100.6,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"ready"}
+{"atMs":101.291,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"phase","phase":"exec-start"}
+{"atMs":102.618,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"partial frame at EOF: header=000000, bodyBytes=115\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":102.642,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"failure","error":{"name":"AssertionError","message":"partial frame at EOF: header=000000, bodyBytes=115","code":"ERR_ASSERTION"}}
+{"atMs":104.767,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":104.771,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"engine-exit","code":1,"signal":null}
+{"atMs":104.833,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"engine-close","code":1,"signal":null}
+{"atMs":104.907,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":104.984,"id":"synthetic/partial-frame","nonce":"84a217a8-d2ed-4804-8308-d7245ba50fcb","kind":"session-complete"}
+{"atMs":106.67,"kind":"signal","signal":"SIGTERM","pgid":86648}
+{"atMs":106.7,"kind":"signal-error","error":{"name":"Error","message":"kill EPERM","code":"EPERM"}}
+{"atMs":107.17,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":107.172,"kind":"coordinator-close","code":0,"signal":null}

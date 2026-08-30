@@ -1,0 +1,48 @@
+{
+  "id": "types-installed-root-repair",
+  "role": "type",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--listFiles",
+    "--strict",
+    "--exactOptionalPropertyTypes",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/consumer-root-repair.mts"
+  ],
+  "started": "2026-08-28T20:02:06.376Z",
+  "finished": "2026-08-28T20:02:07.641Z",
+  "startedElapsedMs": 168183.943792,
+  "finishedElapsedMs": 169448.512375,
+  "pid": 71259,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 15610,
+  "fragments": [
+    {
+      "name": "024-types-installed-root-repair-stdout-0.json",
+      "bytes": 15610,
+      "sha256": "2f5181316e34bfe5be0917677514b43d990d3720e697dfac643c0cde98a97ad0"
+    }
+  ],
+  "stdoutSha256": "2f5181316e34bfe5be0917677514b43d990d3720e697dfac643c0cde98a97ad0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "functional-reference-independent-acceptance-v2",
+  "decision": "PENDING_NOT_ACCEPTED",
+  "profile": "functional-reference-v2",
+  "presealSha256": "384950a91459ff0ee66449a0604313b7af5af162b252426fe53ce787706a4dda",
+  "requestsSha256": "8b0c84331d4f374ee890181777bda41bfba1735ec3e930741f0f55ae0fcc2277",
+  "reviewer": null,
+  "reviewCommit": null
+}

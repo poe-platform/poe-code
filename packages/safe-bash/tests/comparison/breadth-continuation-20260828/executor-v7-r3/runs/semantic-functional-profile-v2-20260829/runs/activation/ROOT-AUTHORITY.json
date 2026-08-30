@@ -1,0 +1,40 @@
+{
+  "schema": "FUNCTIONAL_V2_FRESH_ROOT_AUTHORITY",
+  "instruction": "Current ROOT message grants publication plus DATA real-payload preflight and conditionally ONE functional-profile-v2 cohort only after committed grant/AUTH and complete preflight PASS.",
+  "date": "2026-08-29",
+  "preparedAt": "2026-08-29T07:13:36.753Z",
+  "launchNotBeforeMs": 1787987616753,
+  "launchNotAfterMs": 1787988541754,
+  "sourceCommit": "45dd71f18882900070c5a925a5c01e0a6045aa5b",
+  "sourceSealSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "independentReviewCommit": "37026b85275a2fa4b015cc18b04d75d90fa6dc3c",
+  "independentReviewSha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6",
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+    "bytes": 1325,
+    "mode": 420,
+    "sha256": "d9b4f0c5e91f2b1b7b0c4c0db6110afa7c165f51ab5892182bffc53e04fccef2"
+  },
+  "oneAttempt": true,
+  "runId": "semantic-functional-20260829-v2-01",
+  "semanticCalls": 99,
+  "emptySetupCalls": 66,
+  "C11": 0,
+  "actualWindow": {
+    "ownerMs": 4500000,
+    "administrationMs": 900000,
+    "totalMs": 5400000,
+    "allKnownOwnedOS": 336,
+    "peak": 5,
+    "workingBytes": 805306368,
+    "captureBytes": 269484032,
+    "innerBodyBytes": 260046848,
+    "innerCollectorBytes": 8388608,
+    "outerBytes": 524288,
+    "adminBytes": 524288
+  },
+  "noRetry": true,
+  "stockDefaultSecurityClaim": false,
+  "overallWinnerClaim": false,
+  "oldFailuresUnchanged": true
+}

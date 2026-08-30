@@ -1,0 +1,15 @@
+{
+  "driverCommit": "9bd40c8fdd914375ad2b49bddf44b909820328cf",
+  "command": "node tests/shell/getopts-independent-20260827/stage2/review-618d8967/collect.mjs",
+  "status": 1,
+  "classification": "Reviewer evidence-collection failure before any evidence-v1 write",
+  "error": {
+    "code": "ENOENT",
+    "syscall": "open",
+    "path": ".work/mutant-task-checkpoint-binding.json",
+    "source": "collect.mjs:39:34"
+  },
+  "cause": "First checkpoint mutant never passed its unique-anchor loader precondition, so no mutation binding existed.",
+  "retainedRawCause": ".work/logs/mutant-task-checkpoint/stdout and original loader at eeeb0bec",
+  "correction": "Separate checkpoint-v2 loader and capture; retain original as blocked. Require exact TAP assertion-code line and authenticated mutation binding."
+}

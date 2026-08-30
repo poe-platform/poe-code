@@ -1,0 +1,128 @@
+{
+  "status": "INDEPENDENT_RESOLVED_PROFILE_SCOPED_PASS",
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "package": {
+    "sha256": "1fafce728b6346db4555449ba6259694346983d877a32e917fd7a15c6ebe64e4",
+    "bytes": 865091,
+    "members": 950
+  },
+  "sourceCommit": "928be5585f05c15867fbbb5f4b5debe153b0734e",
+  "unit1": {
+    "source": "1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+    "acceptance": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628",
+    "adjudication": "c565f9251bd59332a58c37bc5c48948cc2f24683"
+  },
+  "layouts": [
+    {
+      "layout": "source",
+      "strict": {
+        "cases": 50,
+        "pass": 50,
+        "fail": 0
+      },
+      "novel": {
+        "cases": 16,
+        "pass": 16,
+        "fail": 0
+      },
+      "selectedRegressions": {
+        "cases": 151,
+        "pass": 151
+      },
+      "totalPass": 217
+    },
+    {
+      "layout": "installed",
+      "strict": {
+        "cases": 50,
+        "pass": 50,
+        "fail": 0
+      },
+      "novel": {
+        "cases": 16,
+        "pass": 16,
+        "fail": 0
+      },
+      "selectedRegressions": {
+        "cases": 151,
+        "pass": 151
+      },
+      "totalPass": 217
+    },
+    {
+      "layout": "moved",
+      "strict": {
+        "cases": 50,
+        "pass": 50,
+        "fail": 0
+      },
+      "novel": {
+        "cases": 16,
+        "pass": 16,
+        "fail": 0
+      },
+      "selectedRegressions": {
+        "cases": 151,
+        "pass": 151
+      },
+      "totalPass": 217
+    }
+  ],
+  "semanticPass": 651,
+  "semanticFail": 0,
+  "types": {
+    "groups": 6,
+    "pass": 6,
+    "negativeDiagnostics": 18,
+    "declarationMembersPerGroup": [
+      90,
+      90,
+      90,
+      90,
+      90,
+      90
+    ],
+    "newNounsetPublicApiProof": false
+  },
+  "loaded": {
+    "mutantsDetected": 3,
+    "restoredPass": 3,
+    "bindingRefusals": 2
+  },
+  "openUnexecuted": [
+    "U06",
+    "U07",
+    "U17",
+    "U27",
+    "U28",
+    "U31",
+    "U32",
+    "U33",
+    "U34",
+    "U35",
+    "U36"
+  ],
+  "resources": {
+    "internalLoaderAdmissions": 29,
+    "bootstrapWitnesses": 29,
+    "regexCreates": 0,
+    "regexExits": 0,
+    "individualInternalExitsObserved": false,
+    "allDirectChildrenClosed": true,
+    "directChildren": 39,
+    "coordinator": 1,
+    "pythonOwner": 1,
+    "knownRuntimeProcessLifetimes": 41,
+    "execShellAdditionalConservativeRole": 1,
+    "maximumSimultaneousKnownRuntime": 3,
+    "globalCensus": false
+  },
+  "elapsedMs": 64799,
+  "outerElapsedSeconds": 65.6350101249991,
+  "runnerCaptureBytes": 3129133,
+  "scratchBytes": 72060772,
+  "productFindings": [],
+  "noNativeGoldens": true,
+  "noGlobalOrCompleteGnuAcceptance": true,
+  "ordinaryPreparationFailurePreserved": "PREP-COMPOSITION-V1-HOLD.json"
+}

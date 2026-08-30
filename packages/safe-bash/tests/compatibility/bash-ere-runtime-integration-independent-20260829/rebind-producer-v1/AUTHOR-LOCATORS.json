@@ -1,0 +1,149 @@
+{
+  "author": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2",
+  "files": [
+    {
+      "name": "A01-startup-preserved.jsonl",
+      "bytes": 175
+    },
+    {
+      "name": "A02-index-before.raw",
+      "bytes": 0
+    },
+    {
+      "name": "A02-index-before.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A03-edit.log",
+      "bytes": 26
+    },
+    {
+      "name": "A06.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A06.stdout",
+      "bytes": 29390
+    },
+    {
+      "name": "A07.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A07.stdout",
+      "bytes": 0
+    },
+    {
+      "name": "A08.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A08.stdout",
+      "bytes": 1342
+    },
+    {
+      "name": "A10.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A10.stdout",
+      "bytes": 113591
+    },
+    {
+      "name": "A11.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A11.stdout",
+      "bytes": 0
+    },
+    {
+      "name": "A12.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A12.stdout",
+      "bytes": 1141
+    },
+    {
+      "name": "A13-publication-preparation.jsonl",
+      "bytes": 294
+    },
+    {
+      "name": "A15-final-publication.jsonl",
+      "bytes": 796
+    },
+    {
+      "name": "A16-add.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A16-add.stdout",
+      "bytes": 0
+    },
+    {
+      "name": "A17-commit.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A17-commit.stdout",
+      "bytes": 2617
+    },
+    {
+      "name": "A18-index-after.stderr",
+      "bytes": 0
+    },
+    {
+      "name": "A18-index-after.stdout",
+      "bytes": 0
+    },
+    {
+      "name": "HANDOFF.md",
+      "bytes": 4149
+    },
+    {
+      "name": "PACKAGE-MANIFEST.json",
+      "bytes": 205721
+    },
+    {
+      "name": "PRE-INFLATE-RECEIPT.json",
+      "bytes": 1143
+    },
+    {
+      "name": "PRESEAL.md",
+      "bytes": 2438
+    },
+    {
+      "name": "PUBLICATION-SNAPSHOT.json",
+      "bytes": 169416
+    },
+    {
+      "name": "RESULT.json",
+      "bytes": 3918
+    },
+    {
+      "name": "SEAL.json",
+      "bytes": 7074
+    },
+    {
+      "name": "global.npmrc",
+      "bytes": 0
+    },
+    {
+      "name": "produce.outer.jsonl",
+      "bytes": 7509
+    },
+    {
+      "name": "runner.mjs",
+      "bytes": 17671
+    },
+    {
+      "name": "seal.outer.jsonl",
+      "bytes": 8558
+    },
+    {
+      "name": "user.npmrc",
+      "bytes": 0
+    }
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "schema": "xan-preparation-v2-seal",
+  "timing": "POST_AUTHOR_RELEASE_PRE_INDEPENDENT_SOURCE_INSPECTION_EXECUTION",
+  "frozenCommit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "created": "2026-08-28T05:31:49.496Z",
+  "files": [
+    {
+      "path": "CASE-MAP.json",
+      "bytes": 100035,
+      "sha256": "5cb0ebfe86c552912112713fa17694a0fd044d472abde466c151de8bf2632592",
+      "mode": "644"
+    },
+    {
+      "path": "COHORT.json",
+      "bytes": 529278,
+      "sha256": "e7a7ea3471ef70a74f92619295ebadb03317044dd54375870a5c5ae9b3b48f23",
+      "mode": "644"
+    },
+    {
+      "path": "PREPARATION.md",
+      "bytes": 12305,
+      "sha256": "c46983bf62b22ef14c69244866b1d30d75023ce17c2067b753c3283d3c1bdf13",
+      "mode": "644"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 11211,
+      "sha256": "07a050c3227b828233b5eed6c7ab8cacf930a10eb80b7ae003ce4ad3f5387499",
+      "mode": "644"
+    },
+    {
+      "path": "cases.mjs",
+      "bytes": 7854,
+      "sha256": "158fbcc7202eb3a9b878a3e66c314f51b21aa8e975a1675306d97d3ae44a0562",
+      "mode": "644"
+    },
+    {
+      "path": "cohort.mjs",
+      "bytes": 4398,
+      "sha256": "90845d7f5468083d6762d0fa61afa4c04d81cae3c7784cbe8b9b5d9ff033798d",
+      "mode": "644"
+    },
+    {
+      "path": "diagnostics.mjs",
+      "bytes": 5857,
+      "sha256": "2fe49b9294e8c0a14f6eb04b54883142fe8898e4f22d8ac53c47514762a5d215",
+      "mode": "644"
+    },
+    {
+      "path": "fixture-module.mjs",
+      "bytes": 2588,
+      "sha256": "a557992271b5c6f178eca5a61efa8f43602582675957c3f95e41af3240462d47",
+      "mode": "644"
+    },
+    {
+      "path": "integrity.mjs",
+      "bytes": 2543,
+      "sha256": "d02d14d8805f9aad0b10affc968c369313aa6c1a642ed115417a2e2f2b340c01",
+      "mode": "644"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 4967,
+      "sha256": "6ffc3ffd05342ca655ce88929087dcb1a720f18c5c745c74c1753c5d0673a864",
+      "mode": "644"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 4770,
+      "sha256": "6e3b68daaacae47dadd7d9c4993421a86973e54f62b1ca08a85d9f9b9a655193",
+      "mode": "644"
+    },
+    {
+      "path": "process-fixture.mjs",
+      "bytes": 1221,
+      "sha256": "94c9ea405fb4748f9b56450fc05f407f42a75f5cc007b8d09a29a0aa32b59f39",
+      "mode": "644"
+    },
+    {
+      "path": "qualify.mjs",
+      "bytes": 25701,
+      "sha256": "8d7319d5071217235d6e587aef7dbe8e10f9517a8f915e2ad6a45e8905978e93",
+      "mode": "644"
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 12606,
+      "sha256": "840cc5cc46a23998478d8dd041690f86035d8d8265036b32ad1f91edb1fbe52e",
+      "mode": "644"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 1916,
+      "sha256": "672d1e461b3c4d06d4bf9b0a87b2af627a7bbd95e701146d4b1377e12722a9f8",
+      "mode": "644"
+    },
+    {
+      "path": "runner.mjs",
+      "bytes": 6411,
+      "sha256": "3e7af786e3eb70ddf589f8cfa27695338d1c887edbb64e52bc8f0952347058c0",
+      "mode": "644"
+    },
+    {
+      "path": "scenarios.mjs",
+      "bytes": 12695,
+      "sha256": "60a6c203fba8a0918f4c3b43d1b7b03f1ffecb162c0564da5a08ad2855b2cae3",
+      "mode": "644"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 4583,
+      "sha256": "2599d8d7f9df252584d46ad24f8d19d59e931049a804e18a054dfc789942ebec",
+      "mode": "644"
+    },
+    {
+      "path": "synthetic.mjs",
+      "bytes": 6254,
+      "sha256": "a75f5b03c53551ba861a808e6f2a8b919fd11099fd9dcb86b79af09ba52fc909",
+      "mode": "644"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 8093,
+      "sha256": "f1e2c0b1885d3501ad5539717d81a3f367bb393407dbbd3c94f46a8f80efb044",
+      "mode": "644"
+    }
+  ],
+  "helpers": [
+    {
+      "path": "../core.mjs",
+      "bytes": 6085,
+      "sha256": "3895185f7962d316bfde115614ab7d33e683a7b8c4a05886917df5b374abefdc",
+      "mode": "644",
+      "commit": "9c8855b806bd963ccc1f1209e454ffc582b16e1b"
+    },
+    {
+      "path": "../mocks.mjs",
+      "bytes": 10860,
+      "sha256": "05fb3afc93cb6e3d3c297a070cde21402614031c4145bb6b3777d69ed7859ce8",
+      "mode": "644",
+      "commit": "9c8855b806bd963ccc1f1209e454ffc582b16e1b"
+    },
+    {
+      "path": "../supervisor.mjs",
+      "bytes": 4782,
+      "sha256": "0e0dc464fdd505204301cf543711aac7c787825256b05ad9af750f2a375da063",
+      "mode": "644",
+      "commit": "9c8855b806bd963ccc1f1209e454ffc582b16e1b"
+    },
+    {
+      "path": "../guard.mjs",
+      "bytes": 1843,
+      "sha256": "bc20a1dee050575b2e0e342d7cf5709136e5cb32b88520fc7c451e93c4a57ae4",
+      "mode": "644",
+      "commit": "9c8855b806bd963ccc1f1209e454ffc582b16e1b"
+    }
+  ],
+  "inputs": [
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-CONTRACT-V4.md",
+      "bytes": 7335,
+      "sha256": "130d9877dcca4a560b064c827adec95258baad14efc5dc00737a3ff39f4a0a61",
+      "gitBlob": "ab1c3bced330134073016c2943d9908e3f0dc1d2"
+    },
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-BINDING-V4.json",
+      "bytes": 16369,
+      "sha256": "058782fddf4e18e2c36e665b5836a2543b897fdb1f908d1092df074975e5b30b",
+      "gitBlob": "9f2646c49db17b8cd05591c40c717d59022c6dcb"
+    },
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "bytes": 10936,
+      "sha256": "e4fff14cdfd5407429bcd57846978c34b6be893884a961833152e52e4d605c62",
+      "gitBlob": "197a11851ab12ff67713875c2eefa4ef98247ba5"
+    },
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "bytes": 8271,
+      "sha256": "b632cca2f185f3b222062fc4bdc091a6a95861a8743a209608d40dff947d54de",
+      "gitBlob": "44d74e2de98d6dedeae33e38179fd823471680fb"
+    },
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "bytes": 30285,
+      "sha256": "fe33803bad06802d8cad8d0c4faa3b7eaeb75b28b67f46ed7e7b92fbe72568c5",
+      "gitBlob": "d2c859c1365bd03eaef1000ab8ceddd7595de7be"
+    },
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "bytes": 13506,
+      "sha256": "35f3c9081d4617abc56714f174f82cfd1d221ba9f8c8715b4d7a34762051f518",
+      "gitBlob": "ef10a696fa4f7f6fe6c3f3d959fc125e95bc43f9"
+    },
+    {
+      "commit": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "bytes": 7514,
+      "sha256": "cc81bbe66251f1e143ff17b45da05ac5f0b5cfe0209230a84a16cfe6581b48e9",
+      "gitBlob": "1e25b11e696bcd37cf18a37d957b1f1b73d42377"
+    }
+  ],
+  "policyBindingsMetadataOnly": {
+    "order": [
+      "Latest root adoption of selector sections 2–4",
+      "Seven explicit root ratifications",
+      "Base approved 116 profile and shared contracts"
+    ],
+    "selector": {
+      "path": "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+      "revision": "5b27c32b941315247bf5dca7b20faf2a9aca6d48",
+      "gitBlob": "c86f1fdfcd4e23beb8370dc1125c526cfbe447f0",
+      "sha256": "1e0d605985ddc6c2877d9ed38f76769a85b07e82d1c844406c39b2aa45a11493",
+      "bytes": 13305,
+      "adoptedSections": "2–4; lines 33–186",
+      "sectionSha256": "6fbef9dc61ea39844473f5c63ac5b0afb51d44d48418152a0aa8d564a7967717",
+      "sectionBytes": 9397,
+      "sectionHashDefinition": "UTF-8 bytes starting ## 2. through immediately before ## 5., including intervening newlines",
+      "rootDisposition": "ADOPTED by latest user/root instruction; supersedes historical PENDING and request-for-adoption labels"
+    },
+    "sevenRulesRevision": "c3d215e3c5f8594b1ade147cf3af88e6d18f3165",
+    "baseProfileRevision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+    "unadopted": "Section 1 does not independently broaden existing numeric/flag grammar; only explicitly ratified rules supersede prior proposals."
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": "755"
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "mode": "755"
+    }
+  ],
+  "retention": {
+    "json": "each artifact exact declared byte size; no RSS/constant-memory assertion",
+    "transportChunkBytes": 65536
+  },
+  "exclusions": [
+    "No src/commands/xan content read",
+    "No product/build/typecompile/native oracle execution",
+    "No mutable author input",
+    "No installed dependencies"
+  ],
+  "historicalQualification": {
+    "commit": "4c106d2bbd33e81e4dc12ffdd18f5e3731b9fd39",
+    "count": 74,
+    "rescore": false
+  }
+}

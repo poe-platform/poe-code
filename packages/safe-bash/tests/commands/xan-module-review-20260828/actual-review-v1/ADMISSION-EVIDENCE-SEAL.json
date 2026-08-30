@@ -1,0 +1,61 @@
+{
+  "schema": "xan-owned-streamed-evidence-v1",
+  "classification": "ADMISSION_HOLD_NO_PRODUCT",
+  "captured": "2026-08-28T06:06:01.443Z",
+  "root": "evidence",
+  "appendAware": true,
+  "entries": [
+    {
+      "path": "ADMISSION.json",
+      "bytes": 282277,
+      "sha256": "3214e66e04aff10eeb35a0dd44b6eed8fc662716a40b6f4c322d7248d035dc0d",
+      "mode": "644"
+    },
+    {
+      "path": "COVERAGE.json",
+      "bytes": 121310,
+      "sha256": "2ff6d6f428e1bac2c94bf3d1b5e34dba6d374c4364ecf64514270c86321a120b",
+      "mode": "644"
+    },
+    {
+      "path": "GIT-CHILD-RECEIPTS.json",
+      "bytes": 126076,
+      "sha256": "0522feb8f69cf4caf3f605680110eb1a26ae35e8fb90b4946e0c18ff29f77fee",
+      "mode": "644"
+    },
+    {
+      "path": "PRE-RUN.json",
+      "bytes": 5394,
+      "sha256": "c2c8a5d2406d0b45310d4cc55aad4d277dfc5a4ca59db71e9e698e8ae1038005",
+      "mode": "644"
+    },
+    {
+      "path": "REQUIRED-JOBS.json",
+      "bytes": 44677,
+      "sha256": "cbca79334fc15e60c23b12343c2587867ac6cb84237906d001047be7b6456e9e",
+      "mode": "644"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 2303,
+      "sha256": "379a7a47209515eecb686d05bff99c4ceb662164bbd02094c96528b9c7919ae2",
+      "mode": "644"
+    },
+    {
+      "path": "virtual-bash-0.0.0.tgz",
+      "bytes": 760439,
+      "sha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+      "mode": "644"
+    }
+  ],
+  "archive": {
+    "path": "ADMISSION-EVIDENCE.jsonl.gz",
+    "bytes": 902345,
+    "sha256": "aa04d9e9a9ffcb0b77ca56706bb00a4cf9f8a9a484818af52ccb2c6e59068d0c",
+    "mode": "644"
+  },
+  "transportChunkBytes": 65536,
+  "maximumRecordBytes": 131072,
+  "originalRawRetainedLocally": true,
+  "committedTransport": "streamed JSONL gzip; no extraction needed to verify; no AGENTS copies"
+}

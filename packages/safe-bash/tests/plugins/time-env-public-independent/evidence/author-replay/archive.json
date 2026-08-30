@@ -1,0 +1,30 @@
+{
+  "name": "archive",
+  "command": [
+    "git",
+    "--no-replace-objects",
+    "archive",
+    "--format=tar",
+    "--output=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-0EbEWb/source.tar",
+    "6ffe4f4f17637e44b55cc0455394513e8d6b94de",
+    "src",
+    "README.md",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "tests/plugins/time-env-public",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/plugins/stream-five-fixture-migration",
+    "tests/commands/time-env",
+    "tests/integration/stream-inspection-public-author",
+    "tests/commands/split",
+    "tests/commands/stream-format-author-stress",
+    "tests/commands/stream-format/helpers.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

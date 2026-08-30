@@ -1,0 +1,326 @@
+[
+  {
+    "id": "inherited-numeric",
+    "script": "sort -ns -t: -k2,2",
+    "input": "YjoxMAphOjIKYzotMQo=",
+    "expected": {
+      "status": 0,
+      "stdout": "YzotMQphOjIKYjoxMAo=",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "local-replaces-global-numeric",
+    "script": "sort -nr -t: -k2,2r",
+    "input": "YjoxMAphOjIKYzoxCg==",
+    "expected": {
+      "status": 0,
+      "stdout": "YToyCmI6MTAKYzoxCg==",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "local-numeric-replaces-global-reverse",
+    "script": "sort -rs -t: -k2,2n",
+    "input": "YjoxMAphOjIKYzotMQo=",
+    "expected": {
+      "status": 0,
+      "stdout": "YzotMQphOjIKYjoxMAo=",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "local-reverse-end-flags",
+    "script": "sort -s -t: -k2,2nr",
+    "input": "YjoxMAphOjIKYzotMQo=",
+    "expected": {
+      "status": 0,
+      "stdout": "YjoxMAphOjIKYzotMQo=",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "whitespace-included-character",
+    "script": "sort -s -k2.2,2n",
+    "input": "YSAyMApiCTMKYyAgMTAK",
+    "expected": {
+      "status": 0,
+      "stdout": "YgkzCmMgIDEwCmEgMjAK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "whitespace-blanks-transform",
+    "script": "sort -s -k2.2,2bn",
+    "input": "YSAyMApiCTEzCmMgIDExCg==",
+    "expected": {
+      "status": 0,
+      "stdout": "YSAyMApjICAxMQpiCTEzCg==",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "delimited-empty-and-missing",
+    "script": "sort -s -t: -k2,2n",
+    "input": "YToKYgpjOjIKZDotMQplOjo5Cg==",
+    "expected": {
+      "status": 0,
+      "stdout": "ZDotMQphOgpiCmU6OjkKYzoyCg==",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "open-ended-key",
+    "script": "sort -s -t: -k2n",
+    "input": "YToyMDowCmI6Mzo5MApjOi0xOjgK",
+    "expected": {
+      "status": 0,
+      "stdout": "YzotMTo4CmI6Mzo5MAphOjIwOjAK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "end-field-and-char-boundary",
+    "script": "sort -s -t: -k2.2,2.3n",
+    "input": "YTp4MjA5CmI6eDAzOQpjOngxMDkK",
+    "expected": {
+      "status": 0,
+      "stdout": "Yjp4MDM5CmM6eDEwOQphOngyMDkK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "out-of-range-character",
+    "script": "sort -s -t: -k2.99,2.100n",
+    "input": "YjoyCmE6MQpjOjMK",
+    "expected": {
+      "status": 0,
+      "stdout": "YjoyCmE6MQpjOjMK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "start-after-end",
+    "script": "sort -s -t: -k3,2n",
+    "input": "ejoyOjgKYToxOjkKYjozOjAK",
+    "expected": {
+      "status": 0,
+      "stdout": "ejoyOjgKYToxOjkKYjozOjAK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "utf8-byte-offset",
+    "script": "sort -s -t: -k2.3,2n",
+    "input": "YTrDqTIwCmI6w6kzCmM6w6ktMQo=",
+    "expected": {
+      "status": 0,
+      "stdout": "YzrDqS0xCmI6w6kzCmE6w6kyMAo=",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "invalid-byte-key-and-fallback",
+    "script": "sort -t: -k2,2n",
+    "input": "Yjox/wphOjGACmM6MAo=",
+    "expected": {
+      "status": 0,
+      "stdout": "YzowCmE6MYAKYjox/wo=",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "exact-integers-above-double",
+    "script": "sort -s -t: -k2,2n",
+    "input": "YTo5MDA3MTk5MjU0NzQwOTkzCmI6OTAwNzE5OTI1NDc0MDk5MgpjOi05MDA3MTk5MjU0NzQwOTkyCmQ6LTkwMDcxOTkyNTQ3NDA5OTMK",
+    "expected": {
+      "status": 0,
+      "stdout": "ZDotOTAwNzE5OTI1NDc0MDk5MwpjOi05MDA3MTk5MjU0NzQwOTkyCmI6OTAwNzE5OTI1NDc0MDk5MgphOjkwMDcxOTkyNTQ3NDA5OTMK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "exact-fractions-and-prefix-grammar",
+    "script": "sort -s -t: -k2,2n",
+    "input": "YTouMDAwMDAwMDAwMDAwMDAwMDAwMDIKYjouMDAwMDAwMDAwMDAwMDAwMDAwMDEKYzoxZTMKZDorOQplOi0uMQpmOndvcmQKZzowMDAxLjAwMHRhaWwK",
+    "expected": {
+      "status": 0,
+      "stdout": "ZTotLjEKZDorOQpmOndvcmQKYjouMDAwMDAwMDAwMDAwMDAwMDAwMDEKYTouMDAwMDAwMDAwMDAwMDAwMDAwMDIKYzoxZTMKZzowMDAxLjAwMHRhaWwK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "ties-stable",
+    "script": "sort -s -t: -k2,2n",
+    "input": "ejowMQphOjEuMApiOjAwMDEK",
+    "expected": {
+      "status": 0,
+      "stdout": "ejowMQphOjEuMApiOjAwMDEK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "ties-reverse-byte-fallback",
+    "script": "sort -r -t: -k2,2n",
+    "input": "YjowMQp6OjEuMAphOjAwMDEK",
+    "expected": {
+      "status": 0,
+      "stdout": "ejoxLjAKYjowMQphOjAwMDEK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "unique-first-signed-zero",
+    "script": "sort -u -t: -k2,2n",
+    "input": "ejotMAphOjAwMC4wMDAKYjorOQpkOjIKZTowMgo=",
+    "expected": {
+      "status": 0,
+      "stdout": "ejotMApkOjIK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "reverse-unique-first",
+    "script": "sort -u -t: -k2,2nr",
+    "input": "ejowMQphOjEKYjoyCmM6MDIKZDotMQo=",
+    "expected": {
+      "status": 0,
+      "stdout": "YjoyCno6MDEKZDotMQo=",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "guard-multiple-keys",
+    "script": "sort -s -t: -k2,2n -k1,1r",
+    "input": "YToyCmM6MgpiOjEK",
+    "expected": {
+      "status": 0,
+      "stdout": "YjoxCmM6MgphOjIK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "guard-nonnumeric-local",
+    "script": "sort -n -t: -k2,2f",
+    "input": "Yjp6CmE6QQpjOmIK",
+    "expected": {
+      "status": 0,
+      "stdout": "YTpBCmM6YgpiOnoK",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "guard-numeric-fold-transform",
+    "script": "sort -s -t: -k2,2nf",
+    "input": "ejoxMAphOjIKYjoxCg==",
+    "expected": {
+      "status": 0,
+      "stdout": "YjoxCmE6Mgp6OjEwCg==",
+      "stderr": "",
+      "files": {}
+    }
+  },
+  {
+    "id": "guard-check-disorder",
+    "script": "sort -c -t: -k2,2n",
+    "input": "YToyCmI6MQo=",
+    "expected": {
+      "status": 1,
+      "stdout": "",
+      "stderr": "c29ydDogZGlzb3JkZXIgYXQgcmVjb3JkIDIK",
+      "files": {}
+    }
+  },
+  {
+    "id": "borrowed-offset-finalizer-newline",
+    "script": "sort -s -t: -k2,2n",
+    "input": "YToyMApiOi0xCmM6Mw==",
+    "expected": {
+      "status": 0,
+      "stdout": "YjotMQpjOjMKYToyMAo=",
+      "stderr": "",
+      "files": {}
+    },
+    "borrowedWidth": 3
+  },
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "script": "sort -sz -t: -k2,2n",
+    "input": "YToyMABiOi0xAGM6Mw==",
+    "expected": {
+      "status": 0,
+      "stdout": "YjotMQBjOjMAYToyMAA=",
+      "stderr": "",
+      "files": {}
+    },
+    "borrowedWidth": 5
+  },
+  {
+    "id": "input-error-keeps-destination",
+    "script": "sort -s -t: -k2,2n -o output input absent",
+    "input": "",
+    "expected": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "c29ydDogRU5PRU5UOiAvYWJzZW50Cg==",
+      "files": {
+        "input": "YToyCmI6MQo=",
+        "output": "a2VlcA=="
+      }
+    },
+    "files": {
+      "input": "YToyCmI6MQo=",
+      "output": "a2VlcA=="
+    }
+  },
+  {
+    "id": "cancel-input-keeps-destination",
+    "script": "sort -s -t: -k2,2n -o output",
+    "input": "YToyCg==",
+    "expected": {
+      "rejection": "same-abort-reason",
+      "stdout": "",
+      "stderr": "",
+      "files": {
+        "output": "a2VlcA=="
+      }
+    },
+    "cancel": true,
+    "files": {
+      "output": "a2VlcA=="
+    }
+  },
+  {
+    "id": "output-budget-rejection",
+    "script": "sort -s -t: -k2,2n",
+    "input": "YToyCmI6MQo=",
+    "expected": {
+      "rejection": "outputBytes",
+      "files": {}
+    },
+    "limits": {
+      "outputBytes": 3
+    }
+  }
+]

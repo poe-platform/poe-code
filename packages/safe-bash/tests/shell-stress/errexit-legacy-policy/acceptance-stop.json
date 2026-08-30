@@ -1,0 +1,126 @@
+{
+  "recordedAt": "2026-08-27T05:55:27.752Z",
+  "outcome": "STOP before any existing test changes: source changed after valid unchanged baseline; no corrected run or retry",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "preparationCommit": "76d1dd721f8b6efc9417b847e14d674cf9cbae0f",
+  "nativeProofSha256": "064500b8dc1083be32e07f2fc4a67124600899fd37fd8e1abe42cc411d9f5ee8",
+  "baselineSha256": "4f67c132ab407bf07d5f05efccba932b85ab4afd87b4a73320e82a61ae532f3d",
+  "baselineCounts": {
+    "tests": 175,
+    "pass": 172,
+    "fail": 3,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "baselinePeriod": {
+    "start": "2026-08-27T05:52:29.952Z",
+    "end": "2026-08-27T05:52:34.263Z"
+  },
+  "baselineGuard": {
+    "valid": true,
+    "actualLoads": 592
+  },
+  "observedPostBaselineSourceChanges": [
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "baselineSha256": "5d30214dbc5c6c3368024909dd3d870e6a6d8cd1c3fb511ccd86d84b597acd77",
+      "observedSha256": "eb29751d3649ec5796a6cce6f6e5010cc272358d3bd085dcc09461d0247973d5",
+      "actuallyImportedDuringBaseline": true
+    },
+    {
+      "path": "src/commands/stream-format/README.md",
+      "baselineSha256": "f6f618a4226374dd13d394013de45edc20b40f8015651e16cdf45fca70965d95",
+      "observedSha256": "22f31ea1f241c05fffe9f13e4320ac8ba35dd1e2d53ca03ffaa7c9224428ee2f",
+      "actuallyImportedDuringBaseline": false
+    },
+    {
+      "path": "src/commands/stream-format/index.ts",
+      "baselineSha256": "85a9acdb44a3298602434e8c5732f99854f2c29cb45452aaac37142407bc3304",
+      "observedSha256": "231c8656d22b0c126fdcb31534dbbe8090cb82567d0913c2ad8d9b93fabfe969",
+      "actuallyImportedDuringBaseline": false
+    }
+  ],
+  "frozenShellCheck": {
+    "src/shell/runtime.ts": {
+      "baselineSha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb",
+      "currentSha256": "5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb"
+    },
+    "src/shell/parser.ts": {
+      "baselineSha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "currentSha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    },
+    "src/shell/arithmetic.ts": {
+      "baselineSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "currentSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    }
+  },
+  "existingTestsUnmodified": {
+    "tests/shell/invocation-modes.test.ts": {
+      "originalSha256": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46",
+      "currentSha256": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46"
+    },
+    "tests/shell/unsupported-options.test.ts": {
+      "originalSha256": "c070aaed32d0474da7e4b739b438f6c2c556a1de9dae6dc5be3194ae921d1a6d",
+      "currentSha256": "c070aaed32d0474da7e4b739b438f6c2c556a1de9dae6dc5be3194ae921d1a6d"
+    },
+    "tests/shell/script-entrypoint.test.ts": {
+      "originalSha256": "ecb96a1a78c5faf70acfdc8680ad20bf705ff09fe97af2da69709f9cc23f0029",
+      "currentSha256": "ecb96a1a78c5faf70acfdc8680ad20bf705ff09fe97af2da69709f9cc23f0029"
+    }
+  },
+  "groupCoverage": {
+    "originalInvocation": "First bash -e assertion failed; later 17 invocations and final zero-read guard not reached in this original group.",
+    "originalSet": "First set -e assertion failed; later two inputs and subsequent assertions not reached in this original group.",
+    "originalShebang": "options row failed on status; later stdout/diagnostic assertions in that row not reached. Other generated test rows ran independently.",
+    "additiveActor": "22 complete inputs recorded separately before edits; not counted as original assertions or an expanded acceptance suite."
+  },
+  "proposedRows": {
+    "invocation": {
+      "modes": [
+        "bash",
+        "sh"
+      ],
+      "flags": [
+        "-e",
+        "-i",
+        "-l",
+        "-x",
+        "--login",
+        "--norc",
+        "--posix",
+        "+s",
+        "-csx"
+      ],
+      "totalRows": 18,
+      "affectedRows": 2,
+      "retainedUnsupportedRows": 16
+    },
+    "set": {
+      "sources": [
+        "set -e; false; say bad >after",
+        "set -o errexit; false; say bad >after",
+        "set -eu || say unsafe >after"
+      ],
+      "totalRows": 3,
+      "affectedRows": 2,
+      "retainedUnsupportedRows": 1
+    },
+    "shebang": {
+      "name": "options",
+      "bodyHex": "23212f62696e2f62617368202d650a73617920626164",
+      "mode": 493,
+      "affectedRows": 1
+    }
+  },
+  "actualAssertionChanges": 0,
+  "correctedRun": null,
+  "typecheck": null,
+  "limits": [
+    "No hidden/public consumer fixture contents read; path names in git status are not fixture inspection.",
+    "No current full gate, parity, clean-worktree or whole-product freeze claim.",
+    "No new native capture: accepted two-profile preparation reused, including literal /bin/bash 3.2 child under GNU 5.3 parent and explicitly mapped say helper.",
+    "No children or delegated workers remain; bounded baseline children completed.",
+    "Existing-test ownership relinquished without edits; correction remains unapplied because of the mandatory source-drift stop."
+  ]
+}

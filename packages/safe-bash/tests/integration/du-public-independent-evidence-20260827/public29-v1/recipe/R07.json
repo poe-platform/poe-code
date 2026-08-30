@@ -1,0 +1,20 @@
+{
+  "schema": "du-r07-post-candidate-binding/1",
+  "case": "R07",
+  "rootSelectedFamily": "htmlToMarkdown",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "acceptedHtmlCandidate": "aff899aa94ed0c57a936b08fd36d185688f5c0bb",
+  "chronology": "Literal values bound after candidate declaration; original freeze and R07 question unchanged",
+  "provenance": {
+    "html": "accepted HTML public.mjs P08: /one contains <p>x</p>; two separate invocations succeed x\\nx\\n; the two-operand invocation with maxInputBytes8 fails after x\\n with exact input-limit diagnostic",
+    "du": "DU author consumer.ts.fixture /usage/a=abc and /usage/sub/b=12345, apparent summarized total8; POLICY entry-limit refusal and seven-byte /payload apparent success",
+    "options": "Committed AgentCommandsOptions.htmlToMarkdown and .du; accepted HTML maxInputBytes and DU maxEntries declarations"
+  },
+  "files": { "/one": "<p>x</p>", "/usage/a": "abc", "/usage/sub/b": "12345", "/payload": "1234567" },
+  "htmlPositive": { "command": "html-to-markdown /one; html-to-markdown /one", "exitCode": 0, "stdout": "x\nx\n", "stderr": "" },
+  "htmlTight": { "options": { "htmlToMarkdown": { "limits": { "maxInputBytes": 8 } } }, "command": "html-to-markdown /one /one", "exitCode": 1, "stdout": "x\n", "stderr": "html-to-markdown: EFBIG: html-to-markdown input limit exceeded\n" },
+  "duPositive": { "command": "du -bs /usage", "exitCode": 0, "stdout": "8\t/usage\n", "stderr": "" },
+  "duTight": { "options": { "du": { "limits": { "maxEntries": 1 } } }, "command": "du -bs /usage", "exitCode": 1, "stdout": "", "stderr": "du: du entry limit exceeded\n" },
+  "duTwoInvocations": { "command": "du -b /payload; du -b /payload", "exitCode": 0, "stdout": "7\t/payload\n7\t/payload\n", "stderr": "" },
+  "counterfactual": { "executed": false, "reason": "The frozen guard framework has no cross-family option-routing mutation hook. No unsupported option key or new source mutant is invented; no routing-mutant coverage claimed." }
+}

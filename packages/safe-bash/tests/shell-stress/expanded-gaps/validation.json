@@ -1,0 +1,90 @@
+{
+  "captured": "2026-08-27T03:16:19.457Z",
+  "head": "7a7562fe04e82b3a09d402297361826b4ccb3e9a",
+  "sourceHead": "e64ce50e1e45c6cf5e3e3686ce7424cbf0fa50df",
+  "sourceDirty": "src/shell/parser.ts\nsrc/shell/runtime.ts\n",
+  "foreignIndex": "",
+  "harnessHashes": {
+    "cases.mjs": "11a4928d6cf4c64de20752e2b918bafa511789fabf048221dc841ed2638f52fd",
+    "harness.mjs": "74efccf649ffb3b0835a92d46d495ff9dd3a28c5e4b419270c976c92c6989e1b",
+    "native.mjs": "64e6ac8e1801c1f11dae37cd99629309579a1555d5164aef5c9daddb0d516b46",
+    "product.mjs": "50578db97f08968c2f64c0309b46e9c0bae127f15721f1fd1754881c5deb54c5",
+    "replay.mjs": "d96f1bded7db39055d98a9482165cc1d3c29fa2d96489c6e454dbb67647b8892",
+    "native-frozen.json": "9afb51e0eed4f9fe1a61c52a146066edf11a6cc53408dd0b442186bbcd25a302",
+    "native-first-capture.json": "c5d2e8be5e0cf2c078067747ffc51de7909df7c78e672309741becd960b8cd2f",
+    "../current-shell/support.mjs": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a",
+    "../current-shell/acceptance-trace.mjs": "787511298f23c9536bb9b4a4b9cb8c5ff323e50b1df28cc512e1703c52cc40dc"
+  },
+  "syntax": [
+    {
+      "path": "cases.mjs",
+      "status": 0,
+      "stdout": ""
+    },
+    {
+      "path": "harness.mjs",
+      "status": 0,
+      "stdout": ""
+    },
+    {
+      "path": "native.mjs",
+      "status": 0,
+      "stdout": ""
+    },
+    {
+      "path": "product.mjs",
+      "status": 0,
+      "stdout": ""
+    },
+    {
+      "path": "replay.mjs",
+      "status": 0,
+      "stdout": ""
+    },
+    {
+      "path": "../current-shell/support.mjs",
+      "status": 0,
+      "stdout": ""
+    },
+    {
+      "path": "../current-shell/acceptance-trace.mjs",
+      "status": 0,
+      "stdout": ""
+    }
+  ],
+  "measuredSourceManifest": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+  "endpointSourceDigest": "ea15350bfc5a8a3f171646dc87155ab20b9c3059d3dc624a2a8703da56dcbaf9",
+  "endpointDrift": [
+    "src/shell/runtime.ts"
+  ],
+  "nativeHistoricalDifferences": [
+    "header-noexecute"
+  ],
+  "initialHarnessAffectedRows": [
+    "header-argv",
+    "header-path",
+    "header-cwd",
+    "header-env",
+    "header-functions",
+    "header-state",
+    "header-empty",
+    "header-exit",
+    "header-symlink",
+    "header-noexecute",
+    "header-readonly-bash",
+    "header-execute-no-read",
+    "header-path-search-denied",
+    "env-argv",
+    "env-tabs",
+    "env-single-kernel-argument",
+    "env-injection-text",
+    "env-missing-target",
+    "env-sh",
+    "env-child-isolation",
+    "env-unsupported-interpreter",
+    "parameter-substitution-order"
+  ],
+  "recordedProcessGroups": 244,
+  "liveGroups": [],
+  "allRunsBounded": true
+}

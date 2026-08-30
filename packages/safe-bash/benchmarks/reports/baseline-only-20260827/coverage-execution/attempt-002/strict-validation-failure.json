@@ -1,0 +1,8 @@
+{
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node benchmarks/reports/baseline-only-20260827/coverage-execution/verify-execution.mjs benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nnull !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/verify-execution.mjs:47:14\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: null,\n  expected: 0,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "expectedReason": "Strict validator requires every child normal. js-exec instead required SIGTERM after successful result; preserved failure, not waived pass."
+}

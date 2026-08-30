@@ -1,0 +1,15 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [
+    "../../../commands/internal.test.ts",
+    "../../../commands/streams.test.ts",
+    "../../../contracts/io.test.ts",
+    "../../../shell/streaming.test.ts",
+    "../../../commands/text.test.ts",
+    "../../../commands/stream-format/rev.test.ts",
+    "../ownership.test.ts",
+    "../expectations.ts"
+  ],
+  "exclude": []
+}

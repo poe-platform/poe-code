@@ -1,0 +1,273 @@
+{
+  "request": {
+    "id": "synthetic/leak",
+    "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "leak",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/leak",
+    "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "natural deadline",
+      "coordinator crash/forced exit",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 0.548,
+        "kind": "group-admitted",
+        "pid": 86629,
+        "pgid": 86629,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-w3lrWQ",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 39.725,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "engine-spawn",
+        "pid": 86631,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 93.726,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1493.72375
+      },
+      {
+        "atMs": 93.729,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "ready"
+      },
+      {
+        "atMs": 94.438,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 94.604,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 94.657,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 94.804,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 94.914,
+        "id": "synthetic/leak",
+        "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 95.002,
+        "kind": "result-received",
+        "sha256": "958d558a2cec01e2e77126bb71c135b1230088a9d3dd16fbca675f9d5443e023",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 275.797,
+        "kind": "sticky-failure",
+        "reason": "natural deadline"
+      },
+      {
+        "atMs": 277.45,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 86629
+      },
+      {
+        "atMs": 279.422,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 279.426,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 279.43,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": {
+      "id": "synthetic/leak",
+      "nonce": "247b0363-eea6-41d6-b0dc-fe5ba962c6f4",
+      "kind": "result",
+      "observation": {
+        "stdout": "AH+A/w==",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AH+A/w=="
+          }
+        }
+      }
+    },
+    "engineExit": null,
+    "engineClose": null,
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 86629,
+    "enginePid": 86631,
+    "cancelSent": true,
+    "elapsedMs": 281.172,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1493.724
+    },
+    "hostBytes": 0,
+    "reportBytes": 1253,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 1253,
+      "receivedSha256": "5e43e377ad851a9dd071ac9a7ac2a12bb46e355cd2408e236e86d6a84ac980d8",
+      "prefixBase64": "AAABgnsiaWQiOiJzeW50aGV0aWMvbGVhayIsIm5vbmNlIjoiMjQ3YjAzNjMtZWVhNi00MWQ2LWIwZGMtZmU1YmE5NjJjNmY0Iiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6ODY2MzEsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAAAVXsiaWQiOiJzeW50aGV0aWMvbGVhayIsIm5vbmNlIjoiMjQ3YjAzNjMtZWVhNi00MWQ2LWIwZGMtZmU1YmE5NjJjNmY0Iiwia2luZCI6InJlYWR5In0AAABqeyJpZCI6InN5bnRoZXRpYy9sZWFrIiwibm9uY2UiOiIyNDdiMDM2My1lZWE2LTQxZDYtYjBkYy1mZTViYTk2MmM2ZjQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAGx7ImlkIjoic3ludGhldGljL2xlYWsiLCJub25jZSI6IjI0N2IwMzYzLWVlYTYtNDFkNi1iMGRjLWZlNWJhOTYyYzZmNCIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZXhlYy1zZXR0bGVkIn0AAABxeyJpZCI6InN5bnRoZXRpYy9sZWFrIiwibm9uY2UiOiIyNDdiMDM2My1lZWE2LTQxZDYtYjBkYy1mZTViYTk2MmM2ZjQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6InNuYXBzaG90LWNvbXBsZXRlIn0AAABteyJpZCI6InN5bnRoZXRpYy9sZWFrIiwibm9uY2UiOiIyNDdiMDM2My1lZWE2LTQxZDYtYjBkYy1mZTViYTk2MmM2ZjQiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAG97ImlkIjoic3ludGhldGljL2xlYWsiLCJub25jZSI6IjI0N2IwMzYzLWVlYTYtNDFkNi1iMGRjLWZlNWJhOTYyYzZmNCIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZGlzcG9zZS1zZXR0bGVkIn0AAADLeyJpZCI6InN5bnRoZXRpYy9sZWFrIiwibm9uY2UiOiIyNDdiMDM2My1lZWE2LTQxZDYtYjBkYy1mZTViYTk2MmM2ZjQiLCJraW5kIjoicmVzdWx0Iiwib2JzZXJ2YXRpb24iOnsic3Rkb3V0IjoiQUgrQS93PT0iLCJzdGRlcnIiOiIiLCJleGl0Q29kZSI6MCwiZW50cmllcyI6eyJiaW5hcnkiOnsidHlwZSI6ImZpbGUiLCJieXRlcyI6IkFIK0Evdz09In19fX0=",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "leak",
+    "passed": true,
+    "assessment": {
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 281.172,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-005-leak.json"
+  }
+}

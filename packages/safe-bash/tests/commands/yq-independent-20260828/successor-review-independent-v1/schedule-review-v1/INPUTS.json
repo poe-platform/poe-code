@@ -1,0 +1,20 @@
+{
+  "reviewDate": "2026-08-28",
+  "scope": "STATIC_ONLY_NO_EXECUTION",
+  "priorReviewCommit": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+  "planSourceCommit": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+  "planEvidenceCommit": "009c20f812926e4dc7c175b379f85753ff632691",
+  "planRoot": "tests/commands/yq-independent-20260828/successor-review-preseal-v1",
+  "sourceSealSha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891",
+  "finalSealSha256": "b29006dedd2d2be64165d6688ed4f451ccb369967a2cac5af97365546128b656",
+  "sourceDiffSha256": "586b0c7299585bb2911bf3e522ea5d33c0dfd1dc03a4afe5abd75e232a75a2bd",
+  "expectedCandidateNotAuthenticated": {
+    "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "archiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "package870Sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca"
+  },
+  "executionAuthorized": false,
+  "freshGO": false
+}

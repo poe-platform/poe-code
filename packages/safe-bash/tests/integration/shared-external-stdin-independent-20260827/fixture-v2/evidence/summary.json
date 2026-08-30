@@ -1,0 +1,31 @@
+{
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "fixtureCommit": "8e5fec07ec9a39582987736269bbed51caeb795e",
+  "started": "2026-08-27T16:29:27.475Z",
+  "ended": "2026-08-27T16:29:44.248Z",
+  "mainPasses": 35,
+  "mainCount": 35,
+  "columnPasses": 6,
+  "columnCount": 6,
+  "negativeAssertionExecutions": 3,
+  "negativeAssertionRows": 8,
+  "negativeAssertionExecutionsDetected": 3,
+  "historicalNegativeExecutions": 4,
+  "historical": {
+    "originalBaseline": "18/32",
+    "originalCandidate": "24/32",
+    "provisionalBaseline": "25/35",
+    "provisionalCandidate": "33/35",
+    "column": "0/6",
+    "originalAuthor": "34 cases / nine fixed observations retained",
+    "falsy": "5/5 separately at bdb49bb1"
+  },
+  "watchdogExpiries": 0,
+  "childrenClosed": true,
+  "activeOwnedChildren": 0,
+  "scratchRetained": "/private/tmp/shared-stdin-fixture-v2-work-ys9tnY",
+  "sourceChanged": false,
+  "authorOnly": true,
+  "reviewer": "WAITING",
+  "publicIntegration": "HOLD"
+}

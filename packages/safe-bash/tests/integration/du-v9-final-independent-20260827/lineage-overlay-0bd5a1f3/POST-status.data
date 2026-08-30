@@ -1,0 +1,8 @@
+ M package.json
+ M src/commands/html-to-markdown/index.ts
+ M src/index.ts
+ M src/plugins/index.ts
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/commands/timeout-design-independent-20260827/
+?? tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/

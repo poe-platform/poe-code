@@ -1,0 +1,50 @@
+{
+  "verifiedAt": "2026-08-27T05:00:35.201Z",
+  "rawCounts": {
+    "raw-author-fallback-check.json": 27,
+    "raw-author-guards.json": 220,
+    "raw-author-transport-check.json": 29,
+    "raw-packed-native.json": 186
+  },
+  "originalArtifactHashesVerified": 9,
+  "frozenSourceBuildPackageAndFixturesStable": true,
+  "currentHttpMatchesFreeze": true,
+  "exactHandoffSourceAndPackageMatch": true,
+  "sourceFiles": 165,
+  "tarballSha256": "715d17a9f73be1f3c767899a2849ec58b326fd6cfabe4e073c774482ef8543e2",
+  "originalArchiveSha256": "378a93951046227f40f0a7ce023d69d468f7ed0f4010d474b695d08d671e78e7",
+  "serviceCount": 4,
+  "activeOwnedProcesses": [],
+  "allOwnedDataHomeAndBinaryAbsent": true,
+  "independentSignerVectors": [
+    {
+      "name": "GET",
+      "canonicalHash": "7344ae5b7ee6c3e7e6b0fe0640412a37625d1fbfff95c48bbb2dc43964946972",
+      "signature": "f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41",
+      "passed": true
+    },
+    {
+      "name": "PUT",
+      "canonicalHash": "9e0e90d9c76de8fa5b200d8c849cd5b8dc7a3be3951ddb7f6a76b4158342019d",
+      "signature": "98ad721746da40c64f1a55b78f14c238d841ea1380cd77a1b5971af0ece108bd",
+      "passed": true
+    },
+    {
+      "name": "lifecycle",
+      "canonicalHash": "9766c798316ff2757b517bc739a67f6213b4ab36dd5da2f94eaebf79c77395ca",
+      "signature": "fea454ca298b7da1c68078a5d1bdbfbbe0d65c699e0f91ac7a200a0136783543",
+      "passed": true
+    },
+    {
+      "name": "list",
+      "canonicalHash": "df57d21db20da04d7fa30298dd4488ba3a2b47ca3a489c74750e0f1e7df1b9b7",
+      "signature": "34b48302e7b5fa45bde8084f4b7868a86f0a534bc59db6670ed5711ef69dc6f7",
+      "passed": true
+    }
+  ],
+  "driverSha256": "fdd60b0a2a0b9f02c5ea568e18b77d06ea025e49d8214750d63a19266957a110",
+  "verifierSha256": "7396f4cd4aa6dfcc4d0ebc4495cf201dac98cf8d8bdaf83139d804fb96ebfe8d",
+  "authorConsumersIdenticalToFrozenInputs": true,
+  "independentConsumerSourceSha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf",
+  "frozenIndependentConsumerSourceSha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf"
+}

@@ -1,0 +1,359 @@
+{
+  "freezeCommit": "30dda5b930c6e5ea29a54348926fc02b81f9d8e6",
+  "baselineCommit": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "arch": "arm64",
+  "node": "v22.22.2",
+  "native": "Not executed; only authenticated existing GNU coreutils 9.7 Darwin frozen expectations. Nearby cases are project-policy controls, not native claims.",
+  "original": {
+    "passed": 42,
+    "total": 61,
+    "failures": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "modulo-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "noninteger-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-operator-missing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-same-precedence",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-skipped-syntax",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-missing-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-wrong-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "nested-runtime-before-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-first-argument-before-missing-second",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-second-before-missing-third",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-error-before-trailing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-close",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-later-missing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-prefix-error-before-outer-arity",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-missing-close",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-runtime",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "first-regex-before-second-syntax",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "nativeSubset": {
+    "passed": 25,
+    "total": 44,
+    "failures": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "modulo-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "noninteger-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-operator-missing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-same-precedence",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-skipped-syntax",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-missing-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-wrong-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "nested-runtime-before-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-first-argument-before-missing-second",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-second-before-missing-third",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-error-before-trailing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-close",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-later-missing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-prefix-error-before-outer-arity",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-missing-close",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-runtime",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "first-regex-before-second-syntax",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "projectSubset": {
+    "passed": 17,
+    "total": 17,
+    "failures": []
+  },
+  "shell": {
+    "passed": 3,
+    "total": 5,
+    "failures": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "oldCapSeparate": {
+    "id": "old-syntax-output-one-separate",
+    "mode": "direct",
+    "observed": {
+      "exitCode": 3,
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n"
+    },
+    "expected": {
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n"
+    },
+    "jobs": [],
+    "encodes": [
+      "x"
+    ],
+    "budgetCount": 1,
+    "budgetIncreases": 0,
+    "events": [
+      {
+        "kind": "cleanup-registered"
+      },
+      {
+        "kind": "session-close-start"
+      },
+      {
+        "kind": "session-close-end"
+      },
+      {
+        "kind": "execute-settled",
+        "activeWorkers": 0
+      }
+    ],
+    "failures": [
+      "exitCode",
+      "stderr"
+    ],
+    "passed": false
+  },
+  "nearby": {
+    "passed": 12,
+    "total": 16,
+    "failures": [
+      {
+        "id": "nested-runtime-before-late-token",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-regex-before-late-token",
+        "failures": [
+          "exact encounter-order submissions"
+        ]
+      },
+      {
+        "id": "abort-result-before-late-close",
+        "failures": [
+          "rejection identity/output",
+          "exact encounter-order submissions"
+        ]
+      },
+      {
+        "id": "stderr-failure-after-regex",
+        "failures": [
+          "exact encounter-order submissions"
+        ]
+      }
+    ]
+  },
+  "same19FailureIdsAsQualified": true,
+  "activeWorkers": {
+    "original": 0,
+    "nearby": 0
+  },
+  "qualification": "Baseline source archive only; no parser candidate, no later quota-only source, no full gate or public consumer acceptance."
+}

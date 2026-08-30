@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "prior": "v2 142 passes and1 file-level loader failure; CD17+LET3 passed",
+  "error": "ERR_MODULE_NOT_FOUND getopts-independent-20260827/stage2/corpus.mjs via dynamic new URL import",
+  "correction": "pin dynamic corpus plus referenced reset-input.data from exact accepted baseline; test file unchanged; rerun only blocked state.test.ts",
+  "time": "2026-08-28T09:35:52.239Z"
+}

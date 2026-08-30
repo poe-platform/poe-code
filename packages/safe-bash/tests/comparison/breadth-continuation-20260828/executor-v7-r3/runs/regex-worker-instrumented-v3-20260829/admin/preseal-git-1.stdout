@@ -1,0 +1,30 @@
+[main 81443d3d9eabcf17040d77eb34c60106fc543ccc] test: preseal owned RegexWorker writer and mutation-stage successor
+ 28 files changed, 1767 insertions(+)
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/AUTH-INACTIVE.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/AUTH.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/CONTROL-AMENDMENT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/EVIDENCE.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/INSTRUMENTATION.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/PLAN.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/PRIOR-DRAFT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/README.md
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/ROOT-AUTHORITY.txt
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/SEAL.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/SOURCE-CHECK-AMENDMENT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/SOURCE-CHECK-PRESEAL.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/SOURCE-SYNTAX-AMENDMENT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/SOURCE-SYNTAX.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/capture.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/case.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/common.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/controls.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/fixtures.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/guarded-operation.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/mutation.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/observer.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/owned-writer.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/package.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/policy.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/preload.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/supervisor.mjs
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/writer-controls.mjs

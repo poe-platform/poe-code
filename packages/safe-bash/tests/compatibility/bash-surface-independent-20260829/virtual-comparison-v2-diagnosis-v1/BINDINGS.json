@@ -1,0 +1,175 @@
+{
+  "schema": "v2-group-observer-source-diagnosis-v1",
+  "date": "2026-08-29",
+  "v2SourceCommit": "e24cce05ca0b20212155aee25ec21237e0d9baa4",
+  "v2EvidenceCommit": "8ec3de0e1a55ec77b7c3ecddf6fc0e8d942c2d67",
+  "controlSealSha256": "51fabb2a01ff9dc9bf2c5ed5f259e916f9d3fba8e90366f394d0c2169c01b923",
+  "sourceFiles": {
+    "mechanism.mjs": {
+      "bytes": 9000,
+      "sha256": "396262792bcdb10f258e08aeae676ed1263f10a4d45d51f5a452ca4cb795703a"
+    },
+    "controls.mjs": {
+      "bytes": 12607,
+      "sha256": "7c3f884f4c928d09c7ffb7002670975e1da7e52069adc3b008b93c34332dda14"
+    },
+    "guard.mjs": {
+      "bytes": 1475,
+      "sha256": "de4a4fc1db14fe5af9e98efc05a704fffd3685e8f9dbcd9c65bb5e2d9ec3fcca"
+    },
+    "publication-admin-controls.mjs": {
+      "bytes": 4311,
+      "sha256": "0c809b5a5481b6688e802ba9cb3601840812d84468197dc785cf28242081990a"
+    },
+    "CONTROL-PROTOCOL.json": {
+      "bytes": 3085,
+      "sha256": "0b1390eef15469a8beef6506e931d154fb2ee7370237f70848df5c8b2f9882a8"
+    }
+  },
+  "result": {
+    "bytes": 29122,
+    "sha256": "e2eefbea49ece2f37f2e888ef3dff35f62c6df5041d0d45e1083e9f4d532dfc1"
+  },
+  "owner": {
+    "number": 45,
+    "label": "sealed-harmless-controls",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2/controls.mjs",
+      "/tmp/bash-surface-virtual-comparison-v2-prep-xo85Rn/controls"
+    ],
+    "started": 1787995070021,
+    "exit": true,
+    "close": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "bytes": 18617,
+    "errors": [],
+    "pid": 59686,
+    "status": 1,
+    "signal": null,
+    "finished": 1787995071394
+  },
+  "m08": {
+    "label": "M08",
+    "started": 1787995070526,
+    "listeners": true,
+    "exit": true,
+    "close": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "status": 0,
+    "signal": null,
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "at": 1787995071329
+      }
+    ],
+    "errors": [],
+    "events": [
+      "capture-opened",
+      "listeners-enrolled",
+      "stderr-end",
+      "stdout-end",
+      "exit",
+      "close",
+      "capture-finalization"
+    ],
+    "captures": [
+      {
+        "name": "stdout",
+        "bytes": 6,
+        "sha256": "3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5",
+        "base64": "UkVBRFkK",
+        "flushed": true,
+        "closed": true
+      },
+      {
+        "name": "stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": "",
+        "flushed": true,
+        "closed": true
+      }
+    ],
+    "qualified": false,
+    "pid": 59697,
+    "group": {
+      "state": "unknown",
+      "error": {
+        "name": "Error",
+        "code": "EPERM",
+        "errno": -1,
+        "syscall": "kill"
+      }
+    },
+    "escalationAttempted": true,
+    "finished": 1787995071389,
+    "primaryPresent": true,
+    "primary": {
+      "kind": "object",
+      "name": "Error",
+      "message": "CHILD_DEADLINE"
+    },
+    "fixtureTimeoutQualified": false
+  },
+  "retainedArchive": {
+    "manifestSha256": "f5411e6d222f2282a5a9b635304ea3f9cf61200c5f1697cfd7bdf255d59db99c",
+    "compressedBytes": 2836003,
+    "compressedSha256": "921322ef9601856dbc4d32da00eb532aeddb17d0671f37c72c824fd1b0b9fb56",
+    "decodedBytes": 7902315,
+    "decodedSha256": "db9fa1be1cef186a2399e0a353c29f9e2c7a722d0ad80bda3df57bf6fba7fbd3",
+    "regularExactSizeAndHashBeforeInflate": true,
+    "sameAuthenticatedCompressedBuffer": true,
+    "selectedState": {
+      "bytes": 37232,
+      "sha256": "5ce9542514becf02b635bf0b26f21c3c1787b4ccde6d486dfa834f34a547994f"
+    }
+  },
+  "nativeContrast": {
+    "commit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+    "sourceFiles": {
+      "group-observer.mjs": {
+        "bytes": 759,
+        "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+      },
+      "lifecycle.mjs": {
+        "bytes": 5280,
+        "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+      },
+      "entry.mjs": {
+        "bytes": 7559,
+        "sha256": "29dee367786c98d4fc2e8f0dd448da5278a177b318b4a1a1f307d23cb51a9d30"
+      },
+      "PROTOCOL.json": {
+        "bytes": 2969,
+        "sha256": "f90eb997ba9ab2f5555a86143b76c4b3c8db00aa1177c2f5fe348dfd079a9082"
+      }
+    },
+    "scope": "Source-only comparison of roles; no grant reuse, native run, or upgraded TERM/KILL qualification"
+  },
+  "attribution": {
+    "ownerLayer": "controls.mjs PID59686 through mechanism.mjs, not child PID59697",
+    "probe": "default imported node:process kill binding, negative child.pid and numeric0",
+    "expectedGroup": "detached:true -> PID-derived expected PGID59697; NOT independently observed historical PGID",
+    "rawError": {
+      "name": "Error",
+      "code": "EPERM",
+      "errno": -1,
+      "syscall": "kill"
+    },
+    "lowerCause": "UNKNOWN: stock Node source suggests kill/errno path, but no kernel syscall/interposition/host-policy trace was retained",
+    "nodePermissionModel": "No permission flags or NODE_OPTIONS in sealed launch configuration; no historical runtime process.permission/execArgv snapshot. Do not assert a Permission Model defect.",
+    "sourceInjection": "No sealed kill/_kill replacement; M15 synthetic EPERM injection is UNRUN and uses a different explicit argument path.",
+    "missingEvidence": [
+      "actual per-probe target/caller/time/phase records",
+      "historical runtime execArgv and permission state",
+      "independent PGID observation",
+      "underlying kill binding/host-policy provenance"
+    ]
+  },
+  "forbiddenActionsPerformed": [],
+  "newTargetOrProbeExecutions": 0
+}

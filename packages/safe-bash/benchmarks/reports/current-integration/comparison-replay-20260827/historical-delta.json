@@ -1,0 +1,196 @@
+{
+  "histories": {
+    "authorCommit": "8e09db96b51248137648cd5fd6093e4bc08f2b59",
+    "docsCommit": "d484f98745494099e57740c8c0ad673b65e0a2aa",
+    "productCommit": "bd2cacb3a20403302fd0a49441932d5522793e56",
+    "harnessCommit": "0294afb6e690433aed994868e5ed437ecf58ae48",
+    "functionalSha256": "7e2b4bdfbbe64917ff88d94c9b97438aa6a1a709cff83b2a3c860d788b522b2e",
+    "counts": {
+      "virtual-bash": {
+        "pass": 206,
+        "fail": 18
+      },
+      "just-bash": {
+        "pass": 155,
+        "fail": 69
+      }
+    }
+  },
+  "delta": [
+    {
+      "id": "command/realpath/relative",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "command/wc/words-lines",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/wc/unicode",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/env/clean",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/env/unset",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "command/cksum/algorithm",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "command/patch/apply",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ]
+    },
+    {
+      "id": "command/patch/dry-run",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "fail",
+      "changedFields": [
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "command/patch/reverse",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ]
+    },
+    {
+      "id": "command/stat/timestamp",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout"
+      ]
+    },
+    {
+      "id": "kernel/executable-file/executable-file",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "kernel/env-shebang/env-shebang",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "kernel/source/source",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "kernel/dot/dot",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr"
+      ]
+    },
+    {
+      "id": "kernel/eval/eval",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "kernel/parameter/parameter",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ]
+    },
+    {
+      "id": "composition/patch-hash/patch-hash",
+      "engine": "virtual-bash",
+      "historicalStatus": "fail",
+      "currentOriginalStatus": "pass",
+      "changedFields": [
+        "stdout",
+        "stderr",
+        "entries"
+      ]
+    }
+  ],
+  "caveat": "Historical 206/18 versus 155/69 stays immutable. Current freeze is dirty c2902a6, not retroactive score attribution to later fixes or a passing full product gate."
+}

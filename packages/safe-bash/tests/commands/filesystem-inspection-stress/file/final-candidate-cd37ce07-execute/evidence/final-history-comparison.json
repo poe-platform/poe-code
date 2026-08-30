@@ -1,0 +1,399 @@
+{
+  "history": [
+    {
+      "id": "F01",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F02",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F03",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F04",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F05",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F06",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F07",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "native-profile-conflict",
+      "finalFreshNativeStatus": "native-profile-conflict",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F08",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F09",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F10",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F11",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F12",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "native-profile-conflict",
+      "finalFreshNativeStatus": "native-profile-conflict",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F13",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F14",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F15",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F16",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "native-profile-conflict",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F17",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F18",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "native-profile-conflict",
+      "finalFreshNativeStatus": "native-profile-conflict",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F19",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F20",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "pass",
+      "finalFreshNativeStatus": "pass",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F21",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F22",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F23",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F24",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F25",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F26",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F27",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F28",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F29",
+      "priorInitialRawStatus": "fail",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F30",
+      "priorInitialRawStatus": "backend-limitation",
+      "finalFreshRawStatus": "backend-limitation",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F31",
+      "priorInitialRawStatus": "backend-limitation",
+      "finalFreshRawStatus": "backend-limitation",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F32",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F33",
+      "priorInitialRawStatus": "fail",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F34",
+      "priorInitialRawStatus": "fail",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F35",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F36",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F37",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F38",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F39",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    },
+    {
+      "id": "F40",
+      "priorInitialRawStatus": "pass",
+      "finalFreshRawStatus": "pass",
+      "priorNativeStatus": "not-run",
+      "finalFreshNativeStatus": "not-run",
+      "finalEvidence": "FRESH_SINGLE_FINAL40_RUN",
+      "originalEvidence": "HISTORICAL_NOT_RERUN_NOT_REUSED_AS_FINAL"
+    }
+  ],
+  "changedContentOutputs": [
+    {
+      "id": "F16",
+      "view": "brief-mime",
+      "old": {
+        "stdout": "application/x-sqlite3; charset=binary\n",
+        "stderr": "",
+        "status": 0
+      },
+      "final": {
+        "stdout": "application/vnd.sqlite3; charset=binary\n",
+        "stderr": "",
+        "status": 0
+      },
+      "classification": "SQLite MIME source delta; oracle unchanged"
+    },
+    {
+      "id": "F16",
+      "view": "brief-mime-type",
+      "old": {
+        "stdout": "application/x-sqlite3\n",
+        "stderr": "",
+        "status": 0
+      },
+      "final": {
+        "stdout": "application/vnd.sqlite3\n",
+        "stderr": "",
+        "status": 0
+      },
+      "classification": "SQLite MIME source delta; oracle unchanged"
+    }
+  ],
+  "noHistoricalResultsRewritten": true,
+  "sourceDeltaReference": "source-deltas.json plus sqlite-source.diff, text-source.diff and shell-source.diff from READY publication",
+  "classification": "Observed F16 MIME change is distinct from corrected F29/F33/F34 predicates; F33/F34 final observations corroborate old3 source evidence. No isolated TEXT causality or unchanged Shell source claim."
+}

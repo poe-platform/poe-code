@@ -1,0 +1,9 @@
+
+> virtual-bash@0.0.0 typecheck
+> node scripts/typecheck.mjs
+
+typecheck: Unclassified current .mts inputs require an explicit existing-inventory route: tests/commands/grep-aliases-stress/verification/holdouts.mts, tests/commands/grep-aliases-stress/verification/public-consumer.mts, tests/commands/grep-aliases/consumer.mts
+
+3 !== 0
+
+{"status":"typecheck-failed","builds":0,"currentConsumerGroups":0,"runtimeExecutions":0,"cleaned":true}

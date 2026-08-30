@@ -1,0 +1,178 @@
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/BOOTSTRAP.md
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/DATA-AUTHORITY-v5.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/DISPATCH-v5.md
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/EXECUTOR-v4.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/EXECUTOR-v5.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/HANDOFF.md
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/PREPARATION-RESULT.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/PREPARATION-STOP.md
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/PRESEAL-v4.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/0.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/0.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/1.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/1.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/events.jsonl
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output-v5/generated-files.patch
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/0.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/0.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/1.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/1.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/2.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/2.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/3.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/3.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/4.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/4.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/capture-probe.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/events.jsonl
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-output/syntax-negative.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-v5/bash-strict-extension-author-20260829/EXECUTOR-v2.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-v5/bash-strict-extension-author-20260829/PRESEAL-v2.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-v5/bash-strict-extension-author-20260829/launch-v2.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-v5/bash-strict-extension-author-20260829/run-v2.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap/bash-strict-extension-author-20260829/EXECUTOR-v2.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap/bash-strict-extension-author-20260829/PRESEAL-v2.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap/bash-strict-extension-author-20260829/launch-v2.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap/bash-strict-extension-author-20260829/run-v2.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/launch-v4.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/launch-v5.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/outer-capture/START.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/outer-capture/TERMINAL.json
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/outer-capture/stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/outer-capture/stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/publication-capture/stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/publication-capture/stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/publication-capture/syntax.stderr
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/publication-capture/syntax.stdout
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/publish-v5.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v4.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs
+tests/compatibility/bash-strict-extension-author-20260829/n14-v4/DISPATCH-v5.md
+# Captured ordinary consumer-staging correction
+
+Source7196bace,293 inputs,derivedbf079ada and all12 focused expectations unchanged.
+V4 actual run built/packed954 members, SHA256
+3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49.
+Its source48+50+67+35+12=212 cases and two type groups passed. Then the runner
+opened source/__consumer/n14.mjs before it existed: setupConsumer's finite copy
+list omitted that already staged/authenticated harness file. N14 never launched.
+Ten direct children closed, zero observed RegexWorkers, five loader reservations,
+no signals. Raw v4 remains FAILED_OR_INCOMPLETE, not a completed cohort.
+
+V5 adds ONLY n14.mjs to that fixture copy list, uses new runner/outer/output names,
+and requires the actual unchanged v4 whole-package SHA after its fresh build.
+No source, assertions, old artifacts or permissions change. All672 main identities
+are a new versioned replay, not retrocredit. The two production builds are distinct
+actual attempts, not a one-build claim. Existing45min clock is NOT reset.
+
+V5 admission carries prior10 children/5 loader reservations into its cumulative
+guard, prior2,909,943 capture bytes and56,511,477 retained scratch bytes into bounds.
+Per-version direct observations remain distinguishable in the receipt.
+
+Fresh v5 retains seven mutation/restoration roles and two binding refusals.
+V4 consumed five loader admissions; planned v5 uses34, total39<=40 in this grant.
+Prior ten direct children plus planned44, supervisors/admin are accounted apart
+from loader reservations; no transitive/kernel census inferred. Safety failures
+still stop; this is the expressly permitted captured, retired helper correction.
+
+V4 retained roots: /tmp/strict-n14-v4-author-rD68Yv and
+/tmp/strict-n14-v4-launch-dafouN. No cleanup or mutation of those roots.
+
+{"name":"tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json","keys":["role","base","moduleCommit","integrationCommit","computedTree","inputs","module","publicRows","fixtures","documentation","reconstructedTrees","fetchedTrees","ancestorTrees","toolBindings","baseSourceSha256","overlay","sourceCommit"],"inputs":293,"runtime":{"path":"src/shell/runtime.ts","mode":"100644","blob":"df6b2c0dfad8d7412f93f434d07a20b2b9375a86","bytes":203623,"sha256":"4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058","revision":"7196bace8ea2c141d5ed1020fef5bf721c321ace"}}
+import assert from 'node:assert/strict';
+import { admitSource } from './admission.mjs';
+import fs from 'node:fs/promises';
+import fsSync from 'node:fs';
+import { internalLoaderArguments } from './internal-loader-arguments.mjs';
+import path from 'node:path';
+import os from 'node:os';
+import { spawn } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
+import { own, repo, sha, objectHash, hashExecutable } from './prepare.mjs';
+
+assert.deepEqual(process.argv.slice(2), ['--run']);
+const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR.json')));
+for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
+const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json')));
+admitSource(manifest,JSON.parse(await fs.readFile(path.join(own,'SOURCE-TREES.json'))));
+assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE.json'))), executor.source);
+assert.equal(process.execPath, seal.node.path); assert.equal(process.version, seal.node.version); assert.equal(await hashExecutable(process.execPath), seal.node.sha256);
+const base = JSON.parse(await fs.readFile(path.join(own, 'TOOLS.json')));
+const started = Date.now(), output = await fs.mkdtemp(path.join(os.tmpdir(), 'strict-extension-independent-'));
+const campaignStart = started;
+console.log(JSON.stringify({ output, source: executor.source, candidate: manifest.computedTree }));
+const receipt = { schema: 'strict-extension-independent-result-v1', output, source: manifest, executor, status: 'PREPARING', children: [], cohorts: [], types: [], controls: [], failures: [], tools: {}, nativeRuns: 0, privateRuns: 0 };
+let captured = 0, written = 0, childCount = 0, workerCount = 0, loaderReservations = 0;
+async function scratchBytes() {
+  let total = 0;
+  const scan = async root => { for (const name of await fs.readdir(root)) { const filename = path.join(root, name), stat = await fs.lstat(filename); assert.ok(!stat.isSymbolicLink()); if (stat.isDirectory()) await scan(filename); else { total += stat.size; assert.ok(total <= seal.bounds.scratchBytes); } } };
+  await scan(output); return total;
+}
+const save = () => fs.writeFile(path.join(output, 'RESULT.json'), JSON.stringify(receipt, null, 2) + '\n');
+async function write(file, bytes, mode = 0o644) { written += Buffer.byteLength(bytes); assert.ok(written <= seal.bounds.scratchBytes); await fs.mkdir(path.dirname(file), { recursive: true }); await fs.writeFile(file, bytes, { flag: 'wx', mode }); }
+async function inventory(root) {
+  const rows = [];
+  const walk = async relative => { for (const name of (await fs.readdir(path.join(root, relative))).sort()) { assert.notEqual(name, 'AGENTS.md'); const filename = path.join(relative, name), target = path.join(root, filename), metadata = await fs.lstat(target); assert.ok(!metadata.isSymbolicLink()); if (metadata.isDirectory()) await walk(filename); else { assert.ok(metadata.isFile()); const bytes = await fs.readFile(target); rows.push({ path: filename, mode: metadata.mode & 0o777, bytes: bytes.length, sha256: sha(bytes) }); } } };
+  await walk(''); return rows.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+}
+const environment = { PATH: path.dirname(process.execPath), HOME: path.join(output, 'home'), TMPDIR: path.join(output, 'tmp'), npm_config_cache: path.join(output, 'cache'), npm_config_userconfig: path.join(output, 'npmrc'), npm_config_globalconfig: path.join(output, 'global-npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_update_notifier: 'false', NO_COLOR: '1' };
+async function child(label, executable, args, cwd, extra = {}, input) {
+  assert.ok(++childCount <= seal.bounds.children);
+  const guarded = args.includes('--loader');
+  if (guarded) { loaderReservations++; assert.ok(loaderReservations <= seal.bounds.loaderAdmissions); assert.ok(childCount <= seal.bounds.children); }
+  const resourceLog = path.join(output, label + '-resources.jsonl');
+  if (guarded) args = internalLoaderArguments(args, { root: await fs.realpath(output), loader: path.join(harness, 'loader.mjs'), bootstrap: path.join(harness, 'resources.mjs'), consumer: args.at(-1) });
+  extra = { ...extra, ...(guarded ? { RESOURCE_LOG: resourceLog, RESOURCE_ALLOWANCE: String(Math.min(seal.bounds.regexWorkers - workerCount, seal.bounds.regexWorkers-workerCount)) } : {}) }; assert.ok(Date.now() - campaignStart < seal.bounds.totalSeconds * 1000);
+  assert.ok(seal.plannedLabels.includes(label) && !receipt.children.some(row => row.label === label), 'unplanned/repeated child role');
+  const row = { label, executable, executableSha256: await hashExecutable(executable), args, cwd, signals: [], closed: false };
+  assert.equal(row.executableSha256, executable === seal.node.path ? seal.node.sha256 : seal.developmentGit.sha256); assert.ok(executable === seal.node.path || executable === seal.developmentGit.path);
+  receipt.children.push(row);
+  const stdoutFd = fsSync.openSync(path.join(output, label + '.stdout'), 'wx'), stderrFd = fsSync.openSync(path.join(output, label + '.stderr'), 'wx');
+  const out = [], err = []; let size = 0, rescue, spawnError, captureError, alarm = false, spawnErrorPresent = false, captureErrorPresent = false;
+  const instance = spawn(executable, args, { cwd, env: { ...environment, ...extra }, stdio: ['pipe', 'pipe', 'pipe'] }); row.pid = instance.pid;
+  const closed = new Promise(resolve => instance.once('close', (...values) => resolve(values)));
+  instance.once('error', error => { spawnErrorPresent = true; spawnError = error; }); instance.stdin.on('error', () => {});
+  const terminate = () => { if (alarm) return; alarm = true; row.signals.push('SIGTERM'); instance.kill('SIGTERM'); rescue = setTimeout(() => { if (!row.closed) { row.signals.push('SIGKILL'); instance.kill('SIGKILL'); } }, 1000); };
+  for (const [stream, chunks, descriptor] of [[instance.stdout, out, stdoutFd], [instance.stderr, err, stderrFd]]) stream.on('data', bytes => {
+    size += bytes.length; captured += bytes.length;
+    try { if (size > seal.bounds.childCaptureBytes || captured > seal.bounds.captureBytes) { terminate(); return; } fsSync.writeSync(descriptor, bytes); chunks.push(Buffer.from(bytes)); }
+    catch (error) { captureErrorPresent = true; captureError = error; terminate(); }
+  });
+  const timer = setTimeout(terminate, Math.min(120000, seal.bounds.totalSeconds * 1000 - (Date.now() - campaignStart)));
+  instance.stdin.end(input);
+  const [code, signal] = await closed;
+  row.closed = true; clearTimeout(timer); clearTimeout(rescue); fsSync.closeSync(stdoutFd); fsSync.closeSync(stderrFd);
+  Object.assign(row, { code, signal, alarm, spawnErrorPresent, captureErrorPresent });
+  await save();
+  assert.ok(!captureErrorPresent, 'capture integrity stop');
+  if (guarded) {
+    const events = (await fs.readFile(resourceLog, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; })).trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
+    const births = events.filter(event => event.kind === 'worker-create'), exits = events.filter(event => event.kind === 'worker-exit');
+    workerCount += births.length; assert.ok(workerCount <= seal.bounds.regexWorkers); row.resources = { events, births: births.length, exits: exits.length, loaderReservation: 1 };
+    assert.ok(childCount <= seal.bounds.children);
+const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json')));
+admitSource(manifest,JSON.parse(await fs.readFile(path.join(own,'SOURCE-TREES.json'))));
+assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE.json'))), executor.source);
+const base = JSON.parse(await fs.readFile(path.join(own, 'TOOLS.json')));
+const receipt = { schema: 'strict-extension-independent-result-v1', output, source: manifest, executor, status: 'PREPARING', children: [], cohorts: [], types: [], controls: [], failures: [], tools: {}, nativeRuns: 0, privateRuns: 0 };
+async function run(label, product, script, extras = {}, bindingMutation) {
+async function cohort(label, product, script, expected, extras = {}) {
+async function types(label, product) {
+    const result = await child(`types-${label}-${negative}`, process.execPath, [compiler, '--strict', '--exactOptionalPropertyTypes', '--noEmit', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--pretty', 'false', '--listFiles', '--typeRoots', path.join(source, 'node_modules/@types'), filename], output);
+    receipt.types.push({ label, negative, pass, errors, declarations: bound }); if (!pass) receipt.failures.push({ label: `types-${label}`, negative, errors });
+  for (const name of ['typescript', '@types/node', 'undici-types', 'npm']) {
+  compiler = path.join(source, 'node_modules/typescript/bin/tsc'); npm = path.join(output, 'tools/npm/bin/npm-cli.js');
+    const header = tar.subarray(cursor, cursor + 512), name = header.subarray(0, 100).toString().split('\0')[0], size = Number.parseInt(header.subarray(124, 136).toString().replace(/\0/g, '').trim(), 8), mode = Number.parseInt(header.subarray(100, 108).toString().replace(/\0/g, '').trim(), 8), type = header[156];
+    assert.ok(name.startsWith('package/') && !name.split('/').some(part => part === '..' || part === 'AGENTS.md')); assert.ok(type === 0 || type === 48); assert.ok(Number.isSafeInteger(size) && size >= 0 && size <= tar.length - cursor - 512);
+  async function layout(label, product) {
+    await setupConsumer(product, label); await cohort(label + '-redirections-v3', product, 'redirections.mjs', 48); await cohort(label + '-strict', product, 'strict.mjs', 50); await cohort(label + '-conditional', product, 'conditional.mjs', 67); await cohort(label + '-extension', product, 'extension.mjs', 35); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-novel', product, 'novel.mjs', 16); await types(label, product);
+  const installed = path.join(output, 'installed'); await write(path.join(installed, 'package.json'), '{"private":true,"type":"module"}\n');
+  await cohort('moved-redirections-v3', movedRoot, 'redirections.mjs', 48); await cohort('moved-strict', movedRoot, 'strict.mjs', 50); await cohort('moved-conditional', movedRoot, 'conditional.mjs', 67); await cohort('moved-extension', movedRoot, 'extension.mjs', 35); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-novel', movedRoot, 'novel.mjs', 16); await types('moved', movedRoot);
+  const mutant = path.join(output, 'operator-mutants'); await write(path.join(mutant, 'package.json'), '{"private":true,"type":"module"}\n');
+  const mutations = [
+    "before": "state.nounset && typeof key === \"string\" && value === undefined",
+  for (const mutation of mutations) {
+    await cohort(mutation.id + '-restored', mutantRoot, 'extension.mjs', 1, { EXT_CASE: mutation.case });

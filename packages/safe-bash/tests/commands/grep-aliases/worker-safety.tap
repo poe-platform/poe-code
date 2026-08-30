@@ -1,0 +1,161 @@
+TAP version 13
+# Subtest: egrep registers cleanup synchronously before acquisition and shares completion
+ok 1 - egrep registers cleanup synchronously before acquisition and shares completion
+  ---
+  duration_ms: 21.583417
+  type: 'test'
+  ...
+# Subtest: egrep already aborted input never acquires a session
+ok 2 - egrep already aborted input never acquires a session
+  ---
+  duration_ms: 0.302583
+  type: 'test'
+  ...
+# Subtest: egrep cancellation awaits active worker retirement
+ok 3 - egrep cancellation awaits active worker retirement
+  ---
+  duration_ms: 23.524125
+  type: 'test'
+  ...
+# Subtest: egrep owned records survive Buffer reuse and source finalization
+ok 4 - egrep owned records survive Buffer reuse and source finalization
+  ---
+  duration_ms: 25.42925
+  type: 'test'
+  ...
+# Subtest: egrep awaits stdout backpressure before another write
+ok 5 - egrep awaits stdout backpressure before another write
+  ---
+  duration_ms: 19.088541
+  type: 'test'
+  ...
+# Subtest: egrep aborts entered opaque stdin and observes late rejection
+ok 6 - egrep aborts entered opaque stdin and observes late rejection
+  ---
+  duration_ms: 16.929333
+  type: 'test'
+  ...
+# Subtest: egrep aborts entered opaque stdout and observes late rejection
+ok 7 - egrep aborts entered opaque stdout and observes late rejection
+  ---
+  duration_ms: 13.659083
+  type: 'test'
+  ...
+# Subtest: egrep quiet early stop awaits cooperative source return
+ok 8 - egrep quiet early stop awaits cooperative source return
+  ---
+  duration_ms: 14.170333
+  type: 'test'
+  ...
+# Subtest: egrep sink failure finalizes source and retains alias diagnostic
+ok 9 - egrep sink failure finalizes source and retains alias diagnostic
+  ---
+  duration_ms: 13.831333
+  type: 'test'
+  ...
+# Subtest: egrep input error precedes return error and closes once
+ok 10 - egrep input error precedes return error and closes once
+  ---
+  duration_ms: 13.094875
+  type: 'test'
+  ...
+# Subtest: egrep matching uses worker not host RegExp construction
+ok 11 - egrep matching uses worker not host RegExp construction
+  ---
+  duration_ms: 15.498209
+  type: 'test'
+  ...
+# Subtest: fgrep registers cleanup synchronously before acquisition and shares completion
+ok 12 - fgrep registers cleanup synchronously before acquisition and shares completion
+  ---
+  duration_ms: 13.458292
+  type: 'test'
+  ...
+# Subtest: fgrep already aborted input never acquires a session
+ok 13 - fgrep already aborted input never acquires a session
+  ---
+  duration_ms: 0.075708
+  type: 'test'
+  ...
+# Subtest: fgrep cancellation awaits active worker retirement
+ok 14 - fgrep cancellation awaits active worker retirement
+  ---
+  duration_ms: 13.269
+  type: 'test'
+  ...
+# Subtest: fgrep owned records survive Buffer reuse and source finalization
+ok 15 - fgrep owned records survive Buffer reuse and source finalization
+  ---
+  duration_ms: 12.859
+  type: 'test'
+  ...
+# Subtest: fgrep awaits stdout backpressure before another write
+ok 16 - fgrep awaits stdout backpressure before another write
+  ---
+  duration_ms: 12.987416
+  type: 'test'
+  ...
+# Subtest: fgrep aborts entered opaque stdin and observes late rejection
+ok 17 - fgrep aborts entered opaque stdin and observes late rejection
+  ---
+  duration_ms: 14.712333
+  type: 'test'
+  ...
+# Subtest: fgrep aborts entered opaque stdout and observes late rejection
+ok 18 - fgrep aborts entered opaque stdout and observes late rejection
+  ---
+  duration_ms: 14.220917
+  type: 'test'
+  ...
+# Subtest: fgrep quiet early stop awaits cooperative source return
+ok 19 - fgrep quiet early stop awaits cooperative source return
+  ---
+  duration_ms: 13.22875
+  type: 'test'
+  ...
+# Subtest: fgrep sink failure finalizes source and retains alias diagnostic
+ok 20 - fgrep sink failure finalizes source and retains alias diagnostic
+  ---
+  duration_ms: 12.704958
+  type: 'test'
+  ...
+# Subtest: fgrep input error precedes return error and closes once
+ok 21 - fgrep input error precedes return error and closes once
+  ---
+  duration_ms: 12.640542
+  type: 'test'
+  ...
+# Subtest: fgrep matching uses worker not host RegExp construction
+ok 22 - fgrep matching uses worker not host RegExp construction
+  ---
+  duration_ms: 12.883792
+  type: 'test'
+  ...
+# Subtest: family aliases share executor worker and queue budgets
+ok 23 - family aliases share executor worker and queue budgets
+  ---
+  duration_ms: 29.527958
+  type: 'test'
+  ...
+# Subtest: request timeout option bounds a stalled actual matcher request
+ok 24 - request timeout option bounds a stalled actual matcher request
+  ---
+  duration_ms: 63.946625
+  type: 'test'
+  ...
+# {"actualWorkers":24,"exited":24,"active":0}
+# Subtest: paused alias sink releases shared request capacity for sibling
+ok 25 - paused alias sink releases shared request capacity for sibling
+  ---
+  duration_ms: 13.378583
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 587.860375

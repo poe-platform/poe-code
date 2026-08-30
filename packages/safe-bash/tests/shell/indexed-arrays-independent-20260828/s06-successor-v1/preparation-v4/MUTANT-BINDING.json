@@ -1,0 +1,36 @@
+{
+  "kind": "harness-only-loaded-mechanism-reversions-not-array-mutants",
+  "originalSha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3",
+  "variants": [
+    {
+      "id": "HARNESS-LATE-OWNER",
+      "file": "controller-late-owner.mjs",
+      "mode": "owner",
+      "originalSha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3",
+      "sha256": "9cedffab87106095c9ac8233beeda41a903c053d8c459dd5e4c43d5d8c350619",
+      "edits": [
+        {
+          "before": "owner = ownership(children.length + 1, role); children.push(owner); active++;",
+          "after": "owner = ownership(children.length + 1, role); active++;"
+        },
+        {
+          "before": "owner.receipt = await record(`child-${String(owner.id).padStart(3, '0')}`, { role, ...run });",
+          "after": "owner.receipt = await record(`child-${String(owner.id).padStart(3, '0')}`, { role, ...run }); children.push(owner);"
+        }
+      ]
+    },
+    {
+      "id": "HARNESS-EARLY-FINISH",
+      "file": "controller-early-finish.mjs",
+      "mode": "final",
+      "originalSha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3",
+      "sha256": "7076ccf5bc4f66b5a817946d6ff9b82559855352230e11edad66b2bdc300f972",
+      "edits": [
+        {
+          "before": "  async function finalize(value, collect, announce) {\n    try {\n      assert.equal(finalizing, false); finalizing = true;\n      cleanupReady(); clock.check('final-integrity:before'); onIntegrity(); clock.check('final-integrity:after');\n      const finalData = await clock.wait(collect(), 'final-census'); clock.check('final-census:after'); cleanupReady();\n      const eligibleAcceptance = value.complete === true && value.unsafeStop !== true && !halted && failures.length === 0;\n      const receipt = await record('FINAL', { ...value, ...finalData, accounting: snapshot(), eligibleAcceptance, publication: 'provisional; acceptance also requires terminal announcement and zero coordinator exit within the same deadline' }, { final: true });\n      const terminal = { receipt, accepted: eligibleAcceptance, unsafeStop: !eligibleAcceptance && (halted || value.unsafeStop === true), elapsedBeforeAnnouncementMs: clock.elapsed(), work: root, childrenRetired: children.every(retired), requiresZeroCoordinatorExit: true };\n      clock.check('terminal-announcement:before'); await clock.wait(announce(terminal), 'terminal-announcement'); clock.check('terminal-announcement:after'); cleanupReady();\n      return { ...terminal, elapsedMs: clock.elapsed() };\n    } catch (reason) { firstFault('finalization', reason); throw reason; }\n  }",
+          "after": "  async function finalize(value, collect, announce) {\n    cleanupReady(); onIntegrity(); const finalData = await collect(); clock.check('old-before-final-publication');\n    const accepted = value.complete === true && !value.unsafeStop && !halted && failures.length === 0;\n    const bytes = Buffer.from(JSON.stringify({ ...value, ...finalData, accepted }) + '\\n');\n    const filename = path.join(root, 'records', 'FINAL.json');\n    await publish(filename, bytes);\n    const terminal = { receipt: { path: filename, sha256: digest(bytes) }, accepted, unsafeStop: false };\n    await announce(terminal); return terminal;\n  }\n"
+        }
+      ]
+    }
+  ]
+}

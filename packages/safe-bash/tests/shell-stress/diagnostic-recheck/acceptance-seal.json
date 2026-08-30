@@ -1,0 +1,80 @@
+{
+  "time": "2026-08-27T04:19:29.013Z",
+  "revision": "c116d637aa82e4b075460fc07088a5703a10e7b4",
+  "pins": {
+    "src/shell/arithmetic.ts": {
+      "current": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "committed": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    "src/shell/display.ts": {
+      "current": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "committed": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+    },
+    "src/shell/index.ts": {
+      "current": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "committed": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    "src/shell/input.ts": {
+      "current": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "committed": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+    },
+    "src/shell/locale.ts": {
+      "current": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "committed": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    "src/shell/parser.ts": {
+      "current": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+      "committed": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c"
+    },
+    "src/shell/pattern.ts": {
+      "current": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "committed": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    "src/shell/runtime.ts": {
+      "current": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+      "committed": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb"
+    },
+    "src/shell/shell.ts": {
+      "current": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "committed": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+    },
+    "src/shell/types.ts": {
+      "current": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "committed": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    "src/contracts/command.ts": {
+      "current": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+      "committed": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa"
+    },
+    "src/contracts/command.md": {
+      "current": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+      "committed": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e"
+    },
+    "tests/shell/diagnostic-context-cases.ts": {
+      "current": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32",
+      "committed": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32"
+    },
+    "tests/shell/diagnostic-context-native.json": {
+      "current": "217f074f3d21a91419dc7148adb323fb9d599e50b610412cfffc7414f82c8ce4",
+      "committed": "217f074f3d21a91419dc7148adb323fb9d599e50b610412cfffc7414f82c8ce4"
+    },
+    "tests/shell/diagnostic-context.test.ts": {
+      "current": "3c02fe818c8da28829c0266b2bef011fb332b33ff2aed14e7f72ec9577bbe185",
+      "committed": "3c02fe818c8da28829c0266b2bef011fb332b33ff2aed14e7f72ec9577bbe185"
+    },
+    "tests/shell/diagnostic-context-bounds.ts": {
+      "current": "b5d847a46ae087f1e72b6bf621ba5fd4393af8a172ae92afa56d009b803a3ed6",
+      "committed": "b5d847a46ae087f1e72b6bf621ba5fd4393af8a172ae92afa56d009b803a3ed6"
+    },
+    "tests/shell/diagnostic-context-bounds.test.ts": {
+      "current": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648",
+      "committed": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648"
+    }
+  },
+  "frozenInputsUnchanged": true,
+  "phaseCount": 28,
+  "allPhaseGuards": true,
+  "baselineCommit": "7e9a15d4470fd56db36c249d81ae24c70aa9ecbd",
+  "head": "0d29f4d5e90cebc6976a51ddbeba883288126aa0",
+  "indexBefore": ""
+}

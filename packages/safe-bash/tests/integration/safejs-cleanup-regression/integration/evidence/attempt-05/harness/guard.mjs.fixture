@@ -1,0 +1,92 @@
+import assert from "node:assert/strict";
+import childProcess from "node:child_process";
+import { createHash } from "node:crypto";
+import { appendFileSync, lstatSync, readFileSync, realpathSync } from "node:fs";
+import { register, registerHooks, syncBuiltinESMExports } from "node:module";
+import { relative, isAbsolute } from "node:path";
+import { fileURLToPath } from "node:url";
+import { isMainThread, MessageChannel, threadId } from "node:worker_threads";
+
+const root = realpathSync(process.env.INTEGRATION_ROOT);
+const inventory = JSON.parse(readFileSync(process.env.INTEGRATION_MANIFEST, "utf8"));
+const loaded = new Set();
+const emit = entry => appendFileSync(process.env.INTEGRATION_IMPORTS, `${JSON.stringify({ pid: process.pid, threadId, ...entry })}\n`);
+const toolProcesses = [];
+globalThis[Symbol.for("owned-cleanup-tool-processes")] = toolProcesses;
+const nativeSpawn = childProcess.spawn;
+childProcess.spawn = function (command, args, options) {
+  const filename = realpathSync(command);
+  const local = relative(root, filename);
+  assert.match(local, /^node_modules\/@esbuild\/[^/]+\/bin\/esbuild$/u, "Only the audited loader binary may spawn");
+  assert.equal(createHash("sha256").update(readFileSync(filename)).digest("hex"), inventory[local]?.sha256);
+  const child = nativeSpawn(command, args, options);
+  const proof = { pid: child.pid, binary: local, args, closed: false };
+  toolProcesses.push({ child, proof });
+  const record = event => appendFileSync(process.env.INTEGRATION_TOOLS, `${JSON.stringify({ event, parentPid: process.pid, threadId, ...proof })}\n`);
+  record("owned-tool-spawn");
+  child.once("close", (code, signal) => { proof.closed = true; proof.code = code; proof.signal = signal; record("owned-tool-close"); });
+  return child;
+};
+syncBuiltinESMExports();
+
+function check(url) {
+  if (url.startsWith("node:")) return;
+  assert.ok(url.startsWith("file:"), `Forbidden import protocol: ${url}`);
+  const requested = fileURLToPath(url);
+  const filename = realpathSync(requested);
+  const local = relative(root, filename);
+  if (isAbsolute(local) || local === ".." || local.startsWith("../") || !inventory[local]) {
+    emit({ rejected: filename });
+    throw Object.assign(new Error(`Import outside audited runtime: ${filename}`), { code: "INTEGRATION_IMPORT_DENIED" });
+  }
+  assert.equal(lstatSync(requested).isSymbolicLink(), false);
+  return { local, filename };
+}
+
+registerHooks({
+  resolve(specifier, context, next) {
+    const result = next(specifier, context);
+    check(result.url);
+    return result;
+  },
+  load(url, context, next) {
+    const entry = check(url);
+    if (entry && !loaded.has(entry.local)) {
+      const sha256 = createHash("sha256").update(readFileSync(entry.filename)).digest("hex");
+      assert.equal(sha256, inventory[entry.local].sha256, `Import changed: ${entry.local}`);
+      loaded.add(entry.local);
+      emit({ loaded: entry.local, sha256 });
+    }
+    if (entry && (context.format === "commonjs" || entry.local.endsWith(".cjs") || entry.local === "node_modules/esbuild/lib/main.js")) {
+      return { format: "commonjs", source: readFileSync(entry.filename), shortCircuit: true };
+    }
+    return next(url, context);
+  },
+});
+
+export function initialize({ port }) {
+  port.on("message", async message => {
+    assert.equal(message, "stop-owned-loader");
+    try {
+      if (toolProcesses.length) (await import("esbuild")).stop();
+      await Promise.all(toolProcesses.map(({ child, proof }) => proof.closed ? undefined : new Promise(resolve => child.once("close", resolve))));
+      port.postMessage({ threadId, toolProcesses: toolProcesses.map(({ proof }) => proof), closed: toolProcesses.every(({ proof }) => proof.closed) });
+    } catch (error) { port.postMessage({ error: String(error) }); }
+    finally { port.close(); }
+  });
+  port.unref();
+}
+
+if (isMainThread) {
+  const { port1, port2 } = new MessageChannel();
+  register(import.meta.url, { data: { port: port2 }, transferList: [port2] });
+  port1.unref();
+  globalThis[Symbol.for("owned-cleanup-loader-stop")] = () => new Promise((resolve, reject) => {
+    port1.ref();
+    port1.once("message", message => {
+      port1.close();
+      if (message.error) reject(new Error(message.error)); else resolve(message);
+    });
+    port1.postMessage("stop-owned-loader");
+  });
+}

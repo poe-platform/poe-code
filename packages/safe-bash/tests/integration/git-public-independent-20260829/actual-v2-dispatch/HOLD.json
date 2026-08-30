@@ -1,0 +1,16 @@
+{
+  "status": "HOLD_OUTER_DISPATCH_HARNESS_NO_PRODUCT_EXECUTION",
+  "actualV2Unused": true,
+  "authorizationFileExists": false,
+  "launcherSpawned": false,
+  "knownChildren": 3,
+  "activeKnownChildren": 0,
+  "internalLoaderWorkers": 0,
+  "regexWorkers": 0,
+  "productExecutions": 0,
+  "compilerBuildInstall": 0,
+  "reason": "ReferenceError: av2seal is not defined",
+  "captureQualification": "Initial exception existed in tool response, outside dispatch catch. A labeled transcription and event were appended afterward; no complete original-raw-capture claim.",
+  "noRetry": true,
+  "elapsedSeconds": 148.469
+}

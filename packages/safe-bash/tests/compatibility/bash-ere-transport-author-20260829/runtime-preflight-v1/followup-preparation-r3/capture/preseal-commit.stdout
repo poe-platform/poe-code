@@ -1,0 +1,12 @@
+[main 345931a83] test: seal L02 r3 trusted-startup postcheck policy
+ 10 files changed, 2804 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/CASE-INVENTORY.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/EXECUTION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/GRANT-TEMPLATE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/PREPARATION-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/activation.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/admin-publication.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/budget.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/startup-receipt.mjs
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/supervisor.mjs

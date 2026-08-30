@@ -1,0 +1,2 @@
+{"event":"startup","pid":8003,"execPath":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"}
+{"event":"final","id":"source-built/R01","result":null,"workers":[],"failure":{"present":true,"primary":{"phase":"public-cell","reason":{"type":"object","opaque":true}},"secondary":[],"omitted":0}}

@@ -32,5 +32,45 @@ jobs:
       - run: npm run lint
       - run: npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
       - run: npm run typecheck
-      - run: npx turbo run test:unit --concurrency=4 --force
+      - name: Route Node22-only virtual-bash tests
+        run: |
+          echo "virtual-bash requires Node >=22; Node20 does not meet its test-discovery prerequisite."
+          echo "Its complete test:unit suite runs in the separate virtual-bash-node22 job; no tests are waived."
+      - run: npx turbo run test:unit --filter='!virtual-bash' --concurrency=4 --force
       - run: npm run smoke
+  virtual-bash-node22:
+    name: virtual-bash (Node22)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Build virtual-bash and its dependencies serially
+        run: npx turbo run build --filter=virtual-bash --concurrency=1 --force
+      - name: Provision virtual-bash native test inputs
+        id: virtual_bash_inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          node_bin="$(command -v node)"
+          [[ "$RUNNER_TEMP" = /* && "$node_bin" = /* ]]
+          node_dir="$(dirname "$node_bin")"
+          job_root="$(mktemp -d "${RUNNER_TEMP:?}/virtual-bash-inputs.XXXXXX")"
+          mkdir -m 700 "$job_root/home" "$job_root/tmp" "$job_root/sources"
+          env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
+            "$node_bin" packages/safe-bash/scripts/provision-test-inputs.mjs \
+            --parent "$job_root/sources" --source-mode gzip --stage-metadata
+          env -i PATH="$node_dir:/usr/bin:/bin" HOME="$job_root/home" TMPDIR="$job_root/tmp" LC_ALL=C LANG=C TZ=UTC \
+            "$node_bin" packages/safe-bash/scripts/provision-test-rg.mjs --destination "$job_root/rg"
+          printf 'rg=%s\n' "$job_root/rg/bin/rg" >> "$GITHUB_OUTPUT"
+      - name: Run the complete virtual-bash unit suite serially
+        env:
+          SAFE_BASH_TEST_RG: ${{ steps.virtual_bash_inputs.outputs.rg }}
+        run: npm run test:unit --workspace virtual-bash -- --test-concurrency=1

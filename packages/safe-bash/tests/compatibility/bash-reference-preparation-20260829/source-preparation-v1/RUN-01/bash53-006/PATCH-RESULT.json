@@ -1,0 +1,58 @@
+{
+  "name": "bash53-006",
+  "signedPayload": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data",
+    "bytes": 1346,
+    "mode": "600",
+    "sha256": "29119addefed8eff91ae37fd51822c31780ee30d4a28376e96002706c995ff10",
+    "role": "OPAQUE_SOURCE"
+  },
+  "argv": [
+    "-s",
+    "-f",
+    "-F",
+    "0",
+    "-p0",
+    "--posix",
+    "-d",
+    "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "-i",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data"
+  ],
+  "status": {
+    "code": 0,
+    "signal": null
+  },
+  "targets": [
+    {
+      "path": "lib/glob/smatch.c",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/lib/glob/smatch.c",
+        "bytes": 15630,
+        "mode": "600",
+        "sha256": "f6ee430eec571f5c8a719b24a7d6bc3aa383283d78126ecc57413bd23c70ea9d"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/lib/glob/smatch.c",
+        "bytes": 15592,
+        "mode": "600",
+        "sha256": "8b0fdfd61aa053f5d0624986bac78df826f122bf47755d349d12f9c47e7bc0e5"
+      }
+    },
+    {
+      "path": "patchlevel.h",
+      "before": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/patchlevel.h",
+        "bytes": 1117,
+        "mode": "600",
+        "sha256": "e9e19b0d35530b2c6bc03caee51e7f3ba81b2b756626db5f9822581a53cefd09"
+      },
+      "after": {
+        "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/patchlevel.h",
+        "bytes": 1117,
+        "mode": "600",
+        "sha256": "cc69d1ff40ed0be2329ead8c28c54386bb413061267cf71f1da0c62819818239"
+      }
+    }
+  ]
+}

@@ -1,0 +1,762 @@
+[
+  {
+    "id": "B01",
+    "family": "quote joining",
+    "programSha256": "bb16c2af4aefa3997a298513b57b7bd4107d3432065f3abac7d2bcd47ad56311",
+    "programBytes": 51,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B02",
+    "family": "empty quoted positional list",
+    "programSha256": "1f8bea9fb5249aa56f1ee0e032e64ffcde9ceacd9b68fe571aa3c1c96db059ab",
+    "programBytes": 41,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B03",
+    "family": "joined quoted positional list",
+    "programSha256": "8282dc177954c730ee3db686fbfebb2de82adf4c2a4c257fbd91934d3e3fe669",
+    "programBytes": 46,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B04",
+    "family": "IFS whitespace",
+    "programSha256": "738f211a52b4bab3b62f0938fe48374c46d16a2d46f1be5e49ebccfc4ec7693a",
+    "programBytes": 42,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B05",
+    "family": "IFS mixed delimiters",
+    "programSha256": "d1c871260aa3d015a89ace98760006ede302873fb296dca66195bb29f9746b81",
+    "programBytes": 43,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B06",
+    "family": "empty IFS and implicit null",
+    "programSha256": "e799d45f0825d422332023a7b197487a0cfa1c0825631fa797120f80d8de7ccd",
+    "programBytes": 50,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B07",
+    "family": "parameter unset versus empty",
+    "programSha256": "b3a524ca3f47188ffc08fe02bf383acb5aa438048db19439d4fc7839b30b8316",
+    "programBytes": 91,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B08",
+    "family": "parameter pattern removal",
+    "programSha256": "d1f28c3aec6d474fbe01127d329958ef0108a67cce7cbe3c6a1a24ee71337e74",
+    "programBytes": 67,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B09",
+    "family": "command substitution newlines",
+    "programSha256": "26d4867669c2b868a681ad76a175c5856bf950ba4d9bd41a480881090bd99bd8",
+    "programBytes": 41,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 2,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B10",
+    "family": "glob and quoted glob",
+    "programSha256": "99c008515212f5416dc236d8f92c4176b47e8b6b305d2febfbc3e90b5a3cfd6f",
+    "programBytes": 38,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B11",
+    "family": "dotglob state",
+    "programSha256": "68728510528d362c5f35c52128562f278ee74ddff9cc5f8771a2edcb553d4994",
+    "programBytes": 72,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "GLOB_DEFAULTS_VERSION_PROFILE_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B12",
+    "family": "nullglob",
+    "programSha256": "3922643efdffda43da015ce89ecab9ee38392b1749b3b5761ddfeefa3ff5b8c2",
+    "programBytes": 56,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B13",
+    "family": "extended glob",
+    "programSha256": "e25d24158b7f22382896cf4d9746a9dc2845510e99dce8b67aece8d6f40b6e7e",
+    "programBytes": 43,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "EXTGLOB_READ_TIME_PROFILE_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B14",
+    "family": "prefix function and subshell scope",
+    "programSha256": "7e1004bca7496bba58bbabb92d45df683b597b285a13f3b037e153e32097201a",
+    "programBytes": 125,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 2,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B15",
+    "family": "local and readonly scope",
+    "programSha256": "a52df9dc48a16ae8ef31e2b2216113633dbf7676716ddba8f30e9dfc845600f2",
+    "programBytes": 94,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B16",
+    "family": "sparse indexed array",
+    "programSha256": "0f4c0276d0f273c89bee9d68497e55bee02ea62bf711ab104c8d849afe8e8221",
+    "programBytes": 92,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B17",
+    "family": "arithmetic array subscript",
+    "programSha256": "7473024a6f7b566a503cc9a118b1595886edbd79d464f4319f081c1a645ad37b",
+    "programBytes": 48,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B18",
+    "family": "declare supported ratified subset",
+    "programSha256": "c4ed104223dd9d1e958c18424006f46b5aa1769e869b3a9923955fca64f6b4dd",
+    "programBytes": 71,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B19",
+    "family": "typeset alias",
+    "programSha256": "16bfa4c30f5bdecfd99e34790c78bea900f2826447ddf67933995bba25bddd72",
+    "programBytes": 37,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B20",
+    "family": "mapfile record list",
+    "programSha256": "aad6a919a4ad98855f2b32c29be2f02e24f5947314b4e233a5a398832dcadfca",
+    "programBytes": 39,
+    "stdinBase64": "YQpiIGIKbGFzdA==",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "EXPLICIT_LEGACY_FEATURE_QUALIFICATION_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B21",
+    "family": "readarray origin",
+    "programSha256": "7a744081fafa99992c8286fc6717cb70138bb0f37c2040361c36e552a8855f39",
+    "programBytes": 65,
+    "stdinBase64": "bmV3CnJlc3QK",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "EXPLICIT_LEGACY_FEATURE_QUALIFICATION_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B22",
+    "family": "read array fields",
+    "programSha256": "0a62b540aa1d664ec357046fe24f7a214b14c1ca2355381adfd375e6d6002407",
+    "programBytes": 45,
+    "stdinBase64": "YTo6Ygo=",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B23",
+    "family": "left-to-right descriptor duplication",
+    "programSha256": "45f6a4012d8efa17d9d64eab576c1466ce82a9440d7e8145240e6b955a98a9bc",
+    "programBytes": 110,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "EXPLICIT_LEGACY_FEATURE_QUALIFICATION_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B24",
+    "family": "stderr pipeline shorthand",
+    "programSha256": "75b8915b7cbb931b004e198b2e13eedf29165aced2753cd498122f5bef3bc782",
+    "programBytes": 96,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "EXPLICIT_LEGACY_FEATURE_QUALIFICATION_REQUIRED",
+    "maxAdditionalNativeDescendants": 3,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B25",
+    "family": "combined output redirection",
+    "programSha256": "094e1c4277347d132872d13cb2aadb957249adc0686cc7cb48833198ee8e05a5",
+    "programBytes": 50,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B26",
+    "family": "quoted heredoc",
+    "programSha256": "74618705d5494afbea994dfe15cd21285a2b23c94cedb0cce586c997869c97e7",
+    "programBytes": 69,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 1,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B27",
+    "family": "here string",
+    "programSha256": "55145d1c5e15e1f89e8a0fd572a23bf1dcc8635afc6f6d09472c893151a2b4b8",
+    "programBytes": 59,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 1,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B28",
+    "family": "allocated descriptor and exec",
+    "programSha256": "e9530fe7eca9877c042c56397d4cd27ad1f48c27bf99b971eb136dc9d604cb7e",
+    "programBytes": 51,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "EXPLICIT_LEGACY_FEATURE_QUALIFICATION_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B29",
+    "family": "pipeline status and pipefail",
+    "programSha256": "a83fa46bf84ec4c3d4fad232c9915c00f47304f94788dc56758984402f7606db",
+    "programBytes": 83,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 5,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B30",
+    "family": "PIPESTATUS array",
+    "programSha256": "4e2b839fbb76fe9ba5eacc948c39f3acffc335ac35920a5ffc0bb33090cb47ad",
+    "programBytes": 48,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 3,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B31",
+    "family": "errexit conditional exceptions",
+    "programSha256": "86e70f0c01f262d712b5542d51e4aa671d9c89c88889e33cfd70ac99b4479bed",
+    "programBytes": 87,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B32",
+    "family": "strict mode and nounset",
+    "programSha256": "dd3c852cb6f8c6548b7b90ce409f67f3a5c9d1b399d02c8a60279f80601f4393",
+    "programBytes": 91,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B33",
+    "family": "conditional expression",
+    "programSha256": "b45c52726e7e2843234012a449d87d3d2ea641ef5fdf11e03f277287bc1c62d3",
+    "programBytes": 80,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B34",
+    "family": "arithmetic for loop",
+    "programSha256": "a1b01cd623b7dcb949b01e816b5eb80ef9bc16ee3c11a5cdf703b8edb6be0fbf",
+    "programBytes": 48,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B35",
+    "family": "function keyword",
+    "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+    "programBytes": 45,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B36",
+    "family": "case fallthrough",
+    "programSha256": "4cb2df7be5dde15f64ec52418376454becaa90d5ba95666e98d516c56056ffcb",
+    "programBytes": 57,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "EXPLICIT_LEGACY_FEATURE_QUALIFICATION_REQUIRED",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B37",
+    "family": "source and eval state",
+    "programSha256": "1c960724cb866305d1aa35ed8f15524da257db6826003e2d0acb150e9fee45a8",
+    "programBytes": 67,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B38",
+    "family": "EXIT trap",
+    "programSha256": "12420d3a8de9fd1167992b569c9e4c35aca57a0d01a6173d7fdddd26374635f5",
+    "programBytes": 47,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "Curie source-visible gap, not a runtime outcome",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B39",
+    "family": "missing command diagnostic",
+    "programSha256": "182514c13f2f388685da843db2235fcb23609d00e2dbccbb323fba066f9a138c",
+    "programBytes": 54,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 1,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  },
+  {
+    "id": "B40",
+    "family": "raw output formatting",
+    "programSha256": "b321e9782fb2035dfa8339040704e21eebaa27cbec66d0b8c0d39030d4a2237e",
+    "programBytes": 41,
+    "stdinBase64": "",
+    "expected": null,
+    "status": "UNRUN",
+    "sourceGap": "No runtime inference",
+    "nativeVersionQualification": "PINNED_GNU53_REQUIRED_FOR_PRIMARY_SCORE; old local behavior unqualified",
+    "maxAdditionalNativeDescendants": 0,
+    "comparison": [
+      "raw stdout",
+      "raw stderr",
+      "status or API rejection",
+      "relative paths/types/file bytes/modes/symlink targets"
+    ],
+    "lineAndIdentity": "retain exact argv0/line/path diagnostics; no normalization"
+  }
+]

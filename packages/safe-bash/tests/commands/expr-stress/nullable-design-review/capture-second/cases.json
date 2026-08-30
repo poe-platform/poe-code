@@ -1,0 +1,222 @@
+[
+  {
+    "id": "empty",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "a",
+    "argv": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "aa",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "aaa",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "no-reference",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*"
+    ],
+    "original": true
+  },
+  {
+    "id": "not-repeated",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "nonnullable",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\)*\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "mandatory-empty",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": true
+  },
+  {
+    "id": "end-anchor",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)*\\1$"
+    ],
+    "original": false
+  },
+  {
+    "id": "literal-suffix",
+    "argv": [
+      "+",
+      "aaab",
+      ":",
+      "\\(a*\\)*\\1b"
+    ],
+    "original": false
+  },
+  {
+    "id": "mandatory-a",
+    "argv": [
+      "+",
+      "a",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "mandatory-aa",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "mandatory-aaa",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\{2\\}\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "bounded-aa",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{1,3\\}\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "bounded-aaa",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a*\\)\\{1,3\\}\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "unmatched-closed",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a\\)*\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "required-empty",
+    "argv": [
+      "+",
+      "",
+      ":",
+      "\\(a*\\)\\1"
+    ],
+    "original": false
+  },
+  {
+    "id": "open-backref",
+    "argv": [
+      "+",
+      "a",
+      ":",
+      "\\(a\\1\\)"
+    ],
+    "original": false
+  },
+  {
+    "id": "newline-anchor",
+    "argv": [
+      "+",
+      "a\n",
+      ":",
+      "\\(a\\)$"
+    ],
+    "original": false
+  },
+  {
+    "id": "nested-history",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(\\(a*\\)*\\)\\2"
+    ],
+    "original": false
+  },
+  {
+    "id": "alternation-longest",
+    "argv": [
+      "+",
+      "aaa",
+      ":",
+      "\\(a\\|aa\\)a*"
+    ],
+    "original": false
+  },
+  {
+    "id": "finite-optional",
+    "argv": [
+      "+",
+      "aa",
+      ":",
+      "\\(a*\\)\\{0,2\\}\\1"
+    ],
+    "original": false
+  }
+]

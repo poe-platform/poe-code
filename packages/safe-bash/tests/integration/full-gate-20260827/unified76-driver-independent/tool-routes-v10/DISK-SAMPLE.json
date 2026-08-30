@@ -1,0 +1,16 @@
+{
+  "at": "2026-08-28T08:44:25.942Z",
+  "roots": [
+    "/private/tmp/unified76-independent-tool-v10-zUUgKh",
+    "/private/tmp/unified76-os-write-64KdHt",
+    "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+    "/private/tmp/unified76-os-write-Gj8Bpw",
+    "/private/tmp/unified76-build-types-review-tool-routes-v10-a10-31062"
+  ],
+  "bytes": 3135908732,
+  "files": 48060,
+  "races": 0,
+  "instructionNames": [],
+  "limit": 8589934592,
+  "qualification": "Cooperative lstat size sample during active A10; no symlink traversal/content capture; not atomic filesystem snapshot or kernel-hard disk/RSS cap. Final complete owned manifest follows before cleanup."
+}

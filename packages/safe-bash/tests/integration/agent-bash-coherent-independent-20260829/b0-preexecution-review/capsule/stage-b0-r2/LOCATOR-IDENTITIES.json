@@ -1,0 +1,21 @@
+{
+  "started": "2026-08-29T10:55:58.603Z",
+  "tuples": [
+    {
+      "role": "stageAProducerPreseal",
+      "commit": "ab976f5ee31d0a793d6016f13cc46e6960ace2aa",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+      "bytes": 47291,
+      "sha256": "8acc5e35686a4fa20bf1f8a871b2c23edff4cb29b09a9b9f1848ffc1332006db",
+      "blob": "07885258c60b0d2b8b72df21001e3ae79da0ba48"
+    },
+    {
+      "role": "workflowFixtureV4Preseal",
+      "commit": "955e7eb7d7f49feb4cf288fcb58a6ba6125073f0",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+      "bytes": 8922,
+      "sha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c",
+      "blob": "c2fd250aa87370d508156631b3c2305e3e7260ca"
+    }
+  ]
+}

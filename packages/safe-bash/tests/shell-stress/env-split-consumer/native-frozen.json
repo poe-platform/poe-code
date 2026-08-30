@@ -1,0 +1,1456 @@
+{
+  "at": "2026-08-27T07:32:49.261Z",
+  "platform": "darwin",
+  "release": "25.4.0",
+  "casesHash": "7daabdcde0a3f8c1bf8d8bee069465736d702c437b7d68d5191804df457d60b5",
+  "protocol": {
+    "native": "GNU coreutils env9.7 under both whole Bash profiles; never Apple env relabeled GNU. record is a native executable with an explicitly pinned Bash shebang; product record is an injected command through the unchanged public plugin API.",
+    "output": "record emits argument count, each literal argument, then presence (x/empty) and value for KEEP,DROP,PUBLIC,SECRET,TEXT, each terminated by NUL. This selected-field protocol is declared before capture; it is not sorted/normalized environment output.",
+    "roles": "PATH contains only isolated record,bash,sh role entries. -i case explicitly preserves that PATH via env expansion before clearing. No default-search host rescue. Direct GNU env processes use actual OS argv0 env; shell launch processes use bash, shell $0 shell.",
+    "mapping": "Native temporary cwd corresponds to /packed. Native shebang interpreter path is the pinned GNU env binary; product header uses /usr/bin/env. Native script/header bytes and original literal optional-argument text are retained. Only phase/marker and unexpected non-fixture entries are effects; script/record/bin infrastructure hashes are retained separately.",
+    "shebang": "Actual Darwin kernel invocation is captured, plus one explicit-single-optional-argument control for EACH shebang row in BOTH profiles. These controls are not replacement oracles. Non-S product126 policy is separately asserted, never called a native parity pass.",
+    "limits": "No environment order assertion, native startup-PWD equality, new bash-c parameter-status case, ERR/inherit_errexit, creation-mask or custom-firstread requirement. Host3 contains5 executions; exact-env/input variants3 plus command-budget1 and cancellation1. No output-budget accounting-policy change."
+  },
+  "envTool": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+    "hash": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+    "version": {
+      "pid": 63783,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "groupAlive": false,
+      "stdoutHex": "656e762028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e2062792052696368617264204d6c796e6172696b2c204461766964204d61634b656e7a69652c20616e6420417373616620476f72646f6e2e0a",
+      "stderrHex": ""
+    },
+    "afterHash": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+  },
+  "profiles": [
+    {
+      "role": "primary",
+      "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "hash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "version": {
+        "pid": 63784,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdoutHex": "474e5520626173682c2076657273696f6e20352e332e302831292d72656c656173652028616172636836342d6170706c652d64617277696e32352e342e30290a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c687474703a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e0a0a54686973206973206672656520736f6674776172653b20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a",
+        "stderrHex": ""
+      },
+      "rows": [
+        {
+          "id": "quotes-empty-concatenated",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record alpha\" beta\" '' \"\" 'single \"q\"'"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-AIpIvj",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-AIpIvj/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63787,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3400616c706861206265746100000073696e676c6520227122000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3400616c706861206265746100000073696e676c6520227122000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "long-option-preserves-tail",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "--split-string=record \"front value\"",
+            "tail value",
+            ""
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-seTJmo",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-seTJmo/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63790,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "330066726f6e742076616c7565007461696c2076616c756500000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "330066726f6e742076616c7565007461696c2076616c756500000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "escapes-and-comments",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record a\\_b \"c\\_d\" line\\nend tab\\tend \\#literal before#mid # ignored"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-0GrhgH",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-0GrhgH/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63792,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "370061006200632064006c696e650a656e640074616209656e6400236c69746572616c006265666f7265236d6964000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "370061006200632064006c696e650a656e640074616209656e6400236c69746572616c006265666f7265236d6964000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "variables-are-not-shell-code",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record \"${TEXT}\" '${TEXT}' \\${TEXT} \"${MISSING}\" '; printf INJECTED > marker' '$(printf INJECTED)' '`printf INJECTED`' '*'"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-gvbOxN",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-gvbOxN/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63793,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "380074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900247b544558547d00247b544558547d00003b207072696e746620494e4a4543544544203e206d61726b65720024287072696e746620494e4a45435445442900607072696e746620494e4a454354454460002a000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "380074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900247b544558547d00247b544558547d00003b207072696e746620494e4a4543544544203e206d61726b65720024287072696e746620494e4a45435445442900607072696e746620494e4a454354454460002a000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "split-before-ignore-environment",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "-i PATH=${PATH} KEEP=${TEXT} record exact"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-3cGLZV",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-3cGLZV/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63794,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3100657861637400780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b657229000000000000000000",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3100657861637400780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b657229000000000000000000",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unset-and-repeated-assignment",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "-u DROP KEEP=first KEEP=second record -- -x"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-xuHvs9",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-xuHvs9/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63803,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "32002d2d002d780078007365636f6e640000007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "32002d2d002d780078007365636f6e640000007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unsupported-dollar-stops-before-dispatch",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record $TEXT"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-wO2BaW",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-wO2BaW/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63804,
+            "status": 125,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a2024544558540a"
+          },
+          "tuple": {
+            "status": 125,
+            "stdoutHex": "",
+            "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a2024544558540a",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "shebang-split-bash-errexit",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "shellArg0": "shell",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-qJ0oBV",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-qJ0oBV/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env -S bash -e\nprintf before > phase\nfalse\nprintf forbidden >> phase\n",
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63805,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "shebang-long-split-sh-argv",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "shellArg0": "shell",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-CemPws",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-CemPws/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env --split-string=sh -e\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\nprintf kept > phase\n",
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63808,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "6b657074",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "non-split-header-one-argument",
+          "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "shellArg0": "shell",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-Y1lhav",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-Y1lhav/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env bash -e\nprintf reached > phase\n",
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63810,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "72656163686564",
+                "mode": 420
+              }
+            }
+          }
+        }
+      ],
+      "controls": [
+        {
+          "id": "shebang-split-bash-errexit",
+          "role": "Explicit one optional kernel argument, not replacement oracle",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S bash -e",
+            "./script",
+            "a b"
+          ],
+          "argv0": "env",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-qJ0oBV",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-qJ0oBV/bin"
+          },
+          "run": {
+            "pid": 63807,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": ""
+          },
+          "effects": {
+            "phase": {
+              "hex": "6265666f7265",
+              "mode": 420
+            }
+          }
+        },
+        {
+          "id": "shebang-long-split-sh-argv",
+          "role": "Explicit one optional kernel argument, not replacement oracle",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "--split-string=sh -e",
+            "./script",
+            "a b"
+          ],
+          "argv0": "env",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-CemPws",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-CemPws/bin"
+          },
+          "run": {
+            "pid": 63809,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+            "stderrHex": ""
+          },
+          "effects": {
+            "phase": {
+              "hex": "6b657074",
+              "mode": 420
+            }
+          }
+        },
+        {
+          "id": "non-split-header-one-argument",
+          "role": "Explicit one optional kernel argument, not replacement oracle",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "bash -e",
+            "./script"
+          ],
+          "argv0": "env",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-Y1lhav",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-Y1lhav/bin"
+          },
+          "run": {
+            "pid": 63811,
+            "status": 127,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": "656e763a202762617368202d65273a204e6f20737563682066696c65206f72206469726563746f72790a656e763a20757365202d5b765d5320746f2070617373206f7074696f6e7320696e2073686562616e67206c696e65730a"
+          },
+          "effects": {
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          }
+        }
+      ]
+    },
+    {
+      "role": "historical",
+      "binary": "/bin/bash",
+      "hash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": {
+        "pid": 63812,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdoutHex": "474e5520626173682c2076657273696f6e20332e322e35372831292d72656c65617365202861726d36342d6170706c652d64617277696e3235290a436f70797269676874202843292032303037204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a",
+        "stderrHex": ""
+      },
+      "rows": [
+        {
+          "id": "quotes-empty-concatenated",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record alpha\" beta\" '' \"\" 'single \"q\"'"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-ZgS1Op",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-ZgS1Op/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63813,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3400616c706861206265746100000073696e676c6520227122000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3400616c706861206265746100000073696e676c6520227122000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "long-option-preserves-tail",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "--split-string=record \"front value\"",
+            "tail value",
+            ""
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-bes5ZS",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-bes5ZS/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63814,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "330066726f6e742076616c7565007461696c2076616c756500000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "330066726f6e742076616c7565007461696c2076616c756500000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "escapes-and-comments",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record a\\_b \"c\\_d\" line\\nend tab\\tend \\#literal before#mid # ignored"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-IKX4ep",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-IKX4ep/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63815,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "370061006200632064006c696e650a656e640074616209656e6400236c69746572616c006265666f7265236d6964000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "370061006200632064006c696e650a656e640074616209656e6400236c69746572616c006265666f7265236d6964000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "variables-are-not-shell-code",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record \"${TEXT}\" '${TEXT}' \\${TEXT} \"${MISSING}\" '; printf INJECTED > marker' '$(printf INJECTED)' '`printf INJECTED`' '*'"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-Y8gvZw",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-Y8gvZw/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63816,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "380074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900247b544558547d00247b544558547d00003b207072696e746620494e4a4543544544203e206d61726b65720024287072696e746620494e4a45435445442900607072696e746620494e4a454354454460002a000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "380074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900247b544558547d00247b544558547d00003b207072696e746620494e4a4543544544203e206d61726b65720024287072696e746620494e4a45435445442900607072696e746620494e4a454354454460002a000000780072656d6f76652d6d65007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "split-before-ignore-environment",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "-i PATH=${PATH} KEEP=${TEXT} record exact"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-1K0QVr",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-1K0QVr/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63817,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3100657861637400780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b657229000000000000000000",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3100657861637400780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b657229000000000000000000",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unset-and-repeated-assignment",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "-u DROP KEEP=first KEEP=second record -- -x"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-iZ6c9z",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-iZ6c9z/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63818,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "32002d2d002d780078007365636f6e640000007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "32002d2d002d780078007365636f6e640000007800706172656e742d7075626c6963000000780074776f20776f7264733b24287072696e746620494e4a4543544544203e206d61726b65722900",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "unsupported-dollar-stops-before-dispatch",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S",
+            "record $TEXT"
+          ],
+          "argv0": "env",
+          "shellArg0": "native record script pathname",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-uVLKwa",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-uVLKwa/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": null,
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63819,
+            "status": 125,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a2024544558540a"
+          },
+          "tuple": {
+            "status": 125,
+            "stdoutHex": "",
+            "stderrHex": "656e763a206f6e6c7920247b5641524e414d457d20657870616e73696f6e20697320737570706f727465642c206572726f722061743a2024544558540a",
+            "effects": {
+              "phase": {
+                "hex": "73656564",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "shebang-split-bash-errexit",
+          "executable": "/bin/bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "shellArg0": "shell",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-2IqBmQ",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-2IqBmQ/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env -S bash -e\nprintf before > phase\nfalse\nprintf forbidden >> phase\n",
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63820,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "6265666f7265",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "shebang-long-split-sh-argv",
+          "executable": "/bin/bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script \"a b\"",
+            "shell"
+          ],
+          "argv0": "bash",
+          "shellArg0": "shell",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-L9rtMm",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-L9rtMm/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env --split-string=sh -e\nprintf \"<%s>|<%s>|<%s>\\n\" \"$0\" \"$#\" \"$1\"\nprintf kept > phase\n",
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63822,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "6b657074",
+                "mode": 420
+              }
+            }
+          }
+        },
+        {
+          "id": "non-split-header-one-argument",
+          "executable": "/bin/bash",
+          "args": [
+            "--noprofile",
+            "--norc",
+            "-c",
+            "./script",
+            "shell"
+          ],
+          "argv0": "bash",
+          "shellArg0": "shell",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-qseihg",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-qseihg/bin"
+          },
+          "fixtures": {
+            "recorder": "#!/bin/bash\nprintf \"%s\\0\" \"$#\" \"$@\"\nprintf \"%s\\0\" \"${KEEP+x}\" \"${KEEP-}\"\nprintf \"%s\\0\" \"${DROP+x}\" \"${DROP-}\"\nprintf \"%s\\0\" \"${PUBLIC+x}\" \"${PUBLIC-}\"\nprintf \"%s\\0\" \"${SECRET+x}\" \"${SECRET-}\"\nprintf \"%s\\0\" \"${TEXT+x}\" \"${TEXT-}\"\n",
+            "script": "#!/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env bash -e\nprintf reached > phase\n",
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          },
+          "run": {
+            "pid": 63827,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": ""
+          },
+          "tuple": {
+            "status": 0,
+            "stdoutHex": "",
+            "stderrHex": "",
+            "effects": {
+              "phase": {
+                "hex": "72656163686564",
+                "mode": 420
+              }
+            }
+          }
+        }
+      ],
+      "controls": [
+        {
+          "id": "shebang-split-bash-errexit",
+          "role": "Explicit one optional kernel argument, not replacement oracle",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "-S bash -e",
+            "./script",
+            "a b"
+          ],
+          "argv0": "env",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-2IqBmQ",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-2IqBmQ/bin"
+          },
+          "run": {
+            "pid": 63821,
+            "status": 1,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": ""
+          },
+          "effects": {
+            "phase": {
+              "hex": "6265666f7265",
+              "mode": 420
+            }
+          }
+        },
+        {
+          "id": "shebang-long-split-sh-argv",
+          "role": "Explicit one optional kernel argument, not replacement oracle",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "--split-string=sh -e",
+            "./script",
+            "a b"
+          ],
+          "argv0": "env",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-L9rtMm",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-L9rtMm/bin"
+          },
+          "run": {
+            "pid": 63826,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "3c2e2f7363726970743e7c3c313e7c3c6120623e0a",
+            "stderrHex": ""
+          },
+          "effects": {
+            "phase": {
+              "hex": "6b657074",
+              "mode": 420
+            }
+          }
+        },
+        {
+          "id": "non-split-header-one-argument",
+          "role": "Explicit one optional kernel argument, not replacement oracle",
+          "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "args": [
+            "bash -e",
+            "./script"
+          ],
+          "argv0": "env",
+          "cwd": "/private/tmp/safe-bash-packed-env-native-qseihg",
+          "env": {
+            "HOME": "/nonexistent",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC",
+            "DROP": "remove-me",
+            "PUBLIC": "parent-public",
+            "TEXT": "two words;$(printf INJECTED > marker)",
+            "EMPTY": "",
+            "PATH": "/private/tmp/safe-bash-packed-env-native-qseihg/bin"
+          },
+          "run": {
+            "pid": 63833,
+            "status": 127,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "groupAlive": false,
+            "stdoutHex": "",
+            "stderrHex": "656e763a202762617368202d65273a204e6f20737563682066696c65206f72206469726563746f72790a656e763a20757365202d5b765d5320746f2070617373206f7074696f6e7320696e2073686562616e67206c696e65730a"
+          },
+          "effects": {
+            "phase": {
+              "hex": "73656564",
+              "mode": 420
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "temporaryDirectories": [
+    "/private/tmp/safe-bash-packed-env-native-AIpIvj",
+    "/private/tmp/safe-bash-packed-env-native-seTJmo",
+    "/private/tmp/safe-bash-packed-env-native-0GrhgH",
+    "/private/tmp/safe-bash-packed-env-native-gvbOxN",
+    "/private/tmp/safe-bash-packed-env-native-3cGLZV",
+    "/private/tmp/safe-bash-packed-env-native-xuHvs9",
+    "/private/tmp/safe-bash-packed-env-native-wO2BaW",
+    "/private/tmp/safe-bash-packed-env-native-qJ0oBV",
+    "/private/tmp/safe-bash-packed-env-native-CemPws",
+    "/private/tmp/safe-bash-packed-env-native-Y1lhav",
+    "/private/tmp/safe-bash-packed-env-native-ZgS1Op",
+    "/private/tmp/safe-bash-packed-env-native-bes5ZS",
+    "/private/tmp/safe-bash-packed-env-native-IKX4ep",
+    "/private/tmp/safe-bash-packed-env-native-Y8gvZw",
+    "/private/tmp/safe-bash-packed-env-native-1K0QVr",
+    "/private/tmp/safe-bash-packed-env-native-iZ6c9z",
+    "/private/tmp/safe-bash-packed-env-native-uVLKwa",
+    "/private/tmp/safe-bash-packed-env-native-2IqBmQ",
+    "/private/tmp/safe-bash-packed-env-native-L9rtMm",
+    "/private/tmp/safe-bash-packed-env-native-qseihg"
+  ],
+  "productExecutions": 0,
+  "cleaned": [
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-AIpIvj",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-seTJmo",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-0GrhgH",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-gvbOxN",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-3cGLZV",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-xuHvs9",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-wO2BaW",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-qJ0oBV",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-CemPws",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-Y1lhav",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-ZgS1Op",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-bes5ZS",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-IKX4ep",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-Y8gvZw",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-1K0QVr",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-iZ6c9z",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-uVLKwa",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-2IqBmQ",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-L9rtMm",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-packed-env-native-qseihg",
+      "absent": true
+    }
+  ],
+  "bashAfterHashes": [
+    {
+      "role": "primary",
+      "hash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "role": "historical",
+      "hash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ]
+}

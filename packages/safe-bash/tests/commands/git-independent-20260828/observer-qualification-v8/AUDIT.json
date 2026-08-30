@@ -1,0 +1,272 @@
+{
+  "schema": "v8-postcohort-DATA-audit",
+  "presealCommit": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+  "classification": "data/hash/record authentication only; no additional qualification, candidate or native execution",
+  "outerRows": 19,
+  "outerPassed": 19,
+  "failed": 0,
+  "unexecuted": [],
+  "roles": {
+    "real": 6,
+    "synthetic": 11,
+    "data": 2
+  },
+  "S07NegativeSubcases": 3,
+  "S07AllExpectedHold": true,
+  "actualObservedInflateStreams": 6,
+  "syntheticFacadeObjects": 4,
+  "realRawWriteCallbacks": 3,
+  "realRawWriteNotificationsPending": 2,
+  "realEndRequests": 3,
+  "realEndCallbacks": 0,
+  "actualOwnedOperationsPending": 0,
+  "allRealKnownCleanupSettled": true,
+  "allTenHookDescriptorsRestored": true,
+  "causalR05": {
+    "causeEnrollmentSequence": 14,
+    "token": 1,
+    "operation": 3,
+    "reasonId": 2,
+    "classification": "source-linked-owned-iterator-return-observation",
+    "sameIdentityLateErrorAcknowledged": true
+  },
+  "unownedLateAbortAndDistinctSecondaryRejected": true,
+  "hookTamperRejected": true,
+  "observerHash": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1",
+  "retirementHash": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2",
+  "writerHash": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d",
+  "sourceCorrespondenceUnchanged": true,
+  "oldFixturesUnchanged": true,
+  "oldFileAndDirectoryCensusesUnchanged": true,
+  "newFileAndEmptyDirectoryEntriesChecked": true,
+  "oldFailuresAndUnexecutedGroupsPreserved": true,
+  "children": {
+    "qualificationDirect": 1,
+    "worker": 1,
+    "syntax": 0,
+    "standaloneControls": 0,
+    "candidate": 0,
+    "peakOwnedProcesses": 2
+  },
+  "workerExit": 0,
+  "workerSignal": null,
+  "naturalKnownProcessClosure": true,
+  "knownChildAndPipeCleanupSettled": true,
+  "cohortPreReceiptMs": 339.319167,
+  "postReceiptMs": 345.02925,
+  "finalClockFileOwnWriteUnsampled": true,
+  "capturesIncludingReceiptsBytes": 395086,
+  "publicationBytesExcludingThisAudit": 1317625,
+  "filesExcludingThisAudit": [
+    {
+      "path": "CONTINUATION-PROPOSED.json",
+      "bytes": 8766,
+      "sha256": "24d89f323c44cb86ea9be23880489bf7270e10fbfbab322413c44d13a34e2a42"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 1847,
+      "sha256": "6b14dc90df85f3ad41f51f2d2405491bd95ed8b05df4a1514ad24c27550f6642"
+    },
+    {
+      "path": "CORRESPONDENCE.json",
+      "bytes": 3880,
+      "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+    },
+    {
+      "path": "CRITERION.md",
+      "bytes": 10225,
+      "sha256": "00bd64f79dadfcbc88a349a96115d4c3500420381945c60a8514596c896be33f"
+    },
+    {
+      "path": "DELTA-V7.json",
+      "bytes": 26093,
+      "sha256": "59e2a4c41422d0f7ccebd2d4d79f93bab1ccd3166b4c10809abe23fee54d93dc"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7611,
+      "sha256": "0470667678f8e6437d469785a91e664d858ecb647730562ea0db0c0f4c2468e6"
+    },
+    {
+      "path": "NODE-PRIMARY.json",
+      "bytes": 722751,
+      "sha256": "2bf28e73ff32639a9ca015ac4b654601a581aa9c96709156ca58edadcc2caff5"
+    },
+    {
+      "path": "NODE-PROVENANCE.json",
+      "bytes": 6137,
+      "sha256": "348dc3010327e23cfc99233b50b0159a28bdceaa4ea6d0ce94834433866cd936"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 23187,
+      "sha256": "dc1918ec176c0da906903ce9ff1c55b277d74eea9c283f442f69f9718ed4d0de"
+    },
+    {
+      "path": "RUN-01/PUBLICATION-CLOCK.json",
+      "bytes": 80,
+      "sha256": "ab1ee14050e2d453821db7114c4dc6be00dc2ba1da4f602b5124dda343ddd27d"
+    },
+    {
+      "path": "RUN-01/RECEIPT.json",
+      "bytes": 6866,
+      "sha256": "d53c813987f9882977e8a594faa8e532abd945af1cdef5e9293358b465477baf"
+    },
+    {
+      "path": "RUN-01/worker.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/worker.stdout.jsonl",
+      "bytes": 388140,
+      "sha256": "48741daa583e8e8189732dc8687f38b2218a473b1403ac1d6feb1699ad48d47e"
+    },
+    {
+      "path": "SOURCE-DATA.json",
+      "bytes": 27686,
+      "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+    },
+    {
+      "path": "WORKER-ADAPTER-PROPOSAL.md",
+      "bytes": 5846,
+      "sha256": "5fbc84e198bcca25e5d2ef35cc486ae1cd3e2ac5d87f4f2db42ee9546e70370d"
+    },
+    {
+      "path": "audit.py",
+      "bytes": 13993,
+      "sha256": "75ae13dfaffe0817bdddfd9dd53cc7823c07415239bbc5dcbc439f4769e6554d"
+    },
+    {
+      "path": "observer.mjs",
+      "bytes": 15146,
+      "sha256": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 11577,
+      "sha256": "d9e55a25bd2d93d1ce2558eaec9821eed53635ca08105ff1cc2dbde258a2688e"
+    },
+    {
+      "path": "retirement.mjs",
+      "bytes": 5974,
+      "sha256": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 9188,
+      "sha256": "79f72599908d7a5102a939103de6eb2e6f0f77bd1651a4ce1fc6614984d31675"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 21443,
+      "sha256": "7a80e290169f1c2980b2696127c2989f6fe7218a905d9ca2dda9bf9b4f71beee"
+    },
+    {
+      "path": "writer-surrogate.mjs",
+      "bytes": 1189,
+      "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+    }
+  ],
+  "indexAtAuditSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metadataGitCommands": [
+    [
+      "git",
+      "cat-file",
+      "-t",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/CONTROLS.json"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/CORRESPONDENCE.json"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/CRITERION.md"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/DELTA-V7.json"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/NODE-PRIMARY.json"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/NODE-PROVENANCE.json"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/SOURCE-DATA.json"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/observer.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/prepare.py"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/retirement.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/run.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/worker.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/writer-surrogate.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "1f03c93a0a857d7360bf8a418eff45bbcfa20942:tests/commands/git-independent-20260828/observer-qualification-v8/PRESEAL.json"
+    ],
+    [
+      "git",
+      "show",
+      "9885390fb11454fa194a3e60fdbef198dbfdf633:src/commands/git/codec.ts"
+    ],
+    [
+      "git",
+      "show",
+      "9885390fb11454fa194a3e60fdbef198dbfdf633:src/commands/git/index.ts"
+    ],
+    [
+      "git",
+      "diff",
+      "--cached",
+      "--raw",
+      "-z"
+    ]
+  ],
+  "auditMonotonicMs": 473.238209,
+  "auditedWall": "2026-08-28T19:33:03.726120+00:00",
+  "continuationProposalCreated": true,
+  "continuationAuthorized": false
+}

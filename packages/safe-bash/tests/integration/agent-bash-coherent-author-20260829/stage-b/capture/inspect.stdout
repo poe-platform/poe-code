@@ -1,0 +1,481 @@
+PUBLIC95 HANDOFF
+# PUBLIC95 coherent preflight bindings
+
+2026-08-29. **SOURCE/DATA handoff, not runtime acceptance or execution GO.**
+No compiler/build/product/Worker/engine/guest/network/private execution. No
+Curie fixture edits or expected-index-hash investigation. Current coherent
+composition remains309 inputs / tree3adc676a0ab638c9788ef007e465931d65d2c6fe;
+1014 package members are predicted, not built.16 unchanged Node files do not
+qualify their interaction with the accepted new core.
+
+## Immediate answer for Curie
+
+Use the **existing committed, accepted author INPUTS archive**, not a guessed
+compiled directory or a new engine build. Select exactly its `engine` array:
+**96 entries =95 emitted JavaScript files +1 package.json**.95 means94 engine
+emissions plus the required host FsError support emission. Keep
+`compiled/support/errors.js`; filtering only `compiled/engine/` reproduces the
+old author setup refusal. Copy those96 entries into a fresh owned fixture root,
+removing only the literal `compiled/` prefix, and place the authenticated normal
+adapter at that root. See PUBLIC95-BINDINGS.json for every exact file/hash/edge.
+
+At immutable `aed62f65`, no file named PUBLIC-ENGINE-RECEIPT.json exists anywhere
+in the coherent author subtree: m05-INVENTORY.json records the full subtree.
+The v3 handoff's description is therefore not a usable existing receipt locator.
+This sidecar supplies exact provenance and field bindings; Curie still needs
+to publish its own selected closure/materialization receipt. This does not
+diagnose or change Curie's separate fixture-expected-hash issue.
+
+## Durable records and hash domains
+
+All paths in this section are repository-relative, not live scratch locators.
+
+1. Accepted public Node evidence commit
+   `30ac56acbf12a69b90e1923810958bcbcf367fe0`:
+   `tests/integration/node-public-author-20260829/HANDOFF.md` and
+   `EXECUTOR-v4.json`. The executor has `files[]` records with `path`, `bytes`,
+   `sha256`, plus `acceptedNodeInputs[]` with explicit authority strings.
+   It is not an engine-file array and does not contain emitted bodies.
+   Independent actual acceptance provenance is
+   `27f557ad6a18e06da5438e0d08d8b7ec2a703d94`, same-named independent REPORT.md;
+   ROOT public opt-in acceptance6f449bf4 remains qualified, not new-core proof.
+2. At that same30ac commit, the exact reusable body is
+   `tests/commands/node-author-20260829/validation-v2/author-v5/INPUTS-v1.json.gz.base64`:
+   **1939657 encoded-file bytes**, SHA256
+   `18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4`.
+   After authenticating that same Buffer, base64 decoding yields1454742 gzip
+   bytes, SHA256
+   `014ebf5c1f325c9f7288e8cb55970bd41bf02604ee727089d0bdb07655692c3c`.
+   Bounded gunzip uses16MiB maximum output. JSON schema is
+   `node-author-input-archive-v1`; fields include `baseline`, `engine`, `tools`,
+   `toolVerification`. **Do not overlay baseline278 onto coherent309.**
+3. `engine[]` records contain `target`, `source`, `bytes`, `sha256`, `inputRole`,
+   optional `commit`, and base64 **`body`**. `source` is historical provenance,
+   not a path to open now. `target` is the exact staged namespace. Package
+   metadata lacks the emission `commit`; do not invent one. This sidecar checks
+   every decoded body against its byte/hash pin and all95 against the original
+   compiler publication and its Git inventory.
+4. Compiler publication `463a945125b900cbb98436b9e9292d78ca6c98aa`:
+   `tests/commands/node-worker-experiments-20260828/preparation-v4-compiler/EMISSION-RECIPE.json`
+   and `run/EMITTED.json`. Recipe SHA256
+   `edafdfa33c252ed1e34a661bc65c4fe691b370f48afcd678759d4c115ac66e5c`.
+   `modules[]` binds `source`, `sourceBytes`, `sourceSha256`, `output`, with
+   `support:true` on the separate FsError source. EMITTED has `files[]` with
+   `path`, `source`, `sourceSha256`, `bytes`, `sha256`, `sourceMapText`, and a
+   `graph[]` of exact imports. Actual95 inputs/1076164 emitted bytes/zero syntax
+   or options diagnostics; **TS5.9.3 transpileModule, NOT strict program checking**.
+   No engine compilation is needed to reuse these immutable emissions.
+5. Public source at the same463 commit:
+   `tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64`,
+   **461669 encoded-file bytes**, SHA256
+   `8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637`.
+   Eight-MiB bounded gunzip after encoded-byte authentication. Schema
+   `public98-exact-core-source-v1`, commit
+   `bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e`, `files[]` has `path`, `mode`,
+   `blob`, `bytes`, `sha256`, **`base64`**, and `proof.commitBase64` plus
+   `proof.trees[] {sha,rawBase64}`. Paths are **packages/safejs-relative**, not
+   monorepo-root-relative. This review checks the commit,15 proof trees and all98
+   file/blob paths through that prefix. The source counterpart of the support
+   emission is the separate `preparation-v3/inputs/errors.ts.data`, not an
+   upstream engine file. No private checkout is involved.
+
+## Exact staged closure and public provider
+
+Let `$FIXTURE` mean the future owner's declared, fresh, regular-file-only
+fixture root (not a path already admitted by this review):
+
+- Each engine record goes to `$FIXTURE/` + `target.slice('compiled/'.length)`.
+  This yields `engine/dist/**`, `engine/package.json`, `support/errors.js`.
+  Do not flatten the support directory. Do not symlink to old author scratch.
+- Normal adapter, at30ac:
+  `tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs`,
+ 1484bytes, SHA256
+  `2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d`,
+  goes to `$FIXTURE/engine-adapter-v1.mjs`. Its exact static import is
+  `./engine/dist/core.js` (`run`, `Budget`), the public ./core export target,
+  not an inferred private ABI. The source entry is `src/core.ts`.
+- The adapter's frozen ABI is `NP1-ENGINE-PUBLIC-SYNC-1`, identity
+  `author-public-bb23-node-adapter-v1`. Public construction already exercised:
+  `createNodeWorkerProvider({entry:pathToFileURL(adapterPath).href,
+  identity:'author-public-bb23-node-adapter-v1',observe})`.
+  `entry` is the **adapter URL**, not product worker-main.js. Identity and URL
+  are trusted configuration, **not byte authentication or host authorization**.
+  Explicit command grants remain separate and default denied.
+- The actual application Worker entry comes from the fresh selected package:
+  `$PACKAGE/dist/commands/node/worker-main.js`. Bind its emitted hash from that
+  package, not an old source/directory. The static adapter is test-side only,
+  never a package dependency or vendored engine.
+- The adapter uses existing Budget maxSteps100000/maxCallDepth128 and a262144
+  byte combined context-prefix/program admission. It does not change the
+  command's fixed limits. Promise constructor, ESM/.js/TLA/npm/npx/async fs/
+  process.exit/package search remain unsupported; Worker-L is not all-jobs/RSS.
+
+PUBLIC95-BINDINGS.json records all95 source/emission mappings, package metadata,
+adapter/guard hashes and10 exact external importer edges from the compiler graph.
+They are host-only scoped edges (`node:crypto`, `node:async_hooks`,
+`node:fs/promises`, `node:path`, `node:util`), **not a guest/global allowlist**.
+SOURCE-EDGES.json retains the whole95-module static graph. Fresh product and
+fixture imports also need admission; authenticating only the engine is insufficient.
+
+## Existing instrumentation: reuse rules, not old execution scope
+
+At30ac, `tests/integration/node-public-author-20260829/` contains:
+`node-policy.mjs`, `node-load-guard.mjs`, `internal-loader-arguments.mjs`,
+`node-batch.mjs`, `public-node-v2.mjs`, `run-v3.mjs`, `run-v4.mjs`.
+Their exact executor pins and selected bodies are captured in this sidecar.
+The internal-loader helper is byte-identical at several accepted executor paths;
+the generated content-pin table names the first matching strict-mode locator.
+Use the explicitly named public-author locator above when staging that recipe;
+do not infer a different required subtree from a duplicate-content hash.
+The old runner-node.mjs.data fragment still has the original engine-only path
+test; **run-v3.mjs:136** is the corrected actual inclusion of
+`compiled/support/errors.js`. Do not execute or transplant that obsolete fragment.
+
+Existing `node-policy.json` fields are `log`, `maximum`, `workerEntry`, `adapters`.
+The policy observes create/exit, refuses nested application Workers and verifies:
+empty env/argv; stdout/stderr true; resourceLimits old32/young8/code8/stack4MiB;
+workerData exact `request,entry,identity,sab`; SAB197056bytes; request exact
+`profile,selector,source,program,filename,cwd,argv,env,grants,limits` and
+NP1-CJS-WRQ-L-SYNC-1. Rebind log/entry/adapter paths to each owned layout.
+The raw adapter identity check alone is not a file hash guard.
+
+Existing `load-manifest.json` is `{files,aliases}`. `files[]` contains absolute
+`path`, `bytes`, `sha256`, `builtins` (plus inventory metadata); aliases map the
+root and exact commands/node import to that layout's actual emitted files.
+`node-load-guard.mjs` uses registerHooks, requires regular non-symlink files,
+checks size/hash before import (262144bytes/file), checks per-importer builtin
+edges, rejects unlisted bare package fallback/query/fragment, and emits
+`@@NODE_LOAD` records. The manifest itself is bounded2MiB, loads2048. The
+guard/policy bootstrap files and their config must first be outer-authenticated;
+self-declared identity is not admission. Refresh and compare complete membership,
+not only previously present paths, after materialization and every move.
+
+The old application consumer argv is exactly shaped as:
+`NODE --experimental-permission --allow-fs-read=OWNED_ROOT
+--allow-fs-write=OWNED_ROOT --allow-worker --import POLICY --import LOAD_GUARD
+ENTRY INPUT_JSON`. This is historical scaffolding, not an executable GO here.
+Policy/guard startup and inherited Worker imports need the exact bounded paths.
+Do not duplicate a permission prefix when adapting an already wrapped loader.
+`internalLoaderArguments` separately recognizes a fixed `--loader` consumer
+shape; fixed loader admissions are not application Worker starts or observed
+individual loader exits.
+
+Using old node-batch.mjs also imports focused-v5/workers-v5/public-node.mjs
+regardless of role, so that complete helper closure must be copied and bound;
+the corrected public-node-v2 bytes are staged under the imported public-node
+basename in the versioned recipe. Curie's five workflows need not invoke that
+whole legacy runner. Do not call nodeLayout and silently add61/24 cohorts or
+their Worker allowance. Existing full-suite source/installed/moved results are
+inherited evidence, not a fresh coherent replay.
+
+## Layouts, tools and remaining preflight work
+
+The accepted recipe builds selected source, packs fully, installs offline with
+scripts disabled, and physically renames the installed parent. Source-built
+means product emissions from the selected source, not TS fallback. Each layout
+must get a fresh packageRoot/moduleRoot, Worker entry, load manifest/aliases,
+static adapter URL and fresh captures. Owned engine regular-file copies may
+remain under a separately declared fixture root; their unchanged hashes must
+still be checked. No symlink or old installed path may rescue moved resolution.
+Alias-loader evidence is not native package-export selection: preserve the
+separate native package resolution/type checks from the accepted public review.
+
+Archive `tools.node` gives the existing v22.22.2 path,112989184bytes/SHA
+`5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`.
+Other `tools` values bind TS5.9.3/npm10.9.7/@types/node22.20.1/undici-types6.21.0,
+with tuple `rows=[relativePath,modeNumber,bytes,sha256]` and `origin` paths.
+They are metadata, not embedded tool bodies or promises those paths still exist.
+Curie's fresh object-row inventory has a different serialization domain: compare
+individual file pins, not tuple-array JSON hash against object-array JSON hash.
+Fresh bounded type/size/hash checks of every actual tool copy are still required.
+
+Smallest remaining author work, without changing engine/version/profile:
+
+1. Publish the selected96+adapter closure and precise archive/encoded/gzip pins;
+   materialize only in a fresh authorized owned namespace, with exact path/mode/
+   byte census. Mode is not an engine-array field: declare staged modes rather
+   than claiming an absent pin. Keep coherent309 source separate from baseline278.
+2. Complete Curie's own outer supervisor, builder and dispatch; bind all actual
+   tools/fixtures/Worker/guard/config/importer paths before any import. Regenerate
+   manifests from authenticated selected inputs, never a permissive HEAD glob.
+3. Produce and authenticate the fresh full1014 package if it actually has1014
+   members. Its SHA/member count remain UNKNOWN until built. Check exact encoded
+   bytes before same-buffer inflate; preserve the old N14 admission-order caveat.
+4. Obtain the separately required engine GO. The proposal has15 planned launches
+   (five workflows×three layouts),18 Node Worker ceiling and12 fixed loader
+   admissions, no RegexWorkers. That proposal is not current authority and does
+   not include E07/E08 or61/24 reruns. Count raw Worker creates/exits, guest-entry
+   observations, loader admissions and OS admin roles separately; no universal
+   process/peak claim. Preserve primary falsy reasons and cleanup-before-credit.
+5. Retain all50 Unit2 identities/layout once, C17's nonasync exact invoke Promise,
+  13 engine-free workflows and the explicit engine slice. Unchanged Node files
+   do not replace these new-core interaction tests. Stop on integrity/capture/
+   unknown retirement; no absent-engine success or unbounded timer workaround.
+
+## This sidecar's evidence and qualifications
+
+DATA extraction v2 authenticates98 public source paths through15 proof trees,
+95 carried emissions and all96 archive entries, plus exact coherent source hash
+`ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae`.
+It does not freshly execute/typecheck/recompile the engine or prove local tool
+availability. No new public API, builtin grant, provider implementation or guest
+feature is proposed. Static accepted engine provenance is reusable; new-core
+runtime acceptance is not inherited.
+
+Original locator/presentation/extractor helper errors remain in LOCATOR-HISTORY
+and EXTRACTION-HISTORY with captures and exact reversible namespace correction.
+No author record is repaired or rescored. The missing coherent receipt is a
+concrete materialization/binding task, not evidence that PUBLIC95 bytes are lost.
+
+
+RETAINED-FIXTURES.json
+[
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "blob": "c0e93cc3e644a2c92a681490c5a59fd2a4aa1103",
+    "bytes": 9613,
+    "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+    "path": "tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "blob": "aa0becf7144cdfc4efa32b5cc030d530364bfb33",
+    "bytes": 2790,
+    "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+    "path": "tests/compatibility/bash-redirection-author-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "blob": "59ae1e639274455401c0457fe67b88858330f2d5",
+    "bytes": 957,
+    "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+    "path": "tests/compatibility/bash-redirection-author-20260829/close-observer.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "blob": "f73b632fb607e8fe0c0067656cf5a1cf29026503",
+    "bytes": 11148,
+    "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+    "path": "tests/compatibility/bash-strict-mode-author-20260829/strict.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "blob": "4d0fe40653cf150cf790dacf0418da8b15072eba",
+    "bytes": 9222,
+    "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+    "path": "tests/compatibility/bash-strict-mode-design-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "blob": "cb41a2556e3ddf4662b2be40fb10756d61838180",
+    "bytes": 14524,
+    "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+    "path": "tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "blob": "196e4520d979918b145d0560cfa49892ad9c575a",
+    "bytes": 14101,
+    "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "blob": "a811a09c755637dcee37abbbdecbd0a5db35c634",
+    "bytes": 14968,
+    "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+    "path": "tests/compatibility/bash-strict-extension-design-20260829/CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "blob": "f689e2ceb93ec4484f6a1da9bf9840b3f10eddac",
+    "bytes": 2507,
+    "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+    "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "blob": "4928c2331f264a7b4b8389c791c4d1c0f6298fb2",
+    "bytes": 3019,
+    "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+    "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "blob": "488675434a6f547839c5a5fa73ce56fecbd69ed1",
+    "bytes": 5599,
+    "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+    "path": "tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/resources.mjs",
+    "blob": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+    "bytes": 1978,
+    "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+    "path": "tests/integration/git-public-20260829/resources.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/loader.mjs",
+    "blob": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+    "bytes": 1180,
+    "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+    "path": "tests/integration/git-public-20260829/loader.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/integration/git-public-20260829/names.mjs",
+    "blob": "c9723f7471f3e14309db432a55e9befa6aebd42b",
+    "bytes": 879,
+    "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+    "path": "tests/integration/git-public-20260829/names.mjs",
+    "role": "READONLY_INHERITED_FIXTURE; UNRUN_ON_NEW_COMPOSITION"
+  }
+]
+
+
+RECEIPTS.json
+[
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/COMPOSITION.json",
+    "blob": "e90341d1eb8ee4e7e54e826c205b7978b21ac98d",
+    "bytes": 131348,
+    "sha256": "9def80500ee79d157054dcdd8a8dd06b7f77c2f8a720bd34e34c550aec5831f9"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/TREE-WITNESSES.json",
+    "blob": "b440f05d2d58a9310fb11fc45136696b6deed73a",
+    "bytes": 161248,
+    "sha256": "64ed23c6e2f74890ecb2d72284d9458da00af3e59a9ea8975405fd75deb2610a"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/SOURCE-TREE-INVENTORY.json",
+    "blob": "0b995d3cb3b461d479aa88d52b6d47ea043f722f",
+    "bytes": 40195,
+    "sha256": "4f00a838cf440a8f09e9591495357037b33432d3cc141594295860d12fa4d8a4"
+  },
+  {
+    "reference": "4cc28cdb:tests/integration/agent-bash-coherent-design-20260829/EVIDENCE.md",
+    "blob": "720bd6625465c6b6da046a1f0292ff171c33cae4",
+    "bytes": 2596,
+    "sha256": "55481fd9d7ad674c931f3fa7d5ccaec84a6736ca1889eb36aa7462e9fd964a73"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json",
+    "blob": "cbce5f039417a2ca96dd967b678f5fdaf0ad8b47",
+    "bytes": 230044,
+    "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+  },
+  {
+    "reference": "4a0268f2561d3b2aabf7511656baad968ee64986:tests/compatibility/bash-strict-extension-author-20260829/n14-v4/PRESEAL-v4.json",
+    "blob": "1b6a4875e52fcd319bfbd0f821ae783517b05c66",
+    "bytes": 4237,
+    "sha256": "5735b4f62fd237713ba7865ebbe2955798d092441961797ed993935d514f39b5"
+  },
+  {
+    "reference": "bb4dd0571a0335b20e29448bf88126ca02c1a32d:tests/integration/node-public-author-20260829/public-node.mjs",
+    "blob": "4dd969c1c93eb552c64049d4525a7a480eb8a2c7",
+    "bytes": 11663,
+    "sha256": "b7e3b584d845fe120758305ff92543a4dc9f039c3ca6f48b42fae84ff3108aa2"
+  },
+  {
+    "reference": "b7dc87ff84a45567dc8d912cc15dd10f089ed68a:tests/integration/agent-bash-coherent-independent-20260829/PROBES.json",
+    "blob": "836ebb617ed01885825527feaf7e3bdd4aaa0fd5",
+    "bytes": 7253,
+    "sha256": "4d4a3f840ba29844568271a42584103387370588217b66c82eea0e4213c4745b"
+  }
+]
+
+
+INHERITED-TOOL-BINDINGS.json
+{
+  "node": {
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "typescript": {
+    "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+    "version": "5.9.3",
+    "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+  },
+  "npm": {
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+    "version": "10.9.7",
+    "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+  },
+  "@types/node": {
+    "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+    "version": "22.20.1",
+    "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+  },
+  "undici-types": {
+    "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+    "version": "6.21.0",
+    "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+  }
+}
+
+
+workflow-entry.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import { admitFile } from './admission.mjs';
+import { runWorkflow, engineFreeIds } from './workflows.mjs';
+
+export async function main(args) {
+  assert.equal(args.length, 4); assert.equal(args[0], '--run');
+  const requestBytes = admitFile(args[1], { bytes: Number(args[3]), sha256: args[2] }, 1048576);
+  const request = JSON.parse(requestBytes);
+  assert.equal(request.action, 'ROOT_RUN_COHERENT_ENGINE_FREE'); assert.equal(request.sourceTree, '3adc676a0ab638c9788ef007e465931d65d2c6fe');
+  assert.equal(request.profile, 'engine-free'); assert.deepEqual(request.ids, engineFreeIds);
+  assert.ok(['source-built','installed','physically-moved'].includes(request.layout));
+  assert.equal(request.independentGrantRequired, true); assert.ok(typeof request.rootAuthorization === 'string' && request.rootAuthorization.length > 0);
+  const packageRoot = fs.realpathSync(request.packageRoot), membership = JSON.parse(admitFile(request.membership.path, request.membership, 1048576));
+  assert.equal(membership.length, 1014); assert.equal(new Set(membership.map(row => row.path)).size, 1014);
+  const expected = new Map(membership.map(row => [row.path, row])); const observed = [];
+  function walk(directory, prefix = '') {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const relative = prefix ? prefix + '/' + entry.name : entry.name, filename = path.join(directory, entry.name);
+      assert.ok(entry.name !== 'AGENTS.md' && !entry.isSymbolicLink());
+      if (entry.isDirectory()) walk(filename, relative);
+      else { assert.ok(entry.isFile()); const row = expected.get(relative); assert.ok(row, relative); admitFile(filename, row, 16777216); observed.push(relative); }
+    }
+  }
+  walk(packageRoot); assert.deepEqual(observed.sort(), [...expected.keys()].sort());
+  const metadata = JSON.parse(admitFile(path.join(packageRoot, 'package.json'), expected.get('package.json'), 1048576));
+  assert.equal(metadata.name, 'virtual-bash'); assert.deepEqual(metadata.dependencies ?? {}, {});
+  const rootUrl = import.meta.resolve('virtual-bash'), nodeUrl = import.meta.resolve('virtual-bash/commands/node');
+  assert.equal(rootUrl, pathToFileURL(path.join(packageRoot, 'dist/index.js')).href);
+  assert.equal(nodeUrl, pathToFileURL(path.join(packageRoot, 'dist/commands/node/index.js')).href);
+  await assert.rejects(import('virtual-bash/commands/node/host'));
+  const fixture = JSON.parse(admitFile(request.fixture.path, request.fixture, 1048576));
+  const api = await import(rootUrl), nodeApi = await import(nodeUrl);
+  const rows = [];
+  for (const id of request.ids) {
+    const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exitCode = 78; }, 30000);
+    try { rows.push(await runWorkflow(id, { api, nodeApi, fixture })); }
+    catch (error) { rows.push({ id, status: 'FAIL', detail: String(error?.stack ?? error), facts: error?.facts }); if (error?.facts?.cleanupFailure) throw error; }
+    finally { clearTimeout(timer); }
+  }
+  assert.equal(rows.length, 13); assert.equal(new Set(rows.map(row => row.id)).size, 13);
+  for (const row of membership) admitFile(path.join(packageRoot, row.path), row, 16777216);
+  console.log(JSON.stringify({ layout: request.layout, rows, engineExecutions: 0 }));
+  process.exitCode = rows.some(row => row.status !== 'PASS') ? 1 : 0;
+}
+
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) await main(process.argv.slice(2));
+

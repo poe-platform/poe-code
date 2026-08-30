@@ -1,0 +1,390 @@
+{
+  "request": {
+    "id": "independent/worker-leak",
+    "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+    "synthetic": true,
+    "engine": "independent-sentinel-not-product",
+    "profile": "original",
+    "mode": "clean",
+    "expected": {
+      "stdout": "AAF/gP7/",
+      "stderr": "aW5kZXBlbmRlbnQK",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AAF/gP7/"
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 240,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "root": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+      "cwd": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+        "TMPDIR": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticModule": {
+      "packageName": "independent-bridge-sentinel",
+      "packagePath": "/private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/package.json",
+      "entry": "/private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs",
+      "files": {
+        "/private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/package.json": {
+          "bytes": 106,
+          "sha256": "27b41fc0708c17fe5dba368c4176fd70b172d024ea879d0a4a43baa8ea20de35"
+        },
+        "/private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs": {
+          "bytes": 1489,
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511"
+        }
+      }
+    }
+  },
+  "attempt": {
+    "id": "independent/worker-leak",
+    "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "independent-sentinel-not-product",
+    "failures": [
+      "natural deadline",
+      "coordinator crash/forced exit",
+      "engine did not exit/close naturally",
+      "coordinator did not exit/close naturally",
+      "unverified pipe/fixture/group closure"
+    ],
+    "events": [
+      {
+        "atMs": 0.415,
+        "kind": "group-admitted",
+        "pid": 28365,
+        "pgid": 28365,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "root": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+          "cwd": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+            "TMPDIR": "/private/tmp/safe-bash-independent-bridge-tQVUTK",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 42.582,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "engine-spawn",
+        "pid": 28366,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 123.378,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "public-resolution",
+        "specifier": "independent-bridge-sentinel",
+        "parent": "/private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/package.json",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs"
+      },
+      {
+        "atMs": 123.634,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "independent-bridge-sentinel",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/package.json",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs"
+        }
+      },
+      {
+        "atMs": 123.862,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs"
+        }
+      },
+      {
+        "atMs": 125.092,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "module",
+        "event": {
+          "type": "load-returned",
+          "url": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs",
+          "sha256": "ea4ada5cb95bd6a9b2348f0d1f2d5e4c59903778addcf409a6622b11ad808511",
+          "format": "module",
+          "evaluationProven": false
+        }
+      },
+      {
+        "atMs": 126.876,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:fs",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs",
+          "url": "node:fs"
+        }
+      },
+      {
+        "atMs": 127.022,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:child_process",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs",
+          "url": "node:child_process"
+        }
+      },
+      {
+        "atMs": 127.18,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "node:worker_threads",
+          "parentURL": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs",
+          "url": "node:worker_threads"
+        }
+      },
+      {
+        "atMs": 127.258,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "entry-import-fulfilled",
+        "resolved": "file:///private/tmp/safe-bash-independent-bridge-tQVUTK/worker-leak/index.mjs"
+      },
+      {
+        "atMs": 127.308,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1527.305583
+      },
+      {
+        "atMs": 127.309,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "ready"
+      },
+      {
+        "atMs": 127.699,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 127.809,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 127.858,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 127.985,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 128.019,
+        "id": "independent/worker-leak",
+        "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 128.14,
+        "kind": "result-received",
+        "sha256": "d94bb30bf639837c33723bd4bee0ddd7c1809b3bfd23dabdaa504da15e67ce52",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 368.746,
+        "kind": "sticky-failure",
+        "reason": "natural deadline"
+      },
+      {
+        "atMs": 369.63,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 28365
+      },
+      {
+        "atMs": 374.753,
+        "kind": "coordinator-exit",
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "atMs": 374.765,
+        "kind": "sticky-failure",
+        "reason": "coordinator crash/forced exit"
+      },
+      {
+        "atMs": 374.779,
+        "kind": "coordinator-close",
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": {
+      "id": "independent/worker-leak",
+      "nonce": "235f5a20-64e7-402a-ab3d-cc96bad91f1f",
+      "kind": "result",
+      "observation": {
+        "stdout": "AAF/gP7/",
+        "stderr": "aW5kZXBlbmRlbnQK",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AAF/gP7/"
+          }
+        }
+      }
+    },
+    "engineExit": null,
+    "engineClose": null,
+    "sessionExit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "sessionClose": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 28365,
+    "enginePid": 28366,
+    "cancelSent": true,
+    "elapsedMs": 377.088,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1527.306
+    },
+    "hostBytes": 0,
+    "reportBytes": 3853,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 3853,
+      "receivedSha256": "da7b8b42637dee66717d50c5f287550d1d7ddc61c2cf0b4391df8ea7aa21753f",
+      "prefixBase64": "AAABi3siaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6MjgzNjYsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAABRHsiaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6InB1YmxpYy1yZXNvbHV0aW9uIiwic3BlY2lmaWVyIjoiaW5kZXBlbmRlbnQtYnJpZGdlLXNlbnRpbmVsIiwicGFyZW50IjoiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL3dvcmtlci1sZWFrL3BhY2thZ2UuanNvbiIsInJlc29sdmVkIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy93b3JrZXItbGVhay9pbmRleC5tanMifQAAAWJ7ImlkIjoiaW5kZXBlbmRlbnQvd29ya2VyLWxlYWsiLCJub25jZSI6IjIzNWY1YTIwLTY0ZTctNDAyYS1hYjNkLWNjOTZiYWQ5MWYxZiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6ImluZGVwZW5kZW50LWJyaWRnZS1zZW50aW5lbCIsInBhcmVudFVSTCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvd29ya2VyLWxlYWsvcGFja2FnZS5qc29uIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy93b3JrZXItbGVhay9pbmRleC5tanMifX0AAAG2eyJpZCI6ImluZGVwZW5kZW50L3dvcmtlci1sZWFrIiwibm9uY2UiOiIyMzVmNWEyMC02NGU3LTQwMmEtYWIzZC1jYzk2YmFkOTFmMWYiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL3dvcmtlci1sZWFrL2luZGV4Lm1qcyIsInBhcmVudFVSTCI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsInVybCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWluZGVwZW5kZW50LWJyaWRnZS10UVZVVEsvd29ya2VyLWxlYWsvaW5kZXgubWpzIn19AAABTXsiaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6Im1vZHVsZSIsImV2ZW50Ijp7InR5cGUiOiJsb2FkLXJldHVybmVkIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy93b3JrZXItbGVhay9pbmRleC5tanMiLCJzaGEyNTYiOiJlYTRhZGE1Y2I5NWJkNmE5YjIzNDhmMGQxZjJkNWU0YzU5OTAzNzc4YWRkY2Y0MDlhNjYyMmIxMWFkODA4NTExIiwiZm9ybWF0IjoibW9kdWxlIiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2V9fQAAAQV7ImlkIjoiaW5kZXBlbmRlbnQvd29ya2VyLWxlYWsiLCJub25jZSI6IjIzNWY1YTIwLTY0ZTctNDAyYS1hYjNkLWNjOTZiYWQ5MWYxZiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6Im5vZGU6ZnMiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL3dvcmtlci1sZWFrL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6ZnMifX0AAAEbeyJpZCI6ImluZGVwZW5kZW50L3dvcmtlci1sZWFrIiwibm9uY2UiOiIyMzVmNWEyMC02NGU3LTQwMmEtYWIzZC1jYzk2YmFkOTFmMWYiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJub2RlOmNoaWxkX3Byb2Nlc3MiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL3dvcmtlci1sZWFrL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6Y2hpbGRfcHJvY2VzcyJ9fQAAAR17ImlkIjoiaW5kZXBlbmRlbnQvd29ya2VyLWxlYWsiLCJub25jZSI6IjIzNWY1YTIwLTY0ZTctNDAyYS1hYjNkLWNjOTZiYWQ5MWYxZiIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6Im5vZGU6d29ya2VyX3RocmVhZHMiLCJwYXJlbnRVUkwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1pbmRlcGVuZGVudC1icmlkZ2UtdFFWVVRLL3dvcmtlci1sZWFrL2luZGV4Lm1qcyIsInVybCI6Im5vZGU6d29ya2VyX3RocmVhZHMifX0AAADKeyJpZCI6ImluZGVwZW5kZW50L3dvcmtlci1sZWFrIiwibm9uY2UiOiIyMzVmNWEyMC02NGU3LTQwMmEtYWIzZC1jYzk2YmFkOTFmMWYiLCJraW5kIjoiZW50cnktaW1wb3J0LWZ1bGZpbGxlZCIsInJlc29sdmVkIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtaW5kZXBlbmRlbnQtYnJpZGdlLXRRVlVUSy93b3JrZXItbGVhay9pbmRleC5tanMifQAAAF57ImlkIjoiaW5kZXBlbmRlbnQvd29ya2VyLWxlYWsiLCJub25jZSI6IjIzNWY1YTIwLTY0ZTctNDAyYS1hYjNkLWNjOTZiYWQ5MWYxZiIsImtpbmQiOiJyZWFkeSJ9AAAAc3siaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJleGVjLXN0YXJ0In0AAAB1eyJpZCI6ImluZGVwZW5kZW50L3dvcmtlci1sZWFrIiwibm9uY2UiOiIyMzVmNWEyMC02NGU3LTQwMmEtYWIzZC1jYzk2YmFkOTFmMWYiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc2V0dGxlZCJ9AAAAensiaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJzbmFwc2hvdC1jb21wbGV0ZSJ9AAAAdnsiaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6InBoYXNlIiwicGhhc2UiOiJkaXNwb3NlLXN0YXJ0In0AAAB4eyJpZCI6ImluZGVwZW5kZW50L3dvcmtlci1sZWFrIiwibm9uY2UiOiIyMzVmNWEyMC02NGU3LTQwMmEtYWIzZC1jYzk2YmFkOTFmMWYiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc2V0dGxlZCJ9AAAA5HsiaWQiOiJpbmRlcGVuZGVudC93b3JrZXItbGVhayIsIm5vbmNlIjoiMjM1ZjVhMjAtNjRlNy00MDJhLWFiM2QtY2M5NmJhZDkxZjFmIiwia2luZCI6InJlc3VsdCIsIm9ic2VydmF0aW9uIjp7InN0ZG91dCI6IkFBRi9nUDcvIiwic3RkZXJyIjoiYVc1a1pYQmxibVJsYm5RSyIsImV4aXRDb2RlIjowLCJlbnRyaWVzIjp7ImJpbmFyeSI6eyJ0eXBlIjoiZmlsZSIsImJ5dGVzIjoiQUFGL2dQNy8ifX19fQ==",
+      "prefixOnly": false
+    }
+  },
+  "assessment": {
+    "comparison": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "lifecycle": false,
+    "status": "lifecycle-or-capture-failure"
+  },
+  "control": {
+    "mode": "worker-leak",
+    "controlSatisfied": true,
+    "observationStatus": "lifecycle-or-capture-failure",
+    "clean": false,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "resources": {
+      "imported.json": {
+        "syntheticOnly": true,
+        "pid": 28366,
+        "mode": "worker-leak"
+      },
+      "owned-worker.json": {
+        "pid": 28366,
+        "threadId": 2
+      }
+    }
+  }
+}

@@ -1,0 +1,1781 @@
+{
+  "sourceCommit": "f7000b05b15fa34371226b35cf537d3f73bbf004",
+  "runtimeHash": "c7c9d02ddde5576b7810bfecbbd21b70c6eb2c0ea4fe1ee8bee92c21946d8449",
+  "oldNine": [
+    {
+      "name": "move-output-really-closes-source",
+      "classification": "Bash3.2 diagnostic line-context plus original shell-stress/default-shell name conflict; exact modern shell profile matches",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "move-output-really-closes-source",
+              "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-"
+            },
+            "nativePid": 28899,
+            "virtualPid": 28907,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "status=1",
+              "stderr": "shell-stress: 3: Bad file descriptor\n",
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              },
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "move-output-really-closes-source",
+              "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-"
+            },
+            "nativePid": 29630,
+            "virtualPid": 29632,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "status=1",
+              "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              },
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "move-output-really-closes-source",
+              "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-"
+            },
+            "nativePid": 30793,
+            "virtualPid": 30795,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              },
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "move-output-really-closes-source",
+              "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-"
+            },
+            "nativePid": 31506,
+            "virtualPid": 31508,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "status=1",
+              "stderr": "shell: 3: Bad file descriptor\n",
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "saved": {
+                  "type": "file",
+                  "base64": "bW92ZWQ="
+                }
+              },
+              "stdoutBase64": "c3RhdHVzPTE=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "move-input-really-closes-source",
+      "classification": "Bash3.2 diagnostic line-context plus original shell-stress/default-shell name conflict; exact modern shell profile matches",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "move-input-really-closes-source",
+              "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+              "initialFiles": {
+                "input": "first\nsecond\n"
+              }
+            },
+            "nativePid": 28910,
+            "virtualPid": 28912,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "<first>status=1",
+              "stderr": "shell-stress: 3: Bad file descriptor\n",
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "<first>status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              },
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "move-input-really-closes-source",
+              "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+              "initialFiles": {
+                "input": "first\nsecond\n"
+              }
+            },
+            "nativePid": 29634,
+            "virtualPid": 29636,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "<first>status=1",
+              "stderr": "shell-stress: line 1: 3: Bad file descriptor\n",
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "<first>status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              },
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "move-input-really-closes-source",
+              "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+              "initialFiles": {
+                "input": "first\nsecond\n"
+              }
+            },
+            "nativePid": 30797,
+            "virtualPid": 30799,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "<first>status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo=",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "<first>status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              },
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "move-input-really-closes-source",
+              "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+              "initialFiles": {
+                "input": "first\nsecond\n"
+              }
+            },
+            "nativePid": 31510,
+            "virtualPid": 31512,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "<first>status=1",
+              "stderr": "shell: 3: Bad file descriptor\n",
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "<first>status=1",
+              "stderr": "shell: line 1: 3: Bad file descriptor\n",
+              "exitCode": 0,
+              "files": {
+                "input": {
+                  "type": "file",
+                  "base64": "Zmlyc3QKc2Vjb25kCg=="
+                }
+              },
+              "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMzogQmFkIGZpbGUgZGVzY3JpcHRvcgo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "prevalidation-prior-output-and-file",
+      "classification": "Bash3.2 parse/effect/status profile conflict; modern target matches; original modern shell-stress name still differs",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "prevalidation-prior-output-and-file",
+              "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after"
+            },
+            "nativePid": 28952,
+            "virtualPid": 28960,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "beforeafter",
+              "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+              "stdoutBase64": "YmVmb3JlYWZ0ZXI=",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+              "exitCode": 0,
+              "files": {
+                "marker": {
+                  "type": "file",
+                  "base64": "bWFya2Vy"
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "prevalidation-prior-output-and-file",
+              "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after"
+            },
+            "nativePid": 29665,
+            "virtualPid": 29668,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGBwcmludGYgYmVmb3JlOyBwcmludGYgbWFya2VyID5tYXJrZXI7IHByaW50ZiAiJXMiICIkKHRydWUgfCkiOyBwcmludGYgYWZ0ZXInCg==",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "prevalidation-prior-output-and-file",
+              "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after"
+            },
+            "nativePid": 30826,
+            "virtualPid": 30828,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo=",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "prevalidation-prior-output-and-file",
+              "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after"
+            },
+            "nativePid": 31544,
+            "virtualPid": 31547,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "beforeafter",
+              "stderr": "shell: command substitution: line 1: syntax error: unexpected end of file\n",
+              "stdoutBase64": "YmVmb3JlYWZ0ZXI=",
+              "stderrBase64": "c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+              "exitCode": 0,
+              "files": {
+                "marker": {
+                  "type": "file",
+                  "base64": "bWFya2Vy"
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIGJlZm9yZTsgcHJpbnRmIG1hcmtlciA+bWFya2VyOyBwcmludGYgIiVzIiAiJCh0cnVlIHwpIjsgcHJpbnRmIGFmdGVyJwo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "fatal-parameter-preserves-only-earlier-effects",
+      "classification": "Bash3.2 diagnostic line-context plus original shell-stress/default-shell name conflict; exact modern shell profile matches",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-preserves-only-earlier-effects",
+              "script": "printf before >before; : \"${missing:?stop}\"; printf after >after"
+            },
+            "nativePid": 28965,
+            "virtualPid": 28967,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              },
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-preserves-only-earlier-effects",
+              "script": "printf before >before; : \"${missing:?stop}\"; printf after >after"
+            },
+            "nativePid": 29678,
+            "virtualPid": 29680,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: line 1: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              },
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-preserves-only-earlier-effects",
+              "script": "printf before >before; : \"${missing:?stop}\"; printf after >after"
+            },
+            "nativePid": 30858,
+            "virtualPid": 30872,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              },
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-preserves-only-earlier-effects",
+              "script": "printf before >before; : \"${missing:?stop}\"; printf after >after"
+            },
+            "nativePid": 31549,
+            "virtualPid": 31551,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {
+                "before": {
+                  "type": "file",
+                  "base64": "YmVmb3Jl"
+                }
+              },
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+      "classification": "Bash3.2 parse/effect/status profile conflict; modern target matches; original modern shell-stress name still differs",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+              "script": "printf touched >marker; printf '%s' \"$(true |)\""
+            },
+            "nativePid": 29414,
+            "virtualPid": 29417,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+              "exitCode": 0,
+              "files": {
+                "marker": {
+                  "type": "file",
+                  "base64": "dG91Y2hlZA=="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+              "script": "printf touched >marker; printf '%s' \"$(true |)\""
+            },
+            "nativePid": 29994,
+            "virtualPid": 29996,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: -c: line 1: syntax error near unexpected token `)'\nshell-stress: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiAtYzogbGluZSAxOiBzeW50YXggZXJyb3IgbmVhciB1bmV4cGVjdGVkIHRva2VuIGApJwpzaGVsbC1zdHJlc3M6IC1jOiBsaW5lIDE6IGBwcmludGYgdG91Y2hlZCA+bWFya2VyOyBwcmludGYgJyVzJyAiJCh0cnVlIHwpIicK",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+              "script": "printf touched >marker; printf '%s' \"$(true |)\""
+            },
+            "nativePid": 30523,
+            "virtualPid": 30525,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg==",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+              "script": "printf touched >marker; printf '%s' \"$(true |)\""
+            },
+            "nativePid": 31284,
+            "virtualPid": 31287,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: command substitution: line 1: syntax error: unexpected end of file\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBsaW5lIDE6IHN5bnRheCBlcnJvcjogdW5leHBlY3RlZCBlbmQgb2YgZmlsZQo=",
+              "exitCode": 0,
+              "files": {
+                "marker": {
+                  "type": "file",
+                  "base64": "dG91Y2hlZA=="
+                }
+              }
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf touched >marker; printf '%s' \"$(true |)\"'\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IC1jOiBsaW5lIDE6IHN5bnRheCBlcnJvciBuZWFyIHVuZXhwZWN0ZWQgdG9rZW4gYCknCnNoZWxsOiAtYzogbGluZSAxOiBgcHJpbnRmIHRvdWNoZWQgPm1hcmtlcjsgcHJpbnRmICclcycgIiQodHJ1ZSB8KSInCg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "fatal-parameter-expansion-prevents-following-file-effect",
+      "classification": "Bash3.2 diagnostic line-context plus original shell-stress/default-shell name conflict; exact modern shell profile matches",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-expansion-prevents-following-file-effect",
+              "script": ": \"${missing:?stop}\"; : >after"
+            },
+            "nativePid": 29438,
+            "virtualPid": 29440,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-expansion-prevents-following-file-effect",
+              "script": ": \"${missing:?stop}\"; : >after"
+            },
+            "nativePid": 30031,
+            "virtualPid": 30033,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: line 1: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-expansion-prevents-following-file-effect",
+              "script": ": \"${missing:?stop}\"; : >after"
+            },
+            "nativePid": 30546,
+            "virtualPid": 30548,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-parameter-expansion-prevents-following-file-effect",
+              "script": ": \"${missing:?stop}\"; : >after"
+            },
+            "nativePid": 31308,
+            "virtualPid": 31310,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: missing: stop\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK",
+              "exitCode": 127,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 127,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+      "classification": "Bash3.2 diagnostic line-context plus original shell-stress/default-shell name conflict; exact modern shell profile matches",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+              "script": ": \"$((1/0))\"; : >after"
+            },
+            "nativePid": 29442,
+            "virtualPid": 29444,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: 1/0: division by 0 (error token is \"0\")\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+              "exitCode": 1,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+              "exitCode": 1,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+              "script": ": \"$((1/0))\"; : >after"
+            },
+            "nativePid": 30035,
+            "virtualPid": 30037,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "",
+              "stderr": "shell-stress: line 1: 1/0: division by 0 (error token is \"0\")\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+              "exitCode": 1,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+              "exitCode": 1,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+              "script": ": \"$((1/0))\"; : >after"
+            },
+            "nativePid": 30550,
+            "virtualPid": 30552,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg==",
+              "exitCode": 1,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+              "exitCode": 1,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+              "script": ": \"$((1/0))\"; : >after"
+            },
+            "nativePid": 31312,
+            "virtualPid": 31314,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "",
+              "stderr": "shell: 1/0: division by 0 (error token is \"0\")\n",
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+              "exitCode": 1,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "",
+              "stderr": "shell: line 1: 1/0: division by 0 (error token is \"0\")\n",
+              "exitCode": 1,
+              "files": {},
+              "stdoutBase64": "",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogMS8wOiBkaXZpc2lvbiBieSAwIChlcnJvciB0b2tlbiBpcyAiMCIpCg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "fatal-expansion-in-substitution-stops-substitution-only",
+      "classification": "Bash3.2 diagnostic line-context plus original shell-stress/default-shell name conflict; exact modern shell profile matches",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-expansion-in-substitution-stops-substitution-only",
+              "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\""
+            },
+            "nativePid": 29446,
+            "virtualPid": 29449,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "<>:1\n",
+              "stderr": "shell-stress: missing: stop\n",
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<>:1\n",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-expansion-in-substitution-stops-substitution-only",
+              "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\""
+            },
+            "nativePid": 30039,
+            "virtualPid": 30042,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "<>:1\n",
+              "stderr": "shell-stress: line 1: missing: stop\n",
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IG1pc3Npbmc6IHN0b3AK",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<>:1\n",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "fatal-expansion-in-substitution-stops-substitution-only",
+              "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\""
+            },
+            "nativePid": 30554,
+            "virtualPid": 30557,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "<>:1\n",
+              "stderr": "shell: line 1: missing: stop\n",
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo=",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<>:1\n",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "fatal-expansion-in-substitution-stops-substitution-only",
+              "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\""
+            },
+            "nativePid": 31316,
+            "virtualPid": 31319,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "<>:1\n",
+              "stderr": "shell: missing: stop\n",
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<>:1\n",
+              "stderr": "shell: line 1: missing: stop\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PD46MQo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogbWlzc2luZzogc3RvcAo="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "command-substitution-removes-nul-bytes",
+      "classification": "Bash3.2 silent NUL removal versus modern warning; default source-name difference in original modern invocation",
+      "observations": [
+        {
+          "profile": "original-historical",
+          "row": {
+            "fixture": {
+              "name": "command-substitution-removes-nul-bytes",
+              "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\""
+            },
+            "nativePid": 29499,
+            "virtualPid": 29502,
+            "profile": "historical-3.2",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "<ab>\n",
+              "stderr": "",
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<ab>\n",
+              "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "original-primary",
+          "row": {
+            "fixture": {
+              "name": "command-substitution-removes-nul-bytes",
+              "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\""
+            },
+            "nativePid": 30090,
+            "virtualPid": 30093,
+            "profile": "primary-5.3",
+            "sourceName": "shell-stress",
+            "native": {
+              "stdout": "<ab>\n",
+              "stderr": "shell-stress: line 1: warning: command substitution: ignored null byte in input\n",
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "c2hlbGwtc3RyZXNzOiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo=",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<ab>\n",
+              "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-primary",
+          "row": {
+            "fixture": {
+              "name": "command-substitution-removes-nul-bytes",
+              "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\""
+            },
+            "nativePid": 30665,
+            "virtualPid": 30668,
+            "profile": "primary-5.3",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "<ab>\n",
+              "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg==",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<ab>\n",
+              "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+            },
+            "exact": true,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        },
+        {
+          "profile": "profile-historical",
+          "row": {
+            "fixture": {
+              "name": "command-substitution-removes-nul-bytes",
+              "script": "value=$(printf \"a\\0b\"); printf \"<%s>\\n\" \"$value\""
+            },
+            "nativePid": 31367,
+            "virtualPid": 31370,
+            "profile": "historical-3.2",
+            "sourceName": "shell",
+            "native": {
+              "stdout": "<ab>\n",
+              "stderr": "",
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "",
+              "exitCode": 0,
+              "files": {}
+            },
+            "actual": {
+              "stdout": "<ab>\n",
+              "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\n",
+              "exitCode": 0,
+              "files": {},
+              "stdoutBase64": "PGFiPgo=",
+              "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+            },
+            "exact": false,
+            "nativeFrozenEqual": true,
+            "oldNine": true
+          }
+        }
+      ]
+    }
+  ],
+  "cohorts": [
+    {
+      "label": "original-historical",
+      "tap": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1,
+      "exact": 74,
+      "total": 88,
+      "nativeDrift": 0,
+      "guarded": true,
+      "sourceDrift": [],
+      "unimportedDrift": []
+    },
+    {
+      "label": "original-primary",
+      "tap": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1,
+      "exact": 74,
+      "total": 88,
+      "nativeDrift": 0,
+      "guarded": true,
+      "sourceDrift": [],
+      "unimportedDrift": []
+    },
+    {
+      "label": "profile-primary",
+      "tap": {
+        "tests": 90,
+        "pass": 89,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1,
+      "exact": 88,
+      "total": 88,
+      "nativeDrift": 0,
+      "guarded": true,
+      "sourceDrift": [
+        "src/fs/s3/http/transport.ts"
+      ],
+      "unimportedDrift": [
+        "src/fs/s3/http/transport.ts"
+      ]
+    },
+    {
+      "label": "profile-historical",
+      "tap": {
+        "tests": 89,
+        "pass": 75,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "status": 1,
+      "exact": 74,
+      "total": 88,
+      "nativeDrift": 0,
+      "guarded": true,
+      "sourceDrift": [],
+      "unimportedDrift": []
+    }
+  ],
+  "nulSummary": [
+    {
+      "fixture": "original-dollar-blanklines",
+      "name": "shell",
+      "script": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        6
+      ],
+      "actualWarningLines": [
+        8
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "original-backtick-control",
+      "name": "shell",
+      "script": "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+      "productScript": "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+      "primaryExact": true,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        4
+      ],
+      "actualWarningLines": [
+        4
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-no-blank",
+      "name": "shell",
+      "script": "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "primaryExact": true,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        4
+      ],
+      "actualWarningLines": [
+        4
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-one-blank",
+      "name": "shell",
+      "script": "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        5
+      ],
+      "actualWarningLines": [
+        6
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 5: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-three-blanks",
+      "name": "shell",
+      "script": "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        7
+      ],
+      "actualWarningLines": [
+        10
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 7: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-prefix-lines",
+      "name": "shell",
+      "script": "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        8
+      ],
+      "actualWarningLines": [
+        10
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "nested-multiple-nuls-one-warning",
+      "name": "shell",
+      "script": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+      "productScript": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        6
+      ],
+      "actualWarningLines": [
+        8
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "two-substitutions-two-warnings",
+      "name": "shell",
+      "script": "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+      "productScript": "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+      "primaryExact": true,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        1,
+        2
+      ],
+      "actualWarningLines": [
+        1,
+        2
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "shell: line 1: warning: command substitution: ignored null byte in input\nshell: line 2: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 1: warning: command substitution: ignored null byte in input\nshell: line 2: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "original-dollar-blanklines",
+      "name": "diagnostic-nul-script",
+      "script": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "bash -c 'value=$(:\n\n\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b'\\'')\"\n)' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        6
+      ],
+      "actualWarningLines": [
+        8
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 6: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "original-backtick-control",
+      "name": "diagnostic-nul-script",
+      "script": "value=`\nprintf '%s' \"$(printf 'a\\0b')\"\n`",
+      "productScript": "bash -c 'value=`\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b'\\'')\"\n`' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        4
+      ],
+      "actualWarningLines": [
+        4
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 4: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-no-blank",
+      "name": "diagnostic-nul-script",
+      "script": "value=$(:\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "bash -c 'value=$(:\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b'\\'')\"\n)' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        4
+      ],
+      "actualWarningLines": [
+        4
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 4: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-one-blank",
+      "name": "diagnostic-nul-script",
+      "script": "value=$(:\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "bash -c 'value=$(:\n\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b'\\'')\"\n)' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        5
+      ],
+      "actualWarningLines": [
+        6
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 5: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-three-blanks",
+      "name": "diagnostic-nul-script",
+      "script": "value=$(:\n\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "bash -c 'value=$(:\n\n\n\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b'\\'')\"\n)' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        7
+      ],
+      "actualWarningLines": [
+        10
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 7: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "dollar-prefix-lines",
+      "name": "diagnostic-nul-script",
+      "script": "\n:\nvalue=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b')\"\n)",
+      "productScript": "bash -c '\n:\nvalue=$(:\n\n\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b'\\'')\"\n)' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        8
+      ],
+      "actualWarningLines": [
+        10
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 8: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "nested-multiple-nuls-one-warning",
+      "name": "diagnostic-nul-script",
+      "script": "value=$(:\n\n\nprintf '%s' \"$(printf 'a\\0b\\0c')\"\n); printf '<%s>' \"$value\"",
+      "productScript": "bash -c 'value=$(:\n\n\nprintf '\\''%s'\\'' \"$(printf '\\''a\\0b\\0c'\\'')\"\n); printf '\\''<%s>'\\'' \"$value\"' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        6
+      ],
+      "actualWarningLines": [
+        8
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 6: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    },
+    {
+      "fixture": "two-substitutions-two-warnings",
+      "name": "diagnostic-nul-script",
+      "script": "first=$(printf 'a\\0b');\nsecond=$(printf 'c\\0d'); printf '<%s><%s>' \"$first\" \"$second\"",
+      "productScript": "bash -c 'first=$(printf '\\''a\\0b'\\'');\nsecond=$(printf '\\''c\\0d'\\''); printf '\\''<%s><%s>'\\'' \"$first\" \"$second\"' 'diagnostic-nul-script'",
+      "primaryExact": false,
+      "historicalExact": false,
+      "primaryWarningLines": [
+        1,
+        2
+      ],
+      "actualWarningLines": [
+        1,
+        2
+      ],
+      "warningCountEqual": true,
+      "expectedStderr": "diagnostic-nul-script: line 1: warning: command substitution: ignored null byte in input\ndiagnostic-nul-script: line 2: warning: command substitution: ignored null byte in input\n",
+      "actualStderr": "shell: line 1: warning: command substitution: ignored null byte in input\nshell: line 2: warning: command substitution: ignored null byte in input\n",
+      "nonDiagnosticFieldsEqual": true,
+      "guarded": true
+    }
+  ],
+  "totals": {
+    "primaryNulExact": 3,
+    "historicalNulExact": 0,
+    "nulVirtual": 16,
+    "nulNative": 32,
+    "originalNative": 352,
+    "originalVirtual": 352,
+    "checkedPids": 768,
+    "alive": []
+  },
+  "inputs": {
+    "tests/shell-stress/diagnostic-recheck/capture.mjs": "8a2b38b2e5f961009a87d9c714a1a4a1f56db1430d99db96a2906e5d33236d4d",
+    "tests/shell-stress/diagnostic-recheck/trace.mjs": "93b4160a31b54b8a2f3a1d75db5287389ca4229f2da80eccc7a3fe03ff66813a",
+    "tests/shell-stress/diagnostic-recheck/support.mjs": "b29f0c404a0f2eb4acda649a9eda4fc4d07938ae9dabaa2f4190b5b509a905eb",
+    "tests/shell-stress/diagnostic-recheck/nul-cases.mjs": "2f540ba1c8d443fe70c2838c57edd46177100b662002670b6312841713b41eaa",
+    "tests/shell-stress/current-shell/support.mjs": "d7b278db709f869a03e5cce56c501011a1162465b03ecfc1663465b0163c6f8a",
+    "benchmarks/reports/current-integration/HANDOFF.md": "d5db673d469c8ce266caf09a85850b85deca31d2b172fcdc29c896d9d1fe929f",
+    "benchmarks/shell-stress/diagnostic-profiles/TYPECHECK_CHECKPOINT.md": "7041982edf34f12cf14b2117e9379551893fd21201162b461bbb97752052e6b3"
+  },
+  "gitHead": "4d7e9c1f2a4a53395fe7394a93910526c5b52619",
+  "gitStatus": " M src/commands/archive/README.md\n M src/commands/archive/extract.ts\n M src/commands/archive/format.ts\n M tests/commands/archive/options.test.ts\n M tests/fs/s3/http/interop/README.md\n M tests/fs/s3/http/interop/run.mjs\n M tests/fs/s3/http/interop/transport-check.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/audit-common.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/engine-child.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/execution-cases.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/freeze-execution.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/run.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/trace-loader.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-execution/trace-register.mjs\n?? docs/history/\n?? tests/commands/archive-stress/pax-deletion-evidence/\n?? tests/commands/archive-stress/pax-deletion-independent/\n?? tests/commands/archive/pax-deletion.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/http/interop/fallback-check.mjs\n?? tests/shell-stress/diagnostic-recheck/\n",
+  "foreignStaging": "",
+  "sourceAttribution": "All shell sources match committed f7000b0; actual130 imports stable in every phase. Only unimported S3transport drift triggered unchanged profile after-hook; retain hook failure and productive88/88 observations. Not clean aggregate.",
+  "sourceInspection": {
+    "nulWarningLocation": "src/shell/runtime.ts:1537",
+    "observation": "NUL warning renderer currently spells shell literally instead of inherited scriptName. This explains named -c context mismatch; no source fix performed.",
+    "lineContextLocation": "src/shell/runtime.ts:1533",
+    "lineContextObservation": "Nested diagnostic offset and sourceLine mapping require author investigation; captures demonstrate extra blank lines overcounted without prescribing a patch."
+  }
+}

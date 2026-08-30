@@ -1,0 +1,5 @@
+# Preserved invalid initial run
+
+The initial adapter compared /var/folders installed URLs lexically with Node-resolved /private/var/folders URLs. On this macOS host those name the same moved package. The adapter rejected the legitimate worker before construction, and expr correctly surfaced a generic execution failure. Initial raw observations and summaries remain unchanged, but this initial run cannot qualify product regex behavior. Its empty importGraph also did not establish import confinement.
+
+A single isolated spans invocation exposed the assertion and full stack at runtime-driver.mjs constructor: worker outside installed package file:///private/var/folders/.../virtual-bash/dist/commands/regex-execution/worker.js. The correction canonicalizes only the authenticated installed package root using realpathSync before URL containment checks; it does not permit arbitrary fallback paths, edit product code, change inputs or change expected results. Repeat execution uses a new explicit capture label.

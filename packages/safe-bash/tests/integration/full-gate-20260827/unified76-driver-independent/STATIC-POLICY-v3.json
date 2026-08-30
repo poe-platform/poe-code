@@ -1,0 +1,89 @@
+{
+  "schema": "unified76-independent-static-policy-decisions/v3",
+  "status": "HOLD_FINAL_IMMUTABLE_PACKET",
+  "authority": "User/root decisions in this resume; prospective policy authority, not proof of implementation or acceptance.",
+  "observedTime": {"local":"2026-08-27T20:20:36-05:00","zone":"America/Chicago (CDT)","utc":"2026-08-28T01:20:36Z","source":"System date output; not inferred from directory label"},
+  "activity": {
+    "testsOrControlRunsThisResume": false,
+    "implementationInspectedThisResume": false,
+    "componentMetadataInspectedThisResume": false,
+    "candidateAdmissionOrExecution": false,
+    "validationOnly": "Owned original/v2 byte hashes and read-only Git comparisons; JSON syntax on new owned record. No old validator, v2 predicates, author modules or component controls executed."
+  },
+  "preservedHistory": {
+    "comparisonCommit": "dfd7775b5319a85dffeee9c240806677d39e3572",
+    "originalPhaseACommit": "7f98f745ffbf14da484ca3867ebf09cfa18841a2",
+    "originalPhaseBCommit": "148d77b2f2a30d7e24a29e977dc9104cd02d1113",
+    "sha256": {
+      "PHASE-A.json":"c8df466748a048e91a7a28a0b83c58dca2f8fdba2773e359d7b647d51d41a37c",
+      "PHASE-B.json":"f7919534015ef0ab3e253a3f4721197d93c7747314bcbce24c30e33b27484802",
+      "RECEIPT.md":"4b1375ff8b6e5bac026655e83993d0b22345686c23f019a5996f4fa552abc0f7",
+      "integrityvalidation.mjs":"a22c657444e0730f9837706712ad95d060fd0b895321bbc08238ffcd80242944",
+      "AUTHORITY-v2.json":"3c17c2d58f257b0b33e721670d42485da2ec6d8ba022be6f44b50fb3e7028c20",
+      "static-predicate-v2.mjs":"c640116ec007c4ba096a3165f15f49ba71762005c43077ec609e2d602c3204f2",
+      "REVIEW-v2.md":"940dd1c16e04dd4205d4c4f48fa8f6abebf7e771532666243f3fae598af455bf"
+    },
+    "frozenGroups": "A01-A22 remain NOT_EXECUTED; original assertions, mutations and verdicts are unchanged.",
+    "counts": "Every historical count remains in its unchanged artifact: original F01 exit1 and191 equal/1 unequal SHA fields; v2 ten static controls are prior results only; author54/13/7 and earlier package6/7, fixture58 PASS/10 FAIL and67 PASS/1 FAIL, and old Meitner71 PASS/7 NOTEXECUTED are not rescored or current acceptance.",
+    "f01": {
+      "originalExit": 1,
+      "inventorySha256":"288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+      "selectedBaseSha256":"af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+      "qualification":"v2 CURRENT route/selected-base authority resolution remains scoped metadata history; NONCURRENT hash protection unchanged. No rerun or final-candidate binding here."
+    }
+  },
+  "decisions": [
+    {
+      "id":"D1","groups":["A03","A04","A06","A07","A15"],"priorQuestions":["Q2","Q3","Q4","R2","R7"],
+      "decision":"Qualified trusted macOS26.4.1/build25E253 boundary for EXACT11 sampled system library references WITHOUT readable file identity; metadata recorded, NO filehash/fullOSattestation claim. NOT general exception for non-system/npm/user/Homebrew libraries/unknown injection. Other required tools/dependencies hash-bound.",
+      "relationship":"Prospective, narrowly qualified host trust boundary. A15 already qualifies host/library profile where available; this does not waive Node executable identity,49+2 asset membership/hashes, or other tool/dependency binding. Any future oracle that otherwise requires a file hash for every runtime library needs a separately versioned exact11 metadata-only branch, never an unspecified system-prefix exemption. No original group is satisfied by this declaration.",
+      "systemLibraryReferences":null,
+      "systemLibraryMetadata":null,
+      "remaining":"The exact11-reference list and associated metadata are unavailable in this review and must be supplied in the final packet. Do not guess names, conflate the count with membership, attest the full OS, or transfer this allowance to other libraries or unknown injection. R2 external closure remains open outside this exact boundary."
+    },
+    {
+      "id":"D2","groups":["A20"],"priorQuestions":["Q3","R5"],
+      "decision":"CLI sole explicit --run; imports inert.",
+      "relationship":"Confirms original A20's --run and import-without-effects policy; rejects treating the prior inspected --execute launcher as an equivalent approved interface. This settles the policy choice, not implementation compliance. A20 and its negative controls remain NOT_EXECUTED.",
+      "remaining":"Final immutable driver must expose the sole --run route and inert imports. Future versioned execution evidence must cover import/no-flag/wrong-flag/missing-binding behavior without reusing author component counts as A20 results. No new entrypoint inspected here."
+    },
+    {
+      "id":"D3","groups":["A10","A11"],"priorQuestions":["Q6","R4"],
+      "decision":"ONE driver-managed build reused by typing; test-owned isolated builds separate. Do not label this universal one total build.",
+      "relationship":"Authorized prospective scope evolution. Original A10 positive says 'Record exactly one build' without ownership qualification. Its original bytes and original unexecuted verdict cannot be retroactively relabeled satisfied. A future versioned oracle must count exactly one driver-managed build, bind typing to those emitted artifacts, and separately enumerate test-owned isolated builds and their lineage. Hidden extra driver-managed builds, stale dist and unrelated candidate declarations remain failures.",
+      "remaining":"Final packet must identify each build's owner, phase, isolation and output consumers. The previously observed current-consumer runner's extra build is not automatically classified as test-owned merely because it was called separately. Root's ownership rule resolves R4 prospectively, not the old implementation's compliance or a universal total-build count."
+    },
+    {
+      "id":"D4","groups":["A08","A09","A12","A13","A14","A16","A17","A18","A19"],"priorQuestions":["Q3","Q5","Q7","R3","R6","R7"],
+      "decision":"Strict nonzero/HOLD for guard/cleanup/unreaped; zero skip. Finite bounds/streamed transport. Do not invent numeric ceilings not given; final packet must enumerate them.",
+      "relationship":"Settles prospective strict disposition: a diagnostic red measurement cannot remain CLI-green for these failures, and an optional/unavailable case cannot become accepted skipped coverage. A19's conditional skip-disposition question is now constrained by zero skip. Original failure/raw-evidence and cooperative-versus-opaque cleanup requirements remain intact; no control was run. Finite streaming policy does not itself prove extraction safety or resource closure.",
+      "numericCeilings":null,
+      "remaining":"Final packet must enumerate finite limits and their enforcement scopes, exact permission/loader argv, strict status/TAP accounting, guard/cleanup/unreaped disposition and closed owned resources. No exit-code number or byte/time/process ceiling is invented here. Prior R3 extraction/origin/setup lifecycle gaps and detailed failure/cancelled/TODO handling are not proved implemented by the decision. Zero skip supplies no private access or implicit SafeJS installation authority."
+    },
+    {
+      "id":"D5","groups":["A01","A02","A05","A11","A22"],"priorQuestions":["Q1","Q6","R1"],
+      "decision":"Candidate2ffcb23d extra line31 hunk still20/1 at line32/unreached34. Root approves COMPLETE count/inventory-literal sweep within SAME FOUR maintained files ONLY to exact76/custom77, enumerate before sealing, preserve old history. No fifth file. Treat old2ff superseded/pending, no admission.",
+      "relationship":"Authorized prospective extension beyond the original narrow count-only patch. Original A02 rejects changing an expected command name or other non-count bytes; correcting inventory literals can conflict with that exact negative mutation. Do not edit or silently weaken A02. A future versioned reverse-proof oracle must allow only the explicitly enumerated count/inventory-literal hunks, recovering base bytes when reversing that approved set, while preserving other behavior/assertions/files. No blanket replacement of all historical numbers or names is authorized.",
+      "authorizedPaths":[
+        "tests/commands/split/integration.test.ts",
+        "tests/commands/stream-format-author-stress/contracts.test.ts",
+        "tests/integration/stream-inspection-public-author/public.test.ts",
+        "tests/plugins/stream-five-public/consumer.mjs"
+      ],
+      "finalBeforeAfterHunks":null,
+      "finalPathHashes":null,
+      "remaining":"Author must enumerate the COMPLETE actual sweep before sealing and supply exact final before/after hunks and path hashes. The20/1 and unreached34 information is a retained root-reported observation, not an independent rerun or predicted correction result. Custom cases remain77; defaults76. Do not fabricate the missing enumeration or approve a fifth path."
+    },
+    {
+      "id":"D6","groups":["A01","A22"],"priorQuestions":["Q1","R1","R7"],
+      "decision":"Curie's actual driver integration still pending; a3ee4183 components34+12 ONLY, NOT your22 groups. No independent execution or outcome claim. FINAL NEW candidate/driver packet forthcoming. NO actual admission/fullgate until binding.",
+      "relationship":"Root authority is not implementation evidence. The short identifiers a3ee4183 and2ffcb23d are user-supplied historical references only, not invented full immutable bindings. Author34+12 component counts do not execute any frozen22 group, establish integrated driver readiness, or replace old failures.",
+      "remaining":"Await final immutable candidate/driver/seal/profile/cleanup/native/tool identities, exact four-file sweep and separately scoped implementation/acceptance evidence. No admission, execution authorization or final-candidate acceptance is conveyed by this policy record. Unaddressed Q/R findings remain open."
+    }
+  ],
+  "finalBindings": {
+    "candidate":null,"driver":null,"seal":null,"profile":null,"cleanup":null,
+    "systemLibrary11ListAndMetadata":null,"otherToolDependencyHashes":null,"numericLimits":null,"fixtureEnumeration":null
+  },
+  "handoff":"Policy-only additive update. No new executable/framework, no newly moving implementation inspection, no source/fixture changes, no tests/control runs. Await final packet."
+}

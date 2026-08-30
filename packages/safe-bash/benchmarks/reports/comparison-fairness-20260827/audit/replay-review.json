@@ -1,0 +1,1142 @@
+{
+  "auditedAt": "2026-08-27T04:53:46.400Z",
+  "method": "Read-only score/recipe/harness and artifact reconciliation, zero product executions by fairness auditor. Additional different-leaf verification remains required.",
+  "source": {
+    "capturedHead": "c2902a6016dd4a42818e27d055895c0dc29f73f2",
+    "sourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+    "frozenFileCount": 176,
+    "untrackedSource": [
+      "src/commands/stream-inspection/README.md",
+      "src/commands/stream-inspection/expand.ts",
+      "src/commands/stream-inspection/fold.ts",
+      "src/commands/stream-inspection/index.ts",
+      "src/commands/stream-inspection/shared.ts",
+      "src/commands/stream-inspection/strings.ts",
+      "src/commands/stream-inspection/tac.ts"
+    ],
+    "dirtyStatusRecorded": true,
+    "treeNotEquivalentToHeadClaim": true
+  },
+  "phases": [
+    {
+      "phase": "original",
+      "counts": {
+        "virtual-bash": {
+          "pass": 222,
+          "fail": 2,
+          "failures": [
+            {
+              "id": "command/patch/dry-run",
+              "fields": [
+                "entries"
+              ]
+            },
+            {
+              "id": "kernel/type/type",
+              "fields": [
+                "stdout"
+              ]
+            }
+          ]
+        },
+        "just-bash": {
+          "pass": 155,
+          "fail": 69,
+          "failures": [
+            {
+              "id": "command/dirname/nul",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/printf/binary",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/mkdir/mode",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/touch/reference",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/cp/preserve-link",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/rm/empty-directory",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/ln/hardlink",
+              "fields": [
+                "stdout",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/readlink/no-newline",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/realpath/existing",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/realpath/missing-tail",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/realpath/relative",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cat/binary-stdin",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/head/negative",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/tail/bytes",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/wc/words-lines",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/wc/unicode",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/tee/file",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/sort/nul-unique",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/uniq/counts",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/cut/bytes",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cut/complement",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/env/clean",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/env/unset",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/env/nested",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/xargs/batch",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xargs/replace",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/find/nul",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/rg/fixed",
+              "fields": [
+                "stdout",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/base64/decode",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/base32/encode",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/base32/decode",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/base32/wrap",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xxd/plain",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xxd/reverse",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xxd/layout",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/od/hex",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/od/decimal",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/od/skip-count",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/cksum/stdin",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cksum/files",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cksum/algorithm",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/gzip/roundtrip",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/gunzip/stdin",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/zcat/stdin",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/diff/unified",
+              "fields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "id": "command/diff/ignore-space",
+              "fields": [
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/patch/apply",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/patch/dry-run",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/patch/reverse",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/chmod/recursive-reference",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/stat/follow",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/stat/timestamp",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/mktemp/file",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/mktemp/directory",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/mktemp/suffix-dry-run",
+              "fields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "id": "command/paste/nul-shared",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/comm/totals",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/join/outer",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/join/duplicate",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "composition/text-filter/text-filter",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "composition/binary-roundtrip/binary-roundtrip",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "composition/patch-hash/patch-hash",
+              "fields": [
+                "stdout",
+                "stderr",
+                "entries"
+              ]
+            },
+            {
+              "id": "composition/find-xargs/find-xargs",
+              "fields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "id": "network/curl/get",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "network/curl/post-stdin",
+              "fields": [
+                "stdout",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "network/curl/post-file",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "network/curl/json",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "network/curl/redirect",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "network/curl/fail-body",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            }
+          ]
+        }
+      },
+      "instrumentationControlsRecomputed": 24,
+      "lifecycleObserved": {
+        "gate": "PASS",
+        "result": {
+          "code": 0,
+          "signal": null
+        },
+        "timedOut": false,
+        "leaked": [],
+        "remaining": [],
+        "sourceIntegrity": {
+          "count": 4046,
+          "mismatches": [],
+          "expectedTreeSha256": "a133f8cf113866657155396038293ff54fbb8767cf92c96372804ab775bafdc9",
+          "at": "2026-08-27T04:51:05.963Z"
+        },
+        "importAudit": {
+          "pass": true,
+          "uniqueModules": 310,
+          "totalLoadEvents": 3096,
+          "outside": [],
+          "wrongBytes": []
+        }
+      },
+      "lifecycleScope": "Outer phase supervisor gate and import audit; session.close intentionally SIGTERMs long-lived benchmark engine workers, not a claim all inner workers self-exit normally."
+    },
+    {
+      "phase": "scratch-aligned",
+      "counts": {
+        "virtual-bash": {
+          "pass": 223,
+          "fail": 1,
+          "failures": [
+            {
+              "id": "kernel/type/type",
+              "fields": [
+                "stdout"
+              ]
+            }
+          ]
+        },
+        "just-bash": {
+          "pass": 155,
+          "fail": 69,
+          "failures": [
+            {
+              "id": "command/dirname/nul",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/printf/binary",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/mkdir/mode",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/touch/reference",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/cp/preserve-link",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/rm/empty-directory",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/ln/hardlink",
+              "fields": [
+                "stdout",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/readlink/no-newline",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/realpath/existing",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/realpath/missing-tail",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/realpath/relative",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cat/binary-stdin",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/head/negative",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/tail/bytes",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/wc/words-lines",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/wc/unicode",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/tee/file",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/sort/nul-unique",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/uniq/counts",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/cut/bytes",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cut/complement",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/env/clean",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/env/unset",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/env/nested",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/xargs/batch",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xargs/replace",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/find/nul",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/rg/fixed",
+              "fields": [
+                "stdout",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/base64/decode",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/base32/encode",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/base32/decode",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/base32/wrap",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xxd/plain",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xxd/reverse",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/xxd/layout",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/od/hex",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/od/decimal",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/od/skip-count",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/cksum/stdin",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cksum/files",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/cksum/algorithm",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/gzip/roundtrip",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/gunzip/stdin",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/zcat/stdin",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/diff/unified",
+              "fields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "id": "command/diff/ignore-space",
+              "fields": [
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/patch/apply",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/patch/dry-run",
+              "fields": [
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/patch/reverse",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/chmod/recursive-reference",
+              "fields": [
+                "stderr",
+                "exitCode",
+                "entries"
+              ]
+            },
+            {
+              "id": "command/stat/follow",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/stat/timestamp",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "command/mktemp/file",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/mktemp/directory",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/mktemp/suffix-dry-run",
+              "fields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "id": "command/paste/nul-shared",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/comm/totals",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/join/outer",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "command/join/duplicate",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "composition/text-filter/text-filter",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "composition/binary-roundtrip/binary-roundtrip",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "composition/patch-hash/patch-hash",
+              "fields": [
+                "stdout",
+                "stderr",
+                "entries"
+              ]
+            },
+            {
+              "id": "composition/find-xargs/find-xargs",
+              "fields": [
+                "stdout",
+                "stderr"
+              ]
+            },
+            {
+              "id": "network/curl/get",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "network/curl/post-stdin",
+              "fields": [
+                "stdout",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "network/curl/post-file",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "network/curl/json",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            },
+            {
+              "id": "network/curl/redirect",
+              "fields": [
+                "stdout"
+              ]
+            },
+            {
+              "id": "network/curl/fail-body",
+              "fields": [
+                "stdout",
+                "stderr",
+                "exitCode"
+              ]
+            }
+          ]
+        }
+      },
+      "instrumentationControlsRecomputed": 24,
+      "lifecycleObserved": {
+        "gate": "PASS",
+        "result": {
+          "code": 0,
+          "signal": null
+        },
+        "timedOut": false,
+        "leaked": [],
+        "remaining": [],
+        "sourceIntegrity": {
+          "count": 4046,
+          "mismatches": [],
+          "expectedTreeSha256": "a133f8cf113866657155396038293ff54fbb8767cf92c96372804ab775bafdc9",
+          "at": "2026-08-27T04:51:27.339Z"
+        },
+        "importAudit": {
+          "pass": true,
+          "uniqueModules": 310,
+          "totalLoadEvents": 3096,
+          "outside": [],
+          "wrongBytes": []
+        }
+      },
+      "lifecycleScope": "Outer phase supervisor gate and import audit; session.close intentionally SIGTERMs long-lived benchmark engine workers, not a claim all inner workers self-exit normally."
+    }
+  ],
+  "crossProfileChanges": [],
+  "evidenceHashes": {
+    "benchmarks/reports/current-integration/comparison-replay-20260827/source-manifest.json": "9ae15b38d567d8e45fee927c275600783e35c1181c890f5e06dbfe7f6fbbc2f2",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/seal.json": "3e5cd1fd9132374739a74340b795032a26a7edd2d39dd371ab47a13d7f76f451",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/profiles.json": "19657d39799785dc446219bd8cc2ad4e80c882fc33b60805306ccf23d59e7526",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/prepare-attempt-1.json": "31d225bb17d78ad6384b52f92d545fb35f1007b33ce0c5cfe73d770448a47cff",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/case-inputs.json": "4520818b0c6256f4d6effb4a690c10fe09bac6c8ef9de46963142920a3b9850a",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/functional.json": "402f741f9a46c031a6f716d1640894dd2acb7d0f353e724cb7a3a37ccf6748d7",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/report.json": "378fe72fd275c10a9cf1697ec6b8ae26e75ec6ca60c56edc6af88ff7ebeeaee6",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/lifecycle.json": "07cb8617661264b8f4c5437aac33c217154503276f35cb46ff44e732f704fca4",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/integrity-after.json": "3743ddcb107d96ef4e5cf494e1afdbacaa99eb1c7f74a46369e1776592bb1744",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/instrumentation-controls.json": "e2053fdc26c7adb63e1138ab244eda24ee03cef97f9c7bb6474473ed65c60edc",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/original/setup.json": "46831388e5d97ba22b2b58909501280c13df3da84adfde954b7eff55d372f31e",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/case-inputs.json": "4520818b0c6256f4d6effb4a690c10fe09bac6c8ef9de46963142920a3b9850a",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/functional.json": "e0ad5aa0b4692ae921750d5632ab9dda0a8aa29ce2cbde7a965d2fb2865d9dc9",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/report.json": "38df987b8ca458971ef3584232fcadd8bc0bef343121b33575b75b92951ffc35",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/lifecycle.json": "0f173daed5cf043d4a33b77a6f4aebd004aaa609a6059286327564ac7b137fd9",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/integrity-after.json": "55759c93c12ec71e04970799b6b95d56b6ed243bc076a9107c421c6d67e9d756",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/instrumentation-controls.json": "614cec0e2f367ca7def2086c0f8c4cdff5813efc4e0f84122d41d88f24b6fc50",
+    "benchmarks/reports/current-integration/comparison-replay-20260827/scratch-aligned/setup.json": "743013a82d3fd936579e73c32ad49c39cb88e554d41a6cd8283100e13409822f"
+  },
+  "caveats": [
+    "Current replay freezes a dirty integration snapshot, not the historical bd2cacb or breadth30f5cfb source tree.",
+    "Source and dependency copies, scrubbed host env and import instrumentation are disclosed new orchestration; unchanged engine modules do not mean every host setup is unchanged.",
+    "No performance run or current speed inference.",
+    "Baseline-only stays separate even though scores above are recomputable."
+  ]
+}

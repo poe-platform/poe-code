@@ -1,0 +1,22 @@
+[
+  {
+    "variant": "baseline",
+    "productCommit": "dce6e3824d6de6d03490a531cf2bc7d2d279bb8c",
+    "args": [
+      "--max-old-space-size=512",
+      "--test",
+      "--experimental-test-isolation=none",
+      "--test-reporter=tap",
+      "--test-name-pattern=^(?!hidden)|^hidden (public stdin ownership|exact total-byte limit boundary|source error|missing later|pending input cancellation|empty-chunk cancellation)",
+      "/private/tmp/sort-unkeyed-review-pinned-PWSHqY/baseline/worker.mjs"
+    ],
+    "pid": 75048,
+    "code": 1,
+    "signal": null,
+    "bytes": 32047,
+    "exactChildClosed": true,
+    "passed": 61,
+    "failed": 23,
+    "skipped": 0
+  }
+]

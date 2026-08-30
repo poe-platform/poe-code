@@ -1,0 +1,270 @@
+{
+  "schema": "timeout-author-evidence-seal/1",
+  "evidence": "tests/commands/timeout-author-20260828/evidence-v2",
+  "files": [
+    {
+      "path": "NATIVE.json",
+      "mode": 420,
+      "bytes": 541,
+      "sha256": "e152914532cde556e02c1c4d437c642f8e3870ba06bf376b6e6683b4b3c46769"
+    },
+    {
+      "path": "REPORT.md",
+      "mode": 420,
+      "bytes": 1220,
+      "sha256": "40fd43b439e6ca58f833f85365b2c82718bcccb0a099a853edd65dab1462cd04"
+    },
+    {
+      "path": "RESULTS.json",
+      "mode": 420,
+      "bytes": 3482,
+      "sha256": "b2582fbf647b0f68a8099d49879929be9f132b643cc2b8619842b0ef430c41c1"
+    },
+    {
+      "path": "RUNS.json",
+      "mode": 420,
+      "bytes": 12771,
+      "sha256": "49356106cc114a87a524a920615b78d2fed20c3ff612bc45ce6b226101628c3d"
+    },
+    {
+      "path": "SOURCE-MANIFEST.json",
+      "mode": 420,
+      "bytes": 82471,
+      "sha256": "8e12c4ed6f47ee3d3c88f2928a4235bde0b9c094617f4aa977f34cec8eca3fc5"
+    },
+    {
+      "path": "SOURCE.tar",
+      "mode": 420,
+      "bytes": 2586112,
+      "sha256": "1a7f280f4f309af3dcc8f3a7ec629b95dddbc65d180bc45c9911ff64523d6ded"
+    },
+    {
+      "path": "TEST-HARNESS.json",
+      "mode": 420,
+      "bytes": 2988,
+      "sha256": "16c632210a3e825a8f59072fe054e26ad6a20262ced482b0fcf659fe79e04d37"
+    },
+    {
+      "path": "TOOLS.json",
+      "mode": 420,
+      "bytes": 6002,
+      "sha256": "33c1ae2998e0cb112052f04d7f69965cbdd4937592b5bfb1e10d4c16c498e663"
+    },
+    {
+      "path": "package/virtual-bash-0.0.0.tgz",
+      "mode": 420,
+      "bytes": 736428,
+      "sha256": "32e2bef5eafbb00e9b6704e2765f55e36514eda0da0fe84ea78367813c756630"
+    },
+    {
+      "path": "runs/author-runtime.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/author-runtime.stdout.txt",
+      "mode": 420,
+      "bytes": 3101,
+      "sha256": "8f1e4afac7e39cfc5da63f2ac5a5165feb776cbb87dfce9620e19f3d2acad171"
+    },
+    {
+      "path": "runs/build.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/build.stdout.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-install.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-install.stdout.txt",
+      "mode": 420,
+      "bytes": 26,
+      "sha256": "7ca136be82960c27b8912c731c09898dd70928c5930458210536bd3be5153bca"
+    },
+    {
+      "path": "runs/consumer-runtime-installed.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-runtime-installed.stdout.txt",
+      "mode": 420,
+      "bytes": 512,
+      "sha256": "e9df316e5a45edbcbf0ce681caf5e1ba8c29baa2066bfb761a62d0983c3d0868"
+    },
+    {
+      "path": "runs/consumer-runtime-moved.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-runtime-moved.stdout.txt",
+      "mode": 420,
+      "bytes": 512,
+      "sha256": "5995edde8d1e6ac91bd5b3a48744d7fc4efd8359c15fb49ea9408fc05fe625e4"
+    },
+    {
+      "path": "runs/consumer-types-negative-readonly.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-types-negative-readonly.stdout.txt",
+      "mode": 420,
+      "bytes": 106,
+      "sha256": "579ae6ad553bbb8351461179e9897b8b1902f728d6ccfbd28a882f93aa11d005"
+    },
+    {
+      "path": "runs/consumer-types-negative-root.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-types-negative-root.stdout.txt",
+      "mode": 420,
+      "bytes": 147,
+      "sha256": "03b0b2ee2263b90667670c53a7caf2baafd88a16dd29377bd4eff2201c5119ed"
+    },
+    {
+      "path": "runs/consumer-types-negative-subpath.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-types-negative-subpath.stdout.txt",
+      "mode": 420,
+      "bytes": 133,
+      "sha256": "00513e9def764634f3b6d82ca297e6ae4d40b07ccb3f3944bf350794ec8944cb"
+    },
+    {
+      "path": "runs/consumer-types-positive-installed.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-types-positive-installed.stdout.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-types-positive-moved.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/consumer-types-positive-moved.stdout.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/npm-pack.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/npm-pack.stdout.txt",
+      "mode": 420,
+      "bytes": 96550,
+      "sha256": "52f77704a4be24d722cb8655f614d87bea685c679e12639fd121d06efeb32da8"
+    },
+    {
+      "path": "runs/owned-output-neighbor.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/owned-output-neighbor.stdout.txt",
+      "mode": 420,
+      "bytes": 2862,
+      "sha256": "f630732084f8b5a1b599cd3dca499d8369ff9c246853787055bd84f79410617c"
+    },
+    {
+      "path": "runs/package-list.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/package-list.stdout.txt",
+      "mode": 420,
+      "bytes": 36377,
+      "sha256": "b17cfd02882bf56045105a94b16178c5f3363967870e56989f88197a3518c78b"
+    },
+    {
+      "path": "runs/shared-runtime-neighbors.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/shared-runtime-neighbors.stdout.txt",
+      "mode": 420,
+      "bytes": 7737,
+      "sha256": "8b9c4d044041764adcecbc50c7fbfd35b565c3f79583fdc3c6d772f99c109876"
+    },
+    {
+      "path": "runs/sleep-neighbor.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/sleep-neighbor.stdout.txt",
+      "mode": 420,
+      "bytes": 4971,
+      "sha256": "bc95f89c234572858c8414ad6924a4303ddd1f3522bfee39cc638587a99c89d2"
+    },
+    {
+      "path": "runs/source-and-harness-types.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/source-and-harness-types.stdout.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/source-tar-list.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/source-tar-list.stdout.txt",
+      "mode": 420,
+      "bytes": 8264,
+      "sha256": "3c6435eb2c43f435ab7d602217961fe510109ffce5daf9ad9423631c231762e4"
+    }
+  ],
+  "fileCount": 43,
+  "totalBytes": 3593313,
+  "manifestSha256": "a9eb2c7db5976ae4f131fe747f50cebc4d16fcec0d2dc91b7798a8c22e5b3186",
+  "symlinks": 0,
+  "nonRegularEntries": 0,
+  "instructionFiles": 0
+}

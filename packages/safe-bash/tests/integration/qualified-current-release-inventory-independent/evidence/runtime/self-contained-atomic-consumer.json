@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--experimental-permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/webdav-atomic/emitted/independent.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"consumerPackage\": {\n    \"name\": \"independent-atomic-public-consumer\",\n    \"private\": true,\n    \"type\": \"module\"\n  },\n  \"methods\": [\n    \"PROPFIND\",\n    \"PROPFIND\",\n    \"PROPFIND\"\n  ],\n  \"calls\": 1,\n  \"modules\": [\n    {\n      \"specifier\": \"virtual-bash\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/index.js\",\n      \"sha256\": \"0b5b5b39167ca71c69f52ff8b363e6b626136f3bfab12abda434b2f94503d4c8\"\n    },\n    {\n      \"specifier\": \"virtual-bash/fs/webdav\",\n      \"resolved\": \"file:///Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"actualPath\": \"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-izSmkB/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js\",\n      \"sha256\": \"f66f1fe8cfe2378a7bce4fd0cf42361909b6442694a9f7b6ac9012e0b6131cc1\"\n    }\n  ],\n  \"passed\": true\n}\n",
+  "stderr": ""
+}

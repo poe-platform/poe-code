@@ -1,0 +1,21 @@
+{
+  "attempt": "attempt-01",
+  "classification": "historical verifier source captured as nonexecutable data",
+  "records": [
+    {
+      "path": "failed-attempt-source/review.test.ts.data",
+      "sha256": "bddc91e7ac1d3f489227768d77c7faf0747bb90e59d2ee7b41aa332ad5c1d388",
+      "bytes": 14924
+    },
+    {
+      "path": "failed-attempt-source/capture.mjs.data",
+      "sha256": "478b2a1806b7c61645f754712b4cc4b792ddba5b2bc3d0d22c077d5bd3aca142",
+      "bytes": 12828
+    },
+    {
+      "path": "failed-attempt-source/observe.mjs.data",
+      "sha256": "9f1594c8745a48806739bdf31de6a2db8dbaff8100d5598461f8df53015c5902",
+      "bytes": 3030
+    }
+  ]
+}

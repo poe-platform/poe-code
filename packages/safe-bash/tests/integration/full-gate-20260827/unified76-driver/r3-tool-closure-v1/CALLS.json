@@ -1,0 +1,70 @@
+{
+  "schema": "r3-five-platform-tools-calls/1",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "scope": "Five G08 canonical search-pipeline failures, not every possible utility use in 632 canonical paths",
+  "fixture": "tests/commands/search-stress/pipelines.test.ts",
+  "helper": "tests/commands/search-stress/harness.ts",
+  "nativeEntrypoint": {
+    "command": "/bin/bash",
+    "args": ["-c", "rg() { command rg --no-config --no-ignore-global --sort=path \"$@\"; }; ${literalScript}"],
+    "cwd": "Unique mkdtemp(<selected-source>/tests/commands/search-stress/.native-), never ambient cwd",
+    "stdin": "Empty bytes for these five probes",
+    "timeoutMs": 3000,
+    "killSignal": "SIGKILL",
+    "maxBufferBytes": 16777216,
+    "environment": {
+      "inherit": "Complete caller process.env after existing gate finite-route/private/loader guards, not current interactive shell environment",
+      "set": {"LC_ALL": "C", "LANG": "C", "RIPGREP_CONFIG_PATH": "", "NO_COLOR": "1"},
+      "delete": ["NODE_TEST_CONTEXT"],
+      "PATH": "Existing authenticated native-root:finite-tool-directory; propose only five exact additional aliases, no ambient directories",
+      "TMPDIR": "Unchanged existing owned-root gate binding"
+    },
+    "setup": "Create cwd/.git directory; write exact literal UTF-8 fixture bytes and parent directories; no symlinks in these five probes",
+    "cleanup": "Existing harness native finally rmSync(root,{recursive:true,force:true}) remains unchanged",
+    "assertions": "Exact status, stderr and stdout bytes. This fixture does not independently assert the tee report filesystem effect."
+  },
+  "files": {
+    "src/a.ts": "TODO first\nexport const alpha = 1;\nTODO second\n",
+    "src/space name.ts": "export const beta = 2;\nTODO third\n",
+    "src/not-code.md": "TODO document\n",
+    ".ignore": "*.md\n",
+    "input": "éfoo foo\nother\nfoo\n"
+  },
+  "calls": [
+    {
+      "id": "tap-line-54560", "ordinal": 7465, "scriptIndex": 0,
+      "script": "rg -n TODO src | cut -d: -f1 | sort -u | tee report",
+      "newRoles": [{"name":"cut","args":["-d:","-f1"]},{"name":"sort","args":["-u"]},{"name":"tee","args":["report"]}],
+      "effects": "tee writes cwd/report only; cut/sort read pipe stdin; no standalone file operand for sort"
+    },
+    {
+      "id": "tap-line-54588", "ordinal": 7466, "scriptIndex": 1,
+      "script": "rg -l0 TODO src | xargs -0 cat | rg -n TODO",
+      "newRoles": [{"name":"xargs","args":["-0","cat"]},{"name":"cat","argsFrom":"NUL-separated rg --sort=path -l0 TODO src results, passed as separate path operands by xargs"}],
+      "childRoute": "xargs uses the same finite PATH to resolve cat -> /bin/cat, not /bin/sh or an unbound helper",
+      "qualifiedExpectedOperands": ["src/a.ts","src/space name.ts"],
+      "operandQualification": "Derived from literal fixtures and configured rg sort/ignore behavior, NOT freshly observed child argv or a claim of batch count",
+      "effects": "Read-only cat operands within the fixture cwd, no caller-supplied command role"
+    },
+    {
+      "id": "tap-line-54616", "ordinal": 7467, "scriptIndex": 2,
+      "script": "rg --files -g '*.ts' src | sort | rg 'space|a.ts'",
+      "newRoles": [{"name":"sort","args":[]}],
+      "effects": "Pipe stdin/stdout only; any sort scratch must stay in existing bound TMPDIR"
+    },
+    {
+      "id": "tap-line-54644", "ordinal": 7468, "scriptIndex": 3,
+      "script": "cat input | rg -nbo foo | cut -d: -f1 | sort -u",
+      "newRoles": [{"name":"cat","args":["input"]},{"name":"cut","args":["-d:","-f1"]},{"name":"sort","args":["-u"]}],
+      "effects": "cat reads literal cwd/input; all later input is piped"
+    },
+    {
+      "id": "tap-line-54680", "ordinal": 7470, "scriptIndex": 5,
+      "script": "rg -c TODO src | sort",
+      "newRoles": [{"name":"sort","args":[]}],
+      "effects": "Pipe stdin/stdout only; no output file operand"
+    }
+  ],
+  "familyIntent": "Source has no GNU requirement or pinned helper utility version. Preserve bare platform helper family with explicit stock macOS paths; never substitute gcut/gsort or a bundled replacement. Historical successful target resolution is not recorded.",
+  "execution": "None; source/record inspection only. All original five failures remain failures."
+}

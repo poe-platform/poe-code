@@ -1,0 +1,4229 @@
+{
+  "constants": {
+    "emergency": "expr: output bytes limit exceeded\n",
+    "syntax": "expr: syntax error: unexpected argument 'x'\n",
+    "emergencyHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+    "emergencyBytes": 34,
+    "syntaxBytes": 44
+  },
+  "rows": [
+    {
+      "input": {
+        "id": "syntax-cap-1",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-2",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-16",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 16,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-33",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 33,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-34",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 34,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-35",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 35,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-43",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 43,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-44",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 44,
+        "expected": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 44,
+          "hex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+          "text": "expr: syntax error: unexpected argument 'x'\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-cap-45",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 45,
+        "expected": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 44,
+          "hex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+          "text": "expr: syntax error: unexpected argument 'x'\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "constant-token-9",
+        "argv": [
+          "1",
+          "ATTACKER_MARKER"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "commandName": "ATTACKER_COMMAND"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "constant-token-10",
+        "argv": [
+          "1",
+          "'\\\n\t"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "commandName": "ATTACKER_COMMAND"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "constant-token-11",
+        "argv": [
+          "1",
+          "💣"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "commandName": "ATTACKER_COMMAND"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "constant-token-12",
+        "argv": [
+          "1",
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "commandName": "ATTACKER_COMMAND"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "stdout-cap-one",
+        "argv": [
+          "1"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "stdout-exact-two",
+        "argv": [
+          "1"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": 0,
+          "stdout": "1\n",
+          "stderr": "",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "stdout-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "310a",
+          "text": "1\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "stdoutHex": "310a",
+        "stderrHex": "",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "stdout-false-exact-two",
+        "argv": [
+          "0"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": 1,
+          "stdout": "0\n",
+          "stderr": "",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "stdout-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "300a",
+          "text": "0\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 1,
+        "stdout": "0\n",
+        "stderr": "",
+        "stdoutHex": "300a",
+        "stderrHex": "",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "--version-cap-one",
+        "argv": [
+          "--version"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "--help-cap-one",
+        "argv": [
+          "--help"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "version-exact",
+        "argv": [
+          "--version"
+        ],
+        "cap": 20,
+        "expected": {
+          "status": 0,
+          "stdout": "expr (virtual-bash)\n",
+          "stderr": "",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "stdout-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 20,
+          "hex": "6578707220287669727475616c2d62617368290a",
+          "text": "expr (virtual-bash)\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 0,
+        "stdout": "expr (virtual-bash)\n",
+        "stderr": "",
+        "stdoutHex": "6578707220287669727475616c2d62617368290a",
+        "stderrHex": "",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "division-cap-1",
+        "argv": [
+          "1",
+          "/",
+          "0"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "division-cap-22",
+        "argv": [
+          "1",
+          "/",
+          "0"
+        ],
+        "cap": 22,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "division-cap-23",
+        "argv": [
+          "1",
+          "/",
+          "0"
+        ],
+        "cap": 23,
+        "expected": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "expr: division by zero\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 23,
+          "hex": "657870723a206469766973696f6e206279207a65726f0a",
+          "text": "expr: division by zero\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "expr: division by zero\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206469766973696f6e206279207a65726f0a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "modulo-cap-one",
+        "argv": [
+          "1",
+          "%",
+          "0"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "noninteger-cap-one",
+        "argv": [
+          "bad",
+          "+",
+          "1"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "nul-cap-one",
+        "argv": [
+          "bad\u0000token"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "unicode-cap-one",
+        "argv": [
+          "\ud800"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "argument-budget-cap-one",
+        "argv": [
+          "abc"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "limits": {
+          "maxArgumentBytes": 1
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "work-budget-cap-one",
+        "argv": [
+          "1"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "limits": {
+          "maxSteps": 1
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "regex-output-cap-one",
+        "argv": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 1
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": false
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": false
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": false
+    },
+    {
+      "input": {
+        "id": "regex-exact-two",
+        "argv": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": 0,
+          "stdout": "1\n",
+          "stderr": "",
+          "jobs": 1
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": false
+        },
+        {
+          "name": "exact worker job count",
+          "passed": false
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": false
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": false
+    },
+    {
+      "input": {
+        "id": "regex-invalid-cap-one",
+        "argv": [
+          "a",
+          ":",
+          "["
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 1
+        }
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": false
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": false
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": false
+    },
+    {
+      "input": {
+        "id": "emergency-awaited",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "mode": "held-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "normal-diagnostic-awaited",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 44,
+        "expected": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n",
+          "jobs": 0
+        },
+        "mode": "held-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 44,
+          "hex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+          "text": "expr: syntax error: unexpected argument 'x'\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "stdout-awaited",
+        "argv": [
+          "1"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": 0,
+          "stdout": "1\n",
+          "stderr": "",
+          "jobs": 0
+        },
+        "mode": "held-stdout"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "stdout-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "310a",
+          "text": "1\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 0,
+        "stdout": "1\n",
+        "stderr": "",
+        "stdoutHex": "310a",
+        "stderrHex": "",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "emergency-rejection",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "sink"
+        },
+        "mode": "reject-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "sink"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "normal-diagnostic-rejection",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 44,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "sink"
+        },
+        "mode": "reject-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 44,
+          "hex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+          "text": "expr: syntax error: unexpected argument 'x'\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "sink"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "stdout-rejection-normal-quota",
+        "argv": [
+          "1"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "sink"
+        },
+        "mode": "reject-stdout"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "310a",
+          "text": "1\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "sink"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "emergency-abort-late-rejection",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "abort"
+        },
+        "mode": "abort-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "abort"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "stdout-abort-late-rejection",
+        "argv": [
+          "1"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "abort"
+        },
+        "mode": "abort-stdout"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "310a",
+          "text": "1\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "abort"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "preabort-no-output",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "abort"
+        },
+        "mode": "preabort"
+      },
+      "events": [
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [],
+      "checks": [
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "abort"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "overlapping-cleanup-emergency",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "mode": "cleanup-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "session-close",
+        "stderr-completed",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "overlapping cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "cleanup waits owned workers",
+          "passed": true
+        },
+        {
+          "name": "cleanup does not detach awaited sink",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "overlapping-cleanup-worker-emergency",
+        "argv": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 1
+        },
+        "mode": "cleanup-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "session-close",
+        "stderr-completed",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "awaited sink before settlement",
+          "passed": true
+        },
+        {
+          "name": "overlapping cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "cleanup waits owned workers",
+          "passed": true
+        },
+        {
+          "name": "cleanup does not detach awaited sink",
+          "passed": true
+        },
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": false
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": false
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": false
+    },
+    {
+      "input": {
+        "id": "worker-emergency-rejection",
+        "argv": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 1,
+          "rejection": "sink"
+        },
+        "mode": "reject-stderr"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": false
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": false
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "sink"
+      },
+      "activeAfterCleanup": 0,
+      "passed": false
+    },
+    {
+      "input": {
+        "id": "worker-post-abort",
+        "argv": [
+          "a",
+          ":",
+          "a"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 1,
+          "rejection": "abort"
+        },
+        "mode": "abort-post"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stderr-entered",
+        "stderr-completed",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stderr",
+          "bytes": 34,
+          "hex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+          "text": "expr: output bytes limit exceeded\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": false
+        },
+        {
+          "name": "exact worker job count",
+          "passed": false
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": false
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": false
+    },
+    {
+      "input": {
+        "id": "shell-selected-emergency",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "shell": true
+      },
+      "events": [
+        "session-open",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [],
+      "checks": [
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "shell-normal-boundary",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "cap": 44,
+        "expected": {
+          "status": 2,
+          "stdout": "",
+          "stderr": "expr: syntax error: unexpected argument 'x'\n",
+          "jobs": 0
+        },
+        "shell": true
+      },
+      "events": [
+        "session-open",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [],
+      "checks": [
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "expr: syntax error: unexpected argument 'x'\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a2073796e746178206572726f723a20756e657870656374656420617267756d656e74202778270a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "shell-division-quota",
+        "argv": [
+          "1",
+          "/",
+          "0"
+        ],
+        "cap": 1,
+        "expected": {
+          "status": 3,
+          "stdout": "",
+          "stderr": "expr: output bytes limit exceeded\n",
+          "jobs": 0
+        },
+        "shell": true
+      },
+      "events": [
+        "session-open",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [],
+      "checks": [
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "stdoutHex": "",
+        "stderrHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+        "rejection": null
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    }
+  ],
+  "passed": 41,
+  "total": 47,
+  "imports": [],
+  "mainThreadMatcherViolations": [],
+  "unhandledRejections": [],
+  "safetyTerminations": 0,
+  "activeAfterSafety": 0
+}

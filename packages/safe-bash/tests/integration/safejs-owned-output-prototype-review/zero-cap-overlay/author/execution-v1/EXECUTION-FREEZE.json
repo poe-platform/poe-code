@@ -1,0 +1,83 @@
+{
+  "at": "2026-08-27T18:11:30.809901+00:00",
+  "status": "ROOT_RELEASED_ONE_AUTHOR_REPLAY_PRE_EXECUTION_FREEZE",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "independentAdmissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "independentAdmissionPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json",
+  "files": [
+    {
+      "path": "ADMISSION.json.data",
+      "bytes": 1432,
+      "sha256": "eb18baa7c27950b687c148da31ce1de7006861492aae61a0d94be1ac55eb8f03"
+    },
+    {
+      "path": "PREPARATION-INPUTS.json",
+      "bytes": 670720,
+      "sha256": "f6503e2a7bd62e217cf0fcacef267012b8c102ab2e731eb4071f3e5dfc00b1fc"
+    },
+    {
+      "path": "PREPARATION-SHARED.json",
+      "bytes": 2932830,
+      "sha256": "07eaf2a06aa23fe7f6de4cb07d1506f41b2b0789b0ccfedd8b7eb42edc35d889"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 67462,
+      "sha256": "0e27c7cc4d35eea8ae3f81d7124191aec7ab7e05add9158a190663edb68a2d5f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5514,
+      "sha256": "9cd3bfafa1ec64adacd815d0e888443dbcd4e819177973720872d4ff91d7cdf9"
+    },
+    {
+      "path": "ROOT-RELEASE.json",
+      "bytes": 1389,
+      "sha256": "927c995fe272cfd1930688f46bb63f361bb148ef549d7c894f0c0aeda8d1f445"
+    },
+    {
+      "path": "STATIC-PREFLIGHT.json",
+      "bytes": 2632,
+      "sha256": "3b16f6e1d18de2680c869357f122e7a705de297dddfe1c60cfc2dcafc1311231"
+    },
+    {
+      "path": "admission-relocation.mjs.data",
+      "bytes": 7202,
+      "sha256": "e60b1e1cfdeb1f57cf9f5eb9b629ca7194c72fafd449cf4cffde4497ad9b12f9"
+    },
+    {
+      "path": "admission-relocation.patch-data",
+      "bytes": 1744,
+      "sha256": "07ba02be8b2a229e201ba4ae98f7e2ea0ea3d5546828a1bfe920b71a8353abf1"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 13629,
+      "sha256": "9f364aafda091214b216e8563d52a95da7616607a7763049368bbed78f214027"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 7928,
+      "sha256": "634eb6c3635b902716c59a46983c626427036a8f219905c5079470aded076ca4"
+    },
+    {
+      "path": "run.py",
+      "bytes": 8803,
+      "sha256": "bfb753fa24339e51b09ae36cba7f7967d52883060023a1bb0ecbe5131c314f24"
+    },
+    {
+      "path": "shared.py",
+      "bytes": 5945,
+      "sha256": "18aee4e4836487ab0857998b772c786197428bdf6b4fdaed9decceb3e606bba0"
+    }
+  ],
+  "fileManifestSha256": "84202640f33578c93f9011f5469c182a3d17e9fa13ebca03d6bd47872b3dfe94",
+  "scheduledProfiles": {
+    "surface": 8,
+    "lifecycle": 11,
+    "controls": 6
+  },
+  "initialGuestExecutions": 0,
+  "privateQueriesBeforeFreeze": 0,
+  "noPromotion": true
+}

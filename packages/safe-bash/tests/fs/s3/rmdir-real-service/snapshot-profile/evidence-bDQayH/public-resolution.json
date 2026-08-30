@@ -1,0 +1,19 @@
+{
+  "beforeIsolation": "file:///Users/kjopek/Workspace/safe-bash/dist/index.js",
+  "actual": {
+    "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY/consumer/node_modules/virtual-bash/dist/index.js",
+    "s3": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY/consumer/node_modules/virtual-bash/dist/fs/s3/index.js",
+    "http": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js"
+  },
+  "expected": {
+    "root": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY/consumer/node_modules/virtual-bash/dist/index.js",
+    "s3": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY/consumer/node_modules/virtual-bash/dist/fs/s3/index.js",
+    "http": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/snapshot-profile/.scratch-pYgmNY/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js"
+  },
+  "packedS3Sha256": "8a29148a5e41ed27087cd9784c564623b73d9c6c79f52ec2710db0cd29fba680",
+  "consumerPackage": {
+    "name": "safe-bash-s3-snapshot-consumer",
+    "private": true,
+    "type": "module"
+  }
+}

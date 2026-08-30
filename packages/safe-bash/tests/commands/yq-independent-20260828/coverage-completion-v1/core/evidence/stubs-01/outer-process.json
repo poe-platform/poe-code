@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "sourceCommit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+  "presealSha256": "0b927bca652f053a48cbe99a66b33af88d84b9ccafdd933f65f0e03438ce0bd1",
+  "executable": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "bytes": 112989184,
+    "mode": 493
+  },
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/run-synthetic.mjs",
+    "--preseal-sha256",
+    "0b927bca652f053a48cbe99a66b33af88d84b9ccafdd933f65f0e03438ce0bd1",
+    "--evidence",
+    "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f"
+  ],
+  "evidenceRoot": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "raw": [
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/outer.stdout.bin",
+      "sha256": "d41f8b9abeeb8efef2d91db23173166fffca58655d965e99e5dab200584c05c1",
+      "bytes": 185,
+      "mode": 420
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/outer.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    }
+  ],
+  "targetExecutions": 0,
+  "attempt": 1,
+  "retries": 0
+}

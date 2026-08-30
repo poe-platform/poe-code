@@ -1,0 +1,24 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: FROZEN_IMPORT_OUTSIDE: /private/tmp/loader-body-independent-pS0md9-outside.mjs
+    at check (file:///private/tmp/loader-body-independent-pS0md9/harness/import-guard.mjs:21:10)
+    at resolve (file:///private/tmp/loader-body-independent-pS0md9/harness/import-guard.mjs:31:54)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveBaseSync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10932)
+    at resolveDirectorySync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:12238)
+    at resolveTsPathsSync (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:13445)
+    at resolve (file:///private/tmp/loader-body-independent-pS0md9/source/node_modules/tsx/dist/register-C4vWVmug.mjs:2:15991)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at resolveWithHooks (node:internal/modules/customization_hooks:417:10)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:793:14) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.11.1

@@ -1,0 +1,20 @@
+[
+  {
+    "phase": "scoped-typecheck",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 1.279,
+    "pid": 74450,
+    "remainingProcessGroupKilled": false
+  },
+  {
+    "phase": "root-build",
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "seconds": 1.886,
+    "pid": 74462,
+    "remainingProcessGroupKilled": false
+  }
+]

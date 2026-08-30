@@ -1,0 +1,50 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+const repo='/Users/kjopek/Workspace/safe-bash';
+const relative='tests/integration/agent-bash-coherent-author-20260829/b1-data-recovery-v1';
+const author=repo+'/'+relative,own=repo+'/tests/integration/agent-bash-coherent-b1-data-independent-20260829';
+const commit='48dca5c3d1cae85faaed22db0e6e358abdd1f975',tree='86c0a0693ba0371ad9b8dbc292ad6711874b8ffd';
+const manifestHash='a0761e51f84c875dd13e2909251be80f0073eb97432f7265ee521a9d98f27551';
+const finalHash='89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+let readBytes=0;const pins=[];
+function read(filename,expected){const stat=fs.lstatSync(filename);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=1048576);readBytes+=stat.size;assert(readBytes<=33554432);const bytes=fs.readFileSync(filename);assert.equal(bytes.length,stat.size);const pin={path:filename,bytes:bytes.length,mode:stat.mode&4095,sha256:hash(bytes)};if(expected){assert.equal(pin.bytes,expected.bytes);assert.equal(pin.sha256,expected.sha256);assert.equal(pin.mode,expected.mode);}pins.push(pin);return bytes;}
+function git(role,args){const child=spawnSync('/usr/bin/git',['-c','gc.auto=0','-c','maintenance.auto=false',...args],{cwd:repo,encoding:null,timeout:15000,maxBuffer:1048576});fs.writeFileSync(own+'/'+role+'.stdout',child.stdout??Buffer.alloc(0),{flag:'wx'});fs.writeFileSync(own+'/'+role+'.stderr',child.stderr??Buffer.alloc(0),{flag:'wx'});assert(!child.error&&!child.signal&&child.status===0);return child.stdout;}
+assert.equal(git('git-tree',['show','-s','--format=%T',commit]).toString().trim(),tree);
+const entries=git('git-inventory',['ls-tree','-r','-z','--full-tree',commit,'--',relative]).toString('utf8').split('\0').filter(Boolean);
+for(const entry of entries){const split=entry.indexOf('\t'),[mode,kind,oid]=entry.slice(0,split).split(' '),name=entry.slice(split+1);assert.equal(kind,'blob');assert(['100644','100755'].includes(mode));assert(name.startsWith(relative+'/')&&!name.endsWith('/AGENTS.md'));const bytes=read(repo+'/'+name);assert.equal(createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex'),oid);}
+const manifestBytes=read(author+'/MANIFEST.json');assert.equal(hash(manifestBytes),manifestHash);const manifest=JSON.parse(manifestBytes),preseal=JSON.parse(read(author+'/PRESEAL.json'));
+assert.equal(manifest.finalSha256,finalHash);assert.equal(manifest.sources.length,34);assert.equal(manifest.sources.reduce((sum,row)=>sum+row.source.bytes,0),1380268);
+const buffers=new Map(),sourcePaths=new Set();
+for(const row of manifest.sources){const source=row.source;assert(!sourcePaths.has(source.path));sourcePaths.add(source.path);assert.equal(source.origin.finalSha256,finalHash);assert.equal(source.origin.locator,source.path);assert.equal(row.dataPath,'data/'+hash(Buffer.from(source.path))+'.raw');assert.equal(row.identityPath,'identities/'+hash(Buffer.from(source.path))+'.json');const bytes=read(author+'/'+row.dataPath,source);assert.equal(row.copiedBytes,source.bytes);assert.equal(row.copiedMode,source.mode);assert.equal(row.copiedSha256,source.sha256);assert.deepEqual(JSON.parse(read(author+'/'+row.identityPath)),source);const original=read(source.path,source);assert(original.equals(bytes));const after=fs.lstatSync(source.path);assert.equal(after.dev,source.dev);assert.equal(after.ino,source.ino);assert.equal(after.mtimeMs,source.mtimeMs);buffers.set(source.path,bytes);}
+assert.equal(manifest.originalSourcesPostchecked,preseal.sourceRecords.length);
+const sourceRecord=role=>manifest.sources.find(row=>row.source.role===role);
+const final=JSON.parse(buffers.get(sourceRecord('executed-FINAL').source.path));
+const runtime=JSON.parse(buffers.get(sourceRecord('original-runtime-result').source.path));
+const outcomes=JSON.parse(read(author+'/OUTCOMES.json'));
+const matrix=runtime.aggregate.map(row=>({layout:row.layout,rows:row.report.rows.map(cell=>({id:cell.id,status:cell.status})),passed:row.report.passed,failed:row.report.failed,workerCreates:row.guestWorkerCreates,workerExits:row.guestWorkerExits,workerPeak:row.guestWorkerPeak,workerExitCodes:row.events.filter(event=>event.kind==='node-worker-exit').map(event=>event.code),regexWorkers:row.regexWorkers,internalLoaderThreads:row.internalLoaderThreads}));
+assert.deepEqual(matrix,outcomes.matrix);for(const row of matrix){assert.deepEqual(row.rows.map(cell=>cell.id),['C10','C11','C15','C16','C18']);assert(row.rows.every(cell=>cell.status==='PASS'));assert.equal(row.workerCreates,5);assert.equal(row.workerExits,5);assert.deepEqual(row.workerExitCodes,[1,1,1,1,1]);}
+const eventRecord=manifest.sources.find(row=>row.source.path.endsWith('/capture/events.jsonl')&&row.source.path.includes('coherent-b1-r5-runtime'));
+const events=buffers.get(eventRecord.source.path).toString().trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));const retired=events.filter(row=>Object.hasOwn(row,'unknown'));assert.equal(retired.length,4);assert(retired.every(row=>row.exited&&row.closed&&!row.unknown));assert.deepEqual(retired,outcomes.recordedRetirements);
+const stop=JSON.parse(buffers.get('/private/tmp/coherent-b1-r5-admin/STOP.json'));const preimport=stop.snapshot.starts.find(row=>row.role==='publication-preimport');assert.equal(preimport.exitCode,78);assert.equal(preimport.closeCode,78);assert.deepEqual(preimport,outcomes.preimport);
+const refusal=manifest.sources.find(row=>row.source.path.endsWith('/capture/publication-preimport.stderr'));const refusalText=buffers.get(refusal.source.path).toString();assert(refusalText.includes('Identity duplicate path'));
+const grant=JSON.parse(buffers.get('/private/tmp/coherent-b1-r5-admin/ROOT-GRANT.json'));
+const references=[];function walk(value,location){if(typeof value==='string'&&value.startsWith('7e5502a'))references.push({location,value});else if(value&&typeof value==='object')for(const [key,item]of Object.entries(value))walk(item,location+'.'+key);}walk(final,'FINAL');walk(grant,'ROOT_GRANT');assert(references.length>0);
+const recoverySource=read(author+'/recover.mjs').toString();const functions=recoverySource.slice(recoverySource.indexOf('function clock()'),recoverySource.indexOf('async function add('));const body=recoverySource.slice(recoverySource.indexOf('  const sample ='),recoverySource.indexOf('  const manifest = []'));
+assert(functions.startsWith('function clock()')&&body.includes("'D06-symlink-refusal'"));
+const controlRoot='/private/tmp/safe-bash-b1-data-independent-controls';assert(!fs.existsSync(controlRoot));fs.mkdirSync(controlRoot);
+const moduleText="import fs from 'node:fs'; import path from 'node:path'; import assert from 'node:assert/strict'; import crypto from 'node:crypto';\n"+`const output=${JSON.stringify(controlRoot)},finalHash=${JSON.stringify(finalHash)},maximum=1048576,aggregateMaximum=33554432,reserve=16777216,deadline=1788023728525; let written=0,filesWritten=0; const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');\n`+functions+'\nexport {identity,bytesFor,combine}; export async function controls(){ const groups=[];\n'+body+'\nreturn groups;}\n';
+fs.writeFileSync(own+'/EXTRACTED-CONTROL.data',moduleText,{flag:'wx'});
+const helpers=await import('data:text/javascript;base64,'+Buffer.from(moduleText).toString('base64'));const controls=await helpers.controls();assert.equal(controls.length,6);
+const fixture=controlRoot+'/control-data/source-0';const valid=await helpers.identity(fixture);
+const novel=[];
+const content=fs.readFileSync(fixture);fs.writeFileSync(fixture,Buffer.from([1,255,10,13]));await assert.rejects(helpers.bytesFor(valid));fs.writeFileSync(fixture,content);novel.push({id:'N01-copy-byte-tamper',status:'PASS'});
+const beforeMode=await helpers.identity(fixture);fs.chmodSync(fixture,0o600);await assert.rejects(helpers.bytesFor(beforeMode));fs.chmodSync(fixture,0o640);novel.push({id:'N02-copy-mode-tamper',status:'PASS'});
+const fresh=await helpers.identity(fixture);assert.throws(()=>helpers.combine([fresh,{...fresh,origin:{...fresh.origin,finalSha256:'b'.repeat(64)}}]));novel.push({id:'N03-namespace-conflict',status:'PASS'});
+for(const row of manifest.sources)read(author+'/'+row.dataPath,row.source);
+const report={disposition:'QUALIFIED_DATA_RECOVERY_ACCEPT_NOT_CAMPAIGN_PASS',commit,tree,manifestSha256:manifestHash,committedPacketFiles:entries.length,sourceFiles:34,sourceBytes:1380268,originalSourcePostguards:'all34 content/mode/dev/ino/mtime matched at this audit',authorControls:controls,novelControls:novel,controlSourceSha256:hash(Buffer.from(recoverySource)),extractedModuleSha256:hash(Buffer.from(moduleText)),matrix,retiredCoordinatorChildren:retired,preimport,duplicateRefusal:refusalText,rootGrant:grant,freshBindingReferences:references,originalKnownStarts:outcomes.originalKnownStarts,originalOuterExit:outcomes.originalOuterExit,publicationStatus:outcomes.publicationStatus,childStreamEOF:outcomes.childStreamEOF,providerFinalization:outcomes.providerFinalization,qualification:'Worker exit1 literal; no original publisher repair, full OS census, runtime stream EOF or campaign PASS inferred. All runtime observations are recovered historical DATA; this audit creates zero Workers/product executions.',pins,readBytes,finished:new Date().toISOString()};
+fs.writeFileSync(own+'/RESULT.json',JSON.stringify(report,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({disposition:report.disposition,sourceFiles:34,sourceBytes:1380268,controls:controls.length,novel:novel.length,matrix,coordinatorRetired:retired.length,preimportExit:preimport.exitCode,duplicateRefusal:refusalText,rootGrant:grant,freshBindingReferences:references,originalKnownStarts:outcomes.originalKnownStarts,childStreamEOF:outcomes.childStreamEOF,receiptSha256:hash(fs.readFileSync(own+'/RESULT.json')),readBytes}));

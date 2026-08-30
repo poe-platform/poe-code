@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-08-27T20:55:20.386Z",
+  "syntax": [
+    {
+      "file": "controls.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "freeze.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "nearby-driver.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "capture.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "audit-canonical.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "seal.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "freeze/original-driver.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "overwriteRefusal": {
+    "status": 1,
+    "diagnostic": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: refuse capture overwrite\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-independent-v2-20260827/capture.mjs:18:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n"
+  },
+  "canonicalTestsRun": false,
+  "sharedBuildRun": false
+}

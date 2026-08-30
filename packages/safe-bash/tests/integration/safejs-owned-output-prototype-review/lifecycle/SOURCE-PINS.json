@@ -1,0 +1,474 @@
+{
+  "capturedAt": "2026-08-27T14:58:32.206Z",
+  "role": "lifecycle/budget planner; prepare/freeze only",
+  "threadId": "01a04292-c8dd-7331-9dac-619c9861b11b",
+  "independentReceiptVerdict": "PENDING; retrieval and local equality are not chain/current-assembly authentication",
+  "rootExecutionRelease": false,
+  "executionCounts": {
+    "guest": 0,
+    "engineImports": 0,
+    "productImports": 0,
+    "productBuilds": 0,
+    "privateQueries": 0,
+    "dependencyInstalls": 0,
+    "nativeProbes": 0
+  },
+  "preparationCommit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+  "candidateEvidenceCommit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+  "historicalBaseCommit": "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79",
+  "preparedReadOnlyRoot": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK",
+  "candidateReadOnlyRoot": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate",
+  "publicPackageReadOnlyRoot": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/consumer/node_modules/virtual-bash",
+  "staticReadEquality": {
+    "candidateFiles": 940,
+    "candidateInventorySha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28",
+    "sourceFiles": 213,
+    "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+    "compiledFiles": 708,
+    "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+    "installedPackageFiles": 709,
+    "installedPackageInventorySha256": "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018",
+    "allComparedBytesMatchRecordedManifests": true,
+    "noNewAssemblyOrExtraction": true
+  },
+  "privateExpectedAtRelease": {
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "index": {
+      "bytes": 431585,
+      "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+      "mode": 420,
+      "mtimeMs": 1787794730073.6377,
+      "ctimeMs": 1787794730073.7827
+    },
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+    "staged": "",
+    "metadata": {
+      "AGENTS.md": {
+        "bytes": 5737,
+        "sha256": "a68ac67735ca1eccdb4cfad1f706a47384a01a446f2555e6d01b4726e2830fd7",
+        "mode": 420,
+        "mtimeMs": 1785769859364.1233,
+        "ctimeMs": 1785769859364.1233
+      },
+      ".gitignore": {
+        "bytes": 1090,
+        "sha256": "0161532d2f4646d2fc109f5b4a48fe37dc06f4687a531852dcafd1ca8cc8355c",
+        "mode": 420,
+        "mtimeMs": 1782845787059.0957,
+        "ctimeMs": 1782845787059.0957
+      },
+      "package.json": {
+        "bytes": 12430,
+        "sha256": "e9f4bbb3216a3576528a812a3274db8a4cdc309654e4b724da69dea61161ec39",
+        "mode": 420,
+        "mtimeMs": 1787789982618.038,
+        "ctimeMs": 1787789982618.038
+      },
+      "package-lock.json": {
+        "bytes": 308871,
+        "sha256": "f0734bf2551b7add4257b0d7562e5fdcecac552f17c4a5a1e1cb5eb99d72db98",
+        "mode": 420,
+        "mtimeMs": 1787789982617.7124,
+        "ctimeMs": 1787789982617.7124
+      },
+      "tsconfig.json": {
+        "bytes": 501,
+        "sha256": "dd954deaf678dd2276e2b39f16511e7246bbaad999f0bacc039add3cf241e17d",
+        "mode": 420,
+        "mtimeMs": 1779579282147.897,
+        "ctimeMs": 1779579282147.897
+      },
+      "packages/poe-agent/package.json": {
+        "bytes": 985,
+        "sha256": "fe4ddedea7af55fc1b2d5fa0c00df519b8c4801575cf3e043fed2a4004a2041b",
+        "mode": 420,
+        "mtimeMs": 1787789982618.3176,
+        "ctimeMs": 1787789982618.3176
+      }
+    },
+    "engineRegularFiles": 264,
+    "engineInventorySha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f",
+    "authority": "Historical f666 snapshot only; fresh actual private before/after required after release"
+  },
+  "loader": {
+    "path": "loader.mjs",
+    "bytes": 2762,
+    "sha256": "3306a11120061037c285dea765728157afd277b4ce8b566e52cf57073a03335b"
+  },
+  "tooling": [
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "regularFiles": 132,
+      "inventorySha256": "680240908214b87b12bb3e03f5b087525a965d7f805e6fc73579156e69e0db88"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "regularFiles": 74,
+      "inventorySha256": "a704ac7aa70144c5791d2131f469b534abccba6346befd62476aac71d926fabc"
+    },
+    {
+      "name": "undici-types",
+      "version": "6.21.0",
+      "regularFiles": 41,
+      "inventorySha256": "508ae610e108f7b1e971466c2db233902e7563c2f4778c5a3298d695d7a99830"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "mtimeMs": 1774313550000,
+    "ctimeMs": 1776794488519.6758
+  },
+  "receiptInputs": [
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/SEAL.json",
+      "bytes": 115247,
+      "sha256": "bb19621a33109612323665279bcd3d4f3714b01c51e3555f6ce32205ce1509fd",
+      "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+      "gitBlob": "e853486da0e0665ca7803f052ea66899fd8d969d"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/assembly.json",
+      "bytes": 509985,
+      "sha256": "29827a438ce8e33be22a1588a808b2cf7f21909cfaeccb4026405e899fa49199",
+      "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+      "gitBlob": "5b24432bb07807c8e0d3066f7017ea5d335f9854"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/build-proof.json",
+      "bytes": 186541,
+      "sha256": "7896f394dbcf9b66354e4fad7de867afda29108e46381259464417f0e3ffe926",
+      "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+      "gitBlob": "7f77971b6f0c30493c09e1585e1eabcae7a83d10"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot-before.json",
+      "bytes": 129703,
+      "sha256": "3a705749e0daea4d85a1546f665a2a0dda50ccae908e7c6d89e82e2666cb74f5",
+      "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+      "gitBlob": "d0ba764c358598e93c904b534a593ed997eba694"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot-after.json",
+      "bytes": 124370,
+      "sha256": "f2aa8a751b4410e58af95735ee0a1ac901ce2f124e1e15b5ceefd5cf067f0bdd",
+      "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+      "gitBlob": "813db2bad46e5efe93c016009176cf854e2a99f2"
+    },
+    {
+      "path": "tests/integration/safejs-owned-output-prototype-review/provenance/PROVENANCE.md",
+      "bytes": 17563,
+      "sha256": "a659b40882ce886f3dad2eda4cfdf225ccf734f7e784def1c9347503c9084c7d",
+      "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+      "gitBlob": "d46bf92d86b91f3692b3ce1718ff1c792ca215d7"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/CONTRACT.md",
+      "bytes": 6419,
+      "sha256": "1a17265016074ccf02734f997f856eee4e70301e68f2a86524efadf9e3bbe620",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "a88feb9cb97c4eb1b82f6d044953549719ec531b"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/CONTRACT.md",
+      "bytes": 7509,
+      "sha256": "bb7e28a71ff9cf2a8fc4b0d4fbd85218af3f757d36df50ad624f83b4740a49e8",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "52a825e28e7ee86ddb2b6e2bcd9c943460e698f7"
+    },
+    {
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-qualified-review/ordering-replay-q1/REPORT.md",
+      "bytes": 9165,
+      "sha256": "18fc0943cef7901c7a704f02665ad1b6ff655d450d587c74b75dd48fe7eb7db9",
+      "commit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "gitBlob": "95b37b7a5d4c647d9aa9fcaa1767d241a3688122"
+    }
+  ],
+  "retrievalOnlyHandoffs": [
+    {
+      "path": "/private/tmp/safe-bash-owned-output-prototype-provenance-ready.txt",
+      "bytes": 8966,
+      "sha256": "ed346dadae649180e7164aab8f5814f5547338b20cb4a656355041281d668c7f",
+      "requestedPath": "/tmp/safe-bash-owned-output-prototype-provenance-ready.txt"
+    },
+    {
+      "path": "/private/tmp/safe-bash-owned-output-provenance-handoff-result.txt",
+      "bytes": 31030,
+      "sha256": "80338c8433ec0b054efefc37b0dac2ac0a9a417ff5a2cd028c352823b00c73f2",
+      "requestedPath": "/tmp/safe-bash-owned-output-provenance-handoff-result.txt"
+    }
+  ],
+  "publicSourceReferences": [
+    {
+      "path": "package.json",
+      "bytes": 3526,
+      "sha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7"
+    },
+    {
+      "path": "src/index.ts",
+      "bytes": 1190,
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "bytes": 202,
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "bytes": 7679,
+      "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "bytes": 4166,
+      "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "bytes": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "bytes": 8649,
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb"
+    },
+    {
+      "path": "src/commands/safejs/io.ts",
+      "bytes": 4704,
+      "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1"
+    },
+    {
+      "path": "src/commands/safejs/options.ts",
+      "bytes": 2464,
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43"
+    },
+    {
+      "path": "src/commands/safejs/types.ts",
+      "bytes": 2243,
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4"
+    },
+    {
+      "path": "src/integrations/safejs/index.ts",
+      "bytes": 445,
+      "sha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+    },
+    {
+      "path": "src/integrations/safejs/shell.ts",
+      "bytes": 3695,
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da"
+    },
+    {
+      "path": "src/integrations/safejs/values.ts",
+      "bytes": 2446,
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "bytes": 10644,
+      "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "bytes": 101302,
+      "sha256": "d352c421177b82bd0a6f77ebc8cc9ab4b490e54cb39b685bb72871388a9fcb03"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "bytes": 9720,
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "bytes": 2178,
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "bytes": 1049,
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "bytes": 17720,
+      "sha256": "db06650b1b55b994fe5fa83f7489062e91ac83b7d2d9c44bbb7606d57d9df057"
+    },
+    {
+      "path": "src/commands/network/transport.ts",
+      "bytes": 3613,
+      "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "bytes": 3730,
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 1225,
+      "sha256": "97198dd4b1b4872a14134fdd02f49c9518b96e7db8a919a945c60dafd325c5d2"
+    },
+    {
+      "path": "dist/contracts/output.d.ts",
+      "bytes": 676,
+      "sha256": "501a15692aa88f6299cb8eef285c9ddb723c2baaf9f07dcaf644075943d97ce1"
+    },
+    {
+      "path": "dist/commands/safejs/types.d.ts",
+      "bytes": 2330,
+      "sha256": "109f0995a241787f66e563c213f03e176f0509c8fff9c1b2586ff144fd554800"
+    },
+    {
+      "path": "dist/integrations/safejs/shell.d.ts",
+      "bytes": 1302,
+      "sha256": "a9eca7e38be42cc6f8d4705921800465caaf265c6dc311f18203008422d7c220"
+    },
+    {
+      "path": "dist/commands/network/types.d.ts",
+      "bytes": 1754,
+      "sha256": "0efb19fc14905bd67828c3315329c5366818acab3db5d379640e5dcb38069f57"
+    }
+  ],
+  "copiedEngineSourceReferences": [
+    {
+      "path": "src/run.ts",
+      "bytes": 25016,
+      "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b"
+    },
+    {
+      "path": "src/interp/budget.ts",
+      "bytes": 9007,
+      "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3"
+    },
+    {
+      "path": "src/modules/fs.ts",
+      "bytes": 31730,
+      "sha256": "99fc3a501ce906aa2021f298ef8803b63d2272de5f412dfcdf3714757510b142"
+    },
+    {
+      "path": "src/interp/host-bridge.ts",
+      "bytes": 30852,
+      "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90"
+    },
+    {
+      "path": "src/interp/promise.ts",
+      "bytes": 15619,
+      "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c"
+    },
+    {
+      "path": "src/interp/promise-tracker.ts",
+      "bytes": 2427,
+      "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581"
+    },
+    {
+      "path": "src/interp/values.ts",
+      "bytes": 24602,
+      "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd"
+    },
+    {
+      "path": "src/run.promise-order.test.ts",
+      "bytes": 7639,
+      "sha256": "444ac6bbc609de5f8cdbd759835badc6e17b52d2a023fa0710696a9bf24f586f"
+    },
+    {
+      "path": "src/interp/promise.test.ts",
+      "bytes": 24077,
+      "sha256": "3be8ed17ba867f3676708c5a95a06c464aacebfda55b80dec11225cb32d916d9"
+    }
+  ],
+  "actualApi": {
+    "publicImports": [
+      "virtual-bash",
+      "virtual-bash/contracts",
+      "virtual-bash/contracts/output",
+      "virtual-bash/commands/network"
+    ],
+    "symbols": [
+      "Shell",
+      "MemoryFileSystem",
+      "safeJsCommands",
+      "makeSafeJsShellModule",
+      "makeSafeJsFsModule",
+      "createOutputOperation",
+      "curlCommands"
+    ],
+    "capability": [
+      "consumerClosed",
+      "write"
+    ],
+    "operation": [
+      "signal",
+      "output",
+      "registerCleanup",
+      "acquire",
+      "child",
+      "close"
+    ],
+    "privateDefinitionHooks": [
+      "src/run.ts#run",
+      "src/interp/budget.ts#Budget",
+      "src/modules/fs.ts#makeFsModule",
+      "src/interp/host-bridge.ts#declareHostOperation"
+    ],
+    "notPublicRuntimeImports": [
+      "shell/runtime",
+      "commands/safejs/io",
+      "private src/index.ts"
+    ],
+    "safeJsWrapperImplicitOptIn": false
+  },
+  "instructions": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 11354,
+      "sha256": "04ef3eafc6d6516e554e5639d7f815e750bfbce1ba38b0d56f63151023335cd1"
+    },
+    {
+      "path": "../AGENTS.md",
+      "bytes": 424,
+      "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+    }
+  ],
+  "publicReadOnlyState": {
+    "head": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+    "status": " M tests/commands/grep-aliases-stress/verification/ATTEMPTS.md\n M tests/commands/grep-aliases-stress/verification/holdouts.mts\n M tests/commands/split/native-errors.test.ts\n M tests/commands/split/native.test.ts\n M tests/plugins/qualified-current-release-native-data/controls.test.ts\n?? benchmarks/reports/sort-performance-next-20260827/unkeyed-author/\n?? benchmarks/reports/sort-performance-next-20260827/unkeyed-review/baseline-dce6e3824d6d/\n?? benchmarks/reports/sort-performance-next-20260827/unkeyed-review/public-worker.mjs\n?? benchmarks/reports/sort-performance-next-20260827/unkeyed-review/run-public.mjs\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/split/native-capture.ts\n?? tests/integration/full-gate-20260827/loader-null-source-review/\n?? tests/integration/safejs-owned-output-prototype-review/lifecycle/\n?? tests/integration/safejs-owned-output-prototype-review/surface/\n?? tests/shell-stress/env-shebang-integration-review/candidate-dc262a99/\n",
+    "staged": ""
+  },
+  "limitations": [
+    "No independent receipt verdict inferred",
+    "No candidate/product/engine executed",
+    "No private checkout access in this preparation",
+    "No new surface-worker cases read",
+    "No actual loaded-module count inferred from static references",
+    "No runtime acceptance or prototype promotion"
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "stage": "candidate binding before runtime-body inspection or product execution",
+  "capturedAt": "2026-08-28T05:58:45.987Z",
+  "authorization": "ROOT user message explicitly routes actual different review of4641075d/evidence8c0c17f;86 rows/types10+10 across3 layouts; bounded controls; no source edits/native/services",
+  "handoffExposure": "Committed HANDOFF.md read first. It contains source-change descriptions/hashes and author-result history; no runtime implementation body inspected. Runtime bytes hashed only to authenticate binding.",
+  "preparation": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+  "inherited": {
+    "original": 18,
+    "ratification": 4,
+    "executor": 19
+  },
+  "productionExecution": 0,
+  "setupObservation": "Initial read-only zsh loop used reserved path variable, hiding PATH; retried with filepath. No files changed or product work ran.",
+  "ownFilesBeforeSeal": {
+    "": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "BINDING.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 928,
+      "sha256": "2e9a2d91397b5379513ce03d4b867657dc31ee46d2b09c0e15a6ad2bf1c45ec2"
+    },
+    "CONTROL-IDENTITY.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 107623,
+      "sha256": "240c313fa722ff516ec9872865682e5f7b66fa51f11763735dbb592f6ebfd034"
+    },
+    "TREE-PROOF.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9664,
+      "sha256": "90166b3238c9e51d2a31ae98ca9fdb8e8659f3270b5c6b4b4bd3baabc55e4a92"
+    },
+    "bind.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7781,
+      "sha256": "276379f23066e9e89768aed373d52abfe710b51659ab61590f96d7db173f7eed"
+    }
+  },
+  "foreignStaging": []
+}

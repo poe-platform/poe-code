@@ -1,0 +1,55 @@
+{
+  "at": "2026-08-27T00:50:17.131Z",
+  "executable": "/usr/bin/jq",
+  "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+  "version": {
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "6a712d312e372e312d6170706c650a",
+    "stderrHex": "",
+    "stdoutSha256": "8f0cb494827734c0ed992bd222c9888398f880757e9156f3f3264ff061480bb4",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "build": {
+    "status": 0,
+    "signal": null,
+    "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+    "stderrHex": "",
+    "stdoutSha256": "91e521c87733f623b24c129f5fa117b52861aba52652a293ee3fa6c8db745703",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "cohorts": [
+    {
+      "name": "whole frozen cohorts",
+      "cases": 236,
+      "invocations": 241,
+      "exact": 236
+    },
+    {
+      "name": "author controls",
+      "cases": 39,
+      "invocations": 39,
+      "exact": 39
+    },
+    {
+      "name": "followup controls",
+      "cases": 12,
+      "invocations": 12,
+      "exact": 12
+    },
+    {
+      "name": "raw-input-native.json",
+      "cases": 74,
+      "invocations": 74,
+      "exact": 74
+    },
+    {
+      "name": "join-native.json",
+      "cases": 129,
+      "invocations": 129,
+      "exact": 129
+    }
+  ],
+  "metadataInvocations": 2,
+  "note": "Cohorts overlap; do not sum as unique coverage. Oracle expectations are compared, never replaced."
+}

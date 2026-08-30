@@ -1,0 +1,552 @@
+{
+  "at": "2026-08-27T18:59:13.092013+00:00",
+  "cohort": "surface",
+  "role": "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE",
+  "status": "PASS",
+  "inputOrFixtureBindingBlocker": false,
+  "gatesClean": true,
+  "counts": {
+    "total": 8,
+    "launched": 8,
+    "engineRuns": 8,
+    "pass": 8,
+    "failed": 0,
+    "blocked": 0,
+    "invalid": 0,
+    "unproved": 0
+  },
+  "rows": [
+    {
+      "id": "01-supported-facades",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "SUPPORTED_SURFACE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 7,
+        "stdout": "stdio:surface-input|vfs\n",
+        "stderr": "",
+        "stdoutBase64": "c3RkaW86c3VyZmFjZS1pbnB1dHx2ZnMK",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "02-direct-surface",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "SUPPORTED_SURFACE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "03-namespace-spread",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "SUPPORTED_SURFACE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "namespace-ok\n",
+        "stderr": "",
+        "stdoutBase64": "bmFtZXNwYWNlLW9rCg==",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "04-shell-module",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "SUPPORTED_SURFACE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "shell-positive",
+        "stderr": "",
+        "stdoutBase64": "c2hlbGwtcG9zaXRpdmU=",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "05-missing-register-cleanup",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "SUPPORTED_SURFACE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "06-missing-acquire",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "SUPPORTED_SURFACE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "07-reflection-profile",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "DIALECT_ONLY",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "engineOutcome": {
+        "kind": "fulfilled"
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-settled",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    },
+    {
+      "id": "08-function-spread-profile",
+      "classification": "PASS",
+      "rawOutcome": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "scope": "AWAITED_REJECTION_PROFILE",
+      "checks": [
+        {
+          "name": "frozen scorer passed all checks",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "child closed without containment",
+          "pass": true
+        },
+        {
+          "name": "exact public status/stdout/stderr",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "awaited rejection not fulfillment",
+          "pass": true
+        },
+        {
+          "name": "rejection before cleanup and settlement",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 223,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "rejected": false,
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "safejs: Cannot spread function into object literal.\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2FmZWpzOiBDYW5ub3Qgc3ByZWFkIGZ1bmN0aW9uIGludG8gb2JqZWN0IGxpdGVyYWwuCg=="
+      },
+      "engineOutcome": {
+        "kind": "await-rejected",
+        "reasonType": "object",
+        "reasonIsNull": false
+      },
+      "events": [
+        "shell-exec-start",
+        "actual-engine-run-start",
+        "actual-engine-run-rejected",
+        "operation-close-settled",
+        "shell-exec-settled",
+        "operation-cleanup-settled",
+        "pipe-cleanup-settled",
+        "collector-cleanup-settled",
+        "innerShell-cleanup-settled",
+        "shell-cleanup-settled"
+      ],
+      "hostCounters": {
+        "acquired": 1,
+        "released": 1,
+        "cleanup": 1,
+        "childCleanup": 1
+      }
+    }
+  ],
+  "driverStatus": "EXECUTION_SETTLED",
+  "noPromotion": true
+}

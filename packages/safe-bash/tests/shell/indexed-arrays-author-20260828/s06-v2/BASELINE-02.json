@@ -1,0 +1,102 @@
+{
+  "profile": "controlled old c7 baseline, genuine proposed-semantics failures retained",
+  "preseal": "0286a6ff0ed46faf00a071736e6bc9e269f63afe",
+  "productRevision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+  "tree": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+  "selectedInputs": 269,
+  "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "packageFiles": 862,
+  "oldTests": 32,
+  "oldPublicExecs": 69,
+  "targetedTests": 51,
+  "targetedPass": 42,
+  "targetedFail": 9,
+  "failures": [
+    "S06-two-empty",
+    "three-empty",
+    "repeated-empty",
+    "separate-quote-groups",
+    "single-empty-at",
+    "quoted-unquoted-empty",
+    "unquoted-quoted-empty",
+    "unquoted-scalar-between",
+    "lazy-alternate-empty-aggregate"
+  ],
+  "commands": [
+    {
+      "label": "selected-production-build",
+      "status": 0,
+      "signal": null,
+      "pid": 16179,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "strict-owned-consumers",
+      "status": 0,
+      "signal": null,
+      "pid": 16225,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "source-foundation-and-syntax",
+      "status": 0,
+      "signal": null,
+      "pid": 16260,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "source-S06-controls",
+      "status": 1,
+      "signal": null,
+      "pid": 16274,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "package-artifact",
+      "status": 0,
+      "signal": null,
+      "pid": 16279,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "installed-strict",
+      "status": 0,
+      "signal": null,
+      "pid": 16288,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "installed-runtime",
+      "status": 0,
+      "signal": null,
+      "pid": 16302,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "moved-strict",
+      "status": 0,
+      "signal": null,
+      "pid": 16307,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "moved-runtime",
+      "status": 0,
+      "signal": null,
+      "pid": 16488,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "unchanged-public-api-negative-control",
+      "status": 2,
+      "signal": null,
+      "pid": 16566,
+      "processGroupAbsent": true
+    }
+  ],
+  "capsuleSha256": "ed3800046802eeeadfd3846746fc551cff64c207fd808c199197cda3cd4345d1",
+  "rawReportSha256": "91c3ee125a72f870747b5ee48e9b4b7b6e84a744708a27a09e56df478f4e659b",
+  "ownedChildrenSettled": true,
+  "sourceAppendAwareStable": true,
+  "packageAppendAwareStable": true
+}

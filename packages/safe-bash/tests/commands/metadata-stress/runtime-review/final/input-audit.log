@@ -1,0 +1,251 @@
+{"label":"input-audit","command":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/runtime-review/audit-original-tests.mjs"],"started":"2026-08-27T00:56:29.500Z","finished":"2026-08-27T00:56:29.953Z","exitCode":0,"signal":null,"stdoutHash":"e40c597bf5d9f1cdc34044edf8706c649ddf4af485c9e1f2422a96444ef5afd1","stderrHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
+STDOUT
+{
+  "baselineHead": "d1f78d43880c94300c0019b07a88110e9b3e8f08",
+  "parser": "TypeScript 5.9.3; read-only AST parsing, no emitted code",
+  "files": [
+    {
+      "path": "tests/commands/metadata-stress/adversarial.test.ts",
+      "baselineHash": "5227c0b50313b1425c1d284edcd737c7933da3f6acafdcaa7c86932d9edd7f66",
+      "currentHash": "5227c0b50313b1425c1d284edcd737c7933da3f6acafdcaa7c86932d9edd7f66",
+      "originalBodies": {
+        "mktemp injected collision preserves every competing byte and bounds retries": {
+          "hash": "25ad3ddde4c71367d87e07f1f651c421a81436a59ae6e5960045cc68d00bd628",
+          "cases": 1
+        },
+        "mktemp noncollision faults do not retry or create host files": {
+          "hash": "b78a0900169e8229d65f90897534e919a9228b41ab9da5ceb173663a301a086e",
+          "cases": 1
+        },
+        "`${command} blocked stdout abort preserves bounded effects and late rejection`": {
+          "hash": "7aad92efbcd327ec3a390f4c547c1200e641e77ba029673ee7b6c01bfedb0c38",
+          "cases": 3
+        },
+        "`${command} pre-abort performs no effects`": {
+          "hash": "809429516585013e41018ba9bfe0a0b80498746c8cddb1e40dd3252eea29fb7a",
+          "cases": 3
+        },
+        "chmod recursive budgets stop effects; hardlink aliases retain shared mode and bytes": {
+          "hash": "88e389892490d9138086f8cda49b44be4ee245d92c1d970e54ee0d3fd2a5a7cd",
+          "cases": 1
+        },
+        "stat and mktemp output limits fail before output/creation; argument budget has no effects": {
+          "hash": "959370f5033f6310ab19ac754443bd966a0cd8776373ef32dd5b6bfe56b1e29f",
+          "cases": 1
+        },
+        "chmod substitution detection refuses changed entry before mutation": {
+          "hash": "90e10ffb0f2b4763ca982a91534dfbd76a9a8ccdd58b65050f4d14e1716e8ace",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/capabilities.test.ts",
+      "baselineHash": "f6c185d06d6e7af501e4a072958315c4cded7fe3b75c39d9b75d48e4b0997b5a",
+      "currentHash": "f6c185d06d6e7af501e4a072958315c4cded7fe3b75c39d9b75d48e4b0997b5a",
+      "originalBodies": {
+        "`metadata actual ${backend} capabilities and shell workflow`": {
+          "hash": "c16337fc8c34e9fd8452856e69c5b4cb1c8d218b9681afc0ae6213e7728e6ddb",
+          "cases": 7
+        },
+        "MemoryFS enforces owner bits but does not implement host identities": {
+          "hash": "7b4d9f4e4c0a033916fa260c68d37d4cc3108800fddb607d7801af4aeac2d5f7",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/chmod-controls.test.ts",
+      "baselineHash": "fe19c55a0f0a7ff380a8181db5cd3743bd517b089c3e6a2fc8e1ef86bfda189e",
+      "currentHash": "fe19c55a0f0a7ff380a8181db5cd3743bd517b089c3e6a2fc8e1ef86bfda189e",
+      "originalBodies": {
+        "GNU chmod directory setid controls compare actual host preservation": {
+          "hash": "86c696ac3d2be3b105ce5f5dc1e46c289152da5c106e6ff12fb56e911eb28503",
+          "cases": 1
+        },
+        "GNU chmod verbose/changes/reference/error controls preserve bytes and aliases": {
+          "hash": "6f9197c669a4ba3a07442dfe7994feb19dbec052271166e5a329f4cc3277a121",
+          "cases": 1
+        },
+        "chmod root and unsupported traversal controls fail without namespace effects": {
+          "hash": "001f465b6c641d8979350561af53c206dc2a40a649b4edd37a322a0ffd788e47",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/epoch-regression.test.ts",
+      "baselineHash": "77b8acc0d659acc17199c3d3d5793a3b418c66023214ff54d246acdf396c7815",
+      "currentHash": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+      "originalBodies": {
+        "GNU stat exact millisecond epoch values do not lose a millisecond in scaling": {
+          "hash": "cdc04acc9e0b8ad35033ae3be0c65daf305e9f4c73fc4812e4e33c86df2f6d2c",
+          "cases": 1
+        }
+      },
+      "addedBodies": [
+        "GNU 9.7 negative fractions retain runtime rounding for the existing nine timestamp rows",
+        "GNU 9.7 narrow widths retain trailing bytes for the existing sixteen timestamp rows"
+      ],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/mktemp-controls.test.ts",
+      "baselineHash": "e9dff10267546288ebc453ebbccd4ae96984a3bdeefaac4b3c4f8525ae88ec2d",
+      "currentHash": "e9dff10267546288ebc453ebbccd4ae96984a3bdeefaac4b3c4f8525ae88ec2d",
+      "originalBodies": {
+        "GNU mktemp template grammar and quiet diagnostics: 24 controls": {
+          "hash": "62902b847fdbc38f14bb52901beb8659a2f647a9d0ba78bd1cc50c4c53f6b23f",
+          "cases": 1
+        },
+        "mktemp 64 concurrent creations reserve distinct names with virtual umasks": {
+          "hash": "9664ab92af519ca5f26ce9c2d839ffe4f1bfd78db1341f910cfa0866560b349b",
+          "cases": 1
+        },
+        "mktemp crypto provenance remains node randomInt with no native/host filesystem fallback": {
+          "hash": "aa3b9e5c32c8125f4a96e673e30985f23b309ae9e34adfd3e3b861d93e377689",
+          "cases": 1
+        },
+        "mktemp directory collision retries never delete competing entries": {
+          "hash": "3d681cad5c411d0e8cafaeb233870109d43d6fcb5dcb35c5206e375d36049609",
+          "cases": 1
+        },
+        "mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries": {
+          "hash": "9856eb293242d02304b48d9aaffedf3c65e3ae3112d33fcb56f783539e3b905b",
+          "cases": 1
+        },
+        "mktemp exclusive file creation cannot follow a competing symlink": {
+          "hash": "ae5ed1ef5f2b200fdf7246a401c6b889000b4198fa31bd4cd0d99ee194e621ec",
+          "cases": 1
+        },
+        "mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched": {
+          "hash": "e03c71fd9df92d87b4819b32ae542ac21908b03f8f8853486f22701ab9517467",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/native-differential.test.ts",
+      "baselineHash": "cd462aa78d9030caeafd2312c97fc0c4f2fe370a994c0898b8129dbb73d013b2",
+      "currentHash": "cd462aa78d9030caeafd2312c97fc0c4f2fe370a994c0898b8129dbb73d013b2",
+      "originalBodies": {
+        "GNU chmod seeded symbolic/numeric differential: 384 mode transitions": {
+          "hash": "5b5f39bdb227e83e698c0d42420a0bd7d93cf765bc99e1576413e172ab43abdd",
+          "cases": 1
+        },
+        "GNU stat format matrix compares exact bytes over actual RealFS metadata": {
+          "hash": "49706c824c638a815791640713862a474fbfe7ef5e180713c8cfc94015014b1a",
+          "cases": 1
+        },
+        "GNU mktemp option/template controls preserve result shape and private modes": {
+          "hash": "bd02ef5d3beb2c849fb72100253c82a1c19d4b5ae39a53a71250a06d59f311d5",
+          "cases": 1
+        },
+        "`GNU chmod recursive symlink control: ${operand}`": {
+          "hash": "e687cd0b836352cd9c692ed1de456739f367bd2f10e12259bb3a80b427d8fede",
+          "cases": 3
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/provenance.test.ts",
+      "baselineHash": "4833eb6c7b898b19196691284cd8e391f1452b78d1ba915afe7fba47c645f375",
+      "currentHash": "154f459bc15e800be21668f29e149522b415ccf7fe731f0a9c5ac422574f8cce",
+      "originalBodies": {
+        "GNU oracle binaries/archive match the independently captured exact identities": {
+          "hash": "aad04efa00dd2d3b848cecb3c86e1c936eeace50f17bd7fbd1b37ccf018f0e2d",
+          "cases": 1
+        },
+        "all seven original author artifacts retain their handoff hashes": {
+          "hash": "737471621b8dcb4852eba3273a9d30b1ed91da7ca199061c1764ec1b4554430f",
+          "cases": 1
+        }
+      },
+      "addedBodies": [
+        "GNU native source identities are complete SHA256 hashes matching the pinned source"
+      ],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/remote-cancellation.test.ts",
+      "baselineHash": "cc3b2530a1d2d5e57f9e1d1e68e2594054b62f5a6d0e9a7ef56fc1a44437bdaf",
+      "currentHash": "cc3b2530a1d2d5e57f9e1d1e68e2594054b62f5a6d0e9a7ef56fc1a44437bdaf",
+      "originalBodies": {
+        "`${backend} ${command} forwards cancellation into actual remote reads`": {
+          "hash": "ab8ddf248e1af41d84b0ea0e2ccc224afd9d51860da29c0e615091a389b450ed",
+          "cases": 4
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-effects.test.ts",
+      "baselineHash": "6938eb48265763d5de8ccaf1ce2982fe4bef957a69f205f9df827920991d264e",
+      "currentHash": "6938eb48265763d5de8ccaf1ce2982fe4bef957a69f205f9df827920991d264e",
+      "originalBodies": {
+        "GNU stat types/link-follow/aliases compare exact bytes without namespace mutation": {
+          "hash": "325b188f35fc3c9ba6cb7ad240dd246ef27e7c11f86d6153c2bf5ecef0d166c4",
+          "cases": 1
+        },
+        "stat missing/dangling operands preserve later output, typed API errors and all entries": {
+          "hash": "33880910626536d229426d775388a243718dcf57f32ea9d9fe8743f19b97af94",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-flags.test.ts",
+      "baselineHash": "b48327643a16807fb74d5781a2ed71110094cca7a2051b90405e46be3145b448",
+      "currentHash": "b48327643a16807fb74d5781a2ed71110094cca7a2051b90405e46be3145b448",
+      "originalBodies": {
+        "stat unsigned fields ignore sign flags while epoch fields retain them": {
+          "hash": "9f524efa8cabe384055549ec18c44872a3f5b0eb3965f0c06331800790095f23",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    },
+    {
+      "path": "tests/commands/metadata-stress/stat-precision.test.ts",
+      "baselineHash": "3021c4496f9c142f041d98e181c8b21ed325631bb074a7a62fb72303d05ffb4f",
+      "currentHash": "3021c4496f9c142f041d98e181c8b21ed325631bb074a7a62fb72303d05ffb4f",
+      "originalBodies": {
+        "GNU stat precision and UTF-8 byte width: 45 bounded format comparisons": {
+          "hash": "dab81a34ca5c70c255bb4ab2120e065725b97baca744353573c543c6c64f1fc7",
+          "cases": 1
+        },
+        "GNU invalid percent modifiers fail; virtual rendering buffers the current operand": {
+          "hash": "b2262477710a9a88dcc9b4a366ff034c277e09b788585f49a4313401733dd0ac",
+          "cases": 1
+        },
+        "stat precision allocation is bounded before writing bytes": {
+          "hash": "574255ad0b72c37d4b3f2b02bd14094b89742a782ebe6fa7f85a3a26318e7d2c",
+          "cases": 1
+        }
+      },
+      "addedBodies": [],
+      "changedOriginalBodies": []
+    }
+  ],
+  "originalBodies": 33,
+  "unchangedOriginalBodies": 33,
+  "originalCases": 48,
+  "addedBodies": 3,
+  "note": "Byte identity of each original test registration body, including complete loop statements and their original literal domains. Not a claim that surrounding imports/provenance initialization remained byte-identical. Seven metadata author files are separately full-file hashed. Plugin hash drift is separately recorded, never called unchanged71."
+}
+
+STDERR

@@ -1,0 +1,37 @@
+{
+  "entriesType": "list",
+  "length": 123,
+  "firstKeys": [
+    "path",
+    "mode",
+    "bytes",
+    "sha256",
+    "base64"
+  ]
+}
+{
+  "archiveDescriptors": [
+    {
+      "descriptor": {
+        "path": "RUN-APPLY-PUBLIC-INDEPENDENT-01/artifacts/virtual-bash-0.0.0.tgz",
+        "mode": 420,
+        "bytes": 814632,
+        "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+      },
+      "decodedBytes": 814632,
+      "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+    }
+  ]
+}
+{
+  "name": "tests/integration/git-public-20260829/m1a.mjs",
+  "line": [
+    "await record('PUBLIC-NEGATIVE', 'module is not accidentally default/root exported', async () => { const api = await import(leaf('index.js')); assert.equal('gitCommands' in api, false); const packageJson = JSON.parse(await hostFs.readFile(path.join(root, 'package.json'))); assert.equal(Object.keys(packageJson.dependencies ?? {}).length, 0); assert.equal(Object.keys(packageJson.optionalDependencies ?? {}).length, 0); assert.equal(packageJson.exports['./commands/git'], undefined); });"
+  ]
+}
+{
+  "name": "tests/integration/git-public-20260829/m1a-public-v2.mjs",
+  "line": [
+    "await record('PUBLIC-REGISTERED', 'authorized root export and exact public subpath retain zero dependencies', async () => { const api = await import(leaf('index.js')); assert.equal('gitCommands' in api, true); const packageJson = JSON.parse(await hostFs.readFile(path.join(root, 'package.json'))); assert.equal(Object.keys(packageJson.dependencies ?? {}).length, 0); assert.equal(Object.keys(packageJson.optionalDependencies ?? {}).length, 0); assert.deepEqual(packageJson.exports['./commands/git'], { types: './dist/commands/git/index.d.ts', import: './dist/commands/git/index.js' }); });"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "historical": "/tmp/safe-bash-table-author-frozen.WutzVL",
+  "current": {
+    "tests/commands/table-text/AUTHOR_HANDOFF.md": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99",
+    "tests/commands/table-text/author-verification.json": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476",
+    "tests/commands/table-text/buffer-ownership-regression.json": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4",
+    "tests/commands/table-text/cases.ts": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+    "tests/commands/table-text/contracts.test.ts": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+    "tests/commands/table-text/differential.test.ts": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+    "tests/commands/table-text/gnu-evidence.json": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+    "tests/commands/table-text/helpers.ts": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5",
+    "tests/commands/table-text/integration.test.ts": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+    "tests/commands/table-text/oracle.ts": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de",
+    "tests/plugins/agent-commands.test.ts": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+    "tests/commands/structured-stress/split-increment/interop.test.ts": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e"
+  },
+  "before": {
+    "tests/commands/table-text/AUTHOR_HANDOFF.md": null,
+    "tests/commands/table-text/author-verification.json": null,
+    "tests/commands/table-text/buffer-ownership-regression.json": "e9bd14ba90f974983757f846a6be8df3407cbda1e9f7e9370d65441540210ca4",
+    "tests/commands/table-text/cases.ts": "17118aa95f15c8cd1d47d6aebf624b7013df965e87c39fb81bfebfa63b95070d",
+    "tests/commands/table-text/contracts.test.ts": "df0fea627ba8f15b1f2c2abd6ed3fb53a1758a82cf021f153adf2789603bb39c",
+    "tests/commands/table-text/differential.test.ts": "8534dd83c9b2c2e125027718ac336cc9ba4c3189e33a185e46c6482e98a55048",
+    "tests/commands/table-text/gnu-evidence.json": "42e8b27580243212a341edd8b8a106f4d52f81164f5ae56567dd3c738d6a8caa",
+    "tests/commands/table-text/helpers.ts": "5925232dc94a5b2badba373111198f6ef1b534d63a767fe8cfd22ed3f472d6e5",
+    "tests/commands/table-text/integration.test.ts": "e41520962e5c1906293f6a01723382cc589c791664251429f8f61df770665ec4",
+    "tests/commands/table-text/oracle.ts": "53b85ddb847ccd19b5a9111e652332dbaa4bc9a2a8d9c1b798e2233d454f34de",
+    "tests/plugins/agent-commands.test.ts": "55c605690f0f2bb7e10ffd10528f9f36f9d39a4a4c45bbf4a9cf587e06a46517",
+    "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts": "c2235df1ef0a872af09ca01baaffb34ba68bc7e7f249fc04c7a2e8b3d39d9336",
+    "tests/commands/structured-stress/split-increment/interop.test.ts": "36fd0f134e7de263345e222ab449705c06fd69570c37d261c96045289b73df9f",
+    "tests/commands/structured-stress/final-increment/fresh-interop.test.ts": "8f2fb779603124626130089a706faa55778ef2e22637044b2bafa14bc53fd76e"
+  },
+  "drift": [
+    {
+      "path": "tests/commands/table-text/AUTHOR_HANDOFF.md",
+      "before": null,
+      "after": "d7dd954c96c2c26217e6c18c0f5885d4187305316805c775352e43fd74704d99"
+    },
+    {
+      "path": "tests/commands/table-text/author-verification.json",
+      "before": null,
+      "after": "849bb4b6b901c59123c0f2b568e5f70c26cb8c85e85e539fc61217d6e6231476"
+    }
+  ],
+  "limitation": "These are exact author cohort entrypoints and table fixtures/helpers, not an assertion that current whole-product source matches the historical snapshot."
+}

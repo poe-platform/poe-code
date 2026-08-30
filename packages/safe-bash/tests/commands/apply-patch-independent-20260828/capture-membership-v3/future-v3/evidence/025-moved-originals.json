@@ -1,0 +1,49 @@
+{
+  "id": "moved-originals",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/node_modules/virtual-bash",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/fixtures-moved-originals",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/job-moved-originals.json"
+  ],
+  "started": "2026-08-28T20:02:09.066Z",
+  "finished": "2026-08-28T20:02:09.522Z",
+  "startedElapsedMs": 170873.88675,
+  "finishedElapsedMs": 171329.420584,
+  "pid": 71332,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 149443,
+  "fragments": [
+    {
+      "name": "025-moved-originals-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "af42f1923c176ab6ce647bc62b6e6e3cd49a632f176bf7189f88b69c8c1e4e7b"
+    },
+    {
+      "name": "025-moved-originals-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "6b522757c8082cb619e44b3caf6e197033bc6fb7ac706649bfbb066ae120ae97"
+    },
+    {
+      "name": "025-moved-originals-stdout-131072.json",
+      "bytes": 18371,
+      "sha256": "48e9337850154f9c192e6025d335ac1db3164e8597f5233447fe65431f3734e9"
+    }
+  ],
+  "stdoutSha256": "5d15355d951b204f6dfd39c3bb989a2a484fe8aa6922b621ff740e95fa063122",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

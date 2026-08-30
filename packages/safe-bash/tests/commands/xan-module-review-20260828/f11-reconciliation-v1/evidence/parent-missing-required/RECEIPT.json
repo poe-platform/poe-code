@@ -1,0 +1,26 @@
+{
+  "code": 0,
+  "signal": null,
+  "pid": 75501,
+  "reaped": true,
+  "timeout": false,
+  "overflow": false,
+  "spawnError": null,
+  "logs": [
+    {
+      "deliveredBytes": 447,
+      "fullDeliveredSha256": "d494a266c6077c32cab610e85f072ba1c1411e0dffe10dda8de4159e8a5d0413",
+      "artifactBytes": 447,
+      "artifactSha256": "d494a266c6077c32cab610e85f072ba1c1411e0dffe10dda8de4159e8a5d0413",
+      "truncated": false
+    },
+    {
+      "deliveredBytes": 0,
+      "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifactBytes": 0,
+      "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "truncated": false
+    }
+  ],
+  "ended": "2026-08-28T07:25:34.127Z"
+}

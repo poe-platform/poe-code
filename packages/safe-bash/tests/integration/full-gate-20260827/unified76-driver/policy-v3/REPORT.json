@@ -1,0 +1,134 @@
+{
+  "schema": 3,
+  "capturedAt": "2026-08-28T01:17:13.799Z",
+  "sourceCommit": "a3ee41835b1149d8a4ffbaa45421ec496064da9a",
+  "candidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+  "sourceBindings": {
+    "tests/integration/full-gate-20260827/unified76-driver/policy-v3/STATUS.md": "e427a3c6bd61328893274c2d8947c8e723d6aaf809a6f94d0b28f2a275d2ddd8",
+    "tests/integration/full-gate-20260827/unified76-driver/policy-v3/built-consumer-controls.mjs": "11e789687ac73d872508538041697a0004188998fda190b1898b6f58c770dcc7",
+    "tests/integration/full-gate-20260827/unified76-driver/policy-v3/built-consumers.mjs": "f73845bd4a02f481890adafca0116e0e14984fb2fb16b778b256c3b2e87b7ba5",
+    "tests/integration/full-gate-20260827/unified76-driver/policy-v3/controls.mjs": "69c2eac8303b6f4a5ea344d61944e538448c4b7f583e6bfe56c03dcc17503829",
+    "tests/integration/full-gate-20260827/unified76-driver/policy-v3/external.mjs": "9d4656c4c35c6e7b7cc11d4e8ac85a85336b4f311790e7066e01c8eca769a9a1",
+    "tests/integration/full-gate-20260827/unified76-driver/policy-v3/policy.mjs": "b95a0b95adfb9d7e0ab4e6c9ed7c4e40fb2ec1303af2ed86965e79d224e7ed4b"
+  },
+  "policy": {
+    "pass": 34,
+    "fail": 0,
+    "scope": "pure policy component only; final driver not wired or accepted"
+  },
+  "buildSeam": {
+    "pass": 12,
+    "fail": 0,
+    "scope": "Exact external harness transformation and seam controls only; current consumer runtime groups not executed"
+  },
+  "external": {
+    "directories": {
+      "main": {
+        "entries": 367,
+        "bytes": 48179371,
+        "sha256": "2f7cc0954648d94c2413f933da309bcee4274ef5a30333551080f62f51d4bf2c"
+      },
+      "benchmarks": {
+        "entries": 3889,
+        "bytes": 75292558,
+        "sha256": "126a50714ee3f825d860ba922eb503be32fda20462e82ded91ae1c1d36618013"
+      },
+      "npm": {
+        "entries": 2557,
+        "bytes": 12446245,
+        "sha256": "52031d4ab5f0c6e400c0e7d73e996641811c752c978c3322c9cb8dec4554590f"
+      },
+      "gitCore": {
+        "entries": 197,
+        "bytes": 16319360,
+        "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+      }
+    },
+    "fileIdentities": 61,
+    "nativeAssets": 51,
+    "host": {
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+      "stderr": "",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "unreadableSampledLibraries": [
+      {
+        "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "path": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "path": "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "path": "/usr/lib/libc++.1.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "path": "/usr/lib/libSystem.B.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "path": "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "path": "/usr/lib/libz.1.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "path": "/usr/lib/libiconv.2.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "path": "/usr/lib/libSystem.B.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "path": "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/usr/bin/tar",
+        "path": "/usr/lib/libarchive.2.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      },
+      {
+        "tool": "/usr/bin/tar",
+        "path": "/usr/lib/libSystem.B.dylib",
+        "identity": null,
+        "error": "ENOENT"
+      }
+    ],
+    "bindingComplete": false
+  },
+  "raw": {
+    "entries": 3,
+    "payloadSha256": "f05360ff2146640d797e64126959f7b0eeec7424418926d594f68b42dbc29f09",
+    "encodedSha256": "88095e2f59d575e92bdb20e2c9bae0cd9bdc0e1d5fcbbba8fbd1eef23168f931"
+  },
+  "driverIntegrationComplete": false,
+  "finalDriverReady": false,
+  "fullGateLaunched": false,
+  "independentDriverGroupsExecuted": 0
+}

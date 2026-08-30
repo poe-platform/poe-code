@@ -1,0 +1,14 @@
+{
+  "revision": "e36dab2b6abc216ddc89e5786a0eba76f08a1722",
+  "canonicalFiles": 470,
+  "resolvedCanonicalFiles": 470,
+  "missing": [],
+  "scope": "Resolution evidence, not a claim that every case body accepted. Raw execution failures remain.",
+  "fullRunLoadObservation": {
+    "observedAt": "2026-08-27T05:42:29Z",
+    "oneMinute": 26.07,
+    "fiveMinutes": 9.97,
+    "fifteenMinutes": 7.48,
+    "method": "external /usr/bin/uptime observation during canonical run; no attempt to isolate cohost load"
+  }
+}

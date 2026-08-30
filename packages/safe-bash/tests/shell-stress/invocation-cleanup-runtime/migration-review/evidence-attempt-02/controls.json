@@ -1,0 +1,79 @@
+[
+  {
+    "name": "canonical-expectation-null",
+    "rejected": true,
+    "rejectedRows": 10
+  },
+  {
+    "name": "canonical-expectation-false",
+    "rejected": true,
+    "rejectedRows": 10
+  },
+  {
+    "name": "canonical-expectation-wrong-hash",
+    "rejected": true,
+    "rejectedRows": 10
+  },
+  {
+    "name": "canonical-expectation-omitted-input",
+    "rejected": true,
+    "rejectedRows": 10
+  },
+  {
+    "name": "canonical-expectation-wrong-revision",
+    "rejected": true,
+    "rejectedRows": 10
+  },
+  {
+    "name": "binding-tamper-source",
+    "rejected": true,
+    "path": "src/commands/regex-execution/client.ts",
+    "original": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    "tampered": "2308f82bfee849bbc29961f7c940498d14d0b730e587c652fdc3e86820965d3e"
+  },
+  {
+    "name": "binding-tamper-emitted",
+    "rejected": true,
+    "path": "dist/shell/shell.js",
+    "original": "38dced6b802a8aebf277a197061e83f3dcb9a9d1fed3372ce13a655f0e8ddd3d",
+    "tampered": "fcb81c2e57f5c7f84e2fa7b3bb1818d8517788d4e2d25bfdf2c9aeb80511468b"
+  },
+  {
+    "name": "actual-loader-tamper-emitted",
+    "rejected": true,
+    "message": "Emitted identity: dist/shell/shell.js\n+ actual - expected\n\n+ 'fcb81c2e57f5c7f84e2fa7b3bb1818d8517788d4e2d25bfdf2c9aeb80511468b'\n- '38dced6b802a8aebf277a197061e83f3dcb9a9d1fed3372ce13a655f0e8ddd3d'\n"
+  },
+  {
+    "name": "binding-tamper-probe",
+    "rejected": true,
+    "path": "tests/shell-stress/invocation-cleanup-runtime/public-worker.mjs",
+    "original": "2ca53ee66a4dcc1f85453fa9fd276e76da1d773ef6a51ea866eafeb2ddda3fe4",
+    "tampered": "4974850bbc863bfe3a8755ec793fad6445f33acaefac9c424f7d4014c71c191c"
+  },
+  {
+    "name": "binding-tamper-manifest",
+    "rejected": true,
+    "path": "public-manifest.json",
+    "original": "4cdd034114698e030759ee389fd38a88c7e75732a25cb20cd0240f60176db691",
+    "tampered": "a3c8a5b534e6bbdde0a9edfc8c47fba995c0231fc41d48cc12e0eaba8df5b7a6"
+  },
+  {
+    "name": "actual-loader-tamper-manifest",
+    "rejected": true,
+    "message": "Emitted identity: dist/shell/shell.js\n+ actual - expected\n\n+ '38dced6b802a8aebf277a197061e83f3dcb9a9d1fed3372ce13a655f0e8ddd3d'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n"
+  },
+  {
+    "name": "retirement-mutant-original-binding",
+    "rejected": true
+  },
+  {
+    "name": "retirement-mutant-grep-normal",
+    "rejected": true,
+    "message": "exec-settled: worker 1 has not exited\n\nfalse !== true\n"
+  },
+  {
+    "name": "retirement-mutant-rg-normal",
+    "rejected": true,
+    "message": "exec-settled: worker 1 has not exited\n\nfalse !== true\n"
+  }
+]

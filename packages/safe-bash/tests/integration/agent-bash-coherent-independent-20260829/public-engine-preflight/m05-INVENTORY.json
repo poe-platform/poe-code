@@ -1,0 +1,632 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "07ce705cb90291392716b04f97b0e99521329238",
+    "bytes": 7626,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/PREPARATION-STATUS.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5067c78b48ea4f00f0c88ef264e969895d1eb1af",
+    "bytes": 1650,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/inspect.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fcc4131b3c1ea1dcdee04176f2b87a0811e96974",
+    "bytes": 908,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/prep-capture/inspection-v2.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bccbc2fdfcace989cad049d5054053888e03e580",
+    "bytes": 51363,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/prep-capture/inspection-v2.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2a679632b4aab97933932978b7ca8d2777cfc12c",
+    "bytes": 57,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/prep-capture/inspection.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/prep-capture/inspection.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "53d7449df3fcb311185c83ed64a9696c9d393f0a",
+    "bytes": 323,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/prep.sh"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "270c3c8e4734d983d339df24b9ba3b0310b330e6",
+    "bytes": 1390,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "67ad3ae995cb65e6b41c7d3203a3d100777bdae6",
+    "bytes": 4651,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/EXECUTABLE-PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fe29159edab2deff759f5e7f2ee742dc8d3408fc",
+    "bytes": 1052,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/INHERITED-TOOL-BINDINGS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2c38c00a61576f6abd00dbd23ade7885267f94d5",
+    "bytes": 4160,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3fbc94a31152fd3d5db3a712f33270244306df82",
+    "bytes": 2274,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/RECEIPTS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "940ad2c1b32e2f39d00216e65340f6d00c5c19ef",
+    "bytes": 6145,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/RETAINED-FIXTURES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "fbf770225fcc1804a58fc2c5b92e61897007ee69",
+    "bytes": 9444,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SHIPPING-PATHS.nul"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "de38007c947582fa48399aa1ce47d416d4336ed6",
+    "bytes": 2009,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-AUTHORITIES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8be0e96403c48ad120b386c62f1b2ca28e272681",
+    "bytes": 40195,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-TREE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2ff4277a22de3991816aab7739266fd31b8fcefd",
+    "bytes": 137864,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "df53d8ec2a2bcaf7df3547efc3166a9f2b1b5b39",
+    "bytes": 371,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS-PREP.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bfd8345d39f13902d3f9459e3de5f83fd0b23793",
+    "bytes": 558790,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0ad7e7cd9b455f7c9137fdc5fa982afef957b1de",
+    "bytes": 163171,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/TREE-WITNESSES.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a685b087d572704c7b1a72844c0245f4ad73bbb7",
+    "bytes": 1629,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/admission.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1f6edcd55f779de5df942916cfaec6105c5ca37d",
+    "bytes": 365,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "93b34235621d5d7f739b467cd2342f10ac9a594f",
+    "bytes": 599573,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-2.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "62cea92b0fbfc73a249e183818249402e6e3657f",
+    "bytes": 15828,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-2.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-3.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "afe11e0f861360a4697fdd7ca85baa410f978be1",
+    "bytes": 2851826,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose-git-3.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3588613ed85b6e37d11295a9e9daba52290fba65",
+    "bytes": 732,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose.events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "56d27dec05aba116a713239a3aa87d6e4da745b4",
+    "bytes": 25494,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/compose.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "769e6ded52fe62918eecefcd571766607ab926d2",
+    "bytes": 29,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/data-controls/compressed.data"
+  },
+  {
+    "mode": "120000",
+    "kind": "blob",
+    "oid": "a51196f4bdeef5b721d05d47c35a1a9b3ab7ec21",
+    "bytes": 10,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/data-controls/link.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2a2d8fc3746db57efd7f6a67f9281d8b7ae370cb",
+    "bytes": 11,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/data-controls/plain.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details-git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6413f71f70f3cbee469c5274d008773277d50a13",
+    "bytes": 153,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details-git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details-git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d908fe218682ca4d9f68a9d8b1f0fb27f6998253",
+    "bytes": 21858,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details-git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c2071f8f449e5b981118d8387d3450a26eb81504",
+    "bytes": 464,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details.events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "597ca177deaf39216d4dd669d034397fae5fc76d",
+    "bytes": 21797,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/details.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "79061bc69f2993879b29957779864af592e02c66",
+    "bytes": 416,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b9d4412ee8027e4da19db9ebdd9c2020fdc5111a",
+    "bytes": 589008,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-2.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-2.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-3.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect-git-3.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d5fd98813f71330019b98b3884ef051704079094",
+    "bytes": 733,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect.events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e6196ce7a7aa5cd443ed7efd97ca5d7d43c94e55",
+    "bytes": 29939,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/inspect.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal-git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "2dd63f464982565b1857a036bc2a5cfbc1773339",
+    "bytes": 716,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal-git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal-git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d0f28cb4061dbd4ab411bd0db2409e0c1655c8bf",
+    "bytes": 93215,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal-git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "de9a275648ec76f74bf82c60410b81319c90d186",
+    "bytes": 790,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal.events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "30cd47cd50a3aa058e8ddb902ed961eb1fc8de1a",
+    "bytes": 914,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/seal.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/syntax-admission.mjs.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/syntax-admission.mjs.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/syntax-workflow-entry.mjs.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/syntax-workflow-entry.mjs.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/syntax-workflows.mjs.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/capture/syntax-workflows.mjs.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c090d5273e769133e1589e17b5b8f4edfd2b8386",
+    "bytes": 870,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/consumer.ts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "de8a7169f3fc4e2ab2171ba0d07cc7f1f482d94e",
+    "bytes": 805,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/negative.ts.fixture"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a9acc714d11718c76206c485c01e3edd5a8dcf9b",
+    "bytes": 24171,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3c02f9d6bf2aac9d5667bd67d772d0069e756e36",
+    "bytes": 388,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/prepare.sh"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5cff17018acdae935621320a00bc22f9f35fcffc",
+    "bytes": 3593,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3e5f284b97520fc6b12243ce5df37fa32d7b9508",
+    "bytes": 15458,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6fd79b4a8d3c528835798363ed58885bfc376ec1",
+    "bytes": 529,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/EXPECTATION-DELTA.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "be52c073d7b457fb2f3e0c1d7c63ce6fc8c8ecb1",
+    "bytes": 9900,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/HANDOFF.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4d26d4af733529095002b269e6251ec5402eac0c",
+    "bytes": 1348,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/PRIOR-BINDINGS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "68ccdd83cea166edab10cbafdcb559c4d38c2673",
+    "bytes": 3020,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/STOP.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "b0101ec42270a93db85c6629d7c9c9807f2f067f",
+    "bytes": 16026,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/WORKFLOW.patch"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect-git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a9c98f28406aa17e4803f50180c0b7e875c07319",
+    "bytes": 260,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect-git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect-git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a5043dac8356f4c9810f0863a062fa077f21a4a0",
+    "bytes": 718418,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect-git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6beea06b0e4d6d64acff0e345a134ed99e4dc7fc",
+    "bytes": 369,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect.events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3d3f61f3a6561dfeaaa283d277d6973edffa672d",
+    "bytes": 12406,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/inspect.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "384100ab73625b547462591a46152ab7e6236bce",
+    "bytes": 729,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/seal.events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/seal.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/capture/seal.stdout"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "737406a55a8937194e022c810739c048f1067706",
+    "bytes": 11025,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/finish.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "68a6df67a74a6bccdac0770335dbe4ebde1aa93e",
+    "bytes": 370,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/finish.sh"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "28ff2fb1752975479ba283fe4cc1e4aeda4cf192",
+    "bytes": 15764,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/workflows.mjs"
+  }
+]

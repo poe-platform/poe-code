@@ -1,0 +1,51 @@
+{
+  "bash": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "bashHash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "tools": [
+    {
+      "path": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "path": "/bin/sleep",
+      "realpath": "/bin/sleep",
+      "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+    },
+    {
+      "path": "/bin/ps",
+      "realpath": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    {
+      "path": "/usr/bin/uname",
+      "realpath": "/usr/bin/uname",
+      "sha256": "9abecf7a88117e093ff6c34ce07bacf7dc1277af1193b1cb0a0bf8fa4b2d4696"
+    },
+    {
+      "path": "/usr/bin/sw_vers",
+      "realpath": "/usr/bin/sw_vers",
+      "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+    },
+    {
+      "path": "/usr/bin/locale",
+      "realpath": "/usr/bin/locale",
+      "sha256": "6e4001dd2997062ad2a4d992b381b15d0cda78200679a04ccd52c80e26794487"
+    }
+  ],
+  "versions": {
+    "bash": "5.3.0(1)-release",
+    "printf": "GNU Bash 5.3 builtin",
+    "consumer": "GNU Bash function using :/printf builtins",
+    "sleep": "Darwin system /bin/sleep; no independent version CLI asserted; binary hash + captured macOS version pin it",
+    "localeAndPs": "Darwin system tools; binary hashes + captured OS profile, not GNU coreutils"
+  },
+  "nativeProfile": "GNU Bash 5.3 on Darwin arm64, NOT GNU/Linux or Apple Bash 3.2. No head binary used."
+}

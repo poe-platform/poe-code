@@ -1,0 +1,2 @@
+{"phase":"child-closed","id":"source-blobs","pid":44910,"exit":{"code":0,"signal":null},"close":{"code":0,"signal":null},"retired":true,"bytes":{"stdout":2792669,"stderr":0}}
+{"phase":"child-closed","id":"strict-build","pid":44913,"exit":{"code":2,"signal":null},"close":{"code":2,"signal":null},"retired":true,"bytes":{"stdout":165,"stderr":0}}

@@ -1,0 +1,67 @@
+[
+  {
+    "name": "mutant-provenance",
+    "obligation": "H01",
+    "from": "return Object.freeze({ origin, [reportState]: state });",
+    "to": "return Object.freeze({ origin: Object.freeze({ ...origin, signal: origin.frame.deliverySignal }), [reportState]: state });",
+    "family": "prior-three",
+    "sourceSha256": "7b2b071984b979531dac2795eacf6286b281b9d989d8d1a36b5bfbee29b95a9a",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "baselinePassing": true,
+    "behavioralFailure": true,
+    "killed": true
+  },
+  {
+    "name": "mutant-capacity",
+    "obligation": "H08",
+    "from": "if (count > state.resourceLimit - state.resourcesUsed) throw new CancellationCapacityError();",
+    "to": "if (false && count > state.resourceLimit - state.resourcesUsed) throw new CancellationCapacityError();",
+    "family": "prior-three",
+    "sourceSha256": "7ed95553151d03c17f4ad47bd3715c0109cc5a60d2e9a8e97085840764e39dae",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "baselinePassing": true,
+    "behavioralFailure": true,
+    "killed": true
+  },
+  {
+    "name": "mutant-listener-cleanup",
+    "obligation": "H10",
+    "from": "for (const detacher of state.signalDetachers) state.failures.push(...removeSignalListener(detacher));",
+    "to": "for (const detacher of state.signalDetachers) void detacher;",
+    "family": "prior-three",
+    "sourceSha256": "08c864760af4cbe2c1f04e93ebd0e7d6d2770b0bee710daaa86fb52d120f415d",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "baselinePassing": true,
+    "behavioralFailure": true,
+    "killed": true
+  },
+  {
+    "name": "repair-counterfactual-fanout",
+    "obligation": "H04b",
+    "family": "repair-two",
+    "from": "if (state.closed) break;\n      if (!subscriber.active) continue;",
+    "to": "if (!subscriber.active || state.closed) break;",
+    "sourceSha256": "97922d66d567fd04b06a8c24aa609ac5c78aaa251de845837e298b74b842e009",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "baselinePassing": true,
+    "behavioralFailure": true,
+    "killed": true
+  },
+  {
+    "name": "repair-counterfactual-observation",
+    "obligation": "H07b",
+    "family": "repair-two",
+    "from": "    const deliveredControl = frame.delivered?.role === \"budget-control\" || frame.delivered?.role === \"pipeline-control\"\n      ? frame.delivered\n      : undefined;\n    if (deliveredControl && signalAborted(deliveredControl.signal)) origins.push(deliveredControl);\n    for (const control of frame.controls) {\n      if (signalAborted(control.signal) && control !== deliveredControl) origins.push(control);\n    }",
+    "to": "    for (const control of frame.controls) if (signalAborted(control.signal)) origins.push(control);",
+    "sourceSha256": "064f438845742d06b3477f7cd1189a3364037b4e64d97f0b21562bec53d6bc35",
+    "buildStatus": 0,
+    "runtimeStatus": 1,
+    "baselinePassing": true,
+    "behavioralFailure": true,
+    "killed": true
+  }
+]

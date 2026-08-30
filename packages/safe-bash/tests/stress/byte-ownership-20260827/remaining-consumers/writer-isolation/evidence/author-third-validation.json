@@ -1,0 +1,73 @@
+{
+  "baseCommit": "954406871fae381b1c69441b34946a224201d7ad",
+  "profile": "Selected-path clean Git archive with exact owned uncommitted source overlay, existing dependency symlink",
+  "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/byte-writer-fix-author-candidate-gYIQfy",
+  "sourceHashes": {
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts": "f073a596d3dba0cef2126d3eda3ae116651f87a6c95d709ea1e0dcacb08bb621",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.mjs": "126dcd9852fe61ae717ab707be74a0b8715e0c675988d11c5a534953767d9c01",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts": "666b5e2afc6e49a4897ae0fb6b27d235fe5321b1f3f081b8d69a1c79df2aebf3"
+  },
+  "tests": {
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=tap",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "TAP version 13\n# Subtest: direct-registered-curl-buffer-307-replay\nok 1 - direct-registered-curl-buffer-307-replay\n  ---\n  duration_ms: 2.968\n  type: 'test'\n  ...\n# Subtest: direct-registered-curl-native-uint8array-307-replay\nok 2 - direct-registered-curl-native-uint8array-307-replay\n  ---\n  duration_ms: 1.440334\n  type: 'test'\n  ...\n# Subtest: default parallel canonical runs preserve sealed artifacts without capture\nok 3 - default parallel canonical runs preserve sealed artifacts without capture\n  ---\n  duration_ms: 444.384583\n  type: 'test'\n  ...\n# Subtest: explicit capture preserves success separately\nok 4 - explicit capture preserves success separately\n  ---\n  duration_ms: 466.972083\n  type: 'test'\n  ...\n# Subtest: explicit capture preserves byte assertion failure separately\nok 5 - explicit capture preserves byte assertion failure separately\n  ---\n  duration_ms: 472.23475\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1543.402625\n",
+    "stderr": ""
+  },
+  "types": {
+    "args": [
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--target",
+      "ES2023",
+      "--lib",
+      "ES2023",
+      "--types",
+      "node",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--strict",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts",
+      "tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation/capture.test.ts"
+    ],
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  "before": {
+    "after.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "before.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "direct-registered-curl-buffer-307-replay.json": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+    "direct-registered-curl-native-uint8array-307-replay.json": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+    "raw.tap": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+    "run.json": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "after": {
+    "after.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "before.json": "19ebebfb998becf696133b890c01b9151979711bd39bbc238b20ef387676cbd9",
+    "direct-registered-curl-buffer-307-replay.json": "de63affa918da53853a7f8bc9ad1d863802c46c524e74af6b48359826139bc17",
+    "direct-registered-curl-native-uint8array-307-replay.json": "dc2022fdd8b4df2a68e10212aab2746081ac0f467a551d364faca5022a55b1a6",
+    "raw.tap": "48349b310c128d03280d4aea9a7e3af4e6df0eb71c83eb88c4af48371ac34c43",
+    "run.json": "b05de45bc0e165a2f126b5500b5beabd54475f017e93ff6303caff79db6e2a79",
+    "stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "exactOwnedTempRemoved": true
+}

@@ -1,0 +1,177 @@
+{
+  "startedAt": "2026-08-27T18:52:13.153Z",
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "stages": [
+    {
+      "label": "candidate-diagnostics",
+      "commit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+      "sourceTests": 28167,
+      "sourceTestsDigest": "5c4a65fc6f22f5068223be1bf039040688b395cbf7f1e18a8febda7c343c412b",
+      "installedFiles": 790,
+      "installedDigest": "cc3d0df2f3a8a42d74cdda21a2ece6f2f7817cfe2326bee9a186344709e23f72",
+      "archiveSha256": "cf7e22e7604e7ab6e723d1a0739733d4b0cb8a646b0a8207a82649fb9127ab53",
+      "packageSha256": "990c2ae19c32b15edcc126ed6af3e814ba2d6290fea707fd27acd94163066082",
+      "sourceAndTestAddedEntriesChecked": true,
+      "installedAddedEntriesChecked": true
+    },
+    {
+      "label": "baseline-8f19a9d5",
+      "commit": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+      "sourceTests": 25690,
+      "sourceTestsDigest": "0252ac87741dfe7b52f186d2518d873bedb7a6d053e8ac6544042f4bafd107b8",
+      "installedFiles": 758,
+      "installedDigest": "4026e40d1a7e9faa532020171efe1526e7e9e443f3c4fce53cb97bb75422853f",
+      "archiveSha256": "832dfd8a94c7a459b712d5902d1c6458a09b087c5d8523f6f6ca0a67c006bf65",
+      "packageSha256": "fdebf13b99fd87850391d2fd57f822f9906b9820b0d5244301918b98973dbe66",
+      "sourceAndTestAddedEntriesChecked": true,
+      "installedAddedEntriesChecked": true
+    }
+  ],
+  "protected": [
+    {
+      "commit": "35aa8054ac0ebc1eacefc7cde63e4706f4c72137",
+      "base": "tests/commands/expr-stress/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/frozen/README.md",
+          "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/controls.json",
+          "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/manifest.json",
+          "sha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/oracle.json",
+          "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/validation-20260827.json",
+          "sha256": "5ae67ba3a82246567d9dae5124421b0f10eae385df153c3c7a9406c11f1b6fd0"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/inputs.json",
+          "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/primary-sources.json",
+          "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/runner.mjs.data",
+          "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+        }
+      ],
+      "appendedEntriesChecked": true
+    },
+    {
+      "commit": "92fe8a6335366b93cbc9a80d61fede69af711444",
+      "base": "tests/commands/expr-stress/extension-review/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/ADDENDUM.md",
+          "sha256": "8125965baffbfb4fc23746cf0b81515b73f4cbf7b0f2a3297008cb6fe77f2e6b"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/README.md",
+          "sha256": "6f29774d0dfaa6c75dfcc7154a8eb6db4b9a208e4b6540b6b7469e37cd7b7711"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+          "sha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-input.json",
+          "sha256": "5274c5c39857f0ff3e601aa35fee93ae7108309f3f2063598414adf7e063e8d5"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-native.mjs.data",
+          "sha256": "472b7dcd18b1d7eaa8c480751a910db44112d4267eaf848f85d4c8fb29ff61f3"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/manifest.json",
+          "sha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/oracle.json",
+          "sha256": "43f2f8c37004c91022c387ac88afd7ce15334ddabd30a1996c1606f89ff9dd08"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/quoted-parenthesis-20260827/oracle.json",
+          "sha256": "4366b45060a74a59b4c3772227062ee4ae4efec8ce9953a814463bb468386e4e"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/validation-20260827.json",
+          "sha256": "7997dc52a5a7326c021a5c979f80be98a62f86badf83fe5687af5852050b05dd"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/freeze-manifest.json",
+          "sha256": "8debc13022bebfd427c1862e75b7dcabe4eb17600bfb09c0b417c9d38f73c5f2"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/inputs.json",
+          "sha256": "4a02ebb53184ed13aa7627b322c7f87ea00389601f6acc5bc81feb234d520108"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+          "sha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/primary-sources.json",
+          "sha256": "6aa5dce418af4c1887e2c8d648cfa541b6765dbcffc6630d13172b392da83103"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/provenance.json",
+          "sha256": "79af9a119dcc71054d09a4a1ff17bce563633899d31ef1bd0b9153eae9148b87"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/runner.mjs.data",
+          "sha256": "ac40665793ea0230274b6f4523430b6d3c45f3f614700808289f20bf23493a11"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/verify-seal.mjs.data",
+          "sha256": "87703aaaa07e99cd6c3248dd6ba5dda948894d87e17de4e54fd5b02e96d24de9"
+        }
+      ],
+      "appendedEntriesChecked": true
+    }
+  ],
+  "cleanup": [],
+  "limits": "Complete source/test and installed inventories check added entries; not an append-proof entire extracted archive or live repository claim.",
+  "preparationEntireTreeUnchangedIncludingAddedEntries": true,
+  "boundHelpersAndIndependentFreezeUnchanged": true,
+  "fixedPreviousEntireTree": {
+    "commit": "50b1e560b11adfcd1d1726896832c3c524e28c4d",
+    "count": 79,
+    "digest": "969c17f33209133584e4d5667ee57bc3d1182901fb08b49fdc1cf06089a5518f",
+    "addedEntriesChecked": true
+  },
+  "developmentDependencyTreesUnchangedIncludingAddedEntries": true,
+  "qualifiedNativePrerequisitesUnchanged": true,
+  "authorSourceInventoryMatched": {
+    "count": 237,
+    "sha256": "d219506fb17ebe1d988b692c9ede0fd6d77c14289ce2fa71acdd530b6b701f55",
+    "sourceTreeGitId": "ae6ea79a296702decfb891aea1cd141b7af17bc5"
+  },
+  "sharedLegacyOriginalHashesMatched": 11,
+  "preSafetyQuiescence": {
+    "measuredAt": "2026-08-27T18:52:36.685Z",
+    "ownedRelatedProcesses": [],
+    "harnessAncestorsExcluded": [
+      85212,
+      63439,
+      63426,
+      79787,
+      79786,
+      35180,
+      35179,
+      935,
+      748,
+      1
+    ],
+    "method": "All launched commands settled; all outer watchdog termination awaited; exact owned-path process snapshot. Not a global process census or proof about uninstrumented host internals."
+  }
+}

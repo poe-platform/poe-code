@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "date": "2026-08-27",
+  "reviewerIdentity": "Codex Independent Leaf Verifier",
+  "reviewerThread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "role": "Different independent verifier; not zero-cap-overlay-author",
+  "attestation": "I independently authenticated the frozen Git inputs, reconstructed and publicly compiled the exact zero-only candidate, and inspected fixture semantics. The report distinguishes static qualification from the unresolved surface first-nonpass scope. No actual runtime replay or private checkout query occurred. SHA-256 binds these bytes; this is not a cryptographic personal-identity claim.",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "priorIndependentPrep": "ee8bc35906e363566a22e26b8286e5bcac7f1d2f",
+  "verdict": "WITHHOLD_REPLAY_OF_EXACT_FREEZE",
+  "files": [
+    {
+      "path": "ADMISSION.json",
+      "bytes": 2509,
+      "sha256": "e5e29d5fe5f1d54def3f1b74e14849816a6f955bc936aae1703884f94cd90a46"
+    },
+    {
+      "path": "AUTHENTICATION.json",
+      "bytes": 16254,
+      "sha256": "3e7870c6915ad5d7f555c169ac7d372e6715551263bbe96ed04f51b1aae10a37"
+    },
+    {
+      "path": "BUILD.json",
+      "bytes": 2893,
+      "sha256": "c33f5537c80f2a2b185d921338c0e60e8436904e2124aff808fd98232306ac26"
+    },
+    {
+      "path": "CLOSURE.json",
+      "bytes": 756,
+      "sha256": "3010bb28cea922e6952aa06552a903a9d6d39364f846c5fe32e42ebe991e394b"
+    },
+    {
+      "path": "FIXTURE-CHECKS.json",
+      "bytes": 28968,
+      "sha256": "81de6a234b0b4019e3641987b1e97baab96656249103c1e357b2af5e4c85900a"
+    },
+    {
+      "path": "PARSER-CHECKS.json",
+      "bytes": 2005,
+      "sha256": "9ed6c92ebbfedfc37f229b6c866e6e46c0e2bc16d672a4707fef69ee8167780e"
+    },
+    {
+      "path": "REPLAY-PRECONDITIONS.md",
+      "bytes": 4566,
+      "sha256": "1a8945d30d737762cd6cf4ae498a6b83ddf6b20680684dfe94ae2b5b69763596"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 12498,
+      "sha256": "b239a85ea4b49c92a0632e0a82c035b73ec7e98befdf698b55f8cf0250734919"
+    },
+    {
+      "path": "STATIC-CHECK-ATTEMPTS.json",
+      "bytes": 1825,
+      "sha256": "d8f7069facfd4d599388c835a5e2a6db6193e808e7b9a162c341952a79f0de58"
+    },
+    {
+      "path": "build/emit.inputs.json",
+      "bytes": 57152,
+      "sha256": "89c28c0305b12c973c27da1686de9f1852b8596ad2056e50f3fb9413eb4d322d"
+    },
+    {
+      "path": "build/emit.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build/emit.stdout.txt",
+      "bytes": 36857,
+      "sha256": "c85c3311a67615056ed84a1ae4fda425eeb592cf68ca15e2bd7dd9597604ce6a"
+    },
+    {
+      "path": "build/noemit.inputs.json",
+      "bytes": 59679,
+      "sha256": "4c69817f161d04f46deb74f86adadbb34343eec14822d44be66a7b40b72586be"
+    },
+    {
+      "path": "build/noemit.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build/noemit.stdout.txt",
+      "bytes": 38495,
+      "sha256": "cd78eb38702fd5e92f1ba15f9536ad42000a62af12e98c381cc8c36285c89be5"
+    },
+    {
+      "path": "candidate-inventory.json",
+      "bytes": 147820,
+      "sha256": "efd4e8bf77553b1b54179808a8befe182c0816e3563b187737a00e7c37461762"
+    },
+    {
+      "path": "inspect-fixtures.py",
+      "bytes": 11497,
+      "sha256": "b29b095d26e59d9245adb04e2d086d5538a50fc2f5322a59c14773683fbaed58"
+    },
+    {
+      "path": "package-inventory.json",
+      "bytes": 112065,
+      "sha256": "073683729e0005ba6752d42dd70e94d0192fea212ca402af84232252c82dbbf4"
+    },
+    {
+      "path": "reconstruct.py",
+      "bytes": 14863,
+      "sha256": "53731fb9fd7f7415913533e41f3f3309f5dafdec58c433024a624c4d656b02a4"
+    },
+    {
+      "path": "shared-after.json",
+      "bytes": 443083,
+      "sha256": "de1fb301eb6d7cf8c6afc8ef3c3ece03490b2df47ecf5b5e163ad743051b51e9"
+    },
+    {
+      "path": "shared-before.json",
+      "bytes": 443083,
+      "sha256": "de1fb301eb6d7cf8c6afc8ef3c3ece03490b2df47ecf5b5e163ad743051b51e9"
+    }
+  ],
+  "manifestSha256": "0bd3c3d23aa0d8cb71159d28cf06e226a257dcd6791f4a72921b3b13ba344e3d",
+  "manifestEncoding": "UTF-8 JSON array with listed object property order, separators comma/colon, no whitespace or final LF; path sorted; SIGNATURE.json excluded to avoid self-reference",
+  "newRuntimePasses": 0,
+  "noPromotion": true
+}

@@ -1,0 +1,11 @@
+Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/NOVEL.json'
+    at Object.lstatSync (node:fs:1722:25)
+    at read (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/owner.mjs:15:39)
+    at main (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/owner.mjs:42:133)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/owner.mjs:50:5 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'lstat',
+  path: '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/NOVEL.json'
+}

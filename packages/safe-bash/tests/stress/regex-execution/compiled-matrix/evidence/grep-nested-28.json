@@ -1,0 +1,10 @@
+{
+  "id": "grep-nested-28",
+  "tool": "grep",
+  "kind": "nested",
+  "outcome": "skipped",
+  "reason": "family-execution-watchdog",
+  "pid": null,
+  "activechildren": 0,
+  "executionStable": true
+}

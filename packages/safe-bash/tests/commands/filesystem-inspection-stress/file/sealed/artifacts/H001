@@ -1,0 +1,104 @@
+# Independent file holdout: root-only resume protocol
+
+Do not share this directory, case names, fixtures, native observations or runner
+with the author until root's legitimate-failure handoff. The published repository
+manifest contains only opaque artifact hashes and counts. Mode 0700 is accidental
+disclosure protection, NOT isolation against another agent under this same account.
+
+## PREP boundary
+
+There are 40 scenarios: 20 byte fixtures (four output views each) and 20 filesystem,
+ByteIO and actual-Shell scenarios. Native capture has 109 observations, of which 80
+are the content views. These are NOT 109 product tests/passes. Product runs: zero.
+Twenty fixture files total 1394 bytes. Native only sees generated temporary files,
+their directory/links/mode-000 fixture, and explicit supplied stdin. No native file
+invocation sees repo files or private files. Native input is bounded to 65536 bytes;
+each subprocess has a 3-second watchdog and 65536-byte output cap. No decompression
+flags, native mock product, downloaded binaries, installed packages or custom magic.
+
+Primary references were captured at the FILE5_41 upstream tag before any candidate
+inspection/invocation. Full bytes and hashes are retained. Native is Apple/Darwin
+file-5.41 with an explicitly selected magic database; it is not a GNU/Linux oracle
+or proof that Apple's binary is byte-identical to upstream FILE5_41. The capture
+timestamp proves when this verifier captured evidence, NOT an unobserved author's
+start time. Root must establish any cross-agent before-implementation chronology.
+
+No author files, author tests, root exports, package metadata, defaults or existing
+dispatch code were inspected. Only user instructions, prior discovery checkpoint,
+contracts, and the readFile/readStream bodies in current Memory/Real FS were used.
+No candidate module is imported by any PREP file. All imports are builtins or the
+private harness's own modules. Source and package audits wait for candidate freeze.
+
+## Freeze and mechanical bridge
+
+1. Verify the repository PRESEAL manifest and private seal catalog before executing.
+   Keep a fresh run directory under this owned /tmp directory or owned test scope;
+   never rewrite any sealed input. Capture finished candidate commit, dirty status,
+   exact source/public-consumer hashes, version, Node profile and API evidence.
+2. Require an explicit author-finished handoff. Only then inspect the legitimate
+   final public factory/plugin API and build/public-consumer registration path.
+   Proposed fileCommands/createFileCommands/createFileCommand names are not evidence.
+3. Add a NEW root-authorized bridge outside the sealed corpus. Import the finished
+   candidate and actual Shell there, never in the corpus. Binding may adapt names
+   and configuration ONLY; do not change fixtures, oracle values or assertions.
+4. Call exported `runHoldouts(adapter)` from `run-holdouts.mjs`. It never loads a
+   candidate itself. The adapter is a TEST HARNESS interface, not a product API:
+   - `candidate: { finished: true, sourceSha256: <64 hex>, ...provenance }`
+   - `execute(context)`: the actual candidate CommandDefinition.execute with its
+     actual documented options; no replacement classifier, error normalization,
+     stdin rewriting, fallback to native or output rewriting.
+   - `fsError(code, options)`: instantiate the actual public FsError.
+   - `prefixBytes`: effective finite documented prefix bound for this exact
+     factory configuration. Allowed fixture construction range is 128..1048576;
+     other bounds are a harness limitation, not an invented product API failure.
+   - `shellUsesActualShell: true` and `shell({ fs, script, commands, stdin?, signal? })`:
+     construct/use actual Shell with explicit real file plugin, supplied VFS and
+     input; register ONLY the additional independent byte-producer command, then
+     execute the given script and return unmodified text stdout/stderr/exitCode.
+     Dispose responsibly. No fake file command, shadowing, duplicate families or
+     registry callback masquerading as a Shell. Binary source data is never decoded.
+   - Optional `unsupportedFormats`: root-predeclared case IDs based on finished
+     candidate's documented support BEFORE opening the hidden fixture corpus. Such
+     rows remain unsupported, not passed. Preserve observed output and native lane.
+5. Run `node --test selfcheck.mjs` separately: it verifies HARNESS ONLY. PREP ran this
+   without a candidate. Do not report its nine helper checks as product coverage.
+
+## Reporting and failure routing
+
+Each content row preserves all four raw candidate results. Native-exact lane tests
+MIME/encoding bytes/status/stderr; human prose is semantic-only, with original native
+human text retained as reference. Frozen alias sets do not erase exact-native
+conflicts. Partial Unicode, PDF charset, empty/gzip aliases, truncated PNG and
+JPEG's malformed length are explicit profiles, not demands for full libmagic parity.
+
+Workflow native lanes stay not-run unless actually compared: never fabricate a
+profile conflict or a pass for an unperformed comparison. F30/F31 can demonstrate
+safe backend refusal but remain backend-limitation, NOT successful classification.
+Status aggregation must preserve `fail`, `unsupported`, `native-profile-conflict`,
+`backend-limitation`, `oracle-unavailable`, `harness-defect` and `not-run` as distinct
+from `pass`. Safety success and native-exact parity use separate denominators.
+
+Native path-error status/presentation is profile-sensitive: default native file may
+print diagnostics on stdout and exit zero. Preserve recorded statuses and diagnostic
+meaning; do not require literal errno codes in virtual stderr or downgrade unknown
+failures to successful empty files. Native denied-path result depends on actual host
+credentials; retained observation is not an invented universal permission oracle.
+
+No memory/RSS benchmark or claim of zero upstream allocation: an oversized supplied
+chunk already exists. Bounded prefix tests constrain consumed/retained useful bytes
+and further next calls, not opaque provider prefetch. Unknown stat size is modeled
+as ENOTSUP, not an invalid FileStat. readFile maxBytes is a whole-file guard, not a
+prefix protocol. Cancellation doesn't stop arbitrary uncooperative host promises.
+Namespace races do not impose snapshots, transactions, leases or rollback.
+
+Review assertions against the frozen user/contracts before routing failures. A
+genuine harness defect requires an additive correction record with original failure,
+fixture, oracle and hashes retained; never rewrite the oracle because candidate
+fails. Scope unsupported formats/options honestly without claiming they passed.
+Only root reveals minimal legitimate reproductions to the author after frozen run.
+
+Before release acceptance, separately audit product runtime dependencies, subprocess
+use, implicit host access/libmagic, decompression and public exports/registration.
+PREP cannot establish these from zero product runs; the canary covers one path only.
+No backend deployment, universal parity, just-bash superiority or task completion
+claim follows from this scoped holdout.

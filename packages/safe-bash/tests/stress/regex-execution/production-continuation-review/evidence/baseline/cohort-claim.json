@@ -1,0 +1,15 @@
+{
+  "time": "2026-08-27T07:01:52.288Z",
+  "name": "baseline",
+  "job": "cohort",
+  "label": "cohort",
+  "sourceHead": "329eb2722052e8ace0ec18a751f12c30ed87a25b",
+  "sourceManifestSha256": "ded2ab6a8e44b860463b8015a405d93e570da6edbd13118099926ca97076beb8",
+  "childSha256": "762fcbc83195484fd0205f3f4820dae8b8b3f90f2b1653a1728ad9b7f4e81ab5",
+  "heapMb": 128,
+  "watchdogMs": 20000,
+  "outputCap": 65536,
+  "ipcCap": 1048576,
+  "strictUnhandled": true,
+  "riskConsumed": 0
+}

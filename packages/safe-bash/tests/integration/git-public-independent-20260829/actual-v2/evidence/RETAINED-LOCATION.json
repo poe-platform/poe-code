@@ -1,0 +1,37 @@
+{
+  "status": "OWNED_SCRATCH_RETAINED_OUTSIDE_CANONICAL_DISCOVERY",
+  "oldWork": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP",
+  "newWork": "/tmp/safe-bash-public80-v2-retained-rhX5TH/work-x0BAYP",
+  "rootIdentity": {
+    "device": 16777232,
+    "inode": 184034631,
+    "unchanged": true
+  },
+  "markerHashes": [
+    {
+      "path": "source/src/shell/shell.ts",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "source/src/commands/git/index.ts",
+      "bytes": 2545,
+      "sha256": "3c3c3621e5b95fc7b9d53aa7f80d4c4d81bb93372c7a14f9e1000f38b10672bd"
+    },
+    {
+      "path": "moved package/node_modules/virtual-bash/package.json",
+      "bytes": 5257,
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 1432408,
+      "sha256": "a89a4eb1a69a081a90f13391a748452ab63c97e7c7bdc62ee39e68fc2ea6a9b4"
+    }
+  ],
+  "contentsCopied": false,
+  "contentsDeleted": false,
+  "originalEmptyScratchParentRemoved": true,
+  "reason": "Preserve all raw/source/package/tool artifacts without loose generated TypeScript in repository test discovery.",
+  "qualification": "Complete source/package equality was measured before atomic relocation. Directory identity and four markers checked after relocation; not another full product or post-move whole-tree run. Historical paths in raw captures remain unchanged and resolve via this mapping."
+}

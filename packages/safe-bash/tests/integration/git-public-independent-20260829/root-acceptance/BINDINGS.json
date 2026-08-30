@@ -1,0 +1,101 @@
+{
+  "role": "SOURCE_DATA_ROOT_QUALIFIED_ACCEPTANCE_TRANSCRIPTION_NO_NEW_EXECUTION",
+  "rootAuthority": "Latest user ROOT QUALIFIED ACCEPTANCE public80 exact c83f/full950; conditional scope and original failures retained",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "package": {
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "members": 950
+  },
+  "evidenceCommits": [
+    "5fabc790c6b150622460ed377d8f85d87cb246c5",
+    "caf6ba94287842fe8a63ae3226a1a9349406d46d"
+  ],
+  "fixtureV2": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+  "i03FixturePreseal": "e7ce4ddfe467f2d869a92d09bd79dfc4ccb01357",
+  "layouts": [
+    {
+      "layout": "source",
+      "retainedPassed": 336,
+      "firstCohortNovelPassed": 11,
+      "firstCohortNovelFailed": 1,
+      "versionedI03Passed": 1
+    },
+    {
+      "layout": "installed",
+      "retainedPassed": 336,
+      "firstCohortNovelPassed": 11,
+      "firstCohortNovelFailed": 1,
+      "versionedI03Passed": 1
+    },
+    {
+      "layout": "moved",
+      "retainedPassed": 336,
+      "firstCohortNovelPassed": 11,
+      "firstCohortNovelFailed": 1,
+      "versionedI03Passed": 1
+    }
+  ],
+  "types": {
+    "groups": 6,
+    "exactNegativeDiagnostics": 24
+  },
+  "maintained": {
+    "code": 0,
+    "tests": 83,
+    "pass": 83,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "movedConsumer": {
+    "code": 0,
+    "tests": 21,
+    "pass": 21,
+    "fail": 0
+  },
+  "loadedControls": 9,
+  "originalCoordinatorExit": 1,
+  "versionedCoordinatorExit": 0,
+  "internalLoaderAdmissions": {
+    "firstCohort": 32,
+    "versionedI03": 3,
+    "individualExitObservation": false
+  },
+  "regexExits": {
+    "firstCohort": 4,
+    "versionedI03": 0
+  },
+  "inputs": [
+    {
+      "path": "tests/integration/git-public-independent-20260829/i03-v2/EVIDENCE.json",
+      "bytes": 5769,
+      "sha256": "f8e13c2982175a8d78cd6ef665b581e45bdbdf6209d9c43decef675a3591b31c"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/COUNTS.json",
+      "bytes": 178482,
+      "sha256": "14e36ac6ed384ed8626be14beed2f725897b5420a79905767a611a90820cf1e0"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/actual-v2/evidence/REPORT.md",
+      "bytes": 6415,
+      "sha256": "3e4833192048cf46a39efeeb0355f44ab2227a9c3830d68a42ebbddefb5d2ea2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/i03-v2/RESULT.json",
+      "bytes": 3937,
+      "sha256": "3df2334ca9a73355673d97294e6dad063ed6b0cbd5d35a9bb29f18e462a72c80"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/i03-v2/POSTGUARD.json",
+      "bytes": 2325,
+      "sha256": "26197d539c649389c8db9db440e931d3a51ea850d9899152ac8b106fa703a5a1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/i03-v2/REPORT.md",
+      "bytes": 5043,
+      "sha256": "bf68516ecac8a450796d79ad4216a783d7620596b1acb3f3a021e9315f83e2e6"
+    }
+  ],
+  "noNewRuntime": true
+}

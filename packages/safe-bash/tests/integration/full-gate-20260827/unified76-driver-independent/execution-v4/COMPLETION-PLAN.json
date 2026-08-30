@@ -1,0 +1,9 @@
+{
+  "schema":"unified76-independent-bounded-completion/v4.2",
+  "previousAttempts":"Attempt1 and v4.1 remain immutable. v4.1 has4 passing subgroup sets and4 failed groups; no denominator merging or failure deletion.",
+  "diagnosis":"Relative symbolic links remain prohibited by the review parent's Node permission mode even with owned cwd. A20 correctly refused inherited GIT_PAGER before reaching release. These observations are retained, not driver acceptances.",
+  "groups":["A06 use hash-recorded /bin/ln only for exact owned fixture setup, then actual frozen verifyArchive source/link/addition controls","A12 stream a tiny regular-file-only Git fixture through actual frozen extraction and reachable-history transfer; wrong size/missing blob negatives; successful relative-link transport remains unexercised under this review permission parent","A13 actual escaped-symlink transport negative using a tiny Git blob written with hash-object --stdin, without creating a source link","A20 remove all specifically prohibited ambient GIT_/NODE_OPTIONS/NODE_PATH/DYLD_/LD_ injection from this isolated review process before legitimate missing-release invocation; retain strict predicate and no valid release"],
+  "constraints":"Same immutable driver/plan and owned-only write containment. Native ln is solely exact-path owned fixture setup, not a semantic oracle. No product import, build, pack, private load or full gate. This is the final bounded adapter completion; remaining gaps become HOLD, not repeated retries.",
+  "limits":"Each child <=240s; review asynchronous Git children receive explicit240s kill guard; fixture blob budget1MiB, reachable history8MiB measured, output8MiB/child, owned data64MiB maximum measured. Actual full candidate2.382GB and full gate not attempted.",
+  "release":"HOLD regardless outcome"
+}

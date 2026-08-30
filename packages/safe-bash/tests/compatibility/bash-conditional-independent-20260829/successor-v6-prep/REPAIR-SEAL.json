@@ -1,0 +1,85 @@
+{
+  "role": "PRESEALED_BYTE_COPY_REPAIR_ONLY",
+  "date": "2026-08-29",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "role": "development exact blob/tree reads, no native oracle"
+  },
+  "repo": "/Users/kjopek/Workspace/safe-bash",
+  "inputCount": 36,
+  "fixtureCount": 19,
+  "controls": [
+    {
+      "id": "B01",
+      "hex": "410a",
+      "bytes": 2,
+      "sha256": "06f961b802bc46ee168555f066d28f4f0e9afdf3f88174c1ee6f9de004fc30a0",
+      "mode": 420
+    },
+    {
+      "id": "B02",
+      "hex": "41",
+      "bytes": 1,
+      "sha256": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+      "mode": 420
+    },
+    {
+      "id": "B03",
+      "hex": "410a0a0a",
+      "bytes": 4,
+      "sha256": "e3f86c9d7526077c58626fec9851686595db1b97d114431b257f2aed8a2be73f",
+      "mode": 420
+    },
+    {
+      "id": "B04",
+      "hex": "efbbbf410a",
+      "bytes": 5,
+      "sha256": "34458efc6b3e8689be7b17dffa5c40d9c1b72807c93cd35c96f8a6e1b4484a7c",
+      "mode": 420
+    },
+    {
+      "id": "B05",
+      "hex": "",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 420
+    },
+    {
+      "id": "B06",
+      "hex": "efbbbfe99baa0a0042",
+      "bytes": 9,
+      "sha256": "c3f9fcb9fec539b233bf467d2389f94effd48922009ceb25344987538f080e20",
+      "mode": 420
+    }
+  ],
+  "files": [
+    {
+      "path": "repair.mjs",
+      "sha256": "f33dcf7e6ac0c91eb0a1f3aac52a9b75e8d3b7a6484226fa036ca00586146baf"
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "c2b9cd20855aadff20200b3e13447b4df19d0e857973d81b375bf3e2743423cd"
+    },
+    {
+      "path": "BYTE-SEEDS.json",
+      "sha256": "42f0060022c922bf16517f7ccbc4682548ebba9ecaee391284a1853e711b496c"
+    }
+  ],
+  "limits": {
+    "totalSeconds": 1200,
+    "allProcesses": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "originalHold": "ca6700965da6a78a6aa7e515929413ebb78229dc",
+  "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131"
+}
+

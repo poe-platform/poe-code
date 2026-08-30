@@ -1,0 +1,61 @@
+{
+  "schema": "source-data-startup-attribution-v1",
+  "authority": "ROOT SOURCE/DATA-only startup attribution GO; no target/fence changes or logs",
+  "started": 1787980447269,
+  "deadline": 1787981647269,
+  "limits": {
+    "allProcesses": 40,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 268435456
+  },
+  "metadataExecution": {
+    "count": 1,
+    "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+    "tool": {
+      "path": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+      "realpath": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+      "bytes": 18272848,
+      "mode": 493,
+      "sha256": "3cccdd0dad838d2130d7fc6237aa176c8c13a593a56b79c64fd980ddb89c670c",
+      "execution": "NOT_EXECUTED_CURRENT_PHASE"
+    },
+    "args": [
+      "--macho",
+      "--dylibs-used",
+      "--rpaths",
+      "/usr/bin/sandbox-exec",
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/private/tmp",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "GIT_CONFIG_NOSYSTEM": "1",
+      "GIT_CONFIG_GLOBAL": "/dev/null",
+      "GIT_OPTIONAL_LOCKS": "0",
+      "GIT_ATTR_NOSYSTEM": "1"
+    },
+    "timeoutMs": 30000,
+    "outputAdmissionBytes": 1048576,
+    "role": "Mach-O dylib/rpath metadata only, not disassembly/target launch/version/compiler; no response files or inherited DEBUGINFOD_URLS",
+    "childBound": "one directly launched metadata tool; no wrapper/shim; not a kernel descendant census"
+  },
+  "forbidden": [
+    "readiness",
+    "Bash",
+    "product",
+    "engine",
+    "profile modifications",
+    "host crash/unified logs",
+    "private reads",
+    "fence retry"
+  ],
+  "reference": "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3",
+  "helperSha256": "fae7380bd99fd392ba1516920873196c38b5aec2283191cc3acc651df0cf256a",
+  "prelaunchCorrection": "Unsupported data-URL helper import raised before first child; zero target launches; preserved in state. Empty-input git cat-file call returned0/empty; corrected source-data read with explicit stdin.",
+  "originals": "F01/D01/D02/D03 all immutable; native9/40 UNRUN"
+}

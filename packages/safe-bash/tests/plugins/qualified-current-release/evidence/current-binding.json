@@ -1,0 +1,44 @@
+{
+  "sourceCommit": "5456730f1307f8c7fd3e8fcad342dc2eb6db2c27",
+  "sourceTreeSha256": "e7f64ecaa2cf5bce5fdebd3bfcca9e94d063d278b85ed9c263f742d104c32424",
+  "testTreeSha256": "d602edfbb0a07ae8b54bfa19980716eb13db8c294064d73cce1b9e8ec60dd1c8",
+  "harnessSha256": "1c0a4462bd7098e7f68088feba3bb1a34eb204f4b5865b064fe3df588aa1eb1c",
+  "archiveSha256": "dcc98e7c17b050756d9039a006ce895191055d2f10df1eee18c4a58e48af4320",
+  "sourceChangesAfterIndependentB7": [
+    "4c16d9c5a0e8661bc326a754205559a3e7ea6a32 fix(shell): drain cooperative invocation ownership before settlement",
+    "01aa1bffe0568cc6787d5ff8e0331e024a787385 fix(regex): register invocation cleanup before session acquisition"
+  ],
+  "archiveInputComparison": [
+    {
+      "path": "tests/commands/archive/native.test.ts",
+      "currentSha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45",
+      "historicalE36Sha256": "a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/controls.test.ts",
+      "currentSha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56",
+      "historicalE36Sha256": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56"
+    },
+    {
+      "path": "tests/commands/archive/helpers.ts",
+      "currentSha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0",
+      "historicalE36Sha256": "7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-independent/fixtures.ts",
+      "currentSha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673",
+      "historicalE36Sha256": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673"
+    }
+  ],
+  "note": "Current source and test manifests are in current-result.json. Historical e36 bytes are comparison only, not current release proof. New runtime/regex commits are included here, never retroactively included in independent frozenb7; five cleanup blockers still require independent closure.",
+  "scopedChecks": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--test",
+      "tests/plugins/qualified-current-release/prerequisites.test.mjs"
+    ],
+    "status": 0,
+    "stdout": "TAP version 13\n# Subtest: missing explicit tar input fails even when GNU_TAR is set\nok 1 - missing explicit tar input fails even when GNU_TAR is set\n  ---\n  duration_ms: 21.999125\n  type: 'test'\n  ...\n# Subtest: missing binary fails before test execution\nok 2 - missing binary fails before test execution\n  ---\n  duration_ms: 18.693542\n  type: 'test'\n  ...\n# Subtest: wrong executable identity is never invoked as GNU tar\nok 3 - wrong executable identity is never invoked as GNU tar\n  ---\n  duration_ms: 74.028417\n  type: 'test'\n  ...\n# Subtest: existing authenticated binary stages exclusively at both fixtures' hardcoded location\nok 4 - existing authenticated binary stages exclusively at both fixtures' hardcoded location\n  ---\n  duration_ms: 321.971334\n  type: 'test'\n  ...\n# Subtest: native staging refuses a symbolic-link parent\nok 5 - native staging refuses a symbolic-link parent\n  ---\n  duration_ms: 34.410667\n  type: 'test'\n  ...\n# Subtest: native fixture profile proves member group and actual setid authority\nok 6 - native fixture profile proves member group and actual setid authority\n  ---\n  duration_ms: 28.001\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 549.144041\n",
+    "stderr": ""
+  }
+}

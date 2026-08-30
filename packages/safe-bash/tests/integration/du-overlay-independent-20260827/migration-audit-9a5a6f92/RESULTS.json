@@ -1,0 +1,500 @@
+{
+  "generatedAt": "2026-08-27T18:47:51.477Z",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "commits": {
+    "baseline": {
+      "commit": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+      "parents": [
+        "dbceec2b9890927ea93cee3b416f78908c648cc6"
+      ],
+      "tree": "b3d6a55e1adb54bae1a76255cd2469f396d1a28c",
+      "authoredAt": "2026-08-27T12:22:14-05:00",
+      "subject": "feat(du): add bounded metadata-only usage command and scoped tests"
+    },
+    "originalAuthorEvidence": {
+      "commit": "f2d6f710d9e0b9481957ff302bba90a0f11c9bad",
+      "parents": [
+        "814dfebf7ab43f4b4fe4954e10df185ed2ff087c"
+      ],
+      "tree": "e2705275ea0d323a443e91d9dd2a85d2e8bcc1b7",
+      "authoredAt": "2026-08-27T12:31:02-05:00",
+      "subject": "test(du): preserve native profile and scoped author checkpoint evidence"
+    },
+    "firstIndependent": {
+      "commit": "19cc7e8c3567b521e04159010efe32da5673b5b4",
+      "parents": [
+        "92d1dacd041d90f58fee81922815bbd606cceb8e"
+      ],
+      "tree": "9af752315204636af957ea62594d61f7ed4b9180",
+      "authoredAt": "2026-08-27T12:41:50-05:00",
+      "subject": "test(du): independently verify frozen command and preserve root blockers"
+    },
+    "holdoutFreeze": {
+      "commit": "510c621e1dfa8f7ffba1d796f5f7e55d967368e2",
+      "parents": [
+        "7f3ad2f53433e6944260659c8d3904108e5a5a6a"
+      ],
+      "tree": "fdd67f02ebec22f22e60fed14cd29aaaa1bb5abd",
+      "authoredAt": "2026-08-27T13:12:07-05:00",
+      "subject": "test(du): freeze independent overlay purity holdouts"
+    },
+    "overlayFix": {
+      "commit": "1c793b934dcd06aa42e0df24a7228b395178cf3d",
+      "parents": [
+        "0abce3946ed6d677d8cf29bf2a1dc74937986ddd"
+      ],
+      "tree": "5d69825760349d1597e1b9c79d36b7f3815a4dad",
+      "authoredAt": "2026-08-27T13:15:46-05:00",
+      "subject": "fix(overlay): keep directory metadata reads free of staging cleanup"
+    },
+    "holdoutRefinement": {
+      "commit": "8c28d7c848311372cbef5ec3e4facff546baf0a8",
+      "parents": [
+        "1c793b934dcd06aa42e0df24a7228b395178cf3d"
+      ],
+      "tree": "5f5a42f765f23277d15ff9042fa6f853e659269f",
+      "authoredAt": "2026-08-27T13:18:51-05:00",
+      "subject": "test(du): refine independent overlay holdout freeze"
+    },
+    "cleanupFixture": {
+      "commit": "0d6b9fcf57866fa38e6c065365b11e0fb8e5707b",
+      "parents": [
+        "06426bb62b6cc79f0be04dbf208efd17cfb84082"
+      ],
+      "tree": "54d6fd1db4658d386705227304c32695658f0986",
+      "authoredAt": "2026-08-27T13:19:58-05:00",
+      "subject": "test(overlay): migrate explicit cleanup controls and record purity evidence"
+    },
+    "duFix": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "parents": [
+        "0d6b9fcf57866fa38e6c065365b11e0fb8e5707b"
+      ],
+      "tree": "80df95b049b1a76b5c58ebbfd0b5045265a4dc54",
+      "authoredAt": "2026-08-27T13:20:10-05:00",
+      "subject": "fix(du): honor selected environment fallback without hiding limits"
+    },
+    "baselineEvidence": {
+      "commit": "82e97559330cff52f63f22c7d5fd80185fe65f44",
+      "parents": [
+        "f18117aa4828e7cf693430c791f40e8745b46e3e"
+      ],
+      "tree": "9ce70ffeeae04e2c0f07929fe1901dfdac8350d9",
+      "authoredAt": "2026-08-27T13:24:10-05:00",
+      "subject": "test(du): preserve independent overlay purity baseline"
+    },
+    "parent": {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "parents": [
+        "aa84dbbfae5c2f394dc1ec2516a809d659f72b4a"
+      ],
+      "tree": "dadc0a2958b54cc94d4ee2114c46549e305d4877",
+      "authoredAt": "2026-08-27T13:28:17-05:00",
+      "subject": "audit: preserve attempt2 private-status refusal and exact fresh closure"
+    },
+    "candidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "parents": [
+        "31f5678e62e3f3d43b4825d839ec970e7768da7d"
+      ],
+      "tree": "62c1b2f2784ca465b17d4b15a5736c42b8bdcf2d",
+      "authoredAt": "2026-08-27T13:30:15-05:00",
+      "subject": "test(du): migrate four superseded environment and empty-operand expectations"
+    },
+    "handoff": {
+      "commit": "87833f33cb7fa6d2a6c098201dd53fe5404a7fcb",
+      "parents": [
+        "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d"
+      ],
+      "tree": "01a5d12bd745ad6ee0ffc589613ac6046e4f6657",
+      "authoredAt": "2026-08-27T13:32:25-05:00",
+      "subject": "docs(du): hand off independent overlay baseline"
+    },
+    "evidence": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "parents": [
+        "87833f33cb7fa6d2a6c098201dd53fe5404a7fcb"
+      ],
+      "tree": "5c0924f929fb9851bab50f5cd5d9b00c023314c2",
+      "authoredAt": "2026-08-27T13:35:15-05:00",
+      "subject": "test(du): seal canonical migration and combined committed-snapshot evidence"
+    }
+  },
+  "tooling": {
+    "packageLock": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "package-lock.json",
+      "gitBlob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    "installedTsxPackageSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+    "installedTsxVersion": "4.23.12",
+    "nodeModulesUse": "read-only symlink used as execution tooling; product/test inputs came from each Git archive"
+  },
+  "archives": {
+    "baseline": {
+      "commit": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+      "archiveSha256": "9f47434a53e21813f21de6b27793f64ac83cdb6df3d12d10aa29f542472d94a8",
+      "runs": [
+        {
+          "kind": "behavior",
+          "file": "tests/commands/du/behavior.test.ts",
+          "pattern": "^all argument and environment validation happens before any filesystem call$",
+          "status": 0,
+          "signal": null,
+          "stdoutSha256": "8d317c9ea74a32dca5d01de7e76fb834a9af52718b7b3b12fd28b1a07f58076c",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "kind": "native",
+          "file": "tests/commands/du/native.test.ts",
+          "pattern": "^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+          "status": 0,
+          "signal": null,
+          "stdoutSha256": "6cbf53ed316cf38f040376353e79119996b43b6eff0900068d497ce45752f284",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    "parent": {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "archiveSha256": "de0b418b9129f59816b85c386b00fa4fe8489237d0f37cdaa95dc6244ff9e58b",
+      "runs": [
+        {
+          "kind": "behavior",
+          "file": "tests/commands/du/behavior.test.ts",
+          "pattern": "^all argument and environment validation happens before any filesystem call$",
+          "status": 1,
+          "signal": null,
+          "stdoutSha256": "9d84bf2726c9e81ae5409f6a283115d603584b73ed36a9836eba582c22b6154d",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "kind": "native",
+          "file": "tests/commands/du/native.test.ts",
+          "pattern": "^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+          "status": 1,
+          "signal": null,
+          "stdoutSha256": "8e951fb87fd9fa9940fbaa0d6cc74e95b92d3e26857a5198f39a92c7f352077f",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    "candidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "archiveSha256": "76e1d00faaf712d5498a17882eb179e52ee6a8fe4fc1bfeae0ce83b26836c6b3",
+      "runs": [
+        {
+          "kind": "behavior",
+          "file": "tests/commands/du/behavior.test.ts",
+          "pattern": "^invalid arguments fail before filesystem calls; selected invalid environment falls back$",
+          "status": 0,
+          "signal": null,
+          "stdoutSha256": "3d6c67d464739b4ffc562ffcfb5da89c3869684580fc6e40388b9708422cd0ad",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "kind": "native",
+          "file": "tests/commands/du/native.test.ts",
+          "pattern": "^GNU 9\\.7 captured profile: (-b |env:\\{\\\"DU_BLOCK_SIZE\\\":(\\\"bad\\\"|\\\"\\\",\\\"BLOCK_SIZE\\\":\\\"2K\\\")\\})$",
+          "status": 0,
+          "signal": null,
+          "stdoutSha256": "82c4d9d9a348477d1227b0e7e67b65068b79d672f312f023648b9ed1bb9312bb",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  },
+  "archiveIntegrity": {
+    "baseline": {
+      "trackedCount": 28641,
+      "beforeSha256": "615ae12ca9da8a10647cde1dde7a386ae0261ee5f90a4ef3314ffd8de49e7dd0",
+      "afterSha256": "615ae12ca9da8a10647cde1dde7a386ae0261ee5f90a4ef3314ffd8de49e7dd0",
+      "unchanged": true,
+      "newEntriesAfterRun": []
+    },
+    "parent": {
+      "trackedCount": 30778,
+      "beforeSha256": "424844f0288d132b6e8ee4b4dbff8b33d0e4ca3ae997310cc75c403fc5b83d0e",
+      "afterSha256": "424844f0288d132b6e8ee4b4dbff8b33d0e4ca3ae997310cc75c403fc5b83d0e",
+      "unchanged": true,
+      "newEntriesAfterRun": []
+    },
+    "candidate": {
+      "trackedCount": 30778,
+      "beforeSha256": "a22cbd24b5616d2ba584ed827135d1fbe3fb508cbe8a8c2fdf32d29b2b419fee",
+      "afterSha256": "a22cbd24b5616d2ba584ed827135d1fbe3fb508cbe8a8c2fdf32d29b2b419fee",
+      "unchanged": true,
+      "newEntriesAfterRun": []
+    }
+  },
+  "objects": {
+    "originalBehavior": {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "path": "tests/commands/du/behavior.test.ts",
+      "gitBlob": "56e31dfb0beaa95690d8fb9609b3a3863abe1c6b",
+      "sha256": "36f54589a455eec0249e192a83ca412d9d88b8452ab448073edee1e4bb1d327b"
+    },
+    "originalNative": {
+      "commit": "31f5678e62e3f3d43b4825d839ec970e7768da7d",
+      "path": "tests/commands/du/native.test.ts",
+      "gitBlob": "05e07946d5ab3e34e725bc10a022c96871d335ce",
+      "sha256": "416216cf815f3dae8f28fb6fe3ad40231add0e97d0d63684e0ac0e1377f3eef4"
+    },
+    "sealedOriginalBehavior": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "path": "tests/commands/du/canonical-migration-v1/originals/behavior.test.ts.txt",
+      "gitBlob": "56e31dfb0beaa95690d8fb9609b3a3863abe1c6b",
+      "sha256": "36f54589a455eec0249e192a83ca412d9d88b8452ab448073edee1e4bb1d327b"
+    },
+    "sealedOriginalNative": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "path": "tests/commands/du/canonical-migration-v1/originals/native.test.ts.txt",
+      "gitBlob": "05e07946d5ab3e34e725bc10a022c96871d335ce",
+      "sha256": "416216cf815f3dae8f28fb6fe3ad40231add0e97d0d63684e0ac0e1377f3eef4"
+    },
+    "sealedOldRawFailure": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "path": "tests/commands/du/canonical-migration-v1/originals/legacy-handoff.stdout.txt",
+      "gitBlob": "6d52533a0cf58be945b7093725a1deea75ac060f",
+      "sha256": "322315edac390ced29d2e8c887ec3a077229f2b7b8c020057c95346fab3c219e"
+    },
+    "sealedDelta": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "path": "tests/commands/du/canonical-migration-v1/DELTA.md",
+      "gitBlob": "5471f758d16e3b7f4f378668fca769d15e087f7f",
+      "sha256": "54a339a1ec757b1e1acb36e93f53381bf4610dcbd76b471780d086b50a8568d4"
+    },
+    "sealedMigrationPatch": {
+      "commit": "c5fe1a68341b3a2ebbefd9fee6793a1e6c5df10b",
+      "path": "tests/commands/du/canonical-migration-v1/migration.patch",
+      "gitBlob": "a26df999c738cf85303624228939d8d51e9fc495",
+      "sha256": "2ed5d4ff0b013de9b7b3960444dc8bc0ef090c98f8473ea87334f7f66d489e4f"
+    },
+    "candidateBehavior": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "tests/commands/du/behavior.test.ts",
+      "gitBlob": "078ee70f387cb1bdf57f5d270dac6550ac1ba54f",
+      "sha256": "c139dad8f585cab314a42f722e683d082073a060d6452acf85bcd8df45359be7"
+    },
+    "candidateNative": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "tests/commands/du/native.test.ts",
+      "gitBlob": "ec47d853ed2fdfa37a487acd900b08c7e3a95634",
+      "sha256": "f22a4ffaa1c3030d00fb4146e9fdf2d3cfee95827a94c0cf2a910b89eea512c3"
+    },
+    "nativeProfile": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "tests/commands/du/native-profile.json",
+      "gitBlob": "8f9964c0ea31cae6035560cce60be47d31de6c5f",
+      "sha256": "f3c76252370ed72020de8ae6ede90093b0bdb098047c359f2deb088b4e4f8653"
+    },
+    "functionalNativeObservations": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "tests/commands/du/functional-v1/native-observations.json",
+      "gitBlob": "8bcc4c2eb2b592a886ed133e7319488e3f01281b",
+      "sha256": "b710f6d5b3a5604381e12d1291aea0633852af3ec7cfd6be060d9d95a7256cd3"
+    },
+    "classificationRaw": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "tests/commands/du/functional-v1/evidence/classification-v1-20260827-9a7c34d4/raw-cases.json",
+      "gitBlob": "56d993159b14890bbdc07285920e23bcf9e64ddf",
+      "sha256": "085d3b69358da499d953478d94c3a48a68e96627138f4a95b8a61a3becdfcc18"
+    },
+    "oldOverlayStrictRed": {
+      "commit": "0d6b9fcf57866fa38e6c065365b11e0fb8e5707b",
+      "path": "tests/fs/overlay/metadata-purity-evidence/captures/exact-tests-old-overlay-ZW4MmR/strict.stdout.log",
+      "gitBlob": "3d9971395ef758fbcb55e32d8d07400f00fd46bb",
+      "sha256": "a17e44c8290ae7419ff9aa4160d48ad378fff67ef60327f501f4067725ccecb7"
+    },
+    "overlayFixtureMigration": {
+      "commit": "0d6b9fcf57866fa38e6c065365b11e0fb8e5707b",
+      "path": "tests/fs/overlay/metadata-purity-evidence/migration.patch",
+      "gitBlob": "4830023eb3115bf8fe1266a65082ee5d98e97080",
+      "sha256": "b198b385270f62ee3afb5c213c9fb8a433e4786fb88da88480816e5426b41c01"
+    },
+    "duArgumentsAtFix": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "path": "src/commands/du/arguments.ts",
+      "gitBlob": "1b39e18e95d7b19df4c5e01aab8311905137c0e6",
+      "sha256": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409"
+    },
+    "duArgumentsAtCandidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "src/commands/du/arguments.ts",
+      "gitBlob": "1b39e18e95d7b19df4c5e01aab8311905137c0e6",
+      "sha256": "1c25d25f2c1464b2b47e9a574d8c786c032d2c5f80b231d15e444a7020a3c409"
+    },
+    "duWalkerAtFix": {
+      "commit": "32c5b60c3323101ebd3d4a3339931caa93867ae5",
+      "path": "src/commands/du/du.ts",
+      "gitBlob": "dad87ea613a2c8973c26422c554b39d1826fff69",
+      "sha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03"
+    },
+    "duWalkerAtCandidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "src/commands/du/du.ts",
+      "gitBlob": "dad87ea613a2c8973c26422c554b39d1826fff69",
+      "sha256": "89a7e96bd08f72fd91a140841cf4dd362ba7e741374ec31e476b2db480cbaf03"
+    },
+    "overlayAtFix": {
+      "commit": "1c793b934dcd06aa42e0df24a7228b395178cf3d",
+      "path": "src/fs/overlay/index.ts",
+      "gitBlob": "fb6d3dc25b5ac29f3adf3b2078b5dbf2e9053d37",
+      "sha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17"
+    },
+    "overlayAtCandidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "src/fs/overlay/index.ts",
+      "gitBlob": "fb6d3dc25b5ac29f3adf3b2078b5dbf2e9053d37",
+      "sha256": "829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17"
+    },
+    "rootIndexAtBaseline": {
+      "commit": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+      "path": "src/index.ts",
+      "gitBlob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2"
+    },
+    "rootIndexAtCandidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "src/index.ts",
+      "gitBlob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2"
+    },
+    "packageAtBaseline": {
+      "commit": "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3",
+      "path": "package.json",
+      "gitBlob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+    },
+    "packageAtCandidate": {
+      "commit": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "path": "package.json",
+      "gitBlob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+    }
+  },
+  "migrationPatch": {
+    "gitDiffSha256": "2ed5d4ff0b013de9b7b3960444dc8bc0ef090c98f8473ea87334f7f66d489e4f",
+    "sealedPatchSha256": "2ed5d4ff0b013de9b7b3960444dc8bc0ef090c98f8473ea87334f7f66d489e4f",
+    "exactMatch": true
+  },
+  "discriminatingProbe": {
+    "status": 0,
+    "stdoutSha256": "862d6f2e11fdcaf3dbb0a4910b65f7cf1176538edfd989c9248d7420f0a2c10d",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "native": {
+    "oracle": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+    "oracleBeforeSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+    "oracleAfterSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+    "unchanged": true,
+    "version": {
+      "status": 0,
+      "stdout": "du (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund, David MacKenzie, Paul Eggert,\nand Jim Meyering.\n",
+      "stderr": ""
+    },
+    "sourceSha256": "3cd1c0120881ba28da3345b1324e9d146f948a95db6ce2900ba27b3fe8f45bf9",
+    "humanParserSourceSha256": "f2ba7b4b1678020886afa66944d7e7cb106a60d46cea01e37e02cdbddfd78ad7",
+    "cases": [
+      {
+        "id": "O062",
+        "args": [
+          "-b",
+          ""
+        ],
+        "env": {},
+        "nativeEnvironment": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C"
+        },
+        "status": 1,
+        "signal": null,
+        "stdout": "",
+        "stderr": "du: invalid zero-length file name\n"
+      },
+      {
+        "id": "O086",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "bad"
+        },
+        "nativeEnvironment": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "DU_BLOCK_SIZE": "bad"
+        },
+        "status": 0,
+        "signal": null,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      {
+        "id": "O087",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "",
+          "BLOCK_SIZE": "2K"
+        },
+        "nativeEnvironment": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "DU_BLOCK_SIZE": "",
+          "BLOCK_SIZE": "2K"
+        },
+        "status": 0,
+        "signal": null,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      {
+        "id": "scope-BLOCK_SIZE-invalid",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "BLOCK_SIZE": "bad",
+          "BLOCKSIZE": "1"
+        },
+        "nativeEnvironment": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "BLOCK_SIZE": "bad",
+          "BLOCKSIZE": "1"
+        },
+        "status": 0,
+        "signal": null,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      },
+      {
+        "id": "scope-BLOCKSIZE-invalid",
+        "args": [
+          "--apparent-size",
+          "size-1025"
+        ],
+        "env": {
+          "BLOCKSIZE": "bad"
+        },
+        "nativeEnvironment": {
+          "PATH": "/usr/bin:/bin",
+          "LC_ALL": "C",
+          "BLOCKSIZE": "bad"
+        },
+        "status": 0,
+        "signal": null,
+        "stdout": "2\tsize-1025\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "scratchCleanup": "performed in finally after results write; paths are not retained"
+}

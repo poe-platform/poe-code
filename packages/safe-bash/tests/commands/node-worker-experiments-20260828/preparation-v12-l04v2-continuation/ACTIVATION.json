@@ -1,0 +1,51 @@
+{
+  "schema": "wrq-v12-root-conditional-activation",
+  "grantSha256": "0fbb32666abea9c10b202a8fc5d4a7f0ad15a847129dea876a3aaae3b6e47265",
+  "owner": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/future-owner.mjs",
+    "sha256": "590ad6b274f7b36b7326a2a2ca83da05f951665d85f65ef0b3a001d312d03f74",
+    "closure": [
+      {
+        "path": "../preparation-v6-ready/import-policy.mjs",
+        "bytes": 2194,
+        "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+      },
+      {
+        "path": "../preparation-v7-capture/capture-owner.mjs",
+        "bytes": 3125,
+        "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+      }
+    ]
+  },
+  "entry": "runWorkerQualification",
+  "args": [
+    "0fbb32666abea9c10b202a8fc5d4a7f0ad15a847129dea876a3aaae3b6e47265"
+  ],
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/actual-v12-01",
+  "bounds": {
+    "maximumOwnerMs": 600000,
+    "maximumOSChildren": 8,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 402653184,
+    "workers": 8,
+    "guestAttempts": 7,
+    "retries": 0,
+    "ownerEnforcedMs": 180000,
+    "termToKillMs": 2000,
+    "inheritAllStricterProfileLimits": true
+  },
+  "selected": [
+    "WRQ04-L04v2-v12",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "controls": 31,
+  "diagnosisQualification": "UNKNOWN on absent text; no parent-only faultfalse inference",
+  "stop": "No retry; strict profile safety stop; ordinary semantic failures only after safe settlement"
+}

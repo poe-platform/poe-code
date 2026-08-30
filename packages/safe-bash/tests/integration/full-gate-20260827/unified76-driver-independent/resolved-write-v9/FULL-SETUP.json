@@ -1,0 +1,305 @@
+{
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "repository": "/private/tmp/unified76-independent-write-v9-Tel2Zh/repository",
+  "external": {
+    "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+    "tools": 61,
+    "directories": [
+      "main",
+      "benchmarks",
+      "npm",
+      "gitCore"
+    ],
+    "native": 51,
+    "systemBoundary": {
+      "systemReferences": [
+        [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        ],
+        [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+        ],
+        [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "/usr/lib/libc++.1.dylib"
+        ],
+        [
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "/usr/lib/libSystem.B.dylib"
+        ],
+        [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+        ],
+        [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "/usr/lib/libz.1.dylib"
+        ],
+        [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "/usr/lib/libiconv.2.dylib"
+        ],
+        [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "/usr/lib/libSystem.B.dylib"
+        ],
+        [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+        ],
+        [
+          "/usr/bin/tar",
+          "/usr/lib/libarchive.2.dylib"
+        ],
+        [
+          "/usr/bin/tar",
+          "/usr/lib/libSystem.B.dylib"
+        ]
+      ],
+      "host": {
+        "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "stderr": "",
+        "platform": "darwin",
+        "arch": "arm64"
+      },
+      "qualification": "Explicit trusted macOS26.4.1/build25E253 boundary for exactly these eleven sampled references only. No readable-file hash, full OS attestation, complete process-image enumeration or broader library exception."
+    },
+    "readableBindingsVerified": true,
+    "osInstructionFence": {
+      "manifestSha256": "fe1a7f720959472bdd8e39b4cb3c9e80e27a9be43961dd5558d69bb61560096f",
+      "binary": {
+        "path": "/usr/bin/sandbox-exec",
+        "bytes": 102560,
+        "mode": 493,
+        "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+      },
+      "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+      "systemReferences": [
+        [
+          "/usr/bin/sandbox-exec",
+          "/usr/lib/libsandbox.1.dylib"
+        ],
+        [
+          "/usr/bin/sandbox-exec",
+          "/usr/lib/libSystem.B.dylib"
+        ]
+      ],
+      "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception."
+    }
+  },
+  "assembly": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "paths": 4
+  },
+  "opaqueHistory": {
+    "revisions": [
+      "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+      "6699804ace9f5522aa67be6a017a8008bfc09f30",
+      "656ee2b04aa91b1cc40da865173be1b472a2c4ce"
+    ],
+    "bytes": 480921521,
+    "sha256": "3bbe8ca53ee0f901c8d783d65811e7969296908516b3d8e22735713478bbb6c6",
+    "lifecycle": [
+      {
+        "pid": 50323,
+        "status": 0,
+        "signal": null
+      },
+      {
+        "pid": 50324,
+        "status": 0,
+        "signal": null
+      }
+    ],
+    "logs": {
+      "0": {
+        "pid": 50323,
+        "stderr": "",
+        "stdout": ""
+      },
+      "1": {
+        "pid": 50324,
+        "stderr": "",
+        "stdout": "pack\tabcef2d21d4ce981ba7b522b8b67880fadd1f772\n"
+      }
+    },
+    "checkout": false,
+    "alternates": false,
+    "instructionPolicy": "Original opaque objects only; no instruction file materialized"
+  },
+  "dependencies": [
+    {
+      "projection": {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      "binTopology": [
+        {
+          "name": "esbuild",
+          "originalKind": "symlink",
+          "originalTarget": "../esbuild/bin/esbuild",
+          "relocatedTarget": "../esbuild/bin/esbuild",
+          "targetSha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+        },
+        {
+          "name": "tsc",
+          "originalKind": "symlink",
+          "originalTarget": "../typescript/bin/tsc",
+          "relocatedTarget": "../typescript/bin/tsc",
+          "targetSha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+        },
+        {
+          "name": "tsserver",
+          "originalKind": "symlink",
+          "originalTarget": "../typescript/bin/tsserver",
+          "relocatedTarget": "../typescript/bin/tsserver",
+          "targetSha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+        },
+        {
+          "name": "tsx",
+          "originalKind": "symlink",
+          "originalTarget": "../tsx/dist/cli.mjs",
+          "relocatedTarget": "../tsx/dist/cli.mjs",
+          "targetSha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+        }
+      ]
+    },
+    {
+      "projection": {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "logical": {
+          "files": 3497,
+          "bytes": 75292558,
+          "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [
+          {
+            "role": "benchmark",
+            "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+            "path": "just-bash/dist/AGENTS.md",
+            "mode": "100644",
+            "bytes": 9231,
+            "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+          }
+        ],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      "binTopology": [
+        {
+          "name": "fxparser",
+          "originalKind": "symlink",
+          "originalTarget": "../fast-xml-parser/src/cli/cli.js",
+          "relocatedTarget": "../fast-xml-parser/src/cli/cli.js",
+          "targetSha256": "8f5e6ebdc7cd90fa77a5e835fec6a57f399f82ec5eb0dd277b26415a83e29c48"
+        },
+        {
+          "name": "just-bash",
+          "originalKind": "symlink",
+          "originalTarget": "../just-bash/dist/bin/just-bash.js",
+          "relocatedTarget": "../just-bash/dist/bin/just-bash.js",
+          "targetSha256": "71999c59118f9d32207af333112fcd67d8397c20331fcc84f67ff590bf5258f6"
+        },
+        {
+          "name": "just-bash-shell",
+          "originalKind": "symlink",
+          "originalTarget": "../just-bash/dist/bin/shell/shell.js",
+          "relocatedTarget": "../just-bash/dist/bin/shell/shell.js",
+          "targetSha256": "ec60b11cb49fd3a89e2055f5a6ac1a182adaa9136d6bb8214c5389782213baf9"
+        },
+        {
+          "name": "node-gyp-build",
+          "originalKind": "symlink",
+          "originalTarget": "../node-gyp-build/bin.js",
+          "relocatedTarget": "../node-gyp-build/bin.js",
+          "targetSha256": "dc022adc093b9b79e1a0ef4b6bc3e6a52e3d627102113dad4afacbbe81f13a26"
+        },
+        {
+          "name": "node-gyp-build-optional",
+          "originalKind": "symlink",
+          "originalTarget": "../node-gyp-build/optional.js",
+          "relocatedTarget": "../node-gyp-build/optional.js",
+          "targetSha256": "e0b3a3a04166e6ecf1020cb31c0c4a54432c16d6d88714bd4de2214cf67dec81"
+        },
+        {
+          "name": "node-gyp-build-test",
+          "originalKind": "symlink",
+          "originalTarget": "../node-gyp-build/build-test.js",
+          "relocatedTarget": "../node-gyp-build/build-test.js",
+          "targetSha256": "34c19ff8b6675d6d27c63a7df44d77a442805eeea8756d1c89e0264f4a3028f6"
+        },
+        {
+          "name": "nxz",
+          "originalKind": "symlink",
+          "originalTarget": "../node-liblzma/lib/cli/nxz.js",
+          "relocatedTarget": "../node-liblzma/lib/cli/nxz.js",
+          "targetSha256": "302f38e5e5539f629775c6a1183737359ea16cac0d2be2a2745a91cbdfe1de4b"
+        },
+        {
+          "name": "prebuild-install",
+          "originalKind": "symlink",
+          "originalTarget": "../prebuild-install/bin.js",
+          "relocatedTarget": "../prebuild-install/bin.js",
+          "targetSha256": "27e6a2d2e63549eb0b3c2d9a9067b7646f9157a120b7f345a12a1e20c997a998"
+        },
+        {
+          "name": "rc",
+          "originalKind": "symlink",
+          "originalTarget": "../rc/cli.js",
+          "relocatedTarget": "../rc/cli.js",
+          "targetSha256": "82383f5748af5f9380dbcde8f0166088614bf024e25bdbe073bb87cd385336ba"
+        },
+        {
+          "name": "seek-bunzip",
+          "originalKind": "symlink",
+          "originalTarget": "../seek-bzip/bin/seek-bunzip",
+          "relocatedTarget": "../seek-bzip/bin/seek-bunzip",
+          "targetSha256": "7c8f14a66505a44767d2a3b54c4d5507c9e0b6351ea40aa71dbc846d30b078ec"
+        },
+        {
+          "name": "seek-table",
+          "originalKind": "symlink",
+          "originalTarget": "../seek-bzip/bin/seek-bzip-table",
+          "relocatedTarget": "../seek-bzip/bin/seek-bzip-table",
+          "targetSha256": "7f2c2b2dcd83396eaa432cf16c1e8396faa814e6e5248590262daa24d5ea08ce"
+        },
+        {
+          "name": "semver",
+          "originalKind": "symlink",
+          "originalTarget": "../semver/bin/semver.js",
+          "relocatedTarget": "../semver/bin/semver.js",
+          "targetSha256": "bd6c871026985937dc945011fc54b74b47f5998154216d7b8d40d5ed782e4402"
+        },
+        {
+          "name": "yaml",
+          "originalKind": "symlink",
+          "originalTarget": "../yaml/bin.mjs",
+          "relocatedTarget": "../yaml/bin.mjs",
+          "targetSha256": "faebbf70669988b5be13130907adf7b788145960448eab08e92e66189e72f448"
+        }
+      ]
+    }
+  ],
+  "qualification": "First authenticated dependency projection hop; frozen A10 copies this physical staged input again. Original logical benchmark omission remains in this receipt, not claimed as a fresh missing body in second hop."
+}

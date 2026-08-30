@@ -1,0 +1,449 @@
+{
+  "profile": "bsd",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "corpusSha256": "5d6104cb79509290a65837db115ddc2a83c6db03b35013fcc82873c869fd63f0",
+  "environment": {
+    "PATH": "/usr/bin:/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "identities": {
+    "grep": {
+      "path": "/usr/bin/grep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "version": {
+        "code": 0,
+        "stdoutBase64": "Z3JlcCAoQlNEIGdyZXAsIEdOVSBjb21wYXRpYmxlKSAyLjYuMC1GcmVlQlNECg==",
+        "stderrBase64": ""
+      }
+    },
+    "egrep": {
+      "path": "/usr/bin/egrep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "version": {
+        "code": 0,
+        "stdoutBase64": "ZWdyZXAgKEJTRCBncmVwLCBHTlUgY29tcGF0aWJsZSkgMi42LjAtRnJlZUJTRAo=",
+        "stderrBase64": ""
+      }
+    },
+    "fgrep": {
+      "path": "/usr/bin/fgrep",
+      "sha256": "2146bcefd5e202919805f0b47701e4216ba636b994f272447301918267460062",
+      "version": {
+        "code": 0,
+        "stdoutBase64": "ZmdyZXAgKEJTRCBncmVwLCBHTlUgY29tcGF0aWJsZSkgMi42LjAtRnJlZUJTRAo=",
+        "stderrBase64": ""
+      }
+    }
+  },
+  "observations": [
+    {
+      "id": "egrep-default-mode",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0CmRvZwo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-repeated-mode",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-line-count",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-invert-number",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Mjpkb2cKMzphLmIKNDpheGIK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-case-word",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Q0FUIGNhdDEgY2F0IQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-whole-only",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-max-count",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-unterminated",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-no-match",
+      "result": {
+        "code": 1,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-empty-input",
+      "result": {
+        "code": 1,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-multiple-files",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "ZGF0YToxOmNhdApvdGhlcjoyOmNhdAo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-mixed-stdin-file",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "ZGF0YTpjYXQKKHN0YW5kYXJkIGlucHV0KTpjYXQK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-pattern-file",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0CmRvZwo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-stdin-pattern-file",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-empty-pattern-file",
+      "result": {
+        "code": 1,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-multiple-patterns",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0CmRvZwo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-files-with-match",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "ZGF0YQpvdGhlcgo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-silent-missing",
+      "result": {
+        "code": 2,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-quiet-before-missing",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "ZWdyZXA6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK"
+      }
+    },
+    {
+      "id": "egrep-dash-pattern-literal",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "LUYK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-conflicting-mode",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-missing-pattern",
+      "result": {
+        "code": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "dXNhZ2U6IGVncmVwIFstYWJjZERFRkdIaElpSkxsTW1uT29wcVJTc1VWdndYeFp6XSBbLUEgbnVtXSBbLUIgbnVtXSBbLUNbbnVtXV0KCVstZSBwYXR0ZXJuXSBbLWYgZmlsZV0gWy0tYmluYXJ5LWZpbGVzPXZhbHVlXSBbLS1jb2xvcj13aGVuXQoJWy0tY29udGV4dFs9bnVtXV0gWy0tZGlyZWN0b3JpZXM9YWN0aW9uXSBbLS1sYWJlbF0gWy0tbGluZS1idWZmZXJlZF0KCVstLW51bGxdIFtwYXR0ZXJuXSBbZmlsZSAuLi5dCg=="
+      }
+    },
+    {
+      "id": "egrep-unsupported-G",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "egrep-invalid-option",
+      "result": {
+        "code": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZWdyZXA6IHVucmVjb2duaXplZCBvcHRpb24gYC0tbm90LXN1cHBvcnRlZCcKdXNhZ2U6IGVncmVwIFstYWJjZERFRkdIaElpSkxsTW1uT29wcVJTc1VWdndYeFp6XSBbLUEgbnVtXSBbLUIgbnVtXSBbLUNbbnVtXV0KCVstZSBwYXR0ZXJuXSBbLWYgZmlsZV0gWy0tYmluYXJ5LWZpbGVzPXZhbHVlXSBbLS1jb2xvcj13aGVuXQoJWy0tY29udGV4dFs9bnVtXV0gWy0tZGlyZWN0b3JpZXM9YWN0aW9uXSBbLS1sYWJlbF0gWy0tbGluZS1idWZmZXJlZF0KCVstLW51bGxdIFtwYXR0ZXJuXSBbZmlsZSAuLi5dCg=="
+      }
+    },
+    {
+      "id": "egrep-ordered-alternative",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "YWIK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-default-mode",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "YS5iCg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-repeated-mode",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-line-count",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "MQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-invert-number",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Mjpkb2cKMzphLmIKNDpheGIK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-case-word",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Q0FUIGNhdDEgY2F0IQo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-whole-only",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-max-count",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-unterminated",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-no-match",
+      "result": {
+        "code": 1,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-empty-input",
+      "result": {
+        "code": 1,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-multiple-files",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "ZGF0YToxOmNhdApvdGhlcjoyOmNhdAo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-mixed-stdin-file",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "ZGF0YTpjYXQKKHN0YW5kYXJkIGlucHV0KTpjYXQK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-pattern-file",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0CmRvZwo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-stdin-pattern-file",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-empty-pattern-file",
+      "result": {
+        "code": 1,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-multiple-patterns",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0CmRvZwo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-files-with-match",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "ZGF0YQpvdGhlcgo=",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-silent-missing",
+      "result": {
+        "code": 2,
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-quiet-before-missing",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "",
+        "stderrBase64": "ZmdyZXA6IG1pc3Npbmc6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK"
+      }
+    },
+    {
+      "id": "fgrep-dash-pattern-literal",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "LUYK",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-literal-argv",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "JCh0b3VjaCAvZXNjYXBlKTsgKiBbeF0K",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-conflicting-mode",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-missing-pattern",
+      "result": {
+        "code": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "dXNhZ2U6IGZncmVwIFstYWJjZERFRkdIaElpSkxsTW1uT29wcVJTc1VWdndYeFp6XSBbLUEgbnVtXSBbLUIgbnVtXSBbLUNbbnVtXV0KCVstZSBwYXR0ZXJuXSBbLWYgZmlsZV0gWy0tYmluYXJ5LWZpbGVzPXZhbHVlXSBbLS1jb2xvcj13aGVuXQoJWy0tY29udGV4dFs9bnVtXV0gWy0tZGlyZWN0b3JpZXM9YWN0aW9uXSBbLS1sYWJlbF0gWy0tbGluZS1idWZmZXJlZF0KCVstLW51bGxdIFtwYXR0ZXJuXSBbZmlsZSAuLi5dCg=="
+      }
+    },
+    {
+      "id": "fgrep-unsupported-G",
+      "result": {
+        "code": 0,
+        "stdoutBase64": "Y2F0Cg==",
+        "stderrBase64": ""
+      }
+    },
+    {
+      "id": "fgrep-invalid-option",
+      "result": {
+        "code": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZmdyZXA6IHVucmVjb2duaXplZCBvcHRpb24gYC0tbm90LXN1cHBvcnRlZCcKdXNhZ2U6IGZncmVwIFstYWJjZERFRkdIaElpSkxsTW1uT29wcVJTc1VWdndYeFp6XSBbLUEgbnVtXSBbLUIgbnVtXSBbLUNbbnVtXV0KCVstZSBwYXR0ZXJuXSBbLWYgZmlsZV0gWy0tYmluYXJ5LWZpbGVzPXZhbHVlXSBbLS1jb2xvcj13aGVuXQoJWy0tY29udGV4dFs9bnVtXV0gWy0tZGlyZWN0b3JpZXM9YWN0aW9uXSBbLS1sYWJlbF0gWy0tbGluZS1idWZmZXJlZF0KCVstLW51bGxdIFtwYXR0ZXJuXSBbZmlsZSAuLi5dCg=="
+      }
+    }
+  ],
+  "cleanup": {
+    "childrenReaped": true,
+    "temporaryRemoved": true,
+    "timeouts": 0,
+    "temporary": "/Users/kjopek/Workspace/safe-bash/tests/commands/grep-aliases/.native-SIoet6"
+  }
+}

@@ -1,0 +1,360 @@
+[
+  {
+    "path": "src/plugins/index.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "1741b55650062b6ae282d410d20969cac283fa8e",
+    "mode": "100644",
+    "bytes": 6665,
+    "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/plugins/index.ts",
+    "sections": [
+      {
+        "first": 52,
+        "last": 73,
+        "text": "function executor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {\n  return async context => {\n    const command = lookup(context.command);\n    if (command) return command.execute(context);\n    await diagnostic(context, new Error(\"command not found\"));\n    return { exitCode: 127 };\n  };\n}\n\nexport function createAgentCommands(options: AgentCommandsOptions = {}): readonly CommandDefinition[] {\n  const commands: CommandDefinition[] = [];\n  const exprLimits = options.expr?.limits;\n  const whichLimits = options.which?.limits;\n  const timeoutOptions = options.timeout;\n  commands.push(\n    ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }) }),\n    ...createTextProgramCommands({ ...options.text }),\n    ...createStructuredCommands({ ...options.structured }),\n    ...createSearchCommands({ ...options.search }),\n    ...createByteCommands(),\n    ...createDiffPatchCommands({ ...options.diffPatch }),\n    ...createMetadataCommands({ ...options.metadata }),"
+      },
+      {
+        "first": 97,
+        "last": 109,
+        "text": "export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellPlugin {\n  return {\n    name: \"agent-commands\",\n    setup(host) {\n      const definitions = createAgentCommands({ ...options, execute: options.execute ?? executor(name => host.commands.get(name)) });\n      if (!options.replace) for (const definition of definitions) {\n        if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);\n      }\n      for (const definition of definitions) host.commands.register(definition, { replace: options.replace ?? false });\n    },\n  };\n}\n"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/index.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+    "mode": "100644",
+    "bytes": 2292,
+    "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/index.ts",
+    "sections": [
+      {
+        "first": 19,
+        "last": 28,
+        "text": "export function createStandardCommands(options: StandardCommandsOptions = {}): readonly CommandDefinition[] {\n  const commands: CommandDefinition[] = [];\n  const execute = directExecutor(options.execute ?? (async context => {\n    const command = commands.find(definition => definition.name === context.command);\n    if (command) return command.execute(context);\n    await diagnostic(context, new Error(\"command not found\"));\n    return { exitCode: 127 };\n  }));\n  commands.push(...basicCommands(), ...filesystemCommands(), ...streamCommands(), ...textCommands(), ...grepCommands(options.regex), ...predicateCommands(), ...executionCommands(execute), ...findCommands(execute));\n  return commands;"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/execution.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+    "mode": "100644",
+    "bytes": 9269,
+    "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/execution.ts",
+    "sections": [
+      {
+        "first": 5,
+        "last": 14,
+        "text": "export function directExecutor(fallback: CommandHandler): CommandHandler {\n  return async context => {\n    context.signal.throwIfAborted();\n    const invoke = context.invoke;\n    if (invoke) return invoke(context.command, context.args, {\n      stdin: context.stdin, cwd: context.cwd, env: context.env, stdout: context.stdout, stderr: context.stderr,\n      ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),\n    });\n    return fallback(context);\n  };"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/find.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "cc1854873f02be5a6ede00fa78283f3b80f647ee",
+    "mode": "100644",
+    "bytes": 9193,
+    "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/find.ts",
+    "sections": [
+      {
+        "first": 86,
+        "last": 95,
+        "text": "      if (token === \"-exec\") {\n        explicitAction = true;\n        const command: string[] = [];\n        while (args[offset] !== undefined && args[offset] !== \";\" && args[offset] !== \"+\") command.push(args[offset++]!);\n        const terminator = args[offset++];\n        if (!command.length || terminator === undefined) throw new UsageError(\"-exec requires a command terminated by ';' or '+'\");\n        if (terminator === \";\") return async entry => {\n          const invocation = command.map(argument => argument.replaceAll(\"{}\", entry.display));\n          return (await execute({ ...context, command: invocation[0]!, args: invocation.slice(1), env: { ...context.env } })).exitCode === 0;\n        };"
+      },
+      {
+        "first": 114,
+        "last": 121,
+        "text": "    const conjunction = (): Expression => {\n      let predicate = primary();\n      while (offset < args.length && ![\"-o\", \"-or\", \")\"].includes(args[offset]!)) {\n        if (args[offset] === \"-a\" || args[offset] === \"-and\") offset++;\n        const left = predicate;\n        const right = primary();\n        predicate = async entry => await left(entry) && await right(entry);\n      }"
+      },
+      {
+        "first": 136,
+        "last": 161,
+        "text": "    const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>): Promise<void> => {\n      context.signal.throwIfAborted();\n      const path = pathOf(context, display);\n      try {\n        if (depth > 1024) throw new FsError(\"ELOOP\", { path, message: \"find depth limit exceeded (1024)\" });\n        let stat = await context.fs.lstat(path, { signal: context.signal });\n        if (follow && stat.type === \"symlink\") {\n          try { stat = await context.fs.stat(path, { signal: context.signal }); }\n          catch (error) { if (codeOf(error) !== \"ENOENT\") throw error; }\n        }\n        const entry: Entry = { path, display, stat, depth, prune: false };\n        const apply = async () => { if (depth >= minDepth && await evaluate(entry) && !explicitAction) await output(context, `${display}\\n`); };\n        if (!depthFirst) await apply();\n        if (stat.type === \"directory\" && depth < maxDepth && (!entry.prune || depthFirst)) {\n          const physical = await context.fs.realpath(path, { signal: context.signal });\n          if (ancestors.has(physical)) throw new FsError(\"ELOOP\", { path });\n          const next = new Set(ancestors).add(physical);\n          const children = (await context.fs.readdir(path, { signal: context.signal })).sort((left, right) => left.name < right.name ? -1 : left.name > right.name ? 1 : 0);\n          for (const child of children) await visit(`${display.replace(/\\/$/u, \"\")}/${child.name}`, depth + 1, next);\n        }\n        if (depthFirst) await apply();\n      } catch (error) { await diagnostic(context, error); exitCode = 1; }\n    };\n    for (const root of roots) await visit(root, 0, new Set());\n    for (const flush of flushes) await flush();\n    return { exitCode };"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/runtime.ts",
+    "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+    "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+    "mode": "100644",
+    "bytes": 154603,
+    "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+    "role": "explicit accepted override",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/shell/runtime.ts",
+    "sections": [
+      {
+        "first": 1507,
+        "last": 1536,
+        "text": "  private async dispatchScoped(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean): Promise<number> {\n    const { [invocationScope]: scope, ...publicIO } = io;\n    let builtinFailure: { error: unknown; diagnostic: string } | undefined;\n    const env = Object.create(null) as Record<string, string>;\n    for (const key of state.exported) {\n      const value = state.variables[key];\n      if (value !== undefined) env[key] = value;\n    }\n    const initialEnv = { ...env };\n    const runtimeFrame: RuntimeOutcomeFrame = {};\n    const context: ShellCommandContext = {\n      ...publicIO, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,\n      registerCleanup: (cleanup) => scope.register(cleanup),\n      invoke: (name, args, options) => {\n        const invocation = this.invoke(name, args, options, context, state, scope);\n        void invocation.catch(() => undefined);\n        return invocation;\n      },\n    };\n    const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {\n      scope.assertOpen();\n      let downstream: Promise<CommandResult> | undefined;\n      const raw = handler(context, () => {\n        downstream = next();\n        return downstream;\n      });\n      return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);\n    });\n    const execute = composeMiddleware(middleware, async (forwarded) => {\n      const context = { ...forwarded, [invocationScope]: scope };"
+      },
+      {
+        "first": 2234,
+        "last": 2266,
+        "text": "  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {\n    this.signal.throwIfAborted();\n    const child = cloneState(state);\n    child.cwd = resolvePath(context.cwd, options.cwd ?? \".\");\n    for (const key of child.exported) delete child.variables[key];\n    const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };\n    for (const [key, value] of Object.entries(env)) {\n      if (key.includes(\"\\0\") || key.includes(\"=\") || typeof value !== \"string\" || value.includes(\"\\0\")) throw new TypeError(\"Invalid invoke environment entry\");\n      child.variables[key] = value;\n    }\n    child.exported = new Set(Object.keys(env));\n    this.reconcileGetopts(child, state.variables.OPTIND);\n    child.depth++;\n    child.loopDepth = 0;\n    child.functionDepth = 0;\n    child.sourceDepth = 0;\n    child.locals = [];\n    const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);\n    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);\n    const io = {\n      ...context,\n      [invocationScope]: scope,\n      stdin: input ?? context.stdin,\n      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),\n      stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,\n      stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,\n    };\n    const command: Command = {\n      kind: \"simple\", redirects: [],\n      words: [name, ...args].map((value) => ({ offset: 0, parts: [{ kind: \"text\", value, quoted: true }] })),\n    };\n    try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }\n    finally { await input?.close(); }"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/search/rg.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "aa66ae5b06c1d5f97e56fda13436bfef757ca771",
+    "mode": "100644",
+    "bytes": 10557,
+    "sha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/search/rg.ts",
+    "sections": [
+      {
+        "first": 120,
+        "last": 158,
+        "text": "export function rgCommand(options: SearchOptions = {}): CommandDefinition {\n  const executor = new RegexExecutor(options.regex);\n  return {\n    name: \"rg\",\n    description: \"Search virtual files or stdin with recursive filtering and structured results\",\n    async execute(context) {\n      return withRegexSession(context, executor, async session => {\n        let args: Arguments | undefined;\n        let failed = false;\n        let found = false;\n        try {\n          const limits = new Limits(context, options);\n          args = parse(context.args);\n          if (args.mode !== \"files\" && args.patternFiles.includes(\"-\") && args.paths.includes(\"-\")) {\n            throw new SearchError(\"cannot search stdin while also reading patterns from stdin\");\n          }\n          const report = async (error: unknown) => {\n            context.signal.throwIfAborted(); failed = true;\n            if (args!.messages) await diagnostic(context, error);\n          };\n          const walker = new Walker(context, args, limits, report, session);\n          await walker.validate();\n          const matcher = new Matcher(args.mode === \"files\" ? [] : await patterns(context, args), args, session);\n          if (args.mode !== \"files\") await matcher.batch([]);\n          if (args.mode !== \"files\" && args.maxCount === 0) return { exitCode: 1 };\n          const selection = selectInput(context, args, options);\n          const printer = new Printer(args, limits);\n          const totals = stats();\n          for await (const target of walker.targets(selection.paths, selection.implicit)) {\n            if (args.mode === \"files\") { found = true; if (!args.quiet) await printer.filename(target.label); else break; continue; }\n            try {\n              const result = await searchFile(context, args, limits, matcher, printer, target, context.stdin, args.filename ?? (target.recursive || selection.paths.length > 1));\n              found ||= result.found;\n              for (const field of [\"searches\", \"searches_with_match\", \"bytes_searched\", \"bytes_printed\", \"matched_lines\", \"matches\"] as const) totals[field] += result.stats[field];\n              if (args.quiet && found && args.mode !== \"json\") break;\n            } catch (error) { if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await report(error); }\n          }\n          if (args.mode === \"json\") await printer.event(\"summary\", { elapsed_total: elapsed, stats: totals });\n          return { exitCode: args.quiet && found ? 0 : failed ? 2 : found ? 0 : 1 };"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/search/matcher.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "4cb187c8ad6bbd607df0762c991bd3bcdc5f82af",
+    "mode": "100644",
+    "bytes": 1074,
+    "sha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/search/matcher.ts",
+    "sections": [
+      {
+        "first": 1,
+        "last": 22,
+        "text": "import { RegexExecutionError, type RegexSession } from \"../regex-execution/client.js\";\nimport type { Match, Row, SearchDescriptor } from \"../regex-execution/protocol.js\";\nimport { SearchError, type Arguments } from \"./options.js\";\n\nexport type { Match } from \"../regex-execution/protocol.js\";\n\nexport class Matcher {\n  private readonly descriptor: SearchDescriptor;\n  constructor(patterns: readonly string[], args: Arguments, private readonly session: RegexSession) {\n    this.descriptor = { kind: \"rg\", patterns: [...patterns], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };\n  }\n  async batch(rows: readonly Row[]): Promise<Match[][]> {\n    try { return await this.session.run(this.descriptor, rows); }\n    catch (error) {\n      if (error instanceof RegexExecutionError && error.code === \"MATCH\") throw new SearchError(error.message);\n      throw error;\n    }\n  }\n  async matches(bytes: Uint8Array, all = true, terminated = true): Promise<Match[]> {\n    return (await this.batch([{ bytes, all, terminated }]))[0]!;\n  }\n}"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/regex-execution/client.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+    "mode": "100644",
+    "bytes": 15319,
+    "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/regex-execution/client.ts",
+    "sections": [
+      {
+        "first": 28,
+        "last": 55,
+        "text": "export async function withRegexSession(\n  context: CommandContext,\n  executor: RegexExecutor,\n  execute: (session: RegexSession) => CommandResult | Promise<CommandResult>,\n): Promise<CommandResult> {\n  context.signal.throwIfAborted();\n  let session: RegexSession | undefined;\n  let closing: Promise<void> | undefined;\n  const close = () => closing ??= (async () => { await session?.close(); })();\n  try { context.registerCleanup?.(close); }\n  catch (error) { context.signal.throwIfAborted(); throw error; }\n  let rejected = false;\n  try {\n    context.signal.throwIfAborted();\n    if (closing) throw new RegexExecutionError(\"CLOSED\", \"invocation is closed\");\n    session = executor.open(context.signal);\n    return await execute(session);\n  } catch (error) {\n    rejected = true;\n    throw error;\n  } finally {\n    try { await close(); }\n    catch (error) {\n      context.signal.throwIfAborted();\n      if (!rejected) throw error;\n    }\n    context.signal.throwIfAborted();\n  }"
+      },
+      {
+        "first": 78,
+        "last": 88,
+        "text": "  constructor(private readonly owner: RegexExecutor) {\n    this.worker = new Worker(new URL(import.meta.url.endsWith(\".ts\") ? \"../../../dist/commands/regex-execution/worker.js\" : \"./worker.js\", import.meta.url), {\n      execArgv: [], resourceLimits: {\n        maxOldGenerationSizeMb: owner.options.workerOldGenerationMb,\n        stackSizeMb: owner.options.workerStackMb,\n      },\n    });\n    this.worker.on(\"message\", this.message);\n    this.worker.on(\"messageerror\", this.messageerror);\n    this.worker.on(\"error\", this.error);\n    this.worker.on(\"exit\", this.exit);"
+      },
+      {
+        "first": 111,
+        "last": 127,
+        "text": "  retire(): Promise<void> {\n    if (this.retired) return this.retired;\n    clearTimeout(this.idleTimer);\n    this.worker.ref();\n    this.retired = (async () => {\n      if (!this.exited) await this.worker.terminate();\n    })().finally(() => {\n      this.worker.off(\"message\", this.message);\n      this.worker.off(\"messageerror\", this.messageerror);\n      this.worker.off(\"error\", this.error);\n      this.worker.off(\"exit\", this.exit);\n      this.receiver = undefined;\n      this.failure = undefined;\n      if (!this.busy) this.owner.retired(this);\n    });\n    void this.retired.catch(() => {});\n    return this.retired;"
+      },
+      {
+        "first": 139,
+        "last": 148,
+        "text": "  constructor(options: RegexExecutionOptions = defaults) { this.options = policy(options); }\n  open(signal: AbortSignal): RegexSession {\n    signal.throwIfAborted();\n    if (this.disposed) throw new RegexExecutionError(\"CLOSED\", \"executor is disposed\");\n    this.sessions++;\n    return new RegexSession(this, signal);\n  }\n  async close(): Promise<void> {\n    this.sessions--;\n    if (this.sessions === 0) await awaitRetirements([...this.slots].filter(slot => !slot.busy || slot.retired).map(slot => slot.retire()));"
+      },
+      {
+        "first": 202,
+        "last": 217,
+        "text": "  private pump(): void {\n    if (this.disposed) return;\n    while (this.queue.length) {\n      let slot = [...this.slots].find(candidate => !candidate.busy && !candidate.retired);\n      if (!slot && this.slots.size >= this.options.maxWorkers) return;\n      const pending = this.queue.shift()!;\n      this.queuedBytes -= pending.bytes;\n      try {\n        pending.signal.throwIfAborted();\n        if (!slot) { slot = new Slot(this); this.slots.add(slot); }\n        slot.busy = true;\n        pending.slot = slot;\n        clearTimeout(slot.idleTimer);\n        slot.worker.ref();\n        void this.run(slot, pending);\n      } catch (error) {"
+      },
+      {
+        "first": 273,
+        "last": 296,
+        "text": "  run(descriptor: Descriptor, rows: readonly Row[]): Promise<Match[][]> {\n    this.signal.throwIfAborted();\n    if (this.closed) throw new RegexExecutionError(\"CLOSED\", \"invocation is closed\");\n    const result = this.executor.request(descriptor, rows, this.requestSignal, this.retirements);\n    this.pending.add(result);\n    void result.then(() => this.pending.delete(result), () => this.pending.delete(result));\n    return result;\n  }\n  matchExpr(descriptor: ExprMatchDescriptor, subject: Uint8Array): Promise<ExprMatchResult> {\n    this.signal.throwIfAborted();\n    if (this.closed) throw new RegexExecutionError(\"CLOSED\", \"invocation is closed\");\n    const result = this.executor.request(descriptor, [{ bytes: subject, all: false, terminated: false }], this.requestSignal, this.retirements);\n    this.pending.add(result);\n    void result.then(() => this.pending.delete(result), () => this.pending.delete(result));\n    return result;\n  }\n  close(): Promise<void> {\n    return this.closed ??= Promise.resolve().then(async () => {\n      this.controller.abort(this.signal.aborted ? this.signal.reason : new RegexExecutionError(\"CLOSED\", \"invocation is closed\"));\n      try { await Promise.allSettled([...this.pending]); }\n      finally {\n        await awaitRetirements([...this.retirements, this.executor.close()]);\n      }\n    });"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/regex-execution/worker.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+    "mode": "100644",
+    "bytes": 1930,
+    "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/regex-execution/worker.ts",
+    "sections": [
+      {
+        "first": 1,
+        "last": 48,
+        "text": "import { parentPort } from \"node:worker_threads\";\nimport { compile } from \"./matching.js\";\nimport { matchExpr } from \"../expr/bre-worker.js\";\nimport { ExprMatchError, validateExprRequest, type ExprMatchRequest, type ExprMatchReply, type Request, type Reply } from \"./protocol.js\";\n\nif (!parentPort) throw new Error(\"regex worker requires a parent port\");\nconst port = parentPort;\nlet previous = \"\";\nlet matcher: ReturnType<typeof compile> | undefined;\nport.on(\"message\", (request: Request | ExprMatchRequest) => {\n  if (request?.descriptor?.kind === \"expr-match\") {\n    let reply: ExprMatchReply;\n    try {\n      validateExprRequest(request);\n      reply = { id: request.id, operation: \"expr-match\", result: matchExpr(request.descriptor, request.rows[0]!.bytes) };\n    } catch (error) {\n      if (!(error instanceof ExprMatchError)) throw error;\n      reply = { id: request.id, operation: \"expr-match\", category: error.category, error: error.message };\n    }\n    port.postMessage(reply);\n    return;\n  }\n  const legacy = request as Request;\n  let reply: Reply;\n  try {\n    const identity = JSON.stringify(request.descriptor);\n    if (identity !== previous || !matcher) {\n      matcher = undefined;\n      matcher = compile(legacy.descriptor);\n      previous = identity;\n    }\n    const results = request.rows.map((row, index) => {\n      const matches = matcher!(row, index);\n      const ranges = new Float64Array(matches.length * 2);\n      for (let index = 0; index < matches.length; index++) {\n        ranges[index * 2] = matches[index]!.start;\n        ranges[index * 2 + 1] = matches[index]!.end;\n      }\n      return ranges;\n    });\n    reply = { id: request.id, results };\n    port.postMessage(reply, results.map(result => result.buffer));\n  } catch (error) {\n    reply = { id: request.id, error: error instanceof Error ? error.message : String(error) };\n    port.postMessage(reply);\n  }\n});\nport.postMessage({ ready: true });"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/text-programs/sed.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "9be29dd04a0c93934805fb27a76dbaee1e185e9a",
+    "mode": "100644",
+    "bytes": 22047,
+    "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/text-programs/sed.ts",
+    "sections": [
+      {
+        "first": 1,
+        "last": 4,
+        "text": "import { FsError, readBytes, writeBytes, type CommandContext, type CommandDefinition } from \"../../contracts/index.js\";\nimport { Pattern, substitute } from \"./regex.js\";\nimport { Budget, ProgramError, byteString, bytes, command, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from \"./shared.js\";\n"
+      },
+      {
+        "first": 249,
+        "last": 270,
+        "text": "      const matches = async (address: Address): Promise<boolean> => address.kind === \"number\" ? number === address.number : address.kind === \"last\" ? (await peekNext()).done === true : getPattern(address.pattern).find(pattern, budget) !== undefined;\n      for (let pc = 0; pc < program.length;) {\n        budget.step(); await budget.checkpoint();\n        const instruction = program[pc]!;\n        let selected = true;\n        let ending = false;\n        if (instruction.first) {\n          if (instruction.second) {\n            if (active.has(pc)) {\n              if (instruction.second.kind === \"number\" && number > instruction.second.number) selected = false;\n              ending = instruction.second.kind === \"number\" ? number >= instruction.second.number : await matches(instruction.second);\n              if (ending) active.delete(pc);\n            } else {\n              selected = await matches(instruction.first);\n              if (selected) {\n                ending = instruction.second.kind === \"number\" && number >= instruction.second.number || instruction.second.kind === \"last\" && (await peekNext()).done === true;\n                if (!ending) active.add(pc);\n              }\n            }\n          } else selected = await matches(instruction.first);\n        }\n        if (instruction.negate) selected = !selected;"
+      }
+    ]
+  },
+  {
+    "path": "src/commands/text-programs/regex.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "1cf3c49b631cf046ec0abdcf9879d162334c80e6",
+    "mode": "100644",
+    "bytes": 16791,
+    "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "role": "public78 unchanged baseline",
+    "localPath": "tests/integration/priority-command-workflows-20260828/future-run-01/source/src/commands/text-programs/regex.ts",
+    "sections": [
+      {
+        "first": 51,
+        "last": 75,
+        "text": "export class Pattern {\n  readonly groupCount: number;\n  private readonly code: Instruction[] = [];\n  private readonly anchored: boolean;\n\n  constructor(source: string, extended = true, ignoreCase = false) {\n    if (source.length > 8192) throw new ProgramError(\"regular expression exceeds 8192 bytes\");\n    if (!extended) source = extendedSource(source);\n    let offset = 0;\n    let groups = 0;\n    const closedGroups = new Set<number>();\n    let depth = 0;\n    const characterNode = (character: string): Node => ({ type: \"character\", accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character });\n    const escaped = (): string => {\n      const character = source[offset++];\n      if (character === undefined) throw new ProgramError(\"trailing backslash in regular expression\");\n      if (/^[1-9]$/u.test(character)) throw new ProgramError(\"pattern backreferences are not supported\");\n      const control: Record<string, string> = { n: \"\\n\", t: \"\\t\", r: \"\\r\", f: \"\\f\", v: \"\\v\", a: \"\\x07\" };\n      return control[character] ?? character;\n    };\n    const bracket = (): Node => {\n      const negate = source[offset] === \"^\";\n      if (negate) offset++;\n      const tests: ((character: string) => boolean)[] = [];\n      let first = true;"
+      },
+      {
+        "first": 295,
+        "last": 307,
+        "text": "export function substitute(text: string, pattern: Pattern, replacement: string, budget: Budget, global: boolean, occurrence = 1): { text: string; count: number } {\n  let search = 0;\n  let consumed = 0;\n  let previousEnd = -1;\n  let encountered = 0;\n  let count = 0;\n  let result = \"\";\n  while (search <= text.length) {\n    const match = pattern.find(text, budget, search);\n    if (!match) break;\n    if (match.start === match.end && match.start === previousEnd) { search = match.end + 1; continue; }\n    encountered++;\n    if (encountered >= occurrence) {"
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 47429,
+    "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+    "sections": [
+      {
+        "first": 716,
+        "last": 780,
+        "text": "      \"id\": \"P16\",\n      \"title\": \"Discover spaced paths and dispatch a literal search per file\",\n      \"classification\": \"STATIC_UNEXECUTED\",\n      \"script\": \"find notes -type f -name '*.txt' -exec rg -H -n -F TODO '{}' ';' | sed 's/TODO/TASK/'\",\n      \"argv\": [\n        [\n          \"find\",\n          \"notes\",\n          \"-type\",\n          \"f\",\n          \"-name\",\n          \"*.txt\",\n          \"-exec\",\n          \"rg\",\n          \"-H\",\n          \"-n\",\n          \"-F\",\n          \"TODO\",\n          \"{}\",\n          \";\"\n        ],\n        [\n          \"sed\",\n          \"s/TODO/TASK/\"\n        ]\n      ],\n      \"expected\": {\n        \"kind\": \"result\",\n        \"exitCode\": 0,\n        \"stdoutBase64\": \"bm90ZXMvYSBiLnR4dDoxOlRBU0sgYWxwaGEKbm90ZXMvei50eHQ6MjpUQVNLIGJldGEK\",\n        \"stderrBase64\": \"\",\n        \"stageExitCodes\": [\n          0,\n          0\n        ],\n        \"changedFiles\": {},\n        \"absent\": [\n          \"unexpected\"\n        ]\n      },\n      \"reason\": \"find sorts directory entries and dispatches a literal argv per matching file; spaces are not split; only content tokens are replaced.\",\n      \"anchors\": [\n        \"src/commands/text-programs/sed.ts:224,249-270,313-317,347-413\",\n        \"src/commands/search/options.ts:92-159; src/commands/search/rg.ts:145-163; src/commands/search/output.ts:43-52\",\n        \"src/commands/find.ts:86-109,136-160\"\n      ],\n      \"literalChildArgv\": [\n        [\n          \"rg\",\n          \"-H\",\n          \"-n\",\n          \"-F\",\n          \"TODO\",\n          \"notes/a b.txt\"\n        ],\n        [\n          \"rg\",\n          \"-H\",\n          \"-n\",\n          \"-F\",\n          \"TODO\",\n          \"notes/z.txt\"\n        ]\n      ],\n      \"childObservation\": \"find uses its injected aggregate executor, not guaranteed middleware child entry; no replacement handler. Verify actual child effects; no pretend context.invoke witness.\""
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 3969,
+    "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+    "sections": [
+      {
+        "first": 97,
+        "last": 103,
+        "text": "  ],\n  \"byteFields\": \"Canonical base64; Uint8Array at future boundary. No implicit transcoding. Script and argv are literal Unicode JSON strings, not executable test files.\",\n  \"pathFields\": \"Relative to /work; nonempty; no NUL, empty path segment, dot or dotdot segments. Leading dash, whitespace, quotes and literal newlines are valid filename data.\",\n  \"oracleContract\": \"Initial files and all ancestor directories plus / and /work; changedFiles replaces/adds only named regular files. All initial content not replaced stays exact; every additional path or missing initial entry fails. absent adds explicit checks, not the entire absence oracle. Initial permission bits preserved. New permissions and timestamps not claimed.\",\n  \"stageContract\": \"argv is shell command source-order, not concurrent execution order. stageExitCodes parallels argv. literalChildArgv records find-selected invocations separately. A null stage status denotes thrown outcome, not exit0. ShellResult status is asserted separately.\",\n  \"limits\": {\n    \"maxPacketBytes\": 262144,"
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 24859,
+    "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+    "sections": [
+      {
+        "first": 153,
+        "last": 176,
+        "text": "export function validateCaseSafety(row, fixture, trace) {\n  const check = (code, action) => { try { safetyCheck(trace, code, action); } catch {} };\n  check('CLEANUP_STOP', () => { assert.equal(trace.created, 1); assert.equal(trace.disposed, 1); });\n  check('PENDING_RESOURCE_STOP', () => {\n    assert.equal(trace.listenersAtEnd, 0);\n    for (const name of ['pendingOwnedAtEnd', 'pendingFixtureAtEnd']) assert.equal(trace.lifecycle[name], 0, name);\n    for (const resource of [trace.stdin, trace.fs, trace.backing, ...(trace.responses ?? [])]) assert.equal(resource.pending, 0);\n    for (const call of [...trace.fs.calls, ...trace.backing.calls]) if (call.stream) assert.equal(call.stream.pending, 0);\n  });\n  check('POST_CLOSE_ADMISSION_STOP', () => { assert.equal(trace.network.requestAfterClose, 0); assert.equal(trace.network.extraRequests, 0); });\n  check('MANDATORY_TRACE_STOP', () => {\n    assert.ok(trace.outcome && ['result', 'throw'].includes(trace.outcome.kind));\n    const unmatched = [...trace.stages];\n    for (const argv of row.argv) {\n      const index = unmatched.findIndex(stage => JSON.stringify(stage.argv) === JSON.stringify(argv));\n      assert.ok(index >= 0, `MISSING_REAL_STAGE:${JSON.stringify(argv)}`);\n      const [stage] = unmatched.splice(index, 1);\n      assert.ok(['result', 'throw'].includes(stage.kind), 'UNSETTLED_STAGE');\n    }\n    assert.equal(unmatched.length, 0, 'UNDECLARED_STAGE');\n    assert.ok(trace.events.includes('shell.dispose.complete'), 'MISSING_DISPOSE_TRACE');\n    for (const guard of [row.networkGuard, row.lifecycleGuard]) {\n      for (const sequence of guard?.partialOrder ?? []) partialOrder(trace.events, sequence);\n      for (const [name, count] of Object.entries(guard?.events ?? {})) assert.equal(trace.events.filter(event => event === name).length, count, name);"
+      },
+      {
+        "first": 298,
+        "last": 305,
+        "text": "    shell = new api.Shell({ fs, cwd: defaults.cwd, env: { ...defaults.env }, limits: { ...defaults.shellLimits } }).use(api.agentCommands());\n    trace.created++;\n    shell.use(async (context, next) => {\n      const stage = { argv: [context.command, ...context.args], stdinIsDefault: context.stdinIsDefault, kind: 'pending' };\n      trace.stages.push(stage);\n      try { const result = await next(); stage.kind = 'result'; stage.exitCode = result.exitCode; return result; }\n      catch (reason) { stage.kind = 'throw'; stage.callerReasonSameObject = reason === callerReason; throw reason; }\n    });"
+      },
+      {
+        "first": 355,
+        "last": 380,
+        "text": "  validateCaseSafety(row, fixture, trace);\n  try {\n    assert.equal(trace.failures.length, 0); assert.equal(trace.created, 1); assert.equal(trace.disposed, 1);\n    assert.equal(listenerCount, 0); assert.equal(ownedPending, 0); assert.equal(fixturePending, 0);\n    assert.equal(trace.stdin.pending, 0); assert.equal(trace.fs.pending, 0); assert.equal(trace.backing.pending, 0);\n    for (const call of [...trace.fs.calls, ...trace.backing.calls]) if (call.stream) assert.equal(call.stream.pending, 0, 'FILESYSTEM_CURSOR_UNREAPED');\n    for (const response of trace.responses ?? []) assert.equal(response.pending, 0, 'RESPONSE_CURSOR_UNREAPED');\n    if (fixture.infrastructure === 'opaque-authorizer') assert.equal(trace.lifecycle.lateReasonSameObject, true);\n    assert.equal(trace.outcome.kind, row.expected.kind);\n    if (row.expected.kind === 'result') assert.equal(trace.outcome.exitCode, row.expected.exitCode);\n    else { assert.equal(Object.hasOwn(trace.outcome, 'exitCode'), false); assert.equal(trace.outcome.callerReasonSameObject, true); }\n    assert.equal(trace.outcome.stdoutBase64, row.expected.stdoutBase64); assert.equal(trace.outcome.stderrBase64, row.expected.stderrBase64);\n    const unmatched = [...trace.stages];\n    row.argv.forEach((argv, index) => {\n      const match = unmatched.findIndex(stage => JSON.stringify(stage.argv) === JSON.stringify(argv));\n      assert.ok(match >= 0, `MISSING_REAL_STAGE:${JSON.stringify(argv)}`);\n      const [stage] = unmatched.splice(match, 1);\n      if (row.expected.stageExitCodes[index] === null) assert.equal(stage.kind, 'throw');\n      else { assert.equal(stage.kind, 'result'); assert.equal(stage.exitCode, row.expected.stageExitCodes[index]); }\n    });\n    assert.equal(unmatched.length, 0, 'UNDECLARED_STAGE');\n    if (row.literalChildArgv) trace.findChildQualification = { expectedLiteralArgv: row.literalChildArgv, witness: 'exact public find output and VFS effects only; aggregate child executor bypasses middleware; no fabricated invoke receipt' };\n    if (fixture.sink) { assert.equal(plainWrites, fixture.sink.plainWritesAllowed); assert.equal(ownedWrites, fixture.sink.ownedWritesAllowed); }\n    checkNamespace(trace.before, trace.after, row.expected); checkGuards(row, trace);\n    trace.pass = trace.safetyStops.length === 0;\n  } catch (error) { trace.pass = false; trace.failures.push({ kind: 'assertion', message: String(error), stack: error?.stack }); }"
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 3074,
+    "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+    "sections": [
+      {
+        "first": 18,
+        "last": 43,
+        "text": "assert.equal(admission.product, layout.product);\nconst observer = observeWorkers({\n  files: admission.files, entry: pathToFileURL(layout.product + '/dist/commands/regex-execution/worker.js').href,\n  preload: new URL('./worker-preload.mjs', import.meta.url).href, guard: new URL('./guard.mjs', import.meta.url).href,\n  token: configuration.layout + ':' + configuration.id, log: configuration.workerLog, parentLog: configuration.workerParentLog,\n  maxStarts: Math.min(bounds.workerStartsPerChild, configuration.workerStartsRemaining), maxConcurrent: bounds.concurrentWorkers,\n  captureBytes: configuration.workerCaptureBytes, cleanupMs: bounds.cleanupMs,\n});\nlet observation;\ntry {\n  const resolved = import.meta.resolve(configuration.specifier);\n  assert.equal(resolved, pathToFileURL(layout.product + '/dist/index.js').href, 'PUBLIC_RESOLUTION_ONLY');\n  admitFile(resolved, admission.files);\n  const api = await import(configuration.specifier);\n  const row = [...cases.workflows, ...cases.controls].find(row => row.id === configuration.id);\n  observation = await runCase(api, row, fixtures.rows.find(row => row.id === configuration.id), cases.defaults, fixtures.networkLimits);\n} catch (error) { observation = { id: configuration.id, pass: false, safetyStops: [{ code: 'RUNTIME_SETUP_OR_TRACE_STOP', message: String(error) }], failures: [{ kind: 'runtime', message: String(error), stack: error?.stack }] }; }\nfinally {\n  try { observation.workers = await observer.close(); }\n  catch (error) { observation.pass = false; observation.safetyStops.push({ code: 'WORKER_CLEANUP_STOP', message: String(error) }); observation.failures.push({ kind: 'worker-cleanup', message: String(error) }); observation.workers = observer.rows.map(({ reaped, ...row }) => row); }\n}\nobservation.layout = configuration.layout;\nobservation.workerAdmissionRefusals = observer.admissionRefusals;\nif (observer.admissionRefusals.length || observation.workers.some(row => row.childAdmissionRefused)) observation.pass = false;\nconsole.log(JSON.stringify(observation));\nif (!observation.pass) process.exitCode = 1;"
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 23719,
+    "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+    "sections": [
+      {
+        "first": 55,
+        "last": 91,
+        "text": "const logsBytes = logs => logs.reduce((sum, name) => sum + (fs.existsSync(name) ? fs.statSync(name).size : 0), 0);\nasync function command(label, args, cwd, extraEnv = {}, { setup = false, loader = false, logs = [] } = {}) {\n  assert.equal(activeChild, undefined, 'CONCURRENT_CHILD_REFUSED');\n  assert.ok(remaining.children > 0 && evidence.resources.childStarts < bounds.children, 'CHILD_BOUND');\n  assert.ok(Date.now() < deadline, 'WHOLE_TIME_BOUND'); assertStorage();\n  const guards = protectedRoots.map(root => [root, inventory(root)]);\n  remaining.children--; evidence.resources.childStarts++;\n  if (loader) { assert.ok(remaining.loaderThreads > 0); remaining.loaderThreads--; evidence.resources.loaderThreadStarts++; assert.ok(evidence.resources.loaderThreadStarts <= bounds.loaderThreads); }\n  const row = { number: evidence.resources.childStarts, label, executable: copiedNode, args, cwd, environmentRole: 'isolated-explicit-no-ambient', environment: { ...environment, ...extraEnv }, start: Date.now(), stdoutBase64: '', stderrBase64: '', loaderThreadsRequested: loader ? 1 : 0, exitObserved: false, closeObserved: false, emergency: false, errors: [] };\n  const output = [], errors = [];\n  let captured = 0;\n  const child = spawn(copiedNode, args, { cwd, env: row.environment, stdio: ['ignore', 'pipe', 'pipe'] });\n  activeChild = child; row.pid = child.pid ?? null;\n  const kill = reason => { row.emergency = true; row.errors.push(reason); child.kill('SIGKILL'); };\n  const capture = target => bytes => {\n    const room = Math.max(0, Math.min(bounds.captureBytes, remaining.captureBytes) - captured);\n    target.push(Buffer.from(bytes.subarray(0, room))); captured += Math.min(room, bytes.length);\n    if (bytes.length > room) kill('CAPTURE_BOUND');\n  };\n  child.stdout.on('data', capture(output)); child.stderr.on('data', capture(errors));\n  const timer = setTimeout(() => kill('CHILD_WALL_BOUND'), Math.max(1, Math.min(setup ? bounds.setupMs : bounds.runtimeMs, deadline - Date.now())));\n  const monitor = setInterval(() => {\n    try { assertStorage(); assert.ok(captured + logsBytes(logs) <= Math.min(bounds.captureBytes, remaining.captureBytes), 'CAPTURE_BOUND'); }\n    catch (error) { kill(String(error)); }\n  }, 100);\n  child.on('error', error => row.errors.push(String(error)));\n  child.on('exit', (status, signal) => { row.exitObserved = true; row.status = status; row.signal = signal; });\n  await new Promise(resolve => child.once('close', (status, signal) => { row.closeObserved = true; row.status = status; row.signal = signal; resolve(); }));\n  clearTimeout(timer); clearInterval(monitor); activeChild = undefined;\n  row.end = Date.now(); row.stdoutBase64 = Buffer.concat(output).toString('base64'); row.stderrBase64 = Buffer.concat(errors).toString('base64');\n  row.capturedBytes = captured + logsBytes(logs); remaining.captureBytes -= row.capturedBytes; evidence.resources.capturedBytes += row.capturedBytes;\n  row.reaped = row.exitObserved && row.closeObserved;\n  row.loaderThreadDisposition = loader ? 'Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation' : 'not-requested';\n  evidence.commands.push(row);\n  writeReceipt(path.join(root, 'receipts', `${String(row.number).padStart(3, '0')}.json`), row);\n  assert.equal(row.reaped, true, 'CHILD_UNREAPED_STOP'); assert.equal(row.signal, null, 'ABNORMAL_CHILD_STOP'); assert.equal(row.errors.length, 0, 'CHILD_ERROR_STOP');\n  assert.ok(remaining.captureBytes >= 0 && row.capturedBytes <= bounds.captureBytes, 'CAPTURE_BOUND');"
+      },
+      {
+        "first": 195,
+        "last": 225,
+        "text": "    for (const id of ids) {\n      assert.ok(remaining.workerStarts >= bounds.workerStartsPerChild, 'WORKER_RESERVATION_EXHAUSTED');\n      const tag = `${layout.name}-${id}`, log = path.join(root, 'logs', tag + '.parent.jsonl'), workerLog = path.join(root, 'logs', tag + '.worker.jsonl'), workerParentLog = path.join(root, 'logs', tag + '.worker-parent.jsonl');\n      const config = path.join(root, 'admissions', tag + '.runtime.json');\n      writeJson(config, { grant: arguments_[1], seal: sealPath, grantSha256: sha(grantBytes), layout: layout.name, id, specifier: layout.specifier, workerLog, workerParentLog, workerStartsRemaining: remaining.workerStarts, workerCaptureBytes: 262144 });\n      const reservation = reserveWorkerStarts(remaining, tag);\n      evidence.workerReservations.push(reservation);\n      const result = await command(tag, ['--loader', path.join(layout.appParent, 'loader.mjs'), '--import', path.join(layout.appParent, 'guard.mjs'), path.join(layout.appParent, 'runtime-entry.mjs')], outside, { ADMISSION: admitted.filename, LOAD_LOG: log, RUN_CONFIGURATION: config }, { loader: true, logs: [log, workerLog, workerParentLog] });\n      const parentLoads = jsonLines(log), childLoads = jsonLines(workerLog), workerEvents = jsonLines(workerParentLog);\n      const starts = workerEvents.filter(row => row.action === 'start');\n      assert.ok(starts.length <= bounds.workerStartsPerChild && remaining.workerStarts >= 0);\n      const record = JSON.parse(Buffer.from(result.stdoutBase64, 'base64').toString().trim());\n      evidence.rows.push({ layout: layout.name, id, result: record, parentLoads, childLoads, workerEvents });\n      evidence.unexecuted.splice(evidence.unexecuted.indexOf(`${layout.name}:${id}`), 1);\n      writeReceipt(path.join(root, 'receipts', tag + '.observed.json'), evidence.rows.at(-1));\n      assert.equal(record.id, id); assert.equal(record.layout, layout.name);\n      requireCleanSafety(record, childLoads);\n      assert.equal(starts.length, record.workers.length, 'WORKER_ACCOUNTING_UNKNOWN_STOP');\n      for (const start of starts) {\n        const loaded = childLoads.filter(row => row.token === start.token && row.threadId === start.threadId && row.pid === start.pid);\n        assert.equal(loaded.filter(row => row.event === 'preload').length, 1, 'MISSING_WORKER_PRELOAD_RECEIPT');\n        const preload = loaded.find(row => row.event === 'preload');\n        assert.deepEqual(preload.requested, start.requested); assert.deepEqual(preload.effective, start.effective);\n        assert.equal(preload.resourceLimits.maxOldGenerationSizeMb, 128); assert.equal(preload.resourceLimits.stackSizeMb, 4);\n        assert.ok(loaded.some(row => row.event === 'load' && row.url === start.entry && row.sha256 === bindings.runtimeAdmission.workerEntry.sha256), 'MISSING_ACTUAL_WORKER_ENTRY_LOAD');\n        assert.equal(workerEvents.filter(row => row.action === 'exit' && row.token === start.token).length, 1, 'WORKER_EXIT_UNKNOWN_STOP');\n      }\n      for (const loaded of childLoads) assert.ok(starts.some(row => row.token === loaded.token && row.threadId === loaded.threadId && row.pid === loaded.pid), 'UNKNOWN_WORKER_LOAD_STOP');\n      assert.ok(parentLoads.some(row => row.relative === 'dist/index.js'), 'NO_PUBLIC_API_LOAD');\n      settleWorkerStarts(remaining, reservation, workerEvents, record.workers);\n      if (!record.pass || result.status !== 0) evidence.failures.push({ layout: layout.name, id, status: result.status, failures: record.failures });"
+      },
+      {
+        "first": 230,
+        "last": 257,
+        "text": "finally {\n  if (activeChild !== undefined) evidence.safetyStops.push({ code: 'SUPERVISOR_OWNED_CHILD_UNREAPED' });\n  evidence.remainingParentBudget = remaining;\n  evidence.resources.productWorkerStartsKnown = evidence.workerReservations.reduce((sum, row) => sum + (row.starts ?? 0), 0);\n  evidence.resources.productWorkerStarts = evidence.workerReservations.some(row => row.accounting === 'unknown') ? null : evidence.resources.productWorkerStartsKnown;\n  evidence.resources.workerStartsWithheld = evidence.workerReservations.filter(row => row.accounting === 'unknown').reduce((sum, row) => sum + row.charged, 0);\n  evidence.allOwnedOsChildrenReaped = evidence.commands.every(row => row.reaped);\n  const filename = path.join(root, 'RESULTS.json');\n  evidence.terminalReceiptBytes = terminalReceiptBytes;\n  evidence.terminalAccounting = 'Fixed-size terminal reservation; post-write logical storage and deadline sample; bounded STOP correction is receipt cleanup, not additional subjects. No quota/RSS/preemption claim.';\n  accountTerminal(evidence, remaining, diskUsage() + terminalReceiptBytes, storageLimit, deadline, Date.now());\n  const terminalBytes = () => {\n    let bytes = Buffer.from(JSON.stringify(evidence, null, 2) + '\\n');\n    if (bytes.length > terminalReceiptBytes) {\n      evidence.safetyStops.push({ code: 'TERMINAL_RECEIPT_BOUND_STOP' }); evidence.status = 'STOP';\n      bytes = Buffer.from(JSON.stringify({ status: 'STOP', safetyStops: evidence.safetyStops, resources: evidence.resources, workerReservations: evidence.workerReservations, remainingParentBudget: remaining, retainedScratchBytes: evidence.retainedScratchBytes, allOwnedOsChildrenReaped: evidence.allOwnedOsChildrenReaped, detail: 'Per-command and per-case receipts retained separately; aggregate exceeded terminal bound.' }) + '\\n');\n    }\n    assert.ok(bytes.length <= terminalReceiptBytes, 'TERMINAL_STOP_RECEIPT_BOUND');\n    const padded = Buffer.alloc(terminalReceiptBytes, 32); bytes.copy(padded); return padded;\n  };\n  fs.writeFileSync(filename, terminalBytes(), { flag: 'wx' });\n  accountTerminal(evidence, remaining, diskUsage(), storageLimit, deadline, Date.now());\n  fs.writeFileSync(filename, terminalBytes());\n  const priorStatus = evidence.status;\n  accountTerminal(evidence, remaining, diskUsage(), storageLimit, deadline, Date.now());\n  if (evidence.status !== priorStatus) fs.writeFileSync(filename, terminalBytes());\n  if (evidence.status !== 'PASS') process.exitCode = 1;\n  console.log(JSON.stringify({ status: evidence.status, executed: evidence.rows.length, unexecuted: evidence.unexecuted.length, children: evidence.resources.childStarts }));"
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 8891,
+    "sha256": "a9cd8a7e95a17184822de2f9bd626c5cd3f633cc2c4d30ce781ab07a2f244ae0",
+    "sections": [
+      {
+        "first": 98,
+        "last": 128,
+        "text": "export function requireCleanSafety(record, childLoads = []) {\n  exact(record.safetyStops, [], 'ADAPTER_SAFETY_STOP');\n  exact(record.workerAdmissionRefusals, [], 'WORKER_ADMISSION_STOP');\n  assert.equal(childLoads.some(row => row.event === 'admission-refused'), false, 'CHILD_LOAD_ADMISSION_STOP');\n  for (const row of record.workers) assert.equal(row.childAdmissionRefused, false, 'CHILD_LOAD_ADMISSION_STOP');\n  validateRetirement(record.workers);\n}\n\nexport function reserveWorkerStarts(remaining, tag) {\n  assert.ok(remaining.workerStarts >= bounds.workerStartsPerChild, 'WORKER_RESERVATION_EXHAUSTED');\n  remaining.workerStarts -= bounds.workerStartsPerChild;\n  return { tag, reserved: bounds.workerStartsPerChild, charged: bounds.workerStartsPerChild, accounting: 'unknown', attempts: null, starts: null };\n}\n\nexport function settleWorkerStarts(remaining, reservation, events, rows) {\n  assert.equal(reservation.accounting, 'unknown', 'DUPLICATE_WORKER_SETTLEMENT_STOP');\n  const attempts = events.filter(row => row.action === 'constructor-attempt');\n  const starts = events.filter(row => row.action === 'start');\n  assert.ok(attempts.length <= reservation.reserved, 'WORKER_RESERVATION_EXCEEDED');\n  assert.equal(new Set(attempts.map(row => row.token)).size, attempts.length, 'DUPLICATE_WORKER_ATTEMPT');\n  exact(starts.map(row => row.token), attempts.map(row => row.token), 'UNKNOWN_WORKER_CONSTRUCTOR_STOP');\n  exact(rows.map(row => row.token), starts.map(row => row.token), 'UNKNOWN_WORKER_ACCOUNTING_STOP');\n  validateRetirement(rows);\n  for (const start of starts) {\n    const exits = events.filter(row => row.action === 'exit' && row.token === start.token);\n    assert.equal(exits.length, 1, 'UNKNOWN_WORKER_EXIT_STOP');\n    assert.equal(exits[0].code, rows.find(row => row.token === start.token).exitCode);\n  }\n  reservation.accounting = 'complete'; reservation.attempts = attempts.length; reservation.starts = starts.length; reservation.charged = attempts.length;\n  remaining.workerStarts += reservation.reserved - reservation.charged;\n}"
+      }
+    ]
+  },
+  {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+    "revision": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "bytes": 5646,
+    "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+    "sections": [
+      {
+        "first": 24,
+        "last": 68,
+        "text": "    constructor(url, options) {\n      try {\n      assert.equal(closed, false, 'LATE_WORKER_ACQUISITION_STOP');\n      assert.ok(url instanceof URL && url.href === configuration.entry, 'WORKER_URL_DRIFT');\n      exact(options, requested, 'WORKER_OPTIONS_DRIFT');\n      admitFile(url.href, configuration.files);\n      admitFile(configuration.preload, configuration.files);\n      admitFile(configuration.guard, configuration.files);\n      assert.ok(active < configuration.maxConcurrent && attempts < configuration.maxStarts, 'WORKER_START_BOUND');\n      } catch (error) { admissionRefusals.push(String(error)); emit({ action: 'admission-refused', error: String(error) }); throw error; }\n      const token = `${configuration.token}:${rows.length + 1}`;\n      const row = { token, entry: url.href, requested, effective, exited: false, exitCode: null, terminatePending: 0, terminateErrors: [], emergency: false, productTerminateCalls: 0, errors: [] };\n      const prior = workers.getEnvironmentData('priority-worker-observation-v1');\n      const refusalState = new SharedArrayBuffer(4);\n      Object.defineProperty(row, 'refusalState', { value: new Int32Array(refusalState) });\n      workers.setEnvironmentData('priority-worker-observation-v1', { ...configuration, token, requested, effective, refusalState });\n      attempts++; emit({ action: 'constructor-attempt', token, entry: url.href, requested, effective });\n      try { super(url, effective); }\n      catch (error) { admissionRefusals.push('CONSTRUCTOR_ACQUISITION_UNKNOWN_STOP:' + String(error)); emit({ action: 'constructor-error', token, error: String(error) }); throw error; }\n      finally { workers.setEnvironmentData('priority-worker-observation-v1', prior); }\n      rows.push(row); active++;\n      row.threadId = this.threadId;\n      row.resourceLimits = this.resourceLimits;\n      let exited;\n      row.reaped = new Promise(resolve => { exited = resolve; });\n      Object.defineProperty(row, 'worker', { value: this });\n      emit({ action: 'start', token, threadId: row.threadId, entry: row.entry, requested, effective, resourceLimits: row.resourceLimits });\n      this.on('online', () => { row.online = true; emit({ action: 'online', token, threadId: row.threadId }); });\n      this.on('error', error => { row.errors.push(String(error)); emit({ action: 'error', token, error: String(error) }); });\n      this.once('exit', code => { active--; row.exited = true; row.exitCode = code; row.childAdmissionRefused = Atomics.load(row.refusalState, 0) !== 0; emit({ action: 'exit', token, code, childAdmissionRefused: row.childAdmissionRefused }); exited(); });\n      this.terminate = () => terminate(row, 'product');\n    }\n  }\n  function terminate(row, owner) {\n    row.terminatePending++;\n    if (owner === 'product') row.productTerminateCalls++; else row.emergency = true;\n    emit({ action: 'terminate-call', token: row.token, owner });\n    let promise;\n    try { promise = Promise.resolve(NativeWorker.prototype.terminate.call(row.worker)); }\n    catch (error) { promise = Promise.reject(error); }\n    const tracked = promise.then(code => { emit({ action: 'terminate-fulfilled', token: row.token, owner, code }); return code; }, error => {\n      row.terminateErrors.push(String(error)); emit({ action: 'terminate-rejected', token: row.token, owner, error: String(error) }); throw error;\n    }).finally(() => { row.terminatePending--; outstanding.delete(tracked); });\n    outstanding.add(tracked);\n    void tracked.catch(() => {});"
+      },
+      {
+        "first": 76,
+        "last": 94,
+        "text": "    close() {\n      if (closing) return closing;\n      closed = true;\n      closing = (async () => {\n        const emergency = rows.filter(row => !row.exited && row.productTerminateCalls === 0);\n        for (const row of emergency) void terminate(row, 'driver-emergency').catch(() => {});\n        let timer;\n        try {\n          await Promise.race([\n            Promise.all([...rows.map(row => row.reaped), ...outstanding]),\n            new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('WORKER_UNREAPED_STOP')), configuration.cleanupMs); }),\n          ]);\n        } finally { clearTimeout(timer); }\n        validateRetirement(rows);\n        return rows.map(({ reaped, ...row }) => row);\n      })();\n      void closing.catch(() => {});\n      return closing;\n    },"
+      }
+    ]
+  }
+]

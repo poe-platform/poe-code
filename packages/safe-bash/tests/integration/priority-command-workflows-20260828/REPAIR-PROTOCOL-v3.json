@@ -1,0 +1,220 @@
+{
+  "schema": "priority-repair-preparation-protocol-v3",
+  "role": "PRESEALED_DATA_SYNTHETIC_BENIGN_ONLY_NO_PRODUCT_GO",
+  "date": "2026-08-28",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--experimental-vm-modules",
+    "tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+    "--out",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3"
+  ],
+  "bounds": {
+    "driverProcesses": 1,
+    "children": 4,
+    "concurrentChildren": 1,
+    "workerStarts": 4,
+    "concurrentWorkers": 1,
+    "startsPerChild": 1,
+    "childWallMs": 5000,
+    "windowMs": 60000,
+    "captureBytes": 2097152,
+    "workerLogBytes": 131072,
+    "storageBytes": 8388608
+  },
+  "stubModes": [
+    "natural",
+    "caught-load",
+    "mapped-load",
+    "independent-cleanup"
+  ],
+  "parseFiles": [
+    "admission.mjs",
+    "worker-preload.mjs",
+    "worker-observer.mjs",
+    "future-adapter.mjs",
+    "runtime-entry.mjs",
+    "future-supervisor.mjs",
+    "stub-entry.mjs",
+    "repair-child.mjs",
+    "repair-controls.mjs"
+  ],
+  "checks": [
+    "parse:admission.mjs",
+    "parse:worker-preload.mjs",
+    "parse:worker-observer.mjs",
+    "parse:future-adapter.mjs",
+    "parse:runtime-entry.mjs",
+    "parse:future-supervisor.mjs",
+    "parse:stub-entry.mjs",
+    "parse:repair-child.mjs",
+    "parse:repair-controls.mjs",
+    "clean-safety",
+    "cleanup-failure",
+    "pending-owned",
+    "pending-fixture",
+    "pending-stdin",
+    "pending-fs",
+    "pending-cursor",
+    "pending-response",
+    "listener-leak",
+    "missing-stage",
+    "pending-stage",
+    "missing-dispose-trace",
+    "unexpected-namespace",
+    "unchanged-path-mutation",
+    "postclose-count",
+    "caught-extra-auth",
+    "caught-extra-request",
+    "caught-refused-request",
+    "caught-postclose-request",
+    "ordinary-byte-status-mismatch-aggregates",
+    "ordinary-typeerror-fsfault-semantics",
+    "child-refusal-receipt-even-mapped-pass",
+    "unknown-worker-reap-stops",
+    "reservation-withheld-before-abnormal-settlement",
+    "reservation-withheld-incomplete-start-log",
+    "reservation-refund-only-complete",
+    "terminal-retained-storage-debit",
+    "terminal-final-write-storage-stop",
+    "terminal-postprocessing-deadline-stop",
+    "stub:natural",
+    "stub:caught-load",
+    "stub:mapped-load",
+    "stub:independent-cleanup"
+  ],
+  "files": [
+    {
+      "path": "admission.mjs",
+      "bytes": 8788,
+      "sha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a"
+    },
+    {
+      "path": "worker-preload.mjs",
+      "bytes": 2105,
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db"
+    },
+    {
+      "path": "worker-observer.mjs",
+      "bytes": 5646,
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9"
+    },
+    {
+      "path": "future-adapter.mjs",
+      "bytes": 24859,
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf"
+    },
+    {
+      "path": "runtime-entry.mjs",
+      "bytes": 3074,
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0"
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "bytes": 23692,
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00"
+    },
+    {
+      "path": "stub-entry.mjs",
+      "bytes": 786,
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b"
+    },
+    {
+      "path": "repair-child.mjs",
+      "bytes": 4821,
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104"
+    },
+    {
+      "path": "repair-controls.mjs",
+      "bytes": 12505,
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211"
+    },
+    {
+      "path": "stub-dependency.mjs",
+      "bytes": 53,
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84"
+    },
+    {
+      "path": "stub-guard.mjs",
+      "bytes": 622,
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2"
+    },
+    {
+      "path": "source-auth.mjs",
+      "bytes": 6787,
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9"
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 99375,
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b"
+    },
+    {
+      "path": "READY.md",
+      "bytes": 11419,
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 47429,
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da"
+    },
+    {
+      "path": "FIXTURES.json",
+      "bytes": 15139,
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1"
+    },
+    {
+      "path": "SCHEMA.json",
+      "bytes": 3969,
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 30714,
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a"
+    },
+    {
+      "path": "EXECUTION-RECIPE.md",
+      "bytes": 11958,
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8822,
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1542,
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4"
+    }
+  ],
+  "preserved": {
+    "oldSource": "116f5dd79f14032ebcf9a2e46de0d912005c3ffa",
+    "oldSealCommit": "8bb0ac19518a227c06a67d6ef8d273af2111894c",
+    "packet": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+    "priorProtocolsAndReceipts": "untouched historical v1/v2; not rerun",
+    "declaration": "da935256"
+  },
+  "forbidden": [
+    "product imports or executions",
+    "accepted Worker dispatch",
+    "native oracles",
+    "comparator",
+    "network",
+    "private",
+    "XAN",
+    "YQ",
+    "arrays product experiments",
+    "build",
+    "pack",
+    "install",
+    "future-run or GO creation"
+  ],
+  "cleanup": "Every OS child close+exit and every benign Worker exit/termination settlement required; unknown reap STOP; no retries; synthetic pending rows allocate no resource. Driver itself is additional to four OS children. No all-native-thread or RSS claim.",
+  "classification": "Nine parse-only modules, finite synthetic safety/admission/reservation/terminal-accounting checks, four benign stub controls. No public API is called. Frozen31x3 remains93 UNEXECUTED."
+}

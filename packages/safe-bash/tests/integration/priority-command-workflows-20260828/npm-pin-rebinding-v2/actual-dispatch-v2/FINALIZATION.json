@@ -1,0 +1,1648 @@
+{
+  "schema": "priority-actual-dispatch-v2-evidence-finalization",
+  "status": "STOP_NO_RETRY_UNKNOWN_ESCROW_RETAINED",
+  "recordedAt": "2026-08-28T20:49:58.500Z",
+  "grantCommit": "8f0a9fdaa84d7bae59040617577e2b0ee028d29b",
+  "evidenceCommit": "78e5628e98a4ed408d0826985f8342a43ceee370",
+  "manifest": {
+    "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/MANIFEST.json",
+    "bytes": 64073,
+    "sha256": "bad9be846fd0f1b3ac085210d2f1187184224fa563b4b79cf5685939875b1d55"
+  },
+  "committedPaths": 202,
+  "committedPathsNulSha256": "b9566a8c67a10ba9ffb129841e1ac5d678e6e727cd9843d6b80695914e211c73",
+  "committedTreeNulSha256": "a14ec09874acd19f168880d4016bb5f22345d797209012b892bdce373434d6ec",
+  "all202StoredBlobsAuthenticated": true,
+  "verifiedEvidence": [
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/RESULTS.json",
+      "kind": "blob",
+      "oid": "d60f41722b12d38dba940b0c00fa55a786e79081",
+      "sha256": "4851193778874cd65ffbfc99b3ab70beed37c4060f3acf86cec6b28440c0d420",
+      "bytes": 16777216,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/admission-base.json",
+      "kind": "blob",
+      "oid": "be9b12be982cc44cb6cb138970cf5de11b57c39a",
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f",
+      "bytes": 69817,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/missing-entry.json",
+      "kind": "blob",
+      "oid": "0610b690d83f57a3f62f08fc8b6fca66967e9e8d",
+      "sha256": "675b7fb6f6256666abe1035be8a8e71c22421550b565f159922bd3194a9f223e",
+      "bytes": 69527,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/outside-file.json",
+      "kind": "blob",
+      "oid": "be9b12be982cc44cb6cb138970cf5de11b57c39a",
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f",
+      "bytes": 69817,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P01.runtime.json",
+      "kind": "blob",
+      "oid": "2178a4fd326cf021b19ffcdbeed82e465f52af98",
+      "sha256": "26d4f030f15017571740adf61c1c069b6e4d5ffccdd5890fe3a79a62747d6620",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P02.runtime.json",
+      "kind": "blob",
+      "oid": "fdd0c42592434cae477ad043a1fe5d789191367a",
+      "sha256": "5e2773a3fbe5ec06ff087fb661b637237f045bf505a7c205ec2c76ce60003061",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P03.runtime.json",
+      "kind": "blob",
+      "oid": "d1edcb39477d3d96e79668895df0ba3374ed6ee5",
+      "sha256": "653e521220268ce2f1aaf1b9571e1035f32a4ed21e51c62752ca8882ccfbd2da",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P04.runtime.json",
+      "kind": "blob",
+      "oid": "52ba9f7d6066125fead10e194ec0fdb6ccc50158",
+      "sha256": "e19d05589a348317a0afcbc1b708e81248a5ee1ddb61d8fdbe5c28d5ff339c15",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P05.runtime.json",
+      "kind": "blob",
+      "oid": "9a19ab3891f497f750f04944c9c670ba281b27df",
+      "sha256": "7a5fdec77802e3ee46c35a76bd15009eaad96f676be705365d2a5236fbf215ae",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P06.runtime.json",
+      "kind": "blob",
+      "oid": "07bc2d5686b2a445b4c6a30a81ccc1feaf0cf277",
+      "sha256": "e85afc55e2b3d970eb3a316864bdd4193801ba5632d56624fcfc5ec2ea4ddc1a",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P07.runtime.json",
+      "kind": "blob",
+      "oid": "f84300e4ec6a067a99e827c1268d3693957cfc60",
+      "sha256": "e15e9c011a5b1b210d7b3978cae249bd77d94bba8fd8ddb1881fc29a9889edfb",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P08.runtime.json",
+      "kind": "blob",
+      "oid": "26ef10c69b595c87480d51e0df5a7bffdacdb762",
+      "sha256": "a61a01daa4635f57988e62da18c855ecf6282763926f4329af9987cd568ac257",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P09.runtime.json",
+      "kind": "blob",
+      "oid": "2c36d9ab09a96f9867fab4d93eae1fdf882f43f1",
+      "sha256": "7bd0558e5be4c684a006944da3a4f705a731a03658f8b0d76a6656005b5f4384",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P10.runtime.json",
+      "kind": "blob",
+      "oid": "f50164aede58d1ca9c5b52c0240d8db8e9a1e3f0",
+      "sha256": "be0c1ca220ae68ef01be5ef6703b803dd2fdb500c7c1447867c0bfafea507fa5",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P11.runtime.json",
+      "kind": "blob",
+      "oid": "176e5f87c08459002217e9d35420d3a5843849d1",
+      "sha256": "7230099dc11bc12148c18c7148e778bb9d32a2da5ec77d9bef5249aab366d70d",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P12.runtime.json",
+      "kind": "blob",
+      "oid": "8b1c4ed1e36339326a2f3009f52682472767fa71",
+      "sha256": "827000b0cee5dfd4d50bc07dafe835c9ab511a8c068aaa4ddd3774e7ae836ae8",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P13.runtime.json",
+      "kind": "blob",
+      "oid": "bcc3a6f9e6ee9c6040bb5076f502583140e09f8e",
+      "sha256": "4a804e32eebde1fe3e5ac89031db5be51e13551205554d4b2a805ae6a43e2fa0",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P14.runtime.json",
+      "kind": "blob",
+      "oid": "c51273e639a682b91c243af7476364fc9cda278a",
+      "sha256": "03fbd0ecf67e117f6e8f893f692e6b3f991374a2c4fd8105173917b0792188e1",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P15.runtime.json",
+      "kind": "blob",
+      "oid": "3cfdf4bdae645ee447b26dd976dc1399912b9b7a",
+      "sha256": "58939d45389747a464c1bdb5f1182bc7ce9a361cdba884a87e07c298432dee18",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P16.runtime.json",
+      "kind": "blob",
+      "oid": "b83fa9b296891edde00fadcff39e54aae1d29dab",
+      "sha256": "d98363ef2be3e0595cc89f3ba3bdec4bc9460f8255d1c5f323837e1185f16e8d",
+      "bytes": 830,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build.json",
+      "kind": "blob",
+      "oid": "be9b12be982cc44cb6cb138970cf5de11b57c39a",
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f",
+      "bytes": 69817,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/sourcefallback.json",
+      "kind": "blob",
+      "oid": "be9b12be982cc44cb6cb138970cf5de11b57c39a",
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f",
+      "bytes": 69817,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/admissions/wrong-digest.json",
+      "kind": "blob",
+      "oid": "8284eec920052e572bd5489dd10aacf3cb033cbe",
+      "sha256": "cc48c5bf791a1e0072e2d204774cd4430f75d720bafdc7892ae461b4eb666979",
+      "bytes": 69817,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_40_57_861Z-debug-0.log",
+      "kind": "blob",
+      "oid": "f2bba7b8f039d87cf2710df55ea431abe583bb87",
+      "sha256": "7d322c98e5eedf10fac5959a318d13503ca19a407e90c666cc19391aebfc92d5",
+      "bytes": 1777,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_41_01_074Z-debug-0.log",
+      "kind": "blob",
+      "oid": "588e22b7e2a5794319f2b098e1b90c8a294b4e67",
+      "sha256": "02ca69fb20a4df0e1e33283ced1817df76f6cc6db9981f0350f19a930110696f",
+      "bytes": 2400,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/missing-entry.jsonl",
+      "kind": "blob",
+      "oid": "4775d709512710b50f1a330374b684d76e84713b",
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+      "bytes": 250,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/outside-file.jsonl",
+      "kind": "blob",
+      "oid": "4775d709512710b50f1a330374b684d76e84713b",
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+      "bytes": 250,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.parent.jsonl",
+      "kind": "blob",
+      "oid": "1ce52e8c62638166dea9397c4efda0065b058b66",
+      "sha256": "2bf71191cf7932f0ba12e35a1fc84067a5c7ac76ccb4cb4a7f94da31c47a5282",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "a6a09941a48b22cf881d09344caf4516d300ab80",
+      "sha256": "cb5b976f1096fc0d7e81cee32838618c5bfe5799bfe423bf5154cbeda13e5a35",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.worker.jsonl",
+      "kind": "blob",
+      "oid": "93b687115e86afb44ef7b19fb39cf5e4665dfe38",
+      "sha256": "a5b8663e08ecd1cc3ba03b33699b3ceda0499cd1a4a8c030ddcde5ab8f6aa5b6",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.parent.jsonl",
+      "kind": "blob",
+      "oid": "78998e43a1f8d16efbeb2bc28f71723ea46775d8",
+      "sha256": "c3a11bb2fd45e7c9c7ea8d8d485d3a0adc77a3113925211e0c7b09077f230f31",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "add26205a77b653c435dfe4a0c46a6009264323d",
+      "sha256": "3bb2a4cbcb735d18da583b5727eabdcac2e445e0b2bdcadcb21fef33a858d34e",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.worker.jsonl",
+      "kind": "blob",
+      "oid": "79366763a55440dd60cab8b0a152bf50a9b568e3",
+      "sha256": "9055b96d589dc0bdfaa5de91fc28071980c218be495bf409aee4160106646077",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.parent.jsonl",
+      "kind": "blob",
+      "oid": "82515c8afdc865265bcd82d4f66aa95abc67bf1c",
+      "sha256": "051c9124d2afe331d6185d5792e256e2593b67253d007b26bbc1c9eb4c9daa4e",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "173f367133e0df65e0ee87c86e5000f1ea32c224",
+      "sha256": "6b533f18e4f92c56377c0ca62925abd6af9f102c5eff4336ad1b6a9297ff2cf2",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.worker.jsonl",
+      "kind": "blob",
+      "oid": "68e2aa191f3a0f97e4e0f1c60c0bc581f2853123",
+      "sha256": "e66dfadf3224cf245887173549cec88395469cd4562ffda349b28078e4c3f49f",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.parent.jsonl",
+      "kind": "blob",
+      "oid": "d830f533d95267973bba139a0ac0a016149a7ef1",
+      "sha256": "fd52815a7192142beb485466bef5c3be0871e6d3cedf4e267c22ee0641d0b569",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "0642ac6ab74266247e15cf9b59477969877b41be",
+      "sha256": "22ff6bcf5bebca39e88203d24d7cd3f336cc92c3c88799feb2df385304b9232f",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.worker.jsonl",
+      "kind": "blob",
+      "oid": "0cf121e7e499dfa24dae08ef8a7b3b02f7c8ed00",
+      "sha256": "3a8adf36b3165260e790ab1561c2d06e64dba1dba12d219f305c57775409a784",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.parent.jsonl",
+      "kind": "blob",
+      "oid": "d47ea6d677331b323c93f7220c175d6a13b8bf75",
+      "sha256": "b55622688c1c64c65cc2c5ca59a899577255b27f2b6bb6350ea010669be4d91c",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "1d88223b56432e2832f015d69272f72406d2889a",
+      "sha256": "2fe9f934ef15c6962654cdf05d323999c2385faa27fe78789c8710b38ab1d8d9",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.worker.jsonl",
+      "kind": "blob",
+      "oid": "05016f22e03e7fe61f38c056693b029219fa669e",
+      "sha256": "0aced6e144a6157d0b65a6febdf06169721b01f925602895277d64b63d7ca479",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.parent.jsonl",
+      "kind": "blob",
+      "oid": "a638ccd2f4ffbe41cc3542ef938027a17303589f",
+      "sha256": "45d1ecb6399c390a1611b8e4e4d8eb6d56a29e5ed97b70709e8c81dda487c40a",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "5bd90452e35a85e541535f161b558da8a8ddcf0d",
+      "sha256": "0c38227d70e13e33d51a34aac48af694ed7fd93f6e9bbe88c7a3cef07fc2a2b3",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.worker.jsonl",
+      "kind": "blob",
+      "oid": "fe2fdbacc852e48b622db74cba34f0fd1a1ece54",
+      "sha256": "3bd597a454470804506470f28e28af0d6364aee643987e3871ce765906ef7723",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.parent.jsonl",
+      "kind": "blob",
+      "oid": "58bc615b24ecc29360bd4ba460753dab9992dd27",
+      "sha256": "d9d3b5e08811fb4662297385a0deab9ae3b9b2a9ab02ec87e460d30a6468656c",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "41162597356abd05e42214c1cb7ab14bf11ea7ac",
+      "sha256": "fb9549e9afb18284ff8791d19859e59a1ac9d2fe0169111536c1678212837786",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.worker.jsonl",
+      "kind": "blob",
+      "oid": "26d1aba26268a27cbe044e28b7473eb173f59114",
+      "sha256": "c1fffe9eed905db74a17709a2398c852bc2ed96f50716cc76e167d8df9eb1812",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.parent.jsonl",
+      "kind": "blob",
+      "oid": "78afd3f21c98a72bb3fb84af24ec2586869b0785",
+      "sha256": "af00f0789f5f3e1e25b2d7613a030159161c9a9dc688929c2bd94368e869ccb1",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "6739a5d420bcd149ca3e800539dcd9331b816c19",
+      "sha256": "f788491c6bb6c04e427f6785d291f31d9beb4ce8def0d478e9a26df2cf8acb61",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.worker.jsonl",
+      "kind": "blob",
+      "oid": "33e80d06f34ea513530773f7b74ebb9933cca8c4",
+      "sha256": "cef34787a5f01c25363a40867edebc49cfdbba4b4d86a0996985fef33147670d",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.parent.jsonl",
+      "kind": "blob",
+      "oid": "280b53318f97ac9736e4e07bd6c6f7e37ba845f1",
+      "sha256": "f283b2a3d4018708b7daedf4c0e18086bcf8eb7a0691ac41e2f5ccdc62d2d53c",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "475c041fc39536b0627a61619a164ec10a4d7f1f",
+      "sha256": "c7cea342685f2f5ee7e8fee83707254b9ef4bcc3e44a6241bf38a75d03d264c1",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.worker.jsonl",
+      "kind": "blob",
+      "oid": "3a7d11777ce596b1dabacb8c98de116deb61d603",
+      "sha256": "cf3871a44a8c4038b22dcaeeba42add20e3caff92602888203cd82d1a29d7ef0",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.parent.jsonl",
+      "kind": "blob",
+      "oid": "3c70e903b5f5a01db3a7bd41e97e68ba1269737a",
+      "sha256": "04d0723e7724a059cedff004d742596f0e9071c32606afdbb8acd3b5824ef50e",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "0f65290f16671240d52fc6fd4dca4808d5b2a6b2",
+      "sha256": "0114f7acefeb3ca71c73330b9004268e5f41c049e8a8d2def48673f4657a6b87",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.worker.jsonl",
+      "kind": "blob",
+      "oid": "14bff12559d606fce68109e32c967b429b3a749c",
+      "sha256": "65c4cb3ea407ee6328e483f33cffb6bfb7f3103983471a665a0f664a7918e83f",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.parent.jsonl",
+      "kind": "blob",
+      "oid": "70aec63372b1fa60e5997945f8b031d050bb206d",
+      "sha256": "3356c8d1dced58e8528eb66fd1d4d1d8bca21c73a7f4fdadd25a56b3f354999b",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "a509073899b449a7d840c269c8b570112c6d4eb6",
+      "sha256": "47124f4ec4b4a5cfdb9ae861fa2accea8f506d20a4b356761815c484ca995691",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.worker.jsonl",
+      "kind": "blob",
+      "oid": "5b42c4d5b125c33262876c5b25bea2d44fc7f75e",
+      "sha256": "c50dfb5c2999ab03f1ce214a5727f6c524875025225b6ee3adb8c76801ae194a",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.parent.jsonl",
+      "kind": "blob",
+      "oid": "0e4f6f45627693af264cc71dbfa95875289bcce2",
+      "sha256": "15c74a4fd267ee8b675ea79932eafd6a64ba0527286a82f81b48ff580ab0a193",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "dd67f323533b6801de8e334f96a6294f59aeb6f4",
+      "sha256": "b26e67b3f63ce34c7fa5d355a97b800e2fe27929b08631141cc2acf188366e13",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.worker.jsonl",
+      "kind": "blob",
+      "oid": "444b3b5a862db59d3a694742651be2ca2c6907a0",
+      "sha256": "c309ab3beee01c75fe6ffd37bc3166176cfdd549a630b71207e5951c3c62a6fa",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.parent.jsonl",
+      "kind": "blob",
+      "oid": "0d836c31992b3ffdc94136f41d5a587b158993f1",
+      "sha256": "bbe26662ee2cd76ebfbf8ec38dd2d138a6ffb7630e437a2e93cf020a717bd1d0",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "2488ac73c479b5b54bb4ef7816a77fdf6cd31b3d",
+      "sha256": "bba4b10643927be677ebf238ea3afb73245c041c2155f63e2e31a63ee0381d87",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker.jsonl",
+      "kind": "blob",
+      "oid": "3cb96a22c9fc2187e7d82dc5d09debc0ba558793",
+      "sha256": "8391d6bca5f8a0d074fcef6e78a5c87211f54ac026d192421a9c312328f5f631",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.parent.jsonl",
+      "kind": "blob",
+      "oid": "cbb6612d09a9b99132a9c74ed95b208187a16faf",
+      "sha256": "3e3dafffbc93c1decc235877d1b9b0bcc333d36e942f926a84ec90d3d31c7c52",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "d1ed3bfcae8d9984cc142439248d12defd89425e",
+      "sha256": "668cf385e3f9b4da64d1132e3984cfaea3c95f46dfdc59d836bdd0e74dc55e5e",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.worker.jsonl",
+      "kind": "blob",
+      "oid": "376512bd52d7db2d41c9088786bd332353cc413e",
+      "sha256": "c2d559a13b9d837700a10b81958227f727723405efea89912202b89c831c3bb2",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.parent.jsonl",
+      "kind": "blob",
+      "oid": "09733ee88055e8f86b68026e6cb3baf322e18029",
+      "sha256": "464d40a3996dce2745b2689d5d0cf6440e21f3f7ed5feb4773eb89b69006d47c",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "3c65c431abcf23d12e8d99539f99a649e914b48a",
+      "sha256": "8f761840a0286be6b7137490425756c165b72d45a9afe5099e37dd24b7e2fae7",
+      "bytes": 1754,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.worker.jsonl",
+      "kind": "blob",
+      "oid": "18790537ac353eae6144b96c3d44c15883e90579",
+      "sha256": "fbb3e5cec5a413018c19b64ff028d298e63f22ce6ce23e84d579a2ab06844fee",
+      "bytes": 3781,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.parent.jsonl",
+      "kind": "blob",
+      "oid": "cfc89fb51458aef430ebb6d33a6ff2fb519217a4",
+      "sha256": "cedf8215e12f31c80d1b75737b572340f99d01578d87f656cfdde42f96eddaeb",
+      "bytes": 62802,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.worker-parent.jsonl",
+      "kind": "blob",
+      "oid": "90e7266493285f3c607775af6753355f362d2cec",
+      "sha256": "23f545ec55863aea52af9ff31572241008fab7754ea2243faa0bb83b34cc9946",
+      "bytes": 3508,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.worker.jsonl",
+      "kind": "blob",
+      "oid": "3db672d0c3f54823c5f2f90b390c9f1d8341c4c8",
+      "sha256": "06cc870decd8705ebf9291df4b497db15a37a48d225486548417607d2f07c765",
+      "bytes": 7562,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/sourcefallback.jsonl",
+      "kind": "blob",
+      "oid": "4775d709512710b50f1a330374b684d76e84713b",
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+      "bytes": 250,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/logs/wrong-digest.jsonl",
+      "kind": "blob",
+      "oid": "4775d709512710b50f1a330374b684d76e84713b",
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+      "bytes": 250,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/packs/virtual-bash-0.0.0.tgz",
+      "kind": "blob",
+      "oid": "b8cfefcbf62be5111665794b7bcdd097f041257c",
+      "sha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+      "bytes": 759089,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/001.json",
+      "kind": "blob",
+      "oid": "cd9997b786d2e71e58951500aa45da31ec86f173",
+      "sha256": "4cc97f994c084cef9daeb2e05096c0b7dc27b09cef0178cf8750f01e0a9c4ca1",
+      "bytes": 2125,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/002.json",
+      "kind": "blob",
+      "oid": "586b16c9da33cdda0ffe0bec7f9fb75e7437ae80",
+      "sha256": "f37ed6dec2de6a6c69ea936e2485a7e933e688935c5d0d0f458e67a05efe9c99",
+      "bytes": 131045,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/003.json",
+      "kind": "blob",
+      "oid": "c9443bd7768f6cda7533797c70053d3065b6a73e",
+      "sha256": "48955e6c7285ea696ac5f8a898a4113a7256a7a8d0b5275fab464c26d6b17058",
+      "bytes": 2283,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/004.json",
+      "kind": "blob",
+      "oid": "4e77623661055aad9d85942b86be49675b4ec7fd",
+      "sha256": "94e0efc7b442eb768730fb8e07e2d9d54bbc2ad5c17e1b5af4840bbd9b0dd826",
+      "bytes": 4376,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/005.json",
+      "kind": "blob",
+      "oid": "385f90530f931eb9c90fb2c55558eef88b77f815",
+      "sha256": "9c1418836d0c5af1a0fe5a07c9a59daad5a979029e1cb5184081746d97e1afef",
+      "bytes": 4573,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/006.json",
+      "kind": "blob",
+      "oid": "3222be22b1f26d15804e5df4f4c9daa9b11ee133",
+      "sha256": "c6e0f400dce3dd5795505ddae156e598f02a57a4da037a5bfcf9f8ab74f4c071",
+      "bytes": 4218,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/007.json",
+      "kind": "blob",
+      "oid": "9f3e317a638e73e14c81563798371c9e05829712",
+      "sha256": "6ae10d03ee8381447f118bfdcf26fbfdfdf2c9cce07b6f0e29602a4026289909",
+      "bytes": 4360,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/008.json",
+      "kind": "blob",
+      "oid": "c3d5d25efcd5f65775df9c38d4a20c67b4eb0a03",
+      "sha256": "caca3df08f3117b67e0bced8c95fa817ab2666f3023c4e8e1ec32b0215481c31",
+      "bytes": 6680,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/009.json",
+      "kind": "blob",
+      "oid": "529db50b2380e6df6226696bff38178cba46dca6",
+      "sha256": "17afca27b2ae3fa1fca20656fb4ad5be5aa2282b8ece4ec46d9e58256abb6bb1",
+      "bytes": 6568,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/010.json",
+      "kind": "blob",
+      "oid": "16b608668daa911f6fe05423ca208866bfe3fc56",
+      "sha256": "d703299689b57fc69c6bf21026cd50a0f38e63dea531869120d08e053275b655",
+      "bytes": 6501,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/011.json",
+      "kind": "blob",
+      "oid": "4e8e672526a3b4ede8ecb04c699cdea56bafc7c1",
+      "sha256": "c013dcaf294c85e8885486ef6a135a2adb20970023e9866939c4a4744957c975",
+      "bytes": 6405,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/012.json",
+      "kind": "blob",
+      "oid": "3692861e437041aa64358d61b847f895f3a7068f",
+      "sha256": "7778f035e6291f9f34d72ba4c8e8e9b102b034694afab7fd78a3d9b6998ac45e",
+      "bytes": 6513,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/013.json",
+      "kind": "blob",
+      "oid": "169f80a67208827740cde89e7e776060fc55e711",
+      "sha256": "89d98f4ccfabaacc236d1684802a378af20fbedfcdfa02ec39005f8d1c4f2829",
+      "bytes": 6805,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/014.json",
+      "kind": "blob",
+      "oid": "b692740455a6ddf2e2ff3c983806fc73f1adcd2c",
+      "sha256": "cf015b1ac5bbe455e9243c78c9d764a04ba048b923e070e51bdddad2f19de900",
+      "bytes": 7517,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/015.json",
+      "kind": "blob",
+      "oid": "a7873a854fa824fbea209e05759dbc3766e27f0a",
+      "sha256": "4bf90994d838c475019623d8e78358de27e755f744852787cda5f01c6ec4c5f1",
+      "bytes": 6805,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/016.json",
+      "kind": "blob",
+      "oid": "b8f1a902e6bf149c54e597b8a169c85a479da201",
+      "sha256": "c4d1704d3674415fb3fb3b0d23dbff352d0df286210eaad776964b032d7d57dc",
+      "bytes": 6469,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/017.json",
+      "kind": "blob",
+      "oid": "52c5f0786e2485aabc5e8da7d410c9c478310de3",
+      "sha256": "a830598f95f08040f963cb45eade68eb0b422a81c89e8df026c40d1c61dab310",
+      "bytes": 6561,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/018.json",
+      "kind": "blob",
+      "oid": "10e582f1a4cabae102c157671a8d96509ae34d98",
+      "sha256": "3287ebe2818cf5bb0a04b648381f0394ad8f062d97c057494caf8f3ff42e1f9c",
+      "bytes": 6497,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/019.json",
+      "kind": "blob",
+      "oid": "0a0d75361b53bc2d7656185a8be06423bf39aca7",
+      "sha256": "d5c62de6cc9d3bfb833616e2a8448aeadc444242cd6b4305cc6a9827ca1d8baf",
+      "bytes": 6421,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/020.json",
+      "kind": "blob",
+      "oid": "5f4d43e0cfbe3ec7b5446921ae5fd19da37d83da",
+      "sha256": "e7c72b4ad14cdebcc41620f4342df4248ef91070493e16e34cdb3ab75988b6fa",
+      "bytes": 7269,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/021.json",
+      "kind": "blob",
+      "oid": "95276833b435bf5fa2da5975aceef20670c45b2c",
+      "sha256": "53e9b688f680880644d23afae3216d106b37ecc15fc8fff936d6e0aa1ba48709",
+      "bytes": 8865,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/022.json",
+      "kind": "blob",
+      "oid": "e2deffd799b10984754c8a595d559cdfaad2890b",
+      "sha256": "86771a704f32b8bb11cbcb3351decef8458f26ae02b47cfc898a14842ce76f94",
+      "bytes": 10573,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/023.json",
+      "kind": "blob",
+      "oid": "2f63af4bc13600a8f38bc55b85eb6b1a82c284b7",
+      "sha256": "787b00b5aafc8b8a369edd1df86c09a775f84c6e85bb69000d9accc5a01f9fe7",
+      "bytes": 10153,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P01.observed.json",
+      "kind": "blob",
+      "oid": "a417a55db2bcd1ee665a61126d062edc57e206ed",
+      "sha256": "ee477bb5751b335199c76ef2db83cf1a2cf3de73dfc4c36073ddef5ff1f37d9b",
+      "bytes": 83278,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P02.observed.json",
+      "kind": "blob",
+      "oid": "a572a4413cfd0c719d7e06876bd6ce29b903ab59",
+      "sha256": "3b9150e2c6dc67423025ca6e9e3d3941a29fc1e11901fb082bbd2563580e4219",
+      "bytes": 83064,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P03.observed.json",
+      "kind": "blob",
+      "oid": "963efd4b0c6bc172dd3f265ccec45577f40787ed",
+      "sha256": "7281ee72bfe0a97c6e45022245739e19f7e2637446ad19bd9bc3d0396eb0a567",
+      "bytes": 83004,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P04.observed.json",
+      "kind": "blob",
+      "oid": "f5e95e96d9f398ec8ca48cb082c51ba1c3736728",
+      "sha256": "6fb1d90903af0618c8b651011f4479e82e75a07fbec150500cbc34645932f871",
+      "bytes": 82930,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P05.observed.json",
+      "kind": "blob",
+      "oid": "1daa170e9967df36263b9a2835e2534bee1105e4",
+      "sha256": "51e21f545da35e053a41278e1525cb9c16e0991338c63404db2205b529088a57",
+      "bytes": 83024,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P06.observed.json",
+      "kind": "blob",
+      "oid": "e54ce6257f3f0e283f720b640e2908e331e80c98",
+      "sha256": "22ca992961aed5d49dfd094178f42499ec10c53b232b8a15344c6d271166845f",
+      "bytes": 83442,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P07.observed.json",
+      "kind": "blob",
+      "oid": "11cf7a08843782a9ba7c749bef0dd89f3ce23451",
+      "sha256": "d44f944266019a3daf1714c9eec2db8d03f14c93f5c664f7a135ac7f944191b2",
+      "bytes": 84557,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P08.observed.json",
+      "kind": "blob",
+      "oid": "13339126ce12b2d38277fc80c239248cfe9d2473",
+      "sha256": "94403fd4a0e97209d42e9d540dfc26f7192083d42b7130d1136f5d9080b7f854",
+      "bytes": 83511,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P09.observed.json",
+      "kind": "blob",
+      "oid": "f10a9b376bc2a9ef1cf079c966e6f9a0dd821a4b",
+      "sha256": "f87813411d132f5e42bd807b7f40632152b12207cd4263f48ae35cbe7521e610",
+      "bytes": 82989,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P10.observed.json",
+      "kind": "blob",
+      "oid": "e58a443285686ffc83244d83c53562b1a5ebbe6f",
+      "sha256": "57d7ac6570a630d8c136d1783d92380a1bc39462e7875ba1f0fce0f24c1c7e06",
+      "bytes": 83069,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P11.observed.json",
+      "kind": "blob",
+      "oid": "8290f6b9b7c6db0bfe1bc3b941f987ae9cf900b6",
+      "sha256": "4c84f4ce4a826c3ebd50b95e37c562687d2205a272494991ce8192820b19aa5a",
+      "bytes": 83010,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P12.observed.json",
+      "kind": "blob",
+      "oid": "580e72ca8ec17845fb1306c463a487dafb077c69",
+      "sha256": "9b65d5f034b5bafab3d7b854973dcb3b66bf888d4e821530dd1fd453f2a71794",
+      "bytes": 82955,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P13.observed.json",
+      "kind": "blob",
+      "oid": "ffb2f6376f32e7c79e0905044fa6b443e4467e4a",
+      "sha256": "ed3608f1c6236bc7ff1fd8ce5209149da8e3ca396bfabaaa681f7b983d70861f",
+      "bytes": 84289,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P14.observed.json",
+      "kind": "blob",
+      "oid": "ebc8691d2f5abb855e94b485036fa2f63a440955",
+      "sha256": "f62fa760e5053b895437a0f6276003dde7d2e76f0011ce8c31a80e231cba6cfa",
+      "bytes": 86266,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P15.observed.json",
+      "kind": "blob",
+      "oid": "a6b04226cc36de44f632d95b80538d61dbac7bfc",
+      "sha256": "2d9793ba4a1d9e9192ee9907c8cf6f9ce853464f3b01864aad7142470d25eaca",
+      "bytes": 88852,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P16.observed.json",
+      "kind": "blob",
+      "oid": "3a5cb8172d86d4108b6862b4ea00e39939a228eb",
+      "sha256": "c6ba115f588cc8cc82f031d32eb15025dbd9a7276819e3d29deb93e3b19a13dd",
+      "bytes": 94881,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/ACCOUNTING.json",
+      "kind": "blob",
+      "oid": "6e948567603e0741f8d44c41c8d055aa5f3d9e25",
+      "sha256": "7a46d1358a9947c7bce4742a16ac3d66be861187077ec352d5b06e79def2b850",
+      "bytes": 8289,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/COMMIT-PATHS.nul",
+      "kind": "blob",
+      "oid": "6b28cc97bef5137e97754668186fcca866915253",
+      "sha256": "b9566a8c67a10ba9ffb129841e1ac5d678e6e727cd9843d6b80695914e211c73",
+      "bytes": 21838,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/DISPATCH-INTENT.json",
+      "kind": "blob",
+      "oid": "8291f0f7810ac03a01307cda931aee07b050902d",
+      "sha256": "2bddc82613ca225ee29b6a7a14fe673ee6a9fdca4c1bfe6690b3edc2ea116082",
+      "bytes": 158,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/FINAL-ADMISSION.json",
+      "kind": "blob",
+      "oid": "b2ab34180f157097d5a647a811cf0ef7b7920d1d",
+      "sha256": "a8b9eae353275a88e3ed292c24e5b65b120a77ac2bc31487fe078e04e93bfe87",
+      "bytes": 112740,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/MANIFEST.json",
+      "kind": "blob",
+      "oid": "f068d743d3c148111a5c571f9560e62e5d33dff4",
+      "sha256": "bad9be846fd0f1b3ac085210d2f1187184224fa563b4b79cf5685939875b1d55",
+      "bytes": 64073,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/OUTER-SESSION.json",
+      "kind": "blob",
+      "oid": "c8e05bf5cda384dae2f55e3abe31d108570506dc",
+      "sha256": "106831b4d91bf2eaae5010bea1d41ac2c3c095917ea4d3d9768dd5e526759164",
+      "bytes": 793,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/POSTCHECKS.json",
+      "kind": "blob",
+      "oid": "8811d21b79ee563a306e0b4baf12e1280a672f18",
+      "sha256": "bd9715db961733397b2186fd9e3bd841a2671532436ea3cd66968bb033bca919",
+      "bytes": 112693,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/PREAUTH.json",
+      "kind": "blob",
+      "oid": "02382fe775e839499f26960ab45faaa8805b279a",
+      "sha256": "104eeb2deba5c5be99fc11c4506841644845028efc93e1ab47054da9185289fd",
+      "bytes": 229706,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/README.md",
+      "kind": "blob",
+      "oid": "d4e00e15de77aa91497eb9c5d81110d08cb8153e",
+      "sha256": "aa57d5383ef01ad799d15e520bbf3793eda07a2cd8dae9415424978e6e0602b3",
+      "bytes": 1273,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RECONCILIATION.json",
+      "kind": "blob",
+      "oid": "0837f149ab52c611444364264baf27714c250705",
+      "sha256": "9770fe7dc7a468f693488e3a95ff929cb365db20fd35a3c3fa05db8a1a825828",
+      "bytes": 123187,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RESULT.md",
+      "kind": "blob",
+      "oid": "6970a9984b811cdd00d016618a64fe7586dffbe8",
+      "sha256": "8fd6e5969231ebdf782c36f8ecafbd237a05e77dc834b06995f53c0a13d92dea",
+      "bytes": 7007,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RUN-ROOT-INVENTORY.json",
+      "kind": "blob",
+      "oid": "b679efbe244b1b3be0a6b2a379b6787ddf0960ed",
+      "sha256": "0d5f11f69402293bc50601d3d1f9b9a8999648f948acf47f12e209a7650911fb",
+      "bytes": 1153759,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/SUPERVISOR-PID.json",
+      "kind": "blob",
+      "oid": "e595f114da3313780a469e913de4aa79cf77614f",
+      "sha256": "26fd98ea4865c27446e4067a30197f084d4c2888c5abfc864ac2930029b77781",
+      "bytes": 66,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/001.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/001.stdout",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/002.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/002.stdout",
+      "kind": "blob",
+      "oid": "d6abd3752f3a5f35079383d6dd5af4e10ad5975c",
+      "sha256": "ed461880e31d7a9e465f88088cd22ab6764a8a47e9919e83209b5df4a7d2f4b1",
+      "bytes": 96639,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/003.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/003.stdout",
+      "kind": "blob",
+      "oid": "7f1a29d010c1d2553b7c030a0a69d3058bb8b142",
+      "sha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36",
+      "bytes": 23,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/004.stderr",
+      "kind": "blob",
+      "oid": "89b3737b620fa11c831de62600fd5c487308b24e",
+      "sha256": "a7e5d6f00b953b545517febb56fb94a6dcd6ed19c84f553aa0a6e08b4cb21a35",
+      "bytes": 1342,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/004.stdout",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/005.stderr",
+      "kind": "blob",
+      "oid": "7921285b1ad76c307f5887b761d20f74c81d850d",
+      "sha256": "2f3bcd8319d04efab33935bc8338a8f5f46205290842c70f8f2571787dc5e8c6",
+      "bytes": 1494,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/005.stdout",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/006.stderr",
+      "kind": "blob",
+      "oid": "d36d3b27f82fc0970e998c0066bbac5383e6d40a",
+      "sha256": "04ef07f009424284409e8f16de39d4f7f769e223409e7bb6711cb9fef2148a96",
+      "bytes": 1226,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/006.stdout",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/007.stderr",
+      "kind": "blob",
+      "oid": "edc23f9f5d23f0d845758433a5580a70ec9fbb14",
+      "sha256": "85bccbebeb64da4f3dc7af5a1098e3641e1713a830b30f70965066eddb8eb187",
+      "bytes": 1337,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/007.stdout",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/008.stderr",
+      "kind": "blob",
+      "oid": "17b696e044a9348794af996b140521533ed8c585",
+      "sha256": "792fa1a124df70753ec8de16a8787d911720f7bcaace0163721c33ff73ee168f",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/008.stdout",
+      "kind": "blob",
+      "oid": "80a81aad4d88ea28383e81526b6b269f31778ed0",
+      "sha256": "3439ecc14fe8e93206f76346de7ee14f423ed1a25d3275ae4f75579d5b86c9f8",
+      "bytes": 2480,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/009.stderr",
+      "kind": "blob",
+      "oid": "da4766cb1f9786701bace192d95e2d2c8b465427",
+      "sha256": "61945e967a4d42a3abe3d446416ac003b4fef5dcbb76d8dcf16a5bc763fe4136",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/009.stdout",
+      "kind": "blob",
+      "oid": "86961db01e5bd01b351636edf6cbc8d580d8a2ec",
+      "sha256": "2127228bfa01a32aa8c2d37b78f70972269bf1e6f0498bbbd32a2930c7f27bdd",
+      "bytes": 2395,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/010.stderr",
+      "kind": "blob",
+      "oid": "810faf4749ccf18c5310dc867d8db9b9a5506cfb",
+      "sha256": "bebc261e505deee95b05a7d5d5c29cbd045460aad380344979d8124d21bd5992",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/010.stdout",
+      "kind": "blob",
+      "oid": "2761594d5ef019cd66d771c67d1ad17664e611c4",
+      "sha256": "8f0ba1e3dff57e24a71c63dae03432efab461eb3d2c028f589c93566edd0940d",
+      "bytes": 2346,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/011.stderr",
+      "kind": "blob",
+      "oid": "69251154ea27e48b37247211f6935c91419e9fdf",
+      "sha256": "d1a4bf405ecc084bff7c07eb86323e388a047b8fd6e05bcbce5910ceaadd58a4",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/011.stdout",
+      "kind": "blob",
+      "oid": "b253bbc7e46805c28612f6a803d16949bf94e4b9",
+      "sha256": "730fbadf49c793bfdb1ddebeed9819d69f14b9bedeab8f0cafa00e7158b80a5e",
+      "bytes": 2272,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/012.stderr",
+      "kind": "blob",
+      "oid": "34e4592787a9d6ba92f2090669bea57f0ce37d34",
+      "sha256": "f8abc08e9caa758f01a4f2b983a3d9c7d101deb6afb4fcd50953da593053433d",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/012.stdout",
+      "kind": "blob",
+      "oid": "d6f924c2190f462606f6dd0ff0f8cb1a92ccaa8e",
+      "sha256": "658ffe841d05bd899a78d492225e3c8d1c5da2e008f07fe606b8a25e6b813c79",
+      "bytes": 2355,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/013.stderr",
+      "kind": "blob",
+      "oid": "98a09dacff58ad25602b26a13f8fe79fadaab972",
+      "sha256": "784d1d3af8fd080136509000210c82245a51fcf36d986c07c5f6f49807089584",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/013.stdout",
+      "kind": "blob",
+      "oid": "3b699a94553212eaf388eef5274877054fd51d5b",
+      "sha256": "155e6efff5509a70a7021ee2cc12465bb21f155cd0a40bf7ac8a1cdb7a77aa17",
+      "bytes": 2572,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/014.stderr",
+      "kind": "blob",
+      "oid": "82e4b4db8e8181183b5805558baaa9056ce488ad",
+      "sha256": "1ebabd8bfcc02365e43dceee9ba16dab26cf96cb407462cb0d3eed4aab066919",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/014.stdout",
+      "kind": "blob",
+      "oid": "ed29c25bb0cae5310fb56528cc88f0f5f7e08220",
+      "sha256": "c11f6a59f7cf46916da1bda6e2c5a2ffc7d2bb8d9f4b99b67d2f1b823eb7a18c",
+      "bytes": 3108,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/015.stderr",
+      "kind": "blob",
+      "oid": "2e985f7de34fc5bc1d10b693af9e72a7ba3beb28",
+      "sha256": "75075c848fbc344a16e3fd17b23fe0cee760a28b4a85d6a16ac8fea4aa9e4cef",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/015.stdout",
+      "kind": "blob",
+      "oid": "fd3d8511e92d026908a3b0d84fb7d2ee78802ee1",
+      "sha256": "2e749d389005353be6cb35a8d36e93ca09476c02cd5437297e683628723fddb4",
+      "bytes": 2573,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/016.stderr",
+      "kind": "blob",
+      "oid": "1a6b3e28ac5f83d449813bf2a46163bc03e1b680",
+      "sha256": "1bb66a4bdbfe76d2c0013be15491ce752b1f7dfb483f99a73e95269e206aee93",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/016.stdout",
+      "kind": "blob",
+      "oid": "41d9b05c97932857d0352ad6ddfa94406175175f",
+      "sha256": "1c18160a01a05981defbaddeb23df552d0bbf66220dc277178ec9bea1c40a1cd",
+      "bytes": 2320,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/017.stderr",
+      "kind": "blob",
+      "oid": "03e32b1f6c1874541701c3673138110c4ba005bd",
+      "sha256": "16ba004dd0cb679feb2a1fdc1c5f7e13d85343ab06ceb0d7b5827ad28d96e935",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/017.stdout",
+      "kind": "blob",
+      "oid": "c061ce823a178795c497494629e1189e011a9a39",
+      "sha256": "1422e7249bc1e5d3bcdcdd0508881dfe66462af145284c240f7ae57a8c769c53",
+      "bytes": 2389,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/018.stderr",
+      "kind": "blob",
+      "oid": "f6d9a2d0644b2823fce6c9c25d1ee92193c43924",
+      "sha256": "3d14e22db124055c101ac0720a9a593a05bfa184bdfe3e0afffd3dbca67e82d2",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/018.stdout",
+      "kind": "blob",
+      "oid": "49a6e4a48b002a8cebfb5fd8fed8ae6c2758e211",
+      "sha256": "521efb8a6706d7bf2a53175bbe204c4d1246fe0219cabdbf496f825e1011e680",
+      "bytes": 2341,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/019.stderr",
+      "kind": "blob",
+      "oid": "f9bbb833ab1d49ac952cbda4157813d32a0d549e",
+      "sha256": "79dc15ab6584207cbf77647213d7571b67c67fadcbe532c44ccdbd656996a68c",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/019.stdout",
+      "kind": "blob",
+      "oid": "31101412e2e72f60957cd684b82456ab3357c622",
+      "sha256": "1e3936da2c3c0e5d0ff9c0d0385ea5f9beddb634a58a58a29a389b650365956e",
+      "bytes": 2286,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/020.stderr",
+      "kind": "blob",
+      "oid": "fa4f7de6188a80e70fac1bf4d9da0bbc6671e4d2",
+      "sha256": "db7ea90236328c53a62d1b199d78f401276bab60c115ca10d8f568754970d7ab",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/020.stdout",
+      "kind": "blob",
+      "oid": "555c786fa50fd820418f3d0285ed4c349de9f6c2",
+      "sha256": "e3f0ac30c3169247955aaf115b99b8e617b35fca8079ade731f0f09e515bb7f4",
+      "bytes": 2920,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/021.stderr",
+      "kind": "blob",
+      "oid": "d4c9281f1432f10722a06ca528f7603a911236a2",
+      "sha256": "ea3c3670df30a47c0175e32537212d1ad7c4794288fba2298a37ea4e6eadb38d",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/021.stdout",
+      "kind": "blob",
+      "oid": "3f88cdca203043bea8e7c91d9a3658b91059713b",
+      "sha256": "13161e807ed0310d9e1642ef53dd9a39a00ab268b487a054636461265ca053fa",
+      "bytes": 4118,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/022.stderr",
+      "kind": "blob",
+      "oid": "bb27993962892fef2752ceb59f86654c748d77ed",
+      "sha256": "16855a946e09f125d2e9fdc1e8c5c12930cb762027e9299ea373036fddcc9653",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/022.stdout",
+      "kind": "blob",
+      "oid": "6ec936a5f4e0c0bb11cdc217e660d278fcce2b0c",
+      "sha256": "c7023bc6f90a1283908410d64aa35b8288a373c338cde9e5a5f3f20bee3f2e13",
+      "bytes": 5399,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/023.stderr",
+      "kind": "blob",
+      "oid": "834f7f75038fbf2a4c1da88b2e7e9a937903f6e0",
+      "sha256": "669bb951a8816433c0650e6a38ee6f481a5d63c01533a08aeed5f1d9b5341d95",
+      "bytes": 453,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/023.stdout",
+      "kind": "blob",
+      "oid": "a8bfa97e05da57ff8b085e88e4031972e1849602",
+      "sha256": "1fb4590d22cf44c6340864e71b1be7f4ec815e2d48bccccf135664776d668e0a",
+      "bytes": 5083,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.status.json",
+      "kind": "blob",
+      "oid": "06c3f950a433dc78a91bf80198ad108c2476ace1",
+      "sha256": "fd0ce45d9673bf2ea7c29cdeab3a7380353254328680fc8957742530aafb3899",
+      "bytes": 508,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.stdin",
+      "kind": "blob",
+      "oid": "f8d2b2eb45caa082e16d70ba25d28357c99e9045",
+      "sha256": "50938999e70ff587db229a8131398297de2e0d453f9f1eace641e8403fbfb720",
+      "bytes": 26941,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.stdout",
+      "kind": "blob",
+      "oid": "ce2c73100ef5ed9e2cb62afec7a3b6b17f66e28a",
+      "sha256": "40ad6ba1a59f49d847bff276a173c7907853dc0255e3da25cc248dd547e6ef00",
+      "bytes": 9988326,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-commit.status.json",
+      "kind": "blob",
+      "oid": "aea41816de863735c7e93e6d009edb72ef0650d5",
+      "sha256": "a570bcf4494f671c5b57805cd66f0c61ace157ea3de5d4e3a29c3cc3e7b84a82",
+      "bytes": 13,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-commit.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-commit.stdout",
+      "kind": "blob",
+      "oid": "99756e6230294d50ba056a3b6095c546347923ca",
+      "sha256": "6012ae956b01a69150a7f5027f1a1df39eb3af3fd3e1935b22d21e03a303f965",
+      "bytes": 343,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.status.json",
+      "kind": "blob",
+      "oid": "144afb05d7fd8cfa0cce69f94e4b04a1ae2c4b0e",
+      "sha256": "6857e85d91524872a1a26e7b8afe9532ce720d00a912638db33e65d5631d1e4f",
+      "bytes": 285,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.stdin",
+      "kind": "blob",
+      "oid": "3986355da06b1259cfb45b46c5a54ef0894546a9",
+      "sha256": "84c27589fc2f378aa1ef59db7c65eaaa5fff0147ec76ce5ca0d8c768ee83478b",
+      "bytes": 271,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.stdout",
+      "kind": "blob",
+      "oid": "f776a2416fcfe79a1d1f6f3fe1ce51c322b54a35",
+      "sha256": "19c5092257edfedae8cdcfb8e596e8c50baf93cf7b06ac5deccae4f1b1cc1e41",
+      "bytes": 12280,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/npm-final-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "ae1882135dc319e4c2bd04b7d36ff3c7582b64e7",
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "bytes": 249034,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/npm-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "ae1882135dc319e4c2bd04b7d36ff3c7582b64e7",
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "bytes": 249034,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/npm-post-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "ae1882135dc319e4c2bd04b7d36ff3c7582b64e7",
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "bytes": 249034,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.status.json",
+      "kind": "blob",
+      "oid": "b1494affbc32e156256e902702a4c2ccde39eff8",
+      "sha256": "02958a7a498ba3d0fb40ff178513ec694a88d4e0ca095c4f91273778041d4135",
+      "bytes": 82,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.stderr",
+      "kind": "blob",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.stdout",
+      "kind": "blob",
+      "oid": "667cd4b9e32ff5db205ff0f781397c587869ac41",
+      "sha256": "b8417e46ac90c96bbc35c6f22e9548ae378092d28363ef3f42bfcef39c3984a0",
+      "bytes": 62,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/types-node-final-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "7c2ea12fee40b90160a32dd316af948e4f541113",
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+      "bytes": 7159,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/types-node-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "7c2ea12fee40b90160a32dd316af948e4f541113",
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+      "bytes": 7159,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/types-node-post-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "7c2ea12fee40b90160a32dd316af948e4f541113",
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+      "bytes": 7159,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/typescript-final-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "4bdaacd3d610bde77d029fa36d42e0235dac83b6",
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+      "bytes": 14134,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/typescript-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "4bdaacd3d610bde77d029fa36d42e0235dac83b6",
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+      "bytes": 14134,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/typescript-post-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "4bdaacd3d610bde77d029fa36d42e0235dac83b6",
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+      "bytes": 14134,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/undici-types-final-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "937cbef6891cf6f35d6d807a67bc9e5816d6b5f9",
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+      "bytes": 3876,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/undici-types-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "937cbef6891cf6f35d6d807a67bc9e5816d6b5f9",
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+      "bytes": 3876,
+      "verified": true
+    },
+    {
+      "expression": "78e5628e98a4ed408d0826985f8342a43ceee370:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/undici-types-post-originalRows.canonical.json",
+      "kind": "blob",
+      "oid": "937cbef6891cf6f35d6d807a67bc9e5816d6b5f9",
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+      "bytes": 3876,
+      "verified": true
+    }
+  ],
+  "afterCommitOriginalRootWholeInventoryEqual": true,
+  "rootInventoryEntries": 5785,
+  "rootAppendDetection": "Reenumerated entire original run root after commit and compared exact key/kind/mode/bytes/hash inventories; detects new entries, unlike enumerated sealed-pin checks.",
+  "foreignIndexBeforeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "foreignIndexAfterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "foreignIndexUnchanged": true,
+  "parentUnchangedSha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+  "noSupervisorRetry": true,
+  "noEscrowRelease": true,
+  "qualifications": [
+    "The preserved administrative ReferenceError is in RECONCILIATION.json; supplementary ACCOUNTING.json finishes DATA arithmetic only.",
+    "Finalization administrative receipts follow the main evidence manifest and are explicitly separately committed, not retroactively inserted into it.",
+    "No product code, harness, expectation, foreign work, parent reservation or historical evidence was modified."
+  ]
+}

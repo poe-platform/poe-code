@@ -1,0 +1,59 @@
+(registered 2021-04-20, last updated 2021-04-20)
+
+Type Name: application
+
+Subtype Name: wasm
+
+Required Parameters: N/A
+
+Optional Parameters: N/A
+
+Encoding Considerations: binary
+
+Security Considerations: WebAssembly is a standard, a safe, portable,
+   low-level code format. The security considerations associated with
+   executing WebAssembly code are described in 
+   https://www.w3.org/TR/wasm-core/#security-considerations.
+
+   The WebAssembly format includes no integrity or privacy 
+   protection. If such protection is needed it must be provided 
+   externally, e.g., through the use of HTTPS.
+
+Interoperability Considerations:
+
+   See WebAssembly Core Conformance
+   https://www.w3.org/TR/wasm-core/#conformance
+
+Published specification:
+
+   https://www.w3.org/TR/wasm-core-1/
+   https://www.w3.org/TR/wasm-js-api-1/
+   https://www.w3.org/TR/wasm-web-api-1/
+
+Application Usage: The application/wasm media type is intended for 
+   use as the type used to describe WebAssembly files when sent over 
+   HTTP to be executed by browsers, which is a common scenario. 
+   Additionally, the type is used by several WebAssembly runtimes 
+   that take advantage of the safety and portability while targeting 
+   efficient execution and compact representation.
+
+Fragment Identifier Considerations: None
+
+Restrictions on usage: None
+
+Additional information:
+
+   Deprecated alias names for this type: None
+   Magic number(s): 0x00 0x61 0x73 0x6D
+   File extension(s): .wasm
+   Macintosh file type code(s): None
+   Object Identifier(s) or OID(s): None
+
+Intended usage: Common
+
+Contact Person:
+
+   Contact Name: Eric Prud’hommeaux
+   Contact Email Address: eric&w3.org
+
+Author/Change Controller: W3C

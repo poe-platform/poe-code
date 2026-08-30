@@ -1,0 +1,17 @@
+{
+  "id": "04-shell-module",
+  "pid": 1578,
+  "started": 1787857137703,
+  "deadline": 1787857147703,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787857138604,
+  "parentAfter": {
+    "pid": 99102,
+    "at": "2026-08-27T18:58:58.604Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

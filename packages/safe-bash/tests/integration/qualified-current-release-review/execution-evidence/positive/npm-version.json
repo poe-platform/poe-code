@@ -1,0 +1,11 @@
+{
+  "command": [
+    "npm",
+    "--version"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/plugins/qualified-current-release/.runs/qualified-LFeAHL/snapshot",
+  "status": 0,
+  "signal": null,
+  "stdout": "10.9.7\n",
+  "stderr": ""
+}

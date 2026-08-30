@@ -1,0 +1,512 @@
+{
+  "schema": 1,
+  "role": "STATIC_COMMITTED_DATA_AUTHENTICATION",
+  "criteriaCommit": "671b49f0d3aa71aba7c3d97fa19ed4edb9d24e72",
+  "components": [
+    {
+      "component": "cwF01",
+      "revision": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2",
+      "finalSealSha256": "2ddd402a35916f4fb7ab29b33c9f740aebde5134a2feca43383b5abf6c427fb6",
+      "sourceSealSha256": "8b2509578e6ac09770cff0e465183d9c8efbd4579741b8714680e71c6847ed6f",
+      "sourceSealDescriptors": [
+        {
+          "path": "ASSEMBLY.json",
+          "matches": true
+        },
+        {
+          "path": "DEFERRED-CONTROLS.json",
+          "matches": true
+        },
+        {
+          "path": "SPECIFICATION.md",
+          "matches": true
+        },
+        {
+          "path": "type-worker.mjs",
+          "matches": true
+        }
+      ],
+      "files": [
+        {
+          "path": "ASSEMBLY.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "ed7ab2806359bdcbf6dc6f24286de75bfc3fb195",
+          "sha256": "2d826d6cc3d508d46aa50950c5317a2a20d95513c9fff209eefe5ce8d6c254d2",
+          "bytes": 21601,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "DEFERRED-CONTROLS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "98e7b42c83f512d8606ccbd39d5cde77c41b6668",
+          "sha256": "418c6bc218b7ab6bdfefc6b43a1deb0394270ef191d8df171515c0575b6ad88a",
+          "bytes": 27008,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "FINAL-SEAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "c92a84ac14084474237e7d812cf6d03de4a5de69",
+          "sha256": "2ddd402a35916f4fb7ab29b33c9f740aebde5134a2feca43383b5abf6c427fb6",
+          "bytes": 2549,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "SOURCE-SEAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "ef054e11bdbb92e7741ab0ad6d969f2e2e341310",
+          "sha256": "8b2509578e6ac09770cff0e465183d9c8efbd4579741b8714680e71c6847ed6f",
+          "bytes": 965,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "SPECIFICATION.md",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "08b3043b02ebbab4b7d76c41625b70e209232d4a",
+          "sha256": "cadc00f75a58d8d69c5d503c1a4658b6605180674cbfd3f789fa9ac3344ff3c4",
+          "bytes": 7236,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "STATIC-CHECKS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "25edd9cf1893447d01fed460fc53a7038094c649",
+          "sha256": "2b2fab4ae464a8a4253acab4e382e6f289a001687262b8a7eea886a367cb02d5",
+          "bytes": 5884,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "type-worker.mjs",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "02c75cbffd8bc813cc485156345b78317f73b277",
+          "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+          "bytes": 11186,
+          "sealMatches": true,
+          "regularGitClass": true
+        }
+      ],
+      "fileCount": 7,
+      "exactMembership": true,
+      "assemblySha256": "2d826d6cc3d508d46aa50950c5317a2a20d95513c9fff209eefe5ce8d6c254d2",
+      "commitMetadata": [
+        "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+        "fb9afcc3cf484171769985d9f570318117f09f34",
+        "2026-08-28T07:51:45-05:00",
+        "Seal additive CW-F01 strict TYPE output correction"
+      ],
+      "modeQualification": "Regular nonexecutable Git classes plus authenticated fresh0644 declarations; no active assembly/materialization or historical original-mode inference.",
+      "target": {
+        "path": "workers/type-worker.mjs",
+        "preimageSha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+        "postimageSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+        "rootPostimageMatches": true,
+        "preimageBytes": 10863,
+        "postimageBytes": 11186
+      },
+      "authenticated": true
+    },
+    {
+      "component": "cwF02",
+      "revision": "9fe3c8574b32df9839284307942be5003d87d0a0",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2",
+      "finalSealSha256": "e124f052e7bf148073ac6831b48fe7436ee4b54fc2ca06ea1f595bb12dca1197",
+      "sourceSealSha256": "5024fb1989532ff9f5051cc7e4cff32efd0918e4a2ea31e2151d9e34c35a99b2",
+      "sourceSealDescriptors": [
+        {
+          "path": "ASSEMBLY.json",
+          "matches": true
+        },
+        {
+          "path": "CORE-STATUS-INTEGRATION.json",
+          "matches": true
+        },
+        {
+          "path": "DEFERRED-CONTROLS.json",
+          "matches": true
+        },
+        {
+          "path": "OBSERVATION-PROPOSAL.json",
+          "matches": true
+        },
+        {
+          "path": "SPECIFICATION.md",
+          "matches": true
+        },
+        {
+          "path": "loaded-worker.mjs",
+          "matches": true
+        }
+      ],
+      "files": [
+        {
+          "path": "ASSEMBLY.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "d28155912c40550fc639ec1178c4b44571b227a0",
+          "sha256": "18876bf2415f08ff7dc5397e6313823ac204bd58084a3a6de4218155be18257a",
+          "bytes": 26266,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "CORE-STATUS-INTEGRATION.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "c5f0ac20f3d47ca2510f40993004e6d150605645",
+          "sha256": "5834ebbe925781533a3f367a49a893f5045fb60cc1c5666eac1590cf3dc3458c",
+          "bytes": 7818,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "DEFERRED-CONTROLS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "5a8fbde200f01f2796172dde7b68687a60b7728b",
+          "sha256": "aca951dd013acee3b4542d24bbb27d53d741aa6dd3fc975ef26799f3e536a7a5",
+          "bytes": 15039,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "FINAL-SEAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "260c4113a01632e6c67ac778c5583061f89100b0",
+          "sha256": "e124f052e7bf148073ac6831b48fe7436ee4b54fc2ca06ea1f595bb12dca1197",
+          "bytes": 3262,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "OBSERVATION-PROPOSAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "7a882fc684c93ef8c747f2c5575d93e67c56117d",
+          "sha256": "96606644f59afb0747949f977d18c6d1c3a27cd864c1101026b2584686b519ff",
+          "bytes": 2601,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "SOURCE-SEAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "5b996033c4bac56273e0b0e69872767e36242f0f",
+          "sha256": "5024fb1989532ff9f5051cc7e4cff32efd0918e4a2ea31e2151d9e34c35a99b2",
+          "bytes": 1402,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "SPECIFICATION.md",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "62cd85bedceb7d00e915635cfe27415e7982de38",
+          "sha256": "4a43cabdf24f9eab816e3f020757ff24fe6461a9e42a7bc93602b2f0d966bf03",
+          "bytes": 9132,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "STATIC-CHECKS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "c939f41a8bed871ed183d070e78ae3e80189b8c4",
+          "sha256": "9b8d8529865c0b6d2260b399f989744f86bddf67702f3e79134662fe77962baf",
+          "bytes": 4672,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "loaded-worker.mjs",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "6d204bd5ee3e87ad74b0e7f5b6f5fb2415aad73b",
+          "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+          "bytes": 11554,
+          "sealMatches": true,
+          "regularGitClass": true
+        }
+      ],
+      "fileCount": 9,
+      "exactMembership": true,
+      "assemblySha256": "18876bf2415f08ff7dc5397e6313823ac204bd58084a3a6de4218155be18257a",
+      "commitMetadata": [
+        "9fe3c8574b32df9839284307942be5003d87d0a0",
+        "fb6f048d801935d7ebd79ff412f93c9eb387eb88",
+        "2026-08-28T08:04:17-05:00",
+        "Seal additive CW-F02 LOADED gap classification correction"
+      ],
+      "modeQualification": "Regular nonexecutable Git classes plus authenticated fresh0644 declarations; no active assembly/materialization or historical original-mode inference.",
+      "target": {
+        "path": "workers/loaded-worker.mjs",
+        "preimageSha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+        "postimageSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+        "rootPostimageMatches": true,
+        "preimageBytes": 9806,
+        "postimageBytes": 11554
+      },
+      "authenticated": true
+    },
+    {
+      "component": "build",
+      "revision": "937c1f6a35c620146e62924b16d90e808319024f",
+      "root": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build",
+      "finalSealSha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+      "sourceSealSha256": "3ff5b3158acd151a7a85fe54ec05085aafbf39a3f6fb7f827923caf2fb233502",
+      "sourceSealDescriptors": [
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+          "target": "workers/build-worker.mjs",
+          "matches": true,
+          "authorityField": "activeProjection",
+          "modeQualification": "Declared fresh0644, Git100644 only for source history"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+          "target": "workers/build-fs.mjs",
+          "matches": true,
+          "authorityField": "activeProjection",
+          "modeQualification": "Declared fresh0644, Git100644 only for source history"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+          "target": "workers/build-outputs.mjs",
+          "matches": true,
+          "authorityField": "activeProjection",
+          "modeQualification": "Declared fresh0644, Git100644 only for source history"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+          "target": "workers/build-plan.json",
+          "matches": true,
+          "authorityField": "activeProjection",
+          "modeQualification": "Declared fresh0644, Git100644 only for source history"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+          "target": "workers/build-source-manifest.json",
+          "matches": true,
+          "authorityField": "activeProjection",
+          "modeQualification": "Declared fresh0644, Git100644 only for source history"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+          "target": "workers/build-package-manifest.json",
+          "matches": true,
+          "authorityField": "activeProjection",
+          "modeQualification": "Declared fresh0644, Git100644 only for source history"
+        }
+      ],
+      "files": [
+        {
+          "path": "ASSEMBLY-MAP.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "47c4d9502026ad5debca3201d5e7d9a2eac31453",
+          "sha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd",
+          "bytes": 3254,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "BUILD-RESULT-SCHEMA.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "04392c6d65be524030ca87ba2224444412426877",
+          "sha256": "da85783b1c82dfa63c6bc7644b9ef9882214445c5f7b2cd5fb750b57ff2ee603",
+          "bytes": 22550,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "BUILD-SOURCE-PRESEAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "f2e559271aab28f87d04e826c3c4df31ebfaebc7",
+          "sha256": "3ff5b3158acd151a7a85fe54ec05085aafbf39a3f6fb7f827923caf2fb233502",
+          "bytes": 6518,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "BUILD-SPECIFICATION.md",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "2147d2cf5f66a4a4edf75bf03ec75eb4d6b1a690",
+          "sha256": "960522cb5f4d90979353540748531efb9df6fa6bf846874ea74fc87519d2a16c",
+          "bytes": 9270,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "DEFERRED-CONTROLS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "f724381d72d66e2c4ff7bbe06beff3faf8cc57c8",
+          "sha256": "dd0836ec6f696bd4adfa3f8283202b0e88cf5a663d5c80597743b726ddda1435",
+          "bytes": 3786,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "FINAL-SEAL.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "0e116a38b93af468ed938e23802670c65a16135f",
+          "sha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+          "bytes": 5269,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "INPUTS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "1b4dc29106cb4cde48f146b576cc60d4f88323bc",
+          "sha256": "7403eba2325c6ad1804f57defe7610c924496cf482f8b72fdd573ff500222368",
+          "bytes": 4658,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "INTEGRATION.md",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "a18e65491498a6d443d0979eb8fadd99c2441313",
+          "sha256": "2db77e2e883513e7fdf0c2f0beed0c2ea5af67c791390be70c141544a2efc111",
+          "bytes": 5306,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "PREPARATION-HISTORY.md",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "246d5603ac4f80022f3776ee9a04b2e2d6e504e6",
+          "sha256": "afdbd1f1241fc181acc64cfb386ea09014ea54c04df156771f731ca0923f818d",
+          "bytes": 2294,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "README.md",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "63a6fb284c649b3743bf71d4edb38ce5d88588c4",
+          "sha256": "8b774d5ef9df08b990fcfd31dbe64eb8b82a044a8e98b4400992d49ef7481ada",
+          "bytes": 1784,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "STATIC-CHECKS.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "ac8f61643f7a4dadc9c964dd4231698d65032c68",
+          "sha256": "2ce07b4ee61174b9e4b9b827f1b5c1ffadea6068828763480f98337bc990a9eb",
+          "bytes": 16300,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "build-fs.mjs",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "8abd40ecfa4291d7159aefb87533daa0fecd5cff",
+          "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21",
+          "bytes": 7894,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "build-outputs.mjs",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "096a8dea78bb1290ad245ce6fe83c8b52818e99a",
+          "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a",
+          "bytes": 7266,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "build-package-manifest.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "24d96a77739821963afa56e8ec11af9653f6524a",
+          "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+          "bytes": 152021,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "build-plan.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "9b00e1a6ab8a25a92a4cebc54c835ef2776eb8bf",
+          "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+          "bytes": 170411,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "build-source-manifest.json",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "280ed2a61cb11a49b1ca9cb77b82366fa0a8cede",
+          "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+          "bytes": 47504,
+          "sealMatches": true,
+          "regularGitClass": true
+        },
+        {
+          "path": "build-worker.mjs",
+          "gitMode": "100644",
+          "kind": "blob",
+          "blob": "2a97fb2b559e85653f211ae03dba509b350900b5",
+          "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+          "bytes": 21275,
+          "sealMatches": true,
+          "regularGitClass": true
+        }
+      ],
+      "fileCount": 17,
+      "exactMembership": true,
+      "assemblySha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd",
+      "commitMetadata": [
+        "937c1f6a35c620146e62924b16d90e808319024f",
+        "becd1647a1572995750585b5c60d2be7d5fb77d4",
+        "2026-08-28T08:07:36-05:00",
+        "test(yq): seal static independent b8 build worker"
+      ],
+      "modeQualification": "Regular nonexecutable Git classes plus authenticated fresh0644 declarations; no active assembly/materialization or historical original-mode inference.",
+      "authenticated": true
+    }
+  ],
+  "abi": {
+    "revision": "9d582d791336fd66d865f6592b830c39a359d344",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+    "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "bytes": 8164,
+    "matches": true
+  },
+  "noInProgressCoreCompositionRead": true,
+  "candidateExecutions": 0,
+  "controlPasses": 0,
+  "runtimePasses": 0
+}

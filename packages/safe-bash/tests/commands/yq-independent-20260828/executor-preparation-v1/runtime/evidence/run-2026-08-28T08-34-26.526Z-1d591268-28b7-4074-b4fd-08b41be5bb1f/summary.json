@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 1,
+  "admitted": 1,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "wrong-job-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "assertion: AssertionError [ERR_ASSERTION]: Wrong or missing receipt job\n+ actual - expected\n\n+ 'unrequested'\n- 'wrong-job-0'\n"
+      ],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 99214,
+        "group": 99214,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 53
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-34-26.526Z-1d591268-28b7-4074-b4fd-08b41be5bb1f"
+}

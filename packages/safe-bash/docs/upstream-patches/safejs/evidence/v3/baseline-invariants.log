@@ -1,0 +1,223 @@
+TAP version 13
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-ZicyG4/baseline/packages/safejs/src/run.ts","sha256":"92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"}
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-ZicyG4/baseline/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+# Subtest: frozen branded closure preserves construct, static cycles and repeated identity
+not ok 1 - frozen branded closure preserves construct, static cycles and repeated identity
+  ---
+  duration_ms: 0.625333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:14:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'self')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:26:41)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: retained budget graph remains live
+not ok 2 - retained budget graph remains live
+  ---
+  duration_ms: 1.938167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 23
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 23
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:36:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: shared property and retained graph is not double charged
+not ok 3 - shared property and retained graph is not double charged
+  ---
+  duration_ms: 0.23575
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 49
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 49
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:45:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: own special-name data and cycles never invoke prototype setters
+not ok 4 - own special-name data and cycles never invoke prototype setters
+  ---
+  duration_ms: 2.050167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:48:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(Object.hasOwn(output, "__proto__"))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:54:5)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: branded collection and regex identity survives wrapping
+not ok 5 - branded collection and regex identity survives wrapping
+  ---
+  duration_ms: 0.522917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:63:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert(values.isSandboxMap(output.map))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:68:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: pre-aborted call and construct reject exact reasons without effects
+not ok 6 - pre-aborted call and construct reject exact reasons without effects
+  ---
+  duration_ms: 0.266125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:76:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    TypeError: wrapped.construct is not a function
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:82:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: raw preabort preserves exact null and false reasons before host work
+not ok 7 - raw preabort preserves exact null and false reasons before host work
+  ---
+  duration_ms: 3.698375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:87:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:91:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: signalled constructors retain internal instanceof identity and error data
+not ok 8 - signalled constructors retain internal instanceof identity and error data
+  ---
+  duration_ms: 4.124
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:96:1'
+  failureType: 'testCodeFailure'
+  error: 'Map is not a constructor.'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  ...
+# Subtest: both cancellation-result forms observe immediate/delayed originals and clean listeners
+not ok 9 - both cancellation-result forms observe immediate/delayed originals and clean listeners
+  ---
+  duration_ms: 163.841708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:103:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    
+    /Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/promise-observation.child.mjs:39
+              rejectOriginal(new Error("unobserved original is a bug"));
+                             ^
+    
+    Error: unobserved original is a bug
+        at Object.call (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/promise-observation.child.mjs:39:26)
+        at Object.call (/private/tmp/safe-bash-safejs-isolated-ZicyG4/baseline/packages/safejs/src/interp/cancel.ts:50:43)
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/promise-observation.child.mjs:44:83)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Object.call (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/promise-observation.child.mjs:39:26)
+    Object.call (/private/tmp/safe-bash-safejs-isolated-ZicyG4/baseline/packages/safejs/src/interp/cancel.ts:50:43)
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/promise-observation.child.mjs:44:83)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:111:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 0
+# fail 9
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 433.082083

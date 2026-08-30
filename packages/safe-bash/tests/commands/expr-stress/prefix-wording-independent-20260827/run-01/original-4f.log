@@ -1,0 +1,546 @@
+TAP version 13
+# Subtest: frozen sequencing control: inactive length does not evaluate locale or encode operand
+ok 1 - frozen sequencing control: inactive length does not evaluate locale or encode operand
+  ---
+  duration_ms: 1.791458
+  type: 'test'
+  ...
+# Subtest: frozen sequencing control: inactive substr does not convert numbers or encode operands
+ok 2 - frozen sequencing control: inactive substr does not convert numbers or encode operands
+  ---
+  duration_ms: 0.355125
+  type: 'test'
+  ...
+# Subtest: inactive length under OR performs no reduction
+ok 3 - inactive length under OR performs no reduction
+  ---
+  duration_ms: 0.267708
+  type: 'test'
+  ...
+# Subtest: inactive length under AND performs no reduction
+ok 4 - inactive length under AND performs no reduction
+  ---
+  duration_ms: 0.700042
+  type: 'test'
+  ...
+# Subtest: inactive length under OR containing AND/OR performs no reduction
+ok 5 - inactive length under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.392542
+  type: 'test'
+  ...
+# Subtest: inactive length under AND containing OR/AND performs no reduction
+ok 6 - inactive length under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.315375
+  type: 'test'
+  ...
+# Subtest: inactive index under OR performs no reduction
+ok 7 - inactive index under OR performs no reduction
+  ---
+  duration_ms: 0.358459
+  type: 'test'
+  ...
+# Subtest: inactive index under AND performs no reduction
+ok 8 - inactive index under AND performs no reduction
+  ---
+  duration_ms: 0.17375
+  type: 'test'
+  ...
+# Subtest: inactive index under OR containing AND/OR performs no reduction
+ok 9 - inactive index under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.527958
+  type: 'test'
+  ...
+# Subtest: inactive index under AND containing OR/AND performs no reduction
+ok 10 - inactive index under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 1.124083
+  type: 'test'
+  ...
+# Subtest: inactive substr under OR performs no reduction
+ok 11 - inactive substr under OR performs no reduction
+  ---
+  duration_ms: 0.249625
+  type: 'test'
+  ...
+# Subtest: inactive substr under AND performs no reduction
+ok 12 - inactive substr under AND performs no reduction
+  ---
+  duration_ms: 0.413125
+  type: 'test'
+  ...
+# Subtest: inactive substr under OR containing AND/OR performs no reduction
+ok 13 - inactive substr under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.278
+  type: 'test'
+  ...
+# Subtest: inactive substr under AND containing OR/AND performs no reduction
+ok 14 - inactive substr under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.241917
+  type: 'test'
+  ...
+# Subtest: inactive match under OR performs no reduction
+ok 15 - inactive match under OR performs no reduction
+  ---
+  duration_ms: 0.426042
+  type: 'test'
+  ...
+# Subtest: inactive match under AND performs no reduction
+ok 16 - inactive match under AND performs no reduction
+  ---
+  duration_ms: 0.175083
+  type: 'test'
+  ...
+# Subtest: inactive match under OR containing AND/OR performs no reduction
+ok 17 - inactive match under OR containing AND/OR performs no reduction
+  ---
+  duration_ms: 0.265417
+  type: 'test'
+  ...
+# Subtest: inactive match under AND containing OR/AND performs no reduction
+ok 18 - inactive match under AND containing OR/AND performs no reduction
+  ---
+  duration_ms: 0.240958
+  type: 'test'
+  ...
+# Subtest: inactive nested length never evaluates arguments
+ok 19 - inactive nested length never evaluates arguments
+  ---
+  duration_ms: 0.211417
+  type: 'test'
+  ...
+# Subtest: inactive nested index never evaluates arguments
+ok 20 - inactive nested index never evaluates arguments
+  ---
+  duration_ms: 0.184125
+  type: 'test'
+  ...
+# Subtest: inactive nested substr never evaluates arguments
+ok 21 - inactive nested substr never evaluates arguments
+  ---
+  duration_ms: 0.323792
+  type: 'test'
+  ...
+# Subtest: inactive nested match never evaluates arguments
+ok 22 - inactive nested match never evaluates arguments
+  ---
+  duration_ms: 0.241958
+  type: 'test'
+  ...
+# Subtest: literal quoting retains grammar ["1","|","+","length"]
+ok 23 - literal quoting retains grammar ["1","|","+","length"]
+  ---
+  duration_ms: 0.155125
+  type: 'test'
+  ...
+# Subtest: literal quoting retains grammar ["0","&","+",")"]
+ok 24 - literal quoting retains grammar ["0","&","+",")"]
+  ---
+  duration_ms: 0.18175
+  type: 'test'
+  ...
+# Subtest: literal quoting retains grammar ["+","length"]
+ok 25 - literal quoting retains grammar ["+","length"]
+  ---
+  duration_ms: 0.115292
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","length"]
+ok 26 - inactive malformed grammar ["1","|","length"]
+  ---
+  duration_ms: 0.248125
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["0","&","index","abc"]
+ok 27 - inactive malformed grammar ["0","&","index","abc"]
+  ---
+  duration_ms: 0.130625
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","substr","abc","1"]
+ok 28 - inactive malformed grammar ["1","|","substr","abc","1"]
+  ---
+  duration_ms: 0.344292
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["0","&","match","abc"]
+ok 29 - inactive malformed grammar ["0","&","match","abc"]
+  ---
+  duration_ms: 0.135167
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","+"]
+ok 30 - inactive malformed grammar ["1","|","+"]
+  ---
+  duration_ms: 0.61
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","length","(","1","/","0"]
+ok 31 - inactive malformed grammar ["1","|","length","(","1","/","0"]
+  ---
+  duration_ms: 0.1965
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["0","&","(","1","|","index","abc",")"]
+ok 32 - inactive malformed grammar ["0","&","(","1","|","index","abc",")"]
+  ---
+  duration_ms: 0.123875
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","match","abc","[","x"]
+ok 33 - inactive malformed grammar ["1","|","match","abc","[","x"]
+  ---
+  duration_ms: 0.11925
+  type: 'test'
+  ...
+# Subtest: inactive malformed grammar ["1","|","substr","match","abc","[","1"]
+ok 34 - inactive malformed grammar ["1","|","substr","match","abc","[","1"]
+  ---
+  duration_ms: 0.125042
+  type: 'test'
+  ...
+# Subtest: active length unchanged in C
+ok 35 - active length unchanged in C
+  ---
+  duration_ms: 0.436083
+  type: 'test'
+  ...
+# Subtest: active index unchanged in C
+ok 36 - active index unchanged in C
+  ---
+  duration_ms: 0.277583
+  type: 'test'
+  ...
+# Subtest: active substr unchanged in C
+ok 37 - active substr unchanged in C
+  ---
+  duration_ms: 0.245875
+  type: 'test'
+  ...
+# Subtest: active length unchanged in C.UTF-8
+ok 38 - active length unchanged in C.UTF-8
+  ---
+  duration_ms: 0.101042
+  type: 'test'
+  ...
+# Subtest: active index unchanged in C.UTF-8
+ok 39 - active index unchanged in C.UTF-8
+  ---
+  duration_ms: 0.311291
+  type: 'test'
+  ...
+# Subtest: active substr unchanged in C.UTF-8
+ok 40 - active substr unchanged in C.UTF-8
+  ---
+  duration_ms: 0.361542
+  type: 'test'
+  ...
+# Subtest: active length still rejects unsupported character locale
+not ok 41 - active length still rejects unsupported character locale
+  ---
+  duration_ms: 3.447209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:2:500'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        2,
+        '',
+    +   'expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n'
+    -   'expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale
+      
+  actual:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:127:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: active index still rejects unsupported character locale
+not ok 42 - active index still rejects unsupported character locale
+  ---
+  duration_ms: 1.081208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:2:500'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        2,
+        '',
+    +   'expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n'
+    -   'expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale
+      
+  actual:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:127:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: active substr still rejects unsupported character locale
+not ok 43 - active substr still rejects unsupported character locale
+  ---
+  duration_ms: 0.299334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:2:500'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        2,
+        '',
+    +   'expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n'
+    -   'expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale
+      
+  actual:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:127:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: active match still rejects unsupported character locale
+not ok 44 - active match still rejects unsupported character locale
+  ---
+  duration_ms: 0.447709
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:2:500'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        2,
+        '',
+    +   'expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n'
+    -   'expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale
+      
+  actual:
+    0: 2
+    1: ''
+    2: |-
+      expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding
+      
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/prefix-wording-independent-20260827/run-01/.owned-tYydiF/candidate/tests/commands/expr/inactive-prefix.test.ts:127:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: active and skipped calls execute once ["match","abc","a.*"]
+ok 45 - active and skipped calls execute once ["match","abc","a.*"]
+  ---
+  duration_ms: 22.759417
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["0","|","length","abc"]
+ok 46 - active and skipped calls execute once ["0","|","length","abc"]
+  ---
+  duration_ms: 0.219375
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["1","&","substr","abc","2","1"]
+ok 47 - active and skipped calls execute once ["1","&","substr","abc","2","1"]
+  ---
+  duration_ms: 0.195584
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["match","a","a","|","match","hidden","["]
+ok 48 - active and skipped calls execute once ["match","a","a","|","match","hidden","["]
+  ---
+  duration_ms: 20.250375
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["(","match","a","b","|","length","",")","|","match","b","b"]
+ok 49 - active and skipped calls execute once ["(","match","a","b","|","length","",")","|","match","b","b"]
+  ---
+  duration_ms: 19.377
+  type: 'test'
+  ...
+# Subtest: active and skipped calls execute once ["(","match","a","a","+","match","b","b",")","|","substr","hidden","999","1"]
+ok 50 - active and skipped calls execute once ["(","match","a","a","+","match","b","b",")","|","substr","hidden","999","1"]
+  ---
+  duration_ms: 20.063917
+  type: 'test'
+  ...
+# Subtest: retained aggregate argument bytes limit {"maxArgumentBytes":5}
+ok 51 - retained aggregate argument bytes limit {"maxArgumentBytes":5}
+  ---
+  duration_ms: 0.195334
+  type: 'test'
+  ...
+# Subtest: retained argument count limit {"maxNodes":1}
+ok 52 - retained argument count limit {"maxNodes":1}
+  ---
+  duration_ms: 0.06725
+  type: 'test'
+  ...
+# Subtest: retained AST node limit {"maxNodes":3}
+ok 53 - retained AST node limit {"maxNodes":3}
+  ---
+  duration_ms: 0.09375
+  type: 'test'
+  ...
+# Subtest: retained parser depth limit {"maxDepth":2}
+ok 54 - retained parser depth limit {"maxDepth":2}
+  ---
+  duration_ms: 0.080083
+  type: 'test'
+  ...
+# Subtest: retained AST depth limit {"maxDepth":3}
+ok 55 - retained AST depth limit {"maxDepth":3}
+  ---
+  duration_ms: 0.130417
+  type: 'test'
+  ...
+# Subtest: retained evaluation work limit {"maxSteps":1}
+ok 56 - retained evaluation work limit {"maxSteps":1}
+  ---
+  duration_ms: 0.051041
+  type: 'test'
+  ...
+# Subtest: retained numeric digits limit {"maxNumericDigits":1}
+ok 57 - retained numeric digits limit {"maxNumericDigits":1}
+  ---
+  duration_ms: 0.135042
+  type: 'test'
+  ...
+# Subtest: retained numeric result digits limit {"maxNumericDigits":1}
+ok 58 - retained numeric result digits limit {"maxNumericDigits":1}
+  ---
+  duration_ms: 0.11975
+  type: 'test'
+  ...
+# Subtest: retained string allocation limit {"maxStringBytes":2}
+ok 59 - retained string allocation limit {"maxStringBytes":2}
+  ---
+  duration_ms: 0.103542
+  type: 'test'
+  ...
+# Subtest: retained output bytes limit {"maxOutputBytes":1}
+ok 60 - retained output bytes limit {"maxOutputBytes":1}
+  ---
+  duration_ms: 0.210916
+  type: 'test'
+  ...
+# Subtest: inactive call retains its evaluator work checkpoint
+ok 61 - inactive call retains its evaluator work checkpoint
+  ---
+  duration_ms: 0.308625
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: undefined
+ok 62 - inactive call checkpoint preserves abort identity: undefined
+  ---
+  duration_ms: 0.657084
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: null
+ok 63 - inactive call checkpoint preserves abort identity: null
+  ---
+  duration_ms: 0.256125
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: false
+ok 64 - inactive call checkpoint preserves abort identity: false
+  ---
+  duration_ms: 0.225417
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: 0
+ok 65 - inactive call checkpoint preserves abort identity: 0
+  ---
+  duration_ms: 0.174458
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: 
+ok 66 - inactive call checkpoint preserves abort identity: 
+  ---
+  duration_ms: 0.143166
+  type: 'test'
+  ...
+# Subtest: inactive call checkpoint preserves abort identity: Error: cancelled
+ok 67 - inactive call checkpoint preserves abort identity: Error: cancelled
+  ---
+  duration_ms: 0.120792
+  type: 'test'
+  ...
+# Subtest: actual Shell/registry preserves nested inactive calls and literal invoke dispatch
+ok 68 - actual Shell/registry preserves nested inactive calls and literal invoke dispatch
+  ---
+  duration_ms: 3.549417
+  type: 'test'
+  ...
+1..68
+# tests 68
+# suites 0
+# pass 64
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 329.860792

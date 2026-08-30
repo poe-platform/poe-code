@@ -1,0 +1,190 @@
+tests/compatibility/bash-strict-mode-author-20260829/strict.mjs
+105:   }
+106: });
+107: await record('U50', async () => {
+108:   const shell = create(), reason = Object.freeze({ role: 'registered-cleanup' }); let cleaned = 0;
+109:   shell.commands.register({ name: 'guard', async execute(context) {
+110:     context.registerCleanup(async () => { await turn(); cleaned++; throw reason; }); return { exitCode: 0 };
+111:   } });
+112:   const outcome = await capture(shell.exec('guard; set -u; printf "%s" "$missing"'));
+113:   assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(cleaned, 1);
+114: });
+115: await record('E01-active-file-stderr', async () => {
+116:   const memory = new api.MemoryFileSystem();
+117:   const result = await create(memory).exec('set -u; { printf "%s" "$missing"; } 2>err; printf after');
+118:   assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+119:   assert.match(Buffer.from(await memory.readFile('/err')).toString(), /missing: unbound variable\n$/);
+120: });
+121: await record('E02-here-string', async () => {
+122:   const result = await create().exec('set -u; cat <<<"$missing"; printf after');
+123:   assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing: unbound variable\n$/);
+124: });
+125: await record('E03-ordered-redirect-effects', async () => {
+126:   const memory = new api.MemoryFileSystem();
+127:   const result = await create(memory).exec('set -u; : >created 2>err >"$missing"; printf after');
+128:   assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+129:   assert.equal((await memory.readFile('/created')).length, 0);
+130:   assert.match(Buffer.from(await memory.readFile('/err')).toString(), /missing: unbound variable\n$/);
+131:   assert.deepEqual((await memory.readdir('/')).map(entry => entry.name).sort(), ['created', 'err']);
+132: });
+133: await record('E04-lazy-array-zero', async () => {
+134:   const result = await create().exec('set -u; a=([0]=ok); printf "%s|%s" "${a:-$missing}" "${a:=ignored}"');
+135:   assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'ok|ok'); assert.equal(result.stderr, '');
+136: });
+137: await record('E05-function-option-state', async () => {
+138:   const result = await create().exec('set -u; f(){ set +u; }; f; printf "<%s>" "$missing"');
+139:   assert.equal(result.exitCode, 0); assert.equal(result.stdout, '<>'); assert.equal(result.stderr, '');
+140: });
+141: await record('E06-if-not-errexit', async () => {
+142:   const result = await create().exec('set -u; if printf "%s" "$missing"; then printf bad; fi; printf after');
+143:   assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /unbound variable/);
+144: });
+145: await record('E07-here-document', async () => {
+146:   const result = await create().exec('set -u\ncat <<EOF\n$missing\nEOF\nprintf after');
+147:   assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /unbound variable/);
+148: });
+149: await record('E08-nested-sink-rejection', async () => {
+150:   for (const program of ['set -u; f(){ printf "%s" "$missing"; }; f', 'set -u; (printf "%s" "$missing")', 'set -u; printf "%s" "$missing" | cat']) {
+151:     const reason = Object.freeze({ program }); let writes = 0;
+152:     const outcome = await capture(create().exec(program, { stderr: { async write() { writes++; throw reason; } } }));
+153:     assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(writes, 1);
+154:   }
+155: });
+156: await record('E09-invoke-sink-boundary', async () => {
+157:   const shell = create(), reason = Object.freeze({ role: 'child-stderr' }); let caught = 0;
+158:   shell.commands.register({ name: 'bridge', async execute(context) {
+159:     const result = await capture(context.invoke('f', [], { stderr: { async write() { throw reason; } } }));
+160:     assert.equal(result.kind, 'throw'); assert.equal(result.reason, reason); caught++; return { exitCode: 0 };
+161:   } });
+162:   const result = await shell.exec('set -u; f(){ printf "%s" "$missing"; }; bridge; printf parent');
+163:   assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'parent'); assert.equal(caught, 1);
+164: });
+165: await record('E10-primary-sink-cleanup', async () => {
+166:   const shell = create(), sink = Object.freeze({ role: 'primary' }), cleanup = Object.freeze({ role: 'secondary' }); let cleaned = 0;
+167:   shell.commands.register({ name: 'guard', async execute(context) {
+168:     context.registerCleanup(async () => { await turn(); cleaned++; throw cleanup; }); return { exitCode: 0 };
+169:   } });
+170:   const outcome = await capture(shell.exec('guard; set -u; printf "%s" "$missing"', { stderr: { async write() { throw sink; } } }));
+171:   assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, sink); assert.equal(cleaned, 1);
+172: });
+173: await record('E11-substitution-errexit', async () => {
+174:   const result = await create().exec('set -eu; value=$(printf "%s" "$missing"); printf after');
+175:   assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /unbound variable/);
+176: });
+177: const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+178: summary.fail = summary.cases - summary.pass;
+179: console.log(JSON.stringify({ summary })); process.exitCode = summary.fail ? 1 : 0;
+180: src/shell/runtime.ts
+3010: 
+3011:   private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
+3012:     const name = stackHooks?.name ?? "cd";
+3013:     this.signal.throwIfAborted();
+3014:     if (args.length > 1) { await writeText(context.stderr, `${name}: too many arguments\n`); return 1; }
+3015:     const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
+3016:     if (target === undefined) { await writeText(context.stderr, `${name}: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
+3017:     let selected: { path: string; print: boolean };
+3018:     try {
+3019:       selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || ".", state.variables.CDPATH);
+3020:     } catch (error) {
+3021:       this.signal.throwIfAborted();
+3022:       const description = filesystemDiagnostic(error, "");
+3023:       const text = description ? "" : message(error);
+3024:       diagnose?.(error, cdDiagnostic(description ? [name, ": ", target, description]
+3025:         : stackHooks && text.startsWith("cd: ") ? [name, text.slice(2)] : [text]));
+3026:       throw error;
+3027:     }
+3028:     this.signal.throwIfAborted();
+3029:     const { path } = selected;
+3030:     this.writeVariable(state, "OLDPWD", state.cwd);
+3031:     state.cwd = path;
+3032:     stackHooks?.onCwdPublished();
+3033:     this.writeVariable(state, "PWD", path);
+3034:     state.exported.add("PWD");
+3035:     state.exported.add("OLDPWD");
+3036:     if (selected.print || args[0] === "-") {
+3037:       if (stackHooks) await stackHooks.emit(`${path}\n`);
+3038:       else await writeText(context.stdout, `${path}\n`);
+3039:     }
+3040:     return 0;
+3041:   }
+3042: 
+3043:   private async directoryStackBuiltin(context: CommandContext & IO, state: State, diagnose?: (error: unknown, diagnostic: string) => void): Promise<number> {
+3044:     const { command, args } = context;
+3045:     const work = new DirectoryStackWork(command, this.signal, context.stdout);
+3046:     const tail = state.directoryStack ?? { entries: [], bytes: 0 };
+3047:     const count = tail.entries.length;
+3048:     let noCd = false;
+3049:     let clear = false;
+3050:     let long = false;
+3051:     let lines = false;
+3052:     let verbose = false;
+3053:     let selected: bigint | undefined;
+3054:     let target: string | undefined;
+3055:     let targetBytes: number | undefined;
+3056:     const boundedIndex = (index: bigint): number => {
+3057:       if (index < 0n || index > BigInt(count)) work.fail("directory stack index out of range");
+3058:       return Number(index);
+3059:     };
+3060:     const field = async (value: string): Promise<number> => {
+3061:       await work.charge(1);
+3062:       return work.scan(value, "argument");
+3063:     };
+3064:     const plan = async (length: number, removed: number | undefined, added: string | undefined, addedBytes: number | undefined, entry: (index: number) => string): Promise<NonNullable<State["directoryStack"]>> => {
+3065:       if (length > 4096) work.fail("directory stack exceeds 4096 entries");
+3066:       const removedBytes = removed === undefined ? 0 : await work.scan(tail.entries[removed]!, "path");
+3067:       const extraBytes = added === undefined ? 0 : addedBytes ?? await work.scan(added, "path");
+3068:       const bytes = tail.bytes - removedBytes + extraBytes;
+3069:       if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > 4_194_304) work.fail("directory stack exceeds 4194304 UTF-8 bytes");
+3070:       await work.charge(length);
+3071:       const entries = new Array<string>(length);
+3072:       for (let index = 0; index < length; index++) entries[index] = entry(index);
+3073:       return { entries, bytes };
+3074:     };
+3075:     const publish = async (next: NonNullable<State["directoryStack"]>): Promise<void> => {
+3076:       await work.flushWork();
+3077:       state.directoryStack = next;
+3078:     };
+3079:     const cd = async (path: string): Promise<number> => {
+3080:       await work.flushWork();
+3081:       return this.changeDirectory(context, state, [path], diagnose, {
+3082:         name: command,
+3083:         onCwdPublished() { state.directoryStackCwdPublication = Symbol(); },
+3084:         async emit(text) { await work.emit(text); await work.flushOutput(); },
+3085:       });tests/compatibility/bash-conditional-author-20260829/run-v5.mjs
+79: async function run(label, product, script, extras = {}, bindingMutation) {
+80:   const real = await fs.realpath(product), directory = consumers.get(real); assert.ok(directory);
+81:   const rows = await inventory(path.join(real, 'dist')), harnessRows = [];
+82:   for (const file of [path.join(directory, script), path.join(directory, 'names.mjs'), path.join(directory, 'coherence/names.mjs'), path.join(harness, 'resources.mjs')]) { const bytes = await fs.readFile(file); harnessRows.push({ path: await fs.realpath(file), sha256: sha(bytes) }); }
+83:   const binding = { root: real, inputs: rows, harness: harnessRows, trace: path.join(output, label + '-loads.jsonl') }; if (bindingMutation) bindingMutation(binding);
+84:   const bindingFile = path.join(output, label + '-binding.json'); await write(bindingFile, JSON.stringify(binding));
+85:   return child(label, process.execPath, ['--test-reporter=tap', '--loader', path.join(harness, 'loader.mjs'), path.join(directory, script)], product, { PUBLIC_BINDING: bindingFile, GIT_AUTHOR_ROOT: real, GIT_AUTHOR_RESULT: path.join(output, label + '-git-cases.json'), PRODUCT_ROOT: real, PUBLIC_RESULT: path.join(output, label + '-cases.json'), LAYOUT: label, ...extras });
+86: }
+87: async function cohort(label, product, script, expected, extras = {}) {
+88:   const result = await run(label, product, script, extras);
+89:   const lines = result.out.toString().trim().split('\n').filter(Boolean).map(line => JSON.parse(line)); const summary = lines.at(-1)?.summary; assert.ok(summary); assert.equal(summary.cases, expected); assert.equal(result.code, summary.pass === expected ? 0 : 1);
+90:   const cases = lines.slice(0, -1); assert.equal(cases.length, expected);
+91:   assert.ok(cases.every(row => !row.cleanupError && !row.cleanupFailure && (row.disposed === undefined || row.disposed === true || row.disposed === row.created)), 'cleanup failure stops dependent execution');
+92:   receipt.cohorts.push({ label, ...summary, cases }); if (summary.pass !== expected) receipt.failures.push({ label, cases: cases.filter(row => !row.pass) });
+93: }
+94: async function moduleCohort(label, product, script, expected) {
+95:   const result = await run(label, product, script);
+96:   const summary = JSON.parse(await fs.readFile(path.join(output, label + '-git-cases.json')));
+97:   assert.equal(summary.cases.length, expected); assert.equal(summary.pass + summary.fail, expected); assert.equal(result.code, summary.fail ? 1 : 0);
+98:   receipt.cohorts.push({ label, ...summary }); if (summary.fail) receipt.failures.push({ label, cases: summary.cases.filter(row => row.status !== 'PASS') });
+99: }
+100: async function types(label, product) {
+101:   const original = await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8') + '\nimport { parseShell as parseConditionalSource } from "virtual-bash";\nconst conditionalNode = parseConditionalSource("[[ x ]]").lists[0]!.pipelines[0]!.commands[0]!;\nif (conditionalNode.kind === "conditional") { const expression = conditionalNode.expression; void expression;\n// @ts-expect-error\nconst invalid: string = conditionalNode.expression;\n// @ts-expect-error\nconditionalNode.notAProperty;\n}\n';
+102:   for (const negative of [false, true]) {
+103:     const filename = path.join(consumers.get(await fs.realpath(product)), `consumer-${label}-${negative}.mts`);
+104:     const text = original.replaceAll(negative ? '// @ts-expect-error' : 'NEVER_REPLACE', negative ? '// removed directive' : '');
+105:     await write(filename, text);
+106:     const result = await child(`types-${label}-${negative}`, process.execPath, [compiler, '--strict', '--exactOptionalPropertyTypes', '--noEmit', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--pretty', 'false', '--listFiles', '--typeRoots', path.join(source, 'node_modules/@types'), filename], output);
+107:     const diagnostic = result.out.toString() + result.err.toString(), errors = diagnostic.split('\n').filter(line => /error TS\d+:/.test(line));
+108:     const pass = negative ? result.code === 2 && errors.length === 8 : result.code === 0 && errors.length === 0;
+109:     const declarations = result.out.toString().split('\n').filter(line => line.endsWith('.d.ts') && line.includes('/dist/'));
+110:     assert.ok(declarations.length > 0);
+111:     const real = await fs.realpath(product), bound = [];
+112:     for (const file of declarations) { const actual = await fs.realpath(file); assert.ok(actual.startsWith(real + '/dist/')); const row = packageRows.find(row => row.path === path.relative(real, actual)); assert.ok(row); assert.equal(sha(await fs.readFile(actual)), row.sha256); bound.push({ file: actual, sha256: row.sha256 }); }
+113:     receipt.types.push({ label, negative, pass, errors, declarations: bound }); if (!pass) receipt.failures.push({ label: `types-${label}`, negative, errors });
+114:   }
+115: }

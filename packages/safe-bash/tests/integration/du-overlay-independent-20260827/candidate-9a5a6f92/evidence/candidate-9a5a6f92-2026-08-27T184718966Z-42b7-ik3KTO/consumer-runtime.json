@@ -1,0 +1,11 @@
+{
+  "consumerRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/relocated-after-install/moved-consumer",
+  "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/relocated-after-install/moved-consumer/node_modules/virtual-bash",
+  "rootPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/index.js",
+  "duPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/relocated-after-install/moved-consumer/node_modules/virtual-bash/dist/commands/du/index.js",
+  "rootSha256": "fca3b3db1ff1cfbc8ed59d1eefce52d088839288109990d9fa05bd9200a5aa54",
+  "duSha256": "b8257103248aa0f4a21cb6dab6d916661a5fb04423e414475e68370807cdc5c4",
+  "publicRootDuExportAbsent": true,
+  "publicDuSubpathAbsent": true,
+  "defaultAgentCommandsDuAbsent": true
+}

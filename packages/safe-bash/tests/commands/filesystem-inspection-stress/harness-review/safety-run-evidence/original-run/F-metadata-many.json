@@ -1,0 +1,63 @@
+{
+  "id": "F-metadata-many",
+  "pid": 71966,
+  "childCode": 0,
+  "signal": null,
+  "observedRss": 80658432,
+  "observedCommandStarts": 1,
+  "report": {
+    "id": "F-metadata-many",
+    "actualShell": true,
+    "shellDisposed": true,
+    "rejected": false,
+    "exitCode": 1,
+    "heapSizeLimit": 134217728,
+    "calls": [
+      {
+        "method": "lstat",
+        "path": "/link-0000",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      },
+      {
+        "method": "readlink",
+        "path": "/link-0000",
+        "signalPresent": true,
+        "signalAbortedAtEntry": false
+      }
+    ],
+    "streams": [],
+    "mutations": 0,
+    "commandInvocations": 1,
+    "unhandled": [],
+    "stdout": "",
+    "stderr": "file: output limit exceeded\n",
+    "stdoutBase64": "",
+    "stderrBase64": "ZmlsZTogb3V0cHV0IGxpbWl0IGV4Y2VlZGVkCg==",
+    "stdoutBytes": 0,
+    "stderrBytes": 28
+  },
+  "status": "pass",
+  "qualification": "First expanded line cannot fit4096 bytes. Require a relevant family limit, no content reads/mutation, and empty stdout or only a bounded prefix of this exact first line if escaping streams. Static pre-admission/cumulative policy proof is mandatory; smoke timing cannot prove pre-allocation safety.",
+  "staticProof": {
+    "status": "approved",
+    "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+    "files": [
+      "src/commands/file/shared.ts",
+      "src/commands/file/index.ts",
+      "src/commands/file/classify.ts"
+    ],
+    "basis": "shared.ts:88-91 checks raw4096 target units against remaining input/output/work before scan, then meters actual metadata UTF8 and checks each escaped piece before retention. Startup320+loop1+target4096=4417. U+0001 yields5 bytes:819 retained pieces=4095, piece820 attempts4100 and rejects before push/join/full20510-byte line construction. One readlink, zero content reads, empty stdout predicted. Input charged820; fixed emergency diagnostic28 bytes, shared output/work/input counters not reset. Pre-admission permits one bounded rejected piece and individually bounded fragments, not zero allocation or hard memory containment.",
+    "textAdmittedBeforeExpansion": true,
+    "cumulativeAccounting": true,
+    "startupWork": 320,
+    "perEntryTargetAdmissionWork": 4097,
+    "acceptedWorkAtFailure": 4417,
+    "acceptedEscapedPieces": 819,
+    "rejectedPieceOrdinal": 820,
+    "retainedEscapedBytes": 4095,
+    "fullFirstLineBytesNotConstructed": 20510,
+    "metadataInputBytesCharged": 820,
+    "emergencyDiagnosticBytes": 28
+  }
+}

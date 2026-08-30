@@ -1,0 +1,30 @@
+{
+  "classification": "STATIC_TEXTUAL_DIFF_COMPARISON_ONLY",
+  "sourceCommit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+  "diffSha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c",
+  "files": [
+    {
+      "path": "assert-capture.mjs",
+      "oldHunkLines": 47,
+      "newHunkLines": 50,
+      "exactlyTwoDeclaredTextEdits": true,
+      "hunkOnlyNotMaterializedRecipe": true
+    },
+    {
+      "path": "cmd22-read-paths.mjs",
+      "source": "read-path-binding.mjs",
+      "addedBytes": 2499,
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647"
+    },
+    {
+      "path": "cmd22-binding.json",
+      "source": "CMD22-BINDING.json",
+      "addedBytes": 2321,
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71"
+    }
+  ],
+  "authoredAdapterCalled": false,
+  "recipeMaterialized": false,
+  "codeImported": false,
+  "controlsExecuted": 0
+}

@@ -1,0 +1,15 @@
+{
+  "name": "revision",
+  "command": [
+    "git",
+    "--no-replace-objects",
+    "rev-parse",
+    "--verify",
+    "6ffe4f4f17637e44b55cc0455394513e8d6b94de^{commit}"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "6ffe4f4f17637e44b55cc0455394513e8d6b94de\n",
+  "stderr": ""
+}

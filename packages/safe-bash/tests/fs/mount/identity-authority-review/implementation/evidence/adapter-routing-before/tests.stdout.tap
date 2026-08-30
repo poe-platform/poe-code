@@ -1,0 +1,464 @@
+TAP version 13
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtYnVmZmVyIiwiZGF0YSI6eyJhbnN3ZXIiOiJkaXN0aW5jdCIsImVycm9yIjoiRUlPIiwiZWZmZWN0cyI6WyJtaXNyb3V0ZWQtd3JpdGUiXSwic291cmNlIjoiZDNKdmJtY2djbTkxZEdVZ1pHRnRZV2RsWkNCemIzVnlZMlU9IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXN1YmNsYXNzLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1iZWZvcmUtc3RyZWFtIiwiZGF0YSI6eyJhbnN3ZXIiOiJkaXN0aW5jdCIsImVycm9yIjoiRUlPIiwiZWZmZWN0cyI6WyJtaXNyb3V0ZWQtd3JpdGUiXSwic291cmNlIjoiZDNKdmJtY2djbTkxZEdVZ1pHRnRZV2RsWkNCemIzVnlZMlU9IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LW93bi1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoibWVtb3J5LXByb3RvdHlwZS1hZnRlci1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1idWZmZXIiLCJkYXRhIjp7ImFuc3dlciI6InVua25vd24iLCJlcnJvciI6IkVOT1RTVVAiLCJlZmZlY3RzIjpbXSwic291cmNlIjoiYzI5MWNtTmxJSE4xY25acGRtVnpBTysvdlE9PSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLWJ1ZmZlciIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtc3ViY2xhc3MtYmVmb3JlLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWJlZm9yZS1zdHJlYW0iLCJkYXRhIjp7ImFuc3dlciI6ImRpc3RpbmN0IiwiZXJyb3IiOiJFSU8iLCJlZmZlY3RzIjpbIm1pc3JvdXRlZC13cml0ZSJdLCJzb3VyY2UiOiJkM0p2Ym1jZ2NtOTFkR1VnWkdGdFlXZGxaQ0J6YjNWeVkyVT0iLCJ0YXJnZXQiOiJhVzVrWlhCbGJtUmxiblFnZEdGeVoyVjBJSE4xY25acGRtVnoifX0=
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtb3duLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoidW5rbm93biIsImVycm9yIjoiRU5PVFNVUCIsImVmZmVjdHMiOltdLCJzb3VyY2UiOiJjMjkxY21ObElITjFjblpwZG1WekFPKy92UT09IiwidGFyZ2V0IjoiYVc1a1pYQmxibVJsYm5RZ2RHRnlaMlYwSUhOMWNuWnBkbVZ6In19
+# IMPLEMENTATION_OBSERVATION eyJuYW1lIjoiczMtcHJvdG90eXBlLWFmdGVyLXN0cmVhbSIsImRhdGEiOnsiYW5zd2VyIjoiZGlzdGluY3QiLCJlcnJvciI6IkVJTyIsImVmZmVjdHMiOlsibWlzcm91dGVkLXdyaXRlIl0sInNvdXJjZSI6ImQzSnZibWNnY205MWRHVWdaR0Z0WVdkbFpDQnpiM1Z5WTJVPSIsInRhcmdldCI6ImFXNWtaWEJsYm1SbGJuUWdkR0Z5WjJWMElITjFjblpwZG1WeiJ9fQ==
+# Subtest: memory subclass-before buffered: changed writer cannot redirect qualified target into source
+not ok 1 - memory subclass-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.897917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: memory prototype-before buffered: changed writer cannot redirect qualified target into source
+not ok 2 - memory prototype-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.462417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory own-after buffered: changed writer cannot redirect qualified target into source
+not ok 3 - memory own-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.8655
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory prototype-after buffered: changed writer cannot redirect qualified target into source
+not ok 4 - memory prototype-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.271917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory subclass-before streamed: changed writer cannot redirect qualified target into source
+not ok 5 - memory subclass-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.460208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory prototype-before streamed: changed writer cannot redirect qualified target into source
+not ok 6 - memory prototype-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.2685
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory own-after streamed: changed writer cannot redirect qualified target into source
+not ok 7 - memory own-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.270666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory prototype-after streamed: changed writer cannot redirect qualified target into source
+not ok 8 - memory prototype-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.334125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 subclass-before buffered: changed writer cannot redirect qualified target into source
+ok 9 - s3 subclass-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 5.441
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before buffered: changed writer cannot redirect qualified target into source
+ok 10 - s3 prototype-before buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.867125
+  type: 'test'
+  ...
+# Subtest: s3 own-after buffered: changed writer cannot redirect qualified target into source
+ok 11 - s3 own-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 2.084
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after buffered: changed writer cannot redirect qualified target into source
+ok 12 - s3 prototype-after buffered: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.034292
+  type: 'test'
+  ...
+# Subtest: s3 subclass-before streamed: changed writer cannot redirect qualified target into source
+ok 13 - s3 subclass-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.351166
+  type: 'test'
+  ...
+# Subtest: s3 prototype-before streamed: changed writer cannot redirect qualified target into source
+not ok 14 - s3 prototype-before streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.779667
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 own-after streamed: changed writer cannot redirect qualified target into source
+ok 15 - s3 own-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 0.826625
+  type: 'test'
+  ...
+# Subtest: s3 prototype-after streamed: changed writer cannot redirect qualified target into source
+not ok 16 - s3 prototype-after streamed: changed writer cannot redirect qualified target into source
+  ---
+  duration_ms: 1.050708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:1367'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:83:18)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory changed content acquisition invalidates authority before opening source or target
+not ok 17 - memory changed content acquisition invalidates authority before opening source or target
+  ---
+  duration_ms: 0.139125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:4961'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'distinct'
+    - 'unknown'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'unknown'
+  actual: 'distinct'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:109:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 changed content acquisition invalidates authority before opening source or target
+ok 18 - s3 changed content acquisition invalidates authority before opening source or target
+  ---
+  duration_ms: 0.542083
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+not ok 19 - memory harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.456042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:6068'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:143:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+ok 20 - memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 1.327375
+  type: 'test'
+  ...
+# Subtest: memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+ok 21 - memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.621125
+  type: 'test'
+  ...
+# Subtest: s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+not ok 22 - s3 harmless subclass inherited: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.3075
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:6068'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:143:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+not ok 23 - s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.282416
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:6068'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'unknown'
+    - 'distinct'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'distinct'
+  actual: 'unknown'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:143:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+not ok 24 - s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority
+  ---
+  duration_ms: 0.41325
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:1:6068'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EACCES'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-authority-review/implementation/.runs/capture-lFjg1P/tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts:136:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: current core cp -P: unscoped source symlink across two aliases is never unlinked
+ok 25 - current core cp -P: unscoped source symlink across two aliases is never unlinked
+  ---
+  duration_ms: 2.296958
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+ok 26 - current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+  ---
+  duration_ms: 0.407666
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct success: remove follows completed copy only
+ok 27 - current core EXDEV mv known-distinct success: remove follows completed copy only
+  ---
+  duration_ms: 0.636667
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+ok 28 - current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+  ---
+  duration_ms: 0.202708
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct unknown: remove follows completed copy only
+ok 29 - current core EXDEV mv known-distinct unknown: remove follows completed copy only
+  ---
+  duration_ms: 0.267542
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 14
+# fail 15
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 177.436167

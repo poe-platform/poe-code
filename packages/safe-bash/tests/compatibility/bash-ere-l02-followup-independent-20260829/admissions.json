@@ -1,0 +1,62 @@
+{
+  "requests": 19,
+  "totalBytes": 272207,
+  "files": {
+    "tests/compatibility/bash-ere-l02-followup-independent-20260829/packet-tree.txt": {
+      "bytes": 9710,
+      "sha256": "b17c9ba22f62049dbebd0e84b4bf76d7107f84ff134bf9fe6971c1f11a3f8f08"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/EXECUTION-PRESEAL-v2.json": {
+      "bytes": 10074,
+      "sha256": "347c4d415ce3e1db5f11aafc3727b0c6c9b30a6044e7df1664327882bf32506a"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor-v2.mjs": {
+      "bytes": 5359,
+      "sha256": "ca275457182416239de776924a9981ee3fbbd23a4260df3d863790d1dc0e6fac"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/journal.mjs": {
+      "bytes": 1701,
+      "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/receipt-gate.mjs": {
+      "bytes": 6644,
+      "sha256": "8069f9b97d3f02d7d2777d8d75753bba03d3787e33bb10a45a80bc0d070a4440"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/controls.mjs": {
+      "bytes": 6458,
+      "sha256": "23edfc891f521828176548050dca522e5b7d85635e1396f4e11c14c47d57d5d6"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/case-runner.mjs.data": {
+      "bytes": 6727,
+      "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/worker-bridge.mjs.data": {
+      "bytes": 2334,
+      "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/state.mjs": {
+      "bytes": 440,
+      "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs": {
+      "bytes": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/COMMAND-v2.txt": {
+      "bytes": 977,
+      "sha256": "a4abe1860de1be6f964686318e0c723aa29bbe197b07db6d57960829ebc53b5d"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/PROPOSED-GRANT-v2.json.data": {
+      "bytes": 256,
+      "sha256": "13e47667ec58801e641b456eb0d7304bfdab4d16adc3d8bb8e35d5f48e5020cd"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/CASE-INVENTORY.json": {
+      "bytes": 92685,
+      "sha256": "798090817dd88be2f3e598dddd257c6ad5792630b4e8c14fe800dbb219789528"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/stub.mjs": {
+      "bytes": 193,
+      "sha256": "15c1c00ddbde78229ec89244be1ce0726d349ec57140b5188aa918bfc7375522"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions
+ok 1 - P01 optional vendor metadata is opaque, not file data, paths, ownership or permissions
+  ---
+  duration_ms: 9.92975
+  type: 'test'
+  ...
+# Subtest: P02 ignored local/global metadata does not leak into supported PAX state
+ok 2 - P02 ignored local/global metadata does not leak into supported PAX state
+  ---
+  duration_ms: 66.557458
+  type: 'test'
+  ...
+# Subtest: P03 essential text remains strict UTF-8 with NUL and binary charset rejected
+ok 3 - P03 essential text remains strict UTF-8 with NUL and binary charset rejected
+  ---
+  duration_ms: 13.009375
+  type: 'test'
+  ...
+# Subtest: P04 opaque values never bypass malformed record framing, keys, checksum or truncation
+ok 4 - P04 opaque values never bypass malformed record framing, keys, checksum or truncation
+  ---
+  duration_ms: 11.352959
+  type: 'test'
+  ...
+# Subtest: P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication
+ok 5 - P05 sparse, layout-changing and unclassified extensions remain fail-closed before publication
+  ---
+  duration_ms: 41.174
+  type: 'test'
+  ...
+# Subtest: P06 optional bytes retain extended-header, member and effective-size limits
+ok 6 - P06 optional bytes retain extended-header, member and effective-size limits
+  ---
+  duration_ms: 8.048292
+  type: 'test'
+  ...
+# Subtest: P07 optional metadata cannot bypass effective path, symlink or member-type controls
+ok 7 - P07 optional metadata cannot bypass effective path, symlink or member-type controls
+  ---
+  duration_ms: 3.305625
+  type: 'test'
+  ...
+# Subtest: P08 virtual global/local mtime follows the deterministic POSIX fixture independently of native profiles
+ok 8 - P08 virtual global/local mtime follows the deterministic POSIX fixture independently of native profiles
+  ---
+  duration_ms: 0.82725
+  type: 'test'
+  ...
+# Subtest: P09 immutable formerly rejected BSD PAX archives now extract exact contents in both formats
+ok 9 - P09 immutable formerly rejected BSD PAX archives now extract exact contents in both formats
+  ---
+  duration_ms: 40.482333
+  type: 'test'
+  ...
+# Subtest: P10 GNU default and PAX plain/gzip raw-member crossread both directions without metadata filters
+ok 10 - P10 GNU default and PAX plain/gzip raw-member crossread both directions without metadata filters
+  ---
+  duration_ms: 251.406875
+  type: 'test'
+  ...
+# Subtest: P11 BSD default and PAX plain/gzip raw-member crossread both directions without metadata filters
+ok 11 - P11 BSD default and PAX plain/gzip raw-member crossread both directions without metadata filters
+  ---
+  duration_ms: 306.630792
+  type: 'test'
+  ...
+# Subtest: P12 native-only global/local mtime profiles are explicit, not virtual acceptance expectations
+ok 12 - P12 native-only global/local mtime profiles are explicit, not virtual acceptance expectations
+  ---
+  duration_ms: 30.675208
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1266.586875

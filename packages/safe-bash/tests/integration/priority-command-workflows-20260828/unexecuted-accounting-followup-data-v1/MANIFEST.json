@@ -1,0 +1,48 @@
+{
+  "schema": "priority-unexecuted-followup-data-archive-v1",
+  "date": "2026-08-28",
+  "role": "NONEXECUTABLE_DATA_ONLY_NOT_A_CANDIDATE_OR_TEST_PROTOCOL",
+  "reason": "Root initially requested a narrow F3 known-start reporting correction. Edits began, then reviewer authenticated the sealed v3 metric qualification and closed original F1-F4. Root explicitly chose preserving the unexecuted successor as DATA and restoring exact v3 source; no silent discard and no v4 run.",
+  "authority": "/tmp/priority-command-adapter-repair-20260828-root-response.txt FINAL root coordination choice",
+  "baseSourceCommit": "2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae",
+  "baseSealEvidenceCommit": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+  "baseSealSha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+  "execution": {
+    "protocolCreated": false,
+    "sealCreated": false,
+    "dataHelperExecuted": false,
+    "productImports": 0,
+    "productExecutions": 0,
+    "benignChildren": 0,
+    "workers": 0
+  },
+  "classification": "All .data files are inert archived text, outside canonical test discovery; do not import, execute, grant, or treat them as current harness inputs. Source diff references a nonexistent v4 seal and is intentionally not applied.",
+  "files": [
+    {
+      "path": "successor-diff.patch.data",
+      "bytes": 8181,
+      "sha256": "dbe6728ade1409d056552e33523b53e9877c73d3be4e1f101cd4adfc53800e9a"
+    },
+    {
+      "path": "repair-accounting-data.mjs.data",
+      "bytes": 4603,
+      "sha256": "d3a0e88a03d533c26129ab257bce8640dce8d5c4e3d312db5a5bad5edd2424bf"
+    }
+  ],
+  "sourceRestoration": [
+    {
+      "path": "admission.mjs",
+      "unexecutedModifiedBytes": 10264,
+      "unexecutedModifiedSha256": "9f5bc5389500ed7937c0d55c5f35c6e944011ebada536b15816e21a97ace7cf2",
+      "restoredBytes": 8788,
+      "restoredSha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a"
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "unexecutedModifiedBytes": 23694,
+      "unexecutedModifiedSha256": "5f25764dfd43ce63335ebd42e5cd41091f07e23a1dc40450d16496b85753bf58",
+      "restoredBytes": 23692,
+      "restoredSha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00"
+    }
+  ]
+}

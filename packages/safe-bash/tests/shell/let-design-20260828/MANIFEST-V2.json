@@ -1,0 +1,56 @@
+{
+  "schema": "let-native-recipe-seal-v2",
+  "created": "2026-08-28T06:56:51.334Z",
+  "nativeExecutionsBeforeSeal": 0,
+  "supersedesUnexecutedInvalidManifest": "e9242cabe090833e1192a35dc7c613080cdd7f20e9ae2cfd8a8b6040f78efb24",
+  "recipes": [
+    {
+      "path": "CASES.json",
+      "bytes": 6114,
+      "mode": 420,
+      "sha256": "103d97293576fb36945871e41b5b130051ee04abd298219af515487e7f1ba44e"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 3263,
+      "mode": 420,
+      "sha256": "3f725721d12027250305572ac49fe5336d6bd84693cbe86a12fbebc99051c630"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 3324,
+      "mode": 420,
+      "sha256": "91d7a29d5f7d8b33c4cbe368cd69c48671eeeef48ede889f0df7fbfccd68cb7d"
+    },
+    {
+      "path": "native.mjs",
+      "bytes": 6656,
+      "mode": 420,
+      "sha256": "b8e980489835fa49d4ee7527c7af12eaf28bc8da197af295232aceeda5f100c0"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 4868,
+      "mode": 420,
+      "sha256": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 926,
+      "mode": 420,
+      "sha256": "e9242cabe090833e1192a35dc7c613080cdd7f20e9ae2cfd8a8b6040f78efb24"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 494,
+      "mode": 420,
+      "sha256": "9457f97c2b769be4be8d713334946fa83363ab6532e041a3abefa2c2a0a6402b"
+    },
+    {
+      "path": "native-preparation-syntax-failure.data",
+      "bytes": 6628,
+      "mode": 420,
+      "sha256": "a620de3e71cad0d221bb655d01450eb2386c423845a6e859736176c9cfc2ccb7"
+    }
+  ]
+}

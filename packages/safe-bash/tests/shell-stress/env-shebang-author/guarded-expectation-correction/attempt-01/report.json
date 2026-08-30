@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "ea409a6b49d5c1523e3238f0384048218b559c4c",
+  "testCommit": "f6a3fa75280bd4d925027e62498aa67b5d9785dc",
+  "evidenceCommit": "ee7d909c0379ca1237f729f55a0a22fbe35aa8f7",
+  "startedAt": "2026-08-27T15:30:16.047Z",
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-author/guarded-expectation-correction/.candidate-ylSQzY",
+  "commands": [],
+  "runnerSha256": "6ca8d87c7a395d2fc34729794a152df627eaddd82f2442e1adbd49424529d9e9",
+  "host": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "nodeVersion": "v22.22.2",
+    "nodeExecutable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "passed": false,
+  "failure": "AssertionError [ERR_ASSERTION]: fatal: not a git repository (or any of the parent directories): .git\n\n\n128 !== 0\n\n    at git (file:///Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-author/guarded-expectation-correction/verify.mjs:29:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-author/guarded-expectation-correction/verify.mjs:75:23\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+  "cleanup": [],
+  "scratchAbsent": true,
+  "finishedAt": "2026-08-27T15:30:16.120Z"
+}

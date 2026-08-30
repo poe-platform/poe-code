@@ -1,0 +1,83 @@
+{
+  "verification": "archival consistency, not an all-green behavioral gate",
+  "attempts": [
+    {
+      "name": "attempt-01",
+      "status": "pass",
+      "accepted": 1,
+      "selected": 1,
+      "startedAt": "2026-08-27T09:43:35.273Z",
+      "finishedAt": "2026-08-27T09:43:52.262Z"
+    },
+    {
+      "name": "attempt-02",
+      "status": "behavioral-failures",
+      "accepted": 16,
+      "selected": 17,
+      "startedAt": "2026-08-27T09:44:58.492Z",
+      "finishedAt": "2026-08-27T09:45:20.367Z"
+    },
+    {
+      "name": "attempt-03",
+      "status": "behavioral-failures",
+      "accepted": 18,
+      "selected": 19,
+      "startedAt": "2026-08-27T09:47:50.014Z",
+      "finishedAt": "2026-08-27T09:48:11.150Z"
+    },
+    {
+      "name": "attempt-04",
+      "status": "behavioral-failures",
+      "accepted": 0,
+      "selected": 19,
+      "startedAt": "2026-08-27T09:49:53.901Z",
+      "finishedAt": "2026-08-27T09:50:09.400Z"
+    },
+    {
+      "name": "attempt-05",
+      "status": "infrastructure-failure",
+      "accepted": 0,
+      "selected": 1,
+      "startedAt": "2026-08-27T09:51:10.829Z",
+      "finishedAt": "2026-08-27T09:51:25.261Z"
+    },
+    {
+      "name": "attempt-06",
+      "status": "infrastructure-failure",
+      "accepted": 0,
+      "selected": 1,
+      "startedAt": "2026-08-27T09:53:10.259Z",
+      "finishedAt": "2026-08-27T09:53:24.210Z"
+    },
+    {
+      "name": "attempt-07",
+      "status": "pass",
+      "accepted": 1,
+      "selected": 1,
+      "startedAt": "2026-08-27T09:54:19.777Z",
+      "finishedAt": "2026-08-27T09:54:33.758Z"
+    },
+    {
+      "name": "attempt-08",
+      "status": "behavioral-failures",
+      "accepted": 18,
+      "selected": 19,
+      "startedAt": "2026-08-27T09:55:05.863Z",
+      "finishedAt": "2026-08-27T09:55:29.122Z"
+    }
+  ],
+  "final": {
+    "accepted": 18,
+    "selected": 19,
+    "originalAssertionStillFailing": "literal-grep-caller-sink-error",
+    "sourceClosureFiles": 216,
+    "privateCopiedFiles": 264,
+    "privateLoadedFiles": 63,
+    "verifiedImportRecords": 9866,
+    "nativeWorkersBeforeSettlement": 18,
+    "closedToolProcesses": 19,
+    "watchdogRescues": 0,
+    "allTemporaryTreesRemoved": true
+  },
+  "checkedAt": "2026-08-27T10:01:33.640Z"
+}

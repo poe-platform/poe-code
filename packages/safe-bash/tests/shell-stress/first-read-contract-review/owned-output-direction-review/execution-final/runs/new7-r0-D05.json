@@ -1,0 +1,34 @@
+{
+  "label": "new7-r0-D05",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs",
+    "D05"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:01.171Z",
+  "finishedAt": "2026-08-27T10:38:01.250Z",
+  "durationMs": 79.47695900000008,
+  "timeoutMs": 5000,
+  "maxBytes": 262144,
+  "pid": 5352,
+  "initialIdentity": "5352  4804  5352 Thu Aug 27 05:38:01 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs D05",
+  "status": 0,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"D05\",\"passed\":true,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"child.effects\",\"parent\":\"parent-still-live\\n\",\"sibling\":\"sibling-still-live\\n\",\"stderr\":\"stderr-still-live\\n\"}],\"failures\":[],\"unhandled\":[]}\n",
+  "stderr": ""
+}

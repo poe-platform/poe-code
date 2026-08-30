@@ -1,0 +1,63 @@
+{
+  "count": 10,
+  "matched": 10,
+  "observations": [
+    {
+      "id": "I01-envelope",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I02-origins",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I03-receipt-binding",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I04-schema-public",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I05-build-role",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I06-runtime-translation",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I07-readme-full-package",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I08-continuation",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I09-integration-integrity",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "I10-missing-root",
+      "matched": true,
+      "failure": null
+    }
+  ],
+  "productImports": 0,
+  "productRuns": 0,
+  "builds": 0,
+  "compilerRuns": 0,
+  "semanticPasses": 0,
+  "positiveBindExecuted": false,
+  "loadComponentsExecuted": false
+}

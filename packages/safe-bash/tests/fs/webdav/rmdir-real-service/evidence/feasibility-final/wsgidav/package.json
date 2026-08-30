@@ -1,0 +1,3200 @@
+{
+  "id": "virtual-bash@0.0.0",
+  "name": "virtual-bash",
+  "version": "0.0.0",
+  "size": 568010,
+  "unpackedSize": 3192253,
+  "shasum": "a9ef0bde5004d8be16fac3bbf070c73ff945651f",
+  "integrity": "sha512-b+EDYMkoi5cpH4QXYoxavy26HAlshmSbnJkdHBRPlMw2CHloB7PmX8JxUffkwqs9+VkiLiWOrEmMpUQ3vqXyWw==",
+  "filename": "virtual-bash-0.0.0.tgz",
+  "files": [
+    {
+      "path": "dist/commands/archive/create.d.ts",
+      "size": 714,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/create.d.ts.map",
+      "size": 790,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/create.js",
+      "size": 9080,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/create.js.map",
+      "size": 10068,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/extract.d.ts",
+      "size": 340,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/extract.d.ts.map",
+      "size": 413,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/extract.js",
+      "size": 17807,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/extract.js.map",
+      "size": 19131,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/format.d.ts",
+      "size": 1275,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/format.d.ts.map",
+      "size": 1463,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/format.js",
+      "size": 10000,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/format.js.map",
+      "size": 12909,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/index.d.ts",
+      "size": 621,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/index.d.ts.map",
+      "size": 525,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/index.js",
+      "size": 3942,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/index.js.map",
+      "size": 3763,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/internal.d.ts",
+      "size": 2569,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/internal.d.ts.map",
+      "size": 2496,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/internal.js",
+      "size": 7657,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/internal.js.map",
+      "size": 8772,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/options.d.ts",
+      "size": 792,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/options.d.ts.map",
+      "size": 902,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/options.js",
+      "size": 11462,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/options.js.map",
+      "size": 11847,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/stream.d.ts",
+      "size": 773,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/stream.d.ts.map",
+      "size": 881,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/stream.js",
+      "size": 3898,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/archive/stream.js.map",
+      "size": 4473,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/basic.d.ts",
+      "size": 161,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/basic.d.ts.map",
+      "size": 207,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/basic.js",
+      "size": 11031,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/basic.js.map",
+      "size": 11096,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.d.ts",
+      "size": 185,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.d.ts.map",
+      "size": 236,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.js",
+      "size": 13678,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/checksums/index.js.map",
+      "size": 14598,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.d.ts",
+      "size": 714,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.d.ts.map",
+      "size": 775,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.js",
+      "size": 10403,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/files.js.map",
+      "size": 11117,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.d.ts",
+      "size": 225,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.d.ts.map",
+      "size": 309,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.js",
+      "size": 6727,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/gunzip.js.map",
+      "size": 7536,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.d.ts",
+      "size": 188,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.d.ts.map",
+      "size": 238,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.js",
+      "size": 2410,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/index.js.map",
+      "size": 2178,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.d.ts",
+      "size": 343,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.d.ts.map",
+      "size": 465,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.js",
+      "size": 2027,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/options.js.map",
+      "size": 2062,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.d.ts",
+      "size": 497,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.d.ts.map",
+      "size": 559,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.js",
+      "size": 3588,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/compression/stream.js.map",
+      "size": 3806,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.d.ts",
+      "size": 193,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.d.ts.map",
+      "size": 253,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.js",
+      "size": 4404,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/base.js.map",
+      "size": 5290,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.d.ts",
+      "size": 185,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.d.ts.map",
+      "size": 233,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.js",
+      "size": 323,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/index.js.map",
+      "size": 401,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.d.ts",
+      "size": 164,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.d.ts.map",
+      "size": 217,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.js",
+      "size": 6788,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/od.js.map",
+      "size": 7940,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.d.ts",
+      "size": 773,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.d.ts.map",
+      "size": 822,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.js",
+      "size": 4012,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/shared.js.map",
+      "size": 4547,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.d.ts",
+      "size": 166,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.d.ts.map",
+      "size": 222,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.js",
+      "size": 6556,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/encoding/xxd.js.map",
+      "size": 7160,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/index.d.ts",
+      "size": 360,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/index.d.ts.map",
+      "size": 359,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/index.js",
+      "size": 955,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/bytes/index.js.map",
+      "size": 873,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/copy-identity.d.ts",
+      "size": 485,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/copy-identity.d.ts.map",
+      "size": 534,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/copy-identity.js",
+      "size": 2048,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/copy-identity.js.map",
+      "size": 2324,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.d.ts",
+      "size": 534,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.d.ts.map",
+      "size": 722,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.js",
+      "size": 5607,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff-format.js.map",
+      "size": 6458,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.d.ts",
+      "size": 207,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.d.ts.map",
+      "size": 223,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.js",
+      "size": 13696,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/diff.js.map",
+      "size": 14931,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/index.d.ts",
+      "size": 426,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/index.d.ts.map",
+      "size": 410,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/index.js",
+      "size": 826,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/index.js.map",
+      "size": 839,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.d.ts",
+      "size": 166,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.d.ts.map",
+      "size": 278,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.js",
+      "size": 2628,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-envelope.js.map",
+      "size": 2494,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.d.ts",
+      "size": 419,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.d.ts.map",
+      "size": 527,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.js",
+      "size": 11610,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-formats.js.map",
+      "size": 12547,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+      "size": 1947,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts.map",
+      "size": 2101,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.js",
+      "size": 9323,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-paths.js.map",
+      "size": 10676,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+      "size": 377,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts.map",
+      "size": 484,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.js",
+      "size": 3679,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-gnu-reject.js.map",
+      "size": 4488,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.d.ts",
+      "size": 277,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.d.ts.map",
+      "size": 347,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.js",
+      "size": 4602,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch-path.js.map",
+      "size": 5430,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.d.ts",
+      "size": 209,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.d.ts.map",
+      "size": 225,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.js",
+      "size": 20407,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/patch.js.map",
+      "size": 21826,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.d.ts",
+      "size": 1715,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.d.ts.map",
+      "size": 1847,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.js",
+      "size": 6830,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/shared.js.map",
+      "size": 7621,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.d.ts",
+      "size": 1764,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.d.ts.map",
+      "size": 2007,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.js",
+      "size": 11485,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/diff-patch/unified.js.map",
+      "size": 11871,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/execution.d.ts",
+      "size": 295,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/execution.d.ts.map",
+      "size": 306,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/execution.js",
+      "size": 10707,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/execution.js.map",
+      "size": 10936,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/filesystem.d.ts",
+      "size": 171,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/filesystem.d.ts.map",
+      "size": 221,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/filesystem.js",
+      "size": 25457,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/filesystem.js.map",
+      "size": 28538,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/find.d.ts",
+      "size": 203,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/find.d.ts.map",
+      "size": 242,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/find.js",
+      "size": 11669,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/find.js.map",
+      "size": 11673,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/grep.d.ts",
+      "size": 264,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/grep.d.ts.map",
+      "size": 277,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/grep.js",
+      "size": 7330,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/grep.js.map",
+      "size": 7198,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/index.d.ts",
+      "size": 591,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/index.d.ts.map",
+      "size": 529,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/index.js",
+      "size": 2131,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/index.js.map",
+      "size": 2137,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/internal.d.ts",
+      "size": 2207,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/internal.d.ts.map",
+      "size": 2116,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/internal.js",
+      "size": 8845,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/internal.js.map",
+      "size": 10465,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/chmod.d.ts",
+      "size": 238,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/chmod.d.ts.map",
+      "size": 226,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/chmod.js",
+      "size": 8059,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/chmod.js.map",
+      "size": 9017,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/index.d.ts",
+      "size": 472,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/index.d.ts.map",
+      "size": 418,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/index.js",
+      "size": 933,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/index.js.map",
+      "size": 966,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/internal.d.ts",
+      "size": 1156,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/internal.d.ts.map",
+      "size": 1097,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/internal.js",
+      "size": 2923,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/internal.js.map",
+      "size": 3516,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.d.ts",
+      "size": 240,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.d.ts.map",
+      "size": 228,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.js",
+      "size": 6753,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/mktemp.js.map",
+      "size": 6427,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/stat.d.ts",
+      "size": 236,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/stat.d.ts.map",
+      "size": 224,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/stat.js",
+      "size": 12340,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/metadata/stat.js.map",
+      "size": 14695,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/move.d.ts",
+      "size": 436,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/move.d.ts.map",
+      "size": 482,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/move.js",
+      "size": 8392,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/move.js.map",
+      "size": 9167,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/args.d.ts",
+      "size": 1018,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/args.d.ts.map",
+      "size": 1241,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/args.js",
+      "size": 9572,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/args.js.map",
+      "size": 9615,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/body.d.ts",
+      "size": 568,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/body.d.ts.map",
+      "size": 607,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/body.js",
+      "size": 8101,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/body.js.map",
+      "size": 8693,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/curl.d.ts",
+      "size": 254,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/curl.d.ts.map",
+      "size": 286,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/curl.js",
+      "size": 18048,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/curl.js.map",
+      "size": 17898,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/index.d.ts",
+      "size": 678,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/index.d.ts.map",
+      "size": 555,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/index.js",
+      "size": 868,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/index.js.map",
+      "size": 868,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/output.d.ts",
+      "size": 662,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/output.d.ts.map",
+      "size": 712,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/output.js",
+      "size": 3958,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/output.js.map",
+      "size": 4459,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/shared.d.ts",
+      "size": 784,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/shared.d.ts.map",
+      "size": 808,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/shared.js",
+      "size": 2327,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/shared.js.map",
+      "size": 2842,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/transport.d.ts",
+      "size": 338,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/transport.d.ts.map",
+      "size": 398,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/transport.js",
+      "size": 3310,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/transport.js.map",
+      "size": 3562,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/types.d.ts",
+      "size": 1666,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/types.d.ts.map",
+      "size": 1775,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/types.js",
+      "size": 506,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/network/types.js.map",
+      "size": 603,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/predicates.d.ts",
+      "size": 170,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/predicates.d.ts.map",
+      "size": 220,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/predicates.js",
+      "size": 6958,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/predicates.js.map",
+      "size": 6609,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/client.d.ts",
+      "size": 2312,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/client.d.ts.map",
+      "size": 2459,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/client.js",
+      "size": 11874,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/client.js.map",
+      "size": 12980,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.d.ts",
+      "size": 218,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.d.ts.map",
+      "size": 321,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.js",
+      "size": 9032,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/matching.js.map",
+      "size": 9890,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.d.ts",
+      "size": 2171,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.d.ts.map",
+      "size": 2295,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.js",
+      "size": 3345,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/protocol.js.map",
+      "size": 3638,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/worker.d.ts",
+      "size": 47,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/worker.d.ts.map",
+      "size": 137,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/worker.js",
+      "size": 1300,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/regex-execution/worker.js.map",
+      "size": 1711,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/index.d.ts",
+      "size": 772,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/index.d.ts.map",
+      "size": 672,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/index.js",
+      "size": 10282,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/index.js.map",
+      "size": 9023,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/io.d.ts",
+      "size": 1322,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/io.d.ts.map",
+      "size": 1488,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/io.js",
+      "size": 4828,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/io.js.map",
+      "size": 5433,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/options.d.ts",
+      "size": 522,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/options.d.ts.map",
+      "size": 584,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/options.js",
+      "size": 2371,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/options.js.map",
+      "size": 2848,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/render.d.ts",
+      "size": 157,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/render.d.ts.map",
+      "size": 256,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/render.js",
+      "size": 3374,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/render.js.map",
+      "size": 3627,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/types.d.ts",
+      "size": 2330,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/types.d.ts.map",
+      "size": 2392,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/types.js",
+      "size": 305,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/safejs/types.js.map",
+      "size": 329,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/glob.d.ts",
+      "size": 536,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/glob.d.ts.map",
+      "size": 612,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/glob.js",
+      "size": 4711,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/glob.js.map",
+      "size": 4902,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/index.d.ts",
+      "size": 410,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/index.d.ts.map",
+      "size": 398,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/index.js",
+      "size": 756,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/index.js.map",
+      "size": 767,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/matcher.d.ts",
+      "size": 599,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/matcher.d.ts.map",
+      "size": 656,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/matcher.js",
+      "size": 891,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/matcher.js.map",
+      "size": 1090,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/options.d.ts",
+      "size": 1627,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/options.d.ts.map",
+      "size": 1825,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/options.js",
+      "size": 11714,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/options.js.map",
+      "size": 9195,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/output.d.ts",
+      "size": 1204,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/output.d.ts.map",
+      "size": 1342,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/output.js",
+      "size": 3633,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/output.js.map",
+      "size": 5152,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/rg.d.ts",
+      "size": 229,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/rg.d.ts.map",
+      "size": 275,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/rg.js",
+      "size": 11720,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/rg.js.map",
+      "size": 12526,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/shared.d.ts",
+      "size": 1455,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/shared.d.ts.map",
+      "size": 1482,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/shared.js",
+      "size": 4690,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/shared.js.map",
+      "size": 5381,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/walk.d.ts",
+      "size": 860,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/walk.d.ts.map",
+      "size": 941,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/walk.js",
+      "size": 8281,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/search/walk.js.map",
+      "size": 8879,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/index.d.ts",
+      "size": 449,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/index.d.ts.map",
+      "size": 413,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/index.js",
+      "size": 771,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/index.js.map",
+      "size": 827,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/io.d.ts",
+      "size": 994,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/io.d.ts.map",
+      "size": 1100,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/io.js",
+      "size": 3788,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/io.js.map",
+      "size": 4399,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/names.d.ts",
+      "size": 329,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/names.d.ts.map",
+      "size": 404,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/names.js",
+      "size": 1723,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/names.js.map",
+      "size": 2088,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/options.d.ts",
+      "size": 999,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/options.d.ts.map",
+      "size": 1081,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/options.js",
+      "size": 5669,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/options.js.map",
+      "size": 5973,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/outputs.d.ts",
+      "size": 634,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/outputs.d.ts.map",
+      "size": 718,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/outputs.js",
+      "size": 5191,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/outputs.js.map",
+      "size": 6015,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/split.d.ts",
+      "size": 235,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/split.d.ts.map",
+      "size": 280,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/split.js",
+      "size": 5599,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/split/split.js.map",
+      "size": 6308,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/index.d.ts",
+      "size": 496,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/index.d.ts.map",
+      "size": 425,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/index.js",
+      "size": 1060,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/index.js.map",
+      "size": 1074,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/nl.d.ts",
+      "size": 242,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/nl.d.ts.map",
+      "size": 284,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/nl.js",
+      "size": 4930,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/nl.js.map",
+      "size": 5495,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/rev.d.ts",
+      "size": 244,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/rev.d.ts.map",
+      "size": 288,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/rev.js",
+      "size": 2902,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/rev.js.map",
+      "size": 3506,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/seq.d.ts",
+      "size": 244,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/seq.d.ts.map",
+      "size": 288,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/seq.js",
+      "size": 12434,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/seq.js.map",
+      "size": 14558,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/shared.d.ts",
+      "size": 1965,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/shared.d.ts.map",
+      "size": 2053,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/shared.js",
+      "size": 7795,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/shared.js.map",
+      "size": 8634,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/unexpand.d.ts",
+      "size": 254,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/unexpand.d.ts.map",
+      "size": 298,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/unexpand.js",
+      "size": 5402,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-format/unexpand.js.map",
+      "size": 5546,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/expand.d.ts",
+      "size": 258,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/expand.d.ts.map",
+      "size": 298,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/expand.js",
+      "size": 3943,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/expand.js.map",
+      "size": 3976,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/fold.d.ts",
+      "size": 254,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/fold.d.ts.map",
+      "size": 293,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/fold.js",
+      "size": 2484,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/fold.js.map",
+      "size": 2681,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/index.d.ts",
+      "size": 524,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/index.d.ts.map",
+      "size": 429,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/index.js",
+      "size": 1088,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/index.js.map",
+      "size": 1082,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/numeric-options.d.ts",
+      "size": 288,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/numeric-options.d.ts.map",
+      "size": 425,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/numeric-options.js",
+      "size": 2188,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/numeric-options.js.map",
+      "size": 2534,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/shared.d.ts",
+      "size": 2013,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/shared.d.ts.map",
+      "size": 2056,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/shared.js",
+      "size": 7559,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/shared.js.map",
+      "size": 8472,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/strings.d.ts",
+      "size": 260,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/strings.d.ts.map",
+      "size": 299,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/strings.js",
+      "size": 2761,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/strings.js.map",
+      "size": 3002,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/tac.d.ts",
+      "size": 252,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/tac.d.ts.map",
+      "size": 290,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/tac.js",
+      "size": 2516,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/stream-inspection/tac.js.map",
+      "size": 2917,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/streams.d.ts",
+      "size": 164,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/streams.d.ts.map",
+      "size": 212,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/streams.js",
+      "size": 20559,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/streams.js.map",
+      "size": 22363,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/index.d.ts",
+      "size": 521,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/index.d.ts.map",
+      "size": 461,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/index.js",
+      "size": 811,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/index.js.map",
+      "size": 814,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/input.d.ts",
+      "size": 1126,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/input.d.ts.map",
+      "size": 1108,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/input.js",
+      "size": 16656,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/input.js.map",
+      "size": 18554,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/interpreter.d.ts",
+      "size": 957,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/interpreter.d.ts.map",
+      "size": 1268,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/interpreter.js",
+      "size": 27651,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/interpreter.js.map",
+      "size": 28373,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/jq.d.ts",
+      "size": 252,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/jq.d.ts.map",
+      "size": 281,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/jq.js",
+      "size": 12566,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/jq.js.map",
+      "size": 12940,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/limits.d.ts",
+      "size": 2456,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/limits.d.ts.map",
+      "size": 2601,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/limits.js",
+      "size": 6159,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/limits.js.map",
+      "size": 7031,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/numbers.d.ts",
+      "size": 854,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/numbers.d.ts.map",
+      "size": 922,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/numbers.js",
+      "size": 6349,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/numbers.js.map",
+      "size": 8579,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/parser.d.ts",
+      "size": 1035,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/parser.d.ts.map",
+      "size": 1482,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/parser.js",
+      "size": 13819,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/parser.js.map",
+      "size": 16589,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/split.d.ts",
+      "size": 186,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/split.d.ts.map",
+      "size": 300,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/split.js",
+      "size": 2424,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/split.js.map",
+      "size": 2731,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/values.d.ts",
+      "size": 865,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/values.d.ts.map",
+      "size": 1055,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/values.js",
+      "size": 9771,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/structured/values.js.map",
+      "size": 12536,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/comm.d.ts",
+      "size": 262,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/comm.d.ts.map",
+      "size": 286,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/comm.js",
+      "size": 4700,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/comm.js.map",
+      "size": 5152,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/index.d.ts",
+      "size": 479,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/index.d.ts.map",
+      "size": 420,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/index.js",
+      "size": 967,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/index.js.map",
+      "size": 990,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/internal.d.ts",
+      "size": 2942,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/internal.d.ts.map",
+      "size": 2918,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/internal.js",
+      "size": 8266,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/internal.js.map",
+      "size": 9459,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/join.d.ts",
+      "size": 262,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/join.d.ts.map",
+      "size": 288,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/join.js",
+      "size": 10886,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/join.js.map",
+      "size": 12216,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/paste.d.ts",
+      "size": 264,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/paste.d.ts.map",
+      "size": 289,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/paste.js",
+      "size": 4896,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/table-text/paste.js.map",
+      "size": 5044,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.d.ts",
+      "size": 1264,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.d.ts.map",
+      "size": 1302,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.js",
+      "size": 31842,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-runtime.js.map",
+      "size": 35437,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.d.ts",
+      "size": 3047,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.d.ts.map",
+      "size": 3608,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.js",
+      "size": 23181,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-syntax.js.map",
+      "size": 26474,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.d.ts",
+      "size": 1136,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.d.ts.map",
+      "size": 1282,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.js",
+      "size": 7415,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk-values.js.map",
+      "size": 9160,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk.d.ts",
+      "size": 240,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk.d.ts.map",
+      "size": 285,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk.js",
+      "size": 1999,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/awk.js.map",
+      "size": 2077,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/index.d.ts",
+      "size": 438,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/index.d.ts.map",
+      "size": 413,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/index.js",
+      "size": 840,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/index.js.map",
+      "size": 842,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/regex.d.ts",
+      "size": 750,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/regex.d.ts.map",
+      "size": 879,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/regex.js",
+      "size": 18844,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/regex.js.map",
+      "size": 19315,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/sed.d.ts",
+      "size": 240,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/sed.d.ts.map",
+      "size": 287,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/sed.js",
+      "size": 27319,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/sed.js.map",
+      "size": 25537,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/shared.d.ts",
+      "size": 1520,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/shared.d.ts.map",
+      "size": 1519,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/shared.js",
+      "size": 4045,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text-programs/shared.js.map",
+      "size": 4756,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text.d.ts",
+      "size": 159,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text.d.ts.map",
+      "size": 206,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text.js",
+      "size": 18594,
+      "mode": 420
+    },
+    {
+      "path": "dist/commands/text.js.map",
+      "size": 19780,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/command.d.ts",
+      "size": 1848,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/command.d.ts.map",
+      "size": 1948,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/command.js",
+      "size": 1353,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/command.js.map",
+      "size": 1476,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/errors.d.ts",
+      "size": 2102,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/errors.d.ts.map",
+      "size": 917,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/errors.js",
+      "size": 3225,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/errors.js.map",
+      "size": 3333,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/filesystem.d.ts",
+      "size": 3984,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/filesystem.d.ts.map",
+      "size": 4641,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/filesystem.js",
+      "size": 121,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/filesystem.js.map",
+      "size": 270,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/index.d.ts",
+      "size": 208,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/index.d.ts.map",
+      "size": 243,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/index.js",
+      "size": 206,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/index.js.map",
+      "size": 241,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/io.d.ts",
+      "size": 1299,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/io.d.ts.map",
+      "size": 1368,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/io.js",
+      "size": 7365,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/io.js.map",
+      "size": 7646,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/path.d.ts",
+      "size": 844,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/path.d.ts.map",
+      "size": 735,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/path.js",
+      "size": 1631,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/path.js.map",
+      "size": 1872,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/plugin.d.ts",
+      "size": 836,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/plugin.d.ts.map",
+      "size": 880,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/plugin.js",
+      "size": 1878,
+      "mode": 420
+    },
+    {
+      "path": "dist/contracts/plugin.js.map",
+      "size": 1751,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/memory/index.d.ts",
+      "size": 2921,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/memory/index.d.ts.map",
+      "size": 2839,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/memory/index.js",
+      "size": 23141,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/memory/index.js.map",
+      "size": 27020,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/comparison.d.ts",
+      "size": 1242,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/comparison.d.ts.map",
+      "size": 1232,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/comparison.js",
+      "size": 4843,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/comparison.js.map",
+      "size": 4880,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/identity.d.ts",
+      "size": 232,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/identity.d.ts.map",
+      "size": 285,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/identity.js",
+      "size": 651,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/identity.js.map",
+      "size": 823,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/index.d.ts",
+      "size": 2750,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/index.d.ts.map",
+      "size": 2772,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/index.js",
+      "size": 25789,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/mount/index.js.map",
+      "size": 28300,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/overlay/index.d.ts",
+      "size": 3477,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/overlay/index.d.ts.map",
+      "size": 3225,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/overlay/index.js",
+      "size": 43401,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/overlay/index.js.map",
+      "size": 47594,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/readonly/index.d.ts",
+      "size": 2405,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/readonly/index.d.ts.map",
+      "size": 2566,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/readonly/index.js",
+      "size": 4813,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/readonly/index.js.map",
+      "size": 5706,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/real/index.d.ts",
+      "size": 4985,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/real/index.d.ts.map",
+      "size": 2621,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/real/index.js",
+      "size": 24206,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/real/index.js.map",
+      "size": 23368,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/authority.d.ts",
+      "size": 1175,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/authority.d.ts.map",
+      "size": 1136,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/authority.js",
+      "size": 4116,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/authority.js.map",
+      "size": 4590,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/filesystem.d.ts",
+      "size": 4227,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/filesystem.d.ts.map",
+      "size": 4065,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/filesystem.js",
+      "size": 51905,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/filesystem.js.map",
+      "size": 55193,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/index.d.ts",
+      "size": 216,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/index.d.ts.map",
+      "size": 246,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/index.js",
+      "size": 89,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/index.js.map",
+      "size": 165,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/request.d.ts",
+      "size": 1007,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/request.d.ts.map",
+      "size": 1053,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/request.js",
+      "size": 8039,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/request.js.map",
+      "size": 7029,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/signature.d.ts",
+      "size": 898,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/signature.d.ts.map",
+      "size": 1031,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/signature.js",
+      "size": 4082,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/signature.js.map",
+      "size": 4668,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/transport.d.ts",
+      "size": 242,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/transport.d.ts.map",
+      "size": 287,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/transport.js",
+      "size": 24263,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/transport.js.map",
+      "size": 24087,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/types.d.ts",
+      "size": 1249,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/types.d.ts.map",
+      "size": 1315,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/types.js",
+      "size": 44,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/types.js.map",
+      "size": 122,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/xml.d.ts",
+      "size": 548,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/xml.d.ts.map",
+      "size": 633,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/xml.js",
+      "size": 7200,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/http/xml.js.map",
+      "size": 7971,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/index.d.ts",
+      "size": 625,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/index.d.ts.map",
+      "size": 573,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/index.js",
+      "size": 224,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/index.js.map",
+      "size": 273,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/mock.d.ts",
+      "size": 2251,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/mock.d.ts.map",
+      "size": 2033,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/mock.js",
+      "size": 10784,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/mock.js.map",
+      "size": 12253,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/transport.d.ts",
+      "size": 4005,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/transport.d.ts.map",
+      "size": 4084,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/transport.js",
+      "size": 1413,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/s3/transport.js.map",
+      "size": 1816,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/index.d.ts",
+      "size": 156,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/index.d.ts.map",
+      "size": 214,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/index.js",
+      "size": 81,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/index.js.map",
+      "size": 159,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/resource-id.d.ts",
+      "size": 1289,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/resource-id.d.ts.map",
+      "size": 1179,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/resource-id.js",
+      "size": 4753,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/resource-id.js.map",
+      "size": 5144,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/webdav.d.ts",
+      "size": 3879,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/webdav.d.ts.map",
+      "size": 3754,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/webdav.js",
+      "size": 53047,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/webdav.js.map",
+      "size": 52932,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/xml.d.ts",
+      "size": 647,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/xml.d.ts.map",
+      "size": 717,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/xml.js",
+      "size": 11072,
+      "mode": 420
+    },
+    {
+      "path": "dist/fs/webdav/xml.js.map",
+      "size": 11628,
+      "mode": 420
+    },
+    {
+      "path": "dist/index.d.ts",
+      "size": 1131,
+      "mode": 420
+    },
+    {
+      "path": "dist/index.d.ts.map",
+      "size": 699,
+      "mode": 420
+    },
+    {
+      "path": "dist/index.js",
+      "size": 1044,
+      "mode": 420
+    },
+    {
+      "path": "dist/index.js.map",
+      "size": 652,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.d.ts",
+      "size": 987,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.d.ts.map",
+      "size": 991,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.js",
+      "size": 17832,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/filesystem.js.map",
+      "size": 20131,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/index.d.ts",
+      "size": 464,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/index.d.ts.map",
+      "size": 426,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/index.js",
+      "size": 159,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/index.js.map",
+      "size": 226,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/shell.d.ts",
+      "size": 1302,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/shell.d.ts.map",
+      "size": 1280,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/shell.js",
+      "size": 2623,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/shell.js.map",
+      "size": 2871,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/stats.d.ts",
+      "size": 340,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/stats.d.ts.map",
+      "size": 436,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/stats.js",
+      "size": 1280,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/stats.js.map",
+      "size": 1623,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/values.d.ts",
+      "size": 627,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/values.d.ts.map",
+      "size": 707,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/values.js",
+      "size": 2395,
+      "mode": 420
+    },
+    {
+      "path": "dist/integrations/safejs/values.js.map",
+      "size": 2566,
+      "mode": 420
+    },
+    {
+      "path": "dist/plugins/index.d.ts",
+      "size": 1606,
+      "mode": 420
+    },
+    {
+      "path": "dist/plugins/index.d.ts.map",
+      "size": 1383,
+      "mode": 420
+    },
+    {
+      "path": "dist/plugins/index.js",
+      "size": 2566,
+      "mode": 420
+    },
+    {
+      "path": "dist/plugins/index.js.map",
+      "size": 2433,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/arithmetic.d.ts",
+      "size": 1009,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/arithmetic.d.ts.map",
+      "size": 1148,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/arithmetic.js",
+      "size": 10808,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/arithmetic.js.map",
+      "size": 11677,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/display.d.ts",
+      "size": 159,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/display.d.ts.map",
+      "size": 237,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/display.js",
+      "size": 2792,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/display.js.map",
+      "size": 3396,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/index.d.ts",
+      "size": 310,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/index.d.ts.map",
+      "size": 343,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/index.js",
+      "size": 175,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/index.js.map",
+      "size": 244,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/input.d.ts",
+      "size": 838,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/input.d.ts.map",
+      "size": 866,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/input.js",
+      "size": 10776,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/input.js.map",
+      "size": 11276,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/locale.d.ts",
+      "size": 126,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/locale.d.ts.map",
+      "size": 207,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/locale.js",
+      "size": 202,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/locale.js.map",
+      "size": 286,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/parser.d.ts",
+      "size": 3382,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/parser.d.ts.map",
+      "size": 3979,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/parser.js",
+      "size": 38936,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/parser.js.map",
+      "size": 42286,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/pattern.d.ts",
+      "size": 377,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/pattern.d.ts.map",
+      "size": 449,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/pattern.js",
+      "size": 5344,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/pattern.js.map",
+      "size": 5625,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/runtime.d.ts",
+      "size": 7963,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/runtime.d.ts.map",
+      "size": 8757,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/runtime.js",
+      "size": 112795,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/runtime.js.map",
+      "size": 115243,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/shell.d.ts",
+      "size": 923,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/shell.d.ts.map",
+      "size": 876,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/shell.js",
+      "size": 7933,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/shell.js.map",
+      "size": 8056,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/types.d.ts",
+      "size": 2461,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/types.d.ts.map",
+      "size": 2590,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/types.js",
+      "size": 738,
+      "mode": 420
+    },
+    {
+      "path": "dist/shell/types.js.map",
+      "size": 656,
+      "mode": 420
+    },
+    {
+      "path": "package.json",
+      "size": 2635,
+      "mode": 420
+    }
+  ],
+  "entryCount": 637,
+  "bundled": [],
+  "sha256": "dd1efd2f90061c52bc0c40aee73ba8156e91c6da69e4e22022d1a0e74492a1f0"
+}

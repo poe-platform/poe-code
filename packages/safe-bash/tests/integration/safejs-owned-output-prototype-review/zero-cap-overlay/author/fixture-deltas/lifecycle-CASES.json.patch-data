@@ -1,0 +1,11 @@
+--- approved-v2/lifecycle/CASES.json
++++ zero-overlay/lifecycle/CASES.json
+@@ -115,7 +115,7 @@
+     "responseChunksHex": ["626f6479300a", "626f6479310a"],
+     "requiredFiles": {"/work/body.bin": "body0\nbody1\n", "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"},
+     "independentStderr": "independent-stderr\n",
+-    "limits": {"maxUploadBytes": 1024, "maxDownloadBytes": 1024, "maxBufferBytes": 4096, "maxHeaderBytes": 4096, "maxRedirects": 1, "maxRetries": 1, "maxUrls": 1, "maxTimeMs": 2500},
++    "limits": {"maxUploadBytes": 1024, "maxDownloadBytes": 1024, "maxBufferBytes": 4096, "maxHeaderBytes": 4096, "maxRedirects": 0, "maxRetries": 0, "maxUrls": 1, "maxTimeMs": 2500},
+     "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+   }
+ }

@@ -1,0 +1,13 @@
+[
+  {
+    "name": "independent-override",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern=^WebDAV pre-construction data-method overrides",
+      "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    ]
+  }
+]

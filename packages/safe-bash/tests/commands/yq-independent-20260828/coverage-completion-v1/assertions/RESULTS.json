@@ -1,0 +1,326 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SEALED_COMPONENT_PENDING_DIFFERENT_REVIEW_NOT_ACCEPTANCE",
+  "presealCommit": "363616da2d8e3f95f98e3cdd9b13ffe5a06b5e11",
+  "presealRecipe": {
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/TEST-RECIPE.json",
+    "sha256": "4938a5ebb88c5b34f96ecdf7fc91c25a710666a5cfdaef1f9b70a4a48cb5762b",
+    "bytes": 4528,
+    "mode": 420
+  },
+  "abiCommit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+  "implementation": {
+    "additionalFragments": 40,
+    "jobs": 28,
+    "primitiveFragmentsPreserved": 65,
+    "totalDispatchedFragments": 105,
+    "capturePredicates": 15,
+    "conditionalPredicates": 25,
+    "conditionalSyntheticMatchPossible": 22,
+    "explicitUnresolvedEvenWithMatchingClaims": 3,
+    "fullRecordOrGapCompletionClaim": false,
+    "sameRecordGapLinks": 23,
+    "overlappingExecutorMissingTotal": 77
+  },
+  "dependencies": [
+    {
+      "bindingId": "PAR-12--whole::expected/queryRuns",
+      "recordId": "PAR-12",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "PAR-13--whole::expected/queryRuns",
+      "recordId": "PAR-13",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "PAR-26--whole::expected/assertions/0",
+      "recordId": "PAR-26",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "NUM-11--whole::expected/assertions/0",
+      "recordId": "NUM-11",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "NUM-15--whole::expected/numeric",
+      "recordId": "NUM-15",
+      "dependency": "core source/observer: actual Decimal fields, not public output interpretation",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "NUM-16--whole::expected/assertions/0",
+      "recordId": "NUM-16",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": "Exact inspected baseline negative-zero text is not sealed in the frozen expectation. A self-declared observer baseline is insufficient; this binding stays UNOBSERVED.",
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "QUE-01--whole::expected/queryRuns",
+      "recordId": "QUE-01",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "QUE-01--whole::expected/compileAttempts",
+      "recordId": "QUE-01",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "QUE-02--whole::expected/queryRuns",
+      "recordId": "QUE-02",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "QUE-02--whole::expected/compileAttempts",
+      "recordId": "QUE-02",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-01--whole::expected/assertions/0",
+      "recordId": "ALS-01",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-03--whole::expected/assertions/0",
+      "recordId": "ALS-03",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-07--whole::expected/assertions/0",
+      "recordId": "ALS-07",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-10--whole::expected/assertions/0",
+      "recordId": "ALS-10",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-11--whole::expected/assertions/0",
+      "recordId": "ALS-11",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-12--whole::expected/queryRuns",
+      "recordId": "ALS-12",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-12--whole::expected/assertions/0",
+      "recordId": "ALS-12",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-13--whole::expected/assertions/0",
+      "recordId": "ALS-13",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-14--whole::expected/queryRuns",
+      "recordId": "ALS-14",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-14--whole::expected/assertions/0",
+      "recordId": "ALS-14",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-15--whole::expected/queryRuns",
+      "recordId": "ALS-15",
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "ALS-15--whole::expected/assertions/0",
+      "recordId": "ALS-15",
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "UTF-22--whole::expected/assertions/0",
+      "recordId": "UTF-22",
+      "dependency": "actors + core admitted capture/source closure; currently not bound",
+      "unavailable": "Actor reuse/finalization events can establish the benign output witness, not internal ownership by themselves. retainedFragmentsOwned requires an independently bound source argument; source binding is not automatically truth.",
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "WRK-14--whole::expected/assertions/0",
+      "recordId": "WRK-14",
+      "dependency": "actors + core admitted capture/source closure; currently not bound",
+      "unavailable": null,
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    },
+    {
+      "bindingId": "FS-01--whole::expected/assertions/0",
+      "recordId": "FS-01",
+      "dependency": "actors + core admitted capture/source closure; currently not bound",
+      "unavailable": "No host-access absence guarantee follows from VFS events. Requires separately authenticated complete import/capability closure or observer authority.",
+      "state": "UNRUN_OBSERVER_NOT_AUTHENTICATED"
+    }
+  ],
+  "synthetic": {
+    "schema": 1,
+    "role": "SYNTHETIC_STUB_PREDICATES_NOT_TARGET_PROOF",
+    "total": 280,
+    "matched": 280,
+    "failed": [],
+    "targetExecutions": 0,
+    "compilerExecutions": 0,
+    "productImports": 0,
+    "sourceOrLoadedSemanticPasses": 0,
+    "spawnedChildren": 0,
+    "status": "SYNTHETIC_MATCH",
+    "categories": {
+      "baseline": 40,
+      "contradiction": 40,
+      "missing-fragment": 40,
+      "observed": 25,
+      "missing-field": 25,
+      "extra-field": 25,
+      "extra-and-wrong": 25,
+      "primitive-contradiction": 28,
+      "accessor": 1,
+      "nonenumerable": 1,
+      "symbol": 1,
+      "undefined": 1,
+      "hole": 1,
+      "array-extra": 1,
+      "duplicate-fragment": 1,
+      "unknown-fragment": 1,
+      "changed-golden": 1,
+      "unknown-event": 1,
+      "extra-event": 1,
+      "wrong-event-order": 1,
+      "observation-without-ref": 1,
+      "wrong-observation-id": 1,
+      "reason-object": 1,
+      "reason-primitive": 1,
+      "cross-realm": 1,
+      "local-unvisited": 1,
+      "cross-realm-observation": 1,
+      "source-not-runtime": 1,
+      "bad-rejection": 1,
+      "bad-cleanup": 1,
+      "bad-success-stderr": 1,
+      "bad-namespace": 1,
+      "bad-signal": 1,
+      "bad-order": 1,
+      "diagnostic-location": 1,
+      "diagnostic-extra": 1,
+      "diagnostic-wrong-source": 1,
+      "invalid-utf8": 1,
+      "malformed-json": 1,
+      "utf22-wrong-bytes": 1
+    },
+    "supervisorStatus": "SYNTHETIC_PROCESS_AND_INTEGRITY_MATCH",
+    "childRaw": {
+      "schema": 1,
+      "code": 0,
+      "signal": null,
+      "stdoutBytes": 246,
+      "stderrBytes": 0,
+      "overflow": false,
+      "timedOut": false,
+      "spawnFailure": null,
+      "captureFailure": null,
+      "childClosed": true,
+      "elapsedMs": 348.84470799999997,
+      "rawBeforeAssert": true,
+      "overflowPolicy": "FAIL_AND_KILL; no passing truncated-capture claim",
+      "descendants": 0,
+      "activeOwnedChildren": 0
+    },
+    "peakOwnedProcessesIncludingSupervisor": 2,
+    "activeOwnedChildren": 0,
+    "grandchildren": 0,
+    "retries": 0,
+    "sourceIntegrity": "before and after: strict regular files/modes/bytes/hash/new-entry check",
+    "evidenceFiles": [
+      "evidence/synthetic-v1/launch.json",
+      "evidence/synthetic-v1/stdout.bin",
+      "evidence/synthetic-v1/stderr.bin",
+      "evidence/synthetic-v1/start.json",
+      "evidence/synthetic-v1/raw.jsonl",
+      "evidence/synthetic-v1/results.jsonl",
+      "evidence/synthetic-v1/summary.json",
+      "evidence/synthetic-v1/child-raw.json",
+      "evidence/synthetic-v1/supervisor.json"
+    ]
+  },
+  "target": {
+    "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "whole870PackSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "executionGo": "HELD_NOT_CREATED",
+    "productExecutions": 0,
+    "compilerExecutions": 0,
+    "productImports": 0,
+    "mutantExecutions": 0,
+    "sourceBuilt": "UNRUN",
+    "installedMoved": "UNRUN",
+    "loaded": "UNRUN",
+    "publicExports": "PUBLIC_EXPORT_GAP"
+  },
+  "integration": {
+    "entry": "evaluateAssertions(input)",
+    "module": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/evaluate-assertions.mjs",
+    "receipt": "outerReceipt.capture; caller authenticates/persists entire raw receipt and links primitive evidence",
+    "data": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/catalogue.json",
+    "manifest": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/CONTRIBUTION.json",
+    "needs": "tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/OBSERVATION-NEEDS.json",
+    "parentAggregation": "Any unexpected child nonzero/signal/timeout/overflow FAIL; source/gap/actor completion separate from this predicate result; no integration API invented",
+    "abi": "yq-coverage-additive-v1",
+    "compoundAssembly": "PENDING_CORE_BINDING_NOT_CLAIMED"
+  },
+  "limitations": [
+    "Conditional fact schemas are requirements, not implemented observer mechanisms",
+    "Source binding is not proof truth and cannot produce runtime observation",
+    "NUM16 exact baseline text unresolved",
+    "UTF22 full ownership assertion unresolved beyond benign reuse output witness",
+    "FS01 complete host-access observation authority unresolved",
+    "No hard RSS, hostile-host-JavaScript sandbox, between-check equivocation immunity or atomic-snapshot claim",
+    "Static spec and Git path preparation failures preserved; no failed actual check relabeled pass",
+    "Different reviewer and root integration pending"
+  ]
+}

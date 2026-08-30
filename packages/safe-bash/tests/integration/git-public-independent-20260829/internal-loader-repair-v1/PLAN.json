@@ -1,0 +1,117 @@
+{
+  "role": "PRECODE_FINITE_HARMLESS_COHORT",
+  "plannedBeforeExecution": true,
+  "oldActualV1": "7bd3fc8e35b65d4bbda68f155ec9eb72534a1977 consumed/unchanged",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "actualCases": [
+    {
+      "id": "P01",
+      "kind": "denied internal-loader startup",
+      "nodeExit": 1,
+      "internalAttempt": 1,
+      "application": 0
+    },
+    {
+      "id": "P02",
+      "kind": "admitted loader; no app worker",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 0
+    },
+    {
+      "id": "P03",
+      "kind": "app denied before construction",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 0
+    },
+    {
+      "id": "P04",
+      "kind": "exact allowed app worker",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 1
+    },
+    {
+      "id": "P05",
+      "kind": "wrong app entry refused",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 0
+    },
+    {
+      "id": "P06",
+      "kind": "six changed app option refusals",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 0
+    },
+    {
+      "id": "P07",
+      "kind": "bootstrap primary error captured; consumer absent",
+      "nodeExit": 1,
+      "internalAttempt": 1,
+      "application": 0
+    },
+    {
+      "id": "P08",
+      "kind": "CJS export shares guarded Worker; allowed +wrong entry",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 1
+    },
+    {
+      "id": "P09",
+      "kind": "owned app error then natural exit notification",
+      "nodeExit": 0,
+      "internalAttempt": 1,
+      "application": 1
+    },
+    {
+      "id": "P10",
+      "kind": "PASS text with actual exit7 is not clean success",
+      "nodeExit": 7,
+      "internalAttempt": 1,
+      "application": 0
+    }
+  ],
+  "parentAdmissionControls": [
+    "exact arguments",
+    "wrong loader URL",
+    "changed loader bytes",
+    "extra argument",
+    "wrong argument type",
+    "holey argv",
+    "accessor argv",
+    "changed bootstrap bytes",
+    "symlink loader",
+    "outside consumer",
+    "wrong environment key",
+    "latePASS/nonzero verdict"
+  ],
+  "applicationEvents": "three expected constructed app workers; no RegexWorker/product imported",
+  "internalAccounting": "ten attempts, at most nine observed harmless loader initializations; process close only, no invented internal exit event",
+  "limits": {
+    "seconds": 1800,
+    "processes": 64,
+    "peak": 4,
+    "internal": 12,
+    "application": 8,
+    "capture": 134217728,
+    "working": 536870912,
+    "childSeconds": 15
+  },
+  "planProcesses": {
+    "metadataAndPublicationReserve": 20,
+    "coordinator": 1,
+    "harmlessNodeChildren": 10,
+    "possibleVersionCorrectionReserve": 4,
+    "toolKernel": 1,
+    "plannedCeiling": 36
+  },
+  "remaining": "no actual public80 retry; future census/source/authorization must be resealed"
+}

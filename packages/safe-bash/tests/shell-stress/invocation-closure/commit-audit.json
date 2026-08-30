@@ -1,0 +1,24 @@
+{
+  "status": "PREPARATION ONLY; no product source acceptance",
+  "preparationCommit": "480be8c8356d8ec9aa75c97f183f6ba884189a7a",
+  "ownedFilesInPreparationCommit": 17,
+  "beforeObservedHead": "0c4709fa8ca55b4e0414219ee5e3a57a59418fc7",
+  "concurrentForeignCommitBeforeOwnedCommit": "220cd7eed2aa480eceddf8a398a894f7ec181a07",
+  "concurrentForeignCommitSubject": "test(metadata): correct and guard pinned GNU source provenance",
+  "postCommitIndexEqualityAssertion": {
+    "passed": false,
+    "expectedForeignIndexHash": "079a4cf6432535bef248aa417ef54382796d9ad0c02f92edcf73f14019b247c0",
+    "actualForeignIndexHash": "b046bae3d0d116a0da5b216150b38322579826ddc8a4c37506ab5a80798983da",
+    "explanation": "The expected hash exactly matches the foreign tree of 0c4709fa. The actual hash exactly matches both 220cd7ee and 480be8c8 excluding owned paths. Concurrent metadata commit advanced the index between the audit and owned commit. Do not relabel the equality assertion as passed."
+  },
+  "foreignStagingAtInitialAudit": [],
+  "foreignStagingAtFollowupInspection": [],
+  "ownedCommitHasNoForeignPaths": true,
+  "observedLaterHead": "33347b76def1b2cbbe3f399b3be330d3f40e6a50",
+  "laterForeignCommitsObserved": [
+    "b962d4bdeed41ba53946cf6229a7a61a3485f4e9",
+    "d25cb3f583b5fc5aef2c72328a2fc039a176d4a4",
+    "33347b76def1b2cbbe3f399b3be330d3f40e6a50"
+  ],
+  "limits": "Scoped typecheck evidence applies to its recorded input snapshots, not every later tree. Immutable original final-checks.json and preparation native/type evidence retained. No endless retry, virtual acceptance or post-READY replay."
+}

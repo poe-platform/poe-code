@@ -1,0 +1,108 @@
+{
+  "schema": "FUNCTIONAL_V2_FINITE_CONTROL_PLAN",
+  "permission": "DATA_SYNTHETIC_ONLY",
+  "attempts": 1,
+  "families": [
+    {
+      "id": "P01",
+      "instantiations": 3,
+      "description": "public option helper preservation and source-only constructor checks"
+    },
+    {
+      "id": "P02",
+      "instantiations": 5,
+      "description": "positive exact grant; wrong/missing/array/accessor profile"
+    },
+    {
+      "id": "P03",
+      "instantiations": 1,
+      "description": "source-bound guards/99 operation/33 identity DATA"
+    },
+    {
+      "id": "P04",
+      "instantiations": 2,
+      "description": "whole body/publisher/assessor modeled99 positive and ordinary mismatch"
+    },
+    {
+      "id": "T01",
+      "instantiations": 2,
+      "description": "fulfilled0/7 not semantic credit"
+    },
+    {
+      "id": "T02",
+      "instantiations": 12,
+      "description": "six exact reasons sync+async"
+    },
+    {
+      "id": "T03",
+      "instantiations": 2,
+      "description": "setup fulfillment and rejection ordering"
+    },
+    {
+      "id": "T04",
+      "instantiations": 2,
+      "description": "post-fulfillment conversion/cleanup failures"
+    },
+    {
+      "id": "T05",
+      "instantiations": 2,
+      "description": "getter once/receiver and pre-call getter failure"
+    },
+    {
+      "id": "T06",
+      "instantiations": 3,
+      "description": "attempt publication/outcome publication/setup diagnostic failure"
+    },
+    {
+      "id": "T07",
+      "instantiations": 10,
+      "description": "finite schema/accessor/inherited/extra/missing/order/hash/raw checks"
+    },
+    {
+      "id": "T08",
+      "instantiations": 6,
+      "description": "composed terminal counts/profile/entry/extra/nonzero"
+    },
+    {
+      "id": "T09",
+      "instantiations": 4,
+      "description": "bounded event/FD3/equation/evidence refusal"
+    },
+    {
+      "id": "T10",
+      "instantiations": 2,
+      "description": "unsafe partial receipt and primary undefined/later false"
+    }
+  ],
+  "retained": [
+    {
+      "id": "A01",
+      "description": "Existing admission accepted receipt DATA"
+    },
+    {
+      "id": "A02",
+      "description": "Existing admission exit7 refusal DATA"
+    },
+    {
+      "id": "A03",
+      "description": "Existing admission byte mismatch refusal DATA"
+    }
+  ],
+  "actualEngines": 0,
+  "actualWorkers": 0,
+  "actualPrograms": 0,
+  "controlOSChildren": 1,
+  "maxControlMs": 240000,
+  "oldSpaceMiB": 256,
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/controls.mjs",
+    "NEW_SEAL_SHA"
+  ],
+  "scope": "Whole coordinator/publisher/assessor with modeled drivers, synthetic authority/PID/load records; not actual worker/loader/engine authority proof. Option application dynamically helper-only, constructor SOURCE-only.",
+  "ordinaryFailure": "Aggregate only after safe teardown and unchanged source; safety/capture/integrity/unknown retirement STOP.",
+  "preparationLoss": "Unsaved draft lost; no test or real engine had executed; preserved separately."
+}
+

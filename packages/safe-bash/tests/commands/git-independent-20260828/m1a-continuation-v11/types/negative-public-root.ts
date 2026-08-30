@@ -1,0 +1,1 @@
+import {createGitCommand} from "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/index.js";void createGitCommand;

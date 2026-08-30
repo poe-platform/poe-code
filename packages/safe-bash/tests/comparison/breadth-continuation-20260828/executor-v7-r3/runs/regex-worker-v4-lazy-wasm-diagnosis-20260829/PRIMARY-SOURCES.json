@@ -1,0 +1,195 @@
+{
+  "schema": "PINNED_NODE_PRIMARY_SOURCE_INVENTORY",
+  "nodeVersion": "22.22.2",
+  "nodeReleaseCommit": "2645dc73720b1b4f27c49f395d3c66025ce126cc",
+  "accessedDate": "2026-08-29",
+  "sources": [
+    {
+      "id": "release",
+      "url": "https://github.com/nodejs/node/releases/tag/v22.22.2",
+      "purpose": "official release resolves v22.22.2 to commit2645dc73720b1b4f27c49f395d3c66025ce126cc; March24,2026",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "commit",
+      "url": "https://github.com/nodejs/node/commit/2645dc73720b1b4f27c49f395d3c66025ce126cc",
+      "purpose": "immutable release commit",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "lib/internal/bootstrap/web/exposed-window-or-worker.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/lib/internal/bootstrap/web/exposed-window-or-worker.js",
+      "purpose": "fetch is a data function; WebSocket exposed via native lazy interface",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "lib/internal/util.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/lib/internal/util.js",
+      "purpose": "exposeLazyInterfaces delegates to internal defineLazyProperties",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "src/node_util.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/src/node_util.cc",
+      "purpose": "DefineLazyPropertiesGetter synchronously requires builtin module; SetLazyDataProperty installs native lazy global",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/undici.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/undici.js",
+      "purpose": "bundled require_client_h1 contains lazyllhttp compile/instantiate and detached initial promise",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/src/index-fetch.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/index-fetch.js",
+      "purpose": "Node fetch/WebSocket entry imports global dispatcher before exporting interfaces",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/src/lib/global.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/lib/global.js",
+      "purpose": "module-level Agent import; default dispatcher initialization",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/src/lib/dispatcher/agent.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/lib/dispatcher/agent.js",
+      "purpose": "module-level Client/Pool imports",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/src/lib/dispatcher/client.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/lib/dispatcher/client.js",
+      "purpose": "module-level client-h1 import",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/src/lib/dispatcher/client-h1.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/lib/dispatcher/client-h1.js",
+      "purpose": "lazyllhttp starts at module initialization; compile awaited; instantiate later; catch called without rejection handler",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/v8/src/api/api.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/v8/src/api/api.cc",
+      "purpose": "SetLazyDataProperty installs native accessor rather than ordinary JS getter pair",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/v8/src/objects/js-objects.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/v8/src/objects/js-objects.cc",
+      "purpose": "GetOwnPropertyDescriptor can obtain native accessor value; descriptor inspection is not automatically safe",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "lib/internal/process/pre_execution.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/lib/internal/process/pre_execution.js",
+      "purpose": "setupUndici deletes global WebSocket for no-experimental-websocket during preparation",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "lib/internal/main/worker_thread.js",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/lib/internal/main/worker_thread.js",
+      "purpose": "prepareWorkerThreadExecution precedes user-module setup and entry dispatch",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "src/node_options.cc",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/src/node_options.cc",
+      "purpose": "experimental-websocket belongs to EnvironmentOptions",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "doc/api/cli.md",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/doc/api/cli.md",
+      "purpose": "documented public no-experimental-websocket option disables global exposition",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    },
+    {
+      "id": "deps/undici/src/package.json",
+      "url": "https://raw.githubusercontent.com/nodejs/node/2645dc73720b1b4f27c49f395d3c66025ce126cc/deps/undici/src/package.json",
+      "purpose": "vendored source package metadata consulted; no installation or execution",
+      "accessedDate": "2026-08-29",
+      "method": "web primary-source inspection; no code executed",
+      "sourceIdentity": "official immutable Node commit URL except release locator",
+      "localFullByteDigest": null,
+      "qualification": "Remote source text inspected through web service, not a locally downloaded/rebuilt or extracted Node binary source proof"
+    }
+  ],
+  "remoteBindingQualification": "Immutable official commit URLs; no remote raw-byte SHA256 is invented. This does not prove reproducible correspondence between official source and the already pinned executable.",
+  "nonReliedLookups": [
+    "GitHub tag API returned no usable source receipt",
+    "one stale GitHub release link opened signature help, not used",
+    "one speculative build-script path returned no usable source"
+  ],
+  "sourceRetrievalOnly": true
+}

@@ -1,0 +1,63 @@
+diff --git a/src/shell/shell.ts b/src/shell/shell.ts
+index fba333d..9d53582 100644
+--- a/src/shell/shell.ts
++++ b/src/shell/shell.ts
+@@ -32,16 +32,31 @@ export class Shell implements PluginHost {
+ 
+   use(middleware: Middleware | VirtualShellPlugin): this {
+     if (this.#disposed) throw new Error("Shell is disposed");
++    this.#install(middleware);
++    return this;
++  }
++
++  #install(middleware: Middleware | VirtualShellPlugin): void {
+     if (typeof middleware === "function") this.#middleware.push(middleware);
+     else {
+       if (!middleware || typeof middleware.setup !== "function") throw new TypeError("Expected middleware or shell plugin");
+       this.#ready = this.#ready.then(async () => {
+-        await middleware.setup(this);
+-        this.#plugins.push(middleware);
++        let active = true;
++        const admit = () => {
++          if (this.#disposed && !active) throw new Error("Shell is disposed");
++        };
++        const host: PluginHost = {
++          commands: this.commands,
++          use: (middleware) => { admit(); this.#install(middleware); },
++          registerFileSystem: (scheme, factory) => { admit(); this.#registerFileSystem(scheme, factory); },
++        };
++        try {
++          await middleware.setup(host);
++          this.#plugins.push(middleware);
++        } finally { active = false; }
+       });
+       void this.#ready.catch(() => undefined);
+     }
+-    return this;
+   }
+ 
+   register(command: CommandDefinition, options?: RegisterCommandOptions): this {
+@@ -52,6 +67,10 @@ export class Shell implements PluginHost {
+ 
+   registerFileSystem(scheme: string, factory: FileSystemFactory): void {
+     if (this.#disposed) throw new Error("Shell is disposed");
++    this.#registerFileSystem(scheme, factory);
++  }
++
++  #registerFileSystem(scheme: string, factory: FileSystemFactory): void {
+     if (!/^[a-z][a-z0-9+.-]*$/u.test(scheme)) throw new TypeError("Invalid filesystem scheme");
+     if (this.#filesystems.has(scheme)) throw new Error(`Filesystem already registered: ${scheme}`);
+     this.#filesystems.set(scheme, factory);
+@@ -180,7 +199,11 @@ export class Shell implements PluginHost {
+ 
+   async #dispose(active: readonly { scope: InvocationScope }[], drains: readonly Promise<void>[]): Promise<void> {
+     await Promise.all(drains);
+-    await this.#ready.catch(() => undefined);
++    let ready: Promise<void>;
++    do {
++      ready = this.#ready;
++      await ready.catch(() => undefined);
++    } while (ready !== this.#ready);
+     const failures: unknown[] = [];
+     for (const plugin of [...this.#plugins].reverse()) {
+       try { await plugin.dispose?.(); } catch (error) { failures.push(error); }

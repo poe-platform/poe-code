@@ -1,0 +1,207 @@
+{
+  "result": {
+    "status": "MATCH_SOURCE_DATA_ONLY",
+    "selectedFiles": 55,
+    "captureRows": 515,
+    "additionalStoredAuthorityFiles": 2,
+    "storedOrigins": 9,
+    "storedBlobs": 57,
+    "recipeSha256": "008b2051acf29842c21deee57b099abb661b08a4040574903962f89ff1fab339",
+    "finalSealSha256": "7122a5116f69dc1ccea3bde141f7a7b2df2b78d2e6522ec34208bd5092abc24c",
+    "captureProposalBytes": 255852544,
+    "candidateExecutions": 0,
+    "compilerExecutions": 0,
+    "fixtureExecutions": 0
+  },
+  "failure": null,
+  "childStarts": 10,
+  "allMetadataChildrenKnownRetired": true,
+  "captureBytesBeforeResult": 1889575,
+  "elapsedMs": 778.860917,
+  "receipts": [
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "33775a17d315d469aa8817c2421e3b6077b3e0b7",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/CASES.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/FIXTURES.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/SUBJECT.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/TOOLS.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/adapter.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/admission.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/compiler-api-worker.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/compiler-host.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/fixtures.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/pins.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical-type-api-v2/protocol.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 95.903625
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "856b0a59846ad09680cd32227c686925db882258",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/checkpoints.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/counter.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/fixture-data.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/ownership.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/session-observation.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T01-positive.mts.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T02-limits.mts.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T03-spawn.mts.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T04-boundary.mts.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types/T05-replace.mts.data"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 138.200667
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "31de2aad2c931f7a496ecbe0d6b5ef426b71c07b",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/PACKAGE-MAP.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/SOURCE-MAP.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/TOOLS.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-COUNTER.js.base64.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-CRC.js.base64.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-DEPTH.js.base64.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-OID.js.base64.data",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/postimages/L-S01.js.base64.data"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 180.254708
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "8c6d71fad00c656b93646f0573154a6f6736d569",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/admission-controls.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/archive.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/budget.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/cases.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/coordinator.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/load-policy.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/loaded-controls.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/loader.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/materialize.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/primitives.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/source-admission.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/supervisor.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/tool-fence.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/type-bridge.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v2/worker.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 224.88158299999998
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "dcdaa7c12d5b3924d3f605014dd701fc60e7be84",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v4/launch.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v4/outer.mjs",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/capture-mode-v4/DATA-SEAL.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/capture-mode-v4/check-mode-data.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 268.443708
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/CASES.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/SCHEDULE.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/WITNESSES.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/loaded.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 310.243875
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASE-DATA.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASES.json",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/FROZEN-DATA.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 350.654958
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "c90ad78b9ed27f83ed5ba8dd0ca1a548e0e1629f",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/decoder-v3/fixtures.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 395.494792
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "5f937ee171bbcd5564c78709440e1fbbf3ef927a",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3/semantic.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 430.740583
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 498.61341699999997
+    }
+  ]
+}

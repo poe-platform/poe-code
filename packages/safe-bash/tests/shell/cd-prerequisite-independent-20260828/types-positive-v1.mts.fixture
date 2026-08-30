@@ -1,0 +1,23 @@
+import type {
+  ACCESS_MODES, ByteSink, CommandInvokeOptions, FileStat, FileSystem, FsOptions,
+  MemoryFileSystem, MountFileSystem, ReadOnlyFileSystem, Shell, ShellExecOptions,
+  ShellLimitError, ShellLimits, ShellResult, WebDavFileSystem,
+} from 'virtual-bash';
+
+type Assert<Value extends true> = Value;
+type Equal<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends (<Value>() => Value extends Right ? 1 : 2) ? true : false;
+type Assignable<From, To> = [From] extends [To] ? true : false;
+
+type Positive01 = Assert<Assignable<MemoryFileSystem | ReadOnlyFileSystem | MountFileSystem | WebDavFileSystem, FileSystem>>;
+type Positive02 = Assert<Equal<Awaited<ReturnType<Shell['exec']>>, ShellResult>>;
+type Positive03 = Assert<Equal<ShellResult['stdoutBytes'], Uint8Array>>;
+type Positive04 = Assert<Equal<Parameters<ByteSink['write']>[0], Uint8Array>>;
+type Positive05 = Assert<Equal<ReturnType<FileSystem['access']>, Promise<void>>>;
+type Positive06 = Assert<Assignable<{ signal: undefined }, CommandInvokeOptions>>;
+type Positive07 = Assert<Assignable<{}, FsOptions>>;
+type Positive08 = Assert<Assignable<{ stdout: ByteSink; signal: AbortSignal }, ShellExecOptions>>;
+type Positive09 = Assert<Equal<ShellLimitError['limit'], keyof ShellLimits>>;
+type Positive10 = Assert<Equal<keyof ShellLimits, 'maxOutputBytes' | 'maxCommands' | 'maxLoopIterations' | 'maxSubstitutionDepth' | 'maxSourceBytes' | 'maxExpansionFields' | 'maxExpansionBytes' | 'pipeHighWaterMark'>>;
+
+export type PublicWitnesses = [Positive01, Positive02, Positive03, Positive04, Positive05, Positive06, Positive07, Positive08, Positive09, Positive10];
+export type AdditionalBindings = [FileStat, typeof ACCESS_MODES];

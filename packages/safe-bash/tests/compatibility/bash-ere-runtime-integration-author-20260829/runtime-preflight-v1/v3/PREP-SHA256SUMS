@@ -1,0 +1,6 @@
+2d76ea3a6ff2425418096241643a8d55be915663e6cc68b8229c3b181a5f864c  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/prepare.mjs
+2d76ea3a6ff2425418096241643a8d55be915663e6cc68b8229c3b181a5f864c  /private/tmp/safe-bash-core70-v3-20260829/prepare.mjs
+c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/additions.mjs
+860f527cc7b8a7234b776ab8fc9f8af12785058a81eb993cd721309e28c2959e  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/PRESEAL.md
+0b06698891c38b9d17be2122fe57d21802b4cf9ae18ab5eb7cae03c084c0c84e  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/cell.mjs
+f58bb9be691194360f152c69b20f75754e012759eeaadb660faec5a2c9c4e677  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/CASES.json

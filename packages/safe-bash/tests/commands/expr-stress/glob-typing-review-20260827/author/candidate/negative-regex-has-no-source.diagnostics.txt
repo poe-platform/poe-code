@@ -1,0 +1,2 @@
+tests/commands/regex-execution/continuation/glob.test.ts(86,17): error TS2339: Property 'source' does not exist on type 'Descriptor'.
+  Property 'source' does not exist on type 'GrepDescriptor'.

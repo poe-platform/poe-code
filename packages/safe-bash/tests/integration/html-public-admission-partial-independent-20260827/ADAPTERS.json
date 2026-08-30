@@ -1,0 +1,71 @@
+[
+  {
+    "name": "controls-extra.mjs",
+    "oldSha256": "cb47be9b927ebbbfa17429d6ef785e38b892eba973ecc32a1665fa652a2e72be",
+    "newSha256": "c39ab0938dd2b78693b16211fd3b9993df5498e8ec46eabd285b1c53abdb148a",
+    "deltas": [
+      {
+        "before": "from \"./core.mjs\"",
+        "after": "from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs\""
+      },
+      {
+        "before": "from \"./reconstruct.mjs\"",
+        "after": "from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/reconstruct.mjs\""
+      },
+      {
+        "before": "const here = dirname(fileURLToPath(import.meta.url)), repository = resolve(here, \"../../../..\");",
+        "after": "const here = \"/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2\", repository = \"/Users/kjopek/Workspace/safe-bash\";"
+      },
+      {
+        "before": "  json(join(output, `${name}.json`), row);",
+        "after": "  json(join(output, `${name}.json`), row);\n  guard(row.status === \"pass\", \"PARTIAL_STOP\", name);"
+      }
+    ]
+  },
+  {
+    "name": "run.mjs",
+    "oldSha256": "93772a99c377a950307fdbefcf5f87ed7292a89c105833c4e180a0099f95de1d",
+    "newSha256": "d7f95608236cfb1f09eb405d7618dd9d365a7999941d3ce004375d025ec062d2",
+    "deltas": [
+      {
+        "before": "from \"./core.mjs\"",
+        "after": "from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs\""
+      },
+      {
+        "before": "from \"./reconstruct.mjs\"",
+        "after": "from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/reconstruct.mjs\""
+      },
+      {
+        "before": "const here = dirname(fileURLToPath(import.meta.url)), repository = resolve(here, \"../../../..\");",
+        "after": "const here = \"/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2\", repository = \"/Users/kjopek/Workspace/safe-bash\";"
+      },
+      {
+        "before": "npm_config_update_notifier: \"false\"",
+        "after": "npm_config_update_notifier: \"false\", NODE_OPTIONS: \"--require=/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/trace.cjs\", HTML_PARTIAL_TRACE: \"/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/execution/trace\""
+      },
+      {
+        "before": "const result = spawnSync(executable, args, { cwd, env, encoding:",
+        "after": "const result = spawnSync(executable, args, { cwd, env: { ...env, HTML_PARTIAL_COMMAND: name }, encoding:"
+      }
+    ]
+  },
+  {
+    "name": "reconstruct-only.mjs",
+    "oldSha256": "cff8ed2449f513a852d52055932131602052cd36f0d38b76000c7ad0241f544f",
+    "newSha256": "7cea0fdd185f90bcdbc8ef4cea2a9bfedd7e1a27590e83cfa026d15e7eab227f",
+    "deltas": [
+      {
+        "before": "from \"./core.mjs\"",
+        "after": "from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs\""
+      },
+      {
+        "before": "from \"./reconstruct.mjs\"",
+        "after": "from \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/reconstruct.mjs\""
+      },
+      {
+        "before": "const here = dirname(fileURLToPath(import.meta.url)), repository = resolve(here, \"../../../..\");",
+        "after": "const here = \"/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2\", repository = \"/Users/kjopek/Workspace/safe-bash\";"
+      }
+    ]
+  }
+]

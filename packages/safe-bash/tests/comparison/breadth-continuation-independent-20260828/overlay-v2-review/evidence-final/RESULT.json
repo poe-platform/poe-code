@@ -1,0 +1,1266 @@
+{
+  "checks": [
+    {
+      "id": "author-seal",
+      "holds": true
+    },
+    {
+      "id": "frozen-overlay-exact-membership",
+      "holds": true
+    },
+    {
+      "id": "sealed:ADAPTER-DELTA.json",
+      "holds": true
+    },
+    {
+      "id": "sealed:BINDINGS.json",
+      "holds": true
+    },
+    {
+      "id": "sealed:CONTROL-DELTA.json",
+      "holds": true
+    },
+    {
+      "id": "sealed:NAMESPACES.json",
+      "holds": true
+    },
+    {
+      "id": "sealed:README.md",
+      "holds": true
+    },
+    {
+      "id": "sealed:TELEMETRY.json",
+      "holds": true
+    },
+    {
+      "id": "sealed:adapter.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:admission.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:control-extensions.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:controls.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:namespace.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:predicates.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:telemetry.mjs",
+      "holds": true
+    },
+    {
+      "id": "sealed:verify.mjs",
+      "holds": true
+    },
+    {
+      "id": "reference:tests/comparison/breadth-continuation-independent-20260828/README.md",
+      "holds": true
+    },
+    {
+      "id": "reference:tests/comparison/breadth-continuation-independent-20260828/SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "reference:benchmarks/reports/current-comparison-20260827/cohorts/historical-breadth.json",
+      "holds": true
+    },
+    {
+      "id": "reference:benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.ours.json",
+      "holds": true
+    },
+    {
+      "id": "reference:benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.baseline.json",
+      "holds": true
+    },
+    {
+      "id": "reference:benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/column-positive.baseline.json",
+      "holds": true
+    },
+    {
+      "id": "reference:src/shell/shell.ts",
+      "holds": true
+    },
+    {
+      "id": "reference:src/contracts/command.ts",
+      "holds": true
+    },
+    {
+      "id": "reference:src/commands/timeout/scheduler.ts",
+      "holds": true
+    },
+    {
+      "id": "prior-receipt-identical",
+      "holds": true
+    },
+    {
+      "id": "prior-latest-retained",
+      "holds": true
+    },
+    {
+      "id": "prior-first-retained",
+      "holds": true
+    },
+    {
+      "id": "prior-protected:README.md",
+      "holds": true
+    },
+    {
+      "id": "prior-protected:static-review.py",
+      "holds": true
+    },
+    {
+      "id": "prior-protected:static-review-v1.py.data",
+      "holds": true
+    },
+    {
+      "id": "prior-protected:evidence-v1/RESULT.json",
+      "holds": true
+    },
+    {
+      "id": "prior-protected:evidence-v2/RESULT.json",
+      "holds": true
+    },
+    {
+      "id": "old-scores-retained-in-prior",
+      "holds": true
+    },
+    {
+      "id": "parent-seal:RECIPE-SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:AMENDMENT.md",
+      "holds": true
+    },
+    {
+      "id": "parent-member:BINDINGS.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:SCHEDULE.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:adapter.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:controls.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:core.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:fixtures/expected.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:fixtures/forbidden-source.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:fixtures/wrong.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:legacy-assess.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:metadata.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:observe-load.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:predicates.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:prepare.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:supervisor.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-member:synthetic-child.mjs",
+      "holds": true
+    },
+    {
+      "id": "parent-seal:EVIDENCE-MANIFEST.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:HANDOFF.md",
+      "holds": true
+    },
+    {
+      "id": "parent-member:runs/availability-01.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:runs/availability-01.lock",
+      "holds": true
+    },
+    {
+      "id": "parent-member:runs/final-audit.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:runs/synthetic-01.json",
+      "holds": true
+    },
+    {
+      "id": "parent-member:runs/synthetic-01.lock",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:pristine",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-1",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-2",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-3",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-4",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-5",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-6",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-7",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-8",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-9",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-10",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-11",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-12",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-13",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:edit-14",
+      "holds": true
+    },
+    {
+      "id": "ADAPTER-DELTA.json:exact-generated-output",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:pristine",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-1",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-2",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-3",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-4",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-5",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-6",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-7",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-8",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-9",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-10",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-11",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-12",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:edit-13",
+      "holds": true
+    },
+    {
+      "id": "CONTROL-DELTA.json:exact-generated-output",
+      "holds": true
+    },
+    {
+      "id": "workflows-still-original",
+      "holds": true
+    },
+    {
+      "id": "workflows-byte-identical",
+      "holds": true
+    },
+    {
+      "id": "w03-exact-row-hash",
+      "holds": true
+    },
+    {
+      "id": "w03-exact-expectation",
+      "holds": true
+    },
+    {
+      "id": "w03-script-and-input",
+      "holds": true
+    },
+    {
+      "id": "w03-owned-chunk-arithmetic",
+      "holds": true
+    },
+    {
+      "id": "unsupported-comparator-remains-unqualified",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:bounds",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:owned-budget",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:scaffolding-unique-outside",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:payload-total",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:historical-census-binding",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:historical-before-projection",
+      "holds": true
+    },
+    {
+      "id": "virtual-bash:historical-after-projection",
+      "holds": true
+    },
+    {
+      "id": "just-bash:bounds",
+      "holds": true
+    },
+    {
+      "id": "just-bash:owned-budget",
+      "holds": true
+    },
+    {
+      "id": "just-bash:scaffolding-unique-outside",
+      "holds": true
+    },
+    {
+      "id": "just-bash:payload-total",
+      "holds": true
+    },
+    {
+      "id": "just-bash:historical-census-binding",
+      "holds": true
+    },
+    {
+      "id": "just-bash:historical-before-projection",
+      "holds": true
+    },
+    {
+      "id": "just-bash:historical-after-projection",
+      "holds": true
+    },
+    {
+      "id": "column-crosscheck",
+      "holds": true
+    },
+    {
+      "id": "setup-accounting",
+      "holds": true
+    },
+    {
+      "id": "twelve-concrete-families",
+      "holds": true
+    },
+    {
+      "id": "no-author-runtime-credit",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/ADAPTER-DELTA.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/BINDINGS.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/CONTROL-DELTA.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/NAMESPACES.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/README.md",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/TELEMETRY.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/VALIDATION.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/adapter.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/admission.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/control-extensions.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/controls.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/namespace.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/predicates.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/telemetry.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/verify.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-independent-20260828/README.md",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-independent-20260828/static-review.py",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-independent-20260828/static-review-v1.py.data",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-independent-20260828/evidence-v1/RESULT.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-independent-20260828/evidence-v2/RESULT.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-independent-20260828/SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/RECIPE-SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/AMENDMENT.md",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/BINDINGS.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/SCHEDULE.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/adapter.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/forbidden-source.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/legacy-assess.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/metadata.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/observe-load.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/predicates.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/supervisor.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/EVIDENCE-MANIFEST.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/HANDOFF.md",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/availability-01.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/availability-01.lock",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/final-audit.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/synthetic-01.json",
+      "holds": true
+    },
+    {
+      "id": "before:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/synthetic-01.lock",
+      "holds": true
+    },
+    {
+      "id": "before:overlay-new-entry-guard",
+      "holds": true
+    },
+    {
+      "id": "before:preparation-new-entry-guard",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/ADAPTER-DELTA.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/BINDINGS.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/CONTROL-DELTA.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/NAMESPACES.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/README.md",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/TELEMETRY.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/VALIDATION.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/adapter.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/admission.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/control-extensions.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/controls.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/namespace.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/predicates.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/telemetry.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-overlay-v2/verify.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-independent-20260828/README.md",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-independent-20260828/static-review.py",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-independent-20260828/static-review-v1.py.data",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-independent-20260828/evidence-v1/RESULT.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-independent-20260828/evidence-v2/RESULT.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-independent-20260828/SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/RECIPE-SEAL.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/AMENDMENT.md",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/BINDINGS.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/SCHEDULE.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/adapter.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/forbidden-source.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/legacy-assess.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/metadata.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/observe-load.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/predicates.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/supervisor.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/EVIDENCE-MANIFEST.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/HANDOFF.md",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/availability-01.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/availability-01.lock",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/final-audit.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/synthetic-01.json",
+      "holds": true
+    },
+    {
+      "id": "after:current-declared:tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/synthetic-01.lock",
+      "holds": true
+    },
+    {
+      "id": "after:overlay-new-entry-guard",
+      "holds": true
+    },
+    {
+      "id": "after:preparation-new-entry-guard",
+      "holds": true
+    }
+  ],
+  "artifacts": [
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/SEAL.json",
+      "bytes": 3675,
+      "sha256": "0485cdb55542cd3f90237256f45eee2082003a90b4ba9d1d7827e3212b562b01"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/ADAPTER-DELTA.json",
+      "bytes": 3492,
+      "sha256": "f0ce3c4d09120ad50dd044952e8ee7417577ce9d1e7e405cbd676e1fd31af2de"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/BINDINGS.json",
+      "bytes": 6089,
+      "sha256": "f9bb5bc4dc210a6fb7a96c097dd08c95a6d7f657eb24ffcb524aa054c4a4839b"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/CONTROL-DELTA.json",
+      "bytes": 5404,
+      "sha256": "5d6a23683f2807d60e410c627fad6e594fe73fa5835925bb03de0932c574f713"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/NAMESPACES.json",
+      "bytes": 42136,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/README.md",
+      "bytes": 6186,
+      "sha256": "d1118b4bb5f78037f011e0e71d4503cef1e384485f4de69defe1ee3cff4d20fe"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/TELEMETRY.json",
+      "bytes": 1943,
+      "sha256": "9e1023d8e91f4e5a2beada8a68099a71db84c278edca693b5a20c0a55909afc7"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/VALIDATION.json",
+      "bytes": 738,
+      "sha256": "bc8a523424305964a062e4e11c2e4184e829ffbdfd0ebcce2a873c9ca3506476"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/adapter.mjs",
+      "bytes": 6971,
+      "sha256": "e2c3900dc4f3738074521e7302b45e08386e8c93161d9169e1c5eea7f52022a9"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/admission.mjs",
+      "bytes": 1246,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/control-extensions.mjs",
+      "bytes": 3323,
+      "sha256": "7854066f46f5520eb425c17f39913533e2ced38071f5cff42eb7faf308f32011"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/controls.mjs",
+      "bytes": 10792,
+      "sha256": "79ca5a1de555592a71f4e7941b0d38fb08c720d2b8019a3232599df46c85218c"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/namespace.mjs",
+      "bytes": 5503,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/predicates.mjs",
+      "bytes": 1391,
+      "sha256": "59d1a0ba7a9d0aada9f9f2399d7050572e803dbb0a57b4c7cf02e222879be465"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/telemetry.mjs",
+      "bytes": 3403,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-overlay-v2/verify.mjs",
+      "bytes": 7214,
+      "sha256": "7689724cd0067174b25f5d0534078b29fe647dd2566be53b97e35ced8e006cd1"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/README.md",
+      "bytes": 17730,
+      "sha256": "76cfac6b6833e0479b7fb09ebad3d4c97ab80cef5883c98d8bd38c7c15f9fc78"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/SEAL.json",
+      "bytes": 1413,
+      "sha256": "7625b706c3d70c9fd4ff50db49069e9a72bcef6138d91f89ac9384579b791e6c"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/historical-breadth.json",
+      "bytes": 550134,
+      "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a"
+    },
+    {
+      "commit": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.ours.json",
+      "bytes": 325373,
+      "sha256": "435aa6de7f6890eceddcbeb2cfedd927d4a6fc0feef4d4756c622603f8befdf5"
+    },
+    {
+      "commit": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.baseline.json",
+      "bytes": 279874,
+      "sha256": "9e11ca0a2018893112dcca9032d89bdb9245b8e7cdaebcd8e8f8bfa857221a77"
+    },
+    {
+      "commit": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/column-positive.baseline.json",
+      "bytes": 276421,
+      "sha256": "8814f11108169c7941f57c248fa389e6b0bf714bb8c600849707feba20ecf75a"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/shell/shell.ts",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/timeout/scheduler.ts",
+      "bytes": 3480,
+      "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/static-review.py",
+      "bytes": 18511,
+      "sha256": "148069de79478a5504c2ea721adb27e57d18064304187884610c520b73dcdd90"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/static-review-v1.py.data",
+      "bytes": 17587,
+      "sha256": "ea668fb60f7dded7dd0f7b02c1574dc6d6d9be7e300d238c3df449325c542020"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/evidence-v1/RESULT.json",
+      "bytes": 1780719,
+      "sha256": "6f16cdf15664df2d21d7865efda3bc948f18b2837de111d1faecd7e755a7939e"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/evidence-v2/RESULT.json",
+      "bytes": 1783288,
+      "sha256": "cd482c40a7877b2137430ff04e5dd9f07c2681fb36ff2382707a5a55bc03c0b6"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/RECIPE-SEAL.json",
+      "bytes": 3032,
+      "sha256": "663352445702f9280976e195374296be4404cc99c6c813d03fec6bba7f09e337"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/AMENDMENT.md",
+      "bytes": 6241,
+      "sha256": "00939bd3061705f014ffa82fe91c92ff88df1aa60feb6ee9a68a9dbe0669adf1"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/BINDINGS.json",
+      "bytes": 3336,
+      "sha256": "a23a102e2b8aecf3536288495aa863c95cbaf7fe8a5dd5b23ea17eb772278e51"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/SCHEDULE.json",
+      "bytes": 23670,
+      "sha256": "7de3feaf3a0873eaa94908d0818207b739ea34b6ddd2874cf96a54a5b3d423fe"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/adapter.mjs",
+      "bytes": 6238,
+      "sha256": "151a6d5e7800443c231712f21c6b5d2a37a5f435ffa278c182d8913b18d26b90"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs",
+      "bytes": 11256,
+      "sha256": "f94da5b3a51e304cf2799d78a475daccd1704bde84f214aaa8fb222d52021be1"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/expected.mjs",
+      "bytes": 88,
+      "sha256": "8e5628ad550d88cdee0fa707eb6d78816ad0682c99b25729741a8afe7e928bc9"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/forbidden-source.mjs",
+      "bytes": 96,
+      "sha256": "cc5479c11e883c698d05f2e02eb3c3b365d022c60a4c7584559ae6f338cb24a1"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/fixtures/wrong.mjs",
+      "bytes": 88,
+      "sha256": "973cc261295f009ecd5d64a45913ccf5275006e1a7191591cb48fc6b1bd2d1ca"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/legacy-assess.mjs",
+      "bytes": 6915,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/metadata.mjs",
+      "bytes": 4175,
+      "sha256": "e09074db3d8f8d14c81ca60752a334f73705e355b86add92bcce441b6e2dfa85"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/observe-load.mjs",
+      "bytes": 1813,
+      "sha256": "d7baf31b117112d2c9766660242ada224ed0f5b7b3d2599065de7457a22c70a7"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/predicates.mjs",
+      "bytes": 2734,
+      "sha256": "f67d562fca20f67703610c34638a9daa19badd36e2ac18bc4947e3b41411962a"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs",
+      "bytes": 3887,
+      "sha256": "c603a7c9bb5852e5614229da6df70f3de4b39e8dc4b72e72c837f3ee428a2e63"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/supervisor.mjs",
+      "bytes": 4007,
+      "sha256": "cec95c053a7c7dcab2d1117d5dcabb39e07ec6be29bec734a350822f672787dc"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/synthetic-child.mjs",
+      "bytes": 2509,
+      "sha256": "53f47c5455efb2373116fa0268b1498ac09dd2608462630b412c70721f559ce7"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/EVIDENCE-MANIFEST.json",
+      "bytes": 1418,
+      "sha256": "556d8ca160057d49070c3a1c2c505c1d953d476e06d683b9d4423d67c28cb4b8"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/HANDOFF.md",
+      "bytes": 3195,
+      "sha256": "154e79a5890b14464f3aeaa37096255406e95cd76c26c95148d0f9ef3f34dcee"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/availability-01.json",
+      "bytes": 3027,
+      "sha256": "36a391268e227cc381bb066af6c81a85fe3df7593efea6f69adccf59cf572c4a"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/availability-01.lock",
+      "bytes": 110,
+      "sha256": "746745e3595049afcd55fd8248dfa3a869af676255510227395c7a6afe2b60ae"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/final-audit.json",
+      "bytes": 1219,
+      "sha256": "f94cfb4c202db6161d782b008efade5061db4d9d459e904dabe8080627691699"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/synthetic-01.json",
+      "bytes": 39874,
+      "sha256": "8dffb301d63dae0dcf0dc890a7e8902c26de277b6046b3b6dafcfd46b0cd5ca7"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/runs/synthetic-01.lock",
+      "bytes": 107,
+      "sha256": "4914bad80a2a8e1b00f0dad5609fd103acd957f317652ed916af58112025b1e7"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/adapter.mjs",
+      "bytes": 6238,
+      "sha256": "151a6d5e7800443c231712f21c6b5d2a37a5f435ffa278c182d8913b18d26b90"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/controls.mjs",
+      "bytes": 11256,
+      "sha256": "f94da5b3a51e304cf2799d78a475daccd1704bde84f214aaa8fb222d52021be1"
+    },
+    {
+      "commit": "a045139b62164dbae923475bdca93ef109b926ff",
+      "path": "tests/comparison/breadth-continuation-20260828/WORKFLOWS.json",
+      "bytes": 12679,
+      "sha256": "4349becef09b9b01487190ed6356dae7083b177771c153b102c72341f8a427d1"
+    },
+    {
+      "commit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+      "path": "tests/comparison/breadth-continuation-20260828/WORKFLOWS.json",
+      "bytes": 12679,
+      "sha256": "4349becef09b9b01487190ed6356dae7083b177771c153b102c72341f8a427d1"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/supervisor.mjs",
+      "bytes": 4007,
+      "sha256": "cec95c053a7c7dcab2d1117d5dcabb39e07ec6be29bec734a350822f672787dc"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/observe-load.mjs",
+      "bytes": 1813,
+      "sha256": "d7baf31b117112d2c9766660242ada224ed0f5b7b3d2599065de7457a22c70a7"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/prepare.mjs",
+      "bytes": 3887,
+      "sha256": "c603a7c9bb5852e5614229da6df70f3de4b39e8dc4b72e72c837f3ee428a2e63"
+    },
+    {
+      "commit": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/predicates.mjs",
+      "bytes": 2734,
+      "sha256": "f67d562fca20f67703610c34638a9daa19badd36e2ac18bc4947e3b41411962a"
+    },
+    {
+      "commit": "a045139b62164dbae923475bdca93ef109b926ff",
+      "path": "tests/comparison/breadth-continuation-20260828/EXECUTION.md",
+      "bytes": 8166,
+      "sha256": "06016c427af92b91a2d50833a22f9ffb75bc4d09058fb3881d0ade5d7c20ec5a"
+    }
+  ],
+  "memberships": [
+    {
+      "phase": "before",
+      "overlayEntries": 16,
+      "preparationEntries": 26,
+      "overlayMembershipSha256": "3ab8ed28e9369d0fda0b6534761705a06a50df29b9904a03c2ae9f3bbc67a01c",
+      "preparationMembershipSha256": "96e6ec3e4f50a137fa290d6f79ee314746098b192a68d69e29b86242dd7431b4"
+    },
+    {
+      "phase": "after",
+      "overlayEntries": 16,
+      "preparationEntries": 26,
+      "overlayMembershipSha256": "3ab8ed28e9369d0fda0b6534761705a06a50df29b9904a03c2ae9f3bbc67a01c",
+      "preparationMembershipSha256": "96e6ec3e4f50a137fa290d6f79ee314746098b192a68d69e29b86242dd7431b4"
+    }
+  ],
+  "schema": "independent-overlay-v2-static-review-v1",
+  "date": "2026-08-28T04:45:11.314988-05:00",
+  "authorCommit": "eb468a7e5283525e48a282c40dd98ec7617c4307",
+  "priorReceiptCommit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+  "authorSealSha256": "0485cdb55542cd3f90237256f45eee2082003a90b4ba9d1d7827e3212b562b01",
+  "checkerSha256": "a408cd9a3ff785afb23f24e4275efe8a0782abe67921da4206044491e70e537e",
+  "initialGit": {
+    "observedHeadNotAuthority": "dc9c839c19c515156d984363a06154c87cc5aa39",
+    "ownedStatus": "?? tests/comparison/breadth-continuation-independent-20260828/overlay-v2-review/\n",
+    "stagedPaths": []
+  },
+  "fault": null,
+  "counts": {
+    "checks": 210,
+    "holds": 210,
+    "doesNotHold": 0
+  },
+  "executions": {
+    "product": 0,
+    "comparator": 0,
+    "nativeOracle": 0,
+    "timing": 0,
+    "controls": 0,
+    "repositoryModules": 0
+  },
+  "qualification": "Static integrity/data statements only; not executable readiness, runtime passes, closure admission, or rootGO."
+}

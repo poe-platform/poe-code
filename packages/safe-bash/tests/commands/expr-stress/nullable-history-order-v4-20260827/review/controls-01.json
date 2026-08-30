@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "kind": "independent-eight-control-groups",
+  "modelSha256": "f04c98a52967f904266660607b0ee2157518cf50d3da260a4aa2b47926c392a0",
+  "controlsFrozenCommit": "a5c2aed54437f68dff5708a0e652fe1e72039c21",
+  "modelScope": "Supplied finite-history constructor/comparator only; no engine acceptance/completeness, native runs, worker cleanup or theorem.",
+  "counts": {
+    "groups": 8,
+    "assertions": 50,
+    "passed": 44,
+    "failed": 6,
+    "mutantsKilled": 5,
+    "mutantsAttempted": 5
+  },
+  "untested": [
+    "Arbitrary event replay/origin validation beyond constructor provenance",
+    "Independent activation-ID alpha-renaming through a supported API",
+    "Branch alternation AST support and parser translation",
+    "Actual worker cleanup and historical137",
+    "Regex search completeness and future prefix/cycle pruning",
+    "Physical RSS or asynchronous event-loop cancellation"
+  ],
+  "results": [
+    {
+      "id": "C1/AGGREGATE-v1/first-body-priority",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "The expression evaluated to a falsy value:\n\n  assert(instance.compare(histories[0], histories[1], policy) < 0)\n"
+    },
+    {
+      "id": "C1/AGGREGATE-v1/all-24-enumerations",
+      "status": "pass"
+    },
+    {
+      "id": "C1/AGGREGATE-v1/total-order-on-four",
+      "status": "pass"
+    },
+    {
+      "id": "C1/ITERATION-v1/first-body-priority",
+      "status": "pass"
+    },
+    {
+      "id": "C1/ITERATION-v1/all-24-enumerations",
+      "status": "pass"
+    },
+    {
+      "id": "C1/ITERATION-v1/total-order-on-four",
+      "status": "pass"
+    },
+    {
+      "id": "C2/AGGREGATE-v1/prefix-star",
+      "status": "pass"
+    },
+    {
+      "id": "C2/ITERATION-v1/prefix-star",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "longest legal uncaptured prefix must win"
+    },
+    {
+      "id": "C2/AGGREGATE-v1/prefix-interval",
+      "status": "pass"
+    },
+    {
+      "id": "C2/ITERATION-v1/prefix-interval",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "longest legal uncaptured prefix must win"
+    },
+    {
+      "id": "C2/overmaximum",
+      "status": "pass"
+    },
+    {
+      "id": "C2/AGGREGATE-v1/nested-prefix",
+      "status": "pass"
+    },
+    {
+      "id": "C2/ITERATION-v1/nested-prefix",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "longest legal uncaptured prefix must win"
+    },
+    {
+      "id": "C3/span/negative",
+      "status": "pass"
+    },
+    {
+      "id": "C3/span/beyond",
+      "status": "pass"
+    },
+    {
+      "id": "C3/span/reversed",
+      "status": "pass"
+    },
+    {
+      "id": "C3/span/fractional",
+      "status": "pass"
+    },
+    {
+      "id": "C3/span/unsafe",
+      "status": "pass"
+    },
+    {
+      "id": "C3/wrong-parent/unowned-operand",
+      "status": "pass"
+    },
+    {
+      "id": "C3/wrong-slot/unowned-operand",
+      "status": "pass"
+    },
+    {
+      "id": "C3/outside-origin/unowned-operand",
+      "status": "pass"
+    },
+    {
+      "id": "C3/missing-child",
+      "status": "pass"
+    },
+    {
+      "id": "C3/immutable-tree",
+      "status": "pass"
+    },
+    {
+      "id": "C3/expected-span",
+      "status": "pass"
+    },
+    {
+      "id": "C4/TEMP-retention-origin",
+      "status": "pass"
+    },
+    {
+      "id": "C4/failed-branch-isolation",
+      "status": "pass"
+    },
+    {
+      "id": "C4/empty-reentry-open-completed",
+      "status": "pass"
+    },
+    {
+      "id": "C4/nonempty-reentry",
+      "status": "pass"
+    },
+    {
+      "id": "C4/open-reference",
+      "status": "pass"
+    },
+    {
+      "id": "C4/open-reentry-not-stale",
+      "status": "pass"
+    },
+    {
+      "id": "C5/exact-two-required",
+      "status": "pass"
+    },
+    {
+      "id": "C5/nested-local-counts",
+      "status": "pass"
+    },
+    {
+      "id": "C5/required-after-prefix",
+      "status": "pass"
+    },
+    {
+      "id": "C5/required-child-after-parent-progress",
+      "status": "pass"
+    },
+    {
+      "id": "C5/optional-tail-separate-rule",
+      "status": "pass"
+    },
+    {
+      "id": "C6/absent-not-empty",
+      "status": "pass"
+    },
+    {
+      "id": "C6/END-not-absent-empty",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "The expression evaluated to a falsy value:\n\n  assert(instance.compare(empty, absent, policy) < 0)\n"
+    },
+    {
+      "id": "C6/AGGREGATE-v1/W4-dynamic-tree-profile",
+      "status": "pass"
+    },
+    {
+      "id": "C6/ITERATION-v1/W4-dynamic-tree-profile",
+      "status": "pass"
+    },
+    {
+      "id": "C6/identical-reconstruction-equivalent",
+      "status": "pass"
+    },
+    {
+      "id": "C7/work/zero",
+      "status": "pass"
+    },
+    {
+      "id": "C7/work/after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "C7/allocation/zero",
+      "status": "pass"
+    },
+    {
+      "id": "C7/allocation/after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "C7/cancellation-after-incumbent",
+      "status": "pass"
+    },
+    {
+      "id": "C7/cancellation-before-admission",
+      "status": "pass"
+    },
+    {
+      "id": "C7/cancellation-during-comparison",
+      "status": "pass"
+    },
+    {
+      "id": "C7/cumulative-failed-build",
+      "status": "pass"
+    },
+    {
+      "id": "C8/same-final-env-distinct-history",
+      "status": "fail",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    {\n      state: 'absent'\n    },\n    {\n+     activation: 6,\n-     activation: 8,\n      end: 4,\n      start: 3,\n      state: 'completed-nonempty'\n    }\n  ]\n"
+    },
+    {
+      "id": "C8/both-operands-retained",
+      "status": "pass"
+    }
+  ],
+  "mutants": [
+    {
+      "name": "firstDFS",
+      "status": "killed",
+      "sha256": "56935aeedd5f263e98d38bce52ecf64e65ddd143f97ddabac7a433df88bcd3c0",
+      "discriminating": [
+        "mutant/firstDFS/C1/AGGREGATE-v1/all-24-enumerations",
+        "mutant/firstDFS/C1/ITERATION-v1/all-24-enumerations"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/firstDFS/C1/AGGREGATE-v1/first-body-priority",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "The expression evaluated to a falsy value:\n\n  assert(instance.compare(histories[0], histories[1], policy) < 0)\n"
+        },
+        {
+          "id": "mutant/firstDFS/C1/AGGREGATE-v1/all-24-enumerations",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 8,\n+       end: 3,\n+       start: 2,\n-       activation: 2,\n-       end: 2,\n-       start: 0,\n        state: 'completed-nonempty'\n      }\n    ],\n    events: [\n      {\n...\n      {\n+       activation: null,\n+       end: 1,\n-       activation: 5,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 1,\n+       type: 'skip'\n-       type: 'enter'\n      },\n      {\n+       activation: 3,\n+       end: 1,\n-       activation: 5,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 2,\n+       start: 0,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 2,\n+       end: 1,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 2,\n+           end: 1,\n+           start: 0,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 0,\n+       parent: 1,\n+       start: 0,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 5,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0',\n-       node: 'r.0.0.0.0',\n        ordinal: 1,\n+       parent: 1,\n-       parent: 3,\n        start: 1,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 6,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 5,\n+       start: 1,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 7,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 0,\n+       parent: 6,\n+       start: 1,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 7,\n+       end: 2,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 0,\n+       parent: 6,\n+       start: 1,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n...\n          {\n+           activation: 5,\n-           activation: 2,\n            end: undefined,\n+           start: 1,\n-           start: 0,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0.0',\n+       ordinal: 1,\n+       parent: 6,\n-       ordinal: 2,\n-       parent: 3,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 6,\n-       activation: 3,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 5,\n-           activation: 2,\n            end: undefined,\n+           start: 1,\n-           start: 0,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n+       parent: 5,\n+       start: 1,\n-       parent: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 5,\n-       activation: 2,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 5,\n-           activation: 2,\n            end: 2,\n+           start: 1,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 1,\n+       parent: 1,\n+       start: 1,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 8,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 2,\n+       parent: 1,\n+       start: 2,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 9,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 8,\n+       start: 2,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 10,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n        ordinal: 0,\n+       parent: 9,\n+       start: 2,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 10,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 0,\n+       parent: 9,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: null,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 1,\n+       parent: 9,\n+       start: 3,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 9,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 8,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 8,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 2,\n        parent: 1,\n+       start: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n        activation: null,\n+       end: 3,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 3,\n-       ordinal: 1,\n        parent: 1,\n+       start: 3,\n-       start: 2,\n        type: 'skip'\n      },\n      {\n        activation: 1,\n+       end: 3,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: null,\n...\n      {\n+       activation: 11,\n-       activation: 6,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 3,\n-       start: 2,\n        type: 'enter'\n      },\n      {\n+       activation: 11,\n-       activation: 6,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 3,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n        activation: 0,\n        end: 4,\n...\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n...\n                    },\n+                 ],\n+                 end: 1,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 2,\n+                 start: 0\n+               }\n+             ],\n+             end: 1,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 1,\n+               id: 'r.0.0',\n+               kind: 'group',\n+               maximum: 0,\n+               minimum: 0\n+             },\n+             ordinal: 0,\n+             parent: 1,\n+             start: 0\n+           },\n+           {\n+             activation: 5,\n+             children: [\n+               {\n+                 activation: 6,\n+                 children: [\n                    {\n+                     activation: 7,\n-                     activation: 5,\n                      children: [],\n                      end: 2,\n                      node: {\n                        byte: 'a',\n                        children: [],\n...\n                      },\n+                     ordinal: 0,\n+                     parent: 6,\n-                     ordinal: 1,\n-                     parent: 3,\n                      start: 1\n                    }\n                  ],\n                  end: 2,\n                  node: {\n...\n                  ordinal: null,\n+                 parent: 5,\n+                 start: 1\n-                 parent: 2,\n-                 start: 0\n                }\n              ],\n              end: 2,\n              node: {\n                byte: undefined,\n...\n              },\n+             ordinal: 1,\n-             ordinal: 0,\n              parent: 1,\n+             start: 1\n-             start: 0\n            },\n+           {\n+             activation: 8,\n+             children: [\n+               {\n+                 activation: 9,\n+                 children: [\n+                   {\n+                     activation: 10,\n+                     children: [],\n+                     end: 3,\n+                     node: {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     },\n+                     ordinal: 0,\n+                     parent: 9,\n+                     start: 2\n+                   }\n+                 ],\n+                 end: 3,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 8,\n+                 start: 2\n+               }\n+             ],\n+             end: 3,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 1,\n+               id: 'r.0.0',\n+               kind: 'group',\n+               maximum: 0,\n+               minimum: 0\n+             },\n+             ordinal: 2,\n+             parent: 1,\n+             start: 2\n+           }\n          ],\n+         end: 3,\n-         end: 2,\n          node: {\n            byte: undefined,\n            children: [\n              {\n                byte: undefined,\n...\n        {\n+         activation: 11,\n-         activation: 6,\n          children: [],\n          end: 4,\n          node: {\n            byte: undefined,\n            children: [],\n...\n          parent: 0,\n+         start: 3\n-         start: 2\n        }\n      ],\n      end: 4,\n      node: {\n        byte: undefined,\n"
+        },
+        {
+          "id": "mutant/firstDFS/C1/AGGREGATE-v1/total-order-on-four",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/firstDFS/C1/ITERATION-v1/first-body-priority",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/firstDFS/C1/ITERATION-v1/all-24-enumerations",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected \"actual\" to be reference-equal to \"expected\":\n+ actual - expected\n... Skipped lines\n\n  {\n    env: [\n      {\n        state: 'absent'\n      },\n      {\n+       activation: 8,\n+       end: 3,\n+       start: 2,\n-       activation: 2,\n-       end: 2,\n-       start: 0,\n        state: 'completed-nonempty'\n      }\n    ],\n    events: [\n      {\n...\n      {\n+       activation: null,\n+       end: 1,\n-       activation: 5,\n-       end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        start: 1,\n+       type: 'skip'\n-       type: 'enter'\n      },\n      {\n+       activation: 3,\n+       end: 1,\n-       activation: 5,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n...\n        ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 2,\n+       start: 0,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 2,\n+       end: 1,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 2,\n+           end: 1,\n+           start: 0,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 0,\n+       parent: 1,\n+       start: 0,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 5,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0',\n-       node: 'r.0.0.0.0',\n        ordinal: 1,\n+       parent: 1,\n-       parent: 3,\n        start: 1,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 6,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 5,\n+       start: 1,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 7,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 0,\n+       parent: 6,\n+       start: 1,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 7,\n+       end: 2,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 5,\n+           end: undefined,\n+           start: 1,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 0,\n+       parent: 6,\n+       start: 1,\n        type: 'exit'\n      },\n      {\n        activation: null,\n        end: 2,\n...\n          {\n+           activation: 5,\n-           activation: 2,\n            end: undefined,\n+           start: 1,\n-           start: 0,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0.0',\n+       ordinal: 1,\n+       parent: 6,\n-       ordinal: 2,\n-       parent: 3,\n        start: 2,\n        type: 'skip'\n      },\n      {\n+       activation: 6,\n-       activation: 3,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 5,\n-           activation: 2,\n            end: undefined,\n+           start: 1,\n-           start: 0,\n            state: 'open'\n          }\n        ],\n        node: 'r.0.0.0',\n        ordinal: null,\n+       parent: 5,\n+       start: 1,\n-       parent: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n+       activation: 5,\n-       activation: 2,\n        end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 5,\n-           activation: 2,\n            end: 2,\n+           start: 1,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 1,\n+       parent: 1,\n+       start: 1,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 8,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 2,\n+       parent: 1,\n+       start: 2,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 9,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 8,\n+       start: 2,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 10,\n+       end: undefined,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n        ordinal: 0,\n+       parent: 9,\n+       start: 2,\n+       type: 'enter'\n+     },\n+     {\n+       activation: 10,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 0,\n+       parent: 9,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: null,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0.0',\n+       ordinal: 1,\n+       parent: 9,\n+       start: 3,\n+       type: 'skip'\n+     },\n+     {\n+       activation: 9,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: undefined,\n+           start: 2,\n+           state: 'open'\n+         }\n+       ],\n+       node: 'r.0.0.0',\n+       ordinal: null,\n+       parent: 8,\n+       start: 2,\n+       type: 'exit'\n+     },\n+     {\n+       activation: 8,\n+       end: 3,\n+       env: [\n+         {\n+           state: 'absent'\n+         },\n+         {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n+           state: 'completed-nonempty'\n+         }\n+       ],\n+       node: 'r.0.0',\n+       ordinal: 2,\n        parent: 1,\n+       start: 2,\n-       start: 0,\n        type: 'exit'\n      },\n      {\n        activation: null,\n+       end: 3,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0.0',\n+       ordinal: 3,\n-       ordinal: 1,\n        parent: 1,\n+       start: 3,\n-       start: 2,\n        type: 'skip'\n      },\n      {\n        activation: 1,\n+       end: 3,\n-       end: 2,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.0',\n        ordinal: null,\n...\n      {\n+       activation: 11,\n-       activation: 6,\n        end: undefined,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 3,\n-       start: 2,\n        type: 'enter'\n      },\n      {\n+       activation: 11,\n-       activation: 6,\n        end: 4,\n        env: [\n          {\n            state: 'absent'\n          },\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r.1',\n        ordinal: null,\n        parent: 0,\n+       start: 3,\n-       start: 2,\n        type: 'exit'\n      },\n      {\n        activation: 0,\n        end: 4,\n...\n          {\n+           activation: 8,\n+           end: 3,\n+           start: 2,\n-           activation: 2,\n-           end: 2,\n-           start: 0,\n            state: 'completed-nonempty'\n          }\n        ],\n        node: 'r',\n        ordinal: null,\n...\n                    },\n+                 ],\n+                 end: 1,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 2,\n+                 start: 0\n+               }\n+             ],\n+             end: 1,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 1,\n+               id: 'r.0.0',\n+               kind: 'group',\n+               maximum: 0,\n+               minimum: 0\n+             },\n+             ordinal: 0,\n+             parent: 1,\n+             start: 0\n+           },\n+           {\n+             activation: 5,\n+             children: [\n+               {\n+                 activation: 6,\n+                 children: [\n                    {\n+                     activation: 7,\n-                     activation: 5,\n                      children: [],\n                      end: 2,\n                      node: {\n                        byte: 'a',\n                        children: [],\n...\n                      },\n+                     ordinal: 0,\n+                     parent: 6,\n-                     ordinal: 1,\n-                     parent: 3,\n                      start: 1\n                    }\n                  ],\n                  end: 2,\n                  node: {\n...\n                  ordinal: null,\n+                 parent: 5,\n+                 start: 1\n-                 parent: 2,\n-                 start: 0\n                }\n              ],\n              end: 2,\n              node: {\n                byte: undefined,\n...\n              },\n+             ordinal: 1,\n-             ordinal: 0,\n              parent: 1,\n+             start: 1\n-             start: 0\n            },\n+           {\n+             activation: 8,\n+             children: [\n+               {\n+                 activation: 9,\n+                 children: [\n+                   {\n+                     activation: 10,\n+                     children: [],\n+                     end: 3,\n+                     node: {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     },\n+                     ordinal: 0,\n+                     parent: 9,\n+                     start: 2\n+                   }\n+                 ],\n+                 end: 3,\n+                 node: {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 },\n+                 ordinal: null,\n+                 parent: 8,\n+                 start: 2\n+               }\n+             ],\n+             end: 3,\n+             node: {\n+               byte: undefined,\n+               children: [\n+                 {\n+                   byte: undefined,\n+                   children: [\n+                     {\n+                       byte: 'a',\n+                       children: [],\n+                       group: 0,\n+                       id: 'r.0.0.0.0',\n+                       kind: 'byte',\n+                       maximum: 0,\n+                       minimum: 0\n+                     }\n+                   ],\n+                   group: 0,\n+                   id: 'r.0.0.0',\n+                   kind: 'repeat',\n+                   maximum: null,\n+                   minimum: 0\n+                 }\n+               ],\n+               group: 1,\n+               id: 'r.0.0',\n+               kind: 'group',\n+               maximum: 0,\n+               minimum: 0\n+             },\n+             ordinal: 2,\n+             parent: 1,\n+             start: 2\n+           }\n          ],\n+         end: 3,\n-         end: 2,\n          node: {\n            byte: undefined,\n            children: [\n              {\n                byte: undefined,\n...\n        {\n+         activation: 11,\n-         activation: 6,\n          children: [],\n          end: 4,\n          node: {\n            byte: undefined,\n            children: [],\n...\n          parent: 0,\n+         start: 3\n-         start: 2\n        }\n      ],\n      end: 4,\n      node: {\n        byte: undefined,\n"
+        },
+        {
+          "id": "mutant/firstDFS/C1/ITERATION-v1/total-order-on-four",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "finalcapture-only",
+      "status": "killed",
+      "sha256": "90f28fdf0c736ed31e8adfe40d467a4e7d37021ef20c5f830dfc58aa005cbada",
+      "discriminating": [
+        "mutant/finalcapture-only/C2/AGGREGATE-v1/prefix-star",
+        "mutant/finalcapture-only/C2/AGGREGATE-v1/prefix-interval"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/finalcapture-only/C2/AGGREGATE-v1/prefix-star",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "longest legal uncaptured prefix must win"
+        },
+        {
+          "id": "mutant/finalcapture-only/C2/ITERATION-v1/prefix-star",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "longest legal uncaptured prefix must win"
+        },
+        {
+          "id": "mutant/finalcapture-only/C2/AGGREGATE-v1/prefix-interval",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "longest legal uncaptured prefix must win"
+        },
+        {
+          "id": "mutant/finalcapture-only/C2/ITERATION-v1/prefix-interval",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "longest legal uncaptured prefix must win"
+        },
+        {
+          "id": "mutant/finalcapture-only/C2/overmaximum",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/finalcapture-only/C2/AGGREGATE-v1/nested-prefix",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/finalcapture-only/C2/ITERATION-v1/nested-prefix",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "skip-clears",
+      "status": "killed",
+      "sha256": "d189c96143a1311d0ab63cfd2a5447f6e8317366b87e7bdb5216fccc8658684a",
+      "discriminating": [
+        "mutant/skip-clears/setup"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/skip-clears/setup",
+          "status": "fail",
+          "message": "REFERENCE"
+        }
+      ]
+    },
+    {
+      "name": "no-budget",
+      "status": "killed",
+      "sha256": "99945a601b403aa069cfa481c03e5835928ad7076000fbaf5577eeac99087651",
+      "discriminating": [
+        "mutant/no-budget/C7/work/zero",
+        "mutant/no-budget/C7/work/after-incumbent",
+        "mutant/no-budget/C7/allocation/zero",
+        "mutant/no-budget/C7/allocation/after-incumbent"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/no-budget/C7/work/zero",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/no-budget/C7/work/after-incumbent",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/no-budget/C7/allocation/zero",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/no-budget/C7/allocation/after-incumbent",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/no-budget/C7/cancellation-after-incumbent",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/no-budget/C7/cancellation-before-admission",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/no-budget/C7/cancellation-during-comparison",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/no-budget/C7/cumulative-failed-build",
+          "status": "pass"
+        }
+      ]
+    },
+    {
+      "name": "badspan",
+      "status": "killed",
+      "sha256": "2da05b81417656f0375c083ff3f71930212dc46c8caf18755beab60e276fbc45",
+      "discriminating": [
+        "mutant/badspan/C3/span/negative",
+        "mutant/badspan/C3/span/beyond",
+        "mutant/badspan/C3/span/reversed",
+        "mutant/badspan/C3/span/fractional",
+        "mutant/badspan/C3/span/unsafe",
+        "mutant/badspan/C3/expected-span"
+      ],
+      "outcomes": [
+        {
+          "id": "mutant/badspan/C3/span/negative",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/badspan/C3/span/beyond",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/badspan/C3/span/reversed",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/badspan/C3/span/fractional",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/badspan/C3/span/unsafe",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Missing expected exception."
+        },
+        {
+          "id": "mutant/badspan/C3/wrong-parent/unowned-operand",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/badspan/C3/wrong-slot/unowned-operand",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/badspan/C3/outside-origin/unowned-operand",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/badspan/C3/missing-child",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/badspan/C3/immutable-tree",
+          "status": "pass"
+        },
+        {
+          "id": "mutant/badspan/C3/expected-span",
+          "status": "fail",
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "The validation function is expected to return \"true\". Received false\n\nCaught error:\n\nError: EXPECTED"
+        }
+      ]
+    }
+  ]
+}

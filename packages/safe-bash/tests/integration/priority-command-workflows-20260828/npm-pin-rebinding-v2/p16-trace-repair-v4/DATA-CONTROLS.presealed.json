@@ -1,0 +1,1137 @@
+{
+  "schema": "p16-trace-controls-v4",
+  "authority": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/TRACE-DATA.json",
+      "commit": "860eafdf7bd796f758912babf395f9ff9f408dbb",
+      "oid": "f68f357c8217395d2b33bf57307fef0feb261e25",
+      "bytes": 212292,
+      "sha256": "00cf5f3d2e5a66619046da22af24e45cd290256ec7e1d12ee57aa1e5bac4a624"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/SOURCE-EXCERPTS.json",
+      "commit": "860eafdf7bd796f758912babf395f9ff9f408dbb",
+      "oid": "49deb2b531e294f3145a6429ea18dfe8575a7dc5",
+      "bytes": 59926,
+      "sha256": "324d1179d90269188644d54101f81ded9d03eaa6f59e9dffd164f905b03c76f1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/NEXT-EXECUTION.json",
+      "commit": "860eafdf7bd796f758912babf395f9ff9f408dbb",
+      "oid": "52f48e2723692b7db2d751bc3823ebf69c4c2bbf",
+      "bytes": 3015,
+      "sha256": "5057db3b2cc4fc952e7ee450bec5bae2e4c62e98148b3dc06b9514d415e5c611"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-stop-diagnosis-v1/MANIFEST.json",
+      "commit": "860eafdf7bd796f758912babf395f9ff9f408dbb",
+      "oid": "7476b232e89181888105e2e4c165081b6f641fe2",
+      "bytes": 2019,
+      "sha256": "f8deba3b25ef43f1b4ee5043cbff1fd436abe8484271eaf7babbd48810899e29"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/DATA-CONTROLS.presealed.json",
+      "commit": "5930e1d5599e143fc56e731f9e204cd4d2103512",
+      "oid": "4a72816d01c315dcc79689e9a01c8b6ae8953b0c",
+      "bytes": 15542,
+      "sha256": "0c6f669d90c70386e1dae72a3755fb64f498ee8e0d3fc43a19d776caad3d5872"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/PRECODE-SEAL.json",
+      "commit": "5930e1d5599e143fc56e731f9e204cd4d2103512",
+      "oid": "e371c2223e680d347f3a546352d3ffe806a3dcc8",
+      "bytes": 238,
+      "sha256": "fcef7ee3b182b66f2bd22cef76fe8ee1ffe90b16b8acfffe111d4abb6055b7f7"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/PARENT-BUDGET.template.json",
+      "commit": "5930e1d5599e143fc56e731f9e204cd4d2103512",
+      "oid": "d8de35bd2b2ab1d14b377e9720a1ab35cd09cc9d",
+      "bytes": 301,
+      "sha256": "9878be2afe4281e9d359d9762ead9fb73eafb075f589e112e40a1026ad7a5c2f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/SELECTION.preparation.json",
+      "commit": "5930e1d5599e143fc56e731f9e204cd4d2103512",
+      "oid": "e6da09872016bc140e135b6f4bc8216b60498a92",
+      "bytes": 11382,
+      "sha256": "26c0d914421a28200e7067b7c0e7355bd4495137eba2b5b7ee4c33ac68113e49"
+    }
+  ],
+  "expectedStages": [
+    {
+      "argv": [
+        "find",
+        "notes",
+        "-type",
+        "f",
+        "-name",
+        "*.txt",
+        "-exec",
+        "rg",
+        "-H",
+        "-n",
+        "-F",
+        "TODO",
+        "{}",
+        ";"
+      ],
+      "kind": "result",
+      "exitCode": 0,
+      "stdinIsDefault": true
+    },
+    {
+      "argv": [
+        "sed",
+        "s/TODO/TASK/"
+      ],
+      "kind": "result",
+      "exitCode": 0,
+      "stdinIsDefault": false
+    },
+    {
+      "argv": [
+        "rg",
+        "-H",
+        "-n",
+        "-F",
+        "TODO",
+        "notes/a b.txt"
+      ],
+      "kind": "result",
+      "exitCode": 0,
+      "stdinIsDefault": true
+    },
+    {
+      "argv": [
+        "rg",
+        "-H",
+        "-n",
+        "-F",
+        "TODO",
+        "notes/z.txt"
+      ],
+      "kind": "result",
+      "exitCode": 0,
+      "stdinIsDefault": true
+    }
+  ],
+  "originalNine": [
+    {
+      "name": "exact_saved_trace",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "independent_pipeline_entry_swap",
+      "stages": [
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": true
+    },
+    {
+      "name": "missing_child",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "extra_child",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "TODO",
+            "unexpected"
+          ],
+          "kind": "result",
+          "exitCode": 0,
+          "stdinIsDefault": true
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "duplicate_child",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "changed_child_status",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 1
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "wrong_child_provenance",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "wrong_literal_path",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "child_order_reversed",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    }
+  ],
+  "additionalObservable": [
+    {
+      "name": "observable_stolen_top_child_stdin",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "child_before_find",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "missing_top",
+      "stages": [
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "duplicate_top",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "changed_top_status",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 1
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "changed_child_kind",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "throw",
+          "callerReasonSameObject": true
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    },
+    {
+      "name": "extra_observable_property",
+      "stages": [
+        {
+          "argv": [
+            "sed",
+            "s/TODO/TASK/"
+          ],
+          "stdinIsDefault": false,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "find",
+            "notes",
+            "-type",
+            "f",
+            "-name",
+            "*.txt",
+            "-exec",
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "{}",
+            ";"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/a b.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0,
+          "unknown": true
+        },
+        {
+          "argv": [
+            "rg",
+            "-H",
+            "-n",
+            "-F",
+            "TODO",
+            "notes/z.txt"
+          ],
+          "stdinIsDefault": true,
+          "kind": "result",
+          "exitCode": 0
+        }
+      ],
+      "expected": false
+    }
+  ],
+  "partialOrder": [
+    [
+      0,
+      2
+    ],
+    [
+      2,
+      3
+    ]
+  ],
+  "limits": "Tuple membership, multiplicity, exact properties and partial order only. Identical-tuple origin is UNOBSERVABLE without existing IDs. No hostile-origin proof."
+}

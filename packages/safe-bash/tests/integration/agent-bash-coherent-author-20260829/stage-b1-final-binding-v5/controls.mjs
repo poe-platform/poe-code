@@ -1,0 +1,27 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+const scope = import.meta.dirname;
+const [expectedHash, expectedSize] = process.argv.slice(2);
+const stat = fs.lstatSync(`${scope}/CONTROL-PRESEAL.json`); assert(stat.isFile() && stat.size === Number(expectedSize) && stat.size < 32768);
+const bytes = fs.readFileSync(`${scope}/CONTROL-PRESEAL.json`); assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), expectedHash);
+const seal = JSON.parse(bytes);
+for (const record of seal.files) { const stat = fs.lstatSync(record.path); assert(stat.isFile() && stat.size === record.bytes && stat.size < 32768); const bytes = fs.readFileSync(record.path); assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), record.sha256); }
+const { authenticatePacketFiles } = await import(pathToFileURL(`${scope}/preimport.mjs`).href);
+const { readIdentity } = await import(pathToFileURL(`${scope}/identity.mjs`).href);
+const first = seal.files.find(entry => entry.path.endsWith('/fixtures/publisher.json'));
+const second = seal.files.find(entry => entry.path.endsWith('/fixtures/helper.json'));
+const outcomes = [];
+const check = (id, callback) => { callback(); outcomes.push({ id, status: 'PASS', role: 'PURE synthetic packet through actual future-helper authenticatePacketFiles path; no main/publication/product activation' }); };
+const refusedBeforeRead = packet => { let reads = 0; assert.throws(() => authenticatePacketFiles(packet, () => { reads++; })); assert.equal(reads, 0); };
+check('I01-both-lists-actual-iteration', () => { const reads = []; const result = authenticatePacketFiles({ publisherFiles: [first], preimportFiles: [second] }, entry => { reads.push(entry.path); readIdentity(entry); }); assert.deepEqual(reads, [first.path, second.path]); assert.equal(result.length, 2); });
+check('I02-nested-array', () => refusedBeforeRead({ publisherFiles: [first], preimportFiles: [[second]] }));
+check('I03-missing-path', () => refusedBeforeRead({ publisherFiles: [first], preimportFiles: [{ bytes: second.bytes, sha256: second.sha256 }] }));
+check('I04-hidden-key', () => { const hidden = { ...second }; Object.defineProperty(hidden, 'secret', { value: 1, enumerable: false }); refusedBeforeRead({ publisherFiles: [first], preimportFiles: [hidden] }); const hiddenPath = { ...second }; Object.defineProperty(hiddenPath, 'path', { value: second.path, enumerable: false }); refusedBeforeRead({ publisherFiles: [first], preimportFiles: [hiddenPath] }); });
+check('I05-symbol-keys', () => { const record = { ...second, [Symbol('hidden')]: 1 }; refusedBeforeRead({ publisherFiles: [first], preimportFiles: [record] }); const list = [second]; list[Symbol('hidden')] = 1; refusedBeforeRead({ publisherFiles: [first], preimportFiles: list }); });
+check('I06-accessor', () => { let gets = 0; const record = { ...second }; Object.defineProperty(record, 'path', { enumerable: true, get() { gets++; return second.path; } }); refusedBeforeRead({ publisherFiles: [first], preimportFiles: [record] }); assert.equal(gets, 0); });
+check('I07-duplicate-across-lists', () => refusedBeforeRead({ publisherFiles: [first], preimportFiles: [{ ...first }] }));
+check('I08-invalid-scalars-and-hole', () => { for (const changed of [{ path: 'relative' }, { bytes: -1 }, { sha256: 'not-hash' }]) refusedBeforeRead({ publisherFiles: [first], preimportFiles: [{ ...second, ...changed }] }); refusedBeforeRead({ publisherFiles: [first], preimportFiles: new Array(1) }); });
+fs.writeFileSync(`${scope}/CONTROLS.json`, JSON.stringify({ atUTC: new Date().toISOString(), passed: outcomes.length, outcomes, actualRuntimeCalls: 0, actualPublisherImported: false, futureHelperMainExecuted: false, actualFileIterationExecuted: true }, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ pureGroups: outcomes.length, listsConsumed: ['publisherFiles', 'preimportFiles'], publisherImported: false, runtimeCalls: 0 }));

@@ -1,0 +1,42 @@
+PROVISIONAL STREAMING API S1 — TEMP ONLY — 2026-08-27
+Published before new source edits. No live product authorization.
+ByteSink.write(Uint8Array): Promise<void> retains optional ownedOutput:
+  { readonly consumerClosed: AbortSignal; write(Uint8Array): Promise<void> }
+createOutputOperation(context: Pick<CommandContext, "signal" | "registerCleanup">,
+  destination: ByteSink): OutputOperation
+OutputOperation: readonly signal: AbortSignal; readonly output: ByteSink;
+  registerCleanup(cleanup: InvocationCleanup): void;
+  acquire<Value>(start: (signal: AbortSignal) => Value | Promise<Value>,
+    release: (resource: Value) => void | Promise<void>): Promise<Value>;
+  child(destination: ByteSink): OutputOperation;
+  close(): Promise<void>;
+InvocationCleanup = () => void | Promise<void> is the existing 07ac hook.
+Optional HttpRequest.registerCleanup(cleanup: InvocationCleanup): void remains
+the historical TEMP transport proposal, not an assertion about the live API.
+No new lease, borrowed-input option, stage cancellation or demand gate.
+
+User decision: preserve streaming stdin; output operation must not return an
+independently borrowed iterator. Ordinary cancellation may discard consumed bytes;
+no handback/rollback/framing promise. Runtime top-level owner cleanup is unchanged.
+Engineering policy: retain v1 early transfer enrollment, give stdin a next-only
+internal adapter (not an API); retain v2 explicit children. File/header-required
+transfers use a separate lifetime without stdout's capability. Stdout publication
+uses its own operation. Existing writeout @- format collection and GET-query
+collection are semantic preparation, not upload prebuffer cancellation solutions.
+Upload replay caching remains bounded by existing maxBufferBytes; streaming
+continues beyond replay capacity, within maxUploadBytes. Retained bytes are copied.
+
+States: open -> closing -> closed. Abort records first reason then closes;
+normal close closes admission synchronously without aborting signal. Both share
+one cleanup promise, registered synchronously before owned admission. Parent
+close immediately refuses children/acquisition and closes children; cooperative
+cleanup is awaited. Child close never closes parent/siblings. Opaque acquisition
+is not universally drained; eventual resources released and rejection observed.
+Output closure aborts only opted-in operation and honored owned transport.
+First operation reason wins; already aborted caller wins enrollment. Existing
+Shell caller-public precedence, command errors and pipefail remain unchanged.
+Single cleanup failure rethrows that error; multiple failures aggregate in
+registration order. Explicit finally close may replace its thrown error; this
+API is not an exception-precedence combinator. Invocation caller precedence
+still applies. Public result, closed/cooperative cleanup, and stage abort must
+be measured separately. No universal opaque-read preemption/nonhang promise.

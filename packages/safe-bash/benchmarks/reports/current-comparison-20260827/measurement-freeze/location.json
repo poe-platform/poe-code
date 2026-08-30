@@ -1,0 +1,47 @@
+{
+  "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "candidateTree": "f559246f1317af7691de00333e13dfc8f44ef428",
+  "paths": {
+    "scratch": "/private/tmp/safe-bash-measurement-freeze-XAFOrN",
+    "artifacts": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+    "tools": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools",
+    "build": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/build/source",
+    "runtime": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime",
+    "offlineCandidate": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/virtual-bash",
+    "offlineBaseline": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash",
+    "host": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/host"
+  },
+  "ancestry": [
+    {
+      "short": "1ad428ed",
+      "full": "1ad428edb7bce7d30f081c0e9bd4332eb280c677",
+      "ancestor": true
+    },
+    {
+      "short": "7d7dce7c",
+      "full": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+      "ancestor": true
+    },
+    {
+      "short": "b2821599",
+      "full": "b282159921ce530e932b02f90c64eca987de2704",
+      "ancestor": true
+    },
+    {
+      "short": "3bf672f",
+      "full": "3bf672f722da2bdf1591ed112290b702987bf63a",
+      "ancestor": true
+    },
+    {
+      "short": "c3fbda62",
+      "full": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+      "ancestor": true
+    },
+    {
+      "short": "84ab66ca",
+      "full": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "ancestor": true
+    }
+  ],
+  "scope": "COMPARISON_ONLY; STOP_BEFORE_PRODUCT_IMPORTS"
+}

@@ -1,0 +1,49 @@
+{
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "firstRunSha256": "e38fd476cfaca00b6bae13516edefa339fbdfc79d886664c7c53cfa3808a6323",
+  "firstSummary": [
+    "✖ expr invalid [] (1.188334ms)",
+    "✖ expr invalid [\"--\"] (0.267916ms)",
+    "✖ pinned GNU 9.7 author cohort compares exact status/stdout/stderr (0.652292ms)",
+    "✖ author BRE controls: exact GNU9.7 Darwin status/stdout/stderr (0.479125ms)",
+    "✖ documented unsupported native workflows are errors, not native passes (0.183875ms)",
+    "✖ nullable author audit preserves all controls and explicitly classifies the known gap (0.115875ms)",
+    "ℹ tests 241",
+    "ℹ suites 0",
+    "ℹ pass 235",
+    "ℹ fail 6",
+    "ℹ cancelled 0",
+    "ℹ skipped 0",
+    "ℹ todo 0",
+    "ℹ duration_ms 2469.258542",
+    "✖ failing tests:",
+    "✖ expr invalid [] (1.188334ms)",
+    "✖ expr invalid [\"--\"] (0.267916ms)",
+    "✖ pinned GNU 9.7 author cohort compares exact status/stdout/stderr (0.652292ms)",
+    "✖ author BRE controls: exact GNU9.7 Darwin status/stdout/stderr (0.479125ms)",
+    "✖ documented unsupported native workflows are errors, not native passes (0.183875ms)",
+    "✖ nullable author audit preserves all controls and explicitly classifies the known gap (0.115875ms)"
+  ],
+  "repair": {
+    "kind": "Read-only external native prerequisite symlink in owned archive, not a product/test source edit",
+    "relative": "tests/commands/metadata-stress/.oracle",
+    "destination": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source/tests/commands/metadata-stress/.oracle",
+    "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle",
+    "executable": {
+      "configuredPath": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "actualPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "argv0": "expr",
+      "versionProbe": {
+        "status": 0,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "ZXhwciAoR05VIGNvcmV1dGlscykgOS43CkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwczovL2dudS5vcmcvbGljZW5zZXMvZ3BsLmh0bWw+LgpUaGlzIGlzIGZyZWUgc29mdHdhcmU6IHlvdSBhcmUgZnJlZSB0byBjaGFuZ2UgYW5kIHJlZGlzdHJpYnV0ZSBpdC4KVGhlcmUgaXMgTk8gV0FSUkFOVFksIHRvIHRoZSBleHRlbnQgcGVybWl0dGVkIGJ5IGxhdy4KCldyaXR0ZW4gYnkgTWlrZSBQYXJrZXIsIEphbWVzIFlvdW5nbWFuLCBhbmQgUGF1bCBFZ2dlcnQuCg==",
+        "stderrBase64": ""
+      },
+      "versionSupported": true,
+      "linkedLibraries": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n"
+    }
+  },
+  "beforeDigest": "5c4a65fc6f22f5068223be1bf039040688b395cbf7f1e18a8febda7c343c412b"
+}

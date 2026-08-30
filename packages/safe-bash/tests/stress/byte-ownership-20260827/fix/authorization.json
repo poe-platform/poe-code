@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-08-27T10:10:36.687Z",
+  "authorization": "AUTHORIZED\nRoot confirms independent holdouts frozen before production edits.\nFinal pre-source fixture freeze d4320b06f26e57d1a16fe758244ed6b6a2c70b6b; baseline evidence 673622147c80a579e3ed912df06b33e5c3b2a6c0.\nProceed ONLY the three retained-copy sites in src/commands/internal.ts and src/commands/streams.ts plus proposed canonical tests tests/commands/internal.test.ts and tests/commands/streams.test.ts.\nDo not inspect independent/** contents. Preserve original20 fixtures/evidence unchanged; use separate candidate binding.\nComplete code/test commit separately from fix/** evidence; send source hashes and ready marker when frozen for independent packed verification.\n",
+  "sourceHashesBefore": {
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d"
+  },
+  "independentContentsRead": false
+}

@@ -1,0 +1,374 @@
+
+---v6/PRESEAL.md---
+# CORE70 v6 narrow controller qualification
+
+Frozen e013/da4e candidate unchanged; no Faraday arithmetic/HEAD overlay.
+V5 original entry, captures and 351213-byte metadata/262144 guard failure stay
+literal. V6 removes only the redundant full inherited-seal consumption and
+versions owned root paths. The inherited seal remains exactly
+ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301,
+351213 bytes, prior accepted v4 DATA (98dcc03e); it is not needed by these
+controller assertions. No cap increase or removed actual dependency admission.
+
+All six source and four copied inventory roles remain exact, regular, bounded,
+hash-bound and resolved from an explicit canonical repository root. The three
+original v4 dependencies retain literal expected hashes. Old owner dependencies
+retain their original hashes. Only fresh START.json changes the deadline and
+its inventory hash. Node22.22.2 exact executable is streamed/authenticated.
+
+Finite graph: preparation PURE Node; then generated PURE controller from the
+isolated control cwd; then exactly two harmless fixture children if preceding
+assertions pass. Two PURE processes maximum, two harmless children maximum.
+Original25 PURE controls plus five root-resolution controls and18 owner
+records are expected, with source-only/synthetic/actual classifications kept
+separate. Product, parser, engine, Shell, Worker, build/install/native imports
+and execution are forbidden. Generated fixture syntax only: two modules.
+
+Connected file collectors before Node admission, original600000ms phase
+deadline through publication, 28 known invocation-local OS starts maximum,
+peak3,40MiB capture,160MiB working. Ordinary captured/retired tooling failures
+may be versioned within the finite roles; safety/integrity/capture/unknown
+retirement/cap failures stop dependents without retry. No fifth framework,
+full305 census, repeated35 syntax checks or package decode.
+
+All210 authored product cells remain UNRUN. H03 depth64 guard dominance and
+H04 ticket exhaustion remain SOURCE-only. Actual private ArrayOwner.close
+rejection remains UNOBSERVED, distinct from synthetic observer-forwarding
+checks. This qualification requests independent preexec review, not actual GO.
+
+---v6/prepare.mjs---
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { SourceTextModule } from 'node:vm';
+import { repositoryRoot, sourcePaths, copyNames, resolveInventoryPath } from './root-binding.mjs';
+
+const root = '/private/tmp/safe-bash-core70-v6-20260829';
+const scope = repositoryRoot + '/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/';
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const read = (file, cap = 262144) => {
+  const stat = fs.lstatSync(file);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= cap);
+  const bytes = fs.readFileSync(file); assert.equal(bytes.length, stat.size); return bytes;
+};
+for (const [descriptor, suffix] of [[1, '.stdout'], [2, '.stderr']]) {
+  const actual = fs.fstatSync(descriptor), declared = fs.lstatSync(root + '/prepare' + suffix);
+  assert.ok(actual.isFile() && declared.isFile()); assert.equal(actual.ino, declared.ino); assert.equal(actual.dev, declared.dev);
+}
+const phase = JSON.parse(read(root + '/PHASE.json'));
+assert.ok(Number.isSafeInteger(phase.deadlineMs) && Date.now() < phase.deadlineMs);
+assert.equal(process.execPath, '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node');
+assert.equal(fs.lstatSync(process.execPath).size, 112989184);
+const binaryHash = createHash('sha256'); for await (const chunk of fs.createReadStream(process.execPath, { highWaterMark: 65536 })) binaryHash.update(chunk);
+assert.equal(binaryHash.digest('hex'), '5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011');
+const controls = root + '/controls'; fs.mkdirSync(controls, { mode: 0o700 });
+const originals = [
+  ['pure-controls.mjs', '32f780a3262c59a9ec9e3c43ef5c7f39191f9231d60dbec7071777e02418e40f'],
+  ['guards.mjs', '6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b'],
+  ['array-observer.mjs', '039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4'],
+];
+let original;
+for (const [name, hash] of originals) {
+  const bytes = read(scope + 'v4/' + name); assert.equal(digest(bytes), hash);
+  if (name === 'pure-controls.mjs') original = bytes.toString('utf8');
+  else fs.writeFileSync(controls + '/' + name, bytes, { flag: 'wx' });
+}
+function replaceOnce(text, before, after) { assert.equal(text.split(before).length, 2); return text.replace(before, after); }
+let source = replaceOnce(original, "import { observeArrays } from './array-observer.mjs';", "import { observeArrays } from './array-observer.mjs';\nimport { repositoryRoot, resolveInventoryPath } from './root-binding.mjs';");
+source = replaceOnce(source, 'return { path: match[2], sha256: match[1] };', 'return { path: resolveInventoryPath(match[2], repositoryRoot, root), sha256: match[1] };');
+const added = `await control('inventory/explicit-root-from-isolated-cwd', () => { assert.notEqual(process.cwd(), repositoryRoot); assert.equal(resolveInventoryPath('${sourcePaths[0]}', repositoryRoot, root), repositoryRoot + '/${sourcePaths[0]}'); });
+await control('inventory/wrong-root-refused', () => assert.throws(() => resolveInventoryPath('${sourcePaths[0]}', '/', root), /root authority/));
+await control('inventory/traversal-refused', () => assert.throws(() => resolveInventoryPath('../pure-controls.mjs', repositoryRoot, root), /not declared/));
+await control('inventory/undeclared-absolute-refused', () => assert.throws(() => resolveInventoryPath('/private/tmp/unbound.mjs', repositoryRoot, root), /not declared/));
+await control('inventory/copied-entry-exact', () => assert.equal(resolveInventoryPath(root + '/pure-controls.mjs', repositoryRoot, root), root + '/pure-controls.mjs'));
+`;
+source = replaceOnce(source, "await control('own/null-prototype-accepted'", added + "await control('own/null-prototype-accepted'");
+new SourceTextModule(source, { identifier: 'v6/pure-controls.mjs' });
+new SourceTextModule(read(scope + 'v6/root-binding.mjs').toString('utf8'), { identifier: 'v6/root-binding.mjs' });
+fs.writeFileSync(controls + '/pure-controls.mjs', source, { flag: 'wx' });
+fs.writeFileSync(scope + 'v6/pure-controls.mjs', source, { flag: 'wx' });
+fs.writeFileSync(controls + '/root-binding.mjs', read(scope + 'v6/root-binding.mjs'), { flag: 'wx' });
+const oldControlRoot = '/private/tmp/safe-bash-core70-v4-20260829/controls';
+const oldInventory = read(scope + 'v4/raw/SHA256SUMS').toString().trimEnd().split('\n').map(line => { const match = /^([a-f0-9]{64})  ([a-zA-Z0-9.-]+)$/.exec(line); assert.ok(match); return { name: match[2], sha256: match[1] }; });
+assert.deepEqual(oldInventory.map(row => row.name), ['owner.mjs', 'harmless.mjs', 'controls.mjs', 'PRESEAL.md', 'START.json']);
+for (const row of oldInventory) {
+  const bytes = read(oldControlRoot + '/' + row.name); assert.equal(digest(bytes), row.sha256);
+  fs.writeFileSync(controls + '/' + row.name, row.name === 'START.json' ? JSON.stringify(phase) + '\n' : bytes, { flag: 'wx' });
+}
+fs.writeFileSync(controls + '/SHA256SUMS', oldInventory.map(row => digest(read(controls + '/' + row.name)) + '  ' + row.name).join('\n') + '\n', { flag: 'wx' });
+const members = [...sourcePaths, ...copyNames.map(name => controls + '/' + name)];
+fs.writeFileSync(controls + '/CUSTOM-SHA256SUMS', members.map(member => digest(read(resolveInventoryPath(member, repositoryRoot, controls))) + '  ' + member).join('\n') + '\n', { flag: 'wx' });
+const inheritedSealSha256 = 'ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301';
+const inheritedSealMetadata = { size: 351213, provenance: '98dcc03e5d31feb5b401999db52c9d151e875192/v4/BUILD-RESULT.json', authentication: 'prior accepted DATA; not consumed by this narrow controller' };
+const result = { status: 'DATA_PREPARED', pid: process.pid, originalDependencies: originals, sourceRoot: repositoryRoot, syntaxChecks: 2, inventory: members, entrySha256: digest(Buffer.from(source)), rootBindingSha256: digest(read(controls + '/root-binding.mjs')), inheritedExecutionSealSha256: inheritedSealSha256, inheritedSealMetadata, productImports: 0, Workers: 0, finishedMs: Date.now() };
+assert.ok(result.finishedMs < phase.deadlineMs);
+fs.writeFileSync(root + '/PREPARED.json', JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify(result));
+
+---v6/pure-controls.mjs---
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { own, options, witness, boundFile, terminalOutcome } from './guards.mjs';
+import { observeArrays } from './array-observer.mjs';
+import { repositoryRoot, resolveInventoryPath } from './root-binding.mjs';
+const root = fs.realpathSync(path.dirname(process.argv[1]));
+if (!root.startsWith('/private/tmp/')) throw new Error('canonical control root');
+for (const [descriptor, suffix] of [[1, '.stdout'], [2, '.stderr']]) { const actual = fs.fstatSync(descriptor), declared = fs.lstatSync(root + '/controller' + suffix); assert.ok(actual.isFile() && declared.isFile() && !declared.isSymbolicLink()); assert.equal(actual.ino, declared.ino); assert.equal(actual.dev, declared.dev); }
+const phase = JSON.parse(fs.readFileSync(root + '/START.json', 'utf8'));
+assert.ok(Number.isSafeInteger(phase.deadlineMs) && Date.now() < phase.deadlineMs);
+const sourceBindings = fs.readFileSync(root + '/CUSTOM-SHA256SUMS', 'utf8').trimEnd().split('\n').map(line => { const match = /^([a-f0-9]{64})  (.+)$/.exec(line); assert.ok(match); return { path: resolveInventoryPath(match[2], repositoryRoot, root), sha256: match[1] }; });
+for (const row of sourceBindings) { const stat = fs.lstatSync(row.path); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size < 262144); assert.equal(createHash('sha256').update(fs.readFileSync(row.path)).digest('hex'), row.sha256); }
+const results = [];
+async function control(id, run) { try { await run(); results.push({ id, status: 'PASS' }); } catch (error) { results.push({ id, status: 'FAIL', diagnostic: String(error) }); } }
+await control('inventory/explicit-root-from-isolated-cwd', () => { assert.notEqual(process.cwd(), repositoryRoot); assert.equal(resolveInventoryPath('tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs', repositoryRoot, root), repositoryRoot + '/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs'); });
+await control('inventory/wrong-root-refused', () => assert.throws(() => resolveInventoryPath('tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs', '/', root), /root authority/));
+await control('inventory/traversal-refused', () => assert.throws(() => resolveInventoryPath('../pure-controls.mjs', repositoryRoot, root), /not declared/));
+await control('inventory/undeclared-absolute-refused', () => assert.throws(() => resolveInventoryPath('/private/tmp/unbound.mjs', repositoryRoot, root), /not declared/));
+await control('inventory/copied-entry-exact', () => assert.equal(resolveInventoryPath(root + '/pure-controls.mjs', repositoryRoot, root), root + '/pure-controls.mjs'));
+await control('own/null-prototype-accepted', () => own(Object.assign(Object.create(null), { first: 1 }), ['first']));
+await control('own/inherited-key-rejected', () => assert.throws(() => own(Object.create({ first: 1 }), ['first']), /own-key/));
+await control('own/accessor-not-invoked', () => { let called = false; const value = {}; Object.defineProperty(value, 'first', { get() { called = true; return 1; } }); assert.throws(() => own(value, ['first']), /accessor/); assert.equal(called, false); });
+await control('own/order-is-authoritative', () => assert.throws(() => own({ second: 2, first: 1 }, ['first', 'second']), /order/));
+await control('witness/exact', () => witness({ core70: 4, kind: 'matcher-checkpoint', ordinal: 1 }));
+await control('witness/extra-rejected', () => assert.throws(() => witness({ core70: 4, kind: 'matcher-checkpoint', ordinal: 1, extra: true }), /own-key/));
+await control('witness/wrong-role-rejected', () => assert.throws(() => witness({ core70: 4, kind: 'ready', ordinal: 1 }), /identity/));
+const validOptions = () => ({ workerData: { operation: 'shell-ere', version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true, resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 } });
+await control('Worker/options-exact-DATA', () => options(validOptions(), { maxOldGenerationSizeMb: 128, stackSizeMb: 4 }));
+await control('Worker/extra-argument-refused-DATA', () => { const value = validOptions(); value.execArgv.push('--eval'); assert.throws(() => options(value, value.resourceLimits), /options/); });
+await control('Worker/limit-change-refused-DATA', () => { const value = validOptions(); value.resourceLimits.stackSizeMb = 8; assert.throws(() => options(value, { maxOldGenerationSizeMb: 128, stackSizeMb: 4 }), /resources/); });
+for (const [index, reason] of [false, 0, '', null, undefined].entries()) await control('terminal/falsy-' + index, () => { const value = terminalOutcome(true, false, reason); assert.equal(value.status, 'FAIL'); assert.strictEqual(value.primary, reason); assert.equal(value.retired, true); });
+await control('terminal/unsafe-retirement-not-green', () => { const value = terminalOutcome(true, true, false); assert.equal(value.status, 'FAIL'); assert.equal(value.retired, false); });
+const fixture = root + '/binding.txt'; fs.writeFileSync(fixture, 'bound\n', { flag: 'wx', mode: 0o600 });
+const binding = { path: fixture, size: 6, mode: 0o600, sha256: createHash('sha256').update('bound\n').digest('hex') };
+await control('source/exact', () => assert.equal(boundFile(binding).toString(), 'bound\n'));
+await control('source/wrong-hash-refused', () => assert.throws(() => boundFile({ ...binding, sha256: '0'.repeat(64) }), /hash/));
+await control('source/wrong-size-refused', () => assert.throws(() => boundFile({ ...binding, size: 5 }), /size/));
+await control('source/parent-traversal-refused', () => assert.throws(() => boundFile({ ...binding, path: root + '/../binding.txt' }), /canonical/));
+await control('source/missing-file-refused', () => assert.throws(() => boundFile({ ...binding, path: root + '/missing.txt' }), { code: 'ENOENT' }));
+class Owner {
+  constructor() { this.calls = []; this.completion = Promise.resolve(); this.ledger = { snapshot: () => ({ caps: [100,100,100,100,100,100,100], used: [0,0,0,0,0,0,0], lastIssued: 0 }) }; }
+  reserve(charge) { this.calls.push('reserve'); if (Object.hasOwn(charge, 'fail')) throw charge.fail; return charge; }
+  hold() { this.calls.push('hold'); return { release() {} }; }
+  close() { this.calls.push('close'); return this.completion; }
+}
+class Binding {
+  constructor(owner) { this.owner = owner; }
+  retain() { return this; }
+  release() { return this.owner.completion; }
+}
+await control('array/forward-return-and-close-identity', async () => {
+  const observe = observeArrays(Owner, Binding), owner = new Owner(), binding = new Binding(owner), charge = { work: 2 };
+  try { assert.strictEqual(owner.reserve(charge), charge); assert.strictEqual(binding.retain(), binding); assert.strictEqual(binding.release(), owner.completion); assert.strictEqual(owner.close(), owner.completion); await observe.settle(); assert.deepEqual(owner.calls, ['reserve', 'close']); }
+  finally { observe.restore(); }
+});
+await control('array/original-falsy-rejection-identity', async () => {
+  const observe = observeArrays(Owner, Binding), owner = new Owner();
+  try { let rejected = false, reason; try { owner.reserve({ fail: false }); } catch (error) { rejected = true; reason = error; } assert.equal(rejected, true); assert.strictEqual(reason, false); await observe.settle(); }
+  finally { observe.restore(); }
+});
+await control('array/throwing-observer-still-forwards-close', async () => {
+  const observe = observeArrays(Owner, Binding), owner = new Owner(), failure = Object.freeze({ observation: true });
+  owner.ledger.snapshot = () => { throw failure; };
+  try { assert.strictEqual(owner.close(), owner.completion); assert.deepEqual(owner.calls, ['close']); let caught; try { await observe.settle(); } catch (error) { caught = error; } assert.strictEqual(caught, failure); }
+  finally { observe.restore(); }
+});
+await control('array/close-rejection-is-original-not-observer', async () => {
+  const observe = observeArrays(Owner, Binding), owner = new Owner(); owner.completion = Promise.reject(false); void owner.completion.catch(() => {});
+  try { const returned = owner.close(); assert.strictEqual(returned, owner.completion); let caught; try { await returned; } catch (error) { caught = error; } assert.strictEqual(caught, false); await observe.settle(); assert.ok(observe.rows.some(row => row.outcome === 'rejected')); }
+  finally { observe.restore(); }
+});
+fs.writeFileSync(root + '/ADDITIONAL-CONTROLS.json', JSON.stringify({ status: results.every(row => row.status === 'PASS') ? 'PASS' : 'HOLD', results, productImports: 0, Workers: 0, pid: process.pid }, null, 2) + '\n', { flag: 'wx' });
+if (results.some(row => row.status === 'FAIL')) throw new Error('PURE control failure; dependent harmless children not started');
+await import('./controls.mjs');
+for (const row of sourceBindings) assert.equal(createHash('sha256').update(fs.readFileSync(row.path)).digest('hex'), row.sha256);
+assert.ok(Date.now() < phase.deadlineMs);
+console.log(JSON.stringify({ additionalPure: results.length, status: 'PASS', ownerResults: 'separate RESULT.json', productExecutions: 0, Workers: 0 }));
+
+---v6/root-binding.mjs---
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+export const repositoryRoot = '/Users/kjopek/Workspace/safe-bash';
+const scope = 'tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/';
+export const sourcePaths = [
+  scope + 'v4/pure-controls.mjs', scope + 'v4/guards.mjs', scope + 'v4/array-observer.mjs',
+  scope + 'v6/root-binding.mjs', scope + 'v6/prepare.mjs', scope + 'v6/PRESEAL.md',
+];
+export const copyNames = ['pure-controls.mjs', 'guards.mjs', 'array-observer.mjs', 'root-binding.mjs'];
+export function resolveInventoryPath(member, declaredRoot, controlRoot) {
+  if (declaredRoot !== repositoryRoot || fs.realpathSync(declaredRoot) !== repositoryRoot) throw new Error('repository root authority');
+  if (controlRoot !== '/private/tmp/safe-bash-core70-v6-20260829/controls' || fs.realpathSync(controlRoot) !== controlRoot) throw new Error('control root authority');
+  let resolved;
+  if (sourcePaths.includes(member)) resolved = path.join(repositoryRoot, member);
+  else if (copyNames.some(name => member === path.join(controlRoot, name))) resolved = member;
+  else throw new Error('inventory path not declared');
+  for (let current = resolved; current !== path.dirname(current); current = path.dirname(current)) {
+    if (fs.lstatSync(current).isSymbolicLink()) throw new Error('inventory symlink');
+  }
+  return resolved;
+}
+
+---v6/raw/PREPARED.json---
+{
+  "status": "DATA_PREPARED",
+  "pid": 65675,
+  "originalDependencies": [
+    [
+      "pure-controls.mjs",
+      "32f780a3262c59a9ec9e3c43ef5c7f39191f9231d60dbec7071777e02418e40f"
+    ],
+    [
+      "guards.mjs",
+      "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    ],
+    [
+      "array-observer.mjs",
+      "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    ]
+  ],
+  "sourceRoot": "/Users/kjopek/Workspace/safe-bash",
+  "syntaxChecks": 2,
+  "inventory": [
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/guards.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/array-observer.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/root-binding.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/prepare.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/PRESEAL.md",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/pure-controls.mjs",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/guards.mjs",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/array-observer.mjs",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/root-binding.mjs"
+  ],
+  "entrySha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950",
+  "rootBindingSha256": "d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3",
+  "inheritedExecutionSealSha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301",
+  "inheritedSealMetadata": {
+    "size": 351213,
+    "provenance": "98dcc03e5d31feb5b401999db52c9d151e875192/v4/BUILD-RESULT.json",
+    "authentication": "prior accepted DATA; not consumed by this narrow controller"
+  },
+  "productImports": 0,
+  "Workers": 0,
+  "finishedMs": 1788013370579
+}
+
+---v4/HANDOFF.md---
+# CORE70 v4 — bodies complete, controller qualification HOLD
+
+This is SOURCE/DATA preparation, not runtime authorization or acceptance.
+All 70 IDs have concrete calls in three layouts (210 UNRUN cells). No product,
+parser, matcher, Shell, Worker, compiler, install or native oracle ran here.
+No production files changed. Earlier v1/v2/v3 evidence remains unchanged.
+
+## Exact binding
+
+- Candidate: `da4e1cc187022255521879b00db2ac77674f79d9`; all 305 selected source
+  inputs authenticated by the successful DATA builder.
+- Complete package: 1002 members, 908381 compressed bytes,
+  SHA256 `4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e`.
+  Retained compressed bytes reauthenticated; no inflation in this phase.
+- Compiled manifest: `f42f0008bf5939f28ccb7cd038b9f462a03efa38238709c97a7daab7c98e3035`.
+- Execution seal: `ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301`.
+  This seals preparation bytes, NOT successful controller qualification.
+- New isolated root: `/private/tmp/safe-bash-core70-v4-20260829`.
+  Source-built, installed and physically moved layouts retain authenticated
+  candidate members; the moved origin is absent. No live HEAD substitution.
+
+## Completed authoring, not observed behavior
+
+`CASES-v4.json` maps the unchanged 32 references, 8 H protocols, EC01–25 and
+EH01–05 to the exact 210 layout cells. `cell-v4.mjs`, `host-bodies.mjs` and the
+copied additions provide actual bodies, not deferred placeholder dispatches.
+
+- H02: fixed forwarding checkpoint Worker wrapper, one filtered own-data
+  witness, object and false caller reasons; actual work/checkpoint forwarding.
+- H03: real `maxExpansionBytes:1` with payload `aa` and zero-Worker assertion;
+  reachable group/node/interval limits and private pattern/work/state cases.
+  Work/state exhaustion expectations remain source-derived and UNRUN.
+- H04: forwarding reserve/hold/close and retain/release observers, actual
+  snapshot retention/replacement, failed-reservation atomicity and cleanup.
+- H05: exactly-one retained-argument postMessage gate after genuine invoke;
+  readonly, stale/local-restoration and caller variants, without state injection.
+- H07: fixed production-entry to authenticated owned fault entries with
+  unchanged Worker options; malformed replies, positive companions and restore.
+- H06: standalone exact-false sink, independent of caller abort. H08: fresh
+  initial allowance equality. EH04/EH05 retain concrete cleanup/error and exact
+  invoke-Promise versus derived/thenable checks. Raw-falsy terminal presence is
+  implemented explicitly, not inferred from truthiness.
+- EH01/EH02 v4 use an environment pattern of 65537 ASCII bytes against the
+  genuine private pattern cap 65536, preserving the ordinary source-byte limit.
+  The old 33-group unsupported-grammar stimulus is not a private status3 proof.
+
+H02/H04/H05/H07 are TEST-ONLY instrumented profiles, not stock runtime evidence.
+All wrappers, fixed paths, options and whole private closure are sealed. There
+is no arbitrary URL, public test seam, counter injection or lowered limit.
+
+## Explicit unresolved proof qualifications
+
+H03 depth64 is SOURCE_ONLY: recursive group entry is dominated by the earlier
+32-group guard. It is not an executed depth-limit branch. H04 MAX_SAFE ticket
+exhaustion is SOURCE_ONLY. Registered host cleanup rejection does not prove an
+actual private ArrayOwner.close rejection; that private failure remains
+unobserved, not substituted by a host cleanup assertion. These qualifications
+must be reviewed explicitly; authored bodies are not proof of all their claims.
+
+## Actual preparation results and failures
+
+Four PURE/controller processes were used: inspection exited0; original builder
+exited1 on an exact source-anchor mismatch; versioned builder exited0; final
+controller exited1 before control execution. All four process exits returned
+to the owner. No fifth process or retry occurred.
+
+The successful builder reports 35 syntax-only checks PASS, all 305 source
+bindings, 70 whole-body IDs and 210 cells. SourceTextModule construction parsed
+owned fixtures without evaluation. This does not validate dynamic behavior.
+
+Original builder expected two declarations on one line, while authenticated
+source had separate lines. V2 uses two exact unique anchors; old helper and
+raw failure are retained. No expected source hash changed.
+
+The final controller's CUSTOM-SHA256SUMS contains repository-relative source
+paths, but its cwd is the isolated controls directory. Its first lstat throws
+ENOENT for `tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs`.
+The failure precedes ADDITIONAL-CONTROLS.json, the inherited owner controller
+import, and harmless-child dispatch. Thus zero fresh owner/control outcomes
+and zero harmless fixture children are credited. Both expected result files
+are absent. Raw stdout/stderr and exact failing inventory are preserved.
+
+Required narrow repair: version the custom inventory to admitted absolute
+source/copied paths, with exact byte binding; rerun only after fresh authority.
+Do not silently reinterpret missing relative paths or widen filesystem access.
+No newly qualified whole-owner fault proof is claimed. Earlier passing owner
+controls remain earlier evidence, not a fresh v4 result.
+
+A publication clock helper also failed before reading files because zsh did
+not implement `int()` as used. A subsequent builtin-only read succeeded. This
+ordinary administration failure is not product execution or a control result.
+
+## Resources and next authority
+
+The current grant was 25 minutes inclusive, 56 known OS starts, peak3,
+96MiB capture and 512MiB work. Four PURE processes are known and retired.
+Known administration includes shell wrappers, apply_patch, mkdir/cp/shasum,
+and publication Git commands. A complete independently captured transitive
+administrative census is NOT established; do not certify all-process cap
+compliance from reservations or reconstruct fictional PIDs. No process probes
+or destructive cleanup were used. Raw fixtures and old staging remain retained.
+
+The sealed FUTURE proposal is 210 case children, one coordinator and four
+administrative roles (215 known OS maximum), peak2 OS, one live Worker,
+309 cumulative Worker starts, zero internal loaders, 125 minutes inclusive,
+128MiB capture and 512MiB work. These are proposed bounds, not activation GO.
+The grant schema requires distinct root/private-transport/core-preexec receipt
+fields; forty-hex formatting alone is not authorization.
+
+Remaining prerequisites: corrected independently reviewed whole-owner controls,
+private transport qualification and relevant deferred private checks, explicit
+review of the source-only/unobserved qualifications, and fresh ROOT runtime
+release. Public transport obligations map into these cells; no circular demand
+for their acceptance before their own integration run is made.
+{"dir":"v4","files":[{"name":"BUILD-PRESEAL.md","size":2096},{"name":"BUILD-RESULT.json","size":4211},{"name":"BUILD-SHA256SUMS","size":2131},{"name":"BUILD-V2-PRESEAL.md","size":768},{"name":"BUILD-V2-SHA256SUMS","size":2140},{"name":"CASES-v4.json","size":45811},{"name":"CONTROL-PRESEAL.md","size":1364},{"name":"EXECUTION-SEAL.json","size":351213},{"name":"HANDOFF.md","size":6925},{"name":"INSPECT-SHA256SUMS","size":287},{"name":"PREPARATION-PRESEAL.md","size":727},{"name":"SOURCE-INSPECTION.json","size":3003},{"name":"START.json","size":197},{"name":"array-observer.mjs","size":3105},{"name":"build-preexec-v2.mjs","size":13970},{"name":"build-preexec.mjs","size":13955},{"name":"cell-v4.mjs","size":7292},{"name":"dispatch.mjs","size":6819},{"name":"guards.mjs","size":3236},{"name":"host-bodies.mjs","size":9359},{"name":"inspect.mjs","size":2340},{"name":"pure-controls.mjs","size":7991},{"name":"raw","size":384},{"name":"worker-observer.mjs","size":5913},{"name":"wrapper-source.mjs","size":2269}]}{"dir":"v5","files":[{"name":"HANDOFF.md","size":6092},{"name":"INHERITED-AND-NEW-SHA256SUMS","size":853},{"name":"PRESEAL.md","size":1839},{"name":"prepare.mjs","size":6134},{"name":"pure-controls.mjs","size":9257},{"name":"raw","size":416},{"name":"root-binding.mjs","size":1388}]}{"dir":"v6/raw","files":[{"name":"ADDITIONAL-CONTROLS.json","size":2478},{"name":"CUSTOM-SHA256SUMS","size":1551},{"name":"PHASE.json","size":53},{"name":"PREPARATION-SHA256SUMS","size":844},{"name":"PREPARED.json","size":2038},{"name":"RESULT.json","size":2714},{"name":"SHA256SUMS","size":388},{"name":"STORAGE-SNAPSHOT.json","size":163},{"name":"actual-nonzero.stderr","size":4},{"name":"actual-nonzero.stdout","size":4},{"name":"actual-zero.stderr","size":4},{"name":"actual-zero.stdout","size":4},{"name":"children.jsonl","size":420},{"name":"controller.stderr","size":173},{"name":"controller.stdout","size":169},{"name":"known-starts.log","size":913},{"name":"prepare.stderr","size":173},{"name":"prepare.stdout","size":1836},{"name":"source-qualification.stdout","size":3103}]}

@@ -1,0 +1,229 @@
+{
+  "kind": "RECOVERED_DATA_NOT_CAMPAIGN_ACCEPTANCE",
+  "groups": [
+    {
+      "id": "D01-identical-reference-union",
+      "status": "PASS"
+    },
+    {
+      "id": "D02-conflicting-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "D03-byte-and-mode-preservation",
+      "status": "PASS"
+    },
+    {
+      "id": "D04-collision-safe-names",
+      "status": "PASS"
+    },
+    {
+      "id": "D05-provenance-mismatch",
+      "status": "PASS"
+    },
+    {
+      "id": "D06-symlink-refusal",
+      "status": "PASS"
+    }
+  ],
+  "matrix": [
+    {
+      "layout": "source-built",
+      "rows": [
+        {
+          "id": "C10",
+          "status": "PASS"
+        },
+        {
+          "id": "C11",
+          "status": "PASS"
+        },
+        {
+          "id": "C15",
+          "status": "PASS"
+        },
+        {
+          "id": "C16",
+          "status": "PASS"
+        },
+        {
+          "id": "C18",
+          "status": "PASS"
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "workerCreates": 5,
+      "workerExits": 5,
+      "workerPeak": 1,
+      "workerExitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "regexWorkers": 0,
+      "internalLoaderThreads": 0
+    },
+    {
+      "layout": "installed",
+      "rows": [
+        {
+          "id": "C10",
+          "status": "PASS"
+        },
+        {
+          "id": "C11",
+          "status": "PASS"
+        },
+        {
+          "id": "C15",
+          "status": "PASS"
+        },
+        {
+          "id": "C16",
+          "status": "PASS"
+        },
+        {
+          "id": "C18",
+          "status": "PASS"
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "workerCreates": 5,
+      "workerExits": 5,
+      "workerPeak": 1,
+      "workerExitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "regexWorkers": 0,
+      "internalLoaderThreads": 0
+    },
+    {
+      "layout": "physically-moved",
+      "rows": [
+        {
+          "id": "C10",
+          "status": "PASS"
+        },
+        {
+          "id": "C11",
+          "status": "PASS"
+        },
+        {
+          "id": "C15",
+          "status": "PASS"
+        },
+        {
+          "id": "C16",
+          "status": "PASS"
+        },
+        {
+          "id": "C18",
+          "status": "PASS"
+        }
+      ],
+      "passed": 5,
+      "failed": 0,
+      "workerCreates": 5,
+      "workerExits": 5,
+      "workerPeak": 1,
+      "workerExitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "regexWorkers": 0,
+      "internalLoaderThreads": 0
+    }
+  ],
+  "runtimeRetirement": {
+    "children": 4,
+    "attemptedBytes": 511541,
+    "storedBytes": 511541,
+    "elapsedMs": 14499.770708,
+    "failures": []
+  },
+  "recordedRetirements": [
+    {
+      "role": "offline-install",
+      "pid": 67020,
+      "groupAbsent": true,
+      "exited": true,
+      "closed": true,
+      "unknown": false,
+      "elapsedMs": 3378.3464999999997
+    },
+    {
+      "role": "workflow-source-built",
+      "pid": 67031,
+      "groupAbsent": true,
+      "exited": true,
+      "closed": true,
+      "unknown": false,
+      "elapsedMs": 6828.878874999999
+    },
+    {
+      "role": "workflow-installed",
+      "pid": 67042,
+      "groupAbsent": true,
+      "exited": true,
+      "closed": true,
+      "unknown": false,
+      "elapsedMs": 10227.783374999999
+    },
+    {
+      "role": "workflow-physically-moved",
+      "pid": 67053,
+      "groupAbsent": true,
+      "exited": true,
+      "closed": true,
+      "unknown": false,
+      "elapsedMs": 13836.903333
+    }
+  ],
+  "preimport": {
+    "id": "publication-preimport-67098",
+    "role": "publication-preimport",
+    "pid": 67098,
+    "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+      "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "25661",
+      "54c5c835c073567e8f55622830ab2346e1e7eeb0cc2ea39be64c3f9beb81a1fe",
+      "425",
+      "2999c369c5eb3bdbf61c343c098d9061f12fad995694760e7aa3a9879b54cc85",
+      "2533"
+    ],
+    "startUTC": "2026-08-29T16:42:28.947Z",
+    "startObserved": true,
+    "exitObserved": true,
+    "closeObserved": true,
+    "stdoutEnd": true,
+    "stderrEnd": true,
+    "signals": [],
+    "exitCode": 78,
+    "exitSignal": null,
+    "exitUTC": "2026-08-29T16:42:28.999Z",
+    "closeCode": 78,
+    "closeSignal": null,
+    "closeUTC": "2026-08-29T16:42:28.999Z"
+  },
+  "originalKnownStarts": 7,
+  "originalOuterExit": 78,
+  "publicationStatus": "HOLD_DUPLICATE_IDENTITY_UNCHANGED",
+  "childStreamEOF": "UNOBSERVED_FOR_RUNTIME_CHILDREN",
+  "workerExitCodes": "literal1_retained",
+  "providerFinalization": "C16 controlled release, not opaque preemption",
+  "noRerun": true
+}

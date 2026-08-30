@@ -1,0 +1,153 @@
+COMMAND ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","./tests/stress/byte-ownership-20260827/fix/binding.mjs","--import","tsx","--test","--test-concurrency=1","--test-reporter=tap","tests/stress/byte-ownership-20260827/ownership.test.ts"]
+EXIT 0 SIGNAL null
+TAP version 13
+# CANDIDATE BINDING verified 242 hashes; candidateHead=7a517cecab21d9fbff204df01a6a2ad2712a7673; exact unchanged original20; original baseline remains 17/20
+# OWNERSHIP {"id":"01","actual":"00ffc3a9410a","expected":"00ffc3a9410a","events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"02","actual":"00ffc3a9410a","expected":"00ffc3a9410a","events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"03","actual":"00ffc3a9410a","expected":"00ffc3a9410a","events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"04","actual":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"05","actual":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"06","actual":{"stdout":"c3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"c3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"07","actual":{"stdout":"c3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"c3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"08","actual":{"stdout":"c3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"c3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"09","actual":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"events":["external-accept:0","write-complete:0","external-accept:1","write-complete:1","finally:zero"]}
+# OWNERSHIP {"id":"10","actual":"00ffc3a9410a","expected":"00ffc3a9410a","events":["first-write-complete","first-read:00ffc3","second-write-complete","after-write:zero"]}
+# OWNERSHIP {"id":"11","actual":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"12","actual":{"stdout":"00ff","stderr":"","exitCode":0},"expected":{"stdout":"00ff","stderr":"","exitCode":0},"events":["yield:0:00ffc3","finally:zero"]}
+# Subtest: 01 contract collector snapshots borrowed Buffer windows
+ok 1 - 01 contract collector snapshots borrowed Buffer windows
+  ---
+  duration_ms: 0.833334
+  type: 'test'
+  ...
+# Subtest: 02 shared collector Buffer next-read/finalizer ownership
+ok 2 - 02 shared collector Buffer next-read/finalizer ownership
+  ---
+  duration_ms: 0.179125
+  type: 'test'
+  ...
+# Subtest: 03 shared collector Uint8Array next-read/finalizer ownership
+ok 3 - 03 shared collector Uint8Array next-read/finalizer ownership
+  ---
+  duration_ms: 0.065584
+  type: 'test'
+  ...
+# Subtest: 04 public named VFS tail -n 1 /input Buffer
+ok 4 - 04 public named VFS tail -n 1 /input Buffer
+  ---
+  duration_ms: 4.3085
+  type: 'test'
+  ...
+# Subtest: 05 public named VFS tail -n 1 /input Uint8Array
+ok 5 - 05 public named VFS tail -n 1 /input Uint8Array
+  ---
+  duration_ms: 0.848834
+  type: 'test'
+  ...
+# Subtest: 06 public named VFS tail -c 4 /input Buffer
+ok 6 - 06 public named VFS tail -c 4 /input Buffer
+  ---
+  duration_ms: 0.704166
+  type: 'test'
+  ...
+# Subtest: 07 public named VFS tail -c 4 /input Uint8Array
+ok 7 - 07 public named VFS tail -c 4 /input Uint8Array
+  ---
+  duration_ms: 0.570333
+  type: 'test'
+  ...
+# Subtest: 08 public stdin cursor owns borrowed Buffer windows
+ok 8 - 08 public stdin cursor owns borrowed Buffer windows
+  ---
+  duration_ms: 0.762209
+  type: 'test'
+  ...
+# Subtest: 09 public stdout capture owns bytes after awaited write
+ok 9 - 09 public stdout capture owns bytes after awaited write
+  ---
+  duration_ms: 0.448958
+  type: 'test'
+  ...
+# Subtest: 10 byte pipe awaited write reuse with acceptance handshake
+ok 10 - 10 byte pipe awaited write reuse with acceptance handshake
+  ---
+  duration_ms: 3.719084
+  type: 'test'
+  ...
+# Subtest: 11 public named cat consumes before next-read reuse
+ok 11 - 11 public named cat consumes before next-read reuse
+  ---
+  duration_ms: 0.737625
+  type: 'test'
+  ...
+# Subtest: 12 public named head captures before early finalizer zero
+ok 12 - 12 public named head captures before early finalizer zero
+  ---
+  duration_ms: 0.73075
+  type: 'test'
+  ...
+# OWNERSHIP {"id":"13","actual":{"stdout":"41502f447155454b","stderr":"","exitCode":0,"file":"00ffc3a9410a"},"expected":{"stdout":"41502f447155454b","stderr":"","exitCode":0,"file":"00ffc3a9410a"},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"14","actual":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"expected":{"stdout":"00ffc3a9410a","stderr":"","exitCode":0},"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"15","actual":["00ffc3a9410a","00ffc3a9410a","00ffc3a9410a","00ffc3a9410a","00ffc3a9410a","00ffc3a9410a"],"expected":["00ffc3a9410a","00ffc3a9410a","00ffc3a9410a","00ffc3a9410a","00ffc3a9410a","00ffc3a9410a"],"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero","yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"16","actual":["00ffc3a9410a","00ffc3a9410a",126,126],"expected":["00ffc3a9410a","00ffc3a9410a",126,126],"events":[]}
+# OWNERSHIP {"id":"17","actual":["00ffc3","a9410a","consumer-did-not-mutate-storage","finally:zero"],"expected":["00ffc3","a9410a","consumer-did-not-mutate-storage","finally:zero"],"events":[]}
+# OWNERSHIP {"id":"18","actual":["00ffc3a9410a","00ffc3a9410a","00ffc3a9410a"],"expected":["00ffc3a9410a","00ffc3a9410a","00ffc3a9410a"],"events":["yield:0:00ffc3","next:0","yield:1:a9410a","next:1","finally:zero"]}
+# OWNERSHIP {"id":"19","actual":[["yield:0:00ffc3","finally:zero"],["yield:0:00ffc3","finally:zero"]],"expected":[["yield:0:00ffc3","finally:zero"],["yield:0:00ffc3","finally:zero"]],"events":[]}
+# OWNERSHIP {"id":"20","actual":["yield:0:00ffc3","finally:zero"],"expected":["yield:0:00ffc3","finally:zero"],"events":[]}
+# Subtest: 13 public cat tee base64 pipeline preserves VFS bytes/effects
+ok 13 - 13 public cat tee base64 pipeline preserves VFS bytes/effects
+  ---
+  duration_ms: 4.417084
+  type: 'test'
+  ...
+# Subtest: 14 readonly named-stream copy isolates shared line collector
+ok 14 - 14 readonly named-stream copy isolates shared line collector
+  ---
+  duration_ms: 0.7035
+  type: 'test'
+  ...
+# Subtest: 15 memory awaited writes and returned read bytes are independent
+ok 15 - 15 memory awaited writes and returned read bytes are independent
+  ---
+  duration_ms: 0.24025
+  type: 'test'
+  ...
+# Subtest: 16 readonly readFile snapshots delegate Buffer storage
+ok 16 - 16 readonly readFile snapshots delegate Buffer storage
+  ---
+  duration_ms: 0.320042
+  type: 'test'
+  ...
+# Subtest: 17 readonly stream snapshots before consumer mutation and finalizer
+ok 17 - 17 readonly stream snapshots before consumer mutation and finalizer
+  ---
+  duration_ms: 0.090083
+  type: 'test'
+  ...
+# Subtest: 18 S3 mock backed FS snapshots writes and readonly read bytes
+ok 18 - 18 S3 mock backed FS snapshots writes and readonly read bytes
+  ---
+  duration_ms: 2.623916
+  type: 'test'
+  ...
+# Subtest: 19 collector byte-limit and sink-error preserve cleanup/error identity
+ok 19 - 19 collector byte-limit and sink-error preserve cleanup/error identity
+  ---
+  duration_ms: 0.211083
+  type: 'test'
+  ...
+# Subtest: 20 public sink acceptance barrier and cancellation finalize named source
+ok 20 - 20 public sink acceptance barrier and cancellation finalize named source
+  ---
+  duration_ms: 0.95575
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 214.790833

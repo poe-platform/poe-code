@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "state": "PROPOSAL_ONLY_NO_EXECUTION",
+  "execute": false,
+  "rootGO": {
+    "state": "UNBOUND_DENY",
+    "value": null,
+    "reason": "Old35da GO is consumed. Fresh independently bound root authority required."
+  },
+  "slots": {
+    "sourceCommit": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "evidenceCommit": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "handoffCommit": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "selectedFileOrigins": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "sourceArchive": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "fullPackageArchive": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "sourceManifest": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "sourceProjectionManifest": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "packageManifest": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "compiledEntry": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "declarationEntries": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "toolchain": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "independentBuildProof": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "sourceMapRelocationRecipe": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "runtimeGuardRecipe": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "consumerSeals": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "rootReceipt": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "rootReceiptExpectedHash": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "rootDesignatedBuildVerifier": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "cohortExecutorSeal": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "loaderSeal": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "loadedMutantAuthorizations": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "CMD22CorrectionSeal": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Known static adapter87dad0c is recorded in BINDINGS-PENDING; successor complete recipe/output seal and independent review remain unbound."
+    },
+    "frameworkReviewReceipt": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "toolInvocationInventory": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/hash/origin binding required; no HEAD or old35da fallback"
+    },
+    "sourceStaticProofBindings": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh source23/four-repair evidence with exact selected blob/line/hash and independently bound argument or explicit UNRUN; extraction alone is not a proof."
+    }
+  },
+  "fixedSourcePolicy": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "newScopes": [
+      "src/commands/yq/**",
+      "src/commands/structured/query-core.ts"
+    ],
+    "unrelatedLiveAdditions": "DENY",
+    "rootWiring": "Not authorized by this proposal",
+    "wholeCandidateGitTreeAuthority": false,
+    "syntheticCompositeCommit": false,
+    "predecessorSourceNotSuccessor": "35da18547ca82a67be9ca22b4adc21e3b8060780"
+  },
+  "sourceViews": {
+    "historicalCounts": {
+      "archive": 273,
+      "projection": 271,
+      "package": 870
+    },
+    "successorCounts": null,
+    "archiveOnlySupportFiles": [
+      "package-lock.json",
+      "scripts/typecheck.mjs"
+    ],
+    "required": "Separate full archive and named consumer projection roots; common descriptors identical; no projection relabelled as archive.",
+    "countRule": "264 baseline consumer entries plus authorized new source entries; archive also retains two baseline support files. Full package preserves baseline846 plus exact fresh compiler additions. Future totals come from manifests, not assumed35da blobs."
+  },
+  "buildGate": {
+    "inheritOldProof": false,
+    "required": "Fresh independent scoped compile, exact tool/argv/cwd/env/raw output hashes and explicit map-relocation proof, full package including baseline README.",
+    "stagedAuthority": "Fresh RootGO may authorize bounded authentication/build/setup while semantic admission remains closed. Root-designated independently hash-bound verifier must accept and bind the generated independent build receipt before runtime admission. Same coordinator run ID/t0 and schedule; waiting is included, no reset.",
+    "receiptCannotSelfAuthorize": true
+  },
+  "public": {
+    "default": "UNRUN_PUBLIC_EXPORT_GAP",
+    "activation": "Only actual authorized successor export map and declarations enable public-only fixture slots; missing whole public module is not a successful negative type test."
+  },
+  "fallbacks": [],
+  "retryAllowance": 0,
+  "stageRequirements": [
+    {
+      "stage": "INITIAL_ROOT_FENCE",
+      "requires": [
+        "rootReceipt",
+        "rootReceiptExpectedHash",
+        "rootGO"
+      ],
+      "effect": "No child or candidate load before independently supplied raw receipt hash, exact purpose/actions and fresh run identity validate."
+    },
+    {
+      "stage": "AUTHENTICATION_BUILD_SETUP",
+      "requires": [
+        "sourceCommit",
+        "evidenceCommit",
+        "handoffCommit",
+        "selectedFileOrigins",
+        "sourceArchive",
+        "sourceManifest",
+        "sourceProjectionManifest",
+        "fullPackageArchive",
+        "packageManifest",
+        "toolchain",
+        "sourceMapRelocationRecipe",
+        "rootDesignatedBuildVerifier",
+        "cohortExecutorSeal",
+        "runtimeGuardRecipe",
+        "consumerSeals",
+        "loaderSeal",
+        "CMD22CorrectionSeal",
+        "frameworkReviewReceipt",
+        "toolInvocationInventory"
+      ],
+      "doesNotRequireYet": [
+        "independentBuildProof"
+      ],
+      "effect": "Only exact fresh GO-authorized authentication/build/setup actions. No semantic import; missing prerequisite stops admission."
+    },
+    {
+      "stage": "RUNTIME_ADMISSION",
+      "requires": [
+        "independentBuildProof",
+        "compiledEntry",
+        "declarationEntries",
+        "sourceStaticProofBindings"
+      ],
+      "additional": "Root-designated verifier hash binds actual fresh scoped-build receipt; author artifact binding alone is insufficient. Source report gaps remain UNRUN; source authenticity/admission failures STOP.",
+      "effect": "Only after full source/package/recipe guards and successful runtime admission; one original t0 remains in force."
+    },
+    {
+      "stage": "LOADED_MUTANT_ADMISSION",
+      "requires": [
+        "loadedMutantAuthorizations"
+      ],
+      "effect": "Control-only exact pre/postimage maps and unchanged frozen witnesses; pristine candidate authority is never reused for mutated bytes."
+    }
+  ]
+}

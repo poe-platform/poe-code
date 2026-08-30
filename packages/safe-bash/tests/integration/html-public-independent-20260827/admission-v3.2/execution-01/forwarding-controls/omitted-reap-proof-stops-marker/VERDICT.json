@@ -1,0 +1,38 @@
+{
+  "name": "omitted-reap-proof-stops-marker",
+  "expected": true,
+  "cohort": {
+    "rows": [
+      {
+        "mode": "omit-reap-proof",
+        "outcome": "expected-control-outcome",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "reaped"
+          ],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": false,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": []
+      }
+    ],
+    "unexecuted": [
+      "marker"
+    ],
+    "exitCode": 1
+  }
+}

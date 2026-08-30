@@ -1,0 +1,9 @@
+decl_scalar=old
+declare decl_scalar=new decl_second="$decl_scalar"
+declare -p decl_scalar decl_second
+declare -a decl_first=(one) decl_next=("${decl_first[0]-missing}")
+declare -p decl_first decl_next
+declare -ar decl_frozen=("${decl_marker:=kept}")
+printf 'compound=%s marker=%s\n' "$?" "$decl_marker"
+declare -p decl_frozen
+printf 'END D06\n'

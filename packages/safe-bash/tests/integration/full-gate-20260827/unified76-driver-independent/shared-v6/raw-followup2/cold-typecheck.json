@@ -1,0 +1,48 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+  "args": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "run",
+    "typecheck",
+    "--",
+    "--report",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/cold-types"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source",
+  "pid": 34210,
+  "status": 78,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 917,
+  "timeoutMs": 360000,
+  "outputBytes": 542,
+  "observed": [
+    {
+      "pid": 34210,
+      "parent": 33334,
+      "group": 34210,
+      "born": "Thu Aug 27 22:45:13 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/cold-types"
+    },
+    {
+      "pid": 34243,
+      "parent": 34210,
+      "group": 34210,
+      "born": "Thu Aug 27 22:45:14 2026",
+      "command": "(node)"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "cold-typecheck",
+  "expectedStatus": 78,
+  "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+  "observedNodeExecutables": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+  ]
+}

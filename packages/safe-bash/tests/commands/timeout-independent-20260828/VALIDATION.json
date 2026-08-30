@@ -1,0 +1,38 @@
+{
+  "schema": "timeout-independent-freeze-validation/1",
+  "at": "2026-08-28T02:13:57.737Z",
+  "freezeCommit": "8843c519c23ad529677d51811f3acd370e53dffb",
+  "manifestSha256": "2ca5e729a8f9c1bb4aeee0d3420f55d9a897175be871fc2a8fd587907efae765",
+  "authenticatedReferences": 18,
+  "families": 32,
+  "numericVectors": 70,
+  "diagnosticRecords": 14,
+  "developmentHelperControls": {
+    "expected": 16,
+    "passed": 16,
+    "controls": [
+      "rational-known:0",
+      "rational-known:.00001m",
+      "rational-known:.0000001d",
+      "rational-known:1.0001s",
+      "rational-known:.999999999999999999999d",
+      "rational-known:9007199254740.991s",
+      "rational-grammar-complete",
+      "rational-grammar-complete",
+      "rational-overflow",
+      "clock-falsy-handle-and-single-queued-offer",
+      "clock-falsy-handle-and-single-queued-offer",
+      "clock-falsy-handle-and-single-queued-offer",
+      "clock-falsy-handle-and-single-queued-offer",
+      "clock-falsy-handle-and-single-queued-offer",
+      "clock-rejects-two-live",
+      "clock-receiver"
+    ]
+  },
+  "nativeProspective": 12,
+  "nativeExecuted": 0,
+  "productExecuted": 0,
+  "authorImplementationReleased": false,
+  "noCandidateImports": true,
+  "status": "PRECODE_FREEZE_VALIDATED_NOT_PRODUCT_ACCEPTANCE"
+}

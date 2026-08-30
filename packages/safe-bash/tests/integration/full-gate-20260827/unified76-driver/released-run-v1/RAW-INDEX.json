@@ -1,0 +1,82 @@
+{
+  "capturedAt": "2026-08-28T09:24:32.811Z",
+  "files": [
+    {
+      "role": "inner",
+      "path": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1/ADMISSION.json",
+      "name": "ADMISSION.json",
+      "bytes": 46575,
+      "mode": 420,
+      "sha256": "47c05617239ca54f56d2853e5f1dfaa4c73aee9cb03ace038ea8d1f0be435518",
+      "captured": "raw-v1/inner-ADMISSION.json.gz",
+      "compressedBytes": 6904,
+      "compressedSha256": "753a868795f5e3b772633f059f5a8917a78eeb1fe7fe839b912b79e49cfa2e6e"
+    },
+    {
+      "role": "inner",
+      "path": "/private/tmp/full-gate-unified76-f5-fe15-finalroutes-20260828-r1/REPORT.json",
+      "name": "REPORT.json",
+      "bytes": 18871763,
+      "mode": 420,
+      "sha256": "8281a834078881914a9a5b9e363c18998e7b82ab472ab55edb110de0fd9fb0cd",
+      "captured": "raw-v1/inner-REPORT.json.gz",
+      "compressedBytes": 3488951,
+      "compressedSha256": "31be159e2d6b0c5910428746d5a85e45c57e20684e2e3852c1b9b8f1ec895c6a"
+    },
+    {
+      "role": "outer",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa/OS-FENCE-RESULT.json",
+      "name": "OS-FENCE-RESULT.json",
+      "bytes": 32921,
+      "mode": 420,
+      "sha256": "6869c13b4e78aab801e397faa5359733fc42735d2824e8c3bbf7bd429fed918d",
+      "captured": "raw-v1/outer-OS-FENCE-RESULT.json.gz",
+      "compressedBytes": 3632,
+      "compressedSha256": "12721dbfe2d8a537f3a9aafb5e328ce466994ee93b1459df2fafbf0611992c43"
+    },
+    {
+      "role": "outer",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa/OS-FENCE.json",
+      "name": "OS-FENCE.json",
+      "bytes": 4057,
+      "mode": 420,
+      "sha256": "e51b688345e52a3b679137610b18532ea1b7fb153673c636ac2a97a6ab3b82df",
+      "captured": "raw-v1/outer-OS-FENCE.json.gz",
+      "compressedBytes": 1346,
+      "compressedSha256": "8d107483f272f42af6211c9f813f91daf37c1177b9d571d7214d77049248751d"
+    },
+    {
+      "role": "outer",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa/REPORT.json",
+      "name": "REPORT.json",
+      "bytes": 58677,
+      "mode": 420,
+      "sha256": "e813510c930be6d90bced10c8f0f9d4309d67f1adac145c8077acca42dceef2c",
+      "captured": "raw-v1/outer-REPORT.json.gz",
+      "compressedBytes": 4856,
+      "compressedSha256": "9cfde08e044815c32a5a960ca776b8b36975e86c0ff8bcb2611d33454bade2f4"
+    },
+    {
+      "role": "outer",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa/stdout",
+      "name": "stdout",
+      "bytes": 22826,
+      "mode": 420,
+      "sha256": "ae70d821617e36dc65659f322e702853c6f5fb499b2c2c45a35cf6eb282022e8",
+      "captured": "raw-v1/outer-stdout.gz",
+      "compressedBytes": 4942,
+      "compressedSha256": "2f557d0ce16ce18bf9716516b8ac43186a8cddacf40f728f041cd58c4f00852d"
+    },
+    {
+      "role": "outer",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lAnYPa/stderr",
+      "name": "stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "captured": "raw-v1/outer-stderr.gz",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    }
+  ]
+}

@@ -1,0 +1,299 @@
+{
+  "prepared": {
+    "temporary": "/tmp/safe-bash-safejs-isolated-R0mMav",
+    "baseline": "/tmp/safe-bash-safejs-isolated-R0mMav/baseline",
+    "patched": "/tmp/safe-bash-safejs-isolated-R0mMav/patched",
+    "sourceRoot": "/private/tmp/safe-bash-safejs-isolated-TQgyeN/baseline"
+  },
+  "final": {
+    "temporary": "/tmp/safe-bash-safejs-isolated-R0mMav",
+    "baseline": "/tmp/safe-bash-safejs-isolated-R0mMav/baseline",
+    "patched": "/tmp/safe-bash-safejs-isolated-R0mMav/patched",
+    "sourceRoot": "/private/tmp/safe-bash-safejs-isolated-TQgyeN/baseline",
+    "comparison": {
+      "engineUnchanged": true,
+      "revisionUnchanged": true,
+      "statusUnchanged": true,
+      "indexUnchanged": true,
+      "licenseUnchanged": true
+    },
+    "passed": false
+  },
+  "verifierExit": 1,
+  "comparison": {
+    "interval": [
+      "2026-08-26T22:44:55.389Z",
+      "2026-08-26T22:47:01.175Z"
+    ],
+    "artifactsUnchanged": true,
+    "privateFieldsUnchanged": {
+      "revision": true,
+      "status": false,
+      "indexHash": true,
+      "sourceHash": true,
+      "packageHash": true,
+      "licenseHash": true
+    },
+    "privateStatusHashBefore": "8447e8f4ddce27486710bfac403ba250da1edae55d3951f40cfc2fe0a6ab41fa",
+    "privateStatusHashAfter": "870bd36d16b7dd592c950e3054ec1a0cb1edb40c7f390d27d319a132abafd3fe"
+  },
+  "suppliedPinnedEngineUnchanged": true,
+  "records": {
+    "baseline": {
+      "sourceFiles": 238,
+      "engineFiles": 259,
+      "sourceHash": "ce71b29631d9eb09d8a23107f71b16cf8646b1d7d67c14c81b38de781c585bfd",
+      "regularSnapshotFiles": 25874,
+      "symlinks": 0,
+      "runHash": "92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512",
+      "interpreterHash": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d",
+      "logs": {
+        "acceptance": {
+          "counts": {
+            "tests": 10,
+            "pass": 0,
+            "fail": 10,
+            "skipped": 0,
+            "cancelled": 0
+          },
+          "imports": [
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/run.ts",
+              "sha256": "92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/run.ts",
+              "sha256": "92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            }
+          ],
+          "outcomes": [
+            "not ok 1 - desired action-abort observes original host rejection without hiding abort",
+            "not ok 2 - UNRESOLVED desired live-signal plugin behavior: new Error(\"constructed\").message",
+            "not ok 3 - UNRESOLVED desired live-signal plugin behavior: new TypeError(\"constructed\").message",
+            "not ok 4 - UNRESOLVED desired live-signal plugin behavior: new Map([[\"key\", \"value\"]]).get(\"key\")",
+            "not ok 5 - UNRESOLVED desired live-signal plugin behavior: new Set([\"value\"]).has(\"value\")",
+            "not ok 6 - UNRESOLVED desired live-signal plugin behavior: new RegExp(\"^value$\").test(\"value\")",
+            "not ok 7 - UNRESOLVED desired live-signal plugin behavior: Array.isArray([])",
+            "not ok 8 - UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])",
+            "not ok 9 - UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data",
+            "not ok 10 - UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason"
+          ]
+        },
+        "invariants": {
+          "counts": {
+            "tests": 9,
+            "pass": 0,
+            "fail": 9,
+            "skipped": 0,
+            "cancelled": 0
+          },
+          "imports": [
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/run.ts",
+              "sha256": "92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            }
+          ],
+          "outcomes": [
+            "not ok 1 - frozen branded closure preserves construct, static cycles and repeated identity",
+            "not ok 2 - retained budget graph remains live",
+            "not ok 3 - shared property and retained graph is not double charged",
+            "not ok 4 - own special-name data and cycles never invoke prototype setters",
+            "not ok 5 - branded collection and regex identity survives wrapping",
+            "not ok 6 - pre-aborted call and construct reject exact reasons without effects",
+            "not ok 7 - raw preabort preserves exact null and false reasons before host work",
+            "not ok 8 - signalled constructors retain internal instanceof identity and error data",
+            "not ok 9 - both cancellation-result forms observe immediate/delayed originals and clean listeners"
+          ]
+        },
+        "reason-safety": {
+          "counts": {
+            "tests": 18,
+            "pass": 0,
+            "fail": 18,
+            "skipped": 0,
+            "cancelled": 0
+          },
+          "imports": [
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/run.ts",
+              "sha256": "92382a36b94bc5be7f8fc0372bb4b91428fd137ba86742c5d6f75865726e5512"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/baseline/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            }
+          ],
+          "outcomes": [
+            "not ok 1 - preserves primitive null exactly",
+            "not ok 2 - preserves primitive false exactly",
+            "not ok 3 - preserves primitive 0 exactly",
+            "not ok 4 - preserves primitive 0 exactly",
+            "not ok 5 - preserves primitive  exactly",
+            "not ok 6 - preserves primitive custom primitive reason exactly",
+            "not ok 7 - preserves primitive 7 exactly",
+            "not ok 8 - preserves primitive Symbol(cancel) exactly",
+            "not ok 9 - shapes default with untouched exact cause",
+            "not ok 10 - shapes frozen-default with untouched exact cause",
+            "not ok 11 - shapes custom-error with untouched exact cause",
+            "not ok 12 - shapes frozen-error with untouched exact cause",
+            "not ok 13 - shapes frozen-record with untouched exact cause",
+            "not ok 14 - shapes frozen-function with untouched exact cause",
+            "not ok 15 - does not read reason getters, stringify it, or traverse its prototype",
+            "not ok 16 - does not touch own reason accessors or stack formatting hooks",
+            "not ok 17 - does not inspect caller options or run setup before rejection",
+            "not ok 18 - entry span stays valid for empty, multiline, and invalid source"
+          ]
+        }
+      },
+      "suite": {
+        "files": 125,
+        "tests": 3263,
+        "pass": 3225,
+        "fail": 0,
+        "skip": 38,
+        "failures": []
+      },
+      "tools": {
+        "vitest": "3.2.6",
+        "vite": "6.4.3",
+        "typescript": "5.9.3"
+      }
+    },
+    "patched": {
+      "sourceFiles": 238,
+      "engineFiles": 259,
+      "sourceHash": "e6ce690a39daed56d2d1aef324da9303bffd7731e34fccc9cf705affb9185461",
+      "regularSnapshotFiles": 25874,
+      "symlinks": 0,
+      "runHash": "c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1",
+      "interpreterHash": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d",
+      "logs": {
+        "acceptance": {
+          "counts": {
+            "tests": 10,
+            "pass": 9,
+            "fail": 1,
+            "skipped": 0,
+            "cancelled": 0
+          },
+          "imports": [
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/patched/packages/safejs/src/run.ts",
+              "sha256": "c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/patched/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            }
+          ],
+          "outcomes": [
+            "ok 1 - desired action-abort observes original host rejection without hiding abort",
+            "ok 2 - UNRESOLVED desired live-signal plugin behavior: new Error(\"constructed\").message",
+            "ok 3 - UNRESOLVED desired live-signal plugin behavior: new TypeError(\"constructed\").message",
+            "ok 4 - UNRESOLVED desired live-signal plugin behavior: new Map([[\"key\", \"value\"]]).get(\"key\")",
+            "ok 5 - UNRESOLVED desired live-signal plugin behavior: new Set([\"value\"]).has(\"value\")",
+            "ok 6 - UNRESOLVED desired live-signal plugin behavior: new RegExp(\"^value$\").test(\"value\")",
+            "ok 7 - UNRESOLVED desired live-signal plugin behavior: Array.isArray([])",
+            "ok 8 - UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])",
+            "ok 9 - UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data",
+            "not ok 10 - UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason"
+          ]
+        },
+        "invariants": {
+          "counts": {
+            "tests": 9,
+            "pass": 8,
+            "fail": 1,
+            "skipped": 0,
+            "cancelled": 0
+          },
+          "imports": [
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/patched/packages/safejs/src/run.ts",
+              "sha256": "c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/patched/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            }
+          ],
+          "outcomes": [
+            "ok 1 - frozen branded closure preserves construct, static cycles and repeated identity",
+            "ok 2 - retained budget graph remains live",
+            "not ok 3 - shared property and retained graph is not double charged",
+            "ok 4 - own special-name data and cycles never invoke prototype setters",
+            "ok 5 - branded collection and regex identity survives wrapping",
+            "ok 6 - pre-aborted call and construct reject exact reasons without effects",
+            "ok 7 - raw preabort preserves exact null and false reasons before host work",
+            "ok 8 - signalled constructors retain internal instanceof identity and error data",
+            "ok 9 - both cancellation-result forms observe immediate/delayed originals and clean listeners"
+          ]
+        },
+        "reason-safety": {
+          "counts": {
+            "tests": 18,
+            "pass": 18,
+            "fail": 0,
+            "skipped": 0,
+            "cancelled": 0
+          },
+          "imports": [
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/patched/packages/safejs/src/run.ts",
+              "sha256": "c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1"
+            },
+            {
+              "actualEngineLoad": "/private/tmp/safe-bash-safejs-isolated-R0mMav/patched/packages/safejs/src/interp/interpreter.ts",
+              "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+            }
+          ],
+          "outcomes": [
+            "ok 1 - preserves primitive null exactly",
+            "ok 2 - preserves primitive false exactly",
+            "ok 3 - preserves primitive 0 exactly",
+            "ok 4 - preserves primitive 0 exactly",
+            "ok 5 - preserves primitive  exactly",
+            "ok 6 - preserves primitive custom primitive reason exactly",
+            "ok 7 - preserves primitive 7 exactly",
+            "ok 8 - preserves primitive Symbol(cancel) exactly",
+            "ok 9 - shapes default with untouched exact cause",
+            "ok 10 - shapes frozen-default with untouched exact cause",
+            "ok 11 - shapes custom-error with untouched exact cause",
+            "ok 12 - shapes frozen-error with untouched exact cause",
+            "ok 13 - shapes frozen-record with untouched exact cause",
+            "ok 14 - shapes frozen-function with untouched exact cause",
+            "ok 15 - does not read reason getters, stringify it, or traverse its prototype",
+            "ok 16 - does not touch own reason accessors or stack formatting hooks",
+            "ok 17 - does not inspect caller options or run setup before rejection",
+            "ok 18 - entry span stays valid for empty, multiline, and invalid source"
+          ]
+        }
+      },
+      "suite": {
+        "files": 125,
+        "tests": 3263,
+        "pass": 3225,
+        "fail": 0,
+        "skip": 38,
+        "failures": []
+      },
+      "tools": {
+        "vitest": "3.2.6",
+        "vite": "6.4.3",
+        "typescript": "5.9.3"
+      }
+    }
+  }
+}

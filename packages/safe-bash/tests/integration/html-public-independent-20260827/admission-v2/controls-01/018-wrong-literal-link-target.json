@@ -1,0 +1,13 @@
+{
+  "name": "wrong-literal-link-target",
+  "expectedBoundary": "LINK_BYTES",
+  "started": "2026-08-27T22:23:32.737Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:LINK_BYTES tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back",
+    "code": "LINK_BYTES",
+    "stack": "Error: BOUNDARY:LINK_BYTES tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/cycle/inner/back\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at validateLinkBytes (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:95:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:49:62\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:49:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:23:32.737Z"
+}

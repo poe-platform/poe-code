@@ -1,0 +1,248 @@
+[
+  {
+    "name": "typecheck",
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787787965.964076,
+    "durationSeconds": 3.672126054763794,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2
+  },
+  {
+    "name": "build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787787969.690712,
+    "durationSeconds": 1.7416419982910156,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2
+  },
+  {
+    "name": "test",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787787971.483823,
+    "durationSeconds": 67.82210683822632,
+    "timeoutSeconds": 900,
+    "timedOut": false,
+    "returnCode": 1,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2094
+  },
+  {
+    "name": "contracts",
+    "command": [
+      "npm",
+      "run",
+      "test:contracts"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787788039.3776472,
+    "durationSeconds": 0.564835786819458,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 14
+  },
+  {
+    "name": "benchmark-typecheck",
+    "command": [
+      "npm",
+      "--prefix",
+      "benchmarks",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787788064.0073018,
+    "durationSeconds": 1.454890251159668,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 2,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2
+  },
+  {
+    "name": "comparison",
+    "command": [
+      "npm",
+      "run",
+      "benchmark",
+      "--",
+      "--output",
+      "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/comparison.json"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787788065.51589,
+    "durationSeconds": 1.001075267791748,
+    "timeoutSeconds": 300,
+    "timedOut": false,
+    "returnCode": 1,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 5
+  },
+  {
+    "name": "test-with-rg",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787788149.187671,
+    "durationSeconds": 72.97191309928894,
+    "timeoutSeconds": 900,
+    "timedOut": false,
+    "returnCode": 1,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2292
+  },
+  {
+    "name": "inventory",
+    "command": [
+      "node",
+      "--input-type=module",
+      "-e",
+      "import * as api from \"./dist/index.js\"; import { createRequire } from \"node:module\"; const require = createRequire(import.meta.url); const commands=api.createAgentCommands().map(command=>command.name).sort(); console.log(JSON.stringify({exports:Object.keys(api).sort(),defaultCommandCount:commands.length,defaultCommands:commands,optionalCurlExport:typeof api.networkCommands,optionalSafeJsExport:typeof api.safeJsCommands,tsxResolved:require.resolve(\"tsx\"),typescriptResolved:require.resolve(\"typescript\"),comparatorResolved:createRequire(new URL(\"./benchmarks/package.json\",import.meta.url)).resolve(\"just-bash\")},null,2));"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source",
+    "startedAt": 1787788241.970817,
+    "durationSeconds": 0.3085198402404785,
+    "timeoutSeconds": 30,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 1
+  },
+  {
+    "name": "clean-typecheck",
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+    "startedAt": 1787788700.583992,
+    "durationSeconds": 3.4205210208892822,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2
+  },
+  {
+    "name": "clean-build",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+    "startedAt": 1787788704.063753,
+    "durationSeconds": 1.7260379791259766,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2
+  },
+  {
+    "name": "clean-test",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+    "startedAt": 1787788705.8483589,
+    "durationSeconds": 57.274479150772095,
+    "timeoutSeconds": 900,
+    "timedOut": false,
+    "returnCode": 1,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 1971
+  },
+  {
+    "name": "clean-contracts",
+    "command": [
+      "npm",
+      "run",
+      "test:contracts"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+    "startedAt": 1787788763.201632,
+    "durationSeconds": 0.5482089519500732,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 0,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 14
+  },
+  {
+    "name": "clean-benchmark-typecheck",
+    "command": [
+      "npm",
+      "--prefix",
+      "benchmarks",
+      "run",
+      "typecheck"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+    "startedAt": 1787788763.795698,
+    "durationSeconds": 1.4817142486572266,
+    "timeoutSeconds": 180,
+    "timedOut": false,
+    "returnCode": 2,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 2
+  },
+  {
+    "name": "clean-comparison",
+    "command": [
+      "npm",
+      "run",
+      "benchmark",
+      "--",
+      "--output",
+      "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/clean-comparison.json"
+    ],
+    "cwd": "/tmp/safe-bash-current-integration-69dbdy0m/source-clean",
+    "startedAt": 1787788765.348535,
+    "durationSeconds": 1.0257959365844727,
+    "timeoutSeconds": 300,
+    "timedOut": false,
+    "returnCode": 1,
+    "signal": null,
+    "cleanup": [],
+    "observedChildCount": 5
+  }
+]

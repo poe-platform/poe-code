@@ -1,0 +1,1074 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "eval.c",
+      "bytes": 10406,
+      "sha256": "21bfede320d640a219fc0ffa66d7b90d8f1fae87605847d4d06e6e058c4e7051",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 424
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "flags.c",
+      "bytes": 10554,
+      "sha256": "5696d846e008e46ec754d55acd1d29d328e4966af4d8577245d2cddfcd50d468",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 382
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "bytes": 26063,
+      "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1084
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "bytes": 48005,
+      "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1700
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "bytes": 184046,
+      "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 6410
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    }
+  ],
+  "sourceBytesRead": 1318099,
+  "cumulativeSourceBytes": 4878207,
+  "distinctSources": 13,
+  "requests": [
+    {
+      "file": "subst.c",
+      "pattern": "exp_jump_to_top_level|number = array_length_reference",
+      "limit": 15
+    },
+    {
+      "file": "eval.c",
+      "pattern": "FORCE_EOF|DISCARD",
+      "limit": 8
+    },
+    {
+      "file": "flags.c",
+      "pattern": "unbound_vars_is_error|change_flag",
+      "limit": 8
+    },
+    {
+      "file": "builtins/common.c",
+      "start": 90,
+      "end": 127
+    },
+    {
+      "file": "expr.c",
+      "start": 631,
+      "end": 671
+    },
+    {
+      "file": "expr.c",
+      "start": 681,
+      "end": 702
+    },
+    {
+      "file": "arrayfunc.c",
+      "pattern": "assign_array_from_string|att_invisible|make_new_array_variable",
+      "limit": 15
+    },
+    {
+      "file": "subst.c",
+      "start": 10403,
+      "end": 10426
+    },
+    {
+      "file": "execute_cmd.c",
+      "start": 412,
+      "end": 437
+    },
+    {
+      "file": "runtime",
+      "product": true,
+      "start": 3500,
+      "end": 3534
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 368,
+          "text": "static void exp_jump_to_top_level (int);"
+        },
+        {
+          "line": 1506,
+          "text": "\t  exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 1798,
+          "text": "\t  exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 2004,
+          "text": "\t  exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 4296,
+          "text": "      exp_jump_to_top_level ((result == &expand_word_error) ? DISCARD : FORCE_EOF);"
+        },
+        {
+          "line": 6965,
+          "text": "\t  exp_jump_to_top_level (DISCARD);\t\t/* XXX */"
+        },
+        {
+          "line": 7045,
+          "text": "\t  exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 8301,
+          "text": "    number = array_length_reference (name + 1);"
+        },
+        {
+          "line": 11172,
+          "text": "    exp_jump_to_top_level (FORCE_EOF);"
+        },
+        {
+          "line": 11174,
+          "text": "    exp_jump_to_top_level (DISCARD);\t/* XXX - maybe change later */"
+        },
+        {
+          "line": 11176,
+          "text": "    exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 11188,
+          "text": "    exp_jump_to_top_level (FORCE_EOF);"
+        },
+        {
+          "line": 11190,
+          "text": "    exp_jump_to_top_level (FORCE_EOF);"
+        },
+        {
+          "line": 11192,
+          "text": "    exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 12444,
+          "text": "exp_jump_to_top_level (int v)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "eval.c",
+      "selected": [
+        {
+          "line": 104,
+          "text": "\t    case FORCE_EOF:"
+        },
+        {
+          "line": 111,
+          "text": "\t    case DISCARD:"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "flags.c",
+      "selected": [
+        {
+          "line": 80,
+          "text": "int unbound_vars_is_error = 0;"
+        },
+        {
+          "line": 185,
+          "text": "  { 'u', &unbound_vars_is_error },"
+        },
+        {
+          "line": 226,
+          "text": "change_flag (int flag, int on_or_off)"
+        },
+        {
+          "line": 342,
+          "text": "  noclobber = unbound_vars_is_error = 0;"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "selected": [
+        {
+          "line": 90,
+          "text": "  if (interactive_shell == 0)"
+        },
+        {
+          "line": 91,
+          "text": "    fprintf (stderr, _(\"line %d: \"), executing_line_number ());"
+        },
+        {
+          "line": 92,
+          "text": ""
+        },
+        {
+          "line": 93,
+          "text": "  if (this_command_name && *this_command_name)"
+        },
+        {
+          "line": 94,
+          "text": "    fprintf (stderr, \"%s: \", this_command_name);"
+        },
+        {
+          "line": 95,
+          "text": "}"
+        },
+        {
+          "line": 96,
+          "text": ""
+        },
+        {
+          "line": 97,
+          "text": "void"
+        },
+        {
+          "line": 98,
+          "text": "builtin_error (const char *format, ...)"
+        },
+        {
+          "line": 99,
+          "text": "{"
+        },
+        {
+          "line": 100,
+          "text": "  va_list args;"
+        },
+        {
+          "line": 101,
+          "text": ""
+        },
+        {
+          "line": 102,
+          "text": "  builtin_error_prolog ();"
+        },
+        {
+          "line": 103,
+          "text": ""
+        },
+        {
+          "line": 104,
+          "text": "  va_start (args, format);"
+        },
+        {
+          "line": 105,
+          "text": ""
+        },
+        {
+          "line": 106,
+          "text": "  vfprintf (stderr, format, args);"
+        },
+        {
+          "line": 107,
+          "text": "  va_end (args);"
+        },
+        {
+          "line": 108,
+          "text": "  fprintf (stderr, \"\\n\");"
+        },
+        {
+          "line": 109,
+          "text": "}"
+        },
+        {
+          "line": 110,
+          "text": ""
+        },
+        {
+          "line": 111,
+          "text": "void"
+        },
+        {
+          "line": 112,
+          "text": "builtin_warning (const char *format, ...)"
+        },
+        {
+          "line": 113,
+          "text": "{"
+        },
+        {
+          "line": 114,
+          "text": "  va_list args;"
+        },
+        {
+          "line": 115,
+          "text": ""
+        },
+        {
+          "line": 116,
+          "text": "  builtin_error_prolog ();"
+        },
+        {
+          "line": 117,
+          "text": "  fprintf (stderr, _(\"warning: \"));"
+        },
+        {
+          "line": 118,
+          "text": ""
+        },
+        {
+          "line": 119,
+          "text": "  va_start (args, format);"
+        },
+        {
+          "line": 120,
+          "text": ""
+        },
+        {
+          "line": 121,
+          "text": "  vfprintf (stderr, format, args);"
+        },
+        {
+          "line": 122,
+          "text": "  va_end (args);"
+        },
+        {
+          "line": 123,
+          "text": "  fprintf (stderr, \"\\n\");"
+        },
+        {
+          "line": 124,
+          "text": "}"
+        },
+        {
+          "line": 125,
+          "text": ""
+        },
+        {
+          "line": 126,
+          "text": "/* Print a usage summary for the currently-executing builtin command. */"
+        },
+        {
+          "line": 127,
+          "text": "void"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 631,
+          "text": "{"
+        },
+        {
+          "line": 632,
+          "text": "  intmax_t cval, val1, val2, rval;"
+        },
+        {
+          "line": 633,
+          "text": "  int set_noeval;"
+        },
+        {
+          "line": 634,
+          "text": ""
+        },
+        {
+          "line": 635,
+          "text": "  set_noeval = 0;"
+        },
+        {
+          "line": 636,
+          "text": "  rval = cval = explor ();"
+        },
+        {
+          "line": 637,
+          "text": "  if (curtok == QUES)\t\t/* found conditional expr */"
+        },
+        {
+          "line": 638,
+          "text": "    {"
+        },
+        {
+          "line": 639,
+          "text": "      if (cval == 0)"
+        },
+        {
+          "line": 640,
+          "text": "\t{"
+        },
+        {
+          "line": 641,
+          "text": "\t  set_noeval = 1;"
+        },
+        {
+          "line": 642,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 643,
+          "text": "\t}"
+        },
+        {
+          "line": 644,
+          "text": ""
+        },
+        {
+          "line": 645,
+          "text": "      readtok ();"
+        },
+        {
+          "line": 646,
+          "text": "      if (curtok == 0 || curtok == COL)"
+        },
+        {
+          "line": 647,
+          "text": "\tevalerror (_(\"expression expected\"));"
+        },
+        {
+          "line": 648,
+          "text": ""
+        },
+        {
+          "line": 649,
+          "text": "      val1 = EXP_LOWEST ();"
+        },
+        {
+          "line": 650,
+          "text": ""
+        },
+        {
+          "line": 651,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 652,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 653,
+          "text": "      if (curtok != COL)"
+        },
+        {
+          "line": 654,
+          "text": "\tevalerror (_(\"`:' expected for conditional expression\"));"
+        },
+        {
+          "line": 655,
+          "text": ""
+        },
+        {
+          "line": 656,
+          "text": "      set_noeval = 0;"
+        },
+        {
+          "line": 657,
+          "text": "      if (cval)"
+        },
+        {
+          "line": 658,
+          "text": " \t{"
+        },
+        {
+          "line": 659,
+          "text": " \t  set_noeval = 1;"
+        },
+        {
+          "line": 660,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 661,
+          "text": " \t}"
+        },
+        {
+          "line": 662,
+          "text": ""
+        },
+        {
+          "line": 663,
+          "text": "      readtok ();"
+        },
+        {
+          "line": 664,
+          "text": "      if (curtok == 0)"
+        },
+        {
+          "line": 665,
+          "text": "\tevalerror (_(\"expression expected\"));"
+        },
+        {
+          "line": 666,
+          "text": "      val2 = expcond ();"
+        },
+        {
+          "line": 667,
+          "text": ""
+        },
+        {
+          "line": 668,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 669,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 670,
+          "text": "      rval = cval ? val1 : val2;"
+        },
+        {
+          "line": 671,
+          "text": "      lasttok = COND;"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 681,
+          "text": "  int set_noeval;"
+        },
+        {
+          "line": 682,
+          "text": ""
+        },
+        {
+          "line": 683,
+          "text": "  val1 = expland ();"
+        },
+        {
+          "line": 684,
+          "text": ""
+        },
+        {
+          "line": 685,
+          "text": "  while (curtok == LOR)"
+        },
+        {
+          "line": 686,
+          "text": "    {"
+        },
+        {
+          "line": 687,
+          "text": "      set_noeval = 0;"
+        },
+        {
+          "line": 688,
+          "text": "      if (val1 != 0)"
+        },
+        {
+          "line": 689,
+          "text": "\t{"
+        },
+        {
+          "line": 690,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 691,
+          "text": "\t  set_noeval = 1;"
+        },
+        {
+          "line": 692,
+          "text": "\t}"
+        },
+        {
+          "line": 693,
+          "text": "      readtok ();"
+        },
+        {
+          "line": 694,
+          "text": "      val2 = expland ();"
+        },
+        {
+          "line": 695,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 696,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 697,
+          "text": "      val1 = val1 || val2;"
+        },
+        {
+          "line": 698,
+          "text": "      lasttok = LOR;"
+        },
+        {
+          "line": 699,
+          "text": "    }"
+        },
+        {
+          "line": 700,
+          "text": ""
+        },
+        {
+          "line": 701,
+          "text": "  return (val1);"
+        },
+        {
+          "line": 702,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "selected": [
+        {
+          "line": 97,
+          "text": "    VUNSETATTR (var, att_invisible);"
+        },
+        {
+          "line": 134,
+          "text": "    VUNSETATTR (var, att_invisible);"
+        },
+        {
+          "line": 225,
+          "text": "  VUNSETATTR (entry, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 248,
+          "text": "  VUNSETATTR (entry, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 275,
+          "text": "\tentry = make_new_array_variable (nameref_cell (entry));"
+        },
+        {
+          "line": 278,
+          "text": "    entry = make_new_array_variable (name);"
+        },
+        {
+          "line": 476,
+          "text": "\t  var = (flags & 2) ? make_new_assoc_variable (nameref_cell (var)) : make_new_array_variable (nameref_cell (var));"
+        },
+        {
+          "line": 481,
+          "text": "    var = (flags & 2) ? make_new_assoc_variable (name) : make_new_array_variable (name);"
+        },
+        {
+          "line": 507,
+          "text": "assign_array_from_string (const char *name, char *value, int flags)"
+        },
+        {
+          "line": 551,
+          "text": "  VUNSETATTR (var, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 929,
+          "text": "    VUNSETATTR (var, att_invisible);\t/* no longer invisible */"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 10403,
+          "text": "\t      set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 10404,
+          "text": "\t      report_error (_(\"$%s: cannot assign in this way\"), name);"
+        },
+        {
+          "line": 10405,
+          "text": "\t      free (name);"
+        },
+        {
+          "line": 10406,
+          "text": "\t      free (value);"
+        },
+        {
+          "line": 10407,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 10408,
+          "text": "\t      flush_eltstate (&es);"
+        },
+        {
+          "line": 10409,
+          "text": "#endif"
+        },
+        {
+          "line": 10410,
+          "text": "\t      return &expand_wdesc_error;"
+        },
+        {
+          "line": 10411,
+          "text": "\t    }"
+        },
+        {
+          "line": 10412,
+          "text": "\t  else if (c == '?')"
+        },
+        {
+          "line": 10413,
+          "text": "\t    {"
+        },
+        {
+          "line": 10414,
+          "text": "\t      parameter_brace_expand_error (name, value, check_nullness);"
+        },
+        {
+          "line": 10415,
+          "text": "#if defined (ARRAY_VARS)"
+        },
+        {
+          "line": 10416,
+          "text": "\t      flush_eltstate (&es);"
+        },
+        {
+          "line": 10417,
+          "text": "#endif"
+        },
+        {
+          "line": 10418,
+          "text": "\t      return (interactive_shell ? &expand_wdesc_error : &expand_wdesc_fatal);"
+        },
+        {
+          "line": 10419,
+          "text": "\t    }"
+        },
+        {
+          "line": 10420,
+          "text": "\t  else if (c != '+')"
+        },
+        {
+          "line": 10421,
+          "text": "\t    {"
+        },
+        {
+          "line": 10422,
+          "text": "\t      /* XXX -- if we're double-quoted and the named variable is \"$@\","
+        },
+        {
+          "line": 10423,
+          "text": "\t\t\twe want to turn off any special handling of \"$@\" --"
+        },
+        {
+          "line": 10424,
+          "text": "\t\t\twe're not using it, so whatever is on the rhs applies. */"
+        },
+        {
+          "line": 10425,
+          "text": "\t      if ((quoted & (Q_HERE_DOCUMENT|Q_DOUBLE_QUOTES)) && quoted_dollar_atp)"
+        },
+        {
+          "line": 10426,
+          "text": "\t\t*quoted_dollar_atp = 0;"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "execute_cmd.c",
+      "selected": [
+        {
+          "line": 412,
+          "text": "executing_line_number (void)"
+        },
+        {
+          "line": 413,
+          "text": "{"
+        },
+        {
+          "line": 414,
+          "text": "  if (executing && showing_function_line == 0 &&"
+        },
+        {
+          "line": 415,
+          "text": "      (variable_context == 0 || interactive_shell == 0) &&"
+        },
+        {
+          "line": 416,
+          "text": "      currently_executing_command)"
+        },
+        {
+          "line": 417,
+          "text": "    {"
+        },
+        {
+          "line": 418,
+          "text": "#if defined (COND_COMMAND)"
+        },
+        {
+          "line": 419,
+          "text": "      if (currently_executing_command->type == cm_cond)"
+        },
+        {
+          "line": 420,
+          "text": "\treturn currently_executing_command->value.Cond->line;"
+        },
+        {
+          "line": 421,
+          "text": "#endif"
+        },
+        {
+          "line": 422,
+          "text": "#if defined (DPAREN_ARITHMETIC)"
+        },
+        {
+          "line": 423,
+          "text": "      if (currently_executing_command->type == cm_arith)"
+        },
+        {
+          "line": 424,
+          "text": "\treturn currently_executing_command->value.Arith->line;"
+        },
+        {
+          "line": 425,
+          "text": "#endif"
+        },
+        {
+          "line": 426,
+          "text": "#if defined (ARITH_FOR_COMMAND)"
+        },
+        {
+          "line": 427,
+          "text": "      if (currently_executing_command->type == cm_arith_for)"
+        },
+        {
+          "line": 428,
+          "text": "\treturn currently_executing_command->value.ArithFor->line;"
+        },
+        {
+          "line": 429,
+          "text": "#endif"
+        },
+        {
+          "line": 430,
+          "text": ""
+        },
+        {
+          "line": 431,
+          "text": "      return line_number;"
+        },
+        {
+          "line": 432,
+          "text": "    }"
+        },
+        {
+          "line": 433,
+          "text": "  else"
+        },
+        {
+          "line": 434,
+          "text": "    return line_number;"
+        },
+        {
+          "line": 435,
+          "text": "}"
+        },
+        {
+          "line": 436,
+          "text": ""
+        },
+        {
+          "line": 437,
+          "text": "/* Execute the command passed in COMMAND.  COMMAND is exactly what"
+        }
+      ]
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "selected": [
+        {
+          "line": 3500,
+          "text": "      child.depth++;"
+        },
+        {
+          "line": 3501,
+          "text": "      child.loopDepth = 0;"
+        },
+        {
+          "line": 3502,
+          "text": "      const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;"
+        },
+        {
+          "line": 3503,
+          "text": "      const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;"
+        },
+        {
+          "line": 3504,
+          "text": "      const fileShortcut = command?.kind === \"simple\" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === \"<\";"
+        },
+        {
+          "line": 3505,
+          "text": "      const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;"
+        },
+        {
+          "line": 3506,
+          "text": "      const substitutionDiagnosticLines = new Map<Command, number>();"
+        },
+        {
+          "line": 3507,
+          "text": "      for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,"
+        },
+        {
+          "line": 3508,
+          "text": "        part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);"
+        },
+        {
+          "line": 3509,
+          "text": "      const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };"
+        },
+        {
+          "line": 3510,
+          "text": "      state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);"
+        },
+        {
+          "line": 3511,
+          "text": "      state.status = state.substitutionStatus;"
+        },
+        {
+          "line": 3512,
+          "text": "      const bytes = capture.bytes();"
+        },
+        {
+          "line": 3513,
+          "text": "      if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${warningLine}: warning: command substitution: ignored null byte in input\\n`);"
+        },
+        {
+          "line": 3514,
+          "text": "      return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\\n+$/u, \"\");"
+        },
+        {
+          "line": 3515,
+          "text": "    }"
+        },
+        {
+          "line": 3516,
+          "text": "    const selector = getArraySelector(part);"
+        },
+        {
+          "line": 3517,
+          "text": "    if (selector) {"
+        },
+        {
+          "line": 3518,
+          "text": "      const store = requireArrays(state);"
+        },
+        {
+          "line": 3519,
+          "text": "      const binding = store.get(part.name);"
+        },
+        {
+          "line": 3520,
+          "text": "      if (selector.kind === \"element\") {"
+        },
+        {
+          "line": 3521,
+          "text": "        const index = numericIndex(selector.index);"
+        },
+        {
+          "line": 3522,
+          "text": "        if (index === undefined) throw new ArrayFailure(\"index outside 0..2147483647\");"
+        },
+        {
+          "line": 3523,
+          "text": "        const value = binding ? binding.get(index) : index === 0 ? state.variables[part.name] : undefined;"
+        },
+        {
+          "line": 3524,
+          "text": "        this.requireParameter(value, `${part.name}[${selector.index}]`, state, io, part.line);"
+        },
+        {
+          "line": 3525,
+          "text": "        return part.length ? String(Array.from(value ?? \"\").length) : value ?? \"\";"
+        },
+        {
+          "line": 3526,
+          "text": "      }"
+        },
+        {
+          "line": 3527,
+          "text": "      if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));"
+        },
+        {
+          "line": 3528,
+          "text": "      const values = await this.arrayMembers(part.name, state);"
+        },
+        {
+          "line": 3529,
+          "text": "      return this.arrayJoin(store.owner, values, Array.from(state.variables.IFS ?? \" \")[0] ?? \"\");"
+        },
+        {
+          "line": 3530,
+          "text": "    }"
+        },
+        {
+          "line": 3531,
+          "text": "    let value = part.name === \"?\" ? String(state.status)"
+        },
+        {
+          "line": 3532,
+          "text": "      : part.name === \"-\" ? `${state.errexit ? \"e\" : \"\"}${state.nounset ? \"u\" : \"\"}`"
+        },
+        {
+          "line": 3533,
+          "text": "      : part.name === \"#\" ? String(state.positional.length)"
+        },
+        {
+          "line": 3534,
+          "text": "      : part.name === \"@\" || part.name === \"*\" ? state.positional.join(hereString && (part.name === \"@\" || !part.quoted) ? \" \" : Array.from(state.variables.IFS ?? \" \")[0] ?? \"\")"
+        }
+      ]
+    }
+  ]
+}

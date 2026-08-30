@@ -1,0 +1,208 @@
+{
+  "schema": 2,
+  "state": "ROOT_IDENTITIES_BOUND_EXECUTION_DENIED",
+  "rootExpected": {
+    "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "sourceArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "fullPackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca"
+  },
+  "exactArtifacts": [
+    {
+      "role": "source-archive",
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+      "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+      "bytes": 2727936,
+      "expectedEntries": 273,
+      "rawBytesEqualRootExpected": true,
+      "fullMembershipProof": "COMPLETED_SEALED_V2_PACKET_STATIC_DATA_BINDING; overall golden-mode admission DENY"
+    },
+    {
+      "role": "full-package",
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+      "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+      "bytes": 786778,
+      "expectedEntries": 870,
+      "rawBytesEqualRootExpected": true,
+      "fullMembershipProof": "COMPLETED_SEALED_V2_PACKET_STATIC_DATA_BINDING; overall golden-mode admission DENY"
+    }
+  ],
+  "authorMetadata": {
+    "handoff": {
+      "revision": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md",
+      "sha256": "4f8bf5635a5efd2fb41244b557b0f7685bbf3f8d82e44827ff6b905c45409685",
+      "bytes": 6668
+    },
+    "sourceManifest": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+      "sha256": "b1e11c9dfc076c4b9ae307e0ff48ac0f18c4d002ed8ff06394bf49d5a562d9e1",
+      "bytes": 70320
+    },
+    "report": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPORT.json",
+      "sha256": "536383aca7dd7024ac851476c3b371c958d2c46926446eb163ba0e0df48f902b",
+      "bytes": 31135
+    },
+    "reproducibility": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPRODUCIBILITY.json",
+      "sha256": "81e8f607d26bd73d1c024b17f74bbb06f00e69312d9dbcd1c892f6b3b961e2f5",
+      "bytes": 812
+    },
+    "sourceManifestEntries": 281,
+    "qualification": "281 author reconstruction descriptors include8 author/test/protocol entries; not the273 production archive or271 consumer projection. Never use this broad author metadata as production admission."
+  },
+  "sourcePolicy": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "acceptedInterpreterBlob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+    "acceptedInterpreterSha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+    "selectedNewPaths": [
+      "src/commands/structured/query-core.ts",
+      "src/commands/yq/accounting.ts",
+      "src/commands/yq/encoder.ts",
+      "src/commands/yq/errors.ts",
+      "src/commands/yq/index.ts",
+      "src/commands/yq/parser.ts",
+      "src/commands/yq/README.md"
+    ],
+    "sourceArchiveExpectedEntries": 273,
+    "consumerProjectionExpectedEntries": 271,
+    "archiveOnlyBaselineSupport": [
+      "package-lock.json",
+      "scripts/typecheck.mjs"
+    ],
+    "wholeCandidateTree": false,
+    "syntheticCompositeCommit": false,
+    "authorTestsAndProtocolProductInputs": false,
+    "mutableHEAD": false
+  },
+  "proofClassification": {
+    "rawArtifactIdentity": "ROOT_EXPECTED_BYTES_MATCH_STATIC_HASH",
+    "authorBuild": "AUTHOR_ARTIFACT_BINDING_ONLY",
+    "freshIndependentBuild": "UNRUN_REQUIRED",
+    "authorRepairAnd26Yq19Jq": "AUTHOR_ONLY_NOT_INHERITED",
+    "publicExport": "PUBLIC_EXPORT_GAP"
+  },
+  "requiredBeforeExecution": {
+    "correctedPacket": {
+      "state": "BOUND_DATA_ADMISSION_DENY",
+      "value": {
+        "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+        "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+        "bytes": 6776
+      },
+      "reason": "Full273/271/870 data proof bound; historical original POSIX-mode authority gap keeps admission DENY."
+    },
+    "independentBuild": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh bounded source compile and exact comparison/relocation receipt; oldf75035da proof cannot qualify b8"
+    },
+    "completeRuntimeRecipe": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "New source composition including b8 authority and CMD22 fragment plus actual future wrapper"
+    },
+    "completeConsumerRecipe": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh selected-origin/package/type source bindings; old35da pinned helpers are not current authority"
+    },
+    "loader": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Complete role-aware loader and exact future worker entry maps"
+    },
+    "toolchain": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Independent exact copied tool hashes/argv/env and compiler/type roots"
+    },
+    "rootReceipt": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh exact path/raw hash/purpose and source/recipe/schedule/build bindings"
+    },
+    "rootExpectedReceiptHash": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Independent root-supplied expected receipt hash"
+    },
+    "RootGO": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Old authorization consumed; plan review is not GO"
+    },
+    "goldenHistoricalModeAuthority": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Prior b8 v1 self-excluded FINAL-SEAL.json has no located committed original POSIX-mode authority. Its raw Git bytes/class and observed full before/after mode/membership are checked, but missing original-mode admission explicitly rejects. Do not infer mode or waive this denial."
+    }
+  },
+  "stages": [
+    {
+      "stage": "INITIAL_ROOT_FENCE",
+      "requires": [
+        "rootReceipt",
+        "rootReceiptExpectedHash",
+        "rootGO"
+      ],
+      "effect": "No child or candidate load before independently supplied raw receipt hash, exact purpose/actions and fresh run identity validate."
+    },
+    {
+      "stage": "AUTHENTICATION_BUILD_SETUP",
+      "requires": [
+        "sourceCommit",
+        "evidenceCommit",
+        "handoffCommit",
+        "selectedFileOrigins",
+        "sourceArchive",
+        "sourceManifest",
+        "sourceProjectionManifest",
+        "fullPackageArchive",
+        "packageManifest",
+        "toolchain",
+        "sourceMapRelocationRecipe",
+        "rootDesignatedBuildVerifier",
+        "cohortExecutorSeal",
+        "runtimeGuardRecipe",
+        "consumerSeals",
+        "loaderSeal",
+        "CMD22CorrectionSeal",
+        "frameworkReviewReceipt",
+        "toolInvocationInventory"
+      ],
+      "doesNotRequireYet": [
+        "independentBuildProof"
+      ],
+      "effect": "Only exact fresh GO-authorized authentication/build/setup actions. No semantic import; missing prerequisite stops admission."
+    },
+    {
+      "stage": "RUNTIME_ADMISSION",
+      "requires": [
+        "independentBuildProof",
+        "compiledEntry",
+        "declarationEntries",
+        "sourceStaticProofBindings"
+      ],
+      "additional": "Root-designated verifier hash binds actual fresh scoped-build receipt; author artifact binding alone is insufficient. Source report gaps remain UNRUN; source authenticity/admission failures STOP.",
+      "effect": "Only after full source/package/recipe guards and successful runtime admission; one original t0 remains in force."
+    },
+    {
+      "stage": "LOADED_MUTANT_ADMISSION",
+      "requires": [
+        "loadedMutantAuthorizations"
+      ],
+      "effect": "Control-only exact pre/postimage maps and unchanged frozen witnesses; pristine candidate authority is never reused for mutated bytes."
+    }
+  ],
+  "packetBinding": "PACKET-BINDING.json"
+}

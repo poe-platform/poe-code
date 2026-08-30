@@ -1,0 +1,24 @@
+ok - pending direct stat is pure
+ok - pending direct lstat is pure
+not ok - pending direct readdir is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending direct DU traversal is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending readonly wrapper readdir is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending readonly wrapper DU traversal is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending mount over overlay readdir is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending mount over overlay DU traversal is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending overlay over mount readdir is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - pending overlay over mount du is pure: backing snapshots unchanged; pending garbage remains; no backing mutations
+not ok - metadata failure and retry preserve pending state: failure leaves backing unchanged; pending garbage remains through retry; failure and retry make no mutations
+ok - pre-aborted metadata read is pure
+not ok - mid-traversal cancellation is pure: backing snapshots unchanged; pending garbage remains; no mutations
+ok - active stage remains hidden and queued readdir phase is pure
+ok - active stage remains hidden and queued du phase is pure
+ok - explicit cleanup remains a functional positive control
+ok - ordinary overlay mutation remains a functional positive control
+ok - ordinary content read remains a functional positive control
+ok - negative control kills readdir cleanup mutant
+ok - negative control kills DU content-read mutant
+ok - negative control kills DU copy-up mutant
+ok - invalid selected DU_BLOCK_SIZE falls back to no-env default
+ok - empty selected DU_BLOCK_SIZE falls back to no-env default
+ok - explicit -B remains strict and valid explicit precedence works

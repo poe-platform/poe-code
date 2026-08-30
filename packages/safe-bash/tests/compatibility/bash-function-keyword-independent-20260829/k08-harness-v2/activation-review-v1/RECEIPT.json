@@ -1,0 +1,60 @@
+{
+  "decision": "ACCEPT_FINAL_SLOT_ONLY",
+  "utc": "2026-08-29T15:40:03.153Z",
+  "bindingCommit": "b52b2ef61a5ea3cc97be80ef338e02a9444fde85",
+  "priorReview": "29b6f0d5696e920cf42dbaac120b05e675e6b03f",
+  "candidateSealSha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+  "grant": {
+    "bytes": 976,
+    "mode": "0600",
+    "sha256": "5faba4fe944420c29637b0d9d643c24555cc6be05638134d90910f6d59a2891b"
+  },
+  "review": {
+    "bytes": 211,
+    "mode": "0600",
+    "sha256": "19b53c9dcc8c9eaa5b3f63b4b5599cdbcaa3e79d5ca24a587371aeaa7e50a684",
+    "commit": "29b6f0d5696e920cf42dbaac120b05e675e6b03f"
+  },
+  "command": {
+    "bytes": 346,
+    "sha256": "e48cfe86594ed6f3fd56e6add6f3a839770d9e190f45135de77342bd0fe803d9",
+    "text": "exec /bin/zsh -f '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/launch.sh' '199449' '430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49' '5faba4fe944420c29637b0d9d643c24555cc6be05638134d90910f6d59a2891b' '19b53c9dcc8c9eaa5b3f63b4b5599cdbcaa3e79d5ca24a587371aeaa7e50a684'\n",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false
+  },
+  "window": {
+    "issued": "2026-08-29T15:33:29.112Z",
+    "latest": "2026-08-29T15:53:29.112Z",
+    "expiry": "2026-08-29T16:18:29.112Z"
+  },
+  "sourceInputs": 306,
+  "shippingMembers": 1006,
+  "packetFiles": 15,
+  "inheritedHelpers": 9,
+  "checks": 1353,
+  "postchecks": 1353,
+  "helperRuns": 1,
+  "helperExit": 0,
+  "helperStdout": {
+    "bytes": 170,
+    "sha256": "fb36f1670a2dcd16be4e74b290ddd0a1c0ddad381dd8f3dcb3ecb0ab271f48bd"
+  },
+  "helperStderrBytes": 0,
+  "resultSha256": "8f6da79df86d403ec0c045492f2d1dc4863766c0b0b8ee1a5fc06d514ad35646",
+  "presealSha256": "34f3c44c7864400c5a77869114f5d242d05ca59354a57339dceeb40bf6741a87",
+  "reportSha256": "7bcf1e7273aa7016e794f3587728e3f0967293013bfdfe4222f17a997877f406",
+  "reviewRoles": {
+    "knownThroughFinalPublication": 16,
+    "authorized": 20,
+    "peakKnownMaximum": 2,
+    "authorizedPeak": 3,
+    "finalPublicationRolesReserved": 5,
+    "globalCensus": false
+  },
+  "unusedPaths": 12,
+  "futureCaptureEmpty": true,
+  "actualGo": false,
+  "productCalls": 0,
+  "workers": 0,
+  "historicalUnchanged": true
+}

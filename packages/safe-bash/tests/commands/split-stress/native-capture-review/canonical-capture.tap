@@ -1,0 +1,38 @@
+TAP version 13
+# Subtest: GNU errors: exact status/effects, separately asserted diagnostic profiles
+ok 1 - GNU errors: exact status/effects, separately asserted diagnostic profiles
+  ---
+  duration_ms: 115.961875
+  type: 'test'
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-independent-FJwJnQ/canonical-capture/virtual-bash-split-capture-Rzuq1Z/gnu-errors.json
+# Subtest: explicit GNU versus Apple naming/profile differences remain visible
+ok 2 - explicit GNU versus Apple naming/profile differences remain visible
+  ---
+  duration_ms: 357.523916
+  type: 'test'
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-independent-FJwJnQ/canonical-capture/virtual-bash-split-capture-Nenz1b/native-profile-differences.json
+# Subtest: native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+ok 3 - native gnu9.7-darwin: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 998.484
+  type: 'test'
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-independent-FJwJnQ/canonical-capture/virtual-bash-split-capture-iBRwpq/gnu9.7-darwin.json
+# Subtest: native apple-bsd: exact status/stdout/stderr/file bytes
+ok 4 - native apple-bsd: exact status/stdout/stderr/file bytes
+  ---
+  duration_ms: 371.932667
+  type: 'test'
+  ...
+# split native capture: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-split-independent-FJwJnQ/canonical-capture/virtual-bash-split-capture-cQUQk2/apple-bsd.json
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1580.341125

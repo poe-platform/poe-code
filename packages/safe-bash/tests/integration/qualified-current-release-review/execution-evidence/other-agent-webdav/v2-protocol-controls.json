@@ -1,0 +1,4292 @@
+[
+  {
+    "mode": "original",
+    "operation": "mv",
+    "providerSha256": "fb7876327faa37ff190716afcbc3bcb400a0afc68af833652ef038eacfaf1f57",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1787818471714,
+        "mtimeMs": 1787818471714,
+        "ctimeMs": 1787818471714
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471714,
+        "mtimeMs": 1787818471714,
+        "ctimeMs": 1787818471714
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PUT",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/octet-stream"
+        },
+        "requestBody": "\u0000��\r\nA",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 204,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471762,
+          "ctimeMs": 1787818471762
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471714
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471762,
+          "ctimeMs": 1787818471762
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-2&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471762,
+          "ctimeMs": 1787818471762
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471762,
+          "ctimeMs": 1787818471762
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-2&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471762,
+          "ctimeMs": 1787818471762
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-2\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-2\\\"\",\"type\":\"file\",\"atimeMs\":1787818471714,\"mtimeMs\":1787818471714}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471762,
+          "ctimeMs": 1787818471762
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471767
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471767
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-3&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471767
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52674/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471767
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-3&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471714,
+          "mtimeMs": 1787818471714,
+          "ctimeMs": 1787818471767
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "stdout": "",
+      "stderr": "mv: EAGAIN: resource temporarily unavailable, utimes '/remote/target'\n",
+      "stdoutBytes": {},
+      "stderrBytes": {
+        "0": 109,
+        "1": 118,
+        "2": 58,
+        "3": 32,
+        "4": 69,
+        "5": 65,
+        "6": 71,
+        "7": 65,
+        "8": 73,
+        "9": 78,
+        "10": 58,
+        "11": 32,
+        "12": 114,
+        "13": 101,
+        "14": 115,
+        "15": 111,
+        "16": 117,
+        "17": 114,
+        "18": 99,
+        "19": 101,
+        "20": 32,
+        "21": 116,
+        "22": 101,
+        "23": 109,
+        "24": 112,
+        "25": 111,
+        "26": 114,
+        "27": 97,
+        "28": 114,
+        "29": 105,
+        "30": 108,
+        "31": 121,
+        "32": 32,
+        "33": 117,
+        "34": 110,
+        "35": 97,
+        "36": 118,
+        "37": 97,
+        "38": 105,
+        "39": 108,
+        "40": 97,
+        "41": 98,
+        "42": 108,
+        "43": 101,
+        "44": 44,
+        "45": 32,
+        "46": 117,
+        "47": 116,
+        "48": 105,
+        "49": 109,
+        "50": 101,
+        "51": 115,
+        "52": 32,
+        "53": 39,
+        "54": 47,
+        "55": 114,
+        "56": 101,
+        "57": 109,
+        "58": 111,
+        "59": 116,
+        "60": 101,
+        "61": 47,
+        "62": 116,
+        "63": 97,
+        "64": 114,
+        "65": 103,
+        "66": 101,
+        "67": 116,
+        "68": 39,
+        "69": 10
+      },
+      "exitCode": 1
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 6,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1787818471761,
+        "mtimeMs": 1787818471714,
+        "ctimeMs": 1787818471714
+      },
+      "target": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1787818471714,
+        "mtimeMs": 1787818471714,
+        "ctimeMs": 1787818471767
+      }
+    },
+    "targetBytes": [
+      0,
+      255,
+      128,
+      13,
+      10,
+      65
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PUT",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "original",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "fb7876327faa37ff190716afcbc3bcb400a0afc68af833652ef038eacfaf1f57",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471770
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471770,
+        "mtimeMs": 1787818471770,
+        "ctimeMs": 1787818471770
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52677/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471770,
+          "mtimeMs": 1787818471770,
+          "ctimeMs": 1787818471770
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471770,
+          "mtimeMs": 1787818471770,
+          "ctimeMs": 1787818471770
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52677/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471770,
+          "mtimeMs": 1787818471770,
+          "ctimeMs": 1787818471770
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471770,
+          "mtimeMs": 1787818471770,
+          "ctimeMs": 1787818471770
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52677/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471770,
+          "mtimeMs": 1787818471770,
+          "ctimeMs": 1787818471770
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471774
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52677/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471774
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471774
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52677/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471774
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471774
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EAGAIN",
+      "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1700000000000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471770
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471774
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "original",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000000,
+      "mtimeMs": 1700000000000
+    },
+    "providerSha256": "fb7876327faa37ff190716afcbc3bcb400a0afc68af833652ef038eacfaf1f57",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000000,
+        "mtimeMs": 1700000000000,
+        "ctimeMs": 1787818471775
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471775,
+        "mtimeMs": 1787818471775,
+        "ctimeMs": 1787818471775
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52680/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471775,
+          "mtimeMs": 1787818471775,
+          "ctimeMs": 1787818471775
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471775,
+          "mtimeMs": 1787818471775,
+          "ctimeMs": 1787818471775
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52680/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471775,
+          "mtimeMs": 1787818471775,
+          "ctimeMs": 1787818471775
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471775,
+          "mtimeMs": 1787818471775,
+          "ctimeMs": 1787818471775
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52680/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000000,\"mtimeMs\":1700000000000}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471775,
+          "mtimeMs": 1787818471775,
+          "ctimeMs": 1787818471775
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000000,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471778
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52680/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000000,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471778
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000000,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471778
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52680/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000000,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471778
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000000,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471778
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EAGAIN",
+      "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1700000000000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000000,
+        "mtimeMs": 1700000000000,
+        "ctimeMs": 1787818471775
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1700000000000,
+        "mtimeMs": 1700000000000,
+        "ctimeMs": 1787818471778
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "original",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 0,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "fb7876327faa37ff190716afcbc3bcb400a0afc68af833652ef038eacfaf1f57",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 0,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471779
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471779,
+        "mtimeMs": 1787818471779,
+        "ctimeMs": 1787818471779
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52683/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471779,
+          "mtimeMs": 1787818471779,
+          "ctimeMs": 1787818471779
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471779,
+          "mtimeMs": 1787818471779,
+          "ctimeMs": 1787818471779
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52683/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471779,
+          "mtimeMs": 1787818471779,
+          "ctimeMs": 1787818471779
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471779,
+          "mtimeMs": 1787818471779,
+          "ctimeMs": 1787818471779
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52683/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":0,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471779,
+          "mtimeMs": 1787818471779,
+          "ctimeMs": 1787818471779
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471782
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52683/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471782
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471782
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52683/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471782
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471782
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EAGAIN",
+      "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1700000000000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 0,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471779
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 0,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471782
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "original",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 0,
+      "mtimeMs": 1700000000000
+    },
+    "providerSha256": "fb7876327faa37ff190716afcbc3bcb400a0afc68af833652ef038eacfaf1f57",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 0,
+        "mtimeMs": 1700000000000,
+        "ctimeMs": 1787818471784
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471784,
+        "mtimeMs": 1787818471784,
+        "ctimeMs": 1787818471784
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52686/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471784,
+          "mtimeMs": 1787818471784,
+          "ctimeMs": 1787818471784
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471784,
+          "mtimeMs": 1787818471784,
+          "ctimeMs": 1787818471784
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52686/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471784,
+          "mtimeMs": 1787818471784,
+          "ctimeMs": 1787818471784
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471784,
+          "mtimeMs": 1787818471784,
+          "ctimeMs": 1787818471784
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52686/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":0,\"mtimeMs\":1700000000000}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471784,
+          "mtimeMs": 1787818471784,
+          "ctimeMs": 1787818471784
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471787
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52686/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471787
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471787
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52686/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471787
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 0,
+          "mtimeMs": 1700000000000,
+          "ctimeMs": 1787818471787
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "success"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1700000000000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 0,
+        "mtimeMs": 1700000000000,
+        "ctimeMs": 1787818471784
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 0,
+        "mtimeMs": 1700000000000,
+        "ctimeMs": 1787818471787
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "dead-property",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "c1ffbbb170051ab8f0cb2990dade7c0f87655a7f2010b209445e01aa2420cea7",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471789
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471789,
+        "mtimeMs": 1787818471789,
+        "ctimeMs": 1787818471789
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52689/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52689/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52689/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52689/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "532",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52689/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "532",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471789,
+          "mtimeMs": 1787818471789,
+          "ctimeMs": 1787818471789
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "success"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471789
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471789,
+        "mtimeMs": 1787818471789,
+        "ctimeMs": 1787818471789
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "dead-property-native",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "287ea5c757f7d936725e96da9b937f426ee4fe87c1f8d26e18d59c5fc32ac0b8",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471792
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471792,
+        "mtimeMs": 1787818471792,
+        "ctimeMs": 1787818471792
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52692/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471792,
+          "mtimeMs": 1787818471792,
+          "ctimeMs": 1787818471792
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471792,
+          "mtimeMs": 1787818471792,
+          "ctimeMs": 1787818471792
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52692/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471792,
+          "mtimeMs": 1787818471792,
+          "ctimeMs": 1787818471792
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471792,
+          "mtimeMs": 1787818471792,
+          "ctimeMs": 1787818471792
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52692/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471792,
+          "mtimeMs": 1787818471792,
+          "ctimeMs": 1787818471792
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471794
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52692/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471794
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "532",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471794
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52692/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471794
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "532",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Tue, 14 Nov 2023 22:13:20 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1700000000456.25,
+          "mtimeMs": 1700000000123.5,
+          "ctimeMs": 1787818471794
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EAGAIN",
+      "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1700000000000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471792
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471794
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "wrong-namespace",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "910ee2f3e14f3e2d02852af83be1e5777782788b805837f451b65483c1bd1e52",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471795
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471795,
+        "mtimeMs": 1787818471795,
+        "ctimeMs": 1787818471795
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52695/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52695/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52695/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52695/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "527",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:diagnostic:wrong\">{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52695/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "527",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:diagnostic:wrong\">{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471795,
+          "mtimeMs": 1787818471795,
+          "ctimeMs": 1787818471795
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EAGAIN",
+      "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471795
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471795,
+        "mtimeMs": 1787818471795,
+        "ctimeMs": 1787818471795
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "rounded-property",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "eccd56e0f29dc1a1dd68b4f433be956ecbce837594a4402e7937fadbf18b5336",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471799
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471799,
+        "mtimeMs": 1787818471799,
+        "ctimeMs": 1787818471799
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52698/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52698/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52698/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52698/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "607",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{&quot;version&quot;:1,&quot;etag&quot;:&quot;\\&quot;fixture-0\\&quot;&quot;,&quot;type&quot;:&quot;file&quot;,&quot;atimeMs&quot;:1700000000000,&quot;mtimeMs&quot;:1700000000000}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52698/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "607",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{&quot;version&quot;:1,&quot;etag&quot;:&quot;\\&quot;fixture-0\\&quot;&quot;,&quot;type&quot;:&quot;file&quot;,&quot;atimeMs&quot;:1700000000000,&quot;mtimeMs&quot;:1700000000000}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471799,
+          "mtimeMs": 1787818471799,
+          "ctimeMs": 1787818471799
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EAGAIN",
+      "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 1700000000000,
+      "mtimeMs": 1700000000000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471799
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471799,
+        "mtimeMs": 1787818471799,
+        "ctimeMs": 1787818471799
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "denied-property",
+    "operation": "utimes",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "2de01637967dbe50ee99c7c00b69d410a3b8f7b1ed574c47650baa07cdb07351",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471803
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471803,
+        "mtimeMs": 1787818471803,
+        "ctimeMs": 1787818471803
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52701/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52701/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52701/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-0\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-0\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "235",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 403 Forbidden</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52701/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471803,
+          "mtimeMs": 1787818471803,
+          "ctimeMs": 1787818471803
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "status": "error",
+      "code": "EACCES",
+      "message": "EACCES: WebDAV HTTP status 403, PROPPATCH '/target'"
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471803
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471803,
+        "mtimeMs": 1787818471803,
+        "ctimeMs": 1787818471803
+      }
+    },
+    "targetBytes": [
+      79,
+      76,
+      68
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND"
+    ]
+  },
+  {
+    "mode": "dead-property",
+    "operation": "mv",
+    "fixedTimes": {
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5
+    },
+    "providerSha256": "c1ffbbb170051ab8f0cb2990dade7c0f87655a7f2010b209445e01aa2420cea7",
+    "initialBacking": {
+      "source": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1700000000456.25,
+        "mtimeMs": 1700000000123.5,
+        "ctimeMs": 1787818471805
+      },
+      "target": {
+        "type": "file",
+        "size": 3,
+        "atimeMs": 1787818471805,
+        "mtimeMs": 1787818471805,
+        "ctimeMs": 1787818471805
+      }
+    },
+    "traffic": [
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>3</d:getcontentlength><d:getetag>&quot;fixture-0&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PUT",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/octet-stream"
+        },
+        "requestBody": "\u0000��\r\nA",
+        "backingBefore": {
+          "type": "file",
+          "size": 3,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 204,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "373",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/</d:href><d:propstat><d:prop><d:resourcetype><d:collection/></d:resourcetype><d:getcontentlength>0</d:getcontentlength><d:getetag>&quot;fixture-1&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "directory",
+          "size": 0,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471805,
+          "ctimeMs": 1787818471805
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-2&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "364",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-2&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        }
+      },
+      {
+        "method": "PROPPATCH",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "if-match": "\"fixture-2\""
+        },
+        "requestBody": "<d:propertyupdate xmlns:d=\"DAV:\" xmlns:v=\"urn:virtual-bash:metadata\"><d:set><d:prop><v:timestamps>{\"version\":1,\"etag\":\"\\\"fixture-2\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop></d:set></d:propertyupdate>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "228",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "532",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-2&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{\"version\":1,\"etag\":\"\\\"fixture-2\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        }
+      },
+      {
+        "method": "PROPFIND",
+        "url": "http://127.0.0.1:52704/dav/target",
+        "requestHeaders": {
+          "cache-control": "no-cache",
+          "content-type": "application/xml; charset=utf-8",
+          "depth": "0"
+        },
+        "requestBody": "<?xml version=\"1.0\" encoding=\"utf-8\"?><d:propfind xmlns:d=\"DAV:\"><d:prop><d:resourcetype/><d:getcontentlength/><d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\"/></d:prop></d:propfind>",
+        "backingBefore": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        },
+        "responseStatus": 207,
+        "responseHeaders": {
+          "connection": "keep-alive",
+          "content-length": "532",
+          "content-type": "application/xml",
+          "date": "Thu, 27 Aug 2026 08:14:31 GMT",
+          "keep-alive": "timeout=5"
+        },
+        "responseBody": "<d:multistatus xmlns:d=\"DAV:\"><d:response><d:href>/dav/target</d:href><d:propstat><d:prop><d:resourcetype></d:resourcetype><d:getcontentlength>6</d:getcontentlength><d:getetag>&quot;fixture-2&quot;</d:getetag><d:getlastmodified>Thu, 27 Aug 2026 08:14:31 GMT</d:getlastmodified><v:timestamps xmlns:v=\"urn:virtual-bash:metadata\">{\"version\":1,\"etag\":\"\\\"fixture-2\\\"\",\"type\":\"file\",\"atimeMs\":1700000000456.25,\"mtimeMs\":1700000000123.5}</v:timestamps></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>",
+        "backingAfter": {
+          "type": "file",
+          "size": 6,
+          "atimeMs": 1787818471805,
+          "mtimeMs": 1787818471818,
+          "ctimeMs": 1787818471818
+        }
+      }
+    ],
+    "initialRemote": {
+      "type": "file",
+      "size": 3,
+      "atimeMs": 0,
+      "mtimeMs": 1787818471000,
+      "ctimeMs": 0
+    },
+    "result": {
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": {},
+      "stderrBytes": {},
+      "exitCode": 0
+    },
+    "finalRemote": {
+      "type": "file",
+      "size": 6,
+      "atimeMs": 1700000000456.25,
+      "mtimeMs": 1700000000123.5,
+      "ctimeMs": 0
+    },
+    "finalBacking": {
+      "source": {
+        "code": "ENOENT"
+      },
+      "target": {
+        "type": "file",
+        "size": 6,
+        "atimeMs": 1787818471805,
+        "mtimeMs": 1787818471818,
+        "ctimeMs": 1787818471818
+      }
+    },
+    "targetBytes": [
+      0,
+      255,
+      128,
+      13,
+      10,
+      65
+    ],
+    "methods": [
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PUT",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPFIND",
+      "PROPPATCH",
+      "PROPFIND",
+      "PROPFIND"
+    ]
+  }
+]

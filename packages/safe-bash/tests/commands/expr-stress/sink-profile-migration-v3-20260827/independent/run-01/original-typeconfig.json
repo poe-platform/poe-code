@@ -1,0 +1,20 @@
+{
+  "extends": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/source/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": false,
+    "typeRoots": [
+      "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+    ]
+  },
+  "files": [
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/tests/commands/expr/contracts.test.ts",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/tests/commands/expr/abort-reason-regression.test.ts",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/tests/commands/expr/regex-lifecycle.test.ts",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/tests/commands/expr/regex-limits.test.ts",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/tests/commands/expr/regex-protocol.test.ts",
+    "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/original-typed/tests/commands/expr/grammar.test.ts"
+  ],
+  "include": [],
+  "exclude": []
+}

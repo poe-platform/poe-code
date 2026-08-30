@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: prep: reject full execution without explicit handoff
+ok 1 - prep: reject full execution without explicit handoff
+  ---
+  duration_ms: 35.904917
+  type: 'test'
+  ...
+# Subtest: prep: independent accounting reconciles preserved 9920 dirty-snapshot TAP
+ok 2 - prep: independent accounting reconciles preserved 9920 dirty-snapshot TAP
+  ---
+  duration_ms: 28.530541
+  type: 'test'
+  ...
+# Subtest: prep: truncated test output cannot reconcile as a successful gate
+ok 3 - prep: truncated test output cannot reconcile as a successful gate
+  ---
+  duration_ms: 0.195459
+  type: 'test'
+  ...
+# Subtest: prep: skip and characterization remain distinct from accepted feature behavior
+ok 4 - prep: skip and characterization remain distinct from accepted feature behavior
+  ---
+  duration_ms: 0.063
+  type: 'test'
+  ...
+# Subtest: prep: GNU availability skips and noncompliant characterizations are explicitly classified
+ok 5 - prep: GNU availability skips and noncompliant characterizations are explicitly classified
+  ---
+  duration_ms: 0.073875
+  type: 'test'
+  ...
+# Subtest: prep: supervisor captures a bounded successful child
+ok 6 - prep: supervisor captures a bounded successful child
+  ---
+  duration_ms: 167.6865
+  type: 'test'
+  ...
+# Subtest: prep: timeout cleans its descendant but leaves another task-owned group alone
+ok 7 - prep: timeout cleans its descendant but leaves another task-owned group alone
+  ---
+  duration_ms: 906.459125
+  type: 'test'
+  ...
+# Subtest: prep: module guard rejects live product fallback without executing it
+ok 8 - prep: module guard rejects live product fallback without executing it
+  ---
+  duration_ms: 33.983333
+  type: 'test'
+  ...
+# Subtest: prep: guard accepts isolated TypeScript and preserves nested native TAP
+ok 9 - prep: guard accepts isolated TypeScript and preserves nested native TAP
+  ---
+  duration_ms: 291.292166
+  type: 'test'
+  ...
+# Subtest: prep: output quota terminates the exact noisy child without pass status
+ok 10 - prep: output quota terminates the exact noisy child without pass status
+  ---
+  duration_ms: 213.657334
+  type: 'test'
+  ...
+# Subtest: prep: loopback listener observation and cleanup do not require external service
+ok 11 - prep: loopback listener observation and cleanup do not require external service
+  ---
+  duration_ms: 1700.902
+  type: 'test'
+  ...
+# Subtest: prep: isolated history retains frozen ancestors without later commits or live fallback
+ok 12 - prep: isolated history retains frozen ancestors without later commits or live fallback
+  ---
+  duration_ms: 334.609417
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3759.659625

@@ -1,0 +1,54 @@
+{
+  "candidate": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+  "parent": "219790c55c0214e6d46524bbdced63c18c360f62",
+  "sourceTree": "2cdf194035e4833341b3cd66e2b6a945d50b7499",
+  "sourceState": "Live dirty owned validator/doc/test before candidate commit; inspected source delta against parent was exactly the two owned source/doc paths. Sealed candidate recorded immediately afterward. This live capture is not the later archived packed execution.",
+  "markerSha256": "85dbbcbe8be177b9b27de29ee944577f04b3c4d6c7b03255adf00b4c9aa7620e",
+  "commands": [
+    "node --import tsx --test tests/commands/network/zero-caps.test.ts",
+    "node --import tsx --test tests/commands/network/{safety,byte-ownership,exports}.test.ts tests/commands/network-policy-stress/{authorization,url-policy,late-policy}.test.ts",
+    "npm run build",
+    "node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node tests/commands/network/zero-caps.test.ts tests/commands/network/{safety,byte-ownership,exports}.test.ts tests/commands/network-policy-stress/{authorization,url-policy,late-policy}.test.ts"
+  ],
+  "knownResults": {
+    "author": {
+      "tests": 138,
+      "pass": 138,
+      "fail": 0,
+      "skipped": 0
+    },
+    "regressions": {
+      "tests": 63,
+      "pass": 63,
+      "fail": 0,
+      "skipped": 0
+    },
+    "build": 0,
+    "scopedStrict": 0
+  },
+  "logs": {
+    "focused.tap": {
+      "sha256": "6630009a74a1064ec28d794dd643f6132368c9f5e5bd77e94a7c41aee1d83ad5",
+      "bytes": 27596,
+      "logMtime": "2026-08-27T16:26:29.783Z"
+    },
+    "regressions.tap": {
+      "sha256": "34f85eb1ef37170f8f083d5643d8a55a445f8e40ec3e324b51d38231964a9110",
+      "bytes": 12825,
+      "logMtime": "2026-08-27T16:26:30.455Z"
+    },
+    "build.log": {
+      "sha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0",
+      "bytes": 58,
+      "logMtime": "2026-08-27T16:26:30.608Z"
+    },
+    "strict.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "logMtime": "2026-08-27T16:26:32.626Z"
+    }
+  },
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "classification": "Author observations; selected nonnative regressions only. Logs are immutable data, not canonical test inputs. No full gate run."
+}

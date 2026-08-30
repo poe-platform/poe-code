@@ -1,0 +1,50 @@
+{
+  "canonical": {
+    "diagnosis": "b8e4e24b0e3366c72e5b2e52acb5c94ac32877f1",
+    "source": "4c764d70148d7c3aacbc743fff7fc09fb4436924",
+    "controls": "164f9e5eb141969b56cf742cb3a791dc5092038f",
+    "prefixResolution": "scoped git rev-parse, not manually relayed longer spelling"
+  },
+  "finalization": {
+    "source": "83f750e57470546a95782cb9ce54a81d4900127a",
+    "review": "5bc05a7de1e844313860e1cb4e7756972274055a",
+    "gitBlob": "c4b94af78915e734e5cae7ac62d9be08aed9d80a",
+    "bytes": 850,
+    "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6",
+    "unchanged": true
+  },
+  "old": {
+    "source": "52b6711e888361015acc38017be2a6b08509d8a7",
+    "evidence": "a5d8101628d9c2486c93b46abd55f03779f6905e",
+    "completedCases": 0,
+    "startupStop": 1,
+    "unadmitted": 53,
+    "package": {
+      "path": "/private/tmp/safe-bash-b35-author-xSdFBJ/virtual-bash-b35.tgz",
+      "bytes": 978812,
+      "sha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d",
+      "mode": 384,
+      "at": 1788007626111
+    }
+  },
+  "controls": {
+    "seal": {
+      "bytes": 11857,
+      "sha256": "bb0771c8bc25f3de389e592322696730d76540cd58415fa07d103930b49c943a"
+    },
+    "actualKinds": {
+      "PURE": 12,
+      "harmlessNodeEntries": 2,
+      "controller": 1
+    },
+    "oldPreseals": [
+      "CONTROL-PRESEAL.json",
+      "CONTROL-PRESEAL-v2.json"
+    ],
+    "oldDisposition": "UNRUN; source/fixture binding corrections before sole execution"
+  },
+  "preparation": {
+    "initialMetadataCapture": "First 11 metadata/edit starts used a REPL-declared launcher with durable per-child capture and exit/close records. Replaced prospectively with preparation-runner.mjs; not claimed file-based at those earlier starts.",
+    "qualification": "No census or cumulative counter is substituted for a fresh resource sample. All counts reconciled from immutable per-child records."
+  }
+}

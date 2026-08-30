@@ -1,0 +1,40 @@
+{
+  "label": "fixture-control-types",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--strict",
+    "--target",
+    "ES2022",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--types",
+    "node",
+    "--skipLibCheck",
+    "tests/commands/regex-execution/followup/messageerror.test.ts",
+    "tests/stress/regex-execution/queued-close-adjudication/controls.test.ts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/queued-close-adjudication/migration/.replay-UsW1Zh",
+  "pid": 68309,
+  "processGroup": 68309,
+  "started": "2026-08-27T08:16:31.353Z",
+  "stdout": "",
+  "stderr": "",
+  "events": [
+    "stdout-close",
+    "stderr-close",
+    {
+      "exit": 0,
+      "signal": null
+    }
+  ],
+  "killed": false,
+  "code": 0,
+  "signal": null,
+  "pidAbsent": true,
+  "processGroupAbsent": true,
+  "finished": "2026-08-27T08:16:31.727Z"
+}

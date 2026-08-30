@@ -1,0 +1,143 @@
+{
+  "frozenAt": "2026-08-27T12:21:29.151Z",
+  "sourceChanges": 0,
+  "apiSha256": "218d14793fca4c3d55fd742ea6647a3785e2baf246fcc0b786381fe691086a3b",
+  "files": [
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/prepare.mjs",
+      "sha256": "ad2747c743575797165a93561b743ac444164eb629ed59a59e33f5b34874de63"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/build.mjs",
+      "sha256": "8b9fe1566b4c6f5c2f0dbe0745bc8b69d986aa5f00982a3218c5f23a6f268b20"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/controls.mjs",
+      "sha256": "922dbda418b75751191767e3672f9dd7eb6bb0e3b7cc98437ef0f5ffca8885bb"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/native-helper.mjs",
+      "sha256": "89872126d98854682bf9e5f7784196dd8615e5b2a8b7f8061efef975aeebc6c4"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/baseline-snapshot.json",
+      "sha256": "3e201900157384f8cc260b375eb3367139520bf7694e449a51d91bb34e307631"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA/build-identities.json",
+      "sha256": "4fef7466d934d84cc1c8f49a812eaf08c60bf2c12eb220ea51f6b88265ed37f7"
+    }
+  ],
+  "contract": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/CONTRACT.md",
+      "sha256": "bb7e28a71ff9cf2a8fc4b0d4fbd85218af3f757d36df50ad624f83b4740a49e8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/PRE-RUN.md",
+      "sha256": "79f764f01d6d9bf8cc792150097f633742f3ad463ad9075426a197d8da290c03"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/BASELINE.md",
+      "sha256": "e5b3704976003b6b0fed397e1e328357177def05dd2e2e6006c6f0d15bccbfda"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/API.txt.data",
+      "sha256": "218d14793fca4c3d55fd742ea6647a3785e2baf246fcc0b786381fe691086a3b"
+    }
+  ],
+  "tools": [
+    {
+      "command": "/usr/bin/curl",
+      "args": [
+        "-q",
+        "--version"
+      ],
+      "pid": 36022,
+      "status": 0,
+      "stdout": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+      "stderr": "",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+    },
+    {
+      "command": "/bin/bash",
+      "args": [
+        "--noprofile",
+        "--norc",
+        "--version"
+      ],
+      "pid": 36023,
+      "status": 0,
+      "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "stderr": "",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    {
+      "command": "/usr/bin/uname",
+      "args": [
+        "-a"
+      ],
+      "pid": 36024,
+      "status": 0,
+      "stdout": "Darwin m5mb-kjopek 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050 arm64\n",
+      "stderr": "",
+      "sha256": "9abecf7a88117e093ff6c34ce07bacf7dc1277af1193b1cb0a0bf8fa4b2d4696"
+    },
+    {
+      "command": "/usr/bin/otool",
+      "args": [
+        "-L",
+        "/usr/bin/curl"
+      ],
+      "pid": 36025,
+      "status": 0,
+      "stdout": "/usr/bin/curl:\n\t/usr/lib/libcurl.4.dylib (compatibility version 7.0.0, current version 9.0.0)\n\t/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.12)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+      "stderr": "",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "command": "/usr/bin/otool",
+      "args": [
+        "-L",
+        "/bin/bash"
+      ],
+      "pid": 36028,
+      "status": 0,
+      "stdout": "/bin/bash:\n\t/usr/lib/libncurses.5.4.dylib (compatibility version 5.4.0, current version 5.4.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+      "stderr": "",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--version"
+      ],
+      "pid": 36030,
+      "status": 0,
+      "stdout": "v22.22.2\n",
+      "stderr": "",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  ],
+  "logicalControls": 4,
+  "curlProfiles": 8,
+  "separateCurlCohorts": [
+    "original-preoperation",
+    "current-capture",
+    "candidate",
+    "native"
+  ],
+  "focusedPrecedenceParameters": 12,
+  "nativeLibraryQualification": "Actual curl --version and otool runtime-library metadata pinned. System dyld shared-cache library contents not separately hashed; no universal binary/library equivalence.",
+  "callerProfile": "Native AbortController only; no synthetic reasonundefined",
+  "executionEnvironment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "CURL_HOME": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMPDIR": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "TEMP": "/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA",
+    "LANG": "C",
+    "LC_ALL": "C"
+  }
+}

@@ -1,0 +1,309 @@
+{
+  "request": {
+    "id": "synthetic/module-escape",
+    "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "module-escape",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    },
+    "syntheticModule": {
+      "packageName": "bridge-synthetic",
+      "packagePath": "/private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/package.json",
+      "entry": "/private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs",
+      "files": {
+        "/private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/package.json": {
+          "bytes": 85,
+          "sha256": "3ef42929790fb5892e16d64ef45ae620801a90d7b44ac1056b4a92eae5128a62"
+        },
+        "/private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs": {
+          "bytes": 56,
+          "sha256": "147a65ac9b598e0358139a7c099051ab675649507af11a2f593afdc8022d4c42"
+        }
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/module-escape",
+    "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "{\"name\":\"Error\",\"message\":\"unbound module: file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/unlisted.mjs\",\"code\":null}",
+      "engine crash/forced exit",
+      "signal error SIGTERM: Error: kill EPERM",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.362,
+        "kind": "group-admitted",
+        "pid": 71246,
+        "pgid": 71246,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-6mhwQ8",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 39.659,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "engine-spawn",
+        "pid": 71247,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 119.476,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "public-resolution",
+        "specifier": "bridge-synthetic",
+        "parent": "/private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/package.json",
+        "resolved": "file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs"
+      },
+      {
+        "atMs": 119.74,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "bridge-synthetic",
+          "parentURL": "file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/package.json",
+          "url": "file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs"
+        }
+      },
+      {
+        "atMs": 119.952,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "module",
+        "event": {
+          "type": "resolve-returned",
+          "specifier": "file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "url": "file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs"
+        }
+      },
+      {
+        "atMs": 120.998,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "module",
+        "event": {
+          "type": "load-returned",
+          "url": "file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/index.mjs",
+          "sha256": "147a65ac9b598e0358139a7c099051ab675649507af11a2f593afdc8022d4c42",
+          "format": "module",
+          "evaluationProven": false
+        }
+      },
+      {
+        "atMs": 122.283,
+        "kind": "sticky-failure",
+        "reason": "{\"name\":\"Error\",\"message\":\"unbound module: file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/unlisted.mjs\",\"code\":null}"
+      },
+      {
+        "atMs": 122.308,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "failure",
+        "error": {
+          "name": "Error",
+          "message": "unbound module: file:///private/tmp/safe-bash-execution-author-6mhwQ8/module-escape/unlisted.mjs",
+          "code": null
+        }
+      },
+      {
+        "atMs": 125.546,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 125.548,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "engine-exit",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 125.581,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "engine-close",
+        "code": 1,
+        "signal": null
+      },
+      {
+        "atMs": 125.595,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 125.626,
+        "id": "synthetic/module-escape",
+        "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 128.053,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 71246
+      },
+      {
+        "atMs": 128.087,
+        "kind": "signal-error",
+        "error": {
+          "name": "Error",
+          "message": "kill EPERM",
+          "code": "EPERM"
+        }
+      },
+      {
+        "atMs": 128.131,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 128.133,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": {
+      "code": 1,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 1,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 71246,
+    "enginePid": 71247,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/module-escape",
+      "nonce": "86d64732-3027-4a28-8f89-7dcb2aae37d9",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 128.364,
+    "deadlinesMs": {
+      "total": 4500,
+      "startup": 2000
+    },
+    "hostBytes": 0,
+    "reportBytes": 2598,
+    "wireCapture": {
+      "receivedBytes": 2598,
+      "receivedSha256": "2213faf01a5188bf2469cfa277e7ceaf3f15e26f4e8e25ff573025abe743645b",
+      "prefixBase64": "AAABi3siaWQiOiJzeW50aGV0aWMvbW9kdWxlLWVzY2FwZSIsIm5vbmNlIjoiODZkNjQ3MzItMzAyNy00YTI4LThmODktN2RjYjJhYWUzN2Q5Iiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6NzEyNDcsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAABOXsiaWQiOiJzeW50aGV0aWMvbW9kdWxlLWVzY2FwZSIsIm5vbmNlIjoiODZkNjQ3MzItMzAyNy00YTI4LThmODktN2RjYjJhYWUzN2Q5Iiwia2luZCI6InB1YmxpYy1yZXNvbHV0aW9uIiwic3BlY2lmaWVyIjoiYnJpZGdlLXN5bnRoZXRpYyIsInBhcmVudCI6Ii9wcml2YXRlL3RtcC9zYWZlLWJhc2gtZXhlY3V0aW9uLWF1dGhvci02bWh3UTgvbW9kdWxlLWVzY2FwZS9wYWNrYWdlLmpzb24iLCJyZXNvbHZlZCI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWV4ZWN1dGlvbi1hdXRob3ItNm1od1E4L21vZHVsZS1lc2NhcGUvaW5kZXgubWpzIn0AAAFXeyJpZCI6InN5bnRoZXRpYy9tb2R1bGUtZXNjYXBlIiwibm9uY2UiOiI4NmQ2NDczMi0zMDI3LTRhMjgtOGY4OS03ZGNiMmFhZTM3ZDkiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6InJlc29sdmUtcmV0dXJuZWQiLCJzcGVjaWZpZXIiOiJicmlkZ2Utc3ludGhldGljIiwicGFyZW50VVJMIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtZXhlY3V0aW9uLWF1dGhvci02bWh3UTgvbW9kdWxlLWVzY2FwZS9wYWNrYWdlLmpzb24iLCJ1cmwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leGVjdXRpb24tYXV0aG9yLTZtaHdROC9tb2R1bGUtZXNjYXBlL2luZGV4Lm1qcyJ9fQAAAbZ7ImlkIjoic3ludGhldGljL21vZHVsZS1lc2NhcGUiLCJub25jZSI6Ijg2ZDY0NzMyLTMwMjctNGEyOC04Zjg5LTdkY2IyYWFlMzdkOSIsImtpbmQiOiJtb2R1bGUiLCJldmVudCI6eyJ0eXBlIjoicmVzb2x2ZS1yZXR1cm5lZCIsInNwZWNpZmllciI6ImZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWV4ZWN1dGlvbi1hdXRob3ItNm1od1E4L21vZHVsZS1lc2NhcGUvaW5kZXgubWpzIiwicGFyZW50VVJMIjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC9iZW5jaG1hcmtzL3JlcG9ydHMvY3VycmVudC1jb21wYXJpc29uLTIwMjYwODI3L2V4ZWN1dGlvbi9lbmdpbmUtY2hpbGQubWpzIiwidXJsIjoiZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtZXhlY3V0aW9uLWF1dGhvci02bWh3UTgvbW9kdWxlLWVzY2FwZS9pbmRleC5tanMifX0AAAFNeyJpZCI6InN5bnRoZXRpYy9tb2R1bGUtZXNjYXBlIiwibm9uY2UiOiI4NmQ2NDczMi0zMDI3LTRhMjgtOGY4OS03ZGNiMmFhZTM3ZDkiLCJraW5kIjoibW9kdWxlIiwiZXZlbnQiOnsidHlwZSI6ImxvYWQtcmV0dXJuZWQiLCJ1cmwiOiJmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leGVjdXRpb24tYXV0aG9yLTZtaHdROC9tb2R1bGUtZXNjYXBlL2luZGV4Lm1qcyIsInNoYTI1NiI6IjE0N2E2NWFjOWI1OThlMDM1ODEzOWE3YzA5OTA1MWFiNjc1NjQ5NTA3YWYxMWEyZjU5M2FmZGM4MDIyZDRjNDIiLCJmb3JtYXQiOiJtb2R1bGUiLCJldmFsdWF0aW9uUHJvdmVuIjpmYWxzZX19AAAA8nsiaWQiOiJzeW50aGV0aWMvbW9kdWxlLWVzY2FwZSIsIm5vbmNlIjoiODZkNjQ3MzItMzAyNy00YTI4LThmODktN2RjYjJhYWUzN2Q5Iiwia2luZCI6ImZhaWx1cmUiLCJlcnJvciI6eyJuYW1lIjoiRXJyb3IiLCJtZXNzYWdlIjoidW5ib3VuZCBtb2R1bGU6IGZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLWV4ZWN1dGlvbi1hdXRob3ItNm1od1E4L21vZHVsZS1lc2NhcGUvdW5saXN0ZWQubWpzIiwiY29kZSI6bnVsbH19AAAAe3siaWQiOiJzeW50aGV0aWMvbW9kdWxlLWVzY2FwZSIsIm5vbmNlIjoiODZkNjQ3MzItMzAyNy00YTI4LThmODktN2RjYjJhYWUzN2Q5Iiwia2luZCI6ImVuZ2luZS1leGl0IiwiY29kZSI6MSwic2lnbmFsIjpudWxsfQAAAHx7ImlkIjoic3ludGhldGljL21vZHVsZS1lc2NhcGUiLCJub25jZSI6Ijg2ZDY0NzMyLTMwMjctNGEyOC04Zjg5LTdkY2IyYWFlMzdkOSIsImtpbmQiOiJlbmdpbmUtY2xvc2UiLCJjb2RlIjoxLCJzaWduYWwiOm51bGx9AAAAjnsiaWQiOiJzeW50aGV0aWMvbW9kdWxlLWVzY2FwZSIsIm5vbmNlIjoiODZkNjQ3MzItMzAyNy00YTI4LThmODktN2RjYjJhYWUzN2Q5Iiwia2luZCI6ImZpeHR1cmUtY2xvc2UiLCJjbG9zZWQiOnRydWUsInNvY2tldHMiOjAsInJlcXVlc3RzIjpbXX0AAABpeyJpZCI6InN5bnRoZXRpYy9tb2R1bGUtZXNjYXBlIiwibm9uY2UiOiI4NmQ2NDczMi0zMDI3LTRhMjgtOGY4OS03ZGNiMmFhZTM3ZDkiLCJraW5kIjoic2Vzc2lvbi1jb21wbGV0ZSJ9",
+      "prefixOnly": false
+    }
+  },
+  "check": {
+    "mode": "module-escape",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 128.364,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-023-module-escape.json"
+  }
+}

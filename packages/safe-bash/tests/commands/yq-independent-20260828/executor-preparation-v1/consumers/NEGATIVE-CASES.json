@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "valid-tree",
+      "outcome": "accept",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "readme-absent",
+      "outcome": "PACKAGE_MEMBERSHIP",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "readme-wrong-bytes",
+      "outcome": "PACKAGE_FILE",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "baseline-omitted",
+      "outcome": "PACKAGE_MEMBERSHIP",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "unapproved-addition",
+      "outcome": "PACKAGE_MEMBERSHIP",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "symlink-entry",
+      "outcome": "SYMLINK",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "hardlink-entry",
+      "outcome": "HARDLINK",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "mode-mismatch",
+      "outcome": "PACKAGE_FILE",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "binding-mismatch",
+      "outcome": "BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "hash-mismatch",
+      "outcome": "RECEIPT_HASH",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "workspace-fallback",
+      "outcome": "WORKSPACE",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "in-place-not-moved",
+      "outcome": "NOT_MOVED",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "source-import",
+      "outcome": "IMPORT_KIND",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "declaration-tampered",
+      "outcome": "PACKAGE_FILE",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "declaration-omitted",
+      "outcome": "PACKAGE_MEMBERSHIP",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "new-empty-directory",
+      "outcome": "PACKAGE_DIRECTORIES",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "symlink-root",
+      "outcome": "SYMLINK",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "node-modules-fallback",
+      "outcome": "IMPORT_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "unapproved-builtin",
+      "outcome": "IMPORT_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "unknown-receipt-field",
+      "outcome": "RECEIPT_SCHEMA",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "duplicate-receipt-key",
+      "outcome": "JSON_DUPLICATE",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "source-delta",
+      "outcome": "SOURCE_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "fake-readme-authority",
+      "outcome": "README_IDENTITY",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "projection-only",
+      "outcome": "README_IDENTITY",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "positive-compiler-outcome",
+      "outcome": "accept",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "negative-compiler-outcome",
+      "outcome": "accept",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "negative-unrelated-diagnostic",
+      "outcome": "COMPILER_DIAGNOSTICS",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "negative-status-zero",
+      "outcome": "COMPILER_STATUS",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "compiler-child-signal",
+      "outcome": "COMPILER_STATUS",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "compiler-outside-binding",
+      "outcome": "COMPILER_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "raw-source-fallback",
+      "outcome": "COMPILER_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "public-export-gap",
+      "outcome": "PUBLIC_EXPORT_GAP",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "mutable-binding",
+      "outcome": "BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "post-check-added-file",
+      "outcome": "PACKAGE_MEMBERSHIP",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "import-parent-outside",
+      "outcome": "IMPORT_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    },
+    {
+      "id": "import-url-fragment",
+      "outcome": "IMPORT_BINDING",
+      "kind": "SYNTHETIC_GUARD_ONLY",
+      "productExecution": 0
+    }
+  ]
+}

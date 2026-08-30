@@ -1,0 +1,177 @@
+[
+  {
+    "pid": 94911,
+    "ppid": 90435,
+    "command": "<defunct>"
+  },
+  {
+    "pid": 94913,
+    "ppid": 94911,
+    "command": "(node)"
+  },
+  {
+    "pid": 94914,
+    "ppid": 94911,
+    "command": "(node)"
+  },
+  {
+    "pid": 94915,
+    "ppid": 94911,
+    "command": "(node)"
+  },
+  {
+    "pid": 94916,
+    "ppid": 94911,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/regex-execution/commands.test.ts"
+  },
+  {
+    "pid": 94917,
+    "ppid": 94911,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/regex-execution/continuation/glob-transport.test.ts"
+  },
+  {
+    "pid": 94918,
+    "ppid": 94911,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/regex-execution/continuation/glob.test.ts"
+  },
+  {
+    "pid": 94919,
+    "ppid": 94911,
+    "command": "(node)"
+  },
+  {
+    "pid": 94920,
+    "ppid": 94911,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/regex-execution/executor.test.ts"
+  },
+  {
+    "pid": 94921,
+    "ppid": 94911,
+    "command": "(node)"
+  },
+  {
+    "pid": 94922,
+    "ppid": 94911,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/search/rg.test.ts"
+  },
+  {
+    "pid": 94923,
+    "ppid": 94911,
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/commands/search/safety.test.ts"
+  },
+  {
+    "pid": 94935,
+    "ppid": 94914,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94936,
+    "ppid": 94917,
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+  },
+  {
+    "pid": 94937,
+    "ppid": 94913,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94943,
+    "ppid": 94916,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94944,
+    "ppid": 94918,
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+  },
+  {
+    "pid": 94950,
+    "ppid": 94919,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94951,
+    "ppid": 94923,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94953,
+    "ppid": 94915,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94954,
+    "ppid": 94922,
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+  },
+  {
+    "pid": 94955,
+    "ppid": 94919,
+    "command": "(node)"
+  },
+  {
+    "pid": 94956,
+    "ppid": 94920,
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+  },
+  {
+    "pid": 94957,
+    "ppid": 94921,
+    "command": "(esbuild)"
+  },
+  {
+    "pid": 94975,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 94984,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 94988,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 94998,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 95030,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 95058,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 95061,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 95069,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 95071,
+    "ppid": 94922,
+    "command": "<defunct>"
+  },
+  {
+    "pid": 95088,
+    "ppid": 94922,
+    "command": "(rg)"
+  },
+  {
+    "pid": 95106,
+    "ppid": 94922,
+    "command": "(rg)"
+  }
+]

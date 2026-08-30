@@ -1,0 +1,11 @@
+{
+  "status": "PUBLIC_KEY_METADATA_CAPTURED_NOT_SIGNATURE_ACCEPTANCE",
+  "starts": 1,
+  "ownedClosed": true,
+  "homeEntries": [
+    "trustdb.gpg"
+  ],
+  "elapsedMs": 21099.86025,
+  "verifiedPairs": 0,
+  "closureIdentitiesRechecked": 26
+}

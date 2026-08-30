@@ -1,0 +1,9 @@
+{
+  "candidate": "f8819e9d6b6d535b0626e0aa004bb10a7bc36785",
+  "fixture": "8e5fec07ec9a39582987736269bbed51caeb795e",
+  "harnessCommit": "b67eabd2",
+  "bytes": 566230,
+  "sha256": "d4785298dc1f6799db0312581d5d46ab1d21f2d8c6aa42326e4516d6a8f1ee16",
+  "files": 96,
+  "format": "base64 gzip tar of exact raw results and review records"
+}

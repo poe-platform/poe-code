@@ -1,0 +1,8 @@
+{"atMs":0.346,"kind":"group-admitted","pid":71219,"pgid":71219,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-6mhwQ8","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-6mhwQ8","TMPDIR":"/private/tmp/safe-bash-execution-author-6mhwQ8","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":43.689,"id":"synthetic/binding-mutated","nonce":"8576ac60-30fb-467f-9d9d-cd2d55c1a0c9","kind":"engine-spawn","pid":71220,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":102.167,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"bound length changed\\n\\n7 !== 8\\n\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":102.193,"id":"synthetic/binding-mutated","nonce":"8576ac60-30fb-467f-9d9d-cd2d55c1a0c9","kind":"failure","error":{"name":"AssertionError","message":"bound length changed\n\n7 !== 8\n","code":"ERR_ASSERTION"}}
+{"atMs":103.973,"kind":"signal","signal":"SIGTERM","pgid":71219}
+{"atMs":105.354,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":105.356,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":105.358,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

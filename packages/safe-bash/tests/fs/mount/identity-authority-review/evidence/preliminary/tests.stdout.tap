@@ -1,0 +1,170 @@
+TAP version 13
+# {"case":"s3-positive","data":{"receipts":[{"distinct":true,"basis":"comparison"},{"distinct":true,"basis":"comparison"}],"operations":["listObjectsV2","headObject","headObject","listObjectsV2","putObject","listObjectsV2","headObject","headObject","listObjectsV2","putObject","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","headObject","headObject","listObjectsV2","putObject","listObjectsV2","headObject","headObject","listObjectsV2","putObject","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","headObject","headObject","listObjectsV2","putObject","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","headObject","headObject","listObjectsV2","getObject","listObjectsV2","headObject","headObject","listObjectsV2"]}}
+# {"case":"s3-alias","data":["listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2","listObjectsV2","headObject","headObject","listObjectsV2"]}
+# {"case":"webdav-positive","data":{"receipts":[{"distinct":true,"basis":"comparison"},{"distinct":true,"basis":"comparison"}],"operations":["PROPFIND","PUT","PROPFIND","PUT","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","GET","PROPFIND","PUT","PROPFIND","PUT","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","GET","PROPFIND","PUT","PROPFIND","GET","PROPFIND","GET","PROPFIND"]}}
+# {"case":"webdav-alias","data":["PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND"]}
+# {"case":"s3-native-exclusive","data":{"operation":"copyObject","input":{"Bucket":"bucket","Key":"target","CopySource":"bucket/source","CopySourceIfMatch":"\\"36cd38f49b9afa08222c0dc9ebfe35eb\\"","MetadataDirective":"COPY","IfNoneMatch":"*"}}}
+# {"case":"dav-native-exclusive","data":{"overwrite":"F"}}
+# {"case":"dav-alias-native-counterexample","data":{"sourceLost":true,"mockIsNotAliasSafeServer":true}}
+# {"case":"move-ordering","data":["copy-start","copy-success","remove"]}
+# {"case":"pathname-race-limit","data":{"sourceLostAfterExternalAliasReplacement":true}}
+# {"case":"move-aba-limit","data":{"replacementDeleted":true,"originalInode":2,"replacementInode":4}}
+# Subtest: s3: negotiated authority permits same-view and separate-client ordinary overwrites
+ok 1 - s3: negotiated authority permits same-view and separate-client ordinary overwrites
+  ---
+  duration_ms: 4.564
+  type: 'test'
+  ...
+# Subtest: s3: shared storage through distinct clients/endpoint aliases rejects before body IO
+ok 2 - s3: shared storage through distinct clients/endpoint aliases rejects before body IO
+  ---
+  duration_ms: 2.24925
+  type: 'test'
+  ...
+# Subtest: s3: unregistered peer stays unknown despite distinct client and equal metadata
+ok 3 - s3: unregistered peer stays unknown despite distinct client and equal metadata
+  ---
+  duration_ms: 1.280208
+  type: 'test'
+  ...
+# Subtest: s3: missing unknown target uses real exclusive creation; existing exclusive target rejects
+ok 4 - s3: missing unknown target uses real exclusive creation; existing exclusive target rejects
+  ---
+  duration_ms: 1.091583
+  type: 'test'
+  ...
+# Subtest: webdav: negotiated authority permits same-view and separate-client ordinary overwrites
+ok 5 - webdav: negotiated authority permits same-view and separate-client ordinary overwrites
+  ---
+  duration_ms: 19.623791
+  type: 'test'
+  ...
+# Subtest: webdav: shared storage through distinct clients/endpoint aliases rejects before body IO
+ok 6 - webdav: shared storage through distinct clients/endpoint aliases rejects before body IO
+  ---
+  duration_ms: 2.199375
+  type: 'test'
+  ...
+# Subtest: webdav: unregistered peer stays unknown despite distinct client and equal metadata
+ok 7 - webdav: unregistered peer stays unknown despite distinct client and equal metadata
+  ---
+  duration_ms: 1.067792
+  type: 'test'
+  ...
+# Subtest: webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects
+ok 8 - webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects
+  ---
+  duration_ms: 1.44425
+  type: 'test'
+  ...
+# Subtest: S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection
+ok 9 - S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection
+  ---
+  duration_ms: 0.684708
+  type: 'test'
+  ...
+# Subtest: S3 actual conditional CopyObject preserves a raced exclusive destination
+ok 10 - S3 actual conditional CopyObject preserves a raced exclusive destination
+  ---
+  duration_ms: 0.743417
+  type: 'test'
+  ...
+# Subtest: WebDAV actual native COPY uses Overwrite F against a raced missing target
+ok 11 - WebDAV actual native COPY uses Overwrite F against a raced missing target
+  ---
+  duration_ms: 1.032375
+  type: 'test'
+  ...
+# Subtest: WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock
+ok 12 - WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock
+  ---
+  duration_ms: 1.312375
+  type: 'test'
+  ...
+# Subtest: different authority objects remain unknown until the owner certifies genuinely disjoint stores
+ok 13 - different authority objects remain unknown until the owner certifies genuinely disjoint stores
+  ---
+  duration_ms: 0.585292
+  type: 'test'
+  ...
+# Subtest: read-only forwarding preserves backing aliases without granting destination writes
+ok 14 - read-only forwarding preserves backing aliases without granting destination writes
+  ---
+  duration_ms: 0.37175
+  type: 'test'
+  ...
+# Subtest: overlay comparison re-observes selected backing after copy-up, not a wrapper-local token
+ok 15 - overlay comparison re-observes selected backing after copy-up, not a wrapper-local token
+  ---
+  duration_ms: 1.033042
+  type: 'test'
+  ...
+# Subtest: contradictory authoritative answers fail before source acquisition
+ok 16 - contradictory authoritative answers fail before source acquisition
+  ---
+  duration_ms: 0.131
+  type: 'test'
+  ...
+# Subtest: failed metadata and pre-cancel do not become missing targets
+ok 17 - failed metadata and pre-cancel do not become missing targets
+  ---
+  duration_ms: 0.141125
+  type: 'test'
+  ...
+# Subtest: a raced generic exclusive target is preserved
+ok 18 - a raced generic exclusive target is preserved
+  ---
+  duration_ms: 0.085333
+  type: 'test'
+  ...
+# Subtest: move: source failure never removes source (partial destination is disclosed)
+ok 19 - move: source failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.0945
+  type: 'test'
+  ...
+# Subtest: move: target failure never removes source (partial destination is disclosed)
+ok 20 - move: target failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.064083
+  type: 'test'
+  ...
+# Subtest: move: cancel failure never removes source (partial destination is disclosed)
+ok 21 - move: cancel failure never removes source (partial destination is disclosed)
+  ---
+  duration_ms: 0.047125
+  type: 'test'
+  ...
+# Subtest: move: alias and unknown are not successful no-op receipts; distinct copy completes before remove
+ok 22 - move: alias and unknown are not successful no-op receipts; distinct copy completes before remove
+  ---
+  duration_ms: 0.3335
+  type: 'test'
+  ...
+# Subtest: observation-time comparison is not a lease: post-comparison alias replacement can destroy source
+ok 23 - observation-time comparison is not a lease: post-comparison alias replacement can destroy source
+  ---
+  duration_ms: 0.337458
+  type: 'test'
+  ...
+# Subtest: generic move rm has no incarnation condition: source ABA after copy deletes replacement
+ok 24 - generic move rm has no incarnation condition: source ABA after copy deletes replacement
+  ---
+  duration_ms: 0.170833
+  type: 'test'
+  ...
+# Subtest: S3 native copy source failure is not a successful move receipt
+ok 25 - S3 native copy source failure is not a successful move receipt
+  ---
+  duration_ms: 0.463084
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 195.377958

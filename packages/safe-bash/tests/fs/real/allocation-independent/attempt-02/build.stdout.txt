@@ -1,0 +1,1095 @@
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json --listEmittedFiles --listFiles
+
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/errors.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/errors.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/errors.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/errors.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/io.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/io.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/io.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/io.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/filesystem.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/filesystem.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/filesystem.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/filesystem.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/command.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/command.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/command.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/command.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/path.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/path.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/path.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/path.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/plugin.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/plugin.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/plugin.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/plugin.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/contracts/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/internal.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/internal.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/internal.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/internal.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/basic.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/basic.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/basic.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/basic.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/copy-identity.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/copy-identity.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/copy-identity.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/copy-identity.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/move.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/move.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/move.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/move.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/filesystem.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/filesystem.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/filesystem.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/filesystem.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/streams.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/streams.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/streams.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/streams.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/protocol.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/protocol.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/protocol.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/protocol.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/client.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/client.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/client.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/client.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/predicates.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/predicates.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/predicates.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/predicates.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/env-split.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/env-split.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/env-split.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/env-split.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/execution.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/execution.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/execution.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/execution.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/find.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/find.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/find.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/find.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/regex.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/regex.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/regex.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/regex.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/sed.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/sed.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/sed.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/sed.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-values.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-values.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-values.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-values.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-syntax.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-syntax.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-syntax.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-syntax.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-runtime.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-runtime.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-runtime.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk-runtime.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/awk.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/text-programs/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/numbers.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/numbers.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/numbers.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/numbers.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/limits.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/limits.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/limits.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/limits.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/input.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/input.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/input.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/input.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/parser.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/parser.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/parser.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/parser.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/split.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/split.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/split.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/split.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/values.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/values.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/values.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/values.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/interpreter.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/interpreter.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/interpreter.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/interpreter.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/jq.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/jq.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/jq.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/jq.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/structured/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/matcher.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/matcher.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/matcher.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/matcher.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/output.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/output.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/output.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/output.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/glob.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/glob.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/glob.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/glob.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/walk.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/walk.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/walk.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/walk.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/rg.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/rg.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/rg.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/rg.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/search/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/base.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/base.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/base.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/base.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/od.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/od.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/od.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/od.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/xxd.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/xxd.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/xxd.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/xxd.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/encoding/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/checksums/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/checksums/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/checksums/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/checksums/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/gunzip.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/gunzip.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/gunzip.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/gunzip.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/stream.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/stream.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/stream.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/stream.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/files.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/files.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/files.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/files.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/compression/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/bytes/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff-format.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff-format.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff-format.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff-format.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/diff.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-path.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-path.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-path.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-path.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/unified.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/unified.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/unified.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/unified.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-envelope.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-envelope.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-envelope.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-envelope.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-formats.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-formats.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-formats.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-formats.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-paths.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-paths.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-paths.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-paths.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-reject.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-reject.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-reject.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch-gnu-reject.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/patch.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/diff-patch/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/internal.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/internal.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/internal.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/internal.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/chmod.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/chmod.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/chmod.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/chmod.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/stat.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/stat.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/stat.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/stat.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/mktemp.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/mktemp.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/mktemp.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/mktemp.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/metadata/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/internal.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/internal.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/internal.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/internal.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/format.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/format.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/format.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/format.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/create.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/create.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/create.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/create.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/stream.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/stream.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/stream.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/stream.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/extract.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/extract.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/extract.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/extract.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/archive/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/internal.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/internal.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/internal.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/internal.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/paste.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/paste.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/paste.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/paste.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/comm.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/comm.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/comm.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/comm.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/join.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/join.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/join.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/join.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/table-text/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/tac.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/tac.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/tac.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/tac.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/numeric-options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/numeric-options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/numeric-options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/numeric-options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/expand.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/expand.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/expand.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/expand.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/fold.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/fold.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/fold.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/fold.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/strings.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/strings.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/strings.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/strings.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-inspection/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/seq.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/seq.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/seq.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/seq.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/nl.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/nl.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/nl.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/nl.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/rev.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/rev.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/rev.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/rev.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/unexpand.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/unexpand.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/unexpand.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/unexpand.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/stream-format/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/io.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/io.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/io.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/io.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/names.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/names.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/names.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/names.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/outputs.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/outputs.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/outputs.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/outputs.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/split.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/split.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/split.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/split.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/split/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/printenv.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/printenv.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/printenv.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/printenv.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/calendar.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/calendar.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/calendar.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/calendar.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/format.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/format.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/format.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/format.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/date.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/date.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/date.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/date.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/sleep.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/sleep.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/sleep.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/sleep.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/time-env/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/io.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/io.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/io.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/io.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/pattern.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/pattern.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/pattern.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/pattern.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/arguments.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/arguments.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/arguments.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/arguments.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/tree.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/tree.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/tree.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/tree.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/tree/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/classify.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/classify.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/classify.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/classify.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/file/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/plugins/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/plugins/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/plugins/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/plugins/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/types.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/types.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/types.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/types.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/arithmetic.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/arithmetic.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/arithmetic.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/arithmetic.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/parser.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/parser.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/parser.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/parser.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/pattern.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/pattern.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/pattern.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/pattern.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/locale.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/locale.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/locale.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/locale.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/display.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/display.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/display.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/display.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/cleanup.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/cleanup.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/cleanup.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/cleanup.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/runtime.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/runtime.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/runtime.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/runtime.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/input.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/input.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/input.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/input.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/shell.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/shell.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/shell.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/shell.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/shell/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/stats.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/stats.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/stats.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/stats.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/values.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/values.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/values.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/values.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/filesystem.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/filesystem.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/filesystem.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/filesystem.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/shell.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/shell.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/shell.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/shell.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/integrations/safejs/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/types.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/types.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/types.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/types.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/render.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/render.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/render.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/render.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/io.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/io.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/io.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/io.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/safejs/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/types.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/types.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/types.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/types.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/args.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/args.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/args.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/args.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/shared.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/shared.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/shared.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/shared.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/body.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/body.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/body.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/body.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/output.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/output.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/output.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/output.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/transport.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/transport.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/transport.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/transport.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/curl.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/curl.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/curl.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/curl.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/network/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/identity.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/identity.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/identity.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/identity.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/comparison.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/comparison.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/comparison.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/comparison.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/transport.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/transport.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/transport.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/transport.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/authority.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/authority.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/authority.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/authority.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/resource-id.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/resource-id.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/resource-id.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/resource-id.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/memory/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/memory/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/memory/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/memory/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/allocation.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/allocation.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/allocation.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/allocation.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/real/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/filesystem.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/filesystem.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/filesystem.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/filesystem.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/mock.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/mock.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/mock.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/mock.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/types.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/types.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/types.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/types.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/request.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/request.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/request.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/request.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/signature.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/signature.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/signature.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/signature.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/xml.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/xml.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/xml.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/xml.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/transport.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/transport.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/transport.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/transport.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/s3/http/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/xml.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/xml.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/xml.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/xml.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/webdav.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/webdav.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/webdav.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/webdav.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/webdav/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/readonly/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/readonly/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/readonly/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/readonly/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/mount/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/overlay/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/overlay/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/overlay/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/fs/overlay/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/options.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/options.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/options.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/options.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/internal.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/internal.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/internal.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/internal.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/display.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/display.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/display.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/display.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/table.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/table.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/table.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/table.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/column.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/column.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/column.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/column.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/column/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep-aliases/index.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep-aliases/index.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep-aliases/index.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/grep-aliases/index.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/matching.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/matching.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/matching.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/matching.d.ts.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/worker.js
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/worker.js.map
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/worker.d.ts
+TSFILE: /Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/dist/commands/regex-execution/worker.d.ts.map
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es5.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.core.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.collection.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.generator.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.iterable.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.proxy.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.reflect.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2015.symbol.wellknown.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.array.include.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2016.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.arraybuffer.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.date.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.object.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.sharedmemory.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.string.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2017.typedarrays.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asyncgenerator.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.asynciterable.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2018.regexp.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.array.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.object.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.string.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.symbol.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2019.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.bigint.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.date.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.sharedmemory.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.string.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.symbol.wellknown.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2020.number.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.string.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.weakref.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2021.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.array.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.error.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.object.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.string.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2022.regexp.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.array.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.collection.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.es2023.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.d.ts
+/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/lib.decorators.legacy.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/errors.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/io.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/filesystem.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/command.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/path.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/plugin.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/contracts/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/internal.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/basic.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/copy-identity.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/move.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/filesystem.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/streams.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/regex-execution/protocol.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/regex-execution/client.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/grep.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/predicates.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/env-split.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/execution.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/find.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/regex.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/sed.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/awk-values.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/awk-syntax.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/awk-runtime.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/awk.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/text-programs/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/numbers.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/limits.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/input.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/parser.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/split.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/values.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/interpreter.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/jq.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/structured/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/matcher.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/output.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/glob.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/walk.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/rg.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/search/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/encoding/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/encoding/base.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/encoding/od.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/encoding/xxd.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/encoding/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/checksums/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/compression/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/compression/gunzip.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/compression/stream.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/compression/files.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/compression/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/bytes/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/diff-format.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/diff.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/patch-path.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/unified.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/patch-envelope.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/patch-formats.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/patch-gnu-paths.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/patch-gnu-reject.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/patch.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/diff-patch/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/metadata/internal.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/metadata/chmod.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/metadata/stat.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/metadata/mktemp.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/metadata/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/internal.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/format.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/create.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/stream.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/extract.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/archive/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/table-text/internal.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/table-text/paste.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/table-text/comm.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/table-text/join.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/table-text/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/tac.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/numeric-options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/expand.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/fold.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/strings.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-inspection/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-format/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-format/seq.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-format/nl.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-format/rev.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-format/unexpand.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/stream-format/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/split/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/split/io.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/split/names.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/split/outputs.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/split/split.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/split/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/printenv.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/calendar.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/format.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/date.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/sleep.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/time-env/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/tree/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/tree/io.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/tree/pattern.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/tree/arguments.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/tree/tree.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/tree/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/file/classify.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/file/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/file/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/plugins/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/types.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/arithmetic.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/parser.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/pattern.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/locale.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/display.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/cleanup.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/runtime.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/input.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/shell.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/shell/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/integrations/safejs/stats.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/integrations/safejs/values.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/integrations/safejs/filesystem.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/integrations/safejs/shell.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/integrations/safejs/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/safejs/types.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/safejs/render.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/safejs/io.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/safejs/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/safejs/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/types.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/args.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/shared.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/body.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/output.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/transport.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/curl.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/network/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/mount/identity.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/mount/comparison.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/transport.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/authority.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/webdav/resource-id.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/memory/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/real/allocation.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/real/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/filesystem.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/mock.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/http/types.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/http/request.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/http/signature.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/http/xml.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/http/transport.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/s3/http/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/webdav/xml.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/webdav/webdav.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/webdav/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/readonly/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/mount/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/fs/overlay/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/column/options.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/column/internal.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/column/display.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/column/table.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/column/column.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/column/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/grep-aliases/index.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/regex-execution/matching.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/src/commands/regex-execution/worker.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/compatibility/disposable.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/compatibility/indexable.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/compatibility/iterators.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/compatibility/index.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/globals.typedarray.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/buffer.buffer.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/globals.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/abortcontroller.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/domexception.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/events.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/header.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/readable.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/file.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/fetch.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/formdata.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/connector.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/client.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/errors.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/dispatcher.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/global-dispatcher.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/global-origin.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/pool-stats.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/pool.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/handlers.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/balanced-pool.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/agent.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/mock-interceptor.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/mock-agent.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/mock-client.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/mock-pool.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/mock-errors.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/proxy-agent.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/env-http-proxy-agent.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/retry-handler.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/retry-agent.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/api.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/interceptors.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/util.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/cookies.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/patch.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/websocket.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/eventsource.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/filereader.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/diagnostics-channel.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/content-type.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/cache.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/undici-types/index.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/fetch.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/navigator.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/storage.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/web-globals/streams.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/assert.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/assert/strict.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/async_hooks.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/buffer.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/child_process.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/cluster.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/console.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/constants.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/crypto.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/dgram.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/diagnostics_channel.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/dns.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/dns/promises.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/domain.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/events.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/fs.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/fs/promises.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/http.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/http2.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/https.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/inspector.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/inspector.generated.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/module.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/net.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/os.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/path.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/perf_hooks.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/process.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/punycode.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/querystring.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/readline.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/readline/promises.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/repl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/sea.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/sqlite.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/stream.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/stream/promises.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/stream/consumers.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/stream/web.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/string_decoder.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/test.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/timers.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/timers/promises.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/tls.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/trace_events.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/tty.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/url.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/util.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/v8.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/vm.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/wasi.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/worker_threads.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/zlib.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/fs/real/allocation-independent/.work-73atN8/candidate/node_modules/@types/node/index.d.ts

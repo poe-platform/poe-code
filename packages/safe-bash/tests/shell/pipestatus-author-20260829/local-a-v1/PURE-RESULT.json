@@ -1,0 +1,111 @@
+{
+  "rows": [
+    {
+      "id": "P01",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P02",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P03",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P04",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P05",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P06",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P07",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P08",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P09",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P10",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P11",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P12",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P13",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P14",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P15",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P16",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P17",
+      "kind": "PURE_EXTRACTED_PARSER",
+      "pass": true
+    },
+    {
+      "id": "P18",
+      "kind": "SOURCE_ONLY",
+      "pass": true
+    },
+    {
+      "id": "P19",
+      "kind": "SOURCE_ONLY_PLAIN_AND_FOREIGN_SUFFIX",
+      "pass": true
+    },
+    {
+      "id": "P20",
+      "kind": "SOURCE_ONLY_FOREIGN_PREFIX",
+      "pass": true
+    }
+  ],
+  "passed": 20,
+  "total": 20,
+  "parserFragmentSha256": "9820bc2cdb23fa80235b6ad43d653cf73823f1372b12096ad6bfb99a9d15dc4e",
+  "testModuleSha256": "e4cd4a846cef446571c0ddff0c78ef162f9045ba695bbfac385fc053b59bb831",
+  "qualification": "17 extracted-parser controls plus3 SOURCE checks, not full Runtime/binding execution",
+  "ShellExecutions": 0,
+  "compilerCalls": 0
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": [
+    "../../../src/contracts/**/*.ts",
+    "../../../src/fs/memory/**/*.ts",
+    "../../../src/fs/real/**/*.ts",
+    "../../../src/fs/mount/**/*.ts",
+    "../../../src/fs/readonly/**/*.ts",
+    "../../../src/fs/overlay/**/*.ts",
+    "../memory/**/*.ts", "../real/**/*.ts", "../mount/**/*.ts",
+    "../readonly/**/*.ts", "../overlay/**/*.ts", "../conformance/**/*.ts",
+    "./*.ts"
+  ],
+  "exclude": []
+}

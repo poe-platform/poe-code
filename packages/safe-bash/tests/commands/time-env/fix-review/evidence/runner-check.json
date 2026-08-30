@@ -1,0 +1,8 @@
+{
+  "supervisorPath": "tests/integration/full-gate-20260827/supervise.mjs",
+  "sha256": "e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9",
+  "matchesFrozenBase": true,
+  "checkedAt": "2026-08-27T08:21:28.108Z",
+  "scope": "Existing read-only supervisor imported by runner; post-run equality check, not an extra original manifest entry.",
+  "runnerCommit": "db369efca5cab0385e195ae7f7f0b8fa680c00a3"
+}

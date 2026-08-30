@@ -1,0 +1,174 @@
+COMMAND ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","tsx","--test","--test-concurrency=1","--test-reporter=tap","tests/commands/internal.test.ts","tests/commands/streams.test.ts"]
+EXIT 0 SIGNAL null
+TAP version 13
+# Subtest: collect owns offset Buffer windows across next reads and finalization
+ok 1 - collect owns offset Buffer windows across next reads and finalization
+  ---
+  duration_ms: 0.665625
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Buffer fragments without losing empty or final records
+ok 2 - lines owns unfinished Buffer fragments without losing empty or final records
+  ---
+  duration_ms: 0.228583
+  type: 'test'
+  ...
+# Subtest: lines retains Buffer fragments with a custom NUL separator
+ok 3 - lines retains Buffer fragments with a custom NUL separator
+  ---
+  duration_ms: 0.153625
+  type: 'test'
+  ...
+# Subtest: collect owns offset Uint8Array windows across next reads and finalization
+ok 4 - collect owns offset Uint8Array windows across next reads and finalization
+  ---
+  duration_ms: 0.125625
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Uint8Array fragments without losing empty or final records
+ok 5 - lines owns unfinished Uint8Array fragments without losing empty or final records
+  ---
+  duration_ms: 0.077334
+  type: 'test'
+  ...
+# Subtest: lines retains Uint8Array fragments with a custom NUL separator
+ok 6 - lines retains Uint8Array fragments with a custom NUL separator
+  ---
+  duration_ms: 0.048666
+  type: 'test'
+  ...
+# Subtest: collect preserves its exact limit error and finalizes without mutating input
+ok 7 - collect preserves its exact limit error and finalizes without mutating input
+  ---
+  duration_ms: 0.259125
+  type: 'test'
+  ...
+# Subtest: collect preserves cancellation identity and source finalization
+ok 8 - collect preserves cancellation identity and source finalization
+  ---
+  duration_ms: 0.109166
+  type: 'test'
+  ...
+# Subtest: collect and lines propagate source failure without changing the error
+ok 9 - collect and lines propagate source failure without changing the error
+  ---
+  duration_ms: 0.180875
+  type: 'test'
+  ...
+# Subtest: lines preserves the existing byte limit at the exact boundary and overflow
+ok 10 - lines preserves the existing byte limit at the exact boundary and overflow
+  ---
+  duration_ms: 274.260208
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Buffer readStream windows
+ok 11 - tail -c 4 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 2.411125
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Buffer readStream windows
+ok 12 - tail -n 1 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.369583
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Buffer readStream windows
+ok 13 - head -c -2 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.368375
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Uint8Array readStream windows
+ok 14 - tail -c 4 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.236667
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Uint8Array readStream windows
+ok 15 - tail -n 1 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.302833
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Uint8Array readStream windows
+ok 16 - head -c -2 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.251125
+  type: 'test'
+  ...
+# Subtest: tail preserves its retained byte limit and finalizes the source
+ok 17 - tail preserves its retained byte limit and finalizes the source
+  ---
+  duration_ms: 118.273125
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink accept before another borrowed read
+ok 18 - head byte omission awaits sink accept before another borrowed read
+  ---
+  duration_ms: 4.53575
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink cancel before another borrowed read
+ok 19 - head byte omission awaits sink cancel before another borrowed read
+  ---
+  duration_ms: 1.0255
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink reject before another borrowed read
+ok 20 - head byte omission awaits sink reject before another borrowed read
+  ---
+  duration_ms: 0.611041
+  type: 'test'
+  ...
+# Subtest: cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+ok 21 - cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+  ---
+  duration_ms: 0.634958
+  type: 'test'
+  ...
+# Subtest: cat numbering, blank squeezing and visible bytes survive chunk boundaries
+ok 22 - cat numbering, blank squeezing and visible bytes survive chunk boundaries
+  ---
+  duration_ms: 0.756625
+  type: 'test'
+  ...
+# Subtest: head and tail support byte/line counts, origin counts, omission and unterminated lines
+ok 23 - head and tail support byte/line counts, origin counts, omission and unterminated lines
+  ---
+  duration_ms: 1.643042
+  type: 'test'
+  ...
+# Subtest: head stops reading when satisfied and multiple input headers are controllable
+ok 24 - head stops reading when satisfied and multiple input headers are controllable
+  ---
+  duration_ms: 0.422333
+  type: 'test'
+  ...
+# Subtest: wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+ok 25 - wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+  ---
+  duration_ms: 0.822125
+  type: 'test'
+  ...
+# Subtest: tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+ok 26 - tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+  ---
+  duration_ms: 0.397167
+  type: 'test'
+  ...
+# Subtest: tr translates, deletes, squeezes and complements byte sets across chunks
+ok 27 - tr translates, deletes, squeezes and complements byte sets across chunks
+  ---
+  duration_ms: 1.535167
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 740.806125

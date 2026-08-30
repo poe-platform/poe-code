@@ -1,0 +1,51 @@
+{"id":"U01","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"ready\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U02","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U03","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U04","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"2|<-x>|<>\n0\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U05","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"2:a\n1:c\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U08","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"eu\ne\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U09","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U10","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U11","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U12","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"default|default||default\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U13","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>|<>|<yes>|<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U14","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"ok\nok\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U15","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"ok|<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U16","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U18","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: 1: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U19","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>|default\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U20","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"n=0\n<>\n<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U21","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<a>\n<>\n<b>\n<a::b>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U22","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>\n<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U23","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"<>\n<>\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U24","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"<>\n","stderr":"shell: line 1: a[[object Object]]: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U25","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: a: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U26","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"<>\n","stderr":"shell: line 1: a[[object Object]]: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U29","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U30","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U37","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"\nparent-after\n","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U38","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"parent:1\n","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U39","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U40","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"./unit2-source.sh: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U41","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":1,"stdout":"","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U42","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"parent:1\n","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U43","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"pipeline:1\n","stderr":"shell: line 1: missing: unbound variable\n"},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U44","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"actual":{"status":0,"stdout":"guarded\ndone\n","stderr":""},"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U45","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U46","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U47","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U48","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"U49","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"created":2,"disposed":2,"cleanupFailure":false}
+{"id":"U50","role":"ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E01-active-file-stderr","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E02-here-string","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E03-ordered-redirect-effects","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E04-lazy-array-zero","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E05-function-option-state","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E06-if-not-errexit","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E07-here-document","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E08-nested-sink-rejection","role":"ADDITIONAL_CONTROL","pass":true,"created":3,"disposed":3,"cleanupFailure":false}
+{"id":"E09-invoke-sink-boundary","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E10-primary-sink-cleanup","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"E11-substitution-errexit","role":"ADDITIONAL_CONTROL","pass":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"summary":{"cases":50,"pass":50,"fail":0}}

@@ -1,0 +1,2759 @@
+# Subtest: primary-5.3: pinned identity and original native lifecycle control
+not ok 14082 - primary-5.3: pinned identity and original native lifecycle control
+  ---
+  duration_ms: 0.554167
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:472'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+not ok 14083 - primary-5.3: original-differential: descriptor-save-and-restore-routes-stderr-through-pipe
+  ---
+  duration_ms: 0.028417
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: descriptor-move-closes-original-after-copy
+not ok 14084 - primary-5.3: original-differential: descriptor-move-closes-original-after-copy
+  ---
+  duration_ms: 0.019458
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right
+not ok 14085 - primary-5.3: original-differential: closing-stdout-then-reopening-is-left-to-right
+  ---
+  duration_ms: 0.020666
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout
+not ok 14086 - primary-5.3: original-differential: closing-stderr-does-not-close-duplicated-stdout
+  ---
+  duration_ms: 0.023958
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: group-redirection-is-restored-after-return
+not ok 14087 - primary-5.3: original-differential: group-redirection-is-restored-after-return
+  ---
+  duration_ms: 0.015625
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+not ok 14088 - primary-5.3: original-differential: pipe-established-before-stderr-copy-and-output-redirect
+  ---
+  duration_ms: 0.067833
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset
+not ok 14089 - primary-5.3: original-differential: nested-truncate-does-not-reset-outer-file-offset
+  ---
+  duration_ms: 0.065583
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets
+not ok 14090 - primary-5.3: original-differential: independent-output-descriptors-have-separate-offsets
+  ---
+  duration_ms: 0.156667
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: duplicated-output-descriptors-share-offset
+not ok 14091 - primary-5.3: original-differential: duplicated-output-descriptors-share-offset
+  ---
+  duration_ms: 0.231666
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: append-descriptor-observes-intervening-truncation
+not ok 14092 - primary-5.3: original-differential: append-descriptor-observes-intervening-truncation
+  ---
+  duration_ms: 0.033208
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate
+not ok 14093 - primary-5.3: original-differential: redirect-expansion-side-effect-precedes-truncate
+  ---
+  duration_ms: 0.022833
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset
+not ok 14094 - primary-5.3: original-differential: read-and-substitution-consume-one-inherited-offset
+  ---
+  duration_ms: 0.020459
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+not ok 14095 - primary-5.3: original-differential: read-in-subshell-consumes-input-but-not-parent-variable
+  ---
+  duration_ms: 0.018958
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed
+not ok 14096 - primary-5.3: original-differential: multiple-input-redirections-only-last-is-consumed
+  ---
+  duration_ms: 0.018041
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-n-consumes-exactly-two-characters
+not ok 14097 - primary-5.3: original-differential: read-n-consumes-exactly-two-characters
+  ---
+  duration_ms: 0.110208
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-d-consumes-through-delimiter-only
+not ok 14098 - primary-5.3: original-differential: read-d-consumes-through-delimiter-only
+  ---
+  duration_ms: 0.021833
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-backslash-newline-joins-before-splitting
+not ok 14099 - primary-5.3: original-differential: read-backslash-newline-joins-before-splitting
+  ---
+  duration_ms: 0.016625
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-last-variable-preserves-inner-separators
+not ok 14100 - primary-5.3: original-differential: read-last-variable-preserves-inner-separators
+  ---
+  duration_ms: 0.0155
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+not ok 14101 - primary-5.3: original-differential: redirected-pipeline-input-leaves-inherited-input-intact
+  ---
+  duration_ms: 0.014875
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first
+not ok 14102 - primary-5.3: original-differential: pipefail-picks-rightmost-nonzero-not-first
+  ---
+  duration_ms: 0.01525
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional
+not ok 14103 - primary-5.3: original-differential: pipeline-negation-with-pipefail-controls-conditional
+  ---
+  duration_ms: 0.017333
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes
+not ok 14104 - primary-5.3: original-differential: function-in-middle-of-pipeline-preserves-bytes
+  ---
+  duration_ms: 0.016167
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer
+not ok 14105 - primary-5.3: original-differential: early-pipeline-reader-closes-bounded-producer
+  ---
+  duration_ms: 0.034458
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields
+not ok 14106 - primary-5.3: original-differential: quoted-positional-at-concatenates-only-edge-fields
+  ---
+  duration_ms: 0.028041
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-star-uses-first-ifs-character
+not ok 14107 - primary-5.3: original-differential: quoted-star-uses-first-ifs-character
+  ---
+  duration_ms: 0.016708
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+not ok 14108 - primary-5.3: original-differential: ifs-nonwhitespace-delimiters-retain-empty-fields
+  ---
+  duration_ms: 0.015542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+not ok 14109 - primary-5.3: original-differential: quoted-empty-prefix-preserves-otherwise-empty-field
+  ---
+  duration_ms: 0.015917
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution
+not ok 14110 - primary-5.3: original-differential: default-operator-does-not-evaluate-unused-substitution
+  ---
+  duration_ms: 0.014667
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion
+not ok 14111 - primary-5.3: original-differential: assignment-default-side-effect-persists-outside-expansion
+  ---
+  duration_ms: 0.014709
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+not ok 14112 - primary-5.3: original-differential: prefix-assignment-value-expansion-sees-prior-assignment
+  ---
+  duration_ms: 0.013209
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims
+not ok 14113 - primary-5.3: original-differential: command-substitution-file-shortcut-reads-and-trims
+  ---
+  duration_ms: 0.013708
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+not ok 14114 - primary-5.3: original-differential: substitution-retains-interior-newlines-and-isolates-variable
+  ---
+  duration_ms: 0.014167
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: last-assignment-substitution-status-wins
+not ok 14115 - primary-5.3: original-differential: last-assignment-substitution-status-wins
+  ---
+  duration_ms: 0.013666
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: substitution-does-not-reparse-metacharacters
+not ok 14116 - primary-5.3: original-differential: substitution-does-not-reparse-metacharacters
+  ---
+  duration_ms: 0.028167
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+not ok 14117 - primary-5.3: original-differential: ansi-c-quoted-word-decodes-escape-before-argument-passing
+  ---
+  duration_ms: 0.013125
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result
+not ok 14118 - primary-5.3: original-differential: backquote-substitution-preserves-double-quoted-result
+  ---
+  duration_ms: 0.012958
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+not ok 14119 - primary-5.3: original-differential: quoted-glob-fragment-remains-literal-inside-pattern
+  ---
+  duration_ms: 0.01275
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets
+not ok 14120 - primary-5.3: original-differential: glob-question-mark-matches-one-character-including-brackets
+  ---
+  duration_ms: 0.012625
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot
+not ok 14121 - primary-5.3: original-differential: glob-hidden-directory-requires-explicit-dot
+  ---
+  duration_ms: 0.012375
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space
+not ok 14122 - primary-5.3: original-differential: redirect-glob-resolves-single-match-with-space
+  ---
+  duration_ms: 0.015666
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+not ok 14123 - primary-5.3: original-differential: tilde-prefix-in-assignment-not-in-quoted-word
+  ---
+  duration_ms: 0.0135
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+not ok 14124 - primary-5.3: original-differential: heredoc-tab-stripping-keeps-other-whitespace
+  ---
+  duration_ms: 0.019333
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: multiple-heredocs-last-input-wins
+not ok 14125 - primary-5.3: original-differential: multiple-heredocs-last-input-wins
+  ---
+  duration_ms: 0.017834
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing
+not ok 14126 - primary-5.3: original-differential: here-string-expands-without-splitting-or-globbing
+  ---
+  duration_ms: 0.013542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+not ok 14127 - primary-5.3: original-differential: arithmetic-logical-branch-does-not-mutate-unused-side
+  ---
+  duration_ms: 0.013333
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals
+not ok 14128 - primary-5.3: original-differential: compound-loop-return-restores-outer-function-positionals
+  ---
+  duration_ms: 0.013417
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+not ok 14129 - primary-5.3: original-differential: nested-substitution-syntax-error-does-not-prevent-earlier-effects
+  ---
+  duration_ms: 0.014208
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+not ok 14130 - primary-5.3: original-differential: early-reader-must-not-cancel-upstream-non-pipe-effects
+  ---
+  duration_ms: 0.012833
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output
+not ok 14131 - primary-5.3: original-differential: early-reader-must-not-cancel-redirected-producer-output
+  ---
+  duration_ms: 0.012625
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+not ok 14132 - primary-5.3: original-differential: early-reader-must-not-replace-upstream-failure-with-sigpipe
+  ---
+  duration_ms: 0.013166
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+not ok 14133 - primary-5.3: original-differential: fatal-parameter-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 0.012666
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+not ok 14134 - primary-5.3: original-differential: fatal-arithmetic-expansion-prevents-following-file-effect
+  ---
+  duration_ms: 0.015792
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+not ok 14135 - primary-5.3: original-differential: fatal-expansion-in-substitution-stops-substitution-only
+  ---
+  duration_ms: 0.013834
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection
+not ok 14136 - primary-5.3: original-differential: group-inherits-descriptor-three-for-inner-redirection
+  ---
+  duration_ms: 0.017166
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+not ok 14137 - primary-5.3: original-differential: group-inherits-input-descriptor-and-shared-read-offset
+  ---
+  duration_ms: 0.029542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+not ok 14138 - primary-5.3: original-differential: redirect-target-substitution-inherits-earlier-stderr-redirect
+  ---
+  duration_ms: 0.014417
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+not ok 14139 - primary-5.3: original-differential: read-escaped-ifs-character-is-not-a-field-separator
+  ---
+  duration_ms: 0.014042
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+not ok 14140 - primary-5.3: original-differential: read-mixed-ifs-whitespace-does-not-create-spurious-fields
+  ---
+  duration_ms: 0.015541
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+not ok 14141 - primary-5.3: original-differential: read-discards-single-trailing-nonwhitespace-ifs-delimiter
+  ---
+  duration_ms: 0.014542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: quoted-pattern-removal-star-is-literal
+not ok 14142 - primary-5.3: original-differential: quoted-pattern-removal-star-is-literal
+  ---
+  duration_ms: 0.015041
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: glob-posix-bracket-digit-class
+not ok 14143 - primary-5.3: original-differential: glob-posix-bracket-digit-class
+  ---
+  duration_ms: 0.014125
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: command-substitution-removes-nul-bytes
+not ok 14144 - primary-5.3: original-differential: command-substitution-removes-nul-bytes
+  ---
+  duration_ms: 0.0145
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: export-prefix-assignment-persists-in-shell
+not ok 14145 - primary-5.3: original-differential: export-prefix-assignment-persists-in-shell
+  ---
+  duration_ms: 0.013458
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: local-without-assignment-starts-unset
+not ok 14146 - primary-5.3: original-differential: local-without-assignment-starts-unset
+  ---
+  duration_ms: 0.01425
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+not ok 14147 - primary-5.3: original-differential: glob-matches-newline-bytes-and-the-exact-filename
+  ---
+  duration_ms: 0.01375
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+not ok 14148 - primary-5.3: original-differential: parameter-patterns-match-newlines-with-exact-boundaries
+  ---
+  duration_ms: 0.014167
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0
+not ok 14149 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-0
+  ---
+  duration_ms: 0.015083
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1
+not ok 14150 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-1
+  ---
+  duration_ms: 0.014542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2
+not ok 14151 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-2
+  ---
+  duration_ms: 0.014291
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3
+not ok 14152 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-3
+  ---
+  duration_ms: 0.042708
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4
+not ok 14153 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-4
+  ---
+  duration_ms: 0.015542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5
+not ok 14154 - primary-5.3: original-differential: seed-5eed1234-glob-pipeline-5
+  ---
+  duration_ms: 0.013834
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-syntax: unterminated-quote-after-write
+not ok 14155 - primary-5.3: original-syntax: unterminated-quote-after-write
+  ---
+  duration_ms: 0.014291
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-pipeline-command-after-write
+not ok 14156 - primary-5.3: original-syntax: missing-pipeline-command-after-write
+  ---
+  duration_ms: 0.0175
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-conditional-operand-after-write
+not ok 14157 - primary-5.3: original-syntax: missing-conditional-operand-after-write
+  ---
+  duration_ms: 0.012666
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-group-terminator-after-write
+not ok 14158 - primary-5.3: original-syntax: missing-group-terminator-after-write
+  ---
+  duration_ms: 0.012667
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: original-syntax: missing-if-fi-after-write
+not ok 14159 - primary-5.3: original-syntax: missing-if-fi-after-write
+  ---
+  duration_ms: 0.012542
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: move-output-really-closes-source
+not ok 14160 - primary-5.3: current-gaps: move-output-really-closes-source
+  ---
+  duration_ms: 0.0125
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: move-input-really-closes-source
+not ok 14161 - primary-5.3: current-gaps: move-input-really-closes-source
+  ---
+  duration_ms: 0.012875
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: read-n-stops-at-newline-before-count
+not ok 14162 - primary-5.3: current-gaps: read-n-stops-at-newline-before-count
+  ---
+  duration_ms: 0.029375
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: read-d-empty-selects-nul
+not ok 14163 - primary-5.3: current-gaps: read-d-empty-selects-nul
+  ---
+  duration_ms: 0.013417
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+not ok 14164 - primary-5.3: current-gaps: read-d-missing-delimiter-retains-data-with-failure
+  ---
+  duration_ms: 0.012709
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+not ok 14165 - primary-5.3: current-gaps: file-shortcut-does-not-consume-inherited-stdin
+  ---
+  duration_ms: 0.014209
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+not ok 14166 - primary-5.3: current-gaps: ansi-c-word-is-quoted-not-split-or-globbed
+  ---
+  duration_ms: 0.016708
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation
+not ok 14167 - primary-5.3: current-gaps: pathname-classes-c-locale-alpha-negation
+  ---
+  duration_ms: 0.122416
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: prevalidation-prior-output-and-file
+not ok 14168 - primary-5.3: current-gaps: prevalidation-prior-output-and-file
+  ---
+  duration_ms: 0.054667
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects
+not ok 14169 - primary-5.3: current-gaps: fatal-parameter-preserves-only-earlier-effects
+  ---
+  duration_ms: 0.024125
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...
+# Subtest: primary-5.3: current-gaps: unmatched-case-bracket-literal-control
+not ok 14170 - primary-5.3: current-gaps: unmatched-case-bracket-literal-control
+  ---
+  duration_ms: 0.017834
+  type: 'test'
+  location: '/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:1:641'
+  failureType: 'hookFailed'
+  error: |-
+    Frozen historical fixture/helper changed: tests/shell-stress/differential.test.ts
+    + actual - expected
+    
+    + '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+    - '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118'
+  actual: '59027400ad1ea3741e652c49a50b03e076bb2672bc2c24cbee5c994caef1ec32'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.validateFrozenProfile (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/profile.ts:97:43)
+    TestHook.runInAsyncScope (node:async_hooks:214:14)
+    TestHook.run (node:internal/test_runner/test:1047:25)
+    TestHook.run (node:internal/test_runner/test:1354:18)
+    TestHook.run (node:internal/util:569:20)
+    Test.createHook (node:internal/test_runner/test:872:33)
+    node:internal/test_runner/harness:335:12
+    <anonymous> (/private/tmp/full-gate-execution-BtyW8C/source/tests/shell-stress/diagnostic-profiles/compatibility.test.ts:7:1)
+    ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+  ...

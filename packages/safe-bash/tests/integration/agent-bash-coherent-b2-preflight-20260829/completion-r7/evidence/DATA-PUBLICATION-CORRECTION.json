@@ -1,0 +1,10 @@
+{
+  "status": "ordinary in-process DATA helper failure retained",
+  "reportedError": "require is not defined",
+  "cause": "Node REPL ESM helper used unavailable require while constructing SOURCE-DELTA after raw preservation/template publication",
+  "ownedChildStarts": 0,
+  "productRuns": 0,
+  "rawEvidenceAlreadyPreserved": true,
+  "repeatedRuntime": false,
+  "correction": "Use already parsed ORIGIN manifest through fs import; finish only missing source delta."
+}

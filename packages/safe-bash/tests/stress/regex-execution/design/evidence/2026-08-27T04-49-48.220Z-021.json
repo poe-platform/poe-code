@@ -1,0 +1,88 @@
+{
+  "args": [
+    "vector",
+    "backreference",
+    "rg"
+  ],
+  "pid": 68423,
+  "readyAt": 40.810125000000426,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 42.50866700000006
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 44.14925000000039
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 44.15412500000002
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "family": "vector",
+      "name": "backreference"
+    },
+    {
+      "type": "done",
+      "result": {
+        "name": "backreference",
+        "profile": "rg",
+        "status": "tool-rejection-preserved-no-worker-regex",
+        "current": {
+          "rejected": "backreferences and look-around are not supported"
+        },
+        "bounded": {
+          "status": "completed-byte-profile",
+          "first": {
+            "start": 0,
+            "end": 2,
+            "groups": [
+              "aa",
+              "a"
+            ]
+          }
+        }
+      },
+      "wallMs": 0.8312919999999977,
+      "heartbeats": 0,
+      "maxGap": 0,
+      "peakRss": 54034432,
+      "memory": {
+        "rss": 54034432,
+        "heapTotal": 7487488,
+        "heapUsed": 5314880,
+        "external": 2152973,
+        "arrayBuffers": 18895
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ],
+      "cleanup": []
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 620,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,276 @@
+[
+  {
+    "role": "PRIMARY",
+    "hash": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "sameBinary": true,
+    "total": 32,
+    "equal": 32,
+    "rows": [
+      {
+        "id": "source-state",
+        "equal": true
+      },
+      {
+        "id": "dot-state",
+        "equal": true
+      },
+      {
+        "id": "eval-state",
+        "equal": true
+      },
+      {
+        "id": "source-status-sequence",
+        "equal": true
+      },
+      {
+        "id": "eval-join-empty-status",
+        "equal": true
+      },
+      {
+        "id": "source-noargs-positionals",
+        "equal": true
+      },
+      {
+        "id": "source-args-restoration",
+        "equal": true
+      },
+      {
+        "id": "source-function-positionals",
+        "equal": true
+      },
+      {
+        "id": "zero-source-eval",
+        "equal": true
+      },
+      {
+        "id": "source-return",
+        "equal": true
+      },
+      {
+        "id": "eval-return-function",
+        "equal": true
+      },
+      {
+        "id": "nested-source-return",
+        "equal": true
+      },
+      {
+        "id": "eval-return-source",
+        "equal": true
+      },
+      {
+        "id": "function-return-source-continues",
+        "equal": true
+      },
+      {
+        "id": "source-exit-function",
+        "equal": true
+      },
+      {
+        "id": "eval-exit-nested-source",
+        "equal": true
+      },
+      {
+        "id": "source-path-precedence",
+        "equal": true
+      },
+      {
+        "id": "source-direct-and-cwd-fallback",
+        "equal": true
+      },
+      {
+        "id": "source-missing",
+        "equal": true
+      },
+      {
+        "id": "source-directory",
+        "equal": true
+      },
+      {
+        "id": "source-syntax-error",
+        "equal": true
+      },
+      {
+        "id": "eval-syntax-error",
+        "equal": true
+      },
+      {
+        "id": "source-eval-utf8",
+        "equal": true
+      },
+      {
+        "id": "source-eval-descriptors",
+        "equal": true
+      },
+      {
+        "id": "source-shared-input-eof",
+        "equal": true
+      },
+      {
+        "id": "eval-shared-input-eof",
+        "equal": true
+      },
+      {
+        "id": "bash-child-isolation",
+        "equal": true
+      },
+      {
+        "id": "subshell-isolation",
+        "equal": true
+      },
+      {
+        "id": "pipeline-isolation",
+        "equal": true
+      },
+      {
+        "id": "sh-profile-dot",
+        "equal": true
+      },
+      {
+        "id": "sh-profile-missing-fatal",
+        "equal": true
+      },
+      {
+        "id": "nested-eval-expansion",
+        "equal": true
+      }
+    ]
+  },
+  {
+    "role": "HISTORICAL",
+    "hash": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "sameBinary": true,
+    "total": 32,
+    "equal": 32,
+    "rows": [
+      {
+        "id": "source-state",
+        "equal": true
+      },
+      {
+        "id": "dot-state",
+        "equal": true
+      },
+      {
+        "id": "eval-state",
+        "equal": true
+      },
+      {
+        "id": "source-status-sequence",
+        "equal": true
+      },
+      {
+        "id": "eval-join-empty-status",
+        "equal": true
+      },
+      {
+        "id": "source-noargs-positionals",
+        "equal": true
+      },
+      {
+        "id": "source-args-restoration",
+        "equal": true
+      },
+      {
+        "id": "source-function-positionals",
+        "equal": true
+      },
+      {
+        "id": "zero-source-eval",
+        "equal": true
+      },
+      {
+        "id": "source-return",
+        "equal": true
+      },
+      {
+        "id": "eval-return-function",
+        "equal": true
+      },
+      {
+        "id": "nested-source-return",
+        "equal": true
+      },
+      {
+        "id": "eval-return-source",
+        "equal": true
+      },
+      {
+        "id": "function-return-source-continues",
+        "equal": true
+      },
+      {
+        "id": "source-exit-function",
+        "equal": true
+      },
+      {
+        "id": "eval-exit-nested-source",
+        "equal": true
+      },
+      {
+        "id": "source-path-precedence",
+        "equal": true
+      },
+      {
+        "id": "source-direct-and-cwd-fallback",
+        "equal": true
+      },
+      {
+        "id": "source-missing",
+        "equal": true
+      },
+      {
+        "id": "source-directory",
+        "equal": true
+      },
+      {
+        "id": "source-syntax-error",
+        "equal": true
+      },
+      {
+        "id": "eval-syntax-error",
+        "equal": true
+      },
+      {
+        "id": "source-eval-utf8",
+        "equal": true
+      },
+      {
+        "id": "source-eval-descriptors",
+        "equal": true
+      },
+      {
+        "id": "source-shared-input-eof",
+        "equal": true
+      },
+      {
+        "id": "eval-shared-input-eof",
+        "equal": true
+      },
+      {
+        "id": "bash-child-isolation",
+        "equal": true
+      },
+      {
+        "id": "subshell-isolation",
+        "equal": true
+      },
+      {
+        "id": "pipeline-isolation",
+        "equal": true
+      },
+      {
+        "id": "sh-profile-dot",
+        "equal": true
+      },
+      {
+        "id": "sh-profile-missing-fatal",
+        "equal": true
+      },
+      {
+        "id": "nested-eval-expansion",
+        "equal": true
+      }
+    ]
+  }
+]

@@ -1,0 +1,591 @@
+{
+  "schema": 1,
+  "scope": "INITIAL restricted expr source/docs-only delegated-leaf handoff; no product/test/native execution or new corpus",
+  "acceptedProduct": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "quotaCommit": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "publicExpr": "HOLD; factories are physical-module only",
+  "receiptStatus": {
+    "author": "Author candidate-only receipt arrived at final precommit inspection; replay and final evidence pending. Author-reported identities retained, not independently accepted.",
+    "independent": "PENDING at last receipt inspection; no independent receipt existed",
+    "details": "PENDING.md; root must append actual independently reviewed proof in a later commit",
+    "authorReceiptSource": "/tmp/expr-sink-migration-author-v3-20260827-candidate.txt",
+    "authorFixtureCommitReported": "860967af44b20918e3096230f6c7445d4c9cf133"
+  },
+  "integrityScope": "Listed immutable Git bindings; historical inventories authenticate complete selected entry sets. Owned file entry set is checked including additions. No append-proof or transient-mutation guarantee for the live repository.",
+  "unchangedFromQuota": [
+    "src/commands/expr/internal.ts",
+    "src/commands/expr/bre-worker.ts",
+    "src/commands/regex-execution/client.ts",
+    "src/commands/regex-execution/protocol.ts",
+    "src/commands/regex-execution/worker.ts",
+    "src/commands/regex-execution/matching.ts",
+    "package.json",
+    "package-lock.json",
+    "src/index.ts",
+    "src/plugins/index.ts"
+  ],
+  "package": {
+    "evidenceCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+    "selectedSourceArchiveSha256": "c29675ec05c0697b3d56b13a0fad075bd148df6b0c3a91e597f628a21cee0fa7",
+    "identity": "virtual-bash@0.0.0",
+    "tarFilename": "virtual-bash-0.0.0.tgz",
+    "tarSha256": "8331e853455f295dfda24ff53d612514212067ca2075df09e8b60339bda58a5e",
+    "npmShasum": "519a3cc5ccf81de780f61e146b8c0520ea7821d6",
+    "npmIntegrity": "sha512-ywXMerHT2WnrgvJuPWrwCn8/mitQaY8WnHaTaLCDPMD2GN0V+DYsnMX7jR0ZeG1LhJjNjeVKfHJG0gPlAWQecA==",
+    "compressedBytes": 701500,
+    "unpackedBytes": 3918496,
+    "packageEntries": 829,
+    "builtInventory": {
+      "entries": 868,
+      "files": 828
+    },
+    "installedInventory": {
+      "entries": 870,
+      "files": 829
+    },
+    "normalization": "compiled inventory is dist-relative and excludes root; installed inventory includes dist root and package.json. Strip dist/ from descendants for exact equality.",
+    "installedSourceAbsent": true,
+    "runtimeDependencyCount": 0,
+    "movedSmoke": {
+      "passed": 19,
+      "total": 19,
+      "notNewNativeCoverage": true
+    },
+    "workerStaticClosure": [
+      "dist/commands/regex-execution/worker.js",
+      "dist/commands/regex-execution/matching.js",
+      "dist/commands/expr/bre-worker.js",
+      "dist/commands/regex-execution/protocol.js"
+    ],
+    "selectedDist": [
+      {
+        "path": "dist/commands/expr/bre-worker.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 19153,
+          "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874"
+        }
+      },
+      {
+        "path": "dist/commands/expr/evaluate.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 6841,
+          "sha256": "5e24d182d8cbc1a760bb8c3231dcbd8109259cda10b55470601485a1f3fa1d18"
+        }
+      },
+      {
+        "path": "dist/commands/expr/index.d.ts",
+        "observed": {
+          "kind": "file",
+          "bytes": 542,
+          "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44"
+        }
+      },
+      {
+        "path": "dist/commands/expr/index.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 5727,
+          "sha256": "22ecdead37b9f43312ac18b17ca6069d2fea830fa8cb271f5129a612a39018a0"
+        }
+      },
+      {
+        "path": "dist/commands/expr/internal.d.ts",
+        "observed": {
+          "kind": "file",
+          "bytes": 1821,
+          "sha256": "18fdc74dffc85c65e6c657e6c3d9d0020d36e782701cd8d72991645e563e8108"
+        }
+      },
+      {
+        "path": "dist/commands/expr/syntax.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 5694,
+          "sha256": "ac42b6731d2740b8a3617eab12eb42b4ba6c7f9f1be67f0aa7afcb3f06fd0daa"
+        }
+      },
+      {
+        "path": "dist/commands/regex-execution/client.d.ts",
+        "observed": {
+          "kind": "file",
+          "bytes": 3014,
+          "sha256": "a0c121bf338ad2e2570a5239f131ef2aaccb77dd7b2579bac4de9ed57d1f9eaf"
+        }
+      },
+      {
+        "path": "dist/commands/regex-execution/client.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 15146,
+          "sha256": "8817fdeb2a66376cd44ca8760408b48c015d99f95baf4ee977f951240bd5e5a5"
+        }
+      },
+      {
+        "path": "dist/commands/regex-execution/matching.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 13278,
+          "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791"
+        }
+      },
+      {
+        "path": "dist/commands/regex-execution/protocol.d.ts",
+        "observed": {
+          "kind": "file",
+          "bytes": 4268,
+          "sha256": "85f2f6e5f5cc911a8f05a9a8a5b0780259e2a4dfd2f9cbd389ba6a8e7784e051"
+        }
+      },
+      {
+        "path": "dist/commands/regex-execution/protocol.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 7869,
+          "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6"
+        }
+      },
+      {
+        "path": "dist/commands/regex-execution/worker.js",
+        "observed": {
+          "kind": "file",
+          "bytes": 1981,
+          "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+        }
+      }
+    ],
+    "qualification": "Historical independently moved physical artifact. Tar/install cleanup already completed; no new pack, install, declaration compilation or worker run in this handoff. Not a root/subpath/default-registration claim."
+  },
+  "bindings": [
+    {
+      "id": "source-index",
+      "role": "inspected module API, quota and invocation",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/index.ts",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "bytes": 5041,
+      "lines": 85
+    },
+    {
+      "id": "source-internal",
+      "role": "inspected options, defaults, budgets, encoding/locale admission",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/internal.ts",
+      "blob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "bytes": 6600,
+      "lines": 150
+    },
+    {
+      "id": "source-syntax",
+      "role": "inspected encounter-order grammar and skipped-frame behavior",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/syntax.ts",
+      "blob": "352e8d330bfb54427844451711d56b7959a4d147",
+      "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4",
+      "bytes": 5433,
+      "lines": 113
+    },
+    {
+      "id": "source-evaluate",
+      "role": "inspected arithmetic, truth, strings, relations and matcher callbacks",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/evaluate.ts",
+      "blob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+      "bytes": 6889,
+      "lines": 141
+    },
+    {
+      "id": "source-bre",
+      "role": "inspected safe BRE parser, exact guard and bounded matching",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/bre-worker.ts",
+      "blob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "bytes": 17704,
+      "lines": 337
+    },
+    {
+      "id": "source-readme",
+      "role": "inspected module documentation; stale statements identified in report",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/expr/README.md",
+      "blob": "d2ab23fc28ba3a1f500f4a0f7b520683be7585eb",
+      "sha256": "4efc22e4f79c42e14305d274deae5a8f95cf8b053d7e1e4b7be1652a23c56586",
+      "bytes": 17457,
+      "lines": 282
+    },
+    {
+      "id": "source-protocol",
+      "role": "inspected options, ceilings, queue and byte-span protocol",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "bytes": 10890,
+      "lines": 207
+    },
+    {
+      "id": "source-client",
+      "role": "inspected request admission, worker lifetime and reason preservation",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/regex-execution/client.ts",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "bytes": 15319,
+      "lines": 334
+    },
+    {
+      "id": "source-worker",
+      "role": "inspected shared expr operation dispatch and static worker imports",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/regex-execution/worker.ts",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "bytes": 1930,
+      "lines": 48
+    },
+    {
+      "id": "source-matching",
+      "role": "shared static worker closure identity; import inspection only, not new legacy matcher audit",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/regex-execution/matching.ts",
+      "blob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "bytes": 11796,
+      "lines": 249
+    },
+    {
+      "id": "source-regex-readme",
+      "role": "shared policy units and lifecycle context; expr-specific source overrides generic accounting",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/commands/regex-execution/README.md",
+      "blob": "3be6ea55e45b28c0492474d4d11d238e058579c2",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "bytes": 11189,
+      "lines": 180
+    },
+    {
+      "id": "source-io",
+      "role": "inspected writeBytes/abortable supplied-sink and signal path",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "bytes": 7663,
+      "lines": 236
+    },
+    {
+      "id": "source-package",
+      "role": "accepted package identity, exports, files, engines and dependencies",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "package.json",
+      "blob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "bytes": 4287,
+      "lines": 118
+    },
+    {
+      "id": "source-lock",
+      "role": "package binding only; not a dependency runtime acceptance claim",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "package-lock.json",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "bytes": 16734,
+      "lines": 569
+    },
+    {
+      "id": "source-root",
+      "role": "read-only root export absence check",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/index.ts",
+      "blob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "bytes": 1414,
+      "lines": 32
+    },
+    {
+      "id": "source-plugins",
+      "role": "read-only aggregate absence check",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "src/plugins/index.ts",
+      "blob": "73fb9823f19d30be8b1e048be7f64c447354ec27",
+      "sha256": "b0b7fbbf0aa36b7998c760f0e3ec5ee7dbaf18e929b6c2fb434f7ea62a2f082d",
+      "bytes": 5150,
+      "lines": 86
+    },
+    {
+      "id": "source-build-config",
+      "role": "accepted historical build input binding",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tsconfig.build.json",
+      "blob": "89e6b5617b949858c6e90953b561b38089c78dd7",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "bytes": 260,
+      "lines": 12
+    },
+    {
+      "id": "source-types-config",
+      "role": "accepted historical TypeScript input binding",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "path": "tsconfig.json",
+      "blob": "b4c8915ba61dfeb955de8186558d25d00d76b98b",
+      "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+      "bytes": 1087,
+      "lines": 27
+    },
+    {
+      "id": "author-report",
+      "role": "source author handoff; not independent acceptance",
+      "commit": "2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2",
+      "path": "tests/commands/expr-stress/encounter-author-v2-20260827/REPORT.md",
+      "blob": "6d9cb8f56a8fc9277c3ecaef41c89e80cd327ece",
+      "sha256": "62ec9b99afe5ed4e9fd54b9bc4eb0dcdebee25bd3a62ed229430d5db1e996e7b",
+      "bytes": 10105,
+      "lines": 174
+    },
+    {
+      "id": "author-delta",
+      "role": "exact c25-to-c3 index delta and source author provenance",
+      "commit": "2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2",
+      "path": "tests/commands/expr-stress/encounter-author-v2-20260827/ORDERING-DELTA.json",
+      "blob": "fba7134ba908a2f22ee4d0ebd5af5df9cdd403e7",
+      "sha256": "85024e8a12f77b53062e6a79b02027e2f96ca31368ebb64ef48b7180190e551b",
+      "bytes": 46631,
+      "lines": 2020
+    },
+    {
+      "id": "review-report",
+      "role": "independent exact c3 accepted proof with original reds",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/REPORT.md",
+      "blob": "e600d33b1eff94e826f77b3f94126aec046f31b3",
+      "sha256": "0bb7190f00f277dee529c9c8383bbaaeea1524704ec01cfc051f05d49b7b7bb2",
+      "bytes": 17398,
+      "lines": 286
+    },
+    {
+      "id": "review-summary",
+      "role": "independent counts, overlap and blocker record",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/SUMMARY.json",
+      "blob": "e1b116f15be594922911afa6cee758206011041f",
+      "sha256": "369471d093f91a28efdd5f75c4da64c3382de753d7938878b249d77bcc8460ae",
+      "bytes": 8313,
+      "lines": 287
+    },
+    {
+      "id": "review-source-audit",
+      "role": "349 Git-authenticated selected inputs and disclosed glob type-only delta",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/SOURCE-AUDIT.json",
+      "blob": "14cbceebb2ca5083655df538e9514a9a76493b6d",
+      "sha256": "d0befbb8e3be7feaf8bf6e592529f361f5acf9704270789935062b6e9581dbed",
+      "bytes": 19600,
+      "lines": 279
+    },
+    {
+      "id": "review-candidate",
+      "role": "source selection archive identity; original temporary policy was subsequently corrected",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/candidate.json",
+      "blob": "c9ecf711a364bcf07f4ea1f78c4ea34a03ffd956",
+      "sha256": "b4aaa5078e75c300f4636d5b0293e0027b19e132c34a129bc500c15b9616c798",
+      "bytes": 34891,
+      "lines": 60
+    },
+    {
+      "id": "review-package",
+      "role": "primary historical packed artifact identity and full file inventory",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/package.json",
+      "blob": "d4a26ff820d875e5e115d24245492dba5903ef33",
+      "sha256": "54bdd04bcda1b265f7cc7c959db1352e6b15c0e06c6dc74a402fe8953adca143",
+      "bytes": 93752,
+      "lines": 4166
+    },
+    {
+      "id": "review-built-before",
+      "role": "full compiled pre-execution entry inventory",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/compiled-before.json",
+      "blob": "4fd7e2ab68326ab428f1c2032ba4d904669339a9",
+      "sha256": "aefa54f6212342f5cc9ea3c4f7ac57917a56d8ce552eba933477a353ac266cfa",
+      "bytes": 135557,
+      "lines": 4262
+    },
+    {
+      "id": "review-built-after",
+      "role": "full compiled post-execution entry inventory",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/compiled-after.json",
+      "blob": "4fd7e2ab68326ab428f1c2032ba4d904669339a9",
+      "sha256": "aefa54f6212342f5cc9ea3c4f7ac57917a56d8ce552eba933477a353ac266cfa",
+      "bytes": 135557,
+      "lines": 4262
+    },
+    {
+      "id": "review-installed-before",
+      "role": "primary moved package full pre-execution inventory",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/installed-before.json",
+      "blob": "f702a1e099ea29f720e45643ccedb4e76e928820",
+      "sha256": "00fb06c793a4f702b5b56b69ff8b4d36d3700f068592e945415507a9e29d7a85",
+      "bytes": 140083,
+      "lines": 4270
+    },
+    {
+      "id": "review-installed-after",
+      "role": "primary moved package full post-execution inventory",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/installed-after.json",
+      "blob": "f702a1e099ea29f720e45643ccedb4e76e928820",
+      "sha256": "00fb06c793a4f702b5b56b69ff8b4d36d3700f068592e945415507a9e29d7a85",
+      "bytes": 140083,
+      "lines": 4270
+    },
+    {
+      "id": "review-moved",
+      "role": "primary moved physical smoke19, import and worker observations",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/candidate-01/moved-results.json",
+      "blob": "f7a82ebebe4f464005575efeb9d28ebdab23e877",
+      "sha256": "d4e01b8c37b02123bbe7756fe510e07fa93fc439a98cb03aa9da428be52f6706",
+      "bytes": 5869,
+      "lines": 181
+    },
+    {
+      "id": "review-moved-driver",
+      "role": "inspected smoke import/worker path restrictions; not executed here",
+      "commit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/moved-smoke.mjs",
+      "blob": "6e36d9adf563046d3f02820cc6a54f3aaab640f7",
+      "sha256": "0e41537c3b3ed3f1ee0ed8a42279763001dfc704a48bb336d196570a6a40a36e",
+      "bytes": 5611,
+      "lines": 95
+    },
+    {
+      "id": "quota-report",
+      "role": "independent c25 quota acceptance, old47 reds, versioned21 and exact identity",
+      "commit": "5e8aaf6ba2f15d42b40be0db00271c0be0c7582e",
+      "path": "tests/commands/expr-stress/output-quota-independent-v2-20260827/REPORT.md",
+      "blob": "6117654c49c743bdcd0f64032a626e79758225d1",
+      "sha256": "acc391f68aaf61f489b9178261754c816795eb4824c726298bcb93aa22df3089",
+      "bytes": 9390,
+      "lines": 146
+    },
+    {
+      "id": "shared-report",
+      "role": "corrected same-c3 shared11 qualification; preserves original275/276",
+      "commit": "3ad8f4d5f19f7df87290dff0a03b0c6b1a676c23",
+      "path": "tests/commands/expr-stress/encounter-shared-outside-review-v2-20260827/REPORT.md",
+      "blob": "b82dfd4416fa28fe84f66a49a43bf8e61ce4ed4d",
+      "sha256": "cbe923248fdc01af6c83d4f679726332980411fde69d299d499232adaeb2b3e6",
+      "bytes": 8497,
+      "lines": 142
+    },
+    {
+      "id": "shared-correction",
+      "role": "frozen setup-only correction, not semantic/assertion modification",
+      "commit": "3ad8f4d5f19f7df87290dff0a03b0c6b1a676c23",
+      "path": "tests/commands/expr-stress/encounter-shared-outside-review-v2-20260827/candidate-01/CORRECTION-MANIFEST.json",
+      "blob": "68657589c12ed331e3d83037d28f086de31aa974",
+      "sha256": "9334d9391b60c4d430885eb2a2d896b3ddafbdd3d980ee1e5f89023917523945",
+      "bytes": 6078,
+      "lines": 85
+    },
+    {
+      "id": "shared-summary",
+      "role": "actual corrected276/276 result and scope",
+      "commit": "3ad8f4d5f19f7df87290dff0a03b0c6b1a676c23",
+      "path": "tests/commands/expr-stress/encounter-shared-outside-review-v2-20260827/candidate-01/SUMMARY.json",
+      "blob": "b694261f8ca13298da87c62548166e3179590033",
+      "sha256": "ccfa640bbabc3a0c8eb25b4691429adc80b20753cbd9f18fba5435894fc88a51",
+      "bytes": 696,
+      "lines": 29
+    },
+    {
+      "id": "historical-profile-report",
+      "role": "historical 4f encoding/native dialect evidence, not current native certification",
+      "commit": "cf5caabebff6eaec146700d4dd8c707ff8958e96",
+      "path": "tests/commands/expr-stress/qualified-final-review-20260827/REPORT.md",
+      "blob": "1339efff4be5d602a215c86fcbabff39c923262b",
+      "sha256": "9fa4074cb6d4fc3e36e897892a331ff99a5cce9d61aff97f07685478204fad36",
+      "bytes": 11291,
+      "lines": 168
+    },
+    {
+      "id": "historical-nullable-report",
+      "role": "prior primary-source judgment reused without new normative research",
+      "commit": "8897ece39c730812b74164377180b90d6cd02444",
+      "path": "tests/commands/expr-stress/nullable-design-review/REPORT.md",
+      "blob": "efdedff669f3c406dca9cbe2dd01a29049ca3199",
+      "sha256": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae",
+      "bytes": 31006,
+      "lines": 464
+    },
+    {
+      "id": "historical-repeat-review",
+      "role": "isolated TEMP candidate and withheld general comparator promotion",
+      "commit": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+      "path": "tests/commands/expr-stress/repeat-history-independent-20260827/REPORT.md",
+      "blob": "017090e7745da09f8180e1f51b805de756b51c09",
+      "sha256": "2d6338b403dc6c1f1dd1082a72b64680b14c4c12796bb43587318d56a95e42d4",
+      "bytes": 11113,
+      "lines": 165
+    },
+    {
+      "id": "historical-repeat-handoff",
+      "role": "existing bounded counterexamples and unpromoted policies",
+      "commit": "b6eaa23a8a864c456fecef844de330bb5f10d011",
+      "path": "tests/commands/expr-stress/repeat-policy-handoff-20260827/REPORT.md",
+      "blob": "35490af745cfd8998fabe63ce714581043b09b4f",
+      "sha256": "836e7ae20d1629911dd9ef57bc2b55d5fd184216d3c48642c65d3139f2fd696e",
+      "bytes": 11869,
+      "lines": 180
+    },
+    {
+      "id": "historical-nonregex-report",
+      "role": "original baseline provenance, explicitly not recertified or added to current counts",
+      "commit": "26aa460c88991dd3c63f75ca7e601d0146fbc6e1",
+      "path": "tests/commands/expr-stress/nonregex-review/REPORT.md",
+      "blob": "d34f249e954da2cf742c5b0dd2a4bbfe63d4e290",
+      "sha256": "15a1b5f7ddb7833e9ac056f730cbe369607ce6a74a24a59867dcf0c5d75ce0fb",
+      "bytes": 11686,
+      "lines": 181
+    }
+  ],
+  "ownedEntries": [
+    "AUTHOR-RECEIPT.txt.data",
+    "MANIFEST.json",
+    "PENDING.md",
+    "REPORT.md",
+    "verify.mjs"
+  ],
+  "ownedFiles": [
+    {
+      "path": "AUTHOR-RECEIPT.txt.data",
+      "sha256": "03e948c705cae32d2dfa876285f1d9f518b1dac36730f5e968b3b1623e0f7f2c",
+      "bytes": 2336
+    },
+    {
+      "path": "PENDING.md",
+      "sha256": "8b6044ef6c15991ae328bb6817aca26f0fcdd6d850be095279e6c1afcb269404",
+      "bytes": 2441
+    },
+    {
+      "path": "REPORT.md",
+      "sha256": "c83429a5ea70cce3b43bed3583a3386846a7cb8de37229cde5c900fd78695575",
+      "bytes": 25629
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "b499cc46eafe175e8a691d130bfe326e1859e46f9b0666aa9c6dd74c0322d554",
+      "bytes": 4041
+    }
+  ]
+}

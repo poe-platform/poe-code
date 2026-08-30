@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/installed-members.json",
+    "bytes": 177394,
+    "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027073,
+    "mtimeMs": 1788021741466.6445,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/physically-moved/installed-members.json"
+    },
+    "role": "layout-installed-members.json"
+  },
+  "dataPath": "data/bebb8239594adb14b9e869d68d95bcb7352590fb5879d22d61adbcda26373a36.raw",
+  "identityPath": "identities/bebb8239594adb14b9e869d68d95bcb7352590fb5879d22d61adbcda26373a36.json",
+  "copiedBytes": 177394,
+  "copiedMode": 420,
+  "copiedSha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+}

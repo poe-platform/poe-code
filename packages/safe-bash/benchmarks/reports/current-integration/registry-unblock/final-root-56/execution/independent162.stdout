@@ -1,0 +1,1143 @@
+TAP version 13
+# Subtest: independent literal required-command contract is exactly 22 names
+ok 1 - independent literal required-command contract is exactly 22 names
+  ---
+  duration_ms: 0.854625
+  type: 'test'
+  ...
+# Subtest: memory: preserve baseline cardinality missing standard command cat rejects before callback
+ok 2 - memory: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 5.152458
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command cp rejects before callback
+ok 3 - memory: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 0.815542
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command find rejects before callback
+ok 4 - memory: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 0.562708
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 5 - memory: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 0.467791
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command mv rejects before callback
+ok 6 - memory: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 0.577375
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command printf rejects before callback
+ok 7 - memory: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.372667
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 8 - memory: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.33175
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command rm rejects before callback
+ok 9 - memory: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 0.723459
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 10 - memory: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 1.310917
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command sort rejects before callback
+ok 11 - memory: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 0.450458
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command tee rejects before callback
+ok 12 - memory: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 0.571125
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command test rejects before callback
+ok 13 - memory: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 0.382583
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command touch rejects before callback
+ok 14 - memory: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 0.2865
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 15 - memory: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 0.247167
+  type: 'test'
+  ...
+# {"backend":"memory","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing text command sed rejects before callback
+ok 16 - memory: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 0.34875
+  type: 'test'
+  ...
+# {"backend":"memory","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing text command awk rejects before callback
+ok 17 - memory: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 1.089125
+  type: 'test'
+  ...
+# {"backend":"memory","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing structured command jq rejects before callback
+ok 18 - memory: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 0.253542
+  type: 'test'
+  ...
+# {"backend":"memory","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing search command rg rejects before callback
+ok 19 - memory: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 0.221334
+  type: 'test'
+  ...
+# {"backend":"memory","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 20 - memory: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.467833
+  type: 'test'
+  ...
+# {"backend":"memory","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 21 - memory: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.344417
+  type: 'test'
+  ...
+# {"backend":"memory","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 22 - memory: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 0.338542
+  type: 'test'
+  ...
+# {"backend":"memory","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: memory: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 23 - memory: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 0.280542
+  type: 'test'
+  ...
+# {"backend":"memory","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: memory: optional command addition baseline plus one executes real workflows
+ok 24 - memory: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 21.349667
+  type: 'test'
+  ...
+# {"backend":"memory","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: real: preserve baseline cardinality missing standard command cat rejects before callback
+ok 25 - real: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 5.91025
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command cp rejects before callback
+ok 26 - real: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 4.629875
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command find rejects before callback
+ok 27 - real: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 3.741583
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 28 - real: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 3.66975
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command mv rejects before callback
+ok 29 - real: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 3.475667
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command printf rejects before callback
+ok 30 - real: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 3.365458
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 31 - real: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 3.239
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command rm rejects before callback
+ok 32 - real: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 3.189875
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 33 - real: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 5.062375
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command sort rejects before callback
+ok 34 - real: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 3.540125
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command tee rejects before callback
+ok 35 - real: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 3.571041
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command test rejects before callback
+ok 36 - real: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 4.473458
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command touch rejects before callback
+ok 37 - real: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 3.519709
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 38 - real: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 3.584167
+  type: 'test'
+  ...
+# {"backend":"real","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing text command sed rejects before callback
+ok 39 - real: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 3.24025
+  type: 'test'
+  ...
+# {"backend":"real","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing text command awk rejects before callback
+ok 40 - real: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 3.537084
+  type: 'test'
+  ...
+# {"backend":"real","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing structured command jq rejects before callback
+ok 41 - real: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 4.320166
+  type: 'test'
+  ...
+# {"backend":"real","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing search command rg rejects before callback
+ok 42 - real: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 3.417375
+  type: 'test'
+  ...
+# {"backend":"real","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 43 - real: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 6.037083
+  type: 'test'
+  ...
+# {"backend":"real","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 44 - real: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 5.077084
+  type: 'test'
+  ...
+# {"backend":"real","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 45 - real: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 3.891584
+  type: 'test'
+  ...
+# {"backend":"real","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: real: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 46 - real: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 3.78325
+  type: 'test'
+  ...
+# {"backend":"real","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: real: optional command addition baseline plus one executes real workflows
+ok 47 - real: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 11.278875
+  type: 'test'
+  ...
+# {"backend":"real","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: s3: preserve baseline cardinality missing standard command cat rejects before callback
+ok 48 - s3: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 3.677084
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command cp rejects before callback
+ok 49 - s3: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 1.644458
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command find rejects before callback
+ok 50 - s3: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 3.126375
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 51 - s3: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 1.523958
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command mv rejects before callback
+ok 52 - s3: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 1.365833
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command printf rejects before callback
+ok 53 - s3: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 1.233
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 54 - s3: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 1.418167
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command rm rejects before callback
+ok 55 - s3: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 1.123167
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 56 - s3: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 1.321375
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command sort rejects before callback
+ok 57 - s3: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 1.252584
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command tee rejects before callback
+ok 58 - s3: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 1.3135
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command test rejects before callback
+ok 59 - s3: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 1.244709
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command touch rejects before callback
+ok 60 - s3: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 1.154375
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 61 - s3: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 1.112
+  type: 'test'
+  ...
+# {"backend":"s3","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing text command sed rejects before callback
+ok 62 - s3: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 1.175083
+  type: 'test'
+  ...
+# {"backend":"s3","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing text command awk rejects before callback
+ok 63 - s3: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 1.221708
+  type: 'test'
+  ...
+# {"backend":"s3","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing structured command jq rejects before callback
+ok 64 - s3: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 5.680875
+  type: 'test'
+  ...
+# {"backend":"s3","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing search command rg rejects before callback
+ok 65 - s3: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 1.147375
+  type: 'test'
+  ...
+# {"backend":"s3","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 66 - s3: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.914291
+  type: 'test'
+  ...
+# {"backend":"s3","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 67 - s3: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.949666
+  type: 'test'
+  ...
+# {"backend":"s3","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 68 - s3: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 1.016917
+  type: 'test'
+  ...
+# {"backend":"s3","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: s3: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 69 - s3: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 0.958917
+  type: 'test'
+  ...
+# {"backend":"s3","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: s3: optional command addition baseline plus one executes real workflows
+ok 70 - s3: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 9.394375
+  type: 'test'
+  ...
+# {"backend":"s3","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: webdav: preserve baseline cardinality missing standard command cat rejects before callback
+ok 71 - webdav: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 49.974625
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command cp rejects before callback
+ok 72 - webdav: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 18.138375
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command find rejects before callback
+ok 73 - webdav: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 13.6375
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 74 - webdav: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 14.625833
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command mv rejects before callback
+ok 75 - webdav: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 13.146458
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command printf rejects before callback
+ok 76 - webdav: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 15.531166
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 77 - webdav: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 16.269084
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command rm rejects before callback
+ok 78 - webdav: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 15.034916
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 79 - webdav: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 12.120875
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command sort rejects before callback
+ok 80 - webdav: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 13.875833
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command tee rejects before callback
+ok 81 - webdav: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 13.544416
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command test rejects before callback
+ok 82 - webdav: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 12.501166
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command touch rejects before callback
+ok 83 - webdav: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 13.203291
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 84 - webdav: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 10.986334
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing text command sed rejects before callback
+ok 85 - webdav: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 13.20775
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing text command awk rejects before callback
+ok 86 - webdav: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 11.493917
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing structured command jq rejects before callback
+ok 87 - webdav: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 13.324417
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing search command rg rejects before callback
+ok 88 - webdav: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 11.412459
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 89 - webdav: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 12.606083
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 90 - webdav: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 10.583542
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 91 - webdav: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 11.704041
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: webdav: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 92 - webdav: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 11.911708
+  type: 'test'
+  ...
+# {"backend":"webdav","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: webdav: optional command addition baseline plus one executes real workflows
+ok 93 - webdav: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 22.711583
+  type: 'test'
+  ...
+# {"backend":"webdav","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: mount: preserve baseline cardinality missing standard command cat rejects before callback
+ok 94 - mount: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 7.096333
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command cp rejects before callback
+ok 95 - mount: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 5.576792
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command find rejects before callback
+ok 96 - mount: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 4.916167
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 97 - mount: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 4.641209
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command mv rejects before callback
+ok 98 - mount: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 5.135792
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command printf rejects before callback
+ok 99 - mount: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 5.531166
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 100 - mount: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 5.088917
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command rm rejects before callback
+ok 101 - mount: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 4.847083
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 102 - mount: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 8.489417
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command sort rejects before callback
+ok 103 - mount: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 5.606959
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command tee rejects before callback
+ok 104 - mount: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 5.304292
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command test rejects before callback
+ok 105 - mount: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 4.841417
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command touch rejects before callback
+ok 106 - mount: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 5.156875
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 107 - mount: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 4.665459
+  type: 'test'
+  ...
+# {"backend":"mount","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing text command sed rejects before callback
+ok 108 - mount: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 5.718417
+  type: 'test'
+  ...
+# {"backend":"mount","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing text command awk rejects before callback
+ok 109 - mount: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 5.195917
+  type: 'test'
+  ...
+# {"backend":"mount","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing structured command jq rejects before callback
+ok 110 - mount: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 5.13525
+  type: 'test'
+  ...
+# {"backend":"mount","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing search command rg rejects before callback
+ok 111 - mount: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 5.868125
+  type: 'test'
+  ...
+# {"backend":"mount","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 112 - mount: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 5.405042
+  type: 'test'
+  ...
+# {"backend":"mount","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 113 - mount: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 8.941542
+  type: 'test'
+  ...
+# {"backend":"mount","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 114 - mount: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 4.782458
+  type: 'test'
+  ...
+# {"backend":"mount","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: mount: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 115 - mount: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 5.362583
+  type: 'test'
+  ...
+# {"backend":"mount","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: mount: optional command addition baseline plus one executes real workflows
+ok 116 - mount: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 13.687834
+  type: 'test'
+  ...
+# {"backend":"mount","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: overlay: preserve baseline cardinality missing standard command cat rejects before callback
+ok 117 - overlay: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 1.537584
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command cp rejects before callback
+ok 118 - overlay: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 1.139083
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command find rejects before callback
+ok 119 - overlay: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 1.054708
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 120 - overlay: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 1.006375
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command mv rejects before callback
+ok 121 - overlay: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 0.908916
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command printf rejects before callback
+ok 122 - overlay: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.964709
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 123 - overlay: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.981958
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command rm rejects before callback
+ok 124 - overlay: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 1.02875
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 125 - overlay: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 4.895583
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command sort rejects before callback
+ok 126 - overlay: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 1.033209
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command tee rejects before callback
+ok 127 - overlay: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 0.9125
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command test rejects before callback
+ok 128 - overlay: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 0.966458
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command touch rejects before callback
+ok 129 - overlay: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 0.921125
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 130 - overlay: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 0.901333
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing text command sed rejects before callback
+ok 131 - overlay: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 1.051917
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing text command awk rejects before callback
+ok 132 - overlay: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 0.934666
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing structured command jq rejects before callback
+ok 133 - overlay: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 1.013334
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing search command rg rejects before callback
+ok 134 - overlay: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 1.005
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 135 - overlay: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 1.010084
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 136 - overlay: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.981166
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 137 - overlay: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 1.036292
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: overlay: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 138 - overlay: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 1.110208
+  type: 'test'
+  ...
+# {"backend":"overlay","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: overlay: optional command addition baseline plus one executes real workflows
+ok 139 - overlay: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 14.201583
+  type: 'test'
+  ...
+# {"backend":"overlay","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+# Subtest: readonly: preserve baseline cardinality missing standard command cat rejects before callback
+ok 140 - readonly: preserve baseline cardinality missing standard command cat rejects before callback
+  ---
+  duration_ms: 0.397459
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"cat","substitute":"registry_unblock_substitute_cat","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cat","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command cp rejects before callback
+ok 141 - readonly: preserve baseline cardinality missing standard command cp rejects before callback
+  ---
+  duration_ms: 0.196083
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"cp","substitute":"registry_unblock_substitute_cp","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: cp","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command find rejects before callback
+ok 142 - readonly: preserve baseline cardinality missing standard command find rejects before callback
+  ---
+  duration_ms: 0.180875
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"find","substitute":"registry_unblock_substitute_find","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: find","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command mkdir rejects before callback
+ok 143 - readonly: preserve baseline cardinality missing standard command mkdir rejects before callback
+  ---
+  duration_ms: 0.201
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"mkdir","substitute":"registry_unblock_substitute_mkdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mkdir","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command mv rejects before callback
+ok 144 - readonly: preserve baseline cardinality missing standard command mv rejects before callback
+  ---
+  duration_ms: 0.168333
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"mv","substitute":"registry_unblock_substitute_mv","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: mv","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command printf rejects before callback
+ok 145 - readonly: preserve baseline cardinality missing standard command printf rejects before callback
+  ---
+  duration_ms: 0.168375
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"printf","substitute":"registry_unblock_substitute_printf","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: printf","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command pwd rejects before callback
+ok 146 - readonly: preserve baseline cardinality missing standard command pwd rejects before callback
+  ---
+  duration_ms: 0.16675
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"pwd","substitute":"registry_unblock_substitute_pwd","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: pwd","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command rm rejects before callback
+ok 147 - readonly: preserve baseline cardinality missing standard command rm rejects before callback
+  ---
+  duration_ms: 0.174458
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"rm","substitute":"registry_unblock_substitute_rm","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rm","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command rmdir rejects before callback
+ok 148 - readonly: preserve baseline cardinality missing standard command rmdir rejects before callback
+  ---
+  duration_ms: 0.150333
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"rmdir","substitute":"registry_unblock_substitute_rmdir","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: rmdir","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command sort rejects before callback
+ok 149 - readonly: preserve baseline cardinality missing standard command sort rejects before callback
+  ---
+  duration_ms: 0.174292
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"sort","substitute":"registry_unblock_substitute_sort","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: sort","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command tee rejects before callback
+ok 150 - readonly: preserve baseline cardinality missing standard command tee rejects before callback
+  ---
+  duration_ms: 0.168375
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"tee","substitute":"registry_unblock_substitute_tee","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: tee","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command test rejects before callback
+ok 151 - readonly: preserve baseline cardinality missing standard command test rejects before callback
+  ---
+  duration_ms: 0.158417
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"test","substitute":"registry_unblock_substitute_test","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: test","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command touch rejects before callback
+ok 152 - readonly: preserve baseline cardinality missing standard command touch rejects before callback
+  ---
+  duration_ms: 0.162542
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"touch","substitute":"registry_unblock_substitute_touch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: touch","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing standard command xargs rejects before callback
+ok 153 - readonly: preserve baseline cardinality missing standard command xargs rejects before callback
+  ---
+  duration_ms: 0.149708
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"standard","missing":"xargs","substitute":"registry_unblock_substitute_xargs","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required standard command: xargs","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing text command sed rejects before callback
+ok 154 - readonly: preserve baseline cardinality missing text command sed rejects before callback
+  ---
+  duration_ms: 0.155875
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"text","missing":"sed","substitute":"registry_unblock_substitute_sed","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: sed","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing text command awk rejects before callback
+ok 155 - readonly: preserve baseline cardinality missing text command awk rejects before callback
+  ---
+  duration_ms: 0.171375
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"text","missing":"awk","substitute":"registry_unblock_substitute_awk","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required text command: awk","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing structured command jq rejects before callback
+ok 156 - readonly: preserve baseline cardinality missing structured command jq rejects before callback
+  ---
+  duration_ms: 0.160709
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"structured","missing":"jq","substitute":"registry_unblock_substitute_jq","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required structured command: jq","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing search command rg rejects before callback
+ok 157 - readonly: preserve baseline cardinality missing search command rg rejects before callback
+  ---
+  duration_ms: 0.146959
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"search","missing":"rg","substitute":"registry_unblock_substitute_rg","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required search command: rg","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+ok 158 - readonly: preserve baseline cardinality missing bytes command sha256sum rejects before callback
+  ---
+  duration_ms: 0.147792
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"bytes","missing":"sha256sum","substitute":"registry_unblock_substitute_sha256sum","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: sha256sum","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing bytes command gzip rejects before callback
+ok 159 - readonly: preserve baseline cardinality missing bytes command gzip rejects before callback
+  ---
+  duration_ms: 0.145
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"bytes","missing":"gzip","substitute":"registry_unblock_substitute_gzip","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required bytes command: gzip","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing diffPatch command diff rejects before callback
+ok 160 - readonly: preserve baseline cardinality missing diffPatch command diff rejects before callback
+  ---
+  duration_ms: 0.151041
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"diffPatch","missing":"diff","substitute":"registry_unblock_substitute_diff","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: diff","callbackEntered":false}
+# Subtest: readonly: preserve baseline cardinality missing diffPatch command patch rejects before callback
+ok 161 - readonly: preserve baseline cardinality missing diffPatch command patch rejects before callback
+  ---
+  duration_ms: 0.144875
+  type: 'test'
+  ...
+# {"backend":"readonly","family":"diffPatch","missing":"patch","substitute":"registry_unblock_substitute_patch","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":56,"observed":"adapter-tools preflight: missing required diffPatch command: patch","callbackEntered":false}
+# Subtest: readonly: optional command addition baseline plus one executes real workflows
+ok 162 - readonly: optional command addition baseline plus one executes real workflows
+  ---
+  duration_ms: 6.796708
+  type: 'test'
+  ...
+# {"backend":"readonly","baselineNames":["[","awk","base32","base64","basename","cat","chmod","cksum","comm","cp","cut","diff","dirname","echo","env","false","find","grep","gunzip","gzip","head","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","od","paste","patch","printf","pwd","readlink","realpath","rg","rm","rmdir","sed","sha1sum","sha256sum","sort","stat","tail","tar","tee","test","touch","tr","true","uniq","wc","xargs","xxd","zcat"],"beforeCount":56,"afterCount":57,"callbackEntered":true,"optionalExecuted":true,"dispatched":["registry_unblock_optional","cat","sed","awk","jq","jq","xargs","find","rg","cat","gzip","gzip","diff"]}
+1..162
+# tests 162
+# suites 0
+# pass 162
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1181.873958

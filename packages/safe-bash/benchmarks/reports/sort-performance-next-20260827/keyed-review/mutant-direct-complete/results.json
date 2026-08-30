@@ -1,0 +1,70 @@
+[
+  {
+    "id": "borrowed-offset-finalizer-newline",
+    "actual": {
+      "status": 0,
+      "stdout": "YjotMQpjOjMKYToyMAo=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "dce0b7916d43c63f908c937f5cc23bebb9713a16d6598c2339641d65695c393f"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "f7e5d1a920ac5296ad4d733573f10b890a06134f26f954bf106281d0d4735be1"
+    },
+    "finalized": true,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 4,
+      "keyedRequests": 8,
+      "extractions": 3,
+      "fieldObjects": 6,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 36,
+      "independentBackingCharge": 36,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 36,
+      "numericComparisons": 4,
+      "keyedHits": 5
+    }
+  },
+  {
+    "id": "borrowed-offset-finalizer-nul",
+    "actual": {
+      "status": 0,
+      "stdout": "UVFRUQBRUVFRAGM6MwA=",
+      "stderr": "",
+      "files": {}
+    },
+    "input": {
+      "bytes": 13,
+      "sha256": "81e6b0c65c337469453bec8550a71666b8399de994b8c0073a7237cef448a0fe"
+    },
+    "stdout": {
+      "bytes": 14,
+      "sha256": "3a10f8c40ae74271314964f7a83538c6ba33a2ae360def1ae28f8d7cc3082670"
+    },
+    "finalized": true,
+    "counters": {
+      "keyedConstructions": 1,
+      "sortComparisons": 2,
+      "keyedRequests": 4,
+      "extractions": 3,
+      "fieldObjects": 4,
+      "parses": 3,
+      "keyedAdmissions": 3,
+      "charged": 12,
+      "independentBackingCharge": 12,
+      "existingRecordBytes": 11,
+      "entriesPeak": 3,
+      "retainedPeak": 12,
+      "numericComparisons": 2,
+      "keyedHits": 1
+    }
+  }
+]

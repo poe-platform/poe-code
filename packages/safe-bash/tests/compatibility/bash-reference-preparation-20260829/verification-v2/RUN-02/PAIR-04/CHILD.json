@@ -1,0 +1,44 @@
+{
+  "id": "PAIR-04",
+  "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+  "argv": [
+    "--homedir",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/gnupg",
+    "--keyring",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+    "--status-fd",
+    "1",
+    "--",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.sig.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data"
+  ],
+  "disposition": {
+    "code": 0,
+    "signal": null
+  },
+  "events": [
+    {
+      "type": "spawn",
+      "pid": 52939
+    },
+    {
+      "type": "exit",
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 28.01245800000106
+    },
+    {
+      "type": "close",
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 28.016208000000915
+    }
+  ],
+  "lengths": {
+    "stdout": 346,
+    "stderr": 88889
+  },
+  "ownedClosed": true,
+  "failure": null,
+  "elapsedMs": 28.557541000001947
+}

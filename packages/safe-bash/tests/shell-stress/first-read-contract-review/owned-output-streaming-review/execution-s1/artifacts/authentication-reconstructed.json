@@ -1,0 +1,60 @@
+{
+  "at": "2026-08-27T11:37:34.681Z",
+  "pinned": [
+    [
+      "/tmp/safe-bash-owned-output-streaming-prototype.ready",
+      "f016214887c9827af40f54e74b3100026565dd070de4f63b9657e887db2bdb4d"
+    ],
+    [
+      "/tmp/safe-bash-owned-output-streaming-prototype-final-result.txt",
+      "5f002910c2b1b653c9c6422e5618f8dc3a827144894d4a02644c120a8b4305e1"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/tested-manifest.json",
+      "4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/API-S1.txt.data",
+      "601adc3e3844aae2b021887e4a096c08c1a1a315baa821a9ce664c19d82c6e14"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/FREEZE.md",
+      "4095cb141a9e7d7e715daa99fc713f8734e00255969e76bdf49e4f82401040ca"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/driver.mjs.data",
+      "f57b423ac3aa5ff210e3a389f4c4df3c01740f0329f66194012ae551068c8b21"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/binding-map.json",
+      "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/expected-observations.json",
+      "cfbaf336e5ba3dc31cc43384718c608cfebf4df8b4b3744c10b6a2c090b4ec25"
+    ],
+    [
+      "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/SHA256SUMS.json",
+      "5b4a6ccae2281fcda9c6d68eec687c918c9bf5a87c96419d47abf20ac48cc105"
+    ]
+  ],
+  "candidates": [
+    "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate",
+    "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate",
+    "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate"
+  ],
+  "source": 213,
+  "tests": 15,
+  "compiled": 708,
+  "compilerInputs": 358,
+  "tooling": 60,
+  "restoreInputs": 12,
+  "config": 4,
+  "node": "v22.22.2",
+  "bindingSumsKeys": [
+    "classification",
+    "sourceIdentity",
+    "files"
+  ],
+  "candidateExecuted": false
+}

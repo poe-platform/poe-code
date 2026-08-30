@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "state": "PRECODE_PREPARATION_INTEGRITY_ONLY",
+  "caseRecords": 194,
+  "categoryCounts": {
+    "COMMAND": 24,
+    "PARSER": 36,
+    "NUMERIC": 16,
+    "ENCODER": 10,
+    "QUERY": 12,
+    "ALIAS": 15,
+    "UTF8": 22,
+    "WORK": 26,
+    "LIFECYCLE": 10,
+    "FS": 6,
+    "MOVED": 3,
+    "TYPE": 8,
+    "NEGATIVE_CONTROL": 6
+  },
+  "files": [
+    {
+      "path": "PREPARATION.md",
+      "bytes": 2150,
+      "sha256": "e7f2b885b41714e23691e1db730b92e04df2510059bc55e426eb67eb32026b2c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 13125,
+      "sha256": "0cb91b8b471fd5f7453fc0dfae9da3acf224680d758d50a750995108875d3955"
+    },
+    {
+      "path": "accounting.json",
+      "bytes": 10897,
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf"
+    },
+    {
+      "path": "command-parser.json",
+      "bytes": 10728,
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f"
+    },
+    {
+      "path": "fixed-values.json",
+      "bytes": 3446,
+      "sha256": "59a1fbcc170e9b26e6184fca8f082f17c558ca3b0b9dcd15561a6a9dbf470b3a"
+    },
+    {
+      "path": "integration.json",
+      "bytes": 12184,
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30"
+    },
+    {
+      "path": "recipes.mjs",
+      "bytes": 1382,
+      "sha256": "fb750252e49c92d5e5bfc91980e6bf042cc2ca3825cc85e97dd8329f458dc146"
+    },
+    {
+      "path": "source-bindings.json",
+      "bytes": 7912,
+      "sha256": "7d93b149eacfefeee82560af6c72ee1f235bbf6abdfaadebe7811e92375c6ed2"
+    },
+    {
+      "path": "utf8.json",
+      "bytes": 4211,
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c"
+    },
+    {
+      "path": "value-query.json",
+      "bytes": 12730,
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443"
+    },
+    {
+      "path": "verify-preparation.mjs",
+      "bytes": 12556,
+      "sha256": "430b92c6270b73ab18e3e313255fee5c473914299bca203655a75a39b8af8de1"
+    }
+  ],
+  "recipeInputs": [
+    {
+      "id": "QUE-12",
+      "bytes": 400007,
+      "sha256": "960209a78beef1cbef0e99da4c42e25e9c717225c7f0db80eaae24e5380f41c5"
+    },
+    {
+      "id": "ALS-10",
+      "bytes": 7168,
+      "sha256": "f4eb14a7875244ba51d0f0cabe3bd7dd82af580325cf16ff16ac94108005989e"
+    },
+    {
+      "id": "ALS-11",
+      "bytes": 7175,
+      "sha256": "f8ecf7fc1949449dcaef669c682e3a0da16164b93838a331370f3cbd5ba35144"
+    },
+    {
+      "id": "ALS-12",
+      "bytes": 14340,
+      "sha256": "b84c41725604db85c4a541fc4511c3d105688d6188fb90fd7665ca87bf2b41c0"
+    },
+    {
+      "id": "ALS-14",
+      "bytes": 4114,
+      "sha256": "c91784f2651f76f6d27da5090cd615c55715b1bc2c034a18cbcc8ff07611ea38"
+    },
+    {
+      "id": "ALS-15",
+      "bytes": 4118,
+      "sha256": "06b4c34dc8f78063f72dd12ce5ce5b5e85c58e2d8ae3d6538d53824bb2a6fe59"
+    },
+    {
+      "id": "WRK-14",
+      "bytes": 4100,
+      "sha256": "5aafa5a96953d3685699a84b7767ca66ab322e0032091ead896b6ea9f432b545"
+    },
+    {
+      "id": "WRK-25",
+      "bytes": 4100,
+      "sha256": "90297377bf97b254131e5763fc2aeed56bbd54243e00412e1e49e01dbb6628fc"
+    }
+  ],
+  "preparationChunkPartitions": 26,
+  "manifestAuthentication": "This file is bound by its containing Git commit; every other freeze file and exact membership are checked before/after preparation. Parent and foreign directories are outside this inventory."
+}

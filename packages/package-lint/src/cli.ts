@@ -1,28 +1,10 @@
 #!/usr/bin/env node
-import { readdir, readFile, stat } from "node:fs/promises";
+import { lstat, readdir, readFile, realpath, stat } from "node:fs/promises";
 import { parseArgs } from "node:util";
-import path from "node:path";
 import { loadBuildView, loadWorkspace, type LintFs } from "./model.js";
 import { createNpmPacklistProvider } from "./packlist.js";
 import { formatReport } from "./report.js";
 import { runRules } from "./rules/index.js";
-
-interface RecursiveDirent {
-  name: string;
-  isDirectory(): boolean;
-  parentPath?: string;
-  path?: string;
-}
-
-async function listFilesRecursively(dir: string): Promise<string[]> {
-  const entries = (await readdir(dir, {
-    withFileTypes: true,
-    recursive: true
-  })) as RecursiveDirent[];
-  return entries
-    .filter((entry) => !entry.isDirectory())
-    .map((entry) => path.join(entry.parentPath ?? entry.path ?? dir, entry.name));
-}
 
 const nodeFs: LintFs = {
   readFile: (p) => readFile(p, "utf8"),
@@ -32,26 +14,8 @@ const nodeFs: LintFs = {
     const stats = await stat(p);
     return { isDirectory: () => stats.isDirectory(), isFile: () => stats.isFile() };
   },
-  async listFiles(dir) {
-    try {
-      return await listFilesRecursively(dir);
-    } catch {
-      const entries = (await readdir(dir, { withFileTypes: true })) as {
-        name: string;
-        isDirectory(): boolean;
-      }[];
-      const files: string[] = [];
-      for (const entry of entries) {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          files.push(...(await nodeFs.listFiles!(full)));
-        } else {
-          files.push(full);
-        }
-      }
-      return files;
-    }
-  }
+  lstat,
+  realpath
 };
 
 const HELP = `poe-package-lint — verify workspace packages are configured for publish

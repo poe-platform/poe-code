@@ -1,0 +1,25 @@
+{
+  "schema": "let-design-existing-qualification-references-v1",
+  "observedAt": "2026-08-28T07:01:31.073Z",
+  "qualification": "Readonly reference documents read after native run; not pre-run executable inputs, no associated product/native tests rerun",
+  "references": [
+    {
+      "path": "tests/shell/getopts/runtime/evidence-v1/REPORT.md",
+      "mode": 420,
+      "bytes": 8456,
+      "sha256": "208534f3953c4024a69d1b32557a2a64551092d059a05d6a2b68f96eb31c2af6"
+    },
+    {
+      "path": "tests/shell/getopts/README.md",
+      "mode": 420,
+      "bytes": 6278,
+      "sha256": "a1746cced8d839aa77601093a1b9a8dfff194edc1ca8b7f7f95eb2b82cd9fa16"
+    },
+    {
+      "path": "tests/shell/cd-prerequisite-independent-20260828/review-4641075d/REPORT.md",
+      "mode": 420,
+      "bytes": 11207,
+      "sha256": "272bf823713a6d393857d3cfa3439ec3501e4c77db3565257bcafb4f72db228e"
+    }
+  ]
+}

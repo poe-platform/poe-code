@@ -1,0 +1,154 @@
+{
+  "checks": [
+    {
+      "name": "normal/-E/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "normal/-E/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "normal/-E/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "context/-E/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "context/-E/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "context/-E/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "unified/-E/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "unified/-E/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "unified/-E/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "quoted ancestor symlink: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "quoted ancestor symlink: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "quoted ancestor symlink: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "selected ancestor control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "selected ancestor control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "selected ancestor control: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk second matching line control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk second matching line control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk second matching line control: complete virtual outcome",
+      "passed": false,
+      "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    after: {\n      '/': {\n        mode: 16877,\n        nlink: 3,\n...\n      '/work/first': {\n+       hex: '6b6565700a',\n-       hex: '6368616e6765640a',\n        mode: 33206,\n        nlink: 1,\n        type: 'file'\n      },\n      '/work/target': {\n-       hex: '6e65770a6f746865720a7461696c0a',\n-       mode: 33206,\n-       nlink: 1,\n-       type: 'file'\n-     },\n-     '/work/target.orig': {\n        hex: '6f6c640a6f6c640a7461696c0a',\n        mode: 33206,\n        nlink: 1,\n        type: 'file'\n      }\n...\n    },\n+   status: 1,\n+   stderr: 'patch: hunk 2 does not match target\\n',\n+   stderrHex: '70617463683a2068756e6b203220646f6573206e6f74206d61746368207461726765740a',\n+   stdout: '',\n+   stdoutHex: ''\n-   status: 0,\n-   stderr: '',\n-   stderrHex: '',\n-   stdout: 'patching file first\\n' +\n-     'patching file target\\n' +\n-     'Hunk #2 succeeded at 2 (offset 1 line).\\n',\n-   stdoutHex: '7061746368696e672066696c652066697273740a7061746368696e672066696c65207461726765740a48756e6b20233220737563636565646564206174203220286f66667365742031206c696e65292e0a'\n  }\n"
+    },
+    {
+      "name": "incomplete repeated hunk control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "incomplete repeated hunk control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "incomplete repeated hunk control: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk later matching line control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk later matching line control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk later matching line control: complete virtual outcome",
+      "passed": true
+    }
+  ],
+  "assertionCount": 36,
+  "passed": 35,
+  "failed": 1,
+  "coverage": "Eight original cases, four bounded controls; assertions are not additional cases",
+  "nativeNormalization": "Only recorded reviewer native root and exact Apple temporary entry name are tokenized. Raw stdout/stderr and full namespaces retained. Status, diagnostics, path structure, contents, modes and link counts remain exact; per-run inode/device retained raw but not cross-run equality targets."
+}

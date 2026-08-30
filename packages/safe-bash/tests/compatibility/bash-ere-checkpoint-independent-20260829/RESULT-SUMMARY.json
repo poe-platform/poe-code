@@ -1,0 +1,254 @@
+{
+  "verdict": "HOLD: residual R02 parser first-pass checkpoint omission",
+  "main": {
+    "pass": 237,
+    "fail": 3,
+    "total": 240
+  },
+  "rows": [
+    {
+      "role": "source-author66",
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "source-checkpoints8",
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "source-novel6",
+      "pass": 5,
+      "fail": 1
+    },
+    {
+      "role": "installed-author66",
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "installed-checkpoints8",
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "installed-novel6",
+      "pass": 5,
+      "fail": 1
+    },
+    {
+      "role": "moved-author66",
+      "pass": 66,
+      "fail": 0
+    },
+    {
+      "role": "moved-checkpoints8",
+      "pass": 8,
+      "fail": 0
+    },
+    {
+      "role": "moved-novel6",
+      "pass": 5,
+      "fail": 1
+    }
+  ],
+  "types": {
+    "executions": 6,
+    "positive": 3,
+    "negative": 3,
+    "exactDiagnosticCodes": [
+      [
+        2345,
+        2339,
+        2322
+      ],
+      [
+        2345,
+        2339,
+        2322
+      ],
+      [
+        2345,
+        2339,
+        2322
+      ]
+    ],
+    "allPassed": true
+  },
+  "mutants": [
+    {
+      "id": "M01",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "649cb47d3fc48a22c920bec5fdd6e8367b7bf5747439b3eabff3fb296fb5e959"
+    },
+    {
+      "id": "M02",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "8910cea3c65c8769581b90516c5f748c0fd33bb64ed1b32fb866dd0cde7f7241"
+    },
+    {
+      "id": "M03",
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "methodSha256": "cacf0cb5379a8aaa38e5342053a353731c9cdca5d994b52083f08d61d51c9a30"
+    }
+  ],
+  "bindings": [
+    {
+      "id": "B01-content",
+      "refused": true,
+      "dataOnly": true
+    },
+    {
+      "id": "B02-missing",
+      "refused": true,
+      "dataOnly": true
+    }
+  ],
+  "source": {
+    "commit": "0e97500f41be479e4a266037b03230ab5118d300",
+    "bindings": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+        "size": 1554,
+        "mode": 420,
+        "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/errors.ts",
+        "size": 1003,
+        "mode": 420,
+        "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/limits.ts",
+        "size": 3471,
+        "mode": 420,
+        "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+        "size": 13033,
+        "mode": 420,
+        "sha256": "be0082e84d90783731163aa3a92fa3fc56b379c2c8c522fee567bafc5654b64f"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/matcher.ts",
+        "size": 8543,
+        "mode": 420,
+        "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+      }
+    ],
+    "firstPassUnchangedFromF97": true,
+    "firstPassSha256": "c4e75b8e6374925ea52a40f0abb8d739030c15c88b7bde589d3d8179b81a5a86",
+    "firstPassLines": [
+      46,
+      54
+    ]
+  },
+  "postguard": {
+    "boundInputs": 269,
+    "workRegularFiles": 273,
+    "workBytes": 26184940,
+    "appendSensitiveEquality": true,
+    "compiled": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/errors.d.ts",
+        "size": 691,
+        "mode": 420,
+        "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/errors.js",
+        "size": 1045,
+        "mode": 420,
+        "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/limits.d.ts",
+        "size": 671,
+        "mode": 420,
+        "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/limits.js",
+        "size": 3265,
+        "mode": 420,
+        "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/matcher.d.ts",
+        "size": 231,
+        "mode": 420,
+        "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/matcher.js",
+        "size": 8483,
+        "mode": 420,
+        "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/package.json",
+        "size": 33,
+        "mode": 420,
+        "sha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/syntax.d.ts",
+        "size": 445,
+        "mode": 420,
+        "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/syntax.js",
+        "size": 14229,
+        "mode": 420,
+        "sha256": "1e23a00c14bd8d759fba8921feb044aafa139f0777be4a3b4a9c9081a6857b82"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/types.d.ts",
+        "size": 1606,
+        "mode": 420,
+        "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/emitted/types.js",
+        "size": 11,
+        "mode": 420,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      }
+    ]
+  },
+  "runtime": {
+    "outer": {
+      "pid": 56941,
+      "childPid": 56944,
+      "primaryPresent": false,
+      "primary": null,
+      "terminal": {
+        "code": 1,
+        "signal": null,
+        "exited": {
+          "code": 1,
+          "signal": null
+        }
+      },
+      "captured": 0
+    },
+    "directChildren": 22,
+    "allDirectRetired": true,
+    "active": 0,
+    "peakChildren": 1,
+    "elapsedMs": 5472,
+    "captureBytes": 64124,
+    "loaderThreads": 0,
+    "workers": 0
+  },
+  "R01": "I01/I02/I03/I04/I05/I06/I23 seven original failures/HOLD retained; not rerun/rescored; no native model choice"
+}

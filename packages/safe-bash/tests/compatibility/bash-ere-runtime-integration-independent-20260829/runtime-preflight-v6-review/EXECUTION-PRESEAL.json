@@ -1,0 +1,103 @@
+{
+  "mode": "SOURCE-DATA-HARMLESS-ONLY",
+  "deadline": 1788014794442,
+  "control": "/private/tmp/core70-independent-v6-20260829/controls",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/CUSTOM-SHA256SUMS",
+      "size": 1559,
+      "mode": 420,
+      "sha256": "c2fef0d8a9bf0abb19fe88bb2466c7fa8a73a9dc3d28162ad1f6be0920208a58"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/PRESEAL.md",
+      "size": 2274,
+      "mode": 384,
+      "sha256": "2e1b947407bf7f10c6da8605301136e894671c06b46b0b3334671c5d08d3abe4"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/SHA256SUMS",
+      "size": 388,
+      "mode": 420,
+      "sha256": "5855256de4373057c5894b18e825d903581f654a0e2e45ad4e735b4fad7e04f2"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/START.json",
+      "size": 29,
+      "mode": 384,
+      "sha256": "d2ee4ee75627def547b7589739e348f0bc145cc53c0e4e26aad87f19403e9a88"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/array-observer.mjs",
+      "size": 3105,
+      "mode": 384,
+      "sha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/controls.mjs",
+      "size": 9724,
+      "mode": 384,
+      "sha256": "3e534c4ef793721b0532ac6ee7b88e97360926eea5d5905427fec6830a30416e"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/guards.mjs",
+      "size": 3236,
+      "mode": 384,
+      "sha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/harmless.mjs",
+      "size": 120,
+      "mode": 384,
+      "sha256": "6802837fd93d5f35cf42eaeba84bbe561110a1916fa33a083ca94f73ab7f3fdc"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/owner.mjs",
+      "size": 4751,
+      "mode": 384,
+      "sha256": "247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/pure-controls.mjs",
+      "size": 9257,
+      "mode": 384,
+      "sha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950"
+    },
+    {
+      "path": "/private/tmp/core70-independent-v6-20260829/controls/root-binding.mjs",
+      "size": 1390,
+      "mode": 384,
+      "sha256": "f0856461098175531b77705e035ecd17915847bd1158522be735650dd8072a78"
+    }
+  ],
+  "own": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/owner.mjs",
+      "size": 12651,
+      "mode": 420,
+      "sha256": "86afd5976776320915b694840c824e9695872ee23c4e5c351264ce5f7850667c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/runtime-preflight-v6-review/novel.mjs",
+      "size": 4502,
+      "mode": 420,
+      "sha256": "1366abf348793d0bc08bfb45865232ab5b22ae434cc45f2a2577bd9012ef4828"
+    }
+  ],
+  "expected": {
+    "pure": 30,
+    "ownerRecords": 18,
+    "harmless": 2,
+    "novel": 8
+  },
+  "maximumKnownOS": 48,
+  "peak": 3,
+  "product": 0,
+  "Workers": 0
+}

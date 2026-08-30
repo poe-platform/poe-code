@@ -1,0 +1,14 @@
+{
+  "status": 0,
+  "signal": null,
+  "pid": 79360,
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/node_modules/typescript/lib/tsc.js",
+    "-p",
+    "/private/tmp/safe-bash-pipestatus-author-fresh/candidate/tsconfig.build.json",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/node_modules/@types"
+  ],
+  "synchronousChildReturned": true
+}

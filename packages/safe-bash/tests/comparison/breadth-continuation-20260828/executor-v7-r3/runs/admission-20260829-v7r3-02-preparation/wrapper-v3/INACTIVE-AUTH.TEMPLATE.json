@@ -1,0 +1,27 @@
+{
+  "status": "INACTIVE_WRAPPED_TEMPLATE_NOT_AN_AUTH_ENVELOPE",
+  "futureAbsolutePath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json",
+  "futureMode": 420,
+  "exactEnvelopeShape": {
+    "review": {
+      "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+      "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+      "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+    },
+    "grant": {
+      "commit": "UNASSIGNED_FRESH_ROOT_GRANT_COMMIT_REQUIRED",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+      "sha256": "UNASSIGNED_EXACT_COMMITTED_GRANT_RAW_SHA256_REQUIRED"
+    }
+  },
+  "activationOrder": [
+    "Independently review this exact attempt02 owner instance, wrapper, environment allowance and complete seals; obtain fresh root actual admission GO",
+    "Write only the13-field unwrapped grant payload and atomically commit it before launch",
+    "Resolve that actual commit; hash exact committed grant bytes",
+    "Write exact review/grant envelope to separate activation/AUTH.json regular0644; hash raw bytes including LF",
+    "Authenticate all source/tools/archives/closure again; reject collisions at body/supervision/outer roots",
+    "Execute only exact sealed wrapper command from EXECUTION-INTERFACE.json through direct/exec replacement, not direct inner launcher"
+  ],
+  "authRawSha256": "NOT_COMPUTED_BECAUSE_NO_ACTIVE_AUTH_FILE_EXISTS",
+  "rootCommitInvented": false
+}

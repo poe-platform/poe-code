@@ -1,0 +1,296 @@
+{
+  "bindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/SEAL.json",
+      "bytes": 200923,
+      "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/CONTROL-PRESEAL-v2.json",
+      "bytes": 4595,
+      "sha256": "7eafc8e997f8c838c246c0bae3d76676fc9e3a90d37ecdcedc6bb170919d7fa6",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v3-review/locator.stdout",
+      "bytes": 5637,
+      "sha256": "4690cbbe10dbdf27996252e7140f690e784f59e591ce2a4e784ad2350d807ce6",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/direct-child.mjs",
+      "bytes": 5895,
+      "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/collector-core.mjs",
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/preauth.mjs",
+      "bytes": 339,
+      "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/helper-driver.mjs",
+      "bytes": 3013,
+      "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/case-adapter.mjs",
+      "bytes": 4474,
+      "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/CASES.json",
+      "bytes": 10895,
+      "sha256": "a6018734d7e717a2efaed63125da154466b317f18796f6687e3e90efa4031bc5",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/PRODUCT-EDGES.json",
+      "bytes": 29973,
+      "sha256": "7ed98d6a1937ed667983adc2846daea35f699bc82632b331db199e5a9ccaaa88",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/target-owner.mjs",
+      "bytes": 14221,
+      "sha256": "631f8cd1a5129feaa0a0d9fc88ba26eb68d6155d40e100b861a8c544b911d566",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/collector.mjs",
+      "bytes": 4518,
+      "sha256": "1ea24df11554f3105704860496928f2fad3a9738edb01aefc73b25b5d908ec9e",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/case-driver.mjs",
+      "bytes": 2829,
+      "sha256": "e9e89d46c104f62acaf7d2e1a5f095d0f0fa65afa60b2ce8f5860e797c2b7351",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/activation.mjs",
+      "bytes": 2129,
+      "sha256": "97fb6eb669446148738eea3f35d15a51f548b55b9ba4dc23f4a3cbb15876e58e",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/launch.sh",
+      "bytes": 702,
+      "sha256": "e232134c56c9e8f15c1ab9b2dd739bd292fc7ab8798ee94701879d10f5ba42da",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/qualification.mjs",
+      "bytes": 4426,
+      "sha256": "5ccf67fdf7cda3f5ade85fe10ce8013cebc7ce74dc16e0b9970234b215625fd1",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/M01-DISCRIMINATOR.json",
+      "bytes": 657,
+      "sha256": "8fe84f291c362efaa892c3f0b5be2bb8773cdf530ff6d433e6bcf49804472e2a",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/parse-manifest.mjs",
+      "bytes": 4746,
+      "sha256": "6dee9fd80de5cd1885a372a5e245949578ce69b318c357f6d21053b22805629a",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/owner-archive.mjs",
+      "bytes": 939,
+      "sha256": "a0846c4a6970f3a6228d63011174f0745545f9bc977050d96525b9d70db962ea",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/package-admission.mjs",
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/ARCHIVE-AUTHORITY.json",
+      "bytes": 189363,
+      "sha256": "dbf70ef18f00b89ff5bb34d5fc0f0a2eb6860cd90f777050337b1a043b976ac2",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/controls-v2.mjs",
+      "bytes": 5395,
+      "sha256": "0ad1644473790ec01737141570c0873783493aa01d840ab5729ffcb059e386cb",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/SEAL.json",
+      "bytes": 200923,
+      "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/CONTROL-PRESEAL-v2.json",
+      "bytes": 4595,
+      "sha256": "7eafc8e997f8c838c246c0bae3d76676fc9e3a90d37ecdcedc6bb170919d7fa6",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/UNUSED-ROOTS.json",
+      "bytes": 1083,
+      "sha256": "5e3201efeb9ff54dff350471f8b2a042d00aed0960cc624d2197f34cee8bfa17",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/GO.template.json",
+      "bytes": 954,
+      "sha256": "b3a1063745495a028ce255f65978f032da74124b39f215b2b6187f2791edd1fe",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/REVIEW.template.json",
+      "bytes": 174,
+      "sha256": "23d88a727c53f20293a269ea485b347c9638a6f843b62bc7d4ad35101c304e1f",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/COMMAND.pending.txt",
+      "bytes": 269,
+      "sha256": "88af764835cbd25017c070d8c220619df03d9f1faeea928efbce41a615336374",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/DELTA-DIAGNOSIS.json",
+      "bytes": 10267,
+      "sha256": "1f40cbf30c3994e46568d921c0aa70fc1b182ba8bd28d24e621c4b07341135ee",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/direct-child.mjs",
+      "bytes": 5589,
+      "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package.mjs",
+      "bytes": 3509,
+      "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package-admission.mjs",
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/parse-manifest.mjs",
+      "bytes": 2862,
+      "sha256": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/finalization.mjs",
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/profile.mjs",
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/guard.mjs",
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/canonical.mjs",
+      "bytes": 867,
+      "sha256": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493,
+      "version": "v22.22.2",
+      "qualification": "Version inherited; executable freshly hash-authenticated without running"
+    },
+    {
+      "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+      "bytes": 981948,
+      "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+      "decodedBytes": 5803008,
+      "shippingMembers": 1006,
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/SEAL.json",
+      "bytes": 199449,
+      "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/target-owner.mjs",
+      "bytes": 14221,
+      "sha256": "631f8cd1a5129feaa0a0d9fc88ba26eb68d6155d40e100b861a8c544b911d566",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v3-review/check.mjs",
+      "bytes": 2799,
+      "sha256": "a8bc2395f0c701941385053b9943cff2c445f2241d5540e7cf182e82bba142d0",
+      "mode": 420
+    }
+  ],
+  "preserved": [
+    "auth.mjs",
+    "direct-child.mjs",
+    "collector-core.mjs",
+    "preauth.mjs",
+    "helper-driver.mjs",
+    "case-adapter.mjs",
+    "case-driver.mjs",
+    "qualification.mjs",
+    "CASES.json",
+    "M01-DISCRIMINATOR.json",
+    "PRODUCT-EDGES.json"
+  ],
+  "absent": [
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/GO.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3/REVIEW.json",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-installed",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-moved",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M01",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M02",
+    "/private/tmp/safe-bash-k08-author-RAvH2m/target-v3-mutant-M03"
+  ],
+  "capture": "/private/tmp/safe-bash-k08-author-RAvH2m/future-v3-capture",
+  "ownerAdmissionBeforeExtraction": true
+}

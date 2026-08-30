@@ -1,0 +1,281 @@
+{
+  "results": [
+    {
+      "id": "C01",
+      "pass": true
+    },
+    {
+      "id": "C02",
+      "pass": true
+    },
+    {
+      "id": "C03",
+      "pass": true
+    },
+    {
+      "id": "C04",
+      "pass": true
+    },
+    {
+      "id": "C05",
+      "pass": true
+    },
+    {
+      "id": "C06",
+      "pass": true
+    },
+    {
+      "id": "C07",
+      "pass": true
+    },
+    {
+      "id": "C08",
+      "pass": true
+    },
+    {
+      "id": "C09",
+      "pass": true
+    },
+    {
+      "id": "C10",
+      "pass": true,
+      "status": 0,
+      "permission": true,
+      "hooks": true,
+      "trace": {
+        "bytes": 540,
+        "sha256": "1b4f9f1893aae91bd0a458aafad1b52c381c14641633966dffe4265785585f16"
+      },
+      "lifecycle": {
+        "id": "C10",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788019639009
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788019639012
+          },
+          {
+            "name": "spawn",
+            "at": 1788019639012
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788019639053
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788019639053
+          },
+          {
+            "name": "exit",
+            "at": 1788019639053
+          },
+          {
+            "name": "close",
+            "at": 1788019639053
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 9,
+            "sha256": "8f95582e52c949b94d7d59c3ee6811fbf9ecb07de9785d35d1df83a0687f3145",
+            "base64": "SEFSTUxFU1MK",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 53476,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788019639065
+      }
+    },
+    {
+      "id": "C11",
+      "pass": true,
+      "status": 1,
+      "expectedRefusal": "EDGE_REFUSED",
+      "permission": true,
+      "hooks": true,
+      "trace": {
+        "bytes": 540,
+        "sha256": "8f88e0208a79ec3d5f5c5d5ac95d5498d70e9a6bf0094e8c32ec882e116dc02a"
+      },
+      "lifecycle": {
+        "id": "C11",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788019639126
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788019639127
+          },
+          {
+            "name": "spawn",
+            "at": 1788019639127
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788019639164
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788019639164
+          },
+          {
+            "name": "exit",
+            "at": 1788019639164
+          },
+          {
+            "name": "close",
+            "at": 1788019639164
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 1009,
+            "sha256": "4d48c4c85f4f7949b50859ee76e57e1411f6cd6aa60c1b4fc0d43427352c8b73",
+            "base64": "ZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtcGlwZXN0YXR1cy1wcmVleGVjL0MxMS9ndWFyZC5tanM6MjUKICAgICAgaWYgKCFyb2xlLmVkZ2VzW3BhcmVudF0/LmluY2x1ZGVzKHNwZWNpZmllcikpIHRocm93IEVycm9yKCdFREdFX1JFRlVTRUQnKTsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF4KCkVycm9yOiBFREdFX1JFRlVTRUQKICAgIGF0IHJlc29sdmUgKGZpbGU6Ly8vcHJpdmF0ZS90bXAvc2FmZS1iYXNoLXBpcGVzdGF0dXMtcHJlZXhlYy9DMTEvZ3VhcmQubWpzOjI1OjU5KQogICAgYXQgbmV4dFN0ZXAgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9jdXN0b21pemF0aW9uX2hvb2tzOjE4OToyNikKICAgIGF0IHJlc29sdmVXaXRoSG9va3MgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9jdXN0b21pemF0aW9uX2hvb2tzOjM5NToxMCkKICAgIGF0IE1vZHVsZUxvYWRlci5yZXNvbHZlU3luYyAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6Nzg3OjE0KQogICAgYXQgTW9kdWxlTG9hZGVyLnJlc29sdmUgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjcwMzoxOSkKICAgIGF0IE1vZHVsZUxvYWRlci5nZXRNb2R1bGVKb2JGb3JJbXBvcnQgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjMxMDozOCkKICAgIGF0IG9uSW1wb3J0LnRyYWNlUHJvbWlzZS5fX3Byb3RvX18gKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjY2NDozNikKICAgIGF0IFRyYWNpbmdDaGFubmVsLnRyYWNlUHJvbWlzZSAobm9kZTpkaWFnbm9zdGljc19jaGFubmVsOjM1MDoxNCkKICAgIGF0IE1vZHVsZUxvYWRlci5pbXBvcnQgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjY2MzoyMSkKICAgIGF0IGRlZmF1bHRJbXBvcnRNb2R1bGVEeW5hbWljYWxseUZvck1vZHVsZSAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS91dGlsczoyMjI6MzEpCgpOb2RlLmpzIHYyMi4yMi4yCg==",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 53477,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788019639171
+      }
+    },
+    {
+      "id": "C12",
+      "pass": true,
+      "status": 1,
+      "expectedRefusal": "AUTH_HASH",
+      "permission": true,
+      "hooks": true,
+      "trace": {
+        "bytes": 279,
+        "sha256": "da9ad3839c378bba4151d8d7b36e5ceaa7799550ff43c0ee4112840866b124e2"
+      },
+      "lifecycle": {
+        "id": "C12",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1788019639226
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1788019639227
+          },
+          {
+            "name": "spawn",
+            "at": 1788019639227
+          },
+          {
+            "name": "stderr-end",
+            "at": 1788019639267
+          },
+          {
+            "name": "stdout-end",
+            "at": 1788019639268
+          },
+          {
+            "name": "exit",
+            "at": 1788019639268
+          },
+          {
+            "name": "close",
+            "at": 1788019639268
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 1063,
+            "sha256": "b9eb2ea9da04b8f53a5a181c84a4f4f149896e2b3f58a7f5e7b53e956ed2e048",
+            "base64": "ZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtcGlwZXN0YXR1cy1wcmVleGVjL0MxMi9hdXRoLm1qczoxOAogICAgaWYgKGZzLnJlYWRTeW5jKGRlc2NyaXB0b3IsIEJ1ZmZlci5hbGxvYygxKSwgMCwgMSwgb2Zmc2V0KSB8fCBoYXNoKGJ5dGVzKSAhPT0gcGluLnNoYTI1NikgdGhyb3cgRXJyb3IoJ0FVVEhfSEFTSCcpOwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXgoKRXJyb3I6IEFVVEhfSEFTSAogICAgYXQgcmVhZFBpbm5lZCAoZmlsZTovLy9wcml2YXRlL3RtcC9zYWZlLWJhc2gtcGlwZXN0YXR1cy1wcmVleGVjL0MxMi9hdXRoLm1qczoxODoxMDEpCiAgICBhdCBsb2FkIChmaWxlOi8vL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1waXBlc3RhdHVzLXByZWV4ZWMvQzEyL2d1YXJkLm1qczozOToxOSkKICAgIGF0IG5leHRTdGVwIChub2RlOmludGVybmFsL21vZHVsZXMvY3VzdG9taXphdGlvbl9ob29rczoxODk6MjYpCiAgICBhdCBsb2FkV2l0aEhvb2tzIChub2RlOmludGVybmFsL21vZHVsZXMvY3VzdG9taXphdGlvbl9ob29rczozNTI6MTgpCiAgICBhdCAjbG9hZFN5bmMgKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbG9hZGVyOjg0OToxNCkKICAgIGF0IE1vZHVsZUxvYWRlci5sb2FkIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjo4MDg6MjgpCiAgICBhdCBNb2R1bGVMb2FkZXIubG9hZEFuZFRyYW5zbGF0ZSAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6NTk0OjMxKQogICAgYXQgI2NyZWF0ZU1vZHVsZUpvYiAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6NjI0OjM2KQogICAgYXQgI2dldEpvYkZyb21SZXNvbHZlUmVzdWx0IChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjozNDM6MzQpCiAgICBhdCBNb2R1bGVMb2FkZXIuZ2V0TW9kdWxlSm9iRm9ySW1wb3J0IChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjozMTE6NDEpCgpOb2RlLmpzIHYyMi4yMi4yCg==",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 53478,
+        "status": 1,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1788019639275
+      }
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "actualAdmissionMembers": 1010,
+  "managedChildren": 3,
+  "retired": true,
+  "productEvaluations": 0,
+  "Workers": 0,
+  "tarBytes": 5819392
+}

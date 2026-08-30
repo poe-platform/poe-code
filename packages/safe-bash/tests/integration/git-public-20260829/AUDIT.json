@@ -1,0 +1,359 @@
+{
+  "role": "POSTRUN_DATA_AUTHENTICATION_ONLY; no additional product/native execution",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "sourceSha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450",
+  "executorSha256": "6ba1f4faedbd70e76d563147bfe4e1685e71e567b7f0a4f401cb73d0fbb791a5",
+  "inputs": 292,
+  "moduleFilesUnchanged": 14,
+  "changedBuildInputs": [
+    "README.md",
+    "package.json",
+    "src/index.ts",
+    "src/plugins/index.ts"
+  ],
+  "treeWitnessesVerified": 82,
+  "package": {
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "bytes": 864000,
+    "members": 950,
+    "previousMembers": 898,
+    "added": [
+      "dist/commands/git/arguments.js",
+      "dist/commands/git/codec.js",
+      "dist/commands/git/config.js",
+      "dist/commands/git/crc.js",
+      "dist/commands/git/delta.js",
+      "dist/commands/git/diff.js",
+      "dist/commands/git/ignore.js",
+      "dist/commands/git/index.js",
+      "dist/commands/git/io.js",
+      "dist/commands/git/limits.js",
+      "dist/commands/git/pack.js",
+      "dist/commands/git/queries.js",
+      "dist/commands/git/repository.js",
+      "dist/commands/git/arguments.d.ts.map",
+      "dist/commands/git/arguments.js.map",
+      "dist/commands/git/codec.d.ts.map",
+      "dist/commands/git/codec.js.map",
+      "dist/commands/git/config.d.ts.map",
+      "dist/commands/git/config.js.map",
+      "dist/commands/git/crc.d.ts.map",
+      "dist/commands/git/crc.js.map",
+      "dist/commands/git/delta.d.ts.map",
+      "dist/commands/git/delta.js.map",
+      "dist/commands/git/diff.d.ts.map",
+      "dist/commands/git/diff.js.map",
+      "dist/commands/git/ignore.d.ts.map",
+      "dist/commands/git/ignore.js.map",
+      "dist/commands/git/index.d.ts.map",
+      "dist/commands/git/index.js.map",
+      "dist/commands/git/io.d.ts.map",
+      "dist/commands/git/io.js.map",
+      "dist/commands/git/limits.d.ts.map",
+      "dist/commands/git/limits.js.map",
+      "dist/commands/git/pack.d.ts.map",
+      "dist/commands/git/pack.js.map",
+      "dist/commands/git/queries.d.ts.map",
+      "dist/commands/git/queries.js.map",
+      "dist/commands/git/repository.d.ts.map",
+      "dist/commands/git/repository.js.map",
+      "dist/commands/git/arguments.d.ts",
+      "dist/commands/git/codec.d.ts",
+      "dist/commands/git/config.d.ts",
+      "dist/commands/git/crc.d.ts",
+      "dist/commands/git/delta.d.ts",
+      "dist/commands/git/diff.d.ts",
+      "dist/commands/git/ignore.d.ts",
+      "dist/commands/git/index.d.ts",
+      "dist/commands/git/io.d.ts",
+      "dist/commands/git/limits.d.ts",
+      "dist/commands/git/pack.d.ts",
+      "dist/commands/git/queries.d.ts",
+      "dist/commands/git/repository.d.ts"
+    ],
+    "changed": [
+      "dist/index.js",
+      "dist/plugins/index.js",
+      "package.json",
+      "dist/index.d.ts.map",
+      "dist/plugins/index.d.ts.map",
+      "dist/index.js.map",
+      "dist/plugins/index.js.map",
+      "README.md",
+      "dist/index.d.ts",
+      "dist/plugins/index.d.ts"
+    ],
+    "removed": [],
+    "unchangedCommon": 888
+  },
+  "captures": {
+    "descriptors": 175,
+    "embedded": 173,
+    "rawSha256": "7d7c98511f17525a756d09ef0eb1ed487d3cd095ecb3062ed3d43097831c348d"
+  },
+  "loads": [
+    {
+      "path": "binding-changed-loads.jsonl",
+      "records": 1,
+      "uniqueModules": 1
+    },
+    {
+      "path": "binding-missing-loads.jsonl",
+      "records": 1,
+      "uniqueModules": 1
+    },
+    {
+      "path": "installed-apply-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "installed-arrays-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "installed-coherence-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "installed-m1a-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "installed-packs-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "installed-public-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "maintained-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "maintained-stream-consumer-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "moved-apply-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "moved-arrays-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "moved-coherence-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "moved-m1a-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "moved-packs-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "moved-public-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "registration-mutant-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "registration-restored-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "source-apply-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "source-arrays-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "source-coherence-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "source-m1a-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "source-packs-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    },
+    {
+      "path": "source-public-loads.jsonl",
+      "records": 233,
+      "uniqueModules": 233
+    }
+  ],
+  "types": [
+    {
+      "label": "source",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0,
+      "authenticatedDeclarations": 90
+    },
+    {
+      "label": "source",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 6,
+      "authenticatedDeclarations": 90
+    },
+    {
+      "label": "installed",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0,
+      "authenticatedDeclarations": 90
+    },
+    {
+      "label": "installed",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 6,
+      "authenticatedDeclarations": 90
+    },
+    {
+      "label": "moved",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0,
+      "authenticatedDeclarations": 90
+    },
+    {
+      "label": "moved",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 6,
+      "authenticatedDeclarations": 90
+    }
+  ],
+  "resources": {
+    "directChildren": 37,
+    "observedProductWorkers": 4,
+    "implicitLoaderReservations": 26,
+    "boundedOwnedTotal": 67,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "controls": [
+    {
+      "name": "registration-omission",
+      "detected": true,
+      "candidateArtifactSha256": "9fbfa4fccc41a368771436c51ab76c98c2c00cfcf24909bb5eefc85ff272a230",
+      "mutantArtifactSha256": "040106b2721e1a9923dcde7acb8be7038b65e131579ed1100878ed723f16e6fa"
+    },
+    {
+      "name": "registration-restored",
+      "pass": true
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    },
+    {
+      "name": "binding-outside",
+      "pass": true
+    },
+    {
+      "name": "missing-explicit-export",
+      "pass": true
+    }
+  ],
+  "maintained": {
+    "code": 0,
+    "tests": 83,
+    "pass": 83,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "streamConsumer": {
+    "code": 0,
+    "tests": 21,
+    "pass": 21,
+    "fail": 0
+  },
+  "fixtureV2": {
+    "onlyChangedRow": true,
+    "originalSha256": "53c30aa44ba4d07c1a891a40a6e3f5baba4021da5f6186ab73e503df57ecf116",
+    "revisedSha256": "7b73d2e7df70a314fabfcea137ee1e25fec7e6dbca38f9f3981df19bf2f12962",
+    "before": "await record('PUBLIC-NEGATIVE', 'module is not accidentally default/root exported', async () => { const api = await import(leaf('index.js')); assert.equal('gitCommands' in api, false); const packageJson = JSON.parse(await hostFs.readFile(path.join(root, 'package.json'))); assert.equal(Object.keys(packageJson.dependencies ?? {}).length, 0); assert.equal(Object.keys(packageJson.optionalDependencies ?? {}).length, 0); assert.equal(packageJson.exports['./commands/git'], undefined); });",
+    "after": "await record('PUBLIC-REGISTERED', 'authorized root export and exact public subpath retain zero dependencies', async () => { const api = await import(leaf('index.js')); assert.equal('gitCommands' in api, true); const packageJson = JSON.parse(await hostFs.readFile(path.join(root, 'package.json'))); assert.equal(Object.keys(packageJson.dependencies ?? {}).length, 0); assert.equal(Object.keys(packageJson.optionalDependencies ?? {}).length, 0); assert.deepEqual(packageJson.exports['./commands/git'], { types: './dist/commands/git/index.d.ts', import: './dist/commands/git/index.js' }); });",
+    "productExecutions": 0,
+    "candidateAndPackageUnchanged": true
+  },
+  "failures": [
+    {
+      "label": "source-m1a",
+      "cases": [
+        {
+          "id": "PUBLIC-NEGATIVE",
+          "name": "module is not accidentally default/root exported",
+          "status": "FAIL",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/source/__consumer/m1a.mjs:189:150\n    at async record (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/source/__consumer/m1a.mjs:23:9)\n    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/source/__consumer/m1a.mjs:189:1",
+          "elapsedMs": 1
+        }
+      ]
+    },
+    {
+      "label": "installed-m1a",
+      "cases": [
+        {
+          "id": "PUBLIC-NEGATIVE",
+          "name": "module is not accidentally default/root exported",
+          "status": "FAIL",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/installed/m1a.mjs:189:150\n    at async record (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/installed/m1a.mjs:23:9)\n    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/installed/m1a.mjs:189:1",
+          "elapsedMs": 1
+        }
+      ]
+    },
+    {
+      "label": "moved-m1a",
+      "cases": [
+        {
+          "id": "PUBLIC-NEGATIVE",
+          "name": "module is not accidentally default/root exported",
+          "status": "FAIL",
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/moved%20package/m1a.mjs:189:150\n    at async record (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/moved%20package/m1a.mjs:23:9)\n    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/git-public-author-DtcKNJ/moved%20package/m1a.mjs:189:1",
+          "elapsedMs": 1
+        }
+      ]
+    }
+  ],
+  "qualification": "Author semantics and exact package proof; no independent public acceptance or native/resource-map closure. Three original module-only export expectations remain failed."
+}

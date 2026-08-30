@@ -1,0 +1,6751 @@
+{
+  "id": "02-direct-surface",
+  "pid": 32704,
+  "node": "v22.22.2",
+  "started": "2026-08-27T16:19:46.820Z",
+  "source": {
+    "path": "probes/02-direct-surface.guest.txt",
+    "bytes": 1086,
+    "sha256": "970a33f3f8322914a2ee1b80f42402247e9a2b3c2b7c90cb357c108dc283ca96",
+    "actualSha256": "970a33f3f8322914a2ee1b80f42402247e9a2b3c2b7c90cb357c108dc283ca96",
+    "exactText": "import * as command from \"command\";\nimport * as stdio from \"stdio\";\nimport * as fs from \"fs\";\nfunction shape(value) {\n  const fields = [\"ownedOutput\",\"consumerClosed\",\"write\",\"acquire\",\"child\",\"close\",\"registerCleanup\",\"output\",\"signal\",\"context\",\"__proto__\",\"prototype\",\"constructor\"];\n  return {\n    keys: Object.keys(value).sort(),\n    entries: Object.entries(value).map(entry => [entry[0], typeof entry[1]]).sort(),\n    types: fields.map(field => [field, typeof value[field]]),\n    own: fields.map(field => [field, Object.hasOwn(value, field)])\n  };\n}\nreturn {\n  command: shape(command),\n  stdio: shape(stdio),\n  fs: shape(fs),\n  args: shape(command.args),\n  env: shape(command.env),\n  constants: shape(fs.constants),\n  setExitCode: shape(command.setExitCode),\n  readText: shape(stdio.readText),\n  write: shape(stdio.write),\n  writeBytes: shape(stdio.writeBytes),\n  readFile: shape(fs.readFile),\n  writeFile: shape(fs.writeFile),\n  functionMethods: [typeof stdio.write.call, typeof stdio.write.apply],\n  positive: [command.args[0], command.cwd, command.env.TAG, command.env.PWD]\n};\n"
+  },
+  "argv": [
+    "-e",
+    "import * as command from \"command\";\nimport * as stdio from \"stdio\";\nimport * as fs from \"fs\";\nfunction shape(value) {\n  const fields = [\"ownedOutput\",\"consumerClosed\",\"write\",\"acquire\",\"child\",\"close\",\"registerCleanup\",\"output\",\"signal\",\"context\",\"__proto__\",\"prototype\",\"constructor\"];\n  return {\n    keys: Object.keys(value).sort(),\n    entries: Object.entries(value).map(entry => [entry[0], typeof entry[1]]).sort(),\n    types: fields.map(field => [field, typeof value[field]]),\n    own: fields.map(field => [field, Object.hasOwn(value, field)])\n  };\n}\nreturn {\n  command: shape(command),\n  stdio: shape(stdio),\n  fs: shape(fs),\n  args: shape(command.args),\n  env: shape(command.env),\n  constants: shape(fs.constants),\n  setExitCode: shape(command.setExitCode),\n  readText: shape(stdio.readText),\n  write: shape(stdio.write),\n  writeBytes: shape(stdio.writeBytes),\n  readFile: shape(fs.readFile),\n  writeFile: shape(fs.writeFile),\n  functionMethods: [typeof stdio.write.call, typeof stdio.write.apply],\n  positive: [command.args[0], command.cwd, command.env.TAG, command.env.PWD]\n};\n",
+    "--",
+    "surface-arg"
+  ],
+  "events": [
+    "shell-exec-start",
+    "actual-engine-run-start",
+    "actual-engine-run-settled",
+    "operation-close-settled",
+    "shell-exec-settled",
+    "operation-cleanup-settled",
+    "pipe-cleanup-settled",
+    "collector-cleanup-settled",
+    "innerShell-cleanup-settled",
+    "shell-cleanup-settled"
+  ],
+  "hostDescriptors": [
+    {
+      "path": "fs",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "access",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "appendFile",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "chmod",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "copyFile",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "cp",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "link",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "lstat",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "mkdir",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "mkdtemp",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "readFile",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "readdir",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "readlink",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "realpath",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "rename",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "rm",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "rmdir",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "stat",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "symlink",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "truncate",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "utimes",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "writeFile",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constants",
+          "kind": "data",
+          "type": "object",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "hasOwnProperty",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "isPrototypeOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "propertyIsEnumerable",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "valueOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__proto__",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.access",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.access",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.access",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.appendFile",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.appendFile",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.appendFile",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.chmod",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.chmod",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.chmod",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.copyFile",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.copyFile",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.copyFile",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.cp",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.cp",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.cp",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.link",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.link",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.link",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.lstat",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.lstat",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.lstat",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.mkdir",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.mkdir",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.mkdir",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.mkdtemp",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.mkdtemp",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.mkdtemp",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readFile",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readFile",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readFile",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readdir",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readdir",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readdir",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readlink",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readlink",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.readlink",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.realpath",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.realpath",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.realpath",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rename",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rename",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rename",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rm",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rm",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rm",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rmdir",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rmdir",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.rmdir",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.stat",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.stat",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.stat",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.symlink",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.symlink",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.symlink",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.truncate",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.truncate",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.truncate",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.utimes",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.utimes",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.utimes",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.writeFile",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.writeFile",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.writeFile",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.constants",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "F_OK",
+          "kind": "data",
+          "type": "number",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "R_OK",
+          "kind": "data",
+          "type": "number",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "W_OK",
+          "kind": "data",
+          "type": "number",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "X_OK",
+          "kind": "data",
+          "type": "number",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "COPYFILE_EXCL",
+          "kind": "data",
+          "type": "number",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "fs.constants",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "hasOwnProperty",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "isPrototypeOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "propertyIsEnumerable",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "valueOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__proto__",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "readBytes",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "readText",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "write",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "writeBytes",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "error",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "errorBytes",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "hasOwnProperty",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "isPrototypeOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "propertyIsEnumerable",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "valueOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__proto__",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.readBytes",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.readBytes",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.readBytes",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.readText",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.readText",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.readText",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.write",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.write",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.write",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.writeBytes",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.writeBytes",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.writeBytes",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.error",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.error",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.error",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.errorBytes",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.errorBytes",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.toStringTag)",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "stdio.errorBytes",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "args",
+          "kind": "data",
+          "type": "object",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "cwd",
+          "kind": "data",
+          "type": "string",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "env",
+          "kind": "data",
+          "type": "object",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "setExitCode",
+          "kind": "data",
+          "type": "function",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "hasOwnProperty",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "isPrototypeOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "propertyIsEnumerable",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "valueOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__proto__",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.args",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "0",
+          "kind": "data",
+          "type": "string",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.args",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "at",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "concat",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "copyWithin",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "fill",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "find",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "findIndex",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "findLast",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "findLastIndex",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "lastIndexOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "pop",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "push",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "reverse",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "shift",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "unshift",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "slice",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "sort",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "splice",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "includes",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "indexOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "join",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "keys",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "entries",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "values",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "forEach",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "filter",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "flat",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "flatMap",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "map",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "every",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "some",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "reduce",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "reduceRight",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toReversed",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toSorted",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toSpliced",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "with",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.iterator)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.unscopables)",
+          "kind": "data",
+          "type": "object",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.args",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "hasOwnProperty",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "isPrototypeOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "propertyIsEnumerable",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "valueOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__proto__",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.env",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "TAG",
+          "kind": "data",
+          "type": "string",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "PWD",
+          "kind": "data",
+          "type": "string",
+          "enumerable": true,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.setExitCode",
+      "depth": 0,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.setExitCode",
+      "depth": 1,
+      "descriptors": [
+        {
+          "key": "length",
+          "kind": "data",
+          "type": "number",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "name",
+          "kind": "data",
+          "type": "string",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "arguments",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "caller",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "apply",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "bind",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "call",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "Symbol(Symbol.hasInstance)",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": false,
+          "identity": []
+        }
+      ]
+    },
+    {
+      "path": "command.setExitCode",
+      "depth": 2,
+      "descriptors": [
+        {
+          "key": "constructor",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__defineSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "hasOwnProperty",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupGetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__lookupSetter__",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "isPrototypeOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "propertyIsEnumerable",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "valueOf",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "__proto__",
+          "kind": "accessor",
+          "type": "undefined",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        },
+        {
+          "key": "toLocaleString",
+          "kind": "data",
+          "type": "function",
+          "enumerable": false,
+          "configurable": true,
+          "identity": []
+        }
+      ]
+    }
+  ],
+  "hostFindings": [],
+  "hostCounters": {
+    "acquired": 1,
+    "released": 1,
+    "cleanup": 1,
+    "childCleanup": 1
+  },
+  "runtimeCalls": 1,
+  "shellsDisposed": 1,
+  "knownWorkerCount": 0,
+  "engineOutcome": {
+    "kind": "fulfilled"
+  },
+  "runtimeIdentity": {
+    "productImport": "virtual-bash",
+    "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "qualification": "Actual unchanged copied source-hook injection, not installed private package import",
+    "engineEntries": [
+      "src/run.ts",
+      "src/interp/budget.ts",
+      "src/modules/fs.ts",
+      "src/interp/host-bridge.ts"
+    ]
+  },
+  "vfsBefore": [
+    {
+      "path": "/",
+      "type": "directory"
+    },
+    {
+      "path": "/work",
+      "type": "directory"
+    },
+    {
+      "path": "/work/input",
+      "type": "file",
+      "bytes": 5,
+      "base64": "c2VlZAo=",
+      "sha256": "4a6689419b00b11700c9b6246bcfa8936c8f5e1e824db3a7e57030e2d1c1a684"
+    }
+  ],
+  "premise": {
+    "actualMetadata": true,
+    "metadataKeys": [
+      "consumerClosed",
+      "write"
+    ],
+    "metadataSignalSameAsPublicPipe": true,
+    "operationKeys": [
+      "acquire",
+      "child",
+      "close",
+      "output",
+      "registerCleanup",
+      "signal"
+    ],
+    "outputKeys": [
+      "write"
+    ],
+    "operationSignalIsAbortSignal": true,
+    "rawGrantToGuest": false,
+    "contextForwarding": "Only stdout replaced with real operation.output; every other original field retained",
+    "callerSignal": {
+      "aborted": false,
+      "reason": {
+        "type": "undefined"
+      }
+    },
+    "consumerSignal": {
+      "aborted": false,
+      "reason": {
+        "type": "undefined"
+      }
+    },
+    "contextKeys": [
+      "args",
+      "command",
+      "cwd",
+      "descriptors",
+      "diagnosticLine",
+      "env",
+      "fs",
+      "invoke",
+      "registerCleanup",
+      "signal",
+      "stderr",
+      "stdin",
+      "stdinIsDefault",
+      "stdout",
+      "substitutionDiagnosticLine"
+    ]
+  },
+  "budgetOptions": {
+    "maxSteps": 20000,
+    "deadline": 1787847589671,
+    "maxCallDepth": 64,
+    "stringLength": 65536,
+    "arrayLength": 4096,
+    "dataSize": 1048576
+  },
+  "runtimeOptions": {
+    "filename": "<safejs -e>",
+    "moduleNames": [
+      "command",
+      "fs",
+      "stdio"
+    ],
+    "budgetLimits": {
+      "maxSteps": 20000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 4096,
+      "dataSize": 1048576
+    },
+    "signalBefore": {
+      "aborted": false,
+      "reason": {
+        "type": "undefined"
+      }
+    },
+    "sinkKeys": [
+      "error",
+      "log"
+    ]
+  },
+  "forwardedModuleNames": [
+    "command",
+    "fs",
+    "stdio"
+  ],
+  "engine": {
+    "ok": true,
+    "returnValue": {
+      "command": {
+        "keys": [
+          "args",
+          "cwd",
+          "env",
+          "setExitCode"
+        ],
+        "entries": [
+          [
+            "args",
+            "object"
+          ],
+          [
+            "cwd",
+            "string"
+          ],
+          [
+            "env",
+            "object"
+          ],
+          [
+            "setExitCode",
+            "function"
+          ]
+        ],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "stdio": {
+        "keys": [
+          "error",
+          "errorBytes",
+          "readBytes",
+          "readText",
+          "write",
+          "writeBytes"
+        ],
+        "entries": [
+          [
+            "error",
+            "function"
+          ],
+          [
+            "errorBytes",
+            "function"
+          ],
+          [
+            "readBytes",
+            "function"
+          ],
+          [
+            "readText",
+            "function"
+          ],
+          [
+            "write",
+            "function"
+          ],
+          [
+            "writeBytes",
+            "function"
+          ]
+        ],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "function"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            true
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "fs": {
+        "keys": [
+          "access",
+          "appendFile",
+          "chmod",
+          "constants",
+          "copyFile",
+          "cp",
+          "link",
+          "lstat",
+          "mkdir",
+          "mkdtemp",
+          "readFile",
+          "readdir",
+          "readlink",
+          "realpath",
+          "rename",
+          "rm",
+          "rmdir",
+          "stat",
+          "symlink",
+          "truncate",
+          "utimes",
+          "writeFile"
+        ],
+        "entries": [
+          [
+            "access",
+            "function"
+          ],
+          [
+            "appendFile",
+            "function"
+          ],
+          [
+            "chmod",
+            "function"
+          ],
+          [
+            "constants",
+            "object"
+          ],
+          [
+            "copyFile",
+            "function"
+          ],
+          [
+            "cp",
+            "function"
+          ],
+          [
+            "link",
+            "function"
+          ],
+          [
+            "lstat",
+            "function"
+          ],
+          [
+            "mkdir",
+            "function"
+          ],
+          [
+            "mkdtemp",
+            "function"
+          ],
+          [
+            "readFile",
+            "function"
+          ],
+          [
+            "readdir",
+            "function"
+          ],
+          [
+            "readlink",
+            "function"
+          ],
+          [
+            "realpath",
+            "function"
+          ],
+          [
+            "rename",
+            "function"
+          ],
+          [
+            "rm",
+            "function"
+          ],
+          [
+            "rmdir",
+            "function"
+          ],
+          [
+            "stat",
+            "function"
+          ],
+          [
+            "symlink",
+            "function"
+          ],
+          [
+            "truncate",
+            "function"
+          ],
+          [
+            "utimes",
+            "function"
+          ],
+          [
+            "writeFile",
+            "function"
+          ]
+        ],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "args": {
+        "keys": [
+          "0"
+        ],
+        "entries": [
+          [
+            "0",
+            "string"
+          ]
+        ],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "env": {
+        "keys": [
+          "PWD",
+          "TAG"
+        ],
+        "entries": [
+          [
+            "PWD",
+            "string"
+          ],
+          [
+            "TAG",
+            "string"
+          ]
+        ],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "constants": {
+        "keys": [
+          "COPYFILE_EXCL",
+          "F_OK",
+          "R_OK",
+          "W_OK",
+          "X_OK"
+        ],
+        "entries": [
+          [
+            "COPYFILE_EXCL",
+            "number"
+          ],
+          [
+            "F_OK",
+            "number"
+          ],
+          [
+            "R_OK",
+            "number"
+          ],
+          [
+            "W_OK",
+            "number"
+          ],
+          [
+            "X_OK",
+            "number"
+          ]
+        ],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "setExitCode": {
+        "keys": [],
+        "entries": [],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "readText": {
+        "keys": [],
+        "entries": [],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "write": {
+        "keys": [],
+        "entries": [],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "writeBytes": {
+        "keys": [],
+        "entries": [],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "readFile": {
+        "keys": [],
+        "entries": [],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "writeFile": {
+        "keys": [],
+        "entries": [],
+        "types": [
+          [
+            "ownedOutput",
+            "undefined"
+          ],
+          [
+            "consumerClosed",
+            "undefined"
+          ],
+          [
+            "write",
+            "undefined"
+          ],
+          [
+            "acquire",
+            "undefined"
+          ],
+          [
+            "child",
+            "undefined"
+          ],
+          [
+            "close",
+            "undefined"
+          ],
+          [
+            "registerCleanup",
+            "undefined"
+          ],
+          [
+            "output",
+            "undefined"
+          ],
+          [
+            "signal",
+            "undefined"
+          ],
+          [
+            "context",
+            "undefined"
+          ],
+          [
+            "__proto__",
+            "undefined"
+          ],
+          [
+            "prototype",
+            "undefined"
+          ],
+          [
+            "constructor",
+            "undefined"
+          ]
+        ],
+        "own": [
+          [
+            "ownedOutput",
+            false
+          ],
+          [
+            "consumerClosed",
+            false
+          ],
+          [
+            "write",
+            false
+          ],
+          [
+            "acquire",
+            false
+          ],
+          [
+            "child",
+            false
+          ],
+          [
+            "close",
+            false
+          ],
+          [
+            "registerCleanup",
+            false
+          ],
+          [
+            "output",
+            false
+          ],
+          [
+            "signal",
+            false
+          ],
+          [
+            "context",
+            false
+          ],
+          [
+            "__proto__",
+            false
+          ],
+          [
+            "prototype",
+            false
+          ],
+          [
+            "constructor",
+            false
+          ]
+        ]
+      },
+      "functionMethods": [
+        "function",
+        "function"
+      ],
+      "positive": [
+        "surface-arg",
+        "/work",
+        "surface",
+        "/work"
+      ]
+    },
+    "resultKeys": [
+      "ok",
+      "returnValue",
+      "snapshot",
+      "stats"
+    ]
+  },
+  "budgetUsed": {
+    "steps": 2911,
+    "deadline": 1787847589671,
+    "limits": {
+      "maxSteps": 20000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 4096,
+      "dataSize": 1048576
+    }
+  },
+  "shell": {
+    "rejected": false,
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "stdoutBase64": "",
+    "stderrBase64": ""
+  },
+  "collectedStdout": "",
+  "collectedStdoutBase64": "",
+  "vfsAfter": [
+    {
+      "path": "/",
+      "type": "directory"
+    },
+    {
+      "path": "/work",
+      "type": "directory"
+    },
+    {
+      "path": "/work/input",
+      "type": "file",
+      "bytes": 5,
+      "base64": "c2VlZAo=",
+      "sha256": "4a6689419b00b11700c9b6246bcfa8936c8f5e1e824db3a7e57030e2d1c1a684"
+    }
+  ],
+  "cleanupFailures": [],
+  "signalsAfter": {
+    "caller": {
+      "aborted": false,
+      "reason": {
+        "type": "undefined"
+      }
+    },
+    "runtime": {
+      "aborted": true,
+      "reason": {
+        "name": "AbortError",
+        "message": "This operation was aborted",
+        "code": null,
+        "stack": "AbortError: This operation was aborted\n    at new DOMException (node:internal/per_context/domexception:76:18)\n    at AbortController.abort (node:internal/abort_controller:504:18)\n    at Object.execute (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/commands/safejs/index.js:156:32)\n    at async Object.execute (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/child.mjs:193:18)\n    at async file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/shell/runtime.js:1000:24\n    at async interruptible (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/shell/runtime.js:111:16)\n    at async Runtime.dispatchScoped (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/shell/runtime.js:1020:38)\n    at async Runtime.dispatch (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/shell/runtime.js:879:20)\n    at async Runtime.simple (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/shell/runtime.js:847:35)\n    at async Runtime.executeCommand (file:///private/tmp/safe-bash-owned-output-surface-execution-v2-QPJbeA/consumer/node_modules/virtual-bash/dist/shell/runtime.js:420:24)"
+      }
+    },
+    "operation": {
+      "aborted": false,
+      "reason": {
+        "type": "undefined"
+      }
+    },
+    "consumer": {
+      "aborted": false,
+      "reason": {
+        "type": "undefined"
+      }
+    }
+  },
+  "activeResourcesAtResult": [
+    "PipeWrap"
+  ],
+  "activeHandlesAtResult": [
+    "Socket"
+  ],
+  "completed": "2026-08-27T16:19:47.765Z"
+}

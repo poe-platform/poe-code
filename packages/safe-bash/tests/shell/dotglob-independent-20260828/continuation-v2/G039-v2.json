@@ -1,0 +1,8 @@
+{
+  "version": "G039-v2",
+  "originalId": "G039",
+  "originalFreeze": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+  "original": { "id": "G039", "fixture": "basic", "word": "??", "state": "on", "expectedArgs": [".x"] },
+  "replacement": { "id": "G039-v2", "fixture": "basic", "word": "??", "state": "on", "expectedArgs": [".x", ".雪"] },
+  "authority": "Root explicitly approves additive expectation: both two-character names; no other frozen case/input/order/state changes. Original failures remain."
+}

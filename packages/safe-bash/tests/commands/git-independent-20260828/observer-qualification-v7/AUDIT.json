@@ -1,0 +1,245 @@
+{
+  "schema": "v7-data-only-postcohort-audit",
+  "presealCommit": "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b",
+  "classification": "source/data/hash checks only; no observer/candidate replay; not D01/D02 execution",
+  "result": "PARTIAL_HOLD_R05_LATE_UNACKNOWLEDGED_ABORT_ERROR",
+  "counts": {
+    "frozenReal": 6,
+    "executedReal": 5,
+    "passedReal": 4,
+    "failedReal": 1,
+    "syntheticFrozen": 11,
+    "syntheticExecuted": 0,
+    "dataFrozen": 2,
+    "dataExecuted": 0
+  },
+  "unexecuted": [
+    "R06",
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "D01",
+    "D02"
+  ],
+  "membership": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10",
+    "S11",
+    "D01",
+    "D02"
+  ],
+  "priorV6Preserved": true,
+  "priorV5Preserved": true,
+  "sourceCorrespondenceVerifiedAsData": true,
+  "fullBlobOid": "02ad268a05e6e88edae8410c73328a65ac82d3e3",
+  "writerSha256": "9b54d9f0b5cc73cf776b45b8c57fbc27a7f1acd8ca165306836a1b4760ed1fd6",
+  "surrogateSha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d",
+  "observerSha256": "43c4bbb26c152e8e73b85b8ab4c38bcd438a424cbdfe517403daaf8721033d8d",
+  "children": {
+    "qualification": 1,
+    "worker": 1,
+    "syntax": 0,
+    "standaloneControls": 0,
+    "candidate": 0,
+    "peakOwnedProcesses": 2
+  },
+  "workerExit": 1,
+  "workerSignal": null,
+  "naturalKnownWorkerClosure": true,
+  "allKnownChildCleanupSettled": true,
+  "allFiveRealKnownOwnedCleanupSettled": true,
+  "nativeAllocationLifetimeMeasured": false,
+  "cohortPreReceiptMs": 278.914708,
+  "postReceiptPublicationMs": 282.281375,
+  "clockFileOwnFinalWriteUnsampled": true,
+  "captureBytesIncludingReceipts": 100707,
+  "publicationBytesExcludingThisAudit": 250916,
+  "filesExcludingThisAudit": [
+    {
+      "path": "CONTROLS.json",
+      "bytes": 1762,
+      "sha256": "39084f4d241facccda63eb257408a90d00050cc9a9ffde33680c2d6535baa61c"
+    },
+    {
+      "path": "CORRESPONDENCE.json",
+      "bytes": 3880,
+      "sha256": "e2d28ede63d60eece4715968da4edcc654bff12e902b4545534b8fcf7cf9df27"
+    },
+    {
+      "path": "CRITERION.md",
+      "bytes": 9531,
+      "sha256": "1fd70d51ecaf2a5e80912d849b1bcc2ca8053ab9b14b26a39fe86e7003dcbca6"
+    },
+    {
+      "path": "DIFF-V6.patch",
+      "bytes": 27516,
+      "sha256": "7f967b2aff21015c201a37c5c3e91bc59a2f73967f4a5e53688aeee664b0c82c"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7172,
+      "sha256": "eae3d7a298fa955fb6b4d924e25f6bd6be55a094f2756c8c107513978572c247"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 17240,
+      "sha256": "45011d93a274d531261cd28666c93739a75a2f11b5b1d435e17a093506e56ea4"
+    },
+    {
+      "path": "RUN-01/PUBLICATION-CLOCK.json",
+      "bytes": 81,
+      "sha256": "e46740bdb7b5b616715795423dc8aa5e0992452ccf7a677ef18f6673c8576a33"
+    },
+    {
+      "path": "RUN-01/RECEIPT.json",
+      "bytes": 4024,
+      "sha256": "92efbee139bb7d4f10d44f0eb6a6a7055a4db0ae0ecde560641ffd1e4cebae09"
+    },
+    {
+      "path": "RUN-01/worker.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/worker.stdout.jsonl",
+      "bytes": 96602,
+      "sha256": "dd3e06091b8414e0bb73f0e609ff8930910b4cb68aae42aed3f8334492e6b9cf"
+    },
+    {
+      "path": "SOURCE-DATA.json",
+      "bytes": 27686,
+      "sha256": "acb06f41f6fafc28cfdf10555fe909fa4b6283baf8efbe62ee594b7b7d0176f7"
+    },
+    {
+      "path": "audit.py",
+      "bytes": 6675,
+      "sha256": "a7584f92656760960e9b108517af318ef59b559c5316a34bdc04c28d8caa2726"
+    },
+    {
+      "path": "observer.mjs",
+      "bytes": 11712,
+      "sha256": "43c4bbb26c152e8e73b85b8ab4c38bcd438a424cbdfe517403daaf8721033d8d"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 9803,
+      "sha256": "9c9c5dffadaa5149cb641f796dbbbbd48fb023b14ac538c2ff83cc0e31871522"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 9188,
+      "sha256": "90073bb4f581f93dbbb4bf06d6733034325ded7747397441fc457b7fa6334743"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 16855,
+      "sha256": "2bf398a8f74acd6b1fab73908c1d314af2d12586d4ca5897d7de74df50431e60"
+    },
+    {
+      "path": "writer-surrogate.mjs",
+      "bytes": 1189,
+      "sha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d"
+    }
+  ],
+  "oldFileAndDirectoryCensusIncludingAdditions": true,
+  "firstPreparationWall": "2026-08-28T18:54:16Z",
+  "frozenWall": "2026-08-28T19:02:08.791631+00:00",
+  "indexAtAuditSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "metadataGitCommands": [
+    [
+      "git",
+      "cat-file",
+      "-t",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/CONTROLS.json"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/CORRESPONDENCE.json"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/CRITERION.md"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/DIFF-V6.patch"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/SOURCE-DATA.json"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/observer.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/prepare.py"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/run.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/worker.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/writer-surrogate.mjs"
+    ],
+    [
+      "git",
+      "show",
+      "b83c2f27d2cd6d6a15c0b1570b1a067bac740e6b:tests/commands/git-independent-20260828/observer-qualification-v7/PRESEAL.json"
+    ],
+    [
+      "git",
+      "diff",
+      "--cached",
+      "--raw",
+      "-z"
+    ]
+  ],
+  "auditMonotonicMs": 1036.192,
+  "auditedWall": "2026-08-28T19:06:10.895750+00:00",
+  "candidateContinuationAuthorized": false,
+  "newContinuationSealPrepared": false,
+  "reasonNoContinuationSeal": "ROOT success condition unmet; no self-authorized continuation"
+}

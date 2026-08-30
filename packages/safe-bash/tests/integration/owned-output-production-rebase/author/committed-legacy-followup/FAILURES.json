@@ -1,0 +1,160 @@
+{
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "counts": {
+    "tests": 505,
+    "pass": 487,
+    "fail": 18,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    {
+      "number": 231,
+      "name": "standard tools compose in a filtering, transforming, sorting and tee pipeline",
+      "explicitMissingWorker": false,
+      "rawTapSection": "# Subtest: standard tools compose in a filtering, transforming, sorting and tee pipeline\nnot ok 231 - standard tools compose in a filtering, transforming, sorting and tee pipeline\n  ---\n  duration_ms: 54.8495\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/commands/pipelines.test.ts:1:220'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    '0\\n' !== '3\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: |-\n    3\n    \n  actual: |-\n    0\n    \n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/commands/pipelines.test.ts:12:10)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n"
+    },
+    {
+      "number": 481,
+      "name": "stdin origin: rg integration rg match supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match supplied=false\nnot ok 481 - stdin origin: rg integration rg match supplied=false\n  ---\n  duration_ms: 32.929625\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 482,
+      "name": "stdin origin: rg integration rg match supplied=true",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match supplied=true\nnot ok 482 - stdin origin: rg integration rg match supplied=true\n  ---\n  duration_ms: 30.669792\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 483,
+      "name": "stdin origin: rg integration rg match supplied=true",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match supplied=true\nnot ok 483 - stdin origin: rg integration rg match supplied=true\n  ---\n  duration_ms: 26.260875\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 484,
+      "name": "stdin origin: rg integration rg match supplied=true",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match supplied=true\nnot ok 484 - stdin origin: rg integration rg match supplied=true\n  ---\n  duration_ms: 31.042333\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 485,
+      "name": "stdin origin: rg integration printf '' | rg match supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration printf '' | rg match supplied=false\nnot ok 485 - stdin origin: rg integration printf '' | rg match supplied=false\n  ---\n  duration_ms: 32.886667\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 486,
+      "name": "stdin origin: rg integration printf '' | rg -e match supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration printf '' | rg -e match supplied=false\nnot ok 486 - stdin origin: rg integration printf '' | rg -e match supplied=false\n  ---\n  duration_ms: 31.44475\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 487,
+      "name": "stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false\nnot ok 487 - stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false\n  ---\n  duration_ms: 30.175708\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 488,
+      "name": "stdin origin: rg integration printf '' | rg match - supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration printf '' | rg match - supplied=false\nnot ok 488 - stdin origin: rg integration printf '' | rg match - supplied=false\n  ---\n  duration_ms: 28.079\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 489,
+      "name": "stdin origin: rg integration rg match <empty supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match <empty supplied=false\nnot ok 489 - stdin origin: rg integration rg match <empty supplied=false\n  ---\n  duration_ms: 30.006083\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 490,
+      "name": "stdin origin: rg integration rg match <<END\\\\nEND supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match <<END\\\\nEND supplied=false\nnot ok 490 - stdin origin: rg integration rg match <<END\\\\nEND supplied=false\n  ---\n  duration_ms: 24.047583\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 491,
+      "name": "stdin origin: rg integration rg match <<< '' supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match <<< '' supplied=false\nnot ok 491 - stdin origin: rg integration rg match <<< '' supplied=false\n  ---\n  duration_ms: 29.561042\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 492,
+      "name": "stdin origin: rg integration rg match 3<empty 0<&3 supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match 3<empty 0<&3 supplied=false\nnot ok 492 - stdin origin: rg integration rg match 3<empty 0<&3 supplied=false\n  ---\n  duration_ms: 32.701542\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 493,
+      "name": "stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false\nnot ok 493 - stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false\n  ---\n  duration_ms: 33.809834\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 494,
+      "name": "stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false\nnot ok 494 - stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false\n  ---\n  duration_ms: 32.584917\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 495,
+      "name": "stdin origin: rg integration env rg match supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration env rg match supplied=false\nnot ok 495 - stdin origin: rg integration env rg match supplied=false\n  ---\n  duration_ms: 34.557458\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 496,
+      "name": "stdin origin: rg integration printf '' | env rg match supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration printf '' | env rg match supplied=false\nnot ok 496 - stdin origin: rg integration printf '' | env rg match supplied=false\n  ---\n  duration_ms: 31.838291\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    },
+    {
+      "number": 497,
+      "name": "stdin origin: rg integration printf '' | rg match matched supplied=false",
+      "explicitMissingWorker": true,
+      "rawTapSection": "# Subtest: stdin origin: rg integration printf '' | rg match matched supplied=false\nnot ok 497 - stdin origin: rg integration printf '' | rg match matched supplied=false\n  ---\n  duration_ms: 32.788625\n  type: 'test'\n  location: '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:4:2075'\n  failureType: 'testCodeFailure'\n  error: |-\n    rg: regex WORKER_ERROR: Cannot find module '/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/dist/commands/regex-execution/worker.js'\n    \n    \n    2 !== 0\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 0\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/private/tmp/safe-bash-owned-output-committed-legacy-l_ryg_s7/candidate/tests/shell/stdin-origin.test.ts:227:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/README.md",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "gitBlob": "3be6ea55e45b28c0492474d4d11d238e058579c2",
+      "bytes": 11189,
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481"
+    },
+    {
+      "path": "tests/commands/pipelines.test.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "gitBlob": "b271bed57e6e9a55a5edf5c509178ea34ccc8c7e",
+      "bytes": 3444,
+      "sha256": "d5270213f610e0913590e4af2af26b48f3ac8b3d978bc4586b9509361840d1e9"
+    },
+    {
+      "path": "tests/shell/stdin-origin.test.ts",
+      "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "gitBlob": "0fc3508480b13afbb7ce30b35581b651f79eb3bc",
+      "bytes": 10438,
+      "sha256": "02c14713e81afb384913aeb84703a7551aabab3f941570d5a9ae36cc47b3a585"
+    }
+  ],
+  "classification": "STOPPED: source-only legacy runtime prerequisite missing; not repaired, no semantic defect verdict",
+  "knownMissingPath": "dist/commands/regex-execution/worker.js",
+  "knownSelection": "candidate src/commands/regex-execution/client.ts:79 explicitly chooses ../../../dist/commands/regex-execution/worker.js when import.meta.url ends with .ts",
+  "pipelineRowLimit": "Row 231 reports only stdout 0\\n versus 3\\n at pipelines.test.ts:12; no separate root-cause replay performed.",
+  "blockedCommands": [
+    "state",
+    "focused-types",
+    "source-types"
+  ]
+}

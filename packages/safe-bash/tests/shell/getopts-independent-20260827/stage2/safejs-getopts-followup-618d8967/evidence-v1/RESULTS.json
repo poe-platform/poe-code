@@ -1,0 +1,110 @@
+{
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "freezeCommit": "5b3c6c08ecb21a05db47fb4c191f693d32e1dc78",
+  "started": "2026-08-27T22:16:15.130Z",
+  "intended": 2,
+  "rows": [
+    {
+      "id": "G1",
+      "classification": "INFRASTRUCTURE_NONPASS",
+      "runtimeCalls": 1,
+      "builtinEntries": 4,
+      "guestAssertions": 0,
+      "resultCaptured": true,
+      "importAudit": {
+        "engineFiles": 63,
+        "totalFiles": 252,
+        "witness": {
+          "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+          "path": "consumer/node_modules/virtual-bash/dist/shell/runtime.js",
+          "originalSHA256": "d37b761457b45ef523546cdad614981c7b5e3ac7665cc486721878195fb3a04a",
+          "transformedSHA256": "de5ef818085c83e5fbbd209e9ed08740211663116209b05b01e4d295c1e60631",
+          "needle": "async getoptsBuiltin(context, state) {",
+          "occurrences": 1,
+          "diskModified": false
+        }
+      },
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at childRun (file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/run.mjs:60:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/run.mjs:75:17"
+      }
+    },
+    {
+      "id": "G2",
+      "classification": "BLOCKED",
+      "runtimeCalls": 0,
+      "reason": "Earlier prerequisite or probe nonpass; no rescue"
+    }
+  ],
+  "children": [
+    {
+      "id": "G1",
+      "pid": 77618,
+      "started": "2026-08-27T22:16:25.862Z",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/tools/bin/node",
+      "args": [
+        "--max-old-space-size=256",
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/loader.mjs",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/consumer/harness/guard.mjs",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/witness-loader.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/consumer/harness/child.mjs"
+      ],
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/tmp",
+        "TMP": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/tmp",
+        "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/tmp",
+        "XDG_CACHE_HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/tmp",
+        "TSX_DISABLE_CACHE": "1",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "GIT_OPTIONAL_LOCKS": "0",
+        "SURFACE_ROOT": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run",
+        "SURFACE_IMPORTS": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/logs/G1.imports.ndjson",
+        "WITNESS_LOAD": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/logs/G1.witness.ndjson",
+        "LIFECYCLE_ROW": "G1",
+        "PROBE_ID": "G1",
+        "PROBE_RESULT": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/safejs-getopts-followup-618d8967/.scratch/run/logs/G1.json"
+      },
+      "closed": true,
+      "termination": null,
+      "error": null,
+      "status": 1,
+      "signal": null,
+      "finished": "2026-08-27T22:16:27.578Z",
+      "outputBytes": 0
+    }
+  ],
+  "guards": {
+    "before": {
+      "immutableSHA256": "ef538266b81737d6ec19f8d37b54d9753390da00807e9bef42dfe667cfe6dbf9",
+      "oldBoundary": "4b64ab392f8065837b8fb1756cd377557ac094dd0d7805da9995e7ca0fd79f79",
+      "protectedPaths": 243,
+      "sourcePaths": 2,
+      "additionsChecked": true
+    },
+    "private": "EXACTLY_UNCHANGED_INCLUDING_ELIGIBLE_ADDITIONS",
+    "after": {
+      "immutableSHA256": "ef538266b81737d6ec19f8d37b54d9753390da00807e9bef42dfe667cfe6dbf9",
+      "oldBoundary": "4b64ab392f8065837b8fb1756cd377557ac094dd0d7805da9995e7ca0fd79f79",
+      "protectedPaths": 243,
+      "sourcePaths": 2,
+      "additionsChecked": true
+    }
+  },
+  "passed": false,
+  "counts": {
+    "pass": 0,
+    "guestNonpass": 0,
+    "infrastructureNonpass": 1,
+    "blocked": 1,
+    "denominator": 2
+  },
+  "knownLiveChildren": [],
+  "finished": "2026-08-27T22:16:39.543Z"
+}

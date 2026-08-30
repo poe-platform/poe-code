@@ -1,0 +1,574 @@
+[
+  {
+    "id": "F02",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function f() { printf x; }; f",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F02/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F02/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F02/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F02/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F03",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function f\n{ printf x; }\nf",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F03/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F03/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F03/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F03/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F04",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function f() if true; then printf x; fi; f",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F04/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F04/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F04/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F04/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F05",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function f { printf x; } > out; printf before; f",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F05/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F05/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F05/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F05/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F06",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "\"function\" f",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F06/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F06/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F06/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F06/empty-path"
+    },
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "F07",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "printf BAD; function",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F07/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F07/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F07/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F07/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F08",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function if { printf x; }; \"if\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F08/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F08/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F08/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F08/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F09",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function bad-name { :; }",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F09/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F09/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F09/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F09/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "F10",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "function f() printf BAD",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F10/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F10/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F10/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/F10/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P02",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P02/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P02/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P02/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P02/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P03",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false; printf \"a:<%s>\\n\" \"${PIPESTATUS[@]}\"; printf \"b:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P03/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P03/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P03/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P03/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P04",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false | true | false; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P04/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P04/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P04/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P04/empty-path"
+    },
+    "extraProcessReservation": 3
+  },
+  {
+    "id": "P05",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "set -o pipefail; false | true; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P05/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P05/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P05/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P05/empty-path"
+    },
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "P06",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "! false | true; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P06/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P06/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P06/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P06/empty-path"
+    },
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "P07",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "! [[ x = y ]]; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P07/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P07/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P07/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P07/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P08",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "! ((0)); printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P08/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P08/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P08/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P08/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P09",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false && true; printf \"a:<%s>\\n\" \"${PIPESTATUS[@]}\"; true || false; printf \"b:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P09/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P09/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P09/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P09/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P10",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "{ false | true; }; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P10/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P10/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P10/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P10/empty-path"
+    },
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "P11",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "f() { false | true; printf \"inner:<%s>\\n\" \"${PIPESTATUS[@]}\"; return 7; }; f; printf \"caller:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P11/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P11/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P11/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P11/empty-path"
+    },
+    "extraProcessReservation": 2
+  },
+  {
+    "id": "P12",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false; ( printf \"child:<%s>\\n\" \"${PIPESTATUS[@]}\" ); printf \"parent:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P12/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P12/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P12/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P12/empty-path"
+    },
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "P13",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false | true; value=$(printf \"child:<%s>\\n\" \"${PIPESTATUS[@]}\"; false); printf \"%s parent:<%s>\\n\" \"$value\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P13/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P13/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P13/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P13/empty-path"
+    },
+    "extraProcessReservation": 3
+  },
+  {
+    "id": "P14",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "false; value=ok; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P14/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P14/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P14/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P14/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P15",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "__surface_missing_command__; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P15/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P15/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P15/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P15/empty-path"
+    },
+    "extraProcessReservation": 1
+  },
+  {
+    "id": "P16",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "readonly PIPESTATUS; false; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P16/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P16/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P16/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P16/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P17",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "unset PIPESTATUS; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P17/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P17/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P17/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P17/empty-path"
+    },
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "P18",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "f() { local PIPESTATUS; false; printf \"inner:<%s>\\n\" \"${PIPESTATUS[@]}\"; }; false | true; f; printf \"outer:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "surface-function-pipestatus"
+    ],
+    "stdinBase64": "",
+    "cwd": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P18/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P18/home",
+      "TMPDIR": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P18/tmp",
+      "PATH": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases/P18/empty-path"
+    },
+    "extraProcessReservation": 2
+  }
+]

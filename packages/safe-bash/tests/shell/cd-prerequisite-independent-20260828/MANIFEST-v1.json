@@ -1,0 +1,116 @@
+{
+  "schema": "cd-independent-membership/v1",
+  "sealedAt": "2026-08-28T05:14:34.324Z",
+  "excluded": [
+    "tests/shell/cd-prerequisite-independent-20260828/MANIFEST-v1.json"
+  ],
+  "entries": {
+    "tests/shell/cd-prerequisite-independent-20260828": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/DECLARED-CONTRACT-v1.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11197,
+      "sha256": "cdac52ba488a5dfdada963072fad6db01087f5d09efe9b5d380cc9f08f26d1a3"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/EXPOSURES-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 23333,
+      "sha256": "a505094e08de897a349dace2e1d6d2741e033e2ea81403e1f7c9c84adf425721"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/INPUTS-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10334,
+      "sha256": "28d3d799e7e2b59a43f8e51bf5a94757df795f10fa8080513ca28a78289027a3"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/PROTECTED-AFTER-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 53342,
+      "sha256": "7bb9b9e5911be7ddd4d85767c2da98715b9d4d9134fe09f0d686a70bf2fab79b"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/PROTECTED-BEFORE-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 54179,
+      "sha256": "301ddcc818f490ddb200f68dfd118dc0ee070e6d19aedac60a0d53bb138afb50"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/PROTOCOL-v1.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 14356,
+      "sha256": "7938c8471bfe40972989126f3a31fa4281505b094068e711ac8515014aed600d"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/README.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2131,
+      "sha256": "b6d1d9b27dce731cdc1ec096478161cba40a915c09adfd6ceb5a6f4d477e2f17"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/STATIC-ATTEMPTS-v1.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2901,
+      "sha256": "71e57e0751f16024bb083e4c1c9157a15c819ea406ec9d1d19cbf6b9bbaf8d23"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/TYPE-BINDING-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 71210,
+      "sha256": "2dfe1a79575f96e2d157fcfe89cce19f185863f272b6085ecf5569c2330fd69f"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/VALIDATION-v1.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1946,
+      "sha256": "c241c2acaabd2a1f50fb4555deb5c7fa164638fad7554187461576c8be39e160"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/VALIDATION-v2.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3379,
+      "sha256": "7a597989ab71a7ef164541eca8c84717cc11451ca08bc58490fda0a8da905cd6"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/audit.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9944,
+      "sha256": "bbea5b42e581adc80a523d32c684817ad5eb7a4a88cf40a4b0b402b477f77417"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/cases-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 23390,
+      "sha256": "a04ee5ea49742b08d05370c5eca28fbd1ea4d1ed3f02a7cb534f56540bfdae7a"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/typecheck-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7631,
+      "sha256": "1a820fb0fac8f04c6f6431cff4b39a329c834e4d766b1e22374cbd16d283fd67"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/types-negative-v1.mts.fixture": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 923,
+      "sha256": "a7dcdc1a60467b91b7295f9640bc8d0e279c56f465538ed4f234c49abba17fb7"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/types-positive-v1.mts.fixture": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1698,
+      "sha256": "aa36091715072992ae4bb7ab70bce06f3cc96188a9bd2dbee5fd39c293bcc8c4"
+    },
+    "tests/shell/cd-prerequisite-independent-20260828/validate-v1.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10314,
+      "sha256": "e20fc187d117e1d21775bcc47b77fc884ace1aaaf6309a2f9a32805a51fb2045"
+    }
+  },
+  "selfBinding": "Git commit binds this manifest; no other owned exclusions. Empty-directory additions detected."
+}

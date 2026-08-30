@@ -1,0 +1,92 @@
+{
+  "sealedAt": "2026-08-27T12:33:04.540Z",
+  "verdict": "ACCEPT exact final test-only two-pin control correction; qualified scope, no full-project/native-parity claim",
+  "candidate": "96146732cc7e17a67797389de5b83d14b29b41bf",
+  "previousCandidate": "e192662d2fda90104ab5a7e59c9b5c88bf5838c3",
+  "previousIndependentReview": "05b3c3dc5667e82a278c3a79c62a807897aa2176",
+  "sourceAndConfigDiffEmpty": true,
+  "executionInputCount": 237,
+  "unchangedRelevantInputs": 236,
+  "onlyChangedExecutionInput": "tests/shell-stress/diagnostic-profiles/pin-migration/binding.test.ts",
+  "changedControlAbsentFromCarriedActualImports": true,
+  "wholeSourceFilesUnchanged": 213,
+  "toolFilesUnchanged": 60,
+  "nativeBinariesUnchanged": 2,
+  "nodeUnchanged": true,
+  "fresh": {
+    "bindingControls": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0
+    },
+    "wrongErrorCodeNegative": {
+      "tests": 6,
+      "pass": 3,
+      "fail": 3,
+      "expectedRejections": 3
+    },
+    "integrity": {
+      "tests": 5,
+      "pass": 5,
+      "fail": 0
+    },
+    "nativeCaseExecutions": 0,
+    "productCaseExecutions": 0,
+    "phaseGuards": 2,
+    "actualModuleLoads": 54
+  },
+  "carriedForward": {
+    "primary": {
+      "tests": 89,
+      "pass": 89,
+      "fail": 0,
+      "identityPass": 1
+    },
+    "historical": {
+      "tests": 89,
+      "pass": 75,
+      "fail": 14,
+      "identityPass": 1
+    },
+    "driverMutants": {
+      "runs": 2,
+      "scheduledEach": 89,
+      "hookRejectionsEach": 89,
+      "nativeCaseEffects": 0,
+      "productCaseEffects": 0
+    },
+    "fullGuardDistinctionPrograms": 2,
+    "attribution": "Independent e192 raw runs at05b3c3dc, not fresh961 whole-suite/native execution or author counts"
+  },
+  "oldThreeControlFailuresRetained": true,
+  "allPrior15FilesImmutable": true,
+  "sourceHashes": {
+    "src/shell/runtime.ts": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/commands/execution.ts": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+    "src/commands/env-split.ts": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+    "src/index.ts": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+    "package.json": "8e2f368f83680bf443335e7347328abe7d74d6b23768f283b3a8b0970aca5427",
+    "tsconfig.json": "f473dbe2230f833bbd374f6d211e843da377973fa96ad0eb38b6b5740dd18027"
+  },
+  "carriedRawHashes": {
+    "execution.json": "b7e137d9a34e0577d6597fbc5dd262fb6b7c7fec1ea2fca00ac29de17b02f910",
+    "remaining-execution.json": "f6a4bd0870eeb55d21901c063396f61fb577d79e84b2943ae1ca8aa4fa039528",
+    "observations.json": "1b8cde87b023cf5239618df77bbe74affecc9ace68373d4f2eddf13bfacbdfd5"
+  },
+  "cleanup": {
+    "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-diagnostic-pin-v2-V9Lxr6",
+    "removed": true,
+    "ownedRunnerGroupsAbsent": true,
+    "noNativeOrProductCaseLaunches": true,
+    "rawSha256": "e281ebcc1346ef9a700e16e1bbc2416d883d36152353cd87fea6897d751b0bd4"
+  },
+  "files": {
+    "v2-review.mjs": "2b2b51d11d0a8670613aa65205b279d814534d17ab455e1a6d67c8cd63f1d29e",
+    "v2-execution.json": "e281ebcc1346ef9a700e16e1bbc2416d883d36152353cd87fea6897d751b0bd4",
+    "v2-cleanup.json": "7493a4381c015cc9935b60764e76ad8d2223e6542fccf0b33da881254086adde",
+    "v2-integrity.test.mjs": "e18823e300a6bc75dbc045f045a90881d51372dc26aecfcead624ff7bacfdf75",
+    "v2-integrity-result.json": "c947ff807965cff28a401ef94d0433552cbdca2a2982d26a12bc8efbce3882ae",
+    "V2_ADDENDUM.md": "2214b81387250ed268ee90fb6f52025adcfb3d0888eb4f31e246a0b66b1e5224"
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "scratch": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/output-quota-author-v2-20260827/.owned-USKRkK",
+  "absent": true,
+  "childProtocol": "Bounded synchronous children, SIGTERM timeout, no SIGSTOP. Probe checks zero owned workers at settlement and zero safety terminations."
+}

@@ -1,0 +1,62 @@
+TAP version 13
+# node:internal/modules/run_main:123
+#     triggerUncaughtException(
+#     ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/helpers.js' imported from /private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/core-expanded/regressions.test.ts
+#     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+#     at moduleResolve (node:internal/modules/esm/resolve:861:10)
+#     at defaultResolve (node:internal/modules/esm/resolve:985:11)
+#     at nextResolve (node:internal/modules/esm/hooks:748:28)
+#     at resolveBase (file:///private/tmp/safe-bash-sort-performance-VrG9w3/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10334)
+#     at async resolveDirectory (file:///private/tmp/safe-bash-sort-performance-VrG9w3/node_modules/tsx/dist/register-C4vWVmug.mjs:2:11415) {
+#   code: 'ERR_MODULE_NOT_FOUND',
+#   url: 'file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/helpers.js'
+# }
+# Node.js v22.22.2
+# Subtest: tests/commands/core-expanded/regressions.test.ts
+not ok 1 - tests/commands/core-expanded/regressions.test.ts
+  ---
+  duration_ms: 100.103458
+  type: 'test'
+  location: '/private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/core-expanded/regressions.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# node:internal/modules/run_main:123
+#     triggerUncaughtException(
+#     ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/helpers.js' imported from /private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/core-sort/regressions.test.ts
+#     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+#     at moduleResolve (node:internal/modules/esm/resolve:861:10)
+#     at defaultResolve (node:internal/modules/esm/resolve:985:11)
+#     at nextResolve (node:internal/modules/esm/hooks:748:28)
+#     at resolveBase (file:///private/tmp/safe-bash-sort-performance-VrG9w3/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10334)
+#     at async resolveDirectory (file:///private/tmp/safe-bash-sort-performance-VrG9w3/node_modules/tsx/dist/register-C4vWVmug.mjs:2:11415) {
+#   code: 'ERR_MODULE_NOT_FOUND',
+#   url: 'file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/helpers.js'
+# }
+# Node.js v22.22.2
+# Subtest: tests/commands/core-sort/regressions.test.ts
+not ok 2 - tests/commands/core-sort/regressions.test.ts
+  ---
+  duration_ms: 101.462167
+  type: 'test'
+  location: '/private/tmp/safe-bash-sort-performance-VrG9w3/base/tests/commands/core-sort/regressions.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 204.889166

@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { chmodSync, chownSync, copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { join, resolve } from 'node:path';
+
+const output = resolve(process.argv[2] ?? '');
+assert.ok(output.startsWith('/tmp/safe-bash-stream-five-public-verifier.'));
+assert.equal(existsSync(output), false);
+mkdirSync(output);
+const original = '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod';
+const expectedHash = '3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2';
+assert.equal(createHash('sha256').update(readFileSync(original)).digest('hex'), expectedHash);
+const binary = join(output, 'chmod-copied');
+copyFileSync(original, binary);
+const reference = statSync('/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress');
+const identity = { uid: process.getuid(), gid: process.getgid(), groups: process.getgroups(), referenceDirectoryGid: reference.gid, initialOutputGid: statSync(output).gid };
+assert.ok(identity.groups.includes(reference.gid));
+const profile = join(output, 'network-denied.sb');
+writeFileSync(profile, '(version 1) (allow default) (deny network*)\n');
+const cases = [];
+for (const [label, alignGroup, sandbox] of [['inherited-plain', false, false], ['inherited-sandbox', false, true], ['reference-group-sandbox', true, true]]) {
+  const cwd = join(output, label);
+  mkdirSync(cwd);
+  if (alignGroup) chownSync(cwd, identity.uid, reference.gid);
+  const directory = join(cwd, 'directory');
+  mkdirSync(directory);
+  chmodSync(directory, 0o6755);
+  const before = statSync(directory);
+  const args = ['-c', 'umask "$1"; shift; exec "$@"', 'metadata-oracle', '22', binary, '--', '+2000', 'directory'];
+  const result = spawnSync(sandbox ? '/usr/bin/sandbox-exec' : '/bin/bash', sandbox ? ['-f', profile, '/bin/bash', ...args] : args, { cwd, env: { PATH: '/usr/bin:/bin', LC_ALL: 'C', LANG: 'C', TZ: 'UTC', TMPDIR: cwd }, encoding: 'utf8', timeout: 5000 });
+  const after = statSync(directory);
+  cases.push({ label, alignGroup, sandbox, requestedInitial: '6755', mode: '+2000', before: { gid: before.gid, mode: (before.mode & 0o7777).toString(8) }, status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr, after: { gid: after.gid, mode: (after.mode & 0o7777).toString(8) } });
+}
+const report = { identity, binarySha256: expectedHash, inputOrigin: 'unchanged first failing canonical directory-setid row', cases };
+writeFileSync(join(output, 'result.json'), JSON.stringify(report, null, 2) + '\n');
+console.log(JSON.stringify(report, null, 2));
+assert.equal(cases[0].status, 1);
+assert.equal(cases[1].status, 1);
+assert.equal(cases[2].status, 0);
+assert.equal(cases[0].stderr, cases[1].stderr);
+assert.equal(cases[2].stderr, '');

@@ -1,0 +1,9 @@
+{
+  "schema": "dotglob-preseal-manifest-v1",
+  "files": {
+    "PROTOCOL-v1.md": "1ec6c2674c16e5a9beecab5fc2804efd8bd513a53eeebcea0e2c0aa278a3e983",
+    "ROWS-v1.json": "9687fbbf75753802635f439ca08b4af6be5ca0b3dbcccb2b9d10fdb248354f7d",
+    "BINDINGS-v1.json": "9949ccde5852fa5cf7fb08034f7cca90b5dce8c9984457cf43929da5905ead34",
+    "runner.mjs": "5023651286203e590a16ed7619d6260cee329b60c33f6a339d84d9484ad1f742"
+  }
+}

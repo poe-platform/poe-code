@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>snapshot/pipeline/file</Key><BucketName>safe-bash-interop</BucketName><Resource>/safe-bash-interop/snapshot/pipeline/file</Resource><RequestId>18CF9A1BA229ACF8</RequestId><HostId>b15f25204a595b8914321e0e258db45d013fe9a07cd80645df86585e9aae6d2f</HostId></Error>

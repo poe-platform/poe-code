@@ -1,0 +1,11 @@
+[
+  {"id":"R01-ordered-period-text","input":"<p>1. ordinary sentence</p>","expected":"1\\. ordinary sentence\n","status":0},
+  {"id":"R02-ordered-paren-text","input":"<p>1) ordinary sentence</p>","expected":"1\\) ordinary sentence\n","status":0},
+  {"id":"R03-strike-text","input":"<p>~~ordinary~~</p>","expected":"\\~\\~ordinary\\~\\~\n","status":0},
+  {"id":"R04-numeric-entity-token-boundary","input":"<p>&#1114112;</p>","limits":{"maxTokenBytes":8},"expected":"�\n","status":0},
+  {"id":"R05-entity-token-boundary","input":"&amp;","limits":{"maxTokenBytes":4},"expected":"\\&\n","status":0},
+  {"id":"R06-adjacent-emphasis","input":"<p><em>a</em><em>b</em></p>","status":0},
+  {"id":"R07-entity-leading-control","input":"<a href=\"&#9;https://safe.test\">label</a>","expected":"label\n","status":0},
+  {"id":"R08-entity-trailing-control","input":"<img src=\"https://safe.test&#10;\" alt=\"label\">","expected":"label\n","status":0},
+  {"id":"R09-obscured-active-scheme","input":"<a href=\"&#9;javascript:alert(1)\">label</a>","expected":"label\n","status":0}
+]

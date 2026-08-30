@@ -1,0 +1,11 @@
+{
+  "args": [
+    "rev-parse",
+    "--show-toplevel"
+  ],
+  "closed": true,
+  "captureBytes": 34,
+  "pid": 97968,
+  "code": 0,
+  "signal": null
+}

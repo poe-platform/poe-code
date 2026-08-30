@@ -1,0 +1,133 @@
+{
+  "format": "runtime-admission-evidence-manifest-v1",
+  "status": "UNSAFE_STOP",
+  "attempts": 1,
+  "runId": "admission-v4-01",
+  "archive": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/RAW-CAPTURES.json.gz",
+    "bytes": 440637,
+    "sha256": "559e4b0b994bbc067c3c93e5dc0c3e4b61eb91cb1b30256ad908ba81f0de5610",
+    "roundTripVerified": true
+  },
+  "members": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/AUTHORIZATION.json",
+      "bytes": 844,
+      "mode": 420,
+      "sha256": "27325f1b0cc231d4a837e443c470efb1e4dc8266eefb2f53d580fc9c80f93535"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/RESULT.json",
+      "bytes": 36970,
+      "mode": 420,
+      "sha256": "4847ea6e321a5c6bdfb4140ca8359cdc0102bbe64c5e7a38988ed9c884ef62c4"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/STAGED.json",
+      "bytes": 979059,
+      "mode": 420,
+      "sha256": "14737f05c24f0908e456e1bca8759ef62e8acaa66007a07176cccdec7cb78f13"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.json",
+      "bytes": 148026,
+      "mode": 420,
+      "sha256": "82e6b7f440db7f2687851bb13519d2a6013d94d7bf9b1d29ab8761dbb6b4ad20"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.receipt.json",
+      "bytes": 4657,
+      "mode": 420,
+      "sha256": "feda0ba4cf43c906875f08931530d9ab8a2a7e8ebd98cfa5fb20e320bc802aa2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/operation-probe-1.claim",
+      "bytes": 179,
+      "mode": 292,
+      "sha256": "acf38041dede05c7b8d8c30978858a176058c2680303bb0511ee0c9c83e55e60"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/authority-31fac8c969b07d2a41c9b52720b0c8c1eeea8a895338ebdcea013d3e19293c52.lock",
+      "bytes": 367,
+      "mode": 292,
+      "sha256": "a2a6e3a9f5aac777053c690802d98d2e4af825b109093e9cb0c89a7e18991ca2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/ROOT-MESSAGE.txt",
+      "bytes": 1944,
+      "mode": 420,
+      "sha256": "1b5578fdb3b0d3bffbcb33c3fbfbf7766047734ee0573b62338fc33bd6801ad8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/GRANT.json",
+      "bytes": 1804,
+      "mode": 420,
+      "sha256": "31fac8c969b07d2a41c9b52720b0c8c1eeea8a895338ebdcea013d3e19293c52"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/AUTH.json",
+      "bytes": 535,
+      "mode": 420,
+      "sha256": "be2861fedb25776277c4f527922e546d76532a09b7446e35dfb1b2ce281bb933"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/PREFLIGHT.json",
+      "bytes": 2772,
+      "mode": 420,
+      "sha256": "7f0683b7e1a1501b0f48cad9dddab9321eed7e5b3cea099afa85c2e1ca15f80d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/launch.mjs",
+      "bytes": 3737,
+      "mode": 420,
+      "sha256": "1faf0e0083b6552fb0d39baea8bdefe8192495dca12bc7eddf8e525bdcdd5982"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/LAUNCH-INTENT.json",
+      "bytes": 884,
+      "mode": 420,
+      "sha256": "b699776c381db75821e168beb018407f16b287aa307ddf963310bd23233be5d9"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/LAUNCHED.json",
+      "bytes": 884,
+      "mode": 420,
+      "sha256": "1f51ad162542d588033f29411fa06fa9bb4f7a9b32769129af850091df5519eb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/LAUNCH-RECEIPT.json",
+      "bytes": 1171,
+      "mode": 420,
+      "sha256": "2908aaa1173f3c4a28265d924151197fe0dd48979a20437f0339b300f13c3a8c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/coordinator.stdout",
+      "bytes": 23873,
+      "mode": 420,
+      "sha256": "5d4e788f988773c18317fc98ce43161eac589f50e4fa3b974fa7e30f5c7d13d5"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/coordinator.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/POST-AUDIT.json",
+      "bytes": 5592,
+      "mode": 420,
+      "sha256": "d05fe0d64bd438e89e3b9fc407c30a6f1febcf9c2b8de5ad3cacc26c78b98807"
+    }
+  ],
+  "handoff": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/HANDOFF.md",
+    "sha256": "6c5e6f04a642c3b53550466cd3e52e3656147448fc5f13c750e6fb4b1c8ae6d9"
+  },
+  "materializedViews": {
+    "retainedLocally": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views",
+    "duplicatedInGit": false,
+    "exactIndex": "STAGED.json in raw capture archive"
+  },
+  "originalsUnchanged": true,
+  "semanticCalls": 0
+}

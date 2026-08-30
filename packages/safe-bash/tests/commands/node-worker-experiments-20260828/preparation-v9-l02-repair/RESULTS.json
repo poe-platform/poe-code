@@ -1,0 +1,347 @@
+{
+  "schema": "l02-repair-data-results-v1",
+  "date": "2026-08-28",
+  "presealCommit": "9adf0df59fa497e73c9eb2c6e70454d548400526",
+  "presealSha256": "af14d6304cb384bfb7b2f79caabc3c9d69b761898ebdf525828087600ffbdecc",
+  "originalWorkerEvidence": "345b9851f00e77ba520014b36567259440fd4ed0",
+  "parentProbeCommit": "4d7f8531dc72a8006e9f8548cddbf0a181595621",
+  "decision": "23/23 harmless DATA controls; narrow source overlay ready for different review, Worker continuation HELD",
+  "counts": {
+    "descriptorObserverIdentityControls": 18,
+    "composedParentRpcControls": 5,
+    "passed": 23,
+    "total": 23,
+    "actualDynamicModuleLoads": 7,
+    "actualResolveEdges": 11,
+    "compiledFsErrorProbeReruns": 0,
+    "Workers": 0,
+    "guests": 0,
+    "engines": 0,
+    "compilers": 0,
+    "privateReads": 0,
+    "network": 0,
+    "controlChildStarts": 1,
+    "controlNaturalExits": 1,
+    "signals": 0,
+    "retries": 0
+  },
+  "owner": {
+    "schema": "parent-only-owner-v1",
+    "launched": true,
+    "pid": 2825,
+    "closed": true,
+    "code": 0,
+    "signal": null,
+    "childErrorPresent": false,
+    "elapsedMs": 164,
+    "capture": {
+      "primary": {
+        "present": false,
+        "origin": null
+      },
+      "secondary": [],
+      "slots": [
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        },
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        }
+      ],
+      "bytesSeen": 3274,
+      "bytesWritten": 3274,
+      "writeCalls": 2,
+      "cleanupComplete": true
+    },
+    "primary": {
+      "present": false,
+      "origin": null
+    },
+    "secondary": []
+  },
+  "raw": {
+    "stdoutBytes": 3274,
+    "stdoutSha256": "878d4a8820622b236664607742acf24d4575d04b56aa6c6efe273534c3fce032",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "controls": [
+    {
+      "id": "T01-opaque-stack-accessor",
+      "pass": true
+    },
+    {
+      "id": "T02-own-undefined-optional",
+      "pass": true
+    },
+    {
+      "id": "T03-absent-optional",
+      "pass": true
+    },
+    {
+      "id": "T04-exact-dto-copy",
+      "pass": true
+    },
+    {
+      "id": "T05-required-accessor",
+      "pass": true
+    },
+    {
+      "id": "T06-optional-accessor",
+      "pass": true
+    },
+    {
+      "id": "T07-extra-data",
+      "pass": true
+    },
+    {
+      "id": "T08-extra-accessor",
+      "pass": true
+    },
+    {
+      "id": "T09-symbol-extra",
+      "pass": true
+    },
+    {
+      "id": "T10-errno-NaN",
+      "pass": true
+    },
+    {
+      "id": "T11-UTF8-field-bound",
+      "pass": true
+    },
+    {
+      "id": "T12-unrecognized-identity",
+      "pass": true
+    },
+    {
+      "id": "T13-undefined-identity",
+      "pass": true
+    },
+    {
+      "id": "T14-false-identity",
+      "pass": true
+    },
+    {
+      "id": "T15-observer-proxy",
+      "pass": true
+    },
+    {
+      "id": "T16-observer-no-getters",
+      "pass": true
+    },
+    {
+      "id": "T17-observer-unrecognized-no-values",
+      "pass": true
+    },
+    {
+      "id": "T18-observer-failure-no-primary-replacement",
+      "pass": true
+    },
+    {
+      "id": "R01-FS-typed-route",
+      "pass": true
+    },
+    {
+      "id": "R02-sink-not-FS",
+      "pass": true
+    },
+    {
+      "id": "R03-closed-control-false",
+      "pass": true
+    },
+    {
+      "id": "R04-missing-terminal-reconcile-once",
+      "pass": true
+    },
+    {
+      "id": "R05-malformed-FS-retains-original",
+      "pass": true
+    }
+  ],
+  "loaded": {
+    "schema": "repair-control-loads-v1",
+    "loaded": [
+      {
+        "path": "controls.mjs",
+        "bytes": 8092,
+        "sha256": "516c1ace42cf55f201d6727409cf47429eed6b2c944a40a50031558083e88c27"
+      },
+      {
+        "path": "candidate/errors.mjs",
+        "bytes": 2278,
+        "sha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c"
+      },
+      {
+        "path": "candidate/parent-rpc.mjs",
+        "bytes": 9267,
+        "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+      },
+      {
+        "path": "candidate/reservations.mjs",
+        "bytes": 919,
+        "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+      },
+      {
+        "path": "candidate/wire.mjs",
+        "bytes": 10371,
+        "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+      },
+      {
+        "path": "observe.mjs",
+        "bytes": 2360,
+        "sha256": "e7a291f776f8249cc316ecbe73de55dcfe538ab196146683d25958073bcc0777"
+      },
+      {
+        "path": "candidate/json-size.mjs",
+        "bytes": 1709,
+        "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+      }
+    ],
+    "edges": [
+      {
+        "importer": "control-entry.mjs",
+        "specifier": "./controls.mjs",
+        "target": "controls.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./candidate/errors.mjs",
+        "target": "candidate/errors.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./candidate/parent-rpc.mjs",
+        "target": "candidate/parent-rpc.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./candidate/reservations.mjs",
+        "target": "candidate/reservations.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./candidate/wire.mjs",
+        "target": "candidate/wire.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./observe.mjs",
+        "target": "observe.mjs"
+      },
+      {
+        "importer": "candidate/errors.mjs",
+        "specifier": "./wire.mjs",
+        "target": "candidate/wire.mjs"
+      },
+      {
+        "importer": "candidate/parent-rpc.mjs",
+        "specifier": "./wire.mjs",
+        "target": "candidate/wire.mjs"
+      },
+      {
+        "importer": "candidate/parent-rpc.mjs",
+        "specifier": "./errors.mjs",
+        "target": "candidate/errors.mjs"
+      },
+      {
+        "importer": "candidate/wire.mjs",
+        "specifier": "./json-size.mjs",
+        "target": "candidate/json-size.mjs"
+      },
+      {
+        "importer": "observe.mjs",
+        "specifier": "node:util",
+        "target": "node:util"
+      }
+    ]
+  },
+  "postInputs": [
+    {
+      "path": "candidate/errors.mjs",
+      "sha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c"
+    },
+    {
+      "path": "candidate/parent-rpc.mjs",
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "candidate/wire.mjs",
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "candidate/json-size.mjs",
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "candidate/reservations.mjs",
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "observe.mjs",
+      "sha256": "e7a291f776f8249cc316ecbe73de55dcfe538ab196146683d25958073bcc0777"
+    },
+    {
+      "path": "controls.mjs",
+      "sha256": "516c1ace42cf55f201d6727409cf47429eed6b2c944a40a50031558083e88c27"
+    },
+    {
+      "path": "control-entry.mjs",
+      "sha256": "7acc2b36fdbbf4efb4804fa6ad12fee10443713f59bb46b0b4c02cf9edf61bf7"
+    },
+    {
+      "path": "launch.mjs",
+      "sha256": "7d544cf6168b883a988aa62d9b4375692074b2d07b417938c772385b0caeeb33"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "completeOverlay": {
+    "files": 124,
+    "bytes": 1315736,
+    "moduleRecords": 116,
+    "edges": 300,
+    "unchangedCompilerOutputs": 95,
+    "originalCapsulePostAuthenticated": 124,
+    "onlyExecutableDifference": "errors.mjs one predicate, 21 added bytes",
+    "sourceOnly": "future Worker overlay, no fresh engine/Worker load"
+  },
+  "nodePostSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "artifactHashes": {
+    "candidate/errors.mjs": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+    "observe.mjs": "e7a291f776f8249cc316ecbe73de55dcfe538ab196146683d25958073bcc0777",
+    "MODULES.json": "3f5f0147c2af69521522e7cfd796684f66b6410e0cafaa53f36a3df786cef6b9",
+    "SOURCES.json": "6df0aad56f86bdf512b656050382cee4d0ac217d6592ef568ce9617e92df24e9",
+    "PROFILE.json": "1608efd1f31f19c3fb0d39b43606b95dc90fda190081dfdcf4477cb28465a2f4",
+    "COMPOSITION.json": "b82b16c2fefc7ae277e0ea0473ba5e3b02ac908bd9a3d2fe841f23394d80adee",
+    "PRESEAL.json": "af14d6304cb384bfb7b2f79caabc3c9d69b761898ebdf525828087600ffbdecc",
+    "HANDOFF.md": "1f6904fc6f17b666dbb5b07ce432eb1277833d73ee30417f5ff00314f8aa2d5c"
+  },
+  "limits": {
+    "controlWindowMaximumChildren": 6,
+    "controlWindowActualChildrenIncludingTwoPendingPublicationChildren": 6,
+    "controlOwnerMs": 164,
+    "prePublicationElapsedMs": 71741,
+    "allTaskExpectedStartsAfterPublication": 13,
+    "allTaskBreakdown": {
+      "Git": 9,
+      "apply_patch": 2,
+      "NodeChildren": 2
+    },
+    "rootProbeWindowChildren": 3,
+    "rootProbeWindowMs": 40027,
+    "captureBytesTotal": 8059
+  },
+  "history": "Original L01 PASS/L02 FAIL and9Worker/8guest unrun; source124 unchanged. New parent observation explains a real shape mismatch but cannot recover original rejected descriptor.",
+  "qualification": {
+    "dynamic": "Strict own-data/optional/UTF8/identity checks; proxy/accessor observation; actual parent-rpc FS/sink/closed-control/undelivered-reconcile branches with synthetic owner/provider. Model cleanup not Worker retirement.",
+    "sourceOnly": "Original supervisor finally/reconcile ordering; full engine/protocol/publication integration unchanged and not rerun.",
+    "remaining": "Future bounded observer helper tested but NOT automatically wired into Worker supplemental publication. That exact capture/publication seam and fresh selected-run/capture preseal need different review/ROOT GO; no remaining-slot authority."
+  }
+}

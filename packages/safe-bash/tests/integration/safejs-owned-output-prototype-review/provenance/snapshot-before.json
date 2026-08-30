@@ -1,0 +1,3472 @@
+{
+  "at": "2026-08-27T14:08:27.096Z",
+  "phase": "before",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "mtimeMs": 1774313550000,
+    "ctimeMs": 1776794488519.6758
+  },
+  "private": {
+    "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+    "staged": "",
+    "index": {
+      "bytes": 431585,
+      "sha256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+      "mode": 420,
+      "mtimeMs": 1787794730073.6377,
+      "ctimeMs": 1787794730073.7827
+    },
+    "metadata": {
+      "AGENTS.md": {
+        "bytes": 5737,
+        "sha256": "a68ac67735ca1eccdb4cfad1f706a47384a01a446f2555e6d01b4726e2830fd7",
+        "mode": 420,
+        "mtimeMs": 1785769859364.1233,
+        "ctimeMs": 1785769859364.1233
+      },
+      ".gitignore": {
+        "bytes": 1090,
+        "sha256": "0161532d2f4646d2fc109f5b4a48fe37dc06f4687a531852dcafd1ca8cc8355c",
+        "mode": 420,
+        "mtimeMs": 1782845787059.0957,
+        "ctimeMs": 1782845787059.0957
+      },
+      "package.json": {
+        "bytes": 12430,
+        "sha256": "e9f4bbb3216a3576528a812a3274db8a4cdc309654e4b724da69dea61161ec39",
+        "mode": 420,
+        "mtimeMs": 1787789982618.038,
+        "ctimeMs": 1787789982618.038
+      },
+      "package-lock.json": {
+        "bytes": 308871,
+        "sha256": "f0734bf2551b7add4257b0d7562e5fdcecac552f17c4a5a1e1cb5eb99d72db98",
+        "mode": 420,
+        "mtimeMs": 1787789982617.7124,
+        "ctimeMs": 1787789982617.7124
+      },
+      "tsconfig.json": {
+        "bytes": 501,
+        "sha256": "dd954deaf678dd2276e2b39f16511e7246bbaad999f0bacc039add3cf241e17d",
+        "mode": 420,
+        "mtimeMs": 1779579282147.897,
+        "ctimeMs": 1779579282147.897
+      },
+      "packages/poe-agent/package.json": {
+        "bytes": 985,
+        "sha256": "fe4ddedea7af55fc1b2d5fa0c00df519b8c4801575cf3e043fed2a4004a2041b",
+        "mode": 420,
+        "mtimeMs": 1787789982618.3176,
+        "ctimeMs": 1787789982618.3176
+      }
+    },
+    "engine": {
+      "CHECKPOINT_REPLAY.md": {
+        "bytes": 9835,
+        "sha256": "c37b418094a31fe441cac7c733278b809d7f45b4b6a845d04b0561425d90c62a",
+        "mode": 420,
+        "mtimeMs": 1787789982379.2073,
+        "ctimeMs": 1787789982379.2073
+      },
+      "MARKDOWN_SCRIPTS.md": {
+        "bytes": 2231,
+        "sha256": "57c579e7a5d34ebcab740fb966c54de68e79bba0702cf2d269fe2b1e77511b20",
+        "mode": 420,
+        "mtimeMs": 1787786964476.95,
+        "ctimeMs": 1787786964476.95
+      },
+      "README.md": {
+        "bytes": 30971,
+        "sha256": "3fa05ec0e0c66f7276b440d451fe7f7989d448897ae9fbbd7c07183755ebeb2b",
+        "mode": 420,
+        "mtimeMs": 1787789982379.6497,
+        "ctimeMs": 1787789982379.6497
+      },
+      "examples/experiment.md": {
+        "bytes": 1912,
+        "sha256": "69a8f49a9fca5176790cd5c170373acdc8681406e14bf85efe86a35c59335631",
+        "mode": 420,
+        "mtimeMs": 1781478104424.0151,
+        "ctimeMs": 1781478104424.0151
+      },
+      "examples/pipeline.md": {
+        "bytes": 1403,
+        "sha256": "9cc5e963a4fc357960091b9c09c7b4832246e92f5ffa4c5d2f1feaeab9eef249",
+        "mode": 420,
+        "mtimeMs": 1781478104431.7058,
+        "ctimeMs": 1781478104431.7058
+      },
+      "examples/superintendent.md": {
+        "bytes": 2230,
+        "sha256": "ae5c55f39db29fd05094868303bca6eda9eeb5af64c28ad36e0f4bba4531168e",
+        "mode": 420,
+        "mtimeMs": 1781478104441.0107,
+        "ctimeMs": 1781478104441.0107
+      },
+      "package.json": {
+        "bytes": 1330,
+        "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+        "mode": 420,
+        "mtimeMs": 1781478019264.0413,
+        "ctimeMs": 1781478019264.2122
+      },
+      "src/cli.test.ts": {
+        "bytes": 18826,
+        "sha256": "ff2102823fc703e81b55a8510d31257c74ff39a15516906f30170362a403733e",
+        "mode": 420,
+        "mtimeMs": 1784241190442.703,
+        "ctimeMs": 1784241190443.4502
+      },
+      "src/cli.ts": {
+        "bytes": 22796,
+        "sha256": "20708b0ba9c725a4944fcf48801c4a2ad885b83d56e3b5b5e4c43ccf3857d7e0",
+        "mode": 420,
+        "mtimeMs": 1787786964478.2388,
+        "ctimeMs": 1787786964478.2388
+      },
+      "src/core.test.ts": {
+        "bytes": 640,
+        "sha256": "adce66a8adf4ef07a2b2e87a1d469740a2c9dfc6221deeb0383789f8ccaa4d7c",
+        "mode": 420,
+        "mtimeMs": 1787780370000.6238,
+        "ctimeMs": 1787780370000.6238
+      },
+      "src/core.ts": {
+        "bytes": 396,
+        "sha256": "8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a",
+        "mode": 420,
+        "mtimeMs": 1787780370001.2659,
+        "ctimeMs": 1787780370001.2659
+      },
+      "src/dump.test.ts": {
+        "bytes": 5709,
+        "sha256": "098ffc967c9d206f7d91a609cd0b43cebea2ffb3b826254d5570a9ec42d07b39",
+        "mode": 420,
+        "mtimeMs": 1781216708218.6829,
+        "ctimeMs": 1781216708218.6829
+      },
+      "src/dump.ts": {
+        "bytes": 146,
+        "sha256": "38847aa3fd1f6f149862aee3b40053a39fac536dee5a880740b447ce8eee6601",
+        "mode": 420,
+        "mtimeMs": 1781477927618.0203,
+        "ctimeMs": 1781477927618.133
+      },
+      "src/error/format.test.ts": {
+        "bytes": 5145,
+        "sha256": "189c399bb7e7bd9715768bfcb713e8a7f83ea72fe591841b78d5ada46e4731c0",
+        "mode": 420,
+        "mtimeMs": 1781477903405.4526,
+        "ctimeMs": 1781477903405.6147
+      },
+      "src/error/format.ts": {
+        "bytes": 11085,
+        "sha256": "4c7778fbef9c2e58534e3bbba59e98e90613a0a2b045209023ee67f6f6b89d10",
+        "mode": 420,
+        "mtimeMs": 1781031183848.9304,
+        "ctimeMs": 1781031183848.9304
+      },
+      "src/error/shape-audit.test.ts": {
+        "bytes": 8430,
+        "sha256": "31e092096221cac3716d2cd27ebe6301b41b22e43ff2fcf6fd02fa5185e6f085",
+        "mode": 420,
+        "mtimeMs": 1781477903403.5186,
+        "ctimeMs": 1781477903403.695
+      },
+      "src/error/shape.test.ts": {
+        "bytes": 2246,
+        "sha256": "62af5a1cf09983726d080eada3b8563300dc2daa21d197561f13cf8144bc55b3",
+        "mode": 420,
+        "mtimeMs": 1781031183849.2686,
+        "ctimeMs": 1781031183849.2686
+      },
+      "src/error/shape.ts": {
+        "bytes": 5240,
+        "sha256": "8505bc4cc4b78f98acb039c949c0686f83de6fc8b7de7fabb31b2e64d703144d",
+        "mode": 420,
+        "mtimeMs": 1781031183849.5315,
+        "ctimeMs": 1781031183849.5315
+      },
+      "src/error-codes.ts": {
+        "bytes": 470,
+        "sha256": "276480f5fc5e9b536fbf976b46c09aed159c0465c32cb8cb448f8fd7137ab51b",
+        "mode": 420,
+        "mtimeMs": 1781478104610.5132,
+        "ctimeMs": 1781478104610.5132
+      },
+      "src/example-runner.test.ts": {
+        "bytes": 2522,
+        "sha256": "9e4bf0c91b7199c248bd521a09cb9b7a8b6a0fde2f610634e86e1eb63e8f33dc",
+        "mode": 420,
+        "mtimeMs": 1784239416947.726,
+        "ctimeMs": 1784239416948.397
+      },
+      "src/example-runner.ts": {
+        "bytes": 18239,
+        "sha256": "b6a2e227be69e677d45992f2d73c27ad627e07f1b54d097feb3dafe3ad4d1eab",
+        "mode": 420,
+        "mtimeMs": 1787786964478.8123,
+        "ctimeMs": 1787786964478.8123
+      },
+      "src/graph-depth.ts": {
+        "bytes": 3383,
+        "sha256": "36b5f0e3a978f73583d086fd3df38303ce7694947c1c55028b9bfb3831391346",
+        "mode": 420,
+        "mtimeMs": 1787772203707.7139,
+        "ctimeMs": 1787772203707.7139
+      },
+      "src/index.test.ts": {
+        "bytes": 21831,
+        "sha256": "b1efab28fa2be243f403bfef3c6f359f866f05f06267b8087c874a0d8b7c7a1f",
+        "mode": 420,
+        "mtimeMs": 1787780370001.8115,
+        "ctimeMs": 1787780370001.8115
+      },
+      "src/index.ts": {
+        "bytes": 3030,
+        "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+        "mode": 420,
+        "mtimeMs": 1787780370002.41,
+        "ctimeMs": 1787780370002.41
+      },
+      "src/interp/arguments.test.ts": {
+        "bytes": 3240,
+        "sha256": "fcdc9de14d775eb7b40eae31e41b49070434a11ccf8ac0a6e86d8fd177477bb0",
+        "mode": 420,
+        "mtimeMs": 1787772203708.5076,
+        "ctimeMs": 1787772203708.5076
+      },
+      "src/interp/arguments.ts": {
+        "bytes": 2210,
+        "sha256": "5eab3d8f1e094babdb96b1ac0031a6aed89279341d88e1b01ef0e31ef77bd186",
+        "mode": 420,
+        "mtimeMs": 1787772203708.7075,
+        "ctimeMs": 1787772203708.7075
+      },
+      "src/interp/async.test.ts": {
+        "bytes": 8286,
+        "sha256": "2d3d2e58afc0f56d436cbeacf5ff07405a8de8f9c7ea739d358e756561e82841",
+        "mode": 420,
+        "mtimeMs": 1787783252054.5532,
+        "ctimeMs": 1787783252054.5532
+      },
+      "src/interp/async.ts": {
+        "bytes": 12403,
+        "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb",
+        "mode": 420,
+        "mtimeMs": 1787789982380.3552,
+        "ctimeMs": 1787789982380.3552
+      },
+      "src/interp/budget.test.ts": {
+        "bytes": 8289,
+        "sha256": "eac05c0163c3d3dbf98b3f9ec783edbc089d8732e8863cf265ce14ba09cc73a4",
+        "mode": 420,
+        "mtimeMs": 1787780370003.571,
+        "ctimeMs": 1787780370003.571
+      },
+      "src/interp/budget.ts": {
+        "bytes": 9007,
+        "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+        "mode": 420,
+        "mtimeMs": 1787780370004.1323,
+        "ctimeMs": 1787780370004.1323
+      },
+      "src/interp/cancel.test.ts": {
+        "bytes": 14632,
+        "sha256": "2cc7c64b825f0004805f987263ad610526729e14d0e997e6f23c589521642d0a",
+        "mode": 420,
+        "mtimeMs": 1787789982380.8916,
+        "ctimeMs": 1787789982380.8916
+      },
+      "src/interp/cancel.ts": {
+        "bytes": 6588,
+        "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+        "mode": 420,
+        "mtimeMs": 1787789982381.3538,
+        "ctimeMs": 1787789982381.3538
+      },
+      "src/interp/conformance.test.ts": {
+        "bytes": 20014,
+        "sha256": "10f9889b8b7f103bf01c0dc5dd54b922739f0040018a8b73abe72c20f0530ee4",
+        "mode": 420,
+        "mtimeMs": 1781214615035.4258,
+        "ctimeMs": 1781214615035.4258
+      },
+      "src/interp/data-budget.test.ts": {
+        "bytes": 7607,
+        "sha256": "8109e502e167edb06bf01025bbdf5ebd3eceadf2a760acbbb1d5493fab763b62",
+        "mode": 420,
+        "mtimeMs": 1787780370004.7385,
+        "ctimeMs": 1787780370004.7385
+      },
+      "src/interp/exceptions.test.ts": {
+        "bytes": 4908,
+        "sha256": "66c89e13f3dca17f34ec4be3450c125a619d4a57b2a5a04306c444d1893dfdff",
+        "mode": 420,
+        "mtimeMs": 1779079350263.13,
+        "ctimeMs": 1779079350263.13
+      },
+      "src/interp/exceptions.ts": {
+        "bytes": 19651,
+        "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+        "mode": 420,
+        "mtimeMs": 1781401760018.6282,
+        "ctimeMs": 1781401760018.6282
+      },
+      "src/interp/generator.test.ts": {
+        "bytes": 9074,
+        "sha256": "5285ed924fe6b64341226984e8e22959620f325df4d7ab1d4dfb58e929bf1874",
+        "mode": 420,
+        "mtimeMs": 1781401759730.6272,
+        "ctimeMs": 1781401759730.6272
+      },
+      "src/interp/generator.ts": {
+        "bytes": 5508,
+        "sha256": "73e839e516d042d3ea6893ee95b54731b4e3ab23df28baf61f66ac400b4fc59b",
+        "mode": 420,
+        "mtimeMs": 1781220887228.0688,
+        "ctimeMs": 1781220887228.0688
+      },
+      "src/interp/globals/collections.test.ts": {
+        "bytes": 10678,
+        "sha256": "e8e03ffb9d05c89e8d89af7a0f25b9f0e8c24344de60ac40a0068ced31e407bf",
+        "mode": 420,
+        "mtimeMs": 1787789982382.0054,
+        "ctimeMs": 1787789982382.0054
+      },
+      "src/interp/globals/collections.ts": {
+        "bytes": 4271,
+        "sha256": "6cb56413e215814b76d01782dc7d8a5b66b0afccf5c16f8fca56b9e55788c089",
+        "mode": 420,
+        "mtimeMs": 1781478104826.96,
+        "ctimeMs": 1781478104826.96
+      },
+      "src/interp/globals/console-json.test.ts": {
+        "bytes": 9937,
+        "sha256": "34c4bb4a26200bf1e66611c7dac663cbf27a4dfa1877e5d2aaa3a91881504144",
+        "mode": 420,
+        "mtimeMs": 1779080620719.1836,
+        "ctimeMs": 1779080620719.1836
+      },
+      "src/interp/globals/console-json.ts": {
+        "bytes": 10644,
+        "sha256": "2b4e345e75d0f3647e53daa588dc71d1b3e363b3a55fd0381e5ada37e8a93b43",
+        "mode": 420,
+        "mtimeMs": 1787789982382.635,
+        "ctimeMs": 1787789982382.635
+      },
+      "src/interp/globals/error.test.ts": {
+        "bytes": 6463,
+        "sha256": "02cc6b6cfa648c9567b4a4513385c59684126a09007ea55784bc608db4bb62e1",
+        "mode": 420,
+        "mtimeMs": 1781478104851.6663,
+        "ctimeMs": 1781478104851.6663
+      },
+      "src/interp/globals/error.ts": {
+        "bytes": 2740,
+        "sha256": "6d32795654371c6748f785d96b9b4d37002f245c436ce56572752f23a598f47b",
+        "mode": 420,
+        "mtimeMs": 1781125065588.0159,
+        "ctimeMs": 1781125065588.0159
+      },
+      "src/interp/globals/math.test.ts": {
+        "bytes": 8945,
+        "sha256": "639702a8f7e1c49ad550fb697528924b102be47fbf177fa127f15b043f6db762",
+        "mode": 420,
+        "mtimeMs": 1781206317886.009,
+        "ctimeMs": 1781206317886.009
+      },
+      "src/interp/globals/math.ts": {
+        "bytes": 2338,
+        "sha256": "2ea73d09944ff3d81fa10821ae52966edae87a46bdfc02ef1142523330d96502",
+        "mode": 420,
+        "mtimeMs": 1787780370005.9348,
+        "ctimeMs": 1787780370005.9348
+      },
+      "src/interp/globals/misc.test.ts": {
+        "bytes": 6939,
+        "sha256": "e3375b1bd4fc8780dd742d6e61f3462af6d68bff52bdbabfbb81b725fb09b236",
+        "mode": 420,
+        "mtimeMs": 1781218519682.852,
+        "ctimeMs": 1781218519682.852
+      },
+      "src/interp/globals/misc.ts": {
+        "bytes": 2360,
+        "sha256": "e6f15902c7e2dfaa6f8e2bf43fe8e1f25b79f1b863c8ee8df00ee4242bc00781",
+        "mode": 420,
+        "mtimeMs": 1781218027022.0022,
+        "ctimeMs": 1781218027022.0022
+      },
+      "src/interp/globals/object-array.test.ts": {
+        "bytes": 16595,
+        "sha256": "bec31ee8475ec4667f4788d15dbe70da1a717060f4dc9137c11e35da9759a911",
+        "mode": 420,
+        "mtimeMs": 1781478104914.6357,
+        "ctimeMs": 1781478104914.6357
+      },
+      "src/interp/globals/object-array.ts": {
+        "bytes": 9891,
+        "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9",
+        "mode": 420,
+        "mtimeMs": 1787789982383.1648,
+        "ctimeMs": 1787789982383.1648
+      },
+      "src/interp/globals/regex.ts": {
+        "bytes": 409,
+        "sha256": "5b7322f1e633c89e7677ff9f1397ae356a5a0a3dac229553f43c1554439ca6be",
+        "mode": 420,
+        "mtimeMs": 1781127316287.7295,
+        "ctimeMs": 1781127316287.7295
+      },
+      "src/interp/host-bridge.test.ts": {
+        "bytes": 23250,
+        "sha256": "729386951480d6fdd7fdf565efa2182b50d2aebfd8c379279e38f514674455a3",
+        "mode": 420,
+        "mtimeMs": 1784238613411.5386,
+        "ctimeMs": 1784238613419.5862
+      },
+      "src/interp/host-bridge.ts": {
+        "bytes": 30852,
+        "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+        "mode": 420,
+        "mtimeMs": 1787783252056.1392,
+        "ctimeMs": 1787783252056.1392
+      },
+      "src/interp/host-call.test.ts": {
+        "bytes": 9187,
+        "sha256": "72a12978c68b71989a9af7d1864cb226480153b8049684484d49494d41f185d0",
+        "mode": 420,
+        "mtimeMs": 1787780370006.9204,
+        "ctimeMs": 1787780370006.9204
+      },
+      "src/interp/host-call.ts": {
+        "bytes": 24833,
+        "sha256": "7f5d5bbc6888f12c268dd9680d3a255c074d81c16f0843fa3ff0c8202aa1e4c5",
+        "mode": 420,
+        "mtimeMs": 1787780370007.4846,
+        "ctimeMs": 1787780370007.4846
+      },
+      "src/interp/interactions.test.ts": {
+        "bytes": 8649,
+        "sha256": "aca57a781ab6ffb11e3821a737c84a848d0fc25ab67f12a345944f3d37264511",
+        "mode": 420,
+        "mtimeMs": 1781213780005.8872,
+        "ctimeMs": 1781213780005.8872
+      },
+      "src/interp/interpreter.test.ts": {
+        "bytes": 137591,
+        "sha256": "ef53dd7d05c94ed0c4c9b478ec9a34d2cf6e353fd6170935a7f7086c3b19757d",
+        "mode": 420,
+        "mtimeMs": 1787789982383.7378,
+        "ctimeMs": 1787789982383.7378
+      },
+      "src/interp/interpreter.ts": {
+        "bytes": 97921,
+        "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+        "mode": 420,
+        "mtimeMs": 1787789982384.3096,
+        "ctimeMs": 1787789982384.3096
+      },
+      "src/interp/iteration.ts": {
+        "bytes": 2798,
+        "sha256": "dd71ba305822701e19deaa7c2bf643bb67c17fcfe7ce9c6f089224fedb2c965d",
+        "mode": 420,
+        "mtimeMs": 1781220872764.6797,
+        "ctimeMs": 1781220872764.6797
+      },
+      "src/interp/jobs.ts": {
+        "bytes": 2737,
+        "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e",
+        "mode": 420,
+        "mtimeMs": 1787789982384.6953,
+        "ctimeMs": 1787789982384.6953
+      },
+      "src/interp/methods/array.test.ts": {
+        "bytes": 24435,
+        "sha256": "8859a77e124d122ab48fea99dd6e5ff2cdbacec90dd8bb56b9bf9b3632dc19ea",
+        "mode": 420,
+        "mtimeMs": 1781478105222.7747,
+        "ctimeMs": 1781478105222.7747
+      },
+      "src/interp/methods/array.ts": {
+        "bytes": 22610,
+        "sha256": "ea2f2b887081c4c1af790c8154068ca7c693915abaa1a59cfa991f649ba23587",
+        "mode": 420,
+        "mtimeMs": 1781401760304.626,
+        "ctimeMs": 1781401760304.626
+      },
+      "src/interp/methods/function.test.ts": {
+        "bytes": 5447,
+        "sha256": "d2a5918fab370f47ffb874df545fe0e4ec52e2ed3e35edd7b0c9a6208d18bd9e",
+        "mode": 420,
+        "mtimeMs": 1781478105241.254,
+        "ctimeMs": 1781478105241.254
+      },
+      "src/interp/methods/function.ts": {
+        "bytes": 1942,
+        "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb",
+        "mode": 420,
+        "mtimeMs": 1781478105244.357,
+        "ctimeMs": 1781478105244.357
+      },
+      "src/interp/methods/generator.ts": {
+        "bytes": 987,
+        "sha256": "5da82dde9a05bbbf833ba320389033325fe8cf781496cce8bda1009d75ec2657",
+        "mode": 420,
+        "mtimeMs": 1781128760211.461,
+        "ctimeMs": 1781128760211.461
+      },
+      "src/interp/methods/map.ts": {
+        "bytes": 3192,
+        "sha256": "681c1e044f4ec0c5f780c1c36978de2c14b37d19323a73552ea22a3fd417b446",
+        "mode": 420,
+        "mtimeMs": 1787789982385.16,
+        "ctimeMs": 1787789982385.16
+      },
+      "src/interp/methods/number.test.ts": {
+        "bytes": 7089,
+        "sha256": "33d63464451a871b5881b59b5cf7e13f07f053f489352110129d7f5297cd2d7b",
+        "mode": 420,
+        "mtimeMs": 1781478105259.401,
+        "ctimeMs": 1781478105259.401
+      },
+      "src/interp/methods/number.ts": {
+        "bytes": 2913,
+        "sha256": "22a78b6782766bbd79d98ebf487721276a4b0fd064aa7d4a61a5d35d9c759a49",
+        "mode": 420,
+        "mtimeMs": 1779083266207.8447,
+        "ctimeMs": 1779083266207.8447
+      },
+      "src/interp/methods/regex.test.ts": {
+        "bytes": 2197,
+        "sha256": "3d6427c965a4cba0c1bb3f95cdc4979cc86243937932c1881bde6f840aa41c67",
+        "mode": 420,
+        "mtimeMs": 1781401760227.7017,
+        "ctimeMs": 1781401760227.7017
+      },
+      "src/interp/methods/regex.ts": {
+        "bytes": 2094,
+        "sha256": "a80b629e850f6d0a934da14e57c8926a691d6ba132d0667c6a1514972bb4171e",
+        "mode": 420,
+        "mtimeMs": 1781401760228.0544,
+        "ctimeMs": 1781401760228.0544
+      },
+      "src/interp/methods/set.ts": {
+        "bytes": 2985,
+        "sha256": "755828aac63a296b9df4e107c5ef046681dc4cc3d93e9e54710419f24096653d",
+        "mode": 420,
+        "mtimeMs": 1787789982385.6138,
+        "ctimeMs": 1787789982385.6138
+      },
+      "src/interp/methods/string.test.ts": {
+        "bytes": 13726,
+        "sha256": "b3a66eed2197bfa95d3b17f9d3c64c6c51da97d8df4ba34d7c573ae340e83016",
+        "mode": 420,
+        "mtimeMs": 1787789982386.371,
+        "ctimeMs": 1787789982386.371
+      },
+      "src/interp/methods/string.ts": {
+        "bytes": 12789,
+        "sha256": "25b7eb646e115ce55b5fe02cc5d480109587fb6dab93d70b51cdb5e42a2b19a3",
+        "mode": 420,
+        "mtimeMs": 1781128002636.309,
+        "ctimeMs": 1781128002636.309
+      },
+      "src/interp/patterns.test.ts": {
+        "bytes": 8867,
+        "sha256": "26939cc0e291bcf658e6ac32196bee5e5f0128e726b4a28f63d323c7eb21dfde",
+        "mode": 420,
+        "mtimeMs": 1781120806327.9285,
+        "ctimeMs": 1781120806327.9285
+      },
+      "src/interp/patterns.ts": {
+        "bytes": 9354,
+        "sha256": "ea2c4b76ec48549eb82025bbf05777b72d1965e497deee5c3c7de73c80b39010",
+        "mode": 420,
+        "mtimeMs": 1781214205033.2676,
+        "ctimeMs": 1781214205033.2676
+      },
+      "src/interp/promise-replay.test.ts": {
+        "bytes": 5783,
+        "sha256": "3804bee04aa8f97fbe78281984a05d2711a112a0195b7356d630082d31c0caf0",
+        "mode": 420,
+        "mtimeMs": 1787780370009.3708,
+        "ctimeMs": 1787780370009.3708
+      },
+      "src/interp/promise-replay.ts": {
+        "bytes": 15538,
+        "sha256": "12113e684793316e0c476589a6c2e54cba4a7d86a95025e601f6585db0b3a127",
+        "mode": 420,
+        "mtimeMs": 1787780370009.7441,
+        "ctimeMs": 1787780370009.7441
+      },
+      "src/interp/promise-tracker.ts": {
+        "bytes": 2427,
+        "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581",
+        "mode": 420,
+        "mtimeMs": 1781401760684.2703,
+        "ctimeMs": 1781401760684.2703
+      },
+      "src/interp/promise.test.ts": {
+        "bytes": 24077,
+        "sha256": "3be8ed17ba867f3676708c5a95a06c464aacebfda55b80dec11225cb32d916d9",
+        "mode": 420,
+        "mtimeMs": 1787789982387.0474,
+        "ctimeMs": 1787789982387.0474
+      },
+      "src/interp/promise.ts": {
+        "bytes": 15619,
+        "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c",
+        "mode": 420,
+        "mtimeMs": 1787789982388.556,
+        "ctimeMs": 1787789982388.556
+      },
+      "src/interp/regex/engine.test.ts": {
+        "bytes": 4083,
+        "sha256": "dc7a75dec2ff1dacffa82f8dfebd50c12738834d9217b64e5366cb487588852d",
+        "mode": 420,
+        "mtimeMs": 1781127072206.1545,
+        "ctimeMs": 1781127072206.1545
+      },
+      "src/interp/regex/engine.ts": {
+        "bytes": 9631,
+        "sha256": "b12b0efa3760b5395a13474d0ce7313f063e2978cdb0e7a97f6e581bd6613118",
+        "mode": 420,
+        "mtimeMs": 1781128002635.0295,
+        "ctimeMs": 1781128002635.0295
+      },
+      "src/interp/regex/parse.test.ts": {
+        "bytes": 2137,
+        "sha256": "9875fb22709a48fe14bbc366495f9c738eea701a472c754644ad28d23fea6e7e",
+        "mode": 420,
+        "mtimeMs": 1781126824616.0583,
+        "ctimeMs": 1781126824616.0583
+      },
+      "src/interp/regex/parse.ts": {
+        "bytes": 11403,
+        "sha256": "86d0c5fa8a8269e5eb40aaccae36160dd09f51358e0f619ac9e4335aa0617e15",
+        "mode": 420,
+        "mtimeMs": 1781126796144.198,
+        "ctimeMs": 1781126796144.198
+      },
+      "src/interp/running-state.test.ts": {
+        "bytes": 9178,
+        "sha256": "aabd00aaa5c9bc190186a13f537fd95d1d04993d792c004eb97c814cc4f2a9af",
+        "mode": 420,
+        "mtimeMs": 1787789982389.0386,
+        "ctimeMs": 1787789982389.0386
+      },
+      "src/interp/running-state.ts": {
+        "bytes": 1254,
+        "sha256": "a930536ee55df896b62c77c6c9dfc0ff597f56da7d5bf12b7269c0836cfac041",
+        "mode": 420,
+        "mtimeMs": 1781220670582.368,
+        "ctimeMs": 1781220670582.368
+      },
+      "src/interp/scope.test.ts": {
+        "bytes": 11265,
+        "sha256": "1374ba21de75b1efd90874ddbd4a823fc9f2229516f2aa201eaff6e4679c82dd",
+        "mode": 420,
+        "mtimeMs": 1781204907639.2793,
+        "ctimeMs": 1781204907639.2793
+      },
+      "src/interp/scope.ts": {
+        "bytes": 7749,
+        "sha256": "148723026726511c7b444f7c1dd02cb955d8eb22d9aea9891928ef60b326eb6e",
+        "mode": 420,
+        "mtimeMs": 1781401760020.855,
+        "ctimeMs": 1781401760020.855
+      },
+      "src/interp/values.test.ts": {
+        "bytes": 12384,
+        "sha256": "65433d60b9539953bbdf8930ec352054c1339b82dcc05157bd52870d1cbc6147",
+        "mode": 420,
+        "mtimeMs": 1781477927625.9639,
+        "ctimeMs": 1781477927626.0828
+      },
+      "src/interp/values.ts": {
+        "bytes": 24602,
+        "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+        "mode": 420,
+        "mtimeMs": 1787789982389.6353,
+        "ctimeMs": 1787789982389.6353
+      },
+      "src/interp/var-hoist.ts": {
+        "bytes": 5008,
+        "sha256": "ae52756a61821f2ae5fc828bcca66c51826121076f043b1a9036c1d23e033aee",
+        "mode": 420,
+        "mtimeMs": 1781121692549.0212,
+        "ctimeMs": 1781121692549.0212
+      },
+      "src/lint/function-syntax.stress.test.ts": {
+        "bytes": 3419,
+        "sha256": "7e9583240830979eeceb620bea264b834a12263e8a8c97050c2b6fbc07b619b6",
+        "mode": 420,
+        "mtimeMs": 1787772203710.498,
+        "ctimeMs": 1787772203710.498
+      },
+      "src/lint/function-syntax.test.ts": {
+        "bytes": 5838,
+        "sha256": "951b3ed9e50a39031bc5f4cfcaeeb08372fe49566be964cdf85873b6e012bad6",
+        "mode": 420,
+        "mtimeMs": 1787772203710.7002,
+        "ctimeMs": 1787772203710.7002
+      },
+      "src/lint/index.test.ts": {
+        "bytes": 14947,
+        "sha256": "569627e4749311eacca4fc4e3da64a2f3f8890841ee0a363de3de1fc0a88db9f",
+        "mode": 420,
+        "mtimeMs": 1787786964479.2075,
+        "ctimeMs": 1787786964479.2075
+      },
+      "src/lint/index.ts": {
+        "bytes": 16522,
+        "sha256": "1a71ff42ce0196828154e3ae35b34044e2612a1c32c9ee10c8a73f22146f1457",
+        "mode": 420,
+        "mtimeMs": 1787786964479.542,
+        "ctimeMs": 1787786964479.542
+      },
+      "src/lint/mutable-closures.stress.test.ts": {
+        "bytes": 4418,
+        "sha256": "b799ea16b5f97446362154c0b639d06a2609200483d67d3cf8c7434621d286df",
+        "mode": 420,
+        "mtimeMs": 1787769709101.4854,
+        "ctimeMs": 1787769709101.4854
+      },
+      "src/lint/mutable-closures.test.ts": {
+        "bytes": 2089,
+        "sha256": "85c7fb4d618fdb78931bb1f55f9d7f9dd13e81515ebd8b616c7169c9d68143e5",
+        "mode": 420,
+        "mtimeMs": 1787769709101.8145,
+        "ctimeMs": 1787769709101.8145
+      },
+      "src/lint/rules/AS-async-not-needed.test.ts": {
+        "bytes": 2182,
+        "sha256": "9c4bf66ea5574120e49fa4f065f6bebd251983d0869725c0a9a8221d2d1d59ed",
+        "mode": 420,
+        "mtimeMs": 1787772203712.571,
+        "ctimeMs": 1787772203712.571
+      },
+      "src/lint/rules/AS-async-not-needed.ts": {
+        "bytes": 22158,
+        "sha256": "22ecf602be315422ef488bc458eb04261cc01026f71ffbe8c347f176011819c3",
+        "mode": 420,
+        "mtimeMs": 1787772203713.139,
+        "ctimeMs": 1787772203713.139
+      },
+      "src/lint/rules/AS-await-non-promise.test.ts": {
+        "bytes": 3096,
+        "sha256": "a6957be321f4d7fc4eba50b6e79a61141fbd891b6c8e849f3027793267416196",
+        "mode": 420,
+        "mtimeMs": 1778996957541.9924,
+        "ctimeMs": 1778996957541.9924
+      },
+      "src/lint/rules/AS-await-non-promise.ts": {
+        "bytes": 10185,
+        "sha256": "cb65e3f0df46f5883f57d2a3b3893c2570a70505b1f00e0322020b0033ee3180",
+        "mode": 420,
+        "mtimeMs": 1787772203713.802,
+        "ctimeMs": 1787772203713.802
+      },
+      "src/lint/rules/AS-destructure-null-default.test.ts": {
+        "bytes": 2994,
+        "sha256": "ba19072a48eae94e1b4d16623096b6d68c12bf4d2d47f5d520a6794b41430f23",
+        "mode": 420,
+        "mtimeMs": 1781478105501.3896,
+        "ctimeMs": 1781478105501.3896
+      },
+      "src/lint/rules/AS-destructure-null-default.ts": {
+        "bytes": 15373,
+        "sha256": "278575a443d085cd14f8776449b44d193398da5e5cdf2a8d16d7e6b3360dd030",
+        "mode": 420,
+        "mtimeMs": 1787772203714.4692,
+        "ctimeMs": 1787772203714.4692
+      },
+      "src/lint/rules/AS-export-import-meta.test.ts": {
+        "bytes": 2244,
+        "sha256": "e5eb06180acc45adb871866b0d8b6648ad7ee7bf8a3a041ba0dcc88ca6dc4650",
+        "mode": 420,
+        "mtimeMs": 1781401761654.4087,
+        "ctimeMs": 1781401761654.4087
+      },
+      "src/lint/rules/AS-export-import-meta.ts": {
+        "bytes": 15385,
+        "sha256": "7e15e4acb0228fb4f2075c7f357fd595ec51af0043ac9fc7266f037d97bd2f79",
+        "mode": 420,
+        "mtimeMs": 1787772203715.0068,
+        "ctimeMs": 1787772203715.0068
+      },
+      "src/lint/rules/AS-floating-promise.test.ts": {
+        "bytes": 4880,
+        "sha256": "cc17f34d973d3a9c9f290fc5816c180732fb6cb8cdf05a418e5c87d659e21527",
+        "mode": 420,
+        "mtimeMs": 1779001069752.09,
+        "ctimeMs": 1779001069752.09
+      },
+      "src/lint/rules/AS-floating-promise.ts": {
+        "bytes": 22948,
+        "sha256": "770ae6632859ca91b32a8406bd562039708adbb0e1b6f4a1054117ea8ec29d2f",
+        "mode": 420,
+        "mtimeMs": 1787772203715.69,
+        "ctimeMs": 1787772203715.69
+      },
+      "src/lint/rules/AS-frontmatter-field-unused.test.ts": {
+        "bytes": 2893,
+        "sha256": "8701bc36c054380027d372596254e81fbef9d2888bad08b676f79b39450adcc5",
+        "mode": 420,
+        "mtimeMs": 1779004891989.9167,
+        "ctimeMs": 1779004891989.9167
+      },
+      "src/lint/rules/AS-frontmatter-field-unused.ts": {
+        "bytes": 14369,
+        "sha256": "1040b778ff31c3db45c8c39a0fde709434fe5895f6cfbf4e5362c05d01ab4e16",
+        "mode": 420,
+        "mtimeMs": 1787772203716.1611,
+        "ctimeMs": 1787772203716.1611
+      },
+      "src/lint/rules/AS-import-cycle.test.ts": {
+        "bytes": 5389,
+        "sha256": "e8e04758092cd569aa8f3d4ab9206a6c35f3a90908b2523b7f6278bd5aaefcd9",
+        "mode": 420,
+        "mtimeMs": 1781478105558.7188,
+        "ctimeMs": 1781478105558.7188
+      },
+      "src/lint/rules/AS-import-cycle.ts": {
+        "bytes": 3819,
+        "sha256": "323c9e930a38ec9d537a88104c307d3232aea10e44f3a60cf33aca1055d5bb2e",
+        "mode": 420,
+        "mtimeMs": 1781478105562.6807,
+        "ctimeMs": 1781478105562.6807
+      },
+      "src/lint/rules/AS-jsdoc-type.test.ts": {
+        "bytes": 6487,
+        "sha256": "ab545ca5b66530797ba31cdb1a0350b1e16371518a6d4352cd955d1b65c597ca",
+        "mode": 420,
+        "mtimeMs": 1781478105567.068,
+        "ctimeMs": 1781478105567.068
+      },
+      "src/lint/rules/AS-jsdoc-type.ts": {
+        "bytes": 26690,
+        "sha256": "40daf284e7fb340c3a7f9b6c1305c0777043108c52c25e1d0c8a3f97f8ca8267",
+        "mode": 420,
+        "mtimeMs": 1787772203716.5164,
+        "ctimeMs": 1787772203716.5164
+      },
+      "src/lint/rules/AS-large-literal.test.ts": {
+        "bytes": 2702,
+        "sha256": "f58cd8c9e7c48fe230386dd4dea69ebcec463d0b13ee793ff4f206e791cee971",
+        "mode": 420,
+        "mtimeMs": 1779004034702.6902,
+        "ctimeMs": 1779004034702.6902
+      },
+      "src/lint/rules/AS-large-literal.ts": {
+        "bytes": 12667,
+        "sha256": "ca8fb81d601c5d6b62f4c077a846ecdfe42d9f4dc85bdd7948527b5e529273c4",
+        "mode": 420,
+        "mtimeMs": 1787772203717.006,
+        "ctimeMs": 1787772203717.006
+      },
+      "src/lint/rules/AS-missing-async.test.ts": {
+        "bytes": 3890,
+        "sha256": "52a90a7a5f04a2ce861d73a40ccb8751b48e097c23a784eb69fc50db5c9975d0",
+        "mode": 420,
+        "mtimeMs": 1787772203717.4663,
+        "ctimeMs": 1787772203717.4663
+      },
+      "src/lint/rules/AS-missing-async.ts": {
+        "bytes": 21036,
+        "sha256": "c1ec6392cd89c3ed4a2a8f381f565d6a61fcd820cf39de398ac1b488edb1d07b",
+        "mode": 420,
+        "mtimeMs": 1787772203718.1033,
+        "ctimeMs": 1787772203718.1033
+      },
+      "src/lint/rules/AS-mutating-frozen.test.ts": {
+        "bytes": 3583,
+        "sha256": "724df5847764072f32bd5a05d81c622318e34184105263181039651e8e527c2a",
+        "mode": 420,
+        "mtimeMs": 1779003555392.0706,
+        "ctimeMs": 1779003555392.0706
+      },
+      "src/lint/rules/AS-mutating-frozen.ts": {
+        "bytes": 18756,
+        "sha256": "a67fdb2b52d94347afaa352cc4ddda5e2b14a5fff5f7a8d1e16eeaa917bc0401",
+        "mode": 420,
+        "mtimeMs": 1787772203718.6113,
+        "ctimeMs": 1787772203718.6113
+      },
+      "src/lint/rules/AS-needless-template.test.ts": {
+        "bytes": 3108,
+        "sha256": "35faec8b9b64a8ccea76538c0a4919124f209adfe11acf11453bf22102c0f9fa",
+        "mode": 420,
+        "mtimeMs": 1779006099168.0955,
+        "ctimeMs": 1779006099168.0955
+      },
+      "src/lint/rules/AS-needless-template.ts": {
+        "bytes": 15221,
+        "sha256": "73fd25f7e02e1ada5e1c649f1c46a417b45b1743e512c801ceccc59bebf3cd83",
+        "mode": 420,
+        "mtimeMs": 1787772203719.012,
+        "ctimeMs": 1787772203719.012
+      },
+      "src/lint/rules/AS-shadow-global.test.ts": {
+        "bytes": 2926,
+        "sha256": "70cf2ff5871d1b574898b8c63f79ade73c490f480a9caa461618a4031a2797af",
+        "mode": 420,
+        "mtimeMs": 1779000218758.086,
+        "ctimeMs": 1779000218758.086
+      },
+      "src/lint/rules/AS-shadow-global.ts": {
+        "bytes": 13864,
+        "sha256": "b368450a9e14cf4b26ff5b88aeae31cc4e90a5fbb11044f6a313a9f66d1bdd9e",
+        "mode": 420,
+        "mtimeMs": 1787772203719.4956,
+        "ctimeMs": 1787772203719.4956
+      },
+      "src/lint/rules/AS-unbounded-loop.test.ts": {
+        "bytes": 2229,
+        "sha256": "ecc113410cc93ccd4f6026789642b82e93dedebef86ea237e4283fa729174fd2",
+        "mode": 420,
+        "mtimeMs": 1781121164670.7078,
+        "ctimeMs": 1781121164670.7078
+      },
+      "src/lint/rules/AS-unbounded-loop.ts": {
+        "bytes": 13042,
+        "sha256": "e5447fd44dd76914aa390a792e768e2ba1a3944b31f840814555857331fbbf76",
+        "mode": 420,
+        "mtimeMs": 1787772203720.024,
+        "ctimeMs": 1787772203720.024
+      },
+      "src/lint/rules/AS-unreachable.test.ts": {
+        "bytes": 3683,
+        "sha256": "6fba8acd92f8e5da6c7b15f8921711f59294a967423f04949c3856bc0624270a",
+        "mode": 420,
+        "mtimeMs": 1781478105661.808,
+        "ctimeMs": 1781478105661.808
+      },
+      "src/lint/rules/AS-unreachable.ts": {
+        "bytes": 10729,
+        "sha256": "82a90cc3f375257062a2ad0bd8d3aa4a235fabbd82d175ac4768f895b4e46564",
+        "mode": 420,
+        "mtimeMs": 1787772203720.45,
+        "ctimeMs": 1787772203720.45
+      },
+      "src/lint/rules/AS-unused-import.test.ts": {
+        "bytes": 5949,
+        "sha256": "22eb35aab1144646a75edcd61e0660dcfb3c124aa9c944f022d5dec9478d51f2",
+        "mode": 420,
+        "mtimeMs": 1779006417244.5781,
+        "ctimeMs": 1779006417244.5781
+      },
+      "src/lint/rules/AS-unused-import.ts": {
+        "bytes": 23153,
+        "sha256": "567f86e73a631387ba7eca8301700ca5804ffcb63873f67ad413f211500f0fb2",
+        "mode": 420,
+        "mtimeMs": 1787772203721.0325,
+        "ctimeMs": 1787772203721.0325
+      },
+      "src/lint/rules/AS001.test.ts": {
+        "bytes": 8756,
+        "sha256": "ca52c430d10c16cdad014541e380bf6b3788fdbb760172581d99fc574638a9e2",
+        "mode": 420,
+        "mtimeMs": 1787786964480.0276,
+        "ctimeMs": 1787786964480.0276
+      },
+      "src/lint/rules/AS001.ts": {
+        "bytes": 21099,
+        "sha256": "bfd137037d6799e2da74b5b7f74b7f85219a6e825b711261c373b8e3d58bee0e",
+        "mode": 420,
+        "mtimeMs": 1787786964480.396,
+        "ctimeMs": 1787786964480.396
+      },
+      "src/lint/rules/AS003.test.ts": {
+        "bytes": 8982,
+        "sha256": "83228d255d431f1eb96737d6140378a55c2144a98deaac690d9de768410cd1d6",
+        "mode": 420,
+        "mtimeMs": 1781122740986.0627,
+        "ctimeMs": 1781122740986.0627
+      },
+      "src/lint/rules/AS003.ts": {
+        "bytes": 20777,
+        "sha256": "71827deb5366c1bc027f075da3a417abb46bc346440fa337270d3c2d6e9a441d",
+        "mode": 420,
+        "mtimeMs": 1787772203722.569,
+        "ctimeMs": 1787772203722.569
+      },
+      "src/lint/rules/AS004.test.ts": {
+        "bytes": 5047,
+        "sha256": "3a30ad6ef0fa6dbe342b7c2e9ab652c978650f2b9375196620b55276382940fa",
+        "mode": 420,
+        "mtimeMs": 1779122684942.501,
+        "ctimeMs": 1779122684942.501
+      },
+      "src/lint/rules/AS004.ts": {
+        "bytes": 1175,
+        "sha256": "ec1e04bdb5ae4759e4395f06733dfac6cb54a44e0b1ef0b219d31b1a29e0f61d",
+        "mode": 420,
+        "mtimeMs": 1781478105739.5269,
+        "ctimeMs": 1781478105739.5269
+      },
+      "src/lint/rules/AS005.test.ts": {
+        "bytes": 6796,
+        "sha256": "ab634408f9c84c8e1806eebd3e2e99cf8b939aff9d64d41f263e69897f626a90",
+        "mode": 420,
+        "mtimeMs": 1779122684951.5266,
+        "ctimeMs": 1779122684951.5266
+      },
+      "src/lint/rules/AS005.ts": {
+        "bytes": 1659,
+        "sha256": "5783c771a2ca7404d0690d50dc51e1eb62108f4ceffc8966d6a3e0cec9fd9bd6",
+        "mode": 420,
+        "mtimeMs": 1781478105745.491,
+        "ctimeMs": 1781478105745.491
+      },
+      "src/lint/rules/AS006-007.test.ts": {
+        "bytes": 6056,
+        "sha256": "1df56098225ea5a4afb0fd0f8a948c563ac7b89358281b97651e02807007bff6",
+        "mode": 420,
+        "mtimeMs": 1779122684957.8574,
+        "ctimeMs": 1779122684957.8574
+      },
+      "src/lint/rules/AS006-007.ts": {
+        "bytes": 21920,
+        "sha256": "6fbf0da47124f3ab99d0bc5ca32eb638d55599795adb57cc9406ee1f4f499ef9",
+        "mode": 420,
+        "mtimeMs": 1787772203722.94,
+        "ctimeMs": 1787772203722.94
+      },
+      "src/lint/rules/AS008.test.ts": {
+        "bytes": 5411,
+        "sha256": "e4cdcda154c54e1a4084a9e9df2c502db69e64a77b7e2b951100b450036f3dae",
+        "mode": 420,
+        "mtimeMs": 1779122684962.7358,
+        "ctimeMs": 1779122684962.7358
+      },
+      "src/lint/rules/AS008.ts": {
+        "bytes": 12561,
+        "sha256": "6f260a812010ccc4d3961f24f15e35c88dddd3ecc5fb92293544282674c56ace",
+        "mode": 420,
+        "mtimeMs": 1787772203723.3398,
+        "ctimeMs": 1787772203723.3398
+      },
+      "src/lint/rules/AS009.test.ts": {
+        "bytes": 5753,
+        "sha256": "f87279957dd8b7d780ed86e90f700d82422c288b5e9beec5c7ed0a255c20f8c8",
+        "mode": 420,
+        "mtimeMs": 1779122684968.69,
+        "ctimeMs": 1779122684968.69
+      },
+      "src/lint/rules/AS009.ts": {
+        "bytes": 16563,
+        "sha256": "ebee06dbcc3b497219f9baffe0ec6cd71818e49d086ddefdb0dc262325260fd3",
+        "mode": 420,
+        "mtimeMs": 1787772203723.8481,
+        "ctimeMs": 1787772203723.8481
+      },
+      "src/lint/rules/AS010.test.ts": {
+        "bytes": 5856,
+        "sha256": "1637c1e1ff95dc75e1b26e64f820d9f8773e6845a893a389e2b95e76ad3d7c9c",
+        "mode": 420,
+        "mtimeMs": 1779122684976.15,
+        "ctimeMs": 1779122684976.15
+      },
+      "src/lint/rules/AS010.ts": {
+        "bytes": 22942,
+        "sha256": "43483112c42db5372f1cf2b4684d3a8076b346fedf87ea4747a2f81e437a0947",
+        "mode": 420,
+        "mtimeMs": 1787772203724.3762,
+        "ctimeMs": 1787772203724.3762
+      },
+      "src/lint/rules/AS011.test.ts": {
+        "bytes": 6889,
+        "sha256": "41ed1ac57885832d9f1701bef3206223a48d6d19a1aea94d4c290a8c1a548689",
+        "mode": 420,
+        "mtimeMs": 1779122684982.2222,
+        "ctimeMs": 1779122684982.2222
+      },
+      "src/lint/rules/AS011.ts": {
+        "bytes": 11648,
+        "sha256": "4e71534547380d2b894e91bbff22f2ee14a943d6541e52ae548176f33a9cb2de",
+        "mode": 420,
+        "mtimeMs": 1787772203724.9204,
+        "ctimeMs": 1787772203724.9204
+      },
+      "src/lint/rules/AS013.test.ts": {
+        "bytes": 7713,
+        "sha256": "7edc2a6bc991c78a2080ef3c321a18005a13cafafe5fa8a99ee735b439d7e082",
+        "mode": 420,
+        "mtimeMs": 1779122884509.382,
+        "ctimeMs": 1779122884509.382
+      },
+      "src/lint/rules/AS013.ts": {
+        "bytes": 3495,
+        "sha256": "e2914e61026e634f891b8f0015fb6b280f348c3087000a8f1b1ef1951050ea22",
+        "mode": 420,
+        "mtimeMs": 1781478105829.6482,
+        "ctimeMs": 1781478105829.6482
+      },
+      "src/lint/rules/AS014.test.ts": {
+        "bytes": 8312,
+        "sha256": "fc7ffe8a80de911ffcb955605ef9840f894547749b652e5e1e9bb0a58b1f04b5",
+        "mode": 420,
+        "mtimeMs": 1779122685001.0396,
+        "ctimeMs": 1779122685001.0396
+      },
+      "src/lint/rules/AS014.ts": {
+        "bytes": 3235,
+        "sha256": "cb0aefd618c8f679c5069edf9ddc8677390d7dc228102152d8aaa28c679de6f5",
+        "mode": 420,
+        "mtimeMs": 1781477927625.009,
+        "ctimeMs": 1781477927625.1162
+      },
+      "src/lint/rules/AS015.test.ts": {
+        "bytes": 4951,
+        "sha256": "3ce9c1972cc0fab7cab03c21e67251efc5a229fae07485e29ce99d4a938cf0fd",
+        "mode": 420,
+        "mtimeMs": 1779122685007.506,
+        "ctimeMs": 1779122685007.506
+      },
+      "src/lint/rules/AS015.ts": {
+        "bytes": 11235,
+        "sha256": "337cd55c95f453dc492e7259650177af63747a11e9c5dd17a4f7f0dcf3bc134c",
+        "mode": 420,
+        "mtimeMs": 1787772203726.4463,
+        "ctimeMs": 1787772203726.4463
+      },
+      "src/lint/rules/known-globals.ts": {
+        "bytes": 361,
+        "sha256": "3d41fdf05b28b16d9e203bb7ce6c6560000ca3146fca17fbf21acaf6254c13fc",
+        "mode": 420,
+        "mtimeMs": 1781127341740.8313,
+        "ctimeMs": 1781127341740.8313
+      },
+      "src/lint/rules/module-registry.test.ts": {
+        "bytes": 1757,
+        "sha256": "9efd612024565054e46a45ffb8598378ca91fcbcce119fadca46c47a65aa7e6b",
+        "mode": 420,
+        "mtimeMs": 1779000604918.6199,
+        "ctimeMs": 1779000604918.6199
+      },
+      "src/lint/rules/module-registry.ts": {
+        "bytes": 5637,
+        "sha256": "c134bb1ad5598b8a6a430f9a00f71011996f536bf80fe3f69823208d4c1480fe",
+        "mode": 420,
+        "mtimeMs": 1781477927625.512,
+        "ctimeMs": 1781477927625.6353
+      },
+      "src/lint/runtime-modules.test.ts": {
+        "bytes": 1475,
+        "sha256": "9dd1d640ea148cd828b0e62f42e6fd77f8d61c61f161515d078ab90613d3f16d",
+        "mode": 420,
+        "mtimeMs": 1779008905875.6658,
+        "ctimeMs": 1779008905875.6658
+      },
+      "src/lint/runtime-modules.ts": {
+        "bytes": 1528,
+        "sha256": "0ae95402221097ba40fa8dc4681214c3761ed7d71b08505b70aaae1d6f82a2ce",
+        "mode": 420,
+        "mtimeMs": 1784239673229.1204,
+        "ctimeMs": 1784239673229.8582
+      },
+      "src/lint.test.ts": {
+        "bytes": 4132,
+        "sha256": "919cea582dbc27afac4874a8e0c86c03c91992a80ee58bcb85a18714f37c92c5",
+        "mode": 420,
+        "mtimeMs": 1781478105441.3132,
+        "ctimeMs": 1781478105441.3132
+      },
+      "src/lint.ts": {
+        "bytes": 115,
+        "sha256": "6f9d8d7cfa02dac8449f833d465b23346b446925a2bb169b8a3d0a88ae0ea91f",
+        "mode": 420,
+        "mtimeMs": 1779006144567.1387,
+        "ctimeMs": 1779006144567.1387
+      },
+      "src/loader/extract-block.test.ts": {
+        "bytes": 8149,
+        "sha256": "74e83d5715cd9cfe142632505abcd2d962ece5859b8b794d5cefc61d1103d126",
+        "mode": 420,
+        "mtimeMs": 1787786964480.9233,
+        "ctimeMs": 1787786964480.9233
+      },
+      "src/loader/extract-block.ts": {
+        "bytes": 6609,
+        "sha256": "3db3176f2bebc5e6f6eee9afe7f93745b3f1faa4b780c502ddf55a694d00c9b2",
+        "mode": 420,
+        "mtimeMs": 1787786964481.187,
+        "ctimeMs": 1787786964481.187
+      },
+      "src/loader/find-exported.test.ts": {
+        "bytes": 5517,
+        "sha256": "03c27f2351b3c748c5631e2253ad59f966f03dc6e2ffeb68f914ee61792a8faa",
+        "mode": 420,
+        "mtimeMs": 1779084794047.766,
+        "ctimeMs": 1779084794047.766
+      },
+      "src/loader/find-exported.ts": {
+        "bytes": 1188,
+        "sha256": "dd9ee61ab9a03d09611194239ecbfd8d917ce5ad747e251aa84df857e3655976",
+        "mode": 420,
+        "mtimeMs": 1781478105872.4304,
+        "ctimeMs": 1781478105872.4304
+      },
+      "src/loader/frontmatter.test.ts": {
+        "bytes": 7045,
+        "sha256": "e33ce4386d7372f06fb3e3d436227a43c93b7e68ca8e7ae9818194f89ca3f931",
+        "mode": 420,
+        "mtimeMs": 1781575793353.2227,
+        "ctimeMs": 1781575793353.2227
+      },
+      "src/loader/frontmatter.ts": {
+        "bytes": 2315,
+        "sha256": "3c02c88a2d03426a8ece525b75c02d74cd812060b2842acaf22062127e57f4bb",
+        "mode": 420,
+        "mtimeMs": 1781575788410.9502,
+        "ctimeMs": 1781575788410.9502
+      },
+      "src/loader/multiple-blocks.test.ts": {
+        "bytes": 11708,
+        "sha256": "b663977cf5dac9062680ff1225db645a208c5f355eb2025a12a734b1c25e5552",
+        "mode": 420,
+        "mtimeMs": 1787786964481.408,
+        "ctimeMs": 1787786964481.408
+      },
+      "src/modules/agent.test.ts": {
+        "bytes": 40808,
+        "sha256": "d418ab78efe2c349cb68efa5ef5da3a26e8d3c99cb092ed34b1f517e66cc4393",
+        "mode": 420,
+        "mtimeMs": 1784570546493.1184,
+        "ctimeMs": 1784570546493.1184
+      },
+      "src/modules/agent.ts": {
+        "bytes": 35613,
+        "sha256": "ff8565b4bead6dfcf92dfb2ad1025ce219447ffa6db2d6589edf1e689f19ff93",
+        "mode": 420,
+        "mtimeMs": 1784570559805.0464,
+        "ctimeMs": 1784570559805.0464
+      },
+      "src/modules/canonical-path.ts": {
+        "bytes": 8572,
+        "sha256": "380aee25cc6a2ac6ace9c67927d930b6159fdda75670bc238d4517b2cafb525a",
+        "mode": 420,
+        "mtimeMs": 1784222656287.8953,
+        "ctimeMs": 1784222656288.2935
+      },
+      "src/modules/env.test.ts": {
+        "bytes": 2441,
+        "sha256": "b390a9f6a3e642bf2ad73baf696bb8a841d47516133890945cde8a1fd747e49f",
+        "mode": 420,
+        "mtimeMs": 1781478105929.782,
+        "ctimeMs": 1781478105929.782
+      },
+      "src/modules/env.ts": {
+        "bytes": 1088,
+        "sha256": "2365abe1a00f86c9b0ad0937a1170b70ea41425487881e80dcaf16e54df54ab6",
+        "mode": 420,
+        "mtimeMs": 1781478105932.8984,
+        "ctimeMs": 1781478105932.8984
+      },
+      "src/modules/fail.test.ts": {
+        "bytes": 1259,
+        "sha256": "97bd8ca8709438f482e8c34478da2935f44e9dd5395fbfbeb3ccee3d5c46ab99",
+        "mode": 420,
+        "mtimeMs": 1777562427000,
+        "ctimeMs": 1777907556231.1301
+      },
+      "src/modules/fail.ts": {
+        "bytes": 676,
+        "sha256": "bab7c7b339da1426b271ee165416d070e76b94d9c2b04b2d4c170e12084dc9b8",
+        "mode": 420,
+        "mtimeMs": 1777562427000,
+        "ctimeMs": 1777907556233.0813
+      },
+      "src/modules/fs.conformance-cases.ts": {
+        "bytes": 57888,
+        "sha256": "ffd8da8dedc545dfefe7dc1e0d9c74b98b765813e76efe2c57ec3373505c49fd",
+        "mode": 420,
+        "mtimeMs": 1785767879774.2148,
+        "ctimeMs": 1785767879774.2148
+      },
+      "src/modules/fs.conformance.test.ts": {
+        "bytes": 11427,
+        "sha256": "619acd619666989a8ddf5ef726028c81ac6f56e66f1d7666131aad3fa5df5b0d",
+        "mode": 420,
+        "mtimeMs": 1784235174736.1418,
+        "ctimeMs": 1784235174736.73
+      },
+      "src/modules/fs.host-module.test.ts": {
+        "bytes": 11103,
+        "sha256": "0de3ed6ee2978ac460ab4e1c9424899cccacd45760943ee37c2bfde09ca1bfeb",
+        "mode": 420,
+        "mtimeMs": 1784236988764.1099,
+        "ctimeMs": 1784236988764.1099
+      },
+      "src/modules/fs.node-truth.json": {
+        "bytes": 72902,
+        "sha256": "d58816b44513a908c76875e8ccbf7889dd133dc348c15ebeab4ff5adc32efdd2",
+        "mode": 420,
+        "mtimeMs": 1784302005634.3145,
+        "ctimeMs": 1784302005634.6562
+      },
+      "src/modules/fs.option-surface.test.ts": {
+        "bytes": 7517,
+        "sha256": "10097f77c5b1f11bd4aa07105536c90388d4da1f37b5ee0ba1e3ad8278fb86ee",
+        "mode": 420,
+        "mtimeMs": 1784223826830.0352,
+        "ctimeMs": 1784223826830.0352
+      },
+      "src/modules/fs.test.ts": {
+        "bytes": 169727,
+        "sha256": "6da8572285cd179087931e4ed2b95f69984b9b30b2eed046a3e4c7f5215efa6d",
+        "mode": 420,
+        "mtimeMs": 1785767879774.985,
+        "ctimeMs": 1785767879774.985
+      },
+      "src/modules/fs.ts": {
+        "bytes": 31730,
+        "sha256": "99fc3a501ce906aa2021f298ef8803b63d2272de5f412dfcdf3714757510b142",
+        "mode": 420,
+        "mtimeMs": 1785767879775.8882,
+        "ctimeMs": 1785767879775.8882
+      },
+      "src/modules/git.test.ts": {
+        "bytes": 26818,
+        "sha256": "7d1a9d8d49b09e80fe2b43292f5ec71d05e9e6e6d23a88d27bdda355cf7e7e10",
+        "mode": 420,
+        "mtimeMs": 1784222511010.9324,
+        "ctimeMs": 1784222511010.9324
+      },
+      "src/modules/git.ts": {
+        "bytes": 13229,
+        "sha256": "520ea44f3e0a8f8f4c5dc3395eb52991afb1dcbce5f7eb5f8aa39e7a46c07349",
+        "mode": 420,
+        "mtimeMs": 1784222511011.2896,
+        "ctimeMs": 1784222511011.2896
+      },
+      "src/modules/harness.test.ts": {
+        "bytes": 7922,
+        "sha256": "9e8701cc44c4edb935febe88c67639e94b80885a5c78d5d8576fb0c988cebb90",
+        "mode": 420,
+        "mtimeMs": 1781212655117.8228,
+        "ctimeMs": 1781212655117.8228
+      },
+      "src/modules/harness.ts": {
+        "bytes": 2155,
+        "sha256": "360ce7e2d8f2ad9b9ddb544b8209ee3b17ad6587d4e10328fb9ef193f1091d0f",
+        "mode": 420,
+        "mtimeMs": 1778860216346.4255,
+        "ctimeMs": 1778860216346.4255
+      },
+      "src/modules/log.test.ts": {
+        "bytes": 6494,
+        "sha256": "89a8bf7a84ce00e8dfec8e75d26be8fd60ed6e033719ada18c466a8a3dec97c6",
+        "mode": 420,
+        "mtimeMs": 1781478105976.713,
+        "ctimeMs": 1781478105976.713
+      },
+      "src/modules/log.ts": {
+        "bytes": 3660,
+        "sha256": "79bdd9a58234514dd2a619f7fc022879e55df5e240fbdf8f71d32cbb791ba679",
+        "mode": 420,
+        "mtimeMs": 1781478105982.3618,
+        "ctimeMs": 1781478105982.3618
+      },
+      "src/modules/mcp.test.ts": {
+        "bytes": 18569,
+        "sha256": "c1a39c7570cffe161ad98ca3da38806d1c0489dd486e44cd16e46c5f102cd8bc",
+        "mode": 420,
+        "mtimeMs": 1781478105997.9556,
+        "ctimeMs": 1781478105997.9556
+      },
+      "src/modules/mcp.ts": {
+        "bytes": 12265,
+        "sha256": "0eeb19d0d4561f551576f34f5458d95dcc15b81147c81df95dc9c796413e5127",
+        "mode": 420,
+        "mtimeMs": 1781478106008.332,
+        "ctimeMs": 1781478106008.332
+      },
+      "src/modules/metric.test.ts": {
+        "bytes": 2047,
+        "sha256": "a838cbe7d0887f87b73e7d3f5352c1effe6a9e532b9f63e96f9690a432055013",
+        "mode": 420,
+        "mtimeMs": 1777562426000,
+        "ctimeMs": 1777907556227.4338
+      },
+      "src/modules/metric.ts": {
+        "bytes": 1429,
+        "sha256": "dbafb775b781a1506c23ef0011969d847d6b59bda0d38aa664111d4cc1f05a8d",
+        "mode": 420,
+        "mtimeMs": 1777562426000,
+        "ctimeMs": 1777907556233.7058
+      },
+      "src/modules/registry.test.ts": {
+        "bytes": 2098,
+        "sha256": "49d6cf99a518806134d236a6cd9bb16cc54f6970dda3d24f6c4645cb8e9e12f9",
+        "mode": 420,
+        "mtimeMs": 1781478106017.34,
+        "ctimeMs": 1781478106017.34
+      },
+      "src/modules/registry.ts": {
+        "bytes": 6478,
+        "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+        "mode": 420,
+        "mtimeMs": 1787780370010.9353,
+        "ctimeMs": 1787780370010.9353
+      },
+      "src/modules/time.test.ts": {
+        "bytes": 6852,
+        "sha256": "2c7baa9f589ae58fe8faa4874fb918ba80dd49cf0739a52eac259aca946e7ef0",
+        "mode": 420,
+        "mtimeMs": 1781478106035.0571,
+        "ctimeMs": 1781478106035.0571
+      },
+      "src/modules/time.ts": {
+        "bytes": 2694,
+        "sha256": "10e9755b05bf6c5b092a4366bcae033bae5f896fbe685f07c96b7f2e205d349b",
+        "mode": 420,
+        "mtimeMs": 1779013238831.3684,
+        "ctimeMs": 1779013238831.3684
+      },
+      "src/observability/otel.ts": {
+        "bytes": 3224,
+        "sha256": "14679c70249ccce8e0dbe86a9e158a82b0fffd7b0dce169e0ba6e37bb28d9a02",
+        "mode": 420,
+        "mtimeMs": 1779012978300.9539,
+        "ctimeMs": 1779012978300.9539
+      },
+      "src/output-stream.ts": {
+        "bytes": 1667,
+        "sha256": "f4486e018bca74d9afcd47fb73ed37e435e61eff08c72d5ffbd9a601a55575a0",
+        "mode": 420,
+        "mtimeMs": 1781401760986.6045,
+        "ctimeMs": 1781401760986.6045
+      },
+      "src/parse/assign-ids.test.ts": {
+        "bytes": 10659,
+        "sha256": "710d8031accb14d2b8764d1f02724dcbc466c76ccac322ec814852865b110c29",
+        "mode": 420,
+        "mtimeMs": 1781610216428.007,
+        "ctimeMs": 1781610216428.007
+      },
+      "src/parse/assign-ids.ts": {
+        "bytes": 3144,
+        "sha256": "c52cb05ef02c866bf5ceea51ac70a1daf235d2cf946568b384da324553b8ee8e",
+        "mode": 420,
+        "mtimeMs": 1779138862091.801,
+        "ctimeMs": 1779138862091.801
+      },
+      "src/parse/format-error.test.ts": {
+        "bytes": 6777,
+        "sha256": "c406453ba0d3114ac0f445a8646ada55ba23e7770948f2e26ad717c00a8fd9c1",
+        "mode": 420,
+        "mtimeMs": 1779071714725.6743,
+        "ctimeMs": 1779071714725.6743
+      },
+      "src/parse/format-error.ts": {
+        "bytes": 7669,
+        "sha256": "f473ea99ac4c6f47a692d1daa105d54084bf5ce0873735e34e6d7a3ad9a08d53",
+        "mode": 420,
+        "mtimeMs": 1779124880661.0107,
+        "ctimeMs": 1779124880661.0107
+      },
+      "src/parse/fuzz.test.ts": {
+        "bytes": 11798,
+        "sha256": "4867e0267a331a17c0b2486717572858e7194288d905019a476728418615d9ef",
+        "mode": 420,
+        "mtimeMs": 1781478019264.6926,
+        "ctimeMs": 1781478019265.026
+      },
+      "src/parse/generator.test.ts": {
+        "bytes": 4122,
+        "sha256": "18ea96e9be74bfbda289e86685c4c0ce99155ce095a06eb6c868ddf92b004489",
+        "mode": 420,
+        "mtimeMs": 1781128589837.302,
+        "ctimeMs": 1781128589837.302
+      },
+      "src/parse/hash.test.ts": {
+        "bytes": 4377,
+        "sha256": "b1748d236d37b27a57cda388df3eb20f53dccc887da7c655380ad968398044db",
+        "mode": 420,
+        "mtimeMs": 1781478106094.6448,
+        "ctimeMs": 1781478106094.6448
+      },
+      "src/parse/hash.ts": {
+        "bytes": 2717,
+        "sha256": "2c8dc1624946ec70722878e792367c8f506560eae62705e60e84d36114bf2cf2",
+        "mode": 420,
+        "mtimeMs": 1779072149166.8784,
+        "ctimeMs": 1779072149166.8784
+      },
+      "src/parse/parse-export.test.ts": {
+        "bytes": 6589,
+        "sha256": "d76e19be37d5c118a58a82ee4f3e7ea7c6a63396c080d35612104239f00b655e",
+        "mode": 420,
+        "mtimeMs": 1781401761655.35,
+        "ctimeMs": 1781401761655.35
+      },
+      "src/parse/parse-export.ts": {
+        "bytes": 3164,
+        "sha256": "ba7d304b6fa4b02f9d13f625808bcf7e0a4e3685f4088ec142094a9a7bb8eee6",
+        "mode": 420,
+        "mtimeMs": 1779073076667.466,
+        "ctimeMs": 1779073076667.466
+      },
+      "src/parse/parse-import-meta.test.ts": {
+        "bytes": 3874,
+        "sha256": "2291fddb92e83ff0242cb02f30929745b84922ee12eb2b8d10f40d23ed6f48fb",
+        "mode": 420,
+        "mtimeMs": 1779073681335.6785,
+        "ctimeMs": 1779073681335.6785
+      },
+      "src/parse/parse-import-meta.ts": {
+        "bytes": 1105,
+        "sha256": "84ae4c6087918353e0e3c5499cf5031bacafb7a272afb28fa772c85d04278b6b",
+        "mode": 420,
+        "mtimeMs": 1781478106114.353,
+        "ctimeMs": 1781478106114.353
+      },
+      "src/parse/parse-switch.test.ts": {
+        "bytes": 1317,
+        "sha256": "db2be8f1a013af7c44775eab1aabdd0aa7929dd41b6e254811c9152017147895",
+        "mode": 420,
+        "mtimeMs": 1781121619061.6177,
+        "ctimeMs": 1781121619061.6177
+      },
+      "src/parse/parser.test.ts": {
+        "bytes": 96427,
+        "sha256": "9c0f949e1ea59beafcca1837912c3ed76078aaff7277da33cb788b581bcac66f",
+        "mode": 420,
+        "mtimeMs": 1787769709102.4827,
+        "ctimeMs": 1787769709102.4827
+      },
+      "src/parse/parser.ts": {
+        "bytes": 133783,
+        "sha256": "cf69c4192e77a65b019de8661079da3276582958361a9b446d488214051957b3",
+        "mode": 420,
+        "mtimeMs": 1787772203727.065,
+        "ctimeMs": 1787772203727.065
+      },
+      "src/parse/tokenizer.test.ts": {
+        "bytes": 20798,
+        "sha256": "94679b787e3f75ceff54bb7d37a51451ce44335dfb7eaf67aa886da558cf584d",
+        "mode": 420,
+        "mtimeMs": 1779069181880.9775,
+        "ctimeMs": 1779069181880.9775
+      },
+      "src/parse/tokenizer.ts": {
+        "bytes": 29344,
+        "sha256": "dff80493fc5e1d5aa9a27bfb9526d816dd6b2d8a6705c92ce9c575663b4227ec",
+        "mode": 420,
+        "mtimeMs": 1781401759648.8713,
+        "ctimeMs": 1781401759648.8713
+      },
+      "src/parse.ts": {
+        "bytes": 1394,
+        "sha256": "915cd00a544fcaadf04bc1231da0c1ba16358fffde5a9b03ed43afaa97bd555f",
+        "mode": 420,
+        "mtimeMs": 1781124981946.469,
+        "ctimeMs": 1781124981946.469
+      },
+      "src/random.ts": {
+        "bytes": 1199,
+        "sha256": "717f65f8d80823f6fa31a7bcab7cdb0c6a68997b378a1f55f83322e464dbece4",
+        "mode": 420,
+        "mtimeMs": 1787785295883.968,
+        "ctimeMs": 1787785295883.968
+      },
+      "src/restore.test.ts": {
+        "bytes": 4268,
+        "sha256": "4c4f66ec1fde6b4e539896d90b4623882aefec315ce324acf489148a0cdda452",
+        "mode": 420,
+        "mtimeMs": 1781217577440.5984,
+        "ctimeMs": 1781217577440.5984
+      },
+      "src/restore.ts": {
+        "bytes": 2031,
+        "sha256": "ef418d071df149b3878a02042a2944faec1a37dba8f894897fef41976e0b7428",
+        "mode": 420,
+        "mtimeMs": 1787789982390.314,
+        "ctimeMs": 1787789982390.314
+      },
+      "src/run.completed-replay.test.ts": {
+        "bytes": 4966,
+        "sha256": "229b3b3b2dadbccf9da74d3c78dea2119ad626b8a580d887afbf6ed06ba32092",
+        "mode": 420,
+        "mtimeMs": 1787785295884.2341,
+        "ctimeMs": 1787785295884.2341
+      },
+      "src/run.promise-order.test.ts": {
+        "bytes": 7639,
+        "sha256": "444ac6bbc609de5f8cdbd759835badc6e17b52d2a023fa0710696a9bf24f586f",
+        "mode": 420,
+        "mtimeMs": 1787789982390.6335,
+        "ctimeMs": 1787789982390.6335
+      },
+      "src/run.random.test.ts": {
+        "bytes": 6217,
+        "sha256": "9177f423349fba0e12af79e16dacaecaad6b381d20efb049077c946f20f7571d",
+        "mode": 420,
+        "mtimeMs": 1787785295884.6162,
+        "ctimeMs": 1787785295884.6162
+      },
+      "src/run.replay.stress.test.ts": {
+        "bytes": 41331,
+        "sha256": "0bd01499fbdceebfb02044af6221ec9f8453e77c300aef6eb28330b2b9b1ed87",
+        "mode": 420,
+        "mtimeMs": 1787783252057.793,
+        "ctimeMs": 1787783252057.793
+      },
+      "src/run.snapshot.test.ts": {
+        "bytes": 35373,
+        "sha256": "b54b639c31ab8d5ab2416bd19fe01807f5acd5e6f5c1eb62c94baac4e9c080ac",
+        "mode": 420,
+        "mtimeMs": 1787780370013.202,
+        "ctimeMs": 1787780370013.202
+      },
+      "src/run.test.ts": {
+        "bytes": 52097,
+        "sha256": "d895a0e3ba0f711e93ae24c9f534e8a313ae3fa54e1c3b41779fa8bc9f694985",
+        "mode": 420,
+        "mtimeMs": 1787785295885.3196,
+        "ctimeMs": 1787785295885.3196
+      },
+      "src/run.ts": {
+        "bytes": 25016,
+        "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+        "mode": 420,
+        "mtimeMs": 1787789982391.0728,
+        "ctimeMs": 1787789982391.0728
+      },
+      "src/runner/run-harness.test.ts": {
+        "bytes": 26981,
+        "sha256": "b225464580b7be614929e82b1913e2eb226d1e10ad4a0c61243581d6c36d2d21",
+        "mode": 420,
+        "mtimeMs": 1781897120055.6162,
+        "ctimeMs": 1781897120055.6162
+      },
+      "src/runner/run-harness.ts": {
+        "bytes": 10290,
+        "sha256": "611869f3de077ce6d97a1eac7b4a1f23291b9096c1ca68fd196561429c4494b2",
+        "mode": 420,
+        "mtimeMs": 1787786964481.7515,
+        "ctimeMs": 1787786964481.7515
+      },
+      "src/runner/signal-dump.test.ts": {
+        "bytes": 14011,
+        "sha256": "34563ff5e6fada13bf82c215269a0c81501fb812e143f855e892525e43d4a536",
+        "mode": 420,
+        "mtimeMs": 1781478106362.5764,
+        "ctimeMs": 1781478106362.5764
+      },
+      "src/runner/signal-dump.ts": {
+        "bytes": 2879,
+        "sha256": "e70b7567fd6d04c4a166b881b91c69e0008bde63267d42334d00e139c8ea04da",
+        "mode": 420,
+        "mtimeMs": 1781478106366.012,
+        "ctimeMs": 1781478106366.012
+      },
+      "src/sandbox-integrity.test.ts": {
+        "bytes": 14267,
+        "sha256": "21d23bd29d82bdac9bc161f529053f6b12dfafb2244b25f02e2d6381c9f5e7f4",
+        "mode": 420,
+        "mtimeMs": 1784239409917.3652,
+        "ctimeMs": 1784239409917.6785
+      },
+      "src/snapshot/arguments.ts": {
+        "bytes": 1860,
+        "sha256": "4d34751c3c4f4792029a005e069fab23fb9d4984301168c79a5b024ad2ed9e47",
+        "mode": 420,
+        "mtimeMs": 1787772203727.8208,
+        "ctimeMs": 1787772203727.8208
+      },
+      "src/snapshot/backend.test.ts": {
+        "bytes": 10352,
+        "sha256": "3d05109ea592f20eebf0a14f1ed2b53d0ef2765dd3f8eb6d9f4efbf5164dac32",
+        "mode": 420,
+        "mtimeMs": 1781218385117.1536,
+        "ctimeMs": 1781218385117.1536
+      },
+      "src/snapshot/backend.ts": {
+        "bytes": 5893,
+        "sha256": "55fe58a47a8a623a957d3cdcc40ed922db35d2cdede0f97d38e3eba34ebe70f1",
+        "mode": 420,
+        "mtimeMs": 1781478106385.032,
+        "ctimeMs": 1781478106385.032
+      },
+      "src/snapshot/dump-format.ts": {
+        "bytes": 7860,
+        "sha256": "27af4f306a4e616deed470b85c8a0491945dd55da5a025498f4f52f4df2b0c14",
+        "mode": 420,
+        "mtimeMs": 1787789982391.5476,
+        "ctimeMs": 1787789982391.5476
+      },
+      "src/snapshot/dump.ts": {
+        "bytes": 6335,
+        "sha256": "2f0a4f144c6496214b81ee128c8f9605fc548c0638bdec9a6de1d28cc5017ad5",
+        "mode": 420,
+        "mtimeMs": 1787785295886.833,
+        "ctimeMs": 1787785295886.833
+      },
+      "src/snapshot/policy.test.ts": {
+        "bytes": 10381,
+        "sha256": "dcc8dee778bc658d5e2b27f0e3613f484fe5a36ae4a3c989fa18cf331f608b7a",
+        "mode": 420,
+        "mtimeMs": 1781219435382.2366,
+        "ctimeMs": 1781219435382.2366
+      },
+      "src/snapshot/policy.ts": {
+        "bytes": 6813,
+        "sha256": "7306c1f3c1170a0bdde41fb56ac943e07dffa1a69fed46faec538f459ae56a33",
+        "mode": 420,
+        "mtimeMs": 1781219313956.8599,
+        "ctimeMs": 1781219313956.8599
+      },
+      "src/snapshot/replay-data.test.ts": {
+        "bytes": 6083,
+        "sha256": "dbbe5b05eb515da861fe8c7fb2b00804a7ad2331fc81a55047e3e1290c144d57",
+        "mode": 420,
+        "mtimeMs": 1787780370015.3577,
+        "ctimeMs": 1787780370015.3577
+      },
+      "src/snapshot/replay-data.ts": {
+        "bytes": 13196,
+        "sha256": "0130544934e8aa02404eb9e4aa41a835dad7416435decff4dcfd5a119ea576e6",
+        "mode": 420,
+        "mtimeMs": 1787785295887.3467,
+        "ctimeMs": 1787785295887.3467
+      },
+      "src/snapshot/replay-inputs.test.ts": {
+        "bytes": 2135,
+        "sha256": "0e50e97faf83377cc5844661874784d54f631ddb654c71ec156f1c900bc69745",
+        "mode": 420,
+        "mtimeMs": 1787780370016.2708,
+        "ctimeMs": 1787780370016.2708
+      },
+      "src/snapshot/replay-inputs.ts": {
+        "bytes": 5007,
+        "sha256": "d23eeb791eeb9ac5610f5fdc014df38d8d5bd9fb4c00b2dfcfbe109bfc5f58d5",
+        "mode": 420,
+        "mtimeMs": 1787780370016.7605,
+        "ctimeMs": 1787780370016.7605
+      },
+      "src/snapshot/restore.test.ts": {
+        "bytes": 48978,
+        "sha256": "6524d83e2ee496fecb4a3c57a0185534cba5ca4a15016167216a1ce53f60e9b3",
+        "mode": 420,
+        "mtimeMs": 1787789982392.0576,
+        "ctimeMs": 1787789982392.0576
+      },
+      "src/snapshot/restore.ts": {
+        "bytes": 26758,
+        "sha256": "7b2aa7b53681e186da0bac24574eef649131146e216566db903fb7252d7e5aee",
+        "mode": 420,
+        "mtimeMs": 1787772203729.767,
+        "ctimeMs": 1787772203729.767
+      },
+      "src/snapshot/scheduler.test.ts": {
+        "bytes": 13071,
+        "sha256": "dc8d9a8b30afb0a597321db5f25122455d1d0402ad386e085aac37f4d8e465a6",
+        "mode": 420,
+        "mtimeMs": 1781210576463.5474,
+        "ctimeMs": 1781210576463.5474
+      },
+      "src/snapshot/scheduler.ts": {
+        "bytes": 2787,
+        "sha256": "616c06660d9ee884f3b79c5d0843a255376e1fa441620a803205eb680e28c2fc",
+        "mode": 420,
+        "mtimeMs": 1781211782582.0183,
+        "ctimeMs": 1781211782582.0183
+      },
+      "src/snapshot/serialize.test.ts": {
+        "bytes": 17799,
+        "sha256": "8808a17d82bcc68311c486ff4bd8cec81b8d3b4f6920ed564239ed468d04f116",
+        "mode": 420,
+        "mtimeMs": 1787772203730.2798,
+        "ctimeMs": 1787772203730.2798
+      },
+      "src/snapshot/serialize.ts": {
+        "bytes": 15993,
+        "sha256": "ec5744b807c279928036f65c48bbed55c7ba8d563e25b292fb3ef7c4bc732bd6",
+        "mode": 420,
+        "mtimeMs": 1787772203730.8796,
+        "ctimeMs": 1787772203730.8796
+      },
+      "src/snapshot/validation.ts": {
+        "bytes": 29061,
+        "sha256": "20b30c5a18aec5624c048bd17e07cb0a55f9c90d144c663d388d5ae12a76681c",
+        "mode": 420,
+        "mtimeMs": 1787785295887.6995,
+        "ctimeMs": 1787785295887.6995
+      },
+      "src/templates/skill/SKILL_safejs.md": {
+        "bytes": 6390,
+        "sha256": "2af5704c43b527b1090db7420223ae9a167d82356e81700849fa3cb4bcce7305",
+        "mode": 420,
+        "mtimeMs": 1787772203731.97,
+        "ctimeMs": 1787772203731.97
+      },
+      "test/adversarial/corpus.test.ts": {
+        "bytes": 323,
+        "sha256": "0b0c0be92ee978fc00d3614ab35be9a9a1e4421aee076a11a9f5c86951f52e7b",
+        "mode": 420,
+        "mtimeMs": 1781221271965.553,
+        "ctimeMs": 1781221271965.553
+      },
+      "test/adversarial/harness.ts": {
+        "bytes": 7744,
+        "sha256": "941bd0f9eeb4fff624e9f4cb2b06c7c9372a7c68674924edb50e77728e334d7e",
+        "mode": 420,
+        "mtimeMs": 1781221614136.118,
+        "ctimeMs": 1781221614136.118
+      },
+      "test/adversarial/parser-smoke.test.ts": {
+        "bytes": 310,
+        "sha256": "0e8bd78fbef4d21bfc17f7b829602b9f3ad33366e6bf5d35049d9ffd07811470",
+        "mode": 420,
+        "mtimeMs": 1781221271965.702,
+        "ctimeMs": 1781221271965.702
+      },
+      "test/adversarial/parser-smoke.ts": {
+        "bytes": 3375,
+        "sha256": "84502d38e999d34031fc03428550f5b236a2ab622c4b1a9d34fb825ffc0eeeb6",
+        "mode": 420,
+        "mtimeMs": 1781478019265.7495,
+        "ctimeMs": 1781478019265.9033
+      },
+      "test/adversarial/random.ts": {
+        "bytes": 627,
+        "sha256": "820df23f6900cd797a4ab106508bfeea165ff3fb97e6b85d759f0df5f0ab0b7c",
+        "mode": 420,
+        "mtimeMs": 1781221327413.9988,
+        "ctimeMs": 1781221327413.9988
+      },
+      "test/adversarial/report.test.ts": {
+        "bytes": 760,
+        "sha256": "1fff63dbc162b68dff8531a1ec7a806d8954a19aebad1c184f6ac11eb5361ded",
+        "mode": 420,
+        "mtimeMs": 1781221627167.4758,
+        "ctimeMs": 1781221627167.4758
+      },
+      "test/adversarial/report.ts": {
+        "bytes": 1931,
+        "sha256": "a400e7384f3f955c4689985ea111792d9c11424819ff5ebf2a4890d191f381cf",
+        "mode": 420,
+        "mtimeMs": 1781221614163.7295,
+        "ctimeMs": 1781221614163.7295
+      },
+      "test/adversarial/snapshot-mutation.test.ts": {
+        "bytes": 350,
+        "sha256": "505f5c0a1a77a9883f17635192031ac9ba4e3723dbf2cbcb18ac5eeaff0b6895",
+        "mode": 420,
+        "mtimeMs": 1781221271965.8433,
+        "ctimeMs": 1781221271965.8433
+      },
+      "test/adversarial/snapshot-mutation.ts": {
+        "bytes": 3476,
+        "sha256": "9321375d08bed8017987eaf2e01a37b18a75a6985ce5372e2dfab68eb6ac84da",
+        "mode": 420,
+        "mtimeMs": 1781478019266.2322,
+        "ctimeMs": 1781478019266.35
+      },
+      "test/adversarial/test262-semantics.test.ts": {
+        "bytes": 1350,
+        "sha256": "57451b449e9f650bc2142db39d86789836221ff355b57250dba2105a587f336a",
+        "mode": 420,
+        "mtimeMs": 1781477927622.369,
+        "ctimeMs": 1781477927622.4783
+      },
+      "test/integration/budgets.test.ts": {
+        "bytes": 8760,
+        "sha256": "339df1cd5544fafd168809fae0aae0ed8529c2c47f2a4e8442c3df25d484bcea",
+        "mode": 420,
+        "mtimeMs": 1781205875741.3308,
+        "ctimeMs": 1781205875741.3308
+      },
+      "test/integration/crash-resume.test.ts": {
+        "bytes": 13921,
+        "sha256": "8fe7a46358776647516f4539caa77100a98383fd0b7626f11dfbae52fc4d9f16",
+        "mode": 420,
+        "mtimeMs": 1781477927619.953,
+        "ctimeMs": 1781477927620.174
+      },
+      "test/integration/snapshot-roundtrip.test.ts": {
+        "bytes": 11456,
+        "sha256": "a281de672a9c8360aca5749881793da9cc6150c2942036057d6e7352332116ca",
+        "mode": 420,
+        "mtimeMs": 1781478106554.4275,
+        "ctimeMs": 1781478106554.4275
+      },
+      "test/sinks.ts": {
+        "bytes": 883,
+        "sha256": "39bfec4269e0d06dccb341d703115efae81ded41fb2d777b28875abc2fb86849",
+        "mode": 420,
+        "mtimeMs": 1784239401332.4026,
+        "ctimeMs": 1784239401333.1248
+      },
+      "tsconfig.json": {
+        "bytes": 209,
+        "sha256": "044c4474e5ee6729958b78b45ff9ee46c5f19150587ee8073114a020a8ddf962",
+        "mode": 420,
+        "mtimeMs": 1777562422000,
+        "ctimeMs": 1777907555666.6526
+      }
+    }
+  },
+  "public": {
+    "head": "4d524fd8d8c7f0bfbafba625778e8fa4550acf5f",
+    "tree": "b52ea9463c7de4d342c46a35c6aac55d374b6437",
+    "status": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/search-stress/direct-stdin-close-review/CANDIDATE-SEAL-CORRECTION.md\n?? tests/commands/search-stress/direct-stdin-close-review/CANDIDATE.md\n?? tests/commands/search-stress/direct-stdin-close-review/candidate-evidence-manifest.json\n?? tests/commands/search-stress/direct-stdin-close-review/candidate-seal.mjs\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/abort-sink-return-error-identities.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/abort-sink-return-error-identities.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/abort-sink-return-error-identities.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/already-aborted-zero-active-workers.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/already-aborted-zero-active-workers.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/already-aborted-zero-active-workers.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/binary-exact-natural-eof.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/binary-exact-natural-eof.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/binary-exact-natural-eof.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/chunks-256.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/chunks-256.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/chunks-256.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/chunks-64.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/chunks-64.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/chunks-64.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/cleanup.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-first-pending-no-hook.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-first-pending-no-hook.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-first-pending-no-hook.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-opaque-pending.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-opaque-pending.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-opaque-pending.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-split-prefix-pending.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-split-prefix-pending.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/direct-split-prefix-pending.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/epipe-gated-return.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/epipe-gated-return.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/epipe-gated-return.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/final-audit.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/input-error-before-return-error.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/input-error-before-return-error.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/input-error-before-return-error.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/invalid-zero-maxworkers.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/invalid-zero-maxworkers.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/invalid-zero-maxworkers.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-input.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-input.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-input.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-line.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-line.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-line.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-output.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-output.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/limit-output.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/quiet-awaits-cooperative-return.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/quiet-awaits-cooperative-return.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/quiet-awaits-cooperative-return.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/replay-commands.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/replay-error.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/replay-started.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/retained-preseal.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/seal.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shared-executor-sibling-isolation.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shared-executor-sibling-isolation.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shared-executor-sibling-isolation.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shell-opaque-pending.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shell-opaque-pending.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shell-opaque-pending.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shell-structural-pending.json\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shell-structural-pending.stderr.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/shell-structural-pending.stdout.data\n?? tests/commands/search-stress/direct-stdin-close-review/runs/candidate-01/transitions.json\n?? tests/integration/safejs-owned-output-prototype-review/\n",
+    "staged": "",
+    "index": {
+      "bytes": 4012307,
+      "sha256": "7294e2922549a53ecc06b0a9bfe6e5deb4c5b07f7822fea0bfd16cc4f05686d3",
+      "mode": 420,
+      "mtimeMs": 1787839356553.5195,
+      "ctimeMs": 1787839356572.0295
+    }
+  },
+  "publicSource": {
+    "commands/README.md": {
+      "bytes": 12186,
+      "sha256": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+      "mode": 420,
+      "mtimeMs": 1787810213571.1902,
+      "ctimeMs": 1787810213571.1902
+    },
+    "commands/archive/README.md": {
+      "bytes": 25338,
+      "sha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+      "mode": 420,
+      "mtimeMs": 1787802566136.9272,
+      "ctimeMs": 1787802566136.9272
+    },
+    "commands/archive/create.ts": {
+      "bytes": 8594,
+      "sha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "mode": 420,
+      "mtimeMs": 1787789908617.3599,
+      "ctimeMs": 1787789908617.3599
+    },
+    "commands/archive/extract.ts": {
+      "bytes": 15935,
+      "sha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+      "mode": 420,
+      "mtimeMs": 1787802566136.5356,
+      "ctimeMs": 1787802566136.5356
+    },
+    "commands/archive/format.ts": {
+      "bytes": 10149,
+      "sha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+      "mode": 420,
+      "mtimeMs": 1787802566136.03,
+      "ctimeMs": 1787802566136.03
+    },
+    "commands/archive/index.ts": {
+      "bytes": 3599,
+      "sha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "mode": 420,
+      "mtimeMs": 1787789908617.8254,
+      "ctimeMs": 1787789908617.8254
+    },
+    "commands/archive/internal.ts": {
+      "bytes": 8296,
+      "sha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "mode": 420,
+      "mtimeMs": 1787790257026.2258,
+      "ctimeMs": 1787790257026.2258
+    },
+    "commands/archive/options.ts": {
+      "bytes": 10282,
+      "sha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "mode": 420,
+      "mtimeMs": 1787789727725.4854,
+      "ctimeMs": 1787789727725.4854
+    },
+    "commands/archive/stream.ts": {
+      "bytes": 3715,
+      "sha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "mode": 420,
+      "mtimeMs": 1787788744603.328,
+      "ctimeMs": 1787788744603.328
+    },
+    "commands/basic.ts": {
+      "bytes": 8605,
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "mode": 420,
+      "mtimeMs": 1787770860816.719,
+      "ctimeMs": 1787770860816.719
+    },
+    "commands/bytes/README.md": {
+      "bytes": 16919,
+      "sha256": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+      "mode": 420,
+      "mtimeMs": 1787796648328.126,
+      "ctimeMs": 1787796648328.126
+    },
+    "commands/bytes/checksums/README.md": {
+      "bytes": 13523,
+      "sha256": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+      "mode": 420,
+      "mtimeMs": 1787796648327.6086,
+      "ctimeMs": 1787796648327.6086
+    },
+    "commands/bytes/checksums/index.ts": {
+      "bytes": 12862,
+      "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+      "mode": 420,
+      "mtimeMs": 1787796516467.8545,
+      "ctimeMs": 1787796516467.8545
+    },
+    "commands/bytes/compression/README.md": {
+      "bytes": 13992,
+      "sha256": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "mode": 420,
+      "mtimeMs": 1787778335342.5122,
+      "ctimeMs": 1787778335342.5122
+    },
+    "commands/bytes/compression/files.ts": {
+      "bytes": 10141,
+      "sha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "mode": 420,
+      "mtimeMs": 1787778335341.684,
+      "ctimeMs": 1787778335341.684
+    },
+    "commands/bytes/compression/gunzip.ts": {
+      "bytes": 5874,
+      "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "mode": 420,
+      "mtimeMs": 1787777028665.2715,
+      "ctimeMs": 1787777028665.2715
+    },
+    "commands/bytes/compression/index.ts": {
+      "bytes": 2119,
+      "sha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "mode": 420,
+      "mtimeMs": 1787776864062.8337,
+      "ctimeMs": 1787776864062.8337
+    },
+    "commands/bytes/compression/options.ts": {
+      "bytes": 1764,
+      "sha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "mode": 420,
+      "mtimeMs": 1787772663945.1252,
+      "ctimeMs": 1787772663945.1252
+    },
+    "commands/bytes/compression/stream.ts": {
+      "bytes": 3390,
+      "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "mode": 420,
+      "mtimeMs": 1787776864061.667,
+      "ctimeMs": 1787776864061.667
+    },
+    "commands/bytes/encoding/README.md": {
+      "bytes": 15678,
+      "sha256": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "mode": 420,
+      "mtimeMs": 1787777477370.9077,
+      "ctimeMs": 1787777477370.9077
+    },
+    "commands/bytes/encoding/base.ts": {
+      "bytes": 4324,
+      "sha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "mode": 420,
+      "mtimeMs": 1787777343138.1094,
+      "ctimeMs": 1787777343138.1094
+    },
+    "commands/bytes/encoding/index.ts": {
+      "bytes": 389,
+      "sha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "mode": 420,
+      "mtimeMs": 1787772648045.1062,
+      "ctimeMs": 1787772648045.1062
+    },
+    "commands/bytes/encoding/od.ts": {
+      "bytes": 6148,
+      "sha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "mode": 420,
+      "mtimeMs": 1787774094273.07,
+      "ctimeMs": 1787774094273.07
+    },
+    "commands/bytes/encoding/shared.ts": {
+      "bytes": 3857,
+      "sha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "mode": 420,
+      "mtimeMs": 1787774094272.095,
+      "ctimeMs": 1787774094272.095
+    },
+    "commands/bytes/encoding/xxd.ts": {
+      "bytes": 5831,
+      "sha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "mode": 420,
+      "mtimeMs": 1787774094272.8457,
+      "ctimeMs": 1787774094272.8457
+    },
+    "commands/bytes/index.ts": {
+      "bytes": 1040,
+      "sha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "mode": 420,
+      "mtimeMs": 1787772783245.353,
+      "ctimeMs": 1787772783245.353
+    },
+    "commands/copy-identity.ts": {
+      "bytes": 2179,
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "mode": 420,
+      "mtimeMs": 1787791144711.371,
+      "ctimeMs": 1787791144711.371
+    },
+    "commands/diff-patch/GNU-DIFF.md": {
+      "bytes": 10901,
+      "sha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "mode": 420,
+      "mtimeMs": 1787779438104.3845,
+      "ctimeMs": 1787779438104.3845
+    },
+    "commands/diff-patch/GNU-PATCH.md": {
+      "bytes": 20837,
+      "sha256": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "mode": 420,
+      "mtimeMs": 1787785735696.3474,
+      "ctimeMs": 1787785735696.3474
+    },
+    "commands/diff-patch/PARSER.md": {
+      "bytes": 9872,
+      "sha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "mode": 420,
+      "mtimeMs": 1787782819953.8337,
+      "ctimeMs": 1787782819953.8337
+    },
+    "commands/diff-patch/README.md": {
+      "bytes": 27502,
+      "sha256": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "mode": 420,
+      "mtimeMs": 1787796954474.612,
+      "ctimeMs": 1787796954474.612
+    },
+    "commands/diff-patch/diff-format.ts": {
+      "bytes": 5221,
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "mode": 420,
+      "mtimeMs": 1787779089903.7952,
+      "ctimeMs": 1787779089903.7952
+    },
+    "commands/diff-patch/diff.ts": {
+      "bytes": 12580,
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "mode": 420,
+      "mtimeMs": 1787779089902.9976,
+      "ctimeMs": 1787779089902.9976
+    },
+    "commands/diff-patch/index.ts": {
+      "bytes": 961,
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "mode": 420,
+      "mtimeMs": 1787774337233.5945,
+      "ctimeMs": 1787774337233.5945
+    },
+    "commands/diff-patch/patch-envelope.ts": {
+      "bytes": 2408,
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "mode": 420,
+      "mtimeMs": 1787777894234.7266,
+      "ctimeMs": 1787777894234.7266
+    },
+    "commands/diff-patch/patch-formats.ts": {
+      "bytes": 10854,
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "mode": 420,
+      "mtimeMs": 1787782428962.0747,
+      "ctimeMs": 1787782428962.0747
+    },
+    "commands/diff-patch/patch-gnu-paths.ts": {
+      "bytes": 9631,
+      "sha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "mode": 420,
+      "mtimeMs": 1787785735694.5964,
+      "ctimeMs": 1787785735694.5964
+    },
+    "commands/diff-patch/patch-gnu-reject.ts": {
+      "bytes": 3400,
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "mode": 420,
+      "mtimeMs": 1787780250635.7493,
+      "ctimeMs": 1787780250635.7493
+    },
+    "commands/diff-patch/patch-path.ts": {
+      "bytes": 4210,
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "mode": 420,
+      "mtimeMs": 1787777438977.3118,
+      "ctimeMs": 1787777438977.3118
+    },
+    "commands/diff-patch/patch.ts": {
+      "bytes": 19215,
+      "sha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+      "mode": 420,
+      "mtimeMs": 1787813262296.0579,
+      "ctimeMs": 1787813262296.0579
+    },
+    "commands/diff-patch/shared.ts": {
+      "bytes": 6906,
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "mode": 420,
+      "mtimeMs": 1787775011254.4138,
+      "ctimeMs": 1787775011254.4138
+    },
+    "commands/diff-patch/unified.ts": {
+      "bytes": 11415,
+      "sha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5",
+      "mode": 420,
+      "mtimeMs": 1787813262295.4653,
+      "ctimeMs": 1787813262295.4653
+    },
+    "commands/env-split.ts": {
+      "bytes": 7492,
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+      "mode": 420,
+      "mtimeMs": 1787827910695.439,
+      "ctimeMs": 1787827910695.439
+    },
+    "commands/execution.ts": {
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "mode": 420,
+      "mtimeMs": 1787827774814.8853,
+      "ctimeMs": 1787827774814.8853
+    },
+    "commands/file/README.md": {
+      "bytes": 11869,
+      "sha256": "aaa49bf4c73705aed8571eafc030dd1cb3b3db5a0ef4121319a0c0531071d57d",
+      "mode": 420,
+      "mtimeMs": 1787821586407.6042,
+      "ctimeMs": 1787821586407.6042
+    },
+    "commands/file/classify.ts": {
+      "bytes": 7260,
+      "sha256": "fcdee375d2f97afae9d8dc6a23eff64440258aea0a8c2adff7b2968875bc6535",
+      "mode": 420,
+      "mtimeMs": 1787819900116.0356,
+      "ctimeMs": 1787819900116.0356
+    },
+    "commands/file/index.ts": {
+      "bytes": 10496,
+      "sha256": "5278a91c223e182a6bfd2961b16545ff42e2f4e986c25f5dc7f35371aee0d178",
+      "mode": 420,
+      "mtimeMs": 1787821490249.1218,
+      "ctimeMs": 1787821490249.1218
+    },
+    "commands/file/shared.ts": {
+      "bytes": 6937,
+      "sha256": "bb6d9ac67eeace8e52220c94f7eb2d78236fe045d3d1312814c5b9dcb0755fc5",
+      "mode": 420,
+      "mtimeMs": 1787821365001.7102,
+      "ctimeMs": 1787821365001.7102
+    },
+    "commands/filesystem.ts": {
+      "bytes": 22388,
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "mode": 420,
+      "mtimeMs": 1787796099263.8386,
+      "ctimeMs": 1787796099263.8386
+    },
+    "commands/find.ts": {
+      "bytes": 9193,
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "mode": 420,
+      "mtimeMs": 1787769931684.8447,
+      "ctimeMs": 1787769931684.8447
+    },
+    "commands/grep.ts": {
+      "bytes": 5742,
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "mode": 420,
+      "mtimeMs": 1787816535815.8013,
+      "ctimeMs": 1787816535815.8013
+    },
+    "commands/index.ts": {
+      "bytes": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "mode": 420,
+      "mtimeMs": 1787809719382.3928,
+      "ctimeMs": 1787809719382.3928
+    },
+    "commands/internal.ts": {
+      "bytes": 8820,
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "mode": 420,
+      "mtimeMs": 1787825436715.4143,
+      "ctimeMs": 1787825436715.4143
+    },
+    "commands/metadata/README.md": {
+      "bytes": 7692,
+      "sha256": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+      "mode": 420,
+      "mtimeMs": 1787797360951.433,
+      "ctimeMs": 1787797360951.433
+    },
+    "commands/metadata/chmod.ts": {
+      "bytes": 6888,
+      "sha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "mode": 420,
+      "mtimeMs": 1787786838270.0554,
+      "ctimeMs": 1787786838270.0554
+    },
+    "commands/metadata/index.ts": {
+      "bytes": 1091,
+      "sha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "mode": 420,
+      "mtimeMs": 1787786443040.9373,
+      "ctimeMs": 1787786443040.9373
+    },
+    "commands/metadata/internal.ts": {
+      "bytes": 3195,
+      "sha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "mode": 420,
+      "mtimeMs": 1787786256989.4688,
+      "ctimeMs": 1787786256989.4688
+    },
+    "commands/metadata/mktemp.ts": {
+      "bytes": 5683,
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "mode": 420,
+      "mtimeMs": 1787786531635.2756,
+      "ctimeMs": 1787786531635.2756
+    },
+    "commands/metadata/stat.ts": {
+      "bytes": 11535,
+      "sha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "mode": 420,
+      "mtimeMs": 1787796869048.4614,
+      "ctimeMs": 1787796869048.4614
+    },
+    "commands/move.ts": {
+      "bytes": 8000,
+      "sha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "mode": 420,
+      "mtimeMs": 1787791144712.1753,
+      "ctimeMs": 1787791144712.1753
+    },
+    "commands/network/README.md": {
+      "bytes": 10805,
+      "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "mode": 420,
+      "mtimeMs": 1787785223473.0674,
+      "ctimeMs": 1787785223473.0674
+    },
+    "commands/network/args.ts": {
+      "bytes": 8573,
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "mode": 420,
+      "mtimeMs": 1787783296600.0981,
+      "ctimeMs": 1787783296600.0981
+    },
+    "commands/network/body.ts": {
+      "bytes": 7380,
+      "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880",
+      "mode": 420,
+      "mtimeMs": 1787828044024.6553,
+      "ctimeMs": 1787828044024.6553
+    },
+    "commands/network/curl.ts": {
+      "bytes": 15881,
+      "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "mode": 420,
+      "mtimeMs": 1787785284346.6455,
+      "ctimeMs": 1787785284346.6455
+    },
+    "commands/network/index.ts": {
+      "bytes": 1049,
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "mode": 420,
+      "mtimeMs": 1787783264353.4863,
+      "ctimeMs": 1787783264353.4863
+    },
+    "commands/network/output.ts": {
+      "bytes": 3730,
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "mode": 420,
+      "mtimeMs": 1787783088856.9912,
+      "ctimeMs": 1787783088856.9912
+    },
+    "commands/network/shared.ts": {
+      "bytes": 2606,
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "mode": 420,
+      "mtimeMs": 1787782889844.1003,
+      "ctimeMs": 1787782889844.1003
+    },
+    "commands/network/transport.ts": {
+      "bytes": 3133,
+      "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "mode": 420,
+      "mtimeMs": 1787782889844.258,
+      "ctimeMs": 1787782889844.258
+    },
+    "commands/network/types.ts": {
+      "bytes": 1832,
+      "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "mode": 420,
+      "mtimeMs": 1787782889843.9556,
+      "ctimeMs": 1787782889843.9556
+    },
+    "commands/predicates.ts": {
+      "bytes": 5535,
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "mode": 420,
+      "mtimeMs": 1787770661654.9832,
+      "ctimeMs": 1787770661654.9832
+    },
+    "commands/regex-execution/README.md": {
+      "bytes": 11189,
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "mode": 420,
+      "mtimeMs": 1787816612365.7498,
+      "ctimeMs": 1787816612365.7498
+    },
+    "commands/regex-execution/client.ts": {
+      "bytes": 13794,
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "mode": 420,
+      "mtimeMs": 1787816612365.219,
+      "ctimeMs": 1787816612365.219
+    },
+    "commands/regex-execution/matching.ts": {
+      "bytes": 11796,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "mode": 420,
+      "mtimeMs": 1787814241073.7786,
+      "ctimeMs": 1787814241073.7786
+    },
+    "commands/regex-execution/protocol.ts": {
+      "bytes": 5187,
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "mode": 420,
+      "mtimeMs": 1787814201487.7004,
+      "ctimeMs": 1787814201487.7004
+    },
+    "commands/regex-execution/worker.ts": {
+      "bytes": 1248,
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "mode": 420,
+      "mtimeMs": 1787814201488.3142,
+      "ctimeMs": 1787814201488.3142
+    },
+    "commands/safejs/README.md": {
+      "bytes": 19328,
+      "sha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+      "mode": 420,
+      "mtimeMs": 1787806099504.8206,
+      "ctimeMs": 1787806099504.8206
+    },
+    "commands/safejs/index.ts": {
+      "bytes": 8649,
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+      "mode": 420,
+      "mtimeMs": 1787806099503.5383,
+      "ctimeMs": 1787806099503.5383
+    },
+    "commands/safejs/io.ts": {
+      "bytes": 4704,
+      "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "mode": 420,
+      "mtimeMs": 1787779041141.9043,
+      "ctimeMs": 1787779041141.9043
+    },
+    "commands/safejs/options.ts": {
+      "bytes": 2464,
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "mode": 420,
+      "mtimeMs": 1787778085085.1404,
+      "ctimeMs": 1787778085085.1404
+    },
+    "commands/safejs/render.ts": {
+      "bytes": 2807,
+      "sha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "mode": 420,
+      "mtimeMs": 1787779041141.504,
+      "ctimeMs": 1787779041141.504
+    },
+    "commands/safejs/types.ts": {
+      "bytes": 2243,
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "mode": 420,
+      "mtimeMs": 1787777947058.761,
+      "ctimeMs": 1787777947058.761
+    },
+    "commands/search/README.md": {
+      "bytes": 17345,
+      "sha256": "21bb3308dc36282f6a8b0c5f7ec8e0684bf71563af0b5b35ea2254595d7a70d7",
+      "mode": 420,
+      "mtimeMs": 1787814751230.0154,
+      "ctimeMs": 1787814751230.0154
+    },
+    "commands/search/glob.ts": {
+      "bytes": 3157,
+      "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da",
+      "mode": 420,
+      "mtimeMs": 1787814363791.9731,
+      "ctimeMs": 1787814363791.9731
+    },
+    "commands/search/index.ts": {
+      "bytes": 881,
+      "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "mode": 420,
+      "mtimeMs": 1787772574326.2888,
+      "ctimeMs": 1787772574326.2888
+    },
+    "commands/search/matcher.ts": {
+      "bytes": 1074,
+      "sha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+      "mode": 420,
+      "mtimeMs": 1787809670275.698,
+      "ctimeMs": 1787809670275.698
+    },
+    "commands/search/options.ts": {
+      "bytes": 8823,
+      "sha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+      "mode": 420,
+      "mtimeMs": 1787809670276.1548,
+      "ctimeMs": 1787809670276.1548
+    },
+    "commands/search/output.ts": {
+      "bytes": 3899,
+      "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "mode": 420,
+      "mtimeMs": 1787775482844.2717,
+      "ctimeMs": 1787775482844.2717
+    },
+    "commands/search/rg.ts": {
+      "bytes": 10557,
+      "sha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f",
+      "mode": 420,
+      "mtimeMs": 1787837542669.58,
+      "ctimeMs": 1787837542669.58
+    },
+    "commands/search/shared.ts": {
+      "bytes": 4879,
+      "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "mode": 420,
+      "mtimeMs": 1787776092981.8606,
+      "ctimeMs": 1787776092981.8606
+    },
+    "commands/search/walk.ts": {
+      "bytes": 8792,
+      "sha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0",
+      "mode": 420,
+      "mtimeMs": 1787814580325.0813,
+      "ctimeMs": 1787814580325.0813
+    },
+    "commands/split/README.md": {
+      "bytes": 11612,
+      "sha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249",
+      "mode": 420,
+      "mtimeMs": 1787816624104.6494,
+      "ctimeMs": 1787816624104.6494
+    },
+    "commands/split/index.ts": {
+      "bytes": 909,
+      "sha256": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+      "mode": 420,
+      "mtimeMs": 1787809655291.8281,
+      "ctimeMs": 1787809655291.8281
+    },
+    "commands/split/io.ts": {
+      "bytes": 3687,
+      "sha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+      "mode": 420,
+      "mtimeMs": 1787810493310.8425,
+      "ctimeMs": 1787810493310.8425
+    },
+    "commands/split/names.ts": {
+      "bytes": 1524,
+      "sha256": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+      "mode": 420,
+      "mtimeMs": 1787809655291.2178,
+      "ctimeMs": 1787809655291.2178
+    },
+    "commands/split/options.ts": {
+      "bytes": 5885,
+      "sha256": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+      "mode": 420,
+      "mtimeMs": 1787810387539.044,
+      "ctimeMs": 1787810387539.044
+    },
+    "commands/split/outputs.ts": {
+      "bytes": 5099,
+      "sha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+      "mode": 420,
+      "mtimeMs": 1787811460743.8904,
+      "ctimeMs": 1787811460743.8904
+    },
+    "commands/split/split.ts": {
+      "bytes": 5082,
+      "sha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+      "mode": 420,
+      "mtimeMs": 1787810422900.7922,
+      "ctimeMs": 1787810422900.7922
+    },
+    "commands/stream-format/README.md": {
+      "bytes": 7933,
+      "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778",
+      "mode": 420,
+      "mtimeMs": 1787816624104.161,
+      "ctimeMs": 1787816624104.161
+    },
+    "commands/stream-format/index.ts": {
+      "bytes": 1230,
+      "sha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+      "mode": 420,
+      "mtimeMs": 1787810094596.7832,
+      "ctimeMs": 1787810094596.7832
+    },
+    "commands/stream-format/nl.ts": {
+      "bytes": 4443,
+      "sha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+      "mode": 420,
+      "mtimeMs": 1787809848791.7605,
+      "ctimeMs": 1787809848791.7605
+    },
+    "commands/stream-format/rev.ts": {
+      "bytes": 2772,
+      "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+      "mode": 420,
+      "mtimeMs": 1787809968515.983,
+      "ctimeMs": 1787809968515.983
+    },
+    "commands/stream-format/seq.ts": {
+      "bytes": 11724,
+      "sha256": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+      "mode": 420,
+      "mtimeMs": 1787811879018.5383,
+      "ctimeMs": 1787811879018.5383
+    },
+    "commands/stream-format/shared.ts": {
+      "bytes": 7684,
+      "sha256": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+      "mode": 420,
+      "mtimeMs": 1787809465516.7676,
+      "ctimeMs": 1787809465516.7676
+    },
+    "commands/stream-format/unexpand.ts": {
+      "bytes": 4457,
+      "sha256": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+      "mode": 420,
+      "mtimeMs": 1787810094596.5488,
+      "ctimeMs": 1787810094596.5488
+    },
+    "commands/stream-inspection/README.md": {
+      "bytes": 11130,
+      "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+      "mode": 420,
+      "mtimeMs": 1787808410288.4326,
+      "ctimeMs": 1787808410288.4326
+    },
+    "commands/stream-inspection/expand.ts": {
+      "bytes": 3197,
+      "sha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+      "mode": 420,
+      "mtimeMs": 1787807034847.4941,
+      "ctimeMs": 1787807034847.4941
+    },
+    "commands/stream-inspection/fold.ts": {
+      "bytes": 2038,
+      "sha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+      "mode": 420,
+      "mtimeMs": 1787807034847.818,
+      "ctimeMs": 1787807034847.818
+    },
+    "commands/stream-inspection/index.ts": {
+      "bytes": 1278,
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+      "mode": 420,
+      "mtimeMs": 1787805446699.2983,
+      "ctimeMs": 1787805446699.2983
+    },
+    "commands/stream-inspection/numeric-options.ts": {
+      "bytes": 2008,
+      "sha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+      "mode": 420,
+      "mtimeMs": 1787807034847.2642,
+      "ctimeMs": 1787807034847.2642
+    },
+    "commands/stream-inspection/shared.ts": {
+      "bytes": 7472,
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+      "mode": 420,
+      "mtimeMs": 1787805894886.2373,
+      "ctimeMs": 1787805894886.2373
+    },
+    "commands/stream-inspection/strings.ts": {
+      "bytes": 2456,
+      "sha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+      "mode": 420,
+      "mtimeMs": 1787807034848.1304,
+      "ctimeMs": 1787807034848.1304
+    },
+    "commands/stream-inspection/tac.ts": {
+      "bytes": 2197,
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+      "mode": 420,
+      "mtimeMs": 1787805485221.4353,
+      "ctimeMs": 1787805485221.4353
+    },
+    "commands/streams.ts": {
+      "bytes": 17015,
+      "sha256": "be601a62f51a95c62778987118e292aea6637ca4e7271486239af2f8d65e7d1c",
+      "mode": 420,
+      "mtimeMs": 1787826093004.0508,
+      "ctimeMs": 1787826093004.0508
+    },
+    "commands/structured/README.md": {
+      "bytes": 36728,
+      "sha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+      "mode": 420,
+      "mtimeMs": 1787799695477.0513,
+      "ctimeMs": 1787799695477.0513
+    },
+    "commands/structured/index.ts": {
+      "bytes": 995,
+      "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "mode": 420,
+      "mtimeMs": 1787771519391.0396,
+      "ctimeMs": 1787771519391.0396
+    },
+    "commands/structured/input.ts": {
+      "bytes": 14456,
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "mode": 420,
+      "mtimeMs": 1787795101283.8933,
+      "ctimeMs": 1787795101283.8933
+    },
+    "commands/structured/interpreter.ts": {
+      "bytes": 21567,
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "mode": 420,
+      "mtimeMs": 1787797587092.0105,
+      "ctimeMs": 1787797587092.0105
+    },
+    "commands/structured/jq.ts": {
+      "bytes": 11396,
+      "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3",
+      "mode": 420,
+      "mtimeMs": 1787828044024.2095,
+      "ctimeMs": 1787828044024.2095
+    },
+    "commands/structured/limits.ts": {
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "mode": 420,
+      "mtimeMs": 1787791060829.808,
+      "ctimeMs": 1787791060829.808
+    },
+    "commands/structured/numbers.ts": {
+      "bytes": 6091,
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "mode": 420,
+      "mtimeMs": 1787794834562.1172,
+      "ctimeMs": 1787794834562.1172
+    },
+    "commands/structured/parser.ts": {
+      "bytes": 12587,
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "mode": 420,
+      "mtimeMs": 1787797587091.5647,
+      "ctimeMs": 1787797587091.5647
+    },
+    "commands/structured/split.ts": {
+      "bytes": 2102,
+      "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "mode": 420,
+      "mtimeMs": 1787778468276.5586,
+      "ctimeMs": 1787778468276.5586
+    },
+    "commands/structured/values.ts": {
+      "bytes": 9063,
+      "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "mode": 420,
+      "mtimeMs": 1787797587092.2925,
+      "ctimeMs": 1787797587092.2925
+    },
+    "commands/table-text/README.md": {
+      "bytes": 6188,
+      "sha256": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+      "mode": 420,
+      "mtimeMs": 1787799272687.6528,
+      "ctimeMs": 1787799272687.6528
+    },
+    "commands/table-text/comm.ts": {
+      "bytes": 3885,
+      "sha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+      "mode": 420,
+      "mtimeMs": 1787799119439.2104,
+      "ctimeMs": 1787799119439.2104
+    },
+    "commands/table-text/index.ts": {
+      "bytes": 1124,
+      "sha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "mode": 420,
+      "mtimeMs": 1787788873004.832,
+      "ctimeMs": 1787788873004.832
+    },
+    "commands/table-text/internal.ts": {
+      "bytes": 8443,
+      "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "mode": 420,
+      "mtimeMs": 1787799119438.7107,
+      "ctimeMs": 1787799119438.7107
+    },
+    "commands/table-text/join.ts": {
+      "bytes": 9692,
+      "sha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "mode": 420,
+      "mtimeMs": 1787789328928.9072,
+      "ctimeMs": 1787789328928.9072
+    },
+    "commands/table-text/paste.ts": {
+      "bytes": 3946,
+      "sha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "mode": 420,
+      "mtimeMs": 1787788873003.5088,
+      "ctimeMs": 1787788873003.5088
+    },
+    "commands/text-programs/README.md": {
+      "bytes": 15031,
+      "sha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "mode": 420,
+      "mtimeMs": 1787775768577.2524,
+      "ctimeMs": 1787775768577.2524
+    },
+    "commands/text-programs/awk-runtime.ts": {
+      "bytes": 27084,
+      "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "mode": 420,
+      "mtimeMs": 1787774743404.124,
+      "ctimeMs": 1787774743404.124
+    },
+    "commands/text-programs/awk-syntax.ts": {
+      "bytes": 22142,
+      "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "mode": 420,
+      "mtimeMs": 1787774609354.4333,
+      "ctimeMs": 1787774609354.4333
+    },
+    "commands/text-programs/awk-values.ts": {
+      "bytes": 7118,
+      "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "mode": 420,
+      "mtimeMs": 1787771799161.459,
+      "ctimeMs": 1787771799161.459
+    },
+    "commands/text-programs/awk.ts": {
+      "bytes": 1831,
+      "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "mode": 420,
+      "mtimeMs": 1787771439086.0203,
+      "ctimeMs": 1787771439086.0203
+    },
+    "commands/text-programs/index.ts": {
+      "bytes": 983,
+      "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "mode": 420,
+      "mtimeMs": 1787771439086.686,
+      "ctimeMs": 1787771439086.686
+    },
+    "commands/text-programs/regex.ts": {
+      "bytes": 16791,
+      "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "mode": 420,
+      "mtimeMs": 1787775030100.1992,
+      "ctimeMs": 1787775030100.1992
+    },
+    "commands/text-programs/sed.ts": {
+      "bytes": 22047,
+      "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "mode": 420,
+      "mtimeMs": 1787774857883.995,
+      "ctimeMs": 1787774857883.995
+    },
+    "commands/text-programs/shared.ts": {
+      "bytes": 4351,
+      "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "mode": 420,
+      "mtimeMs": 1787772284376.8975,
+      "ctimeMs": 1787772284376.8975
+    },
+    "commands/text.ts": {
+      "bytes": 16953,
+      "sha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+      "mode": 420,
+      "mtimeMs": 1787821649249.9746,
+      "ctimeMs": 1787821649249.9746
+    },
+    "commands/time-env/README.md": {
+      "bytes": 11786,
+      "sha256": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b",
+      "mode": 420,
+      "mtimeMs": 1787820367219.5063,
+      "ctimeMs": 1787820367219.5063
+    },
+    "commands/time-env/calendar.ts": {
+      "bytes": 9990,
+      "sha256": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+      "mode": 420,
+      "mtimeMs": 1787816593534.611,
+      "ctimeMs": 1787816593534.611
+    },
+    "commands/time-env/date.ts": {
+      "bytes": 6310,
+      "sha256": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+      "mode": 420,
+      "mtimeMs": 1787815501347.5215,
+      "ctimeMs": 1787815501347.5215
+    },
+    "commands/time-env/format.ts": {
+      "bytes": 8085,
+      "sha256": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0",
+      "mode": 420,
+      "mtimeMs": 1787820367218.904,
+      "ctimeMs": 1787820367218.904
+    },
+    "commands/time-env/index.ts": {
+      "bytes": 1170,
+      "sha256": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+      "mode": 420,
+      "mtimeMs": 1787815279227.1633,
+      "ctimeMs": 1787815279227.1633
+    },
+    "commands/time-env/printenv.ts": {
+      "bytes": 2006,
+      "sha256": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+      "mode": 420,
+      "mtimeMs": 1787814781766.5686,
+      "ctimeMs": 1787814781766.5686
+    },
+    "commands/time-env/shared.ts": {
+      "bytes": 4089,
+      "sha256": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+      "mode": 420,
+      "mtimeMs": 1787815501347.9067,
+      "ctimeMs": 1787815501347.9067
+    },
+    "commands/time-env/sleep.ts": {
+      "bytes": 5247,
+      "sha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96",
+      "mode": 420,
+      "mtimeMs": 1787818320573.6882,
+      "ctimeMs": 1787818320573.6882
+    },
+    "commands/tree/README.md": {
+      "bytes": 13361,
+      "sha256": "d330462d2d11e5d97e2d5f93933593beb796ad43fce2f283dbe096cf7aa9a4e6",
+      "mode": 420,
+      "mtimeMs": 1787822064247.1702,
+      "ctimeMs": 1787822064247.1702
+    },
+    "commands/tree/arguments.ts": {
+      "bytes": 4552,
+      "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762",
+      "mode": 420,
+      "mtimeMs": 1787821681284.862,
+      "ctimeMs": 1787821681284.862
+    },
+    "commands/tree/index.ts": {
+      "bytes": 934,
+      "sha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+      "mode": 420,
+      "mtimeMs": 1787817896941.2275,
+      "ctimeMs": 1787817896941.2275
+    },
+    "commands/tree/io.ts": {
+      "bytes": 3768,
+      "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1",
+      "mode": 420,
+      "mtimeMs": 1787821681284.4722,
+      "ctimeMs": 1787821681284.4722
+    },
+    "commands/tree/options.ts": {
+      "bytes": 1013,
+      "sha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+      "mode": 420,
+      "mtimeMs": 1787817896940.4417,
+      "ctimeMs": 1787817896940.4417
+    },
+    "commands/tree/pattern.ts": {
+      "bytes": 3061,
+      "sha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215",
+      "mode": 420,
+      "mtimeMs": 1787820849777.0676,
+      "ctimeMs": 1787820849777.0676
+    },
+    "commands/tree/tree.ts": {
+      "bytes": 10748,
+      "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1",
+      "mode": 420,
+      "mtimeMs": 1787821681285.4849,
+      "ctimeMs": 1787821681285.4849
+    },
+    "contracts/command.md": {
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "mode": 420,
+      "mtimeMs": 1787815921868.2292,
+      "ctimeMs": 1787815921868.2292
+    },
+    "contracts/command.ts": {
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "mode": 420,
+      "mtimeMs": 1787815921867.9487,
+      "ctimeMs": 1787815921867.9487
+    },
+    "contracts/errors.ts": {
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "mode": 420,
+      "mtimeMs": 1787769939902.8164,
+      "ctimeMs": 1787769939902.8164
+    },
+    "contracts/filesystem.md": {
+      "bytes": 17153,
+      "sha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+      "mode": 420,
+      "mtimeMs": 1787814432259.7405,
+      "ctimeMs": 1787814432259.7405
+    },
+    "contracts/filesystem.ts": {
+      "bytes": 3861,
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "mode": 420,
+      "mtimeMs": 1787814385295.5872,
+      "ctimeMs": 1787814385295.5872
+    },
+    "contracts/index.ts": {
+      "bytes": 173,
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "mode": 420,
+      "mtimeMs": 1787767702255.4731,
+      "ctimeMs": 1787767702255.4731
+    },
+    "contracts/io.ts": {
+      "bytes": 7383,
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "mode": 420,
+      "mtimeMs": 1787770860815.071,
+      "ctimeMs": 1787770860815.071
+    },
+    "contracts/path.ts": {
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "mode": 420,
+      "mtimeMs": 1787768515611.9287,
+      "ctimeMs": 1787768515611.9287
+    },
+    "contracts/plugin.ts": {
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "mode": 420,
+      "mtimeMs": 1787768665850.3647,
+      "ctimeMs": 1787768665850.3647
+    },
+    "fs/memory/index.ts": {
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "mode": 420,
+      "mtimeMs": 1787797290739.2405,
+      "ctimeMs": 1787797290739.2405
+    },
+    "fs/mount/COMPARISON.md": {
+      "bytes": 5472,
+      "sha256": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+      "mode": 420,
+      "mtimeMs": 1787794137290.5352,
+      "ctimeMs": 1787794137290.5352
+    },
+    "fs/mount/README.md": {
+      "bytes": 13641,
+      "sha256": "43b143a25bad076e4b17f0b091e86281b8f801a2abf0b303a6425022892be746",
+      "mode": 420,
+      "mtimeMs": 1787814949859.343,
+      "ctimeMs": 1787814949859.343
+    },
+    "fs/mount/comparison.ts": {
+      "bytes": 5220,
+      "sha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "mode": 420,
+      "mtimeMs": 1787792533425.3682,
+      "ctimeMs": 1787792533425.3682
+    },
+    "fs/mount/identity.ts": {
+      "bytes": 748,
+      "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "mode": 420,
+      "mtimeMs": 1787787613518.729,
+      "ctimeMs": 1787787613518.729
+    },
+    "fs/mount/index.ts": {
+      "bytes": 25447,
+      "sha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d",
+      "mode": 420,
+      "mtimeMs": 1787814949858.455,
+      "ctimeMs": 1787814949858.455
+    },
+    "fs/overlay/README.md": {
+      "bytes": 13781,
+      "sha256": "6f7983213bec73ef63c249832a85d6f03b550846b02940451efc0bbdf522a089",
+      "mode": 420,
+      "mtimeMs": 1787814949859.769,
+      "ctimeMs": 1787814949859.769
+    },
+    "fs/overlay/index.ts": {
+      "bytes": 41438,
+      "sha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be",
+      "mode": 420,
+      "mtimeMs": 1787814949858.8674,
+      "ctimeMs": 1787814949858.8674
+    },
+    "fs/readonly/README.md": {
+      "bytes": 6438,
+      "sha256": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c",
+      "mode": 420,
+      "mtimeMs": 1787814949860.2588,
+      "ctimeMs": 1787814949860.2588
+    },
+    "fs/readonly/index.ts": {
+      "bytes": 5880,
+      "sha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "mode": 420,
+      "mtimeMs": 1787791950439.128,
+      "ctimeMs": 1787791950439.128
+    },
+    "fs/real/index.ts": {
+      "bytes": 23456,
+      "sha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "mode": 420,
+      "mtimeMs": 1787787613520.1477,
+      "ctimeMs": 1787787613520.1477
+    },
+    "fs/s3/COMPARISON.md": {
+      "bytes": 9847,
+      "sha256": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+      "mode": 420,
+      "mtimeMs": 1787799445936.5696,
+      "ctimeMs": 1787799445936.5696
+    },
+    "fs/s3/README.md": {
+      "bytes": 39017,
+      "sha256": "a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78",
+      "mode": 420,
+      "mtimeMs": 1787814867526.0767,
+      "ctimeMs": 1787814867526.0767
+    },
+    "fs/s3/SDK_COMPARISON.md": {
+      "bytes": 5868,
+      "sha256": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+      "mode": 420,
+      "mtimeMs": 1787799445936.0146,
+      "ctimeMs": 1787799445936.0146
+    },
+    "fs/s3/authority.ts": {
+      "bytes": 4938,
+      "sha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "mode": 420,
+      "mtimeMs": 1787798795670.706,
+      "ctimeMs": 1787798795670.706
+    },
+    "fs/s3/filesystem.ts": {
+      "bytes": 51254,
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "mode": 420,
+      "mtimeMs": 1787814867524.8516,
+      "ctimeMs": 1787814867524.8516
+    },
+    "fs/s3/http/README.md": {
+      "bytes": 11262,
+      "sha256": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+      "mode": 420,
+      "mtimeMs": 1787802700153.5813,
+      "ctimeMs": 1787802700153.5813
+    },
+    "fs/s3/http/index.ts": {
+      "bytes": 181,
+      "sha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "mode": 420,
+      "mtimeMs": 1787800875875.1973,
+      "ctimeMs": 1787800875875.1973
+    },
+    "fs/s3/http/request.ts": {
+      "bytes": 7073,
+      "sha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "mode": 420,
+      "mtimeMs": 1787802111555.5725,
+      "ctimeMs": 1787802111555.5725
+    },
+    "fs/s3/http/signature.ts": {
+      "bytes": 4443,
+      "sha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "mode": 420,
+      "mtimeMs": 1787800759421.896,
+      "ctimeMs": 1787800759421.896
+    },
+    "fs/s3/http/transport.ts": {
+      "bytes": 22773,
+      "sha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+      "mode": 420,
+      "mtimeMs": 1787805183816.6377,
+      "ctimeMs": 1787805183816.6377
+    },
+    "fs/s3/http/types.ts": {
+      "bytes": 1172,
+      "sha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "mode": 420,
+      "mtimeMs": 1787801678973.0603,
+      "ctimeMs": 1787801678973.0603
+    },
+    "fs/s3/http/xml.ts": {
+      "bytes": 6470,
+      "sha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "mode": 420,
+      "mtimeMs": 1787805183817.2388,
+      "ctimeMs": 1787805183817.2388
+    },
+    "fs/s3/index.ts": {
+      "bytes": 596,
+      "sha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "mode": 420,
+      "mtimeMs": 1787778383758.837,
+      "ctimeMs": 1787778383758.837
+    },
+    "fs/s3/mock.ts": {
+      "bytes": 11823,
+      "sha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "mode": 420,
+      "mtimeMs": 1787796847452.1914,
+      "ctimeMs": 1787796847452.1914
+    },
+    "fs/s3/transport.ts": {
+      "bytes": 4996,
+      "sha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "mode": 420,
+      "mtimeMs": 1787796847451.991,
+      "ctimeMs": 1787796847451.991
+    },
+    "fs/webdav/PRODUCTION_CHECKPOINT.md": {
+      "bytes": 5172,
+      "sha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "mode": 420,
+      "mtimeMs": 1787779093937.6072,
+      "ctimeMs": 1787779093937.6072
+    },
+    "fs/webdav/README.md": {
+      "bytes": 40056,
+      "sha256": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+      "mode": 420,
+      "mtimeMs": 1787818377917.4497,
+      "ctimeMs": 1787818377917.4497
+    },
+    "fs/webdav/index.ts": {
+      "bytes": 230,
+      "sha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "mode": 420,
+      "mtimeMs": 1787818019661.746,
+      "ctimeMs": 1787818019661.746
+    },
+    "fs/webdav/resource-id.ts": {
+      "bytes": 5570,
+      "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "mode": 420,
+      "mtimeMs": 1787799458942.6423,
+      "ctimeMs": 1787799458942.6423
+    },
+    "fs/webdav/webdav.ts": {
+      "bytes": 53307,
+      "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+      "mode": 420,
+      "mtimeMs": 1787818019661.2388,
+      "ctimeMs": 1787818019661.2388
+    },
+    "fs/webdav/xml.ts": {
+      "bytes": 10122,
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "mode": 420,
+      "mtimeMs": 1787770652373.8708,
+      "ctimeMs": 1787770652373.8708
+    },
+    "index.ts": {
+      "bytes": 1320,
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e",
+      "mode": 420,
+      "mtimeMs": 1787826319493.7551,
+      "ctimeMs": 1787826319493.7551
+    },
+    "integrations/safejs/filesystem.ts": {
+      "bytes": 21470,
+      "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "mode": 420,
+      "mtimeMs": 1787768695335.3616,
+      "ctimeMs": 1787768695335.3616
+    },
+    "integrations/safejs/index.ts": {
+      "bytes": 445,
+      "sha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "mode": 420,
+      "mtimeMs": 1787768465749.2134,
+      "ctimeMs": 1787768465749.2134
+    },
+    "integrations/safejs/shell.ts": {
+      "bytes": 3695,
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "mode": 420,
+      "mtimeMs": 1787768124435.106,
+      "ctimeMs": 1787768124435.106
+    },
+    "integrations/safejs/stats.ts": {
+      "bytes": 1359,
+      "sha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "mode": 420,
+      "mtimeMs": 1787767935654.2861,
+      "ctimeMs": 1787767935654.2861
+    },
+    "integrations/safejs/values.ts": {
+      "bytes": 2446,
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "mode": 420,
+      "mtimeMs": 1787767935652.976,
+      "ctimeMs": 1787767935652.976
+    },
+    "plugins/index.ts": {
+      "bytes": 4578,
+      "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3",
+      "mode": 420,
+      "mtimeMs": 1787826319494.175,
+      "ctimeMs": 1787826319494.175
+    },
+    "shell/arithmetic.ts": {
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "mode": 420,
+      "mtimeMs": 1787778360958.0833,
+      "ctimeMs": 1787778360958.0833
+    },
+    "shell/cleanup.ts": {
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "mode": 420,
+      "mtimeMs": 1787816688131.0327,
+      "ctimeMs": 1787816688131.0327
+    },
+    "shell/display.ts": {
+      "bytes": 2605,
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "mode": 420,
+      "mtimeMs": 1787791150130.5588,
+      "ctimeMs": 1787791150130.5588
+    },
+    "shell/index.ts": {
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "mode": 420,
+      "mtimeMs": 1787769330864.626,
+      "ctimeMs": 1787769330864.626
+    },
+    "shell/input.ts": {
+      "bytes": 9720,
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "mode": 420,
+      "mtimeMs": 1787792304486.9858,
+      "ctimeMs": 1787792304486.9858
+    },
+    "shell/locale.ts": {
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "mode": 420,
+      "mtimeMs": 1787778967629.781,
+      "ctimeMs": 1787778967629.781
+    },
+    "shell/parser.ts": {
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "mode": 420,
+      "mtimeMs": 1787808605887.4873,
+      "ctimeMs": 1787808605887.4873
+    },
+    "shell/pattern.ts": {
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "mode": 420,
+      "mtimeMs": 1787777454585.205,
+      "ctimeMs": 1787777454585.205
+    },
+    "shell/runtime.ts": {
+      "bytes": 100410,
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "mode": 420,
+      "mtimeMs": 1787817091262.679,
+      "ctimeMs": 1787817091262.679
+    },
+    "shell/shell.ts": {
+      "bytes": 10368,
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "mode": 420,
+      "mtimeMs": 1787818793654.7793,
+      "ctimeMs": 1787818793654.7793
+    },
+    "shell/types.ts": {
+      "bytes": 2178,
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "mode": 420,
+      "mtimeMs": 1787798529932.6152,
+      "ctimeMs": 1787798529932.6152
+    }
+  },
+  "publicRootInputs": {
+    "AGENTS.md": {
+      "bytes": 10911,
+      "sha256": "264c248ebbc68c5850a4081fc8ad2baf81356219c156eb79109c6e334bfe945f",
+      "mode": 420,
+      "mtimeMs": 1787832840910.9902,
+      "ctimeMs": 1787832840910.9902
+    },
+    "package.json": {
+      "bytes": 3997,
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "mode": 420,
+      "mtimeMs": 1787833940671.8936,
+      "ctimeMs": 1787833940671.8936
+    },
+    "package-lock.json": {
+      "bytes": 16734,
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "mode": 420,
+      "mtimeMs": 1787769246058.1875,
+      "ctimeMs": 1787773336354.647
+    },
+    "tsconfig.json": {
+      "bytes": 1087,
+      "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4",
+      "mode": 420,
+      "mtimeMs": 1787832012681.197,
+      "ctimeMs": 1787832012681.197
+    },
+    "tsconfig.build.json": {
+      "bytes": 260,
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "mode": 420,
+      "mtimeMs": 1787767702254.7139,
+      "ctimeMs": 1787773336355.1963
+    }
+  },
+  "restrictions": {
+    "privateWrites": false,
+    "privateExecution": false,
+    "privateBuild": false,
+    "dependencyInstall": false,
+    "sourceBytesVendored": false
+  }
+}

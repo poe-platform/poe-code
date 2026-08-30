@@ -1,0 +1,200 @@
+[
+  {
+    "label": "source-build-precedence-v2",
+    "layout": "source-build",
+    "cohort": "mechanical",
+    "ids": [
+      "M22"
+    ],
+    "alsoCovers": [
+      "P04-v2"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "source-build-operations-v2",
+    "layout": "source-build",
+    "cohort": "operations",
+    "ids": [
+      "P09",
+      "P10",
+      "P11-U11"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "source-build-guard",
+    "layout": "source-build",
+    "cohort": "guard",
+    "ids": [
+      "G-FALLBACK"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "installed-precedence-v2",
+    "layout": "installed",
+    "cohort": "mechanical",
+    "ids": [
+      "M22"
+    ],
+    "alsoCovers": [
+      "P04-v2"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "installed-operations-v2",
+    "layout": "installed",
+    "cohort": "operations",
+    "ids": [
+      "P09",
+      "P10",
+      "P11-U11"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "installed-guard",
+    "layout": "installed",
+    "cohort": "guard",
+    "ids": [
+      "G-FALLBACK"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "moved-precedence-v2",
+    "layout": "moved",
+    "cohort": "mechanical",
+    "ids": [
+      "M22"
+    ],
+    "alsoCovers": [
+      "P04-v2"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "moved-operations-v2",
+    "layout": "moved",
+    "cohort": "operations",
+    "ids": [
+      "P09",
+      "P10",
+      "P11-U11"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "moved-guard",
+    "layout": "moved",
+    "cohort": "guard",
+    "ids": [
+      "G-FALLBACK"
+    ],
+    "stage": "layout"
+  },
+  {
+    "label": "positive-before-mechanical",
+    "stage": "positive-before",
+    "cohort": "mechanical",
+    "ids": [
+      "M01",
+      "M04",
+      "M05",
+      "M06",
+      "M17",
+      "M18",
+      "M16",
+      "M22",
+      "M07"
+    ],
+    "layout": "source-build",
+    "version": "M22-v2; others unchanged"
+  },
+  {
+    "label": "positive-before-semantic",
+    "stage": "positive-before",
+    "cohort": "semantic",
+    "ids": [
+      "S01",
+      "O15",
+      "S06",
+      "S08"
+    ],
+    "layout": "source-build",
+    "version": "unchanged selective companion"
+  },
+  {
+    "label": "positive-before-holdouts",
+    "stage": "positive-before",
+    "cohort": "holdouts",
+    "ids": [
+      "H01"
+    ],
+    "layout": "source-build",
+    "version": "unchanged selective companion"
+  },
+  {
+    "label": "positive-before-operations",
+    "stage": "positive-before",
+    "cohort": "operations",
+    "ids": [
+      "P06"
+    ],
+    "layout": "source-build",
+    "version": "unchanged selective companion"
+  },
+  {
+    "label": "positive-after-mechanical",
+    "stage": "positive-after",
+    "cohort": "mechanical",
+    "ids": [
+      "M01",
+      "M04",
+      "M05",
+      "M06",
+      "M17",
+      "M18",
+      "M16",
+      "M22",
+      "M07"
+    ],
+    "layout": "source-build",
+    "version": "M22-v2; others unchanged"
+  },
+  {
+    "label": "positive-after-semantic",
+    "stage": "positive-after",
+    "cohort": "semantic",
+    "ids": [
+      "S01",
+      "O15",
+      "S06",
+      "S08"
+    ],
+    "layout": "source-build",
+    "version": "unchanged selective companion"
+  },
+  {
+    "label": "positive-after-holdouts",
+    "stage": "positive-after",
+    "cohort": "holdouts",
+    "ids": [
+      "H01"
+    ],
+    "layout": "source-build",
+    "version": "unchanged selective companion"
+  },
+  {
+    "label": "positive-after-operations",
+    "stage": "positive-after",
+    "cohort": "operations",
+    "ids": [
+      "P06"
+    ],
+    "layout": "source-build",
+    "version": "unchanged selective companion"
+  }
+]

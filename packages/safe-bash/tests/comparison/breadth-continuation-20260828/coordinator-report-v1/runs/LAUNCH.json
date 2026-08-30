@@ -1,0 +1,28 @@
+{
+  "kind": "SYNTHETIC_ONLY_ONE_LAUNCH",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/coordinator-report-v1/controls.mjs"
+  ],
+  "pid": 20730,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "stdoutBytes": 220,
+  "stderrBytes": 0,
+  "errors": [],
+  "beforeBindings": true,
+  "afterBindings": true,
+  "stdoutSha256": "449438977a640ab97b36c39e3552ec45132db64b2a0f820a90e6826229a87040",
+  "stdoutBase64": "eyJwYXNzIjoxNiwiZmFpbCI6MCwidW5ydW4iOjAsImNoaWxkcmVuIjo0LCJyZWFwZWQiOnRydWUsInVuc2FmZSI6ZmFsc2UsInJlcG9ydCI6Ii9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLTIwMjYwODI4L2Nvb3JkaW5hdG9yLXJlcG9ydC12MS9ydW5zL3N5bnRoZXRpYy12MS0wMS9SRVNVTFQuanNvbiJ9Cg==",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBase64": ""
+}

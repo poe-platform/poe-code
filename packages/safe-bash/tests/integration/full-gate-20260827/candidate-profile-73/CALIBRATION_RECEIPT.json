@@ -1,0 +1,40 @@
+{
+  "candidate": "c355751f36ca3fdbab8f888eaab30203c1bcd343",
+  "tree": "04d652efd8716b29877b6c928e4ed4c851babb55",
+  "approval": "PENDING_ROOT_COHORT_AND_INDEPENDENT_HARNESS_REVIEW",
+  "launched": false,
+  "canonicalFiles": 600,
+  "cleanupInputs": 244,
+  "nativeBaseAssets": 49,
+  "nativeExtensionAssets": 2,
+  "packageManifestSha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+  "files": {
+    "CANDIDATE.json": "c9fa694a24d03979ed787fb13f8cec283aa57bd933e273697b05dfe041ec05fe",
+    "policy.json": "5a8e6fcdc04795a3b72c903b7fec3c92a5f02ed0db6874bdef23e2a28b7d6635",
+    "cleanup-expected.json": "d639dd45f67d45bbf1de1930225859f3f19bf7a92a925c7f0db45aa8d934afba",
+    "public.mjs": "d97e812b7d61d705b7c761cae4835e18c77486c305a372c114b107aa98347945",
+    "consumer.mts.fixture": "329193885968623687607868e867bc7e4dc86a3c6be7cf84da5675098d14998e"
+  },
+  "blockers": {
+    "unclassifiedMts": [
+      "tests/commands/column-stress/current-contract-review/consumer.mts",
+      "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+      "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+      "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+      "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+      "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+      "tests/commands/grep-aliases/consumer.mts",
+      "tests/commands/network-zero-caps-review/consumer.mts",
+      "tests/commands/network-zero-caps-review/mutations.d.mts",
+      "tests/commands/network-zero-caps-review/offline.d.mts",
+      "tests/commands/network-zero-caps-review/runtime.d.mts"
+    ],
+    "sourceReviews": "Not inferred from ancestry or HEAD; root must supply the chosen accepted/qualified cohort",
+    "launchDriver": "Historical runner remains8670-bound; successor binding is not applied automatically",
+    "nativeExtensions": [
+      "expr",
+      "du"
+    ],
+    "mandatoryProbe": "Node24 guarded feature/permissions/TAP and additional native prerequisites still required"
+  }
+}

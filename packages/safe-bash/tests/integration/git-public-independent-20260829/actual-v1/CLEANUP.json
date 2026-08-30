@@ -1,0 +1,22 @@
+{
+  "role": "OWNED_GENERATED_FIXTURE_RETIREMENT_AFTER_CAPTURE_AND_DATA_GUARDS",
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v3/RUN-FROZEN-PUBLIC80-01/scratch/work-tEoWFf",
+  "retained": [
+    "RAW.json.gz.base64",
+    "RAW-MANIFEST.json",
+    "PACKAGE.tgz.base64",
+    "RUNTIME-INVENTORY.json",
+    "SETUP-LOGS.json",
+    "POST-STOP-DATA-GUARDS.json",
+    "POST-STOP-TOOL-GUARDS.json",
+    "original launcher outer captures"
+  ],
+  "sourceAndToolsReconstructibleFrom": "bound inputs/development-blobs capture/tool inventories; no claim full runtime tree bytes vendored",
+  "knownCoordinatorGroupAbsent": true,
+  "launcherClosed": true,
+  "logicalResourceBootstrapUnknownPreserved": true,
+  "action": "remove only newly generated owned scratch/work-tEoWFf; preserve RUN directory/outer captures as consumed",
+  "beforeBytes": 55325401,
+  "workAbsent": true,
+  "noOldPreparationArtifactRemoved": true
+}

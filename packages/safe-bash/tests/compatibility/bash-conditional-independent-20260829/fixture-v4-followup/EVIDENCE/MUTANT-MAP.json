@@ -1,0 +1,119 @@
+{
+  "originalCompletePairs": 8,
+  "newCompletePairs": 2,
+  "uniqueVersionQualifiedFamilies": 10,
+  "originalResultsUnchanged": true,
+  "families": [
+    {
+      "id": "M01",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M02",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M03",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M04",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": false,
+      "selectedProof": "FRESH_V4",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Original byte restoration/load was proved; old semantic reader remained broken. Fresh exact mutation and same-path byte+semantic restore close only the new version."
+    },
+    {
+      "id": "M05",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M06",
+      "originalLoaded": true,
+      "originalDetected": false,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "FRESH_V4",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Original H01 never activated selected-reason branch; new H02-v4 activates it. Fresh H01 under the same mutation passes as a no-activation countercontrol."
+    },
+    {
+      "id": "M07",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M08",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M09",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    },
+    {
+      "id": "M10",
+      "originalLoaded": true,
+      "originalDetected": true,
+      "originalGenericActivationField": true,
+      "originalSemanticRestorePass": true,
+      "selectedProof": "ORIGINAL_d7ec5e26",
+      "selectedDetected": true,
+      "selectedSemanticRestorePass": true,
+      "qualification": "Unchanged complete original kill/restore pair, not replayed."
+    }
+  ]
+}
+

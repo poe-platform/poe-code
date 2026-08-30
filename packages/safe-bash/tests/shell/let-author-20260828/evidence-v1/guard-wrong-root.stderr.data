@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: WRONG_ROOT
++ actual - expected
+
++ '/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/selected-source'
+- '/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/guard-control.mjs:6:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/selected-source',
+  expected: '/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

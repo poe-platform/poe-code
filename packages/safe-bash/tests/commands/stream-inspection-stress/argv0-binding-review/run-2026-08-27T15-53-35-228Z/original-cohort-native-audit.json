@@ -1,0 +1,779 @@
+[
+  {
+    "kind": "audit-start",
+    "pid": 70444,
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/gnu-strings.test.ts"
+    ]
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70446,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "--version"
+    ],
+    "argv0Present": false,
+    "argv0": null,
+    "cwd": null,
+    "env": {
+      "LC_ALL": "C",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": null,
+    "filesAfter": null,
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 277,
+    "stderrBytes": 0,
+    "stdoutSha256": "ac0285042ddde3c36e36eb944b4980e1605374b3839be8e8dd61075ba8f352d6",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70449,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-KV8K09",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "004142434400ff454647480a",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 10,
+    "stderrBytes": 0,
+    "stdoutSha256": "f1ba19e696edef00e9f1478361248ae5e7be8323d72bc8806129d6d1e0da9494",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70450,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a",
+      "-n",
+      "2"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-q5UOhd",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "61006263006465660067",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 7,
+    "stderrBytes": 0,
+    "stdoutSha256": "d8bacaab4007e366da88acd6ff949ab5590d631258f0adadf07e2b3268c636ac",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70451,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a",
+      "-n",
+      "2"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-U7pNrK",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "4142ff4344804546",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 9,
+    "stderrBytes": 0,
+    "stdoutSha256": "ee6741a2e58783273ab8f4126845c62dc38373c053bc2fc6f1a959ae6676fdde",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70452,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a",
+      "left",
+      "right"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-4WHCXw",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "a637be3390e7068e65ff3a9ce67eda22a7fc75a257507a10bdd170d323c2b429",
+      "entries": [
+        {
+          "path": "left",
+          "mode": 420,
+          "type": "file",
+          "size": 5,
+          "sha256": "5b0f0f00eb0915c2d3ea2689d0ddf4d97b9a02ec1fdef0a0080dd89c380ac8b8"
+        },
+        {
+          "path": "right",
+          "mode": 420,
+          "type": "file",
+          "size": 5,
+          "sha256": "602a77678325ad1c265852934ddbc2a83146f78f9d9e2d8a38cfb879650676ff"
+        }
+      ]
+    },
+    "filesAfter": {
+      "sha256": "a637be3390e7068e65ff3a9ce67eda22a7fc75a257507a10bdd170d323c2b429",
+      "entries": [
+        {
+          "path": "left",
+          "mode": 420,
+          "type": "file",
+          "size": 5,
+          "sha256": "5b0f0f00eb0915c2d3ea2689d0ddf4d97b9a02ec1fdef0a0080dd89c380ac8b8"
+        },
+        {
+          "path": "right",
+          "mode": 420,
+          "type": "file",
+          "size": 5,
+          "sha256": "602a77678325ad1c265852934ddbc2a83146f78f9d9e2d8a38cfb879650676ff"
+        }
+      ]
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 10,
+    "stderrBytes": 0,
+    "stdoutSha256": "84474e811d3235c6c8cc4a6ffb84095a01c14298172f7205e23c672c9b44ffd1",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70453,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-hnJ3eG",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "ceb16e616d65e69db1e4baac76616c7565f09f92a0",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 11,
+    "stderrBytes": 0,
+    "stdoutSha256": "7531ac901aceb4680d10f517a1c8b3ecddfdacbc94db51e1f547153404a97922",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70454,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a",
+      "-n2"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-Vas0V4",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "61620963640d65660a474800",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 12,
+    "stderrBytes": 0,
+    "stdoutSha256": "90e09a77ff5d91bb8b82ef1ad90db1be2d03dabed3db911b78cac826676a6053",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70455,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-af",
+      "-n2",
+      "-tx",
+      "-",
+      "data"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-s2oKCh",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "4c45414b",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "67dea44d28162348266bef74b9578d74c8cf4939f7a88ddf24294db675ba2453",
+      "entries": [
+        {
+          "path": "data",
+          "mode": 420,
+          "type": "file",
+          "size": 9,
+          "sha256": "19f298a8e2db56287f5d4d40b96112daa8e74e22e60a2f6cb86dca8c2510223e"
+        }
+      ]
+    },
+    "filesAfter": {
+      "sha256": "67dea44d28162348266bef74b9578d74c8cf4939f7a88ddf24294db675ba2453",
+      "entries": [
+        {
+          "path": "data",
+          "mode": 420,
+          "type": "file",
+          "size": 9,
+          "sha256": "19f298a8e2db56287f5d4d40b96112daa8e74e22e60a2f6cb86dca8c2510223e"
+        }
+      ]
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 37,
+    "stderrBytes": 0,
+    "stdoutSha256": "5be08c7e695a1ea9ae955b61e7860433275ce271dab9fd6cae70f1ed8accbc68",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70456,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "--print-file-name",
+      "--radix=o",
+      "--bytes=2"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-Bjwtzu",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "00616200006364",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 58,
+    "stderrBytes": 0,
+    "stdoutSha256": "96fb31af23dfd92c467a810c55a5643ae2ae4ada9206a2735c043f108234f47f",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70457,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-f",
+      "-td",
+      "-n2"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-kFN4mo",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "00000000000000000000414200",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 29,
+    "stderrBytes": 0,
+    "stdoutSha256": "1f684cddc3402e4317bb67988cb1500f9437caf6c379b074deb5792d15668752",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70458,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "--all",
+      "--radix=x",
+      "first",
+      "second"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-HXP6Pj",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "137a14c27b1bf3d2c7f9ce45fb890e74baad6f82dba989cdcb47b248ecd67420",
+      "entries": [
+        {
+          "path": "first",
+          "mode": 420,
+          "type": "file",
+          "size": 6,
+          "sha256": "b4cc99200e80146542bac07833f6c04e1a1c428728b6ec91b408b66b7ba1264f"
+        },
+        {
+          "path": "second",
+          "mode": 420,
+          "type": "file",
+          "size": 5,
+          "sha256": "5b0f0f00eb0915c2d3ea2689d0ddf4d97b9a02ec1fdef0a0080dd89c380ac8b8"
+        }
+      ]
+    },
+    "filesAfter": {
+      "sha256": "137a14c27b1bf3d2c7f9ce45fb890e74baad6f82dba989cdcb47b248ecd67420",
+      "entries": [
+        {
+          "path": "first",
+          "mode": 420,
+          "type": "file",
+          "size": 6,
+          "sha256": "b4cc99200e80146542bac07833f6c04e1a1c428728b6ec91b408b66b7ba1264f"
+        },
+        {
+          "path": "second",
+          "mode": 420,
+          "type": "file",
+          "size": 5,
+          "sha256": "5b0f0f00eb0915c2d3ea2689d0ddf4d97b9a02ec1fdef0a0080dd89c380ac8b8"
+        }
+      ]
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 26,
+    "stderrBytes": 0,
+    "stdoutSha256": "ba0c52add79bb57226e412ee75bf5763a0a42280f08789ac3fa56c09b70ecb7e",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70459,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-PV9wjS",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "414243440045464748",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 1,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 0,
+    "stderrBytes": 1564,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "408835816cfd774536a0bffae5ade7814e96e2e8e4091618b47bb5edfd796705"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70460,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-",
+      "first",
+      "-",
+      "second"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-SCYesE",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "4c45414b",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "db1c461ab96391696e8516b730fb58d5bff735617e88619e4588dbc78c0fd2db",
+      "entries": [
+        {
+          "path": "first",
+          "mode": 420,
+          "type": "file",
+          "size": 4,
+          "sha256": "e12e115acf4552b2568b55e93cbd39394c4ef81c82447fafc997882a02d23677"
+        },
+        {
+          "path": "second",
+          "mode": 420,
+          "type": "file",
+          "size": 4,
+          "sha256": "e59e4dc24c482ed5ea574fb4f5367f340cb0c77d504bd5b1a982038e2d861954"
+        }
+      ]
+    },
+    "filesAfter": {
+      "sha256": "db1c461ab96391696e8516b730fb58d5bff735617e88619e4588dbc78c0fd2db",
+      "entries": [
+        {
+          "path": "first",
+          "mode": 420,
+          "type": "file",
+          "size": 4,
+          "sha256": "e12e115acf4552b2568b55e93cbd39394c4ef81c82447fafc997882a02d23677"
+        },
+        {
+          "path": "second",
+          "mode": 420,
+          "type": "file",
+          "size": 4,
+          "sha256": "e59e4dc24c482ed5ea574fb4f5367f340cb0c77d504bd5b1a982038e2d861954"
+        }
+      ]
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 10,
+    "stderrBytes": 0,
+    "stdoutSha256": "f1ba19e696edef00e9f1478361248ae5e7be8323d72bc8806129d6d1e0da9494",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "spawnSync",
+    "parentPid": 70444,
+    "childPid": 70461,
+    "selected": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+    "args": [
+      "-a",
+      "-n4"
+    ],
+    "argv0Present": true,
+    "argv0": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+    "cwd": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/tree/tests/commands/stream-inspection/author-native-5tMK0m",
+    "env": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "PATH": "/usr/bin:/bin"
+    },
+    "inputHex": "4142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409414243440941424344094142434409",
+    "before": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "after": {
+      "executable": "/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "resolved": "/private/tmp/strings-binding-independent-OjIjtP/moved committed workspace/native-bin/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 448
+    },
+    "filesBefore": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "filesAfter": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "entries": []
+    },
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdoutBytes": 35001,
+    "stderrBytes": 0,
+    "stdoutSha256": "62199defaf1ea68e5655770b84c69389387d04340e3c56f085a12ee89f4502d0",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "kind": "audit-exit",
+    "pid": 70444,
+    "code": 0
+  }
+]

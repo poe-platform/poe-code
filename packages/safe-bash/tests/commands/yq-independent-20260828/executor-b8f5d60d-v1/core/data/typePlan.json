@@ -1,0 +1,699 @@
+{
+  "schema": 2,
+  "state": "EXACT_ARTIFACT_DATA_BOUND_FUTURE_LOAD_COMPILE_DENIED",
+  "compiledArtifactEntries": [
+    {
+      "path": "dist/commands/yq/accounting.js",
+      "bytes": 9746,
+      "sha256": "e3f0f55e5a7d94321a34966fac6205cfa07b9b384b3dba72cb8e19b6f32c5e40",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/encoder.js",
+      "bytes": 8804,
+      "sha256": "8a0b062df225b9c161f469f7f62f46938e7fafc00139db20c480dce00129baec",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/errors.js",
+      "bytes": 1213,
+      "sha256": "130c2a237052dedca918038092fb1dc130295f5cdaab0ca5d94c7dae3e31bd2a",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/index.js",
+      "bytes": 26827,
+      "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/parser.js",
+      "bytes": 50395,
+      "sha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/structured/query-core.js",
+      "bytes": 23200,
+      "sha256": "63b447194c3ba3eed8fb9b65eeb09a82aa7a86a071b7052a28b333938529e3e5",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/accounting.d.ts.map",
+      "bytes": 1538,
+      "sha256": "c7fabd8ce6ae44426c78d71402aa943ca4452e07acdf16d8d28cd93d80a25132",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/accounting.js.map",
+      "bytes": 9943,
+      "sha256": "a1acc590e96eb6c0f336deaa854f374f87efb3a013a9456f49523b3d04810c92",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/encoder.d.ts.map",
+      "bytes": 568,
+      "sha256": "37c7f5e56c97af52c30ab13688f4662626d3dce1778b8799fb24ee940ddca8ac",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/encoder.js.map",
+      "bytes": 10013,
+      "sha256": "860777df0f36e321a6a1eefd3462ff0dc532cefa542d6c32512fb248fd112f85",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/errors.d.ts.map",
+      "bytes": 1521,
+      "sha256": "ea8124f5d35c2356670c79c04bdc1ddee302b0abdffd61efbfe8e6ee4ef3ae88",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/errors.js.map",
+      "bytes": 1183,
+      "sha256": "c0e1cae3dae1061b06e8e0d127965dd3981eb40a77d5d2de921f47912a2c39b4",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/index.d.ts.map",
+      "bytes": 401,
+      "sha256": "a56f6541a091926a665da12fa85b76ab21a1cc8f143b8484aea10ae152c716e2",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/index.js.map",
+      "bytes": 24955,
+      "sha256": "20d34a249efea1a2bc72682ca20f5d8cb39bbdb965808ff64f606769663c5d5c",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/parser.d.ts.map",
+      "bytes": 419,
+      "sha256": "0dbd7446e607c48c08ae54b3413ae1a30e69e48abdb7189ea5c6a711fceb5bd6",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/parser.js.map",
+      "bytes": 56314,
+      "sha256": "293f9639a19d9eed2f5554ced35108127c05b94442a1d1a49fe84d138722499d",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/structured/query-core.d.ts.map",
+      "bytes": 1355,
+      "sha256": "8fa52ccb5ad9f9af225b32b7f50b9117c9ea19f346a5e8c7d191645fea98cb0b",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/structured/query-core.js.map",
+      "bytes": 22090,
+      "sha256": "a214a63d3cae90387a6ffd9f2f17819b477ab0f0c27e6bfc286cec9576d4f862",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/accounting.d.ts",
+      "bytes": 2207,
+      "sha256": "1f18a30542f468c7a92d07dc00afa24c0eb5e4efbaa3f79bda6e19b0554f2646",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/encoder.d.ts",
+      "bytes": 480,
+      "sha256": "097e6dbb9f25ca96fec4c9a710427dc509956ac5b3aba76d142ae464880018dc",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/errors.d.ts",
+      "bytes": 2191,
+      "sha256": "fbd61e0f606c5a20adadf7714dbe10ca5345cdfbb3e87fcb9391dacfc7edb5ca",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/index.d.ts",
+      "bytes": 419,
+      "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/yq/parser.d.ts",
+      "bytes": 362,
+      "sha256": "f3d4dae6d3c4ed641de7bb22cd0f10e48507ff514b71f72de4e0170c5f50035c",
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "dist/commands/structured/query-core.d.ts",
+      "bytes": 1307,
+      "sha256": "1f316b2cc3856e4254c62f3a616b0f03b49249c8f77e4cec6cacea19d8bc949e",
+      "mode": 420,
+      "kind": "file"
+    }
+  ],
+  "entry": {
+    "path": "dist/commands/yq/index.js",
+    "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+    "role": "direct module factory entry, not package public Yq export"
+  },
+  "declarations": {
+    "yq": {
+      "path": "dist/commands/yq/index.d.ts",
+      "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+      "text": "import { type CommandDefinition, type VirtualShellPlugin } from \"../../contracts/index.js\";\nexport interface YqCommandsOptions {\n    readonly replace?: boolean;\n}\nexport declare function createYqCommand(): CommandDefinition;\nexport declare function createYqCommands(): readonly CommandDefinition[];\nexport declare function yqCommands(options?: YqCommandsOptions): VirtualShellPlugin;\n//# sourceMappingURL=index.d.ts.map"
+    },
+    "contracts": {
+      "path": "dist/contracts/index.d.ts",
+      "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+      "bytes": 237
+    },
+    "public": {
+      "state": "PUBLIC_EXPORT_GAP",
+      "metadataPath": "package.json",
+      "metadataSha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "import": "./dist/index.js"
+        },
+        "./contracts": {
+          "types": "./dist/contracts/index.d.ts",
+          "import": "./dist/contracts/index.js"
+        },
+        "./contracts/*": {
+          "types": "./dist/contracts/*.d.ts",
+          "import": "./dist/contracts/*.js"
+        },
+        "./commands/network": {
+          "types": "./dist/commands/network/index.d.ts",
+          "import": "./dist/commands/network/index.js"
+        },
+        "./commands/metadata": {
+          "types": "./dist/commands/metadata/index.d.ts",
+          "import": "./dist/commands/metadata/index.js"
+        },
+        "./commands/archive": {
+          "types": "./dist/commands/archive/index.d.ts",
+          "import": "./dist/commands/archive/index.js"
+        },
+        "./commands/table-text": {
+          "types": "./dist/commands/table-text/index.d.ts",
+          "import": "./dist/commands/table-text/index.js"
+        },
+        "./commands/stream-inspection": {
+          "types": "./dist/commands/stream-inspection/index.d.ts",
+          "import": "./dist/commands/stream-inspection/index.js"
+        },
+        "./commands/stream-format": {
+          "types": "./dist/commands/stream-format/index.d.ts",
+          "import": "./dist/commands/stream-format/index.js"
+        },
+        "./commands/split": {
+          "types": "./dist/commands/split/index.d.ts",
+          "import": "./dist/commands/split/index.js"
+        },
+        "./commands/time-env": {
+          "types": "./dist/commands/time-env/index.d.ts",
+          "import": "./dist/commands/time-env/index.js"
+        },
+        "./commands/tree": {
+          "types": "./dist/commands/tree/index.d.ts",
+          "import": "./dist/commands/tree/index.js"
+        },
+        "./commands/file": {
+          "types": "./dist/commands/file/index.d.ts",
+          "import": "./dist/commands/file/index.js"
+        },
+        "./commands/grep-aliases": {
+          "types": "./dist/commands/grep-aliases/index.d.ts",
+          "import": "./dist/commands/grep-aliases/index.js"
+        },
+        "./commands/column": {
+          "types": "./dist/commands/column/index.d.ts",
+          "import": "./dist/commands/column/index.js"
+        },
+        "./commands/html-to-markdown": {
+          "types": "./dist/commands/html-to-markdown/index.d.ts",
+          "import": "./dist/commands/html-to-markdown/index.js"
+        },
+        "./commands/du": {
+          "types": "./dist/commands/du/index.d.ts",
+          "import": "./dist/commands/du/index.js"
+        },
+        "./commands/expr": {
+          "types": "./dist/commands/expr/index.d.ts",
+          "import": "./dist/commands/expr/index.js"
+        },
+        "./commands/which": {
+          "types": "./dist/commands/which/index.d.ts",
+          "import": "./dist/commands/which/index.js"
+        },
+        "./fs/s3": {
+          "types": "./dist/fs/s3/index.d.ts",
+          "import": "./dist/fs/s3/index.js"
+        },
+        "./fs/s3/http": {
+          "types": "./dist/fs/s3/http/index.d.ts",
+          "import": "./dist/fs/s3/http/index.js"
+        },
+        "./fs/webdav": {
+          "types": "./dist/fs/webdav/index.d.ts",
+          "import": "./dist/fs/webdav/index.js"
+        },
+        "./fs/readonly": {
+          "types": "./dist/fs/readonly/index.d.ts",
+          "import": "./dist/fs/readonly/index.js"
+        },
+        "./fs/mount": {
+          "types": "./dist/fs/mount/index.d.ts",
+          "import": "./dist/fs/mount/index.js"
+        },
+        "./fs/overlay": {
+          "types": "./dist/fs/overlay/index.d.ts",
+          "import": "./dist/fs/overlay/index.js"
+        }
+      },
+      "rootYqAuthorClaim": false,
+      "negativeMissingModuleNeverPass": true
+    }
+  },
+  "types": {
+    "strict": {
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "strict": true,
+      "exactOptionalPropertyTypes": true,
+      "noUncheckedIndexedAccess": true,
+      "skipLibCheck": false,
+      "noEmit": true
+    },
+    "fixtures": [
+      {
+        "id": "TYP-01",
+        "name": "positive",
+        "fixture": "fixtures/positive.mts.data",
+        "mode": "DIRECT_AND_FUTURE_PUBLIC",
+        "outcome": "accept",
+        "diagnostic": null,
+        "authority": "final#/publicApi",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/positive.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+        "bytes": 1036
+      },
+      {
+        "id": "TYP-02",
+        "name": "factory-command-extra",
+        "fixture": "fixtures/factory-command-extra.mts.data",
+        "mode": "DIRECT_AND_FUTURE_PUBLIC",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2554,
+          "line": 2
+        },
+        "authority": "final#/publicApi",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-command-extra.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+        "bytes": 63
+      },
+      {
+        "id": "TYP-02",
+        "name": "factory-array-extra",
+        "fixture": "fixtures/factory-array-extra.mts.data",
+        "mode": "DIRECT_AND_FUTURE_PUBLIC",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2554,
+          "line": 2
+        },
+        "authority": "final#/publicApi",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-array-extra.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+        "bytes": 80
+      },
+      {
+        "id": "TYP-03",
+        "name": "unknown-limits",
+        "fixture": "fixtures/unknown-limits.mts.data",
+        "mode": "DIRECT_AND_FUTURE_PUBLIC",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2353,
+          "line": 2
+        },
+        "authority": "final#/publicApi",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/unknown-limits.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+        "bytes": 78
+      },
+      {
+        "id": "TYP-03",
+        "name": "replace-string",
+        "fixture": "fixtures/replace-string.mts.data",
+        "mode": "DIRECT_AND_FUTURE_PUBLIC",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2322,
+          "line": 2
+        },
+        "authority": "final#/publicApi",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-string.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+        "bytes": 69
+      },
+      {
+        "id": "TYP-07",
+        "name": "replace-undefined",
+        "fixture": "fixtures/replace-undefined.mts.data",
+        "mode": "DIRECT_AND_FUTURE_PUBLIC",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2379,
+          "line": 2
+        },
+        "authority": "final#/publicApi",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-undefined.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+        "bytes": 73
+      },
+      {
+        "id": "TYP-04",
+        "name": "hidden-limits",
+        "fixture": "fixtures/hidden-limits.mts.data",
+        "mode": "PUBLIC_ONLY",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2305,
+          "line": 1
+        },
+        "authority": "final#/publicApi + final#/privateAdapter",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-limits.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_PUBLIC_EXPORT_GAP",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+        "bytes": 76
+      },
+      {
+        "id": "TYP-04",
+        "name": "hidden-defaults",
+        "fixture": "fixtures/hidden-defaults.mts.data",
+        "mode": "PUBLIC_ONLY",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2305,
+          "line": 1
+        },
+        "authority": "final#/publicApi + final#/privateAdapter",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-defaults.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_PUBLIC_EXPORT_GAP",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+        "bytes": 86
+      },
+      {
+        "id": "TYP-04",
+        "name": "hidden-session",
+        "fixture": "fixtures/hidden-session.mts.data",
+        "mode": "PUBLIC_ONLY",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2305,
+          "line": 1
+        },
+        "authority": "final#/publicApi + final#/privateAdapter",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-session.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_PUBLIC_EXPORT_GAP",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+        "bytes": 88
+      },
+      {
+        "id": "TYP-04",
+        "name": "hidden-factory",
+        "fixture": "fixtures/hidden-factory.mts.data",
+        "mode": "PUBLIC_ONLY",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2305,
+          "line": 1
+        },
+        "authority": "final#/publicApi + final#/privateAdapter",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-factory.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_PUBLIC_EXPORT_GAP",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+        "bytes": 96
+      },
+      {
+        "id": "TYP-04",
+        "name": "hidden-parser",
+        "fixture": "fixtures/hidden-parser.mts.data",
+        "mode": "PUBLIC_ONLY",
+        "outcome": "reject",
+        "diagnostic": {
+          "code": 2305,
+          "line": 1
+        },
+        "authority": "final#/publicApi + final#/privateAdapter",
+        "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-parser.mts.data",
+        "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+        "state": "UNRUN_PUBLIC_EXPORT_GAP",
+        "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+        "fixtureSha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+        "bytes": 68
+      }
+    ],
+    "directFixtureCount": 6,
+    "conditionalPublicFixtureCount": 5,
+    "environments": "Six direct fixtures in EACH source-built and installed/moved environment:12 direct compiler invocations. Matching declaration hashes is necessary provenance, never substituted for either run.",
+    "resolution": "Only exact candidate declaration map paths and existing @@YQ@@/@@CONTRACTS@@ substitutions. No source .ts, workspace, tsconfig paths, ambient NODE_PATH, generated fake exports or global typecheck.",
+    "expectedNegative": "Exact declared diagnostic code/line inside zero-exit worker. Wrong diagnostic/compiler crash/nonzero worker FAIL; missing public module stays GAP.",
+    "authorTypeResultsInherited": false,
+    "directFixtureCountPerEnvironment": 6,
+    "directCompilerInvocations": 12,
+    "fixtureExecutions": [
+      {
+        "id": "source-built-direct/positive",
+        "environment": "source-built-direct",
+        "fixture": "positive",
+        "fixtureSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+        "recordId": "TYP-01",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "source-built-direct/factory-command-extra",
+        "environment": "source-built-direct",
+        "fixture": "factory-command-extra",
+        "fixtureSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+        "recordId": "TYP-02",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "source-built-direct/factory-array-extra",
+        "environment": "source-built-direct",
+        "fixture": "factory-array-extra",
+        "fixtureSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+        "recordId": "TYP-02",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "source-built-direct/unknown-limits",
+        "environment": "source-built-direct",
+        "fixture": "unknown-limits",
+        "fixtureSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+        "recordId": "TYP-03",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "source-built-direct/replace-string",
+        "environment": "source-built-direct",
+        "fixture": "replace-string",
+        "fixtureSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+        "recordId": "TYP-03",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "source-built-direct/replace-undefined",
+        "environment": "source-built-direct",
+        "fixture": "replace-undefined",
+        "fixtureSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+        "recordId": "TYP-07",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "installed-moved-direct/positive",
+        "environment": "installed-moved-direct",
+        "fixture": "positive",
+        "fixtureSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+        "recordId": "TYP-01",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "installed-moved-direct/factory-command-extra",
+        "environment": "installed-moved-direct",
+        "fixture": "factory-command-extra",
+        "fixtureSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+        "recordId": "TYP-02",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "installed-moved-direct/factory-array-extra",
+        "environment": "installed-moved-direct",
+        "fixture": "factory-array-extra",
+        "fixtureSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+        "recordId": "TYP-02",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "installed-moved-direct/unknown-limits",
+        "environment": "installed-moved-direct",
+        "fixture": "unknown-limits",
+        "fixtureSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+        "recordId": "TYP-03",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "installed-moved-direct/replace-string",
+        "environment": "installed-moved-direct",
+        "fixture": "replace-string",
+        "fixtureSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+        "recordId": "TYP-03",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      },
+      {
+        "id": "installed-moved-direct/replace-undefined",
+        "environment": "installed-moved-direct",
+        "fixture": "replace-undefined",
+        "fixtureSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+        "recordId": "TYP-07",
+        "state": "UNRUN_FRESH_SCOPED_COMPILER_REQUIRED"
+      }
+    ]
+  },
+  "tools": {
+    "profileReference": {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json",
+      "sha256": "60ce4d385c98996773ae783b98310561491fe8d05ed4d95695262e6d9be83786",
+      "bytes": 9881
+    },
+    "historicalCompatibilityProfile": {
+      "node": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      "typescript": {
+        "path": "node_modules/typescript",
+        "version": "5.9.3",
+        "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+        "entries": 147
+      },
+      "nodeTypes": {
+        "path": "node_modules/@types/node",
+        "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+        "entries": 83
+      },
+      "undiciTypes": {
+        "path": "node_modules/undici-types",
+        "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+        "entries": 41
+      }
+    },
+    "freshToolCopies": null,
+    "independentBuildReceipt": null,
+    "authorCaptureExecutablePaths": "Historical metadata only; not current tool provenance or copied toolchain admission.",
+    "effectiveLaunchAndResourceLimits": "SCHEDULE-DELTA.json#/toolResourceDeltas",
+    "packetToolProfile": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+      "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+      "bytes": 4800
+    }
+  },
+  "loader": {
+    "implemented": false,
+    "sourceBuiltEntry": "<independently-built full-package root>/dist/commands/yq/index.js",
+    "installedMovedEntry": "<regular installed package physically moved root>/dist/commands/yq/index.js",
+    "environmentCount": 2,
+    "installedStaging": "Setup/materialization role, not a third semantic environment",
+    "candidateImports": "Only exact parent-bound relative compiled entries and sealed candidate-role builtin allowlist; no ambient package/network/workspace resolution.",
+    "harnessImports": "Separately sealed host-tool role, including exact coordinator and CMD22 modules; do not confuse host builtin permission with candidate import permission.",
+    "allowlist": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Fresh complete role-aware loader recipe and exact entries required before any actual load"
+    },
+    "loadRecords": "Actual resolved canonical path, parentURL, input/package/recipe hash, loaded bytes and namespace/command invocation. Hash admission alone is not loaded-code proof.",
+    "candidateBuiltinData": [
+      "node:path",
+      "node:stream/web",
+      "node:timers/promises",
+      "node:util"
+    ],
+    "typedEntryData": {
+      "yq": "dist/commands/yq/index.js",
+      "contracts": "dist/contracts/index.js"
+    },
+    "inertFullReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455
+    }
+  },
+  "guards": {
+    "inherited": {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json",
+      "sha256": "60ce4d385c98996773ae783b98310561491fe8d05ed4d95695262e6d9be83786",
+      "bytes": 9881
+    },
+    "sourceArchive273Projection271": "Corrected sealed packet authenticates distinct full273 archive and271 projection data; materialization/complete golden-mode admission is still denied.",
+    "fullPackage870README": "Corrected sealed packet authenticates baseline846+24/full870 including exact baseline README. Future before/after physical guards remain required.",
+    "modes": "POSIX source/materialization modes come from authentic original/archive seals. Git100644 does not mean historical POSIX0600 changed to0644; never derive expected modes from current live tree.",
+    "beforeAfter": "Full added-entry/empty-directory, byte/hash/mode and physical-root guards; retained moved trees, source roots, recipe roots and evidence parent membership; no broad exclusions."
+  },
+  "RootGO": false
+}

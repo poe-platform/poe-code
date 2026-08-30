@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "status": "PREPARED_NOT_EXECUTED",
+  "date": "2026-08-27",
+  "role": "AUTHOR_PUBLIC_PACKAGE_CURRENT_SAFEJS_PREPARER_NOT_DIFFERENT_FINAL_REVIEWER",
+  "sourceCandidate": null,
+  "rootRelease": null,
+  "observedBaselineCommit": "a03b9288a6f4b652387be9fefa8faf17ef58b9e7",
+  "observedBaselineTree": "d411959221ddce4c0b04d686aa5885c9db40e547",
+  "checks": {
+    "preparationOnlyTests": {
+      "pass": 9,
+      "fail": 0
+    },
+    "javascriptSyntax": "PASS_WITHOUT_IMPORT",
+    "approvedApiCheckpointExactBytes": "PASS",
+    "sealedPublicReferences": 51,
+    "frozenSafejsIntendedRows": 25,
+    "privateExpectedMetadataFiles": 6,
+    "privateExpectedEngineFiles": 264,
+    "privateExpectedLoadedFiles": 63
+  },
+  "executions": {
+    "candidateBuilds": 0,
+    "candidateImports": 0,
+    "guestRuns": 0,
+    "privateQueries": 0,
+    "privateImports": 0,
+    "transportCalls": 0,
+    "installs": 0
+  },
+  "preservedAttempts": [
+    {
+      "kind": "Initial tool-pin generation refused npm shim symlinks",
+      "resolution": "Authenticate each of 12 exact internal links and target bytes; regular-file copies only; no product or guest execution"
+    },
+    {
+      "kind": "Initial eight preparation guard tests passed",
+      "report": {
+        "path": "/private/tmp/safe-bash-author-public-preparation-Fn5vGp/PREPARATION.json",
+        "sha256": "751a5d6edeb2a815f77b7c03856769eb1c0f5c899aedf37724b485b1bd856a26",
+        "bytes": 15566
+      }
+    },
+    {
+      "kind": "Expanded nine-test run: eight pass, one setup failure; /usr/bin/tar is a symlink",
+      "raw": [
+        {
+          "path": "/private/tmp/safe-bash-author-public-prep-validation.sjjXl3/preparation-tests.txt",
+          "sha256": "0623cd9d93d39f44768dfeeefe0ded684f3db21b64e9a7fee0a1382e3054fcbc",
+          "bytes": 3231
+        },
+        {
+          "path": "/private/tmp/safe-bash-author-public-prep-validation.sjjXl3/prepare.txt",
+          "sha256": "aadaefa9f08dcc028d26c1dadeb0ea6660440163eb86705da0eef0f390437401",
+          "bytes": 1056
+        }
+      ],
+      "resolution": "Pin and invoke the actual regular /usr/bin/bsdtar binary; preserve failed capture; no semantic assertion changed"
+    },
+    {
+      "kind": "Final nine preparation guard tests passed",
+      "raw": [
+        {
+          "path": "/private/tmp/safe-bash-author-public-prep-validation.tNs6EG/preparation-tests.txt",
+          "sha256": "3a7a8c8377ff03c5371c5f9d2718ee7a068027e07737c07a493efce55fb92a80",
+          "bytes": 1931
+        },
+        {
+          "path": "/private/tmp/safe-bash-author-public-prep-validation.tNs6EG/syntax.txt",
+          "sha256": "b22daf38ea1beaa34c65ac986003a701e2ebbd89578c00e9d96c5f70b8271ca7",
+          "bytes": 81
+        },
+        {
+          "path": "/private/tmp/safe-bash-author-public-prep-validation.tNs6EG/prepare.txt",
+          "sha256": "f683ed5e981628f6ab0ce67a86c8e90919cdb7d8f8a12ef5441e7afdedd0f816",
+          "bytes": 162
+        }
+      ],
+      "report": {
+        "path": "/private/tmp/safe-bash-author-public-preparation-bRYwwR/PREPARATION.json",
+        "sha256": "751a5d6edeb2a815f77b7c03856769eb1c0f5c899aedf37724b485b1bd856a26",
+        "bytes": 15566
+      }
+    }
+  ],
+  "pending": [
+    "ROOT frozen new current source commit/tree and author-execution release",
+    "immutable current archive/build/package then physically moved public consumer",
+    "strict public consumer plus feasible unchanged maintained typecheck; preserve exact foreign errors",
+    "actual public optional capability/operation/cleanup/acquisition/accounting/legacy/cursor/precedence fixture",
+    "curl+cat mixed-destination streaming public fixture binding to source-owner focused cases",
+    "original five custom pre-first-read requirements, a separate pending cohort",
+    "exact new compiled-source loader and bounded supervisor binding using frozen assertions",
+    "fresh before/after private precondition for each surface/lifecycle/controls cohort including failures",
+    "actual-current copied-source-hook SafeJS surface8/lifecycle11/zero6",
+    "different final verification remains Curie-owned"
+  ],
+  "claims": {
+    "independentAcceptance": false,
+    "releaseAcceptance": false,
+    "fullGate": false,
+    "superiority": false,
+    "parity": false,
+    "privatePackageIntegration": false
+  }
+}

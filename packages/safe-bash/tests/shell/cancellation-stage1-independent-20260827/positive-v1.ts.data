@@ -1,0 +1,23 @@
+import { createRootCancellationLink, admitChildCancellation, subscribeCancellation, selectCancellationOutcome } from './cancellation.js';
+import type { CancellationInvokeOptions, CancellationSelection, CancellationCloseResult } from './cancellation.js';
+const controller = new AbortController();
+const options = { signal: controller.signal } as const satisfies CancellationInvokeOptions;
+const parent = createRootCancellationLink({ admission: { depth: 0, maxDepth: 8, resourceLimit: 8 } });
+const child = admitChildCancellation(parent, options, { depth: 1, maxDepth: 8, resourceLimit: 8 });
+const borrowed = admitChildCancellation(parent, { signal: undefined });
+const detach: () => void = subscribeCancellation(child, origin => {
+  const signal: AbortSignal = origin.signal;
+  const frame: typeof parent = origin.frame;
+  void signal; void frame;
+});
+const selection: CancellationSelection<number> = selectCancellationOutcome(child, { kind: 'return', value: 5 });
+if (selection.outcome.kind === 'return') {
+  const value: number = selection.outcome.value;
+  void value;
+} else {
+  const reason: unknown = selection.outcome.reason;
+  void reason;
+}
+const close: CancellationCloseResult = child.close();
+const failures: readonly unknown[] = close.failures;
+void failures; borrowed.close(); detach(); parent.close();

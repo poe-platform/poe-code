@@ -1,0 +1,11 @@
+# Producer DATA continuation — classification HOLD
+
+The authorized single DATA helper ran once and exited1 with complete file-based stdout/stderr. No second launch was made.
+
+Three pattern/escape groups pass. Exact declared `./contracts/*` prefix/suffix targets expand against1070 actual members; no literal-asterisk file assumption remains, no extra export was introduced. All48 private asset bytes/modes/hashes match and none is publicly exported. Fresh exact974493B compressed admission occurred before a single bounded same-Buffer decode. Full shipping/emits and323 frozen materialized sources/canonical provenance were reauthenticated; no currentHEAD/default-config substitution or held XAN/yq/query-core content read.
+
+The remaining edge loop stopped at `dist/commands/internal.d.ts` target `util`, because the reviewer condition accepts nonrelative targets only with a `node:` prefix. Source/DATA inspection finds exactly two declaration references to `util` and one from `dist/contracts/path.d.ts` to `path`. These are not executable runtime imports. The author CLOSURE records classify them `builtin:false` but omit them from unresolved; that field is not proof of a third-party dependency or a correct complete builtin classification. No package/product defect is established.
+
+Smallest next correction: recognize only the actual declaration-only bare Node builtin references under an explicit authoritative builtin/type profile, retain strict refusal of unknown bare modules and runtime/provider ambiguity, then finish the remaining relative/WorkerURL/map/postguard loops. Do not broaden to arbitrary package names. The exact original source/error/check records remain; no final complete DATA acceptance is issued. This is not another build/pack/product request.
+
+All1259 edges, source maps and comprehensive final postguards remain incomplete. 52891ffe/initial inspection failure and its six controls remain immutable; this continuation contributes separate3 pattern controls and48 private checks. The bounded compiler/pack evidence remains historical, not rerun. No runtime/Workers/loader/native/compiler/npm/install, no extraction; metadata Git children returned0 and the helper exited1 naturally. No active owned child, no cleanup/retirement/RSS/fullcensus claim. Frozen artifact identity is unchanged.

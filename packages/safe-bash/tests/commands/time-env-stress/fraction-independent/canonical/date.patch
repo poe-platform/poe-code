@@ -1,0 +1,42 @@
+diff --git a/tests/commands/time-env/date.test.ts b/tests/commands/time-env/date.test.ts
+index 9acad92..209146a 100644
+--- a/tests/commands/time-env/date.test.ts
++++ b/tests/commands/time-env/date.test.ts
+@@ -66,6 +66,28 @@ test("date reference reads VFS mtime through a symlink, preserves bytes and neve
+   assert.equal(missing.exitCode, 1); assert.equal(missing.stdout, ""); assert.match(missing.stderr, /no such file/);
+ });
+ 
++test("date %12N zero-padding at epoch matches the accepted GNU9.7 profile", async () => {
++  const stderr: Uint8Array[] = [];
++  const result = await run("date", ["-d@0", "+%12N"], {}, { stderr: { async write(bytes) { stderr.push(bytes.slice()); } } });
++  assert.equal(result.exitCode, 0);
++  assert.equal(result.stdout, "000000000000\n");
++  assert.equal(result.stdoutHex, "3030303030303030303030300a");
++  assert.equal(result.stderr, "");
++  assert.equal(Buffer.concat(stderr).toString(), "");
++  assert.deepEqual(Buffer.concat(stderr), Buffer.alloc(0));
++});
++
++test("date bare %-N at epoch uses virtual-clock ordinary formatting, not GNU9.7/Darwin bare parity", async () => {
++  const stderr: Uint8Array[] = [];
++  const result = await run("date", ["-d@0", "+%-N"], {}, { stderr: { async write(bytes) { stderr.push(bytes.slice()); } } });
++  assert.equal(result.exitCode, 0);
++  assert.equal(result.stdout, "0\n");
++  assert.equal(result.stdoutHex, "300a");
++  assert.equal(result.stderr, "");
++  assert.equal(Buffer.concat(stderr).toString(), "");
++  assert.deepEqual(Buffer.concat(stderr), Buffer.alloc(0));
++});
++
+ for (const args of [
+   ["-d2023-02-29"], ["-d1900-02-29"], ["-d2024-13-01"], ["-d2024-04-31"], ["-d2024-01-00"],
+   ["-d2024-02-29T24:00:00Z"], ["-d2024-02-29T23:59:60Z"], ["-d2024-01-01T00:00:00+25:00"],
+@@ -73,7 +95,7 @@ for (const args of [
+   ["--date", "next Friday"], ["--date", "01/02/03"], ["--date", "Fri, 29 Feb 2024 12:34:56 GMT"],
+   ["-s", "2024-01-01"], ["--set=2024-01-01"], ["082712002026"], ["--file=/etc/passwd"],
+   ["--debug"], ["--utc=yes"], ["-r", "file", "-d@0"], ["-I", "+%s"], ["-Iinvalid"], ["--rfc-3339=hours"],
+-  ["-d@0", "+%Q"], ["-d@0", "+%"], ["-d@0", "+%::::z"], ["-d@0", "+%12N"], ["-d@0", "+%-N"],
++  ["-d@0", "+%Q"], ["-d@0", "+%"], ["-d@0", "+%::::z"],
+   ["-d@0", "+%5%"],
+ ]) {
+   test(`date rejects unsupported/invalid input without stdout: ${args.join(" ")}`, async () => {

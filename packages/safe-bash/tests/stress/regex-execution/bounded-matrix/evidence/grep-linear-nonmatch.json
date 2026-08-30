@@ -1,0 +1,1 @@
+{"id":"grep-linear-nonmatch","tool":"grep","kind":"control","outcome":"not-started-source-drift","reason":"Frozen source/runtime drift; stop","caseExecuted":false,"pid":null,"activechildren":0,"sourceStable":false,"parentExitCode":1,"rawToolOutput":"grep-linear-nonmatch.tool.txt"}

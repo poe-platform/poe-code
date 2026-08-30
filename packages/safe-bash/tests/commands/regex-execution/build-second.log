@@ -1,0 +1,4 @@
+
+> virtual-bash@0.0.0 build
+> tsc -p tsconfig.build.json
+

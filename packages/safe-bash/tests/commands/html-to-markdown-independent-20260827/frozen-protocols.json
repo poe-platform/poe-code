@@ -1,0 +1,23 @@
+[
+  {"id":"P01-help-no-read","expected":"--help and --version acquire neither stdin nor VFS; success"},
+  {"id":"P02-shared-stdin","expected":"repeated - converts a single cursor once, does not replay"},
+  {"id":"P03-borrowed-buffer","expected":"Buffer reused on next and finally does not corrupt retained input"},
+  {"id":"P04-abort-before-read","expected":"caller reason preserved; no unsolicited input acquisition"},
+  {"id":"P05-abort-pending-read","expected":"cooperative pending iterator is closed once; caller reason wins"},
+  {"id":"P06-backpressure","expected":"output writes awaited; no concurrent writes or early settlement"},
+  {"id":"P07-sink-error","expected":"failed output never reports success; cleanup completes"},
+  {"id":"P08-vfs-failure","expected":"typed file error stops later operands; bounded prefixed diagnostic"},
+  {"id":"P09-shared-input-budget","expected":"two individually small operands together exceed shared input cap"},
+  {"id":"P10-registered-cleanup","expected":"registerCleanup precedes iterator acquisition, idempotent overlapping completion"},
+  {"id":"P11-shell-middleware","expected":"actual Shell plugin dispatch invokes middleware; byte output goes to VFS"},
+  {"id":"P12-early-pipeline","expected":"actual finite downstream consumer cancellation settles cooperative resources"},
+  {"id":"P13-host-denial","expected":"installed execution succeeds under source/ambient-file denial, without net/child/worker grants; explicit denied file read fails"},
+  {"id":"P14-fallback-read-bound","expected":"VFS fallback gets supplied signal and remaining input bound"},
+  {"id":"P15-config-copy","expected":"mutating options after construction does not alter limits; invalid limits rejected"},
+  {"id":"P16-factory-collision","expected":"all three exports usable; collision fails unless replace intentionally true"},
+  {"id":"N01-missing-entry","expected":"real missing installed leaf fails module resolution; no source fallback"},
+  {"id":"N02-poisoned-source","expected":"retired original source location contains throwing sentinel; installed run unaffected; direct access denied"},
+  {"id":"N03-layout","expected":"real missing emitted dependency fails resolution; no hidden source rescue"},
+  {"id":"N04-types","expected":"positive actual installed declarations compile; unknown limit, wrong limit type, wrong replace type each fail TS"},
+  {"id":"N05-assertion-sensitivity","expected":"deliberately wrong literal expectation and deliberately tiny work budget genuinely fail expected assertion/status"}
+]

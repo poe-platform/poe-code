@@ -1,0 +1,14 @@
+{
+  "name": "source-original",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-original.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-nTCynX/committed"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 272684,
+  "stderrBytes": 1232,
+  "stdoutSha256": "37222de6627f171f8e3d4649c14cfc0ff46994ea4787eec04e65ce8072c97a03",
+  "stderrSha256": "dda3727c055596ac8610c62da04757a77499b63c8b47deed2e9bcf82296f45b5"
+}

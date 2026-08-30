@@ -1,0 +1,93 @@
+{
+  "validatedAt": "2026-08-27T10:49:17.521Z",
+  "scope": "tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final",
+  "jsonFilesParsed": 141,
+  "allRepositoryExecutablePayloadsInert": true,
+  "exactRawStreamsVerified": true,
+  "boundExecutableHashesVerified": true,
+  "resultsAndDenominatorsVerified": true,
+  "whitespaceStatus": 0,
+  "whitespaceOutput": "",
+  "restorationDeltaSha256": "46e37755d4ca5bf1440448f7d4b30bd3c3ef37d19ac167e300bcb63125ae531c",
+  "initialForeignIndex": [],
+  "stagePolicy": "git add with individual explicit owned file paths only; no foreign paths",
+  "commitPolicy": "git commit --only with these explicit owned file paths",
+  "closure": {
+    "observedAt": "2026-08-27T10:43:43.385Z",
+    "captures": 63,
+    "everyChildCloseObserved": true,
+    "everyChildPidAbsent": true,
+    "everyChildGroupAbsent": true,
+    "deadlineKills": 0,
+    "outputKills": 0,
+    "signals": [],
+    "ownNetworkCases": [
+      {
+        "id": "D01",
+        "observations": [
+          {
+            "event": "network.before-teardown",
+            "requests": [],
+            "sockets": 0,
+            "borrowed": {
+              "next": 7,
+              "returns": 0,
+              "cancel": 0,
+              "close": 0,
+              "active": 0,
+              "maxActive": 1,
+              "delivered": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          {
+            "event": "server.cleanup",
+            "sockets": 0
+          }
+        ]
+      },
+      {
+        "id": "D06",
+        "observations": [
+          {
+            "event": "network.before-teardown",
+            "requests": [
+              {
+                "url": "/mixed",
+                "body": "mixed-prefix\nmixed-late\n"
+              }
+            ],
+            "sockets": 0,
+            "borrowed": {
+              "next": 3,
+              "returns": 0,
+              "cancel": 0,
+              "close": 0,
+              "active": 0,
+              "maxActive": 1,
+              "delivered": [
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "event": "server.cleanup",
+            "sockets": 0
+          }
+        ]
+      }
+    ],
+    "opaqueGates": "resolved/rejected under harness control; not universal opaque host drain",
+    "instrumentationRounds": 2,
+    "prototypeFixRounds": 0,
+    "expectationChanges": 0,
+    "opaqueNonhangClaim": false,
+    "rootMustObserveExecutorClosed": true
+  },
+  "note": "Precommit validation; final owned clean status and commit identity are recorded in the final temp result handoff."
+}

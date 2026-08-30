@@ -1,0 +1,70 @@
+{
+  "role": "SOURCE_HELPER_PREEXECUTION_SEAL_DATA_ONLY",
+  "created": "2026-08-29T04:06:31.531Z",
+  "files": [
+    {
+      "path": "CASES.original.json",
+      "bytes": 5682,
+      "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 2372,
+      "sha256": "cbd69ba20ec774b1b627238b30b77fa8d9cc2d9a16b1f0a32f4196c0193fe801"
+    },
+    {
+      "path": "PACKAGE-MEMBERS.json",
+      "bytes": 166252,
+      "sha256": "0da5212776e31bde3ad18675e807cf7e11697d81c205bd8e7d2110e3a414e118"
+    },
+    {
+      "path": "CASE-REVIEW.json",
+      "bytes": 27618,
+      "sha256": "d6b1bf715670c53fefeb54332e10c8619ca75f3eb5302b747f2121ece5aff94f"
+    },
+    {
+      "path": "QUALIFICATION-CASES.json",
+      "bytes": 2851,
+      "sha256": "f3883f5b84c7980762f773a91d41ee0db6cba2729fee5df288d90524a80a51c0"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 2812,
+      "sha256": "3000d3954c7c0a069f66588778b318ab88b7d37985e5f56fcef9f40ac975aed3"
+    },
+    {
+      "path": "harness.mjs",
+      "bytes": 8267,
+      "sha256": "ff68dfb780744beefee1ab129313879111dd1a7a6c3a1d458f5070e9fc9ec65c"
+    },
+    {
+      "path": "virtual-case.mjs",
+      "bytes": 4200,
+      "sha256": "d4522a79c5088557ac7b1378379f9e7bb60d7a14bfc9fd1cf816bc480dc8fd61"
+    },
+    {
+      "path": "virtual-guard.mjs",
+      "bytes": 2345,
+      "sha256": "4a7dc8154f746d33d3b06b3f69d869a5d4cb6948bd5e7be781bf3c6c124b332e"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 9059,
+      "sha256": "18d28a83268a5e1ee19cee4bfd2587bac2b69067ad01fe91b23ba0f17231efde"
+    },
+    {
+      "path": "HELPER-CONTROLS.presealed.json",
+      "bytes": 2846,
+      "sha256": "e16b48c03b8d004cf9c912f7f39ce0593781b3d09053c9e4e9871a3dcf07b7fc"
+    },
+    {
+      "path": "helper-controls.mjs",
+      "bytes": 5759,
+      "sha256": "03792973a5e5ba6224ef348e0febd21fb583cea457b7ebbcf6b63d3f839a3acb"
+    }
+  ],
+  "native": 0,
+  "product": 0,
+  "worker": 0,
+  "compiler": 0
+}

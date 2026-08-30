@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "modePolicy": "NEW_STRICT_ACTIVE_PROJECTION_PLUS_HISTORICAL_CONTENT_ONLY",
+  "historical90a": {
+    "commit": "90a633e8",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+    "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+    "classification": "AUDIT_METADATA_ORIGINAL_MODE_UNATTESTED",
+    "originalMode": null,
+    "executed": false,
+    "imported": false,
+    "materializedAsActiveCode": false,
+    "permissionPredicate": false,
+    "codeDataFlow": "physicalBindings.legacyHistorical -> root receipt classification equality only; never lstat/read this historic path for execution authority",
+    "oldDenyRescored": false
+  },
+  "active": {
+    "manifest": "ASSEMBLY-SEAL.json#/manifest",
+    "dataUse": {
+      "archiveManifest": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/archiveManifest.json",
+        "sha256": "8f20ea72dd51fd003197df1c75ee0bd6b1cc8e22fc940a5463873edccaa4a211",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "boundaryProofs": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/boundaryProofs.json",
+        "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "controls": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/controls.json",
+        "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "coverage": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/coverage.json",
+        "sha256": "bc87553b6197761d1325d65c382a76d91ab04dcf2d0ff309e70105d77c4d45c1",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "diagnosticCatalogue": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/diagnosticCatalogue.json",
+        "sha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "jobs": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/jobs.json",
+        "sha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "ledger": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/ledger.json",
+        "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "obligations": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/obligations.json",
+        "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "origins": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/origins.json",
+        "sha256": "e7dd0e579b2469ee5d86869d3f1a839e5be38734fd679d78e196be80906323ff",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "phases": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/phases.json",
+        "sha256": "56bbc2b685fdb305ddbd74eef7ea1aa3c792d0965cbae9a38fd508da1525e2f8",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "physicalBindings": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/physicalBindings.json",
+        "sha256": "2486769dd3347a0c5a771af5a4c6940989b918962653efd0d2cfcb35eee365ea",
+        "role": "ACTIVE_DESTINATION_AND_ROLE_BINDING"
+      },
+      "runtimeJobs": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/runtimeJobs.json",
+        "sha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+        "role": "FROZEN_SEMANTIC_PROJECTION_DATA"
+      },
+      "sourceAuthority": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/sourceAuthority.json",
+        "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "sourceProofPlan": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/sourceProofPlan.json",
+        "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "typePlan": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/TYPE-PLAN.json",
+        "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+        "role": "ACTIVE_PROOF_ROLE_PLAN"
+      },
+      "mutantPlan": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/MUTANT-PLAN.json",
+        "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+        "role": "ACTIVE_PROOF_ROLE_PLAN"
+      },
+      "buildPlan": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-plan.json",
+        "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+        "role": "ACTIVE_EXACT_BUILD_PROFILE"
+      },
+      "sourceManifest": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-source-manifest.json",
+        "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "packageManifest": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-package-manifest.json",
+        "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "toolSources": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/TOOL-SOURCES.json",
+        "sha256": "8a7474ecbbbc1359920c6ea8477f1ac0d7e099306fe003cfa67d64130569e6c1",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "cmd22Controls": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/frozen/DEFERRED-CONTROLS.json",
+        "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "cmd22Bases": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/frozen/CONTROL-BASES.json",
+        "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      },
+      "cmd22Binding": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/frozen/cmd22-binding.json",
+        "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+        "role": "ACTIVE_BOUND_FRAMEWORK_DATA"
+      }
+    },
+    "workerInputPreseal": "Fresh17descriptor file read by unchanged worker-support ownProjection, guarded by new full union",
+    "executableBodies": "31mjs actual static import/dispatch closure; complete mode/hash/size/path/kind seal",
+    "expectedModeAuthority": "Fresh observed and declared new regular0644 files/directories0755, explicitly pinned tools0755 as manifested; not inferred from old Git mode"
+  },
+  "nonactiveReferences": {
+    "peers": "references/** and PEER-AUTHENTICATION.json are static composition-source provenance; old seals do not certify changed bodies",
+    "rootReview": "Future root independently binds reviewer references; reviewer new file mode0644 required, never use historical90a as active reviewer authority"
+  },
+  "goCreated": false
+}

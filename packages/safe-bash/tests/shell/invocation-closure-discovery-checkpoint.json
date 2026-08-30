@@ -1,0 +1,140 @@
+{
+  "source": {
+    "arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "input.ts": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+    "locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "runtime.ts": "fbf71c649682af95d728ca2fd3eead0c029b8718cfd1fcf02735b18726d1b4c2",
+    "shell.ts": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+    "types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "scenarios": "0a7d5d2b907303be75d74d4cca1554a3feb6916fd46bcf13173b3414f1df1cbc",
+  "results": [
+    {
+      "profile": "GNU-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "total": 36,
+      "passed": 36,
+      "failures": []
+    },
+    {
+      "profile": "historical-3.2",
+      "executable": "/bin/bash",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "total": 36,
+      "passed": 30,
+      "failures": [
+        {
+          "name": "mixed status",
+          "mode": "bash",
+          "expected": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjAK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjEK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "missing verbose",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMDogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDA6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDE6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "spaces and empty path",
+          "mode": "bash",
+          "expected": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLW9MUk5kOC9hIGIKYSBiIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1vTFJOZDgvYSBiCnNwYWNlCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          },
+          "actual": {
+            "stdout": "Li9hIGIKYSBiIGlzIC4vYSBiCnNwYWNlCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          }
+        },
+        {
+          "name": "mixed status",
+          "mode": "sh",
+          "expected": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjAK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "dHJ1ZQp2OjAKYnVpbHRpbgp0OjEK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          }
+        },
+        {
+          "name": "missing verbose",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMDogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDA6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogdHlwZTogbWlzc2luZzogbm90IGZvdW5kCnByb2JlOiBsaW5lIDE6IGNvbW1hbmQ6IGFic2VudDogbm90IGZvdW5kCg==",
+            "status": 1,
+            "files": {}
+          }
+        },
+        {
+          "name": "spaces and empty path",
+          "mode": "sh",
+          "expected": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLUxTNU1PbS9hIGIKYSBiIGlzIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1MUzVNT20vYSBiCnNwYWNlCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          },
+          "actual": {
+            "stdout": "L1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLUxTNU1PbS8uL2EgYgphIGIgaXMgL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoLy5pbnZvY2F0aW9uLWNsb3N1cmUtbmF0aXZlLUxTNU1PbS8uL2EgYgpzcGFjZQo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "a b": "IyEvYmluL2Jhc2gKcHJpbnRmICJzcGFjZVxuIgo="
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

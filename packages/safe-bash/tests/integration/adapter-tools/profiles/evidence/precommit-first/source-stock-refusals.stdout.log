@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: stock-webdav: empty rmdir is ENOTSUP
+ok 1 - stock-webdav: empty rmdir is ENOTSUP
+  ---
+  duration_ms: 85.095875
+  type: 'test'
+  ...
+# Subtest: stock-webdav: nonempty rmdir is ENOTEMPTY
+ok 2 - stock-webdav: nonempty rmdir is ENOTEMPTY
+  ---
+  duration_ms: 59.107042
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 371.442208

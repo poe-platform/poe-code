@@ -1,0 +1,34 @@
+{
+  "label": "r1-H16-frozen",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs",
+    "H16"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:14:44.148Z",
+  "finishedAt": "2026-08-27T10:14:44.231Z",
+  "durationMs": 83.09245899999996,
+  "timeoutMs": 15000,
+  "maxBytes": 1048576,
+  "pid": 31237,
+  "initialIdentity": "31237 31093 31237 Thu Aug 27 05:14:44 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs H16",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"H16\",\"verdict\":\"PASS\",\"records\":[{\"firstAcceptedWithoutRead\":true,\"secondBackpressured\":true,\"exactCallerReason\":true,\"ownedChunkCopy\":true},{\"kind\":\"separation\",\"firstWrites\":0,\"started\":1,\"returned\":1,\"active\":0,\"events\":[{\"sequence\":0,\"name\":\"operation.enrolled\",\"monotonicMs\":61.772875},{\"sequence\":1,\"name\":\"source.started\",\"monotonicMs\":61.915041},{\"sequence\":2,\"name\":\"downstream.completed\",\"monotonicMs\":62.092291},{\"sequence\":3,\"name\":\"operation.aborted\",\"monotonicMs\":62.192208},{\"sequence\":4,\"name\":\"source.returned\",\"monotonicMs\":62.380583},{\"sequence\":5,\"name\":\"independent.effect\",\"monotonicMs\":62.526208},{\"sequence\":6,\"name\":\"cleanup.completed\",\"monotonicMs\":62.528375},{\"sequence\":7,\"name\":\"exec.settled\",\"monotonicMs\":62.948958}],\"operationAborted\":true,\"stageAbortedAtClose\":false,\"callerAbortedAtClose\":false}]}\n",
+  "stderr": ""
+}

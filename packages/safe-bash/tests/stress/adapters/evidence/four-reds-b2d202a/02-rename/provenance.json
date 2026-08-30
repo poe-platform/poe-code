@@ -1,0 +1,19 @@
+{
+  "pin": "b2d202a7a2c8831df9c2d143bc43c74d1a099b14",
+  "phase": "02-rename",
+  "archive": "/tmp/safe-bash-adapter-corrections-0yDYsZ/02-rename/archive",
+  "archiveBaseSha256": "118c9c7bbbdb95833d883f58951cffb5ae02f996ddfe92685da32d3566028c85",
+  "sourceOverlayPaths": [
+    "tests/stress/adapters/core.test.ts",
+    "tests/stress/adapters/s3-truncate-profile.test.ts",
+    "tests/stress/adapters/s3.test.ts",
+    "tests/stress/adapters/s3-rename-profile.test.ts"
+  ],
+  "node": "v22.22.2",
+  "tooling": {
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "esbuild": "0.28.2",
+    "@types/node": "22.20.1"
+  }
+}

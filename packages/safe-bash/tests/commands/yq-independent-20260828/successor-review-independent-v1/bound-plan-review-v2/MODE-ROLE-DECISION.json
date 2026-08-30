@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "classification": "STATIC_ROLE_DATAFLOW_REVIEW_UNDER_EXPLICIT_ROOT_POLICY",
+  "policyDate": "2026-08-28",
+  "policyAuthority": "Current user instruction: pure historical references may be content-bound ORIGINAL_MODE_UNATTESTED and removed from active executable/admission mode closure only in an additive version; active controlling data requires a freshly admitted projection.",
+  "originalSelfSeal": {
+    "reference": {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+      "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+      "bytes": 2843
+    },
+    "gitEntry": "100644 blob 97ee9e9035df2ea6025138a899c3074693750180\ttests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+    "gitClassQualification": "100644 means regular/non-executable Git class, not original full POSIX permissions.",
+    "originalPosixMode": null,
+    "status": "INCOMPLETE_STATIC_INSPECTOR_FAILURE_DENY",
+    "purpose": "Immutable stopped-preseal evidence and pending root route; not candidate admission or semantic acceptance",
+    "selfExcludedExactPath": "FINAL-SEAL.json",
+    "newArtifactVerificationCompleted": false,
+    "admissionReceiptsIssued": false,
+    "productExecutionGranted": false
+  },
+  "selectedProductAuthority": {
+    "authority": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766
+    },
+    "policy": "ROOT_AUTHORIZED_SELECTED_SOURCE_COMPOSITION_NOT_WHOLE_CANDIDATE_COMMIT",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "sevenNewPaths": [
+      "src/commands/structured/query-core.ts",
+      "src/commands/yq/accounting.ts",
+      "src/commands/yq/encoder.ts",
+      "src/commands/yq/errors.ts",
+      "src/commands/yq/index.ts",
+      "src/commands/yq/parser.ts",
+      "src/commands/yq/README.md"
+    ],
+    "sourceReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408
+    },
+    "fullReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455
+    },
+    "baseSourceReference": {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/SOURCE-BASE.json",
+      "sha256": "75acd3804802c92aabf77bab12a27e61a15468341af8022338a1c68d028c4043",
+      "bytes": 63100
+    },
+    "baselineSourceFiles": 264,
+    "sourceProjectionFiles": 271,
+    "baselinePackageFiles": 846,
+    "fullPackageFiles": 870,
+    "historicalSelfSealInSource": false,
+    "historicalSelfSealInPackage": false,
+    "testsInSourceProjection": false,
+    "baselineReadmeRetained": true,
+    "priorSelfSealLiteralInThreeReceiptBodies": false,
+    "archive273AndFiveSourceSeventeenOutputChanges": "Bound by accepted independent dffc3047 ARTIFACT-DATA-AUDIT; no repeat archive audit.",
+    "buildReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5"
+    }
+  },
+  "dataflow": [
+    {
+      "from": {
+        "revision": "90a633e89d35085183a1d57716451438335b93f3",
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+        "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+        "bytes": 2843
+      },
+      "to": "e729 MODE-AUTHORITY.json#/priorFailure",
+      "role": "Failed prior data-inspector evidence; original self mode missing, not product origin."
+    },
+    {
+      "from": "e729 MODE-AUTHORITY.json#/priorFailure/self",
+      "to": "e729 HISTORY-PRESERVATION.json#/before/3/modeAuthorityDenials and /after/3",
+      "role": "Historical full POSIX-mode audit refuses golden claim; raw bytes/Git class/observed before-after membership are separate facts."
+    },
+    {
+      "from": "e729 historical mode denial",
+      "to": "46806f6 PACKET-BINDING.json#/historicalModeGate",
+      "role": "Plan imports a global historical gate, not selected product-file authority."
+    },
+    {
+      "from": "46806f6 PACKET-BINDING.json#/historicalModeGate",
+      "to": "46806f6 CANDIDATE-BINDINGS.json#/requiredBeforeExecution/{correctedPacket,goldenHistoricalModeAuthority}; RECIPE-COMPOSITION.json#/consumerAuthorityComposition/modeGate; FINAL-SEAL.json#/admission",
+      "role": "Actual planned control dependency exists. Cannot claim harmless by mere absence from imports. Needs explicit additive active role boundary before execution."
+    }
+  ],
+  "preservedHistory": {
+    "modeAuthority": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/MODE-AUTHORITY.json",
+      "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+      "bytes": 4927
+    },
+    "history": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+      "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+      "bytes": 15621
+    },
+    "retainedFailure": {
+      "exit": 1,
+      "elapsedMs": 922,
+      "reaped": true,
+      "artifactAuthenticationReached": false,
+      "classification": "IMMUTABLE_V1_FAIL_NOT_RESCORED"
+    },
+    "files": 1768,
+    "directories": 343,
+    "unchanged": true,
+    "goldenModeAuthorityComplete": false,
+    "denials": [
+      {
+        "path": "FINAL-SEAL.json",
+        "reason": "MODE_AUTHORITY_MISSING",
+        "goldenPosixModeVerified": false
+      }
+    ],
+    "limitations": "Snapshots detect added entries at observations, not change-and-restore or atomic namespace transactions",
+    "independentCurrentModeResnapshotPerformed": false
+  },
+  "sealedOldPlanGate": {
+    "packet": {
+      "state": "DENY_MODE_AUTHORITY_MISSING",
+      "authority": {
+        "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/MODE-AUTHORITY.json",
+        "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+        "bytes": 4927
+      },
+      "history": {
+        "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+        "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+        "bytes": 15621
+      },
+      "denials": [
+        {
+          "revision": "90a633e89d35085183a1d57716451438335b93f3",
+          "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+          "path": "FINAL-SEAL.json",
+          "reason": "MODE_AUTHORITY_MISSING",
+          "goldenPosixModeVerified": false
+        }
+      ],
+      "qualification": "Prior b8 v1 self-excluded FINAL-SEAL.json has no located committed original POSIX-mode authority. Its raw Git bytes/class and observed full before/after mode/membership are checked, but missing original-mode admission explicitly rejects. Do not infer mode or waive this denial.",
+      "remedy": "Locate authentic committed original POSIX-mode authority for the named prior v1 FINAL-SEAL.json before this gate can admit. Observed live mode, normalized Git100644 and a newly guessed default do not close it.",
+      "waived": false
+    },
+    "correctedPacket": {
+      "state": "BOUND_DATA_ADMISSION_DENY",
+      "value": {
+        "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+        "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+        "bytes": 6776
+      },
+      "reason": "Full273/271/870 data proof bound; historical original POSIX-mode authority gap keeps admission DENY."
+    },
+    "goldenHistoricalModeAuthority": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Prior b8 v1 self-excluded FINAL-SEAL.json has no located committed original POSIX-mode authority. Its raw Git bytes/class and observed full before/after mode/membership are checked, but missing original-mode admission explicitly rejects. Do not infer mode or waive this denial."
+    },
+    "recipeModeGate": "Historical original POSIX-mode authority gap remains mandatory DENY.",
+    "finalAdmission": "DENY_MODE_AUTHORITY_MISSING_AND_FRESH_EXECUTION_BINDINGS_REQUIRED"
+  },
+  "decision": {
+    "historicalBodyRole": "AUDIT_METADATA_ONLY_ELIGIBLE_FOR_CONTENT_BOUND_ORIGINAL_MODE_UNATTESTED",
+    "originalModeStillUnknown": true,
+    "oldGoldenModeDenialPreserved": true,
+    "newCandidateHashFailure": false,
+    "mandatedByOriginalSelectedSourcePolicy": false,
+    "rootPolicyApplication": "Permitted and appropriate to remove this one historical permission predicate from the new active admission mode closure, while preserving content-bound historical evidence and old DENY. This is a role-limited additive version, not a historical permission waiver.",
+    "currentPlanAlreadyImplementsBoundary": false,
+    "unchangedSealedPlanIsRunnable": false,
+    "newRootGO": false
+  },
+  "requiredAdditiveProjection": {
+    "historicalReference": [
+      "exact prior commit/path/blob/raw SHA256/bytes/Git regular class",
+      "role AUDIT_METADATA_ONLY",
+      "originalModeStatus ORIGINAL_MODE_UNATTESTED, originalPosixMode null",
+      "retained INCOMPLETE_STATIC_INSPECTOR_FAILURE_DENY and exit1",
+      "not an executable/source/package/tool origin or a runtime permission prerequisite"
+    ],
+    "activeInputs": [
+      "fresh exact file list for source, package, tools, executor, fixture/projection/recipe/loader/root receipts and execution-controlling JSON",
+      "regular physical mode/kind/path/size/hash/membership before-and-after including added entries",
+      "fresh provenance binds selected271/archive273/full870 separately; no full-Git candidate or live-workspace fallback",
+      "if historical reference values are used to choose/authorize new work, extract explicit fresh admitted projection and verify its own current mode/hash/size/path; do not launder old unknown permissions"
+    ],
+    "supersededActiveDependencies": [
+      "PACKET-BINDING.json#/historicalModeGate as global runtime gate",
+      "CANDIDATE-BINDINGS.json#/requiredBeforeExecution/goldenHistoricalModeAuthority",
+      "CANDIDATE-BINDINGS.json#/requiredBeforeExecution/correctedPacket reason when used as active admission state",
+      "RECIPE-COMPOSITION.json#/consumerAuthorityComposition/modeGate",
+      "ROOT-DECISIONS.json historical mode prerequisite and compound active admission meaning"
+    ],
+    "preservedDependencies": [
+      "old raw FINAL-SEAL/packet statuses stay DENY",
+      "active source/package/tool/executable/authentication and original source origins stay strict",
+      "fresh independent build/runtime/loader/worker/tool/root receipt seals remain required",
+      "no current filesystem observation promoted to original mode; no change-and-restore proof"
+    ],
+    "owner": "Current root-assigned concrete core author, not this verifier. Future sealed code review must inspect field consumption, not just declarations."
+  },
+  "policyAmbiguityRemaining": null,
+  "controlPasses": 0,
+  "runtimePasses": 0,
+  "candidateExecutions": 0
+}

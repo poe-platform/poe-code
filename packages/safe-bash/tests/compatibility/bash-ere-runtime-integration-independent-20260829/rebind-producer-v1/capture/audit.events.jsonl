@@ -1,0 +1,7 @@
+{"at":"2026-08-29T12:32:34.733Z","event":"owner-start","mode":"audit","pid":15504}
+{"at":"2026-08-29T12:32:34.744Z","event":"capture-open","label":"audit"}
+{"at":"2026-08-29T12:32:34.749Z","event":"enrolled","label":"audit","pid":15507,"exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/audit.mjs"]}
+{"at":"2026-08-29T12:32:35.575Z","event":"exit","label":"audit","pid":15507,"code":0,"signal":null}
+{"at":"2026-08-29T12:32:35.586Z","event":"close","label":"audit","pid":15507,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:32:35.590Z","event":"capture-closed","label":"audit"}
+{"at":"2026-08-29T12:32:35.596Z","event":"owner-complete","mode":"audit","pid":15504,"code":0}

@@ -1,0 +1,14 @@
+{
+  "reason": "Caches created by the short owned TMPDIR native-suite rerun; no source/test fixture edits.",
+  "removed": [
+    {
+      "path": "tests/fs/mount-identity-review/node-compile-cache",
+      "entries": 1
+    },
+    {
+      "path": "tests/fs/mount-identity-review/tsx-501",
+      "entries": 17
+    }
+  ],
+  "remaining": []
+}

@@ -1,0 +1,156 @@
+{
+  "unchangedModulePaths": [
+    "controls/child.mjs",
+    "controls/common.mjs",
+    "controls/guard.mjs",
+    "controls/profile.mjs",
+    "lifecycle/child.mjs",
+    "lifecycle/common.mjs",
+    "lifecycle/guard.mjs",
+    "lifecycle/profile.mjs",
+    "surface/child.mjs",
+    "surface/controls.mjs",
+    "surface/run.mjs"
+  ],
+  "unchangedImportAndAllowlistLines": {
+    "controls/child.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { readFileSync, writeFileSync } from \"node:fs\";",
+      "import { join } from \"node:path\";",
+      "import { pathToFileURL } from \"node:url\";",
+      "import { serialize } from \"./common.mjs\";",
+      "import { guardState } from \"./guard.mjs\";",
+      "  const product = await import(\"virtual-bash\");",
+      "    try { await import(specifier); } catch (error) {",
+      "      blocked = error.code === \"ERR_PACKAGE_PATH_NOT_EXPORTED\" || /Outside import:|No archive-source fallback/u.test(error.message);",
+      "  const contracts = await import(\"virtual-bash/contracts/output\");",
+      "  const engineLoad = filename => import(pathToFileURL(join(root, \"engine/src\", filename)).href);"
+    ],
+    "controls/common.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { execFileSync } from \"node:child_process\";",
+      "import { createHash } from \"node:crypto\";",
+      "import { chmodSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from \"node:fs\";",
+      "import { dirname, join, relative, resolve } from \"node:path\";"
+    ],
+    "controls/guard.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import childProcess from \"node:child_process\";",
+      "import workerThreads from \"node:worker_threads\";",
+      "import fs from \"node:fs\";",
+      "import fsPromises from \"node:fs/promises\";",
+      "import net from \"node:net\";",
+      "import tls from \"node:tls\";",
+      "import http from \"node:http\";",
+      "import https from \"node:https\";",
+      "import dgram from \"node:dgram\";",
+      "import dns from \"node:dns\";",
+      "import dnsPromises from \"node:dns/promises\";",
+      "import timers from \"node:timers\";",
+      "import { syncBuiltinESMExports } from \"node:module\";",
+      "import { resolve } from \"node:path\";",
+      "import { fileURLToPath } from \"node:url\";"
+    ],
+    "controls/profile.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { readFileSync } from \"node:fs\";",
+      "import { verifyProfile as verifyLifecycle } from \"../lifecycle/profile.mjs\";",
+      "const load = path => JSON.parse(readFileSync(new URL(path, import.meta.url)));"
+    ],
+    "lifecycle/child.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { readFileSync, writeFileSync } from \"node:fs\";",
+      "import { join } from \"node:path\";",
+      "import { pathToFileURL } from \"node:url\";",
+      "import { serialize } from \"./common.mjs\";",
+      "import { guardState } from \"./guard.mjs\";",
+      "  const product = await import(\"virtual-bash\");",
+      "    try { await import(specifier); } catch (error) {",
+      "      blocked = error.code === \"ERR_PACKAGE_PATH_NOT_EXPORTED\" || /Outside import:|No archive-source fallback/u.test(error.message);",
+      "  const contracts = await import(\"virtual-bash/contracts/output\");",
+      "  const engineLoad = filename => import(pathToFileURL(join(root, \"engine/src\", filename)).href);"
+    ],
+    "lifecycle/common.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { execFileSync } from \"node:child_process\";",
+      "import { createHash } from \"node:crypto\";",
+      "import { chmodSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from \"node:fs\";",
+      "import { dirname, join, relative, resolve } from \"node:path\";"
+    ],
+    "lifecycle/guard.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import childProcess from \"node:child_process\";",
+      "import workerThreads from \"node:worker_threads\";",
+      "import fs from \"node:fs\";",
+      "import fsPromises from \"node:fs/promises\";",
+      "import net from \"node:net\";",
+      "import tls from \"node:tls\";",
+      "import http from \"node:http\";",
+      "import https from \"node:https\";",
+      "import dgram from \"node:dgram\";",
+      "import dns from \"node:dns\";",
+      "import dnsPromises from \"node:dns/promises\";",
+      "import timers from \"node:timers\";",
+      "import { syncBuiltinESMExports } from \"node:module\";",
+      "import { resolve } from \"node:path\";",
+      "import { fileURLToPath } from \"node:url\";"
+    ],
+    "lifecycle/profile.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { readFileSync } from \"node:fs\";",
+      "import { dirname, join, resolve } from \"node:path\";",
+      "import { fileURLToPath } from \"node:url\";",
+      "import { git, load, owner, record, repository, sha } from \"./common.mjs\";",
+      "const directory = dirname(fileURLToPath(import.meta.url));",
+      "    [\"const deferred = () => {\", 'try {\\n  const product = await import(\"virtual-bash\");'],",
+      "    ['try {\\n  const product = await import(\"virtual-bash\");', '  outer.commands.register({ name: \"owned-guest\"'],",
+      "if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) console.log(JSON.stringify(verifyProfile(), null, 2));"
+    ],
+    "surface/child.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { createHash } from \"node:crypto\";",
+      "import { readFileSync, writeFileSync } from \"node:fs\";",
+      "import { join } from \"node:path\";",
+      "import { pathToFileURL } from \"node:url\";",
+      "  const product = await import(\"virtual-bash\");",
+      "  const { run } = await import(pathToFileURL(join(root, \"engine/src/run.ts\")).href);",
+      "  const { Budget } = await import(pathToFileURL(join(root, \"engine/src/interp/budget.ts\")).href);",
+      "  const { makeFsModule } = await import(pathToFileURL(join(root, \"engine/src/modules/fs.ts\")).href);",
+      "  const { declareHostOperation } = await import(pathToFileURL(join(root, \"engine/src/interp/host-bridge.ts\")).href);",
+      "    qualification: \"Actual unchanged copied source-hook injection, not installed private package import\", engineEntries: pins.privateEngine.sourceEntries };"
+    ],
+    "surface/controls.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { createHash } from \"node:crypto\";",
+      "import { readFileSync } from \"node:fs\";",
+      "const bytes = readFileSync(new URL(\"./child.mjs\", import.meta.url));"
+    ],
+    "surface/run.mjs": [
+      "import assert from \"node:assert/strict\";",
+      "import { createHash } from \"node:crypto\";",
+      "import { execFileSync, spawn } from \"node:child_process\";",
+      "import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from \"node:fs\";",
+      "import { dirname, join, relative, resolve } from \"node:path\";",
+      "import { fileURLToPath } from \"node:url\";",
+      "import { candidate, directoryShape, releaseFor, verifyCandidate, verifyFrozen } from \"../admission.mjs\";",
+      "const owned = dirname(fileURLToPath(import.meta.url));",
+      "  if (!actual || child.timedOut || child.code !== 0 || child.signal || imports.failures.length) return { id: selected.id, outcome: \"BLOCKED\", reason: \"Child/infrastructure/import guard\", checks, child, imports };",
+      "async function childCase(selected, absoluteDeadline, expectedImports) {",
+      "  const child = spawn(process.execPath, [\"--import\", join(task, \"loader.mjs\"), join(task, \"consumer/child.mjs\")], {",
+      "  const imports = auditImports(importFile, expectedImports);",
+      "  const expectedImports = new Map();",
+      "  for (const [root, entries] of Object.entries(inputBaseline)) for (const entry of entries) expectedImports.set(relative(task, join(root, entry.path)), entry.sha256);",
+      "  put(join(results, \"import-allowlist.json\"), Object.fromEntries(expectedImports));",
+      "    const actual = await childCase(selected, journal.cohortDeadline, expectedImports);"
+    ]
+  },
+  "loaderSha256": "3306a11120061037c285dea765728157afd277b4ce8b566e52cf57073a03335b",
+  "parentOnlyChangedPaths": [
+    "admission.mjs",
+    "controls/run.mjs",
+    "lifecycle/run.mjs"
+  ],
+  "newParentModuleSpecifiers": [],
+  "privateSourceHookNotInstalledPackage": true,
+  "childSourceAndImportedByteHashesNeverSubstituted": true
+}

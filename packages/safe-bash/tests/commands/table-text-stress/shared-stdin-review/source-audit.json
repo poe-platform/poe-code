@@ -1,0 +1,46 @@
+{
+  "at": "2026-08-27T02:59:42.202Z",
+  "rootReadySha256": "6584947057d02e7d3d6cd3201c8a4574a91d8b3ef610814627d1ba44c83c6120",
+  "sourceMap": {
+    "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "src/commands/table-text/README.md": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8"
+  },
+  "authorArtifactsVerified": 18,
+  "authorContextDeltas": [
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "authorSha256": "14c40b551fa385942884476899c36a72dafef7a619d70513d67a2735391f01f8",
+      "currentSha256": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67"
+    },
+    {
+      "path": "src/fs/s3/SDK_COMPARISON.md",
+      "authorSha256": "6f8125e02896b74b13c97e3cce94f6a19b37d995071781fd3c7ef0f6d72b7b14",
+      "currentSha256": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "authorSha256": "f1706087cf93f495165636343a07e01a980f6abe4f7f4f75152c7b0e06201a47",
+      "currentSha256": "69bfbd10c2ae82a25a9b272df1a574b5e5832551e170b239241a81646efa3b76"
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "authorSha256": "4f308ff320a2193f683b8ad812c40e06a53536b4c78ebdac0752c4a71d920138",
+      "currentSha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2"
+    }
+  ],
+  "findings": [
+    "GNU comm.c closes operands in order before totals, reporting fatal operand-close failures. Product closeOperand is called in that position.",
+    "Inputs.open returns one RecordReader for repeated stdin, but distinct readers for two opens of the same VFS pathname. No input refusal or alternate read cursor was added.",
+    "closeOperand checks caller cancellation, detects an already closed reader, and delegates to idempotent physical close. Final Inputs.close remains cleanup, not a second logical close.",
+    "readBytes ownership copy and record ordering/consumption code are unchanged; close errors occur after row consumption and before total output.",
+    "Producer/strict-order/output errors bypass the normal operand-finalization loop and retain their existing precedence; no native execution or dependency added to product."
+  ],
+  "limitations": [
+    "Pinned GNU9.7 duplicate-stdin profile, not universal libc/GNU/BSD parity or a host descriptor implementation.",
+    "Cancellation cannot force uncooperative host work or undo effects; no filesystem capability or precision changes established."
+  ]
+}

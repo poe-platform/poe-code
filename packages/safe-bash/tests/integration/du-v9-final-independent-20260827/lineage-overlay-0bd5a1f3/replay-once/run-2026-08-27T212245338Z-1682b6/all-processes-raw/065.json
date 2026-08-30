@@ -1,0 +1,30 @@
+{
+  "sequence": 65,
+  "command": "tar",
+  "args": [
+    "-tzf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/replay-once/work-PL0Rka/virtual-bash-0.0.0.tgz"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "pid": 7513,
+  "pgid": 7513,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T21:22:56.250Z",
+  "finishedAt": "2026-08-27T21:22:56.268Z",
+  "durationMs": 17.749458,
+  "stdoutSha256": "d14a4739910e5fec84c928772396fb45290e19a73abc3f4a66b5c722741e32a4",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

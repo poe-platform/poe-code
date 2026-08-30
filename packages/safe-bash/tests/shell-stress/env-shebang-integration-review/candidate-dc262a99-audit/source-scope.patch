@@ -1,0 +1,142 @@
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index 5ae36fce..eceb6cb3 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -14,6 +14,7 @@ import { compilePattern, matchesPattern } from "./pattern.js";
+ import { byteLocale } from "./locale.js";
+ import { functionDisplay } from "./display.js";
+ import { invocationScope, type InvocationScope } from "./cleanup.js";
++import { executionCommands } from "../commands/execution.js";
+ 
+ export const defaultLimits: Required<ShellLimits> = {
+   maxOutputBytes: 16 * 1024 * 1024,
+@@ -1025,7 +1026,7 @@ export class Runtime {
+     };
+   }
+ 
+-  async interpreter(context: CommandContext, state: State, io: IO): Promise<number> {
++  async interpreter(context: CommandContext, state: State, io: IO, loadedSource?: { path: string; source: string }): Promise<number> {
+     const args = [...context.args];
+     let commandString = false;
+     let standardInput = false;
+@@ -1041,7 +1042,7 @@ export class Runtime {
+       standardInput ||= option.includes("s");
+       if (option.includes("e")) errexit = option.startsWith("-");
+     }
+-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit);
++    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource);
+     const source = commandString ? args.shift() : undefined;
+     if (commandString && source === undefined) {
+       await writeText(context.stderr, `${context.command}: -c: option requires an argument\n`);
+@@ -1134,30 +1135,78 @@ export class Runtime {
+     }
+   }
+ 
+-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false): Promise<number> {
++  private static readonly envShebangCommand = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }).find(command => command.name === "env");
++
++  private async envShebang(context: CommandContext, state: State, io: IO, optionalArgument: string | undefined, target: string, args: readonly string[], loadedSource: { path: string; source: string }): Promise<number> {
++    const definition = Runtime.envShebangCommand;
++    if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
++    let failed = false;
++    let failure: unknown;
++    const result = await interruptible(Promise.resolve(definition.execute({
++      ...context, command: "env", args: [...(optionalArgument === undefined ? [] : [optionalArgument]), target, ...args], signal: this.signal,
++      invoke: async (command, arguments_, options = {}) => {
++        try {
++          this.signal.throwIfAborted();
++          io[invocationScope].assertOpen();
++          this.budget.tick();
++          if (arguments_.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
++          for (const argument of [command, ...arguments_]) {
++            if (Buffer.byteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
++          }
++          if (command !== "bash" && command !== "sh") {
++            await writeText(context.stderr, `env: ${command}: command not found\n`);
++            return { exitCode: 127 };
++          }
++          if (this.commands.has(command)) {
++            await this.diagnostic({ ...io, ...context }, `${target}: unsupported interpreter override: ${command}`);
++            return { exitCode: 126 };
++          }
++          const child = cloneState(state);
++          child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
++          const interpreterContext: CommandContext = {
++            ...context, command, args: arguments_, cwd: child.cwd,
++            env: Object.assign(Object.create(null) as Record<string, string>, options.env),
++            stdin: options.stdin ?? context.stdin,
++            stdout: options.stdout ?? context.stdout, stderr: options.stderr ?? context.stderr,
++            ...(options.stdinIsDefault === undefined ? {} : { stdinIsDefault: options.stdinIsDefault }),
++          };
++          return { exitCode: await this.interpreter(interpreterContext, child, io, loadedSource) };
++        } catch (error) {
++          failed = true;
++          failure = error;
++          return { exitCode: 1 };
++        }
++      },
++    })), this.signal);
++    this.signal.throwIfAborted();
++    if (failed) throw failure;
++    return validateExitCode(result.exitCode);
++  }
++
++  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }): Promise<number> {
+     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
+     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+     const path = resolvePath(state.cwd, target);
+     let source: string;
+-    let interpreterProfile: "bash" | "sh" | undefined;
++    let environmentInterpreter: RegExpExecArray | null = null;
+     try {
+-      const options = { signal: this.signal };
+-      const stat = await interruptible(this.fs.stat(path, options), this.signal);
+-      if (stat.type !== "file") throw new CommandFailure(`${target}: ${stat.type === "directory" ? "Is a directory" : "not a regular file"}`, 126);
+-      if (direct && this.fs.capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
+-      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK | (direct ? ACCESS_MODES.X_OK : 0), options), this.signal);
+-      const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
+-      if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+-      const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
+-      this.budget.source(bytes.byteLength);
+-      source = this.sourceText(bytes, target);
++      if (loadedSource?.path === path) source = loadedSource.source;
++      else {
++        const options = { signal: this.signal };
++        const stat = await interruptible(this.fs.stat(path, options), this.signal);
++        if (stat.type !== "file") throw new CommandFailure(`${target}: ${stat.type === "directory" ? "Is a directory" : "not a regular file"}`, 126);
++        if (direct && this.fs.capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
++        await interruptible(this.fs.access(path, ACCESS_MODES.R_OK | (direct ? ACCESS_MODES.X_OK : 0), options), this.signal);
++        const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
++        if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
++        const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
++        this.budget.source(bytes.byteLength);
++        source = this.sourceText(bytes, target);
++      }
+       if (source.startsWith("#!")) {
+         const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
+-        const environmentInterpreter = /^\/usr\/bin\/env[ \t]+(bash|sh)$/u.exec(interpreter)?.[1];
+-        if (environmentInterpreter) {
+-          if (this.commands.get(environmentInterpreter)) throw new CommandFailure(`${target}: unsupported interpreter override: ${environmentInterpreter}`, 126);
+-          interpreterProfile = environmentInterpreter === "sh" ? "sh" : "bash";
+-        } else {
++        environmentInterpreter = /^\/usr\/bin\/env(?:[ \t]+([^\n]*))?$/u.exec(interpreter);
++        if (!environmentInterpreter) {
+           const bash = /^(\/bin\/bash|\/usr\/bin\/bash)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
+           if (!bash) throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+           if (direct && bash[2]) errexit = bash[2].startsWith("-");
+@@ -1169,6 +1218,7 @@ export class Runtime {
+       if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+       throw new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, errorCode(error) === "ENOENT" ? 127 : 126);
+     }
++    if (direct && environmentInterpreter) return this.envShebang(context, state, io, environmentInterpreter[1], target, args, { path, source });
+     const units: Script[] = [];
+     try {
+       let position = 0;
+@@ -1187,7 +1237,6 @@ export class Runtime {
+     const child = this.processState(context, state, target, args);
+     child.errexit = errexit;
+     if (direct && !source.startsWith("#!")) child.profile = state.profile ?? "bash";
+-    if (direct && interpreterProfile) child.profile = interpreterProfile;
+     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
+     let status = 0;
+     for (const unit of units) {

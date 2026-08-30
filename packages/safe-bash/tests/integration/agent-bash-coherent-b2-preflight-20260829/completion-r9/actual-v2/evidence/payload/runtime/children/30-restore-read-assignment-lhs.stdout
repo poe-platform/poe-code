@@ -1,0 +1,2 @@
+{"id":"U32","role":"RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN","pass":true,"actual":{"stdout":"2\n","stderr":"","stdoutBytes":{"0":50,"1":10},"stderrBytes":{},"exitCode":0},"created":1,"disposed":1,"cleanupFailure":false}
+{"summary":{"cases":1,"pass":1,"fail":0,"native":0}}

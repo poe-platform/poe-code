@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "groups": {
+    "preparation": [
+      { "id": "E01-ancestor-before-getter", "expected": "exact best ancestor reason; zero option reads" },
+      { "id": "E02-read-once-native-brand", "expected": "ordinary signal lookup once; non-native values rejected inertly" },
+      { "id": "E03-borrowed-four-spellings", "expected": "omitted/undefined/absent/undefined signal with no controls remain resource-free borrowed preparations" },
+      { "id": "E04-explicit-undefined-controls", "expected": "all optional arguments accept explicit undefined without changing old APIs" },
+      { "id": "E05-control-only-owned", "expected": "original control creates owned frame without invoke rank" },
+      { "id": "E06-snapshot-control-validation", "expected": "invalid snapshot/control fails during inert preparation" },
+      { "id": "E07-control-copy", "expected": "later input-array mutation cannot change prepared originals or order" },
+      { "id": "E08-no-preparation-allocation", "expected": "zero controllers/listeners/subscriptions before activation" }
+    ],
+    "activation": [
+      { "id": "E09-parent-abort-between-phases", "expected": "exact ranked ancestor reason before allocation" },
+      { "id": "E10-parent-close-between-phases", "expected": "stable closed-admission failure before allocation" },
+      { "id": "E11-local-abort-between-phases", "expected": "exact local reason before allocation" },
+      { "id": "E12-configured-control-preabort", "expected": "first configured local preabort reason before allocation" },
+      { "id": "E13-capacity-recheck", "expected": "bounded parent/child capacity is revalidated at activation" },
+      { "id": "E14-parent-abort-init-race", "expected": "ancestor wins and all partial resources roll back" },
+      { "id": "E15-local-control-init-race", "expected": "local invoke ranks above local control; partial resources roll back" },
+      { "id": "E16-init-failure-rollback", "expected": "exact setup failure; prior listeners and parent subscription released" },
+      { "id": "E17-activation-one-shot", "expected": "success or failure consumes preparation; repeats throw one stable replay error" },
+      { "id": "E18-register-before-activate", "expected": "test owner registers cleanup before any activation acquisition" },
+      { "id": "E19-activation-failure-cleanup", "expected": "registered cleanup remains safe after rolled-back activation failure" }
+    ],
+    "lineageAndSelection": [
+      { "id": "E20-nested-original-controls", "expected": "root/outer/inner invoke ranks remain separate; pipeline controls preserve original child frames" },
+      { "id": "E21-first-delivered-control", "expected": "actual first control delivery is immutable" },
+      { "id": "E22-configured-preobservation-fallback", "expected": "multiple preobserved local controls use configured order" },
+      { "id": "E23-downward-isolation", "expected": "child local/control abort cannot publish to parent or sibling" },
+      { "id": "E24-root-exact-precedence", "expected": "exact root caller wins strict selection" },
+      { "id": "E25-unproven-equal-falsy", "expected": "equal null/0/false/empty/NaN and exact unrelated undefined throws remain unrelated without proof; native abort(undefined) is not mislabelled literal undefined" },
+      { "id": "E26-proven-runtime-origin", "expected": "exact visible observed-origin identity classifies matching strict throw" },
+      { "id": "E27-foreign-origin-rejected", "expected": "equal sibling/foreign origin identity cannot classify" },
+      { "id": "E28-descendant-report-target", "expected": "helper-authenticated exact descendant report classifies only its target" },
+      { "id": "E29-old-selector-preserved", "expected": "accepted Stage 1 equality selector remains unchanged" },
+      { "id": "E30-no-retroactive-close", "expected": "close fixes child selection and later ancestor cannot rewrite it" }
+    ],
+    "bindingAndMapping": [
+      { "id": "E31-invocation-binding", "expected": "test-local transport requires exact invocation identity" },
+      { "id": "E32-promise-binding", "expected": "test-local transport requires exact raw Promise identity, not equal rejection" },
+      { "id": "E33-sibling-binding", "expected": "equal sibling reason cannot consume another sibling record" },
+      { "id": "E34-one-shot-disposal", "expected": "exact report consumes once; finalize/close discard leftovers" },
+      { "id": "E35-r08-mapping-disposal", "expected": "ordinary throw-to-status mapping discards report and returns numeric status" },
+      { "id": "E36-no-borrowed-poison", "expected": "mapped/handled child cannot write report storage into borrowed parent" },
+      { "id": "E37-actual-rejection-only", "expected": "nonzero status and mapped error are returns, not escaping rejections" },
+      { "id": "E38-unknown-async-limit", "expected": "adopted/replacement async Promise is unproven and remains unrelated" }
+    ]
+  }
+}

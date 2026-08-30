@@ -1,0 +1,661 @@
+{
+  "createdAt": "2026-08-27T06:49:37.264Z",
+  "status": "AUTHORIZED SINGLE EXECUTION COMPLETE; AUTHOR CHECK PASS; FINAL INDEPENDENT REVIEW PENDING",
+  "authorization": {
+    "path": "/tmp/safe-bash-baseline-auth-approval-v3.json",
+    "sha256": "40d096afcb54a38a3fab58ea16ba550350917ce81f80765c07a7c9068b7f0938",
+    "reviewPath": "/tmp/safe-bash-baseline-auth-v3-review-detail.txt",
+    "reviewSha256": "c2e40d91ee64dab52da2ce3125857072d3c44f1568421ec1ab17b27fec678569",
+    "reviewedCandidateManifestSha256": "3fbc048049654a3bc2698fe09365bd91879af06f4a3f5f8e5485dd08a0c40888",
+    "tenApprovedInputHashesUnchanged": true,
+    "textPlanHashUnchanged": true,
+    "rootTokenUnchanged": true,
+    "authorTemplateRemainsFalse": true
+  },
+  "invocation": {
+    "command": "/usr/bin/env -i PATH=/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin HOME=/private/tmp/safe-bash-published-auth-JydnQ4/home TMPDIR=/private/tmp/safe-bash-published-auth-JydnQ4/tmp npm_config_cache=/private/tmp/safe-bash-published-auth-JydnQ4/npm-cache LANG=C LC_ALL=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/supervise-representative.mjs --approval /tmp/safe-bash-baseline-auth-approval-v3.json",
+    "shellPrefix": "exec (replace tool launch shell only)",
+    "supervisorInvocations": 1,
+    "toolExitCode": 0,
+    "toolStdout": "",
+    "toolStderr": "",
+    "polling": "One empty-stdin wait only; no process-control signal",
+    "retries": 0,
+    "managedTotalNodeProcesses": 10,
+    "maxManagedConcurrentProcesses": 3,
+    "actualEngineChildren": 8,
+    "actualCoordinatorProcesses": 1,
+    "actualSupervisorProcesses": 1,
+    "extraProductControlWarmupInventoryNativePerformanceOr224Calls": 0
+  },
+  "outcomes": [
+    {
+      "sequence": 1,
+      "profile": "original",
+      "id": "command/echo/multiple",
+      "pid": 80554,
+      "recipeSha256": "ed63640b5870c37b935aa9330981537aba5c09a9a916ceca5435e6438eef4bba",
+      "oldFourFieldsMatch": true,
+      "nativePass": true,
+      "nativeFailedFields": [],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [
+        {
+          "name": "echo",
+          "args": [
+            "alpha",
+            "beta"
+          ]
+        }
+      ],
+      "rawResult": "representative-v3-attempt-001/result-1.json",
+      "rawResultSha256": "d23eda33230518e5a9a23af6c132b52ade17535d08c2294c77248f6a6dd3cfb7",
+      "stdoutSha256": "87de0dca21b2429312a4b9a9150097c67d3eb2dc2167e862e1055a531b52d248",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entriesJsonSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "sequence": 2,
+      "profile": "original",
+      "id": "composition/archive-hash/archive-hash",
+      "pid": 80567,
+      "recipeSha256": "b5618bdd26ea3e32c4fdf478581a8b3c684f7fd0b8aae2f4825222d0f7b5769c",
+      "oldFourFieldsMatch": true,
+      "nativePass": true,
+      "nativeFailedFields": [],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [
+        {
+          "name": "mkdir",
+          "args": [
+            "out"
+          ]
+        },
+        {
+          "name": "tar",
+          "args": [
+            "-cf",
+            "-",
+            "tree"
+          ]
+        },
+        {
+          "name": "tar",
+          "args": [
+            "-xf",
+            "-",
+            "-C",
+            "out"
+          ]
+        },
+        {
+          "name": "sha256sum",
+          "args": [
+            "out/tree/file"
+          ]
+        }
+      ],
+      "rawResult": "representative-v3-attempt-001/result-2.json",
+      "rawResultSha256": "fa8fc5f8a86f60d2a5fdf9245187f2e11b95cca6c1efd3c84c245e19432fa411",
+      "stdoutSha256": "1ab39dcf5ecfd188d8ce3616d84df191d235b570d7301f57734e8836ce195df4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entriesJsonSha256": "d03ddd4c06d8716f288a5df670e295b9e6d8f44a1fb79caa6dd8e7e3c549019e"
+    },
+    {
+      "sequence": 3,
+      "profile": "original",
+      "id": "command/cat/binary-stdin",
+      "pid": 80581,
+      "recipeSha256": "232d53a341e8c9c97fdfe2f7028e8fff048bd61f38d156960d991480729f01fd",
+      "oldFourFieldsMatch": true,
+      "nativePass": false,
+      "nativeFailedFields": [
+        "stdout"
+      ],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": false
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [
+        {
+          "name": "cat",
+          "args": []
+        }
+      ],
+      "rawResult": "representative-v3-attempt-001/result-3.json",
+      "rawResultSha256": "e6657792d9bd033e2cdf9f6050457bd6a0a34b471a0e63bbbef267939dfc8bf8",
+      "stdoutSha256": "2f4d569874ce73f681dd276fe2bf61565ab7a3f7e4ee30aa23ea77e457d5eeb4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entriesJsonSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "sequence": 4,
+      "profile": "original",
+      "id": "network/curl/get",
+      "pid": 80600,
+      "recipeSha256": "4131258c9e582bb26ef0512c85e713c56c2bd773d7238f7611f4f526d478d42a",
+      "oldFourFieldsMatch": true,
+      "nativePass": false,
+      "nativeFailedFields": [
+        "stdout"
+      ],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": false
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [
+        {
+          "name": "curl",
+          "args": [
+            "-s",
+            "http://127.0.0.1:52610/bytes"
+          ]
+        }
+      ],
+      "rawResult": "representative-v3-attempt-001/result-4.json",
+      "rawResultSha256": "ddd28848a3102d0f4ddda1891b9c9b9ba92b90a0ca1af4cfbdaf5a28244ed2c0",
+      "stdoutSha256": "7f382321d798070b7b143e27e908a5a10f772f5c1906f8b9c648e62e4e93c4d6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entriesJsonSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "sequence": 5,
+      "profile": "original",
+      "id": "network/curl/output",
+      "pid": 80630,
+      "recipeSha256": "3f4a00a19881d35ffba9a668f28fcf376e408c1e17e5b27f7ae15e44e43d9695",
+      "oldFourFieldsMatch": true,
+      "nativePass": true,
+      "nativeFailedFields": [],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [
+        {
+          "name": "curl",
+          "args": [
+            "-s",
+            "-o",
+            "result",
+            "http://127.0.0.1:52610/bytes"
+          ]
+        }
+      ],
+      "rawResult": "representative-v3-attempt-001/result-5.json",
+      "rawResultSha256": "1dc351ba69fa3e0e0c067a31fc39937e7efec1589a7d80cf9c35b636707a62c2",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entriesJsonSha256": "7d1f75fad17ea4a76d86784b4e395114f45f8eb1e121fa232ac6443e0da7a146"
+    },
+    {
+      "sequence": 6,
+      "profile": "original",
+      "id": "kernel/type/type",
+      "pid": 80657,
+      "recipeSha256": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+      "oldFourFieldsMatch": true,
+      "nativePass": true,
+      "nativeFailedFields": [],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [],
+      "rawResult": "representative-v3-attempt-001/result-6.json",
+      "rawResultSha256": "b3450239f2cfaa3c897587d0d60fe19b6883ddcacb529b054512cc7fe9794128",
+      "stdoutSha256": "8296d898f8d8aebb00cd512674fd004ff280f8574a2bb7867a5f45b1938974c7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "entriesJsonSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "sequence": 7,
+      "profile": "original",
+      "id": "command/patch/dry-run",
+      "pid": 80701,
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "oldFourFieldsMatch": true,
+      "nativePass": false,
+      "nativeFailedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": false
+        },
+        {
+          "field": "exitCode",
+          "pass": false
+        },
+        {
+          "field": "entries",
+          "pass": false
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [],
+      "rawResult": "representative-v3-attempt-001/result-7.json",
+      "rawResultSha256": "f732bf0ad59227339a7bcc91e8c6a01908643480f0da82c35fb1efb93ffb9f79",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "bd153ec96ac4624967c5991e4783f413b8aaf13ca318c5ee95956416a6afde49",
+      "entriesJsonSha256": "96746249556c4ba932582faaa77bf6df4409f8147b27b0fadf51951fea4af0af"
+    },
+    {
+      "sequence": 8,
+      "profile": "scratch-aligned",
+      "id": "command/patch/dry-run",
+      "pid": 80735,
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "oldFourFieldsMatch": true,
+      "nativePass": false,
+      "nativeFailedFields": [
+        "stderr",
+        "exitCode"
+      ],
+      "nativeAssertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": false
+        },
+        {
+          "field": "exitCode",
+          "pass": false
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ],
+      "lifecycleNormal": true,
+      "registryEvents": [],
+      "rawResult": "representative-v3-attempt-001/result-8.json",
+      "rawResultSha256": "aaa0e720da87bc65434efca69326f687d7167aa67353e68c6688fcb1845b1752",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "bd153ec96ac4624967c5991e4783f413b8aaf13ca318c5ee95956416a6afde49",
+      "entriesJsonSha256": "96746249556c4ba932582faaa77bf6df4409f8147b27b0fadf51951fea4af0af"
+    }
+  ],
+  "lifecycle": {
+    "counts": {
+      "workerLaunchAttempts": 8,
+      "launchedChildren": 8,
+      "requestDispatchIntents": 8,
+      "requestSendCalls": 8,
+      "requestSendReturns": 8,
+      "requestSendThrows": 0,
+      "successfulSendCallbacks": 8,
+      "failedSendCallbacks": 0,
+      "requestSettlements": 8,
+      "startupSettlements": 8,
+      "responseObservations": 8,
+      "lateObservations": 0,
+      "timeoutSettlements": 0,
+      "ignoredLateMessages": 0,
+      "cleanupSignals": 0,
+      "note": "Local send attempts/returns/flush callbacks are separate from response observations; none alone proves guest execution. Counts come from events, not run-return snapshots."
+    },
+    "maximumSimultaneousEngines": 1,
+    "managedMaximumConcurrency": 3,
+    "enginePids": [
+      80554,
+      80567,
+      80581,
+      80600,
+      80630,
+      80657,
+      80701,
+      80735
+    ],
+    "coordinatorPid": 80445,
+    "supervisorPid": 80129,
+    "supervisorInvocations": 1,
+    "spawnedCoordinators": 1,
+    "groupConfirmedGoneBySupervisor": true,
+    "coordinatorPipesClosed": true,
+    "exceptionalSignals": 0,
+    "noTimeoutsOrLateMessages": true,
+    "routineIpcDisconnects": 8,
+    "limitation": "Ledger plus supervisor owned-process-group probe, not a universal process/thread/socket census. No extra post-run ps/kill/network control executed."
+  },
+  "network": {
+    "origin": "http://127.0.0.1:52610",
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/bytes",
+        "bytes": "",
+        "authorization": null
+      },
+      {
+        "method": "GET",
+        "path": "/bytes",
+        "bytes": "",
+        "authorization": null
+      }
+    ],
+    "closeRecorded": true,
+    "perRequestTimestampOrChildAttribution": "Server records have no PID/time; attribution to the two network recipes is by sequential approved execution and curl registry events, not separate server connection telemetry."
+  },
+  "packageAndClosure": {
+    "root": "/private/tmp/safe-bash-published-auth-JydnQ4/execution-closure",
+    "baseFiles": 3842,
+    "declaredObserverAdditions": 2,
+    "actualFiles": 3844,
+    "missingExtraChangedFiles": 0,
+    "allIndependentRegularFiles": true,
+    "packageFiles": 955,
+    "packageBytes": 22583023,
+    "publishedPackageByteAndMembershipEquality": true,
+    "packageManifestSha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+    "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+    "nonPackageBaseFiles": 2887,
+    "dependencyLimit": "Non-package files rehash equal the frozen closure; dependencies are not individually publication-authenticated by this package tarball."
+  },
+  "entryReceipts": [
+    {
+      "sequence": 1,
+      "pid": 80554,
+      "importLog": "imports-1.jsonl",
+      "importLogSha256": "5d5618fb5e22ec5cbdc170be2f9a835261eabcdce3f6f57ed24f32b24a0610fa",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:41:59.339Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 2,
+      "pid": 80567,
+      "importLog": "imports-2.jsonl",
+      "importLogSha256": "7d2fbdeec7595d190d5ce15a1759c7d2989bf6035cba72f0e3ac4272720b68e5",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:41:59.624Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 3,
+      "pid": 80581,
+      "importLog": "imports-3.jsonl",
+      "importLogSha256": "a5bd474f56589939780ff9dd734d4d4e25d70f352acf9f45407f6ed7ddc165b8",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:41:59.910Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 4,
+      "pid": 80600,
+      "importLog": "imports-4.jsonl",
+      "importLogSha256": "d9a57500ed4555e4c81bd57646a2870476381ce3a9745ac7886762f88ffc9368",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:42:00.181Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 5,
+      "pid": 80630,
+      "importLog": "imports-5.jsonl",
+      "importLogSha256": "45257dd028965f66f24f51c2aed85d65842b1e83e6728286a5c1dafc56258f5d",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:42:00.463Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 6,
+      "pid": 80657,
+      "importLog": "imports-6.jsonl",
+      "importLogSha256": "71de7fe958d044ba01f3290617d80f9bfd2e23119ca5dd4ac591d9fef513c122",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:42:00.738Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 7,
+      "pid": 80701,
+      "importLog": "imports-7.jsonl",
+      "importLogSha256": "8243fd036988b97c0977bb3b8f26c806ca0a0ca5396d677e59b0ab8df5a31cc4",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/original/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:42:00.988Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    },
+    {
+      "sequence": 8,
+      "pid": 80735,
+      "importLog": "imports-8.jsonl",
+      "importLogSha256": "ab04296c08a28a4d9d9878c7b0ab2449b05d12c1c2f5bc8a5b64468cea5c77b1",
+      "entryUrl": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "entryParent": "file:///private/tmp/safe-bash-published-auth-JydnQ4/execution-closure/profiles/scratch-aligned/benchmarks/expanded/engine.mjs",
+      "entrySha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "readyAt": "2026-08-27T06:42:01.231Z",
+      "allObservedFileLoadHashesMatch": true,
+      "forbiddenExtraProcessAttempts": 0,
+      "limitation": "Loader returned does not alone prove evaluation; exact engine ready-after-awaited-import supplies bounded entry success. No universal module/thread/worker/native-addon/syscall or asset-read trace."
+    }
+  ],
+  "sourceProfiles": [
+    {
+      "profile": "original",
+      "path": "profiles/original/benchmarks/expanded/engine.mjs",
+      "sha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "equalsPreviouslyReviewedFrozenEngine": true,
+      "lines": {
+        "awaitedEntryImport": 16,
+        "ready": 18,
+        "constructor": 53,
+        "sameNameForwardWrapper": 56,
+        "originalExecuteForward": 57,
+        "warmupLoop": 69,
+        "messageHandler": 91
+      },
+      "customCommandsSupplied": false,
+      "wrapper": "same existing command name; shallow original definition plus recording wrapper returning original definition.execute(...args)",
+      "branch": "EXPANDED_ENGINE=just-bash; the virtual-bash empty-script initialization branch is not selected"
+    },
+    {
+      "profile": "scratch-aligned",
+      "path": "profiles/scratch-aligned/benchmarks/expanded/engine.mjs",
+      "sha256": "c6744398ee47d8ba6e975deae2b694e4e9c641d400166ac639cf797b0b623323",
+      "equalsPreviouslyReviewedFrozenEngine": true,
+      "lines": {
+        "awaitedEntryImport": 16,
+        "ready": 18,
+        "constructor": 54,
+        "sameNameForwardWrapper": 57,
+        "originalExecuteForward": 58,
+        "warmupLoop": 70,
+        "messageHandler": 92
+      },
+      "customCommandsSupplied": false,
+      "wrapper": "same existing command name; shallow original definition plus recording wrapper returning original definition.execute(...args)",
+      "branch": "EXPANDED_ENGINE=just-bash; the virtual-bash empty-script initialization branch is not selected"
+    }
+  ],
+  "rawEvidence": {
+    "directory": "representative-v3-attempt-001",
+    "files": 26,
+    "bytes": 954710,
+    "hostStdoutStderrChunks": "No chunks observed; hostBytes is0 for all8; no synthetic empty files",
+    "rootProcessStdoutStderr": "Tool reported empty stdout/stderr and exit0"
+  },
+  "postRunCheck": {
+    "script": "execution-post-run-check.mjs",
+    "scriptSha256": "c5e7d33de3caf41b01719dc241cbe99011620cd78f83178182357f75768d7acb",
+    "result": "execution-post-run-check-attempt-1.json",
+    "resultSha256": "47c3fed832381c527ef1281a13e2c9731820438e18a2685ec6efe3f43ebecee6",
+    "status": 0,
+    "attempts": 1,
+    "scope": "Fresh builtin-only rehash/event/observation audit, no product/driver import, no network/process-control calls",
+    "independentReviewerAcceptance": false
+  },
+  "preservation": {
+    "candidate18EntriesUnchanged": true,
+    "prior9CopiesByteExact": true,
+    "old29SealEntriesUnchangedWithPreservedV2Driver": true,
+    "oldReportsAndRawEvidenceUnchanged": true,
+    "verificationOwnedFilesEdited": false,
+    "approvedInputOrTokenEdits": false,
+    "stagedOrCommitted": false
+  },
+  "summary": {
+    "oldObservationMatches": 8,
+    "nativePasses": 4,
+    "nativeFailures": 4,
+    "newBenchmarkDenominator": false,
+    "retainedPerformanceFields": "Unchanged frozen engine includes executeMs/memory sampling in raw responses; no trials, aggregation, new performance experiment or speed/memory claim."
+  },
+  "historicalScoreQualification": {
+    "original": {
+      "ours": 222,
+      "baseline": 155,
+      "denominator": 224
+    },
+    "scratchAligned": {
+      "ours": 223,
+      "baseline": 155,
+      "denominator": 224
+    },
+    "sourceHead": "c2902a6",
+    "dirtySourceTreeSha256": "76deb591783ac168ca5daef04c4351d7e80b159c003cd27d3a445190ca6fd74c",
+    "dirtyAndUntrackedFreeze": true,
+    "newFullScore": false,
+    "denominatorUnion": false,
+    "baselineOnlyTableRemainsSeparate": true,
+    "mandatoryCurrentScoreLifecycleQualification": "Different reviewer/root pending"
+  },
+  "metadataPublicationIssue": {
+    "error": "spawnSync /Users/kjopek/.codex/tmp/arg0/codex-arg0rBpPQb/apply_patch ENOENT",
+    "reason": "Stale patch-tool absolute path from previous turn. All hash assertions completed; publication failed before any supervisor invocation. Repeated read-only hash check with currently discovered patch tool; not a benchmark retry."
+  }
+}

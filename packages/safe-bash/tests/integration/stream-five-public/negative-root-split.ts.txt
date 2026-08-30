@@ -1,0 +1,2 @@
+import type { SplitCommandsOptions } from 'virtual-bash';
+export const invalid: SplitCommandsOptions = { limits: { maxFiles: false } };

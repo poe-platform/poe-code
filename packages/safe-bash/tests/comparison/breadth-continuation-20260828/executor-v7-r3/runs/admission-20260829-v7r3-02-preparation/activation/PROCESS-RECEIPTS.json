@@ -1,0 +1,896 @@
+{
+  "runtimeOwner": {
+    "pid": 63718,
+    "exit": 0,
+    "closed": true,
+    "execReplacement": true
+  },
+  "launcher": {
+    "attempted": true,
+    "pid": 63724,
+    "group": 63724,
+    "enrolled": true,
+    "error": null,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "pidPresence": "absent",
+    "groupPresence": "absent",
+    "reaped": true,
+    "natural": true
+  },
+  "coordinator": {
+    "pid": 63730,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "reaped": true,
+    "natural": true
+  },
+  "workerProcesses": [
+    {
+      "operation": "probe-1",
+      "pid": 64108,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 327940,
+      "parts": 2
+    },
+    {
+      "operation": "probe-2",
+      "pid": 64252,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 327736,
+      "parts": 2
+    },
+    {
+      "operation": "probe-3",
+      "pid": 64415,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 59238,
+      "parts": 0
+    },
+    {
+      "operation": "C03-esm",
+      "pid": 64605,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 6226,
+      "parts": 0
+    },
+    {
+      "operation": "C03-cjs",
+      "pid": 64670,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 6203,
+      "parts": 0
+    },
+    {
+      "operation": "C03-require",
+      "pid": 64737,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 7808,
+      "parts": 0
+    },
+    {
+      "operation": "C03-wrong-hash",
+      "pid": 64784,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 9045,
+      "parts": 0
+    },
+    {
+      "operation": "C04-unbound",
+      "pid": 64940,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 10579,
+      "parts": 0
+    },
+    {
+      "operation": "C04-offline",
+      "pid": 65012,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 10334,
+      "parts": 0
+    },
+    {
+      "operation": "C09-status",
+      "pid": 65451,
+      "exit": {
+        "code": 7,
+        "signal": null
+      },
+      "close": {
+        "code": 7,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": false,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 5427,
+      "parts": 0
+    },
+    {
+      "operation": "C09-deadline",
+      "pid": 65540,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": false,
+      "failures": [
+        {
+          "code": "NATURAL_DEADLINE"
+        }
+      ],
+      "signals": [
+        "SIGTERM"
+      ],
+      "logicalReceiptBytes": 5507,
+      "parts": 0
+    },
+    {
+      "operation": "C11-positive",
+      "pid": 66009,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 330214,
+      "parts": 2
+    },
+    {
+      "operation": "C11-rejected",
+      "pid": 66024,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 328639,
+      "parts": 2
+    },
+    {
+      "operation": "C12-loaded-noop",
+      "pid": 66052,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 6226,
+      "parts": 0
+    }
+  ],
+  "authorityMetadata": [
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64111,
+      "group": -64111,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "probe-1"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64112,
+      "group": -64112,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "probe-1"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64270,
+      "group": -64270,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "probe-2"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64271,
+      "group": -64271,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "probe-2"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64418,
+      "group": -64418,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "probe-3"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64419,
+      "group": -64419,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "probe-3"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64616,
+      "group": -64616,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-esm"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64617,
+      "group": -64617,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-esm"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64673,
+      "group": -64673,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-cjs"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64675,
+      "group": -64675,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-cjs"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64740,
+      "group": -64740,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-require"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64741,
+      "group": -64741,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-require"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64787,
+      "group": -64787,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-wrong-hash"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64789,
+      "group": -64789,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C03-wrong-hash"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 64948,
+      "group": -64948,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C04-unbound"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 64953,
+      "group": -64953,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C04-unbound"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 65018,
+      "group": -65018,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C04-offline"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 65019,
+      "group": -65019,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C04-offline"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 65458,
+      "group": -65458,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C09-status"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 65459,
+      "group": -65459,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C09-status"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 65548,
+      "group": -65548,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C09-deadline"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 65549,
+      "group": -65549,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C09-deadline"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 66013,
+      "group": -66013,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C11-positive"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 66015,
+      "group": -66015,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C11-positive"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 66026,
+      "group": -66026,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C11-rejected"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 66027,
+      "group": -66027,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C11-rejected"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 66054,
+      "group": -66054,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C12-loaded-noop"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 66055,
+      "group": -66055,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "C12-loaded-noop"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 1,
+      "reference": {
+        "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+        "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+        "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+      },
+      "pid": 63736,
+      "group": -63736,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 159,
+      "stdoutSha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "coordinator"
+    },
+    {
+      "role": "git-authority-metadata",
+      "ordinal": 2,
+      "reference": {
+        "commit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/ROOT-GRANT.json",
+        "sha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1"
+      },
+      "pid": 63737,
+      "group": -63737,
+      "status": 0,
+      "signal": null,
+      "errorCode": null,
+      "stdoutBytes": 975,
+      "stdoutSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+      "stderrBase64": "",
+      "reaped": true,
+      "operation": "coordinator"
+    }
+  ],
+  "wrapperHelpers": [
+    {
+      "pid": 63719,
+      "parentPid": 63718,
+      "role": "capture-preparer",
+      "closure": "shell awaited exit0 before owner exec; owner settled0",
+      "handlesSyncedClosed": true
+    },
+    {
+      "pid": 63720,
+      "parentPid": 63718,
+      "role": "fd-and-exact-environment-guard",
+      "closure": "shell awaited exit0 before owner exec; owner settled0"
+    }
+  ],
+  "runtimeProcesses": 47,
+  "wrapperHelpersAdministration": 2,
+  "metadataAdministrationSoFar": 8,
+  "plannedAllProcesses": 67,
+  "plannedAdministration": 20,
+  "cap": 128,
+  "peakTopology": 5,
+  "peakQualification": "Declared serial parent-child topology and enrolled real children; not global host census",
+  "threadWorkerQualification": "Guard refuses Worker/Wasm creation before access; pending/descriptors0 and no violations in real probes. Not an audit of all host-internal threads."
+}

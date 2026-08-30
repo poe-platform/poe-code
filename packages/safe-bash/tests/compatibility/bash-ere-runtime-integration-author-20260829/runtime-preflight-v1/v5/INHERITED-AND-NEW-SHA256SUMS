@@ -1,0 +1,5 @@
+278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/../v4/CASES-v4.json
+3ed461b896823b659c4e1d204292127f1f41c58e78af28705cf3c963fd138fcb  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/root-binding.mjs
+3ca51784f2158a0741e72653789ca0735b325b2ef142a7644dfd1847aafe9ec1  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/prepare.mjs
+95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/pure-controls.mjs
+6d1fb9214824954fea0806e9d849d8740ef9e6520f06265e82c405aa8cd667c1  tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v5/PRESEAL.md

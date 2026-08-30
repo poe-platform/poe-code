@@ -1,0 +1,12 @@
+{
+  "at": "2026-08-27T22:53:35.384Z",
+  "helper": "tests/integration/html-public-admission-v2-independent-20260827/post-reconcile.mjs",
+  "sha256": "6686e7b31c7b9b0af62427c70790e9375aeda3acda3b92439778a5f149708dfa",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/html-public-admission-v2-independent-20260827/post-reconcile.mjs"
+  ],
+  "priorFailure": "POST-AUTH-FAILURE.json",
+  "scope": "Immutable postcheck/index reconciliation only; no rerun of any controls/materialization/build/reproduction; actual34zero",
+  "toolsBoundBy": "EXECUTION-FREEZE.json"
+}

@@ -1,0 +1,38 @@
+{
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "originalFreezeCommit": "5b3c6c08ecb21a05db47fb4c191f693d32e1dc78",
+  "frozenAt": "2026-08-27T22:20:21.645Z",
+  "earlierActualGuestRuns": 1,
+  "earlierResult": {
+    "pass": 0,
+    "guestNonpass": 0,
+    "infrastructureNonpass": 1,
+    "blocked": 1,
+    "denominator": 2
+  },
+  "correctedGuestRunsBeforeFreeze": 0,
+  "inputs": {
+    "CORRECTION-v2.md": "cc25a783f40faf8de2b059b3b9fa5f771063e26b9f6ca16fed893afaa012915d",
+    "child-v2.mjs": "407b5412c53d159af21baafd925ee3ccf3988fa14231232b413695fe93545815",
+    "correction.mjs": "3261faf714b0a6a930639f4fab8cdc49c2b474e191aee106efd381e23ef39c0b",
+    "prepare-v2.mjs": "10babdb86f848bb2103d2be4bcd1220a47caca9c77824b1bab81ea6025c56e76",
+    "run-v2.mjs": "e90def0339ffd9729499824925b3a33bcc775413d7503455bc206ab4cd039057",
+    "finish-v2.mjs": "7d122ef4199abe0bd7795445c5b70e42336d72729689f49161d0aba15de4b8d7",
+    "verify-v2.mjs": "8e23a48581dd759b2b1ec5171c866fd1c79c4cd444f276450d78ebe9ea0aa33c"
+  },
+  "immutableSHA256": "6d4a7dc6c05adfbd3d48274a1c807c6859dec2b7dbb138129502ec77e32643e6",
+  "immutableEntries": 1323,
+  "importBindingSHA256": "a1812def5b6920a97db8261e2509ee6257df4b701ca1dba8ae108e4f01284acf",
+  "unchangedInputs": [
+    "both guest programs and assertions",
+    "candidate full public package",
+    "real engine264 and allowed import63 closure",
+    "original loader/private/capability guards",
+    "read-only builtin witness"
+  ],
+  "changedInputs": [
+    "exact two standardCommands host setup calls",
+    "explicit new owned regular root and corresponding import binding"
+  ],
+  "maximumAdditionalGuestRuns": 2
+}

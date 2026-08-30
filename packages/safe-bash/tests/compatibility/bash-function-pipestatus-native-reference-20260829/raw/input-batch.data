@@ -1,0 +1,2266 @@
+dd037378e4c58bdf514e38aa6240f6c9d2e62f54 blob 14863
+{
+  "schema": "next-gap-proof-plan-v1",
+  "status": "UNRUN_DESIGN_NOT_AUTHORIZATION",
+  "count": 32,
+  "rows": [
+    {
+      "id": "F01",
+      "kind": "retained-B35",
+      "program": "function f { printf 'f:%s\\n' \"$1\"; }; f value",
+      "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+      "obligation": "Existing one native3.2 observation: stdout f:value\\n/status0. No new execution.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "RETAINED_OBSERVATION_ONLY_NO_RERUN"
+    },
+    {
+      "id": "F02",
+      "kind": "parenthesized-keyword",
+      "program": "function f() { printf x; }; f",
+      "programSha256": "fd50190d103005960f6211f174c6988cbb8dc6966478b34e268369b68e7f4da9",
+      "obligation": "Use existing function AST; output x, no AST schema addition.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F03",
+      "kind": "newline-after-name",
+      "program": "function f\n{ printf x; }\nf",
+      "programSha256": "a576c3dd258d61aaf032522169284aa7fd9866c106fc2a2293e6d29ff40e88b8",
+      "obligation": "Accept name-to-body newline; do not accept newline between keyword and missing name.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F04",
+      "kind": "compound-not-only-braces",
+      "program": "function f() if true; then printf x; fi; f",
+      "programSha256": "c096f26723996ffd7baace023fb752efc95d49f2b2b373cfc4a0405e7db5b6e9",
+      "obligation": "Reuse supported compound body parsing; no simple-command body.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F05",
+      "kind": "deferred-function-redirection",
+      "program": "function f { printf x; } > out; printf before; f",
+      "programSha256": "4a39b12f8fd9a0666e19be5c6eef74abdf4cf04d2b8988443072c7c8b24523ac",
+      "obligation": "No out creation at definition; invocation writes x to owned out; stdout before.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F06",
+      "kind": "quoted-keyword",
+      "program": "\"function\" f",
+      "programSha256": "ac67da2109cc7d1a5e11592892661205249ce4430c5ad1f571990a9d4a519e3d",
+      "obligation": "Quoted word is not keyword; finite failed lookup only, not external execution permission.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F07",
+      "kind": "syntax-before-effects",
+      "program": "printf BAD; function",
+      "programSha256": "2390e69d460a7a47d56626d462ce54818dc51e15828840cbda16be1722dca83c",
+      "obligation": "Existing same-unit preflight rejects before BAD; preserve scriptFile whole-AST preflight and existing Shell.exec input-unit boundaries.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F08",
+      "kind": "reserved-name",
+      "program": "function if { printf x; }; \"if\"",
+      "programSha256": "edb2617177c00179c428b9bb21be103ee8010228c7c88ba954ed52791864ea65",
+      "obligation": "Permit unquoted identifier name in keyword-name position even when reserved; quoted invocation remains ordinary function lookup.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F09",
+      "kind": "bounded-name-gap",
+      "program": "function bad-name { :; }",
+      "programSha256": "0cb1d6fdd68ec476219bec965ad83919ad6a812b9f0194fd4eeee29464d91e49",
+      "obligation": "Proposed ASCII-identifier v1 refusal; GNU non-POSIX wider names source-supported, so deliberate gap, NOT parity assertion.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "F10",
+      "kind": "invalid-body",
+      "program": "function f() printf BAD",
+      "programSha256": "ca78fd92b11466d4af610bfe4753763fa583cb9c1c797e182aa878900428ddce",
+      "obligation": "Reject simple body during preflight; no BAD output or function publication.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P01",
+      "kind": "retained-B30",
+      "program": "false | true; printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+      "programSha256": "4e2b839fbb76fe9ba5eacc948c39f3acffc335ac35920a5ffc0bb33090cb47ad",
+      "obligation": "Existing one native3.2 observation: ordered 1,0; not complete PIPESTATUS qualification.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "RETAINED_OBSERVATION_ONLY_NO_RERUN"
+    },
+    {
+      "id": "P02",
+      "kind": "initial-state",
+      "program": "printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "c2dd0965e76fdb5a348fc381faf64eb48aace205b0114469906123f1b61437fa",
+      "obligation": "Proposed fresh root [0]; startup detail requires qualification, not established by B30.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P03",
+      "kind": "expand-before-overwrite",
+      "program": "false; printf \"a:<%s>\\n\" \"${PIPESTATUS[@]}\"; printf \"b:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "0f79c1da2ea561ad221dbb3d17601f914de695a8c809c2caa3de0d3daf4a2468",
+      "obligation": "First expansion sees1, second0; output itself causes later singleton publication.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P04",
+      "kind": "stage-order",
+      "program": "false | true | false; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "programSha256": "a8259d87aab3038de0bac199e0c8fd5202ce7edf8334495b62c5246aaff69615",
+      "obligation": "Capture source order1,0,1 independent of completion order; aggregate1.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P05",
+      "kind": "pipefail",
+      "program": "set -o pipefail; false | true; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "programSha256": "cd7a8119ae78504ab739e7e20cffc09f5c65fe2d7c0a8bd5f6af37aa0a89b2e9",
+      "obligation": "Aggregate1 and raw stage vector1,0 are distinct.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P06",
+      "kind": "pipeline-negation",
+      "program": "! false | true; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "programSha256": "7f8d6d49287d0cc28bb1da3c4185cdba6bf67b010c3c9ff040c1bd7703756978",
+      "obligation": "Simple/multi pipeline negation changes aggregate, not underlying stage vector.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P07",
+      "kind": "conditional-negation",
+      "program": "! [[ x = y ]]; printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "programSha256": "90d9ce459a465287e324277d021ff7bcd8b2c4952f8bdba98cecd6e7596e16a2",
+      "obligation": "GNU execute_cmd.c1203–1222 suggests conditional singleton uses inverted result; qualify separately, do not universalize raw-status rule.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P08",
+      "kind": "arithmetic-negation",
+      "program": "! ((0)); printf \"%s:<%s>\\n\" \"$?\" \"${PIPESTATUS[*]}\"",
+      "programSha256": "29dc805ec9811bb07bde82b43cdb95430926b6447289f80d12f0a3d17bebd741",
+      "obligation": "Same explicit compound completion distinction; preserve accepted synchronous arithmetic.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P09",
+      "kind": "and-or-skipping",
+      "program": "false && true; printf \"a:<%s>\\n\" \"${PIPESTATUS[@]}\"; true || false; printf \"b:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "0467169d179cc35f7736da9b590aa53ec9b278f8e78ffeca808e002e2fcc7917",
+      "obligation": "Skipped branch does not publish; only commands that execute update.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P10",
+      "kind": "group-not-singleton",
+      "program": "{ false | true; }; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "24e73a0cb6a4b5dcc88ed63a525e446cd4c5b05ca0d4992a4285ffc4b15a4cfb",
+      "obligation": "Do not blindly publish wrapper aggregate for braces; retain last inner vector.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P11",
+      "kind": "function-inner-and-caller",
+      "program": "f() { false | true; printf \"inner:<%s>\\n\" \"${PIPESTATUS[@]}\"; return 7; }; f; printf \"caller:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "5333f1680e467fe8637a54e10dd2d5e0931512d44767338296d5c1cf21647f61",
+      "obligation": "Inner observes pipeline; completed function invocation publishes singleton7.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P12",
+      "kind": "subshell-isolation",
+      "program": "false; ( printf \"child:<%s>\\n\" \"${PIPESTATUS[@]}\" ); printf \"parent:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "122f3b9b7c91ede81feabb838f624d731b1851a15819e4ba9792c6eafdb9b833",
+      "obligation": "Child inherits snapshot; child updates do not mutate parent; parent gets subshell completion0.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P13",
+      "kind": "command-substitution",
+      "program": "false | true; value=$(printf \"child:<%s>\\n\" \"${PIPESTATUS[@]}\"; false); printf \"%s parent:<%s>\\n\" \"$value\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "7b30df74d0e906adb70657f2592d14da177d384c03d05b3e943e18edb2af9234",
+      "obligation": "Expansion snapshot/child state isolated; assignment completion uses substitution status. Source-derived target pending native qualification.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P14",
+      "kind": "assignment-only",
+      "program": "false; value=ok; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "6ad638fd0b75d9a6e869da6397f749bde6bb2c5bb95ac491d07afcbc2dc1f021",
+      "obligation": "Successful assignment-only command replaces prior status with0.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P15",
+      "kind": "command-not-found",
+      "program": "__surface_missing_command__; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "03b8423f7e406dc4cfc4d15ac2de1a21980b9ab96bbb18943e3a4891e5c960cf",
+      "obligation": "Existing127 mapped command result, no host lookup. Raw diagnostic prefix remains separate.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P16",
+      "kind": "readonly-special",
+      "program": "readonly PIPESTATUS; false; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "c8d572dda97a672dcf28abe7aa60811f487c7a261a5e18a3b3c0f057e9e88474",
+      "obligation": "Source setter lacks readonly gate: proposed internal-only update, ordinary user writes still readonly; root/profile decision and fresh observation required.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P17",
+      "kind": "unset-recreation",
+      "program": "unset PIPESTATUS; printf \"<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "1ec83299aba1bad4ee1ae8896415f405c09816b7ae27e24910fddcba1f8ada00",
+      "obligation": "Absent variable recreated by successful unset completion; do not mark permanently disabled without evidence.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "P18",
+      "kind": "local-special-binding",
+      "program": "f() { local PIPESTATUS; false; printf \"inner:<%s>\\n\" \"${PIPESTATUS[@]}\"; }; false | true; f; printf \"outer:<%s>\\n\" \"${PIPESTATUS[@]}\"",
+      "programSha256": "47ed194099c72090e84121251d7dc6fae2290b1b226c99f41ca49875710c1339",
+      "obligation": "Visible local binding and typed restoration must be resolved before acceptance; no general scalar/local rewrite.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "NEW_NATIVE_REQUIRES_FRESH_ROOT_AUTHORITY"
+    },
+    {
+      "id": "M01",
+      "kind": "bounded-publication",
+      "program": null,
+      "programSha256": null,
+      "obligation": "Future product fault control: admission failure before vector allocation/publication, prior snapshot unchanged, no hidden Budget reset; inherited scalar/export entry and no partial snapshot covered by exact state setup.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "PRODUCT_CONTROL_NOT_NATIVE"
+    },
+    {
+      "id": "M02",
+      "kind": "cancel-and-status",
+      "program": null,
+      "programSha256": null,
+      "obligation": "Future product control: existing PipelineClosed141 versus caller reason0/undefined/Error; no synthesized128+signal for a hostless cancellation, no claimed native signal delivery.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "PRODUCT_CONTROL_NOT_NATIVE"
+    },
+    {
+      "id": "M03",
+      "kind": "cleanup-and-errexit",
+      "program": null,
+      "programSha256": null,
+      "obligation": "Future product control: numeric failure published before applicable errexit Flow; rejected cleanup/sink/caller preserve original identity and no falsely completed vector; readonly/stale simultaneous fault order explicit.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "PRODUCT_CONTROL_NOT_NATIVE"
+    },
+    {
+      "id": "M04",
+      "kind": "composition-and-layouts",
+      "program": null,
+      "programSha256": null,
+      "obligation": "Future source/installed/moved verification of same frozen scripts; unchanged public AST shape, ERE status2/BASH_REMATCH, CD/LET/STACK/dotglob, parent ledger and independent holdouts. No new corpus or execution authority here.",
+      "disposition": "UNRUN_DESIGN",
+      "nativeAuthority": "PRODUCT_CONTROL_NOT_NATIVE"
+    }
+  ]
+}
+
+0ba713f7cada744aae9d32651ed8789cf48a1b1b blob 51674
+{
+  "schema": "bash-next-gap-source-plan-v1",
+  "date": "2026-08-29",
+  "authority": "SOURCE_DATA_ONLY_NO_IMPLEMENTATION_OR_EXECUTION",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceManifest": {
+    "path": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE.json",
+    "bytes": 230044,
+    "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+  },
+  "core": [
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "bytes": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "mode": "100644",
+      "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+      "bytes": 42620,
+      "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+      "bytes": 203623,
+      "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+      "revision": "7196bace8ea2c141d5ed1020fef5bf721c321ace"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "mode": "100644",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "role": "accepted coherent78 unchanged"
+    }
+  ],
+  "ere": {
+    "commit": "e013f817fd7700c59a144c395c80dc25856e4157",
+    "status": "UNACCEPTED_SEPARATE_FROZEN_INSPECTION",
+    "diffBytes": 19925,
+    "diffSha256": "e09cc67fcbcf721dc144ad5c52b782dae583afdce55cafd0c07340117ec4b8a3",
+    "paths": [
+      "src/shell/conditional.ts",
+      "src/shell/parser.ts",
+      "src/shell/runtime.ts",
+      "src/shell/shell.ts"
+    ]
+  },
+  "gnu": {
+    "profile": "authenticated GNU5.3 source plus15 patches; NOT an executed5.3 reference",
+    "inventory": {
+      "blob": "139a6476bb1821cb74d18bf3b4e5fe5c71b9423d",
+      "bytes": 365787,
+      "sha256": "a09a69e158ef9bd277f39e05688d9b4f44a708d61f7e6d164d8463a8c3162cc6",
+      "canonicalTupleSha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e"
+    },
+    "signatureEvidence": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+    "files": [
+      {
+        "path": "parse.y",
+        "bytes": 217136,
+        "sha256": "076a16d00c5b065137b3d2730d2b94a1f6c89a1bbb5d2f4bd72d31e00947e27f",
+        "qualified": "authenticated signed-source5.3+15 data, not runtime"
+      },
+      {
+        "path": "variables.c",
+        "bytes": 173996,
+        "sha256": "e5c8be22b2805b32edcc50d75bf36fc767e8f540b403c50c2e48b6783591bd2e",
+        "qualified": "authenticated signed-source5.3+15 data, not runtime"
+      },
+      {
+        "path": "execute_cmd.c",
+        "bytes": 184046,
+        "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+        "qualified": "authenticated signed-source5.3+15 data, not runtime"
+      },
+      {
+        "path": "jobs.c",
+        "bytes": 150630,
+        "sha256": "ea8914be42b734addddb3a72e1bd8e39a607e3422eeb7eb98ce9ad4ee7886a12",
+        "qualified": "authenticated signed-source5.3+15 data, not runtime"
+      },
+      {
+        "path": "doc/bash.1",
+        "bytes": 392678,
+        "sha256": "23f7bd155c57125864094d2cb4e1f6ec9f8c2ea002e18bebeb3ed4bcfaad1971",
+        "qualified": "authenticated signed-source5.3+15 data, not runtime"
+      },
+      {
+        "path": "doc/bashref.texi",
+        "bytes": 415804,
+        "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+        "qualified": "authenticated signed-source5.3+15 data, not runtime"
+      },
+      {
+        "path": "general.c",
+        "bytes": 36727,
+        "sha256": "669ef408f4bcc6b4ce424677d29532f28e903430c93b335fa1a292dd360bd165"
+      },
+      {
+        "path": "shell.c",
+        "bytes": 59208,
+        "sha256": "5f3d539f15e19c032a09ece500efecc9c63d050d408e985b6f385c64329bf73d"
+      },
+      {
+        "path": "subst.c",
+        "bytes": 383471,
+        "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56"
+      }
+    ],
+    "webPrimary": [
+      {
+        "url": "https://www.gnu.org/s/bash/manual/html_node/Shell-Functions.html",
+        "use": "grammar, name restrictions, deferred redirects; source version controls detailed claims"
+      },
+      {
+        "url": "https://www.gnu.org/software/bash/manual/html_node/Bash-Variables.html",
+        "use": "PIPESTATUS conceptual definition; pinned doc/bash.1 lines2169–2192 controls detailed description"
+      },
+      {
+        "url": "https://www.gnu.org/software/bash/manual/html_node/Pipelines.html",
+        "use": "pipeline status and negation; command-specific source exceptions retained"
+      }
+    ]
+  },
+  "observations": {
+    "nativeRootPublication": "ffe2d23277fb02c20175f66530154acf79a8c1ca",
+    "nativeVersion": "GNU Bash3.2.57(1) arm64-apple-darwin25, not5.3",
+    "matrix": {
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/profile/MATRIX.json",
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    "virtual": {
+      "commit": "4601270e3bde9239776fdf0168f6fc826088cf41",
+      "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/actual-run-v1/OUTCOME-MATRIX.json",
+      "bytes": 793985,
+      "sha256": "3e9cd44080c40ba2a9d32a245697fbe905f8f0238c83d858c73d0e65e8a56bd9",
+      "rootAcceptedFinite": "19 equal /18 different identities; campaign accounting HOLD unchanged"
+    },
+    "rows": [
+      {
+        "id": "source-built-B30",
+        "caseId": "B30",
+        "layout": "source-built",
+        "programSha256": "4e2b839fbb76fe9ba5eacc948c39f3acffc335ac35920a5ffc0bb33090cb47ad",
+        "program": "false | true; printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+            "base64": "PDE+CjwwPgo="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 0,
+          "stdout": {
+            "bytes": 3,
+            "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+            "base64": "PD4K"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": false,
+          "stderr": true,
+          "status": true,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": false,
+        "declaredInterpretation": [
+          "SOURCE_NO_PIPESTATUS_PUBLICATION_FOUND"
+        ],
+        "receiptSha256": "3bc79fa95fac06c1089803ea108cafd24fed8fd6e386b3aee2fda050fd05e5ca"
+      },
+      {
+        "id": "source-built-B35",
+        "caseId": "B35",
+        "layout": "source-built",
+        "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+        "program": "function f { printf 'f:%s\\n' \"$1\"; }; f value",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "c8d107905bbbf7f29936382d88eddcacfcd85bdd16898913c20537f0ae14c7b3",
+            "base64": "Zjp2YWx1ZQo="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 2,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 62,
+            "sha256": "dc5cba64110f9dc978b56bfef4d0961d2367a118f7d133d7b4484b51ab2f9131",
+            "base64": "c2hlbGw6IFVuZXhwZWN0ZWQgb3IgdW5zdXBwb3J0ZWQga2V5d29yZCBmdW5jdGlvbiBhdCBvZmZzZXQgMAo="
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": false,
+          "stderr": false,
+          "status": false,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": false,
+        "declaredInterpretation": [
+          "SOURCE_PARSER_FUNCTION_KEYWORD_REFUSED"
+        ],
+        "receiptSha256": "9468639f109dfeca111a620538c4a4ab01fababd969a04f477ddc4115f9ff531"
+      },
+      {
+        "id": "installed-B30",
+        "caseId": "B30",
+        "layout": "installed",
+        "programSha256": "4e2b839fbb76fe9ba5eacc948c39f3acffc335ac35920a5ffc0bb33090cb47ad",
+        "program": "false | true; printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+            "base64": "PDE+CjwwPgo="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 0,
+          "stdout": {
+            "bytes": 3,
+            "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+            "base64": "PD4K"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": false,
+          "stderr": true,
+          "status": true,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": false,
+        "declaredInterpretation": [
+          "SOURCE_NO_PIPESTATUS_PUBLICATION_FOUND"
+        ],
+        "receiptSha256": "76dcf9eaf330db856dda3cd4187c8e549d25270bcf5cbbd8a5fcff5568a658ff"
+      },
+      {
+        "id": "installed-B35",
+        "caseId": "B35",
+        "layout": "installed",
+        "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+        "program": "function f { printf 'f:%s\\n' \"$1\"; }; f value",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "c8d107905bbbf7f29936382d88eddcacfcd85bdd16898913c20537f0ae14c7b3",
+            "base64": "Zjp2YWx1ZQo="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 2,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 62,
+            "sha256": "dc5cba64110f9dc978b56bfef4d0961d2367a118f7d133d7b4484b51ab2f9131",
+            "base64": "c2hlbGw6IFVuZXhwZWN0ZWQgb3IgdW5zdXBwb3J0ZWQga2V5d29yZCBmdW5jdGlvbiBhdCBvZmZzZXQgMAo="
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": false,
+          "stderr": false,
+          "status": false,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": false,
+        "declaredInterpretation": [
+          "SOURCE_PARSER_FUNCTION_KEYWORD_REFUSED"
+        ],
+        "receiptSha256": "b0d8d44eb21e3522d9a8b8c4f96ab43f202c520fca0932182a1ccb883dc65425"
+      },
+      {
+        "id": "physically-moved-B30",
+        "caseId": "B30",
+        "layout": "physically-moved",
+        "programSha256": "4e2b839fbb76fe9ba5eacc948c39f3acffc335ac35920a5ffc0bb33090cb47ad",
+        "program": "false | true; printf '<%s>\\n' \"${PIPESTATUS[@]}\"",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "43195836a7f07e0351e1d1cee72aca97c80af4916a76cd84c340e92ef2b8fe00",
+            "base64": "PDE+CjwwPgo="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 0,
+          "stdout": {
+            "bytes": 3,
+            "sha256": "c297dc29728d50fd786c7303124d325f850a12d98776cf36683a90039ebca3b6",
+            "base64": "PD4K"
+          },
+          "stderr": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": false,
+          "stderr": true,
+          "status": true,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": false,
+        "declaredInterpretation": [
+          "SOURCE_NO_PIPESTATUS_PUBLICATION_FOUND"
+        ],
+        "receiptSha256": "fe00bec64385ceef3b31dd47f5507522b99f7389e65b819c142153e1d54923ef"
+      },
+      {
+        "id": "physically-moved-B35",
+        "caseId": "B35",
+        "layout": "physically-moved",
+        "programSha256": "c7b224474ce8b3adb1178db72ebda5aae9e6774a4a7b894979e4eb35b59ceda3",
+        "program": "function f { printf 'f:%s\\n' \"$1\"; }; f value",
+        "native": {
+          "status": 0,
+          "stdout": {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 8,
+            "sha256": "c8d107905bbbf7f29936382d88eddcacfcd85bdd16898913c20537f0ae14c7b3",
+            "base64": "Zjp2YWx1ZQo="
+          },
+          "stderr": {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ]
+        },
+        "virtual": {
+          "kind": "resolved",
+          "status": 2,
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          "stderr": {
+            "bytes": 62,
+            "sha256": "dc5cba64110f9dc978b56bfef4d0961d2367a118f7d133d7b4484b51ab2f9131",
+            "base64": "c2hlbGw6IFVuZXhwZWN0ZWQgb3IgdW5zdXBwb3J0ZWQga2V5d29yZCBmdW5jdGlvbiBhdCBvZmZzZXQgMAo="
+          },
+          "filesBefore": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "filesAfter": [
+            {
+              "path": "empty-path",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "home",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "tmp",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work",
+              "type": "directory",
+              "mode": 448
+            },
+            {
+              "path": "work/.hidden",
+              "type": "file",
+              "mode": 384,
+              "base64": "SAo="
+            },
+            {
+              "path": "work/a.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "QQo="
+            },
+            {
+              "path": "work/b.txt",
+              "type": "file",
+              "mode": 384,
+              "base64": "Qgo="
+            },
+            {
+              "path": "work/source-fixture",
+              "type": "file",
+              "mode": 384,
+              "base64": "dj1zb3VyY2VkOyBwcmludGYgJ3NvdXJjZTolc1xuJyAiJDEiCg=="
+            }
+          ],
+          "cleanup": {
+            "attempted": true,
+            "settled": true,
+            "rejected": false
+          },
+          "publicSettlement": {
+            "execObserved": true,
+            "disposeSettled": true,
+            "disposeRejected": false,
+            "events": [
+              "exec-started",
+              "exec-resolved",
+              "dispose-started",
+              "dispose-resolved"
+            ],
+            "registeredCleanupQualification": "accepted public exec/dispose contract; no private job census or additional middleware",
+            "privateOutstandingJobs": "NOT_OBSERVED"
+          },
+          "hasPrimary": false,
+          "hasCleanupError": false,
+          "filesystemScope": "caseRoot descendants only; not host containment or complete VFS mutation census"
+        },
+        "comparison": {
+          "stdout": false,
+          "stderr": false,
+          "status": false,
+          "filesBefore": true,
+          "filesAfter": true
+        },
+        "allRawEqual": false,
+        "declaredInterpretation": [
+          "SOURCE_PARSER_FUNCTION_KEYWORD_REFUSED"
+        ],
+        "receiptSha256": "ed3c29d625f2699673039776429bfbec16ca021e5fd28e542a0755b15e6bdc97"
+      }
+    ]
+  }
+}
+
+a84f876fb79883381ba61acd9dc9c3c23549b09c blob 6993
+# ERE native-reference preflight v2 — author controls PASS
+
+Date: 2026-08-29. Ready for a DIFFERENT preexecution reviewer, **not native GO**.
+This is the narrow correction authorized after `0463adbc`; no product, native
+entry, fixture child, Worker, engine, version probe, or approval request ran.
+
+## Exact bindings
+
+| Artifact | SHA256 |
+|---|---|
+| Executable `materialized/PRESEAL.json` | `211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457` |
+| `CONTROL-PRESEAL.json` | `b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03` |
+| Corrected `materialized/admission.mjs` | `5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa` |
+| Parent executable preseal | `d002ec622f7668b0766216acd60d19330723d4552205f3049202898eccdbca2f` |
+| Parent publication | `4c176106d6730c33c087c2fcf31b375edf206c61dc073ffed638993778dd7c00` |
+
+Parent commit is `0463adbcee3601b2cdf43f44bf428eddc0cab2f1`. Every selected parent
+member was hash/mode/size authenticated before decode, with the parent's entire
+publication and control closures checked. All four tool identities were freshly
+stream-hashed before controls; no executable bytes were decoded. The final
+publication rechecks both new and historical selected inputs.
+
+## Single runtime-source correction
+
+Only `admission.mjs` differs among the nine runtime modules:
+
+```js
+operations.readSync(fd,Buffer.alloc(1),0,1,0);
+```
+
+It replaces the zero-length read at exactly one site. The existing regular-file,
+type, named-path/device/inode, single-link, 0600-mode and canonical-path checks run
+first. The file remains the owned capture bound to the expected descriptor; this
+does not introduce a new file/descriptor capability. The check does not infer
+read access from file permission bits. The positional read cannot advance the
+file-description cursor; bytes read are discarded and no payload is written.
+All eight other runtime modules and twelve Bash program files are byte-identical.
+The four runtime JSON inputs are unchanged, including zero fixtures/empty stdin.
+
+`SOURCE-DELTA.json` records exact transformations. The approval proposal changes
+only the two owned module-prefix paths in its command (entry and future GO) to
+this v2 materialization. It retains the sole unresolved grant-SHA slot, exact
+`require_escalated`, `login:false`, no prefix rule and trusted-host startup scope.
+No runtime GO or acceptance receipt is created. A new independent receipt and
+fresh root grant must bind this preseal, not the old one.
+
+## Exactly twelve controls, once
+
+**12 PASS / 0 FAIL; 196 successful assertions.** The runtime result schema retains
+its original `ere-preflight-controls-v1` format; the explicit control-seal SHA and
+versioned directory distinguish this execution. No original result is rescored.
+
+| ID | Result | Assertions | Scope |
+|---|---|---:|---|
+| C01 | PASS | 16 | Twelve identities/order/fixtures/program byte bindings |
+| C02 | PASS | 5 | Hash, argv, executable and stdin refusal |
+| C03 | PASS | 36 | Metadata/hash-before-decode, module imports and tool denial |
+| C04 | PASS | 7 | Exact receipt data, missing/wrong authority, cross-realm values |
+| C05 | PASS | 16 | Expiry/final deadline/late credit/false primary preservation |
+| C06 | PASS | 8 | Sole slot and command-field/prefix/permission refusal |
+| C07 | PASS | 48 | Real owned empty/nonempty descriptor matrix and old missing checks |
+| C08 | PASS | 19 | Flush/size/hash-read/close failures and independent cleanup |
+| C09 | PASS | 11 | Synthetic TERM/KILL timing, source linkage, exit/close/group gates |
+| C10 | PASS | 9 | Exact child environment and trusted-host startup scope |
+| C11 | PASS | 13 | Synthetic byte-exact NUL observation framing and refusal |
+| C12 | PASS | 8 | Namespace, ledger, storage and unknown-retirement refusal |
+
+C07's extensions were declared in `C07.mjs.fragment.data` and the control preseal
+before execution; no new top-level case was added. Six real owned file-descriptor
+combinations ran in the same DATA helper, not six child processes:
+
+- Empty and nonempty read-write files admit; observed reads return 0 (EOF) and 1.
+- Empty and nonempty write-only files reject with `EBADF` before the write check.
+- Empty and nonempty read-only files read successfully but reject the required
+  write check with `EBADF`; the capture contract still requires both capabilities.
+- Wrong inode, mode, nonregular named target, wrong canonical path and refused
+  descriptor reject before any read/write operation.
+- A sequential read consumes `A`; admission reads position 0; the next sequential
+  read is `B`. Files remain byte-identical. All descriptors close in `finally`.
+- All three previously unrun C07 checks complete: unchanged bytes, valid provision
+  and missing-parent refusal. The unchanged-bytes check now covers both files.
+
+## Source confirmation and limits
+
+`node-fs-readSync-source.txt.data` is bounded public-function source obtained from
+the freshly pinned Node executable, **not a decoded binary**. Its `length === 0`
+branch returns before `binding.read`; the nonzero call reaches that binding after
+argument validation. See `NODE-READ-SOURCE-ANALYSIS.md`. The actual descriptor
+matrix corroborates permission checking on this pinned Node/platform, without
+claiming inspection of the native C++/kernel implementation or all Node versions.
+
+The entry is syntax-parsed but never imported/executed. No child lifecycle pilot
+or wrapper execution was repeated: C09 remains DATA/source-linked, and inherited
+qualified lifecycle evidence retains its historical scope. The current helper
+does exercise real descriptor operations only inside its owned scratch directory.
+
+**N01–N12 remain 12 UNRUN.** Reference identity is historical local Bash 3.2.57,
+not GNU 5.3. R01 capture choice stays HOLD. Hidden native match spans and native
+nonparticipation cannot be inferred from identical empty strings. Initial tool-
+shell startup remains trusted host outside child fresh-env/raw-capture guarantees;
+`login:false` is not startup-file suppression. No startup files were inspected.
+
+## Next reviewer and authority boundary
+
+Review `SOURCE-DELTA.json`, both preseals, the 12-case result and raw captures,
+updated approval proposal, tool pins and actual Node source. The future setup must
+still bind fresh provisioning metadata and outer captures, then obtain a new
+independent receipt/root GO, sole-slot DATA review and explicit tool approval.
+This packet does not execute or qualify that future setup or native entry.
+
+The proposed actual 600-second / 40-known-start / 13-managed / peak-three budget
+and 32 MiB capture / 128 MiB work remain unchanged proposals, not this grant.
+No old37 grant, containment claim, native parity, GNU build/P2 or held scope resumes.
+
+Original v1 syntax refusal and 11-PASS/1-FAIL/three-unrun history remain immutable.
+Final source integrity passed; scratch is removed; all owned processes retired.
+See `PUBLICATION.json` and `PROCESS-ACCOUNTING.md` for exact captures/resources.
+
+4556632f1d7a84440482b3d99508b4af5df8e735 blob 6928
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import {fileURLToPath} from 'node:url';
+import {Storage} from './storage.mjs';
+import {ManagedLedger,deadlineAdmission,creditObservation} from './state.mjs';
+import {admit,small,pinned,hash,validateOuter,validateProvision,validateCohort} from './admission.mjs';
+import {runManaged} from './lifecycle.mjs';
+import {finalizeCaptures} from './capture.mjs';
+import {decodeObservation} from './observation.mjs';
+const directory=path.dirname(fileURLToPath(import.meta.url));
+const root='/private/tmp/safe-bash-ere-native-observations-20260829-v1';
+const started=Date.now();
+const ledger=new ManagedLedger(13,2);
+const storage=new Storage(root,{deadline:started+600000});
+const abort=new AbortController();
+const callerSignal=()=>abort.abort('OWNER_SIGNAL');
+process.on('SIGTERM',callerSignal);process.on('SIGINT',callerSignal);
+let completed=0,halted=false,outerHandles=[],finalizedOuter=false,publicationFailure=null;
+const rows=[];
+const assert=(value,message)=>{if(!value)throw Error(message);};
+function snapshot(caseRoot){const result=[];let total=0;function walk(absolute,relative){for(const name of fs.readdirSync(absolute).sort()){const filename=path.join(absolute,name),stat=fs.lstatSync(filename),rel=relative?relative+'/'+name:name;assert(result.length<32&&!stat.isSymbolicLink(),'SNAPSHOT_ENTRY');if(stat.isDirectory()){result.push({path:rel,type:'directory',mode:stat.mode&511});walk(filename,rel);}else{assert(stat.isFile()&&stat.nlink===1&&stat.size<=65536,'SNAPSHOT_FILE');const bytes=fs.readFileSync(filename);total+=bytes.length;assert(total<=262144,'SNAPSHOT_BYTES');result.push({path:rel,type:'file',mode:stat.mode&511,base64:bytes.toString('base64')});}}}walk(caseRoot,'');return result;}
+try{
+ assert(process.argv.length===6&&process.argv[2]==='--grant'&&process.argv[4]==='--grant-sha256','EXACT_ARGUMENTS');
+ for(const [name,fd] of [['stdout',1],['stderr',2]])outerHandles.push(validateOuter(root,name,fd));
+ const accepted=admit(directory,process.argv[3],process.argv[5]);
+ storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+600000);storage.checkTime();
+ validateProvision(accepted.provision,root);
+ storage.record({event:'AUTHENTICATED_START',pid:process.pid,started,externalCapture:'pre-opened regular descriptors before Node module loading'});
+ const protocol=JSON.parse(small(directory+'/PROTOCOL.json',accepted.seal.files.find(row=>row.path==='PROTOCOL.json')));
+ storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+protocol.limits.totalMs);assert(JSON.stringify(accepted.grant.limits)===JSON.stringify(protocol.limits),'GRANT_LIMITS');
+ const tools=JSON.parse(small(directory+'/TOOLS.json',accepted.seal.files.find(row=>row.path==='TOOLS.json')));for(const tool of [...tools.toolPins,tools.environmentLauncher])pinned(tool.path,tool);
+ assert(process.execPath===tools.toolPins.find(row=>row.path.includes('/node/')).path&&process.execArgv.length===0&&!process.env.NODE_OPTIONS,'OWNER_IDENTITY');
+ assert(Date.now()-started<=60000,'SETUP_DEADLINE');
+ const audit=JSON.parse(small(directory+'/COHORT.json',accepted.seal.files.find(row=>row.path==='COHORT.json')));
+ validateCohort(audit,accepted.requests,root);
+ for(const literal of audit.cases){const relative='programs/'+literal.id+'.bash.data';assert(small(directory+'/'+relative,accepted.seal.files.find(item=>item.path===relative)).equals(Buffer.from(literal.program)),'PROGRAM_FILE_BINDING');}
+ const expectedIds=audit.cases.map(row=>row.id);
+ assert(JSON.stringify(expectedIds)===JSON.stringify(accepted.requests.map(row=>row.id))&&expectedIds.length===12,'EXACT12');
+ process.umask(18);
+ for(const request of accepted.requests){
+  assert(!abort.signal.aborted&&deadlineAdmission(Date.now(),storage.deadline),'ADMISSION_DEADLINE');
+  const literal=audit.cases.find(row=>row.id===request.id),caseRoot=root+'/cases/'+request.id,captureRoot=root+'/captures/'+request.id;
+  assert(JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'ere-capture-case'])&&hash(Buffer.from(literal.program))===literal.programSha256&&request.executable==='/bin/bash','LITERAL_BINDING');
+  assert(request.stdinBase64===literal.stdinBase64,'STDIN_BINDING');
+  assert(request.cwd===caseRoot+'/work','REQUEST_NAMESPACE_BINDING');
+  const env={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};
+  assert(JSON.stringify(request.environment)===JSON.stringify(env),'ENVIRONMENT_BINDING');
+  fs.mkdirSync(caseRoot,{mode:448});fs.mkdirSync(captureRoot,{mode:448});for(const name of ['work','home','tmp','empty-path'])fs.mkdirSync(caseRoot+'/'+name,{mode:448});
+  assert(Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'NO_FIXTURES');
+  assert(fs.readdirSync(caseRoot+'/empty-path').length===0,'EMPTY_PATH');const before=snapshot(caseRoot);
+  ledger.sourceForkReservations+=request.extraProcessReservation;assert(request.extraProcessReservation===0&&ledger.sourceForkReservations===0,'SOURCE_RESERVATION_DRIFT');
+  const row=await runManaged({id:request.id,role:'case',executable:'/bin/bash',args:request.argv,env,cwd:caseRoot+'/work',stdin:Buffer.from(request.stdinBase64,'base64'),captureRoot},{storage,ledger,signal:abort.signal});
+  rows.push({id:row.id,status:row.status,stop:row.stop,retired:row.retired});
+  if(row.stop||row.errors.length||!row.regularCaptureCompletion){halted=true;break;}
+  row.filesBefore=before;row.filesAfter=snapshot(caseRoot);assert(JSON.stringify(row.filesAfter)===JSON.stringify(before),'UNEXPECTED_EFFECT');row.filesVerified=true;row.observation=decodeObservation(row);
+  storage.checkTime();storage.scan();storage.write(root+'/'+row.id+'.json',JSON.stringify(row)+'\n');row.receiptPublished=true;
+  completed=creditObservation(row,storage,completed);
+ }
+ storage.checkTime();storage.scan();
+ const outer=finalizeCaptures(outerHandles);finalizedOuter=true;assert(outer.success,'OUTER_CAPTURE_FINALIZATION');
+ storage.checkTime();storage.write(root+'/RESULTS.json',JSON.stringify({schema:'ere-native-capture-observations-v1',completed,halted,rows,ledger,outer:outer.captures,sourceForkCounts:'PLANNED_NOT_OBSERVED',osContainment:false,version:'Bash3.2.57',notStarted:expectedIds.slice(rows.length),deadline:storage.deadline})+'\n');storage.checkTime();storage.scan();
+ process.exitCode=halted?1:0;
+}catch(error){halted=true;try{storage.terminal({event:'HOLD_OR_STOP',message:String(error.message??error).slice(0,512),completed,ledger,at:Date.now()});}catch(secondary){publicationFailure={primary:error,secondary,terminal:storage.terminalState,late:Date.now()>storage.deadline};}
+ process.exitCode=1;
+}finally{process.removeListener('SIGTERM',callerSignal);process.removeListener('SIGINT',callerSignal);if(!finalizedOuter&&outerHandles.length){const result=finalizeCaptures(outerHandles);if(!result.success)process.exitCode=1;}}
+
+337a5e4f9ab62c760aaea715fd026690d88bbf95 blob 2621
+{
+  "schema": "ere-capture-tool-approval-proposal-v1",
+  "status": "SOURCE_ONLY_NO_REQUEST_NO_ACTUAL_ENTRY_NO_GO",
+  "parameters": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256 >/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only this fresh, independently reviewed 12-program Bash3.2.57 capture-observation cohort, with initial tool-shell startup trusted host outside child clean-env/raw capture; no containment, GNU5.3, native parity or product fallback claim?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "prefixRule": "NONE",
+  "soleLaterMutableSlot": "ROOT_APPROVED_GRANT_SHA256",
+  "requiredBeforeResolution": [
+    "materialize and authenticate exact reviewed draft bodies and assets; create fresh runtime PRESEAL without GO/receipt/template cycles",
+    "independent accepted runtime receipt pinned to new PRESEAL/REQUESTS",
+    "ROOT fresh GO pins receipt/new PRESEAL/profile/limits/exact namespace/future absolute expiry",
+    "resolve sole SHA slot; separate DATA review of exact command then require_escalated tool approval"
+  ],
+  "initialToolShellStartup": {
+    "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+    "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+    "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+    "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+  },
+  "oldGrantReused": false
+}
+

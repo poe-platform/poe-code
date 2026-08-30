@@ -1,0 +1,11 @@
+{
+  "role": "DESCRIPTOR_DATA_ONLY",
+  "positiveSameBuffer": true,
+  "foreignRelativeRejected": true,
+  "identityFieldInjectionRejected": true,
+  "relativeIdentityRejected": true,
+  "wrongSizeRejectedBeforeOpen": true,
+  "positiveOpens": 1,
+  "wrongSizeOpens": 0,
+  "fixtureExecutions": 0
+}

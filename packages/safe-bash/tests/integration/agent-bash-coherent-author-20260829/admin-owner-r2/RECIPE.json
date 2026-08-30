@@ -1,0 +1,22 @@
+{
+  "schema": "B1-administrative-owner-integration-r2",
+  "sources": ["prepare.mjs", "launch-preparation.sh", "ledger.mjs", "probe.mjs", "controls.mjs", "preimport.mjs", "admin-dispatch.mjs", "publish.mjs", "materialize.mjs", "RECIPE.json", "HANDOFF.md"],
+  "runtimePermission": "NO_WINDOW_NO_ACTUAL_GO",
+  "profile": {"knownOS": 36, "peak": 3, "inclusiveSeconds": 1800, "captureBytes": 67108864, "logicalWorkBytes": 805306368, "guestWorkers": 15, "guestLive": 5, "RegexWorkers": 0, "asyncLoaderThreads": 0},
+  "controlIds": ["C01-one-live-owner", "C02-extra-live-role", "C03-parent-mismatch", "C04-false-closed-owner", "C05-reservation-over-cap", "C06-reservation-identity", "C07-own-data", "C08-no-doublecount-unclosed", "C09-parent-preimport", "C10-parent-publisher-count"],
+  "controlKinds": {"pure": 8, "harmlessNodeChildren": 2, "actualProduct": 0, "realPublisher": 0},
+  "newActualRoot": "/private/tmp/coherent-b1-r5-live-admin",
+  "steps": [
+    "shell execs pinned Node owner after exclusive fd1/fd2 capture; owner self recorded LIVE_ADMIN_OWNER",
+    "owner authenticates fixed source/tool/package/packet and consumes fresh ROOT authority; all helper/Git calls use tracked spawn",
+    "owner invokes unchanged runtime bootstrap with separately hash-bound r5 output-binding PRESEAL; merge authenticated four child observations without duplicate PID",
+    "all prior non-owner roles must be exited and closed before publicationSequence",
+    "owner writes prior ledger with one live parent and named reservations; pinned preimport validates process.ppid and owner entry bytes",
+    "owner observes preimport exit/close, authenticates its receipt, completes that one actual record, writes same-byte hashed publisher authority without an intervening OS start",
+    "owner directly spawns Node publisher; publisher records its own PID, consumes named reservation and tracks up to three Git children",
+    "owner observes publisher exit/close and authenticates returned actual Git records; final bounded tail retains EXIT_PENDING_EXTERNAL_OBSERVATION for owner"
+  ],
+  "remainingActivationBindings": ["new r5 output-only runtime PRESEAL", "publisher output binding and full file identities", "actual owner root-entry identity and runtime argv", "fresh authority window and ROOT grant", "measured rather than planned runtime/Git child ledger"],
+  "reservations": ["publication-preimport", "publisher", "git-add", "git-commit", "git-receipt"],
+  "history": "c4416641 remains prelaunch STOP with prior count UNESTABLISHED; r1 and original B1 failures unchanged"
+}

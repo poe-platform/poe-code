@@ -1,0 +1,42 @@
+{
+  "at": "2026-08-27T11:37:47.754Z",
+  "candidateExecuted": false,
+  "files": [
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/driver-r1.mjs",
+      "sha256": "10b863a63a8cc86add835afdde8cfed203cdc767bb2721d4f2ea881e3d28c31c"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/binding-map.json",
+      "sha256": "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/public-profiles.json",
+      "sha256": "1a8e73e4a0a26b812ecc3e0c4c7f2ecebfeb8258f7ce5f7b48231bee8c03bae6"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/execution-inputs.json",
+      "sha256": "115d9c0dafebe1d49c177a63ce2894c30a434b0e3d6e170ff9f353599b33e60d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/source-manifest.json",
+      "sha256": "4119c8196a814c033d7d22a34ce94efda3b6afb97d248f9ea4db362eb20d092d"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/tool-manifest.json",
+      "sha256": "6971af91ddb5e3decdd59c78d0e7c8db957f9aebb7613b3f449f6582b4bff215"
+    },
+    {
+      "path": "/tmp/safe-bash-owned-output-streaming-execution-F9JeT9/round1-edits.json",
+      "sha256": "1ac767586ee4fb007e40a4e6da1a3d6a8bfde90f580167ee67d2f884f99b8146"
+    }
+  ],
+  "prerun": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-streaming-review/execution-s1/PRE-RUN.md",
+    "sha256": "4a059f0a4dba4618cec03ac1148ecb272b78261d28cba2a43b16029bb31dbc7f"
+  },
+  "reconstruction": {
+    "path": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/reconstruction-proof.json",
+    "sha256": "0fa1061f6c745b19fe4d15ff83972c45d43e481a71445941075c86bfd59fe2a1"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "schema": "l02-parent-diagnosis-result-v1",
+  "date": "2026-08-28",
+  "presealCommit": "42745a216ad237969f4be7688354dc61006e5876",
+  "presealSha256": "65aeb8c85db05821c050290d669d8a2a77859e18081ea5c75a62db4fa3d0cf7e",
+  "originalWorkerEvidence": "345b9851f00e77ba520014b36567259440fd4ed0",
+  "decision": "PROVED new parent-only genuine FsError descriptor/guard mismatch; original L02 exact rejection detail remains unknown",
+  "originalUnchanged": {
+    "L01": "PASS",
+    "L02": "escaping-parent FAIL",
+    "Workers": 2,
+    "guestEntries": 2,
+    "WorkerSlotsUnrun": 9,
+    "guestSlotsUnrun": 8
+  },
+  "newObservation": {
+    "name": "FsError",
+    "message": "ENOENT: no such file or directory, readFile '/missing'",
+    "code": "ENOENT",
+    "errno": -2,
+    "path": "/missing",
+    "syscall": "readFile",
+    "dest": "own-data undefined",
+    "stack": "own nonenumerable configurable accessor with get and set; not invoked",
+    "recognizer": true,
+    "guard": "rejects accessor:stack",
+    "rethrowIdentity": true
+  },
+  "owner": {
+    "schema": "parent-only-owner-v1",
+    "launched": true,
+    "pid": 99465,
+    "closed": true,
+    "code": 0,
+    "signal": null,
+    "childErrorPresent": false,
+    "elapsedMs": 173,
+    "capture": {
+      "primary": {
+        "present": false,
+        "origin": null
+      },
+      "secondary": [],
+      "slots": [
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        },
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        }
+      ],
+      "bytesSeen": 4785,
+      "bytesWritten": 4785,
+      "writeCalls": 1,
+      "cleanupComplete": true
+    },
+    "primary": {
+      "present": false,
+      "origin": null
+    },
+    "secondary": []
+  },
+  "receiptSha256": "ffa54aa2db858dfa037c2404a374e5e70c005030d1e1ed2ab3349412384cd821",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "actualModuleLoads": 7,
+  "actualEdges": 12,
+  "trustedBootstrapModules": 1,
+  "postBindings": [
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/owner.mjs",
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs",
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/wire.mjs",
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/json-size.mjs",
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/errors.mjs",
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "../preparation-v7-capture/actual-v7-01/capsule/compiled/support/errors.js",
+      "sha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e"
+    },
+    {
+      "path": "observe.mjs",
+      "sha256": "c57585c2694b3b9824615eb479c0d184ee24cae1d98240bf0b7fda3d9d0c34de"
+    },
+    {
+      "path": "probe.mjs",
+      "sha256": "200f493e72ac52712b2fd0a608148574c55708e90dca872e3f4a7d12edd8ac4f"
+    },
+    {
+      "path": "launch.mjs",
+      "sha256": "7d544cf6168b883a988aa62d9b4375692074b2d07b417938c772385b0caeeb33"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "counts": {
+    "parentProbeChildren": 1,
+    "processStartsBeforeActivation": 4,
+    "peakOwnedChildProcesses": 1,
+    "operationStarts": 1,
+    "operationCloses": 1,
+    "parentCleanupClosed": 1,
+    "Workers": 0,
+    "guests": 0,
+    "engines": 0,
+    "compilers": 0,
+    "privateReads": 0,
+    "network": 0,
+    "retries": 0
+  },
+  "scope": "Same compiled support and exact parent fixture/owner/guard; no parent RPC frame execution and no guest catch/reconstruction. Original historical cause is consistent source inference, not newly recovered original runtime data.",
+  "retention": "run-01 raw captures retained; all descriptors/operation/owner closed; no worker acquired; no scratch destruction"
+}

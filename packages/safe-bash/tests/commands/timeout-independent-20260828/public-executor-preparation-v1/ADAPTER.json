@@ -1,0 +1,76 @@
+{
+  "sourceSha256": "d8e830e89970e1d8bf38ee1c5468a7a747a46d9a4d1e2d5ab06a95b06275c158",
+  "originalSha256": "e8d4c902c7984acd098728a62f72a0e2aa692b030144d9cb439d5d6c96c9ec74",
+  "deltas": [
+    {
+      "before": "from './borrowed-boundary.mjs'",
+      "after": "from '../repaired-f22-v1/recipe/borrowed-boundary.mjs'",
+      "count": 1
+    },
+    {
+      "before": "from 'timeout-under-review'",
+      "after": "from 'virtual-bash/commands/timeout'",
+      "count": 1
+    },
+    {
+      "before": "from 'root-under-review'",
+      "after": "from 'virtual-bash'",
+      "count": 1
+    },
+    {
+      "before": "import { families } from '../../families.mjs';\n",
+      "after": "",
+      "count": 1
+    },
+    {
+      "before": "from '../../clock.mjs'",
+      "after": "from '../clock.mjs'",
+      "count": 1
+    },
+    {
+      "before": "import { materialize, exactRationalDuration } from '../../oracle.mjs';\n",
+      "after": "",
+      "count": 1
+    },
+    {
+      "before": "from '../../review-preparation-v1/recipe/support.mjs'",
+      "after": "from '../review-preparation-v1/recipe/support.mjs'",
+      "count": 1
+    },
+    {
+      "before": "instance.register(timeout.createTimeoutCommand(scheduler ? { scheduler: scheduler.scheduler } : {})); return instance;",
+      "after": "instance.use(root.agentCommands(scheduler ? { timeout: { scheduler: scheduler.scheduler } } : {})); return instance;",
+      "count": 1
+    },
+    {
+      "before": "actual = timeout.createTimeoutCommand({ scheduler: timing.scheduler })",
+      "after": "actual = instance.commands.get('timeout')",
+      "count": 2
+    },
+    {
+      "before": "const clocks = [], shells = [], tracked = [], latches = [];",
+      "after": "const clocks = [], shells = [], tracked = [], latches = [];\nconst approvedRetirementDisposals = new Map();",
+      "count": 1
+    },
+    {
+      "before": "receipt.activations.push({ id: sameSentinel ? 'PC02' : 'F26'",
+      "after": "approvedRetirementDisposals.set(instance, thrown);\n  receipt.activations.push({ id: sameSentinel ? 'PC02' : 'F26'",
+      "count": 1
+    }
+  ],
+  "included": [
+    "original helper prefix",
+    "PC02 body",
+    "shellRetirementCollision",
+    "callerCase"
+  ],
+  "excluded": [
+    "all original32 case bodies",
+    "numeric loop",
+    "original automatic cohort runner"
+  ],
+  "policy": "Public aggregate selection only; caller/retirement assertion bodies unchanged.",
+  "sourcePath": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/cases.mjs",
+  "sourceInspectedPreviously": true,
+  "newPublicCandidateInspected": false
+}

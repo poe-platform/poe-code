@@ -1,0 +1,196 @@
+{
+  "role": "AUTHOR_V2_COMPOSED_FINITE_CHECKPOINT_INDEPENDENT_REVIEW_REQUIRED",
+  "sourceCommit": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+  "computedTree": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+  "fixturePreseal": "970a81e6968dd81773490ca28ec9ddbb65b510b7",
+  "tailPreseal": "2a57b730f602e041cf06f5c4a25fa39869751cdf",
+  "sourceManifestSha256": "9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69",
+  "package": {
+    "members": 954,
+    "bytes": 871837,
+    "sha256": "aaabea71bc3a7f1982a2ded488cbf5a905de304f0bc6f39302d15e293da8495f"
+  },
+  "main": [
+    {
+      "layout": "source",
+      "cohort": "redirections-v3",
+      "cases": 48,
+      "pass": 48,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "source",
+      "cohort": "strict",
+      "cases": 50,
+      "pass": 50,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "source",
+      "cohort": "conditional",
+      "cases": 67,
+      "pass": 67,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "source",
+      "cohort": "extension",
+      "cases": 35,
+      "pass": 35,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "source",
+      "cohort": "arrays",
+      "cases": 12,
+      "pass": 12,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "installed",
+      "cohort": "redirections-v3",
+      "cases": 48,
+      "pass": 48,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "installed",
+      "cohort": "strict",
+      "cases": 50,
+      "pass": 50,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "installed",
+      "cohort": "conditional",
+      "cases": 67,
+      "pass": 67,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "installed",
+      "cohort": "extension",
+      "cases": 35,
+      "pass": 35,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "installed",
+      "cohort": "arrays",
+      "cases": 12,
+      "pass": 12,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "moved",
+      "cohort": "redirections-v3",
+      "cases": 48,
+      "pass": 48,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "moved",
+      "cohort": "strict",
+      "cases": 50,
+      "pass": 50,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "moved",
+      "cohort": "conditional",
+      "cases": 67,
+      "pass": 67,
+      "role": "ACTUAL_INITIAL_V2"
+    },
+    {
+      "layout": "moved",
+      "cohort": "extension",
+      "cases": 35,
+      "pass": 35,
+      "role": "ACTUAL_RAW35_WITH_VERSIONED_DISPATCH_ADJUDICATION"
+    },
+    {
+      "layout": "moved",
+      "cohort": "arrays",
+      "cases": 12,
+      "pass": 12,
+      "role": "ACTUAL_TAIL"
+    }
+  ],
+  "totalMain": 636,
+  "types": {
+    "groups": 6,
+    "expectedNegativeDiagnostics": 24,
+    "allPassed": true
+  },
+  "mutants": {
+    "killed": 6,
+    "restored": 6,
+    "loadedMutantHashesVerified": 6
+  },
+  "bindingRefusals": 2,
+  "originalV1": "c5a8068d:32completed/X10deadline/unknownX10cleanup unchanged",
+  "initialV2": {
+    "status": "FAILED_OR_INCOMPLETE",
+    "exit": 1,
+    "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n35 !== 33\n\n    at cohort (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/run-v2.mjs:94:171)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/run-v2.mjs:183:205",
+    "completedProductRows": 624,
+    "staleMovedDispatchExpected": 33,
+    "actualMovedExtension": 35
+  },
+  "tailV2": {
+    "status": "AUTHOR_SCOPED_PASS",
+    "exit": 0,
+    "mainRows": 12,
+    "replayOfCompletedRows": false
+  },
+  "openDesignIds": [
+    "U27",
+    "S-U27-INPUT-UNIT-v1",
+    "S-U28-PRESENCE-v1",
+    "S-U31-STDIN-v1",
+    "E23-source-discard"
+  ],
+  "nativeRuns": 0,
+  "privateRuns": 0,
+  "cleanup": {
+    "directChildren": 39,
+    "outerObservers": 2,
+    "runners": 2,
+    "loaderAdmissions": 29,
+    "observedRegexWorkers": 0,
+    "directCloseAndExitAndPipedEndObserved": true,
+    "signals": [],
+    "x10CleanupBeforeSettlement": "3/3 versioned protocols; original X10 remains UNKNOWN",
+    "globalPGIDAbsent": "UNPROVED",
+    "extensionCompletedShellDisposals": 150
+  },
+  "measurements": {
+    "actualClockStart": "2026-08-29T06:56:00.153Z",
+    "initialElapsedMs": 29291,
+    "tailElapsedMs": 22348,
+    "runnerCaptureBytesCumulative": 3143493,
+    "outerCaptureBytes": 708,
+    "retainedFreshWorkingBytes": 126551285,
+    "cumulativeRunnerWrites": 107501194,
+    "publicationAt": "2026-08-29T07:05:12.696Z"
+  },
+  "sourcePostguards": {
+    "sources": 2,
+    "inputsEach": 293,
+    "packageRoots": 5,
+    "membersEach": 954
+  },
+  "retainedRoots": [
+    "/tmp/strict-extension-v2-author-aHDK4G",
+    "/tmp/strict-extension-v2-tail-AYN6CH",
+    "/tmp/strict-extension-v2-launch-tg4IRZ",
+    "/tmp/strict-extension-v2-tail-launch-ybzVia",
+    "/tmp/strict-extension-v2-prep-VIBsVO",
+    "/tmp/strict-extension-v2-seal-jfrYit",
+    "/tmp/strict-extension-v2-seal-s0yEjf",
+    "/tmp/strict-extension-v2-seal-ytANII",
+    "/tmp/strict-extension-v2-tail-seal-1T4cip"
+  ],
+  "noProductSourceEdits": true
+}

@@ -1,0 +1,2757 @@
+{
+  "phase": "FINITE_RETAINED_DATA_ONLY",
+  "source": "52b6711e888361015acc38017be2a6b08509d8a7",
+  "layouts": [
+    {
+      "name": "source-built",
+      "primary": 18,
+      "pass": 17,
+      "fail": 1,
+      "legacyPairs": 8
+    },
+    {
+      "name": "installed",
+      "primary": 18,
+      "pass": 17,
+      "fail": 1,
+      "legacyPairs": 8
+    },
+    {
+      "name": "physically-moved",
+      "primary": 18,
+      "pass": 17,
+      "fail": 1,
+      "legacyPairs": 8
+    }
+  ],
+  "primary": [
+    {
+      "id": "case-source-built-K01",
+      "caseId": "K01",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01.trace"
+    },
+    {
+      "id": "case-source-built-K02",
+      "caseId": "K02",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02.trace"
+    },
+    {
+      "id": "case-source-built-K03",
+      "caseId": "K03",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03.trace"
+    },
+    {
+      "id": "case-source-built-K04",
+      "caseId": "K04",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04.trace"
+    },
+    {
+      "id": "case-source-built-K05",
+      "caseId": "K05",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05.trace"
+    },
+    {
+      "id": "case-source-built-K06",
+      "caseId": "K06",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06.trace"
+    },
+    {
+      "id": "case-source-built-K07",
+      "caseId": "K07",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07.trace"
+    },
+    {
+      "id": "case-source-built-K08",
+      "caseId": "K08",
+      "layout": "source-built",
+      "pass": false,
+      "assertionFailures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "childStatus": 0,
+      "observationStatuses": [
+        1,
+        1
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.trace"
+    },
+    {
+      "id": "case-source-built-K09",
+      "caseId": "K09",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09.trace"
+    },
+    {
+      "id": "case-source-built-K10",
+      "caseId": "K10",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        127
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10.trace"
+    },
+    {
+      "id": "case-source-built-K11",
+      "caseId": "K11",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11.trace"
+    },
+    {
+      "id": "case-source-built-K12",
+      "caseId": "K12",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12.trace"
+    },
+    {
+      "id": "case-source-built-K13",
+      "caseId": "K13",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13.trace"
+    },
+    {
+      "id": "case-source-built-K14",
+      "caseId": "K14",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14.trace"
+    },
+    {
+      "id": "case-source-built-R01",
+      "caseId": "R01",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01.trace"
+    },
+    {
+      "id": "case-source-built-R02",
+      "caseId": "R02",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02.trace"
+    },
+    {
+      "id": "case-source-built-R03",
+      "caseId": "R03",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03.trace"
+    },
+    {
+      "id": "case-source-built-R04",
+      "caseId": "R04",
+      "layout": "source-built",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04.trace"
+    },
+    {
+      "id": "case-installed-K01",
+      "caseId": "K01",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01.trace"
+    },
+    {
+      "id": "case-installed-K02",
+      "caseId": "K02",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02.trace"
+    },
+    {
+      "id": "case-installed-K03",
+      "caseId": "K03",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03.trace"
+    },
+    {
+      "id": "case-installed-K04",
+      "caseId": "K04",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04.trace"
+    },
+    {
+      "id": "case-installed-K05",
+      "caseId": "K05",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05.trace"
+    },
+    {
+      "id": "case-installed-K06",
+      "caseId": "K06",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06.trace"
+    },
+    {
+      "id": "case-installed-K07",
+      "caseId": "K07",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07.trace"
+    },
+    {
+      "id": "case-installed-K08",
+      "caseId": "K08",
+      "layout": "installed",
+      "pass": false,
+      "assertionFailures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "childStatus": 0,
+      "observationStatuses": [
+        1,
+        1
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.trace"
+    },
+    {
+      "id": "case-installed-K09",
+      "caseId": "K09",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09.trace"
+    },
+    {
+      "id": "case-installed-K10",
+      "caseId": "K10",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        127
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10.trace"
+    },
+    {
+      "id": "case-installed-K11",
+      "caseId": "K11",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11.trace"
+    },
+    {
+      "id": "case-installed-K12",
+      "caseId": "K12",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12.trace"
+    },
+    {
+      "id": "case-installed-K13",
+      "caseId": "K13",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13.trace"
+    },
+    {
+      "id": "case-installed-K14",
+      "caseId": "K14",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14.trace"
+    },
+    {
+      "id": "case-installed-R01",
+      "caseId": "R01",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01.trace"
+    },
+    {
+      "id": "case-installed-R02",
+      "caseId": "R02",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02.trace"
+    },
+    {
+      "id": "case-installed-R03",
+      "caseId": "R03",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03.trace"
+    },
+    {
+      "id": "case-installed-R04",
+      "caseId": "R04",
+      "layout": "installed",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04.trace"
+    },
+    {
+      "id": "case-physically-moved-K01",
+      "caseId": "K01",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01.trace"
+    },
+    {
+      "id": "case-physically-moved-K02",
+      "caseId": "K02",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02.trace"
+    },
+    {
+      "id": "case-physically-moved-K03",
+      "caseId": "K03",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03.trace"
+    },
+    {
+      "id": "case-physically-moved-K04",
+      "caseId": "K04",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04.trace"
+    },
+    {
+      "id": "case-physically-moved-K05",
+      "caseId": "K05",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05.trace"
+    },
+    {
+      "id": "case-physically-moved-K06",
+      "caseId": "K06",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06.trace"
+    },
+    {
+      "id": "case-physically-moved-K07",
+      "caseId": "K07",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0,
+        0
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07.trace"
+    },
+    {
+      "id": "case-physically-moved-K08",
+      "caseId": "K08",
+      "layout": "physically-moved",
+      "pass": false,
+      "assertionFailures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "childStatus": 0,
+      "observationStatuses": [
+        1,
+        1
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.trace"
+    },
+    {
+      "id": "case-physically-moved-K09",
+      "caseId": "K09",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09.trace"
+    },
+    {
+      "id": "case-physically-moved-K10",
+      "caseId": "K10",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        127
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10.trace"
+    },
+    {
+      "id": "case-physically-moved-K11",
+      "caseId": "K11",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11.trace"
+    },
+    {
+      "id": "case-physically-moved-K12",
+      "caseId": "K12",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12.trace"
+    },
+    {
+      "id": "case-physically-moved-K13",
+      "caseId": "K13",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13.trace"
+    },
+    {
+      "id": "case-physically-moved-K14",
+      "caseId": "K14",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14.trace"
+    },
+    {
+      "id": "case-physically-moved-R01",
+      "caseId": "R01",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01.trace"
+    },
+    {
+      "id": "case-physically-moved-R02",
+      "caseId": "R02",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        2
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02.trace"
+    },
+    {
+      "id": "case-physically-moved-R03",
+      "caseId": "R03",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03.trace"
+    },
+    {
+      "id": "case-physically-moved-R04",
+      "caseId": "R04",
+      "layout": "physically-moved",
+      "pass": true,
+      "assertionFailures": [],
+      "childStatus": 0,
+      "observationStatuses": [
+        0
+      ],
+      "observationCalls": 1,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04.trace"
+    }
+  ],
+  "primaryPass": 51,
+  "primaryFail": 3,
+  "failures": [
+    {
+      "id": "case-source-built-K08",
+      "caseId": "K08",
+      "layout": "source-built",
+      "pass": false,
+      "assertionFailures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "childStatus": 0,
+      "observationStatuses": [
+        1,
+        1
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.trace",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 87,
+        "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+        "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+      },
+      "stderrUtf8": "shell: line 1: $1 - 1: arithmetic syntax error in expression (error token is \"$1 - 1\")\n"
+    },
+    {
+      "id": "case-installed-K08",
+      "caseId": "K08",
+      "layout": "installed",
+      "pass": false,
+      "assertionFailures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "childStatus": 0,
+      "observationStatuses": [
+        1,
+        1
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.trace",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 87,
+        "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+        "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+      },
+      "stderrUtf8": "shell: line 1: $1 - 1: arithmetic syntax error in expression (error token is \"$1 - 1\")\n"
+    },
+    {
+      "id": "case-physically-moved-K08",
+      "caseId": "K08",
+      "layout": "physically-moved",
+      "pass": false,
+      "assertionFailures": [
+        "status",
+        "stdout",
+        "stderr-class"
+      ],
+      "childStatus": 0,
+      "observationStatuses": [
+        1,
+        1
+      ],
+      "observationCalls": 2,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.json",
+      "rolePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.role.json",
+      "stdoutPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.stdout",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.trace",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      "stderr": {
+        "bytes": 87,
+        "sha256": "c117fc9f9a45198d93c94d080f1c7e50df1bb4b82a71fc6fec471d899bf31ef9",
+        "base64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK"
+      },
+      "stderrUtf8": "shell: line 1: $1 - 1: arithmetic syntax error in expression (error token is \"$1 - 1\")\n"
+    }
+  ],
+  "legacyPairs": [
+    {
+      "id": "case-source-built-K01",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K02",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K03",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K04",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K05",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K06",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K07",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-source-built-K08",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K01",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K02",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K03",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K04",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K05",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K06",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K07",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-installed-K08",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K01",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K02",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K03",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K04",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K05",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K06",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K07",
+      "completeOwnDataEqual": true
+    },
+    {
+      "id": "case-physically-moved-K08",
+      "completeOwnDataEqual": true
+    }
+  ],
+  "mutantCalls": 5,
+  "mutants": [
+    {
+      "id": "M01",
+      "detected": true,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M01-installed-K01.json"
+    },
+    {
+      "id": "M02",
+      "detected": true,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M02-installed-K03.json"
+    },
+    {
+      "id": "M03",
+      "detected": true,
+      "receiptPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M03-installed-K12.json"
+    }
+  ],
+  "refusals": [
+    {
+      "id": "N01-physically-moved-K01",
+      "expectedRefusal": "AUTH_HASH",
+      "status": 1,
+      "lifecyclePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N01-physically-moved-K01-lifecycle.json",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N01-physically-moved-K01.trace",
+      "stderrBytes": 1087,
+      "stderrSha256": "ea5f6514d0da97bb6773074afb062084f87cfec97d10363c15ae3ef186c30211"
+    },
+    {
+      "id": "N02-physically-moved-K01",
+      "expectedRefusal": "EDGE_REFUSED",
+      "status": 1,
+      "lifecyclePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N02-physically-moved-K01-lifecycle.json",
+      "tracePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N02-physically-moved-K01.trace",
+      "stderrBytes": 1025,
+      "stderrSha256": "6d9a316fedec026e7884ef87f6f34486639d83cc576debdec3fc0dc9afdcb855"
+    }
+  ],
+  "directChildren": [
+    {
+      "id": "build",
+      "pid": 29952,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/build.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/build.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/build.json"
+    },
+    {
+      "id": "types-source-built",
+      "pid": 30143,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-source-built.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-source-built.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-source-built.json"
+    },
+    {
+      "id": "case-source-built-K01",
+      "pid": 30175,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4115,
+          "sha256": "e6e655bbd2d005a0fa60b155151e7148061abc7353a6eb7fbf12df8015800a37",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K01-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K02",
+      "pid": 30186,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4099,
+          "sha256": "d584f1f90d7d785668e3cd365137dd7c4d82cf2950cb64a84e2c182693a9be1a",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K02-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K03",
+      "pid": 30196,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4099,
+          "sha256": "a8a26343ade4f9e68b6d38f224fcd6ebcb5ec3fe5804523c2f0686f6bb4ce0d4",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K03-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K04",
+      "pid": 30205,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4099,
+          "sha256": "a07d75e2edfee70a2ded7d0ebb4e7dcff3efd6c6c183aa250263282f10d19a6a",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K04-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K05",
+      "pid": 30206,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4099,
+          "sha256": "7b4247dee93648c15db770ae58025c25168d2e79ed879bff691d7a59e500082d",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K05-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K06",
+      "pid": 30207,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4229,
+          "sha256": "11cdb95c65ad19a2f9cfdf1a322540d584d5a1aa1b8b141dab24376150e5daa4",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K06-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K07",
+      "pid": 30210,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4133,
+          "sha256": "53169a3638ccf4790fac9f6a03b452fcbf5f3ab9bc77400235edb8c55c1134c8",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K07-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K08",
+      "pid": 30224,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4358,
+          "sha256": "335d2c592881f6707163632c85cf6150ed8f16a6f040bebd71ea16af2891bc29",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K08-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K09",
+      "pid": 30225,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2284,
+          "sha256": "9cb40c2af7c94ca23f388a0dca2b7cac7952e273e3e156fc95e16c1fa0ee673e",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K09-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K10",
+      "pid": 30242,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2343,
+          "sha256": "b82311e6938b48d8897f746d493b83a2cba03e0b3d0c507a0b6b621db2c742c0",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K10-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K11",
+      "pid": 30255,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2357,
+          "sha256": "b3869ff0a5e7abadfae22a7bb6c9bf3ed13e5104223c004192282dfe6b3b9937",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K11-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K12",
+      "pid": 30262,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2337,
+          "sha256": "21756040933856e4e12ee42b46c787bcc81fd28525891ec3b794529ed55169da",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K12-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K13",
+      "pid": 30264,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2349,
+          "sha256": "3f421861856ce2009cebcf57fc5da5e473674c009a681323685f96bdaa280f6e",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K13-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-K14",
+      "pid": 30274,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2325,
+          "sha256": "9f50faa7e1d3a89e353af5f86c40f9514b40d00e45a190890818e2a1f2980ddc",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-K14-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-R01",
+      "pid": 30282,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2345,
+          "sha256": "7e7fcf97896e9cc1133d645a6cd23bf660b8b166ed3f36ba11aa90cfa4086209",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R01-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-R02",
+      "pid": 30316,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2345,
+          "sha256": "5e0757189a87464733f54943b946e4672ef9646e634b2791ec9a79841e63a7c0",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R02-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-R03",
+      "pid": 30318,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2284,
+          "sha256": "168734698c823c07bc0bc50c64a745e978bbc70c9242d50c05a35337cdfc0c27",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R03-lifecycle.json"
+    },
+    {
+      "id": "case-source-built-R04",
+      "pid": 30325,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2284,
+          "sha256": "a699c52848ecc2a8cfc8a752a53f54d5833818507aafc8404932257da5395839",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-source-built-R04-lifecycle.json"
+    },
+    {
+      "id": "types-installed",
+      "pid": 30330,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-installed.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-installed.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-installed.json"
+    },
+    {
+      "id": "case-installed-K01",
+      "pid": 32033,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4112,
+          "sha256": "b97482cfab13330ad0f53db5f03587ceadc3ac0f0b5a8e3686a4273b91ff396d",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K01-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K02",
+      "pid": 32333,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4096,
+          "sha256": "dc7842db2690eec298ced58c6e510aaf121804a020c8d52bfbb723acd56288a3",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K02-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K03",
+      "pid": 32343,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4096,
+          "sha256": "995aaef79d2d67f998050d354e182e6de3afedbb28a26d569006466d72148d5a",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K03-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K04",
+      "pid": 32398,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4096,
+          "sha256": "ad5f7b96cd46a28c146a350de426c17e4cb201a2af3e51cf02f0e3012e9ea6ce",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K04-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K05",
+      "pid": 32405,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4096,
+          "sha256": "89b18b26b2d3dda641d73bf93ddce3278e4d94568a53c2fffcc138b5648536a0",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K05-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K06",
+      "pid": 32409,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4226,
+          "sha256": "1ce12475db705deff2400fd4ff6c2f62b7ba5193ba525caeb1db9193c9da045f",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K06-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K07",
+      "pid": 32416,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4130,
+          "sha256": "ed4f33c066e15d1d755a32d3c0b0962a57c99d25d3b3776dbcbd1bccad5e2d24",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K07-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K08",
+      "pid": 32421,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4355,
+          "sha256": "91ac8a29b361740d53220007a2afdf084cd658bbd249bf38f18b660a06d24fe3",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K08-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K09",
+      "pid": 32432,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2281,
+          "sha256": "37f0b694d9e7249aae772a2bc4c34ce3d8f30faa09bb7facaf3eb895448f73aa",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K09-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K10",
+      "pid": 32440,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2340,
+          "sha256": "fd458e28699be480cca13935e9c36fa3739842af8b2bdd1ba2847cde3769e532",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K10-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K11",
+      "pid": 32442,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2354,
+          "sha256": "781afc50047025d01a529f81fbc99ca3c2c0d821f471b98d7be0eab100e16391",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K11-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K12",
+      "pid": 32450,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2334,
+          "sha256": "eee3ff7ddf00690953fb9399fe96dfa5729057c068f34f97a814238b868068d3",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K12-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K13",
+      "pid": 32454,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2346,
+          "sha256": "1446f164fb9eaaaefb29a881526ae94ffec72bf7b9d79cfebae4e86c85c098fa",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K13-lifecycle.json"
+    },
+    {
+      "id": "case-installed-K14",
+      "pid": 32467,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2322,
+          "sha256": "846fd65bf03b43771cecc9db54c9752a34c677b15ea12a3ea71407ee654212d5",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-K14-lifecycle.json"
+    },
+    {
+      "id": "case-installed-R01",
+      "pid": 32468,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2342,
+          "sha256": "6ab4bdebd42862b35babcb899271857908a8070bb2b647d9f25db7cee6615022",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R01-lifecycle.json"
+    },
+    {
+      "id": "case-installed-R02",
+      "pid": 32479,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2342,
+          "sha256": "26f11a6cc4ff8675f6a26a8e2b11ea43eb5f14764f5893a35cbb79f569281759",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R02-lifecycle.json"
+    },
+    {
+      "id": "case-installed-R03",
+      "pid": 32481,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2281,
+          "sha256": "55ff8c35396ce15c9a737730ee2e665210a88d60d039234e6d3b511750380a0f",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R03-lifecycle.json"
+    },
+    {
+      "id": "case-installed-R04",
+      "pid": 32495,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2281,
+          "sha256": "822f699f43aeb55826ade8fc29e4cbb99fe8c7a0a8bfbfcfc4bcaeedc1e136fc",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-installed-R04-lifecycle.json"
+    },
+    {
+      "id": "types-physically-moved",
+      "pid": 32498,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-physically-moved.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-physically-moved.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-physically-moved.json"
+    },
+    {
+      "id": "case-physically-moved-K01",
+      "pid": 32532,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4119,
+          "sha256": "938d6a1003dd610d10d465408e5fc1ef3994fe77692f6149f340b4812eb2772e",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K01-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K02",
+      "pid": 32544,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4103,
+          "sha256": "2736d19f975f9ee04ece54590d7e07406e8ab246c2733e18670a802a7f1ad5b8",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K02-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K03",
+      "pid": 32548,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4103,
+          "sha256": "41b6ee97d95145fa5010a99879e5242ccf2123a37daa7616172faa7019f2d78c",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K03-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K04",
+      "pid": 32562,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4103,
+          "sha256": "6f85a6a4e0eaf742d248fcd69063a3e6350fe1e0afbc76a3a04e6136f182c060",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K04-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K05",
+      "pid": 32573,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4103,
+          "sha256": "c7f653f2c1d4fea9da8f3e57a708461b21e68872d0f530e66f1b7bf65d521d1a",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K05-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K06",
+      "pid": 32575,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4233,
+          "sha256": "6f2c5c03d2d5c45e6f11fc80fb9b4df0433d23040a2079c18020876caf55c203",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K06-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K07",
+      "pid": 32584,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4137,
+          "sha256": "fb381a0c498de1dc368acf4a3d820eebd63075a7db57f47ba1b23441ad592a64",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K07-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K08",
+      "pid": 32591,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4362,
+          "sha256": "129069e0564454651f41489a8c7ca3787b472c9865c9029bf8a94027557033cc",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K08-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K09",
+      "pid": 32605,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2288,
+          "sha256": "f48313d6ca2e6b577708af38484bf9f4ddbe6cf6bea603ef646c4744d5f58f2a",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K09-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K10",
+      "pid": 32615,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2347,
+          "sha256": "a1aaac1672ac2026eca66620b077309516e0ed28eed1a8b178f51dc8e85d283c",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K10-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K11",
+      "pid": 32620,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2361,
+          "sha256": "2a74ccab3e82eef67760ca1cf9f035c77c01e3b2353e377f31ca6f79f7d8e8a3",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K11-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K12",
+      "pid": 32622,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2341,
+          "sha256": "6cc69c39117c044cb3f712cf51dfbf208e2b37ce296caa73079ed5acdad5da9f",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K12-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K13",
+      "pid": 32636,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2353,
+          "sha256": "e1770ebe6a5db69f2267303caee69cd719a34122e2a1d42d7c4e5f9017101d25",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K13-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-K14",
+      "pid": 32637,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2329,
+          "sha256": "e134ff4406472a96c2cd8e143eee1152b8cce73179c4b5122eecb96a32b33d9c",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-K14-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-R01",
+      "pid": 32651,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2349,
+          "sha256": "5e9b4f2d41b44f673f240143bf0d8af5b4afd9ad651c9343995afe29eb6e382b",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R01-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-R02",
+      "pid": 32662,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2349,
+          "sha256": "602c9f8587078a69ea08ab487a4ef4949dfdbb779fa95e2a356d956ded4cf62c",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R02-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-R03",
+      "pid": 32669,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2288,
+          "sha256": "f11e0c678ce229826a15e0be668230b0bc2b5607f65648259b5a522587673edc",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R03-lifecycle.json"
+    },
+    {
+      "id": "case-physically-moved-R04",
+      "pid": 32674,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2288,
+          "sha256": "2ab3c856f34dbc2769e90907ec4eee304d15780b895095549c3432b42fdae0ae",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/case-physically-moved-R04-lifecycle.json"
+    },
+    {
+      "id": "M01-installed-K01",
+      "pid": 32705,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4281,
+          "sha256": "0552e540ee9aae7f4df47efeb7b0abc715bc007fd32437c1a8aedf74a6cfc687",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M01-installed-K01.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M01-installed-K01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M01-installed-K01-lifecycle.json"
+    },
+    {
+      "id": "M02-installed-K03",
+      "pid": 32883,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 4233,
+          "sha256": "06f579fc6d00893963e3847c965d514a0429480e8dafb506e1d99c8a0924b8d5",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M02-installed-K03.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M02-installed-K03.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M02-installed-K03-lifecycle.json"
+    },
+    {
+      "id": "M03-installed-K12",
+      "pid": 32978,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 2301,
+          "sha256": "7acc399afe8f1c5baa6ccccc65a21f7bbb1f53127196a2c6560fec2d5ffe5f80",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M03-installed-K12.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M03-installed-K12.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/M03-installed-K12-lifecycle.json"
+    },
+    {
+      "id": "N01-physically-moved-K01",
+      "pid": 33003,
+      "status": 1,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N01-physically-moved-K01.stdout"
+        },
+        "stderr": {
+          "bytes": 1087,
+          "sha256": "ea5f6514d0da97bb6773074afb062084f87cfec97d10363c15ae3ef186c30211",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N01-physically-moved-K01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N01-physically-moved-K01-lifecycle.json"
+    },
+    {
+      "id": "N02-physically-moved-K01",
+      "pid": 33010,
+      "status": 1,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N02-physically-moved-K01.stdout"
+        },
+        "stderr": {
+          "bytes": 1025,
+          "sha256": "6d9a316fedec026e7884ef87f6f34486639d83cc576debdec3fc0dc9afdcb855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N02-physically-moved-K01.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/N02-physically-moved-K01-lifecycle.json"
+    }
+  ],
+  "proofReceipts": [
+    {
+      "id": "build",
+      "pid": 29952,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/build.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/build.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/build.json"
+    },
+    {
+      "id": "types-source-built",
+      "pid": 30143,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-source-built.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-source-built.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-source-built.json"
+    },
+    {
+      "id": "types-installed",
+      "pid": 30330,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-installed.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-installed.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-installed.json"
+    },
+    {
+      "id": "types-physically-moved",
+      "pid": 32498,
+      "status": 0,
+      "signal": null,
+      "qualified": true,
+      "captures": {
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-physically-moved.stdout"
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "rawPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-physically-moved.stderr"
+        }
+      },
+      "evidencePath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/types-physically-moved.json"
+    }
+  ],
+  "proofCommandFields": [],
+  "proofCommandQualification": "Build/typecheck lifecycle receipts retain no executable/argv; exact proof commands and strict flags are NOT independently authenticated by this manifest",
+  "collectorPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/capture/COLLECTOR.json",
+  "collectorOwnerPid": 29919,
+  "collectorToolExit": {
+    "exitCode": 0,
+    "streams": "empty tool streams because fixed bootstrap redirects collector output"
+  },
+  "runtimeKnownClosed": 65,
+  "administrativeKnownClosed": 6,
+  "totalKnownClosed": 71,
+  "retirementQualification": "63 direct subordinate lifecycle records + owner under collector + reported collector tool exit; administrative ledger is later live retained evidence outside the sealed 375-file manifest, hashed here; no universal descendant/OS containment/private-job/RSS proof",
+  "adminPath": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/LEDGER.json",
+  "adminSha256": "05d10c76c3406a04b6726e935897d22db1290acd715ffe1577d4ea436d8f9ab2",
+  "administration": [
+    {
+      "index": 1,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+        "src/shell/parser.ts"
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/01.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/01.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 2,
+      "cmd": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "args": [],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/02.stdout",
+        "bytes": 523,
+        "sha256": "28ab82987303471d5be769fada1093242e2e0a7bf14f0211d3df8f6148e5e75e"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/02.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 3,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/STOP.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/REPORT.md",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/MATRIX.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/CAPTURE-MANIFEST.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/ADMIN-PREPUBLICATION.json"
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/03.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/03.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 4,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "commit",
+        "--only",
+        "-m",
+        "test(b35): retain one-attempt results and archive publication STOP",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/STOP.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/REPORT.md",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/MATRIX.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/CAPTURE-MANIFEST.json",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/actual-v1/ADMIN-PREPUBLICATION.json"
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/04.stdout",
+        "bytes": 696,
+        "sha256": "b4f4fff66470d4b15610ef06543f40a94a725fa84e968b5215fd89e3f83c5bc1"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/04.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 5,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/05.stdout",
+        "bytes": 41,
+        "sha256": "89650a20700eb6e82546f28c8320ca5ca5b1031d4083cf12cdad1057a80e1f18"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/05.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "index": 6,
+      "cmd": "/usr/bin/git",
+      "args": [
+        "status",
+        "--short",
+        "--",
+        "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4",
+        "src/shell/parser.ts"
+      ],
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdout": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/06.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/publication-admin/06.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "package": {
+    "path": "/private/tmp/safe-bash-b35-v4-PLN3cC/future/virtual-bash-b35.tgz",
+    "bytes": 978791,
+    "sha256": "d51e5d04daddb9f5523e87bd2dc2630a0c687c48307b92d5eda96ad29774fec9",
+    "inflated": false,
+    "historicalSha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d",
+    "historicalIdentitySource": "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/PRESEAL.json",
+    "presealSha256": "b4b562d5ce6673aea3f9d91c50b6697ebaf01f9b92ca8107265a84ff652edfa3",
+    "shippingRows": 1002,
+    "shippingQualification": "authenticated retained inventory only; no new package inflation"
+  },
+  "publication": {
+    "present": true,
+    "reason": {
+      "name": "Error",
+      "message": "PACK_COMPRESSED"
+    },
+    "source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package.mjs",
+    "sourceSha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2",
+    "operation": "pack(retained capture directory inventory)",
+    "compressedHelperLimitBytes": 2097152,
+    "inputFiles": 375,
+    "inputBytes": 24291650,
+    "actualCompressedBytes": "NOT_RECORDED",
+    "archiveWritten": false,
+    "retry": false,
+    "qualification": "Runtime was completed before this separate preservation-helper cap refusal. No workaround, alternate archive or rescore performed."
+  },
+  "tests": [
+    {
+      "id": "F01-truncated-extra-and-invalid-UTF8-frames-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "F02-spliced-case-layout-identity-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "F03-trace-call-ID-tamper-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "T04-length-and-hash-tamper-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "T05-byte-envelope-tamper-refused",
+      "status": "PASS"
+    },
+    {
+      "id": "T06-cross-realm-own-data-not-prototypes",
+      "status": "PASS"
+    }
+  ]
+}

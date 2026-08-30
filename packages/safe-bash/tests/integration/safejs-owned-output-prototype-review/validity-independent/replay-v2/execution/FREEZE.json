@@ -1,0 +1,78 @@
+{
+  "status": "INDEPENDENT_EXACT_REPLAY_FROZEN_BEFORE_FIRST_GUEST",
+  "at": "2026-08-27T16:52:35.959115+00:00",
+  "reviewer": "Codex Independent Leaf Verifier",
+  "thread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "preparationCommit": "7deed0a2176c24c5c7c7b0562d5c50be59c82366",
+  "signedReviewCommit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+  "surfaceAuthorFreeze": "09ba85cef42898fbc2185d03acc4191f9a4689cd",
+  "surfaceAuthorEvidence": "ac549fc392f0853a369e1cef08c6ab08f7b12a95",
+  "lifecycleAuthorFreeze": "3f6db4dd29950d92410a4d4f9871ba18a5b56e89",
+  "lifecycleAuthorEvidence": "365ec125589cb41e7e9ea8134314627583ee21dd",
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 133324,
+      "sha256": "31e24e0d96e67fa647af47306489977f8f1ca8fe32ed96a8499288769f0ce28c"
+    },
+    {
+      "path": "REVIEW.md",
+      "bytes": 9526,
+      "sha256": "b264407d2e69889498541073d35b1b68a3e3d5c815a471c7b12d5cb84e6a27e7"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 14135,
+      "sha256": "f45d3e88a113d74e322755e818fee3c9f746c3de434e357595a1eda345514c5a"
+    },
+    {
+      "path": "lifecycle-orchestration.patch-data",
+      "bytes": 7316,
+      "sha256": "dc1506bafbc0877d5b1c4d7c3809676f46310392421f4b4a154fed7898b4c004"
+    },
+    {
+      "path": "lifecycle-run.mjs",
+      "bytes": 17968,
+      "sha256": "50e4734ce0918e39756a3f15eb0e5b9d3e7c245c02a3de8c798e897d1805911f"
+    },
+    {
+      "path": "replay.py",
+      "bytes": 11071,
+      "sha256": "5c2d0bc115e7fa35c5e8a7105e995af2c2edc2c20c1c0b4be895ffe680359bab"
+    },
+    {
+      "path": "static-prepare.py",
+      "bytes": 11728,
+      "sha256": "975ddba83a1b0a4fc6ed7942f02355b7372fa9815769b6e0985f101f5500a04f"
+    },
+    {
+      "path": "surface-orchestration.patch-data",
+      "bytes": 7555,
+      "sha256": "b2b991c6ec23ae02d440ba56aee04137ca3909e20c54c8d845b4fad7b31c41f9"
+    },
+    {
+      "path": "surface-run.mjs",
+      "bytes": 24319,
+      "sha256": "e7c312fb4b8c5886e78965c25d329493f315c24b3780f26aeef4a03f3deac1e8"
+    }
+  ],
+  "guestExecutionsAtFreeze": 0,
+  "productImportsAtFreeze": 0,
+  "privateEngineImportsAtFreeze": 0,
+  "privateCheckoutQueriesAtFreeze": 0,
+  "staticNodeSyntaxChecks": 2,
+  "pythonSyntaxChecks": 3,
+  "dataOnlyAuthorCaptureCalibrationRows": 19,
+  "dataOnlyMutationsRefused": 4,
+  "plannedActualCohorts": {
+    "surface": 8,
+    "lifecycle": 11
+  },
+  "finiteHostControlsSeparate": 9,
+  "originalRawCounts": {
+    "surface": "7/8",
+    "lifecycle": "8 PASS / 1 FAIL / 1 INVALID_FIXTURE / 1 BLOCKED"
+  },
+  "noPromotion": true,
+  "shaAttestation": "File SHA256 values plus Git commit bind this verifier/thread statement; no personal cryptographic identity claim."
+}

@@ -1,0 +1,45 @@
+{
+  "date": "2026-08-28",
+  "status": "FRAMEWORK_REVIEW_NOT_READY_OWNER_DISPOSITION_REQUIRED",
+  "runtimeSourceCommit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+  "consumerCommit": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+  "preparedSeal": "d7290477ea464928f02d790314eef6775fdf3c8d",
+  "clarificationSeal": "5a24badf0016cfa535fbb372ac80907f7bf83f0c",
+  "findings": [
+    {
+      "id": "F01",
+      "family": "ER-16",
+      "title": "An unbound assertion is ignored and the actual host cohort becomes PASS",
+      "target": "runtime/recipe/assert-capture.mjs assertCapture, invoked by actual host.runJobs",
+      "targetSha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88",
+      "minimalMutation": "Clone the authenticated CMD-01 materialized job; retain its expected bytes/status and add expected.assertions = ['UNBOUND_INDEPENDENT_ASSERTION_MUST_NOT_GREEN'].",
+      "observation": "A regular synthetic child supplies a valid CAPTURED envelope with the expected CMD-01 bytes. The actual assertCapture callback ignores the additional assertion. The actual runJobs summary is aggregate PASS, with no failures, integrity true, reapProof true and exitCode 0.",
+      "expected": "An unknown assertion must not turn green; refuse it or retain an explicit unfulfilled obligation rather than treating it as satisfied.",
+      "input": "capture-y9zvw316/ER-16-unknown-assertion-input.json",
+      "raw": "capture-y9zvw316/ER-16-unknown-assertion-raw.json",
+      "verdict": "capture-y9zvw316/ER-16-unknown-assertion-verdict.json",
+      "qualification": "This is an in-memory job mutation at the real assertion/host seam, not a modification of the committed 194-ID recipe or a demonstrated bypass of execute.mjs authorization. The unmodified inventory already discloses partial records; this finding does not rescore those records. The raw synthetic cohort PASS is preserved, not rewritten to the expected FAIL."
+    },
+    {
+      "id": "F02",
+      "family": "ER-03",
+      "title": "Reason capture collapses distinct equal-looking object identities",
+      "target": "runtime/recipe/context.mjs encodeRejection",
+      "targetSha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23",
+      "minimalMutation": "Encode one plain object twice and a distinct plain object with the same name/message once; no product or private hook is involved.",
+      "observation": "All three encodings are identical objects containing kind/name/message/code/stack, with no identity token. The same-reference and different-reference cases cannot be distinguished. undefined, null and false remain distinct and passed their control.",
+      "expected": "ER-03 reason capture must preserve stable object identity where observed; equal printed properties are not identity evidence.",
+      "input": "capture-y9zvw316/ER-03-reason-identities-input.json",
+      "raw": "capture-y9zvw316/ER-03-reason-identities-raw.json",
+      "verdict": "capture-y9zvw316/ER-03-reason-identities-verdict.json",
+      "qualification": "This limits identity-sensitive rejection/cleanup evidence. It is not a demonstrated product cancellation defect, nor a claim that the still-pending lifecycle adapter was executed."
+    }
+  ],
+  "foreignFrameworkChanges": 0,
+  "fixtureInvalidFailuresIdentified": 0,
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "next": "Root routes these exact raw controls to the runtime owner. Preserve both original outcomes and require new committed fixes/review bindings before reevaluation. Do not change expectations to match current code."
+}

@@ -1,0 +1,4 @@
+100644 blob c7c520bbc4512d16fd0953ba3b90de2d44a673ea	tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/RECEIPT.json
+100644 blob fb039f20af98095b4b2b28bda30ba48c398805bb	tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/REPORT.md
+100644 blob d6e04329ee5ced7ebf61c7e6da3e65b4bd923072	tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json
+100644 blob a0a109bc41ae7a8dcd77ad8507687b4878e782c7	tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/REPORT.md

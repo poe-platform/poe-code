@@ -1,0 +1,3 @@
+{"file":"tsconfig.build.json","compiler":"5.9.3","inputs":207,"capturedCandidateInputs":0}
+{"file":"tests/commands/html-to-markdown/tsconfig.build.json","compiler":"5.9.3","inputs":9,"capturedCandidateInputs":0}
+{"file":"tests/commands/html-to-markdown/inline-normalization-fix/tsconfig.json","compiler":"5.9.3","inputs":17,"capturedCandidateInputs":0}

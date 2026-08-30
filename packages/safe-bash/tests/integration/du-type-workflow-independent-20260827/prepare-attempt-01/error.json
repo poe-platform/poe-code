@@ -1,0 +1,7 @@
+{
+  "naturalExit": 1,
+  "phase": "pre-execution authentication",
+  "supervisor": "../prepare-attempt-01.mjs.fixture",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: unexpected symlink: .bin/esbuild\n    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:29:14)\n    at walk (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:30:31)\n    at manifest (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:34:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:116:28\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '=='\n}\n\nNode.js v22.22.2\n",
+  "correction": "Tool-only inventory records and authenticates in-tree symlink text and target bytes; package and candidate Git inputs still reject symlinks. No product/author fixture or expected outcome changed. Prior partial outputs remain separate."
+}

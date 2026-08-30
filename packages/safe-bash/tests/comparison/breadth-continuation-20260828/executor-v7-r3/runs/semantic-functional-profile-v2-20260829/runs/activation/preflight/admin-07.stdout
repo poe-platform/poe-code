@@ -1,0 +1,32 @@
+[main ad57055df4cdcf06d50871ce9499da7cb57e3fa3] Bind fresh functional-v2 AUTH and real-payload preflight
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 17 files changed, 8139 insertions(+)
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/AUTH.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/CALL-PLAN.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/LAUNCH-INTENT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/PROCESS-PLAN.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/ADMIN.ndjson
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/REAL-PAYLOAD-PREFLIGHT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/SOURCE-BINDINGS.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-01.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-01.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-02.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-02.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-03.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-03.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-04.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-04.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-05.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-05.stdout

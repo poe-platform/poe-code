@@ -1,0 +1,330 @@
+{
+  "status": "QUALIFIED_EXISTING_SAFEJS25_FD1_REGRESSION_PASS",
+  "sourceOrigin": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+  "selectedCommit": "6bd651e6e3c7c0a6bcec10cf86d504c50d96b7b1",
+  "selectedTree": "654af9a68732ac64e907b50396b84b9a91d1856b",
+  "sourceArchiveSha256": "51b9013eb0ac70849059403cddf22d5f8f0fab360da7a41e308ae0ca88595e87",
+  "packageSha256": "87c200daf413d9f1ab835b4d1738a1a93946fd3e350427b01accde4e0b23b1af",
+  "actualCaptureCompressedSha256": "15c632dfc66434239fec65b4efc0b26c7f535988ffc57a2fcb8681e2c8a40959",
+  "counts": {
+    "intended": 25,
+    "pass": 25,
+    "engineRuns": 25,
+    "nonpass": 0
+  },
+  "privateGuardPairs": 3,
+  "privateGuard": "EXACTLY_UNCHANGED",
+  "childrenNaturallyClosed": 25,
+  "temporaryRootsAbsent": 4,
+  "actualGuestExecutionsByThisDataVerifier": 0,
+  "privateAccessByThisDataVerifier": false,
+  "qualification": "Existing actual SafeJS25 qualified regression on fd1; not a new guest invoke-signal feature proof",
+  "rows": [
+    {
+      "family": "surface",
+      "id": "01-supported-facades",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "SUPPORTED_SURFACE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "02-direct-surface",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "SUPPORTED_SURFACE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "03-namespace-spread",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "SUPPORTED_SURFACE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "04-shell-module",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "SUPPORTED_SURFACE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "05-missing-register-cleanup",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "SUPPORTED_SURFACE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "06-missing-acquire",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "SUPPORTED_SURFACE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "07-reflection-profile",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "DIALECT_PROFILE_NOT_MEMBRANE_ACCEPTANCE",
+      "naturalExit": true
+    },
+    {
+      "family": "surface",
+      "id": "08-function-spread-profile",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "category": "DIALECT_PROFILE_NOT_MEMBRANE_ACCEPTANCE",
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L01-aliases",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 7,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L02-budget-positive",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 0,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L02-budget-exhausted",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 124,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L03-callback-live",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 0,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L03-callback-after-lifetime",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 0,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L04-explicit-children",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 0,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L05-caller-error",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "rejection",
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L05-execution-error",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "rejection",
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L05-cleanup-error",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "rejection",
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L06-curl-open",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 0,
+      "naturalExit": true
+    },
+    {
+      "family": "lifecycle",
+      "id": "L06-curl-consumer-closed",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 141,
+      "naturalExit": true
+    },
+    {
+      "family": "controls",
+      "id": "Z01-open",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 0,
+      "naturalExit": true
+    },
+    {
+      "family": "controls",
+      "id": "Z01-closed",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 141,
+      "naturalExit": true
+    },
+    {
+      "family": "controls",
+      "id": "Z02-open",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 22,
+      "naturalExit": true
+    },
+    {
+      "family": "controls",
+      "id": "Z02-closed",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 22,
+      "naturalExit": true
+    },
+    {
+      "family": "controls",
+      "id": "Z03-open",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 47,
+      "naturalExit": true
+    },
+    {
+      "family": "controls",
+      "id": "Z03-closed",
+      "outcome": "PASS",
+      "engineRuns": 1,
+      "packedModules": 204,
+      "engineModules": 63,
+      "publicKind": "result",
+      "exitCode": 47,
+      "naturalExit": true
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "REPORT.md",
+      "bytes": 8787,
+      "sha256": "0ac3e63f89056b7b11f7d845d633f478d01ef56510494b8e8800c198c36088ef"
+    },
+    {
+      "path": "actual-01.json.gz.base64",
+      "bytes": 3343073,
+      "sha256": "c0bcddbcd0e1023512a6bb0dbc856912ab1ec624ada92c20cf9b246e1ca300d6"
+    },
+    {
+      "path": "bridge.mjs",
+      "bytes": 2137,
+      "sha256": "950b801830f3321d8a5207c40c22beed0141a25d7074cd054c39a9ca2ed6a51b"
+    },
+    {
+      "path": "preflight.mjs",
+      "bytes": 3149,
+      "sha256": "fd403bdc8eb1018a98af7e5276750ba7bc7b9a781d1b27230039fceab2fbbc92"
+    },
+    {
+      "path": "preparation-failure-01.json.gz.base64",
+      "bytes": 10509,
+      "sha256": "6dad8c9f48d7c8a1b4aa969eb2f1a9d776f6741f2726dc369ad60096b668b7f5"
+    },
+    {
+      "path": "private-preflight-01.json.gz.base64",
+      "bytes": 67669,
+      "sha256": "e7d9240f0e6e4d2d3c1b868673d65f2c2570151df2be4c5c816ef5520f9f9f59"
+    },
+    {
+      "path": "replay.mjs",
+      "bytes": 14433,
+      "sha256": "cb357589fae70eec0987f514ce5072f4714e217610a803ebe16cab469a1497e4"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 11433,
+      "sha256": "d190aca8a8a646297dba4c8524f245e343958d95b8de60cbdbabe43d018174a5"
+    }
+  ]
+}

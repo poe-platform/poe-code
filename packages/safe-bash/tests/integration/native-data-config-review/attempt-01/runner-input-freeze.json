@@ -1,0 +1,52 @@
+[
+  {
+    "path": "package.json",
+    "bytes": 3526,
+    "sha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/artifacts/native space 🙂/control.test.ts",
+    "bytes": 201,
+    "sha256": "e91826c4f89b8c21289815760d7bd2754190a7e3f9c93ac180ec7914ef1cd6c5"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/artifacts/native-sibling/control.test.ts",
+    "bytes": 198,
+    "sha256": "cc1c9757293952c524db0f973fa70ce3065e86efb0f06ebff5f70648e1062d6c"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/artifacts/native.test.ts",
+    "bytes": 182,
+    "sha256": "f7375555c85351924e88a262c7383004d99ddf0aef4b35a98a617be62a4d3697"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/artifacts/native/arbitrary.test.ts",
+    "bytes": 312,
+    "sha256": "2cae0ad6514af39244936eabfc82f31ebfd0323911a995ecbc6de0890f75fa97"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/artifacts/native/space 🙂/nested arbitrary.test.ts",
+    "bytes": 330,
+    "sha256": "95703f8802422b73ecf500d534552e99164383810715a14be0d5de581f22ceea"
+  },
+  {
+    "path": "tests/commands/regex-execution/continuation/artifacts/neighbor.test.ts",
+    "bytes": 184,
+    "sha256": "0860bf38304c7cbe49632c7a3f111a24dd9431a532e89d201d3f1b60d63c8940"
+  },
+  {
+    "path": "tests/review/canonical.test.ts",
+    "bytes": 219,
+    "sha256": "669d80491d1787baee136679b380a0aeb5698074ef2718ff161eb02451a6b1c3"
+  },
+  {
+    "path": "tests/review/helper.ts",
+    "bytes": 54,
+    "sha256": "9b6228bed5982ea43a371001ee41ae5f568bdad76cab00373cd0df9aeb7b2ab9"
+  },
+  {
+    "path": "tests/space 🙂/canonical.test.ts",
+    "bytes": 148,
+    "sha256": "d21dbedfb3218fbdd10e0e0837086e0920548081e40f415211f5a99894a9b082"
+  }
+]

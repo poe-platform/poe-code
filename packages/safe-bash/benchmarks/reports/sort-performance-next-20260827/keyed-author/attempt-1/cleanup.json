@@ -1,0 +1,239 @@
+{
+  "successful": true,
+  "commands": [
+    {
+      "label": "baseline-extract",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/tmp/sort-key-author-capture-zfEQEO/baseline.tar",
+        "-C",
+        "/tmp/sort-key-author-capture-zfEQEO/baseline"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "baseline-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/baseline",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "baseline-instrumented-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/baseline-instrumented",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-extract",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/tmp/sort-key-author-capture-zfEQEO/candidate.tar",
+        "-C",
+        "/tmp/sort-key-author-capture-zfEQEO/candidate"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/candidate",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-types",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/candidate",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-tests",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/core-sort/single-numeric-key-cache.test.ts",
+        "tests/commands/core-sort/regressions.test.ts",
+        "tests/commands/core-sort/borrowed-buffer.test.ts",
+        "tests/commands/core-sort/unkeyed-numeric-cache.test.ts",
+        "tests/contracts/io.test.ts"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/candidate",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-pack",
+      "executable": "npm",
+      "args": [
+        "pack",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/tmp/sort-key-author-capture-zfEQEO"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/candidate",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-unpack",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xzf",
+        "/tmp/sort-key-author-capture-zfEQEO/virtual-bash-0.0.0.tgz",
+        "-C",
+        "/tmp/sort-key-author-capture-zfEQEO/moved"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-instrumented-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/tmp/sort-key-author-capture-zfEQEO/candidate-instrumented",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "baseline-frozen21",
+      "executable": "/bin/sh",
+      "args": [
+        "-c",
+        "ulimit -t 60; exec \"$1\" --max-old-space-size=512 \"$2\" \"$3\" \"$4\"",
+        "author-sort",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/attempt-1/worker.mjs",
+        "/tmp/sort-key-author-capture-zfEQEO",
+        "baseline"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-frozen21",
+      "executable": "/bin/sh",
+      "args": [
+        "-c",
+        "ulimit -t 60; exec \"$1\" --max-old-space-size=512 \"$2\" \"$3\" \"$4\"",
+        "author-sort",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/attempt-1/worker.mjs",
+        "/tmp/sort-key-author-capture-zfEQEO",
+        "candidate"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "moved-candidate-frozen21",
+      "executable": "/bin/sh",
+      "args": [
+        "-c",
+        "ulimit -t 60; exec \"$1\" --max-old-space-size=512 \"$2\" \"$3\" \"$4\"",
+        "author-sort",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/attempt-1/worker.mjs",
+        "/tmp/sort-key-author-capture-zfEQEO",
+        "moved-candidate"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "baseline-instrumented-frozen21",
+      "executable": "/bin/sh",
+      "args": [
+        "-c",
+        "ulimit -t 60; exec \"$1\" --max-old-space-size=512 \"$2\" \"$3\" \"$4\"",
+        "author-sort",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/attempt-1/worker.mjs",
+        "/tmp/sort-key-author-capture-zfEQEO",
+        "baseline-instrumented"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "candidate-instrumented-frozen21",
+      "executable": "/bin/sh",
+      "args": [
+        "-c",
+        "ulimit -t 60; exec \"$1\" --max-old-space-size=512 \"$2\" \"$3\" \"$4\"",
+        "author-sort",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/sort-performance-next-20260827/keyed-author/attempt-1/worker.mjs",
+        "/tmp/sort-key-author-capture-zfEQEO",
+        "candidate-instrumented"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    }
+  ],
+  "beforeAfterTreesMatch": true,
+  "scratchRemoved": true,
+  "loadAfter": [
+    14.03759765625,
+    9.7021484375,
+    7.380859375
+  ],
+  "remainingOwnedChildren": 0
+}

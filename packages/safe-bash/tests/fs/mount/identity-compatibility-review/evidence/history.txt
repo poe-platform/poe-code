@@ -1,0 +1,51 @@
+diff --git a/src/fs/mount/index.ts b/src/fs/mount/index.ts
+index 9c00ddf..4c21b08 100644
+--- a/src/fs/mount/index.ts
++++ b/src/fs/mount/index.ts
+@@ -417,12 +417,12 @@ export class MountFileSystem implements FileSystem {
+       if (origin.mount.backend === target.mount.backend && origin.local === target.local) fail("EINVAL");
+       const identity = compareIdentity(origin.stat, target.stat);
+       if (identity === "same") fail("EINVAL");
++      if (target.stat?.type === "directory") fail("EISDIR");
++      if (target.stat && identity === "unknown") fail("ENOTSUP");
+       if (origin.mount === target.mount) {
+         await origin.mount.backend.copyFile(origin.local, target.local, { ...options, exclusive: options.exclusive || !target.stat });
+         return;
+       }
+-      if (target.stat?.type === "directory") fail("EISDIR");
+-      if (target.stat && identity === "unknown") fail("ENOTSUP");
+       const reader = origin.mount.backend;
+       const writer = target.mount.backend;
+       const writeOptions: WriteFileOptions = {
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 210)       if (current.stat?.type !== "directory") fail("ENOTDIR");
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 211)       if (!current.synthetic && !settings.createDirectories?.has(current.path)) {
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 212)         await current.mount.backend.access(current.local, 1, options);
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 213)       }
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 394)     return this.operation("rename", source, options, async () => {
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 395)       const origin = await this.resolve(source, options, { followFinal: false, entry: true });
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 396)       const target = await this.resolve(destination, options, {
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 397)         followFinal: false, allowMissing: true, entry: true, missingDirectory: origin.stat?.type === "directory",
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 398)       });
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 399)       if (this.protected(origin.path) || this.protected(target.path)) fail("EBUSY");
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 400)       if (origin.mount !== target.mount) fail("EXDEV");
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 401)       this.mutable(origin);
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 402)       this.mutable(target);
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 403)       this.entryPath(source);
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 404)       this.entryPath(destination);
+81ba2feb (Kamil Jopek 2026-08-26 14:17:23 -0500 405)       await origin.mount.backend.rename(origin.local, target.local, options);
+7d205627 (Kamil Jopek 2026-08-26 13:44:36 -0500 813)   async access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
+7d205627 (Kamil Jopek 2026-08-26 13:44:36 -0500 814)     if (!Number.isInteger(mode) || mode < 0 || mode > 7) fail("EINVAL", "access", path);
+a5d68b97 (Kamil Jopek 2026-08-26 16:07:15 -0500 815)     if (mode & 3) this.unsupported("access write/execute permission checks", path);
+a5d68b97 (Kamil Jopek 2026-08-26 16:07:15 -0500 816)     const stat = await this.stat(path, options);
+a5d68b97 (Kamil Jopek 2026-08-26 16:07:15 -0500 817)     if (mode === 4) {
+a5d68b97 (Kamil Jopek 2026-08-26 16:07:15 -0500 818)       if (stat.type === "directory") await this.readdir(path, options);
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 147)       const parsed = options(context.args, "fnv", { force: "f", "no-clobber": "n", verbose: "v" });
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 148)       const destination = await destinations(context, parsed.operands);
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 149)       return eachOperand(context, destination.sources, async operand => {
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 150)         const source = pathOf(context, operand);
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 151)         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 152)         if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 153)         await context.fs.rename(source, target, { signal: context.signal });
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 154)         if (parsed.flags.has("v")) await output(context, `'${operand}' -> '${target}'\n`);
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 155)       });
+01c9a0f1 (Kamil Jopek 2026-08-26 13:29:55 -0500 156)     }),

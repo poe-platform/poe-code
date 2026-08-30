@@ -1,0 +1,460 @@
+{
+  "capturedAt": "2026-08-26T21:03:21.470Z",
+  "version": "GNU patch 2.8",
+  "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+  "binarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+  "assertions": "exit status and exact target bytes/existence; diagnostics recorded, not compared",
+  "total": 156,
+  "baselineChecks": 126,
+  "focusedChecks": [
+    {
+      "name": "normal/transport/fileCR=false",
+      "args": [
+        "/work/target"
+      ],
+      "input": "1c1\r\n< old\r\n---\r\n> new\r\n",
+      "initial": "old\n",
+      "expected": "new\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "normal/transport/fileCR=true",
+      "args": [
+        "/work/target"
+      ],
+      "input": "1c1\r\n< old\r\r\n---\r\n> new\r\r\n",
+      "initial": "old\r\n",
+      "expected": "new\r\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/transport/fileCR=false",
+      "args": [
+        "/work/target"
+      ],
+      "input": "*** target\r\n--- target\r\n***************\r\n*** 1 ****\r\n! old\r\n--- 1 ----\r\n! new\r\n",
+      "initial": "old\n",
+      "expected": "new\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/transport/fileCR=true",
+      "args": [
+        "/work/target"
+      ],
+      "input": "*** target\r\n--- target\r\n***************\r\n*** 1 ****\r\n! old\r\r\n--- 1 ----\r\n! new\r\r\n",
+      "initial": "old\r\n",
+      "expected": "new\r\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/transport/fileCR=false",
+      "args": [
+        "/work/target"
+      ],
+      "input": "--- target\r\n+++ target\r\n@@ -1 +1 @@\r\n-old\r\n+new\r\n",
+      "initial": "old\n",
+      "expected": "new\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/transport/fileCR=true",
+      "args": [
+        "/work/target"
+      ],
+      "input": "--- target\r\n+++ target\r\n@@ -1 +1 @@\r\n-old\r\r\n+new\r\r\n",
+      "initial": "old\r\n",
+      "expected": "new\r\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "(Stripping trailing CRs from patch; use --binary to disable.)\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "mixed/normal/context",
+      "args": [
+        "/work/target"
+      ],
+      "input": "1c1\n< value0\n---\n> value1\n*** target\n--- target\n***************\n*** 1 ****\n! value1\n--- 1 ----\n! value2\n",
+      "initial": "value0\n",
+      "expected": "value2\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "mixed/context/unified",
+      "args": [
+        "/work/target"
+      ],
+      "input": "*** target\n--- target\n***************\n*** 1 ****\n! value0\n--- 1 ----\n! value1\n--- target\n+++ target\n@@ -1 +1 @@\n-value1\n+value2\n",
+      "initial": "value0\n",
+      "expected": "value2\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "mixed/unified/normal",
+      "args": [
+        "/work/target"
+      ],
+      "input": "--- target\n+++ target\n@@ -1 +1 @@\n-value0\n+value1\n1c1\n< value1\n---\n> value2\n",
+      "initial": "value0\n",
+      "expected": "value2\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "mixed/context/normal/unified",
+      "args": [
+        "/work/target"
+      ],
+      "input": "*** target\n--- target\n***************\n*** 1 ****\n! value0\n--- 1 ----\n! value1\n1c1\n< value1\n---\n> value2\n--- target\n+++ target\n@@ -1 +1 @@\n-value2\n+value3\n",
+      "initial": "value0\n",
+      "expected": "value3\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\npatching file <isolated-root>/target\npatching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "normal/-E",
+      "args": [
+        "-E",
+        "/work/target"
+      ],
+      "input": "1d0\n< old\n",
+      "initial": "old\n",
+      "expected": null,
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "normal/-E/dry-run",
+      "args": [
+        "-E",
+        "--dry-run",
+        "/work/target"
+      ],
+      "input": "1d0\n< old\n",
+      "initial": "old\n",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "checking file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "normal/--remove-empty-files",
+      "args": [
+        "--remove-empty-files",
+        "/work/target"
+      ],
+      "input": "1d0\n< old\n",
+      "initial": "old\n",
+      "expected": null,
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "normal/--remove-empty-files/dry-run",
+      "args": [
+        "--remove-empty-files",
+        "--dry-run",
+        "/work/target"
+      ],
+      "input": "1d0\n< old\n",
+      "initial": "old\n",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "checking file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/-E",
+      "args": [
+        "-E",
+        "/work/target"
+      ],
+      "input": "*** target\n--- target\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": "old\n",
+      "expected": null,
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/-E/dry-run",
+      "args": [
+        "-E",
+        "--dry-run",
+        "/work/target"
+      ],
+      "input": "*** target\n--- target\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": "old\n",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "checking file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/--remove-empty-files",
+      "args": [
+        "--remove-empty-files",
+        "/work/target"
+      ],
+      "input": "*** target\n--- target\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": "old\n",
+      "expected": null,
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/--remove-empty-files/dry-run",
+      "args": [
+        "--remove-empty-files",
+        "--dry-run",
+        "/work/target"
+      ],
+      "input": "*** target\n--- target\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": "old\n",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "checking file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/-E",
+      "args": [
+        "-E",
+        "/work/target"
+      ],
+      "input": "--- target\n+++ target\n@@ -1 +0,0 @@\n-old\n",
+      "initial": "old\n",
+      "expected": null,
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/-E/dry-run",
+      "args": [
+        "-E",
+        "--dry-run",
+        "/work/target"
+      ],
+      "input": "--- target\n+++ target\n@@ -1 +0,0 @@\n-old\n",
+      "initial": "old\n",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "checking file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/--remove-empty-files",
+      "args": [
+        "--remove-empty-files",
+        "/work/target"
+      ],
+      "input": "--- target\n+++ target\n@@ -1 +0,0 @@\n-old\n",
+      "initial": "old\n",
+      "expected": null,
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/--remove-empty-files/dry-run",
+      "args": [
+        "--remove-empty-files",
+        "--dry-run",
+        "/work/target"
+      ],
+      "input": "--- target\n+++ target\n@@ -1 +0,0 @@\n-old\n",
+      "initial": "old\n",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "checking file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/null-reverse/auto/missing",
+      "args": [
+        "-R"
+      ],
+      "input": "*** target\n--- /dev/null\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": null,
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/null-reverse/auto/empty",
+      "args": [
+        "-R"
+      ],
+      "input": "*** target\n--- /dev/null\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": "",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/null-reverse/explicit/missing",
+      "args": [
+        "-R",
+        "/work/target"
+      ],
+      "input": "*** target\n--- /dev/null\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": null,
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "context/null-reverse/explicit/empty",
+      "args": [
+        "-R",
+        "/work/target"
+      ],
+      "input": "*** target\n--- /dev/null\n***************\n*** 1 ****\n- old\n--- 0 ----\n",
+      "initial": "",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/null-reverse/auto/missing",
+      "args": [
+        "-R"
+      ],
+      "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+      "initial": null,
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/null-reverse/auto/empty",
+      "args": [
+        "-R"
+      ],
+      "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+      "initial": "",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/null-reverse/explicit/missing",
+      "args": [
+        "-R",
+        "/work/target"
+      ],
+      "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+      "initial": null,
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    },
+    {
+      "name": "unified/null-reverse/explicit/empty",
+      "args": [
+        "-R",
+        "/work/target"
+      ],
+      "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+      "initial": "",
+      "expected": "old\n",
+      "nativeStatus": 0,
+      "virtualStatus": 0,
+      "stdout": "patching file <isolated-root>/target\n",
+      "stderr": "",
+      "pass": true
+    }
+  ],
+  "sourceHashes": {
+    "patch.ts": "e9019ebb41bd68b85a1022d23cabdaec421eacf6cd04b8a005202b87cd4f8aed",
+    "patch-formats.ts": "abb8182193cc91ad3d1865cf659fd8acdf76657a9048790270d1b47f85f71b94",
+    "patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "unified.ts": "efea01c9ebb9a046953f4aa24e74739f666e857b61991ac474759adadb5b8d30"
+  }
+}

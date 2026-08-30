@@ -1,0 +1,711 @@
+{
+  "sourceRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "inputRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "helperRevision": "debb29ead94ae387f359d9d04b333ee4380f88d6",
+  "inputHash": "8f23448e026a03e1b8ec87f1784e2b73b4cc63a9f8b4d1f198b1c449c6661908",
+  "groupHashes": {
+    "source": "11ada26e691086a51f2c8929347511a4b99a4472dc1f74b259660945760983a3",
+    "input": "6f259e4705e7e504dec6849c8ef1c997829e0e8bedaf9d95fd2e3c271ae7cf15",
+    "helper": "d636e8cacb636e08d57d45d0d1a33432cc6f9e50c1d18ea3145c907b5a876e18"
+  },
+  "generatedHash": "7e1349f8e132f8d38240e66de2420cc3aa5b14887ba69fd221670f1a3ed9f254",
+  "requiredCommands": {
+    "requiredNames": [
+      "awk",
+      "cat",
+      "cp",
+      "diff",
+      "find",
+      "gzip",
+      "jq",
+      "mkdir",
+      "mv",
+      "patch",
+      "printf",
+      "pwd",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "sha256sum",
+      "sort",
+      "tee",
+      "test",
+      "touch",
+      "xargs"
+    ],
+    "requiredNameCount": 22,
+    "executableRequiredNameCount": 22,
+    "plugin": "actual agentCommands() through existing withFixture"
+  },
+  "results": [
+    {
+      "name": "archived-build",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-YhduEE",
+      "startedAt": "2026-08-27T06:50:30.007Z",
+      "elapsedMs": 1560.2961249999998,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null
+      },
+      "cases": [],
+      "failures": [],
+      "unchangedInputsAfter": true
+    },
+    {
+      "name": "required-commands",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--input-type=module",
+        "-e",
+        "import { requiredWorkflowCommands } from './tests/integration/adapter-tools/preflight-review/preflight.ts'; import { withFixture } from './tests/integration/adapter-tools/fixtures.ts'; const names = [...new Set(Object.values(requiredWorkflowCommands).flat())].sort(); await withFixture('memory', async ({ shell }) => { console.log(JSON.stringify({ requiredNames: names, requiredNameCount: names.length, executableRequiredNameCount: names.filter(name => typeof shell.commands.get(name)?.execute === 'function').length, plugin: 'actual agentCommands() through existing withFixture' })); });"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-YhduEE",
+      "startedAt": "2026-08-27T06:50:31.625Z",
+      "elapsedMs": 204.8092919999999,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null
+      },
+      "cases": [],
+      "failures": [],
+      "unchangedInputsAfter": true
+    },
+    {
+      "name": "original79",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-YhduEE",
+      "startedAt": "2026-08-27T06:50:31.853Z",
+      "elapsedMs": 1664.4076669999995,
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": 79,
+        "pass": 77,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cases": [
+        {
+          "number": 1,
+          "name": "memory: independent six-family named-file probes",
+          "passed": true
+        },
+        {
+          "number": 2,
+          "name": "memory: aggregate six-family coding-agent flow",
+          "passed": true
+        },
+        {
+          "number": 3,
+          "name": "memory: binary stdin, compression, hashes and redirected bytes",
+          "passed": true
+        },
+        {
+          "number": 4,
+          "name": "memory: cwd, supplied stdin and explicitly empty stdin",
+          "passed": true
+        },
+        {
+          "number": 5,
+          "name": "memory: create, copy, append, inspect and remove files",
+          "passed": true
+        },
+        {
+          "number": 6,
+          "name": "memory: move retains bytes and removes source",
+          "passed": true
+        },
+        {
+          "number": 7,
+          "name": "memory: touch creates an empty file successfully",
+          "passed": true
+        },
+        {
+          "number": 8,
+          "name": "memory: in-place edit, diff-to-patch stdin and reverse",
+          "passed": true
+        },
+        {
+          "number": 9,
+          "name": "memory: missing paths, stderr redirection and command errors",
+          "passed": true
+        },
+        {
+          "number": 10,
+          "name": "memory: cancellation interrupts actual blocked command pipeline",
+          "passed": true
+        },
+        {
+          "number": 11,
+          "name": "memory: output limit terminates real binary reads",
+          "passed": true
+        },
+        {
+          "number": 12,
+          "name": "real: independent six-family named-file probes",
+          "passed": true
+        },
+        {
+          "number": 13,
+          "name": "real: aggregate six-family coding-agent flow",
+          "passed": true
+        },
+        {
+          "number": 14,
+          "name": "real: binary stdin, compression, hashes and redirected bytes",
+          "passed": true
+        },
+        {
+          "number": 15,
+          "name": "real: cwd, supplied stdin and explicitly empty stdin",
+          "passed": true
+        },
+        {
+          "number": 16,
+          "name": "real: create, copy, append, inspect and remove files",
+          "passed": true
+        },
+        {
+          "number": 17,
+          "name": "real: move retains bytes and removes source",
+          "passed": true
+        },
+        {
+          "number": 18,
+          "name": "real: touch creates an empty file successfully",
+          "passed": true
+        },
+        {
+          "number": 19,
+          "name": "real: in-place edit, diff-to-patch stdin and reverse",
+          "passed": true
+        },
+        {
+          "number": 20,
+          "name": "real: missing paths, stderr redirection and command errors",
+          "passed": true
+        },
+        {
+          "number": 21,
+          "name": "real: cancellation interrupts actual blocked command pipeline",
+          "passed": true
+        },
+        {
+          "number": 22,
+          "name": "real: output limit terminates real binary reads",
+          "passed": true
+        },
+        {
+          "number": 23,
+          "name": "s3: independent six-family named-file probes",
+          "passed": true
+        },
+        {
+          "number": 24,
+          "name": "s3: aggregate six-family coding-agent flow",
+          "passed": true
+        },
+        {
+          "number": 25,
+          "name": "s3: binary stdin, compression, hashes and redirected bytes",
+          "passed": true
+        },
+        {
+          "number": 26,
+          "name": "s3: cwd, supplied stdin and explicitly empty stdin",
+          "passed": true
+        },
+        {
+          "number": 27,
+          "name": "s3: create, copy, append, inspect and remove files",
+          "passed": false
+        },
+        {
+          "number": 28,
+          "name": "s3: move retains bytes and removes source",
+          "passed": true
+        },
+        {
+          "number": 29,
+          "name": "s3: touch creates an empty file successfully",
+          "passed": true
+        },
+        {
+          "number": 30,
+          "name": "s3: in-place edit, diff-to-patch stdin and reverse",
+          "passed": true
+        },
+        {
+          "number": 31,
+          "name": "s3: missing paths, stderr redirection and command errors",
+          "passed": true
+        },
+        {
+          "number": 32,
+          "name": "s3: cancellation interrupts actual blocked command pipeline",
+          "passed": true
+        },
+        {
+          "number": 33,
+          "name": "s3: output limit terminates real binary reads",
+          "passed": true
+        },
+        {
+          "number": 34,
+          "name": "webdav: independent six-family named-file probes",
+          "passed": true
+        },
+        {
+          "number": 35,
+          "name": "webdav: aggregate six-family coding-agent flow",
+          "passed": true
+        },
+        {
+          "number": 36,
+          "name": "webdav: binary stdin, compression, hashes and redirected bytes",
+          "passed": true
+        },
+        {
+          "number": 37,
+          "name": "webdav: cwd, supplied stdin and explicitly empty stdin",
+          "passed": true
+        },
+        {
+          "number": 38,
+          "name": "webdav: create, copy, append, inspect and remove files",
+          "passed": false
+        },
+        {
+          "number": 39,
+          "name": "webdav: move retains bytes and removes source",
+          "passed": true
+        },
+        {
+          "number": 40,
+          "name": "webdav: touch creates an empty file successfully",
+          "passed": true
+        },
+        {
+          "number": 41,
+          "name": "webdav: in-place edit, diff-to-patch stdin and reverse",
+          "passed": true
+        },
+        {
+          "number": 42,
+          "name": "webdav: missing paths, stderr redirection and command errors",
+          "passed": true
+        },
+        {
+          "number": 43,
+          "name": "webdav: cancellation interrupts actual blocked command pipeline",
+          "passed": true
+        },
+        {
+          "number": 44,
+          "name": "webdav: output limit terminates real binary reads",
+          "passed": true
+        },
+        {
+          "number": 45,
+          "name": "mount: independent six-family named-file probes",
+          "passed": true
+        },
+        {
+          "number": 46,
+          "name": "mount: aggregate six-family coding-agent flow",
+          "passed": true
+        },
+        {
+          "number": 47,
+          "name": "mount: binary stdin, compression, hashes and redirected bytes",
+          "passed": true
+        },
+        {
+          "number": 48,
+          "name": "mount: cwd, supplied stdin and explicitly empty stdin",
+          "passed": true
+        },
+        {
+          "number": 49,
+          "name": "mount: create, copy, append, inspect and remove files",
+          "passed": true
+        },
+        {
+          "number": 50,
+          "name": "mount: move retains bytes and removes source",
+          "passed": true
+        },
+        {
+          "number": 51,
+          "name": "mount: touch creates an empty file successfully",
+          "passed": true
+        },
+        {
+          "number": 52,
+          "name": "mount: in-place edit, diff-to-patch stdin and reverse",
+          "passed": true
+        },
+        {
+          "number": 53,
+          "name": "mount: missing paths, stderr redirection and command errors",
+          "passed": true
+        },
+        {
+          "number": 54,
+          "name": "mount: cancellation interrupts actual blocked command pipeline",
+          "passed": true
+        },
+        {
+          "number": 55,
+          "name": "mount: output limit terminates real binary reads",
+          "passed": true
+        },
+        {
+          "number": 56,
+          "name": "overlay: independent six-family named-file probes",
+          "passed": true
+        },
+        {
+          "number": 57,
+          "name": "overlay: aggregate six-family coding-agent flow",
+          "passed": true
+        },
+        {
+          "number": 58,
+          "name": "overlay: binary stdin, compression, hashes and redirected bytes",
+          "passed": true
+        },
+        {
+          "number": 59,
+          "name": "overlay: cwd, supplied stdin and explicitly empty stdin",
+          "passed": true
+        },
+        {
+          "number": 60,
+          "name": "overlay: create, copy, append, inspect and remove files",
+          "passed": true
+        },
+        {
+          "number": 61,
+          "name": "overlay: move retains bytes and removes source",
+          "passed": true
+        },
+        {
+          "number": 62,
+          "name": "overlay: touch creates an empty file successfully",
+          "passed": true
+        },
+        {
+          "number": 63,
+          "name": "overlay: in-place edit, diff-to-patch stdin and reverse",
+          "passed": true
+        },
+        {
+          "number": 64,
+          "name": "overlay: missing paths, stderr redirection and command errors",
+          "passed": true
+        },
+        {
+          "number": 65,
+          "name": "overlay: cancellation interrupts actual blocked command pipeline",
+          "passed": true
+        },
+        {
+          "number": 66,
+          "name": "overlay: output limit terminates real binary reads",
+          "passed": true
+        },
+        {
+          "number": 67,
+          "name": "mount: cross-backend pipeline and copy use real mount plus S3",
+          "passed": true
+        },
+        {
+          "number": 68,
+          "name": "overlay: edit and remove lower files without changing S3 lower",
+          "passed": true
+        },
+        {
+          "number": 69,
+          "name": "readonly: all six aggregate families can inspect without mutation",
+          "passed": true
+        },
+        {
+          "number": 70,
+          "name": "structured capability gap: raw slurped text can be split into lines",
+          "passed": true
+        },
+        {
+          "number": 71,
+          "name": "readonly: rejects mutation: printf 'changed' > target.txt",
+          "passed": true
+        },
+        {
+          "number": 72,
+          "name": "readonly: rejects mutation: printf 'changed' >> target.txt",
+          "passed": true
+        },
+        {
+          "number": 73,
+          "name": "readonly: rejects mutation: mkdir denied",
+          "passed": true
+        },
+        {
+          "number": 74,
+          "name": "readonly: rejects mutation: cp old.txt denied.txt",
+          "passed": true
+        },
+        {
+          "number": 75,
+          "name": "readonly: rejects mutation: mv old.txt denied.txt",
+          "passed": true
+        },
+        {
+          "number": 76,
+          "name": "readonly: rejects mutation: rm old.txt",
+          "passed": true
+        },
+        {
+          "number": 77,
+          "name": "readonly: rejects mutation: sed -i 's/beta/BETA/' target.txt",
+          "passed": true
+        },
+        {
+          "number": 78,
+          "name": "readonly: rejects mutation: patch -i change.diff",
+          "passed": true
+        },
+        {
+          "number": 79,
+          "name": "readonly: rejects mutation: gzip payload.bin",
+          "passed": true
+        }
+      ],
+      "failures": [
+        "s3: create, copy, append, inspect and remove files",
+        "webdav: create, copy, append, inspect and remove files"
+      ],
+      "unchangedInputsAfter": true
+    },
+    {
+      "name": "preflight-controls",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/preflight-review/preflight.test.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/remote-rmdir/.archive-YhduEE",
+      "startedAt": "2026-08-27T06:50:33.541Z",
+      "elapsedMs": 238.62579199999982,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "counts": {
+        "tests": 30,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "cases": [
+        {
+          "number": 1,
+          "name": "preflight rejects missing required standard command: cat",
+          "passed": true
+        },
+        {
+          "number": 2,
+          "name": "preflight rejects missing required standard command: cp",
+          "passed": true
+        },
+        {
+          "number": 3,
+          "name": "preflight rejects missing required standard command: find",
+          "passed": true
+        },
+        {
+          "number": 4,
+          "name": "preflight rejects missing required standard command: mkdir",
+          "passed": true
+        },
+        {
+          "number": 5,
+          "name": "preflight rejects missing required standard command: mv",
+          "passed": true
+        },
+        {
+          "number": 6,
+          "name": "preflight rejects missing required standard command: printf",
+          "passed": true
+        },
+        {
+          "number": 7,
+          "name": "preflight rejects missing required standard command: pwd",
+          "passed": true
+        },
+        {
+          "number": 8,
+          "name": "preflight rejects missing required standard command: rm",
+          "passed": true
+        },
+        {
+          "number": 9,
+          "name": "preflight rejects missing required standard command: rmdir",
+          "passed": true
+        },
+        {
+          "number": 10,
+          "name": "preflight rejects missing required standard command: sort",
+          "passed": true
+        },
+        {
+          "number": 11,
+          "name": "preflight rejects missing required standard command: tee",
+          "passed": true
+        },
+        {
+          "number": 12,
+          "name": "preflight rejects missing required standard command: test",
+          "passed": true
+        },
+        {
+          "number": 13,
+          "name": "preflight rejects missing required standard command: touch",
+          "passed": true
+        },
+        {
+          "number": 14,
+          "name": "preflight rejects missing required standard command: xargs",
+          "passed": true
+        },
+        {
+          "number": 15,
+          "name": "preflight rejects missing standard plugin commands",
+          "passed": true
+        },
+        {
+          "number": 16,
+          "name": "preflight rejects missing required text command: sed",
+          "passed": true
+        },
+        {
+          "number": 17,
+          "name": "preflight rejects missing required text command: awk",
+          "passed": true
+        },
+        {
+          "number": 18,
+          "name": "preflight rejects missing text plugin commands",
+          "passed": true
+        },
+        {
+          "number": 19,
+          "name": "preflight rejects missing required structured command: jq",
+          "passed": true
+        },
+        {
+          "number": 20,
+          "name": "preflight rejects missing structured plugin commands",
+          "passed": true
+        },
+        {
+          "number": 21,
+          "name": "preflight rejects missing required search command: rg",
+          "passed": true
+        },
+        {
+          "number": 22,
+          "name": "preflight rejects missing search plugin commands",
+          "passed": true
+        },
+        {
+          "number": 23,
+          "name": "preflight rejects missing required bytes command: sha256sum",
+          "passed": true
+        },
+        {
+          "number": 24,
+          "name": "preflight rejects missing required bytes command: gzip",
+          "passed": true
+        },
+        {
+          "number": 25,
+          "name": "preflight rejects missing bytes plugin commands",
+          "passed": true
+        },
+        {
+          "number": 26,
+          "name": "preflight rejects missing required diffPatch command: diff",
+          "passed": true
+        },
+        {
+          "number": 27,
+          "name": "preflight rejects missing required diffPatch command: patch",
+          "passed": true
+        },
+        {
+          "number": 28,
+          "name": "preflight rejects missing diffPatch plugin commands",
+          "passed": true
+        },
+        {
+          "number": 29,
+          "name": "preflight rejects an absent aggregate plugin",
+          "passed": true
+        },
+        {
+          "number": 30,
+          "name": "preflight permits an unrelated executable command alongside all workflow commands",
+          "passed": true
+        }
+      ],
+      "failures": [],
+      "unchangedInputsAfter": true
+    }
+  ],
+  "verification": {
+    "archivedInputsUnchanged": true,
+    "originalMatrixAssertionsUnmodified": true,
+    "expectedPassCountNotAsserted": true
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "selectedAt": "2026-08-27T13:24:32.277Z",
+  "candidate": "8670ebe8f0d39966c2de2638780437398e5f8490",
+  "tree": "2b5790d522f433778a3ba2364f24b7ae7b24216f",
+  "sourceTree": "f214264ae13d47e1369513a12ccd2d6cf944a6ef",
+  "required": [
+    {
+      "short": "8b19cf4f",
+      "revision": "8b19cf4fad31ed4c11ca76bcb0cc38ef1a5ce508",
+      "ancestor": true
+    },
+    {
+      "short": "71ecb39d",
+      "revision": "71ecb39df73a46210e923c59141c89eb3f3fd311",
+      "ancestor": true
+    },
+    {
+      "short": "403be643",
+      "revision": "403be643f7d5b4dbd6cdc3f1bfda63c4aa7f5fb2",
+      "ancestor": true
+    },
+    {
+      "short": "3a1025f5",
+      "revision": "3a1025f53e502c3426ffee34eb8d8037b27c26f8",
+      "ancestor": true
+    },
+    {
+      "short": "7a571df9",
+      "revision": "7a571df91569a5bb3706bbfc8c3a3df8b4b6c558",
+      "ancestor": true
+    },
+    {
+      "short": "af6e0bfc",
+      "revision": "af6e0bfc05d0205ac442272d0da5d8e4a8b0d511",
+      "ancestor": true
+    },
+    {
+      "short": "84ab66ca",
+      "revision": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+      "ancestor": true
+    },
+    {
+      "short": "1ad428ed",
+      "revision": "1ad428edb7bce7d30f081c0e9bd4332eb280c677",
+      "ancestor": true
+    },
+    {
+      "short": "7d7dce7c",
+      "revision": "7d7dce7ced596b24e60e1ab3fea5bcd50c070755",
+      "ancestor": true
+    },
+    {
+      "short": "b2821599",
+      "revision": "b282159921ce530e932b02f90c64eca987de2704",
+      "ancestor": true
+    },
+    {
+      "short": "5f7fe5d7",
+      "revision": "5f7fe5d72f031db6cbacc76d9bfefcba2f58d03e",
+      "ancestor": true
+    },
+    {
+      "short": "026e20cf",
+      "revision": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+      "ancestor": true
+    },
+    {
+      "short": "e192662d",
+      "revision": "e192662d2fda90104ab5a7e59c9b5c88bf5838c3",
+      "ancestor": true
+    },
+    {
+      "short": "96146732",
+      "revision": "96146732cc7e17a67797389de5b83d14b29b41bf",
+      "ancestor": true
+    },
+    {
+      "short": "a01310c5",
+      "revision": "a01310c5571dfda2aae4c6c8cc185e2530a01e89",
+      "ancestor": true
+    },
+    {
+      "short": "c7f2abab",
+      "revision": "c7f2abab5e11539c69f890e617a461cbd5ec4a08",
+      "ancestor": true
+    },
+    {
+      "short": "4d0507cd",
+      "revision": "4d0507cd3439d5e4dea60ae20d023d3fcb9662f1",
+      "ancestor": true
+    },
+    {
+      "short": "39116ae1",
+      "revision": "39116ae1da80261d1a55df363f615430eab6609a",
+      "ancestor": true
+    },
+    {
+      "short": "d209711f",
+      "revision": "d209711fdbeaf65479307ca299f6ef7c11753658",
+      "ancestor": true
+    },
+    {
+      "short": "6c6183ae",
+      "revision": "6c6183aebf2a88d634f61b0b90dd45cb11a29ba0",
+      "ancestor": true
+    }
+  ],
+  "bindings": [
+    {
+      "path": "package.json",
+      "blob": "f176ae92e21c5a3d062474d62e8af8f1ccf34e0b",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    {
+      "path": "package-lock.json",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "src/index.ts",
+      "blob": "f22006574a46d127ea52e1209168fc147c57b690",
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "blob": "ca2f93009f6b2b400e7c8939f73c727366a82f6b",
+      "sha256": "720eb0fd43a269aa62a37bd195417db39681a6d3166389d495229f6474ae4ac3"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6"
+    },
+    {
+      "path": "src/commands/env-split.ts",
+      "blob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+    }
+  ],
+  "package": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "type": "module",
+    "engines": {
+      "node": ">=22"
+    },
+    "dependencies": {},
+    "scripts": {
+      "benchmark": "node --import tsx benchmarks/run.ts",
+      "build": "tsc -p tsconfig.build.json",
+      "typecheck": "node scripts/typecheck.mjs",
+      "typecheck:all": "node scripts/typecheck.mjs --build",
+      "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+      "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+      "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+      "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+      "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+      "verify:release:whole": "node scripts/verify-whole-gate.mjs"
+    },
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./contracts": {
+        "types": "./dist/contracts/index.d.ts",
+        "import": "./dist/contracts/index.js"
+      },
+      "./contracts/*": {
+        "types": "./dist/contracts/*.d.ts",
+        "import": "./dist/contracts/*.js"
+      },
+      "./commands/network": {
+        "types": "./dist/commands/network/index.d.ts",
+        "import": "./dist/commands/network/index.js"
+      },
+      "./commands/metadata": {
+        "types": "./dist/commands/metadata/index.d.ts",
+        "import": "./dist/commands/metadata/index.js"
+      },
+      "./commands/archive": {
+        "types": "./dist/commands/archive/index.d.ts",
+        "import": "./dist/commands/archive/index.js"
+      },
+      "./commands/table-text": {
+        "types": "./dist/commands/table-text/index.d.ts",
+        "import": "./dist/commands/table-text/index.js"
+      },
+      "./commands/stream-inspection": {
+        "types": "./dist/commands/stream-inspection/index.d.ts",
+        "import": "./dist/commands/stream-inspection/index.js"
+      },
+      "./commands/stream-format": {
+        "types": "./dist/commands/stream-format/index.d.ts",
+        "import": "./dist/commands/stream-format/index.js"
+      },
+      "./commands/split": {
+        "types": "./dist/commands/split/index.d.ts",
+        "import": "./dist/commands/split/index.js"
+      },
+      "./commands/time-env": {
+        "types": "./dist/commands/time-env/index.d.ts",
+        "import": "./dist/commands/time-env/index.js"
+      },
+      "./commands/tree": {
+        "types": "./dist/commands/tree/index.d.ts",
+        "import": "./dist/commands/tree/index.js"
+      },
+      "./commands/file": {
+        "types": "./dist/commands/file/index.d.ts",
+        "import": "./dist/commands/file/index.js"
+      },
+      "./fs/s3": {
+        "types": "./dist/fs/s3/index.d.ts",
+        "import": "./dist/fs/s3/index.js"
+      },
+      "./fs/s3/http": {
+        "types": "./dist/fs/s3/http/index.d.ts",
+        "import": "./dist/fs/s3/http/index.js"
+      },
+      "./fs/webdav": {
+        "types": "./dist/fs/webdav/index.d.ts",
+        "import": "./dist/fs/webdav/index.js"
+      },
+      "./fs/readonly": {
+        "types": "./dist/fs/readonly/index.d.ts",
+        "import": "./dist/fs/readonly/index.js"
+      },
+      "./fs/mount": {
+        "types": "./dist/fs/mount/index.d.ts",
+        "import": "./dist/fs/mount/index.js"
+      },
+      "./fs/overlay": {
+        "types": "./dist/fs/overlay/index.d.ts",
+        "import": "./dist/fs/overlay/index.js"
+      }
+    }
+  },
+  "trackedStatus": "clean",
+  "wholeGateLaunched": false,
+  "preparationCorrection": "first inventory named nonexistent src/plugins/agent-commands.ts and rejected before writing receipt; actual entry src/plugins/index.ts is now Git-bound"
+}

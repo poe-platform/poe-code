@@ -1,0 +1,15 @@
+{
+  "status": "PASS_ALL_ARCHIVE_MEMBERS_EQUAL_REVIEWED_RAW_MANIFEST",
+  "archive": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/raw-attempt-001.tar.gz",
+  "archiveSha256": "9e2d3c24c709e7b5cd9ca6a7a8022e13f1e97c58ca235587562b5354cdf5932a",
+  "compressedBytes": 25956442,
+  "rawManifestSha256": "5c15aa518743449029f975b3e133544ede2f9ff6df9ed734bb8f9a1d575f9ba1",
+  "regularMembers": 2071,
+  "rawMemberBytes": 432565451,
+  "duplicates": 0,
+  "extraOrMissing": 0,
+  "linksOrSpecialFiles": 0,
+  "extractions": 0,
+  "productImports": 0,
+  "nativeOracleCalls": 0
+}

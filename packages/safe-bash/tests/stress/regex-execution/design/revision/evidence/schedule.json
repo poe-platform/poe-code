@@ -1,0 +1,40 @@
+{
+  "utc": "2026-08-27T05:18:41.918Z",
+  "scenarios": [
+    "idle-exit",
+    "idle-idempotence",
+    "pending-exit",
+    "live-feedback",
+    "paused-backpressure",
+    "paused-abort",
+    "preabort",
+    "cooperative-pending-abort",
+    "late-read-rejection",
+    "pending-consumer-return",
+    "awaited-return",
+    "read-return-rejection",
+    "return-rejection",
+    "node-stream-abort",
+    "empty-source",
+    "explicit-batches"
+  ],
+  "flags": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--stack-size=2048"
+  ],
+  "archivedRiskCount": 12,
+  "newRiskTranche": {
+    "author": {
+      "maximum": 2,
+      "used": 0
+    },
+    "reviewerMaximum": 2,
+    "rootReservedUnused": 2
+  },
+  "startupMs": 3000,
+  "afterReadyMs": 3000,
+  "cleanupMs": 1000,
+  "ipcBytes": 131072,
+  "streamBytes": 16384
+}

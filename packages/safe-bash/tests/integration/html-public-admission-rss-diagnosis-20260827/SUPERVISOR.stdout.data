@@ -1,0 +1,138 @@
+{
+  "at": "2026-08-27T23:07:13.062Z",
+  "pid": 64175,
+  "ppid": 64117,
+  "node": "v22.22.2",
+  "execArgv": [
+    "--max-old-space-size=96"
+  ],
+  "expectedBytes": 1073872896,
+  "expectedSha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+  "limits": {
+    "chunkBytes": 65536,
+    "producerChunkBytes": 1048576,
+    "archiveBytes": 3221225472,
+    "metadataBytes": 16777216,
+    "blobBytes": 33554432,
+    "buildBytes": 134217728,
+    "stderrBytes": 65536,
+    "commandBytes": 8388608,
+    "timeoutMs": 180000
+  },
+  "result": {
+    "bytes": 1073872896,
+    "chunks": 16386,
+    "maxChunkBytes": 65536,
+    "maxProducerChunkBytes": 65536,
+    "maxRssBytes": 102498304,
+    "maxPendingConsumers": 1,
+    "sha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+    "process": {
+      "status": 0,
+      "signal": null,
+      "stderr": "{\"emitted\":1073872896,\"drains\":15956}\n",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "memory": {
+    "units": "bytes",
+    "pid": 64175,
+    "samples": 68,
+    "peak": {
+      "rss": 102547456,
+      "heapUsed": 6501976,
+      "heapTotal": 10108928,
+      "external": 32744725,
+      "arrayBuffers": 30621931
+    },
+    "phases": [
+      {
+        "phase": "fresh-launch-after-builtin-and-observer-imports",
+        "at": "2026-08-27T23:07:12.479Z",
+        "rss": 44744704,
+        "heapTotal": 5652480,
+        "heapUsed": 4576168,
+        "external": 1910158,
+        "arrayBuffers": 16425
+      },
+      {
+        "phase": "after-authenticated-core-import-and-observer-setup",
+        "at": "2026-08-27T23:07:12.483Z",
+        "rss": 47071232,
+        "heapTotal": 5914624,
+        "heapUsed": 5240624,
+        "external": 2157316,
+        "arrayBuffers": 34522
+      },
+      {
+        "phase": "before-stream",
+        "at": "2026-08-27T23:07:12.483Z",
+        "rss": 47071232,
+        "heapTotal": 5914624,
+        "heapUsed": 5241680,
+        "external": 2157316,
+        "arrayBuffers": 34522
+      },
+      {
+        "phase": "after-settled-stream",
+        "at": "2026-08-27T23:07:13.062Z",
+        "rss": 102547456,
+        "heapTotal": 10108928,
+        "heapUsed": 4995040,
+        "external": 3253563,
+        "arrayBuffers": 1130769
+      }
+    ],
+    "scope": "current process only; sampled fieldwise maxima need not coincide; not a lifetime RSS high-water or a process-tree sum"
+  },
+  "consumer": {
+    "chunks": 16386,
+    "bytes": 1073872896,
+    "minimumChunkBytes": 65536,
+    "maximumChunkBytes": 65536,
+    "pending": 0,
+    "maximumPending": 1
+  },
+  "transport": {
+    "spawnCount": 1,
+    "producerReadFragments": 16386,
+    "producerReadBytes": 1073872896,
+    "minimumReadFragmentBytes": 65536,
+    "maximumReadFragmentBytes": 65536,
+    "maximumReadableLength": 65536,
+    "maximumPendingIteratorNext": 1,
+    "closeObserved": true,
+    "pid": 64177,
+    "originalArgv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--max-old-space-size=96",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/stream-fixture.mjs",
+      "1073872896"
+    ],
+    "observedArgv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--max-old-space-size=96",
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-rss-diagnosis-20260827/recipe/producer-observer.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/stream-fixture.mjs",
+      "1073872896"
+    ],
+    "readableHighWaterMark": 65536,
+    "code": 0,
+    "signal": null,
+    "readableLengthAtClose": 0,
+    "destroyedAtClose": true,
+    "iteratorPendingAtEnd": 0
+  },
+  "diagnostic": {
+    "thresholdBytes": 268435456,
+    "operator": "<",
+    "nativeMaxRssBytes": 102498304,
+    "below256MiB": true,
+    "acceptanceRun": false,
+    "actual34": 0
+  },
+  "limitations": "Fresh process without binding/tree/inventory/prefix controls; no reconstruction of historical baseline. Consumer current RSS excludes producer RSS. Stream implementation and fixture bytes unchanged; observational iterator wrapper adds async scheduling and producer preload adds measurements. Every256 consumer chunks plus phase snapshots; no continuous peak guarantee or forced GC. No stream chunks retained by observers."
+}
+

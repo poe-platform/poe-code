@@ -1,0 +1,13 @@
+{
+  "role": "source-blobs",
+  "pid": 11807,
+  "started": "2026-08-29T13:27:28.167Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

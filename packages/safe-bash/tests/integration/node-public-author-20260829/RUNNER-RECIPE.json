@@ -1,0 +1,103 @@
+{
+  "source": "tests/compatibility/bash-strict-mode-independent-20260829/run.mjs",
+  "sourceSha256": "088974453fb138555e68255f5c2573a21408fd66ff57b35f09c3f81d340540f9",
+  "replacements": [
+    {
+      "before": "'strict-mode-independent-'",
+      "after": "'node-public-author-'",
+      "count": 1
+    },
+    {
+      "before": "'strict-mode-independent-result-v1'",
+      "after": "'node-public-author-result-v1'",
+      "count": 1
+    },
+    {
+      "before": "++childCount + workerCount + loaderReservations <= seal.bounds.children",
+      "after": "++childCount <= seal.bounds.children",
+      "count": 1
+    },
+    {
+      "before": "childCount + workerCount + loaderReservations <= seal.bounds.children",
+      "after": "childCount <= seal.bounds.children && workerCount + loaderReservations + nodeWorkers <= 192",
+      "count": 2
+    },
+    {
+      "before": "seal.bounds.children - childCount - workerCount - loaderReservations",
+      "after": "192 - nodeWorkers - workerCount - loaderReservations",
+      "count": 1
+    },
+    {
+      "before": "assert.equal(receipt.package.sha256, seal.expectedPackageSha256, 'frozen full950 package identity');",
+      "after": "receipt.package.acceptedBaseSha256 = seal.acceptedBasePackageSha256; receipt.package.isNewComposition = true;",
+      "count": 1
+    },
+    {
+      "before": "let size = 0, rescue, spawnError, captureError, alarm = false;",
+      "after": "let size = 0, rescue, spawnError, captureError, spawnErrorPresent = false, captureErrorPresent = false, alarm = false;",
+      "count": 1
+    },
+    {
+      "before": "spawnError = error;",
+      "after": "spawnErrorPresent = true; spawnError = error;",
+      "count": 1
+    },
+    {
+      "before": "captureError = error; terminate();",
+      "after": "captureErrorPresent = true; captureError = error; terminate();",
+      "count": 1
+    },
+    {
+      "before": "spawnErrorPresent: spawnError !== undefined, captureErrorPresent: captureError !== undefined",
+      "after": "spawnErrorPresent, captureErrorPresent",
+      "count": 1
+    },
+    {
+      "before": "assert.ok(!captureError, 'capture integrity stop');",
+      "after": "assert.ok(!captureErrorPresent, 'capture integrity stop');",
+      "count": 1
+    },
+    {
+      "before": "!row.resourceClosureUnknown && !alarm && !spawnError && signal === null",
+      "after": "!row.resourceClosureUnknown && !alarm && !spawnErrorPresent && signal === null",
+      "count": 1
+    },
+    {
+      "before": "try {\n  for (const name of ['home', 'tmp', 'cache', 'source', 'harness'])",
+      "after": "let nodeWorkers=0,guestEntries=0;\nconst nodeFixtures=path.join(harness,'node');\nasync function setupNodeFixtures(){\n const from=path.join(repo,'tests/commands/node-author-20260829/validation-v2/author-v5');\n const inherited=JSON.parse(gunzipSync(Buffer.from((await fs.readFile(path.join(from,'INPUTS-v1.json.gz.base64'),'utf8')).trim(),'base64'),{maxOutputLength:16777216}));\n assert.equal(inherited.engine.length,96);\n for(const row of inherited.engine){assert.ok(row.target.startsWith('compiled/engine/')&&!row.target.split('/').includes('..')&&!row.target.endsWith('/AGENTS.md'));const body=Buffer.from(row.body,'base64');assert.equal(body.length,row.bytes);assert.equal(sha(body),row.sha256);await write(path.join(nodeFixtures,row.target.slice('compiled/'.length)),body);}\n const maps=[['focused-v5.mjs','tests/commands/node-independent-20260829/actual-review-v1/capsule-v3/focused-v5.mjs'],['workers-v5.mjs','tests/commands/node-independent-20260829/actual-review-v1/capsule-v3/workers-v5.mjs'],...['engine-adapter-v1.mjs','engine-adapter-noise-v1.mjs'].map(name=>[name,'tests/commands/node-author-20260829/validation-v2/author-v5/'+name]),...['public-node.mjs','node-batch.mjs','node-policy.mjs','node-load-guard.mjs'].map(name=>[name,'tests/integration/node-public-author-20260829/'+name])];\n for(const [name,origin]of maps){const bytes=await fs.readFile(path.join(repo,origin));const bound=executor.files.find(row=>row.path===origin);assert.ok(bound);assert.equal(sha(bytes),bound.sha256);await write(path.join(nodeFixtures,name),bytes);}\n receipt.engine={entries:inherited.engine.map(({body,...row})=>row),productDependency:false,qualification:'PUBLIC95 unchanged emitted engine plus package metadata, test-only explicitly supplied adapter; no private read or engine build'};\n}\nasync function nodeBatch(label,product,role,ids,expected,expectedFailure=false){\n const root=await fs.realpath(product),moduleRoot=path.join(root,'dist');\n const realRoot=path.join(output,'node-real',label);await fs.mkdir(realRoot,{recursive:true});\n const files=[];\n for(const directory of [moduleRoot,nodeFixtures])for(const row of await inventory(directory))if(row.path.endsWith('.js')||row.path.endsWith('.mjs')){const filename=path.join(directory,row.path);const body=await fs.readFile(filename,'utf8');const builtins=[...new Set([...body.matchAll(/(?:from\\s*|import\\s*)[\"'](node:[^\"']+)[\"']/gu)].map(match=>match[1]))].sort();files.push({...row,path:filename,builtins});}\n const manifestFile=path.join(harness,'load-manifest.json');await fs.writeFile(manifestFile,JSON.stringify({files,aliases:{'virtual-bash':path.join(moduleRoot,'index.js'),'virtual-bash/commands/node':path.join(moduleRoot,'commands/node/index.js')}}));\n const log=path.join(output,label+'-node-resources.jsonl');await write(log,'');\n const maximum=role==='focused'?0:role==='worker'?ids.length:Math.min(24,seal.bounds.nodeWorkers-nodeWorkers);\n assert.ok(maximum>=0);const policy={log,maximum,workerEntry:path.join(moduleRoot,'commands/node/worker-main.js'),adapters:['engine-adapter-v1.mjs','engine-adapter-noise-v1.mjs'].map(name=>new URL('file://'+path.join(nodeFixtures,name)).href)};\n await fs.writeFile(path.join(harness,'node-policy.json'),JSON.stringify(policy));\n const input={role,ids,moduleRoot,packageRoot:root,adapter:path.join(nodeFixtures,'engine-adapter-v1.mjs'),realRoot};const inputFile=path.join(output,label+'-input.json');await write(inputFile,JSON.stringify(input));\n const bindingBefore=await inventory(moduleRoot);\n const result=await child(label,process.execPath,['--experimental-permission','--allow-fs-read='+output,'--allow-fs-write='+output,'--allow-worker','--import',path.join(nodeFixtures,'node-policy.mjs'),'--import',path.join(nodeFixtures,'node-load-guard.mjs'),path.join(nodeFixtures,'node-batch.mjs'),inputFile],root);\n const resourceRows=(await fs.readFile(log,'utf8')).trim().split('\\n').filter(Boolean).map(line=>JSON.parse(line));\n const births=resourceRows.filter(row=>row.kind==='node-worker-create'),exits=resourceRows.filter(row=>row.kind==='node-worker-exit');\n nodeWorkers+=births.length;assert.ok(nodeWorkers<=seal.bounds.nodeWorkers&&nodeWorkers+workerCount+loaderReservations<=192);assert.ok(resourceRows.some(row=>row.kind==='node-policy-bootstrap'));\n assert.equal(births.length,exits.length,'Node Worker retirement');for(const birth of births)assert.ok(exits.some(exit=>exit.id===birth.id));\n const rows=result.out.toString().trim().split('\\n').filter(Boolean).map(line=>JSON.parse(line));const summary=rows.pop();assert.equal(summary.role,'node-batch-summary');assert.equal(summary.cases,expected);assert.equal(rows.length,expected);assert.ok(summary.clean&&summary.unhandled.length===0,'Node cleanup failure');assert.equal(result.code,summary.fail?1:0);\n assert.deepEqual(rows.map(row=>row.id),role==='focused'?seal.moduleFocusedIds:ids);\n assert.ok(rows.every(row=>row.clean!==false));\n const entries=rows.reduce((sum,row)=>sum+(row.guestEntries??0)+(row.facts?.W28?.guestEntries??0)+(row.facts?.W29?.guestEntries??0),0);guestEntries+=entries;assert.ok(guestEntries<=192);\n await fs.writeFile(path.join(output,label+'-loads.jsonl'),result.err.toString().split('\\n').filter(line=>line.startsWith('@@NODE_LOAD ')).join('\\n')+'\\n');\n assert.deepEqual(await inventory(moduleRoot),bindingBefore);\n receipt.nodeCohorts??=[];receipt.nodeCohorts.push({label,role,...summary,rows,resources:resourceRows,nodeWorkers:births.length,guestEntries:entries,loadManifestSha256:sha(await fs.readFile(manifestFile))});\n if(summary.fail&&!expectedFailure)receipt.failures.push({label,cases:rows.filter(row=>!row.pass)});\n return {result,summary,rows};\n}\nasync function nodeLayout(label,product){\n await nodeBatch(label+'-node-focused',product,'focused',[],34);\n for(let offset=0;offset<27;offset+=9){const ids=seal.moduleWorkerIds.slice(offset,offset+9);await nodeBatch(label+'-node-module-'+offset,product,'worker',ids,ids.length);}\n for(let offset=0;offset<24;offset+=6){const ids=seal.publicIds.slice(offset,offset+6);await nodeBatch(label+'-node-public-'+offset,product,'public',ids,ids.length);}\n await nodeTypes(label,product);\n}\nasync function nodeTypes(label,product){\n for(const negative of [false,true]){\n  const filename=path.join(consumers.get(await fs.realpath(product)),`node-consumer-${label}-${negative}.mts`);await write(filename,await fs.readFile(path.join(own,negative?'types-negative.mts.fixture':'types-positive.mts.fixture')));\n  const result=await child(`node-types-${label}-${negative}`,process.execPath,[compiler,'--strict','--exactOptionalPropertyTypes','--noEmit','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext','--skipLibCheck','--pretty','false','--listFiles','--typeRoots',path.join(source,'node_modules/@types'),filename],output);\n  const errors=(result.out.toString()+result.err.toString()).split('\\n').filter(line=>/error TS\\d+:/.test(line));const intended=negative?[{line:3,code:2345,contains:\"Argument of type '{}' is not assignable to parameter of type 'NodeCommandsOptions'\"},{line:4,code:2322,contains:\"Type 'string' is not assignable to type 'boolean'\"},{line:5,code:2322,contains:\"Type 'number' is not assignable to type 'boolean'\"},{line:6,code:2353,contains:\"'limits' does not exist in type 'NodeCommandsOptions'\"},{line:7,code:2305,contains:\"no exported member 'NodeOwner'\"},{line:8,code:2307,contains:\"Cannot find module 'virtual-bash/commands/node/host'\"}]:[];\n  const pass=negative?result.code!==0&&errors.length===6&&intended.every((item,index)=>errors[index].includes(`(${item.line},`)&&errors[index].includes(`error TS${item.code}:`)&&errors[index].includes(item.contains)):result.code===0&&errors.length===0;\n  const declarations=result.out.toString().split('\\n').filter(line=>line.endsWith('.d.ts')&&line.includes('/dist/'));assert.ok(declarations.length>0);const bound=[];for(const filename of declarations){const actual=await fs.realpath(filename);assert.ok(actual.startsWith(product+'/dist/'));const row=packageRows.find(item=>item.path===path.relative(product,actual));assert.ok(row);assert.equal(sha(await fs.readFile(actual)),row.sha256);bound.push({path:actual,sha256:row.sha256});}\n  receipt.nodeTypes??=[];receipt.nodeTypes.push({label,negative,pass,errors,code:result.code,declarations:bound});if(!pass)receipt.failures.push({label:`node-types-${label}-${negative}`,errors});\n }\n}\n\ntry {\n  for (const name of ['home', 'tmp', 'cache', 'source', 'harness'])",
+      "count": 1
+    },
+    {
+      "before": "const sourceBefore = await inventory(path.join(source, 'src'));",
+      "after": "await setupNodeFixtures();\n  const sourceBefore = await inventory(path.join(source, 'src'));",
+      "count": 1
+    },
+    {
+      "before": "await types(label, product);\n  }",
+      "after": "await types(label, product); await nodeLayout(label, product);\n  }",
+      "count": 1
+    },
+    {
+      "before": "await types('moved', movedRoot);",
+      "after": "await types('moved', movedRoot); await nodeLayout('moved', movedRoot);",
+      "count": 1
+    },
+    {
+      "region": "three original strict-mode mutants replaced by three presealed Node-public mutants",
+      "beforeSha256": "746376a77c0a3eea1b75a9ff4b76771b73ec19987c9840b43d9e90ae3a6853a6",
+      "after": "  const mutations = [\n    { id: 'node-export-missing', file: 'index.js', before: 'export * from \"./commands/node/index.js\";', after: '', case: 'P02' },\n    { id: 'node-collision-missing', file: 'commands/node/index.js', before: 'if (!replace && host.commands.has(\"node\"))', after: 'if (false && host.commands.has(\"node\"))', case: 'P07' },\n    { id: 'node-definition-missing', file: 'commands/node/index.js', before: 'Object.freeze([definition])', after: 'Object.freeze([])', case: 'P03' },\n  ];\n  for (const mutation of mutations) {\n    const filename = path.join(mutantRoot, 'dist', mutation.file), original = await fs.readFile(filename, 'utf8');\n    assert.equal(original.split(mutation.before).length, 2); await fs.writeFile(filename, original.replace(mutation.before, mutation.after));\n    const observed = await nodeBatch(mutation.id, mutantRoot, 'public', [mutation.case], 1, true);\n    const detected = observed.result.code === 1 && observed.rows[0].pass === false;\n    receipt.controls.push({ name: mutation.id, detected, originalSha256: sha(Buffer.from(original)), mutantSha256: sha(await fs.readFile(filename)) }); if (!detected) receipt.failures.push({label:mutation.id});\n    await fs.writeFile(filename, original); await nodeBatch(mutation.id + '-restored', mutantRoot, 'public', [mutation.case], 1);\n    assert.equal(sha(await fs.readFile(filename)), tarRows.find(row => row.path === 'dist/' + mutation.file).sha256);\n  }\n"
+    },
+    {
+      "before": "receipt.qualification = 'Resolved Unit2 only on c83 plus provisional unit1; 39 known design identities+11 author controls per layout. Eleven original design identities OPEN/OUTSIDE and UNRUN, no skipped-as-pass/native/private/network/fullgate/GNU exact diagnostic claim. Unit1-v2 is a versioned fixture, historical failures remain.';",
+      "after": "receipt.qualification = 'AUTHOR public Node opt-in only on accepted26215b99 plus accepted a2 module; default80 unchanged. Module qualifications, Unit2 eleven OPEN identities and historical failures retained. No full Node/Bash/RSS/alljobs/native/independent-public acceptance.';",
+      "count": 1
+    },
+    {
+      "before": "observedProductWorkers: workerCount, implicitLoaderReservations: loaderReservations, boundedOwnedTotal: childCount + workerCount + loaderReservations",
+      "after": "observedRegexWorkers: workerCount, observedNodeWorkers: nodeWorkers, observedGuestEntries: guestEntries, implicitLoaderAdmissions: loaderReservations, knownDirectOsProcesses: childCount, totalObservedWorkerCategories: nodeWorkers + workerCount + loaderReservations",
+      "count": 1
+    }
+  ],
+  "nodeLoaderSource": "tests/commands/node-author-20260829/validation-v2/author-v5/load-guard-v1.mjs",
+  "nodeLoaderDelta": "two exact public package aliases resolve only to authenticated manifest members; no wildcard"
+}

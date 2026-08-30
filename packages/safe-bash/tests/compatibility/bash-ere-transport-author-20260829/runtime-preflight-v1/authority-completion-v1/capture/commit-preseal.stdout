@@ -1,0 +1,18 @@
+[main 774bf573b] Seal T1 exact authority map and typed-window schema hold
+ 16 files changed, 886 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/.gitignore
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/AUTHORITY-CLOSURE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/README.md
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/SLOT.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/add-preseal.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/add-preseal.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/patch.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/patch.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/preparation.jsonl
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/review-receipt.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/review-receipt.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/source-authentication.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/status-initial.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/capture/status-initial.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/authority-completion-v1/closure-check.mjs

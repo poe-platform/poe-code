@@ -1,0 +1,124 @@
+{
+  "finished": "2026-08-27T19:00:36.791453+00:00",
+  "runs": [
+    {
+      "cohort": "surface",
+      "started": "2026-08-27T18:57:51.852413+00:00",
+      "status": "PASS",
+      "childrenLaunched": 8,
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/runtime/surface/run.mjs"
+      ],
+      "parentStarted": "2026-08-27T18:57:59.665378+00:00",
+      "parentClosed": "2026-08-27T18:58:25.280458+00:00",
+      "parentExitCode": 0,
+      "counts": {
+        "scheduled": 8,
+        "childrenLaunched": 8,
+        "engineRuns": 8,
+        "pass": 8,
+        "fail": 0,
+        "blocked": 0
+      },
+      "privateUnchanged": true,
+      "inputsUnchanged": true,
+      "finished": "2026-08-27T18:58:34.596875+00:00"
+    },
+    {
+      "cohort": "lifecycle",
+      "started": "2026-08-27T18:58:34.597367+00:00",
+      "status": "PASS",
+      "childrenLaunched": 11,
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/runtime/lifecycle/run.mjs",
+        "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw"
+      ],
+      "parentStarted": "2026-08-27T18:58:44.405800+00:00",
+      "parentClosed": "2026-08-27T18:59:29.936937+00:00",
+      "parentExitCode": 0,
+      "counts": {
+        "scheduled": 11,
+        "childrenLaunched": 11,
+        "engineRuns": 11,
+        "pass": 11,
+        "fail": 0,
+        "blocked": 0
+      },
+      "privateUnchanged": true,
+      "inputsUnchanged": true,
+      "finished": "2026-08-27T18:59:40.498756+00:00"
+    },
+    {
+      "cohort": "controls",
+      "started": "2026-08-27T18:59:40.499129+00:00",
+      "status": "PASS",
+      "childrenLaunched": 6,
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/runtime/controls/run.mjs",
+        "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw"
+      ],
+      "parentStarted": "2026-08-27T18:59:50.587348+00:00",
+      "parentClosed": "2026-08-27T19:00:28.002931+00:00",
+      "parentExitCode": 0,
+      "counts": {
+        "scheduled": 6,
+        "childrenLaunched": 6,
+        "engineRuns": 6,
+        "pass": 6,
+        "fail": 0,
+        "blocked": 0
+      },
+      "privateUnchanged": true,
+      "inputsUnchanged": true,
+      "finished": "2026-08-27T19:00:36.782441+00:00"
+    }
+  ],
+  "dataNegatives": {
+    "kind": "DATA_ONLY_NOT_GUEST_PASSES",
+    "controls": [
+      {
+        "id": "missing-surface-rejection-event",
+        "rejected": true,
+        "reason": "AssertionError((0, 1))"
+      },
+      {
+        "id": "fabricated-surface-engine-result",
+        "rejected": true,
+        "reason": "AssertionError()"
+      },
+      {
+        "id": "fulfilled-status-instead-of-L05-rejection",
+        "rejected": true,
+        "reason": "AssertionError(('result', 'rejection'))"
+      },
+      {
+        "id": "extra-Z01-authorization",
+        "rejected": true,
+        "reason": "AssertionError(([{'call': 1, 'url': 'https://owned.invalid/upload', 'method': 'PUT', 'attempt': 0, 'hasRedirectFrom': False, 'signalAborted': False, 'allowed': True}, {'call': 1, 'url': 'https://owned.invalid/upload', 'method': 'PUT', 'attempt': 0, 'hasRedirectFrom': False, 'signalAborted': False, 'allowed': True}], [{'call': 1, 'url': 'https://owned.invalid/upload', 'method': 'PUT', 'attempt': 0, 'hasRedirectFrom': False, 'signalAborted': False, 'allowed': True}]))"
+      },
+      {
+        "id": "missing-Z01-response-disposal",
+        "rejected": true,
+        "reason": "AssertionError(([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44]))"
+      },
+      {
+        "id": "unexpected-Z02-retry-delay",
+        "rejected": true,
+        "reason": "AssertionError(([{'operation': 'setTimeout', 'delay': 1000}], []))"
+      },
+      {
+        "id": "corrupted-Z02-body-sentinel",
+        "rejected": true,
+        "reason": "AssertionError(({'hex': ''}, {'hex': '7a65726f2d626f64792d73656e74696e656c0a'}))"
+      }
+    ],
+    "allRejected": true,
+    "guestExecutions": 0
+  },
+  "automaticRetries": 0,
+  "noPromotion": true,
+  "allPass": true
+}

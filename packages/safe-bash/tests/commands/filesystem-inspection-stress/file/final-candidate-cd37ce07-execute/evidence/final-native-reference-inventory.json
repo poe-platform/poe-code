@@ -1,0 +1,3635 @@
+[
+  {
+    "referenceIndex": 1,
+    "observation": {
+      "id": "F01",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F01-empty.pdf"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "empty\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.196Z"
+    },
+    "observationSha256": "e5b8b92ad6d1a0ccb7b04e8f290260e7ea191d3c3683b0d323f47855fdd8162d",
+    "finalComparison": {
+      "id": "F01",
+      "view": "brief-human",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 2,
+    "observation": {
+      "id": "F01",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F01-empty.pdf"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/x-empty; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.201Z"
+    },
+    "observationSha256": "df79f9d70be860b97ed241814d0cd2e7ff9d5d7148cd5ec9988a90464db9384b",
+    "finalComparison": {
+      "id": "F01",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 3,
+    "observation": {
+      "id": "F01",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F01-empty.pdf"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/x-empty\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.205Z"
+    },
+    "observationSha256": "8a2f0b6b526b14be28312bc4ba3c1924b4612ab1d025d1d162919e9df3e6ac96",
+    "finalComparison": {
+      "id": "F01",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 4,
+    "observation": {
+      "id": "F01",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F01-empty.pdf"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.208Z"
+    },
+    "observationSha256": "fcac9b5789e2f58085280e42d651fcebd4d673781ad0b98ad701586bfadc5066",
+    "finalComparison": {
+      "id": "F01",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 5,
+    "observation": {
+      "id": "F02",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F02-letter.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "ASCII text\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.215Z"
+    },
+    "observationSha256": "8ce2a7b0aafd18c1dd73366efad2b3338419afc33e11bb6180b8dc125f453a16",
+    "finalComparison": {
+      "id": "F02",
+      "view": "brief-human",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 6,
+    "observation": {
+      "id": "F02",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F02-letter.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.221Z"
+    },
+    "observationSha256": "88a4b0affba0bb720a3ec8035a2cfb9bbdc602e16eed96b7718742aa95bf3417",
+    "finalComparison": {
+      "id": "F02",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 7,
+    "observation": {
+      "id": "F02",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F02-letter.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.227Z"
+    },
+    "observationSha256": "d777c983354188f04aac22b3b94619de725491799ac90464d7119b2d59a60b1e",
+    "finalComparison": {
+      "id": "F02",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 8,
+    "observation": {
+      "id": "F02",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F02-letter.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.233Z"
+    },
+    "observationSha256": "1ce4a0b5d978cce373badca5a71775d6f010416276207c2fc17cfe3bd9b160f6",
+    "finalComparison": {
+      "id": "F02",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 9,
+    "observation": {
+      "id": "F03",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F03-unicode.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Unicode text, UTF-8 text\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.240Z"
+    },
+    "observationSha256": "e6c8fe96f942e473dd11fba1cbd36ee2dbbee9f089631ba3eb6bad646ec3c34b",
+    "finalComparison": {
+      "id": "F03",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 10,
+    "observation": {
+      "id": "F03",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F03-unicode.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=utf-8\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.246Z"
+    },
+    "observationSha256": "bedfb8cafb061b026c4a80b2bbbf800dadff04fe40907a1a64beed9b532b65ea",
+    "finalComparison": {
+      "id": "F03",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 11,
+    "observation": {
+      "id": "F03",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F03-unicode.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.252Z"
+    },
+    "observationSha256": "161c9a1b528bcb5000981755cf7d2911c2fd43342afb6f659a30fb82b309c234",
+    "finalComparison": {
+      "id": "F03",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 12,
+    "observation": {
+      "id": "F03",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F03-unicode.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "utf-8\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.258Z"
+    },
+    "observationSha256": "de86370b2cac8f3d06c26efe433db082a6784ef34d8421ad0bf399b1b6aefcf2",
+    "finalComparison": {
+      "id": "F03",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 13,
+    "observation": {
+      "id": "F04",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F04-bom.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Unicode text, UTF-8 (with BOM) text\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.264Z"
+    },
+    "observationSha256": "943dce2161479c06ffa9657ec299f52c3b40d81dc3066a80d640fac3d8fff1fd",
+    "finalComparison": {
+      "id": "F04",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 14,
+    "observation": {
+      "id": "F04",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F04-bom.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=utf-8\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.270Z"
+    },
+    "observationSha256": "b41aee4e07d5115ec58c538c2828761ab140a53d0628566e5d5b2270eac71836",
+    "finalComparison": {
+      "id": "F04",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 15,
+    "observation": {
+      "id": "F04",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F04-bom.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.276Z"
+    },
+    "observationSha256": "62ea5584fade7c4190cbb681ebfda3146bef26701d3ed1f71f90effca6412842",
+    "finalComparison": {
+      "id": "F04",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 16,
+    "observation": {
+      "id": "F04",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F04-bom.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "utf-8\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.282Z"
+    },
+    "observationSha256": "8cdd762a4df90eab8a7fe599ed959bb5e2fbc6a63503e6dbfeca95c8d3a7dcb6",
+    "finalComparison": {
+      "id": "F04",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 17,
+    "observation": {
+      "id": "F05",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F05-wide.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Unicode text, UTF-16, little-endian text, with CRLF line terminators\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.288Z"
+    },
+    "observationSha256": "ebfae3c9793196fbdf0375cf08666365276c04dc6d2749d49caccac49251083d",
+    "finalComparison": {
+      "id": "F05",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 18,
+    "observation": {
+      "id": "F05",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F05-wide.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=utf-16le\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.294Z"
+    },
+    "observationSha256": "0fdef1afa4498095400bcc683f029bba3b18bdf4124a1d49ad741d5e36c053df",
+    "finalComparison": {
+      "id": "F05",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 19,
+    "observation": {
+      "id": "F05",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F05-wide.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.300Z"
+    },
+    "observationSha256": "210084a4beea0928e319353198c33deec4925e8d372a4ef4c0652b209d60eff0",
+    "finalComparison": {
+      "id": "F05",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 20,
+    "observation": {
+      "id": "F05",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F05-wide.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "utf-16le\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.305Z"
+    },
+    "observationSha256": "be2248712dcf1e038994547e5bdca9191b639e3cfba1278ee3e81e1499d8a3c2",
+    "finalComparison": {
+      "id": "F05",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 21,
+    "observation": {
+      "id": "F06",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F06-binary.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "data\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.310Z"
+    },
+    "observationSha256": "bb7d184edd99b96cfec39682a621dd6044bff5abe039fcb41018461cf0c8b340",
+    "finalComparison": {
+      "id": "F06",
+      "view": "brief-human",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 22,
+    "observation": {
+      "id": "F06",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F06-binary.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/octet-stream; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.313Z"
+    },
+    "observationSha256": "1b28aa3c6e6a322fbd49c05b5bf00a5beb8f763dd46bed7c3a85a7bfce929b5e",
+    "finalComparison": {
+      "id": "F06",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 23,
+    "observation": {
+      "id": "F06",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F06-binary.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/octet-stream\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.317Z"
+    },
+    "observationSha256": "5893c86178cbc463324a896a9059c502466e2d8b2050267b0dd6e4e84d747cd8",
+    "finalComparison": {
+      "id": "F06",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 24,
+    "observation": {
+      "id": "F06",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F06-binary.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.320Z"
+    },
+    "observationSha256": "5c3f85f9618fb89999bb4291d97fe029bb4e39084ed98af767070b5248fca049",
+    "finalComparison": {
+      "id": "F06",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 25,
+    "observation": {
+      "id": "F07",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F07-partial.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Non-ISO extended-ASCII text, with no line terminators\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.327Z"
+    },
+    "observationSha256": "6f0c97f3e934cf6c685ebee694d9cde666f5b64ff2a5018d02730976c362b62e",
+    "finalComparison": {
+      "id": "F07",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 26,
+    "observation": {
+      "id": "F07",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F07-partial.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=unknown-8bit\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.333Z"
+    },
+    "observationSha256": "857f351e01ddce115be5a864608da8f351a808b5c05ac6a0c9355f4a3cb69d25",
+    "finalComparison": {
+      "id": "F07",
+      "view": "brief-mime",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 27,
+    "observation": {
+      "id": "F07",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F07-partial.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.338Z"
+    },
+    "observationSha256": "7a723c7399a501bc08ac23e6b495b65b90b62314ccfbd108cd3ed185f7367334",
+    "finalComparison": {
+      "id": "F07",
+      "view": "brief-mime-type",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 28,
+    "observation": {
+      "id": "F07",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F07-partial.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "unknown-8bit\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.344Z"
+    },
+    "observationSha256": "050f3ff65156d2308e942118950f63c7870ca8b028e8eae8051ff01f869be1a2",
+    "finalComparison": {
+      "id": "F07",
+      "view": "brief-mime-encoding",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 29,
+    "observation": {
+      "id": "F08",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F08-controls.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "ASCII text, with CRLF, LF line terminators\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.350Z"
+    },
+    "observationSha256": "bad2d9ae3a59e782806a16a8bdca81d5918268184627d5b84d60db219da699e7",
+    "finalComparison": {
+      "id": "F08",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 30,
+    "observation": {
+      "id": "F08",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F08-controls.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.357Z"
+    },
+    "observationSha256": "c0302c4a0cc20a41b200732cb4217230b06d5acc23c957818db16a53fbc002c9",
+    "finalComparison": {
+      "id": "F08",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 31,
+    "observation": {
+      "id": "F08",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F08-controls.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.363Z"
+    },
+    "observationSha256": "7653569679ec1c38fd1dcfc579b6e90ffc8bdb6ec5934716924ad6458a483e5c",
+    "finalComparison": {
+      "id": "F08",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 32,
+    "observation": {
+      "id": "F08",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F08-controls.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.369Z"
+    },
+    "observationSha256": "d09b5132592cf04cbcd2c361eeed267e3485b221ddf368e64bb4f251b5370219",
+    "finalComparison": {
+      "id": "F08",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 33,
+    "observation": {
+      "id": "F09",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F09-picture.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "PNG image data, 1 x 1, 8-bit/color RGBA, non-interlaced\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.373Z"
+    },
+    "observationSha256": "41611fdee45634cbc040e1ca700d2c2dea99fb1fa5672fc0ead489b6f165cb04",
+    "finalComparison": {
+      "id": "F09",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 34,
+    "observation": {
+      "id": "F09",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F09-picture.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/png; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.376Z"
+    },
+    "observationSha256": "9a3910f7f57e75a0d779c38e92bbd15577f022faee3e4e17e0dc21fcc1d10ee3",
+    "finalComparison": {
+      "id": "F09",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 35,
+    "observation": {
+      "id": "F09",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F09-picture.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/png\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.379Z"
+    },
+    "observationSha256": "f9575bdca5e43555636ac7f1f01fac6efc2ab732a2a1c25db51c4d56f22006ac",
+    "finalComparison": {
+      "id": "F09",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 36,
+    "observation": {
+      "id": "F09",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F09-picture.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.383Z"
+    },
+    "observationSha256": "8aed78339280760aa2a9277121892a563ec1ddd4aea9f7ec238680a4cc1c469f",
+    "finalComparison": {
+      "id": "F09",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 37,
+    "observation": {
+      "id": "F10",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F10-photo.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 1x1, components 3\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.386Z"
+    },
+    "observationSha256": "18cecc466d10bcefa99c32e90edc871e19ee6f0d130878e9d3e243e6debafe22",
+    "finalComparison": {
+      "id": "F10",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 38,
+    "observation": {
+      "id": "F10",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F10-photo.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/jpeg; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.389Z"
+    },
+    "observationSha256": "639de94e9c5ebb9832b2ee853908321cdacdb98fd34b08320072f6983f9893c3",
+    "finalComparison": {
+      "id": "F10",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 39,
+    "observation": {
+      "id": "F10",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F10-photo.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/jpeg\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.393Z"
+    },
+    "observationSha256": "0324b467ac948052005f1cb9abc292215ed585dd1087afe8ef72079038f00221",
+    "finalComparison": {
+      "id": "F10",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 40,
+    "observation": {
+      "id": "F10",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F10-photo.dat"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.396Z"
+    },
+    "observationSha256": "13ea0aa3fe81ae0ce0baa4b6cbdd6d49162be66d4d9b414efb94ab271f4d381e",
+    "finalComparison": {
+      "id": "F10",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 41,
+    "observation": {
+      "id": "F11",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F11-animation.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "GIF image data, version 89a, 1 x 1\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.400Z"
+    },
+    "observationSha256": "9b58953f06e018b4c5e5d9f6e9b589bd8cdd4be7daa078e90b40f862081a1466",
+    "finalComparison": {
+      "id": "F11",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 42,
+    "observation": {
+      "id": "F11",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F11-animation.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/gif; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.403Z"
+    },
+    "observationSha256": "b1694f2309fb1b5f2528a5e6e6d10a3d1b377f8f406e6cb3b1039b0607310bfb",
+    "finalComparison": {
+      "id": "F11",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 43,
+    "observation": {
+      "id": "F11",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F11-animation.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/gif\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.407Z"
+    },
+    "observationSha256": "ff424c8ee3606ee1de0ae40e2fb835fb94d410d05ec85bcf3c334f6a16ab7f81",
+    "finalComparison": {
+      "id": "F11",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 44,
+    "observation": {
+      "id": "F11",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F11-animation.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.410Z"
+    },
+    "observationSha256": "4abea0b7c606ffb5854c0e1ce2fcf4334338917bf4474862b7582ca2b4d395fc",
+    "finalComparison": {
+      "id": "F11",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 45,
+    "observation": {
+      "id": "F12",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F12-report.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "PDF document, version 1.7\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.414Z"
+    },
+    "observationSha256": "33940794d6b7d410e01443d9476f08738a75392a3a4896355fa430c9423c18c9",
+    "finalComparison": {
+      "id": "F12",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 46,
+    "observation": {
+      "id": "F12",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F12-report.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/pdf; charset=us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.417Z"
+    },
+    "observationSha256": "da13cd2841c5ba04611b8053578861a520bea4000f5fd50b764bbccffd6385b8",
+    "finalComparison": {
+      "id": "F12",
+      "view": "brief-mime",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 47,
+    "observation": {
+      "id": "F12",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F12-report.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/pdf\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.420Z"
+    },
+    "observationSha256": "07f15db00ad95982d72da726218ba7023376f2652a58739c2b89c7295d21f32e",
+    "finalComparison": {
+      "id": "F12",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 48,
+    "observation": {
+      "id": "F12",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F12-report.raw"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.424Z"
+    },
+    "observationSha256": "e1675a71bc73840a1c39c2e2a3570a8585b2de7d648e722d88bef626dfee42d9",
+    "finalComparison": {
+      "id": "F12",
+      "view": "brief-mime-encoding",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 49,
+    "observation": {
+      "id": "F13",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F13-archive.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Zip archive data, at least v2.0 to extract, compression method=store\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.428Z"
+    },
+    "observationSha256": "8b55806d0f109acf86c377d9bdca7b002e3b204d12c29f545bb8692d81f89bb5",
+    "finalComparison": {
+      "id": "F13",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 50,
+    "observation": {
+      "id": "F13",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F13-archive.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/zip; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.431Z"
+    },
+    "observationSha256": "77db7cd7613bccc5b7e992eeff745b4e25fcabb693a25aea5d2db2e73ccaf08b",
+    "finalComparison": {
+      "id": "F13",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 51,
+    "observation": {
+      "id": "F13",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F13-archive.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/zip\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.435Z"
+    },
+    "observationSha256": "6545c1e8a5f7ac802ab32c999456467d284fd8d37606fd10fa50023432280771",
+    "finalComparison": {
+      "id": "F13",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 52,
+    "observation": {
+      "id": "F13",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F13-archive.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.438Z"
+    },
+    "observationSha256": "67e05acf18725f5cde5a74edb2fd4b7f3dc0e477a2e24549499aa6f88d568a37",
+    "finalComparison": {
+      "id": "F13",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 53,
+    "observation": {
+      "id": "F14",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F14-compressed.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "gzip compressed data, original size modulo 2^32 4105\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.442Z"
+    },
+    "observationSha256": "1d711871fad988418abb8f3f7fbc35d0517077639910da129a9a79420edc5e0f",
+    "finalComparison": {
+      "id": "F14",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 54,
+    "observation": {
+      "id": "F14",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F14-compressed.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/gzip; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.447Z"
+    },
+    "observationSha256": "3e907d272660a39404bf14fab16e410609cc44188f8a8e44bd86e3db97d58593",
+    "finalComparison": {
+      "id": "F14",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 55,
+    "observation": {
+      "id": "F14",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F14-compressed.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/gzip\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.451Z"
+    },
+    "observationSha256": "6483f684836157fafd1a7a676ec2b49f2b32237f70f1caf2a233053d37a5131d",
+    "finalComparison": {
+      "id": "F14",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 56,
+    "observation": {
+      "id": "F14",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F14-compressed.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.455Z"
+    },
+    "observationSha256": "ff22f1cd673a954d234c8de2cdf233ef6a0ee54be086f5ee5234f4a795eeb2b5",
+    "finalComparison": {
+      "id": "F14",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 57,
+    "observation": {
+      "id": "F15",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F15-program.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "ELF 64-bit LSB executable, x86-64, version 1 (SYSV)\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.459Z"
+    },
+    "observationSha256": "84ffd3a6942bdcf414f499c3f3fe4572520602cbaafe4c000bc8a51dd261d1be",
+    "finalComparison": {
+      "id": "F15",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 58,
+    "observation": {
+      "id": "F15",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F15-program.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/x-executable; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.462Z"
+    },
+    "observationSha256": "11304d726d4a0079d55a15c20ffa727a3c64ace36f71d72f66a8595d40cc9a88",
+    "finalComparison": {
+      "id": "F15",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 59,
+    "observation": {
+      "id": "F15",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F15-program.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/x-executable\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.466Z"
+    },
+    "observationSha256": "e0ad10dcc3111d158571a4d1e816720608a184854301de52ac3aa268b1eca66f",
+    "finalComparison": {
+      "id": "F15",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 60,
+    "observation": {
+      "id": "F15",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F15-program.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.469Z"
+    },
+    "observationSha256": "2324cac3a7725166f8bee5cd4d28c35c652aeb4b338415d2fa91b6c6170492db",
+    "finalComparison": {
+      "id": "F15",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 61,
+    "observation": {
+      "id": "F16",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F16-catalog.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "SQLite 3.x database, last written using SQLite version 3041000, page size 512, file counter 1, database pages 1, cookie 0, schema 4, UTF-8, version-valid-for 1\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.475Z"
+    },
+    "observationSha256": "49cdb587c4b10ba0a94616592e99b8cdd0e7204b7d10965b94b5d9286284dfbb",
+    "finalComparison": {
+      "id": "F16",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 62,
+    "observation": {
+      "id": "F16",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F16-catalog.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/vnd.sqlite3; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.481Z"
+    },
+    "observationSha256": "1f3b71ae4aef9b628b572b5464a50d405435c29dda65b7cbd767116b0b5acbf6",
+    "finalComparison": {
+      "id": "F16",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 63,
+    "observation": {
+      "id": "F16",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F16-catalog.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/vnd.sqlite3\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.486Z"
+    },
+    "observationSha256": "ed56d691994edb922af40f88589d57c16eadde6c4d13f25f6e882f3c111160de",
+    "finalComparison": {
+      "id": "F16",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 64,
+    "observation": {
+      "id": "F16",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F16-catalog.bin"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.490Z"
+    },
+    "observationSha256": "49af80bf66aa53e829fea769f25cb0ed3526c78e1abae54144ef74598c06cf93",
+    "finalComparison": {
+      "id": "F16",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 65,
+    "observation": {
+      "id": "F17",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F17-settings.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "JSON data\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.495Z"
+    },
+    "observationSha256": "0cdc93536aaae3080b5535a3570029a41e04c251099191e614cfef0af3991bb0",
+    "finalComparison": {
+      "id": "F17",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 66,
+    "observation": {
+      "id": "F17",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F17-settings.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/json; charset=us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.499Z"
+    },
+    "observationSha256": "ba01b1302fe841b3dcc0e0e9c1cc7ed2da58bb2548da02c1e105d28a26553dea",
+    "finalComparison": {
+      "id": "F17",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 67,
+    "observation": {
+      "id": "F17",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F17-settings.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/json\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.503Z"
+    },
+    "observationSha256": "0b937631e89f8ecb215dc2444db6ae9816f7ffdc69886fcc5ebf38229146650e",
+    "finalComparison": {
+      "id": "F17",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 68,
+    "observation": {
+      "id": "F17",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F17-settings.data"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "us-ascii\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.506Z"
+    },
+    "observationSha256": "904f98373eeac00567c86e4f13a71d8ad5166966f22410c385abaf2875459995",
+    "finalComparison": {
+      "id": "F17",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 69,
+    "observation": {
+      "id": "F18",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F18-cut.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Non-ISO extended-ASCII text, with CRLF line terminators\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.514Z"
+    },
+    "observationSha256": "daee427ddfa6b5d59c37e8bab58cb1e7c30873fc8dc876b2993ef0db8175584a",
+    "finalComparison": {
+      "id": "F18",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 70,
+    "observation": {
+      "id": "F18",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F18-cut.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=unknown-8bit\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.521Z"
+    },
+    "observationSha256": "1b4d22e9bd58f5a885b3dcf50554b54a7adeb7e4972fb34dac88cdf7313d6126",
+    "finalComparison": {
+      "id": "F18",
+      "view": "brief-mime",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 71,
+    "observation": {
+      "id": "F18",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F18-cut.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.529Z"
+    },
+    "observationSha256": "115d9856de1bec0ecb65c29120ff7811cd8f2728fe0ec26f682ed46d308a68b1",
+    "finalComparison": {
+      "id": "F18",
+      "view": "brief-mime-type",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 72,
+    "observation": {
+      "id": "F18",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F18-cut.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "unknown-8bit\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.536Z"
+    },
+    "observationSha256": "8dcb6d6161b005ccc8f0b85295ed26328c8df80aa11a53e84126c96aa8b9e15f",
+    "finalComparison": {
+      "id": "F18",
+      "view": "brief-mime-encoding",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 73,
+    "observation": {
+      "id": "F19",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F19-length.jpg"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length -1\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.540Z"
+    },
+    "observationSha256": "290e6cbf1c679af8dd3d50d99b9e7d46e172197f39053d1fb7fe91dcc66d27c7",
+    "finalComparison": {
+      "id": "F19",
+      "view": "brief-human",
+      "nativeExact": false,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 74,
+    "observation": {
+      "id": "F19",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F19-length.jpg"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/jpeg; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.545Z"
+    },
+    "observationSha256": "d490a77bead5f62ae65bcbfc96bdcbacbfbf0454ee8033ea152efca8f29dc0da",
+    "finalComparison": {
+      "id": "F19",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 75,
+    "observation": {
+      "id": "F19",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F19-length.jpg"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/jpeg\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.549Z"
+    },
+    "observationSha256": "6f92bdade3c53b1eec1b63eff111cd0129dfadb340dd13a3e086aee556b31221",
+    "finalComparison": {
+      "id": "F19",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 76,
+    "observation": {
+      "id": "F19",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F19-length.jpg"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.553Z"
+    },
+    "observationSha256": "4bfe50c8f114a13f5edcad84cd4574ee2955c1dbe1f0108a80ec87329df07a39",
+    "finalComparison": {
+      "id": "F19",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 77,
+    "observation": {
+      "id": "F20",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "F20-shifted.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "data\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.557Z"
+    },
+    "observationSha256": "a2555010f62c4874c41305d8ae18ead8183b1f5faa0a7dce4cbdd89c4c266983",
+    "finalComparison": {
+      "id": "F20",
+      "view": "brief-human",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "human-semantic-required-exact-characterization-only"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 78,
+    "observation": {
+      "id": "F20",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F20-shifted.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/octet-stream; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.562Z"
+    },
+    "observationSha256": "dcce08a30011d603e56e01b54d75a4eb23e14d6158c5e0f8c1c2daac63ddfa34",
+    "finalComparison": {
+      "id": "F20",
+      "view": "brief-mime",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 79,
+    "observation": {
+      "id": "F20",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "F20-shifted.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "application/octet-stream\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.567Z"
+    },
+    "observationSha256": "0a4f84cccc1744d9627ec3fd9a5fc134bedcf22cd0a37b715dca70418dbb2dd6",
+    "finalComparison": {
+      "id": "F20",
+      "view": "brief-mime-type",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 80,
+    "observation": {
+      "id": "F20",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "F20-shifted.png"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.571Z"
+    },
+    "observationSha256": "a43a2ed3644b1dcea704fd12e5fc3d780a4b4a80acc61e63f1944cad8cb41e61",
+    "finalComparison": {
+      "id": "F20",
+      "view": "brief-mime-encoding",
+      "nativeExact": true,
+      "semanticAccepted": true,
+      "lane": "native-exact-machine"
+    },
+    "status": "REUSED_FROZEN_ORACLE_COMPARED_TO_FRESH_CONTENT_VIEW"
+  },
+  {
+    "referenceIndex": 81,
+    "observation": {
+      "id": "F21",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "directory"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "directory\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.577Z"
+    },
+    "observationSha256": "d94e7b96c3825fe1e07d1c8330fc46201d8497256e7a995bf0dee789bc37d5fc",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 82,
+    "observation": {
+      "id": "F21",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "directory"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/directory; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.580Z"
+    },
+    "observationSha256": "3652512122ecc0e08d2698b5225a88bf0a69904c876909b49e4599846da8f47d",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 83,
+    "observation": {
+      "id": "F21",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "directory"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/directory\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.584Z"
+    },
+    "observationSha256": "c771454c1d60ea279475e8a35e04efc39bdfd613f5e6054bf0ac30f59a47c89f",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 84,
+    "observation": {
+      "id": "F21",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "directory"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.587Z"
+    },
+    "observationSha256": "51ade3f3d768aed1a9a5d1df65ff18fc611a1e6f66074e5ae2f3f3783258fd18",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 85,
+    "observation": {
+      "id": "F22",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-h",
+        "-b",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "symbolic link to F09-picture.txt\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.592Z"
+    },
+    "observationSha256": "f901d75d0d3abac50782398df1a745f54347bd14fdb22c5aa0f3eb6e9b0790ed",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 86,
+    "observation": {
+      "id": "F22",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-h",
+        "-b",
+        "--mime",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/symlink; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.596Z"
+    },
+    "observationSha256": "e4ebc5058cf68aee50498e3cfbeae7b3ec32c9890808cd0d4d5d902077a54ef3",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 87,
+    "observation": {
+      "id": "F22",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-h",
+        "-b",
+        "--mime-type",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/symlink\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.600Z"
+    },
+    "observationSha256": "88bf04cc898c50ba8819f95b17241ed95dcc8b4673e626c812ed84ad702e2ef0",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 88,
+    "observation": {
+      "id": "F22",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-h",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.604Z"
+    },
+    "observationSha256": "dda95767adbc870742e354ec336f86e9e600509175c1ba656bf7ea7d34ed50d7",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 89,
+    "observation": {
+      "id": "F23",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "PNG image data, 1 x 1, 8-bit/color RGBA, non-interlaced\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.607Z"
+    },
+    "observationSha256": "a617ac2a201855d098b3802fed7d8be75455773fd0d3a4f851b394dbaa4c76bc",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 90,
+    "observation": {
+      "id": "F23",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/png; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.612Z"
+    },
+    "observationSha256": "1a22b25045e8a3adc21f2f0d58fc477501da695b04ad6feb7a69fdc8f5ed3745",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 91,
+    "observation": {
+      "id": "F23",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime-type",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/png\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.617Z"
+    },
+    "observationSha256": "652bbaf99e577e752c52c29a676ff51e7dca45b5f5b06fa4ef9da7c429fa0533",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 92,
+    "observation": {
+      "id": "F23",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "link"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.621Z"
+    },
+    "observationSha256": "22309a2bc1d094d1348d3aeb2804c0486395a587c8ccc07c5bad20e413ee2346",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 93,
+    "observation": {
+      "id": "F24",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--",
+        "dangling"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "broken symbolic link to missing\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.624Z"
+    },
+    "observationSha256": "da9fcea2e333ac203fa90564b5f6ef8d3ebaeb616f8614b941897ce793a88352",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 94,
+    "observation": {
+      "id": "F24",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime",
+        "--",
+        "dangling"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/symlink\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.628Z"
+    },
+    "observationSha256": "67424ec6397b1ac9726ea231c30b0dda920078dbf3099f724fb50787fc17495e",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 95,
+    "observation": {
+      "id": "F24",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime-type",
+        "--",
+        "dangling"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/symlink\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.631Z"
+    },
+    "observationSha256": "f86bf754fe8201e1a7f4c453422e57f1855c9634f1343a24b03d02efc096162e",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 96,
+    "observation": {
+      "id": "F24",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "dangling"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "ERROR: (null)\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.634Z"
+    },
+    "observationSha256": "8a671a9ebce1a0ca8476aca84fbfdc708739beb061affa0cc4e59436dc9ad8b7",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 97,
+    "observation": {
+      "id": "F25",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--",
+        "cycle-a"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "broken symbolic link to cycle-b\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.638Z"
+    },
+    "observationSha256": "81c58f76d73b0bda5276a6f66bf29463527a6876ac7ba7bd9d335b17e3e88921",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 98,
+    "observation": {
+      "id": "F25",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime",
+        "--",
+        "cycle-a"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/symlink\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.642Z"
+    },
+    "observationSha256": "b7e463b07776c807aafd9e7c657482f4842f798aca832e000301a7a2ffe97263",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 99,
+    "observation": {
+      "id": "F25",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime-type",
+        "--",
+        "cycle-a"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "inode/symlink\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.646Z"
+    },
+    "observationSha256": "e5e49f11a05a96888c9d82b560e3b135737de36dad345f5b2f22efdec1c09ed3",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 100,
+    "observation": {
+      "id": "F25",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-L",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "cycle-a"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "ERROR: (null)\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.650Z"
+    },
+    "observationSha256": "4781a89212949e2e10e04dde7253a2878d86ca8a1a65ee55d5a6ed8deb76837e",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 101,
+    "observation": {
+      "id": "F36",
+      "view": "brief-human",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--",
+        "denied"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "cannot open: Permission denied\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.654Z"
+    },
+    "observationSha256": "413be548babfa3e0da4a5dfe9b4ba6a3c9f7dba624202d2d22454cb44978bdca",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 102,
+    "observation": {
+      "id": "F36",
+      "view": "brief-mime",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "denied"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "cannot open: Permission denied\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.656Z"
+    },
+    "observationSha256": "88fb0041732f045d7208f83230915ecd855f53b89842645826275263bb4203b2",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 103,
+    "observation": {
+      "id": "F36",
+      "view": "brief-mime-type",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-type",
+        "--",
+        "denied"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "cannot open: Permission denied\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.660Z"
+    },
+    "observationSha256": "ca7a1449140f15c10b8038d47598cb0821c6136beb7fb1b2e2bec2012f15584a",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 104,
+    "observation": {
+      "id": "F36",
+      "view": "brief-mime-encoding",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime-encoding",
+        "--",
+        "denied"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "cannot open: Permission denied\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.663Z"
+    },
+    "observationSha256": "833956ee89e75a968316f6c12c51d13a29028c91e6f6f4e4b5a1aeffb0a4dfd9",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 105,
+    "observation": {
+      "id": "F36",
+      "view": "denied-then-readable",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "--mime",
+        "--",
+        "denied",
+        "F09-picture.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "denied:          cannot open: Permission denied\nF09-picture.txt: image/png; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.666Z"
+    },
+    "observationSha256": "93822baa76d67a4621cd0c59d59e4bd25dd4ef41818d5633fcf7a0e12a55fee8",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 106,
+    "observation": {
+      "id": "F36",
+      "view": "missing-then-readable",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "--mime",
+        "--",
+        "missing",
+        "F09-picture.txt"
+      ],
+      "stdinBytes": null,
+      "stdinSha256": null,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "missing:         cannot open `missing' (No such file or directory)\nF09-picture.txt: image/png; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.670Z"
+    },
+    "observationSha256": "7a52a1f85651250beeb85139bb8d2289fbb77efda08c1c326b7e659571ce140b",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 107,
+    "observation": {
+      "id": "F38",
+      "view": "native-byte-stdin",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "-"
+      ],
+      "stdinBytes": 70,
+      "stdinSha256": "c764e18e52e0452bff7f084e04326af8f57205a3c1d3975af5541866029c6c94",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "image/png; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.673Z"
+    },
+    "observationSha256": "85e20afe4af562d959b25532a583912faebb2406e6f84b8705d3963e54ba1f76",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 108,
+    "observation": {
+      "id": "F39",
+      "view": "native-multiinputs",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "--mime",
+        "--",
+        "F02-letter.png",
+        "-",
+        "F01-empty.pdf"
+      ],
+      "stdinBytes": 70,
+      "stdinSha256": "c764e18e52e0452bff7f084e04326af8f57205a3c1d3975af5541866029c6c94",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "F02-letter.png: text/plain; charset=us-ascii\n/dev/stdin:              image/png; charset=binary\nF01-empty.pdf:  inode/x-empty; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.679Z"
+    },
+    "observationSha256": "b1975d881af94fdd12d3fbd6defcd0f1b61e4981462add63a4abb888397cf945",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  },
+  {
+    "referenceIndex": 109,
+    "observation": {
+      "id": "F39",
+      "view": "native-brief-multiinputs",
+      "executable": "/usr/bin/file",
+      "argv": [
+        "-m",
+        "/usr/share/file/magic.mgc",
+        "-P",
+        "bytes=65536",
+        "-b",
+        "--mime",
+        "--",
+        "F02-letter.png",
+        "-",
+        "F01-empty.pdf"
+      ],
+      "stdinBytes": 70,
+      "stdinSha256": "c764e18e52e0452bff7f084e04326af8f57205a3c1d3975af5541866029c6c94",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "text/plain; charset=us-ascii\nimage/png; charset=binary\ninode/x-empty; charset=binary\n",
+      "stderr": "",
+      "observedAt": "2026-08-27T08:05:40.686Z"
+    },
+    "observationSha256": "279e65945dbecce46c945a27684c2e758742102272a3df56ae766f98d15f0091",
+    "finalComparison": null,
+    "status": "REFERENCE_RETAINED_NOT_COMPARED_NOT_A_PASS"
+  }
+]

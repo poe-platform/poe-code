@@ -1,0 +1,8 @@
+{
+  "finishedAt": "2026-08-27T18:16:28.492Z",
+  "head": "1c793b934dcd06aa42e0df24a7228b395178cf3d",
+  "changed": [],
+  "addedFiles": [],
+  "liveChanged": [],
+  "scope": "all copied input paths plus new non-node_modules runtime files; empty directories and installed tooling excluded"
+}

@@ -1,0 +1,35 @@
+{
+  "authority": "ROOT",
+  "purpose": "MEASURE_HISTORICAL",
+  "bindingSha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e",
+  "candidateCommit": "e33974b8c643077453227a9679d8ceca8367998c",
+  "executionAuthorized": true,
+  "timingAuthorized": false,
+  "qualificationAccepted": true,
+  "qualificationScope": "COMMITTED_FROZEN_COMPARISON_ONLY",
+  "qualificationAcceptedMeaning": "Latest explicit ROOT comparison authorization only; never release or whole-gate approval.",
+  "qualifications": {
+    "scope": "COMMITTED_FROZEN_COMPARISON_ONLY",
+    "qualificationAcceptedMeaning": "Latest explicit ROOT comparison authorization only; never release or whole-gate approval.",
+    "releaseQualified": false,
+    "globalGreen": false,
+    "wholeGateApproval": false,
+    "rootWholeGateCleanupPrerequisite": false,
+    "envSplitS": "PARTIAL",
+    "shebang": "UNSUPPORTED",
+    "independentFixtureValidity": "UNRESOLVED",
+    "independentFreezeCheck": "PENDING; this leaf stops for independent verification",
+    "priorIndependentPackedReviewClaim": false,
+    "rootAnnouncementRequiredBeforeProductImports": true,
+    "timingAuthorized": false,
+    "nativeRecaptureAuthorized": false
+  },
+  "status": "PROPOSED_ROOT_COORDINATION_RECEIPT_FOR_HASH_ANNOUNCEMENT; not permission for this leaf to import engines",
+  "exactSourceSha256": "903784b4a5b1123d285e81fff65883b44d486759fb5ce3f4d28c602ed66736cf",
+  "exactPackageSha256": "bc4f0e01d9daba5dc7c99a7d66615e52808a83a162140d59e88544c7c71fbd51",
+  "requiredProfiles": [
+    "original",
+    "aligned",
+    "breadth"
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "schema": "K08_INDEPENDENT_PREEXEC_V2_RECEIPT",
+  "decision": "ACCEPT",
+  "scope": "SOURCE_PURE_ONLY_PENDING_ROOT_ACTUAL_GO",
+  "utc": "2026-08-29T15:29:31.092Z",
+  "harnessSource": "611f96affffcf33577091847cbfb8202a92f41d1",
+  "candidateSeal": {
+    "bytes": 199449,
+    "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49"
+  },
+  "productSource": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "archive": {
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "presealCommit": "88974fb160c68832736f8ec5322600fd7ebe2aad",
+  "presealSha256": "39c367845241d03bfc8ccb07241b8618891d04b4842315b8f5791e38f83607dc",
+  "reportSha256": "e2306be3cd254619d43d6e757dc4e6070b662c165486f242dfaacc4e17a9012b",
+  "authorPure": {
+    "passed": 16,
+    "total": 16,
+    "qualification": "Exact original controls snapshot; final literal delta source and independent N06 DATA"
+  },
+  "independentPure": {
+    "passed": 8,
+    "total": 8
+  },
+  "execution": {
+    "rows": [
+      {
+        "id": "author16",
+        "pid": 97743,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "failed": false,
+        "status": 0,
+        "signal": null,
+        "counts": {
+          "stdout": 861,
+          "stderr": 173
+        }
+      },
+      {
+        "id": "independent8",
+        "pid": 97745,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "failed": false,
+        "status": 0,
+        "signal": null,
+        "counts": {
+          "stdout": 597,
+          "stderr": 0
+        }
+      }
+    ],
+    "allBytes": 1631,
+    "postguards": 53,
+    "knownOs": 3,
+    "peak": 2,
+    "knownOutstanding": 0,
+    "actualProductCalls": 0
+  },
+  "originalPostguards": {
+    "utc": "2026-08-29T15:27:30.831Z",
+    "originalBindingPostguards": 58,
+    "files": 70,
+    "logicalBytes": 488332,
+    "measure": "owned namespace file-byte snapshot; not host RSS or global census",
+    "futureCaptureEmpty": true
+  },
+  "rawCaptures": [
+    {
+      "path": "locator.stdout",
+      "bytes": 7320,
+      "sha256": "b89b8d9afcf30e78698a5d26b56b280689a499f6ded907d2fc817fad4e22a640"
+    },
+    {
+      "path": "locator.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN.jsonl",
+      "bytes": 488,
+      "sha256": "1438216949a5ecd697b9776066b2b68b39a1649da7925c1efc2c86bfc721f6da"
+    },
+    {
+      "path": "author16.stdout",
+      "bytes": 861,
+      "sha256": "bdcd402cddb293b9bea9431b9f5fe62093e74577362b20994c53073854da48f8"
+    },
+    {
+      "path": "author16.stderr",
+      "bytes": 173,
+      "sha256": "a951df7eda05e92ea8e080ce97ae457726d107913e642c0b51a529ea3eb4a094"
+    },
+    {
+      "path": "independent8.stdout",
+      "bytes": 597,
+      "sha256": "4076b7502cbc1e04abc1e49a7dbd10524fb1fe2bd9b64c166f97c76d60ea3f3a"
+    },
+    {
+      "path": "independent8.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runner.stdout",
+      "bytes": 85,
+      "sha256": "d4d83bd08f3ca014f3ab720e37988608f1151cd6512aa712d46e8f4c46cd1373"
+    },
+    {
+      "path": "runner.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "postguard.stdout",
+      "bytes": 203,
+      "sha256": "ba49e4677b7e316ec88b78b6c7388d9b56840c4c3052fb3cffff7b3dcdcf174b"
+    },
+    {
+      "path": "postguard.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "knownReviewRoles": {
+    "alreadyCompletedConservative": 29,
+    "reservedPublication": 7,
+    "maximumWithPublication": 36,
+    "authorized": 40,
+    "peakConservative": 2,
+    "authorizedPeak": 3,
+    "notGlobalCensus": true,
+    "helpers": 2,
+    "harmlessLifecycleFixtures": 0,
+    "toolStartupAndDevelopmentPatchRolesIncluded": true
+  },
+  "future": {
+    "knownOsStarts": 86,
+    "runtimeStarts": 79,
+    "administration": 7,
+    "peak": 3,
+    "children": 77,
+    "primaryCalls": 69,
+    "mutantShellCalls": 2,
+    "helperBaselineBatches": 3,
+    "mutantHelperBatches": 1,
+    "bindingRefusals": 2,
+    "deadlineMs": 1500000,
+    "finalizationReserveMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "caseMs": 30000,
+    "workerPermission": 0,
+    "caseSubprocessPermission": 0,
+    "asyncLoaders": 0,
+    "actualGo": false
+  },
+  "limitations": [
+    "No actual target/helper load, case, mutant, restore, lifecycle-drain or native proof",
+    "No post-mutant restore execution in declared77-child recipe",
+    "Final runtime grant/review hashes and timestamps absent",
+    "External administration must fit same inclusive25min; not a fresh window",
+    "Historical B35 51/54+24/24 and 2MiB publication STOP unchanged",
+    "Inline metadata SyntaxError retained; no test rerun"
+  ]
+}

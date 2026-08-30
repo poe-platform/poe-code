@@ -1,0 +1,11 @@
+{
+  "archiveBinding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+    "size": 908381,
+    "mode": 420,
+    "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+  },
+  "compressedMaximum": 1048576,
+  "decodedMaximum": 8388608,
+  "phase": "before bounded read/first inflate"
+}

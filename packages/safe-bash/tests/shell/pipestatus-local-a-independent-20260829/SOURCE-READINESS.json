@@ -1,0 +1,23 @@
+{
+  "verdict": "HOLD",
+  "acceptedSourceUpdate": false,
+  "compositionManifestModified": false,
+  "existingCandidate": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json",
+    "sha256": "ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd",
+    "sourceCount": 323,
+    "runtimeSha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+  },
+  "reviewedRuntime": {
+    "commit": "ec74e14df6bb7caf6b1be59fd44b027d7240101e",
+    "blob": "393a5735313da7b4c6fe10ff24da3521d21da003",
+    "sha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670"
+  },
+  "foreignFeaturePreservation": "Author base exactly equals prior 323-input candidate runtime; 3 author SOURCE checks pass; new delta limited to local option/indexed branch",
+  "requiredCorrection": [
+    "Own saved preparation, operation creation and hold acquisition within a common staged cleanup boundary",
+    "Attempt every acquired cleanup even if an earlier cleanup rejects",
+    "Keep raw first reason separate from secondary cleanup failures"
+  ],
+  "noBuildOrFinalFreeze": true
+}

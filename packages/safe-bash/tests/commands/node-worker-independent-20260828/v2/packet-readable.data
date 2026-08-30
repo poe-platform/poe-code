@@ -1,0 +1,2152 @@
+{
+  "CACHE.json": {
+    "schema": "WRQ-cache-primitive-facade-proposal-v2",
+    "status": "Required guest ownership route; no qualified scaffold supplied",
+    "sourceFacts": [
+      {
+        "binding": "S2/src/interp/host-bridge.ts:116",
+        "fact": "deepCopyFromSandbox arguments precedes Reflect.apply; callback cannot inspect original guest descriptors."
+      },
+      {
+        "binding": "S2/src/interp/host-bridge.ts:459",
+        "fact": "copyHostResultToSandbox starts a fresh WeakMap per return; host object reuse is not guest identity."
+      },
+      {
+        "binding": "S8/src/modules/registry.ts:77",
+        "fact": "Import wrapped-export cache does not provide invocation CJS/JSON require identity."
+      }
+    ],
+    "candidateRoute": [
+      {
+        "step": 1,
+        "action": "Provider preflights entire user source against the selected closed grammar, all allowed intrinsic/member access and reserved scaffold identifiers, then supplies one bounded combined trusted-interpreted scaffold+user input to one public run with one budget. No native eval/Function, second run, private engine import, fabricated interpreter brands or new exports."
+      },
+      {
+        "step": 2,
+        "action": "Construct fs/path/process module records once inside that interpreted invocation; retain in private lexical roots. Their interpreted functions close over ordinary non-async injected primitive callbacks, never expose those callbacks on returned records. Return cached guest record directly from interpreted require, not via host require. Freeze module methods/record structure while explicitly retaining modeled process argv/env mutation locally."
+      },
+      {
+        "step": 3,
+        "action": "No user identifier can name raw transport/root/cache variables; no global object, reflection escape, eval, Function, prototype/constructor access, unlisted syntax or closure introspection. A parser-approved closure is only a candidate: prove raw names cannot be reached through aliases, computed members, return values or error paths. If not proved, refuse provider qualification, not merely trust a naming convention."
+      },
+      {
+        "step": 4,
+        "action": "Primitive facade checks exact arity/type and UTF8 bounds in guest before invoking ordinary callback. The callback independently checks copied primitives and parent validates finite transport. Synchronous callback blocks on parent-owned response/cleanup and returns genuine text/undefined or a reconstructed local error, never Promise. Async callback is not a shortcut."
+      },
+      {
+        "step": 5,
+        "action": "Every require consumes parent OPEN authorization admission. authorizeModule returns void; authorizeJson returns void plus authoritative cacheKey metadata. On miss, readText-json reauthorizes and returns full text plus the key bound to that read. Worker hidden ordinary callback may return a fresh finite {namespace,path,text} record of bounded owned primitives for this JSON-internal route; it is not a cached guest object or a Promise. Interpreted facade rechecks key, parses guest-side and installs only successful values. Public sync textfs still returns string/undefined. A copied transient envelope never establishes cache identity."
+      }
+    ],
+    "signatures": {
+      "immediatelySpecifyablePrimitiveOnly": [
+        "readFileSync(pathStringOrZero,'utf8') -> string",
+        "writeFileSync(pathString,textString) -> undefined",
+        "writeFileSync(pathString,textString,'utf8') -> undefined",
+        "require(specifierString) -> guest-cached module/JSON value"
+      ],
+      "qualificationRequiredNotDeleted": [
+        "readFileSync(pathStringOrZero,{encoding:'utf8'})",
+        "readFileSync(pathString,{encoding:'utf8',flag:'r'})",
+        "writeFileSync(pathString,textString,options), exact subset encoding:'utf8',flag:'w'|'wx', including {}"
+      ],
+      "options": "No null/present undefined/accessors/extras/symbols/coercion or arbitrary proxy assumption. Validate original guest own-data descriptors before copying; ordinary bridge alone cannot do this. Qualify legitimate interpreted descriptor/ownership hooks or exact whole-source/value construction restrictions proving original forms. No invented positional wx overload or CLI flag. Required wx workflow remains blocked without this proof.",
+      "syncWrite": "w actual create/truncate; wx actual exclusive VFS creation or typed ENOTSUP before mutation, never check-then-write. A returned undefined is the specified successful guest value, not a permitted JSON wire value.",
+      "jsonIntrinsic": "JSON.parse/stringify own-data and mutable graph semantics, including inert __proto__/constructor keys and rejection of callable toJSON/getters/cycles per retained NP1 subset, need guest-intrinsic qualification. Passing a graph to a regular host callback cannot silently supply pre-copy validation."
+    },
+    "cache": {
+      "moduleKeys": [
+        "fs",
+        "path",
+        "process"
+      ],
+      "aliases": [
+        [
+          "fs",
+          "node:fs"
+        ],
+        [
+          "path",
+          "node:path"
+        ],
+        [
+          "process",
+          "node:process"
+        ]
+      ],
+      "maxFixedRecords": 4,
+      "selectedRecords": 3,
+      "process": "Synthetic argv/env/cwd/execPath/fd records only, sourced from explicit invocation data, never native process. No process.exit; exitCode is not a selected lifetime/status mechanism. No ambient env/native stdout.",
+      "jsonKey": "Invocation-owned actual VFS namespace binding plus canonical virtual JSON filename rooted at fixed entry directory (inline/stdin cwd). Parent resolution must preserve actual mount/alias precedence and granted namespace authority. Do not manufacture storage identity from a client/session token; lexical normalization alone is not symlink confinement. The private response carries {namespace,path}; namespace handle is an invocation cache-routing label truthfully tied to the actual namespace, NOT identityScope/device/inode or a guarantee of disjoint storage. Alias conflicts must be preserved; reject unknown binding rather than invent it.",
+      "authorizationAtHit": "Reauthorize every require, including builtin aliases and JSON hit, through OPEN parent gate. JSON hit requires jsonModules AND dataRead and original namespace binding still valid; unknown/changed authority refuses. No reread on hit, no new graph, no bypass using cached path.",
+      "identity": "Repeated canonical JSON requires return same guest object/array reference; mutate through any alias and all observe change. Primitive JSON values stay primitives. Failed parse/read/auth does not install; successful file overwrite does not invalidate existing cached object. Unproven symlink/resource equivalence is not declared an alias.",
+      "ledger": "32 JSON roots/input1MiB cumulative,4 fixed module roots; keys, retained source strings and command-owned copies precharged per CAPS. Mutation uses same invocation engine accounting with no budget reset or eviction credit. Input byte cap does not bound mutated guest graph.",
+      "retirement": "No guest value travels over port/SAB/host-return as cache transport. Do not release roots against ACK or a declared return; actual Worker exit retires guest roots, parent records/resources close independently."
+    },
+    "blockers": [
+      {
+        "id": "K1",
+        "required": "Frozen provider-owned interpreted scaffold and legitimate guest value/descriptor validation route for required options-record, JSON and raw-callback hiding; actual source/arity/intrinsic proof and later behavior witnesses.",
+        "current": "NOT established by pinned ordinary bridge. Primitive-only specification does not complete required useful wx/JSON workflow or whole NP1."
+      },
+      {
+        "id": "K2",
+        "required": "Exact bridge result/error handoff evidence before cutoff and guest module/JSON identity/mutation/auth-hit witnesses.",
+        "current": "Host reuse and final ACK are insufficient; no public hook availability or engine modification is claimed."
+      }
+    ],
+    "qualificationNotSandbox": "Own-data checks apply to trusted sender/receiver finite records across realms, not prototype identity. Ordinary guest grammar exclusions need actual enforcement; host proxies/providers remain trusted authority, not a hostile-JavaScript sandbox."
+  },
+  "CAPS.json": {
+    "schema": "WRQ-caps-v2",
+    "status": "D3 maxima retained; reservation mechanics proposed/unqualified",
+    "limits": {
+      "workersPerInvocation": 1,
+      "sharedArrayBuffers": 1,
+      "sharedArrayBufferBytes": 197056,
+      "globalHeaderBytes": 64,
+      "slots": 3,
+      "slotHeaderBytes": 128,
+      "slotPayloadBytes": 65536,
+      "syncSlot": 0,
+      "asyncSlots": [],
+      "operationSequenceMax": 128,
+      "framesAllDirectionsMax": 4096,
+      "eventEpochMax": 8192,
+      "metadataFrameBytesMax": 8192,
+      "pathUtf8BytesMax": 1024,
+      "errorMessageUtf8BytesMax": 1024,
+      "operationTextBytesMax": 1048576,
+      "readBytesCumulativeMax": 4194304,
+      "writeBytesCumulativeMax": 4194304,
+      "outputBytesCumulativeMax": 1048576,
+      "commandOwnedLiveReservedBytesMax": 16777216,
+      "sourceUtf8BytesMax": 262144,
+      "contextEncodedBytesMax": 65536,
+      "jsonCacheEntriesMax": 32,
+      "jsonCacheInputUtf8BytesMax": 1048576,
+      "fixedBuiltinModulesMax": 4,
+      "workerResourceLimits": {
+        "maxOldGenerationSizeMb": 32,
+        "maxYoungGenerationSizeMb": 8,
+        "codeRangeSizeMb": 8,
+        "stackSizeMb": 4
+      },
+      "executionAdmissionMs": 5000,
+      "cooperativeStopGraceMsMax": 0,
+      "engineStepsMax": 100000,
+      "guestCallDepthMax": 128,
+      "parserTokensMax": 65536,
+      "parserDepthMax": 128,
+      "activeSlots": 1
+    },
+    "limitsNote": "Three physical slots remain. Active slot0 only; zero grace supersedes historical maximum100ms without increasing any cap. V8 limits are independent knobs, not an additive heap/RSS/whole-guest bound.",
+    "accounting": {
+      "units": "Bytes actual allocated backing capacity, strings2*UTF16 code units, named metadata256 bytes per record plus separately charged strings/arrays. Logical accounting is not measured VM object overhead.",
+      "arithmetic": "Checked safe-integer add/multiply before allocation, UTF8 encode, decode, clone, retained copy or resource admission. Failure closes private admission without that allocation/effect; earlier effects survive. Never copy then test length.",
+      "utf8": "Scan bounded primitive UTF16 without allocating encoded output; paired surrogates4 bytes, lone surrogate replacement3, other scalar UTF8 width. Check source<=256KiB, path<=1024, message<=1024, per-operation input and re-encoded result<=1MiB, metadata escaped UTF8<=8192. Wire metadata must be canonical valid UTF8; data/source decoding uses replacement and the inherited BOM policy. No JS string.length-as-byte bound.",
+      "ownership": "Count simultaneous original+encoded+staged+decoded+return copies; a view never releases its backing store. Reserve worst-case at header, not each chunk only. Transfer reservation on genuine move of ownership; otherwise retain both. Release only after verified last reference/resource closure. ByteSource retained fragments copied before next/finalize; transient awaited sink writes do not require an extra copy by default.",
+      "privateCounters": "Transport frames, control records, operation sequences, parent ordinals, source bytes, raw-read bytes, staged-write bytes, output bytes, cache inputs and live reservations are distinct. No public shared-Budget API or per-RPC command tick. Existing Shell dispatch/sinks/shared limits apply unchanged; smaller inherited limits win.",
+      "cumulative": "Reserve full write/output request length before encoding/staging; count once, no refund/replenishment from ACK/cutoff/retry. Raw read bytes count on acquisition before decode, including discarded overlimit outcome; never retain an overlimit producer chunk. Source is independently capped; no source/data replay or grant mixing. Result re-encoding/transport counted as copies, not duplicate physical write bytes.",
+      "capacity": "Maxima are ceilings, not a guarantee that all maximum-sized live copies fit simultaneously. Reject before allocation when the16MiB ledger is insufficient; disclose usable guest source remainder after trusted scaffold. No silent overflow, post-allocation checks or runtime compatibility claim."
+    },
+    "reservations": [
+      {
+        "id": "owner-controls",
+        "precharge": "Before enrollment-owned resource acquisition: one256-byte owner,128*256-byte operation/outcome records, fixed per-slot bookkeeping,2*512-byte frame bitsets; retained error/path strings separate. Source/startup has a separately precharged ownership record and source counter, not an extra guest-operation ordinal; all startup acquisitions still require the owner OPEN check and explicit grants.",
+        "release": "Owner/control records only after exit and parent cleanup; seq records retained for handoff/outcome even after slot FREE."
+      },
+      {
+        "id": "SAB",
+        "precharge": 197056,
+        "release": "Only confirmed exit and no parent publisher/reader; never reuse session."
+      },
+      {
+        "id": "full-frame-scratch",
+        "precharge": "Four fixed65536-byte scratch backing stores: Worker send/receive and parent send/receive. Inactive slots get no extra scratch. This262144 is additional to SAB, not a replacement for its charge.",
+        "release": "Each endpoint only after no in-flight access/clone. Subarray copy retaining whole buffer still costs65536."
+      },
+      {
+        "id": "metadata-controls",
+        "precharge": "Before serialization, bound canonical encoded metadata<=8192 and decoded strings<=16384 per live copy plus256 per record; charge sender and receiver at overlap. Each control<=256 encoded bytes, plus decoded copy/record; at most one outstanding doorbell per active slot. Reserve READY+terminal separately.",
+        "release": "Doorbell after observed ownership CAS; metadata only after all consumers done. No unbounded port queue."
+      },
+      {
+        "id": "source-context",
+        "precharge": "Bound complete guest+trusted interpreted input to256KiB UTF8, plus each raw staging buffer, decoded UTF16<=524288 and simultaneous Worker/engine return/injection copies. Context encoded<=65536 with decoded/copy bound per actual finite schema. Trusted scaffold counts in combined input cap; guest usable remainder must be disclosed.",
+        "release": "Byte input after complete owned handoff; strings/journal references only after their owner closes. Parser/AST allocation is separately qualified, not silently released."
+      },
+      {
+        "id": "write-output",
+        "precharge": "Before bridge admission require primitive string bounds; before encode reserve original retained string2*units, full encoded bytes N, parent staging N, each simultaneous transfer copy and frame scratch. N<=1048576; stage ALL N before effect. Output includes LF/console formatting bytes and awaits sink publication.",
+        "release": "No early ACK-based release of source/staging; release after producer no longer references and actual operation+cleanup closed. Partial staging at cutoff is discarded without VFS/sink call."
+      },
+      {
+        "id": "read-result",
+        "precharge": "At header reserve full raw result allowance<=1048576, decoded UTF16 worst-case2*1048576, encoded result<=1048576, Worker assembly<=1048576, Worker decoded string<=2*1048576 and all bridge/journal simultaneous copies. Sum against current live16MiB before acquisition, refuse if insufficient.",
+        "release": "Borrowed fragment copied before advance; assembled parent result after last transport read/retirement; Worker decoded/return references after qualified handoff and engine owner retirement. UTF8 replacement expansion exceeding response cap is a profile failure, not truncation."
+      },
+      {
+        "id": "cache",
+        "precharge": "Up to32 JSON entries, cumulative successful input<=1048576 raw UTF8; each256-byte root record, canonical key string, retained decoded text/copy charged while live. Up to4 fixed module root records; only fs/path/process selected. Cache hits consume authorization seq/ordinal but no extra JSON read or fresh cached graph.",
+        "release": "No invalidation on VFS write and no mid-invocation root eviction to replenish quota. Release cache roots only after actual Worker exit. Mutated guest graph remains engine-accounted/qualified, not estimated from original JSON text."
+      },
+      {
+        "id": "errors-capture",
+        "precharge": "One bounded outcome record per seq, each permitted field charged before encoding/copy; each finite error<=8192 metadata, message/path/dest<=1024 UTF8. Trusted Worker native stdout/stderr separately captured with fixed pre-reserved capacities, aggregate within existing1MiB output cap as a conservative private charge, not ambient guest output authority.",
+        "release": "Known undelivered failures survive ACK/FREE. Raw parent reason stored by reference outside DTO; identity never copied/serialized. Capture closes after actual exit; all cleanup errors retained."
+      }
+    ],
+    "boundaries": [
+      {
+        "id": "B-memory",
+        "limit": "16MiB bounds named logical command-owned reservations ONLY. Preexisting caller/error graphs, engine object overhead, native allocations/external memory, parser graphs, host journals and bridge clone machinery are not proven bounded by this ledger.",
+        "required": "Seal actual overlap/lifetime accounting and enforceable precharge hooks or truthful admitted bounds for command-owned bridge/journal/clone allocations; otherwise provider qualification blocked. Never charge an unknown allocation as0."
+      },
+      {
+        "id": "B-producer",
+        "limit": "A producer may allocate/yield an oversized chunk before consumer rejection. Consumers can bound retained copies, not arbitrary producer allocation.",
+        "required": "Qualification must bind cooperative producer chunk/ownership and cleanup limits plus sink behavior. No universal real-adapter exclusion or acceptance claimed."
+      },
+      {
+        "id": "B-launch",
+        "limit": "Worker old32/young8/code8/stack4MiB are not wholeguest8MiB/RSS or OS isolation.",
+        "required": "Pin static parent/Worker entry and entire legitimate public dependency closure, launch flags and native environment, tools and parent containment. Explicit eval:false, no loaders/preloads/guest NODE_OPTIONS, no child Worker; bounded separate trusted-runtime stdio. Parent launch overrides and host uncooperative behavior remain unqualified. Worker launch explicitly uses execArgv:[] and native env:{}; modeled guest env stays injected data, not native launch configuration. Do not read ambient credentials/environment data or forward guest loader/V8 settings. Clearing Worker options does not qualify parent V8 launch overrides."
+      }
+    ],
+    "deadline": {
+      "start": "5000ms from command ownership enrollment, includes startup/source preparation",
+      "normalCutoff": "Close admission timer; do not abort preadmitted VFS work or reset counters. Zero deliberate postcutoff guest service.",
+      "failureOrCancellation": "Latch stop/wake and REQUEST termination immediately, zero grace; cancel cooperative parent work with authenticated provenance; await actual exit and registered cleanup.",
+      "drain": "No5s completion bound, fresh grace or100ms clean receipt. Caller cancellation remains active until public settlement; unknown exit/unclosed parent work remains owned/unsettled."
+    }
+  },
+  "DISPOSITIONS.json": {
+    "schema": "Poincare-dispositions-v2",
+    "reviewCommits": [
+      "fa456e5a00cad84a64078ea416526688d89ea37a",
+      "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3"
+    ],
+    "status": "Author design response, not independent signoff; no execution",
+    "findings": [
+      {
+        "id": "F1",
+        "disposition": "Corrected design with explicit K1/K2 HOLD",
+        "action": "CACHE replaces host-return reuse with interpreted guest roots; primitive pre-bridge signatures are separated from required options/deep own-data hooks. No claim that post-copy descriptor validation sees originals.",
+        "remaining": "Exact scaffold/value ownership/hiding/JSON and wx proof; no privatebrand/export invention."
+      },
+      {
+        "id": "F2",
+        "disposition": "Versioned finite protocol proposed",
+        "action": "RPC adds WORKER_OWNED CAS state, exact credit/upload-data ACK versus response ACK semantics, full-payload staging, atomic global frame allocation and per-slot predecessors. FREE requires final ACK+actual cleanup.",
+        "remaining": "Whole finite model before any Worker and actual publication/progress/reuse witnesses; no claim old RPC already contained this."
+      },
+      {
+        "id": "F3",
+        "disposition": "ROOT-ratified admission/cutoff made concrete",
+        "action": "Cleanup-before-acquisition and separate transport/effect records; complete payload+grant+OPEN transaction before effect; parent ordinal owns chronology. Zero-byte truncation also requires admission. Cutoff discards partial staging without hidden writes.",
+        "remaining": "Actual parent gate/ownership/source-bound integration and schedules; no rollback of already admitted work."
+      },
+      {
+        "id": "F4",
+        "disposition": "Independent control lane specified",
+        "action": "Permanent stop/wake only, no stop payload overwrite; zero-grace termination request; reason presence/value/provenance retained outside wire; slot0 not blocked on async ACKs (inactive slots refuse).",
+        "remaining": "Actual before-wait/upload race and reason-priority/public-barrier observations; no cross-thread chronology/termination-bound invention."
+      },
+      {
+        "id": "F5",
+        "disposition": "ROOT outcome/drain selection recorded; handoff blocker retained",
+        "action": "ACK/FREE not delivery; require source-bound legitimate post-bridge evidence before cutoff or retain rejection. Print publication precedes terminal. Normal admission timer closes without cancelling parent drain; caller cancellation stays live.",
+        "remaining": "K2 witness, including caught bridge-copy/error conversion failure, is not supplied by terminal watermark alone. Exact actual-Shell mapping pending; no error/status masking."
+      },
+      {
+        "id": "F6",
+        "disposition": "Named reservations and exclusions specified",
+        "action": "CAPS retains limits and distinguishes full frame, duplicate string/body, source/control/operation counters, parent records, JSON roots and trusted-runtime capture. No allocation before precharge.",
+        "remaining": "K3 enforceable bridge/journal/producer bounds and K4 sealed actual launch/load closure; engine graphs/host memory/RSS never inferred bounded from text or ledger."
+      },
+      {
+        "id": "F7",
+        "disposition": "Pinned complete typed vocabulary and schemas proposed",
+        "action": "ERRORS enumerates all28 actual ErrnoCode values including ELOOP/ENAMETOOLONG/ECANCELED and available name/code/message/errno/path/syscall/dest; optional absence is null wire sentinel only. Typed source authority differs from shape. Unknown/unavailable/overlimit metadata retains original parent failure.",
+        "remaining": "K2 actual guest field survival and truthful cross-realm adapter authority; no forged code, toFsError fallback or arbitrary host-error object delivery."
+      }
+    ],
+    "remainingQualification": [
+      {
+        "id": "K1",
+        "owner": "future optional provider",
+        "need": "Legitimate one-run interpreted scaffold, hidden raw callbacks, options original-descriptor route, exact grammar/intrinsics/JSON, wx and truthful namespace/cache identity."
+      },
+      {
+        "id": "K2",
+        "owner": "future provider and Shell integration owner",
+        "need": "Actual bridge result/error handoff and complete guest FS fields; original parent failure identity, cutoff and existing actual-Shell mapping/cleanup proof."
+      },
+      {
+        "id": "K3",
+        "owner": "future provider/adapter owners",
+        "need": "Enforceable precharge/overlap bounds for bridge/journal/producer/capture, cooperative parent ownership; not blanket native-memory/host sandbox promises."
+      },
+      {
+        "id": "K4",
+        "owner": "future integration owner then different reviewer",
+        "need": "Frozen static parent/Worker/scaffold/public engine/transitive tool/load/launch closure; finite state-model and exact per-identity observations before any separately authorized runtime experiment."
+      }
+    ],
+    "remainingRoot": "D1-D3 are resolved. ROOT still owns any later acceptance of proposed mechanics, assignment of legitimate qualifying provider/entries, independent review and explicit implementation/experiment authorization. No new scope/status/cap decision is silently substituted.",
+    "separateReview": "Raman repair code7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98/evidence7b269a291d9fdc76e0760d36446d937e54060757 is binding-note only. No repair source/evidence/harness inspected, rerun, modified or reviewed anew.",
+    "history": "NP1 and original matrices untouched/HOLD; F01-F07/privateABI eight planned,zero executed,separate,possibly unnecessary Worker path."
+  },
+  "ERRORS.json": {
+    "schema": "WRQ-errors-v2",
+    "status": "Complete pinned typed-code vocabulary; guest reconstruction and host mapping qualification pending",
+    "binding": {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "src/contracts/errors.ts",
+      "codes": 28,
+      "source": "Existing FsError/isFsError contract, not copied host shapes or toFsError fallback"
+    },
+    "fsCodes": [
+      "EACCES",
+      "EAGAIN",
+      "EBADF",
+      "EBUSY",
+      "ECANCELED",
+      "EEXIST",
+      "EFBIG",
+      "EINTR",
+      "EINVAL",
+      "EIO",
+      "EISDIR",
+      "ELOOP",
+      "EMFILE",
+      "ENAMETOOLONG",
+      "ENFILE",
+      "ENOENT",
+      "ENOMEM",
+      "ENOSPC",
+      "ENOSYS",
+      "ENOTDIR",
+      "ENOTEMPTY",
+      "ENOTSUP",
+      "EOPNOTSUPP",
+      "EPERM",
+      "EPIPE",
+      "EROFS",
+      "ETIMEDOUT",
+      "EXDEV"
+    ],
+    "FsErrorDTO": {
+      "requiredKeys": [
+        "name",
+        "code",
+        "message",
+        "errno",
+        "path",
+        "syscall",
+        "dest"
+      ],
+      "name": "FsError",
+      "code": "exact member of fsCodes",
+      "message": "actual authorized own string <=1024 UTF8 bytes",
+      "errno": "actual own finite safe integer; reject -0; no invented platform-independent mapping",
+      "path": "null if absent; otherwise actual authorized own virtual-path string <=1024 UTF8 bytes",
+      "syscall": "null if absent; otherwise actual own string <=1024 UTF8 bytes",
+      "dest": "null if absent; otherwise actual authorized own virtual-destination string <=1024 UTF8 bytes",
+      "wire": "Encoded together within8192 metadata bytes, including all escaping and envelope. Source absent optional property maps to null sentinel; receiver omits it. Present undefined/null/nonstring/accessor is not absent and fails profile extraction. No stack,cause,prototype,arbitrary properties or host object references."
+    },
+    "extraction": [
+      "Capture parent thrown value and actual route/provenance before inspecting error metadata. Root caller/control, sink and cleanup failures never become ordinary FS errors by matching code or reason equality. Preserve false/undefined/object identity in parent-owned records with explicit presence.",
+      "Recognize ordinary FS failure only on the enrolled FS operation route with legitimate contract authority: existing parent-local isFsError for actual FsError, or an explicitly trusted truthful adapter attestation for cross-realm typed errors. The latter is a qualification obligation, not a new brand/API. Generic {code:...}, Error.code or toFsError coercion cannot authenticate typed origin.",
+      "Extract own data descriptors only; do not call getters/coerce values. Exact finite wire schema is independent of realm prototype identity. Parent Error may possess stack/cause internally: never serialize them; retain original parent value. Check available own name/code/message/errno and optional path/syscall/dest against authorized bounds before metadata encoding.",
+      "All28 codes, including ECANCELED/ELOOP/ENAMETOOLONG, remain ordinary FS errors when actually typed and no authenticated cancellation provenance exists. EOPNOTSUPP retains its code and supplied errno even if the host constructor maps its numeric errno via ENOTSUP. No portable errno numbers are guessed.",
+      "Unknown code, missing/invalid required field, unsupported typed origin, overlimit/unauthorized metadata or arbitrary host throw: retain exact original as escaping parent failure and record private-profile classification. Do not synthesize ENOENT/EIO/denial, successful undefined or a forged code-bearing guest error. No arbitrary host-error object escape; no diagnostic if authority/bounds absent."
+    ],
+    "guestReconstruction": "For valid DTO construct a Worker-local ordinary error with own finite metadata, never parent identity; null sentinel omits optional field. Qualify actual bridge name/code/message/errno/path/syscall/dest preservation before promising corresponding guest fields. Pinned bridge selectively copies own typed metadata, but this is not a runtime field-completeness pass. If required name/field cannot survive, provider remains unqualified; do not silently delete it.",
+    "routes": [
+      {
+        "route": "facade arity/type/encoding or computed unsupported target",
+        "result": {
+          "name": "Error",
+          "code": "ERR_VNODE_UNSUPPORTED",
+          "message": "bounded authorized profile diagnostic"
+        },
+        "semantics": "Catchable guest refusal before that operation; earlier effects retained. Literal unsupported syntax/require and entry usage fail preflight/profile instead."
+      },
+      {
+        "route": "valid request without required grant",
+        "result": {
+          "name": "Error",
+          "code": "ERR_VNODE_DENIED",
+          "message": "bounded authorized grant diagnostic"
+        },
+        "semantics": "No FS/sink admission; ordinary guest denial, not fabricated EACCES/EROFS. Source grant refusal is terminal profile2 after cleanup."
+      },
+      {
+        "route": "real typed FS failure",
+        "result": "FsErrorDTO",
+        "semantics": "No successful prefix; actual partial write effects retained. Only qualified delivery before cutoff permits guest handling without automatic escaping parent failure."
+      },
+      {
+        "route": "wire protocol or private limit/deadline failure",
+        "result": "private-profile-failure",
+        "semantics": "Close admission, stop/wake and request termination; no new response service/effect. Raw classification separately retained; numeric2 only after actual exit/cleanup and only if no higher-priority actual failure."
+      },
+      {
+        "route": "guest evaluation failure",
+        "result": "guest-error",
+        "semantics": "Bounded diagnostic only with explicit stderr authority and budget; failed diagnostic is an actual sink failure, not masked by1."
+      },
+      {
+        "route": "parent caller/control/sink/cleanup/arbitrary host rejection",
+        "result": "actual parent presence/value/provenance plus retained secondary records, never wire DTO",
+        "semantics": "Preserve bound priority and existing Shell mapping after cleanup. No code-name/identity-equality inference or conversion to clean numeric2."
+      }
+    ],
+    "outcomes": {
+      "raw": "intentional-retirement|guest-error|private-profile-failure|control|escaping-parent-failure; unresolved ownership is pending, not a settled result",
+      "mapping": "0/1/2 respectively for first three only with confirmed Worker exit AND parent cleanup and no overriding actual failure. Unknown guest jobs remain unknown; known undelivered parent rejection prevents clean0.",
+      "priority": "src/contracts/command.md and live AGENTS: root caller > escaping execution/control > local cancellation; exact selected execution rejection unchanged. Cleanup-only single failure unchanged, multiple failures AggregateError as bound. Preserve all secondaries without mutating/replacing primary; no ordering invented among same-tier failures.",
+      "mappingGap": "Exact future provider-to-actual-Shell implementation/source/public-consumer witness is still required; this data creates no new Shell Budget, status-based provenance or public error API."
+    },
+    "realmRule": "Validate finite own data, exact keys/types/order, no holes/accessors/extras/coercion/prototype equality. Trusted local FsError origin recognition is not a cross-realm DTO validator. Host proxies cannot be safely assumed absent or introspection-free; admission requires trusted host contract, not sandbox claims."
+  },
+  "OBLIGATIONS.json": {
+    "schema": "WRQ-obligations-v2",
+    "classification": "Eight same-identity post-review/preimplementation obligations; no executable fixtures or execution grant",
+    "originalMatrix": {
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+      "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729",
+      "disposition": "Original bytes/inputs/instance ceilings/outcomes unchanged. v2 expectations are a separate version, not an original-matrix pass or silent replacement."
+    },
+    "rootMapping": {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/OPEN-OBLIGATIONS.json"
+    },
+    "counts": {
+      "identities": 8,
+      "plannedQualificationObligations": 8,
+      "executedQualificationObligations": 0,
+      "qualified": 0,
+      "newGuestInputs": 0,
+      "newExecutableDrivers": 0,
+      "newControls": 0,
+      "newWorkers": 0,
+      "newEngineEvaluations": 0,
+      "historicalPrivateAbiPlanned": 8,
+      "historicalPrivateAbiExecuted": 0
+    },
+    "common": "All sourceProof entries are source/data reasoning only. Every futureAction requires separately frozen provider/inputs/observations, independent review and explicit later ROOT authorization; no instance budget is granted here. Actual result/limit/effect observations cannot be replaced by self-reported labels.",
+    "obligations": [
+      {
+        "id": "WRQ01",
+        "rootId": "L01",
+        "topic": "Blocked sync text and useful entry workflows",
+        "sourceProof": "S2 ordinary callback is synchronous; RPC credit/data/result/ACK transitions specify parent-independent progress. Existing source preflight and explicit VFS grants are retained.",
+        "futureAction": "Hold authorized parent read one turn while Worker sync call waits, then deliver exact text; require original call order with no Promise value. Under this same identity bind .cjs JSON editing with w and wx, eval, primitive-p publication+LF before terminal, and stdin-source then fd0 EOF.",
+        "expected": "Actual bytes/effects and original try/statement ordering; wx exclusive or ENOTSUP before mutation; no source replay. Status0 only after valid entry terminal, confirmed exit and parent cleanup. Primitive output failure follows real sink route.",
+        "limits": "source256KiB; per-text1MiB; cumulative read/write4MiB each; output1MiB; no speculative write before full payload. This is not complete CLI/native parity.",
+        "hold": "K1 wx/options, intrinsic/grammar and hidden scaffold qualification absent. Original pureAdd contrast is historical, not a new control or pass."
+      },
+      {
+        "id": "WRQ02",
+        "rootId": "L02",
+        "topic": "Typed rejection, delivery and raw identity",
+        "sourceProof": "S2 copies thrown errors and creates fresh return maps; ERRORS covers all28 contract codes/fields. Final ACK is explicitly not delivery.",
+        "futureAction": "Delay an actual typed ENOENT into original sync catch; bind ELOOP/ENAMETOOLONG/ECANCELED field coverage as finite error-schema obligations, and a copy/handoff-failure schedule where ACK exists but delivery does not. Preserve historical guest object/host-undefined conversion discriminators.",
+        "expected": "Caught delivered typed FS error retains qualified name/code/message/errno/optional fields. Unknown/forged/malformed code object cannot become typed success/denial. Undelivered rejection remains exact parent failure, no clean0; original control/sink/cleanup values never cross by DTO.",
+        "limits": "1024-byte message/path/dest/syscall fields and8192-byte total metadata; overlimit retained parent failure, no truncation or invented errno.",
+        "hold": "K2 exact legitimate post-bridge witness and guest-field survival unproved. Source predicates are not dynamic passes or wholeNP1 thrown-value identity acceptance."
+      },
+      {
+        "id": "WRQ03",
+        "rootId": "L03",
+        "topic": "Guest cache roots, mutation and per-slot reuse",
+        "sourceProof": "S2 fresh map per host return and S8 import-cache distinction require guest-local roots. CACHE names one-run scaffold/root ownership and reauthorization.",
+        "futureAction": "Compare fs/node:fs and canonical JSON aliases inside guest; mutate cached JSON then require again, overwrite backing JSON and confirm retained cache value, deny subsequent authorization and require refusal. Hold per-operation cleanup after final ACK and attempt reuse/late callback (T1).",
+        "expected": "Actual guest reference identity and shared mutation, first successful JSON read only, no cached authority bypass. No FREE/reuse until real cleanup; late seq cannot publish into reused slot. No fabricated per-client namespace identity.",
+        "limits": "32 JSON entries/input1MiB,4 module roots maximum (3 selected),128 operation sequences; cache mutation does not reset engine budget; no graph-size inference.",
+        "hold": "K1 interpreted scaffold/intrinsic/hiding and namespace binding remain unqualified. Repeated hostObject return identity is deliberately not guaranteed."
+      },
+      {
+        "id": "WRQ04",
+        "rootId": "L04",
+        "topic": "Selected sync lifetime versus deferred async/Q",
+        "sourceProof": "D1 explicitly selects entry-return; public run settlement is not all-jobs receipt. Slots1/2 inactive, no async-fs or process.exit route.",
+        "futureAction": "Bind same-identity sync-first refusal expectations for fs/promises, fs.promises and modeled exit; where allowed grammar retains pending guest-only continuations, observe selected actual run settlement without claiming their completion. Keep T4/T5 as deferred async design warnings, not an async acceptance run.",
+        "expected": "Literal unsupported targets refuse at complete preflight; computed unsupported access refuses when called after prior effects. No async slot is serviced. On valid normal retirement, unknown abandoned guest work stays unknown; no all-job or natural-Node-exit claim.",
+        "limits": "One evaluator run/session;5000ms admission timer closes at normal cutoff; no fresh budget or postcutoff continuation service.",
+        "hold": "Original WRQ04 Q and L-guest-exit inputs remain unchanged/unrun/deferred, not modified to pass. No promise workflow qualification transfers to this slice."
+      },
+      {
+        "id": "WRQ05",
+        "rootId": "L05",
+        "topic": "Blocked cancellation without payload races",
+        "sourceProof": "Independent permanent stop/wake and parent provenance address F4; command contract binds caller/control priority and cleanup barrier.",
+        "futureAction": "Use the original three parent reason instances present-undefined, false and unique object while sync read is held; bind stop during upload ownership (T2) and early-notify/before-wait race. Observe termination request immediately without Worker JS listener.",
+        "expected": "Exact parent reason presence/value/reference and route survive; blocked wait wakes; gate never reopens even if guest catches converted error. No postcancel effects or payload overwrite; actual exit and parent cleanup observed separately.",
+        "limits": "Zero grace, no hard termination time; no epoch/frame wrap. Unknown exit or unclosed work means public ownership remains pending, never numeric clean failure.",
+        "hold": "No blocked Worker/cancellation schedule executed. A DTO reason or equal-valued rejection cannot establish provenance."
+      },
+      {
+        "id": "WRQ06",
+        "rootId": "L06",
+        "topic": "Exit, held cleanup and failed publication",
+        "sourceProof": "Parent cutoff/drain distinguishes registered ownership, actual exit and destination-specific output close. D2 rows only apply after both ownership boundaries.",
+        "futureAction": "Retain original X partial-effect/held-cleanup/closed-stdout schedule with primary sink and secondary cleanup failure; observe actual Worker exit before releasing parent cleanup (T6). Bind normal cutoff followed by caller cancellation during drain and T5 ACK-without-qualified-delivery.",
+        "expected": "No public resolve/reject before registered cleanup; X persists; closing stdout does not cancel sibling file/stderr. Primary remains unchanged and all secondary failures retained. No0/1/2 or signal/termination code masks actual sink/cleanup/control failure.",
+        "limits": "No5s/100ms cleanup completion bound, no new diagnostic privilege, no waiting for opaque host work disguised as tracked resource ownership.",
+        "hold": "Original async-origin input remains held; sync-first expectation is versioned, not proof of original async acceptance. Exact actual-Shell propagation still unqualified."
+      },
+      {
+        "id": "WRQ07",
+        "rootId": "L07",
+        "topic": "Finite protocol, complete payload and cutoff",
+        "sourceProof": "RPC specifies14 transition rows, ownership CAS, credit/data phases, allocated global frames versus per-slot predecessor and parent effect ordinals. SCHEDULES T1-T9 remain bound design inputs.",
+        "futureAction": "Before any Worker grant, separately bind a finite data model covering all allowed/forbidden state-phase edges, exact/zero/oversized chunks, final ACK+cleanup reuse, stale/duplicate/session errors, and cutoff before/after complete staging (T3). Preserve original six own-data admission inputs, T7/T8 descriptor caveat and T9 global-order versus per-slot reasoning.",
+        "expected": "No hidden partial write/empty truncation before actual effect admission; cutoff prevents late staging authorization. Valid cross-realm own-data accepted without prototype matching; holes/accessors/extras/unknown routes refused without coercion. Lower global frame in another slot is not an ordering violation in the abstract allocator; selected profile separately refuses all inactive-slot use.",
+        "limits": "197056 SAB;65536 payload;8192 metadata;128 sequences;4096 global frames;8192 wakes; parent max129 ordinals. Frame allocation does not assert observation order.",
+        "hold": "Finite machine is specification data, not an executed state-model check or revised broad cohort. Old six controls are not claimed run; no executable model supplied."
+      },
+      {
+        "id": "WRQ08",
+        "rootId": "L08",
+        "topic": "Resource ledger and closed trusted recipe",
+        "sourceProof": "Layout arithmetic and retained numeric caps are data-verifiable. CAPS explicitly accounts full-frame/double-buffer lifetimes and separates engine/producer/VM unknowns.",
+        "futureAction": "First authenticate new static parent/Worker/scaffold and complete public loader/tool closure with explicit launch/env/stdio, producer and memory enforcement contracts; only after separate ROOT approval may the original bounded resource-control obligation seek enforcement/actual-exit observations.",
+        "expected": "Precharges before each named allocation; no unlisted loads/worker/native guest capability. Distinguish actual heap-limit failure from bounded-loop completion (latter not enforcement pass), capture closes independently and unconfirmed owner remains pending.",
+        "limits": "16MiB named live reservations, fixed197056 SAB, V8 old32/young8/code8/stack4MiB,engine100000/depth128,parser65536/depth128,5s admission only; no RSS/wholeguest8MiB claim.",
+        "hold": "No Worker/heap/control/engine/tool execution, build or install. Prior tools/66 blobs/37 body hashes are evidence inputs, not complete Worker launch closure or provider acceptance."
+      }
+    ]
+  },
+  "RPC.json": {
+    "schema": "WRQ-RPC-proposal-v2",
+    "status": "design-only; D1-D3 selected; implementation/qualification HOLD",
+    "profile": "L-entry-return-sync-text",
+    "layout": {
+      "bytes": 197056,
+      "globalBytes": 64,
+      "globalInt32Words": [
+        "stop",
+        "wakeEpoch",
+        "session",
+        "version",
+        "frameAllocator",
+        "reservedZero0",
+        "reservedZero1",
+        "reservedZero2",
+        "reservedZero3",
+        "reservedZero4",
+        "reservedZero5",
+        "reservedZero6",
+        "reservedZero7",
+        "reservedZero8",
+        "reservedZero9",
+        "reservedZero10"
+      ],
+      "slotCount": 3,
+      "activeSlots": [
+        0
+      ],
+      "inactiveSlots": [
+        1,
+        2
+      ],
+      "slotHeaderBytes": 128,
+      "slotPayloadBytes": 65536,
+      "slotInt32Words": [
+        "state",
+        "seq",
+        "phase",
+        "frame",
+        "predecessor",
+        "payloadLength",
+        "totalBytes",
+        "resultTag",
+        "offset",
+        "reservedZero0",
+        "reservedZero1",
+        "reservedZero2",
+        "reservedZero3",
+        "reservedZero4",
+        "reservedZero5",
+        "reservedZero6",
+        "reservedZero7",
+        "reservedZero8",
+        "reservedZero9",
+        "reservedZero10",
+        "reservedZero11",
+        "reservedZero12",
+        "reservedZero13",
+        "reservedZero14",
+        "reservedZero15",
+        "reservedZero16",
+        "reservedZero17",
+        "reservedZero18",
+        "reservedZero19",
+        "reservedZero20",
+        "reservedZero21",
+        "reservedZero22"
+      ],
+      "version": 2,
+      "initialization": "Parent initializes once before Worker admission: stop/epoch/allocator=0, positive session, version2, slots FREE with other words/payload zero. Slots1/2 remain zero/inactive; any attempted use is protocol failure. No grow, transfer, additional SAB or guest reference.",
+      "session": "Parent-owned lifetime-unique positive signed32 session, refuse exhaustion; channel ownership authenticates authority, not number secrecy."
+    },
+    "states": {
+      "FREE": 0,
+      "WORKER_OWNED": 1,
+      "REQUEST": 2,
+      "PARENT_OWNED": 3,
+      "RESPONSE": 4,
+      "ACK": 5,
+      "RETIRED": 6
+    },
+    "phases": {
+      "NONE": 0,
+      "HEADER": 1,
+      "UPLOAD_CREDIT": 2,
+      "UPLOAD_DATA": 3,
+      "RESULT_META": 4,
+      "RESULT_DATA": 5,
+      "META_ACK": 6,
+      "DATA_ACK": 7,
+      "FINAL_ACK": 8
+    },
+    "resultTags": {
+      "NONE": 0,
+      "UPLOAD": 1,
+      "TEXT": 2,
+      "VOID": 3,
+      "FS_ERROR": 4,
+      "UNSUPPORTED": 5,
+      "DENIED": 6
+    },
+    "counters": {
+      "operationSequence": "Worker allocates1..128 once per header including denied calls/cache authorization/primitive print; no retry, queue overflow or wrap. No new seq until prior final ACK and FREE. Source acquisition is not a guest operation.",
+      "frame": "Both trusted peers use checked CAS on global frameAllocator to reserve1..4096 BEFORE frame encoding/copy. Reserved but unpublished frames burn capacity. Every REQUEST, RESPONSE or ACK is a frame, including empty credits/ACKs. No slot-state acquisition/FREE/RETIRE is a frame.",
+      "predecessor": "Each publication names exact last committed frame of that slot, including across reuse. Parent and Worker retain per-slot last state/phase/seq/frame plus bounded seen-frame bitsets. No repeated frame; no skipped per-slot predecessor. Global allocation order is NOT delivery order. No global largest-seen rejection across slots; inactive slots still refuse in this profile.",
+      "admissionOrdinal": "Parent-only1..129: at most128 admitted operations plus exactly one cutoff. Not a wire frame/sequence/wake counter. Denied/staged records consume seq but no effect ordinal.",
+      "wakeEpoch": "Parent-only checked increments1..8192 for response/FREE/stop notifications; no wrap. Reserve final emergency wake capacity while OPEN; reject further service before exhausting it. Permanent stop check prevents waiting at exhaustion.",
+      "control": "One unacknowledged Worker doorbell per slot, discharged by parent ownership CAS; at most4096 frame doorbells plus one READY and one terminal record (4098). Each encoded control <=256 bytes; control records carry no guest payload/raw reasons. Source/context bootstrap has its own reserved <=64KiB context and <=256KiB source, not a control bypass.",
+      "source": "One entry acquisition; <=256KiB UTF8. Source stream/fragments and their EOF are fully checked before guest run, with distinct sourceRead/stdinRead authority. No RPC grant turns source into data authority."
+    },
+    "validation": {
+      "ownData": "Trusted sender checks exact finite own data descriptors before serialization; receiver checks again after decoding. No prototype-identity gate, inherited fields, symbols, accessors, sparse sequences, extras, undefined or coercion. Canonical UTF8 JSON with exact schema key order, no whitespace/duplicate keys/noncanonical numeric spellings; binary chunks are owned bytes, not JSON arrays.",
+      "numbers": "Safe integer within field range; reject -0, NaN and infinities. Session1..2147483647, seq1..128, frame1..4096, predecessor0..4096, offset/total0..1048576, payloadLength0..65536.",
+      "headers": "Read header only after acquiring matching atomic state. Validate session/version/slot/reserved words, phase/tag, seq and predecessor before payload copy. Metadata <=8192 bytes; precharge fixed header/full frame/decode storage before reading. After cancel/exit do not inspect a peer-owned mutable payload.",
+      "invalid": "Any unexpected wire state/phase/tag/length/duplicate/stale/wrong-session/inactive slot closes admission as protocol failure and drains existing owners; do not attempt a corrective write or synthetic ACK. An inert old doorbell never grants authority."
+    },
+    "request": {
+      "keys": [
+        "v",
+        "session",
+        "slot",
+        "seq",
+        "op",
+        "authority",
+        "path",
+        "flag",
+        "totalBytes",
+        "moduleKey"
+      ],
+      "v": 2,
+      "slot": 0,
+      "ops": [
+        [
+          "readText",
+          "data|json",
+          "absolute virtual path",
+          "r",
+          null,
+          null
+        ],
+        [
+          "readText",
+          "stdin",
+          null,
+          "r",
+          null,
+          null
+        ],
+        [
+          "writeText",
+          "data",
+          "absolute virtual path",
+          "w|wx",
+          "exact UTF8 count",
+          null
+        ],
+        [
+          "writeOutput",
+          "stdout|stderr",
+          null,
+          null,
+          "exact UTF8 count",
+          null
+        ],
+        [
+          "authorizeJson",
+          "json",
+          "absolute canonical virtual path",
+          "r",
+          0,
+          null
+        ],
+        [
+          "authorizeModule",
+          "module",
+          null,
+          null,
+          0,
+          "fs|path|process"
+        ]
+      ],
+      "rules": "Path<=1024 UTF8 bytes, no NUL. Nonapplicable fields exactly null. Resolve namespace/path authority truthfully; lexical normalization is not confinement or symlink identity. JSON read/hit needs jsonModules AND dataRead. Module authorization validates fixed inventory only; write/read/output grants remain separate. Header-only requests have no upload."
+    },
+    "response": {
+      "metadataKeys": [
+        "kind",
+        "totalBytes",
+        "error",
+        "cacheKey"
+      ],
+      "variants": [
+        {
+          "kind": "text",
+          "totalBytes": "0..1048576 exact raw result UTF8 bytes",
+          "error": null
+        },
+        {
+          "kind": "void",
+          "totalBytes": 0,
+          "error": null
+        },
+        {
+          "kind": "fsError",
+          "totalBytes": 0,
+          "error": "ERRORS.json FsErrorDTO"
+        },
+        {
+          "kind": "unsupported",
+          "totalBytes": 0,
+          "error": "ERRORS.json unsupported DTO"
+        },
+        {
+          "kind": "denied",
+          "totalBytes": 0,
+          "error": "ERRORS.json denied DTO"
+        }
+      ],
+      "rule": "One terminal result only. Read consumes its full bounded source to EOF and flushes decoder before response metadata; failure sends no success prefix. Re-encoded replacement UTF8 response also <=1MiB, separately checked; raw cumulative read bytes are not replaced by encoded result length. Void only after actual write/output settlement. Parent operation cleanup may finish later. authorizeJson succeeds with void plus cacheKey; readText-json succeeds with text plus cacheKey established on that same operation. Guest hidden facade checks returned key on miss again before cache insertion; changed namespace authority refuses rather than installing under earlier key. Ordinary textfs never receives this private envelope.",
+      "cacheKey": "Exactly null except successful authorizeJson/readText-json: own-data {namespace,path}, namespace is a bounded parent-issued handle truthfully bound to the invocation actual VFS namespace, path the authorized canonical virtual filename<=1024 UTF8 bytes. Entire metadata including key<=8192. Handle is NOT FileStat.identityScope or a disjoint-storage assertion; different clients do not prove distinct namespaces."
+    },
+    "transitions": [
+      {
+        "from": "FREE",
+        "actor": "Worker",
+        "to": "WORKER_OWNED",
+        "action": "CAS FREE; allocate seq, precharge all request metadata/frame/write-string copies, then reserve frame; preserve previous committed frame. No concurrent publisher."
+      },
+      {
+        "from": "WORKER_OWNED",
+        "actor": "Worker",
+        "to": "REQUEST/HEADER",
+        "action": "Encode validated header only; publish fields then Atomics.store state REQUEST; send bounded doorbell. Header is not payload body or effect admission."
+      },
+      {
+        "from": "REQUEST/HEADER",
+        "actor": "parent",
+        "to": "PARENT_OWNED",
+        "action": "CAS before copying; validate and reserve complete staging/result allowance and cleanup record. Invalid semantic grant yields denied without effect; malformed wire stops. For zero-byte writes skip upload, but still validate exact source encoding and enroll effect before mutation."
+      },
+      {
+        "from": "PARENT_OWNED",
+        "actor": "parent",
+        "to": "RESPONSE/UPLOAD_CREDIT",
+        "action": "Only writes/output with remaining bytes. Reserve frame, empty payload, UPLOAD tag; offset equals bytes already copied, total equals header total. Implicit credit=min(65536,total-offset), always positive. Publish then notify independently of Worker callbacks."
+      },
+      {
+        "from": "RESPONSE/UPLOAD_CREDIT",
+        "actor": "Worker",
+        "to": "WORKER_OWNED",
+        "action": "CAS before checking credit, validate predecessor/seq/offset and empty payload. Precharged original primitive string and encoding/staging remain owned; no VFS effect."
+      },
+      {
+        "from": "WORKER_OWNED",
+        "actor": "Worker",
+        "to": "ACK/UPLOAD_DATA",
+        "action": "Reserve frame before encoding/copy. Fill exactly credited positive byte length, total/offset unchanged, UPLOAD tag; chunks may split UTF8 sequences. Publish ACK and doorbell. No zero nonterminal chunks, overlap, overshoot or concurrent payload writer."
+      },
+      {
+        "from": "ACK/UPLOAD_DATA",
+        "actor": "parent",
+        "to": "PARENT_OWNED",
+        "action": "CAS then copy into precharged parent staging before next credit. Validate chunk and cumulative exact length; on final byte validate full UTF8 encoding/source and all route/grant/limits, then synchronously OPEN-check/enroll effect with immutable bytes. Incomplete/invalid/cutoff staging never calls VFS, even for wx or empty truncation. Read/hit operations validate complete header before their admission."
+      },
+      {
+        "from": "PARENT_OWNED",
+        "actor": "parent",
+        "to": "RESPONSE/RESULT_META",
+        "action": "Only after full operation outcome or pre-effect semantic refusal. Validate/encode finite response in precharged <=8192 metadata; result total is separate from request upload total. Awaited sinks/stream completion are not inferred from transfer. Publish only if original ownership and OPEN gate still permit it."
+      },
+      {
+        "from": "RESPONSE/RESULT_META",
+        "actor": "Worker",
+        "to": "WORKER_OWNED",
+        "action": "CAS, precharge/result capacity already reserved, copy/validate full metadata. Zero text/void/error requires FINAL_ACK; positive text requires META_ACK."
+      },
+      {
+        "from": "WORKER_OWNED",
+        "actor": "Worker",
+        "to": "ACK/META_ACK",
+        "action": "Positive-text only, empty payload, result tag/total and offset0; reserve frame and publish. No upload bytes allowed in response ACKs."
+      },
+      {
+        "from": "ACK/META_ACK|ACK/DATA_ACK",
+        "actor": "parent",
+        "to": "PARENT_OWNED -> RESPONSE/RESULT_DATA",
+        "action": "CAS before validating ACK; copy next min(65536,remaining) positive response bytes, exact offset/total/tag and predecessor. No wait for guest microtask. Parent prebuffers bounded read result or independent producer completion; never holds a service lock across Worker ACK."
+      },
+      {
+        "from": "RESPONSE/RESULT_DATA",
+        "actor": "Worker",
+        "to": "WORKER_OWNED -> ACK/DATA_ACK|ACK/FINAL_ACK",
+        "action": "CAS then copy into precharged private assembly before ACK. Require positive exact expected length and full total before FINAL_ACK, else DATA_ACK. Reserve ACK frame; zero payload. Final decode/length/schema validation completes before FINAL_ACK; no bridge delivery assertion."
+      },
+      {
+        "from": "ACK/FINAL_ACK",
+        "actor": "parent",
+        "to": "PARENT_OWNED -> FREE",
+        "action": "CAS and validate empty ACK; FREE only after actual operation settlement AND cooperative per-operation cleanup. Maintain outcome/handoff record outside slot. Worker may now return copied primitive/throw reconstructed local FS error; callback return itself still crosses bridge. Cleanup failure closes gate instead of FREE."
+      },
+      {
+        "from": "any live state",
+        "actor": "parent",
+        "to": "logical CLOSED; then RETIRED only after exit",
+        "action": "Serialize cutoff; independent stop/wake when cancel/failure, never overwrite payload/state owned by Worker. Normal cutoff ceases service without aborting admitted VFS work. Confirm actual exit before transport retirement; await parent cleanup separately; no ACK required or invented, no session reuse."
+      }
+    ],
+    "wait": "Worker samples wakeEpoch, checks stop and exact expected state/seq/phase, then Atomics.wait on sampled epoch; recheck after every outcome/timeout. Parent notification is independent of blocked Worker listeners. Deadline remaining applies while OPEN; normal cutoff closes timer, not caller cancellation. Parent must never wait on an ACK to start/cancel other owned work; slots1/2 are refused, not serviced async. Worker rechecks permanent stop before payload encoding/copy, publication and return; a concurrent stop may race that local check, but parent CLOSED gate still forbids effects. Do not infer which cross-thread observation happened first. Cooperative parent operation/cleanup MUST NOT depend on guest progress, callback return or receiving a Worker ACK; otherwise this provider cannot qualify and ownership remains unsettled.",
+    "handoff": {
+      "facts": [
+        "parent outcome observed",
+        "final transport ACK",
+        "per-operation cleanup closed",
+        "bridge delivered",
+        "terminal observed",
+        "parent cutoff committed",
+        "Worker exit observed",
+        "parent cleanup closed"
+      ],
+      "separation": "Only first three permit slot FREE. They do not establish bridge delivered. Retain known rejection even after FREE in a bounded seq-indexed parent record.",
+      "candidate": "For sync slice only: a later genuine single-run normal settlement terminal, with lastSeq/finalFrame checked against every parent final ACK, could witness earlier ordinary callbacks unwound. Qualification MUST prove original result/error copy actually completed, including caught copy/conversion failures; terminal order alone is insufficient. No actual hook/receipt is supplied here.",
+      "blocker": "Without independently source-bound legitimate post-copy/error handoff evidence, delivered remains unknown and known rejection is retained as escaping undelivered failure, preventing clean0. Never mark from ACK, reason equality or an unauthenticated boolean. Async/explicit-exit inference is expressly invalid.",
+      "terminal": {
+        "keys": [
+          "v",
+          "session",
+          "kind",
+          "lastSeq",
+          "finalFrame"
+        ],
+        "kind": "entryReturned|guestFailure",
+        "lastSeq": "0..128",
+        "finalFrame": "0..4096",
+        "limit": 256,
+        "rule": "Trusted controller only; closes local guest gate after actual bound run settlement. Primitive print is a separately reserved controller output operation completed before terminal. Parent validates existing handoff evidence, then commits cutoff in one serialized turn; terminal message grants no delivery fact."
+      }
+    },
+    "reconciliation": "Parent admitted=settled+active; closed<=settled; keep exact output committed bytes and staged-discarded bytes. Termination/exit/close are separate flags. A late job checks original session/slot/seq/record and CLOSED before any SAB publication; always observe result/cleanup even when publication forbidden. No real operation or rejection erased by transport retirement.",
+    "phaseHeaders": [
+      {
+        "phase": "HEADER",
+        "state": "REQUEST",
+        "tag": "NONE",
+        "length": "1..8192 canonical request metadata",
+        "offset": 0,
+        "total": "declared write/output count, otherwise0; read null appears only inside JSON metadata"
+      },
+      {
+        "phase": "UPLOAD_CREDIT",
+        "state": "RESPONSE",
+        "tag": "UPLOAD",
+        "length": 0,
+        "offset": "parent copied count",
+        "total": "original declared upload total"
+      },
+      {
+        "phase": "UPLOAD_DATA",
+        "state": "ACK",
+        "tag": "UPLOAD",
+        "length": "exact min(65536,total-offset)>0",
+        "offset": "credited offset",
+        "total": "original upload total"
+      },
+      {
+        "phase": "RESULT_META",
+        "state": "RESPONSE",
+        "tag": "matching TEXT|VOID|FS_ERROR|UNSUPPORTED|DENIED",
+        "length": "1..8192 canonical result metadata",
+        "offset": 0,
+        "total": "response total,0 except text"
+      },
+      {
+        "phase": "META_ACK",
+        "state": "ACK",
+        "tag": "TEXT",
+        "length": 0,
+        "offset": 0,
+        "total": "positive response total"
+      },
+      {
+        "phase": "RESULT_DATA",
+        "state": "RESPONSE",
+        "tag": "TEXT",
+        "length": "exact min(65536,total-offset)>0",
+        "offset": "previous acknowledged response count",
+        "total": "response total"
+      },
+      {
+        "phase": "DATA_ACK",
+        "state": "ACK",
+        "tag": "TEXT",
+        "length": 0,
+        "offset": "new copied count strictly less than total",
+        "total": "response total"
+      },
+      {
+        "phase": "FINAL_ACK",
+        "state": "ACK",
+        "tag": "exact result tag",
+        "length": 0,
+        "offset": "response total",
+        "total": "response total"
+      }
+    ]
+  },
+  "SEAL.json": {
+    "schema": "WRQ-v2-complete-body-seal",
+    "date": "2026-08-28",
+    "authority": "Document/data output only; not execution grant",
+    "inputCommitObjects": [
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "bodyBytes": 275,
+        "bodySha256": "772f890b6a4ac56b1ccacd2f45dd719b0806474de84f141b82bcfc1b5887eec2",
+        "objectType": "commit"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "bodyBytes": 273,
+        "bodySha256": "94537ed80c8785cebe5ee59c3b4032b2672570d17369cccfacad138bac72b129",
+        "objectType": "commit"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "bodyBytes": 268,
+        "bodySha256": "910cbd6f9a92945c47ab9d8c9901ba98ca27a42a4acf07e8720bac8874f6f0a8",
+        "objectType": "commit"
+      },
+      {
+        "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+        "bodyBytes": 279,
+        "bodySha256": "5be7499820438188b5887c362056a7c7220a6914ed21dfb9f6a99679b73657f8",
+        "objectType": "commit"
+      },
+      {
+        "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+        "bodyBytes": 276,
+        "bodySha256": "60e02515217085abfcccabe8886018bb89c5bdc8d38645146e23b0705536fdc3",
+        "objectType": "commit"
+      }
+    ],
+    "inputBodies": [
+      {
+        "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+        "path": "tests/commands/node-design-20260828/np1-cjs-v1/CONTRACT.md",
+        "blob": "165212e29329b6cd6a1764d4d9b373dce8d1f0fe",
+        "bytes": 16806,
+        "sha256": "ba1b0cb0c0f6b08d29ad6d33a138343140159ef8a73675fdbd2873816605ed9b",
+        "mode": "100644"
+      },
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+        "blob": "f632103edd534e22757f27d732ad5db56f91cb7c",
+        "bytes": 12820,
+        "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729",
+        "mode": "100644"
+      },
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/PROPOSAL.md",
+        "blob": "4b752f9dccec33a05d48f76d5d69f06cb1eebb36",
+        "bytes": 13009,
+        "sha256": "b83e7d444713f876b3ab5850bde698940d010e97051735231a38ac630a23671e",
+        "mode": "100644"
+      },
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/RPC.json",
+        "blob": "347a271be4b8e51036ec131f75ee25b44abe9bb2",
+        "bytes": 11423,
+        "sha256": "23a72deac68b1f9d78c9966b7fe6b37bd6955952434885d609a4e9b9e03cb66f",
+        "mode": "100644"
+      },
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/SOURCES.json",
+        "blob": "f20d3eaaaf1ea3fa2af6a44e125aebbcd47caae4",
+        "bytes": 34447,
+        "sha256": "1c6ac683533c525b885f717edeeaee44d5f00bcb9fa9cb016bde3ab577ba8056",
+        "mode": "100644"
+      },
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+        "blob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+        "bytes": 338073,
+        "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+        "mode": "100644"
+      },
+      {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+        "blob": "79f60f34950eba448a17394d1146841b8c428aa1",
+        "bytes": 35893,
+        "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/ACTIVITY.md",
+        "blob": "f4a867790fc2faf3e471b9e22b5da20b38d78586",
+        "bytes": 2474,
+        "sha256": "6f06b1fad52a527d20e76cd8dbd1e0372354d1bc32f7df865d995d2e4c1a66af",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/remaining-excerpts.data",
+        "blob": "5b638a22809a5b3c07c9cc1baf5932f5c74423ea",
+        "bytes": 25509,
+        "sha256": "625e8ee3f2b34a5dce06aefc5de92ebe0309f094a1e2170341797552d4d34857",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/REPORT.md",
+        "blob": "037e1a343fcb451d51ca242b3f1dc6ae81e8d7cb",
+        "bytes": 18784,
+        "sha256": "b6e98183f48206b9ab2696b32a95fb83771c962aeb142d5af79158f1df85ea85",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/RESULT-v1.json",
+        "blob": "c63e128557fc3b74fc1fe3c2a6e3fc9208869f09",
+        "bytes": 23105,
+        "sha256": "9d47abbd5ce661dafdebedd43eb955b9e6c3e302fed2e8612c0160d33c24401b",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/ROOT-CHOICES.md",
+        "blob": "d4b76439baa70568a8a87483675cdc914c781979",
+        "bytes": 7157,
+        "sha256": "b116504b8feca0fbd2590e1626a54eea3b653d297824bfa447eebeaf35eca4c4",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/SCHEDULES-v1.json",
+        "blob": "359c7c8300591b38b5542eee3232934fb0b85f7c",
+        "bytes": 3320,
+        "sha256": "02bf805e706bd05084845eb37fb240773f4b549d3becd95c4052356e392e4c2e",
+        "mode": "100644"
+      },
+      {
+        "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+        "path": "tests/commands/node-worker-independent-20260828/source-excerpts.data",
+        "blob": "195c2b5bd05dd1f4a87998ab069a8beab8403a1d",
+        "bytes": 25351,
+        "sha256": "5bd28fcd3c43124c7e547493a306b3029ad8097fd1d5c3905822b14089f8dbd7",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "src/contracts/command.md",
+        "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+        "bytes": 9253,
+        "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "src/contracts/command.ts",
+        "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+        "bytes": 2968,
+        "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "src/contracts/errors.ts",
+        "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+        "bytes": 3457,
+        "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "src/contracts/io.ts",
+        "blob": "6dc0efb87132376763228a845b2e62638898268a",
+        "bytes": 7663,
+        "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "src/contracts/output.ts",
+        "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+        "bytes": 4661,
+        "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/BINDINGS.json",
+        "blob": "7683e4ccacd042ff62d0e090bc2693c0dd52c801",
+        "bytes": 10081,
+        "sha256": "2d07fe9cd60d1ca69bf68edfe98f89dc84a596b62d07024563f711ae75f5ac61",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/OPEN-OBLIGATIONS.json",
+        "blob": "cad82ad4e0100d98a8cf1873f11f8eac52eb0672",
+        "bytes": 13915,
+        "sha256": "ca54239f8009dfaba113071f9fa6a8f5d2c81b804821d3d72ebacfe51dbc4b64",
+        "mode": "100644"
+      },
+      {
+        "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/ROOT-DECISION.md",
+        "blob": "6bd9a6e3ecaaae53a178a5d89e81a61aca4c8ae7",
+        "bytes": 12331,
+        "sha256": "964b1029a91661258c1845f13780107865537312ac6bff7bcb276d440bca4926",
+        "mode": "100644"
+      },
+      {
+        "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+        "path": "tests/commands/node-worker-independent-20260828/REPORT.md",
+        "blob": "037e1a343fcb451d51ca242b3f1dc6ae81e8d7cb",
+        "bytes": 18784,
+        "sha256": "b6e98183f48206b9ab2696b32a95fb83771c962aeb142d5af79158f1df85ea85",
+        "mode": "100644"
+      },
+      {
+        "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+        "path": "tests/commands/node-worker-independent-20260828/ROOT-CHOICES.md",
+        "blob": "d4b76439baa70568a8a87483675cdc914c781979",
+        "bytes": 7157,
+        "sha256": "b116504b8feca0fbd2590e1626a54eea3b653d297824bfa447eebeaf35eca4c4",
+        "mode": "100644"
+      }
+    ],
+    "instructionReferenceBodies": [
+      {
+        "path": "/Users/kjopek/Workspace/AGENTS.md",
+        "bytes": 424,
+        "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7",
+        "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/AGENTS.md",
+        "bytes": 14482,
+        "sha256": "972774e6ee84db97c9da62303b0a78072530872837c841730553daabfdddcc3f",
+        "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+      },
+      {
+        "path": "/Users/kjopek/.codex/skills/write-spec/SKILL.md",
+        "bytes": 5578,
+        "sha256": "c56df5bf142923bfba3e9c294880ccf46b520c4b5448393d0ccfb01e6316d6dc",
+        "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+      },
+      {
+        "path": "/Users/kjopek/.codex/skills/write-spec/references/symphony-style.md",
+        "bytes": 4449,
+        "sha256": "8c6431b870163e0c0c02ca0280895add8772fa2c695c32969403a7951fd57111",
+        "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+      }
+    ],
+    "outputBodies": [
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CACHE.json",
+        "bytes": 7610,
+        "sha256": "1f89311173a64c33ff87d0b1e261ea7a5a66c3b858e837e921a2e312865415cb",
+        "gitBlob": "8d309641c5a635088e17a6f3eae4b15de5535cf6"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CAPS.json",
+        "bytes": 10388,
+        "sha256": "334bf7463797805fa8808fd86f9939b9db59c96d9a1400bcbdc231afb21a26fd",
+        "gitBlob": "c4b295bf2a52a949d35a7300020c3d743c9089b5"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CONTRACT.md",
+        "bytes": 6187,
+        "sha256": "9de3c542a530b7e1253ad1c394baf675f5d31dcd4cacad7f6d15e3f9f1c16c12",
+        "gitBlob": "f0e5e0b16e05155ee4aefa1faad517e368ed077c"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/DISPOSITIONS.json",
+        "bytes": 5116,
+        "sha256": "91916e1d69307318e350993a93ed83e21fa02836bd53fe757e5fcc6566c73598",
+        "gitBlob": "57b44907d960766511e4e3e1161151f1bb47af02"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/ERRORS.json",
+        "bytes": 6763,
+        "sha256": "0cd33bc54d9500a1b9a552d6fb27c4a811472b21255ae106cf9a0d1b42bee011",
+        "gitBlob": "2aeca73146c16281b549217d9624d3a1536aca37"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/HANDOFF.md",
+        "bytes": 2895,
+        "sha256": "6041fe928927ffc672075a5fbbdfb38b0360b8af750e6ce184d57d0884208682",
+        "gitBlob": "890f6e417b0e5506a9dd4c567cba6bc5b62503aa"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/OBLIGATIONS.json",
+        "bytes": 10834,
+        "sha256": "e3cf750f5fcea0c0a4bac0ec6d6da7e7ea60d357c5f1939e2915b35fbfb8bcaa",
+        "gitBlob": "539747489e8e3d3e5f47a39792fb8bd4db1b8f46"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/ROOT-RATIFICATION.md",
+        "bytes": 3501,
+        "sha256": "75b9b2fca471cdca7d3c31361d11b55ac0343ccb9129cc50c365bb8b3f58c0b2",
+        "gitBlob": "91a2ccf16837bb9f05056357fdcfd318828113b2"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/RPC.json",
+        "bytes": 16057,
+        "sha256": "04541b3b8a5a4ab1bebe106bbf8ded1a3895ad5b49dbe0058179204600969a77",
+        "gitBlob": "ef4c10568863a64075fad3f3cd3df7ddc25ac60f"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/SOURCES.json",
+        "bytes": 26587,
+        "sha256": "03e2810bb628f225c3c18e9c194c816be7a59d00fcb92ba16d9a5c22ea8215a0",
+        "gitBlob": "a26048370d34e41ae18741b862b0b3b0c5010324"
+      },
+      {
+        "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/VALIDATION.json",
+        "bytes": 2406,
+        "sha256": "ec304acfbe75917c94f5d420cb0aa801ec93f6714f5755f8a104d47ac32646db",
+        "gitBlob": "96c977db62ba74e8a6db62c309b34bd5b80990e4"
+      }
+    ],
+    "outputInventory": [
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CACHE.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CAPS.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CONTRACT.md",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/DISPOSITIONS.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/ERRORS.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/HANDOFF.md",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/OBLIGATIONS.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/ROOT-RATIFICATION.md",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/RPC.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/SEAL.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/SOURCES.json",
+      "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/VALIDATION.json"
+    ],
+    "coverage": {
+      "inputBodyCount": 24,
+      "instructionReferenceBodyCount": 4,
+      "outputBodyCount": 11,
+      "totalOwnedFiles": 12,
+      "self": "SEAL.json excludes only its own recursively unhashable entry. Its exact complete-body SHA256 is supplied externally alongside the atomic commit and HANDOFF hash.",
+      "gitBlobMeaning": "Output Git blob identities computed from exact bodies; stored-object/path membership must be verified at the captured atomic commit. Input identities are authenticated stored objects.",
+      "postSeal": "Rehash all listed bodies and compare exact owned directory inventory, detecting added owned entries. No assertion about additions elsewhere in repository or inherited engine function rehashing."
+    },
+    "profile": "D1-D3 ratified; F1-F7 corrections proposed; K1-K4 unqualified; original NP1/v1/WRQ/privateABI unchanged/HOLD",
+    "subjectExecutions": 0
+  },
+  "SOURCES.json": {
+    "schema": "WRQ-sources-v2",
+    "date": "2026-08-28",
+    "classification": "Frozen artifact authentication and inherited source-only findings, not runtime/provider qualification",
+    "authority": {
+      "root": "Current user assignment; exact D1-D3 reproduced in ROOT-RATIFICATION.md. No invented decision commit.",
+      "ownership": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/",
+      "reviewCommits": [
+        "fa456e5a00cad84a64078ea416526688d89ea37a",
+        "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3"
+      ],
+      "priorProposal": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "priorSelection": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "originalNp1": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce"
+    },
+    "authentication": {
+      "commits": [
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "bodyBytes": 275,
+          "bodySha256": "772f890b6a4ac56b1ccacd2f45dd719b0806474de84f141b82bcfc1b5887eec2",
+          "objectType": "commit"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "bodyBytes": 273,
+          "bodySha256": "94537ed80c8785cebe5ee59c3b4032b2672570d17369cccfacad138bac72b129",
+          "objectType": "commit"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "bodyBytes": 268,
+          "bodySha256": "910cbd6f9a92945c47ab9d8c9901ba98ca27a42a4acf07e8720bac8874f6f0a8",
+          "objectType": "commit"
+        },
+        {
+          "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+          "bodyBytes": 279,
+          "bodySha256": "5be7499820438188b5887c362056a7c7220a6914ed21dfb9f6a99679b73657f8",
+          "objectType": "commit"
+        },
+        {
+          "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+          "bodyBytes": 276,
+          "bodySha256": "60e02515217085abfcccabe8886018bb89c5bdc8d38645146e23b0705536fdc3",
+          "objectType": "commit"
+        }
+      ],
+      "inputs": [
+        {
+          "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+          "path": "tests/commands/node-design-20260828/np1-cjs-v1/CONTRACT.md",
+          "blob": "165212e29329b6cd6a1764d4d9b373dce8d1f0fe",
+          "bytes": 16806,
+          "sha256": "ba1b0cb0c0f6b08d29ad6d33a138343140159ef8a73675fdbd2873816605ed9b",
+          "mode": "100644"
+        },
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+          "blob": "f632103edd534e22757f27d732ad5db56f91cb7c",
+          "bytes": 12820,
+          "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729",
+          "mode": "100644"
+        },
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/PROPOSAL.md",
+          "blob": "4b752f9dccec33a05d48f76d5d69f06cb1eebb36",
+          "bytes": 13009,
+          "sha256": "b83e7d444713f876b3ab5850bde698940d010e97051735231a38ac630a23671e",
+          "mode": "100644"
+        },
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/RPC.json",
+          "blob": "347a271be4b8e51036ec131f75ee25b44abe9bb2",
+          "bytes": 11423,
+          "sha256": "23a72deac68b1f9d78c9966b7fe6b37bd6955952434885d609a4e9b9e03cb66f",
+          "mode": "100644"
+        },
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/SOURCES.json",
+          "blob": "f20d3eaaaf1ea3fa2af6a44e125aebbcd47caae4",
+          "bytes": 34447,
+          "sha256": "1c6ac683533c525b885f717edeeaee44d5f00bcb9fa9cb016bde3ab577ba8056",
+          "mode": "100644"
+        },
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "path": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+          "blob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+          "bytes": 338073,
+          "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+          "mode": "100644"
+        },
+        {
+          "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+          "path": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+          "blob": "79f60f34950eba448a17394d1146841b8c428aa1",
+          "bytes": 35893,
+          "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/ACTIVITY.md",
+          "blob": "f4a867790fc2faf3e471b9e22b5da20b38d78586",
+          "bytes": 2474,
+          "sha256": "6f06b1fad52a527d20e76cd8dbd1e0372354d1bc32f7df865d995d2e4c1a66af",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/remaining-excerpts.data",
+          "blob": "5b638a22809a5b3c07c9cc1baf5932f5c74423ea",
+          "bytes": 25509,
+          "sha256": "625e8ee3f2b34a5dce06aefc5de92ebe0309f094a1e2170341797552d4d34857",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/REPORT.md",
+          "blob": "037e1a343fcb451d51ca242b3f1dc6ae81e8d7cb",
+          "bytes": 18784,
+          "sha256": "b6e98183f48206b9ab2696b32a95fb83771c962aeb142d5af79158f1df85ea85",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/RESULT-v1.json",
+          "blob": "c63e128557fc3b74fc1fe3c2a6e3fc9208869f09",
+          "bytes": 23105,
+          "sha256": "9d47abbd5ce661dafdebedd43eb955b9e6c3e302fed2e8612c0160d33c24401b",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/ROOT-CHOICES.md",
+          "blob": "d4b76439baa70568a8a87483675cdc914c781979",
+          "bytes": 7157,
+          "sha256": "b116504b8feca0fbd2590e1626a54eea3b653d297824bfa447eebeaf35eca4c4",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/SCHEDULES-v1.json",
+          "blob": "359c7c8300591b38b5542eee3232934fb0b85f7c",
+          "bytes": 3320,
+          "sha256": "02bf805e706bd05084845eb37fb240773f4b549d3becd95c4052356e392e4c2e",
+          "mode": "100644"
+        },
+        {
+          "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+          "path": "tests/commands/node-worker-independent-20260828/source-excerpts.data",
+          "blob": "195c2b5bd05dd1f4a87998ab069a8beab8403a1d",
+          "bytes": 25351,
+          "sha256": "5bd28fcd3c43124c7e547493a306b3029ad8097fd1d5c3905822b14089f8dbd7",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "src/contracts/command.md",
+          "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+          "bytes": 9253,
+          "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "src/contracts/command.ts",
+          "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+          "bytes": 2968,
+          "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "src/contracts/errors.ts",
+          "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+          "bytes": 3457,
+          "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "src/contracts/io.ts",
+          "blob": "6dc0efb87132376763228a845b2e62638898268a",
+          "bytes": 7663,
+          "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "src/contracts/output.ts",
+          "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+          "bytes": 4661,
+          "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/BINDINGS.json",
+          "blob": "7683e4ccacd042ff62d0e090bc2693c0dd52c801",
+          "bytes": 10081,
+          "sha256": "2d07fe9cd60d1ca69bf68edfe98f89dc84a596b62d07024563f711ae75f5ac61",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/OPEN-OBLIGATIONS.json",
+          "blob": "cad82ad4e0100d98a8cf1873f11f8eac52eb0672",
+          "bytes": 13915,
+          "sha256": "ca54239f8009dfaba113071f9fa6a8f5d2c81b804821d3d72ebacfe51dbc4b64",
+          "mode": "100644"
+        },
+        {
+          "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+          "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/ROOT-DECISION.md",
+          "blob": "6bd9a6e3ecaaae53a178a5d89e81a61aca4c8ae7",
+          "bytes": 12331,
+          "sha256": "964b1029a91661258c1845f13780107865537312ac6bff7bcb276d440bca4926",
+          "mode": "100644"
+        },
+        {
+          "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+          "path": "tests/commands/node-worker-independent-20260828/REPORT.md",
+          "blob": "037e1a343fcb451d51ca242b3f1dc6ae81e8d7cb",
+          "bytes": 18784,
+          "sha256": "b6e98183f48206b9ab2696b32a95fb83771c962aeb142d5af79158f1df85ea85",
+          "mode": "100644"
+        },
+        {
+          "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+          "path": "tests/commands/node-worker-independent-20260828/ROOT-CHOICES.md",
+          "blob": "d4b76439baa70568a8a87483675cdc914c781979",
+          "bytes": 7157,
+          "sha256": "b116504b8feca0fbd2590e1626a54eea3b653d297824bfa447eebeaf35eca4c4",
+          "mode": "100644"
+        }
+      ],
+      "instructionInputs": [
+        {
+          "path": "/Users/kjopek/Workspace/AGENTS.md",
+          "bytes": 424,
+          "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7",
+          "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+        },
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/AGENTS.md",
+          "bytes": 14482,
+          "sha256": "972774e6ee84db97c9da62303b0a78072530872837c841730553daabfdddcc3f",
+          "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+        },
+        {
+          "path": "/Users/kjopek/.codex/skills/write-spec/SKILL.md",
+          "bytes": 5578,
+          "sha256": "c56df5bf142923bfba3e9c294880ccf46b520c4b5448393d0ccfb01e6316d6dc",
+          "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+        },
+        {
+          "path": "/Users/kjopek/.codex/skills/write-spec/references/symphony-style.md",
+          "bytes": 4449,
+          "sha256": "8c6431b870163e0c0c02ca0280895add8772fa2c695c32969403a7951fd57111",
+          "role": "live instruction/reference read-only snapshot; not frozen product acceptance"
+        }
+      ],
+      "method": "Read exact stored commit/blob bodies; recompute Git SHA1 object headers and body SHA256/lengths; authenticate exact path membership from NUL-delimited ls-tree bytes. Review prefixes each resolve uniquely to one stored commit. REPORT/ROOT-CHOICES respective blobs equal at both review commits.",
+      "notPerformed": "No engine archive decompression/materialization, engine import/evaluation, build/compiler/install/native subject, Worker/control/repair execution or network. Archive body rehashed as inert existing data; public source body hashes are inherited comparisons, not newly rehashed function bodies."
+    },
+    "engineEvidence": {
+      "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "rootTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+      "packageTree": "1d6076301241aa299043359fc1b9f9e0ce58a633",
+      "commitBodySha256": "38f0704e0a7aba9de1ae1af2f0a0679906b415ddcfb686f04a22a071c17ceded",
+      "archiveBinding": {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+        "blob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+        "bytes": 338073,
+        "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+        "mode": "100644"
+      },
+      "sourceManifestBinding": {
+        "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+        "path": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+        "blob": "79f60f34950eba448a17394d1146841b8c428aa1",
+        "bytes": 35893,
+        "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+        "mode": "100644"
+      },
+      "sourceGroups": [
+        {
+          "group": "S1",
+          "path": "src/run.ts",
+          "blob": "2f829e27c65da9421001772f2db2233adc5edfe0",
+          "bytes": 25016,
+          "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+          "bodies": [
+            {
+              "name": "run",
+              "signature": "export function run(source: string, options: RunOptions = {}): Promise<RunResult>",
+              "lines": [
+                162,
+                475
+              ],
+              "bodyOpeningLine": 162,
+              "bodySha256": "213f7c91dc56be59d6600e33eb473ebab0e9d1765ec96f7cd77f8b18a2834135"
+            },
+            {
+              "name": "throwIfReturnedPromiseRejected",
+              "signature": "async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promise<void>",
+              "lines": [
+                477,
+                501
+              ],
+              "bodyOpeningLine": 477,
+              "bodySha256": "21341c34ef4ecbdccba691da11616803f9ebec839dd3ba7acd2dd095888fef63"
+            }
+          ]
+        },
+        {
+          "group": "S2",
+          "path": "src/interp/host-bridge.ts",
+          "blob": "5e1a6ef3b90912c190d0f4a849c1b1e91f845b1c",
+          "bytes": 30852,
+          "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+          "bodies": [
+            {
+              "name": "wrapCallerInjectedBindings",
+              "signature": "export function wrapCallerInjectedBindings( bindings: Record<string, CallerInjectedBinding>, options: HostBridgeOptions ): Record<string, SandboxValue>",
+              "lines": [
+                99,
+                114
+              ],
+              "bodyOpeningLine": 102,
+              "bodySha256": "4ad681a13f739c9f6a7a44780aa8aa90d6409fe2df2b59f4e8bbd872df90acc0"
+            },
+            {
+              "name": "wrapCallerInjectedFunction",
+              "signature": "function wrapCallerInjectedFunction( name: string, value: CallerInjectedFunction, options: HostBridgeOptions, state: { seen: WeakMap<object, SandboxValue> } ): SandboxValue",
+              "lines": [
+                116,
+                245
+              ],
+              "bodyOpeningLine": 121,
+              "bodySha256": "3836aa90c6596c5f4eda1d4e19d3a369f997dc8f9425a8758526ef9d93c9b896"
+            },
+            {
+              "name": "invokeHostCallback",
+              "signature": "function invokeHostCallback(invoke: () => unknown, options: HostBridgeOptions): unknown",
+              "lines": [
+                247,
+                267
+              ],
+              "bodyOpeningLine": 247,
+              "bodySha256": "a27b83403f282acb282b24a7d3c3bff6f074243d14f2fc30e68e23a94a427ba4"
+            },
+            {
+              "name": "executeHostCall",
+              "signature": "function executeHostCall( record: HostCallRecord, restored: boolean, invoke: () => unknown, stackFrames: readonly string[], options: HostBridgeOptions, span?: ErrorSourceSpan, callbacks?: HostCallbacks, onReplay?: (outcome: HostCallOutcome) => void ): SandboxValue",
+              "lines": [
+                269,
+                400
+              ],
+              "bodyOpeningLine": 278,
+              "bodySha256": "d79e6790fe55f4b41c2e55ccf54a9e2af7a81a9705a37a94480ae0bbcabffcf5"
+            },
+            {
+              "name": "createHostCallPromise",
+              "signature": "function createHostCallPromise( record: HostCallRecord, outcomePromise: Promise<HostCallOutcome>, hostCalls: HostCallJournal ): SandboxValue",
+              "lines": [
+                433,
+                448
+              ],
+              "bodyOpeningLine": 437,
+              "bodySha256": "8fe1de1f681f8e1bd36905d927374715a2da093f404f328021aa801d8f04ca95"
+            },
+            {
+              "name": "copyHostResultToSandbox",
+              "signature": "function copyHostResultToSandbox( result: unknown, stackFrames: readonly string[], options: HostBridgeOptions ): SandboxValue",
+              "lines": [
+                459,
+                475
+              ],
+              "bodyOpeningLine": 463,
+              "bodySha256": "42d843252d06033e02bfae6b42b31be99eef857f5d509085fd89e1e460e914eb"
+            },
+            {
+              "name": "createHostErrorValue",
+              "signature": "function createHostErrorValue( reason: unknown, stackFrames: readonly string[], budget: Budget, span?: ErrorSourceSpan ): SandboxObject",
+              "lines": [
+                477,
+                499
+              ],
+              "bodyOpeningLine": 482,
+              "bodySha256": "e3eebef27ebf623bd2656de472634d3ed860b221d4b3c416ce63fe16f48de976"
+            },
+            {
+              "name": "copyHostValueToSandbox",
+              "signature": "function copyHostValueToSandbox( value: unknown, stackFrames: readonly string[], options: HostBridgeOptions, state: { seen: WeakMap<object, SandboxValue>; }, path: string ): SandboxValue",
+              "lines": [
+                719,
+                899
+              ],
+              "bodyOpeningLine": 727,
+              "bodySha256": "cfe0f1451e453ec55ed49bcd6e4256070908aacdb91461d21b2d3c4d88edf7a2"
+            }
+          ]
+        },
+        {
+          "group": "S3",
+          "path": "src/interp/interpreter.ts",
+          "blob": "07f5c623d88a7799dfa45028fdd0393ab589dd8e",
+          "bytes": 97921,
+          "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+          "bodies": [
+            {
+              "name": "evaluateResolvedCallExpression",
+              "signature": "async function evaluateResolvedCallExpression( node: CallExpression, callee: InterpreterValue, context: EvaluationContext, thisValue: SandboxValue = undefined ): Promise<EvaluationResult>",
+              "lines": [
+                3352,
+                3391
+              ],
+              "bodyOpeningLine": 3357,
+              "bodySha256": "5cd39f2a76d9fb3a298b4ee30d14735a662bad85edcc843f75f3ceaa4c91a4cf"
+            },
+            {
+              "name": "invokeSandboxClosure",
+              "signature": "async function invokeSandboxClosure( callee: Extract<InterpreterValue, { kind: \"fn\" }>, args: readonly SandboxValue[], context: EvaluationContext, stack: readonly string[], span?: SourceSpan, thisValue: SandboxValue = undefined ): Promise<SandboxValue>",
+              "lines": [
+                3451,
+                3487
+              ],
+              "bodyOpeningLine": 3458,
+              "bodySha256": "aaa6e2ff07f8ccad4cdf50d2aac7a88c952c1a3a4c8dc7d4b22f5e056d310b7e"
+            },
+            {
+              "name": "wrapHostResult",
+              "signature": "function wrapHostResult( result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>, stack: readonly string[] ): InterpreterValue | Promise<InterpreterValue>",
+              "lines": [
+                3660,
+                3677
+              ],
+              "bodyOpeningLine": 3663,
+              "bodySha256": "4bf2724d4d55f2d2c47382d92097e50f810fe50bfb5d40677a7aa0074ee0becc"
+            }
+          ]
+        },
+        {
+          "group": "S4",
+          "path": "src/interp/jobs.ts",
+          "blob": "33a67b3fe4b50dea7d1934781aa19b5ef0c03eea",
+          "bytes": 2737,
+          "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e",
+          "bodies": [
+            {
+              "name": "SandboxJobQueue.run",
+              "signature": "async run<T>(task: () => T | Promise<T>): Promise<T>",
+              "lines": [
+                37,
+                47
+              ],
+              "bodyOpeningLine": 37,
+              "bodySha256": "e4b8eea0792c307cba6816ffdb48af9ae346596dd7be0966cb4e1fe4df2516dd"
+            },
+            {
+              "name": "SandboxJobQueue.drain",
+              "signature": "async drain(): Promise<void>",
+              "lines": [
+                49,
+                57
+              ],
+              "bodyOpeningLine": 49,
+              "bodySha256": "a7947fe59e4ed9c24a9db0b99bbb902a8433e221bef8bf8712d90840e2cacf50"
+            },
+            {
+              "name": "runPromiseJob",
+              "signature": "export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T>",
+              "lines": [
+                70,
+                73
+              ],
+              "bodyOpeningLine": 70,
+              "bodySha256": "e4c139c191718a5156d5285ed52d146732a8286ddfdf3fff00d2c75d5ef1eac7"
+            },
+            {
+              "name": "suspendJob",
+              "signature": "export async function suspendJob<T>(pending: Promise<T>): Promise<T>",
+              "lines": [
+                91,
+                100
+              ],
+              "bodyOpeningLine": 91,
+              "bodySha256": "4b5589182fa2a9bbc7407b81ce7e5eb098b5c05e04b033f4bb45cc04b85c7d52"
+            }
+          ]
+        },
+        {
+          "group": "S4",
+          "path": "src/interp/async.ts",
+          "blob": "4feb1a05dad236daa18f05692a7d811f58a6e586",
+          "bytes": 12403,
+          "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb",
+          "bodies": [
+            {
+              "name": "evaluateAwaitExpression",
+              "signature": "export async function evaluateAwaitExpression( node: AwaitExpression, context: AsyncEvaluationContext, evaluateNode: EvaluateAsyncNode ): Promise<AsyncEvaluationResult>",
+              "lines": [
+                253,
+                287
+              ],
+              "bodyOpeningLine": 257,
+              "bodySha256": "d15963ea0c15fb3af343a8b0e93a4f49f6d7a02c2db3f566f158c2aa59a3375f"
+            }
+          ]
+        },
+        {
+          "group": "S5",
+          "path": "src/interp/promise.ts",
+          "blob": "a07cedbbe3ebe8ca86604cb42307fc33a94f97df",
+          "bytes": 15619,
+          "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c",
+          "bodies": [
+            {
+              "name": "createPromiseGlobals",
+              "signature": "export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobals",
+              "lines": [
+                20,
+                107
+              ],
+              "bodyOpeningLine": 20,
+              "bodySha256": "808ae7501c11c688fb63b5ec8e989fc814a678e76bf95890f07deb67835253b6"
+            },
+            {
+              "name": "getPromiseMember",
+              "signature": "export function getPromiseMember( target: SandboxPromise, property: string | number, budget: Budget ): SandboxValue",
+              "lines": [
+                109,
+                169
+              ],
+              "bodyOpeningLine": 113,
+              "bodySha256": "2e42da7d216dbbf3447d3a2962502acedba4422510be4fa57232a20e50a50adf"
+            },
+            {
+              "name": "callInPromiseJob",
+              "signature": "function callInPromiseJob( handler: SandboxClosure, args: readonly SandboxValue[], thisValue: SandboxValue = undefined ): Promise<{ value: SandboxValue | Promise<SandboxValue> }>",
+              "lines": [
+                425,
+                438
+              ],
+              "bodyOpeningLine": 429,
+              "bodySha256": "13d1e7d71c84406b8c7765f450470a9c6cbbd07ed2ce05ae03715b7533491650"
+            }
+          ]
+        },
+        {
+          "group": "S5",
+          "path": "src/interp/values.ts",
+          "blob": "7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269",
+          "bytes": 24602,
+          "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+          "bodies": [
+            {
+              "name": "createSandboxPromise",
+              "signature": "export function createSandboxPromise( promise: Promise<SandboxValue>, metadata: { trackReplay?: boolean; synchronousPrefix?: Promise<void>; hostCall?: import(\"./host-call.js\").HostCallRecord; hostCallJournal?: import(\"./host-call.js\").HostCallJournal; span?: SandboxCallContext[\"span\"]; } = {} ): SandboxPromise",
+              "lines": [
+                173,
+                222
+              ],
+              "bodyOpeningLine": 182,
+              "bodySha256": "6440e1c85ce936855dc118754c795223639e47bb20f55466413fb463f3b7a208"
+            }
+          ]
+        },
+        {
+          "group": "S5",
+          "path": "src/interp/promise-tracker.ts",
+          "blob": "0f7d921e02c9caf03cb2203b9d958f377c3872ae",
+          "bytes": 2427,
+          "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581",
+          "bodies": [
+            {
+              "name": "SandboxPromiseRejectionTracker.track",
+              "signature": "track(promise: SandboxPromise): void",
+              "lines": [
+                24,
+                45
+              ],
+              "bodyOpeningLine": 24,
+              "bodySha256": "7f9c11f19110bfd4efdd24b3b889eada0b7a933228be014fbb50e04be60a0fe6"
+            },
+            {
+              "name": "SandboxPromiseRejectionTracker.findUnhandledRejection",
+              "signature": "async findUnhandledRejection(): Promise< | { reason: SandboxValue | undefined; span: ErrorSourceSpan | undefined; } | undefined >",
+              "lines": [
+                47,
+                66
+              ],
+              "bodyOpeningLine": 53,
+              "bodySha256": "51dd8e976502810ceac59107d627bd5f5431d17347b6b3b3bd108c902ade4e25"
+            },
+            {
+              "name": "flushPromiseJobs",
+              "signature": "async function flushPromiseJobs(): Promise<void>",
+              "lines": [
+                90,
+                94
+              ],
+              "bodyOpeningLine": 90,
+              "bodySha256": "e3e4529a1c3b997406c96ddc44a7802b4936409d9453fa10ee39e06acdbf8ba2"
+            }
+          ]
+        },
+        {
+          "group": "S6",
+          "path": "src/interp/cancel.ts",
+          "blob": "03f38bbee5e0cfb8aee2ef032606a75efa506ac4",
+          "bytes": 6588,
+          "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+          "bodies": [
+            {
+              "name": "wrapCancelableBindings",
+              "signature": "export function wrapCancelableBindings( bindings: Record<string, SandboxValue>, signal?: AbortSignal ): Record<string, SandboxValue>",
+              "lines": [
+                17,
+                26
+              ],
+              "bodyOpeningLine": 20,
+              "bodySha256": "61c69353f6f70fbd547f06f7ecc16a044bc96a11b147b213f0c3dea718b08afe"
+            },
+            {
+              "name": "wrapCancelableValue",
+              "signature": "function wrapCancelableValue( value: SandboxValue, signal: AbortSignal, seen: WeakMap<object, SandboxValue> ): SandboxValue",
+              "lines": [
+                28,
+                99
+              ],
+              "bodyOpeningLine": 32,
+              "bodySha256": "d57c55df33f0cad8aeeca9dc99994570ad6e48bcf21ad7f6248f80a518503924"
+            },
+            {
+              "name": "wrapCancelableResult",
+              "signature": "function wrapCancelableResult( result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>, signal: AbortSignal, seen: WeakMap<object, SandboxValue> ): SandboxValue | Promise<SandboxValue>",
+              "lines": [
+                101,
+                111
+              ],
+              "bodyOpeningLine": 105,
+              "bodySha256": "c6b6bc4d5bb6775e85601aad387ccc8eb25b32b2814f5c3574a1aecbc7f87ab0"
+            },
+            {
+              "name": "awaitSandboxValue",
+              "signature": "export function awaitSandboxValue( value: SandboxValue, signal?: AbortSignal ): Promise<SandboxValue>",
+              "lines": [
+                127,
+                136
+              ],
+              "bodyOpeningLine": 130,
+              "bodySha256": "e663b8d74fcc91b05e6a3fb382e857da2cdf00ca393273c2987bf4f5a30265a2"
+            },
+            {
+              "name": "readAbortReason",
+              "signature": "function readAbortReason(signal: AbortSignal): unknown",
+              "lines": [
+                212,
+                214
+              ],
+              "bodyOpeningLine": 212,
+              "bodySha256": "7a4a1f1be3376fa5894d75834eaffac7278d356016585c81846458b7402fa66f"
+            }
+          ]
+        },
+        {
+          "group": "S7",
+          "path": "src/interp/exceptions.ts",
+          "blob": "94a7e5d191435c599c8a8ebbcc1acb8fe43d7519",
+          "bytes": 19651,
+          "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+          "bodies": [
+            {
+              "name": "evaluateTryStatement",
+              "signature": "export async function evaluateTryStatement<TContext extends ExceptionContext, TError>( node: TryStatement, context: TContext, evaluateNode: EvaluateExceptionNode<TContext, TError> ): Promise<EvaluationResult<TError>>",
+              "lines": [
+                121,
+                169
+              ],
+              "bodyOpeningLine": 125,
+              "bodySha256": "139d373d2f0239c48893d8cddb3bfff80e72247eb56cacae052cadb1b7c28d6d"
+            },
+            {
+              "name": "coerceThrownValue",
+              "signature": "export function coerceThrownValue( reason: unknown, budget: Budget, stackFrames: readonly string[], span?: ErrorSourceSpan ): SandboxValue",
+              "lines": [
+                186,
+                214
+              ],
+              "bodyOpeningLine": 191,
+              "bodySha256": "1a0d3230bbdcad0afa0b5b536e4e2d6ede327b323bb083f76c5b93cfffc8edc3"
+            }
+          ]
+        },
+        {
+          "group": "S8",
+          "path": "src/modules/registry.ts",
+          "blob": "8d7d52115b27822446540edf9267beb20e58688b",
+          "bytes": 6478,
+          "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+          "bodies": [
+            {
+              "name": "bindImportDeclaration",
+              "signature": "function bindImportDeclaration( declaration: ImportDeclaration, registry: NormalizedModuleRegistry, wrappedModules: Map<string, Record<string, SandboxValue>>, bindings: Record<string, SandboxValue>, options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal; allowMissing?: boolean; } ): void",
+              "lines": [
+                77,
+                131
+              ],
+              "bodyOpeningLine": 88,
+              "bodySha256": "3bbee8bb70451230b2d16bc301b302f3055a77d0c849f407f2cd917b7e908477"
+            },
+            {
+              "name": "resolveImportSpecifier",
+              "signature": "function resolveImportSpecifier( moduleName: string, specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier, wrappedExports: Record<string, SandboxValue> ): SandboxValue",
+              "lines": [
+                133,
+                154
+              ],
+              "bodyOpeningLine": 137,
+              "bodySha256": "cb3d7193220eebd4b69e7a88602bd1f2199ff07e57c6f9347094dc855e6cdb95"
+            }
+          ]
+        },
+        {
+          "group": "S9",
+          "path": "src/interp/budget.ts",
+          "blob": "2f69c852a87f134470acfcac7e0be37c6e3d0412",
+          "bytes": 9007,
+          "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+          "bodies": [
+            {
+              "name": "Budget.allocateString",
+              "signature": "allocateString(value: string): string",
+              "lines": [
+                115,
+                129
+              ],
+              "bodyOpeningLine": 115,
+              "bodySha256": "f50ee3f9fdf387bde2722857850e66f597e12a66374251d8f6e36d78e4009bd2"
+            },
+            {
+              "name": "Budget.allocateArrayLength",
+              "signature": "allocateArrayLength(length: number): void",
+              "lines": [
+                131,
+                143
+              ],
+              "bodyOpeningLine": 131,
+              "bodySha256": "f031197ee10aa3214e851a542fb957574e39f3f8b941e5325c4ca0c36049d3b6"
+            },
+            {
+              "name": "Budget.reset",
+              "signature": "reset(): void",
+              "lines": [
+                203,
+                215
+              ],
+              "bodyOpeningLine": 203,
+              "bodySha256": "b1e02c6ac5d3579a9bb01a33eec6ee9164d2467eae2ffe9417ff0af1adb6d3f2"
+            }
+          ]
+        },
+        {
+          "group": "S10",
+          "path": "src/core.ts",
+          "blob": "14821488bbc1eb8b0bb18e4ca2be442f320e9161",
+          "bytes": 396,
+          "sha256": "8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a",
+          "bodies": []
+        },
+        {
+          "group": "S10",
+          "path": "src/index.ts",
+          "blob": "2a17cf5247c33fa0ea47732f9d320a962f97019c",
+          "bytes": 3030,
+          "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+          "bodies": []
+        }
+      ],
+      "reviewReported": {
+        "rawTrees": 13,
+        "blobMembers": 66,
+        "functionBodies": 37
+      },
+      "newChecks": "The37 body bindings match between frozen author SOURCES and review RESULT. Their underlying engine body authentication remains inherited Poincare evidence; this is not37 semantic passes or a loaded closure.",
+      "launchClosure": "No parent/Worker/scaffold entry or actual loaded transitive closure is supplied/qualified. No claims that derived trees are locally stored Git objects."
+    },
+    "parentContracts": {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "paths": [
+        "src/contracts/command.ts",
+        "src/contracts/command.md",
+        "src/contracts/io.ts",
+        "src/contracts/output.ts",
+        "src/contracts/errors.ts"
+      ],
+      "meaning": "Pinned contracts/source are source-only references. The28 typed codes were extracted as data; existing actual Shell runtime mapping/consumer qualification still required. No acceptance of moving/live product source."
+    },
+    "reviewAttachments": [
+      "tests/commands/node-worker-independent-20260828/RESULT-v1.json",
+      "tests/commands/node-worker-independent-20260828/SCHEDULES-v1.json",
+      "tests/commands/node-worker-independent-20260828/source-excerpts.data",
+      "tests/commands/node-worker-independent-20260828/remaining-excerpts.data",
+      "tests/commands/node-worker-independent-20260828/ACTIVITY.md"
+    ],
+    "separateHistory": "Repair7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98/7b269a291d9fdc76e0760d36446d937e54060757 only as prior binding note. No repair artifacts opened directly; no Raman duplication. Old F01-F07/private ABI8planned0executed unchanged.",
+    "newSubjectExecutions": {
+      "workers": 0,
+      "engineImports": 0,
+      "guestEvaluations": 0,
+      "controls": 0,
+      "compilerBuilds": 0,
+      "installs": 0,
+      "nativeSubjects": 0,
+      "network": 0,
+      "delegation": 0
+    },
+    "limits": "Data/tool scripting and read-only Git authentication are not subject execution or independently verified engine semantics. No new broad cohort, subset score, elapsed-work claim, native/fullNode or superiority claim."
+  },
+  "VALIDATION.json": {
+    "schema": "WRQ-v2-data-validation",
+    "date": "2026-08-28",
+    "classification": "Pure data validation; no protocol-model or runtime acceptance",
+    "checks": {
+      "storedCommitsAuthenticated": 5,
+      "frozenInputBodiesAuthenticated": 24,
+      "instructionReferenceSnapshots": 4,
+      "reviewPrefixesUnique": true,
+      "reviewReportAndChoicesIdenticalAcrossCommits": true,
+      "inputPathMembership": "Exact NUL-delimited Git tree records; no C-quoted display paths",
+      "gitObjects": "Full commit/blob object header+body SHA1 checked; body length+SHA256 checked",
+      "sourceBindings": "14 inherited members/37 function-body hashes cross-compared with frozen review RESULT; not newly independently rehashed engine bodies",
+      "retainedCaps": "Every v1 numeric limit unchanged except grace100->0; physical slots3 retained, async slots inactive. No increased maxima.",
+      "wrqIdentities": 8,
+      "rootIdentityBijection": 8,
+      "findingsAddressed": 7,
+      "qualificationBlockers": 4,
+      "fsCodes": 28,
+      "transitionRows": 14,
+      "phaseRows": 8,
+      "sabBytes": 197056,
+      "layoutArithmetic": "64+3*(128+65536)=197056;16/32 Int32 header words",
+      "markdownWords": 1495,
+      "jsonDuplicateKeys": 0,
+      "trailingWhitespace": 0,
+      "invalidJsonNumbers": 0
+    },
+    "sealProcedure": "After writing VALIDATION and SEAL, parse all9 JSON outputs with duplicate-key/nonfinite rejection, rehash every sealed input/output, compare exact12-file owned inventory (detects additions), and run staged git diff --check before commit. Failures must prevent commit; external handoff confirms result. No append-proof claim for unrelated repository trees.",
+    "gitProcedure": "Initial foreign staged diff empty. Capture foreign NUL-delimited index records immediately before own-path staging; compare after staging and explicit-path commit. Hooks/signing disabled for this data-only commit. Full commit, clean owned status and actual foreign-index preservation reported externally, not self-referentially hashed here.",
+    "executions": {
+      "workers": 0,
+      "engines": 0,
+      "guests": 0,
+      "controls": 0,
+      "nativeSubjects": 0,
+      "compilerBuilds": 0,
+      "installs": 0,
+      "network": 0,
+      "delegations": 0
+    },
+    "tools": "Only built-in data scripting, shell read-only inspection, Git artifact authentication and authorized apply_patch/add/commit. No optional ROOT budget, child-control, subject driver, engine import or source materialization.",
+    "limits": "A source/schema/hash/count/whitespace check is not a conformance pass. Eight WRQ and eight historical private-ABI evaluations remain unrun; no independent review supplied."
+  }
+}

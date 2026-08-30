@@ -1,0 +1,398 @@
+{
+  "status": "UNAPPROVED_HELD_DIFFERENT_REVIEW_REQUIRED",
+  "candidate": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "observerAcceptedBy": "d80af7048688dfbd1b4b3ebd9c5fb2aacb26f473",
+  "adapterSha256": "c789e86bea280a3b76a56d9721b4ce262306fdfdcb5677e71c67348af3374628",
+  "transformsSha256": "2b87f6fd696255949302082f0bd759ffa5051c0898cf68826dd9c8ce5bf85568",
+  "semanticGroups": {
+    "source": 71,
+    "compiled": 71,
+    "staged": 71,
+    "moved": 71,
+    "total": 284,
+    "oldCompletedSourceRepeated": 69,
+    "oldUnexecuted": 215
+  },
+  "semanticChildren": {
+    "layouts": 4,
+    "typesPositive": 1,
+    "typesNegative": 4,
+    "mutants": 3,
+    "bindingNegative": 3,
+    "total": 15
+  },
+  "priorExactRecipeData": {
+    "schema": "v8-qualified-observer-UNAPPROVED-continuation-proposal",
+    "status": "NOT_AN_EXECUTABLE_SEAL_DIFFERENT_REVIEW_AND_FRESH_ROOT_GO_REQUIRED",
+    "rootGo": false,
+    "executionAuthorized": false,
+    "executionCommand": null,
+    "qualification": {
+      "presealCommit": "1f03c93a0a857d7360bf8a418eff45bbcfa20942",
+      "outerPassed": 19,
+      "real": 6,
+      "synthetic": 11,
+      "data": 2,
+      "S07NegativeSubcases": 3,
+      "receiptSha256": "d53c813987f9882977e8a594faa8e532abd945af1cdef5e9293358b465477baf",
+      "candidateAcceptance": false
+    },
+    "observerModules": [
+      {
+        "path": "observer.mjs",
+        "sha256": "30d33df91fe6bfbb89a10ac81b93e39d321bdc7aa39a6133fa2e0dfd65e1f7c1"
+      },
+      {
+        "path": "retirement.mjs",
+        "sha256": "c8a19a9389d045b2807eb1d60534747297e2430fd93c7950e1e5025e698720f2"
+      }
+    ],
+    "minimalWorkerAdapterProposal": {
+      "path": "WORKER-ADAPTER-PROPOSAL.md",
+      "sha256": "5fbc84e198bcca25e5d2ef35cc486ae1cd3e2ac5d87f4f2db42ee9546e70370d",
+      "executableAdapterExists": false
+    },
+    "reviewPrerequisites": [
+      "different agent reviews causal identity, bounded-notification and negative controls",
+      "freeze a concrete minimal adapter and exact forwarding/iterator-factory behavior",
+      "directly observe or explicitly approve source-linked candidate writer-promise evidence; no fabricated direct observation",
+      "bind per-invocation direct-host/root-cleanup settlement boundaries, not only row-end state",
+      "authenticate frozen source/package/consumer/archive inputs before admission; no live overlay",
+      "preserve semantic assertions/matrix/fixtures; disclose all helper instrumentation byte changes",
+      "fresh ROOT GO for the exact executable seal and future budget"
+    ],
+    "frozenCandidateBindings": {
+      "source": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "authorEvidence": "887c9cbfe536c11c176cb083a2aac6adb971f1fb",
+      "derivedBase": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+      "entry": "src/commands/git/index.ts",
+      "entrySha256": "618f005b204c8f6e72059e83dcfe0a34cbddc1b8577907bef20ae2f05b107a1e",
+      "sourceCodecBlobOid": "02ad268a05e6e88edae8410c73328a65ac82d3e3",
+      "sourceCodecSha256": "442bd6956340565599afcc1e0762eb7a8d8e001fe8880e9ec8185b1e200bd868",
+      "isolatedSourceWriterSha256": "9b54d9f0b5cc73cf776b45b8c57fbc27a7f1acd8ca165306836a1b4760ed1fd6",
+      "isolatedWriterSurrogateSha256": "94b2d6b48b5981e2df17e69b5b5109a7cfe8c8e42a13692ff25badca95fa0f5d",
+      "fullPackageSha256HistoricalBinding": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+      "packageAuthentication": "unchanged historical declaration, must authenticate immutable payload before future admission",
+      "originalPreseal": "f38984ec68477a620792b5e899f7f29aa586bc9f",
+      "originalEvidence": "655cb37b97521558c4c90581b5b23fc6c3ad9bf2",
+      "oldPresealSha256": "963d9ff5d158f2f68d68004efaa463d669d144fbfa246330a6fb9f14fd5f5b21",
+      "oldBindingSha256": "435739487723415b02ce1b4c558828d5b6548876bdd5a4566d4e922d508a6a13",
+      "oldInputsSha256": "f23c38e5e78c365da8d396e3a0fb60ddcd224bb71fe948802642f676d5db701b",
+      "oldWorkerSha256": "4ed48d8e1a40a7abc298d9ac16d6fcaba3d844c5a1673835868a586c3844182c",
+      "unchangedCasesSha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21",
+      "unchangedFixturesSha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396",
+      "mutants": [
+        {
+          "id": "wrong-raw",
+          "file": "dist/commands/git/queries.js",
+          "needle": "await session.output(content.bytes);",
+          "replacement": "await session.output(Buffer.from(\"independent-mutant\"));",
+          "cases": [
+            "A04"
+          ],
+          "originalSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+          "mutatedSha256": "d5be34dda7b2c330c08453aeca572b953933bb27025d4a116f5ec9abce32dc7d"
+        },
+        {
+          "id": "guessed-mode",
+          "file": "dist/commands/git/repository.js",
+          "needle": "this.session.context.fs.capabilities.permissions === true",
+          "replacement": "true",
+          "cases": [
+            "H06"
+          ],
+          "originalSha256": "82142be3b5911024274baf00d5ec1bd66bf9f7df0eb0efd633873f81d0006ec8",
+          "mutatedSha256": "a2316b67122970cc9b3a0212897f917da37ce625ffd74ce34c9897b52ea7c7ff"
+        },
+        {
+          "id": "unmerged-diff",
+          "file": "dist/commands/git/queries.js",
+          "needle": "!index.some(entry => entry.stage && selected(entry.path, specs))",
+          "replacement": "true",
+          "cases": [
+            "A26"
+          ],
+          "originalSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+          "mutatedSha256": "60d2072a4f233c224b9d0636060ac0c3da497aece3210a7220816b8942715687"
+        }
+      ]
+    },
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "sourceGroupOrder": [
+      "A01",
+      "A02",
+      "A03",
+      "A04",
+      "A05",
+      "A06",
+      "A07",
+      "A08",
+      "A09",
+      "A10",
+      "A11",
+      "A12",
+      "A13",
+      "A14",
+      "A15",
+      "A16",
+      "A17",
+      "A18",
+      "A19",
+      "A20",
+      "A21",
+      "A22",
+      "A23",
+      "A24",
+      "A25",
+      "A26",
+      "A27",
+      "A28",
+      "A29",
+      "A30",
+      "A31",
+      "A32",
+      "A33",
+      "A34",
+      "A35",
+      "A36",
+      "A37",
+      "A38",
+      "A39",
+      "A40",
+      "A41",
+      "A42",
+      "A43",
+      "A44",
+      "A45",
+      "A46",
+      "A47",
+      "A48",
+      "A49",
+      "A50",
+      "A51",
+      "A52",
+      "A53",
+      "A54",
+      "A55",
+      "A56",
+      "A57",
+      "A58",
+      "A59",
+      "A60",
+      "H01",
+      "H02",
+      "H03",
+      "H04",
+      "H05",
+      "H06",
+      "H07",
+      "H08",
+      "H09",
+      "H10",
+      "H11"
+    ],
+    "exactProposedSequence": [
+      {
+        "ordinal": 1,
+        "role": "source-fresh-all71",
+        "groups": 71
+      },
+      {
+        "ordinal": 2,
+        "role": "compiled",
+        "groups": 71
+      },
+      {
+        "ordinal": 3,
+        "role": "manual-staged",
+        "groups": 71
+      },
+      {
+        "ordinal": 4,
+        "role": "physically-moved",
+        "groups": 71
+      },
+      {
+        "ordinal": 5,
+        "role": "types-positive",
+        "expectedExit": 0
+      },
+      {
+        "ordinal": 6,
+        "role": "types-negative-limits",
+        "expectedExit": 2,
+        "diagnostic": "TS2353"
+      },
+      {
+        "ordinal": 7,
+        "role": "types-negative-native",
+        "expectedExit": 2,
+        "diagnostic": "TS2353"
+      },
+      {
+        "ordinal": 8,
+        "role": "types-negative-boundary",
+        "expectedExit": 2,
+        "diagnostic": "TS2322"
+      },
+      {
+        "ordinal": 9,
+        "role": "types-negative-public-root",
+        "expectedExit": 2,
+        "diagnostic": "TS2305"
+      },
+      {
+        "ordinal": 10,
+        "role": "mutant-wrong-raw",
+        "groups": [
+          "A04"
+        ]
+      },
+      {
+        "ordinal": 11,
+        "role": "mutant-guessed-mode",
+        "groups": [
+          "H06"
+        ]
+      },
+      {
+        "ordinal": 12,
+        "role": "mutant-unmerged-diff",
+        "groups": [
+          "A26"
+        ]
+      },
+      {
+        "ordinal": 13,
+        "role": "binding-entry",
+        "requiresBeforeLoadRefusal": true
+      },
+      {
+        "ordinal": 14,
+        "role": "binding-hash",
+        "requiresBeforeLoadRefusal": true
+      },
+      {
+        "ordinal": 15,
+        "role": "binding-import",
+        "requiresBeforeLoadRefusal": true
+      }
+    ],
+    "layoutArithmetic": {
+      "freshSource": 71,
+      "compiled": 71,
+      "staged": 71,
+      "moved": 71,
+      "freshTotal": 284,
+      "repeatedPriorSourceGroups": 69,
+      "sourceOriginallyUnexecuted": [
+        "H10",
+        "H11"
+      ],
+      "originallyUnexecutedTotal": 215,
+      "originallyUnexecutedStillUnexecutedNow": 215
+    },
+    "futureChildren": {
+      "sourceFresh": 1,
+      "originalOther14": {
+        "layouts": 3,
+        "typePositive": 1,
+        "typeNegative": 4,
+        "mutants": 3,
+        "bindingNegative": 3
+      },
+      "total": 15
+    },
+    "futureBudgetProposalOnly": {
+      "aggregateIncludingCleanupMs": 600000,
+      "directChildren": 15,
+      "peakOwnedProcesses": 2,
+      "perChildMs": 120000,
+      "perGroupMs": 30000,
+      "cleanupReserveMs": 5000,
+      "captureCapBytes": 33554432,
+      "scratchCapBytes": 134217728,
+      "admission": "one sequential child; refuse when full child/cleanup or capture reservation cannot fit; preserve unexecuted rows",
+      "inheritsOld110MinuteBudget": false,
+      "enlargesCurrentAuthority": false
+    },
+    "preservedOldH09": {
+      "created": 289,
+      "closeEventsDelivered": 288,
+      "semanticPasses": 69,
+      "safetyStop": true,
+      "rescore": false
+    },
+    "preservedOldObserverFailures": [
+      "v6 R02 FAIL",
+      "v7 R05 FAIL"
+    ],
+    "nativeGit": {
+      "workflows": 6,
+      "state": "HELD_UNRUN"
+    },
+    "candidateExecutionsNow": 0,
+    "productFix": null
+  },
+  "nativeGitHeld": 6,
+  "mechanicalPilotProposal": {
+    "execution": "HELD; distinct from 284 unchanged semantic groups",
+    "sourceGroups": [
+      "A57",
+      "A60",
+      "H09"
+    ],
+    "children": 1,
+    "additionalToSemantic15": true,
+    "allModuleTransforms": [
+      {
+        "path": "src/commands/git/codec.ts",
+        "sha256": "609cb9dfe1a566a982526b1c6826aae6ed69b5fdafa209a49019c955c628e077"
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "sha256": "f2ad87dd332ca7e0c6cda3b3a3afd05bff7432d6b014f2c17fc3057883446364"
+      },
+      {
+        "path": "src/commands/git/index.ts",
+        "sha256": "dbb536600ba13534420dcfa0b1f3b24f7afceaeb0a74695e16720b523d0648c8"
+      },
+      {
+        "path": "src/shell/cleanup.ts",
+        "sha256": "a753d8290930cd98ffc60569eb4ed6ae43dc7f23c4c9016eca11718586710c23"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "sha256": "5fc9c39ae86c3d45fe17e1fdf21338e7640c43df41f147c6c0e6eae72818efbb"
+      },
+      {
+        "path": "tests/commands/git-independent-20260828/m1a-review-v5/cases.mjs",
+        "sha256": "cee11f55eca592103f5fe183f02afff3840a0729c4c84d818c2318b216edf996"
+      }
+    ],
+    "maxMs": 60000,
+    "traceSlots": 8192,
+    "identitySlots": 1024,
+    "streamSlots": 32,
+    "overflow": "HOLD, no retry/rescore/cap increase under same seal"
+  },
+  "finiteOrder": "different review -> fresh ROOT admission of mechanical pilot only -> inspect loaded hashes/routes -> separate ROOT decision on unchanged 284/15 continuation",
+  "aggregateFutureProposal": {
+    "childrenIncludingAdditionalMechanicalPilot": 16,
+    "peak": 2,
+    "aggregateMs": 600000,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "missingAdmissionInputs": [
+    "diagnostic loader loaded-byte receipt and pinned TS toolchain",
+    "full-fixture capacity proof",
+    "review of unchanged semantic adapter using conditional source-join rather than private dynamic timestamps"
+  ],
+  "command": null,
+  "candidateExecutableSealPromoted": false
+}

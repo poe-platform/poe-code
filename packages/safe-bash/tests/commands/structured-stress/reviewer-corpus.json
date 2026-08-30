@@ -1,0 +1,24 @@
+{
+  "provenance": {"native":"jq-1.7.1-apple","date":"2026-08-26","seed":"0x732ce951","reviewerSourceHash":"503c9406036c8181340cfcb77c5cd3beaa7415869d3714c4491312eb9a39e4b0","timeoutMs":2000,"maxBuffer":65536,"shell":false},
+  "fixtures": [
+    {"id":"reviewer-469","input":"null","argv":["-c","--","first(range((0,1/0);2))"],"status":0,"stdout":"0\n"},
+    {"id":"reviewer-470","input":"null","argv":["-c","--","first(range(0;(2,1/0)))"],"status":0,"stdout":"0\n"},
+    {"id":"reviewer-471","input":"null","argv":["-c","--","first(range(0;2;(1,1/0)))"],"status":0,"stdout":"0\n"},
+    {"id":"reviewer-472","input":"null","argv":["-c","--","limit(1;range((0,1/0);2))"],"status":0,"stdout":"0\n"},
+    {"id":"reviewer-473","input":"null","argv":["-c","--","[range(empty;1/0)]"],"status":0,"stdout":"[]\n"},
+    {"id":"reviewer-474","input":"null","argv":["-c","--","[range(0;empty;1/0)]"],"status":0,"stdout":"[]\n"},
+    {"id":"reviewer-476","input":"null","argv":["-c","--","first(range((0,empty,1/0);(1,2)))"],"status":0,"stdout":"0\n"},
+    {"id":"reviewer-477","input":"null","argv":["-c","--","range((0,1/0);1)"],"status":5,"stdout":"0\n"},
+    {"id":"reviewer-478","input":"null","argv":["-c","--","range(0;(1,1/0))"],"status":5,"stdout":"0\n"},
+    {"id":"reviewer-479","input":"{\"a\":{\"a\":1,\"b\":2},\"b\":3}","argv":["-c","--","(.a,.)[(\"a\",\"b\")] |= if type==\"object\" then {} else .+1 end"],"status":0,"stdout":"{\"a\":{\"b\":1},\"b\":4}\n"},
+    {"id":"reviewer-481","input":"{\"a\":{\"a\":1,\"b\":2},\"b\":3}","argv":["-c","--","(.a,.)[(\"a\",\"b\")] = {}"],"status":0,"stdout":"{\"a\":{\"b\":{}},\"b\":{}}\n"},
+    {"id":"reviewer-482","input":"{\"a\":{\"a\":1,\"b\":2},\"b\":3}","argv":["-c","--","(.a,.)[(\"a\",\"b\")] |= if type==\"object\" then .b else . end"],"status":5,"stdout":""},
+    {"id":"reviewer-483","input":"{\"a\":{\"a\":1,\"b\":2},\"b\":3}","argv":["-c","--","(.,.a)[(\"b\",\"a\")] |= if type==\"object\" then {} else .+1 end"],"status":0,"stdout":"{\"a\":{\"a\":1},\"b\":4}\n"},
+    {"id":"reviewer-485","input":"{\"a\":{\"a\":1,\"b\":2},\"b\":3}","argv":["-c","--","(.,.a)[(\"b\",\"a\")] = {}"],"status":0,"stdout":"{\"a\":{\"a\":{}},\"b\":{}}\n"},
+    {"id":"reviewer-499","input":"{\"a\":{\"a\":{\"a\":1},\"b\":2},\"b\":3}","argv":["-c","--","(.a,.)[(\"a\",\"b\")] |= if type==\"object\" then {} else .+1 end"],"status":0,"stdout":"{\"a\":{\"b\":1},\"b\":4}\n"},
+    {"id":"reviewer-501","input":"{\"a\":{\"a\":{\"a\":1},\"b\":2},\"b\":3}","argv":["-c","--","(.a,.)[(\"a\",\"b\")] = {}"],"status":0,"stdout":"{\"a\":{\"b\":{}},\"b\":{}}\n"},
+    {"id":"reviewer-502","input":"{\"a\":{\"a\":{\"a\":1},\"b\":2},\"b\":3}","argv":["-c","--","(.a,.)[(\"a\",\"b\")] |= if type==\"object\" then .b else . end"],"status":5,"stdout":""},
+    {"id":"reviewer-503","input":"{\"a\":{\"a\":{\"a\":1},\"b\":2},\"b\":3}","argv":["-c","--","(.,.a)[(\"b\",\"a\")] |= if type==\"object\" then {} else .+1 end"],"status":0,"stdout":"{\"a\":{\"a\":1},\"b\":4}\n"},
+    {"id":"reviewer-505","input":"{\"a\":{\"a\":{\"a\":1},\"b\":2},\"b\":3}","argv":["-c","--","(.,.a)[(\"b\",\"a\")] = {}"],"status":0,"stdout":"{\"a\":{\"a\":{}},\"b\":{}}\n"}
+  ]
+}

@@ -1,0 +1,248 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E13",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E13/nul/split-false",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303030300a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/nul/split-true",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303030300a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 9,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/escape/split-false",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303031420a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/escape/split-true",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b303031420a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 9,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/incomplete/split-false",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964205554462d3820696e7075740a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/incomplete/split-true",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20696e76616c6964205554462d3820696e7075740a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 10,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/zwj/split-false",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b323030440a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 1,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    },
+    {
+      "name": "E13/zwj/split-true",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": 1,
+          "rejection": null,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "636f6c756d6e3a2045494e56414c3a20756e737570706f7274656420636f6e74726f6c206f72206e6f6e2d7363616c617220552b323030440a",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 11,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass"
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 184,
+    "units": 230
+  },
+  "counts": {
+    "total": 8,
+    "pass": 8,
+    "fail": 0
+  }
+}

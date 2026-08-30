@@ -1,0 +1,41 @@
+{
+  "at": "2026-08-27T02:28:08.911Z",
+  "name": "stat-original-author-profile-corrected",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^stat (prints|lstat/default|printf escapes|missing fields|limits,)",
+    "tests/commands/metadata/stat.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+  "exitCode": 1,
+  "signal": null,
+  "error": null,
+  "pass": 4,
+  "fail": 1,
+  "skipped": 0,
+  "stdoutSha256": "c5eda8d6d7891ee9ecec4bd5f967c55d04cda6679878bfe1bb742c5ca0bc9e5d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "snapshotDrift": [],
+  "liveDrift": [],
+  "incident": {
+    "initialName": "stat-original-author-profile",
+    "initialPass": 5,
+    "initialFail": 1,
+    "unintendedNativeInvocation": {
+      "executable": "/usr/bin/stat",
+      "args": [
+        "-f",
+        "%z:%N",
+        "file"
+      ],
+      "fixtureRoot": "/tmp/safe-bash-five-final-review/runtime-temp",
+      "scope": "One unchanged legacy numeric size/name author test; no human timestamp or patch oracle."
+    },
+    "cause": "The negative-lookahead name filter also matched the test-file ancestor, selecting all six tests. Explicit positive-name selection runs only the five intended tests.",
+    "disposition": "Initial raw output retained unchanged and not admitted as GNU acceptance. This incidental Apple invocation violates the requested execution restriction; do not claim zero Apple invocations. Exact-five engine/native replay and new human/quiet controls exclusively used pinned GNU utility expectations."
+  },
+  "inputHashReference": "snapshot-inputs.json"
+}

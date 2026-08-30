@@ -1,0 +1,10 @@
+FROZEN DIRTY current source, not committed-source validation
+HEAD 5076b32dee1b8ca6d1ed757216f3f5bed17cb379
+selected SHA256 d779b4b516275895677f05c5011cf7c39e8252eda7686fecdcaa453a56920e91
+src SHA256 6c24d112b9ec65b660f2fc8131d97e0bb03023d7f8de4bdd212612c75e5f89da
+1276 regular independent files; before/after sealing identical
+/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-registry-unblock-or9etxak/source
+Handoffs 98498c1 and 7d0fe7b accepted bytes match. Historical four test files unchanged.
+Exact 79+8+6+6=99; separate literal52, author2, author30, independent154 missing +7 optional workflow +1 literal-list controls.
+Full argv and dirty paths: /Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/registry-unblock/execution/sealed-input.json
+No full suite/comparator; 900s overall bound; no staging/commit.

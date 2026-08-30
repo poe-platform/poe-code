@@ -1,0 +1,47 @@
+164f9e5eb test: record alias denial and same-authority physical loader readiness
+ .../stage-a-loader/v2/CAPSULE.json                 | 30 +++++++
+ .../stage-a-loader/v2/HANDOFF.md                   | 95 ++++++++++++++++++++++
+ .../stage-a-loader/v2/L01-DISPATCH.json            | 51 ++++++++++++
+ .../stage-a-loader/v2/L02-DISPATCH.json            | 51 ++++++++++++
+ .../stage-a-loader/v2/RESOURCES.txt                | 14 ++++
+ .../stage-a-loader/v2/RESULT.json                  | 61 ++++++++++++++
+ .../stage-a-loader/v2/capture/L01.stderr           | 17 ++++
+ .../stage-a-loader/v2/capture/L01.stdout           |  0
+ .../stage-a-loader/v2/capture/L02.stderr           |  0
+ .../stage-a-loader/v2/capture/L02.stdout           |  1 +
+ .../stage-a-loader/v2/capture/precommit.stdout     | 22 +++++
+ .../stage-a-loader/v2/capture/probe.events.jsonl   |  8 ++
+ .../stage-a-loader/v2/capture/probe.stderr         |  0
+ .../stage-a-loader/v2/capture/probe.stdout         |  1 +
+ 14 files changed, 351 insertions(+)
+b8e4e24b0 docs: diagnose Node symlink-stat denial and preserve locator admission stop
+ .../stage-a-loader/HANDOFF.md                      | 81 ++++++++++++++++++++++
+ .../stage-a-loader/RESOURCES.txt                   | 13 ++++
+ .../stage-a-loader/STOP.json                       |  9 +++
+ .../stage-a-loader/capture/precommit.stdout        | 33 +++++++++
+ .../stage-a-loader/capture/probe.events.jsonl      |  0
+ .../stage-a-loader/capture/probe.stderr            | 20 ++++++
+ .../stage-a-loader/capture/probe.stdout            |  0
+ 7 files changed, 156 insertions(+)
+4c764d701 test: seal explicit loader descriptor identities and two fixed probes
+ .../stage-a-loader/v2/ACTIVATION.json              |  8 ++
+ .../stage-a-loader/v2/DATA-CONTROLS.json           | 11 +++
+ .../stage-a-loader/v2/MATERIALIZE.patch            | 70 +++++++++++++++++
+ .../stage-a-loader/v2/PLAN.json                    | 37 +++++++++
+ .../stage-a-loader/v2/PRESEAL.json                 | 88 ++++++++++++++++++++++
+ .../stage-a-loader/v2/PROFILE.md                   | 27 +++++++
+ .../stage-a-loader/v2/SEAL-RESULT.json             |  6 ++
+ .../stage-a-loader/v2/capture/plan.stderr          |  0
+ .../stage-a-loader/v2/capture/plan.stdout          |  1 +
+ .../stage-a-loader/v2/capture/precommit.stderr     |  0
+ .../stage-a-loader/v2/capture/precommit.stdout     |  0
+ .../stage-a-loader/v2/capture/seal.stderr          |  0
+ .../stage-a-loader/v2/capture/seal.stdout          |  1 +
+ .../stage-a-loader/v2/data-controls/literal.json   |  1 +
+ .../stage-a-loader/v2/descriptor.mjs               | 17 +++++
+ .../stage-a-loader/v2/fixture/entry.js.fixture     |  2 +
+ .../stage-a-loader/v2/fixture/payload.js.fixture   |  5 ++
+ .../stage-a-loader/v2/outer.sh                     | 11 +++
+ .../stage-a-loader/v2/prepare.mjs                  | 39 ++++++++++
+ .../stage-a-loader/v2/probe.mjs                    | 58 ++++++++++++++
+ 20 files changed, 382 insertions(+)

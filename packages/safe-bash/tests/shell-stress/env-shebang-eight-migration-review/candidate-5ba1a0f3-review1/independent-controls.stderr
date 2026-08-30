@@ -1,0 +1,29 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    126,
+    '',
++   'shell: line 1: /script: unsupported interpreter: /bin/bash -e -e\n'
+-   '/script: unsupported interpreter: /bin/bash -e -e\n'
+  ]
+
+    at run (file:///Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/controls.mjs:61:14)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/controls.mjs:87:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    126,
+    '',
+    'shell: line 1: /script: unsupported interpreter: /bin/bash -e -e\n'
+  ],
+  expected: [ 126, '', '/script: unsupported interpreter: /bin/bash -e -e\n' ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

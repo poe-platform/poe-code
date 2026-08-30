@@ -1,0 +1,229 @@
+{
+  "schema": "M1A-v13-outer-receipt",
+  "status": "HOLD",
+  "failure": {
+    "message": "Unexpected end of JSON input",
+    "stack": "SyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/outer.mjs:106:25"
+  },
+  "presealCommit": "1d981b9f0c4874bc129691d8ef0c2781b341da40",
+  "sealSha256": "359b1d3310bcd133329e6e89c653f58aabeb2d60910915f8d47e2de0776dd5c3",
+  "pid": 65407,
+  "children": [
+    {
+      "id": "positive",
+      "enrolledBeforeSpawn": true,
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/compiler.mjs",
+        "positive"
+      ],
+      "stdoutBytes": 0,
+      "stderrBytes": 628,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "closed": true,
+      "rescueSignals": [],
+      "pid": 65426,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "cleanupSettled": true
+    }
+  ],
+  "controlledProcesses": 2,
+  "peak": 2,
+  "results": [],
+  "guards": [
+    {
+      "phase": "before",
+      "rows": [
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+          "entries": 25,
+          "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+          "entries": 36,
+          "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+          "entries": 126,
+          "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+          "entries": 147,
+          "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+          "entries": 83,
+          "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+          "entries": 41,
+          "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/work",
+          "entries": 1069,
+          "canonicalSha256": "e2e9ce9f5ddeaa408b5368bb76e8f25491e344ab9a53f97a31ccb33888c381c9",
+          "newEntryCheck": true
+        }
+      ]
+    },
+    {
+      "phase": "after-positive",
+      "rows": [
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+          "entries": 25,
+          "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+          "entries": 36,
+          "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+          "entries": 126,
+          "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+          "entries": 147,
+          "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+          "entries": 83,
+          "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+          "entries": 41,
+          "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/work",
+          "entries": 1069,
+          "canonicalSha256": "e2e9ce9f5ddeaa408b5368bb76e8f25491e344ab9a53f97a31ccb33888c381c9",
+          "newEntryCheck": true
+        }
+      ]
+    },
+    {
+      "phase": "before-cleanup",
+      "rows": [
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+          "entries": 25,
+          "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+          "entries": 36,
+          "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+          "entries": 126,
+          "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+          "entries": 147,
+          "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+          "entries": 83,
+          "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+          "entries": 41,
+          "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/work",
+          "entries": 1069,
+          "canonicalSha256": "e2e9ce9f5ddeaa408b5368bb76e8f25491e344ab9a53f97a31ccb33888c381c9",
+          "newEntryCheck": true
+        }
+      ]
+    },
+    {
+      "phase": "after-cleanup",
+      "rows": [
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+          "entries": 25,
+          "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+          "entries": 36,
+          "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+          "entries": 126,
+          "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+          "entries": 147,
+          "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+          "entries": 83,
+          "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+          "newEntryCheck": true
+        },
+        {
+          "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+          "entries": 41,
+          "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+          "newEntryCheck": true
+        }
+      ]
+    }
+  ],
+  "workRemoved": true,
+  "workPeakBytes": 8374197,
+  "captureBytesBeforeReceipt": 2736,
+  "elapsedBeforePublicationMs": 4770.46,
+  "noUniversalProcessCensus": true
+}

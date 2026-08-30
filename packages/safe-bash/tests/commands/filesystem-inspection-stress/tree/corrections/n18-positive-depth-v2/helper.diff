@@ -1,0 +1,61 @@
+--- v1/n18-predicate.mjs
++++ v2/n18-predicate.mjs
+@@ -3,26 +3,28 @@
+ const integer = '([+-]?\\d+)(?![\\w]|\\.\\d)';
+ const positiveInteger = (value) => Number.isSafeInteger(Number(value)) && Number(value) > 0;
+ const nonnegativeInteger = (value) => Number.isSafeInteger(Number(value)) && Number(value) >= 0;
++const subject = '(?:tree:[ \\t]+)?(?:invalid[ \\t]+)?(-L|level|(?:maximum[ \\t]+)?depth)(?:,[ \\t]*|[ \\t]+)';
++const profile = (constraint) => new RegExp(`^${subject}${constraint}[.]?$`, 'iu');
+ const rules = [
+   {
+-    expression: /\b(?:must|shall)\s+be\s+(?:a\s+)?(?:strictly\s+)?positive(?:\s+integer)?\b/giu,
++    expression: profile('(?:must|shall)[ \\t]+be[ \\t]+(?:a[ \\t]+)?(?:strictly[ \\t]+)?positive(?:[ \\t]+integer)?'),
+     valid: () => true,
+   },
+   {
+-    expression: new RegExp(`\\b(?:must|shall)\\s+be\\s+(?:greater\\s+than|above|>)\\s*${integer}`, 'giu'),
+-    valid: (match) => nonnegativeInteger(match[1]),
++    expression: profile(`(?:must|shall)[ \\t]+be[ \\t]+(?:greater[ \\t]+than|above|>)[ \\t]*${integer}`),
++    valid: (match) => nonnegativeInteger(match[2]),
+   },
+   {
+-    expression: new RegExp(`\\b(?:must|shall)\\s+be\\s+(?:at\\s+least|>=)\\s*${integer}`, 'giu'),
+-    valid: (match) => positiveInteger(match[1]),
++    expression: profile(`(?:must|shall)[ \\t]+be[ \\t]+(?:at[ \\t]+least|>=)[ \\t]*${integer}`),
++    valid: (match) => positiveInteger(match[2]),
+   },
+   {
+-    expression: new RegExp(`\\b(?:must|shall)\\s+be\\s+between\\s+${integer}\\s+and\\s+${integer}`, 'giu'),
+-    valid: (match) => positiveInteger(match[1]) && positiveInteger(match[2]) && Number(match[2]) >= Number(match[1]),
++    expression: profile(`(?:must|shall)[ \\t]+be[ \\t]+between[ \\t]+${integer}[ \\t]+and[ \\t]+${integer}`),
++    valid: (match) => positiveInteger(match[2]) && positiveInteger(match[3]) && Number(match[3]) >= Number(match[2]),
+   },
+   {
+-    expression: new RegExp(`\\b(?:valid|allowed|expected|required)\\s+range\\s*(?::|is)?\\s*${integer}\\s*(?:\\.\\.|-|to)\\s*${integer}`, 'giu'),
+-    valid: (match) => positiveInteger(match[1]) && positiveInteger(match[2]) && Number(match[2]) >= Number(match[1]),
++    expression: profile(`(?:valid|allowed|expected|required)[ \\t]+range[ \\t]*(?::|is)?[ \\t]*${integer}[ \\t]*(?:\\.\\.|-|to)[ \\t]*${integer}`),
++    valid: (match) => positiveInteger(match[2]) && positiveInteger(match[3]) && Number(match[3]) >= Number(match[2]),
+   },
+ ];
+ 
+@@ -32,12 +34,13 @@
+   assert.equal(stdout.byteLength, 0, 'N18 usage failure must not emit normal stdout');
+   assert.ok(stderr.byteLength > 0 && stderr.byteLength <= 4096, 'N18 requires a bounded nonempty error diagnostic');
+   const diagnostic = new TextDecoder('utf-8', { fatal: true }).decode(stderr).trim();
+-  const relevant = diagnostic.split(/\r?\n/u).filter((line) => /(?:^|[^\w-])-L(?=$|[^\w-])/u.test(line) || /\b(?:level|depth)\b/iu.test(line));
+-  assert.ok(relevant.length > 0, 'N18 diagnostic must identify -L, level, or depth');
+-  const constraints = [];
+-  for (const line of relevant) {
+-    for (const rule of rules) for (const match of line.matchAll(rule.expression)) constraints.push(rule.valid(match));
+-    if (/\b(?:zero|0)\s+(?:is\s+)?(?:allowed|valid|accepted)\b|\b(?:including|allowing)\s+(?:zero|0)\b|\bpositive\s+or\s+(?:zero|0)\b/iu.test(line)) constraints.push(false);
++  assert.ok(!/[\r\n\u2028\u2029]/u.test(diagnostic), 'N18 finite profile requires one complete diagnostic line');
++  for (const rule of rules) {
++    const match = diagnostic.match(rule.expression);
++    if (!match) continue;
++    assert.ok(!match[1].startsWith('-') || match[1] === '-L', 'N18 short option must be exactly -L');
++    assert.ok(rule.valid(match), 'N18 diagnostic must exclude zero with valid ordered positive bounds');
++    return;
+   }
+-  assert.ok(constraints.length > 0 && constraints.every(Boolean), 'N18 diagnostic must require a valid positive depth bound or range, excluding zero');
++  assert.fail('N18 diagnostic must wholly match a documented depth-subject constraint');
+ }

@@ -1,0 +1,305 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+  "args": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "run",
+    "typecheck:all",
+    "--",
+    "--report",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/typecheck-all"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source",
+  "pid": 34317,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 45584,
+  "timeoutMs": 360000,
+  "outputBytes": 1851,
+  "observed": [
+    {
+      "pid": 34317,
+      "parent": 33334,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:18 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck:all -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/typecheck-all"
+    },
+    {
+      "pid": 34339,
+      "parent": 34317,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:18 2026",
+      "command": "node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/typecheck-all"
+    },
+    {
+      "pid": 34360,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:18 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    },
+    {
+      "pid": 34416,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc --noEmit"
+    },
+    {
+      "pid": 34688,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:33 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"
+    },
+    {
+      "pid": 34726,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:34 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/atomic-webdav-profile-source.json --traceResolution"
+    },
+    {
+      "pid": 34748,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:35 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/atomic-webdav-independent-source.json --traceResolution"
+    },
+    {
+      "pid": 34789,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:37 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/env-split-public-source.json --traceResolution"
+    },
+    {
+      "pid": 34832,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:38 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/du-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34857,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/grep-aliases-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34886,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:40 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/column-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34901,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:41 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/network-zero-caps-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34932,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:42 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34953,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:43 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34974,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:44 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-followup/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35011,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:45 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-production/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35024,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:46 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-production-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35037,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:47 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-constructor/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35049,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:48 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-http-author/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35067,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-http-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35094,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-rmdir/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35109,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:51 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-loopback/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35129,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-services/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35142,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:53 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/stream-inspection/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35153,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:54 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/stream-five/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35187,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:55 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35206,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:56 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35229,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/env-split-public-types/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35258,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:58 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-atomic/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35283,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:59 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-atomic-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35297,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:00 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-timestamp-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35318,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/env-split-public-types/negative.json"
+    },
+    {
+      "pid": 35329,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-public/negative.json"
+    },
+    {
+      "pid": 35339,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-leaf/negative.json"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "typecheck-all",
+  "expectedStatus": 0,
+  "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+  "observedNodeExecutables": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+  ]
+}

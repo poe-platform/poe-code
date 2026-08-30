@@ -1,0 +1,615 @@
+{
+  "schema": 1,
+  "role": "STATIC_DATA_NOT_EXECUTION",
+  "criteriaCommit": "671b49f0d3aa71aba7c3d97fa19ed4edb9d24e72",
+  "overlays": [
+    {
+      "component": "cwF01",
+      "assemblySha256": "2d826d6cc3d508d46aa50950c5317a2a20d95513c9fff209eefe5ce8d6c254d2",
+      "parentSha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+      "postimageSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "postimageBytes": 11186,
+      "stages": [
+        {
+          "preSha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+          "postSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+          "oneExactOccurrence": true
+        }
+      ],
+      "exactDeclaredEditsReconstructPostimage": true,
+      "unchangedParentInputs": [
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/DEFERRED-CONTROLS.json",
+          "sha256": "55ef67e504833471aac9a6417b9e6eb66a9ec88ca71b0c93abb143a7ab54576f",
+          "bytes": 3047,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INPUT-PRESEAL.json",
+          "sha256": "b15d033f7a397b35b2dc3cd39f8a0f77f6cc160394b5160d62782394796e0f7b",
+          "bytes": 4078,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INPUTS.json",
+          "sha256": "67d7e6d98edb0eb71c678ff618654123934f15b69a3686345afe469b35d735fc",
+          "bytes": 9615,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INTEGRATION.md",
+          "sha256": "d4269035d874238f96a28c9a6c3bfc05ce95ac2f3dd7f2d2b478b7b668c60ba1",
+          "bytes": 4880,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/MUTANT-PLAN.json",
+          "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+          "bytes": 20641,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/PROTOCOL.md",
+          "sha256": "258df7957a3efa57bcd504312107bd4f80ddb9e0ac7471532faafc5cbd878487",
+          "bytes": 9248,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/RESULT-SCHEMA.json",
+          "sha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+          "bytes": 3403,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SOURCE-PRESEAL.json",
+          "sha256": "9319fd64441c728fba358be8b9def804d6990fc2e1042ee21e4939c3b8944dfb",
+          "bytes": 5213,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SPECIFICATION.md",
+          "sha256": "1e47d9358049cc98f885a050c4df9513252b822c9bf3dfaac85c239e12fed63a",
+          "bytes": 10144,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/STATIC-CHECKS.json",
+          "sha256": "ad8a1aedfba2bf0f020581116df0391da4ead60433d86ce9de05c9c37f691e57",
+          "bytes": 5443,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/TYPE-PLAN.json",
+          "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+          "bytes": 15023,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-array-extra.mts.data",
+          "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+          "bytes": 80,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-command-extra.mts.data",
+          "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+          "bytes": 63,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-defaults.mts.data",
+          "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+          "bytes": 86,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-factory.mts.data",
+          "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+          "bytes": 96,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-limits.mts.data",
+          "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+          "bytes": 76,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-parser.mts.data",
+          "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+          "bytes": 68,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-session.mts.data",
+          "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+          "bytes": 88,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/positive.mts.data",
+          "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+          "bytes": 1036,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-string.mts.data",
+          "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+          "bytes": 69,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-undefined.mts.data",
+          "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+          "bytes": 73,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/unknown-limits.mts.data",
+          "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+          "bytes": 78,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/loaded-worker.mjs",
+          "sha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+          "bytes": 9806,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pending-shadow.json",
+          "sha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pristine.json",
+          "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/quoted-del.json",
+          "sha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/retained-view.json",
+          "sha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/worker-support.mjs",
+          "sha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+          "bytes": 6138,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/FINAL-SEAL.json",
+          "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+          "bytes": 6749,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "IMMUTABLE_PARENT_AUDIT_ONLY_NOT_ACTIVE_POSTOVERLAY_SEAL"
+        }
+      ]
+    },
+    {
+      "component": "cwF02",
+      "assemblySha256": "18876bf2415f08ff7dc5397e6313823ac204bd58084a3a6de4218155be18257a",
+      "parentSha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+      "postimageSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "postimageBytes": 11554,
+      "stages": [
+        {
+          "preSha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+          "postSha256": "69ea99a46a12dc0a17ab706217b45a49bf7df523f6019c7b872666436b6f1548",
+          "oneExactOccurrence": true
+        },
+        {
+          "preSha256": "69ea99a46a12dc0a17ab706217b45a49bf7df523f6019c7b872666436b6f1548",
+          "postSha256": "c12ec7f5382df882c6da27ad96eb0278cf78362ab1800470d3982358b4bba3bb",
+          "oneExactOccurrence": true
+        },
+        {
+          "preSha256": "c12ec7f5382df882c6da27ad96eb0278cf78362ab1800470d3982358b4bba3bb",
+          "postSha256": "013dd4c5f95cd7377b25d957653072781901c6af9c4a336f9b20c1cb8706eb5c",
+          "oneExactOccurrence": true
+        },
+        {
+          "preSha256": "013dd4c5f95cd7377b25d957653072781901c6af9c4a336f9b20c1cb8706eb5c",
+          "postSha256": "991848068de1fd38637c1596e148249ead661f86ba0fef3a579e6b3ddcfc6c22",
+          "oneExactOccurrence": true
+        },
+        {
+          "preSha256": "991848068de1fd38637c1596e148249ead661f86ba0fef3a579e6b3ddcfc6c22",
+          "postSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+          "oneExactOccurrence": true
+        }
+      ],
+      "exactDeclaredEditsReconstructPostimage": true,
+      "unchangedParentInputs": [
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/DEFERRED-CONTROLS.json",
+          "sha256": "55ef67e504833471aac9a6417b9e6eb66a9ec88ca71b0c93abb143a7ab54576f",
+          "bytes": 3047,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INPUT-PRESEAL.json",
+          "sha256": "b15d033f7a397b35b2dc3cd39f8a0f77f6cc160394b5160d62782394796e0f7b",
+          "bytes": 4078,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INPUTS.json",
+          "sha256": "67d7e6d98edb0eb71c678ff618654123934f15b69a3686345afe469b35d735fc",
+          "bytes": 9615,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INTEGRATION.md",
+          "sha256": "d4269035d874238f96a28c9a6c3bfc05ce95ac2f3dd7f2d2b478b7b668c60ba1",
+          "bytes": 4880,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/MUTANT-PLAN.json",
+          "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+          "bytes": 20641,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/PROTOCOL.md",
+          "sha256": "258df7957a3efa57bcd504312107bd4f80ddb9e0ac7471532faafc5cbd878487",
+          "bytes": 9248,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/RESULT-SCHEMA.json",
+          "sha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+          "bytes": 3403,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SOURCE-PRESEAL.json",
+          "sha256": "9319fd64441c728fba358be8b9def804d6990fc2e1042ee21e4939c3b8944dfb",
+          "bytes": 5213,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SPECIFICATION.md",
+          "sha256": "1e47d9358049cc98f885a050c4df9513252b822c9bf3dfaac85c239e12fed63a",
+          "bytes": 10144,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/STATIC-CHECKS.json",
+          "sha256": "ad8a1aedfba2bf0f020581116df0391da4ead60433d86ce9de05c9c37f691e57",
+          "bytes": 5443,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/TYPE-PLAN.json",
+          "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+          "bytes": 15023,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-array-extra.mts.data",
+          "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+          "bytes": 80,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-command-extra.mts.data",
+          "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+          "bytes": 63,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-defaults.mts.data",
+          "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+          "bytes": 86,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-factory.mts.data",
+          "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+          "bytes": 96,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-limits.mts.data",
+          "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+          "bytes": 76,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-parser.mts.data",
+          "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+          "bytes": 68,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-session.mts.data",
+          "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+          "bytes": 88,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/positive.mts.data",
+          "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+          "bytes": 1036,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-string.mts.data",
+          "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+          "bytes": 69,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-undefined.mts.data",
+          "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+          "bytes": 73,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/unknown-limits.mts.data",
+          "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+          "bytes": 78,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pending-shadow.json",
+          "sha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pristine.json",
+          "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/quoted-del.json",
+          "sha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/retained-view.json",
+          "sha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+          "bytes": 152021,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/type-worker.mjs",
+          "sha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+          "bytes": 10863,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/worker-support.mjs",
+          "sha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+          "bytes": 6138,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "FRESH_ACTIVE_PROJECTION_REQUIRED"
+        },
+        {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/FINAL-SEAL.json",
+          "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+          "bytes": 6749,
+          "gitMode": "100644",
+          "declaredFreshMode": 420,
+          "role": "IMMUTABLE_PARENT_AUDIT_NOT_POSTOVERLAY_AUTHORITY"
+        }
+      ]
+    }
+  ],
+  "reviewerPreparationFailures": [
+    {
+      "attempt": 1,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 25, in <module>\nKeyError: 'mode'\n",
+      "cause": "Reviewer assumed source.mode on all parent descriptors; audit seal explicitly uses assemblyMode instead. No authored defect."
+    },
+    {
+      "attempt": 2,
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 41, in <module>\nTypeError: cannot use 'dict' as a set element (unhashable type: 'dict')\n",
+      "cause": "Reviewer treated packing.entryOrder objects as strings; sealed schema supplies explicit path and name. No authored defect."
+    }
+  ],
+  "preparationQualification": "Both original preparation exit1 outcomes preserved; no authored input modified; neither attempt invoked target code. Third static-data enumeration uses explicit declared fields.",
+  "build": {
+    "activeProjectionSourceSealMatchesAssembly": true,
+    "activeProjectionCount": 6,
+    "activeProjection": [
+      {
+        "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+        "target": "workers/build-worker.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 21275,
+        "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4"
+      },
+      {
+        "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+        "target": "workers/build-fs.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7894,
+        "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21"
+      },
+      {
+        "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+        "target": "workers/build-outputs.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7266,
+        "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a"
+      },
+      {
+        "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+        "target": "workers/build-plan.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 170411,
+        "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1"
+      },
+      {
+        "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+        "target": "workers/build-source-manifest.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 47504,
+        "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286"
+      },
+      {
+        "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+        "target": "workers/build-package-manifest.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 152021,
+        "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7"
+      }
+    ],
+    "dataArithmetic": {
+      "canonicalPlanSha256": "3a6718dcdc7e60a030f439fa7d9f0f495128daa8df8621deee0d523b00716301",
+      "canonicalSourceManifestSha256": "8f9957f8391195428fdae9744d606491c0c50f39c14b3cac38abffb910635d21",
+      "selectedSourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+      "fullPackageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+      "sourceFiles": 271,
+      "sourceTypeScriptFiles": 217,
+      "emittedPathCount": 868,
+      "nonMapPaths": 434,
+      "mapPaths": 434,
+      "fullPackageFiles": 870,
+      "readmeAndPackageJsonSourceIdentitiesMatch": true,
+      "packingEntryBijection": true,
+      "computedTarBytes": 5031936,
+      "maximumPrefixedTarNameBytes": 64
+    }
+  },
+  "modeQualification": "Committed Git100644 is regular/nonexecutable class, not full historical POSIX mode; fresh active mode0644 remains required.",
+  "archivesNotReopened": true,
+  "targetExecutionCount": 0
+}

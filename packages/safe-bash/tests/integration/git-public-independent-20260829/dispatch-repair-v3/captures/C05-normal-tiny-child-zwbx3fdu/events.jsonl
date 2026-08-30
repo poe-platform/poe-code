@@ -1,0 +1,2 @@
+{"captureInitializedBeforeLookup": true, "pid": 22778}
+{"primaryPresent": false, "cleanupPresent": false, "childAttempts": 1, "children": [{"enrolledBeforeSpawn": true, "closed": true, "signals": [], "pid": 22786, "code": 0, "stdout": "TINY_OK\n", "stderr": "TINY_ERR\n"}], "execAttempted": false, "closed": false}

@@ -1,0 +1,287 @@
+{
+  "version": 1,
+  "cohorts": [
+    {
+      "name": "ere-engine-author",
+      "reason": "Sealed standalone emitted-engine type fixtures; candidate identity and original outcomes remain historical.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-engine-author-20260829/SEAL-v3.json",
+        "bytes": 59739,
+        "sha256": "b789cb4193d8a1ea4bde54180edd5f27c5d57fe5b58ed002aac5fedaf6c86440",
+        "members": "inputs"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+          "bytes": 887,
+          "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f"
+        },
+        {
+          "path": "tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+          "bytes": 387,
+          "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074"
+        }
+      ]
+    },
+    {
+      "name": "ere-independent-closure",
+      "reason": "Authenticated copies in the independent candidate closure, not additional maintained tests.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/FINAL-PRESEAL.json",
+        "bytes": 135475,
+        "sha256": "edec13ba5e76b28cac0ab387d21c4972a3f1d799f690c3187edc75f83187e27e",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/consumer.mts",
+          "bytes": 887,
+          "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f"
+        },
+        {
+          "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/negative.mts",
+          "bytes": 387,
+          "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074"
+        }
+      ]
+    },
+    {
+      "name": "ere-independent-moved",
+      "reason": "Retained physically moved compiler inputs authenticated by the final execution census.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/RESULT.json",
+        "bytes": 310015,
+        "sha256": "016d3d567661c1a24505e48e08671d7eddfd2ab34261b5440c701e65248a422f",
+        "members": "finalCensus"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/consumer.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/consumer.mts",
+          "bytes": 887,
+          "sha256": "ced5f2393ab9be8860b908f9f2637e0285acaf4f9a25f6c653bed271eba6409f"
+        },
+        {
+          "path": "tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/negative.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/r01-v1/closure/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/negative.mts",
+          "bytes": 387,
+          "sha256": "443b8571d120fe9d83258fcf6bbe48cbe3d87e076fe09c5d2c0c708a1a4b4074"
+        }
+      ]
+    },
+    {
+      "name": "ere-runtime-original",
+      "reason": "Sealed candidate-only fixtures; the original positive parseShellAST failure is preserved, not rescored.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/SEAL.json",
+        "bytes": 183313,
+        "sha256": "8bcc8e9d2d7d6374e709c7343736859718c78a3c64fd30268ffb18ec083930d5",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/positive.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/positive.mts",
+          "bytes": 600,
+          "sha256": "c2150324ac28304958eaa5c23f9e4ac072c34558107f2972469386309c9c341f"
+        },
+        {
+          "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/negative.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/negative.mts",
+          "bytes": 362,
+          "sha256": "2496b91b9dbfef0dc36cba1bbdf750104a2bc6f4b7a51df556ea8957e7f324ab"
+        }
+      ]
+    },
+    {
+      "name": "ere-runtime-rebind",
+      "reason": "Versioned compiler fixtures pinned to the selected rebind candidate and its producer.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json",
+        "bytes": 717198,
+        "sha256": "b3a3844213fe34017bb4b413bafda2433fd52a0d9165aed5810b01db245dfe95",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/positive.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/positive.mts",
+          "bytes": 594,
+          "sha256": "69a7108ee188c41969491e00d069ad0410a4712690e2828c6acdb55e899c013c"
+        },
+        {
+          "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/negative.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/negative.mts",
+          "bytes": 362,
+          "sha256": "2496b91b9dbfef0dc36cba1bbdf750104a2bc6f4b7a51df556ea8957e7f324ab"
+        }
+      ]
+    },
+    {
+      "name": "ere-runtime-correction",
+      "reason": "Corrected historical fixture compiled against retained TYPE-01 declarations, not the moving workspace.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/SEAL-v2.json",
+        "bytes": 3070,
+        "sha256": "aa8c5e73fb4747eacca9c2140a69e2d0ffd9a25d873f9fe4ffe170e985708b4a",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/positive-v2.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/type-fixture-v2/positive-v2.mts",
+          "bytes": 630,
+          "sha256": "60b0982ba0c3e880e7f45b02a4df9813353a1cefaa5f2ae7462a249a5bcea32f"
+        }
+      ]
+    },
+    {
+      "name": "ere-transport-author",
+      "reason": "Sealed emitted-transport positive and exact-negative compiler inputs.",
+      "owner": {
+        "path": "tests/compatibility/bash-ere-transport-author-20260829/SEAL-v2.json",
+        "bytes": 62544,
+        "sha256": "f6ff74e59b15c98e230a2011af8c5c21d6922e44599bc88084a3705846cc55d1",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/compatibility/bash-ere-transport-author-20260829/consumer.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/consumer.mts",
+          "bytes": 1137,
+          "sha256": "ede294b9c236bb8dc4d331975d089e7d71343f660ee6db7eb47c9b8640118598"
+        },
+        {
+          "path": "tests/compatibility/bash-ere-transport-author-20260829/negative.mts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/negative.mts",
+          "bytes": 444,
+          "sha256": "d3747360160b83a01189c0658e0e22d5381a3e026554b75e9c962513cb60940e"
+        }
+      ]
+    },
+    {
+      "name": "git-v11",
+      "reason": "Versioned absolute-path installed-package type fixtures with distinct positive and expected-negative routes.",
+      "owner": {
+        "path": "tests/commands/git-independent-20260828/m1a-continuation-v11/TYPES.json",
+        "bytes": 1029,
+        "sha256": "96554a24091a4f14f7d8e20c96e6082f3bdd1f868061bc1d542346f0121ae9d3",
+        "members": null
+      },
+      "entries": [
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v11/types/positive.ts",
+          "ownerPath": "types/positive.ts",
+          "bytes": 714,
+          "sha256": "3f992b64e27202cf4ce9418f939fec862d148d55f5221d047924525b9d5c0a6e"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-limits.ts",
+          "ownerPath": "types/negative-limits.ts",
+          "bytes": 257,
+          "sha256": "ad64ff68c343280dfdef19079208b3117eb09dacf3d667bf5f7bb38b2e1d45e1"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-native.ts",
+          "ownerPath": "types/negative-native.ts",
+          "bytes": 245,
+          "sha256": "4e384422c03aa39cb3e85bdf64904cf19524b748f94e5d2ef5ac8dc002e167e9"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-boundary.ts",
+          "ownerPath": "types/negative-boundary.ts",
+          "bytes": 257,
+          "sha256": "01fce12aa15e0308427fb50d7d9469c05b9c3eb93c290ec15a13f42ae19cc81f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v11/types/negative-public-root.ts",
+          "ownerPath": "types/negative-public-root.ts",
+          "bytes": 224,
+          "sha256": "2e00709dd266ed54ce4ded68aadf24197bf03ada3726df0f07b31fcd52dc2124"
+        }
+      ]
+    },
+    {
+      "name": "git-v12",
+      "reason": "Versioned absolute-path installed-package type fixtures with distinct positive and expected-negative routes.",
+      "owner": {
+        "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/TYPES.json",
+        "bytes": 1029,
+        "sha256": "07a9d4e208abb0a9cc86b7318b0d7aa5f15d089a5e9a2f82f3951234e5155293",
+        "members": null
+      },
+      "entries": [
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/positive.ts",
+          "ownerPath": "types/positive.ts",
+          "bytes": 714,
+          "sha256": "864908fc03222fbed3631a103dce49eda597c28ac00ad3074696f711895e8648"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-limits.ts",
+          "ownerPath": "types/negative-limits.ts",
+          "bytes": 257,
+          "sha256": "fdccabf351c575a62416278c930006e6bc8d921aec42bb074b558ecdbf647005"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-native.ts",
+          "ownerPath": "types/negative-native.ts",
+          "bytes": 245,
+          "sha256": "428a73c38550f11ab7ba1b2dedafbacab7dd844409b76b2a374bf30003532904"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-boundary.ts",
+          "ownerPath": "types/negative-boundary.ts",
+          "bytes": 257,
+          "sha256": "9bd20d11c2ec5e31207ee3a20f67eb863e06f58574767482ec4bf5f5fe5f93ad"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+          "ownerPath": "types/negative-public-root.ts",
+          "bytes": 224,
+          "sha256": "ed9ef7fc39f5d9d2c926d21fabd850fdeb8393a47b9ef37b48876b30b38f1b55"
+        }
+      ]
+    },
+    {
+      "name": "pipestatus-original",
+      "reason": "Sealed source-overlay type fixture; imports resolve only in its declared candidate assembly.",
+      "owner": {
+        "path": "tests/shell/pipestatus-author-20260829/SEAL.json",
+        "bytes": 171230,
+        "sha256": "ac0a0b3066a9e89667336cb9f3012fd7896abc9d59d1a53a47669a59336b0994",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/shell/pipestatus-author-20260829/types.ts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/types.ts",
+          "bytes": 760,
+          "sha256": "a1c08ab1cc78efba41c5b1ffd9e61131709c1805f011d7517f66192809f10d36"
+        }
+      ]
+    },
+    {
+      "name": "pipestatus-corrected",
+      "reason": "Sealed emitted-host protocol fixture; its historical candidate layout is not a maintained source module.",
+      "owner": {
+        "path": "tests/shell/pipestatus-author-20260829/corrected-v2/SEAL.json",
+        "bytes": 215132,
+        "sha256": "c590f60ab8f53c5988056087257e2ed8564ef0db5e256ca4a7d836fa88fce718",
+        "members": "fixtures"
+      },
+      "entries": [
+        {
+          "path": "tests/shell/pipestatus-author-20260829/corrected-v2/host-protocols.ts",
+          "ownerPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/corrected-v2/host-protocols.ts",
+          "bytes": 4701,
+          "sha256": "0d9b9ada5935b0e16f50d095e7d85cb02563eeef560e50e8134b94b549950094"
+        }
+      ]
+    }
+  ]
+}

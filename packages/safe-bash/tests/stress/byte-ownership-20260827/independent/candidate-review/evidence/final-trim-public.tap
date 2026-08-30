@@ -1,0 +1,133 @@
+TAP version 13
+# (node:81631) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/independent/loaded-hashes.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: public tail records Buffer
+ok 1 - public tail records Buffer
+  ---
+  duration_ms: 10.650166
+  type: 'test'
+  ...
+# Subtest: public tail binary Buffer
+ok 2 - public tail binary Buffer
+  ---
+  duration_ms: 2.356292
+  type: 'test'
+  ...
+# Subtest: public head exclusion Buffer
+ok 3 - public head exclusion Buffer
+  ---
+  duration_ms: 1.426958
+  type: 'test'
+  ...
+# Subtest: public fixed pattern collection Buffer
+ok 4 - public fixed pattern collection Buffer
+  ---
+  duration_ms: 23.2845
+  type: 'test'
+  ...
+# Subtest: public tail pipeline and file bytes Buffer
+ok 5 - public tail pipeline and file bytes Buffer
+  ---
+  duration_ms: 5.153334
+  type: 'test'
+  ...
+# Subtest: public stdin ownership control Buffer
+ok 6 - public stdin ownership control Buffer
+  ---
+  duration_ms: 2.413875
+  type: 'test'
+  ...
+# Subtest: public contract collector acceptance control Buffer
+ok 7 - public contract collector acceptance control Buffer
+  ---
+  duration_ms: 0.199458
+  type: 'test'
+  ...
+# Subtest: public tail records Uint8Array
+ok 8 - public tail records Uint8Array
+  ---
+  duration_ms: 0.944666
+  type: 'test'
+  ...
+# Subtest: public tail binary Uint8Array
+ok 9 - public tail binary Uint8Array
+  ---
+  duration_ms: 0.719
+  type: 'test'
+  ...
+# Subtest: public head exclusion Uint8Array
+ok 10 - public head exclusion Uint8Array
+  ---
+  duration_ms: 1.062792
+  type: 'test'
+  ...
+# Subtest: public fixed pattern collection Uint8Array
+ok 11 - public fixed pattern collection Uint8Array
+  ---
+  duration_ms: 22.749792
+  type: 'test'
+  ...
+# Subtest: public tail pipeline and file bytes Uint8Array
+ok 12 - public tail pipeline and file bytes Uint8Array
+  ---
+  duration_ms: 1.876333
+  type: 'test'
+  ...
+# Subtest: public stdin ownership control Uint8Array
+ok 13 - public stdin ownership control Uint8Array
+  ---
+  duration_ms: 1.292875
+  type: 'test'
+  ...
+# Subtest: public contract collector acceptance control Uint8Array
+ok 14 - public contract collector acceptance control Uint8Array
+  ---
+  duration_ms: 0.088625
+  type: 'test'
+  ...
+# Subtest: public empty nonzero-offset views produce no output
+ok 15 - public empty nonzero-offset views produce no output
+  ---
+  duration_ms: 0.53525
+  type: 'test'
+  ...
+# Subtest: public upstream error has exact status and diagnostic
+ok 16 - public upstream error has exact status and diagnostic
+  ---
+  duration_ms: 0.532333
+  type: 'test'
+  ...
+# Subtest: public output limit rejects without mutating input
+ok 17 - public output limit rejects without mutating input
+  ---
+  duration_ms: 0.959667
+  type: 'test'
+  ...
+# Subtest: public abort closes cooperative borrowed source
+ok 18 - public abort closes cooperative borrowed source
+  ---
+  duration_ms: 0.804166
+  type: 'test'
+  ...
+# Subtest: public awaited sink acceptance before backing reuse
+ok 19 - public awaited sink acceptance before backing reuse
+  ---
+  duration_ms: 1.875042
+  type: 'test'
+  ...
+# Subtest: public sink rejection preserves attempted bytes and exact diagnostic
+ok 20 - public sink rejection preserves attempted bytes and exact diagnostic
+  ---
+  duration_ms: 0.826416
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 309.974375

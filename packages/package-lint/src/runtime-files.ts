@@ -1,6 +1,7 @@
 import path from "node:path";
 import ts from "typescript";
 import type { LintFs } from "./model.js";
+import { listSourceFiles, validateSourceExclude } from "./source-files.js";
 
 export type RuntimeFileAssetKind = "file" | "directory";
 
@@ -59,44 +60,11 @@ function toPosix(p: string): string {
   return p.replaceAll("\\", "/");
 }
 
-function isSourceFile(name: string): boolean {
-  if (name.endsWith(".d.ts") || name.endsWith(".d.mts") || name.endsWith(".d.cts")) return false;
-  return (
-    name.endsWith(".ts") || name.endsWith(".tsx") || name.endsWith(".mts") || name.endsWith(".cts")
-  );
-}
-
 function isTestFile(relFile: string): boolean {
   const base = relFile.split("/").pop() ?? "";
   if (base.includes(".test.") || base.includes(".spec.")) return true;
   const segments = relFile.split("/");
   return segments.some((s) => s === "test" || s === "tests" || s === "__tests__");
-}
-
-async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
-  if (fs.listFiles) {
-    try {
-      return (await fs.listFiles(dir)).filter((file) => isSourceFile(path.basename(file)));
-    } catch {
-      return [];
-    }
-  }
-  let entries: { name: string; isDirectory(): boolean }[];
-  try {
-    entries = await fs.readdir(dir);
-  } catch {
-    return [];
-  }
-  const files: string[] = [];
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await listSourceFiles(fs, full)));
-    } else if (isSourceFile(entry.name)) {
-      files.push(full);
-    }
-  }
-  return files;
 }
 
 function isNodeModule(specifier: string, bare: string): boolean {
@@ -487,13 +455,16 @@ function scanAstForAssets(
 export async function scanRuntimeFileAssets(
   fs: LintFs,
   rootDir: string,
-  packages: Array<{ name: string; dir: string }>
+  packages: Array<{ name: string; dir: string; sourceExclude?: readonly string[] }>
 ): Promise<RuntimeFileAssetView> {
   const view: RuntimeFileAssetView = new Map();
+  const admittedPackages = packages.map((pkg) => ({
+    ...pkg,
+    sourceExclude: validateSourceExclude(pkg.sourceExclude, pkg.dir)
+  }));
   await Promise.all(
-    packages.map(async (pkg) => {
-      const srcDir = path.join(rootDir, pkg.dir, "src");
-      const files = await listSourceFiles(fs, srcDir);
+    admittedPackages.map(async (pkg) => {
+      const files = await listSourceFiles(fs, rootDir, pkg.dir, pkg.sourceExclude);
       const refs: RuntimeFileAssetRef[] = [];
       for (const absFile of files) {
         let text: string;

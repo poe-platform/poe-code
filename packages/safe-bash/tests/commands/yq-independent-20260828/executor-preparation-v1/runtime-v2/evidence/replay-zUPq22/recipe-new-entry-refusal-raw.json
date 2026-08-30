@@ -1,0 +1,4 @@
+{
+  "returned": null,
+  "error": "AssertionError [ERR_ASSERTION]: Tree membership/hash/modes: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/recipe-tamper\n+ actual - expected\n\n+ 'ffab356bebf41e98d9d1c4679ca4da36bae94a1b3f0f016ef41bc14511bf6223'\n- '6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878'\n"
+}

@@ -1,0 +1,637 @@
+{
+  "schema": "expr-public-component-v3-final-evidence/1",
+  "finishedAt": "2026-08-28T01:38:12.485Z",
+  "recipeCommit": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+  "scope": "EXPRPUBLICCOMPONENT",
+  "verdict": "HELD / incomplete component qualification",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "candidateTree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "sourceCommit": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+  "reader": {
+    "status": "qualified",
+    "controls": {
+      "status": "qualified",
+      "controls": 16,
+      "pass": 16,
+      "allChildrenClosed": true,
+      "childCount": 13,
+      "rows": [
+        {
+          "id": "positive-over-4MiB-backpressure",
+          "expectedCode": null,
+          "actualCode": null,
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "normal",
+                "4259841"
+              ],
+              "expectedBytes": 4259841,
+              "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "bound": 4259841,
+              "metadata": false,
+              "bytes": 4259841,
+              "chunks": 66,
+              "maxChunkBytes": 65536,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.506Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83003,
+              "code": 0,
+              "signal": null,
+              "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:22.541Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "underdeclared-size-overflow",
+          "expectedCode": "OVERFLOW",
+          "actualCode": "OVERFLOW",
+          "error": "OVERFLOW: declared byte bound exceeded before sink write",
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "normal",
+                "4259841"
+              ],
+              "expectedBytes": 4259840,
+              "expectedHash": "d9590e6d954efdab00df03cfc90bcb1e9f01ac7ab1b7370c9b2a8ececc89bc8e",
+              "bound": 4259840,
+              "metadata": false,
+              "bytes": 4259841,
+              "chunks": 66,
+              "maxChunkBytes": 65536,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.543Z",
+              "closed": true,
+              "killed": true,
+              "pid": 83007,
+              "code": null,
+              "signal": "SIGKILL",
+              "sha256": "d9590e6d954efdab00df03cfc90bcb1e9f01ac7ab1b7370c9b2a8ececc89bc8e",
+              "status": "fail",
+              "errorCode": "OVERFLOW",
+              "error": "OVERFLOW: declared byte bound exceeded before sink write",
+              "finishedAt": "2026-08-28T01:36:22.572Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "overdeclared-size",
+          "expectedCode": "TRUNCATION",
+          "actualCode": "TRUNCATION",
+          "error": "TRUNCATION: exact byte count mismatch",
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "normal",
+                "4259841"
+              ],
+              "expectedBytes": 4259842,
+              "expectedHash": "6f0628fca869e8333d5a4985bb1f46cbf6aed013c2f7a5b3e9743d1fbdf53712",
+              "bound": 4259842,
+              "metadata": false,
+              "bytes": 4259841,
+              "chunks": 66,
+              "maxChunkBytes": 65536,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.574Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83009,
+              "code": 0,
+              "signal": null,
+              "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "status": "fail",
+              "errorCode": "TRUNCATION",
+              "error": "TRUNCATION: exact byte count mismatch",
+              "finishedAt": "2026-08-28T01:36:22.607Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "truncated-producer",
+          "expectedCode": "TRUNCATION",
+          "actualCode": "TRUNCATION",
+          "error": "TRUNCATION: exact byte count mismatch",
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "normal",
+                "4194305"
+              ],
+              "expectedBytes": 4259841,
+              "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "bound": 4259841,
+              "metadata": false,
+              "bytes": 4194305,
+              "chunks": 65,
+              "maxChunkBytes": 65536,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.608Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83010,
+              "code": 0,
+              "signal": null,
+              "sha256": "acd560a1e1d523c090ab93aed616d154b7b5e8206a153cced729d83f2c7dcfc3",
+              "status": "fail",
+              "errorCode": "TRUNCATION",
+              "error": "TRUNCATION: exact byte count mismatch",
+              "finishedAt": "2026-08-28T01:36:22.642Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "wrong-sha256",
+          "expectedCode": "HASH",
+          "actualCode": "HASH",
+          "error": "HASH: SHA-256 mismatch",
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "normal",
+                "4259841"
+              ],
+              "expectedBytes": 4259841,
+              "expectedHash": "0000000000000000000000000000000000000000000000000000000000000000",
+              "bound": 4259841,
+              "metadata": false,
+              "bytes": 4259841,
+              "chunks": 66,
+              "maxChunkBytes": 65536,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.642Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83011,
+              "code": 0,
+              "signal": null,
+              "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "status": "fail",
+              "errorCode": "HASH",
+              "error": "HASH: SHA-256 mismatch",
+              "finishedAt": "2026-08-28T01:36:22.675Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "nonzero-exit-after-exact-bytes",
+          "expectedCode": "EXIT",
+          "actualCode": "EXIT",
+          "error": "EXIT: code=7 signal=null",
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "exit",
+                "4259841"
+              ],
+              "expectedBytes": 4259841,
+              "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "bound": 4259841,
+              "metadata": false,
+              "bytes": 4259841,
+              "chunks": 66,
+              "maxChunkBytes": 65536,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.677Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83013,
+              "code": 7,
+              "signal": null,
+              "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "status": "fail",
+              "errorCode": "EXIT",
+              "error": "EXIT: code=7 signal=null",
+              "finishedAt": "2026-08-28T01:36:22.706Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "deadline-closed",
+          "expectedCode": "DEADLINE",
+          "actualCode": "DEADLINE",
+          "error": "DEADLINE: transport deadline",
+          "children": [
+            {
+              "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+              "args": [
+                "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+                "hang",
+                "0"
+              ],
+              "expectedBytes": 4259841,
+              "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+              "bound": 4259841,
+              "metadata": false,
+              "bytes": 0,
+              "chunks": 0,
+              "maxChunkBytes": 0,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:22.708Z",
+              "closed": true,
+              "killed": true,
+              "pid": 83015,
+              "code": null,
+              "signal": "SIGKILL",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "status": "fail",
+              "errorCode": "DEADLINE",
+              "error": "DEADLINE: transport deadline",
+              "finishedAt": "2026-08-28T01:36:23.711Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "unsupported-mode",
+          "expectedCode": "MODE",
+          "actualCode": "MODE",
+          "error": "MODE: only regular 100644 files admitted",
+          "children": [],
+          "qualified": true
+        },
+        {
+          "id": "unsupported-type",
+          "expectedCode": "TYPE",
+          "actualCode": "TYPE",
+          "error": "TYPE: only blobs admitted",
+          "children": [],
+          "qualified": true
+        },
+        {
+          "id": "unsafe-path",
+          "expectedCode": "PATH",
+          "actualCode": "PATH",
+          "error": "PATH: nonliteral or unsafe input path",
+          "children": [],
+          "qualified": true
+        },
+        {
+          "id": "AGENTS-path",
+          "expectedCode": "PATH",
+          "actualCode": "PATH",
+          "error": "PATH: nonliteral or unsafe input path",
+          "children": [],
+          "qualified": true
+        },
+        {
+          "id": "unknown-input",
+          "expectedCode": "UNKNOWN_INPUT",
+          "actualCode": "UNKNOWN_INPUT",
+          "error": "UNKNOWN_INPUT: input absent from sealed catalog",
+          "children": [],
+          "qualified": true
+        },
+        {
+          "id": "missing-tree-path",
+          "expectedCode": "TREE_PATH",
+          "actualCode": "TREE_PATH",
+          "error": "TREE_PATH: missing/nonexact path",
+          "children": [
+            {
+              "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+              "args": [
+                "--no-replace-objects",
+                "--literal-pathspecs",
+                "ls-tree",
+                "-lz",
+                "eaca395fd0f90051676798971750515d04b0c005",
+                "--",
+                "not-a-real-expr-control-file"
+              ],
+              "bound": 131072,
+              "metadata": true,
+              "bytes": 0,
+              "chunks": 0,
+              "maxChunkBytes": 0,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:23.713Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83022,
+              "code": 0,
+              "signal": null,
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:23.725Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "wrong-tree-size",
+          "expectedCode": "TREE_BYTES",
+          "actualCode": "TREE_BYTES",
+          "error": "TREE_BYTES: pinned bytes mismatch",
+          "children": [
+            {
+              "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+              "args": [
+                "--no-replace-objects",
+                "--literal-pathspecs",
+                "ls-tree",
+                "-lz",
+                "eaca395fd0f90051676798971750515d04b0c005",
+                "--",
+                "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs"
+              ],
+              "bound": 131072,
+              "metadata": true,
+              "bytes": 153,
+              "chunks": 1,
+              "maxChunkBytes": 153,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:23.725Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83023,
+              "code": 0,
+              "signal": null,
+              "sha256": "b19c4466e184cd57e800f59425dc3bcae8b78f2bab1e75db0ad0b95141b03e96",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:23.739Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "wrong-path-object-binding",
+          "expectedCode": "TREE_OBJECTID",
+          "actualCode": "TREE_OBJECTID",
+          "error": "TREE_OBJECTID: pinned objectId mismatch",
+          "children": [
+            {
+              "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+              "args": [
+                "--no-replace-objects",
+                "--literal-pathspecs",
+                "ls-tree",
+                "-lz",
+                "eaca395fd0f90051676798971750515d04b0c005",
+                "--",
+                "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs"
+              ],
+              "bound": 131072,
+              "metadata": true,
+              "bytes": 153,
+              "chunks": 1,
+              "maxChunkBytes": 153,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:23.739Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83024,
+              "code": 0,
+              "signal": null,
+              "sha256": "b19c4466e184cd57e800f59425dc3bcae8b78f2bab1e75db0ad0b95141b03e96",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:23.750Z"
+            }
+          ],
+          "qualified": true
+        },
+        {
+          "id": "actual-git-blob-positive",
+          "expectedCode": null,
+          "actualCode": null,
+          "children": [
+            {
+              "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+              "args": [
+                "--no-replace-objects",
+                "--literal-pathspecs",
+                "ls-tree",
+                "-lz",
+                "eaca395fd0f90051676798971750515d04b0c005",
+                "--",
+                "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs"
+              ],
+              "bound": 131072,
+              "metadata": true,
+              "bytes": 153,
+              "chunks": 1,
+              "maxChunkBytes": 153,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:23.750Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83025,
+              "code": 0,
+              "signal": null,
+              "sha256": "b19c4466e184cd57e800f59425dc3bcae8b78f2bab1e75db0ad0b95141b03e96",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:23.761Z"
+            },
+            {
+              "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+              "args": [
+                "--no-replace-objects",
+                "--literal-pathspecs",
+                "cat-file",
+                "-t",
+                "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3"
+              ],
+              "bound": 131072,
+              "metadata": true,
+              "bytes": 5,
+              "chunks": 1,
+              "maxChunkBytes": 5,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:23.761Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83026,
+              "code": 0,
+              "signal": null,
+              "sha256": "bc103b4a84971ef6459b294a2b98568a2bfb72cded09d4acd1e16366a401f95b",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:23.774Z"
+            },
+            {
+              "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+              "args": [
+                "--no-replace-objects",
+                "cat-file",
+                "blob",
+                "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3"
+              ],
+              "expectedBytes": 178,
+              "expectedHash": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed",
+              "bound": 178,
+              "metadata": false,
+              "bytes": 178,
+              "chunks": 1,
+              "maxChunkBytes": 178,
+              "stderrBytes": 0,
+              "stderr": "",
+              "startedAt": "2026-08-28T01:36:23.774Z",
+              "closed": true,
+              "killed": false,
+              "pid": 83027,
+              "code": 0,
+              "signal": null,
+              "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed",
+              "gitObjectId": "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3",
+              "status": "pass",
+              "finishedAt": "2026-08-28T01:36:23.786Z"
+            }
+          ],
+          "qualified": true
+        }
+      ]
+    },
+    "allChildrenClosedAtAdmission": true,
+    "childCountAtAdmission": 1223
+  },
+  "P01": {
+    "status": "fail",
+    "buildExecuted": true,
+    "buildStatus": 2,
+    "independentInputs": 357,
+    "exactPackRequired": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd"
+  },
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 0,
+    "controlsPass": 0,
+    "typeInvocations": 0,
+    "typePass": 0
+  },
+  "individualFailures": [],
+  "blockers": [
+    {
+      "name": "P01",
+      "error": "independent build/exact pack proof failed; authorpack cannot repair P01"
+    },
+    {
+      "name": "runner",
+      "error": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/cases.json'\n    at openSync (node:fs:560:18)\n    at read (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs:16:22)\n    at json (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs:20:40)\n    at bind (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs:84:154)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs:248:27\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    }
+  ],
+  "runtimeArtifact": "separately authenticated authorpack; P01 remains failed",
+  "allProcessChildrenClosed": true,
+  "finalization": {
+    "status": "pass",
+    "finishedAt": "2026-08-28T01:36:45.949Z",
+    "allReaderChildrenClosed": true,
+    "readerChildCount": 2295,
+    "recipeNewEntriesChecked": true,
+    "toolsNewEntriesChecked": true,
+    "originalNineUnchanged": true,
+    "admissionFiveUnchanged": true,
+    "v1AndV2Unchanged": true,
+    "productPasses": 0
+  },
+  "acceptedDUGate": "HELD and unrescored",
+  "HTML": "accepted separately per root; no rerun here",
+  "whole76": "not executed or accepted here",
+  "originalGate": "HELD, unchanged",
+  "artifacts": [
+    {
+      "path": "PINS.json",
+      "bytes": 142480,
+      "mode": 420,
+      "sha256": "b321260e2f0a20deef0f5eb7df50538072a57c1313e34163216abae01a2e2231"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 7138,
+      "mode": 420,
+      "sha256": "4f3623d2f05b42fea31a7aa647b2abcbb97cb3b93122906d88a8a079fdd2abc0"
+    },
+    {
+      "path": "RECIPE-SEAL.json",
+      "bytes": 3011,
+      "mode": 420,
+      "sha256": "fbea38f27740e7c750a3f3a72f37378ee708dbcc2122e62e49f7d9797397aade"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "58ff08006679da6d85eb17aa3092482d6638f294115a231f3930e23605be9a17"
+    },
+    {
+      "path": "EXECUTION.raw.txt",
+      "bytes": 1544,
+      "mode": 420,
+      "sha256": "d714870f598de6004d4b66565ca305aaaa47838e7ba73bc95fbc1881a4dc9a9b"
+    },
+    {
+      "path": "ADMISSION.json",
+      "bytes": 37247,
+      "mode": 420,
+      "sha256": "fbb973f74234a553974d6d230e2537e3a7405cd45e5a14537d53d0d0c39b4373"
+    },
+    {
+      "path": "ADMISSION.raw.jsonl",
+      "bytes": 1383597,
+      "mode": 420,
+      "sha256": "0e2bc4f8c4553d3909a5363de6afec250e7aedf4bd3e7e06e7876e6028fb29d6"
+    },
+    {
+      "path": "REPORT.json",
+      "bytes": 3192,
+      "mode": 420,
+      "sha256": "aaadfe52f29400fb6bd7c94683541780b276f56d1b40ef7e827e82551c97d6f7"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 2706,
+      "mode": 420,
+      "sha256": "f2344a8bac78bf32599ba78b73eafa98e8102cf53976e5628b3d9bbf1b2af5c3"
+    },
+    {
+      "path": "RAW.json.gz.base64",
+      "bytes": 1664877,
+      "mode": 420,
+      "sha256": "46cdd958182327698dfc24b5fd36a963b3107665e57b2d9c883fff68288b8066"
+    },
+    {
+      "path": "FINALIZATION.json",
+      "bytes": 316,
+      "mode": 420,
+      "sha256": "e2cdcd794aeb38da9e5f31a066f2b3b523c979d0b7ed6dd85934c390ae93aa80"
+    }
+  ]
+}

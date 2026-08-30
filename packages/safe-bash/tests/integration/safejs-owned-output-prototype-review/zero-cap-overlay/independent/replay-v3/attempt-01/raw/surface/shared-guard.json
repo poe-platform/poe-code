@@ -1,0 +1,71 @@
+{
+  "before": {
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate": {
+      "files": 940,
+      "sha256": "c8919b5e21441d786415f43c2618f1a2856496bab5e2dd585fc18afa6421be32"
+    },
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/consumer/node_modules/virtual-bash": {
+      "files": 709,
+      "sha256": "03f327707ed7e6ad8ab71f12c4eb01115f4f6e41998614b4438d74b0325573d1"
+    },
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine": {
+      "files": 264,
+      "sha256": "e145d385fb434723730768438cad9c2e002be7f657ce1f5fa807b5b187a92abc"
+    },
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/node_modules": {
+      "files": 247,
+      "sha256": "32c40bfe53b2b680c5d17c5993e81e02793bc9fe7b3bcd623743a741e45f8144"
+    },
+    "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/source-route": {
+      "files": 940,
+      "sha256": "0f73d54ea85756147f867ade1aed3aa69978b457265e2ae27520ec99abb5438e"
+    },
+    "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/packaged-route": {
+      "files": 940,
+      "sha256": "0c3ea5be3129a48f3f623fefa74eec962b008308288f4e2ff28c7c0782ae63d4"
+    },
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/candidate": {
+      "files": 940,
+      "sha256": "568c46ba673cd7336d7b4d82758af0b1cf94f02ffcbf5b9a855013d824a9c4ef"
+    },
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/package": {
+      "files": 709,
+      "sha256": "8ce84a17d8518439d771c63617648eee61aa9d13bcd527269c5eb86af1bf2d90"
+    }
+  },
+  "after": {
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate": {
+      "files": 940,
+      "sha256": "c8919b5e21441d786415f43c2618f1a2856496bab5e2dd585fc18afa6421be32"
+    },
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/consumer/node_modules/virtual-bash": {
+      "files": 709,
+      "sha256": "03f327707ed7e6ad8ab71f12c4eb01115f4f6e41998614b4438d74b0325573d1"
+    },
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine": {
+      "files": 264,
+      "sha256": "e145d385fb434723730768438cad9c2e002be7f657ce1f5fa807b5b187a92abc"
+    },
+    "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/node_modules": {
+      "files": 247,
+      "sha256": "32c40bfe53b2b680c5d17c5993e81e02793bc9fe7b3bcd623743a741e45f8144"
+    },
+    "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/source-route": {
+      "files": 940,
+      "sha256": "0f73d54ea85756147f867ade1aed3aa69978b457265e2ae27520ec99abb5438e"
+    },
+    "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/packaged-route": {
+      "files": 940,
+      "sha256": "0c3ea5be3129a48f3f623fefa74eec962b008308288f4e2ff28c7c0782ae63d4"
+    },
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/candidate": {
+      "files": 940,
+      "sha256": "568c46ba673cd7336d7b4d82758af0b1cf94f02ffcbf5b9a855013d824a9c4ef"
+    },
+    "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/package": {
+      "files": 709,
+      "sha256": "8ce84a17d8518439d771c63617648eee61aa9d13bcd527269c5eb86af1bf2d90"
+    }
+  },
+  "newEntriesDetected": true
+}

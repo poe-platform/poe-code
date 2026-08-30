@@ -1,0 +1,20 @@
+{
+  "schema":"AP753-versioned-control-plan-v4",
+  "qualificationAttempts":1,
+  "cases":31,
+  "cohorts":{"unchangedOriginalControls":22,"D02v2":1,"newAdmissionControls":8},
+  "D02v2":"30 exact phase-specific overlay identities plus authenticated variant-ID membership; original10 assertion and22/23 remain untouched",
+  "additions":["A01 unauthorized same-shape/shortened graph","A02 approved-overlay content changed with coherent new hash","A03 graph ID and ref mismatch","A04 build receipt over16MiB before publication","A05 individually-fitting mixed batch fails before write","A06 combined capture reservation before write","A07 admitted pair reader roundtrip","A08 all executor source syntax and identity"],
+  "existingNegativeControls":"Original dangling/internal refs, cyclic overlay base, extra/duplicate/missing catalogs, exact16MiB minus/at/plus, canonical bytes, wrong modes/results and actual inert loader refusals retained",
+  "stubAdjustment":"Inert graph ID becomes declared base under synthetic authority; no production authority or product staging. All original positive byte/load assertions retained.",
+  "rootRepairs":"Whole build+normalized runtime+65536-byte commit reservation including Git headers/LF admitted before serialization or publication. Artifact bytes plus framed capture jointly charged. Actual commit size checked against reservation, exact framed bytes rechecked before Git payload capture. Graph IDs map to fixed base or30 approved content-addressed overlays.",
+  "prepBounds":{"milliseconds":1200000,"allOwnedProcesses":32,"peak":4,"captureBytes":67108864,"workBytes":268435456},
+  "qualificationBounds":{"processes":2,"peak":2,"timeoutMs":120000,"captureBytes":8388608},
+  "actualConditionalProfile":{"jobs":54,"plannedAllOwnedProcesses":62,"maximumAllOwnedProcesses":70,"peak":4,"milliseconds":6600000,"captureBytes":134217728,"workBytes":536870912,"caseMs":30000,"buildMs":120000},
+  "candidate":"753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "tree":"6a59ca403c5411344dea2ee057909ba179bf7043",
+  "packageFiles":882,
+  "packageSha256":"f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95",
+  "noOldPassInheritance":true,
+  "noAutomaticRetry":true
+}

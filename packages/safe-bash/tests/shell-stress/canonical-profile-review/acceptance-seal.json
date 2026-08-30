@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-08-27T07:14:07.328Z",
+  "decision": "Accepted scoped canonical test-profile migration; no product/global-test parity claim",
+  "sourceCommit": "6e3e3165e3b88aa5518eac33afd0b2ecdfa5fd2a",
+  "candidateCommits": [
+    "da81b8f73a6cf98fe8b44b2deee00ed80f1599d4",
+    "4fa20ac6cadb9d37fa9da4d205dc37a5a1bcb9f9",
+    "7e0a578e277d123ba0fa86e48b46f4fd0431b839"
+  ],
+  "counts": {
+    "canonical": {
+      "pass": 183,
+      "total": 183
+    },
+    "historical": {
+      "pass": 36,
+      "fail": 16,
+      "total": 52,
+      "status": 1
+    },
+    "independentNativeCrossChecks": {
+      "pass": 176,
+      "total": 176,
+      "freshNativeExecutions": 0
+    },
+    "mutations": {
+      "rejected": 12,
+      "total": 12
+    },
+    "positiveLaboratoryControls": {
+      "pass": 2,
+      "total": 2
+    },
+    "scopedTypes": {
+      "status": 0,
+      "diagnostics": 0,
+      "reads": 331
+    },
+    "liveGlobalTypes": {
+      "status": 0,
+      "diagnostics": 0,
+      "roots": 2697,
+      "reads": 2885
+    },
+    "integrity": {
+      "pass": 7,
+      "total": 7
+    }
+  },
+  "files": {
+    "ACCEPTANCE.md": "7888231150495b5a525f0b67dbdfb704860cae300f02df207d12a578820769f6",
+    "acceptance-audit.mjs": "5b3389262212166ca64993ead43bc033dee370eb210dbdec8616e3c4bdde19e6",
+    "acceptance-canonical-checkpoint.json": "e4af673dfeb49d2fef9adf85fcae7894d325d07275a867287103d040d06ad6b2",
+    "acceptance-cleanup.json": "e7db5448bc527256ba91ab237c8fa3fda77e6a5cf0b6c074945112f17f1852a7",
+    "acceptance-endpoint-audit.json": "3784df6d8f36142679ac45dc9d36431471af6c2251039dfaf227e5d04c52e523",
+    "acceptance-execution.json": "8999ed065ea2d385aa2476a0bfac94a3a5cdd4ece1fe46e57535975070e77b70",
+    "acceptance-global.mjs": "a9f2f3c6972e8dda6aea89ed5fe8107cde9ab0d9e7917cb7fad38a0eefae5e75",
+    "acceptance-input-audit.json": "7b6ae23f00ac803bdcdef98d04ed74b7cf4a8d4efd3f69bd2afdc08485edfaf9",
+    "acceptance-integrity.test.mjs": "491a6c8a228064d9146722338e79780c2c37c5de1a47c639bd206aec5ce4fb38",
+    "acceptance-live-global.json": "95ff9479e5fda6ef96e24d9a14739a31f0083d3ddfecd576b849b10314e6b40c",
+    "acceptance-mutations.mjs": "3b831a7210ef03d392d9f55353257f5890e758c6e39641b6f9e471d5f73ad10c",
+    "acceptance-run.mjs": "ef19e68959829a404980683e957bf7b0d21a3b491f8ec256f37b5a009cb9f66f",
+    "acceptance-trace.mjs": "ebab505a90ea08a19687568f4aa322c267927a018299fc08054632ae68e8ac55",
+    "acceptance-types.mjs": "6ace97540bcb1ced0d1fb209c593226ce3b0d88971d0932f66938babb830c8ba"
+  }
+}

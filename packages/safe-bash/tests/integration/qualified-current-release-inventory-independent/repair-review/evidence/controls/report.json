@@ -1,0 +1,209 @@
+{
+  "candidate": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+  "node": "v22.22.2",
+  "startedAt": "2026-08-27T11:00:32.842Z",
+  "status": "passed-independent-two-hole-repair-review",
+  "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-repair-independent-fkDLPJ",
+  "harnessSha256": "abc06f9cece689d0560cfb1c8e0868cc30d0f05ebf32f6c422afe2b0293c0f4a",
+  "controls": [
+    {
+      "name": "all actual groups and execution records match",
+      "passed": true
+    },
+    {
+      "name": "canonical no explicit count still accepts measured positive runtime",
+      "passed": true
+    },
+    {
+      "name": "canonical no explicit count rejects zero runtime",
+      "passed": true
+    },
+    {
+      "name": "renamed canonical companion must execute its emitted name",
+      "passed": true
+    },
+    {
+      "name": "service compile-only with no test input stays legal",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects fail despite successful process",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects cancelled despite successful process",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects skipped despite successful process",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects todo despite successful process",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects undefined runtime counts",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects phantom duplicated records",
+      "passed": true
+    },
+    {
+      "name": "postcheck rejects additional result group",
+      "passed": true
+    },
+    {
+      "name": "identity-marked atomic program cannot become compile-only",
+      "passed": true
+    },
+    {
+      "name": "new canonical path under old excluded prefix is no longer omitted",
+      "passed": true
+    }
+  ],
+  "runtime": [
+    {
+      "mode": "declared-original-sentinel",
+      "expectedBehaviorObserved": true,
+      "rejected": true,
+      "beforeWork": false,
+      "mutantDetected": false,
+      "evidence": "declared-original-sentinel.json"
+    },
+    {
+      "mode": "omitted-without-count",
+      "expectedBehaviorObserved": true,
+      "rejected": true,
+      "beforeWork": true,
+      "mutantDetected": false,
+      "evidence": "omitted-without-count.json"
+    },
+    {
+      "mode": "missing-result",
+      "expectedBehaviorObserved": true,
+      "rejected": true,
+      "beforeWork": false,
+      "mutantDetected": false,
+      "evidence": "missing-result.json"
+    },
+    {
+      "mode": "atomic-missing-identity",
+      "expectedBehaviorObserved": true,
+      "rejected": true,
+      "beforeWork": false,
+      "mutantDetected": false,
+      "evidence": "atomic-missing-identity.json"
+    },
+    {
+      "mode": "mutant-remove-precheck",
+      "expectedBehaviorObserved": true,
+      "rejected": true,
+      "beforeWork": false,
+      "mutantDetected": true,
+      "evidence": "mutant-remove-precheck.json"
+    },
+    {
+      "mode": "mutant-remove-postcheck",
+      "expectedBehaviorObserved": true,
+      "rejected": false,
+      "beforeWork": false,
+      "mutantDetected": true,
+      "evidence": "mutant-remove-postcheck.json"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "tests/plugins/qualified-current-release/.gitignore",
+      "sha256": "416c368351d655294bc29cfb669584917dfdbdc1f6166378117900ce07135c08"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/README.md",
+      "sha256": "574915db7c2a0f47d5241ccdfd96704ee1284a0b9fee810ec3a03c73a439beb9"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/REPORT.md",
+      "sha256": "d7146a5af1d55735ba9f92688d54859166676bbb43fe2128531e0c7dbe3ba6de"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/SHA256SUMS.json",
+      "sha256": "25990068d2a71eb445b466b61b958fe8cf9fcbc96145a23bb3db519164588e50"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "1af79ed00ab321fb2113b5b6f3d9e91b7796c25f50e9c04717c1f83d26cc1bfd"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/inventory.json",
+      "sha256": "28324967ad95a015ae64f3e9464767df8fe37706d0f99338b296b306612408b4"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/prerequisites.mjs",
+      "sha256": "052dc58ece76f3136ad03212b9f938502cf2f0ca5ebfd03876c3be9ea11eaf39"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/prerequisites.test.mjs",
+      "sha256": "4c7688d503a3b9f66931e5d959af941aad1078f2df892b575487592c30ad32da"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "sha256": "cfe5b508a670e9d1cfd9281381558c0a3c842be3e3060d1f8f8c8c0c66277508"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/tsconfig.consumer.json",
+      "sha256": "e848f92d4ac977a05d457b2bb13ad99163a0f16426decfe8a34389a78e506068"
+    },
+    {
+      "path": "scripts/verify-qualified-release.mjs",
+      "sha256": "848a0e37bb67a53d79c9131077c0f5b4611dd4caa7ad4964577c70a0734bd949"
+    },
+    {
+      "path": "scripts/verify-current-consumers.mjs",
+      "sha256": "e70df901920bf461801f523a701572910aa72a5f91f25c9b13cb09f7d39d22c9"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "sha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/current-profile.mjs",
+      "sha256": "929e019df6e9ae45689ef06ff2d3b495d0dbe7ab2a9a6a30e5d2a7666acde958"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/harness.mjs",
+      "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/negative.ts.fixture",
+      "sha256": "72229b05270d7e8355e777f322c82eba110bc4e502d6ffb2b986626f15757bf1"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/positive.ts.fixture",
+      "sha256": "fc786bae84c1eab93a06f0fe1dcf6e23397a2260d836074b623b02a40c684265"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/prerequisite-controls.mjs",
+      "sha256": "420d2aebb4cf0031134b0192d534085c92ac7aa0b0046b8a1860c39122bf98ab"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/public-checks.mjs",
+      "sha256": "352147bb6e11be7c0f7796be4adba24562b44b8157e86680a4f73db43661a365"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/verify-public.mjs",
+      "sha256": "6ea333424342e284fd57e92f4a1fe6643d8918a9e53b2639120036f4bea38f4a"
+    }
+  ],
+  "scope": "independent repair review; no whole gate",
+  "cleaned": true,
+  "finishedAt": "2026-08-27T11:00:55.986Z"
+}

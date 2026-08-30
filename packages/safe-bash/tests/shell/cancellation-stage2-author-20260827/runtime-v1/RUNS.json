@@ -1,0 +1,149 @@
+{
+  "date": "2026-08-28",
+  "candidateCommit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+  "runs": [
+    {
+      "id": "author-baseline-runtime",
+      "source": "fixed baseline plus accepted helper, before five-file implementation",
+      "command": "node --import tsx --test tests/shell/cancellation-stage2-author-20260827/runtime-v1/runtime.test.ts",
+      "exit": 1,
+      "counts": { "pass": 1, "fail": 1, "cancelled": 3 },
+      "classification": "expected feature-absent baseline; retained, not a candidate result"
+    },
+    {
+      "id": "author-baseline-types",
+      "source": "fixed baseline plus accepted helper, before five-file implementation",
+      "command": "node node_modules/typescript/bin/tsc -p tests/shell/cancellation-stage2-author-20260827/runtime-v1/tsconfig.strict.json",
+      "exit": 2,
+      "counts": { "TS2353": 9 },
+      "classification": "expected missing public signal property; retained, not a candidate result"
+    },
+    {
+      "id": "live-regression-attempt-1",
+      "source": "mutable live worktree candidate during implementation",
+      "commandRole": "selected invoke/cleanup/env/getopts/owned-output tests",
+      "exit": 1,
+      "counts": { "pass": 305, "fail": 1 },
+      "classification": "product regression found: normal closed admission reported cancellation admission; fixed before source commit"
+    },
+    {
+      "id": "live-pipeline-focused-attempt",
+      "source": "mutable live worktree candidate during implementation",
+      "commandRole": "focused pipeline compatibility tests",
+      "exit": 1,
+      "counts": { "fail": 4 },
+      "classification": "product regression found: tagged pipeline cancellation bypassed established EPIPE-to-141 mapping; fixed before source commit"
+    },
+    {
+      "id": "live-regression-final",
+      "source": "mutable live worktree immediately before source commit",
+      "commandRole": "selected invoke/cleanup/env/getopts/owned-output tests",
+      "exit": 0,
+      "counts": { "pass": 306, "fail": 0 },
+      "classification": "development qualification only; exact reconstruction results below are authoritative"
+    },
+    {
+      "id": "reconstruction-regression-attempt-1",
+      "source": "fixed reconstruction before baseline-support-v2",
+      "commandRole": "selected unchanged invoke/cleanup/env/getopts regression tests",
+      "exit": 1,
+      "counts": { "pass": 160, "fail": 7 },
+      "classification": "archive inventory defect: tests/shell/helpers.ts omitted; no product conclusion"
+    },
+    {
+      "id": "reconstruction-regression-attempt-2",
+      "source": "fixed reconstruction plus baseline-support-v2",
+      "commandRole": "selected unchanged invoke/cleanup/env/getopts regression tests",
+      "exit": 1,
+      "counts": { "pass": 244, "fail": 3, "total": 247 },
+      "classification": "archive inventory defect: env-split-author/native-frozen.json omitted; no product conclusion"
+    },
+    {
+      "id": "reconstruction-regression-attempt-3",
+      "source": "fixed reconstruction plus baseline-support-v2 and v3",
+      "commandRole": "selected unchanged invoke/cleanup/env/getopts regression tests",
+      "exit": 1,
+      "counts": { "pass": 246, "fail": 1, "total": 247 },
+      "classification": "archive inventory defect: getopts stage2 corpus and its two fixtures omitted; no product conclusion"
+    },
+    {
+      "id": "reconstruction-state-diagnostic",
+      "source": "same attempt-3 reconstruction",
+      "command": "node --import tsx --test tests/shell/getopts/runtime/state.test.ts",
+      "exit": 1,
+      "counts": { "pass": 0, "fail": 1 },
+      "classification": "targeted diagnosis confirmed ERR_MODULE_NOT_FOUND for fixed-baseline corpus.mjs"
+    },
+    {
+      "id": "reconstruction-regression-final",
+      "source": "fixed reconstruction plus versioned support v2-v4",
+      "command": "node --import tsx --test tests/shell/invoke.test.ts tests/shell/invocation-cleanup-lifecycle.test.ts tests/shell/invocation-cleanup-pipeline.test.ts tests/shell/env-shebang-host.test.ts tests/shell/getopts/scanner.test.ts tests/shell/getopts/native.test.ts tests/shell/getopts/work.test.ts tests/shell/getopts/runtime/host.test.ts tests/shell/getopts/runtime/ordering.test.ts tests/shell/getopts/runtime/state.test.ts",
+      "exit": 0,
+      "counts": { "pass": 280, "fail": 0, "cancelled": 0, "skipped": 0 },
+      "classification": "exact reconstructed candidate"
+    },
+    {
+      "id": "reconstruction-core-owned-output",
+      "source": "fixed reconstruction plus versioned support v5",
+      "command": "node --import tsx --test tests/shell/core.test.ts tests/integration/owned-output-production-rebase/author/operation.test.ts tests/integration/owned-output-production-rebase/author/shell.test.ts",
+      "exit": 0,
+      "counts": { "pass": 39, "fail": 0, "cancelled": 0, "skipped": 0 },
+      "classification": "exact reconstructed candidate; unchanged fixed-baseline tests"
+    },
+    {
+      "id": "reconstruction-build",
+      "source": "fixed reconstruction",
+      "command": "node node_modules/typescript/bin/tsc -p tsconfig.build.json",
+      "exit": 0,
+      "classification": "strict declaration and ESM build"
+    },
+    {
+      "id": "reconstruction-author-types",
+      "source": "fixed reconstruction",
+      "command": "node node_modules/typescript/bin/tsc -p tests/shell/cancellation-stage2-author-20260827/runtime-v1/tsconfig.strict.json",
+      "exit": 0,
+      "classification": "exactOptionalPropertyTypes positive and @ts-expect-error negative consumer"
+    },
+    {
+      "id": "reconstruction-author-runtime",
+      "source": "fixed reconstruction",
+      "command": "node --import tsx --test tests/shell/cancellation-stage2-author-20260827/runtime-v1/runtime.test.ts",
+      "exit": 0,
+      "counts": { "pass": 5, "fail": 0, "cancelled": 0, "skipped": 0 },
+      "classification": "focused Stage2 author cases"
+    },
+    {
+      "id": "moved-consumer-types-attempt-1",
+      "source": "installed public tarball without Node ambient development declarations",
+      "command": "node ../source/node_modules/typescript/bin/tsc -p tsconfig.json",
+      "exit": 2,
+      "counts": { "diagnostics": 6 },
+      "classification": "consumer tool-input defect; retained; only missing Buffer/node:* declarations"
+    },
+    {
+      "id": "moved-consumer-types-final",
+      "source": "installed public tarball plus guarded local @types/node and undici-types development inputs",
+      "command": "node ../source/node_modules/typescript/bin/tsc -p tsconfig.json",
+      "exit": 0,
+      "classification": "public installed declarations; no source fallback"
+    },
+    {
+      "id": "moved-consumer-runtime",
+      "source": "installed public tarball",
+      "command": "node runtime.mjs",
+      "exit": 0,
+      "facts": {
+        "resolved": "consumer/node_modules/virtual-bash/dist/index.js",
+        "sourceFallbackRejected": true,
+        "cleanupCompleteBeforeSettlement": true,
+        "exactReasonIdentity": true
+      }
+    }
+  ],
+  "notRun": [
+    "the independent Stage2 family and ten frozen mutants",
+    "the whole repository gate",
+    "SafeJS replay or private-engine probes",
+    "network or deployed-provider acceptance"
+  ]
+}

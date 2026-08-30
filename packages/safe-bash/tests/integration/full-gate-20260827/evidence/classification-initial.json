@@ -1,0 +1,6 @@
+{
+  "status": 1,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   nativeOracleOrProfile: 8,\n-   nativeOracleOrProfile: 17,\n    unavailablePrivateEngine: 62,\n+   unclassified: 9\n-   unclassified: 0\n  }\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/classify.mjs:50:8\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: {\n    unavailablePrivateEngine: 62,\n    nativeOracleOrProfile: 8,\n    unclassified: 9\n  },\n  expected: {\n    unavailablePrivateEngine: 62,\n    nativeOracleOrProfile: 17,\n    unclassified: 0\n  },\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "scope": "Post-run classification assertion exposed missing generic GNU skip-label recognition; canonical counts unaffected"
+}

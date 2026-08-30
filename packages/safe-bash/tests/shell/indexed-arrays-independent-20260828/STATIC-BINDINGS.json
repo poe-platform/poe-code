@@ -1,0 +1,453 @@
+{
+  "kind": "independent-indexed-array-static-design-review-v1",
+  "date": "2026-08-28",
+  "original": "2cb939883a91b495bed7dadb8973cd1939b16e6a",
+  "addendum": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+  "manifest": {
+    "path": "tests/shell/indexed-arrays-design-20260828/native-preseal-v1/MANIFEST.json",
+    "sha256": "f731d304306b02d11df41b386d4528405ad307ca33098d25f1bc2a0193c0764f"
+  },
+  "qualification": "Only immutable Git reads, local file metadata/hash reads, JSON checks and bounded numeric arithmetic. No product/native oracle/parser/arithmetic engine/runtime imports, syntax checks, builds or tests.",
+  "documents": [
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/REPORT.md",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 4470,
+      "sha256": "4261ebf4b6350a285c50f92a979e80e3560bfdc11f803165e09e79b9a966eef4",
+      "preservedOriginal": false
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/CHOICES.md",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 10534,
+      "sha256": "513e178786a1d27561cc113152aea69537b5f9ff7c3fe969bede4cf056a62569",
+      "preservedOriginal": false
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/ACCOUNTING.md",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 8500,
+      "sha256": "811cf0226c4232cf389e6e410c687bf952232b5ce9ea0a8cac49bbe7c21e2109",
+      "preservedOriginal": false
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v1/SOURCE-BINDING.json",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 8400,
+      "sha256": "d83a4a447103186206d9937df671960d590a24d3901e56591020ee072d9b4202",
+      "preservedOriginal": false
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/native-preseal-v1/PROTOCOL.md",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 4574,
+      "sha256": "e154c2509edb8bd08464730a2acb9153537055c39c862a0873cbf6c25d141286",
+      "preservedOriginal": false
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/native-preseal-v1/ROWS.json",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 10817,
+      "sha256": "5f51dbeebcef0dcfb49e26f9592d7d9f6ce6cb37eda08c49502f042cb81e94f9",
+      "preservedOriginal": false
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/PROFILE.md",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 15448,
+      "sha256": "9607903a7d0c5dec46364b1b3f5db5e42cdfd187c4281121094c955e5e044eb2",
+      "preservedOriginal": true
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/REPORT.md",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 4157,
+      "sha256": "7350cc8d646eb0851d3b7fdd6fa93fc19466e0a4709b58e42442713b25376175",
+      "preservedOriginal": true
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/SOURCE-BINDING.json",
+      "revision": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+      "bytes": 3861,
+      "sha256": "6cda9ea07116d58cf5a47e5add7c56d4bf8b6ca1b52bfa552a2e478f427c6a72",
+      "preservedOriginal": true
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "bytes": 139761,
+      "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 2605,
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 6600,
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 8443,
+      "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/commands/stream-format/rev.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 2772,
+      "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "role": "authenticated source bytes, not executed or imported"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 5683,
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "role": "authenticated source bytes, not executed or imported"
+    }
+  ],
+  "rows": [
+    {
+      "id": "N01",
+      "scriptBytes": 81,
+      "scriptSha256": "434a41169c67d2087fbf339691271e39d57d007464d90e23c78c6b5371c34c03",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N02",
+      "scriptBytes": 77,
+      "scriptSha256": "2f03a02d6dd29c97eddc53bf6fb03261eb039b0d1ef64929a5ff187751516a82",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N03",
+      "scriptBytes": 96,
+      "scriptSha256": "f29c7d42dea82fa9024a224d09a09f2b377418ba05ab92da7f223fc70737cbbe",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N04",
+      "scriptBytes": 87,
+      "scriptSha256": "a28588aaf638e65d0234475b758587057841c758b2b816a4b15d0dd31be3b202",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N05",
+      "scriptBytes": 134,
+      "scriptSha256": "06e63644112decaf17b815b300b9883cf608c0bf79d1367d4dd4a6d7de6b894d",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N06",
+      "scriptBytes": 99,
+      "scriptSha256": "3d19d67ccdbc59c376940102e9b9bf9d184c6df04ffed510f4af2f82616a2595",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N07",
+      "scriptBytes": 144,
+      "scriptSha256": "e79b9ea4a4a039753f9d6566fafec6c5a2a2d15dda07fb7f03a025409c37be84",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N08",
+      "scriptBytes": 153,
+      "scriptSha256": "478823318afd723a9fe36e4769af95f6458b0f6b5b70cedb0bc1a063d8f9ff8d",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N09",
+      "scriptBytes": 76,
+      "scriptSha256": "fbfe4f67f379361bd7cda3db383a078959b7d19c54c70410a5dd6ee44da02f4b",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N10",
+      "scriptBytes": 63,
+      "scriptSha256": "f005dab927092857049a2440ea1fa82407f833efa68ff6650186e04973fcfadb",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N11",
+      "scriptBytes": 167,
+      "scriptSha256": "6bdcf3c49230d4ffab37e6ba237be28dabee90fbc30cea1e816ae6764ad85440",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N12",
+      "scriptBytes": 131,
+      "scriptSha256": "07672e6489965b5e146ea7011079f2728107d053d2dfaed2c424fb6936d5cf2a",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N13",
+      "scriptBytes": 82,
+      "scriptSha256": "298d04e0670e91c251c92d55dae8809235887d772189178224e1c061b79890d4",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N14",
+      "scriptBytes": 76,
+      "scriptSha256": "8a3cf7980ac0ba01addb6d234e2dbee7ed490dfca259887681143e6d0f7cf66d",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 1,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N15",
+      "scriptBytes": 216,
+      "scriptSha256": "e5d3493a7dce70f4ab567dc146abd05d7de0997f668fb02e9fb598007d182baa",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 1,
+      "result": "unexecuted question; no native expectation or observation"
+    },
+    {
+      "id": "N16",
+      "scriptBytes": 101,
+      "scriptSha256": "857d3d43a750d154b0444a5c276d89118d9bf1967cadb0bfff730deb36a31fdc",
+      "nativeexpected": null,
+      "nestedChildContextsUpperBound": 0,
+      "result": "unexecuted question; no native expectation or observation"
+    }
+  ],
+  "totalScriptBytes": 1783,
+  "nestedContexts": 2,
+  "nativeFiles": [
+    {
+      "role": "binary",
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "bytes": 1395864,
+      "mode": 493,
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "action": "read/hash only; not invoked"
+    },
+    {
+      "role": "manual",
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "bytes": 415804,
+      "mode": 420,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+      "action": "read/hash only; not invoked"
+    }
+  ],
+  "arithmeticOnly": {
+    "example": {
+      "livePayload": "1024",
+      "liveMetadata": "2048",
+      "allocatedBytes": "16384",
+      "allocatedSlots": "128",
+      "work": "36864"
+    },
+    "defaults": {
+      "livePayload": "16777216",
+      "liveMetadata": "1280000",
+      "allocatedBytes": "139337728",
+      "allocatedSlots": "80000",
+      "work": "539430912"
+    },
+    "zero": {
+      "livePayload": "0",
+      "liveMetadata": "0",
+      "allocatedBytes": "0",
+      "allocatedSlots": "0",
+      "work": "0"
+    }
+  },
+  "allocationTable": {
+    "qualification": "static proposal arithmetic, not implementation or resource measurement; excludes work/cleanup simulation and two-vector sorting peak as author states",
+    "rows": [
+      {
+        "event": "old",
+        "payload": 9,
+        "metadata": 352,
+        "sparseSlots": 2,
+        "cumulativeBytes": 361,
+        "cumulativeSlots": 2
+      },
+      {
+        "event": "append",
+        "payload": 16,
+        "metadata": 704,
+        "sparseSlots": 5,
+        "cumulativeBytes": 720,
+        "cumulativeSlots": 5
+      },
+      {
+        "event": "saved-local",
+        "payload": 16,
+        "metadata": 1024,
+        "sparseSlots": 7,
+        "cumulativeBytes": 1040,
+        "cumulativeSlots": 7
+      },
+      {
+        "event": "index-vector",
+        "payload": 16,
+        "metadata": 1184,
+        "sparseSlots": 7,
+        "cumulativeBytes": 1200,
+        "cumulativeSlots": 10
+      },
+      {
+        "event": "join",
+        "payload": 33,
+        "metadata": 1312,
+        "sparseSlots": 7,
+        "cumulativeBytes": 1345,
+        "cumulativeSlots": 11
+      },
+      {
+        "event": "index-release",
+        "payload": 33,
+        "metadata": 1152,
+        "sparseSlots": 7,
+        "cumulativeBytes": 1345,
+        "cumulativeSlots": 11
+      },
+      {
+        "event": "failed-stage-release",
+        "payload": 26,
+        "metadata": 800,
+        "sparseSlots": 4,
+        "cumulativeBytes": 1345,
+        "cumulativeSlots": 11
+      },
+      {
+        "event": "output-release",
+        "payload": 9,
+        "metadata": 672,
+        "sparseSlots": 4,
+        "cumulativeBytes": 1345,
+        "cumulativeSlots": 11
+      },
+      {
+        "event": "saved-local-release",
+        "payload": 9,
+        "metadata": 352,
+        "sparseSlots": 2,
+        "cumulativeBytes": 1345,
+        "cumulativeSlots": 11
+      }
+    ]
+  },
+  "executions": {
+    "native": 0,
+    "product": 0,
+    "productImports": 0,
+    "nativeSyntaxChecks": 0,
+    "builds": 0,
+    "parser": 0,
+    "arithmeticEngine": 0,
+    "tests": 0
+  },
+  "policyBoundary": "new independent public Shell.exec is fresh; internal descendants/invoke share one invocation ledger; no cross-exec/RSS/hard-preemption claim"
+}

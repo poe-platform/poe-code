@@ -1,0 +1,176 @@
+[
+  {
+    "id": "W01",
+    "outcome": 0,
+    "stdout": "",
+    "guests": 1
+  },
+  {
+    "id": "W02",
+    "outcome": 0,
+    "stdout": "3\n",
+    "guests": 1
+  },
+  {
+    "id": "W03",
+    "outcome": 0,
+    "stdout": "/virtual/bin/node /project/entry.cjs tail bound /project /project\n",
+    "guests": 1
+  },
+  {
+    "id": "W04",
+    "outcome": 0,
+    "stdout": "\n",
+    "guests": 1
+  },
+  {
+    "id": "W05",
+    "outcome": 0,
+    "stdout": "{\"name\":\"é\",\"n\":2}\n",
+    "guests": 1
+  },
+  {
+    "id": "W06",
+    "outcome": 0,
+    "stdout": "true 1\n",
+    "guests": 1
+  },
+  {
+    "id": "W07",
+    "outcome": 0,
+    "stdout": "ERR_VNODE_DENIED\n",
+    "guests": 1
+  },
+  {
+    "id": "W08",
+    "outcome": 0,
+    "stdout": "FsError ENOENT /missing\n",
+    "guests": 1
+  },
+  {
+    "id": "W09",
+    "outcome": "raw-rejection",
+    "stdout": null,
+    "guests": 1
+  },
+  {
+    "id": "W10",
+    "outcome": 0,
+    "stdout": "EROFS\n",
+    "guests": 1
+  },
+  {
+    "id": "W11",
+    "outcome": 0,
+    "stdout": "EEXIST\n",
+    "guests": 1
+  },
+  {
+    "id": "W12",
+    "outcome": 0,
+    "stdout": "4 undefined\n",
+    "guests": 1
+  },
+  {
+    "id": "W13",
+    "outcome": 0,
+    "stdout": "[2,3] /a/b x\n",
+    "guests": 1
+  },
+  {
+    "id": "W14",
+    "outcome": 0,
+    "stdout": "entry-return\n",
+    "guests": 1
+  },
+  {
+    "id": "W15",
+    "outcome": "raw-rejection",
+    "stdout": null,
+    "guests": 1
+  },
+  {
+    "id": "W16",
+    "outcome": "raw-rejection",
+    "stdout": null,
+    "guests": 1
+  },
+  {
+    "id": "W17",
+    "outcome": 2,
+    "stdout": "",
+    "guests": 1
+  },
+  {
+    "id": "W18",
+    "outcome": 1,
+    "stdout": "",
+    "guests": 1
+  },
+  {
+    "id": "W19",
+    "outcome": 0,
+    "stdout": "3\n",
+    "guests": 1
+  },
+  {
+    "id": "W20",
+    "outcome": 0,
+    "stdout": "/child child\n",
+    "guests": 1
+  },
+  {
+    "id": "W21",
+    "outcome": "raw-rejection",
+    "stdout": null,
+    "guests": 0
+  },
+  {
+    "id": "W22",
+    "outcome": 2,
+    "stdout": "",
+    "guests": 0
+  },
+  {
+    "id": "W23-v2",
+    "outcome": 2,
+    "stdout": "",
+    "guests": 1
+  },
+  {
+    "id": "W24",
+    "outcome": 0,
+    "stdout": "42\n",
+    "guests": 1
+  },
+  {
+    "id": "W25",
+    "outcome": "raw-rejection",
+    "stdout": null,
+    "guests": 0
+  },
+  {
+    "id": "W26",
+    "outcome": 2,
+    "stdout": "",
+    "guests": 1
+  },
+  {
+    "id": "W27",
+    "outcome": "raw-rejection",
+    "stdout": null,
+    "guests": 0
+  },
+  {
+    "id": "W28",
+    "outcome": 0,
+    "stdout": "﻿é﻿Z\n7\n",
+    "guests": 1
+  },
+  {
+    "id": "W29",
+    "outcome": 0,
+    "stdout": "stdin-bom\n",
+    "guests": 1
+  }
+]

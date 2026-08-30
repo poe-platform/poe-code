@@ -1,0 +1,54 @@
+{
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "profile": "live author checkout; source commit 27a7793526830768484885afba5832bf8bb248b5; no frozen acceptance replay",
+  "runs": [
+    {
+      "command": "node_modules/.bin/tsc -p tests/commands/expr-author/abort-reason-fix/tsconfig.json",
+      "log": "strict-before.log",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "log": "build-before.log",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import tsx --test tests/commands/expr/abort-reason-regression.test.ts",
+      "log": "regression-before.tap",
+      "exitCode": 1,
+      "tests": 111,
+      "passed": 103,
+      "failed": 8
+    },
+    {
+      "command": "npm run build",
+      "log": "build-after.log",
+      "exitCode": 0
+    },
+    {
+      "command": "node_modules/.bin/tsc -p tests/commands/expr-author/abort-reason-fix/tsconfig.json",
+      "log": "strict-after.log",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import tsx --test tests/commands/expr/abort-reason-regression.test.ts",
+      "log": "regression-after.tap",
+      "exitCode": 0,
+      "tests": 111,
+      "passed": 111,
+      "failed": 0
+    },
+    {
+      "command": "node --import tsx --test --test-concurrency=1 tests/commands/expr/*.test.ts tests/commands/regex-execution/executor.test.ts tests/commands/regex-execution/commands.test.ts tests/commands/regex-execution/continuation/public.test.ts tests/commands/regex-execution/continuation/glob.test.ts tests/commands/regex-execution/continuation/glob-transport.test.ts tests/commands/regex-execution/cleanup-registration/controls.test.ts tests/commands/regex-execution/followup/messageerror.test.ts tests/contracts/invocation-cleanup.test.ts tests/shell/invocation-cleanup.test.ts tests/shell/invocation-cleanup-lifecycle.test.ts",
+      "log": "focused-after.tap",
+      "exitCode": 0,
+      "tests": 377,
+      "passed": 377,
+      "failed": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ]
+}

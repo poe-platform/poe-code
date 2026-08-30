@@ -1,0 +1,82 @@
+{
+  "rootCap": {
+    "seconds": 1500,
+    "knownOS": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 268435456
+  },
+  "actual": {
+    "outerPid": 24857,
+    "childPid": 24859,
+    "processes": 2,
+    "peak": 2,
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true
+    },
+    "rawChildBytes": 3438,
+    "decoder": 1,
+    "parser": 1,
+    "extraction": 0,
+    "productImports": 0,
+    "workers": 0,
+    "nativeCommands": 0
+  },
+  "conservativeRoleAccounting": [
+    [
+      "initial data capture and Git status",
+      2
+    ],
+    [
+      "instruction-free clock/artifact metadata read",
+      1
+    ],
+    [
+      "first shell/apply_patch/interpreter slots",
+      3
+    ],
+    [
+      "captured manifest metadata helper",
+      1
+    ],
+    [
+      "second shell/apply_patch/interpreter slots",
+      3
+    ],
+    [
+      "combined edit/preparation: hosting PID, patch roles, 9 recorded children, 2 subordinate interpreter slots",
+      14
+    ],
+    [
+      "preseal administrator plus Git add/commit",
+      3
+    ],
+    [
+      "actual outer and child",
+      2
+    ],
+    [
+      "captured postguard helper",
+      1
+    ],
+    [
+      "publication-source edit shell/patch/interpreter slots",
+      3
+    ],
+    [
+      "publication administrator, five Git operations, patch/interpreter slots",
+      8
+    ]
+  ],
+  "conservativeTotalIncludingPublication": 41,
+  "remainingUnspentSlots": 7,
+  "qualification": "Conservative explicit launch-role accounting, including possible apply_patch interpreter slots; NOT an exact measured transitive process census. Actual proof has two observed processes, child exit+close, outer tool exit. Administrative children are synchronous with recorded status/signal. No Worker or native-resource lifetime inference.",
+  "publicationCapture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/strict-n14-prospective-publication-FOb12o",
+  "captureQualification": "Correction runtime has stable exclusive file capture before admission. Source edits and the instruction-free initial clock/artifact read also have tool-transcript records, not an invented all-preparation file-capture guarantee. No instruction text copied."
+}

@@ -1,0 +1,158 @@
+{
+  "schema": "expr-independent-execution-freeze-v1",
+  "authorizationDate": "2026-08-28",
+  "capturedAt": "2026-08-28T00:48:14.311Z",
+  "inputsSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+  "layoutsSha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9",
+  "selectedInputs": 357,
+  "exactCaseBodyReplacementVerified": true,
+  "syntaxChecks": 10,
+  "productExecutions": 0,
+  "entries": [
+    {
+      "path": ".gitignore",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 816134,
+      "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3"
+    },
+    {
+      "path": "LAYOUT-PREPARATION.raw.txt",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 181,
+      "sha256": "00456322b525f2b9acb3c7aee906a9bcc84f0f370e42d42e5fc0a159966204f3"
+    },
+    {
+      "path": "LAYOUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4644868,
+      "sha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9"
+    },
+    {
+      "path": "PREPARATION-NOTES.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 651,
+      "sha256": "2d72ddfac0d13a9c4566749f0248b9ab0b99af8d36e81d05aa51114c63b41023"
+    },
+    {
+      "path": "PREPARATION.raw.txt",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 364,
+      "sha256": "f85ea0ffc12324b7fe2c33cbcd9552f97f55f53c7b4d871b677003522507daea"
+    },
+    {
+      "path": "RECIPE.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4920,
+      "sha256": "f4ef309b148778515c876ee9ec15fece5f6aa8144e97de9be8057a1adb10e436"
+    },
+    {
+      "path": "cases.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5911,
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+    },
+    {
+      "path": "child.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10510,
+      "sha256": "12076360e83881be5ec755e121728efd7dc7378572d3fae06009b2145d6c2c19"
+    },
+    {
+      "path": "common.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3294,
+      "sha256": "2f14179589b14f83ce6485b47111a0716a8fe815bf49ea02b2e2a4f8b76a2b9d"
+    },
+    {
+      "path": "consumer-component.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8853,
+      "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e"
+    },
+    {
+      "path": "guard.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1453,
+      "sha256": "cdb6a9678e0226e82384bcd8e9424fbbe5b453427e7011de645df823962f2448"
+    },
+    {
+      "path": "negative.ts.fixture",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 907,
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+    },
+    {
+      "path": "observer.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5078,
+      "sha256": "1fffd7e99be072e87127be1af56461334a6db529d37c8be38b5418762548e37c"
+    },
+    {
+      "path": "positive.ts.fixture",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2382,
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+    },
+    {
+      "path": "prepare-layouts.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3811,
+      "sha256": "5b4f45c30678f2509da261fd7ba044d969bf2a1a727a8dfb5b9c80ab4fcfa6cb"
+    },
+    {
+      "path": "prepare.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4320,
+      "sha256": "2ac0aca8477b2ca52e4a97442ea6c8cbc8fbd46c447263617105b788bbb365cd"
+    },
+    {
+      "path": "run.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 27238,
+      "sha256": "b7b254bb248a9cf8eabfabc0d1c92551f8b1cde5806a3406a4e6411fa76f7227"
+    },
+    {
+      "path": "silent-worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 178,
+      "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed"
+    },
+    {
+      "path": "worker-guard.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 22,
+      "sha256": "fbb63fe38bed0564672e83bc960b7538059e332e34481ff44211124460ddb142"
+    }
+  ],
+  "holds": [
+    "accepted-DU75",
+    "HTML34",
+    "whole76"
+  ]
+}

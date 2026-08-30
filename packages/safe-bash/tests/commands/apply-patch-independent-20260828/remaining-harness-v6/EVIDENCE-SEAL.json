@@ -1,0 +1,26 @@
+{
+  "schema": "remaining-harness-v6-startup-refusal-evidence",
+  "sourceCommit": "49500bf8cd961788b1c212c862171306767ac069",
+  "discoveryPresealSha256": "c90081207ac53c9cf0d2f5c1851e7371b842e1d82bffab8aa0854598f623466e",
+  "mainPresealSha256": null,
+  "files": {
+    "REPORT.md": {
+      "bytes": 5357,
+      "mode": 420,
+      "sha256": "f0d105bd46cdb43ecae96387b2bec34f9ac75a51ce246dc1c8b31be66758d0aa"
+    },
+    "STARTUP-TRANSCRIPTION.txt": {
+      "bytes": 1111,
+      "mode": 420,
+      "sha256": "18908609178c2e229ae9d60017a1e9c533eba0e87818fd53c5f8aa779fa7e796"
+    },
+    "POSTGUARDS.json": {
+      "bytes": 3103,
+      "mode": 420,
+      "sha256": "cf0dbea87cf3832926e30b1b6a9e43cdff0131eec7ccc163dade26bf1a223d83"
+    }
+  },
+  "qualified": false,
+  "classification": "genuine startup filesystem permission refusal; STOP; no retry; no raw startup capture",
+  "evidenceCommit": "reported externally"
+}

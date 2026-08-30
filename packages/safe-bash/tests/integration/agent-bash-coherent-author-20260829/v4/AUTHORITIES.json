@@ -1,0 +1,101 @@
+[
+  {
+    "commit": "aed62f65",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/workflows.mjs",
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/workflows.mjs",
+    "blob": "28ff2fb1752975479ba283fe4cc1e4aeda4cf192",
+    "mode": "100644",
+    "bytes": 15764,
+    "sha256": "298fce206c0c4abf5a9960e9140d5b430267cf9819089a0bbfbb3936af9dabbc"
+  },
+  {
+    "commit": "aed62f65",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/WORKFLOW.patch",
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/WORKFLOW.patch",
+    "blob": "b0101ec42270a93db85c6629d7c9c9807f2f067f",
+    "mode": "100644",
+    "bytes": 16026,
+    "sha256": "341b8228574c36cd84d08dc3c8800c1146eac9da3199f96b2757108d427e2933"
+  },
+  {
+    "commit": "aed62f65",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/finish.mjs",
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/finish.mjs",
+    "blob": "737406a55a8937194e022c810739c048f1067706",
+    "mode": "100644",
+    "bytes": 11025,
+    "sha256": "40e920b689fa7ed0b412edf1d1494424de6ce7241b82a2c73d0449e5f67ce4a9"
+  },
+  {
+    "commit": "aed62f65",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/EXPECTATION-DELTA.json",
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/EXPECTATION-DELTA.json",
+    "blob": "6fd79b4a8d3c528835798363ed58885bfc376ec1",
+    "mode": "100644",
+    "bytes": 529,
+    "sha256": "c7f8b3e2cd350349e39f37ea6e59384bfaf0dd0156733a054960edce8ea84740"
+  },
+  {
+    "commit": "aed62f65",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/HANDOFF.md",
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/HANDOFF.md",
+    "blob": "be52c073d7b457fb2f3e0c1d7c63ce6fc8c8ecb1",
+    "mode": "100644",
+    "bytes": 9900,
+    "sha256": "af560a8f8e51379d4e90683b2368d7d34a1a18c051970159768a72d70c599a4e"
+  },
+  {
+    "commit": "cf23ba11",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs",
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs",
+    "blob": "3e5f284b97520fc6b12243ce5df37fa32d7b9508",
+    "mode": "100644",
+    "bytes": 15458,
+    "sha256": "6dfaa3f6447703515994a3145264ae6eb9184c1dd7f73b2b764f6945aabd544c"
+  },
+  {
+    "commit": "cf23ba11",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+    "blob": "2ff4277a22de3991816aab7739266fd31b8fcefd",
+    "mode": "100644",
+    "bytes": 137864,
+    "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+  },
+  {
+    "commit": "cf23ba11",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/EXECUTABLE-PRESEAL.json",
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/EXECUTABLE-PRESEAL.json",
+    "blob": "67ad3ae995cb65e6b41c7d3203a3d100777bdae6",
+    "mode": "100644",
+    "bytes": 4651,
+    "sha256": "b23d0aaea60126293a41a09563a66e20bf018fb45b9cfefc1725ffac2d8feb93"
+  },
+  {
+    "commit": "cf23ba11",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/ADMISSION-CONTROLS.json",
+    "blob": "270c3c8e4734d983d339df24b9ba3b0310b330e6",
+    "mode": "100644",
+    "bytes": 1390,
+    "sha256": "dc14793bf3f0116f315d8d32164138187e997d9f87dfecd1c08cfe1a08d6468c"
+  },
+  {
+    "commit": "cf23ba11",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs",
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs",
+    "blob": "5cff17018acdae935621320a00bc22f9f35fcffc",
+    "mode": "100644",
+    "bytes": 3593,
+    "sha256": "eb66a961ae08b04133c55e591a53b3e82540fe037b3c5d3ff9ca96d3d2fb8e77"
+  },
+  {
+    "commit": "cf23ba11",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/admission.mjs",
+    "reference": "cf23ba11:tests/integration/agent-bash-coherent-author-20260829/v2/admission.mjs",
+    "blob": "a685b087d572704c7b1a72844c0245f4ad73bbb7",
+    "mode": "100644",
+    "bytes": 1629,
+    "sha256": "e3e1b120fa4f97c18be4603d731c8c4639789139c8114125038796f7ac89f6a1"
+  }
+]

@@ -1,0 +1,263 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "state": "SOURCE_IMPLEMENTED_STATICSEALED_NOT_READY_TO_RUN",
+  "RootGO": false,
+  "core": {
+    "interfaceCommit": "9d582d791336fd66d865f6592b830c39a359d344",
+    "interfaceSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "sourceCommit": "SEE_ATOMIC_OUT_OF_BAND_HANDOFF",
+    "sourceSeal": {
+      "path": "core/SOURCE-SEAL.json",
+      "sha256": "bbd95c1fd7b7e5303003ae4d982fe75f2d0c6a8ac1d13cbab1d7431bf0560d3f"
+    },
+    "exactFiles": 59,
+    "sourceDirectories": 3,
+    "executableFiles": 28,
+    "dispatch": {
+      "build": "core/build-stage.mjs",
+      "semantic": "core/semantic-worker.mjs",
+      "sourceAudit": "core/source-audit-worker.mjs",
+      "infrastructure": "core/infrastructure-worker.mjs",
+      "types": "workers/type-worker.mjs",
+      "loaded": "workers/loaded-worker.mjs"
+    },
+    "criticalBodies": {
+      "cli.mjs": "e7d3448e25589cbb951865d1aa85a5c1826e828d544a66f3e279247d1167c134",
+      "compose.mjs": "a22506557b0e5c6bfe06900ae290a1567fb4aebbff7d0c3bbd45cc60258af585",
+      "copy-tools.mjs": "759917303322286251383e918ed85e6f3ca17959bd4e83e1f5d1597b7dfc328d",
+      "admission.mjs": "397e4fb3cc5ba84bf43717e84918512ceee28e65ef5ddd542fe329e29d74920d",
+      "supervisor.mjs": "77314d227ba1ce099db4f217fd5aa316a5f57fc3b23550f6f0d37452c095c19f",
+      "owned-process.mjs": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "tool-bridge.mjs": "9ceccafd78dc68f48cabde760a7e6fb5e8e6f724b3725fedf2a2b9ee2cfa0a9c",
+      "phase-capture.mjs": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "loader.mjs": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065",
+      "build-stage.mjs": "e60bc37e34bc557a2f58fd2b635c86d406eeedd14065f6bd307d2f5175390021",
+      "worker-api.mjs": "4daffadb845d2a4abf8e89c4f91c1e72f4fefb6c858f1b87db8e673badfb271c",
+      "coverage.mjs": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a"
+    }
+  },
+  "peer": {
+    "commit": "c0353685540288d504b93f206735fe4c448268ef",
+    "seal": {
+      "path": "workers/FINAL-SEAL.json",
+      "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2"
+    },
+    "exactFiles": 30,
+    "sourcePresealSha256": "9319fd64441c728fba358be8b9def804d6990fc2e1042ee21e4939c3b8944dfb",
+    "exports": [
+      "type-worker.mjs#runWorker",
+      "loaded-worker.mjs#runWorker"
+    ],
+    "compatibility": "core/INTERFACE-ADAPTER.json",
+    "unsealedForeignComponentsAdmitted": false
+  },
+  "candidate": {
+    "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "authorEvidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "authorHandoffCommit": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "packetCommit": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "packetSealSha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+    "sourceArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "fullPackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "sourceProjectionFiles": 271,
+    "sourceArchiveFiles": 273,
+    "fullPackageFiles": 870,
+    "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+    "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+    "wholeGit301IsCandidate": false,
+    "selectedOrigins": "5137 baseline + accepted7436 length +7 authorized Yq/private adapter files; five changed repair paths",
+    "publicYqExports": false,
+    "authorArtifactBinding": "AUTHENTICATED_BYTES_ONLY_NOT_INDEPENDENT_BUILD_OR_SEMANTIC_PROOF",
+    "sourcePolicy": "No live HEAD, author test/protocol additions, workspace root wiring or synthetic candidate Git commit"
+  },
+  "plan": {
+    "sourceCommit": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+    "evidenceCommit": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+    "outerJobs": 336,
+    "phases": [
+      {
+        "id": "AUTHENTICATION",
+        "capMs": 120000,
+        "count": 1,
+        "slotSumMs": 120000
+      },
+      {
+        "id": "BUILD",
+        "capMs": 300000,
+        "count": 1,
+        "slotSumMs": 300000
+      },
+      {
+        "id": "SETUP",
+        "capMs": 180000,
+        "count": 2,
+        "slotSumMs": 180000
+      },
+      {
+        "id": "CONTROLS",
+        "capMs": 570000,
+        "count": 19,
+        "slotSumMs": 570000
+      },
+      {
+        "id": "SOURCE_AUDIT",
+        "capMs": 300000,
+        "count": 1,
+        "slotSumMs": 300000
+      },
+      {
+        "id": "SOURCE_RUNTIME",
+        "capMs": 6705000,
+        "count": 149,
+        "slotSumMs": 6705000
+      },
+      {
+        "id": "MOVED_RUNTIME",
+        "capMs": 13410000,
+        "count": 149,
+        "slotSumMs": 13410000
+      },
+      {
+        "id": "TYPES",
+        "capMs": 1560000,
+        "count": 3,
+        "slotSumMs": 1560000
+      },
+      {
+        "id": "LOADED_CONTROLS",
+        "capMs": 900000,
+        "count": 10,
+        "slotSumMs": 900000
+      },
+      {
+        "id": "FINALIZATION",
+        "capMs": 120000,
+        "count": 1,
+        "slotSumMs": 120000
+      }
+    ],
+    "globalMs": 24165000,
+    "clock": "Single supervisor monotonic origin; absolute global/cumulative phase/slot minimum; cleanup inside; no retry/reset/resume",
+    "ceilingsAreForecasts": false
+  },
+  "matrix": [
+    {
+      "environment": "source-built-direct",
+      "runtimeJobs": 149,
+      "uniqueRuntimeIds": 132,
+      "types": 6,
+      "entry": "Independently compiled dist/commands/yq/index.js directfactory; source archive projection271"
+    },
+    {
+      "environment": "installed-moved-direct",
+      "runtimeJobs": 149,
+      "uniqueRuntimeIds": 132,
+      "types": 6,
+      "entry": "Full870 original package physically installed/materialized then renamed before directfactory invocation"
+    }
+  ],
+  "installedUnmoved": {
+    "runtimeJobs": 0,
+    "role": "MOVEMENT_ORIGIN_AND_ADMISSION_ONLY"
+  },
+  "compilerDescendants": {
+    "build": 1,
+    "directTypes": 12,
+    "conditionalPublic": 5,
+    "maximum": 18,
+    "currentPublic": "UNRUN_PUBLIC_EXPORT_GAP_NOT_EXPECTED_MISSING_MODULE_PASS"
+  },
+  "loadedSlots": {
+    "positive": 2,
+    "mutantWitness": 8,
+    "total": 10,
+    "transformations": 3,
+    "witnesses": 4,
+    "actualLoadRequired": true,
+    "pristinePrerequisite": "Authenticated current same-environment original149 raw primitive proof; no extra semantic invocation",
+    "fullRecordPromotion": false
+  },
+  "coverage": {
+    "records": 194,
+    "overlays": 8,
+    "overlaysAreAdditionalDenominator": false,
+    "roleCounts": [
+      111,
+      34,
+      23,
+      11,
+      4,
+      5,
+      6
+    ],
+    "roleCountsMeaning": "Exact named categories and per-ID overlap in core/data/ledger.json",
+    "runtimeJobsPerEnvironment": 149,
+    "uniqueRuntimeIdsNotSummed": 132,
+    "semanticRecords": 111,
+    "completeEligibility": 94,
+    "partialEligibility": 17,
+    "missingRecords": 80,
+    "missingObligations": 135,
+    "missingStatus": "UNRUN_NOT_PRODUCT_FAIL",
+    "sourceStaticRecords": 23,
+    "repairSourceArguments": 4,
+    "sourceRuntimeInterchangeable": false,
+    "authorPassesInherited": 0,
+    "oldParserPassesInherited": 0,
+    "fullRecordPassRequiresEveryObligation": true
+  },
+  "toolAndLoad": {
+    "sourceManifest": "core/TOOL-SOURCES.json",
+    "sourceManifestSha256": "0927fbf7ea954b16eaf7090d80124ec710590d41b259bb8c67fc9b1eb957a102",
+    "freshRegularCopiedFiles": 249,
+    "logicalBytes": 146740654,
+    "physicalCopiesCreated": false,
+    "candidateEntry": "dist/commands/yq/index.js",
+    "publicOnlyImportNotClaimed": true,
+    "rootFullReadmeRequired": true,
+    "ambientNodePathOrWorkspaceFallback": false,
+    "arbitraryToolArgv": false,
+    "additionalGitOrCompilerSpawns": false,
+    "loaderImplementation": "core/loader.mjs",
+    "loadedCodeIdentityEvidence": "Actual resolver load records plus guarded complete materialized tree; data hash refusal is not mutant kill evidence"
+  },
+  "bounds": "core/CAPTURE-AND-TOPOLOGY.json",
+  "validation": {
+    "record": "core/STATIC-CHECKS.json",
+    "syntaxFiles": 28,
+    "spec": "OK_0_WARNINGS",
+    "staticDataMembershipAlgebraOnly": true,
+    "authoredModuleImports": 0,
+    "builds": 0,
+    "typeRuns": 0,
+    "loaderRuns": 0,
+    "predicatesOrControls": 0,
+    "harnessRuns": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "futureEntry": {
+    "cli": "<COPIED_NODE> core/cli.mjs --root-go ABSOLUTE_JSON --root-go-sha256 HEX --recipe ABSOLUTE_JSON --recipe-sha256 HEX --evidence ABSOLUTE_NEW_DIRECTORY",
+    "default": "DENY_BEFORE_CANDIDATE_IMPORT_OR_CHILD_ADMISSION",
+    "composition": "compose.mjs#composeRecipe({coreRoot,coreSealPath,coreSealSha256,workerRoot,workerSealPath,workerSealSha256,outputPath})",
+    "compositionGrantsGO": false,
+    "toolCopy": "copy-tools.mjs#materializeToolData(options); separate explicit hashed STATIC_TOOL_DATA_COPY_ONLY permission; no tool execution",
+    "rootTemplate": "core/ROOT-GO-TEMPLATE.json"
+  },
+  "remaining": [
+    "Different independent source/dynamic framework review and any required additive corrections",
+    "Separately authorized regular tool data copies, their exact destination paths and full fresh manifests",
+    "External composed recipe file and independently supplied expected recipe/core/worker/source/packet/review/tool hashes",
+    "Fresh explicit RootGO binding unique runId and evidenceRoot; old35da authorization consumed",
+    "Independent build reproduction, both149 runtime cohorts, scoped direct types and actual loaded controls all unexecuted",
+    "23 source records/four repair arguments and masked/at-C boundaries retain explicit obligations; no public runtime proof inferred",
+    "F01 incomplete records and80/135 gaps remain; four primitive-only loaded witnesses cannot green those full records"
+  ],
+  "history": {
+    "oldParentFAIL": "4b219eae",
+    "CMD22": "Original failure/input preserved; only87dad0c operand/resolved-path adaptation;31 controls unexecuted",
+    "legacyModePolicy": "Pure historical FINAL-SEAL content ORIGINAL_MODE_UNATTESTED; excluded from actual executable/admission mode authority. All newly active projected files strict fresh closure.",
+    "originalModeFailuresPreserved": true
+  },
+  "executionAuthorityCreated": false
+}

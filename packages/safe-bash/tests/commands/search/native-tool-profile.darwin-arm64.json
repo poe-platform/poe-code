@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "ripgrep-15.2.0-darwin-arm64-bundled",
+  "version": "15.2.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "executable": {
+    "size": 4030432,
+    "sha256": "5d24e1af7efa7811e03df5555eeaa984bc8bd98ab42a5d49ecf30f163273e6c7",
+    "mode": "0755"
+  },
+  "provenance": {
+    "authority": "Explicit root authorization of the previously verified Darwin/arm64 bundled rg identity",
+    "package": "@openai/codex-darwin-arm64",
+    "member": "vendor/aarch64-apple-darwin/codex-path/rg",
+    "evidence": "NATIVE-MIGRATION-QUALIFICATION-HANDOFF.md section 6.4",
+    "previousObservedVersion": "ripgrep 15.2.0 (rev e89fff89ac)",
+    "byteReauthenticationDate": "2026-08-30",
+    "byteReauthentication": "Exact size, regular canonical file, mode and bounded SHA-256 rechecked without execution",
+    "sourceBuildClaim": "No independent rebuild or source-to-binary reproducibility claim"
+  },
+  "qualification": {
+    "status": "PENDING_CALLER_ROLLOUT",
+    "executed": false,
+    "observedVersion": null,
+    "expectedVersionPrefix": "ripgrep 15.2.0",
+    "meaning": "Prior Mac identity evidence does not qualify the changed callers; binding admission is not behavioral qualification"
+  }
+}

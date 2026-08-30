@@ -1,0 +1,1 @@
+{"output":"/tmp/safe-bash-inspection-safety-original-run-20260827-01","rows":[{"id":"T-empty-many","status":"pass"},{"id":"T-DP-cumulative","status":"HOLD"},{"id":"T-sort-many","status":"HOLD"},{"id":"F-JSON-cumulative","status":"pass"},{"id":"F-header-many","status":"pass"},{"id":"F-metadata-many","status":"pass"}]}

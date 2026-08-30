@@ -1,0 +1,10 @@
+{
+  "planSha256": "10bb0138b41abd1584edd83923ac44d4f9687475c44e8d984798af2ebe664ae9",
+  "reportSha256": "6eb83ea16a83f2dd6cba67c80c43850fa53b065d8c019e130c207cbe5aee81cf",
+  "archiveSha256": "a36b308743d8bff606d6089e8200cf718942c8f456affb15963f5f639271dbce",
+  "removedScratch": true,
+  "allChildrenClosed": true,
+  "subjectRetirementCredit": true,
+  "allExpected": true,
+  "unsafe": false
+}

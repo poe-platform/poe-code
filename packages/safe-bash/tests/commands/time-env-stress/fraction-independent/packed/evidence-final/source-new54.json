@@ -1,0 +1,67 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-timeout=30000",
+    "tests/commands/time-env/fraction-expansion/nanoseconds.test.ts",
+    "tests/commands/time-env/fraction-expansion/iso-year.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-fraction-independent-packed-3n2Cyg/archive",
+  "pid": 79833,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 427,
+  "timeoutMs": 120000,
+  "outputBytes": 10432,
+  "observed": [
+    {
+      "pid": 79833,
+      "parent": 78599,
+      "group": 79833,
+      "born": "Thu Aug 27 04:05:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/fraction-expansion/nanoseconds.test.ts tests/commands/time-env/fraction-expansion/iso-year.test.ts"
+    },
+    {
+      "pid": 79835,
+      "parent": 79833,
+      "group": 79833,
+      "born": "Thu Aug 27 04:05:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/fraction-expansion/iso-year.test.ts"
+    },
+    {
+      "pid": 79840,
+      "parent": 79833,
+      "group": 79833,
+      "born": "Thu Aug 27 04:05:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/fraction-expansion/nanoseconds.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "stdout": {
+    "bytes": 10432,
+    "sha256": "0ee19e7d9d4b6931a1aa057c594fe821828e6e19b87bcc302fb0a7b8702bafaa"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counts": {
+    "tests": 54,
+    "pass": 54,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  }
+}

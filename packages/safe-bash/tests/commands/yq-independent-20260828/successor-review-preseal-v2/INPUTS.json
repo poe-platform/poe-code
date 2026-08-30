@@ -1,0 +1,675 @@
+{
+  "schema": 2,
+  "kind": "SELECTED_IMMUTABLE_DATA_REFERENCES_ONLY",
+  "entries": [
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/FINAL-SEAL.json",
+      "sha256": "b29006dedd2d2be64165d6688ed4f451ccb369967a2cac5af97365546128b656",
+      "bytes": 4905,
+      "role": "immutable predecessor preseal"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/BINDINGS-PENDING.json",
+      "sha256": "ca9147bbe3fab847474c617c4c9abd763a58ae520067c7c722a8a794e689405b",
+      "bytes": 2573,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CANDIDATE-ADMISSION.json",
+      "sha256": "17cbe2634b85b0d70067261882a60bbd485df802a52b6b35a97a3bcbd18bf448",
+      "bytes": 9138,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CONTROLS.json",
+      "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+      "bytes": 9247,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/HISTORICAL-OBSERVATIONS.json",
+      "sha256": "f59dc21a586d9ebc62d47c83abd5bacc6578c9074f64095502ffc0874a08ba99",
+      "bytes": 67770,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INPUTS.json",
+      "sha256": "6a4dad232a7aacf1e2eb926f1806b8a32ae17602a608bd23784d6a8e4e2f988d",
+      "bytes": 100600,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INTEGRATION-DELTA.json",
+      "sha256": "133091278d985b5c39b0aedf56aadde0d19946cd03dc3bf847d3668b91979ba7",
+      "bytes": 6141,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json",
+      "sha256": "ae2969c22e1c3d5d955bf9edf460c9d59db006dd5134bd3b9e50c82a4b741e8f",
+      "bytes": 292256,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LEDGER-194.json",
+      "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+      "bytes": 268342,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LOADED-CONTROLS.json",
+      "sha256": "b581d27baa9d0eb996e0afdd5d80bfcf302b91757d18f2a88bd15ca620ecc269",
+      "bytes": 4983,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/OBLIGATIONS.json",
+      "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+      "bytes": 290553,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PREPARATION-LOG.md",
+      "sha256": "a39a87c1bfa56bf369cc7c1ac41cb1c61e895bd83d54e93f4b554659265bb36d",
+      "bytes": 2151,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PRESEAL.md",
+      "sha256": "843e94a3eac98cc820166413857912d8c2f1834866f6addaf0f39b7c63bbe693",
+      "bytes": 16657,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/README.md",
+      "sha256": "fc74eb5dfeea593836ef93fd701b440fadb9b73b34e9d0b62ebd776e5350e933",
+      "bytes": 1883,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/REQUEST-ROUTING.json",
+      "sha256": "aa33b1e1f8789d9b0067017d82d8a967ab36e02b1da9924316a3dd4aedb7de5e",
+      "bytes": 6008,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+      "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc",
+      "bytes": 23015,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-PROOFS.json",
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "bytes": 13072,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-SEAL.json",
+      "sha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891",
+      "bytes": 4760,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/STATIC-CHECKS.json",
+      "sha256": "b95ba077dfddeb67060a55ca40e5905c4f2a2579a08c0ad7ad79d9b4d0c506da",
+      "bytes": 8479,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json",
+      "sha256": "60ce4d385c98996773ae783b98310561491fe8d05ed4d95695262e6d9be83786",
+      "bytes": 9881,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TYPES.json",
+      "sha256": "a3cd4c87b33622bc9511d28c74bf212929df66623dbc83735c3c1c5bd4289728",
+      "bytes": 8088,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/validate-data.mjs",
+      "sha256": "38750102aa95bb4f2a76a9bdd95269acbb12fc2eb3fc074f19c22af9aef0cb34",
+      "bytes": 9190,
+      "role": "immutable predecessor plan"
+    },
+    {
+      "revision": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md",
+      "sha256": "4f8bf5635a5efd2fb41244b557b0f7685bbf3f8d82e44827ff6b905c45409685",
+      "bytes": 6668,
+      "role": "root-routed author handoff; not independent acceptance"
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPORT.json",
+      "sha256": "536383aca7dd7024ac851476c3b371c958d2c46926446eb163ba0e0df48f902b",
+      "bytes": 31135,
+      "role": "author-only evidence metadata"
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+      "sha256": "b1e11c9dfc076c4b9ae307e0ff48ac0f18c4d002ed8ff06394bf49d5a562d9e1",
+      "bytes": 70320,
+      "role": "author selected-source descriptors; packet audit pending"
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPRODUCIBILITY.json",
+      "sha256": "81e8f607d26bd73d1c024b17f74bbb06f00e69312d9dbcd1c892f6b3b961e2f5",
+      "bytes": 812,
+      "role": "author reconstruction metadata; not independent compile"
+    },
+    {
+      "revision": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/VERDICT.json",
+      "sha256": "e5e8be2eedd01571c2595e275b5cf78c08056d76b4338a61f1efb0ee9cc01325",
+      "bytes": 2298,
+      "role": "completed independent CMD22 static review"
+    },
+    {
+      "revision": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/CMD22-STATIC-REVIEW.json",
+      "sha256": "46c234b930f916e03ff3c7952a1aa3554a8f9f91b5a40b12d85cb8d2030b04a1",
+      "bytes": 2060,
+      "role": "completed independent CMD22 static scope"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/structured/query-core.ts",
+      "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+      "bytes": 22399,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/structured/query-core.ts",
+      "sha256": "d2501cff9e74757f9e9bd80e1cf78722d321e19a6fb4a5c3e18a29d0e224cf0a",
+      "bytes": 21067,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/accounting.ts",
+      "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+      "bytes": 9767,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/accounting.ts",
+      "sha256": "efebacfc42d9ef15ee8d5366b57aeda41f9af96104d76519611a70d5643dccd0",
+      "bytes": 9562,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/encoder.ts",
+      "sha256": "9e013ee8aadc590ea8aca8e94fb03079eb820b00a76fd05b9fd85ebb4223303f",
+      "bytes": 8394,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/encoder.ts",
+      "sha256": "77441f383d339d05d4db92a28dd04cd45eda97ad090b82cba808d322e5a151f5",
+      "bytes": 7057,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/errors.ts",
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "bytes": 2728,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/errors.ts",
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "bytes": 2728,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/index.ts",
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "bytes": 24198,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/index.ts",
+      "sha256": "ffa76c2b111d915973634ff1238a709a9a90b1a5db000c690649519378afb283",
+      "bytes": 20110,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/parser.ts",
+      "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+      "bytes": 45581,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/parser.ts",
+      "sha256": "ec3c47823eca85730af613f460bf98d28182ea28a68473eb7e596dc780334a79",
+      "bytes": 38547,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/README.md",
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "bytes": 1153,
+      "role": "post-candidate selected-source body inspection; not pre-code review"
+    },
+    {
+      "revision": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/README.md",
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "bytes": 1153,
+      "role": "immutable predecessor selected-source comparison only"
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+      "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+      "bytes": 2727936,
+      "role": "root expected source archive bytes, not packet admission"
+    },
+    {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+      "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+      "bytes": 786778,
+      "role": "root expected package bytes; selected compiled-body data inspection only"
+    },
+    {
+      "revision": "500e1ab6d5b52df098bfaf427c05fe3bb9b48424",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/PROTOCOL.md",
+      "sha256": "cbfafd1d01de8f747b59322adc7fcaf64cb87a200db6292ab27552101d047b9d",
+      "bytes": 1026,
+      "role": "historical author prepatch criteria; no successor pre-code claim"
+    },
+    {
+      "revision": "e889e5236ec5666977697bb758dce510d689efe3",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts",
+      "sha256": "bd24d008f0d74d5afaf09f1d63fa2e47f2545c05f4cfd08b70c43f162896e04c",
+      "bytes": 7769,
+      "role": "author fixed-cap/proof-control body inspection only"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+      "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6",
+      "bytes": 1058682,
+      "role": "immutable149 witness data"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/positive.mts.data",
+      "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "bytes": 1036,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-command-extra.mts.data",
+      "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "bytes": 63,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-array-extra.mts.data",
+      "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "bytes": 80,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/unknown-limits.mts.data",
+      "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "bytes": 78,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-string.mts.data",
+      "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "bytes": 69,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-undefined.mts.data",
+      "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "bytes": 73,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-limits.mts.data",
+      "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "bytes": 76,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-defaults.mts.data",
+      "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "bytes": 86,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-session.mts.data",
+      "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "bytes": 88,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-factory.mts.data",
+      "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "bytes": 96,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-parser.mts.data",
+      "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "bytes": 68,
+      "role": "sealed declaration fixture data; never compiler input now"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/ADAPTATION.json",
+      "sha256": "5390e1a8efe69786af65b9825331cc22e6698f77d0ca4fde0681dd8c94ba943d",
+      "bytes": 3702,
+      "role": "sealed CMD22 exact future text composition metadata"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/SOURCE-PRESEAL.json",
+      "sha256": "f6d4c3fb6d307d9b51d605d4fdae38eb7691b958e2c3a2ad2b604de82115de88",
+      "bytes": 4082,
+      "role": "exact sealed CMD22 fragment source manifest"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/adapter.mjs",
+      "sha256": "4c32d0f793079986d2fd2882b4db4bb8d9883349f8858b238fedc44dcfb42cea",
+      "bytes": 1846,
+      "role": "sealed CMD22 fragment bytes, not invoked"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/read-path-binding.mjs",
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "bytes": 2499,
+      "role": "sealed CMD22 fragment bytes, not invoked"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CMD22-BINDING.json",
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "bytes": 2321,
+      "role": "sealed CMD22 fragment bytes, not invoked"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/DEFERRED-CONTROLS.json",
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "bytes": 6480,
+      "role": "sealed CMD22 fragment bytes, not invoked"
+    },
+    {
+      "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/FINDING-SS-F01.json",
+      "sha256": "5f09e7606f4038c90769ebc1496adb4084142690db39ca0b9a750decda2112e9",
+      "bytes": 4476,
+      "role": "completed different-reviewer finite-schedule type-scope finding"
+    },
+    {
+      "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/VERDICT.json",
+      "sha256": "adc7ca3e024aff97896ab5e1abd3b660351e4784c400bdad1c9410a80bdba234",
+      "bytes": 5923,
+      "role": "completed different schedule review verdict"
+    },
+    {
+      "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/REVIEW.md",
+      "sha256": "c2b3dbd99a26b2b0d41a55ccfc9f619fe204fab9b0c5b0ced9dc239418cdc317",
+      "bytes": 13261,
+      "role": "completed independent schedule review text"
+    },
+    {
+      "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/AUTHENTICATION.json",
+      "sha256": "7abb48af5ec056a34f7509e3a0397862a7ee89dab3519ff6ac673c0c04af7447",
+      "bytes": 131251,
+      "role": "completed independent predecessor authentication"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+      "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+      "bytes": 6776,
+      "role": "completed corrected packet seal; overall admission DENY"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/ROUTING-INDEX.json",
+      "sha256": "4928d5d874b42f41cf625f32355aa6fefe7965b90842183ed744d08ac472b5dd",
+      "bytes": 7945,
+      "role": "completed corrected packet exact routing and typed receipt references"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/API-BINDING-REVIEW.json",
+      "sha256": "c76d13ee0cd443bbbf1eab292eb46bef9b332e1527a7119e47e7735b5c24c737",
+      "bytes": 4864,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+      "bytes": 1368,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+      "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "bytes": 25587,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/DATA-PRESEAL.json",
+      "sha256": "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83",
+      "bytes": 3392,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/EXPECTED-HASHES.json",
+      "sha256": "19ebe2c49cf3f27810d54ee5101e3f1fc02b2b8981990de42ea8961b7aec52d4",
+      "bytes": 2739,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/GIT-IDENTITIES.json",
+      "sha256": "7502886ae594a13b1c8d1c358b7925ce6376463c84608489a1dac7744bd93528",
+      "bytes": 13993,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+      "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+      "bytes": 15621,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/INSPECTION-PLAN.md",
+      "sha256": "e51603089f28b4445a70e32041b020f5a95b938ad0fd3587155b61a251714ef6",
+      "bytes": 2075,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/INSPECTOR-V1-V2.diff",
+      "sha256": "ad82e22e2666015eef9380f244f4d9e27cd982537e48b74cbed20591e89562a1",
+      "bytes": 13645,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/MODE-AUTHORITY.json",
+      "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+      "bytes": 4927,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/MODE-CORRECTION-SPEC.md",
+      "sha256": "62e9b10322ae7be9b365020448a77abc6f2ea23d6798c59c6480f595b4b71a84",
+      "bytes": 6447,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/PLAN-BINDINGS.proposed.json",
+      "sha256": "5e7645fc007b75dfbae22f7207c3c0c3a4b8fd62d1f3a23a773b2a4aff8cfd49",
+      "bytes": 12716,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/PREPARATION-HISTORY.md",
+      "sha256": "d83cfc69b0a04c96bbea092b11b31bead2401be34d3d6b7da3d6e43b418bf3fd",
+      "bytes": 1178,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/PROOF-QUALIFICATIONS.md",
+      "sha256": "aa261efd7331c6a962c2197541c852accd44e36cd339ef17ef3863612aaaaedd",
+      "bytes": 3834,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/README.md",
+      "sha256": "e982649aa511882e04902c6c73a0e1b4f7b8d7217999b63afcac9af816f70378",
+      "bytes": 4189,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/RESULT.json",
+      "sha256": "d3c93c27d5b1a86dff0a9a62426294e6b9b15132e2eb958ab3b614a19ce1d988",
+      "bytes": 8460,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/STATIC-CAPTURE.json",
+      "sha256": "4063664a551c20359963f4d9f373f23e5cd859029615c72210414e50a282c473",
+      "bytes": 2053,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+      "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+      "bytes": 4800,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/historical-modes.mjs",
+      "sha256": "38af50832e4b0ee5f14ae5632a5ec7ad32526dce019aae70c8a15b5d29a0c164",
+      "bytes": 6573,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/inspect-data.mjs",
+      "sha256": "d09345f4f78891e690e3ca0e0df4834e3e49fb3276eb688fd5a88dcf6b5da7a0",
+      "bytes": 34204,
+      "role": "completed corrected packet inert input"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/SOURCE-BASE.json",
+      "sha256": "75acd3804802c92aabf77bab12a27e61a15468341af8022338a1c68d028c4043",
+      "bytes": 63100,
+      "role": "sealed baseline264 source data for exact map composition"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/BASELINE-PACKAGE.json",
+      "sha256": "8ba0f0aa078a213b96ee54a25db773b68b2795a740d17acb9e3bf5b40b4608d7",
+      "bytes": 116848,
+      "role": "sealed baseline846 full package data for exact map composition"
+    }
+  ],
+  "bodyInspectionAfterCandidate": true,
+  "productOrHelperImports": 0,
+  "loaderPredicateHarnessControlExecutions": 0,
+  "wholeRepositoryCopy": false
+}

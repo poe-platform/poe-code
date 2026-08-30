@@ -1,0 +1,25 @@
+import {
+  createDuCommand, createDuCommands, duCommands,
+  type DuCommandsOptions, type DuLimits,
+  type CommandDefinition, type VirtualShellPlugin,
+} from 'virtual-bash';
+import {
+  createDuCommand as subCommand, createDuCommands as subCommands, duCommands as subPlugin,
+  type DuCommandsOptions as SubOptions, type DuLimits as SubLimits,
+} from 'virtual-bash/commands/du';
+
+const limits: DuLimits = {
+  maxArguments: 12, maxArgumentBytes: 2048, maxEntries: 20,
+  maxDirectoryEntries: 10, maxDepth: 4, maxPathBytes: 1024,
+  maxMetadataBytes: 8192, maxOutputBytes: 4096, maxSteps: 10000,
+};
+const subLimits: SubLimits = limits;
+const options: DuCommandsOptions = { replace: true, limits };
+const subOptions: SubOptions = options;
+const single: CommandDefinition = createDuCommand(options);
+const many: readonly CommandDefinition[] = createDuCommands(options);
+const plugin: VirtualShellPlugin = duCommands(options);
+const otherSingle: CommandDefinition = subCommand(subOptions);
+const otherMany: readonly CommandDefinition[] = subCommands({ limits: subLimits });
+const otherPlugin: VirtualShellPlugin = subPlugin();
+void [single, many, plugin, otherSingle, otherMany, otherPlugin];

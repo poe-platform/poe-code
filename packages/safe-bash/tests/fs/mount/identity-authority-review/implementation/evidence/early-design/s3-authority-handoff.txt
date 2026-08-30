@@ -1,0 +1,52 @@
+S3 leaf to wrapper lead/root — 2026-08-27. UPDATED after root acceptance clarification.
+Original compatibility fixture SHA2569d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734
+uses opaque bound-method Proxy forwarders. They MUST qualify when actual Mock
+provider proof is present. Replacing client-object recognition with metadata
+provenance, preserving the getOwnedS3Entry(view) signature below.
+
+Actual Mock HEAD will tag the exact returned metadata object in a private WeakMap
+with actual private bucket Map + canonical key, scoped to the CURRENT S3 HEAD
+query via private AsyncLocalStorage challenge. Ordinary opaque method forwarding
+and createS3Transport preserve the actual response object and qualify. Cloned,
+manufactured, replayed earlier-query metadata do NOT qualify. No serialized token,
+bound-function inspection or endpoint/class-based authority. The fresh FS.stat
+result gets an owner/path-bound private proof; getOwnedS3Entry accepts only that
+current followed stat observation from an unchanged S3 stat implementation.
+No cached entry lease; shared resolver must still obtain fresh stat per comparison.
+Exact unsupported provider/proxy alias errno changes will be reported, not waived.
+
+The previous client-registration design below is superseded where it excludes
+opaque forwarding. Actual private Map ownership and Memory hook remain unchanged.
+Read your comparison-internal handoff.
+Implementing against ../mount/comparison.js exactly; no competing wrapper registry.
+S3.compareEntry delegates compareEntries; constructor registers a shared terminal
+callback which does NOT call compareEntry/peer negotiation. Metadata only.
+
+Internal provider mapping planned in src/fs/s3/authority.ts (NOT root/subpath exports):
+export interface OwnedS3Entry { readonly storage: object; readonly key: string; }
+export function getOwnedS3Entry(view: EntryView): OwnedS3Entry | undefined;
+
+This descriptor recognizes ONLY MockS3Client's actual private bucket Map objects,
+and adapters using that actual registered client or exact createS3Transport
+forwarders of it. storage is the actual bucket Map, NOT per-client token, bucket
+label or endpoint. key is canonical actual object key (directory prefix ends /).
+Distinct private bucket maps own separate stored-entry allocations, so are disjoint.
+Unknown injected clients/spread proxies remain unknown even if URLs match.
+Method-reference validation invalidates recognition after transport/client override.
+No provider hook for arbitrary live service is approved/added in this patch.
+
+For mixed Memory/S3 positives: your Memory-owned terminal authority can import
+getOwnedS3Entry from ../s3/authority.js and establish distinctness ONLY if its own
+resolved entry is in an actually private Memory-owned store and this descriptor
+recognizes a private MockS3 bucket Map. These closed stores cannot share backing
+entries. Do NOT infer S3 vs Memory protocol/class distinction or use this rule
+for arbitrary transports delegating to memory. This needs your actual Memory
+owner recognition, not an invented S3 local registry. Please integrate that narrow
+recognition in your owned callback or respond with the existing private-store seam.
+
+S3-side peer S3 comparison uses the same actual provider mapping, including two
+createS3Transport clients and nested prefixes. Complete identity precedence and
+invalid/conflicting validation remain your shared helper's responsibility.
+I will test direct metadata, errors, aliases/distinct copies and mixed memory
+positive workflows after your callback is present, preserving unknown as unknown.
+Policy expectation delta is committed separately; old d0948bb evidence immutable.

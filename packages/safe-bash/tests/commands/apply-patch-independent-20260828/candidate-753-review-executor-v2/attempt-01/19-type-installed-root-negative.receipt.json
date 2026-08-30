@@ -1,0 +1,58 @@
+{
+  "id": "type-installed-root-negative",
+  "role": "type",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--listFiles",
+    "--strict",
+    "--exactOptionalPropertyTypes",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2023",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/installed/consumer-installed-root-negative.mts"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/installed",
+  "env": {
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/home",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/tmp",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "timeoutMs": 30000,
+  "maxCombinedBytes": 2097152,
+  "pid": 6064,
+  "closeObserved": true,
+  "absent": true,
+  "code": 2,
+  "signal": null,
+  "failure": null,
+  "stdout": {
+    "path": "19-type-installed-root-negative.stdout.raw",
+    "bytes": 30986,
+    "sha256": "bc7603a6c9346a98aa2ccdc44b2696f2194cb47bd9da94d196d48739b59e22a7",
+    "mode": 384,
+    "observedBytes": 30986,
+    "lostBytes": 0
+  },
+  "stderr": {
+    "path": "19-type-installed-root-negative.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 384,
+    "observedBytes": 0,
+    "lostBytes": 0
+  }
+}

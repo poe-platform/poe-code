@@ -1,0 +1,111 @@
+{
+  "issued": false,
+  "warning": "INERT TEMPLATE NOT AUTH_JSON OR ROOT GRANT. Placeholder strings fail schema/hash verification. Fresh root message and committed positive focused review required.",
+  "authEnvelope": {
+    "review": {
+      "commit": "<40HEX_FRESH_REVIEW_COMMIT>",
+      "path": "<COMMITTED_POSITIVE_REVIEW_PATH>",
+      "sha256": "<64HEX_REVIEW_SHA256>"
+    },
+    "grant": {
+      "commit": "<40HEX_FRESH_ROOT_GRANT_COMMIT>",
+      "path": "<COMMITTED_GRANT_PATH>",
+      "sha256": "<64HEX_GRANT_SHA256>"
+    }
+  },
+  "reviewDocument": {
+    "role": "different-reviewer",
+    "verdict": "PREEXECUTION_ACCEPTED",
+    "recipeSha256": "FINAL_SEAL_SHA256"
+  },
+  "grantDocument": {
+    "role": "root",
+    "phase": "admission",
+    "attempts": 1,
+    "runId": "FRESH_ROOT_RUN_ID",
+    "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/FRESH_ROOT_RUN_ID",
+    "recipeSha256": "FINAL_SEAL_SHA256",
+    "reviewSha256": "EXACT_POSITIVE_DIFFERENT_REVIEW_SHA256",
+    "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+    "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "reportProtocol": "BOUNDED_TERMINAL_V3",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "command": {
+      "entry": "coordinator.mjs",
+      "phase": "admission",
+      "runId": "FRESH_ROOT_RUN_ID",
+      "nodeArgs": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=256"
+      ]
+    }
+  },
+  "commandShape": {
+    "node": {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ],
+    "entry": {
+      "path": "launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed",
+      "role": "r2-successor-source"
+    },
+    "argv": [
+      "admission",
+      "FRESH_ROOT_RUN_ID",
+      "ABSOLUTE_AUTH_JSON",
+      "EXACT_AUTH_JSON_SHA256"
+    ]
+  },
+  "schema": {
+    "envelopeKeys": [
+      "review",
+      "grant"
+    ],
+    "referenceKeys": [
+      "commit",
+      "path",
+      "sha256"
+    ],
+    "primitiveCommit": "40 lowercase hex primitive string only",
+    "primitiveHash": "64 lowercase hex primitive string only",
+    "reviewKeys": [
+      "role",
+      "verdict",
+      "recipeSha256"
+    ],
+    "admissionGrantKeys": [
+      "role",
+      "phase",
+      "attempts",
+      "runId",
+      "outputRoot",
+      "recipeSha256",
+      "reviewSha256",
+      "planSha256",
+      "bootstrapProfile",
+      "reportProtocol",
+      "candidate",
+      "packSha256",
+      "command"
+    ],
+    "commandKeysInOrder": [
+      "entry",
+      "phase",
+      "runId",
+      "nodeArgs"
+    ],
+    "gettersInheritedRequiredExtrasMissingCoercion": "refuse"
+  },
+  "oldTokensReusable": false
+}

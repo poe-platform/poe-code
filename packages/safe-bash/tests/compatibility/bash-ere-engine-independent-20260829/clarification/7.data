@@ -1,0 +1,244 @@
+{
+  "date": "2026-08-29",
+  "scope": "SOURCE_DATA_ONLY_NOT_PRODUCT_ACCEPTANCE",
+  "accepted": {
+    "source": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+    "derived": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+    "package": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+    "manifest": {
+      "path": "tests/compatibility/bash-conditional-author-20260829/SOURCE-v4.json",
+      "commit": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d",
+      "blob": "29a9ada8f0573b2667a63cb7e0e605011b218bec",
+      "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32"
+    },
+    "selectedInputCount": 293,
+    "freshWhole293Proof": false,
+    "freshPackageProof": false
+  },
+  "pending": {
+    "source": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+    "derived": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+    "accepted": false,
+    "inspectedRuntimeSectionsByteIdenticalToUnit3": {
+      "conditional": true,
+      "word": true
+    }
+  },
+  "productFiles": [
+    {
+      "path": "src/commands/expr/README.md",
+      "role": "unit3",
+      "blob": "6778b9e71ec49bc318568ad2fb32ba066456ba76",
+      "sha256": "b2f840d827573709df3cd6a8f900a07e2ce1d391a4c7185700e7a329c105f482",
+      "selectedUnit3Match": true,
+      "selectedBlob": "6778b9e71ec49bc318568ad2fb32ba066456ba76"
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "role": "unit3",
+      "blob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "selectedUnit3Match": true,
+      "selectedBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "role": "unit3",
+      "blob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+      "selectedUnit3Match": true,
+      "selectedBlob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "role": "unit3",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "selectedUnit3Match": true,
+      "selectedBlob": "223101946d13ac9b44f4a898f58fd16004ba86b9"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "role": "unit3",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "selectedUnit3Match": true,
+      "selectedBlob": "c686048897bbd7fa797ba6982a255a543afbe6a3"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "role": "unit3",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "selectedUnit3Match": true,
+      "selectedBlob": "c0c1a4ba292e26696b792b024019a79ce241cb89"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "role": "unit3",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "selectedUnit3Match": true,
+      "selectedBlob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa"
+    },
+    {
+      "path": "src/shell/conditional.ts",
+      "role": "unit3",
+      "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+      "selectedUnit3Match": true,
+      "selectedBlob": "caab6172df5b8e5bad2d1db007b156f067e295ad"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "role": "unit3",
+      "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+      "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690",
+      "selectedUnit3Match": true,
+      "selectedBlob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "role": "unit3",
+      "blob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "selectedUnit3Match": true,
+      "selectedBlob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "role": "unit3",
+      "blob": "1ee224beec343378532681239a737b746d5ab2b9",
+      "sha256": "6f42b2a8b649a0c6c6377be407cf7d3b2e248bf0081a25e8e1d8a89c80cba46b",
+      "selectedUnit3Match": true,
+      "selectedBlob": "1ee224beec343378532681239a737b746d5ab2b9"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "role": "unit3",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "selectedUnit3Match": true,
+      "selectedBlob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "role": "unit4-stored",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "selectedUnit3Match": true,
+      "selectedBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "role": "unit4-stored",
+      "blob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "selectedUnit3Match": true,
+      "selectedBlob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "role": "unit4-stored",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "selectedUnit3Match": true,
+      "selectedBlob": "99f39e111b0e105d8a3c0373266d90f2bd356433"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "role": "unit4-stored",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "selectedUnit3Match": true,
+      "selectedBlob": "8da7d8566d17ab7d81ff4d440f632e8127312000"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "role": "unit4-stored",
+      "blob": "180e6c8f8b86e17bee8723fda638b359531a6e79",
+      "sha256": "b14268b38f9a156c45cae80e6871a646086746654803c2b05eb0a7ec7438443b",
+      "selectedUnit3Match": false,
+      "selectedBlob": "1ee224beec343378532681239a737b746d5ab2b9"
+    }
+  ],
+  "gnuSource": {
+    "source": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "patchlevel": 15,
+    "inventoryBlob": "139a6476bb1821cb74d18bf3b4e5fe5c71b9423d",
+    "inventorySha256": "a09a69e158ef9bd277f39e05688d9b4f44a708d61f7e6d164d8463a8c3162cc6",
+    "canonicalTuplesSha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+    "files": [
+      {
+        "path": "bash-5.3/lib/sh/shmatch.c",
+        "sha256": "c889cb70a2670e5f009e4b0f77e6b32ad0c6d55a6bfe36f6cfab14a58515d06c",
+        "bytes": 3687,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/execute_cmd.c",
+        "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+        "bytes": 184046,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/variables.c",
+        "sha256": "e5c8be22b2805b32edcc50d75bf36fc767e8f540b403c50c2e48b6783591bd2e",
+        "bytes": 173996,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/builtins/common.c",
+        "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+        "bytes": 26063,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/arrayfunc.c",
+        "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+        "bytes": 48005,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/parse.y",
+        "sha256": "076a16d00c5b065137b3d2730d2b94a1f6c89a1bbb5d2f4bd72d31e00947e27f",
+        "bytes": 217136,
+        "mode": "600"
+      }
+    ],
+    "executed": false
+  },
+  "referenceArtifacts": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v1/HANDOFF.md",
+      "blob": "3603ccae3976a3c86eb4c248bc3ff0f4b0c6c7ef",
+      "role": "reference",
+      "filename": "17-tests__compatibility__bash-reference-preparation-20260829__verification-v1__HANDOFF.md",
+      "size": 5864,
+      "sha256": "16f089ed5637f4ecd20f7a3c42b2bd2d881f2c67ae5c21911d61f10e2a16c359"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/HANDOFF.md",
+      "blob": "78fe551a06d90351c57c1a53a5cb03ed038f2a45",
+      "role": "reference",
+      "filename": "18-tests__compatibility__bash-reference-preparation-20260829__source-preparation-v1__HANDOFF.md",
+      "size": 6656,
+      "sha256": "0e1619d65847db10a31d1fd155336ae0f14e11b039326f25e148a0824446f066"
+    },
+    {
+      "path": "tests/compatibility/bash-strict-reference-source-20260829/REPORT.md",
+      "blob": "1a601af7ceb524a9de60cb76004fa969246b732f",
+      "role": "reference",
+      "filename": "19-tests__compatibility__bash-strict-reference-source-20260829__REPORT.md",
+      "size": 11930,
+      "sha256": "573e49ad6f9732168ec494476f876f129ff100f4939e1200189884bb9b368f21"
+    }
+  ],
+  "inspection": {
+    "uniqueReadEntries": 31,
+    "bytesRead": 1887455,
+    "limitFiles": 48,
+    "limitBytes": 8388608,
+    "AGENTSPlaintextCaptured": false
+  }
+}

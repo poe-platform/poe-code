@@ -1,0 +1,38 @@
+{
+  "schema": "timeout-public-T08-diagnosis-recipe/1",
+  "sealedAt": "2026-08-28T05:14:47.182Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "authorEvidence": "2736db840369a51dd76e7f5cc115bd44fe8e0f54",
+  "packageInventory": "tests/integration/timeout-public-author-20260828/evidence/PACKAGE-FILES.json",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "scope": "One unmodified T08 type-only diagnostic invocation; not public cohort scoring or product runtime",
+  "originalFreeze": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+  "preparation": "45d41c9e97d69febabaa700766f84950a9c36db3ca6fd99c921492296a518813",
+  "files": [
+    {
+      "path": "tests/integration/timeout-public-author-20260828/HANDOFF.md",
+      "bytes": 8273,
+      "sha256": "c3fe31b27d7fd50e0c4a0b9752ec9eb28dc12815a74f5878c3119d662b0bcd5b"
+    },
+    {
+      "path": "tests/integration/timeout-public-author-20260828/CANDIDATE.json",
+      "bytes": 3848,
+      "sha256": "d720c94dbfa9e0a9f5c88560b8506b8a76ee1643a5ccff52e0a483935b707228"
+    },
+    {
+      "path": "tests/integration/timeout-public-author-20260828/evidence/PACKAGE-FILES.json",
+      "bytes": 196804,
+      "sha256": "0174f8e3c54901af482aa9e87adee4065ac971489a9cdf6875e755b19c5172ec"
+    },
+    {
+      "path": "tests/integration/timeout-public-author-20260828/evidence/SUMMARY.json",
+      "bytes": 4113,
+      "sha256": "8c5a582b11b9f8d6a464099acd35917cd8b3718a5fc3e528f99a665cf9bebcc5"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-executor-preparation-v1/t08-diagnosis-v1/diagnose.mjs",
+      "bytes": 6290,
+      "sha256": "d524234b132260ab952054e46f536bdf326387da61eef5049cfea8a0f4842f93"
+    }
+  ]
+}

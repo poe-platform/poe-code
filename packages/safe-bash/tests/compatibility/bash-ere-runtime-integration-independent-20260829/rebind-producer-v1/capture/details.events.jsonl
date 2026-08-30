@@ -1,0 +1,7 @@
+{"at":"2026-08-29T12:27:00.642Z","event":"owner-start","mode":"details","pid":2223}
+{"at":"2026-08-29T12:27:00.653Z","event":"capture-open","label":"committed-seal"}
+{"at":"2026-08-29T12:27:00.658Z","event":"enrolled","label":"committed-seal","pid":2225,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","show","fe109f8b8b18c18188b79f2dfd64f68ca0940fdb:tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/SEAL.json"]}
+{"at":"2026-08-29T12:27:00.696Z","event":"exit","label":"committed-seal","pid":2225,"code":0,"signal":null}
+{"at":"2026-08-29T12:27:00.704Z","event":"close","label":"committed-seal","pid":2225,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:27:00.707Z","event":"capture-closed","label":"committed-seal"}
+{"at":"2026-08-29T12:27:00.710Z","event":"owner-complete","mode":"details","pid":2223,"code":0}

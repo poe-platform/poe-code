@@ -1,0 +1,9 @@
+{
+  "phase": "baseline",
+  "pin": "a7cd4bbd03b42350262dee4b8cd6f1755ba38877",
+  "requiredCore": "0bee8e7",
+  "ownedOverlay": true,
+  "node": "v22.22.2",
+  "archiveBaseSha256": "3fc1c68716b61367780f9230b52260e9a7c244732081f8a4a4f1b527c357f160",
+  "status": " M src/fs/memory/index.ts\n M src/fs/mount/COMPARISON.md\n M src/fs/webdav/README.md\n M src/fs/webdav/webdav.ts\n M tests/fs/mount/comparison.test.ts\n M tests/fs/mount/mutation-identity.probe.ts\n M tests/fs/webdav/mock.ts\n?? benchmarks/reports/current-integration/registry-unblock/\n?? src/fs/webdav/resource-id.ts\n?? tests/commands/archive-stress/.gitignore\n?? tests/commands/archive-stress/README.md\n?? tests/commands/archive-stress/acceptance.test.ts\n?? tests/commands/archive-stress/bounds-evidence/\n?? tests/commands/archive-stress/final-evidence/\n?? tests/commands/archive-stress/fixtures.ts\n?? tests/commands/archive-stress/hardlink-identity.test.ts\n?? tests/commands/archive-stress/helpers.ts\n?? tests/commands/archive-stress/limits-effects.test.ts\n?? tests/commands/archive-stress/native.test.ts\n?? tests/commands/archive-stress/run-integration-review.mjs\n?? tests/commands/archive-stress/run-provisional.mjs\n?? tests/commands/archive-stress/tsconfig.integration.json\n?? tests/commands/archive-stress/tsconfig.json\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/review/\n?? tests/fs/memory/comparison.test.ts\n?? tests/fs/mount/identity-authority-review/implementation/evidence/baseline-final-47/\n?? tests/fs/webdav/evidence/\n?? tests/fs/webdav/resource-id.test.ts\n"
+}

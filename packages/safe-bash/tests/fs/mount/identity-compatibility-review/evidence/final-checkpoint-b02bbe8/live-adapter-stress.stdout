@@ -1,0 +1,627 @@
+TAP version 13
+# Subtest: memory: traversal remains rooted under explicit backend policy
+ok 1 - memory: traversal remains rooted under explicit backend policy
+  ---
+  duration_ms: 1.14425
+  type: 'test'
+  ...
+# PATH POLICY: lexical root ascent clamps at virtual root
+# Subtest: memory: optional metadata capabilities are exercised or fail closed
+ok 2 - memory: optional metadata capabilities are exercised or fail closed
+  ---
+  duration_ms: 0.346375
+  type: 'test'
+  ...
+# Subtest: memory: optional truncate preserves exact bytes or rejects without mutation
+ok 3 - memory: optional truncate preserves exact bytes or rejects without mutation
+  ---
+  duration_ms: 0.394833
+  type: 'test'
+  ...
+# Subtest: real: traversal remains rooted under explicit backend policy
+ok 4 - real: traversal remains rooted under explicit backend policy
+  ---
+  duration_ms: 11.913875
+  type: 'test'
+  ...
+# PATH POLICY: lexical root ascent clamps at virtual root
+# Subtest: real: optional metadata capabilities are exercised or fail closed
+ok 5 - real: optional metadata capabilities are exercised or fail closed
+  ---
+  duration_ms: 8.761458
+  type: 'test'
+  ...
+# Subtest: real: optional truncate preserves exact bytes or rejects without mutation
+ok 6 - real: optional truncate preserves exact bytes or rejects without mutation
+  ---
+  duration_ms: 9.183541
+  type: 'test'
+  ...
+# Subtest: s3: traversal remains rooted under explicit backend policy
+ok 7 - s3: traversal remains rooted under explicit backend policy
+  ---
+  duration_ms: 2.646
+  type: 'test'
+  ...
+# PATH POLICY: lexical root ascent rejects EACCES
+# Subtest: s3: optional metadata capabilities are exercised or fail closed
+ok 8 - s3: optional metadata capabilities are exercised or fail closed
+  ---
+  duration_ms: 2.502083
+  type: 'test'
+  ...
+# APPROVED S3 PROFILE: advisory modes, unsupported chmod, denied file execution, permitted directory traversal; no permission enforcement
+# Subtest: s3: optional truncate preserves exact bytes or rejects without mutation
+ok 9 - s3: optional truncate preserves exact bytes or rejects without mutation
+  ---
+  duration_ms: 1.984875
+  type: 'test'
+  ...
+# Subtest: webdav: traversal remains rooted under explicit backend policy
+ok 10 - webdav: traversal remains rooted under explicit backend policy
+  ---
+  duration_ms: 32.791792
+  type: 'test'
+  ...
+# PATH POLICY: lexical root ascent rejects EACCES
+# Subtest: webdav: optional metadata capabilities are exercised or fail closed
+ok 11 - webdav: optional metadata capabilities are exercised or fail closed
+  ---
+  duration_ms: 20.149041
+  type: 'test'
+  ...
+# CAPABILITY GAP: permissions, creation modes, execute access checks unsupported
+# Subtest: webdav: optional truncate preserves exact bytes or rejects without mutation
+ok 12 - webdav: optional truncate preserves exact bytes or rejects without mutation
+  ---
+  duration_ms: 5.673375
+  type: 'test'
+  ...
+# CAPABILITY GAP: optional truncate exists but rejects ENOTSUP; no dedicated capability flag
+# Subtest: memory: cancellation between stream reads closes the iterator
+ok 13 - memory: cancellation between stream reads closes the iterator
+  ---
+  duration_ms: 0.34375
+  type: 'test'
+  ...
+# Subtest: memory: cancellation during streaming write does not consume post-abort bytes
+ok 14 - memory: cancellation during streaming write does not consume post-abort bytes
+  ---
+  duration_ms: 0.25175
+  type: 'test'
+  ...
+# Subtest: memory: symlink dot-dot resolution and directory unlink preserve targets
+ok 15 - memory: symlink dot-dot resolution and directory unlink preserve targets
+  ---
+  duration_ms: 0.2865
+  type: 'test'
+  ...
+# Subtest: real: cancellation between stream reads closes the iterator
+ok 16 - real: cancellation between stream reads closes the iterator
+  ---
+  duration_ms: 4.738416
+  type: 'test'
+  ...
+# Subtest: real: cancellation during streaming write does not consume post-abort bytes
+ok 17 - real: cancellation during streaming write does not consume post-abort bytes
+  ---
+  duration_ms: 4.449042
+  type: 'test'
+  ...
+# Subtest: real: symlink dot-dot resolution and directory unlink preserve targets
+ok 18 - real: symlink dot-dot resolution and directory unlink preserve targets
+  ---
+  duration_ms: 6.515208
+  type: 'test'
+  ...
+# Subtest: real: preexisting host symlink cannot escape a disposable sandbox
+ok 19 - real: preexisting host symlink cannot escape a disposable sandbox
+  ---
+  duration_ms: 4.243333
+  type: 'test'
+  ...
+# Subtest: memory: POLICY characterization of file/.. traversal
+ok 20 - memory: POLICY characterization of file/.. traversal
+  ---
+  duration_ms: 1.522
+  type: 'test'
+  ...
+# POLICY: file/.. requires a directory component on local adapters
+# Subtest: memory: POLICY characterization of terminal-dot destructive source operands
+ok 21 - memory: POLICY characterization of terminal-dot destructive source operands
+  ---
+  duration_ms: 1.207542
+  type: 'test'
+  ...
+# POLICY: terminal . and .. source operands reject EINVAL without mutation
+# Subtest: real: POLICY characterization of file/.. traversal
+ok 22 - real: POLICY characterization of file/.. traversal
+  ---
+  duration_ms: 8.175208
+  type: 'test'
+  ...
+# POLICY: file/.. requires a directory component on local adapters
+# Subtest: real: POLICY characterization of terminal-dot destructive source operands
+ok 23 - real: POLICY characterization of terminal-dot destructive source operands
+  ---
+  duration_ms: 22.583125
+  type: 'test'
+  ...
+# POLICY: terminal . and .. source operands reject EINVAL without mutation
+# Subtest: s3: POLICY characterization of file/.. traversal
+ok 24 - s3: POLICY characterization of file/.. traversal
+  ---
+  duration_ms: 2.588833
+  type: 'test'
+  ...
+# POLICY DIVERGENCE: remote file/.. normalizes to root; no uniform guarantee asserted
+# Subtest: s3: POLICY characterization of terminal-dot destructive source operands
+ok 25 - s3: POLICY characterization of terminal-dot destructive source operands
+  ---
+  duration_ms: 5.341166
+  type: 'test'
+  ...
+# POLICY DIVERGENCE: remote terminal . and .. normalize before destructive operations; pending root policy
+# Subtest: webdav: POLICY characterization of file/.. traversal
+ok 26 - webdav: POLICY characterization of file/.. traversal
+  ---
+  duration_ms: 35.568166
+  type: 'test'
+  ...
+# POLICY DIVERGENCE: remote file/.. normalizes to root; no uniform guarantee asserted
+# Subtest: webdav: POLICY characterization of terminal-dot destructive source operands
+ok 27 - webdav: POLICY characterization of terminal-dot destructive source operands
+  ---
+  duration_ms: 50.450792
+  type: 'test'
+  ...
+# POLICY DIVERGENCE: remote terminal . and .. normalize before destructive operations; pending root policy
+# Subtest: memory: POLICY characterization of trailing-slash symlink rm and rename
+ok 28 - memory: POLICY characterization of trailing-slash symlink rm and rename
+  ---
+  duration_ms: 0.879417
+  type: 'test'
+  ...
+# POLICY: memory rm(link/) rejects ENOTDIR and preserves target
+# POLICY: memory rename(link/) rejects ENOTDIR and preserves target
+# Subtest: real: POLICY characterization of trailing-slash symlink rm and rename
+ok 29 - real: POLICY characterization of trailing-slash symlink rm and rename
+  ---
+  duration_ms: 14.324833
+  type: 'test'
+  ...
+# POLICY: {"operation":"rm","adapter":{"outcome":"success","link":"symlink","target":"missing","moved":"missing"},"native":{"outcome":"success","link":"symlink","target":"missing","moved":"missing"}}; disposable native comparison, not a fidelity defect or raceproof guarantee
+# POLICY: {"operation":"rename","adapter":{"outcome":"success","link":"symlink","target":"missing","moved":"directory"},"native":{"outcome":"success","link":"symlink","target":"missing","moved":"directory"}}; disposable native comparison, not a fidelity defect or raceproof guarantee
+# Subtest: s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects
+ok 30 - s3: named-file cleanup leaves parents and unsupported empty rmdir has no effects
+  ---
+  duration_ms: 6.258542
+  type: 'test'
+  ...
+# Subtest: s3: explicitly destructive subtree deletion is distinct from empty-only removal
+ok 31 - s3: explicitly destructive subtree deletion is distinct from empty-only removal
+  ---
+  duration_ms: 1.803208
+  type: 'test'
+  ...
+# Subtest: s3: bounded memory staging publishes named bytes exclusively and cleans only local parents
+ok 32 - s3: bounded memory staging publishes named bytes exclusively and cleans only local parents
+  ---
+  duration_ms: 3.123916
+  type: 'test'
+  ...
+# Subtest: webdav: named-file cleanup leaves parents and unsupported empty rmdir has no effects
+ok 33 - webdav: named-file cleanup leaves parents and unsupported empty rmdir has no effects
+  ---
+  duration_ms: 21.681417
+  type: 'test'
+  ...
+# Subtest: webdav: explicitly destructive subtree deletion is distinct from empty-only removal
+ok 34 - webdav: explicitly destructive subtree deletion is distinct from empty-only removal
+  ---
+  duration_ms: 3.168833
+  type: 'test'
+  ...
+# Subtest: webdav: bounded memory staging publishes named bytes exclusively and cleans only local parents
+ok 35 - webdav: bounded memory staging publishes named bytes exclusively and cleans only local parents
+  ---
+  duration_ms: 5.545917
+  type: 'test'
+  ...
+# Subtest: s3: default conditional-copy rename creates with exact guards and bytes
+ok 36 - s3: default conditional-copy rename creates with exact guards and bytes
+  ---
+  duration_ms: 4.452
+  type: 'test'
+  ...
+# Subtest: s3: default conditional-copy rename replaces with exact guards and bytes
+ok 37 - s3: default conditional-copy rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.496625
+  type: 'test'
+  ...
+# Subtest: s3: default buffered-put rename creates with exact guards and bytes
+ok 38 - s3: default buffered-put rename creates with exact guards and bytes
+  ---
+  duration_ms: 1.705209
+  type: 'test'
+  ...
+# Subtest: s3: default buffered-put rename replaces with exact guards and bytes
+ok 39 - s3: default buffered-put rename replaces with exact guards and bytes
+  ---
+  duration_ms: 3.164792
+  type: 'test'
+  ...
+# Subtest: s3: default streamed-put rename creates with exact guards and bytes
+ok 40 - s3: default streamed-put rename creates with exact guards and bytes
+  ---
+  duration_ms: 2.048667
+  type: 'test'
+  ...
+# Subtest: s3: default streamed-put rename replaces with exact guards and bytes
+ok 41 - s3: default streamed-put rename replaces with exact guards and bytes
+  ---
+  duration_ms: 1.829333
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {} has no host effects
+ok 42 - s3: default rename missing guards {} has no host effects
+  ---
+  duration_ms: 0.756125
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalDelete":true} has no host effects
+ok 43 - s3: default rename missing guards {"conditionalDelete":true} has no host effects
+  ---
+  duration_ms: 0.589709
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalCopy":false,"conditionalPut":false,"conditionalDelete":true} has no host effects
+ok 44 - s3: default rename missing guards {"conditionalCopy":false,"conditionalPut":false,"conditionalDelete":true} has no host effects
+  ---
+  duration_ms: 0.591041
+  type: 'test'
+  ...
+# Subtest: s3: default rename missing guards {"conditionalPut":true} has no host effects
+ok 45 - s3: default rename missing guards {"conditionalPut":true} has no host effects
+  ---
+  duration_ms: 0.665958
+  type: 'test'
+  ...
+# Subtest: s3: default rename copy race preserves winning bytes and exact acknowledged effects
+ok 46 - s3: default rename copy race preserves winning bytes and exact acknowledged effects
+  ---
+  duration_ms: 1.293833
+  type: 'test'
+  ...
+# Subtest: s3: default rename delete race preserves winning bytes and exact acknowledged effects
+ok 47 - s3: default rename delete race preserves winning bytes and exact acknowledged effects
+  ---
+  duration_ms: 1.101667
+  type: 'test'
+  ...
+# Subtest: s3: truncate without conditional PUT preserves exact bytes and sends no mutation
+ok 48 - s3: truncate without conditional PUT preserves exact bytes and sends no mutation
+  ---
+  duration_ms: 2.552625
+  type: 'test'
+  ...
+# Subtest: s3: truncate condition conflicts preserve competing bytes and metadata
+ok 49 - s3: truncate condition conflicts preserve competing bytes and metadata
+  ---
+  duration_ms: 1.640083
+  type: 'test'
+  ...
+# Subtest: s3: bounded truncate guards publication and zero truncate never downloads old bytes
+ok 50 - s3: bounded truncate guards publication and zero truncate never downloads old bytes
+  ---
+  duration_ms: 1.318375
+  type: 'test'
+  ...
+# Subtest: s3: 1203 files paginate without omissions across a subtree rename and recursive delete
+ok 51 - s3: 1203 files paginate without omissions across a subtree rename and recursive delete
+  ---
+  duration_ms: 166.730667
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing out-of-prefix key fails closed
+ok 52 - s3: malformed listing out-of-prefix key fails closed
+  ---
+  duration_ms: 0.286625
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing missing continuation token fails closed
+ok 53 - s3: malformed listing missing continuation token fails closed
+  ---
+  duration_ms: 0.104
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing cyclic continuation token fails closed
+ok 54 - s3: malformed listing cyclic continuation token fails closed
+  ---
+  duration_ms: 0.093041
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing invalid object size fails closed
+ok 55 - s3: malformed listing invalid object size fails closed
+  ---
+  duration_ms: 0.077
+  type: 'test'
+  ...
+# Subtest: s3: malformed listing nested non-direct child fails closed
+ok 56 - s3: malformed listing nested non-direct child fails closed
+  ---
+  duration_ms: 0.075833
+  type: 'test'
+  ...
+# Subtest: s3: maxListEntries rejects rather than returning a truncated listing
+ok 57 - s3: maxListEntries rejects rather than returning a truncated listing
+  ---
+  duration_ms: 0.304458
+  type: 'test'
+  ...
+# Subtest: s3: exclusive copy rejects a destination created during copy authorization
+ok 58 - s3: exclusive copy rejects a destination created during copy authorization
+  ---
+  duration_ms: 0.703125
+  type: 'test'
+  ...
+# Subtest: s3: cancellation during getObject reaches the repository mock
+ok 59 - s3: cancellation during getObject reaches the repository mock
+  ---
+  duration_ms: 0.805334
+  type: 'test'
+  ...
+# Subtest: s3: cancellation during putObject reaches the repository mock
+ok 60 - s3: cancellation during putObject reaches the repository mock
+  ---
+  duration_ms: 0.70125
+  type: 'test'
+  ...
+# Subtest: s3: cancellation during listObjectsV2 reaches the repository mock
+ok 61 - s3: cancellation during listObjectsV2 reaches the repository mock
+  ---
+  duration_ms: 0.31175
+  type: 'test'
+  ...
+# Subtest: s3: explicit non-atomic rename opt-out rejects before host effects
+ok 62 - s3: explicit non-atomic rename opt-out rejects before host effects
+  ---
+  duration_ms: 0.369709
+  type: 'test'
+  ...
+# PROFILE: explicit opt-out rejects; default guarded rename remains non-atomic copy/delete
+# Subtest: s3: non-atomic rename reports exact copy-phase partial state
+ok 63 - s3: non-atomic rename reports exact copy-phase partial state
+  ---
+  duration_ms: 1.26725
+  type: 'test'
+  ...
+# Subtest: s3: non-atomic rename reports exact delete-phase partial state
+ok 64 - s3: non-atomic rename reports exact delete-phase partial state
+  ---
+  duration_ms: 1.516917
+  type: 'test'
+  ...
+# Subtest: s3: unrepresentable object keys and file-prefix collisions remain explicit
+ok 65 - s3: unrepresentable object keys and file-prefix collisions remain explicit
+  ---
+  duration_ms: 0.439958
+  type: 'test'
+  ...
+# Subtest: s3: concurrent a writes enforce transport preconditions without lost updates
+ok 66 - s3: concurrent a writes enforce transport preconditions without lost updates
+  ---
+  duration_ms: 0.886292
+  type: 'test'
+  ...
+# Subtest: s3: concurrent wx writes enforce transport preconditions without lost updates
+ok 67 - s3: concurrent wx writes enforce transport preconditions without lost updates
+  ---
+  duration_ms: 0.568041
+  type: 'test'
+  ...
+# Subtest: s3: read-only capability rejects every mutating required operation
+ok 68 - s3: read-only capability rejects every mutating required operation
+  ---
+  duration_ms: 0.48775
+  type: 'test'
+  ...
+# Subtest: s3: false body lengths reject exact-byte corruption
+ok 69 - s3: false body lengths reject exact-byte corruption
+  ---
+  duration_ms: 0.27475
+  type: 'test'
+  ...
+# Subtest: webdav: capable timestamp provider persists exact values over real fetch without rewriting bytes
+ok 70 - webdav: capable timestamp provider persists exact values over real fetch without rewriting bytes
+  ---
+  duration_ms: 42.48875
+  type: 'test'
+  ...
+# Subtest: webdav: original provider's PROPPATCH 501 remains typed ENOTSUP with no fallback effects
+ok 71 - webdav: original provider's PROPPATCH 501 remains typed ENOTSUP with no fallback effects
+  ---
+  duration_ms: 17.499166
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 403 preserves bytes and prior property
+ok 72 - webdav: timestamp property status 403 preserves bytes and prior property
+  ---
+  duration_ms: 1.974959
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 423 preserves bytes and prior property
+ok 73 - webdav: timestamp property status 423 preserves bytes and prior property
+  ---
+  duration_ms: 1.564125
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 424 preserves bytes and prior property
+ok 74 - webdav: timestamp property status 424 preserves bytes and prior property
+  ---
+  duration_ms: 1.846583
+  type: 'test'
+  ...
+# Subtest: webdav: timestamp property status 507 preserves bytes and prior property
+ok 75 - webdav: timestamp property status 507 preserves bytes and prior property
+  ---
+  duration_ms: 1.920209
+  type: 'test'
+  ...
+# Subtest: webdav: stale timestamp condition preserves competing bytes and prior property
+ok 76 - webdav: stale timestamp condition preserves competing bytes and prior property
+  ---
+  duration_ms: 1.872958
+  type: 'test'
+  ...
+# Subtest: webdav: lost PROPPATCH acknowledgement reports EIO without pretending persisted effects rolled back
+ok 77 - webdav: lost PROPPATCH acknowledgement reports EIO without pretending persisted effects rolled back
+  ---
+  duration_ms: 1.176917
+  type: 'test'
+  ...
+# Subtest: webdav: 1103 direct children return complete depth-one listing over loopback HTTP
+ok 78 - webdav: 1103 direct children return complete depth-one listing over loopback HTTP
+  ---
+  duration_ms: 86.170417
+  type: 'test'
+  ...
+# Subtest: webdav: maxEntries rejects rather than truncates a valid multistatus
+ok 79 - webdav: maxEntries rejects rather than truncates a valid multistatus
+  ---
+  duration_ms: 6.250542
+  type: 'test'
+  ...
+# Subtest: webdav: 256 children with redundant DAV namespace declarations list completely
+ok 80 - webdav: 256 children with redundant DAV namespace declarations list completely
+  ---
+  duration_ms: 9.268709
+  type: 'test'
+  ...
+# REDUNDANT NAMESPACE FIXTURE: 56230 bytes, 256 children
+# Subtest: webdav: advertised pagination fails closed as an explicit capability gap
+ok 81 - webdav: advertised pagination fails closed as an explicit capability gap
+  ---
+  duration_ms: 3.951208
+  type: 'test'
+  ...
+# CAPABILITY GAP: vendor WebDAV pagination unsupported; rel=next fails ENOTSUP
+# Subtest: webdav: untrusted response href /outside/file cannot escape requested root/depth
+ok 82 - webdav: untrusted response href /outside/file cannot escape requested root/depth
+  ---
+  duration_ms: 2.992333
+  type: 'test'
+  ...
+# Subtest: webdav: untrusted response href http://127.0.0.2/dav/file cannot escape requested root/depth
+ok 83 - webdav: untrusted response href http://127.0.0.2/dav/file cannot escape requested root/depth
+  ---
+  duration_ms: 2.170625
+  type: 'test'
+  ...
+# Subtest: webdav: untrusted response href /dav/%2e%2e/file cannot escape requested root/depth
+ok 84 - webdav: untrusted response href /dav/%2e%2e/file cannot escape requested root/depth
+  ---
+  duration_ms: 1.977208
+  type: 'test'
+  ...
+# Subtest: webdav: untrusted response href /dav/a%2fb cannot escape requested root/depth
+ok 85 - webdav: untrusted response href /dav/a%2fb cannot escape requested root/depth
+  ---
+  duration_ms: 2.345834
+  type: 'test'
+  ...
+# Subtest: webdav: untrusted response href /dav/file?query=1 cannot escape requested root/depth
+ok 86 - webdav: untrusted response href /dav/file?query=1 cannot escape requested root/depth
+  ---
+  duration_ms: 4.710959
+  type: 'test'
+  ...
+# Subtest: webdav: untrusted response href /dav/deep/child cannot escape requested root/depth
+ok 87 - webdav: untrusted response href /dav/deep/child cannot escape requested root/depth
+  ---
+  duration_ms: 2.415667
+  type: 'test'
+  ...
+# Subtest: webdav: duplicate response members reject instead of silently deduplicating
+ok 88 - webdav: duplicate response members reject instead of silently deduplicating
+  ---
+  duration_ms: 2.71925
+  type: 'test'
+  ...
+# Subtest: webdav: malformed XML rejects external entity declarations
+ok 89 - webdav: malformed XML rejects external entity declarations
+  ---
+  duration_ms: 2.384375
+  type: 'test'
+  ...
+# Subtest: webdav: malformed XML rejects mismatched nesting
+ok 90 - webdav: malformed XML rejects mismatched nesting
+  ---
+  duration_ms: 1.601167
+  type: 'test'
+  ...
+# Subtest: webdav: actual HTTP body overflow is bounded without Content-Length
+ok 91 - webdav: actual HTTP body overflow is bounded without Content-Length
+  ---
+  duration_ms: 2.776458
+  type: 'test'
+  ...
+# Subtest: webdav: injected identity response with Content-Length 5 and two bytes rejects EIO
+ok 92 - webdav: injected identity response with Content-Length 5 and two bytes rejects EIO
+  ---
+  duration_ms: 0.507292
+  type: 'test'
+  ...
+# Subtest: webdav: caller cancellation during pending response headers stops mutation
+ok 93 - webdav: caller cancellation during pending response headers stops mutation
+  ---
+  duration_ms: 1.807625
+  type: 'test'
+  ...
+# Subtest: webdav: caller cancellation interrupts an actual stalled HTTP response body
+ok 94 - webdav: caller cancellation interrupts an actual stalled HTTP response body
+  ---
+  duration_ms: 4.142375
+  type: 'test'
+  ...
+# Subtest: webdav: request deadline interrupts pending loopback response headers
+ok 95 - webdav: request deadline interrupts pending loopback response headers
+  ---
+  duration_ms: 27.787542
+  type: 'test'
+  ...
+# Subtest: webdav: append without a strong response validator fails closed before PUT
+ok 96 - webdav: append without a strong response validator fails closed before PUT
+  ---
+  duration_ms: 6.4575
+  type: 'test'
+  ...
+# Subtest: webdav: rename replacement without server locking fails closed
+ok 97 - webdav: rename replacement without server locking fails closed
+  ---
+  duration_ms: 7.537791
+  type: 'test'
+  ...
+# Subtest: webdav: copyFile replacement without server locking fails closed
+ok 98 - webdav: copyFile replacement without server locking fails closed
+  ---
+  duration_ms: 5.199708
+  type: 'test'
+  ...
+# Subtest: webdav: optional truncate and nonrecursive directory removal fail without mutation
+ok 99 - webdav: optional truncate and nonrecursive directory removal fail without mutation
+  ---
+  duration_ms: 5.467208
+  type: 'test'
+  ...
+# CAPABILITY GAP: optional truncate unsupported; nonrecursive directory rm policy rejects ENOTSUP
+1..99
+# tests 99
+# suites 0
+# pass 99
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 386.779125

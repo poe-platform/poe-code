@@ -1,0 +1,62 @@
+{
+  "verifiedAt": "2026-08-27T10:27:10.799Z",
+  "role": "migration author; independent review pending",
+  "original": {
+    "review": "5009ba8146c73bd5628147707e733384e5cd4aee",
+    "accepted": 18,
+    "total": 19,
+    "otherOriginalFilesUnchanged": 572
+  },
+  "candidate": {
+    "accepted": 19,
+    "total": 19,
+    "soleAssertionReplacement": true,
+    "allCaseInputsAndObservedResultsEqual": true,
+    "other18ExpectationsUnchanged": true,
+    "sourceClosureFiles": 216,
+    "nativeWorkersSettledBeforePublicExec": 18,
+    "closedToolProcesses": 19,
+    "importsVerified": 9866,
+    "archivePhases": [
+      {
+        "phase": "before-build",
+        "at": "2026-08-27T10:21:30.200Z",
+        "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+        "blobsVerified": 15798,
+        "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+        "emittedDistUnchanged": false
+      },
+      {
+        "phase": "after-build",
+        "at": "2026-08-27T10:21:38.511Z",
+        "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+        "blobsVerified": 15798,
+        "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+        "emittedDistUnchanged": true
+      },
+      {
+        "phase": "before-execution",
+        "at": "2026-08-27T10:21:45.490Z",
+        "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+        "blobsVerified": 15798,
+        "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+        "emittedDistUnchanged": true
+      },
+      {
+        "phase": "after-execution",
+        "at": "2026-08-27T10:22:01.266Z",
+        "tree": "b56256393025d5f0cf0d2b33c05bd5d5f39ac608",
+        "blobsVerified": 15798,
+        "inventorySha256": "f70d81a861fd9d54c9a1d8e263dc3dadb4cbac98baec3dfe16173c6c95fcf83a",
+        "emittedDistUnchanged": true
+      }
+    ],
+    "packageSha256": "1a757856aff57daa1fd3e5c40f4e011b1bb1ec43877f2fd5c8b6fae7f8e3ff5e",
+    "privateBeforeAfterUnchanged": true,
+    "runtimeAndImportGuardsUnchanged": true,
+    "liveTreeNotProductIdentity": true,
+    "noRescue": true,
+    "temporaryRemoved": true
+  },
+  "historicalV1BlockerPreserved": true
+}

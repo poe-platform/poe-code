@@ -1,0 +1,753 @@
+TAP version 13
+# node:internal/modules/run_main:123
+#     triggerUncaughtException(
+#     ^
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/fs/webdav/mock.js' imported from /Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/commands/du/backends.test.ts
+#     at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+#     at moduleResolve (node:internal/modules/esm/resolve:861:10)
+#     at defaultResolve (node:internal/modules/esm/resolve:985:11)
+#     at nextResolve (node:internal/modules/esm/hooks:748:28)
+#     at resolveBase (file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:10334)
+#     at async resolveDirectory (file:///Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/register-C4vWVmug.mjs:2:11415) {
+#   code: 'ERR_MODULE_NOT_FOUND',
+#   url: 'file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/fs/webdav/mock.js'
+# }
+# Node.js v22.22.2
+# Subtest: tests/commands/du/backends.test.ts
+not ok 1 - tests/commands/du/backends.test.ts
+  ---
+  duration_ms: 186.047042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/commands/du/backends.test.ts:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: command definition and plugin collision preflight preserve replacement policy
+ok 2 - command definition and plugin collision preflight preserve replacement policy
+  ---
+  duration_ms: 1.018125
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -b tree
+ok 3 - actual Shell reporting -b tree
+  ---
+  duration_ms: 4.383542
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bac tree
+ok 4 - actual Shell reporting -bac tree
+  ---
+  duration_ms: 1.668125
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bs tree
+ok 5 - actual Shell reporting -bs tree
+  ---
+  duration_ms: 2.1465
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bad1 tree
+ok 6 - actual Shell reporting -bad1 tree
+  ---
+  duration_ms: 0.849291
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bd0 tree
+ok 7 - actual Shell reporting -bd0 tree
+  ---
+  duration_ms: 0.772375
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting -bs -d 0 tree
+ok 8 - actual Shell reporting -bs -d 0 tree
+  ---
+  duration_ms: 0.515125
+  type: 'test'
+  ...
+# Subtest: actual Shell reporting --bytes --all --null tree
+ok 9 - actual Shell reporting --bytes --all --null tree
+  ---
+  duration_ms: 0.867083
+  type: 'test'
+  ...
+# Subtest: known zero, unknown, and invalid allocation never fall back to logical size
+ok 10 - known zero, unknown, and invalid allocation never fall back to logical size
+  ---
+  duration_ms: 9.773334
+  type: 'test'
+  ...
+# Subtest: unknown directory allocation preserves known descendants but suppresses ancestors
+ok 11 - unknown directory allocation preserves known descendants but suppresses ancestors
+  ---
+  duration_ms: 0.615333
+  type: 'test'
+  ...
+# Subtest: apparent directories contribute zero, final symlinks contribute their own length
+ok 12 - apparent directories contribute zero, final symlinks contribute their own length
+  ---
+  duration_ms: 0.516583
+  type: 'test'
+  ...
+# Subtest: invocation-wide hardlink dedup uses complete scoped identity; count-links overrides
+ok 13 - invocation-wide hardlink dedup uses complete scoped identity; count-links overrides
+  ---
+  duration_ms: 2.953291
+  type: 'test'
+  ...
+# Subtest: repeated directories are traversed, not globally pruned by identity
+ok 14 - repeated directories are traversed, not globally pruned by identity
+  ---
+  duration_ms: 1.423083
+  type: 'test'
+  ...
+# Subtest: known identity never hides an unknown allocation observation on a later alias
+ok 15 - known identity never hides an unknown allocation observation on a later alias
+  ---
+  duration_ms: 0.382792
+  type: 'test'
+  ...
+# Subtest: literal names, --, stable sort, missing and empty operands preserve useful output
+ok 16 - literal names, --, stable sort, missing and empty operands preserve useful output
+  ---
+  duration_ms: 1.013458
+  type: 'test'
+  ...
+# Subtest: all argument and environment validation happens before any filesystem call
+ok 17 - all argument and environment validation happens before any filesystem call
+  ---
+  duration_ms: 0.637584
+  type: 'test'
+  ...
+# Subtest: context environment precedence and explicit formatting remain local
+ok 18 - context environment precedence and explicit formatting remain local
+  ---
+  duration_ms: 0.2685
+  type: 'test'
+  ...
+# Subtest: checked aggregation and invalid logical size suppress incomplete totals
+ok 19 - checked aggregation and invalid logical size suppress incomplete totals
+  ---
+  duration_ms: 0.612667
+  type: 'test'
+  ...
+# Subtest: typed listing errors propagate meaning and preserve known unrelated operands
+ok 20 - typed listing errors propagate meaning and preserve known unrelated operands
+  ---
+  duration_ms: 0.24625
+  type: 'test'
+  ...
+# Subtest: upper-first reads and merged typed listings do not mutate lower
+ok 21 - upper-first reads and merged typed listings do not mutate lower
+  ---
+  duration_ms: 4.756041
+  type: 'test'
+  ...
+# Subtest: whiteouts survive repeated upper recreation and deletion
+ok 22 - whiteouts survive repeated upper recreation and deletion
+  ---
+  duration_ms: 4.9115
+  type: 'test'
+  ...
+# Subtest: delete/recreate directories stay opaque at every depth
+ok 23 - delete/recreate directories stay opaque at every depth
+  ---
+  duration_ms: 2.340583
+  type: 'test'
+  ...
+# Subtest: lower parents copy up with mode and untouched file metadata
+ok 24 - lower parents copy up with mode and untouched file metadata
+  ---
+  duration_ms: 1.830459
+  type: 'test'
+  ...
+# Subtest: lower links read upper replacements and writes copy up overlay targets
+ok 25 - lower links read upper replacements and writes copy up overlay targets
+  ---
+  duration_ms: 4.256625
+  type: 'test'
+  ...
+# Subtest: upper links cannot bypass lower target whiteouts
+ok 26 - upper links cannot bypass lower target whiteouts
+  ---
+  duration_ms: 1.360708
+  type: 'test'
+  ...
+# Subtest: shadowed lower symlink directories never contribute children
+ok 27 - shadowed lower symlink directories never contribute children
+  ---
+  duration_ms: 0.85025
+  type: 'test'
+  ...
+# Subtest: lower path probing stops before any shadowed symlink ancestor
+ok 28 - lower path probing stops before any shadowed symlink ancestor
+  ---
+  duration_ms: 0.485834
+  type: 'test'
+  ...
+# Subtest: symlink loops spanning both layers are bounded
+ok 29 - symlink loops spanning both layers are bounded
+  ---
+  duration_ms: 4.944291
+  type: 'test'
+  ...
+# Subtest: renaming a lower symlink moves the link, not its target
+ok 30 - renaming a lower symlink moves the link, not its target
+  ---
+  duration_ms: 1.441875
+  type: 'test'
+  ...
+# Subtest: merged directory rename preserves whiteouts without resurrection
+ok 31 - merged directory rename preserves whiteouts without resurrection
+  ---
+  duration_ms: 1.40975
+  type: 'test'
+  ...
+# Subtest: multiple directory moves and recreation never reveal old lower children
+ok 32 - multiple directory moves and recreation never reveal old lower children
+  ---
+  duration_ms: 1.138709
+  type: 'test'
+  ...
+# Subtest: whiteout state is instance-local, explicitly not a persistent format
+ok 33 - whiteout state is instance-local, explicitly not a persistent format
+  ---
+  duration_ms: 0.231917
+  type: 'test'
+  ...
+# Subtest: failed write keeps old content and allows retry
+ok 34 - failed write keeps old content and allows retry
+  ---
+  duration_ms: 0.38375
+  type: 'test'
+  ...
+# Subtest: failed chmod keeps old content and allows retry
+ok 35 - failed chmod keeps old content and allows retry
+  ---
+  duration_ms: 0.555375
+  type: 'test'
+  ...
+# Subtest: failed utimes keeps old content and allows retry
+ok 36 - failed utimes keeps old content and allows retry
+  ---
+  duration_ms: 0.422291
+  type: 'test'
+  ...
+# Subtest: failed publish keeps old content and allows retry
+ok 37 - failed publish keeps old content and allows retry
+  ---
+  duration_ms: 1.516709
+  type: 'test'
+  ...
+# Subtest: failed rename materialization keeps source tree and deleted children hidden
+ok 38 - failed rename materialization keeps source tree and deleted children hidden
+  ---
+  duration_ms: 1.08675
+  type: 'test'
+  ...
+# Subtest: failed final rename leaves both source and destination intact
+ok 39 - failed final rename leaves both source and destination intact
+  ---
+  duration_ms: 1.102
+  type: 'test'
+  ...
+# Subtest: cleanup failure cannot expose staging or undo committed whiteouts
+ok 40 - cleanup failure cannot expose staging or undo committed whiteouts
+  ---
+  duration_ms: 1.075541
+  type: 'test'
+  ...
+# Subtest: read errors are not interpreted as absence or permission to create
+ok 41 - read errors are not interpreted as absence or permission to create
+  ---
+  duration_ms: 0.176791
+  type: 'test'
+  ...
+# Subtest: optional capabilities reject unsupported operations honestly
+ok 42 - optional capabilities reject unsupported operations honestly
+  ---
+  duration_ms: 0.208667
+  type: 'test'
+  ...
+# Subtest: read-only upper allows overlay reads but rejects modifications
+ok 43 - read-only upper allows overlay reads but rejects modifications
+  ---
+  duration_ms: 0.109
+  type: 'test'
+  ...
+# Subtest: missing upper timestamp method refuses metadata-losing copy-up
+ok 44 - missing upper timestamp method refuses metadata-losing copy-up
+  ---
+  duration_ms: 0.21
+  type: 'test'
+  ...
+# Subtest: copy-up rejects hardlinked files rather than breaking aliases
+ok 45 - copy-up rejects hardlinked files rather than breaking aliases
+  ---
+  duration_ms: 0.525541
+  type: 'test'
+  ...
+# Subtest: per-file limits cover writes, reads, appends, truncates, and copy-up
+ok 46 - per-file limits cover writes, reads, appends, truncates, and copy-up
+  ---
+  duration_ms: 0.689625
+  type: 'test'
+  ...
+# Subtest: a failed stream never publishes even its first chunk
+ok 47 - a failed stream never publishes even its first chunk
+  ---
+  duration_ms: 0.54175
+  type: 'test'
+  ...
+# Subtest: source may call overlay; exclusive stream existence is rechecked
+ok 48 - source may call overlay; exclusive stream existence is rechecked
+  ---
+  duration_ms: 0.331334
+  type: 'test'
+  ...
+# Subtest: concurrent appends and exclusive creates serialize without lost updates
+ok 49 - concurrent appends and exclusive creates serialize without lost updates
+  ---
+  duration_ms: 14.7535
+  type: 'test'
+  ...
+# Subtest: stalled source cancellation is prompt and releases its iterator
+ok 50 - stalled source cancellation is prompt and releases its iterator
+  ---
+  duration_ms: 0.59625
+  type: 'test'
+  ...
+# Subtest: cancellation during staged mutation preserves original and passes signal
+ok 51 - cancellation during staged mutation preserves original and passes signal
+  ---
+  duration_ms: 0.297333
+  type: 'test'
+  ...
+# Subtest: queued cancellation rejects promptly without releasing the active writer
+ok 52 - queued cancellation rejects promptly without releasing the active writer
+  ---
+  duration_ms: 0.942583
+  type: 'test'
+  ...
+# Subtest: aborting parent copy-up does not publish a lower-only deletion
+ok 53 - aborting parent copy-up does not publish a lower-only deletion
+  ---
+  duration_ms: 0.436041
+  type: 'test'
+  ...
+# Subtest: truncate uses its bounded fallback when upper has no truncate method
+ok 54 - truncate uses its bounded fallback when upper has no truncate method
+  ---
+  duration_ms: 0.232167
+  type: 'test'
+  ...
+# Subtest: copy-up refuses unknown link counts from a hardlink-capable backend
+ok 55 - copy-up refuses unknown link counts from a hardlink-capable backend
+  ---
+  duration_ms: 0.147875
+  type: 'test'
+  ...
+# Subtest: read-stream output stays isolated from later writes and yielded chunk edits
+ok 56 - read-stream output stays isolated from later writes and yielded chunk edits
+  ---
+  duration_ms: 0.319708
+  type: 'test'
+  ...
+# Subtest: pre-aborted readFile rejects without modifying either backend
+ok 57 - pre-aborted readFile rejects without modifying either backend
+  ---
+  duration_ms: 0.210333
+  type: 'test'
+  ...
+# Subtest: pre-aborted writeFile rejects without modifying either backend
+ok 58 - pre-aborted writeFile rejects without modifying either backend
+  ---
+  duration_ms: 0.120416
+  type: 'test'
+  ...
+# Subtest: pre-aborted appendFile rejects without modifying either backend
+ok 59 - pre-aborted appendFile rejects without modifying either backend
+  ---
+  duration_ms: 0.07725
+  type: 'test'
+  ...
+# Subtest: pre-aborted stat rejects without modifying either backend
+ok 60 - pre-aborted stat rejects without modifying either backend
+  ---
+  duration_ms: 0.070708
+  type: 'test'
+  ...
+# Subtest: pre-aborted lstat rejects without modifying either backend
+ok 61 - pre-aborted lstat rejects without modifying either backend
+  ---
+  duration_ms: 0.068625
+  type: 'test'
+  ...
+# Subtest: pre-aborted readdir rejects without modifying either backend
+ok 62 - pre-aborted readdir rejects without modifying either backend
+  ---
+  duration_ms: 0.067542
+  type: 'test'
+  ...
+# Subtest: pre-aborted mkdir rejects without modifying either backend
+ok 63 - pre-aborted mkdir rejects without modifying either backend
+  ---
+  duration_ms: 0.070333
+  type: 'test'
+  ...
+# Subtest: pre-aborted rm rejects without modifying either backend
+ok 64 - pre-aborted rm rejects without modifying either backend
+  ---
+  duration_ms: 0.071667
+  type: 'test'
+  ...
+# Subtest: pre-aborted rename rejects without modifying either backend
+ok 65 - pre-aborted rename rejects without modifying either backend
+  ---
+  duration_ms: 0.069292
+  type: 'test'
+  ...
+# Subtest: pre-aborted copyFile rejects without modifying either backend
+ok 66 - pre-aborted copyFile rejects without modifying either backend
+  ---
+  duration_ms: 0.145166
+  type: 'test'
+  ...
+# Subtest: pre-aborted realpath rejects without modifying either backend
+ok 67 - pre-aborted realpath rejects without modifying either backend
+  ---
+  duration_ms: 0.075541
+  type: 'test'
+  ...
+# Subtest: pre-aborted access rejects without modifying either backend
+ok 68 - pre-aborted access rejects without modifying either backend
+  ---
+  duration_ms: 0.076083
+  type: 'test'
+  ...
+# Subtest: pre-aborted readlink rejects without modifying either backend
+ok 69 - pre-aborted readlink rejects without modifying either backend
+  ---
+  duration_ms: 0.063666
+  type: 'test'
+  ...
+# Subtest: pre-aborted symlink rejects without modifying either backend
+ok 70 - pre-aborted symlink rejects without modifying either backend
+  ---
+  duration_ms: 0.073458
+  type: 'test'
+  ...
+# Subtest: pre-aborted link rejects without modifying either backend
+ok 71 - pre-aborted link rejects without modifying either backend
+  ---
+  duration_ms: 0.064709
+  type: 'test'
+  ...
+# Subtest: pre-aborted chmod rejects without modifying either backend
+ok 72 - pre-aborted chmod rejects without modifying either backend
+  ---
+  duration_ms: 0.064
+  type: 'test'
+  ...
+# Subtest: pre-aborted utimes rejects without modifying either backend
+ok 73 - pre-aborted utimes rejects without modifying either backend
+  ---
+  duration_ms: 0.075416
+  type: 'test'
+  ...
+# Subtest: pre-aborted truncate rejects without modifying either backend
+ok 74 - pre-aborted truncate rejects without modifying either backend
+  ---
+  duration_ms: 0.065125
+  type: 'test'
+  ...
+# Subtest: pre-aborted readStream rejects without modifying either backend
+ok 75 - pre-aborted readStream rejects without modifying either backend
+  ---
+  duration_ms: 0.114958
+  type: 'test'
+  ...
+# Subtest: pre-aborted writeStream rejects without modifying either backend
+ok 76 - pre-aborted writeStream rejects without modifying either backend
+  ---
+  duration_ms: 0.069042
+  type: 'test'
+  ...
+# Subtest: pre-aborted cleanup rejects without modifying either backend
+ok 77 - pre-aborted cleanup rejects without modifying either backend
+  ---
+  duration_ms: 0.064458
+  type: 'test'
+  ...
+# Subtest: bounded deterministic operation sequences match a single memory namespace
+ok 78 - bounded deterministic operation sequences match a single memory namespace
+  ---
+  duration_ms: 150.624125
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation undefined
+ok 79 - upper enumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 3.213459
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 0
+ok 80 - upper enumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.541625
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 1
+ok 81 - upper enumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.5835
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 4096
+ok 82 - upper enumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.37025
+  type: 'test'
+  ...
+# Subtest: upper enumerable-own forwards reported allocation 9007199254740991
+ok 83 - upper enumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.352417
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation undefined
+ok 84 - upper nonenumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.196916
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 0
+ok 85 - upper nonenumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.157292
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 1
+ok 86 - upper nonenumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.160125
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 4096
+ok 87 - upper nonenumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.361583
+  type: 'test'
+  ...
+# Subtest: upper nonenumerable-own forwards reported allocation 9007199254740991
+ok 88 - upper nonenumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.510083
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation undefined
+ok 89 - upper prototype-accessor forwards reported allocation undefined
+  ---
+  duration_ms: 1.124375
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 0
+ok 90 - upper prototype-accessor forwards reported allocation 0
+  ---
+  duration_ms: 0.1825
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 1
+ok 91 - upper prototype-accessor forwards reported allocation 1
+  ---
+  duration_ms: 0.406708
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 4096
+ok 92 - upper prototype-accessor forwards reported allocation 4096
+  ---
+  duration_ms: 0.351417
+  type: 'test'
+  ...
+# Subtest: upper prototype-accessor forwards reported allocation 9007199254740991
+ok 93 - upper prototype-accessor forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.428459
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation undefined
+ok 94 - lower enumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 1.164959
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 0
+ok 95 - lower enumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.517833
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 1
+ok 96 - lower enumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.266458
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 4096
+ok 97 - lower enumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.274416
+  type: 'test'
+  ...
+# Subtest: lower enumerable-own forwards reported allocation 9007199254740991
+ok 98 - lower enumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.261458
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation undefined
+ok 99 - lower nonenumerable-own forwards reported allocation undefined
+  ---
+  duration_ms: 0.251958
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 0
+ok 100 - lower nonenumerable-own forwards reported allocation 0
+  ---
+  duration_ms: 0.256042
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 1
+ok 101 - lower nonenumerable-own forwards reported allocation 1
+  ---
+  duration_ms: 0.2475
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 4096
+ok 102 - lower nonenumerable-own forwards reported allocation 4096
+  ---
+  duration_ms: 0.255584
+  type: 'test'
+  ...
+# Subtest: lower nonenumerable-own forwards reported allocation 9007199254740991
+ok 103 - lower nonenumerable-own forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.228042
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation undefined
+ok 104 - lower prototype-accessor forwards reported allocation undefined
+  ---
+  duration_ms: 0.286375
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 0
+ok 105 - lower prototype-accessor forwards reported allocation 0
+  ---
+  duration_ms: 0.259541
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 1
+ok 106 - lower prototype-accessor forwards reported allocation 1
+  ---
+  duration_ms: 0.268541
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 4096
+ok 107 - lower prototype-accessor forwards reported allocation 4096
+  ---
+  duration_ms: 0.613041
+  type: 'test'
+  ...
+# Subtest: lower prototype-accessor forwards reported allocation 9007199254740991
+ok 108 - lower prototype-accessor forwards reported allocation 9007199254740991
+  ---
+  duration_ms: 0.257625
+  type: 'test'
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report undefined
+ok 109 - chmod copy-up replaces lower allocation with upper report undefined
+  ---
+  duration_ms: 1.895541
+  type: 'test'
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report 0
+ok 110 - chmod copy-up replaces lower allocation with upper report 0
+  ---
+  duration_ms: 1.480167
+  type: 'test'
+  ...
+# Subtest: chmod copy-up replaces lower allocation with upper report 8192
+ok 111 - chmod copy-up replaces lower allocation with upper report 8192
+  ---
+  duration_ms: 0.849875
+  type: 'test'
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report undefined
+ok 112 - appendFile copy-up replaces lower allocation with upper report undefined
+  ---
+  duration_ms: 1.189334
+  type: 'test'
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report 0
+ok 113 - appendFile copy-up replaces lower allocation with upper report 0
+  ---
+  duration_ms: 0.818375
+  type: 'test'
+  ...
+# Subtest: appendFile copy-up replaces lower allocation with upper report 8192
+ok 114 - appendFile copy-up replaces lower allocation with upper report 8192
+  ---
+  duration_ms: 0.438458
+  type: 'test'
+  ...
+# Subtest: overlay allocation composes through mount and read-only views with link semantics
+ok 115 - overlay allocation composes through mount and read-only views with link semantics
+  ---
+  duration_ms: 1.768917
+  type: 'test'
+  ...
+# Subtest: overlay memory allocation stays unknown before and after copy-up
+ok 116 - overlay memory allocation stays unknown before and after copy-up
+  ---
+  duration_ms: 0.431916
+  type: 'test'
+  ...
+# Subtest: stat/lstat do not clean pending staging or copy up; existing readFile cleanup remains
+ok 117 - stat/lstat do not clean pending staging or copy up; existing readFile cleanup remains
+  ---
+  duration_ms: 1.194292
+  type: 'test'
+  ...
+# Subtest: stat/lstat do not clean pending staging or copy up; existing readdir cleanup remains
+ok 118 - stat/lstat do not clean pending staging or copy up; existing readdir cleanup remains
+  ---
+  duration_ms: 0.636458
+  type: 'test'
+  ...
+# Subtest: Real allocation survives read-only, mount and overlay views and follows actual copy-up metadata
+not ok 119 - Real allocation survives read-only, mount and overlay views and follows actual copy-up metadata
+  ---
+  duration_ms: 8.104417
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/fs/overlay/allocation.test.ts:1:7601'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, mkdtemp '/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/fs/overlay/allocation-evidence/.native-TrJD5n'"
+  code: 'ENOENT'
+  stack: |-
+    async Module.mkdtemp (node:internal/fs/promises:1189:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/.scratch/877144ea-QuNAdm/committed/tests/fs/overlay/allocation.test.ts:196:21)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..119
+# tests 119
+# suites 0
+# pass 117
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 463.175125

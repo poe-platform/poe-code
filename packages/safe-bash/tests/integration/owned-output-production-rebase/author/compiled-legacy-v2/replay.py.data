@@ -1,0 +1,295 @@
+import datetime
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import signal
+import stat
+import subprocess
+import tarfile
+import tempfile
+import time
+
+REPOSITORY = Path("/Users/kjopek/Workspace/safe-bash")
+OWNER = Path("tests/integration/owned-output-production-rebase/author/compiled-legacy-v2")
+PREVIOUS = "tests/integration/owned-output-production-rebase/author/"
+CANDIDATE = "eba049535d154f4e028f57ffd8efd7622b2239ca"
+TREE = "62d75ef09e89d4d3b6afc032c518d2846dcd03b7"
+EVIDENCE = "f27b7b595c529d26161a21cf86d2a86fc0d2cee3"
+BASELINE = "a03b9288a6f4b652387be9fefa8faf17ef58b9e7"
+SOURCE_ID = "40914b93fe1a1a82d9abdcdf4f4cc4360ab6e85ab16b5d9f75768e00c73213ec"
+PATCH_ID = "83b339002970df881efb56cc50fa0e0e74f1f832edb6c8706287827a3dc5e4ad"
+RUNS = [("core", "legacy-core-final-02", 505), ("state", "legacy-state-final", 203),
+        ("focused-types", "focused-types-final-02", None), ("source-types", "source-types-final-02", None)]
+PACKAGES = ["tsx", "typescript", "@types/node", "esbuild", "@esbuild/darwin-arm64", "undici-types", "fsevents"]
+
+
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def encoded(value):
+    return json.dumps(value, separators=(",", ":"), ensure_ascii=False).encode()
+
+
+def git(*arguments):
+    return subprocess.check_output(["git", *arguments], cwd=REPOSITORY)
+
+
+def save(name, content):
+    target = OWNER / name
+    assert not target.exists(), f"Refusing to replace evidence: {target}"
+    text = content if isinstance(content, str) else json.dumps(content, indent=2) + "\n"
+    subprocess.run(["apply_patch", "*** Begin Patch\n*** Add File: " + str(target) + "\n" +
+                    "".join("+" + line + "\n" for line in text.splitlines()) + "*** End Patch\n"],
+                   cwd=REPOSITORY, check=True, stdout=subprocess.DEVNULL)
+    assert target.read_bytes() == text.encode(), f"Evidence bytes changed: {target}"
+
+
+def file_record(path, relative):
+    details = path.lstat()
+    assert stat.S_ISREG(details.st_mode), f"Expected regular file: {path}"
+    return {"path": relative, "kind": "file", "mode": stat.S_IMODE(details.st_mode),
+            "bytes": details.st_size, "sha256": sha(path.read_bytes())}
+
+
+def inventory(root):
+    assert root.is_dir() and not root.is_symlink()
+    result = []
+    for path in sorted(root.rglob("*")):
+        details = path.lstat()
+        relative = path.relative_to(root).as_posix()
+        if stat.S_ISDIR(details.st_mode):
+            result.append({"path": relative, "kind": "directory", "mode": stat.S_IMODE(details.st_mode)})
+        else:
+            result.append(file_record(path, relative))
+    return result
+
+
+def installed_inventory():
+    return {package: inventory(REPOSITORY / "node_modules" / package) for package in PACKAGES}
+
+
+def external_inventory(paths):
+    return [file_record(Path(path), path) for path in paths]
+
+
+def counts(text):
+    return {key: int(match[1]) for key in ("tests", "pass", "fail", "cancelled", "skipped", "todo")
+            if (match := re.search(r"^# " + key + r" (\d+)$", text, re.MULTILINE))}
+
+
+PRIOR = "cf59762539aff3f5454ad9b048598fdff4268b2c"
+PRIOR_ROOT = PREVIOUS + "compiled-legacy-v1/"
+WORKER_URL = "file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js"
+assert Path.cwd() == REPOSITORY
+assert not (OWNER / "PREFLIGHT.json").exists()
+freeze = json.loads((OWNER / "FREEZE.json").read_text())
+freeze_commit = git("log", "-1", "--format=%H", "--", str(OWNER / "replay.py.data")).decode().strip()
+assert freeze_commit
+
+
+def frozen_orchestration():
+    return all(sha((REPOSITORY / row["path"]).read_bytes()) == row["sha256"]
+               and (REPOSITORY / row["path"]).read_bytes() == git("show", freeze_commit + ":" + row["path"])
+               for row in freeze["files"])
+
+
+assert frozen_orchestration()
+assert (OWNER / "FREEZE.json").read_bytes() == git("show", freeze_commit + ":" + str(OWNER / "FREEZE.json"))
+assert git("rev-parse", CANDIDATE + "^{tree}").decode().strip() == TREE
+prior_payloads = {name: git("show", PRIOR + ":" + PRIOR_ROOT + name)
+                  for name in ("PREFLIGHT.json", "CLOSURE.json", "BUILD-OUTPUT.json")}
+prior = json.loads(prior_payloads["PREFLIGHT.json"])
+prior_closure = json.loads(prior_payloads["CLOSURE.json"])
+prior_output = json.loads(prior_payloads["BUILD-OUTPUT.json"])
+snapshot = Path(prior["snapshot"])
+assert snapshot == Path("/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate")
+assert (snapshot / "dist/commands/regex-execution/worker.js").resolve().as_uri() == WORKER_URL
+before = inventory(snapshot)
+inputs_only = [row for row in before if row["path"] != "dist" and not row["path"].startswith("dist/")]
+assert inputs_only == prior["snapshotBefore"], "Snapshot immutable inputs or entries drifted"
+assert sha(encoded(before)) == prior_closure["snapshotFinalSha256"], "Complete snapshot drifted"
+assert inventory(snapshot / "dist") == prior_output["manifest"], "Generated artifacts drifted"
+assert prior_output["manifestSha256"] == "3189d7dd493248d41de38f01055e1ecf844bf10e7226d9b453ad3a1f0d03dfd9"
+assert prior_output["worker"]["sha256"] == "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+installed_before = installed_inventory()
+external_paths = [row["path"] for row in prior["externalToolsBefore"]]
+external_before = external_inventory(external_paths)
+assert installed_before == prior["installedToolsBefore"], "Original installed tools drifted"
+assert external_before == prior["externalToolsBefore"], "External tools drifted"
+archive = git("archive", CANDIDATE, *prior["selection"])
+assert sha(archive) == prior["archiveSha256"]
+archive_rows = []
+with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
+    for member in bundle.getmembers():
+        assert member.isdir() or member.isfile()
+        assert not member.name.startswith("/") and ".." not in member.name.split("/")
+        if member.isfile():
+            payload = bundle.extractfile(member).read()
+            assert (snapshot / member.name).read_bytes() == payload, member.name
+            archive_rows.append({"path": member.name, "bytes": len(payload), "sha256": sha(payload)})
+archive_rows.sort(key=lambda row: row["path"])
+assert archive_rows == prior["archiveFiles"]
+source_rows = [row for row in archive_rows if row["path"].startswith("src/")]
+assert sha(encoded(source_rows)) == SOURCE_ID
+source_receipt = json.loads(git("show", EVIDENCE + ":" + PREVIOUS + "SOURCE-CANDIDATE.json"))
+owned_source_paths = [row["path"] for row in source_receipt["sourcePaths"]]
+assert sha(git("diff", "--binary", BASELINE, CANDIDATE, "--", *owned_source_paths)) == PATCH_ID
+commands = {}
+receipts = []
+for name, historical, expected_count in RUNS:
+    receipt_path = PREVIOUS + "runs/" + historical + "/RUN.json"
+    payload = git("show", EVIDENCE + ":" + receipt_path)
+    commands[name] = json.loads(payload)["command"]
+    receipts.append({"name": name, "path": receipt_path, "commit": EVIDENCE,
+                     "sha256": sha(payload), "command": commands[name], "expectedTests": expected_count})
+assert len([entry for entry in commands["core"] if entry.endswith(".test.ts")]) == 27
+assert len([entry for entry in commands["state"] if entry.endswith(".test.ts")]) == 6
+assert "--noEmit" in commands["focused-types"] and "--noEmit" in commands["source-types"]
+node = prior["versions"]["node"]
+temporary = Path(tempfile.mkdtemp(prefix="safe-bash-owned-output-built-legacy-v2-", dir="/tmp"))
+preflight = {"profile": "compiled-legacy-v2", "candidate": CANDIDATE, "tree": TREE,
+             "sourceManifestSha256": SOURCE_ID, "sourcePatchSha256": PATCH_ID, "started": now(),
+             "orchestrationCommit": freeze_commit, "freezeSha256": sha((OWNER / "FREEZE.json").read_bytes()),
+             "snapshot": str(snapshot), "freshScratchRoot": str(temporary), "snapshotReused": True,
+             "priorEvidenceCommit": PRIOR, "priorManifestBindings": [{"path": PRIOR_ROOT + name, "sha256": sha(payload)} for name, payload in prior_payloads.items()],
+             "archiveSha256": sha(archive), "archiveBytes": len(archive), "sourceEntries": len(source_rows),
+             "allSelectedGitBytesMatch": True, "immutableInputsIncludingEntriesMatch": True,
+             "snapshotBeforeSha256": sha(encoded(before)), "snapshotRegularFiles": sum(row["kind"] == "file" for row in before),
+             "compiledArtifactManifestSha256": prior_output["manifestSha256"], "compiledRegularFiles": prior_output["regularFiles"],
+             "worker": prior_output["worker"], "workerUrl": WORKER_URL,
+             "installedToolsBeforeSha256": sha(encoded(installed_before)), "externalToolsBeforeSha256": sha(encoded(external_before)),
+             "originalToolInventoriesMatchPrior": True, "versions": prior["versions"], "receipts": receipts,
+             "liveHeadObservationOnly": git("rev-parse", "HEAD").decode().strip(), "foreignStatusObservationOnly": git("status", "--short").decode(),
+             "builds": 0, "packs": 0, "installs": 0, "privateQueries": 0,
+             "integrityScope": "Full recursive regular-file bytes/modes and directory entries including additions; prior committed complete manifests referenced by hash; no mtime/xattr/OS-library/atomic/intervening-state proof"}
+save("PREFLIGHT.json", preflight)
+
+
+def process_group_present(process_id):
+    try:
+        os.killpg(process_id, 0)
+        return True
+    except ProcessLookupError:
+        return False
+
+
+results = []
+failed = False
+
+
+def run(name, command, expected_count=None, expected_stdout=None, stdin=None):
+    print("START", name, flush=True)
+    scratch = temporary / (name + "-scratch")
+    scratch.mkdir()
+    home = scratch / "home"
+    home.mkdir()
+    temp = scratch / "tmp"
+    temp.mkdir()
+    environment = {"PATH": str(Path(node["path"]).parent) + ":/usr/bin:/bin:/usr/sbin:/sbin",
+                   "HOME": str(home), "TMPDIR": str(temp), "TMP": str(temp), "TEMP": str(temp),
+                   "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "TSX_DISABLE_CACHE": "1"}
+    assert shutil.which("node", path=environment["PATH"]) == node["path"]
+    assert inventory(snapshot) == before
+    assert installed_inventory() == installed_before and external_inventory(external_paths) == external_before
+    assert frozen_orchestration()
+    started = now()
+    clock = time.monotonic()
+    process = subprocess.Popen(command, cwd=snapshot, env=environment, stdin=subprocess.PIPE if stdin is not None else subprocess.DEVNULL,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    timed_out = False
+    killed = False
+    try:
+        stdout, stderr = process.communicate(input=stdin.encode() if stdin is not None else None, timeout=300)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            stdout, stderr = process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            killed = True
+            os.killpg(process.pid, signal.SIGKILL)
+            stdout, stderr = process.communicate()
+    elapsed = time.monotonic() - clock
+    after = inventory(snapshot)
+    tools_after = installed_inventory()
+    binaries_after = external_inventory(external_paths)
+    orchestration_unchanged = frozen_orchestration()
+    remaining_group = process_group_present(process.pid)
+    observed_counts = counts(stdout.decode())
+    expected_counts = {"tests": expected_count, "pass": expected_count, "fail": 0, "cancelled": 0, "skipped": 0, "todo": 0}
+    count_match = expected_count is None or observed_counts == expected_counts
+    stdout_match = expected_stdout is None or stdout.decode() == expected_stdout
+    integrity = after == before and tools_after == installed_before and binaries_after == external_before and orchestration_unchanged
+    passed = process.returncode == 0 and not timed_out and not remaining_group and count_match and stdout_match and integrity
+    report = {"candidate": CANDIDATE, "profile": "compiled-legacy-v2", "name": name, "command": command, "cwd": str(snapshot),
+              "environment": environment, "stdin": stdin, "stdinSha256": sha(stdin.encode()) if stdin is not None else None,
+              "started": started, "finished": now(), "elapsedSeconds": elapsed, "pid": process.pid, "exitCode": process.returncode,
+              "outerTimeout": timed_out, "outerKill": killed, "remainingOwnProcessGroupObserved": remaining_group,
+              "counts": observed_counts, "expectedTests": expected_count, "countMatch": count_match, "stdoutMatch": stdout_match,
+              "passed": passed, "stdoutBytes": len(stdout), "stdoutSha256": sha(stdout), "stderrBytes": len(stderr), "stderrSha256": sha(stderr),
+              "snapshotBeforeSha256": sha(encoded(before)), "snapshotAfterSha256": sha(encoded(after)),
+              "installedToolsAfterSha256": sha(encoded(tools_after)), "externalToolsAfterSha256": sha(encoded(binaries_after)),
+              "allInputAndArtifactEntriesUnchanged": integrity, "orchestrationUnchanged": orchestration_unchanged,
+              "scratchAfter": inventory(scratch), "privateQueries": 0}
+    if not integrity:
+        report["unexpectedSnapshotAfter"] = after
+        report["unexpectedToolsAfter"] = tools_after
+        report["unexpectedBinariesAfter"] = binaries_after
+    save("runs/" + name + "/stdout.txt", stdout.decode())
+    save("runs/" + name + "/stderr.txt", stderr.decode())
+    save("runs/" + name + "/RUN.json", report)
+    results.append({key: report[key] for key in ("name", "exitCode", "elapsedSeconds", "counts", "passed", "allInputAndArtifactEntriesUnchanged", "remainingOwnProcessGroupObserved")})
+    print("RESULT", json.dumps(results[-1]), flush=True)
+    return passed
+
+
+bootstrap = (OWNER / "bootstrap.mjs.data").read_text()
+probe = (OWNER / "probe.mjs.data").read_text()
+expected_probe = {"workerUrl": WORKER_URL, "messages": [{"ready": True}, {"authorPrerequisite": "import-complete", "workerUrl": WORKER_URL}],
+                  "workerError": None, "workerExitCode": 0, "observedNaturalWorkerExit": True,
+                  "readyObserved": True, "importCompleted": True, "passed": True}
+try:
+    if not run("bootstrap-static-parse", ["node", "--check", "--input-type=module"], expected_stdout="", stdin=bootstrap):
+        failed = True
+    elif not run("probe-static-parse", ["node", "--check", "--input-type=module"], expected_stdout="", stdin=probe):
+        failed = True
+    elif not run("worker-prerequisite", ["node", "--unhandled-rejections=strict", "--input-type=module", "--eval", probe],
+                 expected_stdout=encoded(expected_probe).decode() + "\n"):
+        failed = True
+    else:
+        for name, historical, expected_count in RUNS:
+            if not run(name, commands[name], expected_count):
+                failed = True
+                break
+except Exception as error:
+    failed = True
+    save("ORCHESTRATION-ERROR.json", {"type": type(error).__name__, "message": str(error), "time": now()})
+    raise
+finally:
+    closing_inventory = inventory(snapshot)
+    closing_tools = installed_inventory()
+    closing_binaries = external_inventory(external_paths)
+    completed_names = [result["name"] for result in results]
+    closure = {"candidate": CANDIDATE, "profile": "compiled-legacy-v2", "orchestrationCommit": freeze_commit, "finished": now(), "failed": failed,
+               "results": results, "notRun": [name for name, _, _ in RUNS if name not in completed_names],
+               "snapshotFinalSha256": sha(encoded(closing_inventory)), "allSnapshotEntriesUnchanged": closing_inventory == before,
+               "compiledArtifactsFinalSha256": sha(encoded(inventory(snapshot / "dist"))),
+               "installedToolsFinalSha256": sha(encoded(closing_tools)), "installedToolsUnchangedIncludingEntries": closing_tools == installed_before,
+               "externalToolsFinalSha256": sha(encoded(closing_binaries)), "externalToolsUnchanged": closing_binaries == external_before,
+               "orchestrationUnchanged": frozen_orchestration(), "builds": 0, "packs": 0, "installs": 0, "privateQueries": 0,
+               "snapshotRetention": "Own prior authenticated compiled regular snapshot retained; fresh v2 scratch path in PREFLIGHT",
+               "handlesLimit": "Readiness records messages, completed import and natural worker exit, not separate port-close proof; own process-group presence probed after each command; no detached-process/FD/syscall proof"}
+    if closing_inventory != before:
+        closure["unexpectedSnapshotFinal"] = closing_inventory
+    save("CLOSURE.json", closure)
+if failed:
+    raise SystemExit(1)

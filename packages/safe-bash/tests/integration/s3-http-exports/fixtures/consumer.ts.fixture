@@ -1,0 +1,54 @@
+import {
+  createS3HttpTransport as rootFactory,
+  type S3HttpCredentials as RootCredentials,
+  type S3HttpCredentialProvider as RootProvider,
+  type S3HttpRequestFactory as RootRequest,
+  type S3HttpTransportOptions as RootOptions,
+  type S3Transport,
+} from "virtual-bash";
+import {
+  createS3HttpTransport as subpathFactory,
+  type S3HttpCredentials as SubpathCredentials,
+  type S3HttpCredentialProvider as SubpathProvider,
+  type S3HttpRequestFactory as SubpathRequest,
+  type S3HttpTransportOptions as SubpathOptions,
+} from "virtual-bash/fs/s3/http";
+import type { S3Transport as BackendTransport } from "virtual-bash/fs/s3";
+import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
+
+const rootCredentials: RootCredentials = {
+  accessKeyId: "synthetic-access", secretAccessKey: "synthetic-secret", sessionToken: "synthetic-token",
+};
+const subpathCredentials: SubpathCredentials = rootCredentials;
+const credentialsRoundtrip: RootCredentials = subpathCredentials;
+const rootProvider: RootProvider = async ({ signal }: { readonly signal: AbortSignal }) => {
+  signal.throwIfAborted();
+  return credentialsRoundtrip;
+};
+const subpathProvider: SubpathProvider = rootProvider;
+const providerRoundtrip: RootProvider = subpathProvider;
+const rootRequest: RootRequest = (
+  options: RequestOptions,
+  onResponse: (response: IncomingMessage) => void,
+): ClientRequest => {
+  void options;
+  void onResponse;
+  throw new Error("Type-only consumer must not execute requests");
+};
+const subpathRequest: SubpathRequest = rootRequest;
+const requestRoundtrip: RootRequest = subpathRequest;
+const rootOptions: RootOptions = {
+  endpoint: "https://example.invalid", region: "us-east-1", credentials: providerRoundtrip,
+  addressingStyle: "path", listUrlEncoding: "percent", clock: () => new Date(0),
+  request: requestRoundtrip, allowInsecureHttp: false,
+  maxPutBytes: 1024, maxGetBytes: 1024, maxXmlBytes: 1024,
+  requestTimeoutMs: 1000, enableCopy: false,
+  verifiedConditionalOperations: { put: false, copy: false, delete: false },
+};
+const subpathOptions: SubpathOptions = rootOptions;
+const optionsRoundtrip: RootOptions = subpathOptions;
+const rootTransport: S3Transport = rootFactory(optionsRoundtrip);
+const backendTransport: BackendTransport = subpathFactory({ ...subpathOptions, credentials: subpathCredentials });
+const factoryRoundtrip: typeof rootFactory = subpathFactory;
+const subpathFactoryRoundtrip: typeof subpathFactory = rootFactory;
+void [rootTransport, backendTransport, factoryRoundtrip, subpathFactoryRoundtrip];

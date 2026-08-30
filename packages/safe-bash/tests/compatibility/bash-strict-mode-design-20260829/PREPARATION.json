@@ -1,0 +1,89 @@
+{
+  "role": "SOURCE_DATA_DESIGN_NOT_RUNTIME_VALIDATION",
+  "date": "2026-08-29",
+  "started": "2026-08-29T04:32:07.537Z",
+  "published": "2026-08-29T04:41:00.122Z",
+  "elapsedMs": 532537,
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "selectedFiles": 19,
+  "cases": {
+    "literal": 44,
+    "hostProtocols": 6,
+    "totalIdentities": 50,
+    "executed": 0
+  },
+  "sourceCapture": {
+    "records": 38,
+    "originalBytes": 838154,
+    "compressedBytes": 296634,
+    "sha256": "ef2f2555dfbc5d6da3babeba2060f8b6a5ef8722c65b760edfd013e510e152af"
+  },
+  "casesSha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+  "bindingSha256": "fad6ae4d5b7bb2332356505eb58077dee3c749f07409ed964e2c82be0b785bec",
+  "sourceHelperErrors": [
+    {
+      "path": "ERROR-1787977957626.json",
+      "sha256": "d265d1829e4417556dc96ef83df849af962a7b9883e9f016b304ea791f74ce9d"
+    },
+    {
+      "path": "ERROR-1787978162979.json",
+      "sha256": "2aafe43dc9756df12126767f64bfccbe9aadace6f7ab460ac8824e68ea2133de"
+    }
+  ],
+  "errorQualification": "Two malformed JSON regex request arguments failed before source reads; complete errors retained, corrected requests captured. UI truncation is not raw-capture truncation. No runtime failure or pass inferred.",
+  "execution": {
+    "product": 0,
+    "native": 0,
+    "compiler": 0,
+    "build": 0,
+    "install": 0,
+    "workers": 0,
+    "privateEngine": 0
+  },
+  "developmentGit": [
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "code": 0,
+      "signal": null
+    },
+    {
+      "args": [
+        "diff",
+        "1e9b83d7^",
+        "1e9b83d7",
+        "--",
+        "src/shell/parser.ts",
+        "src/shell/runtime.ts",
+        "src/shell/display.ts"
+      ],
+      "code": 0,
+      "signal": null
+    },
+    {
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no"
+      ],
+      "code": 0,
+      "signal": null
+    },
+    {
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "processQualification": "Synchronous preparation helpers/tool calls returned, no ongoing sessions or product children. Four admission Git children have explicit code0/signal-null captures. Not a kernel descendant census or resource-lifecycle product proof.",
+  "retainedCaptureRoot": "/tmp/bash-strict-mode-design-fCv8HW",
+  "webQualification": "Official GNU5.3 manual search excerpts only; no authenticated GNU implementation body or local native version execution. References/unknowns in REFERENCES.md."
+}

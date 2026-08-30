@@ -1,0 +1,7 @@
+{
+  "from": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/staging-package",
+  "to": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-followup-02/moved-virtual-bash",
+  "oldLocationAbsent": true,
+  "identicalMembershipAndHashes": true,
+  "privateInternalOnly": true
+}

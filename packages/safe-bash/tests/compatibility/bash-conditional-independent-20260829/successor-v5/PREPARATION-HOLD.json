@@ -1,0 +1,268 @@
+{
+  "schema": "conditional-independent-preparation-hold-v1",
+  "status": "STOPPED_AT_FIXTURE_INTEGRITY_ADMISSION",
+  "candidate": {
+    "source": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+    "derived": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+    "sourceSubtree": "b4a437fb7cd28c247bc7815442cbec844cab2c2c",
+    "sourceInputs": 293,
+    "commonWithPrevious": 292,
+    "onlyChanged": "src/shell/conditional.ts",
+    "authorPackageSha256": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+    "packageIndependentlyBuiltOrUnpacked": false
+  },
+  "failure": {
+    "role": "check-prep source/data helper",
+    "exitCode": 1,
+    "path": "fixtures/public.mjs",
+    "sourceLine": 12,
+    "expectedSha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176",
+    "actualSha256": "2f1302b8e35533595f7283947f766865df62da990ed00573a4e4ada85483408c",
+    "cause": "Reviewer apply_patch Add File serializer included the terminal empty split element, adding one extra LF beyond every bound fixture input.",
+    "classification": "Reviewer construction defect; actual fixture-integrity guard refusal, no evidence of product/source drift.",
+    "productRuns": 0,
+    "compilerRuns": 0,
+    "builds": 0,
+    "installs": 0,
+    "workers": 0,
+    "native": 0,
+    "private": 0,
+    "network": 0,
+    "actualGrantActivated": false,
+    "dependentRunsStopped": true
+  },
+  "exactFixtureDeltas": [
+    {
+      "path": "fixtures/public.mjs",
+      "expectedBytes": 13001,
+      "actualBytes": 13002,
+      "expectedSha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176",
+      "expectedOriginVerified": true,
+      "actualSha256": "2f1302b8e35533595f7283947f766865df62da990ed00573a4e4ada85483408c",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/apply-public.mjs",
+      "expectedBytes": 15895,
+      "actualBytes": 15896,
+      "expectedSha256": "ae8e036792df4a4c6e651fd6a75691075f3b8d6fd3bd2ea59fd3f1105561b7c2",
+      "expectedOriginVerified": true,
+      "actualSha256": "042a79b0255e4bd09a8cbdb96c5287173c396277c96f4dbd287b79a4412d7308",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/names.mjs",
+      "expectedBytes": 879,
+      "actualBytes": 880,
+      "expectedSha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+      "expectedOriginVerified": true,
+      "actualSha256": "58e87d802b38fe32e914e4cf3516abd84312c62014dd68c1a997d6ddcc26dabe",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/consumer.ts.fixture",
+      "expectedBytes": 1336,
+      "actualBytes": 1337,
+      "expectedSha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1",
+      "expectedOriginVerified": true,
+      "actualSha256": "ad9b7d316d68d223ca9733c628a0dd5eb46dd3011608ceb0aca497538e86332c",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/arrays.mjs",
+      "expectedBytes": 2507,
+      "actualBytes": 2508,
+      "expectedSha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+      "expectedOriginVerified": true,
+      "actualSha256": "7a08ffbcdbba457a8b698cbf2cf182b8bc5185f565a500c06e633837694da978",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/ARRAY-CASES.json",
+      "expectedBytes": 3019,
+      "actualBytes": 3020,
+      "expectedSha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+      "expectedOriginVerified": true,
+      "actualSha256": "6bc167291ed3e4ef4ebaead0eaed8c32c27e45656746031d53f7d9ceadd530ea",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/coherence/probe.mjs",
+      "expectedBytes": 16819,
+      "actualBytes": 16820,
+      "expectedSha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456",
+      "expectedOriginVerified": true,
+      "actualSha256": "625860840afc1163312c31d7d5c569ee12bf4524bc2135816a59b9acd651ba07",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/coherence/names.mjs",
+      "expectedBytes": 853,
+      "actualBytes": 854,
+      "expectedSha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee",
+      "expectedOriginVerified": true,
+      "actualSha256": "ac281cfca8eb90e1a8ed050ba0e4a3c6ea26631998baede83288e5e352385851",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/coherence/CASES.json",
+      "expectedBytes": 8553,
+      "actualBytes": 8554,
+      "expectedSha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+      "expectedOriginVerified": true,
+      "actualSha256": "3a395fadc83570978383b380493898afa96214c09815806ebeb167fd4bd66d2a",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/coherence/CASES-v2-overlay.json",
+      "expectedBytes": 1344,
+      "actualBytes": 1345,
+      "expectedSha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d",
+      "expectedOriginVerified": true,
+      "actualSha256": "43f38df5f5bc62414aaa4d7ae10b8884263cd2c2ebf3894635cdcf0599b3c06e",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/redirections.mjs",
+      "expectedBytes": 9613,
+      "actualBytes": 9614,
+      "expectedSha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+      "expectedOriginVerified": true,
+      "actualSha256": "9d3a8630e156ede260217da18f09b7c4ef7c1c1e6f198030d48273fc600e0f0f",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/redirection-cases.json",
+      "expectedBytes": 2790,
+      "actualBytes": 2791,
+      "expectedSha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+      "expectedOriginVerified": true,
+      "actualSha256": "cf26a94d3252206df446854b678844aaf5fa0d15eeb6bb4cbdc2d2cbfa1ec375",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/strict.mjs",
+      "expectedBytes": 11148,
+      "actualBytes": 11149,
+      "expectedSha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+      "expectedOriginVerified": true,
+      "actualSha256": "c8c36c1e55cc7a80b36c6371db07ff17eb0a738946419bc5e1920d06b760f67f",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/strict-design.json",
+      "expectedBytes": 9222,
+      "actualBytes": 9223,
+      "expectedSha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+      "expectedOriginVerified": true,
+      "actualSha256": "d868d56e8a130b711aab0498b073fa3cec6eeb633616739b7186bf3fbaf87202",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/conditional.mjs",
+      "expectedBytes": 14524,
+      "actualBytes": 14525,
+      "expectedSha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+      "expectedOriginVerified": true,
+      "actualSha256": "01ee0f5bf3c2cd80535db2f37af56e30bcc1982ba07247d7202a3368dd7ad436",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/novel.mjs",
+      "expectedBytes": 2676,
+      "actualBytes": 2677,
+      "expectedSha256": "22e3f9749fc8d92361291c6bc892dd55ef5b52da8aea9dfe5cc3dc0b9c40eb1e",
+      "expectedOriginVerified": true,
+      "actualSha256": "84195196baad9d9e89c70915fb45253282f3c47a8409a4ab3d8f4acce6f2ec35",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/retained.mjs",
+      "expectedBytes": 585,
+      "actualBytes": 586,
+      "expectedSha256": "c39fd9018d0aa3e31bb716a7df2123c1f6aa27287a6712a3a463cc8923544568",
+      "expectedOriginVerified": true,
+      "actualSha256": "cfd0865667cd70a87132bc54bf7fa3c363cc7c6d35b47f2281ed94af316ff9de",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "fixtures/fallback.mjs",
+      "expectedBytes": 55,
+      "actualBytes": 56,
+      "expectedSha256": "3d42d69a76f1f843dd042de7a64dc0ec90f119738d705203155cb61ac449f17e",
+      "expectedOriginVerified": true,
+      "actualSha256": "63cda097fa14bde4ab6127101c900dfd8b3684fb1cfa463e368d46871c49322d",
+      "exactExpectedPlusOneLF": true
+    },
+    {
+      "path": "NOVEL-CASES.json",
+      "expectedBytes": 6004,
+      "actualBytes": 6005,
+      "expectedSha256": "03add0fafc84de43e3af155413671c2bf4e88a019f4bbc8f7f1b05d474e00805",
+      "expectedOriginVerified": true,
+      "actualSha256": "0bdf4566bc519574b9ba2582ebb8004db979798756fa58d88b072f51f32e045e",
+      "exactExpectedPlusOneLF": true
+    }
+  ],
+  "sourceFindings": {
+    "H02": "Source confirms controlled release and awaited completion observer; original unenrolled finalizer history unchanged.",
+    "S01": "Registers existing CommandContext cleanup before context.invoke(check,[]); no new registration API. Actual barriers not independently executed.",
+    "profile": "Only conditional.ts changes: genuine isFsError classification and reached aggregate refusal. Runtime/parser/shell/contract/package/default80 input hashes unchanged from prior candidate.",
+    "authorCoverage": {
+      "perLayout": 177,
+      "conditional": 67,
+      "retained": {
+        "unit2": 50,
+        "unit1": 48,
+        "arrays": 12
+      },
+      "notRerunByAuthor": {
+        "gitPublic": 45,
+        "apply": 28,
+        "coherence": 18
+      }
+    },
+    "plannedIndependent": {
+      "perLayout": 280,
+      "conditional": 67,
+      "novel": 12,
+      "selectedRetained": 201,
+      "allLayouts": 840,
+      "types": 12,
+      "mutants": 10,
+      "restores": 10,
+      "bindingRefusals": 4,
+      "allUnrun": true
+    }
+  },
+  "preparation": {
+    "start": "2026-08-29T06:14:14.871Z",
+    "receiptElapsedSeconds": 864.048,
+    "gitMetadataChildren": 8,
+    "applyPatchChildrenBeforeReceipt": 3,
+    "syntaxOnlyNodeChildren": 6,
+    "sourceDataNodeChildren": 1,
+    "sourceDataShellWrapper": 1,
+    "allKnownClosed": true,
+    "metadataCaptureBytes": 7432,
+    "peakKnown": 2,
+    "publicationNotYetIncluded": true,
+    "globalOSCensusClaim": false
+  },
+  "ordinaryPrepHelperFailures": [
+    {
+      "kind": "DATA shape error",
+      "message": "tools?.map is not a function",
+      "beforeChild": true,
+      "corrected": "Inspect exact object own keys instead of assuming array."
+    },
+    {
+      "kind": "Undefined prior in-memory name",
+      "message": "caManifest is not defined",
+      "beforeChild": true,
+      "corrected": "Read prior manifest from exact stored97eba374/SOURCE-v3.json; no shared-state cause inferred, no clock reset."
+    }
+  ],
+  "proposal": "Do not change expected hashes or trim fixtures at load. On ROOT permission, preserve this attempt, correct only Add File serialization to reproduce each exact stored input byte including its original terminal LF count, authenticate all copied helper/manifest/fixture bytes, finish app census and executable seals, then activate only a fresh explicitly admitted run. No product repair is indicated."
+}
+

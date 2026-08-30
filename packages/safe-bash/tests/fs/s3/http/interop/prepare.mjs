@@ -1,0 +1,34 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { chmodSync, createWriteStream, mkdtempSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { Readable, Transform } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { lock, save } from "./service.mjs";
+
+assert.equal(process.platform + "-" + process.arch, lock.platform);
+const output = mkdtempSync("/tmp/safe-bash-minio-download-");
+const checksumResponse = await fetch(lock.checksumUrl, { redirect: "error", signal: AbortSignal.timeout(30000) });
+assert.equal(checksumResponse.status, 200);
+const checksum = await checksumResponse.text();
+assert.equal(checksum.trim().split(/\s+/)[0], lock.sha256);
+writeFileSync(join(output, "official.sha256sum"), checksum);
+const response = await fetch(lock.url, { redirect: "error", signal: AbortSignal.timeout(180000) });
+assert.equal(response.status, 200);
+const declaredSize = response.headers.get("content-length");
+if (declaredSize !== null) assert.equal(Number(declaredSize), lock.size);
+assert.ok(response.body);
+const digest = createHash("sha256");
+let size = 0;
+const binary = join(output, "minio");
+await pipeline(Readable.fromWeb(response.body), new Transform({ transform(chunk, _encoding, callback) {
+  size += chunk.length;
+  if (size > lock.size) return callback(new Error("official binary exceeds pinned size"));
+  digest.update(chunk); callback(null, chunk);
+} }), createWriteStream(binary, { flags: "wx", mode: 0o600 }));
+assert.equal(size, lock.size);
+const sha256 = digest.digest("hex");
+assert.equal(sha256, lock.sha256);
+chmodSync(binary, 0o700);
+save(join(output, "download.json"), { lock, sha256, size, downloadedAt: new Date().toISOString(), headers: Object.fromEntries(response.headers) });
+console.log(binary);

@@ -1,0 +1,15 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+tests/commands/file/text-bound.test.ts(67,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?
+tests/commands/file/text-bound.test.ts(79,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?
+tests/commands/file/text-bound.test.ts(136,72): error TS2749: 'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts(1,33): error TS2307: Cannot find module './filesystem.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts(2,43): error TS2307: Cannot find module './io.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts(1,33): error TS2307: Cannot find module './io.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts(2,25): error TS2307: Cannot find module './errors.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts(2,25): error TS2307: Cannot find module './errors.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts(1,106): error TS2307: Cannot find module './command.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts(2,40): error TS2307: Cannot find module './filesystem.js' or its corresponding type declarations.
+tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts(31,17): error TS7006: Parameter 'context' implicitly has an 'any' type.

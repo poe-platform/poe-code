@@ -1,0 +1,14 @@
+{
+  "name": "build",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json"
+  ],
+  "cwd": "source",
+  "startedAt": "2026-08-27T09:02:26.362Z",
+  "durationMs": 1626.9731250000004,
+  "status": 0,
+  "signal": null
+}

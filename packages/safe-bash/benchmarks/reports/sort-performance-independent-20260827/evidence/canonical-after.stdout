@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: public sort owns named VFS Buffer fragments before advancing the source, delimiter=10
+ok 1 - public sort owns named VFS Buffer fragments before advancing the source, delimiter=10
+  ---
+  duration_ms: 4.152917
+  type: 'test'
+  ...
+# Subtest: public sort owns named VFS Buffer fragments before advancing the source, delimiter=0
+ok 2 - public sort owns named VFS Buffer fragments before advancing the source, delimiter=0
+  ---
+  duration_ms: 0.722333
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 209.096167

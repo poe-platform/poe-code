@@ -1,0 +1,29 @@
+{
+  "rows": [
+    {
+      "id": "S01",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    },
+    {
+      "id": "S02",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    },
+    {
+      "id": "S03",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    },
+    {
+      "id": "S04",
+      "status": "PASS",
+      "role": "PURE_BINDING_NOT_RUNTIME"
+    }
+  ],
+  "productCalls": 0,
+  "publisherMainExecuted": false,
+  "preimportMainExecuted": false,
+  "utc": "2026-08-29T15:01:24.891Z",
+  "pid": 48470
+}

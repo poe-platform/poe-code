@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "kind": "YQ_DEFERRED_EXECUTOR_RECIPE",
+  "date": "2026-08-28",
+  "state": "SEALED_PREPARATION_AWAITING_AUTHORIZED_CANDIDATE",
+  "sourceCommit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+  "presealCommit": "0f138190073cb5419aa86c63e0a10075fe67f88f",
+  "treeSha256": "e04229e35902d8dd34c91c0adfbb357120312ff743ecdc9434b0d239c152db78",
+  "entries": [
+    {"path":".","kind":"directory","mode":493},
+    {"path":"assert-capture.mjs","kind":"file","mode":420,"bytes":3726,"sha256":"8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88"},
+    {"path":"authorization.mjs","kind":"file","mode":420,"bytes":6475,"sha256":"a05fb4234c8127fc0438bd86c4175f7ec488d4f3d27c654df17458472cf83987"},
+    {"path":"child.mjs","kind":"file","mode":420,"bytes":2141,"sha256":"b7d3760b337476b75cfb66b31bc62d7cb373944f6364540a4bf61771fb3e76d6"},
+    {"path":"context.mjs","kind":"file","mode":420,"bytes":4497,"sha256":"1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23"},
+    {"path":"execute.mjs","kind":"file","mode":420,"bytes":1698,"sha256":"8a1eff6c41e53f65747f6e15716bdfdb6a4e59125cdca767d2db28ad8bc52e18"},
+    {"path":"fixtures.mjs","kind":"file","mode":420,"bytes":5817,"sha256":"4cdac53d4cccfd3970ff0d24f9a88247dc5c31857f84a5b048d1946bbb3a4dd3"},
+    {"path":"host.mjs","kind":"file","mode":420,"bytes":7365,"sha256":"fa7c2b3293604fac9d671bd4ff98f48297ce2c56299dc5db61b58502cc16ba76"},
+    {"path":"import-fence.mjs","kind":"file","mode":420,"bytes":1206,"sha256":"332ca99b7836f557c957e0e3f2ed9abb37ea6612e98cde4d0b52e7bfba27ec9b"},
+    {"path":"integrity.mjs","kind":"file","mode":420,"bytes":3889,"sha256":"fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"},
+    {"path":"inventory.json","kind":"file","mode":420,"bytes":192322,"sha256":"21e650910cf1025e20684e9ba434c66d736a376644d988199c588427d5ac355a"},
+    {"path":"source-bindings.json","kind":"file","mode":420,"bytes":8421,"sha256":"4acd5904bcf78688a2c7a8329d37ffcbd84a03319099bbb32d8242957d5994bc"}
+  ],
+  "sourceFiles": [
+    {"path":"PROTOCOL.md","sha256":"ca31c130d26fa20122c98be427dbe5e1c880ad5bf6fa309dd36cc34214a66f36","mode":420},
+    {"path":"PROTOCOL-SPECIFICATION.md","sha256":"e2cca7b9af68bfbce033e55102ef21351f76ec0ae39b5b0c93c0df5bc419fc56","mode":420},
+    {"path":"controls.json","sha256":"758517b4f29de8485030dac902102b9ecf7dac82c0e360c8f4a741151ba1757e","mode":420},
+    {"path":"synthetic-child.mjs","sha256":"0cec70843b9334b7ab7eb0fa56c9f70ca885fc2050f2a2a6ab07932d38b9b951","mode":420},
+    {"path":"check-static.mjs","sha256":"b5afb2bd2a2978d0c798d9c589df9f8824d61e182090f2f13e519501a3a3996f","mode":420},
+    {"path":"check-preparation.mjs","sha256":"d57841956e015bdee5d5651852b7cbeddcc74e4498e2aa00bb7118a364f462f6","mode":420},
+    {"path":"prepare-inventory.mjs","sha256":"b26f71ea9d162d2e6c45beb70f2bf25b45792942b1d1f63632e7c492da0da58a","mode":420},
+    {"path":"AUTHORIZATION.md","sha256":"ac08b54aab1c25761cab66c8c1dc3933607efa7844689b7c00dcd1be40515d42","mode":420}
+  ],
+  "jobsSha256ForAll132PreparedIds": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27",
+  "consumerBinding": "PENDING_ROOT_ROUTED_SEALED_HANDOFF",
+  "candidateAuthorization": null,
+  "sourceVsRuntimeQualification": "Direct compiled factory projections only; no public export/type/package/source-composition acceptance is inferred.",
+  "productExecutions": 0
+}

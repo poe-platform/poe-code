@@ -1,0 +1,49 @@
+{
+  "id": "installed-originals",
+  "role": "product",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=256",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/node_modules/virtual-bash",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/fixtures-installed-originals",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/bootstrap.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/installed/job-installed-originals.json"
+  ],
+  "started": "2026-08-28T20:01:54.093Z",
+  "finished": "2026-08-28T20:01:54.362Z",
+  "startedElapsedMs": 155900.859709,
+  "finishedElapsedMs": 156170.178084,
+  "pid": 71204,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 147932,
+  "fragments": [
+    {
+      "name": "017-installed-originals-stdout-0.json",
+      "bytes": 65536,
+      "sha256": "af42f1923c176ab6ce647bc62b6e6e3cd49a632f176bf7189f88b69c8c1e4e7b"
+    },
+    {
+      "name": "017-installed-originals-stdout-65536.json",
+      "bytes": 65536,
+      "sha256": "34ad299f6c53d84744147323e13779f2f9d8648e89687a680e7f14b7769ac457"
+    },
+    {
+      "name": "017-installed-originals-stdout-131072.json",
+      "bytes": 16860,
+      "sha256": "4aacd254d9c938d1be859f40518d80cd93ccde8875c6606d58b6b71665bc399b"
+    }
+  ],
+  "stdoutSha256": "833cfe05a56d74cc46e61ee48f3fe659f91767f14cc91c81dda021a386ac50bf",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

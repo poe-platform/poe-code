@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "status": "METHOD_AND_PRIOR_PINS_ONLY_NOT_NEW_BUILD_PROOF",
+  "priorInputs": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+    "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+    "bytes": 116989
+  },
+  "priorRecipe": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RECIPE.md",
+    "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+    "bytes": 7880
+  },
+  "pins": {
+    "node": {
+      "original": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    }
+  },
+  "completeToolMaps": {
+    "reference": {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989
+    },
+    "pointer": "/tools",
+    "includes": "Full regular-file SHA/byte/mode and directory maps in immutable old packet; not copied or reauthenticated this stage"
+  },
+  "currentToolReauthentication": "NOT_PERFORMED",
+  "currentCompilerRuns": 0,
+  "futureCommandTemplate": [
+    "PINNED_NODE",
+    "PINNED_TYPESCRIPT/lib/tsc.js",
+    "--project",
+    "NEW_SOURCE/tsconfig.build.json",
+    "--outDir",
+    "FRESH_OUTPUT/dist",
+    "--typeRoots",
+    "PINNED_TYPES/types"
+  ],
+  "compilerProfile": {
+    "tsconfig": {
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508",
+      "bytes": 2920,
+      "mode": 420
+    },
+    "buildConfig": {
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "bytes": 260,
+      "mode": 420
+    },
+    "actualDeclarationConsumerRuns": 0
+  },
+  "resourceBoundsForFutureRootReview": {
+    "deadlineMs": 120000,
+    "termGraceMs": 2000,
+    "reapMs": 5000,
+    "captureBytesPerStream": 4194304,
+    "treeBytes": 67108864,
+    "treeEntries": 4096
+  },
+  "sourceInputs": "Only independently verified new baseline+length+seven production projection; exclude author protocol/test files. No global typecheck.",
+  "mapRelocation": "Preserve raw emitted JS/declarations/maps; verify each map has one selected-source origin and only sources[0] changes to package-relative source. Any byte mismatch is retained, not normalized away.",
+  "packing": "Future same fixed USTAR regular0644/npm epoch499162500 and gzip9 strategy0 memLevel8 windowBits15 OS255 method; no repacking in this packet, and no successor expected map verified yet.",
+  "reuseLimits": [
+    "Old tool bytes/method may be reused only after fresh authenticated regular-file isolation",
+    "Old independent 35da source-to-output proof does not apply to b8f5d60d",
+    "New author artifact binding alone would remain BOUND_AUTHOR_BUILD",
+    "All affected source/installed/moved semantics, types, CARRY and loaded-code controls need fresh independently routed review"
+  ],
+  "admission": "DENY"
+}

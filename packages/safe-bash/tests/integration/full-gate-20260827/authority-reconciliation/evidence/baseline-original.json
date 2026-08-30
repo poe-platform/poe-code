@@ -1,0 +1,117 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 28538,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 1067,
+  "timeoutMs": 120000,
+  "outputBytes": 50555,
+  "observed": [
+    {
+      "pid": 28538,
+      "parent": 28466,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:24 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 28540,
+      "parent": 28538,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:24 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 28541,
+      "parent": 28540,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:24 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 28547,
+      "parent": 28538,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:25 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 28549,
+      "parent": 28547,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:25 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 28552,
+      "parent": 28538,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:25 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    },
+    {
+      "pid": 28554,
+      "parent": 28552,
+      "group": 28538,
+      "born": "Thu Aug 27 01:25:25 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 83,
+    "pass": 58,
+    "fail": 25,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs",
+    "memory subclass-before buffered: changed writer cannot redirect qualified target into source",
+    "memory prototype-before buffered: changed writer cannot redirect qualified target into source",
+    "memory own-after buffered: changed writer cannot redirect qualified target into source",
+    "memory prototype-after buffered: changed writer cannot redirect qualified target into source",
+    "memory subclass-before streamed: changed writer cannot redirect qualified target into source",
+    "memory prototype-before streamed: changed writer cannot redirect qualified target into source",
+    "memory own-after streamed: changed writer cannot redirect qualified target into source",
+    "memory prototype-after streamed: changed writer cannot redirect qualified target into source",
+    "s3 subclass-before buffered: changed writer cannot redirect qualified target into source",
+    "s3 prototype-before buffered: changed writer cannot redirect qualified target into source",
+    "s3 own-after buffered: changed writer cannot redirect qualified target into source",
+    "s3 prototype-after buffered: changed writer cannot redirect qualified target into source",
+    "s3 subclass-before streamed: changed writer cannot redirect qualified target into source",
+    "s3 prototype-before streamed: changed writer cannot redirect qualified target into source",
+    "s3 own-after streamed: changed writer cannot redirect qualified target into source",
+    "s3 prototype-after streamed: changed writer cannot redirect qualified target into source",
+    "memory changed content acquisition invalidates authority before opening source or target",
+    "s3 changed content acquisition invalidates authority before opening source or target",
+    "S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy",
+    "S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority",
+    "S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data",
+    "WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint",
+    "WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source",
+    "WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store"
+  ],
+  "stdoutSha256": "88cf1e9b68294e7a6212cf204f9c9eca9d813dfa1eee05289be1de45eb0930e1",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,9 @@
+{
+  "family": "ER-18",
+  "name": "missing-authorization-direct",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-18-missing-authorization-direct-input.json",
+  "raw": "ER-18-missing-authorization-direct-raw.json"
+}

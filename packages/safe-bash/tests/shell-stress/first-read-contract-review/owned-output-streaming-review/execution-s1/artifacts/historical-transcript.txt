@@ -1,0 +1,19 @@
+{"label":"independent-original-first-read-local","status":1,"durationMs":1440.492375,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-original-first-read-s3","status":0,"durationMs":222.08050000000003,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-original-first-read-webdav","status":1,"durationMs":216.29416700000002,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-original-first-read-curl-body","status":1,"durationMs":209.56712500000003,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-original-first-read-curl-headers","status":1,"durationMs":204.9677499999998,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-remote19","status":0,"durationMs":2691.5071669999998,"timedOut":false,"oversized":false,"groupExists":false,"counts":["# tests 19","# pass 19","# fail 0","# cancelled 0","# skipped 0"]}
+{"label":"independent-existing-byte28","status":0,"durationMs":290.2350410000008,"timedOut":false,"oversized":false,"groupExists":false,"counts":["# tests 28","# pass 28","# fail 0","# cancelled 0","# skipped 0"]}
+{"label":"independent-existing-shared5","status":0,"durationMs":1203.5060000000003,"timedOut":false,"oversized":false,"groupExists":false,"counts":["# tests 5","# pass 5","# fail 0","# cancelled 0","# skipped 0"]}
+{"label":"independent-existing-streaming4","status":0,"durationMs":178.933,"timedOut":false,"oversized":false,"groupExists":false,"counts":["# tests 4","# pass 4","# fail 0","# cancelled 0","# skipped 0"]}
+{"label":"independent-existing-headzero1","status":0,"durationMs":333.4517080000005,"timedOut":false,"oversized":false,"groupExists":false,"counts":["# tests 1","# pass 1","# fail 0","# cancelled 0","# skipped 0"]}
+{"label":"independent-existing-C1","status":0,"durationMs":98.89025000000038,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C2","status":0,"durationMs":81.23766700000033,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C3","status":0,"durationMs":82.85825000000023,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C4","status":0,"durationMs":75.05500000000029,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C5","status":0,"durationMs":75.74670799999967,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C6","status":0,"durationMs":77.00229200000012,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C7","status":0,"durationMs":82.34599999999955,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C8","status":0,"durationMs":77.42687500000011,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"independent-existing-C9","status":0,"durationMs":78.62395800000013,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}

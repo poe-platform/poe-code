@@ -1,0 +1,10 @@
+{
+  "existingId": "CMD-01",
+  "expected": {
+    "status": 0,
+    "stdoutUtf8": "\"a\": 1\n",
+    "assertions": [
+      "UNBOUND_INDEPENDENT_ASSERTION_MUST_NOT_GREEN"
+    ]
+  }
+}

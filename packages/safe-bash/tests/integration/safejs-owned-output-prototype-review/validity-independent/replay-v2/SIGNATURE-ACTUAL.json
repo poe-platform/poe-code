@@ -1,0 +1,12 @@
+{
+  "status": "THREAD_ATTRIBUTED_SHA_ATTESTATION_NOT_PERSONAL_CRYPTOGRAPHIC_SIGNATURE",
+  "reviewer": "Codex Independent Leaf Verifier",
+  "thread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "statement": "I independently authenticated, statically reviewed, froze and actually replayed exactly the released surface8 and lifecycle11 once. The separate finite controls and own raw checks/closure passed under the qualifications in REPORT. No assertion was relaxed after execution and original captures remain immutable. NO-PROMOTION.",
+  "sealSha256": "389c57932d266720a967ae96092441e47221fdebba41022c9be0aec81a5e6a82",
+  "reportSha256": "48854e8ba4f39e9b04c5b303fb4f6f69327d96161be77b48cc0c43ae8de1ee52",
+  "closureSha256": "68975f83960cec9a99baa535e64e2a4b46503a4c0cbe934ed17ee8ad034283cf",
+  "freezeCommit": "c53e63f3bfe26e0f9982f17c391e11255512201d",
+  "filesManifestSha256": "9a95df3860473105108a74c6d305d21351ab529892d98a1faf588d7c656bed0b",
+  "noPromotion": true
+}

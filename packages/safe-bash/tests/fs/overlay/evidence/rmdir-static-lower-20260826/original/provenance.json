@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-08-26T23:11:16.195Z",
+  "head": "4009efeef1ab909b4a5c8ffa7dbebc335dd9325c",
+  "pin": "3a9177a7b8ddc1c20142720ffa96ea6f87f65e86",
+  "files": [
+    {
+      "path": "manifest-before.json",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/manifest-before.json",
+      "sha256": "b422733b50cf7f326817751e00721dffe87dd33542328bd9cb0f51d8e5627dc9"
+    },
+    {
+      "path": "manifest-after.json",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/manifest-after.json",
+      "sha256": "b422733b50cf7f326817751e00721dffe87dd33542328bd9cb0f51d8e5627dc9"
+    },
+    {
+      "path": "run.json",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/run.json",
+      "sha256": "5577dad1fd1e701ab3297ea915dc74af41342cec54341f05adb20f647c2c7b73"
+    },
+    {
+      "path": "probe.stdout",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/probe.stdout",
+      "sha256": "75375ee84ec23d2492a5224c46aee3db27cad9da8faa42f010d31c0d6512da29"
+    },
+    {
+      "path": "probe.stderr",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/probe.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "probe.mjs.txt",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/probe.mjs",
+      "sha256": "0feccdb76bedb317b0d957330a03bfea7c23ffd741964a97ed9015cbd54d79ab"
+    },
+    {
+      "path": "run.mjs.txt",
+      "origin": "/tmp/safe-bash-overlay-rmdir-3a9177a-AGvOuU/run.mjs",
+      "sha256": "8b7de2afd701e55ef5d2d3cdfdbda38b20ade279509539a74ea972e7798cb1f4"
+    },
+    {
+      "path": "committed/src/fs/overlay/index.ts.txt",
+      "origin": "git 3a9177a:src/fs/overlay/index.ts",
+      "sha256": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db"
+    },
+    {
+      "path": "committed/src/fs/overlay/README.md.txt",
+      "origin": "git 3a9177a:src/fs/overlay/README.md",
+      "sha256": "8733abc76fb9393a0928d85bfcbca715bb456f95697f66ac0d440e78c6939d79"
+    },
+    {
+      "path": "committed/tests/fs/overlay/rmdir.test.ts.txt",
+      "origin": "git 3a9177a:tests/fs/overlay/rmdir.test.ts",
+      "sha256": "31b118dda376b70e9d42019a772c834d5c8b39f48fc2d53398ea10e6f55717cf"
+    }
+  ]
+}

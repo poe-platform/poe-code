@@ -1,0 +1,216 @@
+{
+  "at": "2026-08-27T03:20:26.348Z",
+  "readyAvailableAtFirstInspection": true,
+  "waitRequired": false,
+  "path": "/tmp/safe-bash-expanded-gaps-author-ready.txt",
+  "readyText": "READY author checkpoint 2026-08-27; independent acceptance pending.\nThree atomic owned commits:\n- d904cf86ec7ebcb2fb4113e5e31db1c976023716 headerless executable fallback.\n- e64ce50e1e45c6cf5e3e3686ce7424cbf0fa50df recognized virtual env bash/sh shebangs.\n- 0f5dbb3b5c65f773eada40876fa18098c36a5fbd bounded scalar replacement/removal, final validation/docs.\nBaseline inspected HEAD e9783ec; shell954f230 runtime7aaaaff3. Existing source/dot/eval641d6aa/env acceptance retained.\nFinal actual imported runtime.ts SHA256 fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f\nFinal parser.ts SHA256 28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905\nUnchanged shell.ts SHA256 4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e\nUnchanged types.ts SHA256 fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d\nScenarios SHA256 b6cc09a2a9ab098d72cb2d54ef92f65b26edac6544ec3de64a3041167bd5344d\nNative evidence SHA256 eee939985b59feb7236bfb7aabbe1046b1e2c0936b3d4fa53f537484dfe5e95f\nScope: isolated VFS headerless scripts; exact /usr/bin/env bash|sh bindings with explicit unsupported options/interpreter overrides; first/global/anchored scalar pattern replacements and bounded adjacent removals. No Budget.sink/invoke-output wrapping changes, new Budget/Shell, registry-kind changes, contract/core/FS/manifests/deps/rootexports changes. Export names changed:none.\nNew tests58/58:45 native-backed cases +13 host TAP (one hard-bounded child contains10 safety assertions). Current-shell43/43 leaves (44TAP), env31/31, source/eval86/86. Legacy415=414pass1fail: holdout path-headerless-policy expects former deliberate126 rejection, now native-backed0/native-fallback newline. Exact breakdown71/72+132/132+211/211. Existing holdout unchanged; route expectation review separately. Old script-entrypoint plain/env rejection assertions inspected as additional expected conflicts, not edited/rerun.\nWhole native cohorts45 rows each: primaryGNU5.3 matches45/45; historicalBash3.2 matches43/45. Two retained historical ampersand replacement differences; distinct from old9 and source/eval13. Actual envshebang children use /usr/bin/env plus isolated PATH bash/sh links to actual profile, not mislabeled host interpreter. Exact raw bytes/status; canonical shared cwd before execution, no output normalization.\nFinal global/build/benchmark noEmit exit0;1055/296/411 prelisted actual compiler inputs. Final source/import/dependency guards stable, no unguarded compiler inputs. Initial owned optional-profile type error and author duplicate-name lookup correction retained in compact validation evidence. No foreign-source fixes or retry-to-green loop.\nLimitations: no general env -S/options/arbitrary interpreter/kernel emulation; registry interpreter override explicitly rejected126; fatalUTF8/binary and whole-file prevalidation policies retained; Unicode scalar/ASCII character-class pattern profile not full byte locale/extglob/array/$@/shopt support; bounded expensive patterns may hit expansion work limit. No overall kernel/fullBash/superiority claim and no new seven-replay score.\nDurable docs/evidence/repro: tests/shell/expanded-gaps-README.md; expanded-gaps-native.json; expanded-gaps-validation.json; expanded-gaps-verify.mjs. Frozen expanded-seven artifacts unchanged; independent expanded-gaps expectations unread.\nOriginal9 historical/custom5 firstread/output-accounting/BOM/jq remain separate and were not rerun or waived. Foreign staging/files preserved via explicit gitcommit --only. All owned bounded children/processgroups stopped, no watchers or SIGSTOP.\nSOURCE WRITE LEASE RELINQUISHED. NO FURTHER SOURCE WRITES AFTER READY until root routes concrete independent findings.\n",
+  "readySha256": "90c42db219e16d81da934f134cd58d79552e7970a4d065cea4ce58dbbc432f4b",
+  "commits": [
+    "d904cf86ec7ebcb2fb4113e5e31db1c976023716",
+    "e64ce50e1e45c6cf5e3e3686ce7424cbf0fa50df",
+    "0f5dbb3b5c65f773eada40876fa18098c36a5fbd"
+  ],
+  "finalCommit": "0f5dbb3b5c65f773eada40876fa18098c36a5fbd",
+  "sourceLeaseRelinquished": true,
+  "shellFiles": [
+    {
+      "path": "src/shell/arithmetic.ts",
+      "currentSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "committedSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "readySha256": null
+    },
+    {
+      "path": "src/shell/display.ts",
+      "currentSha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "committedSha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "readySha256": null
+    },
+    {
+      "path": "src/shell/index.ts",
+      "currentSha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "committedSha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "readySha256": null
+    },
+    {
+      "path": "src/shell/input.ts",
+      "currentSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "committedSha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "readySha256": null
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "currentSha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "committedSha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "readySha256": null
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "currentSha256": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+      "committedSha256": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+      "readySha256": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "currentSha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "committedSha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "readySha256": null
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "currentSha256": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+      "committedSha256": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+      "readySha256": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "currentSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "committedSha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "readySha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "currentSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "committedSha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "readySha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    }
+  ],
+  "historicalFiles": [
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/README.md",
+      "currentSha256": "048d350ef18268dc57b73622a81510274820ef9a3b926dc1c2f412619a958770",
+      "committedSha256": "048d350ef18268dc57b73622a81510274820ef9a3b926dc1c2f412619a958770"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/corpus.json",
+      "currentSha256": "7474a5a4a54f25ab57a3f5afb2575261cec182e885bf630902c4934e3078f36f",
+      "committedSha256": "7474a5a4a54f25ab57a3f5afb2575261cec182e885bf630902c4934e3078f36f"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/frozen/common.mjs",
+      "currentSha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+      "committedSha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/frozen/engine.mjs",
+      "currentSha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "committedSha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/guard.mjs",
+      "currentSha256": "ee3a45fd2ee2b4c64d29e208dd09a190ef00826ee7f9f5435af49104ec7c4ca3",
+      "committedSha256": "ee3a45fd2ee2b4c64d29e208dd09a190ef00826ee7f9f5435af49104ec7c4ca3"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/loader.mjs",
+      "currentSha256": "72b15c4009662cc2ab879b6e49797fb59daa038a4b54053e103c81c54bf34dc5",
+      "committedSha256": "72b15c4009662cc2ab879b6e49797fb59daa038a4b54053e103c81c54bf34dc5"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/replay-20260827.json",
+      "currentSha256": "2b9c78aee2a3aa03580dc91f08b8fbe4d271500517c129541d5f669f06c00ee9",
+      "committedSha256": "2b9c78aee2a3aa03580dc91f08b8fbe4d271500517c129541d5f669f06c00ee9"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/replay-sealed-20260827.json",
+      "currentSha256": "afbeeab2872b86b69f5a47fe3fc30eb0216e44c342ba888fa976f2af0d6a1b69",
+      "committedSha256": "afbeeab2872b86b69f5a47fe3fc30eb0216e44c342ba888fa976f2af0d6a1b69"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/replay.mjs",
+      "currentSha256": "e462a182ae4aad9e40ed21f708ad57cf5b98f60689bb1756f176781f9abb9537",
+      "committedSha256": "e462a182ae4aad9e40ed21f708ad57cf5b98f60689bb1756f176781f9abb9537"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/replay.test.ts",
+      "currentSha256": "1f4d43df365185fd4673aa59ab23034155e0b375e58fe8e84cda8f8674c610c2",
+      "committedSha256": "1f4d43df365185fd4673aa59ab23034155e0b375e58fe8e84cda8f8674c610c2"
+    },
+    {
+      "commit": "5cfb70a",
+      "path": "tests/shell-stress/expanded-kernel/validation.json",
+      "currentSha256": "1e75b45d98b6484d5ff5b9a89303f03805c9b4ba1795ed347f16b42b22b5603a",
+      "committedSha256": "1e75b45d98b6484d5ff5b9a89303f03805c9b4ba1795ed347f16b42b22b5603a"
+    },
+    {
+      "commit": "b439dd9",
+      "path": "tests/shell-stress/expanded-kernel/POSTFIX.md",
+      "currentSha256": "4d283468b113167989ba211e03b9b486a74d1c4a3bfa6f6c1a6d8aa4b13481eb",
+      "committedSha256": "4d283468b113167989ba211e03b9b486a74d1c4a3bfa6f6c1a6d8aa4b13481eb"
+    },
+    {
+      "commit": "b439dd9",
+      "path": "tests/shell-stress/expanded-kernel/postfix-ready-seal.json",
+      "currentSha256": "fd14b9573cd650cc028b09ab09397cdd9bf9849f528d6a74922ff6418da1998e",
+      "committedSha256": "fd14b9573cd650cc028b09ab09397cdd9bf9849f528d6a74922ff6418da1998e"
+    },
+    {
+      "commit": "b439dd9",
+      "path": "tests/shell-stress/expanded-kernel/postfix-ready-wait.json",
+      "currentSha256": "ce374d9f132964b2611da5e483a9ee7b89dd5c62db0bdf54f4f23207205a33f8",
+      "committedSha256": "ce374d9f132964b2611da5e483a9ee7b89dd5c62db0bdf54f4f23207205a33f8"
+    },
+    {
+      "commit": "b439dd9",
+      "path": "tests/shell-stress/expanded-kernel/postfix-validation.json",
+      "currentSha256": "67291ff3da7ec46ffed0aa66a28bec8988d31b2d4bd461d38239d87bea05e046",
+      "committedSha256": "67291ff3da7ec46ffed0aa66a28bec8988d31b2d4bd461d38239d87bea05e046"
+    },
+    {
+      "commit": "b439dd9",
+      "path": "tests/shell-stress/expanded-kernel/replay-postfix-20260827t0228.json",
+      "currentSha256": "7ab01fab5770081dc9506280cff16b7a28bef3619fc549e60d7d5460eec39ca7",
+      "committedSha256": "7ab01fab5770081dc9506280cff16b7a28bef3619fc549e60d7d5460eec39ca7"
+    }
+  ],
+  "checks": [
+    {
+      "label": "integrity-tests",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/shell-stress/expanded-kernel/replay.test.ts"
+      ],
+      "status": 0,
+      "stdout": "TAP version 13\n# Subtest: oracle expectations and fixtures equal the immutable benchmark commit\nok 1 - oracle expectations and fixtures equal the immutable benchmark commit\n  ---\n  duration_ms: 24.475167\n  type: 'test'\n  ...\n# Subtest: all seven frozen recipes remain complete and byte-identical\nok 2 - all seven frozen recipes remain complete and byte-identical\n  ---\n  duration_ms: 0.104917\n  type: 'test'\n  ...\n# Subtest: execution and comparison helpers are unmodified frozen harness copies\nok 3 - execution and comparison helpers are unmodified frozen harness copies\n  ---\n  duration_ms: 1.267958\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 127.657166\n",
+      "stderr": ""
+    },
+    {
+      "label": "scoped-test-types",
+      "command": "./node_modules/.bin/tsc",
+      "args": [
+        "--noEmit",
+        "--strict",
+        "--target",
+        "es2022",
+        "--module",
+        "nodenext",
+        "--moduleResolution",
+        "nodenext",
+        "--types",
+        "node",
+        "--skipLibCheck",
+        "tests/shell-stress/expanded-kernel/replay.test.ts"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "productImported": false,
+  "artifact": "replay-gaps-20260827t032026z.json",
+  "head": "0d625f3348b883593e89b1c7eec70b7df9324f12",
+  "indexBefore": "",
+  "statusBefore": "?? src/fs/s3/http/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/http/\n?? tests/shell-stress/expanded-kernel/gaps-preflight-error.json\n"
+}

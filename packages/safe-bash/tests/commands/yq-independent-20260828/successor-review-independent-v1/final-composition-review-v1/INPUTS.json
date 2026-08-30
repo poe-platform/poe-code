@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_STATIC_VERIFIER",
+  "compositionCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "compositionRoot": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2",
+  "expected": {
+    "FINAL-SEAL.json": "e2d4dd59a490d71f498e7ca5a26eb37a17325500c6e7b535f78e82373cf88ebd",
+    "ASSEMBLY-SEAL.json": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+    "RECIPE.json": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+    "TOOL-DATA-COPY.json": "0d0793d63f31b1d1f5cc91d2d77fe5b14c854c0c3980dd2d25e90c06a424e5b8",
+    "LOAD-TOOL-CLOSURE.json": "edfd944ea63674c3123ebb3036f1f43daf94bb938bd7660dccf611582b451e8a"
+  },
+  "physicalRoot": "/private/tmp/yq-b8-composition-v2-bMqyvD",
+  "parentCore": "83eed5879de47d89f231154079c8faeb2aadfa99",
+  "parentWorkers": "c0353685540288d504b93f206735fe4c448268ef",
+  "build": "937c1f6a35c620146e62924b16d90e808319024f",
+  "cwF01": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+  "cwF02": "9fe3c8574b32df9839284307942be5003d87d0a0",
+  "priorPeerReview": "74fc2063a365c02553c4f7fe6a48608ed5f5f700",
+  "priorDataReview": "dffc3047c2e06651cde6356338b3f73ec9cfd7af",
+  "liveAgentsSha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c",
+  "liveAgentsReadFirst": true,
+  "crossRealmRule": "Exact finite own-data shape/values/order, not prototype identity; no holes/accessors/extras/coercion; preserve actual thrown identity.",
+  "startHeadForChronologyOnly": "ef136fa811ebe3165612b3f237be4038745211b4",
+  "preparationErrors": [
+    {
+      "exitCode": 127,
+      "stderr": "zsh:1: command not found: cat\n",
+      "cause": "Reviewer used zsh special path variable for instruction-directory loop, locally replacing PATH; next independent shell used scope_dir. AGENTS was read first; no target code executed.",
+      "originalOutcomePreserved": true
+    }
+  ],
+  "bodyReviewBeforeCriteria": false,
+  "targetExecutions": 0,
+  "rootGO": false
+}

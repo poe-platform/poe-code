@@ -1,0 +1,92 @@
+{
+  "revision": "3bf672f722da2bdf1591ed112290b702987bf63a",
+  "checks": [
+    {
+      "name": "b22d00c-real-evidence-audit",
+      "args": [
+        "tests/fs/webdav/atomic-extension-independent/phase2/audit.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null
+      }
+    },
+    {
+      "name": "existing-s3-provenance-audit",
+      "args": [
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/s3/rmdir-independent/audit.test.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "name": "prior-one-shot-audit-intact",
+      "args": [
+        "tests/integration/adapter-tools/atomic-webdav-profile-independent/audit.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null
+      }
+    },
+    {
+      "name": "prior-one-shot-audit-preseal-copy",
+      "args": [
+        "tests/integration/adapter-tools/atomic-webdav-profile-independent/audit.mjs"
+      ],
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null
+      }
+    }
+  ],
+  "oldSealsVerified": [
+    {
+      "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/ARTIFACTS.sha256",
+      "sha256": "fcd901dfd0ce927bbb2e43d62f8994e1dcedacd7dee2ebdddbd659819a219961",
+      "files": 188
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/ARTIFACTS.sha256",
+      "sha256": "b95cde223a4467ecc16059e6a2d471261b6c9c89088c38a625df8855d22642dc",
+      "files": 57
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/phase2/ARTIFACTS.sha256",
+      "sha256": "470c8577552ba7b3515a0348838a80ed7d4d8fbd1d38fe7b77c58ecf477e55c4",
+      "files": 81
+    }
+  ],
+  "newServiceRun": false,
+  "staleHistoricalOneShotAudit": true,
+  "sourceDefectsReproduced": [],
+  "fullRelease": false
+}

@@ -1,0 +1,197 @@
+{
+  "schema": "node-independent-profile-holdouts-v1",
+  "date": "2026-08-28",
+  "classification": "DESIGN_ONLY_POST_AUTHOR_REPORT_NOT_EXECUTION_FREEZE",
+  "authorCommit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+  "feasibilityReportCommit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+  "executionAuthorized": false,
+  "identityCount": 18,
+  "actualRuns": 0,
+  "results": [],
+  "originalCases": {"planned": 36, "executedHere": 0, "changed": 0},
+  "meaning": "One identity can be a finite procedure with enumerated variants. No variants are counted as executed cases. Null means an unresolved expectation, never a wildcard or pass. Full recipe, actual provider and diagnostic/outcome bindings require a later seal and grant.",
+  "defaults": {
+    "cwd": "/work",
+    "env": {"KEEP": "parent"},
+    "stdinUtf8": "",
+    "filesUtf8": {},
+    "grants": [],
+    "filesystem": "Controlled authority-limited VFS; no host paths, network or implicit dataWrite. Per-case grants only.",
+    "provider": "Future independently qualified version-bound same-engine provider; none executed here.",
+    "limits": "Author proposed NP1 caps are upper bounds for a later recipe, not an execution authorization. Missing context/scan/allocation charges must be bound before execution; no limit raise.",
+    "cleanup": "Register before acquisition. Keep phase/admission/operation events, raw reason presence and identity, public pending state, iterator return, output retirement, outstanding jobs/host work and final closure. Never infer zero from unavailable telemetry.",
+    "negativeControls": "Later implementation must bind and actually load scoped countercontrols; listed mutants here are plans, not mutation results.",
+    "network": "None",
+    "shellRedirections": "None; raw-handler and actual Shell boundaries must be reported separately."
+  },
+  "holdouts": [
+    {
+      "id": "H01", "status": "UNEXECUTED", "finding": "R7", "binding": "INHERITED_PROFILE",
+      "name": "Empty eval is not an absent operand or stdin source",
+      "argv": ["-e", ""], "grants": [],
+      "stdinUtf8": "console.log('WRONG');",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "", "exitCode": 0, "stdinAcquisitions": 0, "stdinNext": 0, "vfsOperations": 0},
+      "countercontrol": "Treat the empty string as missing and read stdin; the zero-acquisition predicate must reject.",
+      "qualification": "The separate missing-operand diagnostic remains an R7 binding task, not accepted by this positive."
+    },
+    {
+      "id": "H02", "status": "UNEXECUTED", "finding": "R7", "binding": "INHERITED_PROFILE",
+      "name": "End-of-options and script arguments remain literal",
+      "argv": ["--", "main.cjs", "--inspect"],
+      "filesUtf8": {"/work/main.cjs": "console.log(process.argv[2]);"},
+      "grants": ["sourceRead", "stdoutWrite", "stderrWrite"],
+      "expected": {"stdoutUtf8": "--inspect\n", "stderrUtf8": "", "exitCode": 0, "stdinNext": 0, "inspectorOrHostOptionCalls": 0},
+      "countercontrol": "Reinterpret the script tail as command options or forward it to host options."
+    },
+    {
+      "id": "H03", "status": "UNEXECUTED", "finding": "R1", "binding": "INHERITED_PROFILE",
+      "name": "Actual compact JSON edit with synchronous returns and exitCode",
+      "argv": ["-e", "const fs=require('fs'); const text=fs.readFileSync('cfg.json','utf8'); console.log(typeof text); const data=JSON.parse(text); data.count+=1; console.log(fs.writeFileSync('cfg.json',JSON.stringify(data))===undefined); process.exitCode=7;"],
+      "filesUtf8": {"/work/cfg.json": "{\"count\":4,\"keep\":\"x\"}"},
+      "grants": ["dataRead", "dataWrite", "stdoutWrite", "stderrWrite"],
+      "expected": {"stdoutUtf8": "string\ntrue\n", "stderrUtf8": "", "exitCode": 7, "filesChangedUtf8": {"/work/cfg.json": "{\"count\":5,\"keep\":\"x\"}"}, "parentEnvChanged": false},
+      "countercontrol": "Expose a Promise as the sync return or claim success without the actual VFS write.",
+      "qualification": "Full-file atomicity, rollback and Node exit truncation are not claimed."
+    },
+    {
+      "id": "H04", "status": "UNEXECUTED", "finding": "R6", "binding": "INHERITED_PROFILE",
+      "name": "Inline JSON pipeline consumes fd0 once and preserves EOF",
+      "argv": ["-e", "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(0,'utf8')); console.log(data.value); console.log(fs.readFileSync(0,'utf8')==='');"],
+      "stdinUtf8": "{\"value\":\"é\"}",
+      "grants": ["stdinRead", "stdoutWrite", "stderrWrite"],
+      "expected": {"stdoutUtf8": "é\ntrue\n", "stderrUtf8": "", "exitCode": 0, "vfsOperations": 0, "underlyingInputConsumedOnce": true},
+      "procedure": "Use the literal UTF8 bytes split between c3 and a9 in a reusable producer buffer. Bind exact next/return counts for the chosen adapter before execution; only zero VFS calls and byte/EOF semantics are bound here.",
+      "countercontrol": "Reuse an unowned chunk or replay stdin on the second fd0 call."
+    },
+    {
+      "id": "H05", "status": "UNEXECUTED", "finding": "R2", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Missing write grant is not an EROFS test",
+      "argv": ["-e", "try { require('fs').writeFileSync('out','WRONG'); console.log('WRONG'); } catch(error) { console.log('DENIED'); }"],
+      "grants": ["stdoutWrite", "stderrWrite"],
+      "expected": {"stdoutUtf8": null, "stderrUtf8": null, "exitCode": null, "underlyingWriteCalls": 0, "filesChangedUtf8": {}},
+      "unresolved": "Bind grant-denial catchability/code: either a declared catchable refusal yielding DENIED LF/status0, or the precisely ratified noncatchable failure. Never choose based on observed product behavior.",
+      "countercontrol": "Authorize because the VFS happens to be writable or because registration defaults grant dataWrite."
+    },
+    {
+      "id": "H06", "status": "UNEXECUTED", "finding": "R2", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Purpose grants, entry binding and finite protocol validation",
+      "argv": ["-e", "require('./secret.json');"],
+      "grants": ["sourceRead", "stdoutWrite", "stderrWrite"],
+      "procedure": "Freeze three grant vectors: sourceRead only, dataRead without jsonModules, jsonModules without dataRead, each with stdoutWrite/stderrWrite. Recommend all three deny this JSON request. Separately submit one request per exact malformed class: wrong-session resolveJson origin; own getter; inherited required field; extra key; missing key; array/hole instead of record; coercible object instead of string. Include one valid foreign-realm own-data record under fully granted authority.",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": null, "deniedUnderlyingReads": 0, "getterOrCoercionCalls": 0, "crossRealmRejectedOnlyForPrototype": false},
+      "unresolved": "Approve purpose matrix and concrete finite schema/diagnostics before these separate variants become executable; invalid protocol remains an escaping contract failure, not generic status0.",
+      "countercontrol": "Trust resolveJson.from, an inherited property, or sourceRead as implicit data authority."
+    },
+    {
+      "id": "H07", "status": "UNEXECUTED", "finding": "R5", "binding": "INHERITED_PROFILE",
+      "name": "Serial output returns a boolean only after sink settlement",
+      "argv": ["-e", "const result=process.stdout.write('A'); console.log(typeof result);"],
+      "grants": ["stdoutWrite", "stderrWrite"],
+      "procedure": "Hold the first sink write after admission and before acknowledgement. Keep invocation pending and the second output operation unadmitted. Release then collect all output and cleanup.",
+      "expected": {"stdoutUtf8": "Aboolean\n", "stderrUtf8": "", "exitCode": 0, "secondWriteAdmittedWhileFirstHeld": false, "publicPendingWhileHeld": true},
+      "countercontrol": "Return a Promise or true before acknowledgement, allowing the second write to start.",
+      "qualification": "This proves the declared serial NP1 profile, not stock Node Writable timing."
+    },
+    {
+      "id": "H08", "status": "UNEXECUTED", "finding": "R1", "binding": "INHERITED_PROFILE",
+      "name": "JSON special keys are inert data rather than deleted or host setters",
+      "argv": ["-e", "const data=JSON.parse('{\"__proto__\":{\"polluted\":7},\"constructor\":\"text\"}'); console.log(JSON.stringify(data)); console.log(({}).polluted===undefined);"],
+      "grants": ["stdoutWrite", "stderrWrite"],
+      "expected": {"stdoutUtf8": "{\"__proto__\":{\"polluted\":7},\"constructor\":\"text\"}\ntrue\n", "stderrUtf8": "", "exitCode": 0, "hostPrototypeMutation": false},
+      "countercontrol": "Drop special keys, invoke a host setter, or allow data keys to become constructor capabilities."
+    },
+    {
+      "id": "H09", "status": "UNEXECUTED", "finding": "R4", "binding": "INHERITED_PROFILE",
+      "name": "Script-relative JSON cache is a guest identity, not cwd or host copying",
+      "argv": ["sub/main.cjs"],
+      "filesUtf8": {"/work/sub/main.cjs": "const first=require('./data.json'); first.value=8; const second=require('./data.json'); console.log(first===second); console.log(second.value);", "/work/sub/data.json": "{\"value\":2}", "/work/data.json": "{\"value\":99}"},
+      "grants": ["sourceRead", "dataRead", "jsonModules", "stdoutWrite", "stderrWrite"],
+      "expected": {"stdoutUtf8": "true\n8\n", "stderrUtf8": "", "exitCode": 0, "jsonDataReads": ["/work/sub/data.json"], "filesChangedUtf8": {}},
+      "countercontrol": "Resolve from cwd, return fresh copied objects, or write guest mutations back to JSON bytes."
+    },
+    {
+      "id": "H10", "status": "UNEXECUTED", "finding": "R6", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Data BOM is preserved while JSON-module BOM handling is explicit",
+      "argv": ["-e", "console.log(require('fs').readFileSync('bom.json','utf8')[0]==='\uFEFF'); console.log(require('./bom.json').n);"],
+      "filesHex": {"/work/bom.json": "efbbbf7b226e223a317d"},
+      "grants": ["dataRead", "jsonModules", "stdoutWrite", "stderrWrite"],
+      "proposedExpected": {"stdoutUtf8": "true\n1\n", "stderrUtf8": "", "exitCode": 0},
+      "unresolved": "Ratify leading BOM stripping only in source/JSON-module loaders, not ordinary UTF8 data reads. This proposal follows D10 for JSON loading; no native run captured these bytes.",
+      "countercontrol": "Apply one BOM-stripping decoder indiscriminately to all data or fail a declared BOM-supported JSON require."
+    },
+    {
+      "id": "H11", "status": "UNEXECUTED", "finding": "R1", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Useful formatting and unsupported callbacks/options have closed contracts",
+      "argv": ["-p", "JSON.stringify({a:1},undefined,2)"],
+      "grants": ["stdoutWrite", "stderrWrite"],
+      "proposedExpected": {"stdoutUtf8": "{\n  \"a\": 1\n}\n", "stderrUtf8": "", "exitCode": 0},
+      "procedure": "After inventory approval bind this positive plus three isolated negatives: JSON.parse with a reviver that writes MARK; JSON.stringify with a callable replacer that writes MARK; fs.writeFileSync with a callback/unsupported own getter option. Unsupported variants must produce zero MARK bytes and zero underlying write calls; reject before invoking callbacks/getters. Do not globally ban ordinary JSON keys.",
+      "unresolved": "Numeric indentation support and callback/option inventory are proposed, not currently ratified; bind exact diagnostic/code per negative.",
+      "countercontrol": "Ignore unsupported options, invoke callbacks to discover their type, or silently print a stub."
+    },
+    {
+      "id": "H12", "status": "UNEXECUTED", "finding": "R3", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Context and preparation are charged before guest materialization",
+      "procedure": "Bind a small approved context-byte test limit and literal at-limit/one-over argv and env fixtures; include multibyte UTF8 and long module path forms. Record validation/reservation/copy/acquisition order. Separately bound the ambiguous .js ancestor metadata scan if that surface stays in the first slice; never inspect outside the authority root. No large allocation or timing experiment is authorized by this data.",
+      "expected": {"overLimitGuestMaterializations": 0, "overLimitHostAcquisitions": 0, "outsideAuthorityMetadataReads": 0, "exitCode": null},
+      "unresolved": "Exact context/path/scan units, finite cap values and refusal route do not yet exist. A later literal binding is mandatory, not a parameter chosen during execution.",
+      "countercontrol": "Charge source only, copy argv/env first, or reset the read/call allowance for each metadata ancestor."
+    },
+    {
+      "id": "H13", "status": "UNEXECUTED", "finding": "R3", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Branded cache values and aliases cannot evade retained-data accounting",
+      "procedure": "Freeze controlled cache entry limit2. Load a.json twice (same guest reference, one read), then b.json, then c.json; c must not create a third retained cache entry. Bind separate byte-boundary mutation and failed-load accounting controls after the retained-graph table exists. Exactly three literal files contain {\"n\":1}, {\"n\":2}, {\"n\":3}; no broad fixture generation.",
+      "expected": {"maximumRetainedCacheEntries": 2, "aliasExtraEntries": 0, "cGuestCacheInsertion": false, "exitCode": 124, "stdoutUtf8": "", "stderrUtf8": null},
+      "unresolved": "Bind source/diagnostic bytes, pre-read reservation policy and mutable graph units; do not claim current source-only ABI bypass already meters these objects.",
+      "countercontrol": "Exclude private-ABI guest values from accounting, fresh-copy aliases, or recreate provider budgets per require."
+    },
+    {
+      "id": "H14", "status": "UNEXECUTED", "finding": "R5", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Unresolved guest-only job is not a silent success or automatic Node13",
+      "argv": ["--input-type=module", "-e", "await new Promise(()=>{});"],
+      "grants": ["stderrWrite"],
+      "procedure": "Only if module mode and Promise construction are admitted: bind a deterministic local deadline, no live host request, actual guest-job inventory, and cooperative retirement before final selection. Distinguish unresolved guest state from an opaque host operation that cannot be preempted.",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": null, "hostRequests": 0},
+      "unresolved": "Root must choose the NP1 liveness outcome and Promise constructor surface; reviewer recommends local124 after closure, not an inferred13 or top-level success. CJS-first defers this row explicitly.",
+      "countercontrol": "Treat lack of runnable host work as successful guest completion or settle while owned work remains."
+    },
+    {
+      "id": "H15", "status": "UNEXECUTED", "finding": "R4", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Qualification binds actual source and same-instance ABI rather than labels",
+      "argv": ["-p", "6*7"],
+      "grants": ["stdoutWrite", "stderrWrite"],
+      "procedure": "Use the separately authorized actual provider: first literal expression yields42, independent second 6*8 yields48. Negative configurations are absent provider, declared profile but inadequate capabilities, foreign engine instance factory, prior-session PreparedEntry, prior-session GuestValueRef and retained host channel used after close. Authenticate exact entry/adapter/factory/evaluator load witnesses and isolate output/resource receipts per variant. No fabricated engine brand or guessed deep import is a control implementation.",
+      "expected": {"positiveStdoutUtf8": ["42\n", "48\n"], "positiveExitCodes": [0, 0], "absentOrInadequateProviderExitCode": 127, "absentProviderSourceReads": 0, "absentProviderGuestEvaluations": 0, "lateChannelHostAcquisitions": 0, "foreignOrStaleValueAccepted": false},
+      "unresolved": "Freeze actual qualifying ABI and exact malformed-provider failure boundaries before execution. This does not duplicate or execute Locke's engine-call experiments.",
+      "countercontrol": "Return canned completion0/output42, match only implementationId, reuse cross-session state or load an ambient fallback."
+    },
+    {
+      "id": "H16", "status": "UNEXECUTED", "finding": "R4", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Primary reason presence, caller provenance and late cleanup are independent",
+      "procedure": "Use a finite four-variant raw-handler procedure with a controlled held host read: escaping execution rejection undefined then later cleanup error; caller object sentinel equal by identity to a local sentinel; synchronous provider create failure after registered child admission; normal execute followed by close rejection. Record first selection presence separately from its value, close admission, release/reap tracked work, and assert pending until closure. Bind actual outer Shell mapped-error observations separately; never expect every escaping raw handler failure to be an identical public Shell rejection.",
+      "expected": {"laterCleanupMasksSelectedUndefined": false, "callerMappedToLocal124": false, "unobservedHostRejections": 0, "settledBeforeCooperativeClosure": false, "sharedFilesystemDisposed": false},
+      "unresolved": "Exact adapter API and each raw/Shell output/outcome binding remain future. An undefined execution rejection is not an assertion that AbortController.abort(undefined) exposes an undefined signal reason.",
+      "countercontrol": "Use nullish selection assignment, infer origin from reason equality, or skip registered cleanup when create throws."
+    },
+    {
+      "id": "H17", "status": "UNEXECUTED", "finding": "R5", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Closed stdout has a bound guest outcome without cancelling sibling writes",
+      "argv": ["-e", "const pending=require('fs/promises').writeFile('out','kept'); process.stdout.write('closed'); pending.then(()=>process.stderr.write('done'));"],
+      "grants": ["dataWrite", "stdoutWrite", "stderrWrite"],
+      "procedure": "Admit and hold the file write, close the enrolled stdout operation before its write, and then release the file. Observe whether the callback runs under the ratified guest-terminal policy, not merely final file bytes. Raw and actual Shell routes have separately frozen outcomes. No arbitrary sleep or global caller abort.",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": null, "filesChangedUtf8": {"/work/out": "kept"}, "siblingSignalAbortedByStdout": false, "publicPendingBeforeFileRetirement": true},
+      "unresolved": "Guest closed-write return/throw/terminal semantics and whether done is emitted must be fixed before a runner can qualify this row; original N30 remains unchanged.",
+      "countercontrol": "Cancel the entire session to close stdout, ignore the held file, or accept either stderr result opportunistically."
+    },
+    {
+      "id": "H18", "status": "UNEXECUTED", "finding": "R6", "binding": "NEEDS_PROFILE_BINDING",
+      "name": "Exclusive create is a real adapter capability, not check then write",
+      "argv": ["-e", "try { require('fs').writeFileSync('out',process.argv[1],{flag:'wx'}); console.log('CREATED'); } catch(error) { console.log(error.code); }"],
+      "grants": ["dataWrite", "stdoutWrite", "stderrWrite"],
+      "procedure": "Bind two independent invocations with literal final argv values A and B over one authorized controlled VFS. Hold both at the adapter's exclusive-create admission barrier; release A first then B. Expected A CREATED LF, B EEXIST LF and exact file A only if this option form and actual exclusive capability are qualified. An adapter without exclusive-create support must refuse before mutation, not simulate wx with lookup plus write.",
+      "proposedExpected": {"firstStdoutUtf8": "CREATED\n", "secondStdoutUtf8": "EEXIST\n", "exitCodes": [0, 0], "filesChangedUtf8": {"/work/out": "A"}, "unsupportedAdapterMutations": 0},
+      "unresolved": "Exact write-options schema, adapter capability/refusal and denial diagnostic binding required; no claim about unsynchronized w writes, transactions or remote services.",
+      "countercontrol": "Allow both calls to win via check-then-write, share invocation state or silently drop wx."
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "documentKind": "NON_AUTHORIZING_V4_INTERFACE_DESCRIPTION",
+  "actualRootGrantIssued": false,
+  "sources": [
+    "tests/comparison/breadth-continuation-20260828/executor-v4/authorization.mjs:37",
+    "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs:8",
+    "tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs:30"
+  ],
+  "workingDirectory": "/Users/kjopek/Workspace/safe-bash",
+  "commandArgvTemplate": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs",
+    "admission",
+    "admission-v4-01",
+    "<ABSOLUTE_ROOT_SELECTED_AUTH_JSON>"
+  ],
+  "AUTHJsonTemplate": {
+    "review": {
+      "commit": "<FINAL_EVIDENCE_COMMIT_CONTAINING_REVIEW_JSON>",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/REVIEW.json",
+      "sha256": "c9ca7175e426140afccbca23b265918a263af55ff12e21efb4995ec6161584f4"
+    },
+    "grant": {
+      "commit": "<ROOT_GRANT_COMMIT>",
+      "path": "<REPOSITORY_RELATIVE_ROOT_GRANT_JSON>",
+      "sha256": "<SHA256_OF_EXACT_COMMITTED_ROOT_GRANT_BYTES>"
+    }
+  },
+  "rootGrantFieldsTemplate": {
+    "role": "root",
+    "phase": "admission",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+    "reviewSha256": "c9ca7175e426140afccbca23b265918a263af55ff12e21efb4995ec6161584f4",
+    "attempts": 1,
+    "runId": "admission-v4-01",
+    "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01",
+    "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+    "command": {
+      "entry": "coordinator.mjs",
+      "phase": "admission",
+      "runId": "admission-v4-01",
+      "nodeArgs": ["--unhandled-rejections=strict", "--max-old-space-size=256"]
+    }
+  },
+  "bindingRules": [
+    "Copying this descriptive nested template does not supply root authority; root must separately approve, commit and pin exact grant bytes",
+    "Both refs require 40 lowercase hex commit, repository-relative non-instruction path, and 64 lowercase hex sha256; committed JSON limit65536 bytes",
+    "Preserve command key order and nodeArgs order: V4 compares JSON.stringify exactly",
+    "planSha256 hashes JSON.stringify({limits:plan.limits,command:plan.command,phase:'admission',operations:plan.admission}); not raw OPERATION-PLAN.json bytes",
+    "Changing runId requires matching grant outputRoot/command and CLI runId; current example proposes only admission-v4-01",
+    "No independent top-level budgets, maxChildren, semanticCalls, stagedSha256 or permissions field is consumed from a V4 root grant",
+    "Do not supply acceptedAdmission for this admission phase; only the separately authorized cohort uses acceptedAdmission:{path,sha256}",
+    "Cohort reads actual accepted admission RESULT and checks its stagedSha256 against adjacent STAGED.json; no automatic cohort execution"
+  ],
+  "expectedSuccessfulAdmissionResultFields": {
+    "recipe": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+    "mode": "admission",
+    "runId": "admission-v4-01",
+    "productCohortCalls": 0,
+    "setupCalls": 2,
+    "unsafe": false,
+    "status": "ADMISSION_ACCEPTED",
+    "admissionQualified": true,
+    "separateCohortGoRequired": true,
+    "allChildrenReaped": true,
+    "launchAccounting": {
+      "enrolled": 14,
+      "attempted": 14,
+      "launched": 14,
+      "closed": 14,
+      "unknownAcquisitions": 0,
+      "allChildrenReaped": true,
+      "unsafe": false
+    },
+    "observerQualifications": {
+      "W07": { "comparatorNonExecution": "UNQUALIFIED", "comparatorDispatch": "UNOBSERVABLE", "semanticCredit": false }
+    }
+  },
+  "additionalActualAdmissionResultFields": {
+    "started": "ISO timestamp",
+    "finished": "ISO timestamp",
+    "children": "14 enrolled launch entries, operation identity, config hash, PID/group, exit/close/reap, persistence hash and errors",
+    "rows": "coordinator initializes empty array; not the control rows",
+    "stagedSha256": "SHA256 of written STAGED.json bytes",
+    "projection": "{proof,before,after} from actual staging",
+    "probes": "serial result with three safely qualified probe rows",
+    "defectControls": "defect control observations",
+    "controls": "serial result with twelve qualified control-family rows",
+    "tail": "twelve {id,status} rows derived from controls",
+    "plannedOperations": "fourteen {id,launch} rows; launch is actual ledger ordinal or null when unrun",
+    "evidenceBytesBeforeFinal": "persisted evidence accounting before final write"
+  },
+  "failureFieldsAndDisposition": {
+    "fatal": "present when outer execution catches an error",
+    "finalPersistenceError": "retained in memory and stderr emergency envelope if final RESULT persistence fails",
+    "entryEmergencyReceipt": "children[].emergencyReceipt on launch/supervision/persistence failure",
+    "unsafeStatus": "UNSAFE_STOP",
+    "serialTailStatus": "UNRUN_UNSAFE_TAIL",
+    "unobservedCoordinatorTailStatus": "UNRUN_PREPARATION_OR_UNSAFE_STOP"
+  },
+  "plannedBudgetsNotAdditionalGrantFields": {
+    "admissionChildren": 27,
+    "admissionPlanned": 14,
+    "cohortChildren": 99,
+    "admissionSetup": 2,
+    "admissionSemantics": 0,
+    "deadlineMs": 30000,
+    "graceMs": 2000,
+    "killMs": 1000,
+    "outerMs": 4500000,
+    "metadataBytes": 262144,
+    "newPerStreamBytes": 65536,
+    "legacyCombinedBytes": 8388608,
+    "evidenceBytes": 268435456
+  }
+}

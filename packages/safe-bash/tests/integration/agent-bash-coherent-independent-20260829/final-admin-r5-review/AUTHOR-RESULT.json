@@ -1,0 +1,165 @@
+{
+  "result": [
+    {
+      "id": "C01-one-live-owner",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C02-extra-live-role",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C03-parent-mismatch",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C04-false-closed-owner",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C05-reservation-over-cap",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C06-reservation-identity",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C07-own-data",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C08-no-doublecount-unclosed",
+      "role": "PURE",
+      "outcome": "PASS"
+    },
+    {
+      "id": "C09-parent-preimport",
+      "role": "ACTUAL_HARMLESS_CHILD",
+      "outcome": "PASS",
+      "pid": 33655,
+      "exitObserved": true,
+      "closeObserved": true
+    },
+    {
+      "id": "C10-parent-publisher-count",
+      "role": "ACTUAL_HARMLESS_CHILD",
+      "outcome": "PASS",
+      "pid": 33657,
+      "knownStarts": 3,
+      "exitObserved": true,
+      "closeObserved": true
+    }
+  ],
+  "snapshot": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-33654",
+      "role": "administrative-owner",
+      "pid": 33654,
+      "startUTC": "2026-08-29T15:48:37.760Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "publication-preimport-33655",
+        "role": "publication-preimport",
+        "pid": 33655,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/snapshot/admin-owner-r2/probe.mjs",
+          "preimport-like",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/probe-ledger.json",
+          "54ba8683c673933a12b17ffab58287623373cc649943baf8f3280994e9631983",
+          "1198"
+        ],
+        "startUTC": "2026-08-29T15:48:37.828Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:48:37.881Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:48:37.881Z"
+      },
+      {
+        "id": "publisher-33657",
+        "role": "publisher",
+        "pid": 33657,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/snapshot/admin-owner-r2/probe.mjs",
+          "publisher-like",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/probe-publisher.json",
+          "d57cf6a2e3beb3931654acdfc6231b78784e58a84050054989503f3a32b604d7",
+          "1473"
+        ],
+        "startUTC": "2026-08-29T15:48:37.951Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T15:48:38.004Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T15:48:38.004Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "publication-preimport",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/snapshot/admin-owner-r2/probe.mjs",
+          "preimport-like",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/probe-ledger.json",
+          "54ba8683c673933a12b17ffab58287623373cc649943baf8f3280994e9631983",
+          "1198"
+        ],
+        "atUTC": "2026-08-29T15:48:37.825Z",
+        "spawned": true
+      },
+      {
+        "role": "publisher",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/snapshot/admin-owner-r2/probe.mjs",
+          "publisher-like",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/final-admin-r5-review/harmless/probe-publisher.json",
+          "d57cf6a2e3beb3931654acdfc6231b78784e58a84050054989503f3a32b604d7",
+          "1473"
+        ],
+        "atUTC": "2026-08-29T15:48:37.950Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 3,
+    "activeKnownPIDs": [],
+    "captureBytes": 1425,
+    "metadataBytes": 2671,
+    "elapsedMs": 244.13962499999997,
+    "poisoned": false
+  },
+  "pureGroups": 8,
+  "harmlessChildren": 2,
+  "productCalls": 0
+}

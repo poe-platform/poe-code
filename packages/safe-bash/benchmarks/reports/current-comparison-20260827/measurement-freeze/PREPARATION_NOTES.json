@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "actualFreezePasses": 1,
+  "freezeFailures": [],
+  "preExecutionInspectionFailures": [
+    {
+      "operation": "Node REPL metadata inspection after loading committed FINAL_RECEIPT.json",
+      "error": "ReferenceError: primary is not defined",
+      "effect": "An unnecessary following metadata expression failed before spawning its Git command. The already loaded review receipt was inspected in the next call.",
+      "productImports": 0,
+      "artifactAuthenticationStarted": false,
+      "candidateOrBridgeChanges": false
+    }
+  ],
+  "sourceCorrectionsBeforeExecution": [
+    "Corrected a local driver object-field ordering issue before its first execution; no failed source authentication or compiler invocation resulted.",
+    "Added exact base64 subprocess captures before first execution; display text normalization does not replace raw captures."
+  ],
+  "syntaxChecksBeforeExecution": [
+    { "file": "prepare-freeze.mjs", "result": "PASS" },
+    { "file": "preflight-only-loader.mjs", "result": "PASS" },
+    { "file": "resolve-public.mjs", "result": "PASS" }
+  ],
+  "scope": "Preparation bookkeeping only; no product/native-oracle failures are invented or discarded."
+}

@@ -1,0 +1,17 @@
+{
+  "commit": "e2d1b9230f4304650651572395523ca9d1644e74",
+  "tree": "a4f29110c2f8b28a8bfddedcf5ccfc36fcdc1f8c",
+  "createdAt": "2026-08-27T08:23:09Z",
+  "elapsedSeconds": 4.795,
+  "candidateDirectory": "/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "projection": "ALL regular files from exact git commit; no live source imports; all copied files read-only",
+  "candidateFileCount": 13887,
+  "dependencyFileCount": 318,
+  "candidateBytes": 865250846,
+  "dependenciesBytes": 58892156,
+  "commitManifestSha256": "0cedb2a69303e3728bf6481d692bab168a5128d710de317984165052d439d01e",
+  "sourceManifestSha256": "81eddab7060fcc67dfcf5adc325218b886a4fb50d7e40a1056ad9fe379e83a9a",
+  "dependencyManifestSha256": "e1c37e0f0c56c70dba3ce1e19bdd1678ffce01f085f59324a6ecd6a79627400e",
+  "fullInputManifestSha256": "ef040b94780aa38b5483d5d1c2f9d263e4396cc8a0d881255665080992cce1e8",
+  "dependencyPolicy": "Copied existing installed development tools, verified each against source after copy; symlinks dereferenced to regular frozen files. No install/download; copied .bin is not used."
+}

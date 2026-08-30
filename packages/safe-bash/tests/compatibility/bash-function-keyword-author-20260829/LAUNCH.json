@@ -1,0 +1,15 @@
+{
+  "schema": "b35-author-launch-v1",
+  "command": "exec /usr/bin/env -i HOME=/tmp/safe-bash-b35-author-xSdFBJ/home TMPDIR=/tmp/safe-bash-b35-author-xSdFBJ/tmp PATH=/tmp/safe-bash-b35-author-xSdFBJ/empty-path LC_ALL=C LANG=C TZ=UTC /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/outer.mjs",
+  "login": false,
+  "permission": "configured CLI permissions; if denied/unsupported do not reroute",
+  "seal": {
+    "bytes": 5439,
+    "sha256": "52c705866d3a515d17a1d89f2e3870182153be4c6c1714047189afcabc009127"
+  },
+  "conditionalRootGrant": "2026-08-29 B35 SOURCEimplementation + AUTHOR testGO after complete preseal",
+  "sourceDeadline": "2026-08-29T12:33:55.085Z",
+  "outerExpectedSha256": "18f21dcee581d815dd2d31e54694f8d6bd0e331431fda4594bfb6b6ad3f816ae",
+  "runtimeWindow": "25min inclusive from outer startup; no earlier phase budget reused",
+  "noProductExecutedYet": true
+}

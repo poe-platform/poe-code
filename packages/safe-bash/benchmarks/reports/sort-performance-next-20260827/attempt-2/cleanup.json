@@ -1,0 +1,33 @@
+{
+  "completedAt": "2026-08-27T14:42:08.239Z",
+  "successful": true,
+  "children": [
+    {
+      "variant": "control",
+      "pid": 78480,
+      "closed": true,
+      "forced": false,
+      "outputBytes": 90463,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "variant": "instrumented",
+      "pid": 78540,
+      "closed": true,
+      "forced": false,
+      "outputBytes": 104576,
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "beforeAfterTreesMatch": true,
+  "scratchRemoved": true,
+  "remainingOwnedChildren": [],
+  "loadAfter": [
+    4.45849609375,
+    5.001953125,
+    5.5224609375
+  ],
+  "observedFinalHead": "6fce94f8716f1b7a8e26af78ef8cb33594ec83cc"
+}

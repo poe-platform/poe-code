@@ -1,0 +1,129 @@
+{
+  "schema": "unified76-scoped-env-independent-control-freeze-v13",
+  "status": "FROZEN_REQUIREMENTS_ONLY_ALL_CONTROLS_UNEXECUTED",
+  "authority": "Current root request permits independent preinspection freeze only. Curie's authoring/control GO is not independent execution permission.",
+  "timing": {
+    "metadataAt": "2026-08-28T04:44:14-05:00",
+    "authorMetadataAt": "2026-08-28T04:44:38-05:00",
+    "timezone": "America/Chicago",
+    "head": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+    "exposure": "Accepted fe15 source and b7/5aa diagnosis/proposal already known. This turn reads existing applicable AGENTS and Git/filesystem metadata only, no successor bodies.",
+    "chronology": "POST-proposal and POST-existing author-source file existence; PRE-successor implementation inspection and PRE-independent execution. Author coding may already be underway. No absolute pre-code or blindness attestation.",
+    "authorStatus": "git status --porcelain=v1 --untracked-files=all for unified76-driver returned no entries; selected three paths have no committed name-status delta from fe15 to recorded HEAD. Point-in-time metadata, not proof of no concurrent authoring.",
+    "indexStatus": "git diff --cached --raw returned no entries",
+    "authorFiles": [
+      {"path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs", "indexBlob": "58ca434dd543c8a74af4369922a1ffe405060714", "mode": "100644", "bytes": 11917, "birth": "2026-08-28T02:57:29-05:00", "modified": "2026-08-28T03:21:52-05:00"},
+      {"path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs", "indexBlob": "ac336a9683bc3696abb4deb6ba834ffec6204f7e", "mode": "100644", "bytes": 20764, "birth": "2026-08-27T20:31:20-05:00", "modified": "2026-08-28T03:00:12-05:00"},
+      {"path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json", "indexBlob": "ee51d1117b7dcd9bcfaeb7ba054e907f301e55f5", "mode": "100644", "bytes": 4332, "birth": "2026-08-27T20:37:55-05:00", "modified": "2026-08-28T03:21:52-05:00"}
+    ]
+  },
+  "knownAuthorityReferences": {
+    "diagnosis": "b7c2c05537ffd7ab9db7a886c9178f65e22a350c",
+    "proposalAssessment": "5aa7d43c147524b64d669725ccc88b2600ff5d70",
+    "acceptedRouteReview": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+    "acceptedMetadataReview": "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13",
+    "previousSource": "fe15f1e406fa1039accddec25c696ae7187f6135",
+    "previousPacket": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+    "consumedAuthorization": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb",
+    "stoppedAttemptEvidence": "df89d474bb863b3815f6e81f81917dcef4227779",
+    "productCandidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "productBase": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "immutableHelper": {"path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs", "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db"},
+    "previousDriverNormalizedSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+    "previousProfileNormalizedSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "previousRoutesNormalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+    "qualification": "References, not freshly verified bindings or transferred acceptance. Changed successor files need fresh binding; byte-identical inherited records must be explicitly enumerated before reuse. Old EPERM target remains UNPROVEN, old 0/14 failure and absent private postguard remain unchanged. All earlier unbound-tool/creation-only/forbidden-copy cohorts are preserved, not rescored."
+  },
+  "futureBinding": {
+    "status": "UNBOUND_NO_SCOPED_REVIEW_GO",
+    "successorSourceCommit": null,
+    "successorEvidenceCommit": null,
+    "successorDriverNormalizedSha256": null,
+    "apiAndSafeCallbackSeams": null,
+    "independentRootGo": null,
+    "executionBounds": null,
+    "requiredBeforeExecution": [
+      "Immutable source/evidence, exact changed-file hashes, normalized DRIVER/profile/routes and helper unchanged proof; no moving live fallback",
+      "Exact callable API and safe callback seams from candidate; source-visible versus exercised integration evidence distinguished",
+      "Fresh root GO explicitly enumerating permitted independent phases; no inherited author GO or consumed release",
+      "Versioned bounded recipe: exact owned roots, authenticated binaries/dependency closure/argv/env, finite time/output/disk/child-cleanup limits and capture method; no invented numeric ceilings",
+      "No actual prerequisites/privateState/privatecopy/A10/fullgate entry; no private inspection, instruction materialization, network/dependency/permission changes"
+    ]
+  },
+  "phasePermissions": [
+    {"phase": "P0-freeze", "now": "ALLOWED", "scope": "Existing instructions, read-only Git/path metadata, non-executable owned JSON/Markdown and explicit-file commits only"},
+    {"phase": "P1-candidate-static-binding", "now": "NOT_STARTED", "future": "Immutable packet and routed review scope required; source/metadata only, no import permission inferred"},
+    {"phase": "P2-isolated-adapter-callback-controls", "now": "FORBIDDEN", "future": "Immutable candidate plus explicit independent scoped GO and presealed finite recipe; side-effect-free owned callbacks, no real helper operations"},
+    {"phase": "P3-three-scope-integration-proof", "now": "FORBIDDEN", "future": "Static exact callsite proof; only GO-approved controlled callback seams may be exercised. Source-only evidence is not runtime integration acceptance"},
+    {"phase": "P4-admitted-Git-owned-authority-read", "now": "FORBIDDEN", "future": "Separate explicit inclusion in independent GO; authenticated admitted Git reads only benign owned fixture authority, never private state or an actual prerequisite body"},
+    {"phase": "P5-real-work-and-release", "now": "FORBIDDEN", "future": "Not authorized by this contract: actual prerequisites/privateState/privatecopy/A10/product/native cohorts/pack/fullgate or fresh root release"}
+  ],
+  "caseAccounting": {"families": 12, "proposedCases": 33, "executed": 0, "passed": 0, "failed": 0, "unexecuted": 33, "rule": "Every listed case is UNEXECUTED. Variants within a case are obligations, not additional passes. Author ten groups and earlier independent groups have separate denominators."},
+  "families": [
+    {"id": "E01", "name": "Fresh authenticated entry", "status": "UNEXECUTED", "cases": [
+      {"id": "E01.1", "input": "Fresh exact candidate-bound tool/native/Git-core closure and verified local routing", "expected": "Verify before mutation/callback; install only admitted PATH, GIT_EXEC_PATH and GIT_OPTIONAL_LOCKS=0; record entry identity"},
+      {"id": "E01.2", "input": "Previously verified route made stale: changed alias target, tool bytes or native shadow", "expected": "Refuse before callback/target exec, no fallback; exact prior env retained. Enumerate variant actually exercised"},
+      {"id": "E01.3", "input": "Parent-supplied attacker PATH or unapproved GIT_* presented as authority", "expected": "Never use as routing authority or silently accept injection. Unapproved binding refused; existing ambient admission remains effective"}
+    ]},
+    {"id": "E02", "name": "All three shipping integration scopes", "status": "UNEXECUTED", "cases": [
+      {"id": "E02.1", "input": "Whole awaited prerequisites call, fe15 execute:73; delayed no-side-effect callback if safe seam is provided", "expected": "Exact shipping callsite encloses complete await; source proof covers helper internal privateState:54,73; no real prerequisites invoked"},
+      {"id": "E02.2", "input": "Outer final-sweep privateState, fe15 execute:137, controlled callback only", "expected": "Adapter encloses privateState call, not surrounding verifyExternal; restoration before subsequent work. Static/exercised parts labeled separately"},
+      {"id": "E02.3", "input": "Outer finally privateState, fe15 execute:141, controlled callback only", "expected": "Same authenticated adapter remains available on eligible failure path; no unwrapped fallback or omitted required guard to obtain success"},
+      {"id": "E02.4", "input": "Source sensitivity variant removes any one wrapper or ends it before awaited callback settlement", "expected": "Integration proof rejects that affected scope. A standalone adapter pass cannot substitute for all three shipping routes; unavailable seam stays unexecuted"}
+    ]},
+    {"id": "E03", "name": "Exact property restoration", "status": "UNEXECUTED", "cases": [
+      {"id": "E03.1", "input": "Each controlled key originally absent in an isolated trusted callback fixture", "expected": "Restore by deletion; Object.hasOwn remains false for each key"},
+      {"id": "E03.2", "input": "Each controlled key originally present-empty", "expected": "Restore present-empty, not deletion or string undefined"},
+      {"id": "E03.3", "input": "Each controlled key originally present-nonempty in adapter-only trusted fixture", "expected": "Restore exact original strings; this fixture is NOT acceptance of ambient GIT_* in shipping admission"},
+      {"id": "E03.4", "input": "Mixed absent/empty/nonempty across the three keys, success and throwing callback variants", "expected": "Independent own-presence/value snapshot for each key; no truthiness-based restoration"}
+    ]},
+    {"id": "E04", "name": "No broader environment or policy mutation", "status": "UNEXECUTED", "cases": [
+      {"id": "E04.1", "input": "Unrelated owned env sentinels; callbacks do not mutate them; success/refusal paths", "expected": "Adapter changes no keys outside exact three; HOME/TMP/loader/observer settings unchanged"},
+      {"id": "E04.2", "input": "Sensitivity variant adds permanent GIT_* injection or selector/library/permission/helper changes", "expected": "Reject scope/binding change; no weakening of later verifyExternal. No requirement to undo arbitrary unrelated callback writes is invented"}
+    ]},
+    {"id": "E05", "name": "Exclusive lock lifetime", "status": "UNEXECUTED", "cases": [
+      {"id": "E05.1", "input": "Nested adapter entry inside callback", "expected": "Reject nested entry before its mutation/callback; outer ownership preserved"},
+      {"id": "E05.2", "input": "Second entry while first callback deliberately awaits controlled settlement", "expected": "Reject overlap, including attempted mutation-before-lock sensitivity; first scope retains installed values until settlement/restoration"},
+      {"id": "E05.3", "input": "Entry attempt during controlled restoration boundary, if candidate exposes a safe seam", "expected": "Lock still held; no reuse before exact restoration. No seam means source proof plus explicit dynamic limitation, not fake runtime pass"}
+    ]},
+    {"id": "E06", "name": "Scope drift", "status": "UNEXECUTED", "cases": [
+      {"id": "E06.1", "input": "Callback leaves an installed controlled key altered", "expected": "Persistent drift reported independently of callback result; exact prior state restored or poisoned failure retained"},
+      {"id": "E06.2", "input": "Caller changes the supplied routing object during await to conceal changed installed value", "expected": "Trusted entry expectations cannot silently follow mutable caller data; drift remains refusal. No claim that entry/exit checks detect transient changed-then-restored env"}
+    ]},
+    {"id": "E07", "name": "Independent error retention", "status": "UNEXECUTED", "cases": [
+      {"id": "E07.1", "input": "Owned callback throws, restoration succeeds", "expected": "Original callback failure retained and non-success propagated; exact env restoration"},
+      {"id": "E07.2", "input": "Callback throws and leaves persistent drift", "expected": "Both callback and drift retained distinctly, neither replaces the other"},
+      {"id": "E07.3", "input": "Callback failure plus drift plus controlled restoration failure, using only a safe declared seam", "expected": "All three diagnostics survive result/report propagation; no masking by finally or string-only aggregation loss. No seam: blocked, not executed"}
+    ]},
+    {"id": "E08", "name": "Restoration failure and poisoning", "status": "UNEXECUTED", "cases": [
+      {"id": "E08.1", "input": "Successful callback but one restoration operation fails; attempt subsequent adapter entry", "expected": "Attempt remaining restores, preserve failure, poison unusable context, refuse reuse/gate work; never success merely because callback succeeded"},
+      {"id": "E08.2", "input": "Controlled failure after partial installation, before callback", "expected": "Restore every changed key; callback not entered; retain installation/restoration failures and poison if exact prior state cannot be established"}
+    ]},
+    {"id": "E09", "name": "Cancellation, timeout and exceptional finally", "status": "UNEXECUTED", "cases": [
+      {"id": "E09.1", "input": "Cooperatively cancelled/throwing delayed callback settles", "expected": "Keep ownership through settlement/restoration; cancellation not converted to success; no future callback admission during closure"},
+      {"id": "E09.2", "input": "Controlled callback remains unresolved at recipe deadline or remote phase disconnects", "expected": "HOLD, no concurrent reuse or restoration raced against live callback; outer bounded teardown evidence explicit. Await/timeout is not all-background-work closure"},
+      {"id": "E09.3", "input": "Source/controlled-finally cases: failure before verified handle/privateBefore versus failure after eligible privateBefore with incomplete phase cleanup", "expected": "Preserve original guard eligibility; no fabricated private postguard. Eligible check uses verified scope, unresolved ownership/cleanup remains HOLD. No actual privateState call"}
+    ]},
+    {"id": "E10", "name": "Future actual admitted Git authority read", "status": "UNEXECUTED", "cases": [
+      {"id": "E10.1", "input": "Only if expressly authorized later: admitted Git reads benign authority from an owned fixture using actual frozen adapter", "expected": "Independently bind binary realpath/hash, Git-core route, exact argv/cwd/effective selected env, owned fixture object/digest and status/stdout/stderr. Dispatch target evidenced before/at exec, not bare argv or posthoc hash alone; no real prerequisites/private read"},
+      {"id": "E10.2", "input": "Wrong/stale binary binding or denied selector route supplied to same future owned-read recipe", "expected": "Refusal before unauthorized target dispatch, unchanged owned authority, truthful attempted/denied counts. Do not execute an unbound binary to test its hash"},
+      {"id": "E10.3", "input": "Telemetry claims resolved target using only bare git spelling/post-run hash, or drops original exec failure fields", "expected": "Reject proof as insufficient. Preserve code/errno/syscall/path/spawnargs/status/signal when available; missing fields explicitly unknown. Node does not automatically prove resolved executable. Explicit-target probe alone does not prove unchanged helper's bare-name dispatch"}
+    ]},
+    {"id": "E11", "name": "Containment and honest lifecycle", "status": "UNEXECUTED", "cases": [
+      {"id": "E11.1", "input": "Candidate source/load graph and future recipe selection", "expected": "No actual prerequisites/privateState/copy, A10/fullgate or live fallback via callback tests; old helper/OS fence/exact-six projection/qualified tool-library policy remain bound. Unexpected reachable work blocks admission"},
+      {"id": "E11.2", "input": "Normal versus failure/forced-teardown receipts and any inherited changed-source claim", "expected": "Distinguish process-local lock from parent/observer/child environment isolation; record owned children/stdio/cleanup only if observed. No survivor-free/private-clean/security guarantee from mere callback await or prior cohort; FD qualifications unchanged"}
+    ]},
+    {"id": "E12", "name": "Immutable binding and authority discipline", "status": "UNEXECUTED", "cases": [
+      {"id": "E12.1", "input": "Candidate requests reuse of old97c/7fd evidence with changed versus byte-identical members", "expected": "Only explicitly enumerated identical bindings may carry; changed adapter/callsites/DRIVER require fresh review. Preserve old attempts/counts, exact EPERM target unknown, no retroactive attribution"},
+      {"id": "E12.2", "input": "Missing immutable packet, missing independent scoped GO, author-only GO, mutable selection or old release", "expected": "No execution admitted. Future permission table must name each allowed phase; no fullgate/prerequisite/private/A10 permission inferred"}
+    ]}
+  ],
+  "limits": [
+    "No implementation/API assumed before successor binding; candidate-specific mapping is additive, not a rewrite of these expectations",
+    "Source proof and side-effect-free callbacks can establish composition only to their actual seams; never present them as real private/prerequisite execution",
+    "A process-local cooperative lock and boundary comparisons do not prevent malicious arbitrary host JS or observe all transient env mutations",
+    "Three-key routing repair is not equivalent to whole-environment sanitization; no extra permissions/selector/library/private exceptions implied",
+    "No unresolved policy contradiction identified at freeze; missing immutable binding, API seams, numeric execution recipe and root scoped GO are pending inputs, not permission requests"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "self": {
+    "id": "owner-67010",
+    "role": "administrative-owner",
+    "pid": 67010,
+    "startUTC": "2026-08-29T16:42:14.216Z",
+    "startObserved": true,
+    "exitObserved": false,
+    "closeObserved": false,
+    "state": "LIVE_COORDINATOR"
+  },
+  "observation": "Own process PID/start only; exit pending external observation."
+}

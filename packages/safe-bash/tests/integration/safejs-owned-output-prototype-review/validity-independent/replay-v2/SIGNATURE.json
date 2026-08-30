@@ -1,0 +1,62 @@
+{
+  "schema": "owned-output-independent-replay-v2-preparation-signature-v1",
+  "signedBy": "Codex Independent Leaf Verifier",
+  "threadId": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "attestationKind": "Explicit agent/thread attestation with SHA-256 content binding; not personal cryptographic signing",
+  "firstRecordedAt": "2026-08-27T16:14:23Z",
+  "preparationFrozenAt": "2026-08-27T16:20:20.562156+00:00",
+  "status": "PREPARATION_ONLY_AWAITING_FROZEN_AUTHOR_HASHES_AND_ROOT_RELEASE",
+  "semanticApproval": "Current ROOT/user instruction approves the exact three phase2 versioned revisions; no independent execution is released yet",
+  "priorPhasesUnchanged": [
+    "65a887ac7aa0e361216b827f9fedee20389bc609",
+    "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2"
+  ],
+  "sourceManifest": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "plannedDenominators": {
+    "surfaceUnconditional": 8,
+    "surfaceConditionalExecuted": 0,
+    "lifecycleRows": 11,
+    "unchangedLifecycleControls": 8,
+    "finiteObserverControls": "Separate signed finite scope; exact released hashes pending, not extra guest cases"
+  },
+  "pendingAuthorHashes": "All v2 runner/scorer/expected/control/evidence hashes pending; no proposal/original hash substituted",
+  "assertions": {
+    "frozenGitBindingsAuthenticated": 32,
+    "phase2SignedArtifactsVerified": 3,
+    "uncommittedAuthorV2WorkInspected": false,
+    "privateCheckoutQueries": 0,
+    "privateCopyQueries": 0,
+    "freshSharedCopyQueries": 0,
+    "productRuntimeExecutions": 0,
+    "privateEngineImportsOrExecutions": 0,
+    "guestExecutions": 0,
+    "parserCalls": 0,
+    "nativeProbes": 0,
+    "networkProbes": 0,
+    "builds": 0,
+    "installs": 0,
+    "authorHelpersExecuted": 0,
+    "sourceOrOriginalFixtureChanges": 0,
+    "priorPhaseChanges": 0,
+    "newPasses": 0
+  },
+  "files": [
+    {
+      "path": "PREPARATION.md",
+      "bytes": 11533,
+      "sha256": "368a6cc2c9f21150873ef6f7fe8f3fb4a46bcbb2f81627c7ba78c3c49d9a886c"
+    },
+    {
+      "path": "CRITERIA.json",
+      "bytes": 23801,
+      "sha256": "6434a5cceea3985f56f9681c6910ddc237fa9b029cdd267608315e761b7a556d"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 11532,
+      "sha256": "d599f616daee24bc1de46507357b7a15ba4ed98a12345ac3cd4a063ca3c571bb"
+    }
+  ],
+  "noPromotion": true,
+  "stop": "Commit only four explicit new replay-v2 files; write /tmp/safe-bash-owned-output-v2-independent-prepared.txt; no polling, waiters or further work until ROOT resumes."
+}

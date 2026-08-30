@@ -1,0 +1,76 @@
+(registered 2015-04-23, last updated 2015-04-23)
+
+Name : Henrik Andersson
+
+Email : henke&henke37.cjb.net
+
+MIME media type name : Application
+
+MIME subtype name : Vendor Tree - vnd.microsoft.portable-executable
+
+Required parameters : None.
+
+Optional parameters : 
+None.
+
+Encoding considerations : binary
+
+
+Security considerations : 
+PE files contain native code that executes with the privilege of the user without the use of sandboxing. Extreme caution is advised.
+
+PE files supports digital signatures providing strong integrity protection. Basic checksums are also supported.
+
+The PE format do not provide any confidentiality protection of its own and requires external means if that is required.
+
+The PE format does not use compression.
+
+PE files allow for runtime generation of additional code.
+
+Interoperability considerations : 
+Aside from general parser and generator bugs, as well as linking with libraries that only exist in certain OS versions, the format is somewhat dependent on the bitness of the target CPU architecture.
+
+Published specification : 
+http://www.microsoft.com/whdc/system/platform/firmware/PECOFF.mspx
+
+Applications which use this media : 
+The Windows operating system and all software made for it.
+
+Fragment identifier considerations :
+PE files expose several kinds of data that may be of interest to address externally.
+
+The first type is the exported functions. Functions may be exported using numerical ordinances and/or names. The format for addressing functions is either the exported name or the ordinance as a text string.
+
+The second type is data and code at a given address. Due to relocation, addresses vary depending on where the module is loaded at runtime. This is solved by the use of relative virtual addresses (RVA for short). The fragment syntax for RVAs is the digit zero, followed by the lower case letter x followed by the RVA in base 16.
+
+The third type is resources. Resources are identified either with an integer id or a text string. The fragment syntax is either the integer id or the text string. Resources use several predefined types and are localizable, the context of the URI is expected to resolve which type and locale is desired.
+
+Ambiguities between the types of data referenced are expected to be resolved using the context of the URI.
+
+
+Restrictions on usage :
+No restrictions.
+
+Provisional registration? (standards tree only) :
+.
+
+
+Additional information :
+
+1. Deprecated alias names for this type : .
+2. Magic number(s) : MZ
+3. File extension(s) : *.exe, *.dll
+4. Macintosh file type code : .
+5. Object Identifiers: .
+
+
+
+Person to contact for further information :
+
+1. Name : Henrik Andersson
+2. Email : henke&henke37.cjb.net
+
+Intended usage : Common
+PE files are very commonly used to store built software.
+
+Author/Change controller : Henrik Andersson, on behalf of Microsoft.

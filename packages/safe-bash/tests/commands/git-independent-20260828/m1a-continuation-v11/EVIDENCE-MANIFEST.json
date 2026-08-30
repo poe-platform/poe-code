@@ -1,0 +1,83 @@
+{
+  "presealCommit": "8f7e5977873de258f13a2978587f096b8adebaa9",
+  "status": "HOLD_NO_RETRY",
+  "generatedWall": "2026-08-28T21:29:17.811766+00:00",
+  "evidenceFiles": [
+    {
+      "path": "LAUNCH-RECEIPT.json",
+      "bytes": 2578,
+      "sha256": "4de1fb8c02676ed00e4844f532eb21900f6475cc1684bb40564781d87c31c5ca"
+    },
+    {
+      "path": "POST-STOP-DATA.json",
+      "bytes": 13557,
+      "sha256": "1db9466ed0bf04bec46c9a9fdec5a76a2dd3cd656a1c0a97b732a43138359261"
+    },
+    {
+      "path": "SOURCE-DATA-SUPPLEMENT.json",
+      "bytes": 874,
+      "sha256": "8a08ce89db3e8cbb662b53af3934bd642dd37f80d9b2113b31da5b2b499d767e"
+    },
+    {
+      "path": "UNRUN.json",
+      "bytes": 11921,
+      "sha256": "ee8303b28b10b8f7dc42a5c401b2ae4e94029da10c2c4583afa1a5568095ea43"
+    },
+    {
+      "path": "audit-data.py",
+      "bytes": 3978,
+      "sha256": "04e867da9d27f4941fde564484771d06b96a015c690ddf9fcbc75fb224ed1785"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6038,
+      "sha256": "8b328deb7053092fdab6320f5045622cee5ce65ac8d57e0bfc1fc125334f6081"
+    },
+    {
+      "path": "NEXT-REVIEW.md",
+      "bytes": 2353,
+      "sha256": "aeb972e3ff18be7f3bf4326bdc880d846ab82f09fee2751722f684fd48f87ccf"
+    }
+  ],
+  "evidenceBytesExcludingThisManifest": 41299,
+  "allPresealedPayloadsUnchanged": true,
+  "runtimeDirectoryAbsent": true,
+  "rawCaptureComplete": false,
+  "scopeFilesBeforeManifest": [
+    "CRITERION.md",
+    "HANDOFF.md",
+    "HARNESS-DELTA.json",
+    "INPUTS.json",
+    "LAUNCH-RECEIPT.json",
+    "MUTANTS.json",
+    "NEXT-REVIEW.md",
+    "PACKAGE-MEMBERS.json",
+    "PACKAGE.tgz.base64",
+    "POST-STOP-DATA.json",
+    "PRESEAL.json",
+    "ROUTES-CAPACITY.json",
+    "SOURCE-DATA-SUPPLEMENT.json",
+    "SOURCE-PROOF.json",
+    "TOOLS.json",
+    "TYPES.json",
+    "UNRUN.json",
+    "audit-data.py",
+    "bootstrap.mjs",
+    "cases.mjs",
+    "fixtures.mjs",
+    "loader.mjs",
+    "observer.mjs",
+    "prepare.py",
+    "records.json",
+    "run.mjs",
+    "tool.mjs",
+    "types/negative-boundary.ts",
+    "types/negative-limits.ts",
+    "types/negative-native.ts",
+    "types/negative-public-root.ts",
+    "types/package.json",
+    "types/positive.ts",
+    "worker.mjs"
+  ],
+  "foreignIndexAtAudit": ""
+}

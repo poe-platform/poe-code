@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import {readFileSync, readdirSync, realpathSync, statSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {relative} from 'node:path';
+const root = process.cwd(), temp = process.argv[2];
+assert.equal(root, '/Users/kjopek/Workspace/safe-bash'); assert.ok(temp.startsWith('/tmp/safe-bash-owned-output-direction-review-final-'));
+const scope = 'tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final';
+const parent = 'tests/shell-stress/first-read-contract-review/owned-output-direction-review';
+const author = 'tests/shell-stress/first-read-contract-review/owned-output-direction-prototype';
+const old = 'tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1';
+const hash = value => createHash('sha256').update(value).digest('hex');
+const read = path => readFileSync(path, 'utf8');
+const json = path => JSON.parse(read(path));
+const put = (path, value) => execFileSync('apply_patch', [], {input: `*** Begin Patch\n*** Add File: ${path}\n${value.replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`, encoding: 'utf8'});
+const writeJson = (path, value) => put(path, JSON.stringify(value, null, 2) + '\n');
+const walk = path => readdirSync(path, {withFileTypes: true}).flatMap(entry => entry.isDirectory() ? walk(`${path}/${entry.name}`) : entry.isFile() ? [`${path}/${entry.name}`] : []).sort();
+const handoff = json(`${author}/handoff.json`);
+const inventory = path => walk(`${temp}/candidate/${path}`).map(file => ({path: relative(`${temp}/candidate`, file), bytes: readFileSync(file).length, sha256: hash(readFileSync(file))}));
+const manifests = {};
+for (const [directory, expected] of [['src', handoff.sourceManifestSha256], ['tests', handoff.testManifestSha256], ['dist', handoff.compiledManifestSha256]]) {const files = inventory(directory); const actual = hash(JSON.stringify(files)); assert.equal(actual, expected); manifests[directory] = {files: files.length, sha256: actual};}
+const tooling = [];
+for (const entry of [{path: process.execPath, sha256: handoff.tools.node.sha256}, ...handoff.tools.development.map(entry => ({...entry, path: `${root}/${entry.path}`})), ...handoff.compilerInputs.filter(entry => entry.classification === 'authenticated-existing-dev-tooling')]) {assert.equal(hash(readFileSync(entry.path)), entry.sha256); tooling.push(entry);}
+const compiler = json(`${temp}/final-runs/final-copied-scoped-typecheck.json`);
+assert.equal(compiler.status, 0);
+const normalize = (path, base) => {const actual = realpathSync(path), normalizedBase = realpathSync(base); return actual.startsWith(normalizedBase + '/') ? 'CANDIDATE/' + relative(normalizedBase, actual) : actual;};
+const actualCompilerInputs = compiler.stdout.trim().split('\n').map(path => ({path: normalize(path, `${temp}/candidate`), sha256: hash(readFileSync(path))}));
+const expectedCompilerInputs = handoff.compilerInputs.map(entry => ({path: normalize(entry.path, handoff.candidate), sha256: entry.sha256}));
+assert.deepEqual(actualCompilerInputs, expectedCompilerInputs);
+const prior = json(`${parent}/freeze.json`).priorIndependent;
+for (const entry of prior.files) assert.equal(hash(readFileSync(entry.path)), entry.sha256);
+const runs = walk(`${temp}/final-runs`).filter(path => path.endsWith('.json')).map(json);
+for (const run of runs) {assert.equal(run.closeEventObserved, true); assert.equal(run.groupExistsAfterClose, false); assert.equal(run.pidAfterClose, ''); assert.equal(run.timedOut, false); assert.equal(run.oversized, false); put(`${scope}/runs/${run.label}.json`, JSON.stringify(run, null, 2) + '\n'); writeJson(`${scope}/raw/${run.label}.json`, {label: run.label, status: run.status, signal: run.signal, stdout: {utf8: run.stdout, bytes: Buffer.byteLength(run.stdout), base64: Buffer.from(run.stdout).toString('base64'), sha256: hash(run.stdout)}, stderr: {utf8: run.stderr, bytes: Buffer.byteLength(run.stderr), base64: Buffer.from(run.stderr).toString('base64'), sha256: hash(run.stderr)}});}
+for (const [name, copyName] of [['inputs.json', 'inputs.json'], ['cases.json', 'cases.json']]) put(`${scope}/${copyName}`, read(`${temp}/${name}`));
+const auth = json(`${scope}/authentication.json`);
+for (const entry of auth.copies) {assert.equal(hash(readFileSync(`${temp}/${entry.target}`)), entry.boundSha256); put(`${scope}/bound/${entry.target}.data`, read(`${temp}/${entry.target}`));}
+for (const path of ['src/contracts/output.ts', 'src/contracts/command.md', 'src/shell/input.ts', 'src/shell/shell.ts', 'src/commands/network/curl.ts', 'dist/contracts/output.d.ts', 'dist/contracts/io.d.ts', 'dist/contracts/command.d.ts', 'dist/shell/types.d.ts', 'dist/commands/network/types.d.ts']) put(`${scope}/source-reference/${path}.data`, read(`${temp}/candidate/${path}`));
+const oldDiagnosisPath = `${old}/evidence/runs/H12-binding-diagnosis.json`;
+put(`${scope}/historical/v1-H12-four-diagnostics.json`, read(oldDiagnosisPath));
+put(`${scope}/historical/v1-results.json`, read(`${old}/results.json`));
+put(`${scope}/historical/v1-binding-delta.patch-data`, read(`${old}/binding-r0-to-r1.patch-data`));
+const runByName = label => {const found = runs.find(run => run.label === label); assert.ok(found, label); return found;};
+const cases = ['D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07'].map(id => ({id, profile: 'unchanged-frozen-seven-initial-binding', ...JSON.parse(runByName(`new7-r0-${id}`).stdout), raw: `runs/new7-r0-${id}.json`}));
+const oldCases = Array.from({length: 16}, (_, index) => `H${String(index + 1).padStart(2, '0')}`);
+const oldProfiles = ['initial', 'corrected'].map(profile => {
+  const results = oldCases.map((id, index) => {const label = index < 5 ? `old16-shared-${id}-adapted` : `old16-${profile}-${id}`; return {id, passed: runByName(label).status === 0, raw: `runs/${label}.json`, ...(id === 'H01' ? {supplemental: `runs/old16-${profile}-H01.json`, supplementalPassed: runByName(`old16-${profile}-H01`).status === 0} : {})};});
+  return {profile, total: 16, pass: results.filter(entry => entry.passed && entry.supplementalPassed !== false).length, results};
+});
+const tapCounts = label => {const run = runByName(label); return Object.fromEntries(['tests', 'pass', 'fail', 'skipped', 'cancelled'].map(key => {const match = new RegExp(`^# ${key} (\\d+)$`, 'm').exec(run.stdout); assert.ok(match, `${label} ${key}`); return [key, Number(match[1])];}));};
+const originalTap = tapCounts('original-five-and-head-zero'), adaptedTap = tapCounts('adapted-five');
+assert.deepEqual([originalTap.tests, originalTap.pass, originalTap.fail], [6, 2, 4]);
+assert.deepEqual([adaptedTap.tests, adaptedTap.pass, adaptedTap.fail], [5, 5, 0]);
+const legacyGroups = ['existing-remote-after-write-and-no-write', 'existing-byte-io', 'existing-shared-lifecycle', 'existing-streaming'].map(label => ({label, ...tapCounts(label)}));
+const totalLegacy = legacyGroups.reduce((sum, group) => sum + group.tests, 1);
+const controls = Array.from({length: 9}, (_, index) => ({id: `C${index + 1}`, passed: runByName(`control-C${index + 1}`).status === 0, product: index !== 8}));
+assert.equal(totalLegacy, 57);
+const results = {finishedAt: new Date().toISOString(), startedArtifactAt: statSync(`${scope}/START.md`).birthtime.toISOString(), new7: {executed: 7, total: 7, pass: cases.filter(entry => entry.passed).length, fail: cases.filter(entry => !entry.passed).length, cases}, d07Subruns: cases.at(-1).records.filter(entry => entry.event === 'subrun.result'), old16: oldProfiles, original5: {total: 5, pass: 1, fail: 4, rawCombinedWithHeadZero: originalTap, historicalBaseline: '0/5 at 1200ms; retained, not rerun', historicalV1: '1/5 unchanged; retained'}, adapted5: adaptedTap, legacy57: {total: totalLegacy, pass: legacyGroups.reduce((sum, group) => sum + group.pass, 1), headZeroSeparateControl: 1, groups: legacyGroups}, controls9: {total: 9, pass: controls.filter(entry => entry.passed).length, cases: controls, C9: 'synthetic harness timing control, not product evidence'}, native5: 'known historical reference retained; no new native breadth/replay in this execution', checks: runs.filter(run => /syntax|typecheck|build/.test(run.label)).map(run => ({label: run.label, status: run.status})), callsiteReplays: ['D02', 'D03', 'D07'].map(id => ({id, firstInstrumentation: 'unbound owned identifier swallowed during return; preserved, no callsite credit', final: JSON.parse(runByName(`callsite-r2-${id}`).stdout)})), noSourceFixes: true, noExpectationChanges: true, productionApproval: false, fullRelease: false};
+writeJson(`${scope}/results.json`, results);
+writeJson(`${scope}/source-alignment.json`, {verifiedAt: new Date().toISOString(), manifests, compilerInputs: actualCompilerInputs, compilerInputCount: actualCompilerInputs.length, tooling, noLiveSourceFallback: true, sourceChangedByTests: false, sourcePatchSha256: handoff.sourcePatchSha256, priorIntentionFilesVerified: prior.files.length, bindingRebind: {oldSourceManifestSha256: 'c13d21a4205f75a846363e7e2c13db103ed841ee61397553105745c940f31c44', newSourceManifestSha256: handoff.sourceManifestSha256, oldCompiledManifestSha256: 'c4df1c6910557948441eb47b3b7a9a9d069267e14e3745541f5d1e8c6d766bb0', newCompiledManifestSha256: handoff.compiledManifestSha256, initialDriverSha256: hash(readFileSync(`${temp}/holdouts.mjs`)), correctedDriverSha256: hash(readFileSync(`${temp}/holdouts-r1.mjs`)), driverImportPathDelta: '', driverImportPathDeltaSha256: hash(''), relativeImport: './candidate/dist/index.js', importsReboundByFreshCandidateLocationOnly: true}, sourceAttribution: {D01: ['src/commands/network/curl.ts:163 buffers bounded stdin before stdout operation at line180', 'src/commands/network/curl.ts:195 refuses request after output signal already closed; no handback declared'], D02_D03_D07: ['src/shell/shell.ts:181 always closes top-level input', 'src/shell/input.ts:80 marks arbitrary source owned', 'src/shell/input.ts:65 invokes underlying return; actual compiled callsite dist/shell/input.js:73:80'], D04_D05: ['src/contracts/output.ts explicit child(context signal, registerCleanup), transitive close and drain'], independence: auth.exposureQualification}});
+writeJson(`${scope}/closure.json`, {observedAt: new Date().toISOString(), captures: runs.length, everyChildCloseObserved: true, everyChildPidAbsent: true, everyChildGroupAbsent: true, deadlineKills: 0, outputKills: 0, signals: [], ownNetworkCases: ['D01', 'D06'].map(id => ({id, observations: cases.find(entry => entry.id === id).records.filter(record => /network.before|server.cleanup/.test(record.event))})), opaqueGates: 'resolved/rejected under harness control; not universal opaque host drain', instrumentationRounds: 2, prototypeFixRounds: 0, expectationChanges: 0, opaqueNonhangClaim: false, rootMustObserveExecutorClosed: true});
+writeJson(`${scope}/historical/references.json`, {old16EvidenceCommit: '49055fd74c53f5cdc8d35d6f617e33a3465b83f8', oldIntentionsSeal: 'aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972', oldInitialBindingSeal: 'ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1', new7FreezeCommit: 'eb78897cb276e29637ebae30c10aa0e448e31bc6', new7FreezeSha256: hash(readFileSync(`${parent}/freeze.json`)), v1FourDiagnosticsSha256: hash(readFileSync(oldDiagnosisPath)), originalBaselineAndNativeEvidence: 'tests/shell-stress/first-read-contract-review/owned-output-prototype/evidence/', acceptedOriginal: json(`${parent}/freeze.json`).acceptedOriginal, unchangedParentPreparation: '7 logical, 0 executed; current 7 actual executions are separate'});
+console.log(JSON.stringify({new7: results.new7.pass + '/7', old16: oldProfiles.map(profile => `${profile.profile}:${profile.pass}/16`), original5: '1/5', adapted5: '5/5', legacy57: results.legacy57.pass + '/57', controls9: results.controls9.pass + '/9', captures: runs.length, manifests, compilerInputs: actualCompilerInputs.length}));

@@ -1,0 +1,114 @@
+{
+  "revision": "5f7fe5d72f031db6cbacc76d9bfefcba2f58d03e",
+  "directory": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean",
+  "controls": 10,
+  "pass": 10,
+  "fail": 0,
+  "defaultCanonicalExecutions": 3,
+  "concurrentCanonicalProcesses": 2,
+  "successfulCanonicalAssertions": 6,
+  "concurrentCaptureProcesses": 2,
+  "successfulCaptureAssertions": 4,
+  "forcedFailureExecutions": 2,
+  "forcedFailurePerExecution": {
+    "pass": 1,
+    "fail": 1
+  },
+  "refusalCases": 5,
+  "trackedTests": 19773,
+  "testsBeforeSha256": "f03f5ae2fbcc9878e66d8d286b7b1385312a210a9d712260595daf72ecc9f83f",
+  "testsAfterSha256": "f03f5ae2fbcc9878e66d8d286b7b1385312a210a9d712260595daf72ecc9f83f",
+  "changes": [],
+  "sentinelBefore": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/verifier-sentinel.data",
+      "sha256": "559dcb4f94847dcb09f7861f910960ed03caf6266c6e59a7b7c852430ab26286",
+      "base64": "AP+AU0FGRQo="
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/verifier-sentinel.data",
+      "sha256": "559dcb4f94847dcb09f7861f910960ed03caf6266c6e59a7b7c852430ab26286",
+      "base64": "AP+AU0FGRQo="
+    }
+  ],
+  "sentinelAfter": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/verifier-sentinel.data",
+      "sha256": "559dcb4f94847dcb09f7861f910960ed03caf6266c6e59a7b7c852430ab26286",
+      "base64": "AP+AU0FGRQo="
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/candidate-clean/tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/artifacts/verifier-sentinel.data",
+      "sha256": "559dcb4f94847dcb09f7861f910960ed03caf6266c6e59a7b7c852430ab26286",
+      "base64": "AP+AU0FGRQo="
+    }
+  ],
+  "outputs": [
+    {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-L7fRKh",
+      "exitCode": 0,
+      "label": "success-1",
+      "files": [
+        "manifest.json",
+        "observations.json",
+        "raw.tap",
+        "stderr.txt"
+      ],
+      "beforeSourceInventory": "b350588fd5b6d4fb195a7c1d95d4b98af1d4385b3d4b97f7cfca39f8c56f65ea",
+      "observedBytesSha256": "ce8d824be57222bd8a07ad48f7ab762e3aca6447fbc41a66f5add7e7d500f246"
+    },
+    {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-GLVyoV",
+      "exitCode": 0,
+      "label": "success-2",
+      "files": [
+        "manifest.json",
+        "observations.json",
+        "raw.tap",
+        "stderr.txt"
+      ],
+      "beforeSourceInventory": "b350588fd5b6d4fb195a7c1d95d4b98af1d4385b3d4b97f7cfca39f8c56f65ea",
+      "observedBytesSha256": "ce8d824be57222bd8a07ad48f7ab762e3aca6447fbc41a66f5add7e7d500f246"
+    },
+    {
+      "directory": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-fpoxxu",
+      "exitCode": 1,
+      "label": "failure",
+      "files": [
+        "manifest.json",
+        "observations.json",
+        "raw.tap",
+        "stderr.txt"
+      ],
+      "beforeSourceInventory": "5eba98c907f4d4e3ca6b3065bdfe63ca78b028b60e48f1b7a9cc85dd14d106ca",
+      "observedBytesSha256": "c329a3ca3140b7f00e0a554259180f220394d1d7e1ece676944c14d04077c263"
+    }
+  ],
+  "cleanup": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-L7fRKh",
+      "removed": true,
+      "originalBytesPreserved": "execution/captures/success-1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-GLVyoV",
+      "removed": true,
+      "originalBytesPreserved": "execution/captures/success-2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/.scratch/capture-temp/virtual-bash-direct-curl-capture-fpoxxu",
+      "removed": true,
+      "originalBytesPreserved": "execution/captures/failure"
+    }
+  ],
+  "capturesRetainedByDesignUntilVerifierCleanup": true,
+  "candidateSourceTree": "f214264ae13d47e1369513a12ccd2d6cf944a6ef",
+  "baselineSourceTree": "f214264ae13d47e1369513a12ccd2d6cf944a6ef",
+  "historicalSourceTree": "2b42daec96c628d1fcdf7b221e0ddd788592f6dc",
+  "frozenVectorsSha256": "3a4777de116cb58cb17a029402d7a5d6eae1691dda6244350b75b0d160091704",
+  "historicalPinUnchanged": true,
+  "tsxVersion": "4.23.12",
+  "replayProfile": "No replay acceptance API implemented; capture never repins or converts failure to success",
+  "tempProfile": "TMPDIR/TMP/TEMP explicitly set to disjoint verifier-owned scratch directory; driver uses OS tmpdir API and mkdtemp. TSX_DISABLE_CACHE=1 disables compiler disk caching (confirmed in installed tsx) to distinguish fixture persistence from compiler cache; no test/source exclusions",
+  "safety": "No external network; only exact owned process watchdogs, none fired; source regression only in separate owned archive"
+}

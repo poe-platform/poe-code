@@ -1,0 +1,77 @@
+TAP version 13
+# Subtest: expr skipped regex branches submit/compile zero jobs and never access stdin
+ok 1 - expr skipped regex branches submit/compile zero jobs and never access stdin
+  ---
+  duration_ms: 2.027333
+  type: 'test'
+  ...
+# Subtest: registration is synchronous before session admission and rejected cleanup acquires nothing
+ok 2 - registration is synchronous before session admission and rejected cleanup acquires nothing
+  ---
+  duration_ms: 40.3045
+  type: 'test'
+  ...
+# Subtest: expr cleanup shares one promise with finally and closes active matching
+ok 3 - expr cleanup shares one promise with finally and closes active matching
+  ---
+  duration_ms: 29.8705
+  type: 'test'
+  ...
+# Subtest: active and startup cancellation preserve exact reasons and reap workers
+ok 4 - active and startup cancellation preserve exact reasons and reap workers
+  ---
+  duration_ms: 34.601833
+  type: 'test'
+  ...
+# Subtest: startup and active deadlines remain separate with retirement before rejection
+ok 5 - startup and active deadlines remain separate with retirement before rejection
+  ---
+  duration_ms: 115.915041
+  type: 'test'
+  ...
+# Subtest: actual bounded BRE execution is terminated by the active deadline
+ok 6 - actual bounded BRE execution is terminated by the active deadline
+  ---
+  duration_ms: 28.061166
+  type: 'test'
+  ...
+# Subtest: expr admission bytes/count, queued ownership, cancellation and sibling sessions
+ok 7 - expr admission bytes/count, queued ownership, cancellation and sibling sessions
+  ---
+  duration_ms: 47.154083
+  type: 'test'
+  ...
+# Subtest: queued abort withdraws admission without retiring another session's worker
+ok 8 - queued abort withdraws admission without retiring another session's worker
+  ---
+  duration_ms: 32.001084
+  type: 'test'
+  ...
+# Subtest: malformed reply, worker exit and syntax failure retire only the failed worker
+ok 9 - malformed reply, worker exit and syntax failure retire only the failed worker
+  ---
+  duration_ms: 170.142
+  type: 'test'
+  ...
+# Subtest: idle retirement and executor dispose keep expr sessions bounded
+ok 10 - idle retirement and executor dispose keep expr sessions bounded
+  ---
+  duration_ms: 44.686334
+  type: 'test'
+  ...
+# {"exprWorkers":20,"activeBeforeSafetyCleanup":0,"activeAfter":0}
+# Subtest: actual Shell abort settles after regex retirement and leaves siblings usable
+ok 11 - actual Shell abort settles after regex retirement and leaves siblings usable
+  ---
+  duration_ms: 53.91075
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 673.948

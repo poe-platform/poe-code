@@ -1,0 +1,7 @@
+{
+  "name": "Error",
+  "message": "EEXIST: file already exists, mkdir '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/KEYRING/'",
+  "starts": 0,
+  "ownedClosed": true,
+  "pairsCompleted": 0
+}

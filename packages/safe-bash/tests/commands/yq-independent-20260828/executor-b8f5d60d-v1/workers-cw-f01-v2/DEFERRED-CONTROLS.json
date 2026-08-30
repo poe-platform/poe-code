@@ -1,0 +1,747 @@
+{
+  "schema": 1,
+  "status": "DATA_ONLY_PRESEALED_BEFORE_VALIDATION",
+  "reviewerWitness": {
+    "revision": "9189eb71d6cc16e028793318543fd2c0437c3a4d",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-workers-review-v1/CW-F01-STATIC-WITNESS.json",
+    "blob": "0b41b26fe6f9b67e7abe3c2ce9fb6510d5a20def",
+    "sha256": "a99d9d943663981b5f7d5fe75239b6465e85d268bc7f08ce4bf4a7c40df6338f",
+    "bytes": 2794,
+    "gitMode": "100644",
+    "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+  },
+  "fixtureAuthority": {
+    "commit": "c0353685540288d504b93f206735fe4c448268ef",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/TYPE-PLAN.json",
+    "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2"
+  },
+  "target": "Private classify in the one-file assembly overlay; future separately authorized reviewer harness only. Data is not a valid full worker request.",
+  "preserveRawBeforeAssert": true,
+  "publicGap": "UNCHANGED_UNRUN",
+  "controlCount": 24,
+  "controls": [
+    {
+      "id": "CW-F01-EXACT",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n  warning: extra output must not be accepted\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Exact frozen reviewer witness; unexpectedOutput true, not accepted rejection",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "INDENT-FOUR",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n    warning: extra output must not be accepted\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "No generic space indentation permission",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "INDENT-TAB",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n\twarning: extra output must not be accepted\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Tabs do not authorize continuation",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "UNINDENTED-WARNING",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\nwarning: extra output must not be accepted\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Unrecognized output",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "EXTRA-DIAGNOSTIC",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\ntype-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Exactly one header allowed",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "LEADING-BLANK",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "\ntype-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Leading empty output is not framing",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "EXTRA-TERMINAL-BLANK",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "At most one terminal newline",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "WHITESPACE-ONLY",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n  \n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Whitespace-only output is not a continuation",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "SINGLE-CODE-ONE",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "PASS",
+      "reason": "Existing declared code1 rejection with no extra output",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "SINGLE-CODE-TWO",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 2,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "PASS",
+      "reason": "Existing declared code2 rejection with no extra output",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "DECLARED-CHAIN-LF",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n    Type 'undefined' is not assignable to type 'boolean'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "PASS",
+      "reason": "Only the declared fixture/code and exact ordered two-line continuation",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "DECLARED-CHAIN-CRLF",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\r\n  Types of property 'replace' are incompatible.\r\n    Type 'undefined' is not assignable to type 'boolean'.\r\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "PASS",
+      "reason": "Existing LF/CRLF framing retained",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "DECLARED-CHAIN-NO-TERMINAL",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n    Type 'undefined' is not assignable to type 'boolean'.",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "PASS",
+      "reason": "Single optional terminal newline, no content discarded",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-ABSENT",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Required continuation sequence cannot be omitted",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-TRUNCATED",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Incomplete declared structure",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-REVERSED",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n    Type 'undefined' is not assignable to type 'boolean'.\n  Types of property 'replace' are incompatible.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Ordered exact continuation required",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-APPENDED-WARNING",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n    Type 'undefined' is not assignable to type 'boolean'.\n  warning: extra output must not be accepted\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "No output after exact chain",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-WRONG-PROPERTY",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'other' are incompatible.\n    Type 'undefined' is not assignable to type 'boolean'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "No placeholder or arbitrary property wildcard",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-WRONG-TYPE",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n    Type 'undefined' is not assignable to type 'string'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "No arbitrary terminal type wildcard",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-WRONG-INDENT",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n  Type 'undefined' is not assignable to type 'boolean'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Indentation is part of exact text",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-TRAILING-SPACES",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible. \n    Type 'undefined' is not assignable to type 'boolean'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Trailing output cannot be trimmed away",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-ON-TS2554",
+      "input": {
+        "fixture": {
+          "name": "factory-command-extra",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2554,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n  Types of property 'replace' are incompatible.\n    Type 'undefined' is not assignable to type 'boolean'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Other fixture/code cannot acquire continuation permission",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-INSERTED-BLANK",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n\n    Type 'undefined' is not assignable to type 'boolean'.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "No blank-line waiver inside continuation",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    },
+    {
+      "id": "CHAIN-EXTRA-DIAGNOSTIC",
+      "input": {
+        "fixture": {
+          "name": "replace-undefined",
+          "outcome": "reject",
+          "diagnostic": {
+            "code": 2379,
+            "line": 2
+          }
+        },
+        "fixturePath": "/tmp/yq-static-example/type-5-replace-undefined/consumer.mts",
+        "withinDeadline": true,
+        "raw": {
+          "code": 1,
+          "signal": null,
+          "timedOut": false,
+          "provenance": {
+            "cwd": "/tmp/yq-static-example",
+            "overflow": false
+          }
+        },
+        "stdoutUtf8": "type-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n  Types of property 'replace' are incompatible.\n    Type 'undefined' is not assignable to type 'boolean'.\ntype-5-replace-undefined/consumer.mts(2,12): error TS2379: Argument of type '{ replace: undefined; }' is not assignable to parameter of type '{ readonly replace?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.\n",
+        "stderrUtf8": ""
+      },
+      "expectedStatus": "FAIL",
+      "reason": "Extra diagnostics remain failures",
+      "state": "DECLARED_UNRUN",
+      "actual": null
+    }
+  ],
+  "executed": 0,
+  "passesObserved": 0,
+  "rootGO": false
+}

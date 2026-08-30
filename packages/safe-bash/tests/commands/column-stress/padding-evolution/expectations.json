@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "classification": "frozen-native-derived-literal-expectations-before-evolution-candidate",
+  "sealedAt": "2026-08-27T15:39:38.888Z",
+  "candidateExecutionsThisPreparation": 0,
+  "recipeSha256": "7d4dd9969efaaf4abd246aa0498917a6dccbf9415f501f9dedf087379bba0ba2",
+  "nativeSha256": "9bc0d0e0d63b91c3e277a3309927bea1e2f718aeb4cd6bf9314e11ca272f5244",
+  "productProfile": "Deliberate absent trailing cell padding evolution, not a retroactive correction to historical source; unchanged strict UTF-8/scalar width/fill/unsupported options",
+  "rows": [
+    {
+      "id": "P01",
+      "variant": "literal",
+      "argv": [
+        "-t"
+      ],
+      "stdinHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+      "status": 0,
+      "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+      "stderrHex": "",
+      "basis": "N01/literal"
+    },
+    {
+      "id": "P02",
+      "variant": "two-delimiters",
+      "argv": [
+        "-t",
+        "-s",
+        ",:"
+      ],
+      "stdinHex": "612c623a630a643a3a652c0a",
+      "status": 0,
+      "stdoutHex": "6120206220206320200a6420202020206520200a",
+      "stderrHex": "",
+      "basis": "N03/two-delimiters"
+    },
+    {
+      "id": "P03",
+      "variant": "four-columns",
+      "argv": [
+        "-t"
+      ],
+      "stdinHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+      "status": 0,
+      "stdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P04",
+      "variant": "bars",
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "|"
+      ],
+      "stdinHex": "613a62623a6363633a646464640a7a0a6c6f6e673a780a",
+      "status": 0,
+      "stdoutHex": "612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P05",
+      "variant": "wide-separator",
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        "界"
+      ],
+      "stdinHex": "613a62623a6363630a7a0a6c6f6e673a780a",
+      "status": 0,
+      "stdoutHex": "61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P06",
+      "variant": "zero-separator-bytes",
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "stdinHex": "613a62623a6363630a7a0a713a3a0a",
+      "status": 0,
+      "stdoutHex": "6162626363630a7a20200a7120200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P07",
+      "variant": "four-fields",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "3a613a3a0a623a3a633a0a3a3a3a0a",
+      "status": 0,
+      "stdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P08",
+      "variant": "zero-width-columns",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "613a3a0a620a3a3a0a",
+      "status": 0,
+      "stdoutHex": "61202020200a62202020200a20202020200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P09",
+      "variant": "zero-display-not-zero-byte",
+      "argv": [
+        "-t",
+        "-s",
+        ":",
+        "-o",
+        ""
+      ],
+      "stdinHex": "613acc813acc800a620a",
+      "status": 0,
+      "stdoutHex": "61cc81cc800a620a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P10",
+      "variant": "scalar-not-grapheme",
+      "argv": [
+        "-t",
+        "-s",
+        ":"
+      ],
+      "stdinHex": "e7958c3a65cc813af09f98800a610a62623ae4b8ad0a",
+      "status": 0,
+      "stdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P11",
+      "variant": "no-final-lf",
+      "argv": [
+        "-t"
+      ],
+      "stdinHex": "20090a7a20390a616c7068612031207461696c0a62203232",
+      "status": 0,
+      "stdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P12",
+      "variant": "width-80",
+      "argv": [],
+      "stdinHex": "7a0a610a710a620a790a630a780a640a770a650a760a",
+      "status": 0,
+      "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P13",
+      "variant": "across",
+      "argv": [
+        "-x",
+        "-c",
+        "24"
+      ],
+      "stdinHex": "7a0a610a710a620a790a630a780a",
+      "status": 0,
+      "stdoutHex": "7a096109710a62097909630a780a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P14",
+      "variant": "down",
+      "argv": [
+        "-c",
+        "24"
+      ],
+      "stdinHex": "7a0a610a710a620a790a630a780a",
+      "status": 0,
+      "stdoutHex": "7a096209780a6109790a7109630a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P15",
+      "variant": "narrow",
+      "argv": [
+        "-x",
+        "-c",
+        "1"
+      ],
+      "stdinHex": "616c7068610a620a630a",
+      "status": 0,
+      "stdoutHex": "616c7068610a620a630a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P16",
+      "variant": "width-one",
+      "argv": [
+        "-t",
+        "-c",
+        "1"
+      ],
+      "stdinHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+      "status": 0,
+      "stdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    },
+    {
+      "id": "P17",
+      "variant": "comma-and-cjk",
+      "argv": [
+        "-t",
+        "-s",
+        ",界"
+      ],
+      "stdinHex": "61e7958c622c630a64e7958ce7958c652c0a",
+      "status": 0,
+      "stdoutHex": "6120206220206320200a6420202020206520200a",
+      "stderrHex": "",
+      "basis": "new pinned util-linux capture; supported fixed profile checked independently before candidate observation"
+    }
+  ],
+  "streamReferences": {
+    "E03_E04_input": {
+      "bytes": 41023,
+      "sha256": "075325c4cb02c47ce1c3307166a0753c64e51d31cc453c287dca8336c81ebab1"
+    },
+    "E04_success": {
+      "bytes": 40000,
+      "sha256": "291097e9efc056d2fd66ae82cd03861bbbb7c94de11f9f188df9e31dd7cc250e"
+    }
+  },
+  "bsdPartition": {
+    "exactCommonFill": [
+      "P12",
+      "P13",
+      "P14",
+      "P15"
+    ],
+    "unsupportedOutputSeparator": [
+      "P04",
+      "P05",
+      "P06",
+      "P09"
+    ],
+    "partialLineError": [
+      "P11"
+    ],
+    "otherDialectDifferences": [
+      "P01",
+      "P02",
+      "P03",
+      "P07",
+      "P08",
+      "P10",
+      "P16",
+      "P17"
+    ]
+  }
+}

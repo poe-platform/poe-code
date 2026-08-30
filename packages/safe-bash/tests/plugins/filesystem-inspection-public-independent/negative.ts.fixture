@@ -1,0 +1,9 @@
+import { agentCommands, createTreeCommand, createFileCommand } from 'virtual-bash';
+import { treeCommands } from 'virtual-bash/commands/tree';
+import { fileCommands } from 'virtual-bash/commands/file';
+agentCommands({ tree: { replace: true } });
+agentCommands({ file: { replace: false } });
+createTreeCommand({ limits: { maxPathBytes: 'invalid' } });
+createFileCommand({ limits: { maxReadFileBytes: 'invalid' } });
+treeCommands({ unknown: true });
+fileCommands({ unknown: true });

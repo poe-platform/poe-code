@@ -1,0 +1,105 @@
+{
+  "format": "safejs-getopts-followup-freeze-v1",
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "accepted": "2dcefd4f26588f6dc662148e3713e41b09537333",
+  "frozenAt": "2026-08-27T22:15:28.587Z",
+  "productExecutionsBeforeFreeze": 0,
+  "engineExecutionsBeforeFreeze": 0,
+  "chronology": "Existing component and guest API inspected first; dependencies copied but not executed",
+  "inputs": {
+    "PROTOCOL.md": "67f8b97cdff98c0325df39ec9709f761eb87a44a0bb57f95b05d3b8ce05affb7",
+    "G1.guest.txt": "4d292b16af5e0f4a2dd6ba7967ad961b4a78277a30151d8fbb73b13fc4410550",
+    "G2.guest.txt": "234394738ffee2ae4581ccf33d7bb7d2af54c722de24ec10aa7942037a594cab",
+    "witness-loader.mjs": "590e6b001a365e030f72b41e2ee05adb0562a522b7244352d219b5ecad29f1c3",
+    "child.mjs": "11c9bd06c7f41fe8ca11a499667b76aa552b152b8a0e6c96e1718562deb1cde5",
+    "common.mjs": "a50a456c0829225b135bc575338d7a5f7c8cea6304073d2d116537ffaf17d20d",
+    "prepare.mjs": "0c5937cfcab4995fabf888068c4a0774d4bc0b8069649a7cdc48c65193d4a22a",
+    "run.mjs": "2730a75baea367c7c117619bf4d0dc3eabddaa87ade35bf4c8881c4e4fb4cea3",
+    "finish.mjs": "225f099ea9f249de7f76997d840b2902c3df01a28a6e898ae761226897448897",
+    "verify.mjs": "39947637caadb07afc149d77a842a30ca47cfa60a22af98e74af5cd567838461"
+  },
+  "boundary": {
+    "accepted": "2dcefd4f26588f6dc662148e3713e41b09537333",
+    "files": 257,
+    "entries": 265,
+    "inventorySHA256": "4b64ab392f8065837b8fb1756cd377557ac094dd0d7805da9995e7ca0fd79f79",
+    "onlyAuthorizedExclusion": "stage2/safejs-getopts-followup-618d8967",
+    "additionsChecked": true
+  },
+  "protection": {
+    "protectedPaths": 243,
+    "sourcePaths": 2,
+    "currentLiveHashInventorySHA256": "971ea8a042611fa9bcae2a01a87cb07cbb6d020b9cf13ac84841bea4306e05a7",
+    "candidateProtectedHashesMatchBaseline": true,
+    "wholeLiveTreeClaim": false
+  },
+  "dependencies": {
+    "harness/common.mjs": {
+      "originalSHA256": "d7d8854d727391f0971d63c8672218bca8f089f4ec66e0da8dea1dbd957a464f",
+      "copiedSHA256": "d7d8854d727391f0971d63c8672218bca8f089f4ec66e0da8dea1dbd957a464f",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "harness/safejs-binding.mjs": {
+      "originalSHA256": "bea4e85e8acacdcde834a884ed5b76c6b7c3facfbd01144673856986b68dbad4",
+      "copiedSHA256": "31a89ed52bdbf47ce3fa6876c44611100bce01dcf967b2f1c8a37a203d10ae6e",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "profiles/REFERENCES.json": {
+      "originalSHA256": "0d434ce8e2e5bcedddfa00b4303e1def6a2580b3cecb7c03ff42b4993ba5d201",
+      "copiedSHA256": "0d434ce8e2e5bcedddfa00b4303e1def6a2580b3cecb7c03ff42b4993ba5d201",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "profiles/SAFEJS.json": {
+      "originalSHA256": "70a24c49808a134f2ad7f9ab9a4f57a96971fc7c6c7e90a879b60ef8a2bd1ef9",
+      "copiedSHA256": "70a24c49808a134f2ad7f9ab9a4f57a96971fc7c6c7e90a879b60ef8a2bd1ef9",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "safejs-execution-v1/private-guard.mjs": {
+      "originalSHA256": "9fa263adb1839d4c6dc6d2b51d1d19d22abc029ee833a96310ced8d2e525e17a",
+      "copiedSHA256": "9fa263adb1839d4c6dc6d2b51d1d19d22abc029ee833a96310ced8d2e525e17a",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "safejs-execution-v1/loader.mjs": {
+      "originalSHA256": "5e5d2a09a29eebba1e5fe4033a9b888cbd0a352736c43bdc80123b956841f6e7",
+      "copiedSHA256": "5e5d2a09a29eebba1e5fe4033a9b888cbd0a352736c43bdc80123b956841f6e7",
+      "commit": "618d8967009117547ab476256bc6eb0a9463309a"
+    },
+    "npm": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "use": "Offline pre-execution install only; not engine dependency"
+    },
+    "capabilityGuard": {
+      "path": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/lifecycle/guard.mjs",
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "unchanged": true
+    }
+  },
+  "candidateTree": "8cadf30519a179418fb2f7a859d6cf64ef1c8049",
+  "sourceArchiveSHA256": "00a1ef503829314de31eace327535c309e3eadbbbdc89d6e825a4ac1396877b6",
+  "sourceFiles": 988,
+  "packageSHA256": "08667ba7a67c5e9342c062007265279965138afe99c700f756df3e8ec97533f3",
+  "packageInventorySHA256": "ab5aa402fae184c1aed1093d76c1ff2cad38267409a6a7e87e9a78bf156e2d3b",
+  "compilerInventorySHA256": "21c5947bfe4aed4f6178e384731ce253adf1878a6ac31c3134e3c4676f62514e",
+  "nodeSHA256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+  "privateSnapshotSHA256": "7fe0a52991ff9b30289a4d5e8f535cbbfe0c9f4b6b6f0217ef94739c618c951f",
+  "privateShapeSHA256": "23e8b430468d2538196f0e93a894be3cafbd91a676f1eb50717019f87f07ffd3",
+  "immutableSHA256": "ef538266b81737d6ec19f8d37b54d9753390da00807e9bef42dfe667cfe6dbf9",
+  "immutableEntries": 2463,
+  "importBindingSHA256": "3b59f782fc1fd164c3702193cc0465a7cb26ebe46bcf440a94a769d75cb319d4",
+  "probes": [
+    {
+      "id": "G1",
+      "guestAssertions": 4,
+      "builtinCalls": 4,
+      "bridgeCalls": 1
+    },
+    {
+      "id": "G2",
+      "guestAssertions": 7,
+      "builtinCalls": 5,
+      "bridgeCalls": 2
+    }
+  ],
+  "scope": "Two getopts guest probes only; qualified historical25 not replayed or rescored"
+}

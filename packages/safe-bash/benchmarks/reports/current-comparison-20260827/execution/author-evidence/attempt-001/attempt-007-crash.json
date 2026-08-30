@@ -1,0 +1,244 @@
+{
+  "request": {
+    "id": "synthetic/crash",
+    "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "synthetic": true,
+    "mode": "crash",
+    "expected": {
+      "stdout": "AH+A/w==",
+      "stderr": "",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AH+A/w=="
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 180,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "synthetic/crash",
+    "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "synthetic-not-product",
+    "failures": [
+      "engine crash/forced exit",
+      "signal error SIGTERM: Error: kill EPERM",
+      "missing result",
+      "missing lifecycle phase",
+      "engine did not exit/close naturally"
+    ],
+    "events": [
+      {
+        "atMs": 0.379,
+        "kind": "group-admitted",
+        "pid": 58789,
+        "pgid": 58789,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "cwd": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "TMPDIR": "/private/tmp/safe-bash-execution-author-3bLn2Q",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 43.659,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "engine-spawn",
+        "pid": 58790,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 97.655,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1497.6524170000002
+      },
+      {
+        "atMs": 97.658,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "ready"
+      },
+      {
+        "atMs": 98.285,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 100.483,
+        "kind": "sticky-failure",
+        "reason": "engine crash/forced exit"
+      },
+      {
+        "atMs": 100.51,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "engine-exit",
+        "code": 9,
+        "signal": null
+      },
+      {
+        "atMs": 100.714,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "engine-close",
+        "code": 9,
+        "signal": null
+      },
+      {
+        "atMs": 100.776,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 100.837,
+        "id": "synthetic/crash",
+        "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 103.037,
+        "kind": "signal",
+        "signal": "SIGTERM",
+        "pgid": 58789
+      },
+      {
+        "atMs": 103.062,
+        "kind": "signal-error",
+        "error": {
+          "name": "Error",
+          "message": "kill EPERM",
+          "code": "EPERM"
+        }
+      },
+      {
+        "atMs": 103.102,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 103.105,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [
+      "SIGTERM"
+    ],
+    "result": null,
+    "engineExit": {
+      "code": 9,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 9,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": false,
+    "groupGone": true,
+    "coordinatorPid": 58789,
+    "enginePid": 58790,
+    "cancelSent": true,
+    "network": {
+      "id": "synthetic/crash",
+      "nonce": "4ed92864-9aca-41a5-bac6-f03376a75620",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 104.83,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1497.652,
+      "guest": 278.282
+    },
+    "hostBytes": 0,
+    "reportBytes": 1070
+  },
+  "check": {
+    "mode": "crash",
+    "passed": true,
+    "assessment": {
+      "comparison": null,
+      "lifecycle": false,
+      "status": "lifecycle-or-capture-failure"
+    },
+    "elapsedMs": 104.83,
+    "groupGone": true,
+    "signals": [
+      "SIGTERM"
+    ],
+    "raw": "attempt-007-crash.json"
+  }
+}

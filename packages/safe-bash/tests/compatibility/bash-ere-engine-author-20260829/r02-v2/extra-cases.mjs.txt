@@ -1,0 +1,49 @@
+await check('E02-empty-boundaries', async () => {
+  const observations = [];
+  for (const count of [0, 255, 256, 257]) {
+    const ledger = new Ledger(bounds, { work: 10000 });
+    const fragments = Array.from({ length: count }, () => ({ text: '', literal: true }));
+    const program = await compileEre(fragments, ledger);
+    assert.deepEqual((await matchEre(program, '', ledger)).values, ['']);
+    ledger.finish(); assert.ok(ledger.maximumUnitGap <= 256);
+    observations.push({ count, usage: ledger.usage, gap: ledger.maximumUnitGap });
+  }
+  const zero = new Ledger(bounds, { work: 0 });
+  await assert.rejects(compileEre([{ text: '', literal: true }], zero), error => error instanceof EreProfileLimitError && error.resource === 'work' && error.status === 3);
+  assert.equal(zero.usage.work, 0); assert.equal(zero.usage.allocationUnits, 0);
+  return observations;
+});
+await check('E03-first-pass-caller', async () => {
+  const observations = [];
+  for (const reason of [0, false]) {
+    const ledger = new Ledger(bounds, { work: 10000 });
+    const fragments = Array.from({ length: 2048 }, () => ({ text: '', literal: true }));
+    fragments.push({ text: 'a', literal: true });
+    const controller = new AbortController(); let aborter; let phase;
+    ledger.observer = () => {
+      if (!aborter && ledger.usage.work >= 256) {
+        phase = new Error('phase').stack;
+        aborter = immediate().then(() => controller.abort(reason));
+      }
+    };
+    let present = false; let caught;
+    try { await compileEre(fragments, ledger, controller.signal); } catch (error) { present = true; caught = error; }
+    finally { if (aborter) await aborter; }
+    assert.ok(aborter && present); assert.equal(caught, reason); assert.match(phase, /flatten/);
+    assert.equal(ledger.usage.work, 256); assert.equal(ledger.usage.allocationUnits, 0); assert.equal(ledger.usage.captureSlots, 0);
+    const usage = ledger.usage; await immediate(); assert.deepEqual(ledger.usage, usage);
+    observations.push({ usage, reason, phase });
+  }
+  return observations;
+});
+await check('E04-empty-cumulative', async () => {
+  const ledger = new Ledger(bounds, { work: 600 });
+  const fragments = Array.from({ length: 257 }, () => ({ text: '', literal: true }));
+  fragments.push({ text: 'a', literal: true });
+  await compileEre(fragments, ledger); const first = ledger.usage;
+  await compileEre(fragments, ledger); const second = ledger.usage;
+  assert.ok(second.work > first.work && first.work >= 258);
+  await assert.rejects(compileEre(fragments, ledger), error => error instanceof EreProfileLimitError && error.resource === 'work' && error.status === 3);
+  assert.equal(ledger.usage.work, 600); assert.equal(ledger.usage.captureSlots, 0);
+  return { first, second, final: ledger.usage };
+});

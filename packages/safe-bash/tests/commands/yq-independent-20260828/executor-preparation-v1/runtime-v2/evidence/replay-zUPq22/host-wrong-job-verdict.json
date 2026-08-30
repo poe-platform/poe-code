@@ -1,0 +1,8 @@
+{
+  "id": "host-wrong-job",
+  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+  "outcome": "MATCH",
+  "failure": null,
+  "raw": "host-wrong-job-raw.json",
+  "semanticPasses": 0
+}

@@ -1,0 +1,145 @@
+TAP version 13
+# {"review":"01","value":{"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"02","value":{"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# Subtest: 01 faithful opaque S3 readonly source executes shell cp over existing target
+ok 1 - 01 faithful opaque S3 readonly source executes shell cp over existing target
+  ---
+  duration_ms: 13.823917
+  type: 'test'
+  ...
+# Subtest: 02 faithful opaque DAV instances execute existing-target cp and preserve aliases
+ok 2 - 02 faithful opaque DAV instances execute existing-target cp and preserve aliases
+  ---
+  duration_ms: 32.086708
+  type: 'test'
+  ...
+# {"review":"04","value":{"backend":"S3FileSystem","left":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"right":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"04","value":{"backend":"WebDavFileSystem","left":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"right":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# Subtest: 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias
+not ok 3 - 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias
+  ---
+  duration_ms: 3.975542
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:1:4577'
+  failureType: 'testCodeFailure'
+  error: 'filesystem.writeFile is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    seed (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:41:20)
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:110:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: 04 actual distinct maps override identical URL bucket key and client hints
+ok 4 - 04 actual distinct maps override identical URL bucket key and client hints
+  ---
+  duration_ms: 15.763709
+  type: 'test'
+  ...
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"06","value":{"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"replay":"unknown; restored fresh observation accepted"}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"07","value":{"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"clone":"no provider-owned cross-protocol authority"}}
+# {"review":"error","value":{"code":"EACCES","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"08","value":{"stage":"metadata","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EACCES","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"08","value":{"stage":"body","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# Subtest: 05 legitimate Real DAV overlap without shared authority refuses before GET PUT and loses no bytes
+not ok 5 - 05 legitimate Real DAV overlap without shared authority refuses before GET PUT and loses no bytes
+  ---
+  duration_ms: 5.348667
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:1:5866'
+  failureType: 'testCodeFailure'
+  error: 'filesystem.writeFile is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    seed (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:41:20)
+    TestContext.<anonymous> (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:140:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: 06 fresh S3 HEAD authority rejects cached response and FS path stat replay
+ok 6 - 06 fresh S3 HEAD authority rejects cached response and FS path stat replay
+  ---
+  duration_ms: 2.542125
+  type: 'test'
+  ...
+# Subtest: 07 DAV response authority binds exact FS path stat and does not follow response clones
+ok 7 - 07 DAV response authority binds exact FS path stat and does not follow response clones
+  ---
+  duration_ms: 3.382292
+  type: 'test'
+  ...
+# Subtest: 08 late metadata denial and buffered body failure propagate EACCES without target effects
+ok 8 - 08 late metadata denial and buffered body failure propagate EACCES without target effects
+  ---
+  duration_ms: 2.912333
+  type: 'test'
+  ...
+# Subtest: 09 pending metadata cancellation preserves files and handles late rejection
+not ok 9 - 09 pending metadata cancellation preserves files and handles late rejection
+  ---
+  duration_ms: 0.917542
+  type: 'test'
+  location: '/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:1:10963'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    FsError: ECANCELED: operation canceled, copyFile '/left/source' -> '/right/target'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/safe-bash-authority-fixed-2Nwe9Y/tests/fs/authority-trust-review/authority.test.ts:269:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"review":"10 nontransactional destination effect","value":{"error":"body cancelled","returned":1,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[]}}}
+# {"review":"error","value":{"code":"EIO","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"EIO","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"11","value":{"queries":["same","distinct","same","distinct"],"reads":0,"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EROFS","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"12","value":{"backend":"S3FileSystem","reads":0,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EROFS","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"12","value":{"backend":"WebDavFileSystem","reads":0,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# Subtest: 10 pending streamed body cancellation preserves source but permits already-truncated destination
+ok 10 - 10 pending streamed body cancellation preserves source but permits already-truncated destination
+  ---
+  duration_ms: 5.95975
+  type: 'test'
+  ...
+# Subtest: 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate
+ok 11 - 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate
+  ---
+  duration_ms: 0.578375
+  type: 'test'
+  ...
+# Subtest: 12 readonly S3 and DAV destinations reject overwrite before body acquisition
+ok 12 - 12 readonly S3 and DAV destinations reject overwrite before body acquisition
+  ---
+  duration_ms: 3.143083
+  type: 'test'
+  ...
+# Error: Test "03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias" at tests/fs/authority-trust-review/authority.test.ts:1:4577 generated asynchronous activity after the test ended. This activity created the error "FsError: ENOENT: no such file or directory, stat '/'" and would have caused the test to fail, but instead triggered an uncaughtException event.
+# Error: Test "03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias" at tests/fs/authority-trust-review/authority.test.ts:1:4577 generated asynchronous activity after the test ended. This activity created the error "FsError: ENOENT: no such file or directory, stat '/'" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias" at tests/fs/authority-trust-review/authority.test.ts:1:4577 generated asynchronous activity after the test ended. This activity created the error "FsError: ENOENT: no such file or directory, stat '/'" and would have caused the test to fail, but instead triggered an uncaughtException event.
+# Error: Test "03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias" at tests/fs/authority-trust-review/authority.test.ts:1:4577 generated asynchronous activity after the test ended. This activity created the error "FsError: ENOENT: no such file or directory, stat '/'" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+# Error: Test "05 legitimate Real DAV overlap without shared authority refuses before GET PUT and loses no bytes" at tests/fs/authority-trust-review/authority.test.ts:1:5866 generated asynchronous activity after the test ended. This activity created the error "FsError: ENOENT: no such file or directory, stat '/'" and would have caused the test to fail, but instead triggered an uncaughtException event.
+# Error: Test "05 legitimate Real DAV overlap without shared authority refuses before GET PUT and loses no bytes" at tests/fs/authority-trust-review/authority.test.ts:1:5866 generated asynchronous activity after the test ended. This activity created the error "FsError: ENOENT: no such file or directory, stat '/'" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+1..12
+# tests 12
+# suites 0
+# pass 9
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 313.365083

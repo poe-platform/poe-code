@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "preparationOnly": [
+    {
+      "id": "PREP-01",
+      "role": "READ_ONLY_SOURCE_SEARCH",
+      "exitCode": 1,
+      "fact": "Grouped command source reads succeeded, but unquoted src/commands/query* glob had no zsh match. Correct path was discovered with a literal Git source search. No file/product changes or target execution occurred."
+    },
+    {
+      "id": "COORD-01",
+      "role": "PEER_MESSAGE",
+      "fact": "Provided core agent identifier was not found by send_input; no message delivered. Filesystem handoffs remain read-only coordination authority; no guessed ABI."
+    }
+  ],
+  "historicalFailuresRescored": false,
+  "targetExecutions": 0
+}

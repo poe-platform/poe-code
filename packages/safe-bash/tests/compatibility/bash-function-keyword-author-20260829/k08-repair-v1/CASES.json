@@ -1,0 +1,341 @@
+{
+  "schema": "k08-targeted-proof-matrix-v1",
+  "disposition": "FROZEN_AUTHOR_INPUTS_UNRUN_NOT_NATIVE_GOLDENS",
+  "layouts": [
+    "source-built",
+    "installed",
+    "physically-moved"
+  ],
+  "defaultExpected": {
+    "status": 0,
+    "stderr": "",
+    "noExtraFiles": true
+  },
+  "rows": [
+    {
+      "id": "P01-keyword",
+      "family": "P01",
+      "program": "function f { if test \"$1\" -gt 0; then f \"$(($1 - 1))\"; else printf done; fi; }; f 3",
+      "stdout": "done",
+      "basis": "unchanged K08 expectation; historical failure retained"
+    },
+    {
+      "id": "P01-legacy",
+      "family": "P01",
+      "program": "f() { if test \"$1\" -gt 0; then f \"$(($1 - 1))\"; else printf done; fi; }; f 3",
+      "stdout": "done",
+      "basis": "unchanged K08 legacy counterpart"
+    },
+    {
+      "id": "P02-top",
+      "family": "P02",
+      "program": "set -- 3; printf \"%s\" \"$(($1 - 1))\"",
+      "stdout": "2",
+      "basis": "direct decimal text expansion and subtraction"
+    },
+    {
+      "id": "P03-frames",
+      "family": "P03",
+      "program": "set -- 9; function inner { printf \"%s:\" \"$(($1 - 1))\"; }; function outer { inner 3; printf \"%s:\" \"$1\"; }; outer 8; printf \"%s\" \"$1\"",
+      "stdout": "2:8:9",
+      "basis": "frame-local read and existing positional restoration"
+    },
+    {
+      "id": "P04-decimals",
+      "family": "P04",
+      "program": "set -- 2 0 0 0 0 0 0 0 4 7; printf \"%s:%s:%s\" \"$(($10 + 1))\" \"$((${10} + 1))\" \"$(($9 + 1))\"",
+      "stdout": "21:8:5",
+      "basis": "unbraced one digit vs braced decimal lookup"
+    },
+    {
+      "id": "P05-precedence",
+      "family": "P05",
+      "program": "set -- \"1+2\"; printf \"%s:%s\" \"$(($1 * 3))\" \"$((${1} * 3))\"",
+      "stdout": "7:7",
+      "basis": "text must not be grouped into an arithmetic atom"
+    },
+    {
+      "id": "P05-signed",
+      "family": "P05",
+      "program": "set -- \" -2 \"; printf \"%s\" \"$(($1 * 3))\"",
+      "stdout": "-6",
+      "basis": "parameter text whitespace and sign are arithmetic input"
+    },
+    {
+      "id": "P06-repeated",
+      "family": "P06",
+      "program": "set -- 3; printf \"%s:%s\" \"$(($1+$1))\" \"$(($1+1))\"",
+      "stdout": "6:4",
+      "basis": "repeat spans, independent active expansions"
+    },
+    {
+      "id": "P07-quote",
+      "family": "P07",
+      "program": "set -- 3; printf \"%s:%s\" \"$1\" '$(($1 - 1))'",
+      "stdout": "3:$(($1 - 1))",
+      "basis": "outer single quotes remain literal; no helper activation"
+    },
+    {
+      "id": "P08-skipped",
+      "family": "P08",
+      "program": "set -u; false && printf \"%s\" \"$(($1+1))\"; printf ok",
+      "stdout": "ok",
+      "basis": "inactive shell branch does not prepare arithmetic parameters"
+    },
+    {
+      "id": "P08-active",
+      "family": "P08",
+      "program": "set -u; printf \"%s\" \"$((0 && $1))\"; printf BAD",
+      "status": 1,
+      "stdout": "",
+      "stderr": "shell: line 1: 1: unbound variable\n",
+      "basis": "active parameter expansion precedes arithmetic short circuit; source-derived expected diagnostic"
+    },
+    {
+      "id": "P09-missing",
+      "family": "P09",
+      "program": "set --; printf \"%s\" \"$(($1 - 1))\"",
+      "stdout": "-1",
+      "basis": "missing without nounset expands to empty text before arithmetic"
+    },
+    {
+      "id": "P09-empty",
+      "family": "P09",
+      "program": "set -u; set -- \"\"; printf \"%s\" \"$(($1 - 1))\"",
+      "stdout": "-1",
+      "basis": "present empty parameter is not nounset"
+    },
+    {
+      "id": "P10-injection",
+      "family": "P10",
+      "program": "set -- '$(printf BAD)'; printf \"%s\" \"$(($1))\"",
+      "status": 1,
+      "stdout": "",
+      "stderr": "shell: line 1: $(printf BAD): arithmetic syntax error in expression (error token is \"$(printf BAD)\")\n",
+      "basis": "expanded text is parsed as arithmetic, never shell-evaluated"
+    },
+    {
+      "id": "P11-write",
+      "family": "P11",
+      "program": "COUNT=1; set -- COUNT; printf \"%s:%s:%s\" \"$(($1 = 4))\" \"$COUNT\" \"$1\"",
+      "stdout": "4:4:COUNT",
+      "basis": "textual named lvalue goes through existing checked-write proxy, positional unchanged"
+    },
+    {
+      "id": "P11-readonly",
+      "family": "P11",
+      "program": "readonly COUNT=1; set -- COUNT; printf \"%s\" \"$(($1 = 4))\"; printf BAD",
+      "status": 1,
+      "stdout": "",
+      "stderrContains": "COUNT: readonly variable",
+      "basis": "existing readonly diagnostic identity retained; full raw stderr retained, no normalization"
+    },
+    {
+      "id": "P12-below",
+      "family": "P12",
+      "program": "set -- 1234567; printf \"%s\" \"$(($1$1))\"",
+      "stdout": "12345671234567",
+      "limits": {
+        "maxExpansionBytes": 16
+      },
+      "basis": "14 generated arithmetic bytes, individually admitted earlier operands"
+    },
+    {
+      "id": "P12-at",
+      "family": "P12",
+      "program": "set -- 12345678; printf \"%s\" \"$(($1$1))\"",
+      "stdout": "1234567812345678",
+      "limits": {
+        "maxExpansionBytes": 16
+      },
+      "basis": "16 generated bytes, not normal-field source17 workaround"
+    },
+    {
+      "id": "P12-above",
+      "family": "P12",
+      "program": "set -- 123456789; printf \"%s\" \"$(($1$1))\"",
+      "expectedRejection": {
+        "name": "ShellLimitError",
+        "limit": "maxExpansionBytes"
+      },
+      "limits": {
+        "maxExpansionBytes": 16
+      },
+      "stdout": "",
+      "basis": "18 generated bytes with all individual lexical operands<=16; mutant must demonstrate target admission, not assume reachability"
+    },
+    {
+      "id": "P14-command",
+      "family": "P14",
+      "program": "set -- 3; (( $1 - 3 )); printf \"%s\" \"$?\"",
+      "stdout": "1",
+      "basis": "arithmetic command zero status mapping unchanged"
+    },
+    {
+      "id": "P14-division",
+      "family": "P14",
+      "program": "set -- 0; printf \"%s\" \"$((1 / $1))\"; printf BAD",
+      "status": 1,
+      "stdout": "",
+      "stderr": "shell: line 1: 1 / 0: division by 0 (error token is \"0\")\n",
+      "basis": "same evaluator diagnostic rendered against expanded text"
+    },
+    {
+      "id": "P14-let",
+      "family": "P14",
+      "program": "set -- 3; let \"$1 - 1\"; printf \"%s\" \"$?\"",
+      "stdout": "0",
+      "basis": "LET receives an already-expanded ordinary word; no LET code change"
+    },
+    {
+      "id": "P15-static",
+      "family": "P15",
+      "program": "COUNT=0; printf \"%s:%s:%s\" \"$((0 && (COUNT=7)))\" \"$((9223372036854775807 + 1))\" \"$COUNT\"",
+      "stdout": "0:-9223372036854775808:0",
+      "basis": "unchanged static arithmetic, int64 and lazy writes"
+    }
+  ],
+  "helperControls": [
+    {
+      "id": "H01",
+      "family": "P04",
+      "source": "$0+${000}+${10}+$10",
+      "positional": [
+        "2",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "4",
+        "7"
+      ],
+      "arg0": "5",
+      "expectedPrepared": "5+5+7+20",
+      "basis": "explicit private read context, not invented Shell argv0"
+    },
+    {
+      "id": "H02",
+      "family": "P06",
+      "source": "$1+$1",
+      "positional": [
+        "3"
+      ],
+      "expectedPrepared": "3+3",
+      "parameterReadNames": [
+        "1",
+        "1"
+      ]
+    },
+    {
+      "id": "H03",
+      "family": "P12",
+      "source": "$1$1",
+      "positional": [
+        "é"
+      ],
+      "maximumBytes": 4,
+      "expectedPrepared": "éé",
+      "basis": "byte accounting, preparation only; arithmetic parser correctly rejects unicode identifier"
+    },
+    {
+      "id": "H04",
+      "family": "P12",
+      "source": "$1$1",
+      "positional": [
+        "é"
+      ],
+      "maximumBytes": 3,
+      "expectedLimit": true
+    },
+    {
+      "id": "H05",
+      "family": "P13",
+      "source": "$1+1",
+      "injectedCheckpointReasons": [
+        "undefined",
+        "null",
+        "false",
+        0,
+        "Error"
+      ],
+      "expected": "identical thrown reason and no evaluator call"
+    },
+    {
+      "id": "H06",
+      "family": "P13",
+      "source": "$1+1",
+      "injectedReadReasons": [
+        "undefined",
+        "null",
+        "false",
+        0,
+        "Error"
+      ],
+      "expected": "identical thrown reason, no evaluate, temporary accounting released"
+    },
+    {
+      "id": "H07",
+      "family": "P15",
+      "source": "$NAME+1",
+      "expected": "original ArithmeticProgram identity; no positional read/no new expansion support"
+    },
+    {
+      "id": "H08",
+      "family": "P15",
+      "source": "\\$1+1",
+      "expected": "original ArithmeticProgram identity; unsupported escaping not rewritten"
+    },
+    {
+      "id": "H09",
+      "family": "P16",
+      "mutations": [
+        "bypass preparer",
+        "replace substituted text with grouped numeric atom",
+        "omit expanded-byte admission"
+      ],
+      "expected": "frozen targeted controls must fail; unrun"
+    }
+  ],
+  "retainedGroups": [
+    {
+      "path": "tests/shell/core.test.ts",
+      "title": "functions, positional arguments, groups, returns and exits"
+    },
+    {
+      "path": "tests/shell/core.test.ts",
+      "lines": [
+        64,
+        66
+      ],
+      "rule": "prior effects before deferred arithmetic error"
+    },
+    {
+      "path": "tests/shell/runtime-regressions.test.ts",
+      "title": "arithmetic stays bounded and handles short circuit, updates and overflow"
+    },
+    {
+      "path": "tests/shell/fatal-expansion.test.ts",
+      "rule": "fatal substitution vs nonfatal arithmetic command"
+    },
+    {
+      "path": "tests/shell/invocation-closure-sh.test.ts",
+      "rule": "readonly arithmetic writes"
+    },
+    {
+      "path": "tests/shell/parser-regressions.test.ts",
+      "lines": [
+        34,
+        37
+      ],
+      "rule": "malformed arithmetic stays deferred"
+    },
+    {
+      "path": "tests/shell/substring-cases.ts",
+      "rule": "existing substring bridge is unchanged"
+    }
+  ],
+  "historical": "No replacement of original K08/51of54/24of24/2MiB STOP. All proposed cases currently UNRUN."
+}

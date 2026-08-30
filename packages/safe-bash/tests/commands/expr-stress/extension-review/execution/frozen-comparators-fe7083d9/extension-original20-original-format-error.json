@@ -1,0 +1,8 @@
+{
+  "inputPath": "tests/commands/expr-stress/extension-review/execution/acceptance-fe7083d9-realpath-corrected/extension-original20-report.json",
+  "inputSha256": "43a4d392e1d0dad23824f5a10891f2e17dff786a7d37df26e5c18f2233fad09a",
+  "status": 1,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'gnu-9.7-darwin-C',\n    'gnu-9.7-darwin-en_US.UTF-8',\n+   'apple-darwin-C',\n+   'apple-darwin-en_US.UTF-8'\n  ]\n\n    at compareProfiles (file:///Users/kjopek/Workspace/safe-bash/[eval1]:177:10)\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:238:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: [\n    'gnu-9.7-darwin-C',\n    'gnu-9.7-darwin-en_US.UTF-8',\n    'apple-darwin-C',\n    'apple-darwin-en_US.UTF-8'\n  ],\n  expected: [ 'gnu-9.7-darwin-C', 'gnu-9.7-darwin-en_US.UTF-8' ],\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "reason": "Frozen comparator requires GNU-only profiles. Original combined GNU/Apple product report is preserved; this is a report-envelope defect, not new product execution or changed outcomes."
+}

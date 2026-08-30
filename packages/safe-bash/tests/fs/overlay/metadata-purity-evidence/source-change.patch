@@ -1,0 +1,13 @@
+diff --git a/src/fs/overlay/index.ts b/src/fs/overlay/index.ts
+index f75793a6..fb6d3dc2 100644
+--- a/src/fs/overlay/index.ts
++++ b/src/fs/overlay/index.ts
+@@ -533,7 +533,7 @@ export class OverlayFileSystem implements FileSystem {
+   }
+ 
+   async readdir(path: string, options: FsOptions = {}): Promise<DirectoryEntry[]> {
+-    return this.run(options, async () => this.listing(await this.required(path, options), options));
++    return this.run(options, async () => this.listing(await this.required(path, options), options), false);
+   }
+ 
+   async realpath(path: string, options: FsOptions = {}): Promise<string> {

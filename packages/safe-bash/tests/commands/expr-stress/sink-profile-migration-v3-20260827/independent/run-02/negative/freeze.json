@@ -1,0 +1,105 @@
+{
+  "frozenAt": "2026-08-27T21:39:06.277Z",
+  "deltas": [
+    {
+      "target": "canonical",
+      "path": "contracts.test.js",
+      "beforeSha256": "d4027982c78e002ae55a256990a75b801dfedc6d3929d933ebf83e2395b5738d",
+      "afterSha256": "d4027982c78e002ae55a256990a75b801dfedc6d3929d933ebf83e2395b5738d",
+      "change": "unchanged"
+    },
+    {
+      "target": "canonical",
+      "path": "helpers.js",
+      "beforeSha256": "715be0fb405439c2cc84eb740b35b70600c8e749b0f65e121b25bdf21df997f4",
+      "afterSha256": "38d45e13418d88b7c4d05a93a0b6963f4de02fa237b40bf40e6986ebfb8e58d6",
+      "change": "Only createExprCommand import to explicit mutation wrapper"
+    },
+    {
+      "target": "canonical",
+      "path": "package.json",
+      "beforeSha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "afterSha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "change": "unchanged"
+    },
+    {
+      "target": "core",
+      "path": "revised/core/runtime-driver.mjs",
+      "beforeSha256": "1ecb6e435f0fd42956836b593de9c4015a94e90788d7a832e9504449586a94f5",
+      "afterSha256": "8020afa84ba27b6481c0a281e93b40b7022c1c0e478b688a57c3b7e234e010ba",
+      "change": "Only explicit mutation import seam; all assertions unchanged"
+    },
+    {
+      "target": "quota",
+      "path": "revised/quota/probe.mjs",
+      "beforeSha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "afterSha256": "7ed326af1960ce5b2b7c9f077c3e81098d67111c24785caddef95439ae050c94",
+      "change": "Only explicit mutation import seam and single target selection; all assertions unchanged"
+    },
+    {
+      "target": "nearby",
+      "path": "support/nearby-driver.mjs",
+      "beforeSha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe",
+      "afterSha256": "d43b205bb216dad2faac979db9404db93528e89c1edb70035a1370e2f17baaea",
+      "change": "Only explicit mutation import seam; all assertions unchanged"
+    }
+  ],
+  "inputs": {
+    "canonical": {
+      "directory": true
+    },
+    "canonical/contracts.test.js": {
+      "bytes": 11889,
+      "sha256": "d4027982c78e002ae55a256990a75b801dfedc6d3929d933ebf83e2395b5738d"
+    },
+    "canonical/helpers.js": {
+      "bytes": 1335,
+      "sha256": "38d45e13418d88b7c4d05a93a0b6963f4de02fa237b40bf40e6986ebfb8e58d6"
+    },
+    "canonical/package.json": {
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    "core": {
+      "directory": true
+    },
+    "core/driver.mjs": {
+      "bytes": 11011,
+      "sha256": "8020afa84ba27b6481c0a281e93b40b7022c1c0e478b688a57c3b7e234e010ba"
+    },
+    "core/entry.mjs": {
+      "bytes": 140,
+      "sha256": "7554912785f484d628d2cc8c8f90e0293be7c61b782e9eab0b44dcbf5343b86a"
+    },
+    "nearby": {
+      "directory": true
+    },
+    "nearby/controls.json": {
+      "bytes": 401,
+      "sha256": "52937859bf25a36c1d8dfd1f600e6ea61651f0605d74f8487b1b43a7502c5ff2"
+    },
+    "nearby/driver.mjs": {
+      "bytes": 8292,
+      "sha256": "d43b205bb216dad2faac979db9404db93528e89c1edb70035a1370e2f17baaea"
+    },
+    "quota": {
+      "directory": true
+    },
+    "quota/cases.mjs": {
+      "bytes": 3662,
+      "sha256": "95b43097e3d7685504fc11db5b90f6fa59988b34daf5ee236e679ca8b8b3ea40"
+    },
+    "quota/common.mjs": {
+      "bytes": 920,
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f"
+    },
+    "quota/driver.mjs": {
+      "bytes": 9592,
+      "sha256": "7ed326af1960ce5b2b7c9f077c3e81098d67111c24785caddef95439ae050c94"
+    }
+  },
+  "negativeDriverSha256": "e45de0912aa3a8a6609506d5cd7c502c2bb8268068e81807284a6c22e7b8a006",
+  "wrapperSha256": "540b0627da7da1dee5a9712a6f2c5b3728701d3e73fb0d01f2c5712eea73fb96",
+  "actualProductUnmodified": true,
+  "method": "Run actual c3 execute to its original stdout rejection and completed cooperative cleanup; explicit test-only wrapper mutates subsequent settlement or diagnostic output. Original sink callbacks and all migrated assertions execute. One selected target per profile, not a broad cohort replay."
+}

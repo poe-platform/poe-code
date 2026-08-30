@@ -1,0 +1,19 @@
+{"atMs":0.349,"kind":"group-admitted","pid":86659,"pgid":86659,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-w3lrWQ","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-w3lrWQ","TMPDIR":"/private/tmp/safe-bash-execution-author-w3lrWQ","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":37.754,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"engine-spawn","pid":86660,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":88.804,"kind":"request-start","absoluteDeadlineMs":1488.8012500000004}
+{"atMs":88.807,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"ready"}
+{"atMs":89.457,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"phase","phase":"exec-start"}
+{"atMs":89.544,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"phase","phase":"exec-settled"}
+{"atMs":89.708,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"phase","phase":"snapshot-complete"}
+{"atMs":89.779,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"phase","phase":"dispose-start"}
+{"atMs":89.866,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"phase","phase":"dispose-settled"}
+{"atMs":90.619,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'wrong-request'\\n- 'synthetic/wrong-id'\\n\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":90.64,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"failure","error":{"name":"AssertionError","message":"Expected values to be strictly equal:\n+ actual - expected\n\n+ 'wrong-request'\n- 'synthetic/wrong-id'\n","code":"ERR_ASSERTION"}}
+{"atMs":92.602,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"engine-exit","code":0,"signal":null}
+{"atMs":92.63,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"engine-close","code":0,"signal":null}
+{"atMs":92.658,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":92.716,"id":"synthetic/wrong-id","nonce":"5f2419b6-3328-40ca-9f15-48cc5764c5f6","kind":"session-complete"}
+{"atMs":94.201,"kind":"signal","signal":"SIGTERM","pgid":86659}
+{"atMs":94.915,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":94.919,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":94.921,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

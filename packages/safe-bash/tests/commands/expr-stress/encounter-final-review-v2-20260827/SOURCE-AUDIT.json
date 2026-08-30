@@ -1,0 +1,279 @@
+{
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "quota": "c25e682a7baa2f2abf70cebf8c01d11d0ad5daee",
+  "freeze": "30dda5b930c6e5ea29a54348926fc02b81f9d8e6",
+  "auditedAt": "2026-08-27T21:04:34.059Z",
+  "sourceFiles": [
+    {
+      "filename": "src/commands/expr/syntax.ts",
+      "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4",
+      "blob": "352e8d330bfb54427844451711d56b7959a4d147",
+      "sameAsQuotaCandidate": false
+    },
+    {
+      "filename": "src/commands/expr/evaluate.ts",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+      "blob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+      "sameAsQuotaCandidate": false
+    },
+    {
+      "filename": "src/commands/expr/index.ts",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sameAsQuotaCandidate": false
+    },
+    {
+      "filename": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "blob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "blob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "src/commands/regex-execution/client.ts",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "src/commands/regex-execution/worker.ts",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "src/index.ts",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "blob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "package.json",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "blob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "sameAsQuotaCandidate": true
+    },
+    {
+      "filename": "package-lock.json",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sameAsQuotaCandidate": true
+    }
+  ],
+  "productionChanges": [
+    "src/commands/expr/evaluate.ts",
+    "src/commands/expr/index.ts",
+    "src/commands/expr/syntax.ts"
+  ],
+  "extractedSourceAndFixtureFilesIndividuallyAuthenticated": 349,
+  "sharedHashes": [
+    {
+      "filename": "tests/commands/regex-execution/executor.test.ts",
+      "sha256": "c66088f18f79d9c16a30ad30936e2c4b2d85da04ca11a56b7789c506cc1574ad",
+      "qualifiedSha256": "c66088f18f79d9c16a30ad30936e2c4b2d85da04ca11a56b7789c506cc1574ad",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/regex-execution/commands.test.ts",
+      "sha256": "47ddfea7abcb259838cc29920ad044cdffbd0e954043349b4289eaf79da7af67",
+      "qualifiedSha256": "47ddfea7abcb259838cc29920ad044cdffbd0e954043349b4289eaf79da7af67",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+      "sha256": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf",
+      "qualifiedSha256": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "qualifiedSha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+      "sha256": "deee09a7278767c0b9e8ea4165d26eb47d9842fd6217e3362b5c32888a019f89",
+      "qualifiedSha256": "deee09a7278767c0b9e8ea4165d26eb47d9842fd6217e3362b5c32888a019f89",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "sha256": "65a63ccce8a60e33024a6accbce10757475954a2797c26a3f65522588efaf39f",
+      "qualifiedSha256": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd",
+      "sameAsQualified": false,
+      "diffFromQualified": "diff --git a/tests/commands/regex-execution/continuation/glob.test.ts b/tests/commands/regex-execution/continuation/glob.test.ts\nindex 8f46376e..b28962f8 100644\n--- a/tests/commands/regex-execution/continuation/glob.test.ts\n+++ b/tests/commands/regex-execution/continuation/glob.test.ts\n@@ -2,7 +2,7 @@ import assert from \"node:assert/strict\";\n import { getEventListeners } from \"node:events\";\n import test from \"node:test\";\n import { RegexExecutor } from \"../../../../src/commands/regex-execution/client.js\";\n-import { inputBytes, type GlobDescriptor } from \"../../../../src/commands/regex-execution/protocol.js\";\n+import { inputBytes, type Descriptor, type GlobDescriptor, type Match, type Row } from \"../../../../src/commands/regex-execution/protocol.js\";\n import { Glob, ignoreRules, matchGlobs } from \"../../../../src/commands/search/glob.js\";\n \n test(\"worker globs retain code-unit strings, Unicode predicates and ancestor policy\", async () => {\n@@ -46,7 +46,9 @@ test(\"glob validation preserves first invalid rule and ignore-file literal brack\n });\n \n test(\"glob batching caps ordinary descriptors without reordering matches\", async () => {\n-  const executor = new RegexExecutor();\n+  const executor: Omit<RegexExecutor, \"request\"> & {\n+    request(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal): Promise<Match[][]>;\n+  } = new RegexExecutor();\n   const session = executor.open(new AbortController().signal);\n   const original = executor.request.bind(executor);\n   const requests: { patterns: number; rows: number; bytes: number }[] = [];\n"
+    },
+    {
+      "filename": "tests/commands/regex-execution/continuation/public.test.ts",
+      "sha256": "9ae166a7a444b293b54aedf38c0ed1630cf9c22d57d18262bbf3e633fa178dcc",
+      "qualifiedSha256": "9ae166a7a444b293b54aedf38c0ed1630cf9c22d57d18262bbf3e633fa178dcc",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/grep-aliases/aliases.test.ts",
+      "sha256": "d166c44a1dc1e25878ed313d66097cd17e915b46bc2ba92750dcc5a8579a9ff5",
+      "qualifiedSha256": "d166c44a1dc1e25878ed313d66097cd17e915b46bc2ba92750dcc5a8579a9ff5",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/grep-aliases/safety.test.ts",
+      "sha256": "4fda8ad4d35c9ef479aeed637b76e7bc31071ae7a6f8f0a7bdcce02999ab25f0",
+      "qualifiedSha256": "4fda8ad4d35c9ef479aeed637b76e7bc31071ae7a6f8f0a7bdcce02999ab25f0",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/search/rg.test.ts",
+      "sha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd",
+      "qualifiedSha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    },
+    {
+      "filename": "tests/commands/search/safety.test.ts",
+      "sha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49",
+      "qualifiedSha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49",
+      "sameAsQualified": true,
+      "diffFromQualified": null
+    }
+  ],
+  "authenticatedHistoricalInputs": [
+    {
+      "filename": "tests/commands/expr-stress/encounter-independent-v2-20260827/baseline-01/original-results.json",
+      "commit": "8a997c8fc2c4074af7a6367bd3d66de0c49d4383",
+      "sha256": "6883d8fce1041be55a08edc73342f8e6d3c11c1f7186a3434b3da2ba61442d6f"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/FREEZE.json",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "7819e161a3d1976d814774d52b5bd541f76ecd0866e2d89373c474fa188116ea"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/FREEZE.md",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "35f3732443d23d000b1050fab6626d939729737924212b8141b18543bdc1e899"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/additional-cases.mjs",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "cf1f75b5b8a8adcfcf458da33259e8b11eb0249cea5afd05ae8ed870764f9fc9"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/additional-probe.mjs",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "633de3478a796e0c09f7bbf65758b4821f88f1b58d8c945129983f92ac3062c4"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/cases.mjs",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/common.mjs",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/probe.mjs",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/replay.mjs",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "8fcce83c962ec37f8b481a7a7bcb2add0a5b6747fa28655b90c1dc23a77d0692"
+    },
+    {
+      "filename": "tests/commands/expr-stress/output-quota-independent-v2-20260827/scoped-tsconfig.json",
+      "commit": "2fc54ff376e56b8865fafdc5409f3d64501d78e7",
+      "sha256": "3c228770e06866e0bb6fdd3524e91eadb9f6bbda3406f8001025c9fedd8aba3f"
+    }
+  ],
+  "authorReceipt": {
+    "path": "/tmp/expr-encounter-author-v2-20260827-candidate.txt",
+    "present": true,
+    "text": "Encounter-order author v2 CANDIDATE READY — 2026-08-27\n\nSource commit: c3e40f8bd721da5e496f3b3abfd51aee45db5a84\nEvidence commit: 2dd1ca10f8adf2ae31ebf5e0b1bd3933f52026c2\nRequired quota ancestor: c25e682a7baa2f2abf70cebf8c01d11d0ad5daee\nIndependent preimplementation freeze: 30dda5b930c6e5ea29a54348926fc02b81f9d8e6\n\nSOURCE OWNERSHIP RELEASED: syntax.ts, evaluate.ts, index.ts and the new encounter-order.test.ts are no longer being edited by this leaf. No further source edits without root coordination. A different final reviewer follows. No redelegation occurred.\nIndex integration waited for the quota author's source/index release. Quota fix is preserved exactly outside import/entry-call replacement; ORDERING-DELTA.json verifies this by exact transformed-text equality. internal.ts, bre-worker.ts and shared regex client/protocol are unchanged. No prototype repeat-worker promotion; existing nullable-backreference refusal remains.\n\nCommitted SHA-256 (also matched live owned paths at handoff):\nsrc/commands/expr/syntax.ts 68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4\nsrc/commands/expr/evaluate.ts c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d\nsrc/commands/expr/index.ts e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e\ntests/commands/expr/encounter-order.test.ts 717833e284ba7de577a063b52b53a85ae5b0f19af38f5dce7a93fb761da9cb66\nExact original 61 array SHA-256: d4bb6baf0109a8f5ba2e6752a1bb5d56c492cbdde43495883f68a4a2ea124a47\nOriginal cases-file SHA-256: d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314\n\nPinned quota-only baseline -> exact committed candidate:\nUnchanged original 61: 42/61 -> 61/61; all 19 repaired (11 arithmetic/noninteger order + 8 regex order/submission; three of the eight already had identical final diagnostics but lacked a required job).\nFrozen semantic subset: 25/44 -> 44/44; project subset 17/17 -> 17/17. GNU9.7 Darwin historical expectations only, no fresh native execution or Linux claim.\nActual Shell overlapping replay: 3/5 -> 5/5.\nIndependent nearby controls: 11/16 -> 15/16. Remaining stdout-failure-no-regex-replay expects old status-3 recasting; both quota baseline and candidate reject the exact sink reason after one awaited job and cleanup.\nNew focused tests frozen before production changes: 9/28 -> 28/28.\nUnchanged selected canonical tests: 558/559 -> 558/559. Remaining tests/commands/expr/contracts.test.ts:138 expects old stdout-sink recasting for argv [\"1\"]; quota and candidate reject original Error(\"sink failure\"), return no status, no stderr, zero matcher jobs. Later assertions in that same test are not reached.\nCombined selected expr: 567/587 -> 586/587, NOT all green. Two native-oracle test files not executed; maintained TS inputs still strictly checked.\nShared grep/rg/expr protocol: 61/61 -> 61/61 (five protocol tests overlap expr; not additive unique coverage).\nHistorical separate old-cap: 0/1 -> 0/1; argv [\"1\",\"x\"], maxOutputBytes:1 still gives 3/emergency, not historical expected 2/full syntax.\nStrict source/declaration builds and strict selected source/test checks (--skipLibCheck false): pass on both exact archives. Not a full public-consumer gate.\n\nNo newly failing parse-all-before-jobs assumption was observed within the 559 unchanged selected non-native canonical tests; no global claim. All 19 original old/new argv/status/bytes/events are recorded individually. Versioned migration proposal for remaining quota conflicts is in REPORT.md; no old tests or frozen controls changed and no old green counts inflated.\n\nEvidence: tests/commands/expr-stress/encounter-author-v2-20260827/\nREPORT.md: ownership, counts, all 19 IDs/categories, conflicts, proposed versioned migration, limits.\nORDERING-DELTA.json: exact source hashes, quota preservation proof, all 19 old/new inputs/status/bytes/jobs/events, remaining failures.\ncandidate-01/ and quota-baseline-01/: exact Git-selected archives, source/test and compiled inventories, strict checks, unchanged drivers, TAP and lifecycle observations.\nSEAL.json / verify.mjs --verify: 52 authenticated evidence files, append-aware evidence inventory; verified after evidence commit.\nFull extracted source/tests and compiled inventories detect added entries before/after. Frozen selected paths rehashed, not an append-proof entire independent evidence-tree claim. All owned scratch/temporary parents removed; original/nearby drivers zero active workers; canonical lifecycle safety hooks zero workers before safety cleanup. No SIGSTOP, no dependencies or runtime host tools added.\nSource diff check clean. Raw immutable TAP includes test-name/traces trailing spaces, so evidence diff --check reports those; captured bytes intentionally preserved, not reformatted.\nScope: author candidate only; no general GNU/POSIX parity, Linux, superiority, performance, full public completion or 72-hour claim.\n"
+  },
+  "manualFindings": [
+    {
+      "paths": [
+        "src/commands/expr/syntax.ts:14",
+        "src/commands/expr/syntax.ts:47",
+        "src/commands/expr/syntax.ts:84"
+      ],
+      "finding": "Single monotonic token position; active literals and reductions execute while descending precedence. Each active nested call/binary reduction is awaited before continuing. No replay parse/evaluate pass, matcher job cache or budget replacement."
+    },
+    {
+      "paths": [
+        "src/commands/expr/syntax.ts:47",
+        "src/commands/expr/syntax.ts:68",
+        "src/commands/expr/syntax.ts:97"
+      ],
+      "finding": "Inactive traversal keeps structural operands/depth only; no value field, encode, evaluateCall or evaluateBinary is produced/called for an inactive operand. Empty structural arrays/objects still exist; this is not a zero-JavaScript-allocation claim. Syntax diagnostics may encode the offending token for quoting."
+    },
+    {
+      "paths": [
+        "src/commands/expr/index.ts:19",
+        "src/commands/expr/index.ts:28"
+      ],
+      "finding": "One Budget per admitted invocation; one withRegexSession scope. Regex limits use the existing remaining budget, result.steps are charged back, and captured bytes are copied once from the owned match subject. No replay-driven numeric/string/worker allocations."
+    },
+    {
+      "paths": [
+        "src/commands/expr/internal.ts:29",
+        "src/commands/expr/internal.ts:67",
+        "src/commands/regex-execution/protocol.ts:68"
+      ],
+      "finding": "Existing argument byte/count, numeric, node/depth, work, string/output and worker limits remain. Parser nodes and inactive structure remain charged. Hard parser maximum 256 and protocol worker ceilings unchanged."
+    },
+    {
+      "paths": [
+        "src/commands/regex-execution/client.ts:28",
+        "src/commands/regex-execution/client.ts:281",
+        "src/commands/regex-execution/client.ts:289"
+      ],
+      "finding": "Cleanup synchronously registers before executor.open; synchronous close prevents admission. Shared close promise and finally await pending work and retirements. Explicit rejected flag and signal.throwIfAborted preserve falsy caller/sink reasons; no truthiness fallback."
+    },
+    {
+      "paths": [
+        "src/commands/expr/index.ts:51",
+        "src/commands/expr/index.ts:69"
+      ],
+      "finding": "Stdout write stays outside evaluation diagnostic catch, so sink rejection is exact rather than recast. Normal/emergency stderr writes are awaited. Frozen quota21 and moved falsy controls exercise these branches."
+    },
+    {
+      "paths": [
+        "src/commands/regex-execution/worker.ts:3",
+        "src/commands/expr/bre-worker.ts:186",
+        "src/commands/expr/bre-worker.ts:272"
+      ],
+      "finding": "BRE remains worker-only, with explicit isMainThread refusal and live nullable-repeat/backreference unsupported guard. No repeat-history candidate overlay. Root exports and package inputs are identical to quota candidate; no expr root/subpath promotion."
+    }
+  ],
+  "noGenuineProductBugEstablished": true,
+  "knownLimits": [
+    "Source inspection is not a formal proof or unbounded semantic guarantee.",
+    "One original nearby, one original quota, one legacy canonical and one old-core assertion conflict with the authorized exact sink-identity contract.",
+    "Shared 275/276 has a native rg parent-repository fixture-location defect, retained as a validation blocker; no input or native argv correction was applied.",
+    "Four native-dependent legacy tests in two files were not run to avoid native expr recapture."
+  ]
+}

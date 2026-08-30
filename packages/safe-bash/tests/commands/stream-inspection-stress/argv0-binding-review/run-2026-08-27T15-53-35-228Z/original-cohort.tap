@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: GNU2.44 strings: raw-binary-markers
+ok 1 - GNU2.44 strings: raw-binary-markers
+  ---
+  duration_ms: 1.479167
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: minimum-runs
+ok 2 - GNU2.44 strings: minimum-runs
+  ---
+  duration_ms: 0.472042
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: invalid-utf8-splits
+ok 3 - GNU2.44 strings: invalid-utf8-splits
+  ---
+  duration_ms: 0.319667
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: separate-files
+ok 4 - GNU2.44 strings: separate-files
+  ---
+  duration_ms: 0.488792
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: unicode-ascii-markers
+ok 5 - GNU2.44 strings: unicode-ascii-markers
+  ---
+  duration_ms: 0.231292
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-tabs-and-CR
+ok 6 - GNU2.44 strings: gnu-tabs-and-CR
+  ---
+  duration_ms: 0.295875
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-file-hex-label
+ok 7 - GNU2.44 strings: gnu-file-hex-label
+  ---
+  duration_ms: 0.239542
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-stdin-octal
+ok 8 - GNU2.44 strings: gnu-stdin-octal
+  ---
+  duration_ms: 0.667209
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-stdin-decimal
+ok 9 - GNU2.44 strings: gnu-stdin-decimal
+  ---
+  duration_ms: 0.324916
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-offset-reset
+ok 10 - GNU2.44 strings: gnu-offset-reset
+  ---
+  duration_ms: 0.440375
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-lone-dash-stdin
+ok 11 - GNU2.44 strings: gnu-lone-dash-stdin
+  ---
+  duration_ms: 0.163917
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-lone-dash-files
+ok 12 - GNU2.44 strings: gnu-lone-dash-files
+  ---
+  duration_ms: 0.228416
+  type: 'test'
+  ...
+# Subtest: GNU2.44 strings: gnu-long-printable-run
+ok 13 - GNU2.44 strings: gnu-long-printable-run
+  ---
+  duration_ms: 25.914125
+  type: 'test'
+  ...
+# Subtest: live pinned GNU2.44 strings observations
+ok 14 - live pinned GNU2.44 strings observations
+  ---
+  duration_ms: 412.379375
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 575.264584

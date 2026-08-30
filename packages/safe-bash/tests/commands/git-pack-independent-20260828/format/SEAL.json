@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "INDEPENDENT_FORMAT_STATIC_REVIEW_SEAL_NOT_EXECUTION_RECIPE",
+  "files": [
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/AUTHOR-INPUTS.json",
+      "bytes": 11675,
+      "mode": 420,
+      "sha256": "0a28a24c40b168bc2751a16e9c322219b62705f13bddd888dd303fb39730bdb5"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/CASE-COVERAGE.json",
+      "bytes": 20237,
+      "mode": 420,
+      "sha256": "44bd39bdd5e008bf0b1ef304aef3621d7b069452396eb9ca50f2596b5c15630c"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/FINDINGS.json",
+      "bytes": 6040,
+      "mode": 420,
+      "sha256": "079488ffcd1e12613335af69a09a4098cdd8b9144839a3a961260202b6398c4a"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/FORMAT-FACTS.json",
+      "bytes": 7806,
+      "mode": 420,
+      "sha256": "138dec1f2fcf2fa2858c453c52eecf06f9236b3ee85a657f941202b20039f06c"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/FROZEN-MAPPINGS.json",
+      "bytes": 12851,
+      "mode": 420,
+      "sha256": "7b847994fdc0608191146104a1a8b3a4a3e1c866ff96cd07fec891ccc3913a4b"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/LIMITS.json",
+      "bytes": 1030,
+      "mode": 420,
+      "sha256": "39a0033c5e9700483a8f46d425887efed83805ae00d4f086f3e6a9c3aa8ec9fd"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/OFFICIAL-SOURCES.json",
+      "bytes": 5111,
+      "mode": 420,
+      "sha256": "45a7aa6d73e34c0dddb2ccc4f13aeab0a20c3e93eae2b6456da19ccde7141858"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/README.md",
+      "bytes": 1524,
+      "mode": 420,
+      "sha256": "c1cb04f46e858c3a9dd987039c31cb1ded346d56d734014f05a009ee5ebe7641"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/REVIEW-RESULTS.json",
+      "bytes": 3466,
+      "mode": 420,
+      "sha256": "2bb8ac0c3adab71888e204798ccab9869324490168bbd71d2ed440907f155353"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/REVIEW-SPECIFICATION.md",
+      "bytes": 8099,
+      "mode": 420,
+      "sha256": "b0efdee29a06b435468a347018a8ccc7e7f7e521bc6eadc40f3313054cad9a25"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/format/TOOL-BINDING.json",
+      "bytes": 951,
+      "mode": 420,
+      "sha256": "c0a454984de9f219e727ca4d10d781cc7b7b6d05be6486ccc19d6c5c75afd84c"
+    }
+  ],
+  "selfBinding": "SEAL.json is excluded from its file list; its exact hash and explicit-path commit are published in the readiness handoff.",
+  "sourceInputs": "AUTHOR-INPUTS.json and OFFICIAL-SOURCES.json",
+  "formatChecks": 0,
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "allFutureCases": "UNRUN",
+  "implementationGo": false
+}

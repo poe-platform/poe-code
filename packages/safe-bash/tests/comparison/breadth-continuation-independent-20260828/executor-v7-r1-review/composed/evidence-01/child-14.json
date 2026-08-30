@@ -1,0 +1,55 @@
+{
+  "label": "policy-bad-mode",
+  "pid": 45036,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "mode": "bad-mode",
+        "nativeCalls": 0,
+        "factoryCalls": 0,
+        "revokedBeforeReturn": true,
+        "snapshot": {
+          "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+          "opened": true,
+          "revoked": true,
+          "consumed": 0,
+          "nativeDelegations": 0,
+          "violations": [],
+          "callerAuthenticated": false,
+          "stockNodeCapabilities": false
+        },
+        "events": [
+          {
+            "kind": "load-denied",
+            "code": "LOAD_METADATA",
+            "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/fixtures/ordered.mjs"
+          }
+        ],
+        "identityPreserved": true,
+        "loaderClosed": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 585
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7Im1vZGUiOiJiYWQtbW9kZSIsIm5hdGl2ZUNhbGxzIjowLCJmYWN0b3J5Q2FsbHMiOjAsInJldm9rZWRCZWZvcmVSZXR1cm4iOnRydWUsInNuYXBzaG90Ijp7InByb2ZpbGUiOiJKVVNUX0JBU0hfM180XzJfVU5BVkFJTEFCTEVfQk9PVFNUUkFQX1YxIiwib3BlbmVkIjp0cnVlLCJyZXZva2VkIjp0cnVlLCJjb25zdW1lZCI6MCwibmF0aXZlRGVsZWdhdGlvbnMiOjAsInZpb2xhdGlvbnMiOltdLCJjYWxsZXJBdXRoZW50aWNhdGVkIjpmYWxzZSwic3RvY2tOb2RlQ2FwYWJpbGl0aWVzIjpmYWxzZX0sImV2ZW50cyI6W3sia2luZCI6ImxvYWQtZGVuaWVkIiwiY29kZSI6IkxPQURfTUVUQURBVEEiLCJ1cmwiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhcmlzb24vYnJlYWR0aC1jb250aW51YXRpb24taW5kZXBlbmRlbnQtMjAyNjA4MjgvZXhlY3V0b3ItdjctcjEtcmV2aWV3L2NvbXBvc2VkL2ZpeHR1cmVzL29yZGVyZWQubWpzIn1dLCJpZGVudGl0eVByZXNlcnZlZCI6dHJ1ZSwibG9hZGVyQ2xvc2VkIjp0cnVlfX0K",
+  "natural": true
+}

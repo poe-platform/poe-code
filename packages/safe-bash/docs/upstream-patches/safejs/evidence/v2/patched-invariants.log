@@ -1,0 +1,86 @@
+TAP version 13
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-pu6gX6/patched/packages/safejs/src/run.ts","sha256":"4c7bebb540df03cfa66b367ab1f59284c300fb57aa1a3b8500f58d7811c00cc6"}
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-pu6gX6/patched/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+# Subtest: frozen branded closure preserves construct, static cycles and repeated identity
+ok 1 - frozen branded closure preserves construct, static cycles and repeated identity
+  ---
+  duration_ms: 0.489541
+  type: 'test'
+  ...
+# Subtest: retained budget graph remains live
+ok 2 - retained budget graph remains live
+  ---
+  duration_ms: 0.147125
+  type: 'test'
+  ...
+# Subtest: shared property and retained graph is not double charged
+not ok 3 - shared property and retained graph is not double charged
+  ---
+  duration_ms: 1.537333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    87 !== 49
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 49
+  actual: 87
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/wrapper-invariants.probe.mjs:45:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: own special-name data and cycles never invoke prototype setters
+ok 4 - own special-name data and cycles never invoke prototype setters
+  ---
+  duration_ms: 0.353625
+  type: 'test'
+  ...
+# Subtest: branded collection and regex identity survives wrapping
+ok 5 - branded collection and regex identity survives wrapping
+  ---
+  duration_ms: 0.188208
+  type: 'test'
+  ...
+# Subtest: pre-aborted call and construct reject exact reasons without effects
+ok 6 - pre-aborted call and construct reject exact reasons without effects
+  ---
+  duration_ms: 0.401083
+  type: 'test'
+  ...
+# Subtest: raw preabort preserves exact null and false reasons before host work
+ok 7 - raw preabort preserves exact null and false reasons before host work
+  ---
+  duration_ms: 0.228583
+  type: 'test'
+  ...
+# Subtest: signalled constructors retain internal instanceof identity and error data
+ok 8 - signalled constructors retain internal instanceof identity and error data
+  ---
+  duration_ms: 6.642542
+  type: 'test'
+  ...
+# Subtest: both cancellation-result forms observe immediate/delayed originals and clean listeners
+ok 9 - both cancellation-result forms observe immediate/delayed originals and clean listeners
+  ---
+  duration_ms: 244.681708
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 480.132125

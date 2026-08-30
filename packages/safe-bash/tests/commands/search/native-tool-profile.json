@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "id": "ripgrep-15.2.0-linux-x64-musl-proposed",
+  "version": "15.2.0",
+  "platform": "linux",
+  "arch": "x64",
+  "target": "x86_64-unknown-linux-musl",
+  "archive": {
+    "url": "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz",
+    "name": "ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz",
+    "size": 2265718,
+    "sha256": "33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c",
+    "prefix": "ripgrep-15.2.0-x86_64-unknown-linux-musl"
+  },
+  "executable": {
+    "member": "ripgrep-15.2.0-x86_64-unknown-linux-musl/rg",
+    "size": 5408904,
+    "sha256": "e62198eb19b136b88c330af83647b5a962cb99b6b1f066758568f12de1974849",
+    "mode": "0755"
+  },
+  "provenance": {
+    "release": "https://github.com/BurntSushi/ripgrep/releases/tag/15.2.0",
+    "releaseApi": "https://api.github.com/repos/BurntSushi/ripgrep/releases/tags/15.2.0",
+    "checksumUrl": "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz.sha256",
+    "checksumSize": 114,
+    "checksumSha256": "650080eb90718156132c821d150d8b74818f66de47969e38eef5a2dce3e2a5e6",
+    "annotatedTag": "6ec72defacfb042f203ca0b4bf2513a0a5505a7e",
+    "sourceCommit": "e89fff89ac9af12e8d4ce9d5fd07beb408ca730f",
+    "tagVerification": "GitHub official API verified=true; not an independent local signature verification",
+    "artifactAuthentication": "Official release asset digest and separately downloaded official checksum agree; bounded archive downloaded and digest verified; member copied only into memory for opaque hashing",
+    "sourceBuildClaim": "No independent rebuild or source-to-binary reproducibility claim",
+    "reviewDate": "2026-08-29"
+  },
+  "qualification": {
+    "status": "PENDING_LINUX_EXECUTION",
+    "executed": false,
+    "observedVersion": null,
+    "expectedVersionPrefix": "ripgrep 15.2.0",
+    "requiredBeforeActivation": [
+      "Record Linux OS, architecture, kernel and selected Node identity",
+      "Verify archive and executable identities, then run bounded clean-environment --version on matching Linux",
+      "Run all 87 generic rg availability cases and affected search-stress comparisons",
+      "Review results before binding generic callers or activating CI"
+    ]
+  },
+  "historicalMacProfiles": "Unchanged; this is a separate proposed Linux identity, not a replacement pin"
+}

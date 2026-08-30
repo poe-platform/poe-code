@@ -1,0 +1,1099 @@
+{
+  "sourceCommit": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "references": [
+    {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "directory": "tests/shell-stress/env-split-holdout"
+    },
+    {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "directory": "tests/shell-stress/env-split-consumer"
+    },
+    {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "directory": "tests/shell-stress/env-split-author"
+    }
+  ],
+  "sections": [
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "start": 1,
+      "end": 35,
+      "lines": [
+        {
+          "line": 1,
+          "text": "import type { FileSystem } from \"./filesystem.js\";"
+        },
+        {
+          "line": 2,
+          "text": "import type { ByteSink, ByteSource } from \"./io.js\";"
+        },
+        {
+          "line": 3,
+          "text": ""
+        },
+        {
+          "line": 4,
+          "text": "export interface CommandInvokeOptions {"
+        },
+        {
+          "line": 5,
+          "text": "  readonly stdin?: ByteSource;"
+        },
+        {
+          "line": 6,
+          "text": "  readonly stdinIsDefault?: boolean;"
+        },
+        {
+          "line": 7,
+          "text": "  readonly stdout?: ByteSink;"
+        },
+        {
+          "line": 8,
+          "text": "  readonly stderr?: ByteSink;"
+        },
+        {
+          "line": 9,
+          "text": "  readonly cwd?: string;"
+        },
+        {
+          "line": 10,
+          "text": "  readonly env?: Readonly<Record<string, string>>;"
+        },
+        {
+          "line": 11,
+          "text": "  readonly replaceEnv?: boolean;"
+        },
+        {
+          "line": 12,
+          "text": "}"
+        },
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "export type CommandInvoker = ("
+        },
+        {
+          "line": 15,
+          "text": "  command: string,"
+        },
+        {
+          "line": 16,
+          "text": "  args: readonly string[],"
+        },
+        {
+          "line": 17,
+          "text": "  options?: CommandInvokeOptions,"
+        },
+        {
+          "line": 18,
+          "text": ") => Promise<CommandResult>;"
+        },
+        {
+          "line": 19,
+          "text": ""
+        },
+        {
+          "line": 20,
+          "text": "export type InvocationCleanup = () => void | Promise<void>;"
+        },
+        {
+          "line": 21,
+          "text": ""
+        },
+        {
+          "line": 22,
+          "text": "export interface CommandContext {"
+        },
+        {
+          "line": 23,
+          "text": "  readonly command: string;"
+        },
+        {
+          "line": 24,
+          "text": "  readonly args: readonly string[];"
+        },
+        {
+          "line": 25,
+          "text": "  readonly stdin: ByteSource;"
+        },
+        {
+          "line": 26,
+          "text": "  readonly stdinIsDefault?: boolean;"
+        },
+        {
+          "line": 27,
+          "text": "  readonly stdout: ByteSink;"
+        },
+        {
+          "line": 28,
+          "text": "  readonly stderr: ByteSink;"
+        },
+        {
+          "line": 29,
+          "text": "  cwd: string;"
+        },
+        {
+          "line": 30,
+          "text": "  env: Record<string, string>;"
+        },
+        {
+          "line": 31,
+          "text": "  readonly fs: FileSystem;"
+        },
+        {
+          "line": 32,
+          "text": "  readonly signal: AbortSignal;"
+        },
+        {
+          "line": 33,
+          "text": "  readonly invoke?: CommandInvoker;"
+        },
+        {
+          "line": 34,
+          "text": "  readonly registerCleanup?: (cleanup: InvocationCleanup) => void;"
+        },
+        {
+          "line": 35,
+          "text": "}"
+        }
+      ]
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "start": 1,
+      "end": 35,
+      "lines": [
+        {
+          "line": 1,
+          "text": "import { TransformStream } from \"node:stream/web\";"
+        },
+        {
+          "line": 2,
+          "text": "import { FsError } from \"./errors.js\";"
+        },
+        {
+          "line": 3,
+          "text": ""
+        },
+        {
+          "line": 4,
+          "text": "export type ByteSource = AsyncIterable<Uint8Array>;"
+        },
+        {
+          "line": 5,
+          "text": ""
+        },
+        {
+          "line": 6,
+          "text": "export interface ByteSink {"
+        },
+        {
+          "line": 7,
+          "text": "  write(chunk: Uint8Array): Promise<void>;"
+        },
+        {
+          "line": 8,
+          "text": "}"
+        },
+        {
+          "line": 9,
+          "text": ""
+        },
+        {
+          "line": 10,
+          "text": "export interface BytePipe {"
+        },
+        {
+          "line": 11,
+          "text": "  readonly readable: ByteSource;"
+        },
+        {
+          "line": 12,
+          "text": "  readonly writable: ByteSink;"
+        },
+        {
+          "line": 13,
+          "text": "  close(): Promise<void>;"
+        },
+        {
+          "line": 14,
+          "text": "  abort(reason?: unknown): Promise<void>;"
+        },
+        {
+          "line": 15,
+          "text": "}"
+        },
+        {
+          "line": 16,
+          "text": ""
+        },
+        {
+          "line": 17,
+          "text": "export interface BytePipeOptions {"
+        },
+        {
+          "line": 18,
+          "text": "  readonly highWaterMark?: number;"
+        },
+        {
+          "line": 19,
+          "text": "  readonly signal?: AbortSignal;"
+        },
+        {
+          "line": 20,
+          "text": "}"
+        },
+        {
+          "line": 21,
+          "text": ""
+        },
+        {
+          "line": 22,
+          "text": "export interface CollectOptions {"
+        },
+        {
+          "line": 23,
+          "text": "  readonly maxBytes: number;"
+        },
+        {
+          "line": 24,
+          "text": "  readonly signal?: AbortSignal;"
+        },
+        {
+          "line": 25,
+          "text": "}"
+        },
+        {
+          "line": 26,
+          "text": ""
+        },
+        {
+          "line": 27,
+          "text": "export function createBytePipe(options: BytePipeOptions = {}): BytePipe {"
+        },
+        {
+          "line": 28,
+          "text": "  const highWaterMark = options.highWaterMark ?? 64 * 1024;"
+        },
+        {
+          "line": 29,
+          "text": "  const signal = options.signal;"
+        },
+        {
+          "line": 30,
+          "text": "  if (!Number.isSafeInteger(highWaterMark) || highWaterMark < 1) {"
+        },
+        {
+          "line": 31,
+          "text": "    throw new RangeError(\"highWaterMark must be a positive safe integer\");"
+        },
+        {
+          "line": 32,
+          "text": "  }"
+        },
+        {
+          "line": 33,
+          "text": "  const stream = new TransformStream<Uint8Array, Uint8Array>("
+        },
+        {
+          "line": 34,
+          "text": "    undefined,"
+        },
+        {
+          "line": 35,
+          "text": "    { highWaterMark: 1 },"
+        }
+      ]
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "start": 1,
+      "end": 32,
+      "lines": [
+        {
+          "line": 1,
+          "text": "# Literal invocation environment"
+        },
+        {
+          "line": 2,
+          "text": ""
+        },
+        {
+          "line": 3,
+          "text": "`CommandInvokeOptions.replaceEnv?: boolean` is additive. Absent or false retains"
+        },
+        {
+          "line": 4,
+          "text": "the runtime's existing environment merge behavior and PWD treatment. True uses"
+        },
+        {
+          "line": 5,
+          "text": "a fresh copy of exactly `options.env ?? {}` as the exported environment at"
+        },
+        {
+          "line": 6,
+          "text": "command entry: no merge with inherited exports, implicit PWD or promotion of"
+        },
+        {
+          "line": 7,
+          "text": "unexported/local variables. Supplied PWD is an environment value, not a cwd setter."
+        },
+        {
+          "line": 8,
+          "text": "Environment key/value validation remains required before child execution."
+        },
+        {
+          "line": 9,
+          "text": ""
+        },
+        {
+          "line": 10,
+          "text": "This replaces the child environment, not generic shell state. Parent values,"
+        },
+        {
+          "line": 11,
+          "text": "export attributes and function locals must remain unchanged on success, error"
+        },
+        {
+          "line": 12,
+          "text": "or cancellation. Cwd resolution remains independent. A child Bash interpreter's"
+        },
+        {
+          "line": 13,
+          "text": "own initialization is separate from the environment passed to it."
+        },
+        {
+          "line": 14,
+          "text": ""
+        },
+        {
+          "line": 15,
+          "text": "Literal argv, middleware, shared execution/output/depth budgets, signal,"
+        },
+        {
+          "line": 16,
+          "text": "stdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not"
+        },
+        {
+          "line": 17,
+          "text": "implement replacement with a new Shell, new budget or a callback-only bypass."
+        },
+        {
+          "line": 18,
+          "text": ""
+        },
+        {
+          "line": 19,
+          "text": "Core `env COMMAND` explicitly requests replacement for its already-computed"
+        },
+        {
+          "line": 20,
+          "text": "environment, including plain assignments and `-u`, not just `-i`. With no invoke"
+        },
+        {
+          "line": 21,
+          "text": "hook, its existing registry/callback fallback still receives that exact map."
+        },
+        {
+          "line": 22,
+          "text": "Generic directExecutor/xargs/find callers retain their existing default behavior."
+        },
+        {
+          "line": 23,
+          "text": ""
+        },
+        {
+          "line": 24,
+          "text": "Curie owns the contract/core consumer; Sagan owns runtime/types. The additive"
+        },
+        {
+          "line": 25,
+          "text": "field and boundary-forwarding tests do not establish runtime support. Acceptance"
+        },
+        {
+          "line": 26,
+          "text": "requires the actual-shell nested env row and export/local/parent/cancellation"
+        },
+        {
+          "line": 27,
+          "text": "regressions after both implementations are committed. Preserve the historical"
+        },
+        {
+          "line": 28,
+          "text": "leak reproduction and original six-row cohort."
+        },
+        {
+          "line": 29,
+          "text": ""
+        },
+        {
+          "line": 30,
+          "text": "# Cooperative invocation cleanup"
+        },
+        {
+          "line": 31,
+          "text": ""
+        },
+        {
+          "line": 32,
+          "text": "```ts"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/input.ts",
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "start": 1,
+      "end": 35,
+      "lines": [
+        {
+          "line": 1,
+          "text": "import type { ByteSource } from \"../contracts/index.js\";"
+        },
+        {
+          "line": 2,
+          "text": "import { Budget, interruptible } from \"./runtime.js\";"
+        },
+        {
+          "line": 3,
+          "text": ""
+        },
+        {
+          "line": 4,
+          "text": "class InputCursor {"
+        },
+        {
+          "line": 5,
+          "text": "  readonly #iterator: AsyncIterator<Uint8Array>;"
+        },
+        {
+          "line": 6,
+          "text": "  remainder: Uint8Array | undefined;"
+        },
+        {
+          "line": 7,
+          "text": "  #read: Promise<IteratorResult<Uint8Array>> | undefined;"
+        },
+        {
+          "line": 8,
+          "text": "  #readSettled = false;"
+        },
+        {
+          "line": 9,
+          "text": "  #turn = Promise.resolve();"
+        },
+        {
+          "line": 10,
+          "text": "  #returned: Promise<void> | undefined;"
+        },
+        {
+          "line": 11,
+          "text": "  #ended = false;"
+        },
+        {
+          "line": 12,
+          "text": "  #closed = false;"
+        },
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "  constructor(source: ByteSource) {"
+        },
+        {
+          "line": 15,
+          "text": "    this.#iterator = source[Symbol.asyncIterator]();"
+        },
+        {
+          "line": 16,
+          "text": "  }"
+        },
+        {
+          "line": 17,
+          "text": ""
+        },
+        {
+          "line": 18,
+          "text": "  async consume<Value>(signal: AbortSignal, operation: () => Promise<Value>): Promise<Value> {"
+        },
+        {
+          "line": 19,
+          "text": "    signal.throwIfAborted();"
+        },
+        {
+          "line": 20,
+          "text": "    const previous = this.#turn;"
+        },
+        {
+          "line": 21,
+          "text": "    let release!: () => void;"
+        },
+        {
+          "line": 22,
+          "text": "    const completed = new Promise<void>((resolve) => { release = resolve; });"
+        },
+        {
+          "line": 23,
+          "text": "    this.#turn = previous.then(() => completed);"
+        },
+        {
+          "line": 24,
+          "text": "    try {"
+        },
+        {
+          "line": 25,
+          "text": "      await interruptible(previous, signal);"
+        },
+        {
+          "line": 26,
+          "text": "      signal.throwIfAborted();"
+        },
+        {
+          "line": 27,
+          "text": "      return await operation();"
+        },
+        {
+          "line": 28,
+          "text": "    } finally { release(); }"
+        },
+        {
+          "line": 29,
+          "text": "  }"
+        },
+        {
+          "line": 30,
+          "text": ""
+        },
+        {
+          "line": 31,
+          "text": "  async take(signal: AbortSignal): Promise<IteratorResult<Uint8Array>> {"
+        },
+        {
+          "line": 32,
+          "text": "    signal.throwIfAborted();"
+        },
+        {
+          "line": 33,
+          "text": "    if (this.remainder) {"
+        },
+        {
+          "line": 34,
+          "text": "      const value = this.remainder;"
+        },
+        {
+          "line": 35,
+          "text": "      this.remainder = undefined;"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "start": 127,
+      "end": 155,
+      "lines": [
+        {
+          "line": 127,
+          "text": "    };"
+        },
+        {
+          "line": 128,
+          "text": "    let exitCode: number;"
+        },
+        {
+          "line": 129,
+          "text": "    let failed = false;"
+        },
+        {
+          "line": 130,
+          "text": "    try {"
+        },
+        {
+          "line": 131,
+          "text": "      try {"
+        },
+        {
+          "line": 132,
+          "text": "        let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));"
+        },
+        {
+          "line": 133,
+          "text": "        stdin = new ShellInput(typeof options.stdin === \"string\" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(\"\"), budget);"
+        },
+        {
+          "line": 134,
+          "text": "        io.stdin = stdin;"
+        },
+        {
+          "line": 135,
+          "text": "        await interruptible(this.#ready, budget.signal);"
+        },
+        {
+          "line": 136,
+          "text": "        const cwd = resolvePath(\"/\", options.cwd ?? this.#options.cwd ?? \"/\");"
+        },
+        {
+          "line": 137,
+          "text": "        const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });"
+        },
+        {
+          "line": 138,
+          "text": "        for (const [name, value] of Object.entries(variables)) {"
+        },
+        {
+          "line": 139,
+          "text": "          if (name.includes(\"\\0\") || name.includes(\"=\") || typeof value !== \"string\" || value.includes(\"\\0\")) throw new TypeError(\"Invalid environment entry\");"
+        },
+        {
+          "line": 140,
+          "text": "        }"
+        },
+        {
+          "line": 141,
+          "text": "        const state: State = {"
+        },
+        {
+          "line": 142,
+          "text": "          cwd, variables, exported: new Set(Object.keys(variables)), functions: new Map(), positional: [],"
+        },
+        {
+          "line": 143,
+          "text": "          status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: \"bash\","
+        },
+        {
+          "line": 144,
+          "text": "        };"
+        },
+        {
+          "line": 145,
+          "text": "        const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget, AbortSignal.any([budget.signal, scope.signal]), undefined, undefined, budget.signal);"
+        },
+        {
+          "line": 146,
+          "text": "        exitCode = 0;"
+        },
+        {
+          "line": 147,
+          "text": "        while (true) {"
+        },
+        {
+          "line": 148,
+          "text": "          for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\\n`);"
+        },
+        {
+          "line": 149,
+          "text": "          if (unit.script.lists.length) {"
+        },
+        {
+          "line": 150,
+          "text": "            const result = await interruptible(runtime.runUnit(unit.script, state, io), budget.signal);"
+        },
+        {
+          "line": 151,
+          "text": "            exitCode = result.exitCode;"
+        },
+        {
+          "line": 152,
+          "text": "            if (result.terminated) break;"
+        },
+        {
+          "line": 153,
+          "text": "          }"
+        },
+        {
+          "line": 154,
+          "text": "          if (unit.next >= source.length) break;"
+        },
+        {
+          "line": 155,
+          "text": "          budget.signal.throwIfAborted();"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "start": 1335,
+      "end": 1369,
+      "lines": [
+        {
+          "line": 1335,
+          "text": "  private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {"
+        },
+        {
+          "line": 1336,
+          "text": "    this.signal.throwIfAborted();"
+        },
+        {
+          "line": 1337,
+          "text": "    if (typeof name !== \"string\" || name.includes(\"\\0\") || !Array.isArray(args) || args.some((arg) => typeof arg !== \"string\" || arg.includes(\"\\0\"))) throw new TypeError(\"invoke requires a command and literal string arguments without NUL\");"
+        },
+        {
+          "line": 1338,
+          "text": "    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail(\"maxSubstitutionDepth\");"
+        },
+        {
+          "line": 1339,
+          "text": "    const child = cloneState(state);"
+        },
+        {
+          "line": 1340,
+          "text": "    child.cwd = resolvePath(context.cwd, options.cwd ?? \".\");"
+        },
+        {
+          "line": 1341,
+          "text": "    for (const key of child.exported) delete child.variables[key];"
+        },
+        {
+          "line": 1342,
+          "text": "    const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };"
+        },
+        {
+          "line": 1343,
+          "text": "    for (const [key, value] of Object.entries(env)) {"
+        },
+        {
+          "line": 1344,
+          "text": "      if (key.includes(\"\\0\") || key.includes(\"=\") || typeof value !== \"string\" || value.includes(\"\\0\")) throw new TypeError(\"Invalid invoke environment entry\");"
+        },
+        {
+          "line": 1345,
+          "text": "      child.variables[key] = value;"
+        },
+        {
+          "line": 1346,
+          "text": "    }"
+        },
+        {
+          "line": 1347,
+          "text": "    child.exported = new Set(Object.keys(env));"
+        },
+        {
+          "line": 1348,
+          "text": "    child.depth++;"
+        },
+        {
+          "line": 1349,
+          "text": "    child.loopDepth = 0;"
+        },
+        {
+          "line": 1350,
+          "text": "    child.functionDepth = 0;"
+        },
+        {
+          "line": 1351,
+          "text": "    child.sourceDepth = 0;"
+        },
+        {
+          "line": 1352,
+          "text": "    child.locals = [];"
+        },
+        {
+          "line": 1353,
+          "text": "    const input = options.stdin === undefined ? undefined : new ShellInput(options.stdin, this.budget, this.signal);"
+        },
+        {
+          "line": 1354,
+          "text": "    const stdinIsDefault = options.stdin === undefined ? context.stdinIsDefault : (options.stdinIsDefault ?? false);"
+        },
+        {
+          "line": 1355,
+          "text": "    const io = {"
+        },
+        {
+          "line": 1356,
+          "text": "      ...context,"
+        },
+        {
+          "line": 1357,
+          "text": "      [invocationScope]: scope,"
+        },
+        {
+          "line": 1358,
+          "text": "      stdin: input ?? context.stdin,"
+        },
+        {
+          "line": 1359,
+          "text": "      ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),"
+        },
+        {
+          "line": 1360,
+          "text": "      stdout: options.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout,"
+        },
+        {
+          "line": 1361,
+          "text": "      stderr: options.stderr ? this.budget.sink(options.stderr, this.signal) : context.stderr,"
+        },
+        {
+          "line": 1362,
+          "text": "    };"
+        },
+        {
+          "line": 1363,
+          "text": "    const command: Command = {"
+        },
+        {
+          "line": 1364,
+          "text": "      kind: \"simple\", redirects: [],"
+        },
+        {
+          "line": 1365,
+          "text": "      words: [name, ...args].map((value) => ({ offset: 0, parts: [{ kind: \"text\", value, quoted: true }] })),"
+        },
+        {
+          "line": 1366,
+          "text": "    };"
+        },
+        {
+          "line": 1367,
+          "text": "    try { return { exitCode: await this.runCommandIsolated(command, child, io) }; }"
+        },
+        {
+          "line": 1368,
+          "text": "    finally { await input?.close(); }"
+        },
+        {
+          "line": 1369,
+          "text": "  }"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "start": 1141,
+      "end": 1167,
+      "lines": [
+        {
+          "line": 1141,
+          "text": "    let source: string;"
+        },
+        {
+          "line": 1142,
+          "text": "    let interpreterProfile: \"bash\" | \"sh\" | undefined;"
+        },
+        {
+          "line": 1143,
+          "text": "    try {"
+        },
+        {
+          "line": 1144,
+          "text": "      const options = { signal: this.signal };"
+        },
+        {
+          "line": 1145,
+          "text": "      const stat = await interruptible(this.fs.stat(path, options), this.signal);"
+        },
+        {
+          "line": 1146,
+          "text": "      if (stat.type !== \"file\") throw new CommandFailure(`${target}: ${stat.type === \"directory\" ? \"Is a directory\" : \"not a regular file\"}`, 126);"
+        },
+        {
+          "line": 1147,
+          "text": "      if (direct && this.fs.capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);"
+        },
+        {
+          "line": 1148,
+          "text": "      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK | (direct ? ACCESS_MODES.X_OK : 0), options), this.signal);"
+        },
+        {
+          "line": 1149,
+          "text": "      const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;"
+        },
+        {
+          "line": 1150,
+          "text": "      if (stat.size > maxBytes) this.budget.fail(\"maxSourceBytes\");"
+        },
+        {
+          "line": 1151,
+          "text": "      const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);"
+        },
+        {
+          "line": 1152,
+          "text": "      this.budget.source(bytes.byteLength);"
+        },
+        {
+          "line": 1153,
+          "text": "      source = this.sourceText(bytes, target);"
+        },
+        {
+          "line": 1154,
+          "text": "      if (source.startsWith(\"#!\")) {"
+        },
+        {
+          "line": 1155,
+          "text": "        const interpreter = source.split(\"\\n\", 1)[0]!.slice(2).replace(/^[ \\t]+|[ \\t]+$/gu, \"\");"
+        },
+        {
+          "line": 1156,
+          "text": "        const environmentInterpreter = /^\\/usr\\/bin\\/env[ \\t]+(bash|sh)$/u.exec(interpreter)?.[1];"
+        },
+        {
+          "line": 1157,
+          "text": "        if (environmentInterpreter) {"
+        },
+        {
+          "line": 1158,
+          "text": "          if (this.commands.get(environmentInterpreter)) throw new CommandFailure(`${target}: unsupported interpreter override: ${environmentInterpreter}`, 126);"
+        },
+        {
+          "line": 1159,
+          "text": "          interpreterProfile = environmentInterpreter === \"sh\" ? \"sh\" : \"bash\";"
+        },
+        {
+          "line": 1160,
+          "text": "        } else {"
+        },
+        {
+          "line": 1161,
+          "text": "          const bash = /^(\\/bin\\/bash|\\/usr\\/bin\\/bash)(?:[ \\t]+([-+]e+))?$/u.exec(interpreter);"
+        },
+        {
+          "line": 1162,
+          "text": "          if (!bash) throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);"
+        },
+        {
+          "line": 1163,
+          "text": "          if (direct && bash[2]) errexit = bash[2].startsWith(\"-\");"
+        },
+        {
+          "line": 1164,
+          "text": "        }"
+        },
+        {
+          "line": 1165,
+          "text": "      }"
+        },
+        {
+          "line": 1166,
+          "text": "    } catch (error) {"
+        },
+        {
+          "line": 1167,
+          "text": "      this.signal.throwIfAborted();"
+        }
+      ]
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "start": 405,
+      "end": 430,
+      "lines": [
+        {
+          "line": 405,
+          "text": "  }"
+        },
+        {
+          "line": 406,
+          "text": ""
+        },
+        {
+          "line": 407,
+          "text": "  async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {"
+        },
+        {
+          "line": 408,
+          "text": "    originalIO = activeIO(originalIO);"
+        },
+        {
+          "line": 409,
+          "text": "    originalIO.descriptors ??= new Map<number, Descriptor>(["
+        },
+        {
+          "line": 410,
+          "text": "      [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],"
+        },
+        {
+          "line": 411,
+          "text": "      [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],"
+        },
+        {
+          "line": 412,
+          "text": "    ]);"
+        },
+        {
+          "line": 413,
+          "text": "    const diagnosticLine = (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);"
+        },
+        {
+          "line": 414,
+          "text": "    originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };"
+        },
+        {
+          "line": 415,
+          "text": "    if (command.kind === \"subshell\") originalIO = isolateIO(originalIO);"
+        },
+        {
+          "line": 416,
+          "text": "    this.budget.tick();"
+        },
+        {
+          "line": 417,
+          "text": "    if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);"
+        },
+        {
+          "line": 418,
+          "text": "    this.signal.throwIfAborted();"
+        },
+        {
+          "line": 419,
+          "text": "    const inputs = new Set<ShellInput>();"
+        },
+        {
+          "line": 420,
+          "text": "    const outputs = new Set<() => void>();"
+        },
+        {
+          "line": 421,
+          "text": "    let io = originalIO;"
+        },
+        {
+          "line": 422,
+          "text": "    try {"
+        },
+        {
+          "line": 423,
+          "text": "      if (command.kind === \"function\") {"
+        },
+        {
+          "line": 424,
+          "text": "        if (state.profile === \"sh\" && specialBuiltinNames.has(command.name)) {"
+        },
+        {
+          "line": 425,
+          "text": "          await this.diagnostic(io, `\\`${command.name}': is a special builtin`);"
+        },
+        {
+          "line": 426,
+          "text": "          throw new Flow(\"exit\", 2);"
+        },
+        {
+          "line": 427,
+          "text": "        }"
+        },
+        {
+          "line": 428,
+          "text": "        state.functions.set(command.name, { ...command.body, sourceName: io.scriptName ?? \"shell\" });"
+        },
+        {
+          "line": 429,
+          "text": "        return 0;"
+        },
+        {
+          "line": 430,
+          "text": "      }"
+        }
+      ]
+    }
+  ]
+}

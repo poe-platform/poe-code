@@ -1,0 +1,155 @@
+{
+  "schema": "l02-r3-independent-source-delta-v1",
+  "status": "PREEXEC_HOLD",
+  "sourceCommit": "345931a8304146b6556ada2e3cf0f3792a9158e1",
+  "authorEvidenceCommit": "ee47a8efc0161fa9344bc7ac49b489436631a37a",
+  "profileSha256": "1c2b19a7b8a8b2d91bae89045d6077e81b4b0f10af359da44d89d8b469fe808e",
+  "authenticatedPins": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/budget.mjs",
+      "bytes": 2364,
+      "sha256": "179c81488ac5b5287cd5d61d9ac90a64a231860286f4e6c5b06b19ebb9390a22"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/startup-receipt.mjs",
+      "bytes": 1693,
+      "sha256": "ec9da2e9670b153503b819d7c875e172ffedadcf38d1ea5b896aafa38f62fdfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/activation.mjs",
+      "bytes": 2798,
+      "sha256": "0bc77686e66fb33eddf6624ba9f7110c63dded99bcb4ea3db7a7035403a1433d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/supervisor.mjs",
+      "bytes": 5309,
+      "sha256": "75e06c5f30484f0fb123b176dd1d7137d89d3125b5457bedd196f8110035a58f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/admin-publication.mjs",
+      "bytes": 4474,
+      "sha256": "801b06eaae6d72f442a2064c63eec5c1cbd839372ff3608ffcf4c0072151c8cf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/controls.mjs",
+      "bytes": 3360,
+      "sha256": "2a5caa1f11fb2745c24fdacc97637ce8aa967e04ecc6349ae574e5e768c9e9fa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/journal.mjs",
+      "bytes": 2588,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs",
+      "bytes": 12014,
+      "sha256": "30423812ddc5e82a9598878f63a628aa781987616e3239cedc8680ce661401a3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "bytes": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "bytes": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "policyDelta": {
+    "status": "SOURCE_CONSISTENT_WITH_ROOT_QUALIFICATION",
+    "schema": 3,
+    "captureBytes": 6078464,
+    "logicalWorkBytes": 21594112,
+    "startup": "RESERVED_POSTCHECK_NOT_PREWRITE_ENFORCED",
+    "streamCensus": "NOT_OBSERVED",
+    "workerRetirement": "NOT_INFERRED",
+    "gitInternalPhysicalStorage": "TRUSTED_UNOBSERVED_EXCLUDED"
+  },
+  "remainingFindings": [
+    {
+      "id": "F01",
+      "level": "DEMONSTRATED_PURE_GATE_INCONSISTENCY",
+      "source": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs:2",
+      "consumer": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs:3",
+      "cases": [
+        "N02 stdoutEnded false",
+        "N02 stderrEnded false"
+      ],
+      "actual": "judge returns PASS in both cases, despite false end flags and captureComplete true",
+      "expected": "Refuse inconsistent required process-stream completion fields",
+      "mechanism": "processRecord validates flag types; judge ownership conjunction omits stdoutEnded/stderrEnded. Required trace events do not reject contradictory summary flags.",
+      "minimumFix": "Require stdoutEnded and stderrEnded true for accepted processRecord/ownership. Keep required event chronology and all descriptor checks.",
+      "qualification": "Synthetic DATA inconsistency, not observed loss of runtime captures. Both real harmless child receipts had true end flags.",
+      "r3Status": "PERSISTS",
+      "r3Source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/receipt-gate.mjs"
+    },
+    {
+      "id": "F02",
+      "level": "SOURCE_ONLY_UNKNOWN_LATCH_ORDERING",
+      "source": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/supervisor.mjs:3",
+      "returnSource": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/supervisor.mjs:5",
+      "consumer": "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r2/admin-publication.mjs:2",
+      "sequence": [
+        "judge returns STOP_UNCONFIRMED",
+        "post-case census/cap/hash/unexpected-output checks run and can throw",
+        "unconfirmedWorker=true happens only after those checks",
+        "captureScope stores the error; return uses retained.length>0||unconfirmedWorker, still false",
+        "admin only checks runtime.outcome.retainedUnknown; exitCode2 is allowed by outer admission"
+      ],
+      "minimumFix": "Latch known STOP_UNCONFIRMED immediately after judge, before any fallible census/publication. Preserve that monotonic flag through capture/cleanup failures; prohibit ordinary admin after it. Separately fail closed when receipt reading/judgment fails before retirement is authenticated, or explicitly validate lifetime independently of semantic assertions.",
+      "qualification": "Control-flow proof only; supervisor/admin not executed, no real Worker admission, no claim of an observed leaked Worker.",
+      "r3Status": "PERSISTS",
+      "r3Source": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/supervisor.mjs"
+    }
+  ],
+  "caseProvisioning": {
+    "performed": false,
+    "inventorySha256": "aa7ae40bdfe1821a2cd493cc5408be9662003eb02784d05171e6b89a3a0d3a15",
+    "sameR2R3Inventory": true,
+    "missingPaths": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/CASES",
+        "exists": false
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/FUTURE-ACTUAL-01",
+        "exists": false
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/ROOT-GRANT.json",
+        "exists": false
+      }
+    ],
+    "requires": "Separate authorized DATA-only exact capsule materialization and owned output-parent creation; no compiler/install/product import needed",
+    "admission": "Regular-file size/hash before each decode; same admitted compressed buffer; bounded inflate; decoded identity; exact unique safe 390-file full set with per-file bytes/hash/modes. Preserve case bytes and originAbsent rules."
+  },
+  "authorR3Controls": {
+    "reported": 6,
+    "replayedByThisReviewer": 0
+  },
+  "independentControls": {
+    "authorReplay": 14,
+    "authorPass": 14,
+    "novel": 6,
+    "novelPass": 5,
+    "novelFail": 1,
+    "realHarmlessChildren": 2,
+    "Workers": 0,
+    "productCells": 0
+  },
+  "claimsExcluded": [
+    "actual supervisor execution",
+    "Worker retirement qualification",
+    "runtime capture-loss observation",
+    "full OS census",
+    "prewrite startup enforcement",
+    "physical Git storage bound",
+    "actual activation readiness"
+  ]
+}

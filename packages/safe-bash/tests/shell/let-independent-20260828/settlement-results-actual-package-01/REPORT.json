@@ -1,0 +1,49 @@
+{
+  "preseal": "dab350a56eb6804a4b6aa27bf5c8cc872e686748",
+  "packageSha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "runs": [
+    {
+      "mode": "normal",
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 0,
+        "passed": 0,
+        "failed": [],
+        "errors": [
+          "missing/duplicate/unexpected observation",
+          "missing/duplicate summary",
+          "exit status contradicts body outcomes",
+          "required actual runtime load missing"
+        ],
+        "observations": [],
+        "loads": [
+          {
+            "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/execution-prep-v1/literal-entry.mjs",
+            "sha256": "ad100ca2cb691786a34922200a95587857cfe3633156d50c401527c92cffaaa4"
+          },
+          {
+            "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-settlement-Zej8t5/moved/harness/worker.mjs",
+            "sha256": "343f476ade71a38ca93aeebdc43ed610325085e923c9b89118e72e6ae2aa3d96"
+          }
+        ],
+        "activations": []
+      },
+      "sha256": "11c02c8f115c2b74c632629996813bf81cadec466db8cabab949f0264c178c6f"
+    }
+  ],
+  "completed": false,
+  "failure": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/settlement-v1/run.mjs:49:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "scratchRemoved": true
+}

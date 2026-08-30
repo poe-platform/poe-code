@@ -1,0 +1,534 @@
+{
+  "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "freeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "resultCommit": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+  "originalRecipe": "549f2055eb964c33cdbf26109645a422b2b5194a",
+  "continuationRecipe": "d5f4e91062c703b7eecaba856c7533068e1fc520",
+  "evidence": {
+    "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+    "path": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+    "sha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+    "compressed": 23229158,
+    "files": 1304,
+    "payloadBytes": 90695294,
+    "extraction": false
+  },
+  "sourceBindings": {
+    "55810d4aea70fadf151c2fbf746a17f96bfeb599:tests/commands/xan-independent-20260828/FINAL-CONTRACT-V4.md": {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-CONTRACT-V4.md",
+      "bytes": 7335,
+      "sha256": "130d9877dcca4a560b064c827adec95258baad14efc5dc00737a3ff39f4a0a61"
+    },
+    "55810d4aea70fadf151c2fbf746a17f96bfeb599:tests/commands/xan-independent-20260828/FINAL-BINDING-V4.json": {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-BINDING-V4.json",
+      "bytes": 16369,
+      "sha256": "058782fddf4e18e2c36e665b5836a2543b897fdb1f908d1092df074975e5b30b"
+    },
+    "55810d4aea70fadf151c2fbf746a17f96bfeb599:tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json": {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "bytes": 10936,
+      "sha256": "e4fff14cdfd5407429bcd57846978c34b6be893884a961833152e52e4d605c62"
+    },
+    "55810d4aea70fadf151c2fbf746a17f96bfeb599:tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json": {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "bytes": 8271,
+      "sha256": "b632cca2f185f3b222062fc4bdc091a6a95861a8743a209608d40dff947d54de"
+    },
+    "55810d4aea70fadf151c2fbf746a17f96bfeb599:tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json": {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "bytes": 7514,
+      "sha256": "cc81bbe66251f1e143ff17b45da05ac5f0b5cfe0209230a84a16cfe6581b48e9"
+    },
+    "55810d4aea70fadf151c2fbf746a17f96bfeb599:tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json": {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "bytes": 13506,
+      "sha256": "35f3c9081d4617abc56714f174f82cfd1d221ba9f8c8715b4d7a34762051f518"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/REVIEW-RESULT.json": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/REVIEW-RESULT.json",
+      "bytes": 380521,
+      "sha256": "e0046ed80e3d1594eb67352ecb6171f08b44296b04e4f34cc806a46dde35faa6"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/OBLIGATION-REVIEW.json": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/OBLIGATION-REVIEW.json",
+      "bytes": 372246,
+      "sha256": "93b2e6c489998bff8dcd56b5c9d97a9e836c7adb6e6b09787dbb3f02bf2e0c61"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/MINIMAL-REPROS.json": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/MINIMAL-REPROS.json",
+      "bytes": 75184,
+      "sha256": "7bb68c2d7df814ee317dbbe4d66a63946202765aa6dff4eee5f1e425c6029d8e"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/HANDOFF.md": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/HANDOFF.md",
+      "bytes": 9125,
+      "sha256": "3fe0582843eb4240d169a3a6be2567908738b50ee3ebc980be63dea7c1f1eae9"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/SOURCE-AUDIT.md": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/SOURCE-AUDIT.md",
+      "bytes": 8083,
+      "sha256": "df09e99fc464e186df8a488dd5ac106bc0b0cd5b1f9fd7ed8b2dbb87510100df"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs",
+      "bytes": 5857,
+      "sha256": "2fe49b9294e8c0a14f6eb04b54883142fe8898e4f22d8ac53c47514762a5d215"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs",
+      "bytes": 7854,
+      "sha256": "158fbcc7202eb3a9b878a3e66c314f51b21aa8e975a1675306d97d3ae44a0562"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "bytes": 21531,
+      "sha256": "2431b7ce8e6b7328445f6636a1c1210ccae417525bfe5a1750fda6eeb5319ff2"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs",
+      "bytes": 14124,
+      "sha256": "ffedea32823b92647bebf0fde3c244797dd7ca40d0abe103a2f0e75a400f2627"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs",
+      "bytes": 5380,
+      "sha256": "ba907b8fd588116f7fddd0e4fe038c25eb99a64b332a3a88525edfd52a2bc2cc"
+    },
+    "5137a74ec855a32d8a8860eb66b62eb44d11e290:src/contracts/plugin.ts": {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/plugin.ts",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    "5137a74ec855a32d8a8860eb66b62eb44d11e290:src/contracts/command.md": {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    "5137a74ec855a32d8a8860eb66b62eb44d11e290:src/shell/runtime.ts": {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/runtime.ts",
+      "bytes": 132362,
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/manifest.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/manifest.mjs",
+      "bytes": 4262,
+      "sha256": "84ef9207270ded968c06ffd501642dce8a7f5647a4f7a6740afea5e134293e80"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/resources.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/resources.mjs",
+      "bytes": 12606,
+      "sha256": "840cc5cc46a23998478d8dd041690f86035d8d8265036b32ad1f91edb1fbe52e"
+    },
+    "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/scenarios.mjs": {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/scenarios.mjs",
+      "bytes": 12695,
+      "sha256": "60a6c203fba8a0918f4c3b43d1b7b03f1ffecb162c0564da5a08ad2855b2cae3"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/argv.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/argv.ts",
+      "bytes": 9587,
+      "sha256": "11d030855f5a694bf59e6c602c5e352c155271863a2084f9e81b5020e3ae75fe"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/index.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/index.ts",
+      "bytes": 5498,
+      "sha256": "fb664e5a432222c0d79765507da65712a3412a719390a01741b1aa730d4260e9"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/budget.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/budget.ts",
+      "bytes": 4361,
+      "sha256": "cd2e2269cdbbd23acc38d7ecfcb0573f84d12d3a91158f231051be28977cefcc"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/io.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/io.ts",
+      "bytes": 9935,
+      "sha256": "162afedc011dd2949203be57f4fe2f656ef7b8a657e0b1cdef90a72805222590"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/commands.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/commands.ts",
+      "bytes": 12915,
+      "sha256": "2fce3aa23a4bcf3265bf0e124bb42c29ed0ab7bfe7fb243929e168090002d702"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/csv.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/csv.ts",
+      "bytes": 6361,
+      "sha256": "2dda24db47c5e31950f3a1f03fe6f4026c7c94711c921782ea8071eac488d43d"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/writer.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/writer.ts",
+      "bytes": 3918,
+      "sha256": "610a3dd7fbc97fda2d429221774b56da92d7937db75567e4327b7a93d5303c03"
+    },
+    "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/options.ts": {
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/options.ts",
+      "bytes": 2454,
+      "sha256": "b8048c66111f47c6b56c1cf420eee20512c0ef17d5055b70fca2785976f1f074"
+    }
+  },
+  "references": {
+    "matcher": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs",
+      "first": 3,
+      "last": 91,
+      "text": "const predicates = {\n  U03: [/invalid|malformed|incomplete/i, /utf[- ]?8/i],\n  R01: [/unsupported|not supported|bounded.*refus/i, /--parallel(?![\\w-])/],\n  R02: [/unsupported|not supported|bounded.*refus/i, /--approx(?![\\w-])/],\n  R03: [/unsupported|not supported|bounded.*refus/i, /--evaluate(?![\\w-])/],\n  R04: [/unsupported|not supported|bounded.*refus/i, /--evaluate-file(?![\\w-])/],\n  R05: [/unsupported|not supported|bounded.*refus/i, /--raw(?![\\w-])/],\n  'X4-S01': [/empty/i, /clause|selector|selection/i],\n  'X4-S02': [/colon|range/i, /repeat|multiple|extra|unsupported/i],\n  'X4-S03': [/prefix|wildcard|a\\*/i, /colon|range|unsupported/i],\n  'X4-S04': [/suffix|\\*a/i, /occurrence|bracket|unsupported/i],\n  'X4-S05': [/quote/i, /junk|trailing|after|unsupported/i],\n  'X4-N01': [/occurrence/i, /empty|invalid|integer|number/i],\n  'X4-N02': [/occurrence/i, /range|overflow|i64|integer|invalid/i],\n  'X4-R01': [/missing|unknown|not found|no .*match/i, /name|header|column|missing/i],\n  'X4-R02': [/index|column/i, /range|bounds|invalid|missing/i],\n  'X4-R03': [/occurrence/i, /missing|range|bounds|not found|no .*match/i],\n  'X4-R04': [/prefix|z\\*/i, /missing|not found|no .*match/i],\n  'X4-R05': [/suffix|\\*z/i, /missing|not found|no .*match/i],\n  'X4-R06': [/name|named/i, /-n\\b|no.headers|without.*header/i, /forbid|unsupported|cannot|not allowed|invalid/i],\n  'X4-R07': [/\\*/, /missing|unknown|not found|no .*match/i, /name|header|endpoint/i],\n  'X4-R08': [/9223372036854775808/, /name|header/i, /missing|unknown|not found|no .*match/i],\n  'B01-R1-repeat': [/repeat|duplicate|multiple/i, /(?:^|[\\s'\"`(:])-n(?=$|[\\s'\"`):,;.])/],\n  'B01-R2-cr': [/delimiter/i, /invalid|unsupported|forbid|ASCII|single/i],\n  'B01-R3-space': [/length|number|integer|numeric|-l\\b/i, /invalid|digit|empty|space|positive|unsigned/i],\n  'B01-R4-start-length': [/overflow|range|u64/i, /start/i, /len/i],\n  'B01-R4-index-one': [/overflow|range|u64/i, /index|-i\\b/],\n  'B01-R4-header-column': [/overflow|range|u64/i, /start|column/i],\n  'B01-R5-interior': [/empty/i, /clause|selector|selection/i],\n  'B01-R6-L-range': [/conflict|combine|exclusive|incompatible|mix/i, /-L\\b|--last\\b/, /range|-l\\b|--len\\b/],\n  'B01-R6-I-range': [/conflict|combine|exclusive|incompatible|mix/i, /-I\\b|--indices\\b/, /range|-s\\b|--start\\b/],\n  'B01-R6-L-I': [/conflict|combine|exclusive|incompatible|mix/i, /-L\\b|--last\\b/, /-I\\b|--indices\\b/],\n  'B01-R7-invalid-plural': [/invalid|number|integer|index|indices/i, /(?:^|[\\s'\"`(:])-I(?=$|[\\s'\"`):,;.])/],\n};\n\nexport const diagnosticExamples = {\n  U03: 'invalid UTF-8', R01: 'unsupported --parallel', R02: 'unsupported --approx',\n  R03: 'unsupported --evaluate', R04: 'unsupported --evaluate-file', R05: 'unsupported --raw',\n  'X4-S01': 'empty selector clause', 'X4-S02': 'repeated range colon',\n  'X4-S03': 'prefix followed by colon', 'X4-S04': 'suffix followed by occurrence',\n  'X4-S05': 'trailing junk after closing quote', 'X4-N01': 'empty occurrence integer',\n  'X4-N02': 'occurrence integer outside i64 range', 'X4-R01': 'missing header name',\n  'X4-R02': 'column index out of bounds', 'X4-R03': 'occurrence out of range',\n  'X4-R04': 'prefix has no match', 'X4-R05': 'suffix has no match',\n  'X4-R06': 'named selector forbidden under -n', 'X4-R07': 'missing endpoint header name *',\n  'X4-R08': 'missing header name 9223372036854775808',\n  'B01-R1-repeat': 'repeated singleton -n', 'B01-R2-cr': 'invalid delimiter',\n  'B01-R3-space': 'invalid length number', 'B01-R4-start-length': 'start plus length overflow',\n  'B01-R4-index-one': 'index plus one overflow', 'B01-R4-header-column': 'header start plus column overflow',\n  'B01-R5-interior': 'empty selector clause', 'B01-R6-L-range': 'conflicting -L and range -l',\n  'B01-R6-I-range': 'conflicting -I and range -s', 'B01-R6-L-I': 'conflicting -L and -I',\n  'B01-R7-invalid-plural': 'invalid integer for -I',\n};\n\nexport function exampleDiagnostic(row) {\n  return `xan ${row.argv[0]}: ${row.requiredDiagnosticFamily ? `${row.requiredDiagnosticFamily} ` : ''}${diagnosticExamples[row.id]}\\n`;\n}\n\nexport function matcher(row) {\n  const tests = predicates[row.id];\n  assert.ok(tests, `No contextual matcher: ${row.id}`);\n  const expectedArgv = JSON.stringify(row.argv);\n  return {\n    id: row.id,\n    assert(data, context = row) {\n      assert.equal(context.id, row.id);\n      assert.equal(JSON.stringify(context.argv), expectedArgv, 'diagnostic argv binding');\n      const text = new TextDecoder('utf-8', { fatal: true }).decode(data);\n      assert.ok(data.byteLength > 0 && data.byteLength <= 65536, 'bounded diagnostic');\n      const command = row.argv[0] === 'h' ? 'headers' : row.argv[0];\n      const prefix = /^xan\\s+(\\S+?):?\\s/.exec(text);\n      if (row.group === 'selector36' || row.id === 'U03') assert.match(text, new RegExp(`^xan ${command}:?\\\\s`, 'u'), 'required command identity');\n      if (prefix) assert.equal(prefix[1].replace(/:$/, ''), command, 'wrong command context');\n      const clauses = text.trim().split('\\n').filter(line => line.trim());\n      assert.ok(clauses.some(clause => tests.every(test => test.test(clause))), `one contextual condition ${row.id}, not unrelated substrings`);\n      if (row.requiredDiagnosticFamily) assert.ok(text.includes(row.requiredDiagnosticFamily), 'inherited literal family');\n      if (row.id === 'B01-R7-invalid-plural') {\n        assert.doesNotMatch(text, /(?:invalid|offending|rejected)\\s+(?:option\\s+)?['\"`]?-(?:i|\\-index)(?=['\"`\\s:,;.]|$)/, 'offending option is plural');\n      }\n    },\n  };\n}\n\nexport function matcherMap(rows) {\n  const selected = rows.filter(row => row.expected.stderr.precision);\n  assert.equal(selected.length, 32);\n  assert.deepEqual(selected.map(row => row.id).sort(), Object.keys(predicates).sort());\n  return new Map(selected.map(row => [row.id, matcher(row)]));\n}"
+    },
+    "case": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs",
+      "first": 31,
+      "last": 66,
+      "text": "export function assertPhase(row, record) {\n  assert.equal(record.inputEvents.filter(event => event === 'return' || event === 'throw').length, 0, 'borrowed lifetime');\n  if (beforeIO(row)) {\n    assert.equal(record.inputEvents.length, 0, 'before iterator acquisition');\n    assert.equal(record.fsEvents.length, 0, 'before metadata and publication');\n  }\n  if (row.phase === 'AFTER_FIRST_RECORD_BEFORE_SELECTED_OUTPUT') {\n    const boundary = headerBoundary(row);\n    assert.ok(boundary > 0, 'trusted fixture boundary');\n    const chunks = record.deliveryLengths;\n    let delivered = 0;\n    let required = 0;\n    while (delivered < boundary && required < chunks.length) delivered += chunks[required++];\n    assert.ok(delivered >= boundary, 'logical record complete');\n    assert.equal(record.inputEvents.filter(event => event === 'next').length, required, 'stop when first logical record known');\n    assert.equal(record.chargedInputBytes, delivered, 'whole delivered read-ahead charged');\n    assert.equal(record.fsEvents.filter(event => event.method.startsWith('write')).length, 0);\n  }\n}\n\nexport function assertCase(row, record, matchers) {\n  assert.equal(record.failed, false, 'escaping execution');\n  assert.equal(record.result?.exitCode, row.expected.status, 'status');\n  if (row.assertionMode === 'HISTORICAL_BYTE_COMPARISON_PLUS_PROJECT_SEMANTICS') {\n    assert.deepEqual(faithfulCSV(record.stdout.data), row.projectLogicalRecords, 'approved project logical records; native bytes retained separately');\n  } else assert.deepEqual(record.stdout.data, bytes(row.expected.stdout), 'stdout bytes');\n  assert.deepEqual(Object.keys(record.files).sort(), Object.keys(row.expected.files).sort(), 'namespace');\n  for (const [name, datum] of Object.entries(row.expected.files)) assert.deepEqual(record.files[name], bytes(datum), `file ${name}`);\n  if (row.expected.stderr.precision) matchers.get(row.id).assert(record.stderr.data, row);\n  else assert.deepEqual(record.stderr.data, bytes(row.expected.stderr), 'inherited exact stderr');\n  assertPhase(row, record);\n  assert.equal(record.cleanup.drained, true);\n  assert.equal(record.cleanup.failures, 0);\n  if (row.id === 'Z02') assert.equal(record.inputEvents.length, 0, 'zero tail without header never acquires borrowed stdin');\n  if (row.id === 'Z10') assert.equal(record.fsEvents.filter(event => event.method === 'readStream' || event.method === 'readFile').length, 0);\n  return { id: row.id, assertion: 'EXACT_OR_FROZEN_CONTEXTUAL', rawStdoutSha256: sha(record.stdout.data) };"
+    },
+    "phase": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "first": 63,
+      "last": 78,
+      "text": "  if (job.kind === 'phase') {\n    const row = rows.find(row => row.id === job.row); const input = bytes(row.stdin); const boundary = input.indexOf(10) + 1;\n    const lengths = job.delivery === 'split' ? [...Array(boundary).fill(1)] : [job.delivery === 'one' ? boundary : input.length];\n    let acquired = 0; let reads = 0; let released = 0; let charged = 0; let offset = 0;\n    const host = hostFor(contracts, { 'input.csv': { base64: input.toString('base64') } }, { poison: beforeIO(row) });\n    host.fs.readStream = () => { acquired++; if (beforeIO(row)) throw Error('POISON_FILE'); return { [Symbol.asyncIterator]() { return {\n      async next() { const count = lengths[reads++]; if (count === undefined) throw Error('POISON_AFTER_LOGICAL_HEADER'); charged += count; const value = Buffer.from(input.subarray(offset, offset + count)); offset += count; return { done: false, value }; },\n      async return() { released++; return { done: true }; },\n    }; } }; };\n    const record = await invoke(module, contracts, [...row.argv, 'input.csv', '-o', 'out.csv'], { host });\n    await report({ ...raw(record), acquired, reads, released, charged, logicalHeaderBytes: boundary });\n    assert.equal(record.failed, false); assert.equal(record.result.exitCode, 1); assert.equal(record.stdout.length, 0);\n    assert.equal(Object.hasOwn(record.files, 'out.csv'), false); assert.deepEqual(record.files['input.csv'], input);\n    if (beforeIO(row)) { assert.equal(acquired, 0); assert.equal(record.fsEvents.length, 0); }\n    else { assert.equal(reads, lengths.length); assert.equal(released, 1); assert.equal(charged, lengths.reduce((total, length) => total + length, 0)); }\n    rowMatchers(row).get(row.id).assert(record.stderr, row); return;"
+    },
+    "workflow": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs",
+      "first": 65,
+      "last": 90,
+      "text": "    const fs = new api.MemoryFileSystem(); await fs.mkdir('/work', { recursive: true });\n    const shell = new api.Shell({ fs, cwd: '/work', env: { KEEP: 'parent' }, limits: { maxOutputBytes: 4096, maxCommands: 3 } });\n    const middleware = []; const origins = []; const contexts = [];\n    shell.use(async (context, next) => { middleware.push(`${context.args[0]}:before`); origins.push(context.stdinIsDefault); contexts.push({ cwd: context.cwd, env: { ...context.env } }); await next(); middleware.push(`${context.args[0]}:after`); });\n    shell.use(module.xanCommands());\n    let result; let stageBytes = [];\n    try {\n      if (job.route === 'pipe') result = await shell.exec('xan select 2,0,2 | xan slice -l 1 | xan count', { stdin: 'left,right,right\\nA,B,C\\n' });\n      else if (job.route === 'files') {\n        await fs.writeFile('/work/input.csv', Buffer.from('left,right,right\\nA,B,C\\n'));\n        result = await shell.exec('xan select 2,0,2 input.csv -o first.csv; xan slice -l 1 first.csv -o second.csv; xan count second.csv');\n        stageBytes = [Buffer.from(await fs.readFile('/work/first.csv')).toString(), Buffer.from(await fs.readFile('/work/second.csv')).toString()];\n      } else {\n        const first = await shell.exec('xan h -j', { stdin: 'id,id,\\n' });\n        const second = await shell.exec('xan headers -j', { stdin: 'id,id,\\n' });\n        assert.deepEqual([first.stdout, second.stdout], ['id\\nid\\n\\n', 'id\\nid\\n\\n']); result = second;\n      }\n      const observation = { result, stageBytes, middleware, origins, contexts, defaultNames: names, registryAfterExplicitUse: shell.commands.list().map(command => command.name) };\n      await emit({ stage: 'RAW_OBSERVATION', id: job.id, observation });\n      assert.equal(result.exitCode, 0); assert.equal(result.stderr, '');\n      if (job.route !== 'alias-h') assert.equal(result.stdout, '1\\n');\n      if (job.route === 'files') assert.deepEqual(stageBytes, ['right,left,right\\nC,A,C\\n', 'right,left,right\\nC,A,C\\n']);\n      for (const command of job.route === 'alias-h' ? ['h', 'headers'] : ['select', 'slice', 'count']) { assert.equal(middleware.filter(value => value === `${command}:before`).length, 1); assert.equal(middleware.filter(value => value === `${command}:after`).length, 1); }\n      assert.ok(contexts.every(context => context.cwd === '/work' && context.env.KEEP === 'parent'));\n      return { observation };\n    } finally { await shell.dispose(); }"
+    },
+    "origin": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "first": 134,
+      "last": 138,
+      "text": "  if (job.kind === 'origin') {\n    const fs = new api.MemoryFileSystem(); await fs.mkdir('/work'); const shell = new api.Shell({ fs, cwd: '/work' }); const origins = [];\n    shell.use(module.xanCommands()); shell.use(async (context, next) => { origins.push(context.stdinIsDefault); await next(); });\n    let result; try { result = await shell.exec('xan headers -j', job.origin ? {} : { stdin: '' }); } finally { await shell.dispose(); }\n    await report({ result, origins }); assert.deepEqual(origins, [job.origin]); assert.equal(result.stdout, ''); assert.equal(result.exitCode, 0); return;"
+    },
+    "provenance": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs",
+      "first": 15,
+      "last": 73,
+      "text": "  shell.use(async (context, next) => {\n    if (context.command === 'xan') {\n      events.push('register'); context.registerCleanup(cleanup);\n      context.registerCleanup(async () => { events.push('sibling-cleanup'); });\n    }\n    await next();\n  });\n  const stream = { [Symbol.asyncIterator]() { acquired++; events.push('acquire'); let nextIndex = 0; return {\n    async next() {\n      if (nextIndex++ === 0) {\n        entered.resolve();\n        if (['read', 'late-acquisition', 'overlap-dispose', 'equal-local-reason'].includes(trigger)) {\n          if (trigger === 'equal-local-reason') local.abort(localReason);\n          if (trigger !== 'overlap-dispose') caller.abort(callerReason);\n          await gate.promise;\n          return { done: false, value: Buffer.from('h\\n') };\n        }\n        return { done: false, value: Buffer.from('h\\n') };\n      }\n      return { done: true };\n    },\n    async return() { events.push('owned-return'); return { done: true }; },\n  }; } };\n  fs.readStream = () => stream;\n  const stdout = { async write() {\n    events.push('write'); entered.resolve();\n    if (trigger === 'write') caller.abort(callerReason);\n    if (trigger === 'escaping-over-local') { local.abort(localReason); throw escaping; }\n    if (trigger === 'mapped-status-not-escaping') local.abort(localReason);\n  } };\n  shell.commands.register({ name: 'review-bridge', async execute(context) {\n    events.push('bridge');\n    const args = trigger === 'mapped-status-not-escaping' ? ['select', '0::1'] : ['headers', '-j', 'input.csv'];\n    return context.invoke('xan', args, { signal: local.signal, stdout, stderr: stdout });\n  } });\n  const pending = shell.exec('review-bridge', { signal: caller.signal }).then(value => { settled = true; events.push('exec-settle'); return { value }; }, reason => { settled = true; events.push('exec-settle'); return { reason }; });\n  try {\n    for (let turn = 0; turn < 100 && !events.includes('write') && !events.includes('acquire') && !settled; turn++) await setImmediate();\n    if (trigger === 'overlap-dispose') {\n      disposal = shell.dispose(); assert.equal(shell.dispose(), disposal); disposal.then(() => { disposed = true; });\n    }\n    for (let turn = 0; turn < 4; turn++) await setImmediate();\n    const before = { settled, disposed, cleanupStarts, acquired, events: [...events] };\n    const sameCompletion = completion === undefined ? null : cleanup() === completion;\n    gate.resolve(); const outcome = await pending;\n    if (!disposal) disposal = shell.dispose(); await disposal; disposed = true; events.push('dispose-settle');\n    const observation = { trigger, events, before, sameCompletion, releases, cleanupStarts, acquired, disposed,\n      result: outcome.value, reason: outcome.reason instanceof Error ? { name: outcome.reason.name, message: outcome.reason.message } : outcome.reason,\n      callerIdentity: outcome.reason === callerReason, localIdentity: outcome.reason === localReason, escapingIdentity: outcome.reason === escaping, cleanupIdentity: outcome.reason === cleanupError };\n    await emit({ stage: 'RAW_OBSERVATION', id: job.id, observation });\n    assert.equal(before.settled, false, 'public exec waits registered cooperative cleanup');\n    assert.equal(before.disposed, false); assert.equal(releases, 1); assert.equal(cleanupStarts, 1); assert.equal(sameCompletion, true);\n    assert.ok(events.indexOf('register') < events.indexOf('acquire') || trigger === 'mapped-status-not-escaping');\n    assert.ok(events.indexOf('cleanup-end') < events.indexOf('exec-settle')); assert.ok(events.includes('sibling-cleanup'));\n    if (['read', 'write', 'late-acquisition', 'equal-local-reason'].includes(trigger)) assert.equal(outcome.reason, callerReason);\n    if (trigger === 'escaping-over-local') assert.equal(outcome.reason, escaping);\n    if (trigger === 'mapped-status-not-escaping') assert.equal(outcome.reason, localReason);\n    if (['failing-cleanup', 'cleanup-only'].includes(trigger)) assert.equal(outcome.reason, cleanupError);\n  } finally { gate.resolve(); await pending; await shell.dispose(); }"
+    },
+    "resultContract": {
+      "binding": "5137a74ec855a32d8a8860eb66b62eb44d11e290:src/contracts/plugin.ts",
+      "first": 4,
+      "last": 9,
+      "text": "export type Next = () => Promise<CommandResult>;\n\nexport type Middleware = (\n  context: CommandContext,\n  next: Next,\n) => CommandResult | Promise<CommandResult>;"
+    },
+    "routeContract": {
+      "binding": "5137a74ec855a32d8a8860eb66b62eb44d11e290:src/contracts/command.md",
+      "first": 33,
+      "last": 43,
+      "text": "Live cancellation flows only into the selected child and its descendants. It\ndoes not cancel or close the parent, a sibling, another pipeline stage or another\nshell. First delivery is immutable. Settlement ranks the root caller above an\nactual escaping execution/control failure and ranked invoke cancellation. Equal\nrejection values do not establish provenance: an unchanged runtime-owned promise\nroute or authenticated descendant report is required. Handler errors already\nmapped to a diagnostic and numeric status remain mapped and discard that report.\n\nRegistered child cleanup and cooperative owned work drain before the child link\ndetaches and the invoke promise settles. Cancellation cannot undo completed\neffects or terminate opaque host work."
+    },
+    "routeImplementation": {
+      "binding": "5137a74ec855a32d8a8860eb66b62eb44d11e290:src/shell/runtime.ts",
+      "first": 570,
+      "last": 587,
+      "text": "  private observeRuntimeReturn<Value>(\n    rawReturn: Value | PromiseLike<Value>,\n    frame: RuntimeOutcomeFrame,\n    downstream: () => Promise<CommandResult> | undefined = () => undefined,\n  ): Promise<Value> {\n    const raw = rawReturn as unknown;\n    return Promise.resolve(rawReturn).then(\n      value => {\n        if (raw !== downstream()) frame.report = undefined;\n        return value;\n      },\n      reason => {\n        const report = this.cancellationState.consume(raw, reason);\n        if (report) frame.report = report;\n        else if (raw !== downstream()) frame.report = undefined;\n        throw reason;\n      },\n    );"
+    },
+    "ledger": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "first": 172,
+      "last": 178,
+      "text": "  if (job.kind === 'ledger') {\n    const exact = job.name === 'maxWork' ? 15 : 64; const limit = exact + job.delta;\n    const ledger = job.name === 'maxWork' ? [{ phase: 'argv UTF8 inspection', amount: 5 }, { phase: 'scanner delivered bytes inspected', amount: 2 }, { phase: 'text size', amount: 2 }, { phase: 'encode text size', amount: 2 }, { phase: 'encoded writes', amount: 2 }, { phase: 'managed output delivery', amount: 2 }] : [{ phase: 'scanner slot', capacity: 32 }, { phase: 'count row slot overlapping scanner', capacity: 32 }, { phase: 'row released; output allocation', capacity: 2 }];\n    const record = await invoke(module, contracts, ['count'], { input: 'a\\n', factory: { limits: { [job.name]: limit } } });\n    await report({ ...raw(record), exact, limit, ledger, scope: 'SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE' });\n    assert.equal(record.failed, false); assert.equal(record.result.exitCode, job.delta < 0 ? 1 : 0); if (job.delta >= 0) assert.equal(record.stdout.toString(), '0\\n');\n    if (job.delta < 0) assert.equal(record.stderr.toString(), `xan count: ${job.name} limit exceeded\\n`); return;"
+    },
+    "resource": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "first": 180,
+      "last": 196,
+      "text": "  if (job.kind === 'resource') {\n    const row = limits.find(row => row.name === job.name); const configured = { ...row, defaultValue: job.limit };\n    const spec = generator(configured, job.target, job.name === 'maxSelectorNodes' && job.target % 2 ? 'complement' : 'plain');\n    if (spec.reachability.startsWith('NOT_REACHABLE')) { await report({ reachability: spec.reachability, target: job.target, scale: job.scale }); return { status: 'BLOCKED', reason: spec.reachability }; }\n    const overrides = Object.fromEntries(limits.map(limit => [limit.name, limit.hardCeiling])); overrides[job.name] = job.limit;\n    const inputHash = digestSink(); let chunks = 0; const stdin = { async *[Symbol.asyncIterator]() { for await (const chunk of spec.input()) { chunks++; await inputHash.write(chunk); yield chunk; } } };\n    const output = digestSink(); const host = hostFor(contracts, Object.fromEntries(spec.files.map(file => [file.name, { utf8: file.utf8 }])));\n    const controller = new AbortController(); const deadlineReason = Object.freeze({ reviewDeadline: true });\n    const timer = setTimeout(() => controller.abort(deadlineReason), 35000);\n    let record;\n    try { record = await invoke(module, contracts, spec.argv, { host, stdin, stdout: output, factory: { limits: overrides }, controller }); }\n    finally { clearTimeout(timer); }\n    const stdout = output.finish(); const input = inputHash.finish(); await report({ ...raw(record), stdout, input, chunks, target: job.target, configuredLimit: job.limit, argv: spec.argv, independent: spec.independent, siblingLimits: overrides, scale: job.scale });\n    if (record.reason === deadlineReason) return { status: 'BLOCKED', reason: 'ACTUAL_RESOURCE_ATTEMPT_INCOMPLETE_35_SECOND_BOUND; cooperative cleanup settled; partial raw retained, not a pass' };\n    assert.equal(record.failed, false); assert.equal(record.result.exitCode, job.target > job.limit ? 1 : 0);\n    if (job.target > job.limit) { const diagnostic = `xan ${spec.argv[0]}: ${job.name} limit exceeded\\n`; assert.equal(record.stderr.toString(), Buffer.byteLength(diagnostic) <= overrides.maxOutputBytes - stdout.bytes ? diagnostic : ''); }\n    if (job.target <= job.limit && spec.expectedStdout) { const expected = digestSink(); await expected.write(Buffer.from(spec.expectedStdout)); assert.deepEqual(stdout, expected.finish()); }"
+    },
+    "authority": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs",
+      "first": 113,
+      "last": 119,
+      "text": "  if (job.kind === 'authority') {\n    const host = hostFor(contracts, { 'input.csv': { utf8: 'result\\n' }, 'out.csv': { utf8: 'original' } }, { unknownIdentity: true }); const calls = [];\n    host.fs.compareEntry = async (left, peer, right, options) => { calls.push({ left, right, samePeer: peer === host.fs, signalPresent: options.signal instanceof AbortSignal }); return job.relation === 'invalid' ? 'bad' : job.relation === 'conflict' ? 'same' : job.relation; };\n    const record = await invoke(module, contracts, ['headers', '-j', 'input.csv', '-o', 'out.csv'], { host });\n    await report({ ...raw(record), calls, conflictPrerequisite: job.relation === 'conflict' ? 'single FileSystem interface admits one authority; two distinct operand-authority disagreement not injectable through this command context' : undefined });\n    assert.equal(calls.length, 1); assert.ok(calls.every(call => call.samePeer && call.signalPresent)); assert.equal(record.result.exitCode, job.relation === 'distinct' ? 0 : 1);\n    if (job.relation === 'conflict') return { status: 'BLOCKED', reason: 'two-authority conflict unexercised; same assertion observed, not conflict coverage' }; return;"
+    },
+    "unmet": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/actual-review-v2/manifest.mjs",
+      "first": 30,
+      "last": 38,
+      "text": "    } else {\n      for (const delta of [-1, 0, 1]) jobs.push({ id: `F11-small-${row.name}-${delta}`, kind: 'resource', name: row.name, limit: smallTarget(row.name), target: smallTarget(row.name) + delta, scale: 'LOWERED' });\n      for (const delta of [-1, 0, 1]) jobs.push({ id: `F11-default-${row.name}-${delta}`, kind: 'resource', name: row.name, limit: row.defaultValue, target: row.defaultValue + delta, scale: 'DEFAULT' });\n    }\n  }\n  return { jobs, rows: [...rows, ...flagVariants(rows)], limits };\n}\n"
+    },
+    "depth": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/resources.mjs",
+      "first": 138,
+      "last": 141,
+      "text": "    case 'maxSelectorDepth':\n      spec.argv = ['select', '0']; spec.input = () => repeated(4, ascii('a\\nx\\n'));\n      spec.independent.depth = 2;\n      if (target !== 2) spec.reachability = 'NOT_REACHABLE_NO_INVENTED_DEPTH_3_GRAMMAR'; break;"
+    },
+    "oddOutput": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/resources.mjs",
+      "first": 157,
+      "last": 166,
+      "text": "    case 'maxOutputBytes': {\n      if (target < 4 || target % 2) { spec.reachability = 'NOT_REACHABLE_THIS_REPEAT_SERIALIZATION'; break; }\n      let columns = Math.min(256, Math.floor(target / 4));\n      while (target % (columns * 2)) columns--;\n      const records = target / (columns * 2);\n      if (records > 16000000) { spec.reachability = 'NOT_REACHABLE_RECORD_HARD_CAP'; break; }\n      spec.argv = ['select', Array(columns).fill('0').join(',')];\n      spec.input = async function* () { yield ascii('a\\n'); yield* repeated((records - 1) * 2, ascii('x\\n')); };\n      spec.output = async function* () {\n        yield ascii(`${Array(columns).fill('a').join(',')}\\n`);"
+    },
+    "flagVariants": {
+      "binding": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77:tests/commands/xan-module-review-20260828/preparation-v2/scenarios.mjs",
+      "first": 134,
+      "last": 141,
+      "text": "export function flagVariants(rows) {\n  const byId = new Map(rows.map(row => [row.id, row]));\n  return [\n    ['Z01', ['slice', '--last', '0']], ['Z02', ['slice', '-nL0']], ['Z09', ['slice', '--len=1']],\n    ['B01-R1-repeat', ['count', '-nn']], ['B01-R6-L-range', ['slice', '--last=0', '--len=0']],\n    ['B01-R6-I-range', ['slice', '--indices=0', '--start=1']], ['B01-R6-L-I', ['slice', '-L0', '-I0']],\n    ['B01-R7-invalid-plural', ['slice', '--indices=x']],\n  ].map(([id, argv], index) => ({ ...byId.get(id), id: `flag-${index}-${id}`, originalId: id, argv }));"
+    },
+    "argument": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/argv.ts",
+      "first": 78,
+      "last": 115,
+      "text": "  for (let offset = 1; offset < args.length; offset++) {\n    const arg = args[offset]!;\n    if (!positional && arg === \"--\") { positional = true; continue; }\n    if (!positional && arg.startsWith(\"--\")) {\n      const equals = arg.indexOf(\"=\");\n      const name = arg.slice(2, equals < 0 ? undefined : equals);\n      if (command === \"headers\" && name === \"no-headers\") throw new UsageError(`${headersUsage}Unknown flag: '--no-headers' Use the -h/--help flag for more information.`);\n      if (!allowed[command].has(name)) throw new XanError(`unsupported in bounded CSV profile: --${name}`);\n      if (switches.has(name)) {\n        if (equals >= 0) throw new XanError(`option --${name} takes no value`);\n        put(name, \"true\");\n      } else {\n        const value = equals >= 0 ? arg.slice(equals + 1) : args[++offset];\n        if (value === undefined) throw new XanError(`missing value for --${name}`);\n        put(name, value);\n      }\n    } else if (!positional && arg.startsWith(\"-\") && arg !== \"-\") {\n      for (let position = 1; position < arg.length; position++) {\n        const letter = arg[position]!;\n        const name = shortOptions[letter];\n        if (command === \"headers\" && letter === \"n\") throw new UsageError(`${headersUsage}Unknown flag: '-n' Use the -h/--help flag for more information.`);\n        if (!name || !allowed[command].has(name)) throw new XanError(`unsupported in bounded CSV profile: -${letter}`);\n        if (switches.has(name)) put(name, \"true\");\n        else {\n          const value = position + 1 < arg.length ? arg.slice(position + 1) : args[++offset];\n          if (value === undefined) throw new XanError(`missing value for -${letter}`);\n          put(name, value); break;\n        }\n      }\n    } else { budget.hold(32); operands.push(arg); }\n  }\n  const help = values.has(\"help\");\n  const selection = command === \"select\" ? operands.shift() : \"\";\n  if (selection === undefined && !help) throw new UsageError(\"Usage:\\n    xan select [options] [--] <selection> [<input>]\\n    xan select --help\\n\\nInvalid subcommand or arguments! Use the -h/--help flag for more information.\");\n  if (command !== \"headers\" && operands.length > 1) throw new XanError(\"too many input files\");\n  if (operands.filter(path => path === \"-\").length > 1) throw new XanError(\"stdin may appear only once\");\n  if (!operands.length) operands.push(\"-\");\n  budget.bound(\"maxInputFiles\", operands.length);"
+    },
+    "diagnostic": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/index.ts",
+      "first": 36,
+      "last": 76,
+      "text": "  } catch (error) {\n    if (context.signal.aborted) { failed = true; failure = context.signal.reason; }\n    else if (error instanceof EscapingFailure) { failed = true; failure = error.reason; }\n    else if (!(error instanceof XanError) && !(error instanceof FsError)) { failed = true; failure = error; }\n    else if (operation?.signal.aborted) { failed = true; failure = operation.signal.reason; }\n    else {\n      result = { exitCode: 1 };\n      const parts = error instanceof DeserializationError || error instanceof UsageError ? [error.message, \"\\n\"] : [\"xan\", command ? \" \" : \"\", command, \": \", error.message, \"\\n\"];\n      const stderr = createOutputOperation(context, context.stderr);\n      let bytes: Uint8Array | undefined;\n      try {\n        let size = 0;\n        for (const part of parts) size += await budget.textSize(part);\n        if (size <= limits.maxOutputBytes - (budget.totals.get(\"maxOutputBytes\") ?? 0)) {\n          budget.add(\"maxOutputBytes\", size); budget.hold(size); bytes = new Uint8Array(size);\n          let offset = 0;\n          for (const part of parts) {\n            const encoded = await budget.encode(part);\n            try {\n              for (let start = 0; start < encoded.length; start += 4096) {\n                const fragment = encoded.subarray(start, start + 4096);\n                budget.work(fragment.length); bytes.set(fragment, offset); offset += fragment.length; await budget.checkpoint();\n              }\n            } finally { budget.release(encoded.length); }\n          }\n          try { await stderr.output.write(bytes); }\n          catch (sinkError) { throw new EscapingFailure(sinkError); }\n        }\n      } catch (diagnosticError) {\n        if (diagnosticError instanceof EscapingFailure) { failed = true; failure = diagnosticError.reason; }\n        else if (!(diagnosticError instanceof LimitError)) { failed = true; failure = diagnosticError; }\n      } finally {\n        if (bytes) budget.release(bytes.length);\n        try { await stderr.close(); } catch (cleanupError) { if (!failed) { failed = true; failure = cleanupError; } }\n      }\n    }\n  }\n  const cleanups = await Promise.allSettled([scope?.close(), operation?.close()]);\n  if (context.signal.aborted) throw context.signal.reason;\n  if (failed) throw failure;\n  const errors = cleanups.filter((outcome): outcome is PromiseRejectedResult => outcome.status === \"rejected\").map(outcome => outcome.reason);"
+    },
+    "budget": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/budget.ts",
+      "first": 14,
+      "last": 66,
+      "text": "  bound(name: keyof XanLimits, value: number): void {\n    this.check();\n    if (!Number.isSafeInteger(value) || value < 0 || value > this.limits[name]) throw new LimitError(name);\n  }\n  add(name: keyof XanLimits, value: number): void {\n    const next = (this.totals.get(name) ?? 0) + value;\n    this.bound(name, next);\n    this.totals.set(name, next);\n  }\n  hold(bytes: number): void { this.bound(\"maxRetainedBytes\", this.retained + bytes); this.retained += bytes; }\n  release(bytes: number): void { this.retained -= bytes; }\n  work(bytes = 1): void { this.add(\"maxWork\", bytes); this.workSinceYield += bytes; }\n  async checkpoint(): Promise<void> {\n    this.check();\n    if (this.workSinceYield >= 65536) { this.workSinceYield = 0; await setImmediate(); this.check(); }\n  }\n  async textSize(text: string): Promise<number> {\n    let bytes = 0;\n    for (let offset = 0; offset < text.length; offset++) {\n      const code = text.charCodeAt(offset);\n      if (code >= 0xd800 && code <= 0xdbff) {\n        const low = text.charCodeAt(++offset);\n        if (!(low >= 0xdc00 && low <= 0xdfff)) throw new XanError(\"invalid scalar argument\");\n        bytes += 4; this.work(4);\n      } else {\n        if (code >= 0xdc00 && code <= 0xdfff) throw new XanError(\"invalid scalar argument\");\n        const size = code < 128 ? 1 : code < 2048 ? 2 : 3;\n        bytes += size; this.work(size);\n      }\n      if ((offset & 1023) === 0) await this.checkpoint();\n    }\n    return bytes;\n  }\n  async encode(text: string): Promise<Uint8Array> {\n    const size = await this.textSize(text);\n    this.hold(size);\n    try {\n      const result = new Uint8Array(size);\n      let offset = 0;\n      for (let cursor = 0; cursor < text.length; cursor++) {\n        let code = text.charCodeAt(cursor);\n        if (code >= 0xd800 && code <= 0xdbff) code = 0x10000 + ((code - 0xd800) << 10) + text.charCodeAt(++cursor) - 0xdc00;\n        const begin = offset;\n        if (code < 128) result[offset++] = code;\n        else if (code < 2048) { result[offset++] = 192 | (code >> 6); result[offset++] = 128 | (code & 63); }\n        else if (code < 65536) { result[offset++] = 224 | (code >> 12); result[offset++] = 128 | ((code >> 6) & 63); result[offset++] = 128 | (code & 63); }\n        else { result[offset++] = 240 | (code >> 18); result[offset++] = 128 | ((code >> 12) & 63); result[offset++] = 128 | ((code >> 6) & 63); result[offset++] = 128 | (code & 63); }\n        this.work(offset - begin);\n        if ((cursor & 1023) === 0) await this.checkpoint();\n      }\n      return result;\n    }\n    catch (error) { this.release(size); throw error; }"
+    },
+    "inputScope": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/io.ts",
+      "first": 78,
+      "last": 96,
+      "text": "  open(path: string, args: Arguments): Scanner {\n    this.budget.check();\n    if (this.closed) throw new Error(\"xan input admission closed\");\n    let source: ByteSource;\n    if (path === \"-\") {\n      const borrowed = this.context.stdin;\n      source = { [Symbol.asyncIterator]() {\n        const iterator = borrowed[Symbol.asyncIterator]();\n        return { next: () => iterator.next() };\n      } };\n    } else {\n      if (!this.context.fs.readStream) throw new FsError(\"ENOTSUP\", { path, message: \"xan requires streaming input\" });\n      source = this.manage(this.context.fs.readStream(resolvePath(this.context.cwd, path), { signal: this.signal }));\n    }\n    this.budget.hold(32);\n    const scanner = new Scanner(source, args.delimiter ?? inferDelimiter(path), args.command, this.budget, this.signal);\n    this.scanners.add(scanner);\n    this.own(() => { this.budget.release(32); });\n    return scanner;"
+    },
+    "managed": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/io.ts",
+      "first": 139,
+      "last": 169,
+      "text": "export function managedOutput(source: ByteSource, scope: InputScope, budget: Budget): ByteSource {\n  let iterator: AsyncIterator<Uint8Array> | undefined;\n  let closed = false;\n  let closing: Promise<void> | undefined;\n  const close = (): Promise<void> => {\n    closed = true;\n    closing ??= Promise.resolve().then(async () => { await iterator?.return?.(); });\n    return closing;\n  };\n  scope.own(close);\n  return { [Symbol.asyncIterator]: () => ({\n    next: async () => {\n      budget.check();\n      if (closed) return { done: true, value: undefined };\n      iterator ??= source[Symbol.asyncIterator]();\n      const next = await iterator.next();\n      if (!next.done) for (let offset = 0; offset < next.value.length; offset += 4096) {\n        budget.work(Math.min(4096, next.value.length - offset)); await budget.checkpoint();\n      }\n      return next;\n    },\n    return: async () => { await close(); return { done: true, value: undefined }; },\n  }) };\n}\nexport async function publish(context: CommandContext, destination: Destination | undefined, source: ByteSource, operation: OutputOperation, budget: Budget): Promise<void> {\n  if (!destination) {\n    for await (const chunk of source) {\n      try { await operation.output.write(chunk); }\n      catch (error) { throw new EscapingFailure(error); }\n      budget.check();\n    }"
+    },
+    "count": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/commands.ts",
+      "first": 12,
+      "last": 27,
+      "text": "async function* emitted(bytes: Uint8Array, budget: Budget): ByteSource {\n  try { if (bytes.length) yield bytes; } finally { budget.release(bytes.length); }\n}\nfunction width(row: RecordRow, expected: number, command: string): void {\n  if (row.width !== expected) throw new XanError(`CSV error: record ${row.number} (byte: ${row.offset}): found record with ${row.width} fields, but the previous record has ${expected} fields`);\n}\nexport async function prepareRows(args: Arguments, selection: Selection | undefined, scope: InputScope, budget: Budget, writer: Writer): Promise<ByteSource> {\n  if (args.help) return emitted(await writer.text(\"xan: bounded CSV headers (h), count, select, slice\\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\\ncount/select/slice: -n --no-headers\\nselect: literal selection; slice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\\nExpressions, advanced formats, parallel/approximate count and color are unsupported.\\n\"), budget);\n  if (args.command === \"headers\") return prepareHeaders(args, scope, budget, writer);\n  if (args.command === \"slice\" && args.noHeaders && args.last === 0) return emitted(new Uint8Array(0), budget);\n  const scanner = scope.open(args.inputs[0]!, args);\n  if (args.command === \"count\") {\n    let count = 0;\n    while (true) { const row = await scanner.next(); if (!row) break; count++; row.free(); }\n    await scanner.close();\n    return emitted(await writer.text(`${Math.max(0, count - (args.noHeaders ? 0 : 1))}\\n`), budget);"
+    },
+    "scanner": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/csv.ts",
+      "first": 26,
+      "last": 91,
+      "text": "  private async nextByte(): Promise<number | undefined> {\n    this.signal.throwIfAborted();\n    if (this.prefix.length) return this.prefix.shift()!;\n    while (this.cursor === this.chunk.length) {\n      this.budget.check();\n      const next = await this.iterator.next();\n      this.budget.check();\n      this.chunk = new Uint8Array(0); this.cursor = 0;\n      if (next.done) { this.finished = true; return undefined; }\n      this.budget.bound(\"maxChunkBytes\", next.value.length);\n      this.budget.add(\"maxChunks\", 1); this.budget.add(\"maxInputBytes\", next.value.length);\n      this.chunk = next.value;\n    }\n    this.absolute++;\n    this.budget.work(); await this.budget.checkpoint();\n    return this.chunk[this.cursor++];\n  }\n  async next(): Promise<RecordRow | undefined> {\n    this.budget.check();\n    if (this.initial) {\n      this.initial = false;\n      const first = await this.nextByte();\n      if (first === 239) {\n        const second = await this.nextByte();\n        if (second === 187) {\n          const third = await this.nextByte();\n          if (third !== 191) this.prefix = third === undefined ? [first, second] : [first, second, third];\n        } else this.prefix = second === undefined ? [first] : [first, second];\n      } else if (first !== undefined) this.prefix = [first];\n    }\n    const cells: Cell[] = [];\n    let raw = new Bytes(this.budget);\n    let decoded = new Bytes(this.budget);\n    let state: \"start\" | \"plain\" | \"quoted\" | \"closed\" = \"start\";\n    const quoted = (): boolean => state === \"quoted\";\n    let active = false;\n    let recordBytes = 0;\n    let cellBytes = 0;\n    let width = 0;\n    let pendingCR = false;\n    let offset = this.absolute - this.prefix.length;\n    let faithful = true;\n    let rowHeld = false;\n    const countOnly = this.dialect === \"count\";\n    const account = async (byte: number, separator = false): Promise<void> => {\n      this.budget.bound(\"maxRecordBytes\", ++recordBytes);\n      if (!separator) this.budget.bound(\"maxCellBytes\", ++cellBytes);\n      if (!countOnly && !separator) await raw.push(byte);\n    };\n    const cell = (): void => {\n      this.budget.bound(\"maxColumns\", ++width);\n      if (!countOnly) { this.budget.hold(32); cells.push({ decoded, raw, faithful }); }\n      raw = new Bytes(this.budget); decoded = new Bytes(this.budget); cellBytes = 0; state = \"start\"; faithful = true;\n    };\n    const content = async (byte: number): Promise<void> => {\n      if (!active) {\n        this.budget.add(\"maxRecords\", 1); this.count++;\n        this.budget.bound(\"maxColumns\", 1); this.budget.hold(32); rowHeld = true;\n      }\n      active = true;\n      if (byte === this.delimiter && state !== \"quoted\") this.budget.bound(\"maxColumns\", width + 2);\n      if (countOnly) {\n        if (byte === 34) { await account(byte); state = state === \"quoted\" ? \"plain\" : \"quoted\"; }\n        else if (byte === this.delimiter && state !== \"quoted\") { await account(byte, true); cell(); }\n        else { await account(byte); if (state !== \"quoted\") state = \"plain\"; }\n        return;"
+    },
+    "scannerRelease": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/csv.ts",
+      "first": 128,
+      "last": 139,
+      "text": "      let released = false;\n      rowHeld = false;\n      return { cells, width, offset, number: this.count, free: () => {\n        if (released) return; released = true;\n        for (const value of cells) { value.decoded.free(); value.raw.free(); this.budget.release(32); }\n        this.budget.release(32);\n        cells.length = 0;\n      } };\n    } catch (error) {\n      for (const value of cells) { value.decoded.free(); value.raw.free(); this.budget.release(32); }\n      throw error;\n    } finally { raw.free(); decoded.free(); if (rowHeld) this.budget.release(32); }"
+    },
+    "writer": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/writer.ts",
+      "first": 74,
+      "last": 79,
+      "text": "  async text(text: string): Promise<Uint8Array> {\n    const size = await this.budget.textSize(text);\n    this.budget.add(\"maxOutputBytes\", size);\n    const bytes = await this.budget.encode(text); this.atStart &&= bytes.length === 0;\n    return bytes;\n  }"
+    },
+    "options": {
+      "binding": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247:src/commands/xan/options.ts",
+      "first": 1,
+      "last": 36,
+      "text": "export const defaultLimits = Object.freeze({\n  maxArgs: 128, maxArgumentBytes: 65536, maxInputFiles: 16,\n  maxInputBytes: 268435456, maxChunks: 262144, maxChunkBytes: 8388608,\n  maxRecordBytes: 8388608, maxCellBytes: 4194304, maxColumns: 16384,\n  maxRecords: 1000000, maxSelectorBytes: 16384, maxSelectorNodes: 4096,\n  maxSelectorDepth: 2, maxSelectedColumns: 16384, maxLastRows: 4096,\n  maxWork: 1000000000, maxOutputBytes: 268435456, maxRetainedBytes: 33554432,\n});\nexport type XanLimits = { readonly [Key in keyof typeof defaultLimits]: number };\nexport interface XanCommandsOptions {\n  readonly replace?: boolean;\n  readonly limits?: Partial<XanLimits>;\n}\nexport const hardLimits: XanLimits = Object.freeze({\n  maxArgs: 4096, maxArgumentBytes: 1048576, maxInputFiles: 256,\n  maxInputBytes: 4294967296, maxChunks: 4194304, maxChunkBytes: 67108864,\n  maxRecordBytes: 67108864, maxCellBytes: 33554432, maxColumns: 65536,\n  maxRecords: 16000000, maxSelectorBytes: 262144, maxSelectorNodes: 65536,\n  maxSelectorDepth: 2, maxSelectedColumns: 65536, maxLastRows: 65536,\n  maxWork: 16000000000, maxOutputBytes: 4294967296, maxRetainedBytes: 268435456,\n});\nexport function validateOptions(options: XanCommandsOptions = {}): { limits: XanLimits; replace: boolean } {\n  if (!options || typeof options !== \"object\" || Array.isArray(options)) throw new TypeError(\"Invalid xan options\");\n  for (const key of Reflect.ownKeys(options)) if (key !== \"limits\" && key !== \"replace\") throw new TypeError(`Unknown xan option: ${String(key)}`);\n  if (Object.hasOwn(options, \"replace\") && typeof options.replace !== \"boolean\") throw new TypeError(\"Invalid xan replace\");\n  const supplied = options.limits;\n  if (supplied !== undefined && (!supplied || typeof supplied !== \"object\" || Array.isArray(supplied))) throw new TypeError(\"Invalid xan limits\");\n  const limits = { ...defaultLimits } as { -readonly [Key in keyof XanLimits]: number };\n  for (const key of Reflect.ownKeys(supplied ?? {})) {\n    if (typeof key !== \"string\" || !Object.hasOwn(defaultLimits, key)) throw new TypeError(`Unknown xan limit: ${String(key)}`);\n    const name = key as keyof XanLimits;\n    const value = supplied![name];\n    if (typeof value !== \"number\" || !Number.isSafeInteger(value) || value <= 0 || value > hardLimits[name]) throw new RangeError(`Invalid xan limit: ${name}`);\n    limits[name] = value;\n  }\n  return { limits: Object.freeze(limits), replace: options.replace ?? false };"
+    }
+  },
+  "immutableReviewCounts": {
+    "SOURCE": {
+      "pass": 569,
+      "fail": 79,
+      "blocked": 19,
+      "missing": [],
+      "failedIds": [
+        "X4-S01/P0",
+        "X4-S02/P0",
+        "X4-S03/P0",
+        "X4-S04/P0",
+        "X4-S05/P0",
+        "X4-R04/P0",
+        "X4-R05/P0",
+        "X4-R06/P0",
+        "X4-R07/P0",
+        "X4-R08/P0",
+        "B01-R1-repeat/P0",
+        "B01-R3-space/P0",
+        "B01-R4-start-length/P0",
+        "B01-R4-index-one/P0",
+        "B01-R4-header-column/P0",
+        "B01-R5-interior/P0",
+        "B01-R6-L-range/P0",
+        "B01-R6-I-range/P0",
+        "B01-R6-L-I/P0",
+        "B01-R7-invalid-plural/P0",
+        "flag-3-B01-R1-repeat",
+        "flag-4-B01-R6-L-range",
+        "flag-5-B01-R6-I-range",
+        "flag-6-B01-R6-L-I",
+        "flag-7-B01-R7-invalid-plural",
+        "X4-S01/file-one",
+        "X4-S01/file-split",
+        "X4-S01/file-read-ahead",
+        "X4-S02/file-one",
+        "X4-S02/file-split",
+        "X4-S02/file-read-ahead",
+        "X4-S03/file-one",
+        "X4-S03/file-split",
+        "X4-S03/file-read-ahead",
+        "X4-S04/file-one",
+        "X4-S04/file-split",
+        "X4-S04/file-read-ahead",
+        "X4-S05/file-one",
+        "X4-S05/file-split",
+        "X4-S05/file-read-ahead",
+        "X4-N01/file-one",
+        "X4-N01/file-split",
+        "X4-N01/file-read-ahead",
+        "X4-N02/file-one",
+        "X4-N02/file-split",
+        "X4-N02/file-read-ahead",
+        "X4-R01/file-one",
+        "X4-R01/file-split",
+        "X4-R01/file-read-ahead",
+        "X4-R02/file-one",
+        "X4-R02/file-split",
+        "X4-R02/file-read-ahead",
+        "X4-R03/file-one",
+        "X4-R03/file-split",
+        "X4-R03/file-read-ahead",
+        "X4-R04/file-one",
+        "X4-R04/file-split",
+        "X4-R04/file-read-ahead",
+        "X4-R05/file-one",
+        "X4-R05/file-split",
+        "X4-R05/file-read-ahead",
+        "X4-R06/file-one",
+        "X4-R06/file-split",
+        "X4-R06/file-read-ahead",
+        "X4-R07/file-one",
+        "X4-R07/file-split",
+        "X4-R07/file-read-ahead",
+        "X4-R08/file-one",
+        "X4-R08/file-split",
+        "X4-R08/file-read-ahead",
+        "F01-pipe",
+        "F01-files",
+        "F01-alias-h",
+        "F04-origin-true",
+        "F04-origin-false",
+        "F08-shell-escaping-over-local",
+        "F08-shell-mapped-status-not-escaping",
+        "F11-ledger-maxWork--1",
+        "F11-ledger-maxRetainedBytes--1"
+      ]
+    },
+    "INSTALLED_MOVED": {
+      "pass": 570,
+      "fail": 79,
+      "blocked": 18,
+      "missing": [],
+      "failedIds": [
+        "X4-S01/P0",
+        "X4-S02/P0",
+        "X4-S03/P0",
+        "X4-S04/P0",
+        "X4-S05/P0",
+        "X4-R04/P0",
+        "X4-R05/P0",
+        "X4-R06/P0",
+        "X4-R07/P0",
+        "X4-R08/P0",
+        "B01-R1-repeat/P0",
+        "B01-R3-space/P0",
+        "B01-R4-start-length/P0",
+        "B01-R4-index-one/P0",
+        "B01-R4-header-column/P0",
+        "B01-R5-interior/P0",
+        "B01-R6-L-range/P0",
+        "B01-R6-I-range/P0",
+        "B01-R6-L-I/P0",
+        "B01-R7-invalid-plural/P0",
+        "flag-3-B01-R1-repeat",
+        "flag-4-B01-R6-L-range",
+        "flag-5-B01-R6-I-range",
+        "flag-6-B01-R6-L-I",
+        "flag-7-B01-R7-invalid-plural",
+        "X4-S01/file-one",
+        "X4-S01/file-split",
+        "X4-S01/file-read-ahead",
+        "X4-S02/file-one",
+        "X4-S02/file-split",
+        "X4-S02/file-read-ahead",
+        "X4-S03/file-one",
+        "X4-S03/file-split",
+        "X4-S03/file-read-ahead",
+        "X4-S04/file-one",
+        "X4-S04/file-split",
+        "X4-S04/file-read-ahead",
+        "X4-S05/file-one",
+        "X4-S05/file-split",
+        "X4-S05/file-read-ahead",
+        "X4-N01/file-one",
+        "X4-N01/file-split",
+        "X4-N01/file-read-ahead",
+        "X4-N02/file-one",
+        "X4-N02/file-split",
+        "X4-N02/file-read-ahead",
+        "X4-R01/file-one",
+        "X4-R01/file-split",
+        "X4-R01/file-read-ahead",
+        "X4-R02/file-one",
+        "X4-R02/file-split",
+        "X4-R02/file-read-ahead",
+        "X4-R03/file-one",
+        "X4-R03/file-split",
+        "X4-R03/file-read-ahead",
+        "X4-R04/file-one",
+        "X4-R04/file-split",
+        "X4-R04/file-read-ahead",
+        "X4-R05/file-one",
+        "X4-R05/file-split",
+        "X4-R05/file-read-ahead",
+        "X4-R06/file-one",
+        "X4-R06/file-split",
+        "X4-R06/file-read-ahead",
+        "X4-R07/file-one",
+        "X4-R07/file-split",
+        "X4-R07/file-read-ahead",
+        "X4-R08/file-one",
+        "X4-R08/file-split",
+        "X4-R08/file-read-ahead",
+        "F01-pipe",
+        "F01-files",
+        "F01-alias-h",
+        "F04-origin-true",
+        "F04-origin-false",
+        "F08-shell-escaping-over-local",
+        "F08-shell-mapped-status-not-escaping",
+        "F11-ledger-maxWork--1",
+        "F11-ledger-maxRetainedBytes--1"
+      ]
+    }
+  },
+  "obligationMappingsNotPasses": 161
+}

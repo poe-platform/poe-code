@@ -1,0 +1,399 @@
+{
+  "constructor": "createExprCommand({limits:payload.input.limits})",
+  "rows": [
+    {
+      "input": {
+        "id": "literal-command-binding",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "name": "/not/a/staging/path/renamed-expr",
+        "expected": "literal expr prefix",
+        "workers": 0
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICd4Jwo=",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: syntax error: unexpected argument 'x'\n",
+      "stdoutBytes": 0,
+      "stderrBytes": 44,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-output-one",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        },
+        "expectedStatus": 3,
+        "expectedStderr": "expr: output bytes limit exceeded\n",
+        "workers": 0
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n",
+      "stdoutBytes": 0,
+      "stderrBytes": 34,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "invalid-output-zero",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 0
+        },
+        "expectedError": "Invalid expr limit: maxOutputBytes",
+        "workers": 0
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {
+          "name": "RangeError",
+          "message": "Invalid expr limit: maxOutputBytes"
+        },
+        "exactReasonIdentity": false,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "invalid-work-zero",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxSteps": 0
+        },
+        "expectedError": "Invalid expr limit: maxSteps",
+        "workers": 0
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {
+          "name": "RangeError",
+          "message": "Invalid expr limit: maxSteps"
+        },
+        "exactReasonIdentity": false,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "syntax-work-one",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxSteps": 1
+        },
+        "expectedStatus": 3,
+        "expectedStderr": "expr: evaluation work limit exceeded\n",
+        "workers": 0
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogZXZhbHVhdGlvbiB3b3JrIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: evaluation work limit exceeded\n",
+      "stdoutBytes": 0,
+      "stderrBytes": 37,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "help-is-product-owned",
+        "argv": [
+          "--help"
+        ],
+        "expectedStatus": 0,
+        "stdoutPrefix": "Usage: expr",
+        "expectedStderr": "",
+        "workers": 0
+      },
+      "actual": {
+        "status": 0,
+        "stdoutBase64": "VXNhZ2U6IGV4cHIgRVhQUkVTU0lPTgpUb2tlbnM6IHwgJiA8IDw9ID0gPT0gIT0gPj0gPiArIC0gKiAvICUgOgpQcmVmaXhlczogKyBUT0tFTiwgbGVuZ3RoIFNUUklORywgaW5kZXggU1RSSU5HIENIQVJTLCBzdWJzdHIgU1RSSU5HIFBPUyBMRU5HVEgsIG1hdGNoIFNUUklORyBSRUdFWFAKR3JvdXAgd2l0aCAoIEVYUFJFU1NJT04gKS4gRWFjaCB0b2tlbiBpcyBhIHNlcGFyYXRlIGFyZ3VtZW50LgpNYXRjaGluZyB1c2VzIGJvdW5kZWQgd29ya2VyLW9ubHkgQlJFIGluIEMvUE9TSVggYnl0ZSBvciBDLlVURi04IHNjYWxhciBwcm9maWxlcy4K",
+        "stderrBase64": "",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "Usage: expr EXPRESSION\nTokens: | & < <= = == != >= > + - * / % :\nPrefixes: + TOKEN, length STRING, index STRING CHARS, substr STRING POS LENGTH, match STRING REGEXP\nGroup with ( EXPRESSION ). Each token is a separate argument.\nMatching uses bounded worker-only BRE in C/POSIX byte or C.UTF-8 scalar profiles.\n",
+      "stderr": "",
+      "stdoutBytes": 309,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "help-output-one",
+        "argv": [
+          "--help"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        },
+        "expectedStatus": 3,
+        "expectedStderr": "expr: output bytes limit exceeded\n",
+        "workers": 0
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg==",
+        "rejected": false,
+        "error": null,
+        "exactReasonIdentity": false,
+        "events": [
+          "registerCleanup"
+        ],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "expr: output bytes limit exceeded\n",
+      "stdoutBytes": 0,
+      "stderrBytes": 34,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "preabort-error",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "reason": "Error",
+        "preabort": true,
+        "expected": "exact reason identity, no stdout/stderr or worker"
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {
+          "name": "Error",
+          "message": "independent diagnostic abort"
+        },
+        "exactReasonIdentity": true,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "preabort-zero",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "reason": 0,
+        "preabort": true,
+        "expected": "exact reason identity, no stdout/stderr or worker"
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {},
+        "exactReasonIdentity": true,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "preabort-false",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "reason": false,
+        "preabort": true,
+        "expected": "exact reason identity, no stdout/stderr or worker"
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {},
+        "exactReasonIdentity": true,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "preabort-empty",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "reason": "",
+        "preabort": true,
+        "expected": "exact reason identity, no stdout/stderr or worker"
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {},
+        "exactReasonIdentity": true,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    },
+    {
+      "input": {
+        "id": "preabort-null",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "reason": null,
+        "preabort": true,
+        "expected": "exact reason identity, no stdout/stderr or worker"
+      },
+      "actual": {
+        "status": null,
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "rejected": true,
+        "error": {},
+        "exactReasonIdentity": true,
+        "events": [],
+        "imports": [],
+        "activeAtSettlement": 0,
+        "activeBeforeSafetyCleanup": 0,
+        "activeAfterSafetyCleanup": 0
+      },
+      "stdout": "",
+      "stderr": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "total": 12,
+    "red": []
+  }
+}

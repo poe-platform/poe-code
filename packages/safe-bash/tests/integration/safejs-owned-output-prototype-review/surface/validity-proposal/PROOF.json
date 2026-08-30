@@ -1,0 +1,796 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/safejs-owned-output-prototype-review/surface/validity-proposal/authenticate.mjs"
+  ],
+  "timeoutMs": 30000,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stderr": "",
+  "proof": {
+    "at": "2026-08-27T15:43:54.924Z",
+    "status": "AUTHENTICATED_READONLY_PROPOSAL_INPUTS",
+    "originalSurfaceAuthorReviewerThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+    "proposalAuthorThread": "01a04292-5421-7363-8bcb-a70b97fae4e9",
+    "independentSignedReviewProvided": false,
+    "inputCommit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+    "runnerCommit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+    "evidenceCommit": "b0ff1977c9c912054edd136510d62819d28cf890",
+    "bindings": [
+      {
+        "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/PINS.json",
+        "bytes": 28218,
+        "sha256": "b8f437199991fd6afda5ba63da4cde9b29d9b3217164e3bbd90969b3c8da7992"
+      },
+      {
+        "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/CASES.json",
+        "bytes": 32535,
+        "sha256": "ea3c11a8b8ffaa3d39eb92034dd633e9f4d7343568817f5677ff605399b64dda"
+      },
+      {
+        "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/FREEZE-v2.json",
+        "bytes": 4546,
+        "sha256": "62c7f2a5bddf5b9b9c5ed6b236e4509560d32d14f7f702df2a2dc77fc4668852"
+      },
+      {
+        "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/child.mjs",
+        "bytes": 12759,
+        "sha256": "5cab487b9a63feade2048a1f6b13fb3756f668d14f7a3ecacbf7b921da97c13d"
+      },
+      {
+        "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/run.mjs",
+        "bytes": 22406,
+        "sha256": "91c6af3375fe486366206b080032a7f3f86d218d12faf018b8a38b0689ae0460"
+      },
+      {
+        "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/RELEASE.json",
+        "bytes": 1759,
+        "sha256": "de6f5c35dd4b962e5a3e4cbd426cd87d0a5cdb11761b8bc9159079b2107f471a"
+      },
+      {
+        "commit": "5d2c2f93d794b2a52d56ee503119052a5fefe1fd",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/RUNNER-FREEZE.json",
+        "bytes": 1094,
+        "sha256": "f8423823ad7af2ed4e880bf5ce74a73a3ff7ab498c47ad02dc3050deda1ef4f0"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/CAPTURE-MANIFEST.json",
+        "bytes": 9754,
+        "sha256": "a6b8fdad3e77a6ab23aa932212ad3074b5f76e2b834a1831f90bfaa961d03e4b"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/journal.json",
+        "bytes": 423469,
+        "sha256": "88cf841e3dd51d9111d96dacf2b6ec465c5a0e339ceb6dd9e91b8c4e2b21016f"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/copy-provenance.json",
+        "bytes": 380466,
+        "sha256": "1c670094f988e9273551b8aa3c970f9a728a306bb470cf9847e79ce99f805c3a"
+      },
+      {
+        "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+        "path": "tests/integration/safejs-owned-output-prototype-review/provenance/SEAL.json",
+        "bytes": 115247,
+        "sha256": "bb19621a33109612323665279bcd3d4f3714b01c51e3555f6ce32205ce1509fd"
+      },
+      {
+        "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+        "path": "tests/integration/safejs-owned-output-prototype-review/provenance/assembly.json",
+        "bytes": 509985,
+        "sha256": "29827a438ce8e33be22a1588a808b2cf7f21909cfaeccb4026405e899fa49199"
+      },
+      {
+        "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+        "path": "tests/integration/safejs-owned-output-prototype-review/provenance/build-proof.json",
+        "bytes": 186541,
+        "sha256": "7896f394dbcf9b66354e4fad7de867afda29108e46381259464417f0e3ffe926"
+      },
+      {
+        "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+        "path": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot-before.json",
+        "bytes": 129703,
+        "sha256": "3a705749e0daea4d85a1546f665a2a0dda50ccae908e7c6d89e82e2666cb74f5"
+      },
+      {
+        "commit": "f666ad8c76ea4362b093ee52e3e7e3b5c3702916",
+        "path": "tests/integration/safejs-owned-output-prototype-review/provenance/snapshot-after.json",
+        "bytes": 124370,
+        "sha256": "f2aa8a751b4410e58af95735ee0a1ac901ce2f124e1e15b5ceefd5cf067f0bdd"
+      },
+      {
+        "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/07-reflection-profile.guest.txt",
+        "bytes": 666,
+        "sha256": "f17be70596dafc1d96cc0700f3af708efca0d33f4e4c701ed2d45d0c8310d009"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/actual.json",
+        "bytes": 123837,
+        "sha256": "944050ba327e2b4ed7bde6d0127976cb783ebc32c63da8c4146b0499e6fd6198"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/assessment.json",
+        "bytes": 1292,
+        "sha256": "1d5df6971d45f20ce8b1754f194a15618c7cac5ccb6b9b786cb4b07983a5159b"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/child.json",
+        "bytes": 342,
+        "sha256": "71f70c80e67c501a2c2dc4b3e2650957d647f4202a3ef68f50953e3933d570a7"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/07-reflection-profile/imports.ndjson",
+        "bytes": 41796,
+        "sha256": "2fa4313ce54ef2d8db98491f25d194da316e1f78a23635b85bc920f903d28381"
+      },
+      {
+        "commit": "5645b4f516438b66e4fad32a585ab27cda8f7cdc",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/probes/08-function-spread-profile.guest.txt",
+        "bytes": 52,
+        "sha256": "96a9b23cc16568b930baaa636e16ed8a6134c9e18f4d8d289d0ccb4378a41462"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/actual.json",
+        "bytes": 121414,
+        "sha256": "ff76cdea1644b406cf71318fa99c96e9bf5cd90ee34a0c400a451265ae26c4e1"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/assessment.json",
+        "bytes": 1388,
+        "sha256": "bcc53fc278bb7180a52d13f9e6296c17603e20d769941702d7107886033dfd83"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/child.json",
+        "bytes": 345,
+        "sha256": "3a52b5ec5e26542d9eb23c3bcc4be76cf6c063e6725ea5aac8a9c70e5b602330"
+      },
+      {
+        "commit": "b0ff1977c9c912054edd136510d62819d28cf890",
+        "path": "tests/integration/safejs-owned-output-prototype-review/surface/execution-v1/attempt-01/raw/08-function-spread-profile/imports.ndjson",
+        "bytes": 41350,
+        "sha256": "21dd9e86f3720ad7b87f56a5538f93bf0aaf214a33b70bb3e0766c4bec412e36"
+      }
+    ],
+    "originalRawCounts": {
+      "executed": 8,
+      "pass": 7,
+      "fail": 1,
+      "invalid": 0,
+      "blocked": 0,
+      "conditionalExecuted": 0
+    },
+    "candidate": {
+      "evidenceCommit": "e57b5aa16f749b6fac558877dff0712e64df05a8",
+      "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+      "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+      "archiveSha256": "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420"
+    },
+    "retainedRoots": {
+      "candidate": {
+        "path": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate",
+        "files": 940,
+        "byteInventorySha256": "a2632992e84344c1a6a92fcee181a1e6d535d6cb87ef1a9a7841e48af9c02e28",
+        "metadataInventorySha256": "c8919b5e21441d786415f43c2618f1a2856496bab5e2dd585fc18afa6421be32",
+        "fullBeforeAfterEqual": true,
+        "newEntriesDetected": true
+      },
+      "consumer": {
+        "path": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/consumer/node_modules/virtual-bash",
+        "files": 709,
+        "byteInventorySha256": "4a81b133665b238545f2111bf349250329e874917691235be67d703056a4f018",
+        "metadataInventorySha256": "03f327707ed7e6ad8ab71f12c4eb01115f4f6e41998614b4438d74b0325573d1",
+        "fullBeforeAfterEqual": true,
+        "newEntriesDetected": true
+      },
+      "engine": {
+        "path": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine",
+        "files": 264,
+        "byteInventorySha256": "e3af7cb5d53cb3c64d22f7ac20c187cc3b7347754857811f210b8c32a937d90f",
+        "metadataInventorySha256": "e145d385fb434723730768438cad9c2e002be7f657ce1f5fa807b5b187a92abc",
+        "fullBeforeAfterEqual": true,
+        "newEntriesDetected": true
+      }
+    },
+    "originalPrivateSourceOrigin": "/Users/kjopek/Workspace/poe-code/packages/safejs",
+    "originalRunPrivateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "currentPrivateCheckoutQueried": false,
+    "currentPrivateCheckoutClaim": "None; only the existing regular copy authenticated against the original actual-run copy/import evidence was read",
+    "selectedSources": [
+      {
+        "scope": "candidate",
+        "path": "package.json",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/package.json",
+        "bytes": 3526,
+        "sha256": "2d98aad926c0a877ed4c3e5ac088cb498526e4769d30f9ab092cfd2bbeb7f9c7",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/index.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/index.ts",
+        "bytes": 1190,
+        "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/contracts/io.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/contracts/io.ts",
+        "bytes": 7679,
+        "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/contracts/output.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/contracts/output.ts",
+        "bytes": 4166,
+        "sha256": "483fb9c7be06ff45de0120f60f5b5ebfe977c2323236353485f2adca5b6e28d0",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/contracts/command.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/contracts/command.ts",
+        "bytes": 2923,
+        "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/contracts/command.md",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/contracts/command.md",
+        "bytes": 8066,
+        "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/commands/safejs/index.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/commands/safejs/index.ts",
+        "bytes": 8649,
+        "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/commands/safejs/types.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/commands/safejs/types.ts",
+        "bytes": 2243,
+        "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/commands/safejs/README.md",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/commands/safejs/README.md",
+        "bytes": 19328,
+        "sha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "src/integrations/safejs/values.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/src/integrations/safejs/values.ts",
+        "bytes": 2446,
+        "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "dist/contracts/output.d.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/dist/contracts/output.d.ts",
+        "bytes": 676,
+        "sha256": "501a15692aa88f6299cb8eef285c9ddb723c2baaf9f07dcaf644075943d97ce1",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "dist/contracts/io.d.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/dist/contracts/io.d.ts",
+        "bytes": 1430,
+        "sha256": "9e8c6720bf4beb2206bbe0bfd2ab34a6337907c78d48b41d42de43cda1d78548",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "dist/contracts/command.d.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/dist/contracts/command.d.ts",
+        "bytes": 1977,
+        "sha256": "c3e34fdeb0cb84c61efe2d294af94a8082484decba6466d4e73848be8b31526f",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "dist/commands/safejs/types.d.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/dist/commands/safejs/types.d.ts",
+        "bytes": 2330,
+        "sha256": "109f0995a241787f66e563c213f03e176f0509c8fff9c1b2586ff144fd554800",
+        "originalImports": null
+      },
+      {
+        "scope": "candidate",
+        "path": "dist/commands/safejs/index.js",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/dist/commands/safejs/index.js",
+        "bytes": 10282,
+        "sha256": "060d905b7b28b62a608d7ca523a89251e8e9c0aefef3e2160537187bd1b2b409",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "consumer/node_modules/virtual-bash/dist/commands/safejs/index.js",
+            "sha256": "060d905b7b28b62a608d7ca523a89251e8e9c0aefef3e2160537187bd1b2b409"
+          },
+          "08-function-spread-profile": {
+            "path": "consumer/node_modules/virtual-bash/dist/commands/safejs/index.js",
+            "sha256": "060d905b7b28b62a608d7ca523a89251e8e9c0aefef3e2160537187bd1b2b409"
+          }
+        }
+      },
+      {
+        "scope": "candidate",
+        "path": "dist/integrations/safejs/values.js",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/candidate/dist/integrations/safejs/values.js",
+        "bytes": 2395,
+        "sha256": "438c92ecec0494ed5b588da12e121c93c90f6522d8d6b89d4b5e01e019e6846d",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "consumer/node_modules/virtual-bash/dist/integrations/safejs/values.js",
+            "sha256": "438c92ecec0494ed5b588da12e121c93c90f6522d8d6b89d4b5e01e019e6846d"
+          },
+          "08-function-spread-profile": {
+            "path": "consumer/node_modules/virtual-bash/dist/integrations/safejs/values.js",
+            "sha256": "438c92ecec0494ed5b588da12e121c93c90f6522d8d6b89d4b5e01e019e6846d"
+          }
+        }
+      },
+      {
+        "scope": "engine",
+        "path": "src/run.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine/src/run.ts",
+        "bytes": 25016,
+        "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "engine/src/run.ts",
+            "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b"
+          },
+          "08-function-spread-profile": {
+            "path": "engine/src/run.ts",
+            "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b"
+          }
+        }
+      },
+      {
+        "scope": "engine",
+        "path": "src/interp/interpreter.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine/src/interp/interpreter.ts",
+        "bytes": 97921,
+        "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "engine/src/interp/interpreter.ts",
+            "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715"
+          },
+          "08-function-spread-profile": {
+            "path": "engine/src/interp/interpreter.ts",
+            "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715"
+          }
+        }
+      },
+      {
+        "scope": "engine",
+        "path": "src/interp/globals/object-array.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine/src/interp/globals/object-array.ts",
+        "bytes": 9891,
+        "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "engine/src/interp/globals/object-array.ts",
+            "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9"
+          },
+          "08-function-spread-profile": {
+            "path": "engine/src/interp/globals/object-array.ts",
+            "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9"
+          }
+        }
+      },
+      {
+        "scope": "engine",
+        "path": "src/interp/methods/function.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine/src/interp/methods/function.ts",
+        "bytes": 1942,
+        "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "engine/src/interp/methods/function.ts",
+            "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb"
+          },
+          "08-function-spread-profile": {
+            "path": "engine/src/interp/methods/function.ts",
+            "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb"
+          }
+        }
+      },
+      {
+        "scope": "engine",
+        "path": "src/interp/host-bridge.ts",
+        "existingRegularCopy": "/private/tmp/safe-bash-owned-output-prototype-preparation-rE94MK/engine/src/interp/host-bridge.ts",
+        "bytes": 30852,
+        "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+        "originalImports": {
+          "07-reflection-profile": {
+            "path": "engine/src/interp/host-bridge.ts",
+            "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90"
+          },
+          "08-function-spread-profile": {
+            "path": "engine/src/interp/host-bridge.ts",
+            "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90"
+          }
+        }
+      }
+    ],
+    "caseFacts": [
+      {
+        "id": "07-reflection-profile",
+        "expected": {
+          "exitCode": 0,
+          "stdout": "",
+          "stderr": "",
+          "rejected": false,
+          "vfsEffect": "unchanged",
+          "hostPremiseRequired": true,
+          "hostCounters": {
+            "acquired": 1,
+            "released": 1,
+            "cleanup": 1,
+            "childCleanup": 1
+          },
+          "watchdogRescue": false,
+          "naturalChildExit": true,
+          "engine": {
+            "ok": true,
+            "returnValue": {
+              "reflect": "undefined",
+              "getOwnPropertyDescriptor": "undefined",
+              "getOwnPropertyDescriptors": "undefined",
+              "getOwnPropertyNames": "undefined",
+              "getOwnPropertySymbols": "undefined",
+              "getPrototypeOf": "undefined",
+              "keys": [
+                "error",
+                "errorBytes",
+                "readBytes",
+                "readText",
+                "write",
+                "writeBytes"
+              ],
+              "entries": [
+                [
+                  "error",
+                  "function"
+                ],
+                [
+                  "errorBytes",
+                  "function"
+                ],
+                [
+                  "readBytes",
+                  "function"
+                ],
+                [
+                  "readText",
+                  "function"
+                ],
+                [
+                  "write",
+                  "function"
+                ],
+                [
+                  "writeBytes",
+                  "function"
+                ]
+              ],
+              "ownsWrite": true,
+              "copiedWrite": "function",
+              "sameWrite": true
+            }
+          },
+          "classification": "dialect profile only; not descriptor/prototype membrane acceptance"
+        },
+        "source": {
+          "path": "probes/07-reflection-profile.guest.txt",
+          "bytes": 666,
+          "sha256": "f17be70596dafc1d96cc0700f3af708efca0d33f4e4c701ed2d45d0c8310d009"
+        },
+        "rawOutcome": "PASS",
+        "publicChecks": [
+          {
+            "name": "host callback counters",
+            "pass": true
+          },
+          {
+            "name": "cleanup failures",
+            "pass": true
+          },
+          {
+            "name": "shell rejection",
+            "pass": true
+          },
+          {
+            "name": "exit code",
+            "pass": true
+          },
+          {
+            "name": "stdout",
+            "pass": true
+          },
+          {
+            "name": "stderr",
+            "pass": true
+          },
+          {
+            "name": "collected accounted output",
+            "pass": true
+          },
+          {
+            "name": "VFS bytes and complete namespace",
+            "pass": true
+          }
+        ],
+        "failedChecks": [],
+        "actual": {
+          "engineFieldPresent": true,
+          "engine": {
+            "ok": true,
+            "returnValue": {
+              "reflect": "undefined",
+              "getOwnPropertyDescriptor": "undefined",
+              "getOwnPropertyDescriptors": "undefined",
+              "getOwnPropertyNames": "undefined",
+              "getOwnPropertySymbols": "undefined",
+              "getPrototypeOf": "undefined",
+              "keys": [
+                "error",
+                "errorBytes",
+                "readBytes",
+                "readText",
+                "write",
+                "writeBytes"
+              ],
+              "entries": [
+                [
+                  "error",
+                  "function"
+                ],
+                [
+                  "errorBytes",
+                  "function"
+                ],
+                [
+                  "readBytes",
+                  "function"
+                ],
+                [
+                  "readText",
+                  "function"
+                ],
+                [
+                  "write",
+                  "function"
+                ],
+                [
+                  "writeBytes",
+                  "function"
+                ]
+              ],
+              "ownsWrite": true,
+              "copiedWrite": "function",
+              "sameWrite": true
+            },
+            "resultKeys": [
+              "ok",
+              "returnValue",
+              "snapshot",
+              "stats"
+            ]
+          },
+          "outerFailureFieldPresent": false,
+          "shell": {
+            "rejected": false,
+            "exitCode": 0,
+            "stdout": "",
+            "stderr": "",
+            "stdoutBase64": "",
+            "stderrBase64": ""
+          },
+          "events": [
+            "shell-exec-start",
+            "actual-engine-run-start",
+            "actual-engine-run-settled",
+            "operation-close-settled",
+            "shell-exec-settled",
+            "operation-cleanup-settled",
+            "pipe-cleanup-settled",
+            "collector-cleanup-settled",
+            "innerShell-cleanup-settled",
+            "shell-cleanup-settled"
+          ],
+          "hostCounters": {
+            "acquired": 1,
+            "released": 1,
+            "cleanup": 1,
+            "childCleanup": 1
+          },
+          "runtimeCalls": 1,
+          "cleanupFailures": [],
+          "hostFindings": [],
+          "collectedStdout": "",
+          "vfsUnchanged": true
+        },
+        "child": {
+          "pid": 99987,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "closed": 1787844031217,
+          "parentAfter": {
+            "pid": 99924,
+            "at": "2026-08-27T15:20:31.217Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        }
+      },
+      {
+        "id": "08-function-spread-profile",
+        "expected": {
+          "exitCode": 1,
+          "stdout": "",
+          "stderr": "safejs: Cannot spread function into object literal.\n",
+          "rejected": false,
+          "vfsEffect": "unchanged",
+          "hostPremiseRequired": true,
+          "hostCounters": {
+            "acquired": 1,
+            "released": 1,
+            "cleanup": 1,
+            "childCleanup": 1
+          },
+          "watchdogRescue": false,
+          "naturalChildExit": true,
+          "engine": {
+            "ok": false,
+            "errorMessage": "Cannot spread function into object literal."
+          },
+          "classification": "unsupported function spread only; not namespace-spread or non-leak acceptance"
+        },
+        "source": {
+          "path": "probes/08-function-spread-profile.guest.txt",
+          "bytes": 52,
+          "sha256": "96a9b23cc16568b930baaa636e16ed8a6134c9e18f4d8d289d0ccb4378a41462"
+        },
+        "rawOutcome": "FAIL",
+        "publicChecks": [
+          {
+            "name": "host callback counters",
+            "pass": true
+          },
+          {
+            "name": "cleanup failures",
+            "pass": true
+          },
+          {
+            "name": "shell rejection",
+            "pass": true
+          },
+          {
+            "name": "exit code",
+            "pass": true
+          },
+          {
+            "name": "stdout",
+            "pass": true
+          },
+          {
+            "name": "stderr",
+            "pass": true
+          },
+          {
+            "name": "collected accounted output",
+            "pass": true
+          },
+          {
+            "name": "VFS bytes and complete namespace",
+            "pass": true
+          }
+        ],
+        "failedChecks": [
+          {
+            "name": "engine ok",
+            "pass": false,
+            "expected": false
+          },
+          {
+            "name": "exact error",
+            "pass": false,
+            "expected": "Cannot spread function into object literal."
+          }
+        ],
+        "actual": {
+          "engineFieldPresent": false,
+          "engine": null,
+          "outerFailureFieldPresent": false,
+          "shell": {
+            "rejected": false,
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "safejs: Cannot spread function into object literal.\n",
+            "stdoutBase64": "",
+            "stderrBase64": "c2FmZWpzOiBDYW5ub3Qgc3ByZWFkIGZ1bmN0aW9uIGludG8gb2JqZWN0IGxpdGVyYWwuCg=="
+          },
+          "events": [
+            "shell-exec-start",
+            "actual-engine-run-start",
+            "operation-close-settled",
+            "shell-exec-settled",
+            "operation-cleanup-settled",
+            "pipe-cleanup-settled",
+            "collector-cleanup-settled",
+            "innerShell-cleanup-settled",
+            "shell-cleanup-settled"
+          ],
+          "hostCounters": {
+            "acquired": 1,
+            "released": 1,
+            "cleanup": 1,
+            "childCleanup": 1
+          },
+          "runtimeCalls": 1,
+          "cleanupFailures": [],
+          "hostFindings": [],
+          "collectedStdout": "",
+          "vfsUnchanged": true
+        },
+        "child": {
+          "pid": 106,
+          "code": 0,
+          "signal": null,
+          "timedOut": false,
+          "closed": 1787844031784,
+          "parentAfter": {
+            "pid": 99924,
+            "at": "2026-08-27T15:20:31.784Z",
+            "alive": true,
+            "knownLiveChildren": []
+          }
+        }
+      }
+    ],
+    "execution": {
+      "guests": 0,
+      "runtimeImports": 0,
+      "productImports": 0,
+      "privateImports": 0,
+      "builds": 0,
+      "installs": 0
+    },
+    "retainedDiscoveryMistake": "A read-only lookup for candidate/src/integrations/safejs/README.md returned ENOENT; that file does not exist. Actual commands/safejs/README.md and integration source/declarations were used. No runtime attempt resulted."
+  }
+}

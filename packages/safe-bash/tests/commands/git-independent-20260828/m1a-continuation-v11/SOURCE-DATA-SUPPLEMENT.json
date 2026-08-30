@@ -1,0 +1,13 @@
+{
+  "role": "SUPPLEMENTAL_SOURCE_DATA_ONLY",
+  "originalInputContainerSha256": "f23c38e5e78c365da8d396e3a0fb60ddcd224bb71fe948802642f676d5db701b",
+  "newInputContainerSha256": "091b9bad6694e47ac0f831ed0883db369e1f39e690dc8271b505f527168caacf",
+  "outerContainerBytesIdentical": false,
+  "parsedInputRowsIdentical": true,
+  "rows": 279,
+  "decodedRowBytesAndHashIdentical": true,
+  "packageSha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+  "explanation": "prepare.py parses and pretty-serializes the INPUTS container; its JSON formatting differs, while original row values and every decoded candidate input byte are unchanged. The earlier container-hash false remains preserved in POST-STOP-DATA.json.",
+  "harnessReversalSha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21",
+  "harnessReversesToOriginalCaseBytes": true
+}

@@ -1,0 +1,314 @@
+92:  readonly resourceLimit: number;
+93:  resourcesUsed: number;
+94:  readonly controller: AbortController;
+95:  readonly closedReason: Error;
+96:  readonly rootCaller: CancellationOrigin | undefined;
+97:  readonly localInvoke: CancellationOrigin | undefined;
+98:  readonly controls: readonly CancellationOrigin[];
+99:  delivered: CancellationOrigin | undefined;
+100:  selected: CancellationOrigin | undefined;
+101:  readonly signalDetachers: SignalDetacher[];
+102:  readonly subscribers: Set<Subscriber>;
+103:  readonly failures: unknown[];
+104:  parentDetach: (() => void) | undefined;
+105:  closed: boolean;
+106:  finalized: boolean;
+107:  notifying: number;
+108:  closeResult: CancellationCloseResult | undefined;
+109:}
+110:
+111:interface BorrowState {
+112:  readonly kind: "borrow";
+113:  readonly lineage: LinkState;
+114:}
+115:
+116:type BoundaryState = LinkState | BorrowState;
+117:
+118:interface ReportState {
+119:  readonly target: LinkState;
+120:  readonly origin: CancellationOrigin;
+121:}
+122:
+123:interface PreparedControl {
+124:  readonly role: "budget-control" | "pipeline-control";
+240:function publish(state: LinkState, origin: CancellationOrigin): void {
+241:  if (state.closed) return;
+242:  let changed = false;
+243:  if (!state.delivered) {
+244:    state.delivered = origin;
+245:    state.controller.abort(origin.signal.reason);
+246:    changed = true;
+247:  }
+248:  if (betterOrigin(state.selected, origin)) {
+249:    state.selected = origin;
+250:    changed = true;
+251:  }
+252:  if (changed) notify(state, origin);
+253:}
+254:
+255:function addSubscriber(state: LinkState, callback: (origin: CancellationOrigin) => void): () => void {
+256:  if (state.closed) throw state.closedReason;
+257:  ensureCapacity(state);
+258:  const subscriber: Subscriber = { active: true, callback };
+259:  state.resourcesUsed++;
+260:  state.subscribers.add(subscriber);
+261:  let detached = false;
+262:  return () => {
+263:    if (detached) return;
+264:    detached = true;
+265:    deactivateSubscriber(state, subscriber, true);
+266:  };
+267:}
+268:
+269:function removeSignalListener(detacher: SignalDetacher): unknown[] {
+270:  if (!detacher.active) return [];
+271:  detacher.active = false;
+272:  try {
+273:    detacher.signal.removeEventListener("abort", detacher.listener);
+291:  }
+292:  state.resourcesUsed++;
+293:  state.signalDetachers.push(detacher);
+294:  if (signalAborted(origin.signal)) publish(state, origin);
+295:}
+296:
+297:function visibleOrigins(state: LinkState): CancellationOrigin[] {
+298:  if (state.closed) {
+299:    const fixed = state.selected ?? state.delivered;
+300:    return fixed ? [fixed] : [];
+301:  }
+302:  const lineage: LinkState[] = [];
+303:  for (let current: LinkState | undefined = state; current; current = current.parent) lineage.push(current);
+304:  lineage.reverse();
+305:  const origins: CancellationOrigin[] = [];
+306:  for (const frame of lineage) {
+307:    if (frame.closed) {
+308:      const fixed = frame.selected ?? frame.delivered;
+309:      if (fixed) origins.push(fixed);
+310:      continue;
+311:    }
+312:    if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) origins.push(frame.rootCaller);
+313:    if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) origins.push(frame.localInvoke);
+314:    for (const control of frame.controls) if (signalAborted(control.signal)) origins.push(control);
+315:    if (frame.selected && !origins.includes(frame.selected)) origins.push(frame.selected);
+316:    if (frame.delivered && !origins.includes(frame.delivered)) origins.push(frame.delivered);
+317:  }
+318:  return origins;
+319:}
+320:
+321:function admissionOrigins(state: LinkState): CancellationOrigin[] {
+322:  const lineage: LinkState[] = [];
+323:  for (let current: LinkState | undefined = state; current; current = current.parent) lineage.push(current);
+324:  lineage.reverse();
+325:  const origins: CancellationOrigin[] = [];
+326:  for (const frame of lineage) {
+327:    if (frame.rootCaller && signalAborted(frame.rootCaller.signal)) origins.push(frame.rootCaller);
+328:    if (frame.localInvoke && signalAborted(frame.localInvoke.signal)) origins.push(frame.localInvoke);
+329:    const deliveredControl = frame.delivered?.role === "budget-control" || frame.delivered?.role === "pipeline-control"
+330:      ? frame.delivered
+331:      : undefined;
+332:    if (deliveredControl && signalAborted(deliveredControl.signal)) origins.push(deliveredControl);
+333:    for (const control of frame.controls) {
+334:      if (signalAborted(control.signal) && control !== deliveredControl) origins.push(control);
+335:    }
+336:  }
+337:  return origins;
+338:}
+339:
+377:    resourceLimit: admission.resourceLimit,
+378:    resourcesUsed: 1,
+379:    controller,
+380:    closedReason: new Error("Cancellation admission is closed"),
+381:    rootCaller: undefined,
+382:    localInvoke: undefined,
+383:    controls: [],
+384:    delivered: undefined,
+385:    selected: undefined,
+386:    signalDetachers: [],
+387:    subscribers: new Set(),
+388:    failures: [],
+389:    parentDetach: undefined,
+390:    closed: false,
+391:    finalized: false,
+392:    notifying: 0,
+393:    closeResult: undefined,
+394:  };
+395:  state.boundary = new Boundary(state);
+396:  return state;
+397:}
+398:
+399:function finalizeClose(state: LinkState): void {
+400:  if (state.finalized) return;
+401:  state.finalized = true;
+402:  for (const detacher of state.signalDetachers) state.failures.push(...removeSignalListener(detacher));
+403:  state.signalDetachers.length = 0;
+404:  state.parentDetach?.();
+405:  state.parentDetach = undefined;
+406:  for (const subscriber of [...state.subscribers]) deactivateSubscriber(state, subscriber, true);
+407:  state.subscribers.clear();
+408:  state.resourcesUsed = 0;
+409:  Object.freeze(state.failures);
+576:    frame: state.boundary,
+577:  })));
+578:
+579:  try {
+580:    state.parentDetach = addSubscriber(preparation.parent, inherited => publish(state, inherited));
+581:    if (state.localInvoke) attachOrigin(state, state.localInvoke);
+582:    for (const control of state.controls) attachOrigin(state, control);
+583:    throwAdmissionFailure(preparation.parent);
+584:    const inherited = preparation.parent.selected ?? preparation.parent.delivered;
+585:    if (inherited) publish(state, inherited);
+586:    const cancellation = admissionFailure(state);
+587:    if (cancellation.failed) throw cancellation.reason;
+588:    return state.boundary;
+589:  } catch (error) {
+590:    const cancellation = admissionFailure(state);
+591:    const rollback = rollbackState(state);
+592:    const ancestor = admissionFailure(preparation.parent);
+593:    if (ancestor.failed) throw ancestor.reason;
+594:    if (cancellation.failed) throw cancellation.reason;
+595:    if (rollback.length) {
+596:      throw new AggregateError([error, ...rollback], "Cancellation child activation failed");
+597:    }
+598:    throw error;
+599:  }
+600:}
+601:
+602:export function createRootCancellationLink(input: RootCancellationInput): CancellationBoundary {
+603:  if (!input || typeof input !== "object") throw new TypeError("Root cancellation input is required");
+604:  const admission = validateSnapshot(input.admission);
+605:  if (admission.depth !== 0) throw new RangeError("Root cancellation depth must be zero");
+606:  if (input.callerSignal !== undefined && !nativeSignal(input.callerSignal)) throw new TypeError("Root caller signal must be an AbortSignal");
+607:  const controls = input.controls ?? [];
+608:  if (!Array.isArray(controls)) throw new TypeError("Cancellation controls must be an array");
+668:  const state = initializeState(parentState, admission);
+669:  const origin: CancellationOrigin = Object.freeze({ role: "invoke-option", signal: localSignal, frame: state.boundary });
+670:  (state as { localInvoke: CancellationOrigin | undefined }).localInvoke = origin;
+671:  try {
+672:    state.parentDetach = addSubscriber(parentState, inherited => publish(state, inherited));
+673:    attachOrigin(state, origin);
+674:    throwAdmissionFailure(parentState);
+675:    if (signalAborted(localSignal)) throw localSignal.reason;
+676:    const inherited = parentState.selected ?? parentState.delivered;
+677:    if (inherited) publish(state, inherited);
+678:    return state.boundary;
+679:  } catch (error) {
+680:    const rollback = rollbackState(state);
+681:    const ancestor = admissionFailure(parentState);
+682:    if (ancestor.failed) throw ancestor.reason;
+683:    if (rollback.length) throw new AggregateError([error, ...rollback], "Cancellation child initialization failed");
+684:    throw error;
+685:  }
+686:}
+687:
+688:export function subscribeCancellation(
+689:  boundary: CancellationBoundary,
+690:  callback: (origin: CancellationOrigin) => void,
+691:): () => void {
+692:  if (typeof callback !== "function") throw new TypeError("Cancellation subscriber must be callable");
+693:  const state = boundary[boundaryState];
+694:  if (state.kind === "borrow") throw new TypeError("Borrowed cancellation boundaries cannot own subscriptions");
+695:  return addSubscriber(state, callback);
+696:}
+697:
+698:function validReport(boundary: BoundaryState, captured: CapturedCancellationOutcome<unknown>): CancellationOrigin | undefined {
+699:  if (captured.kind !== "throw" || !captured.report || !(reportState in captured.report)) return undefined;
+700:  const report = captured.report[reportState];
+702:  if (report.target !== target || !Object.is(captured.reason, report.origin.signal.reason)) return undefined;
+703:  return report.origin;
+704:}
+705:
+706:function matchingVisibleOrigin(state: LinkState, reason: unknown): CancellationOrigin | undefined {
+707:  return visibleOrigins(state).find(origin => Object.is(reason, origin.signal.reason));
+708:}
+709:
+710:function selectionReport(boundary: BoundaryState, origin: CancellationOrigin): CancellationReport | undefined {
+711:  const lineage = boundary.kind === "link" ? boundary : boundary.lineage;
+712:  const target = boundary.kind === "borrow" ? lineage : lineage.parent;
+713:  if (!target) return undefined;
+714:  const state: ReportState = Object.freeze({ target, origin });
+715:  return Object.freeze({ origin, [reportState]: state });
+716:}
+717:
+718:function throwingSelection<Value>(
+719:  boundary: BoundaryState,
+720:  reason: unknown,
+721:  origin?: CancellationOrigin,
+722:): CancellationSelection<Value> {
+723:  const outcome: SelectedCancellationOutcome<Value> = { kind: "throw", reason };
+724:  const report = origin ? selectionReport(boundary, origin) : undefined;
+725:  return report ? { outcome, report } : { outcome };
+726:}
+727:
+728:export function selectCancellationOutcome<Value>(
+729:  boundary: CancellationBoundary,
+730:  captured: CapturedCancellationOutcome<Value>,
+731:): CancellationSelection<Value> {
+732:  if (!captured || typeof captured !== "object" || captured.kind !== "return" && captured.kind !== "throw") {
+733:    throw new TypeError("A captured return or throw outcome is required");
+734:  }
+735:  const state = boundary[boundaryState];
+736:  const lineage = state.kind === "link" ? state : state.lineage;
+737:  const origins = visibleOrigins(lineage);
+738:  const root = origins.find(origin => origin.role === "root-caller");
+739:  if (root) return throwingSelection(state, root.signal.reason, root);
+740:
+741:  const reported = validReport(state, captured as CapturedCancellationOutcome<unknown>);
+742:  const matching = captured.kind === "throw" ? matchingVisibleOrigin(lineage, captured.reason) : undefined;
+743:  const classified = reported ?? matching;
+744:  const invokeMatch = classified?.role === "invoke-option";
+745:  if (captured.kind === "throw" && !invokeMatch) {
+746:    return throwingSelection(state, captured.reason, classified);
+747:  }
+748:
+749:  const invokes = origins.filter(origin => origin.role === "invoke-option");
+750:  if (reported?.role === "invoke-option" && !invokes.includes(reported)) invokes.push(reported);
+751:  invokes.sort((left, right) => originRank(left) - originRank(right));
+752:  const selectedInvoke = invokes[0];
+753:  if (selectedInvoke) return throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke);
+754:  if (captured.kind === "throw") return throwingSelection(state, captured.reason, classified);
+755:  return { outcome: { kind: "return", value: captured.value } };
+756:}
+757:
+758:export function selectRuntimeCancellationOutcome<Value>(
+759:  boundary: CancellationBoundary,
+760:  captured: CapturedCancellationOutcome<Value>,
+761:  observedOrigin?: CancellationOrigin,
+762:): CancellationSelection<Value> {
+763:  if (!captured || typeof captured !== "object" || captured.kind !== "return" && captured.kind !== "throw") {
+764:    throw new TypeError("A captured return or throw outcome is required");
+765:  }
+766:  if (!boundary || typeof boundary !== "object" || !(boundaryState in boundary)) {
+767:    throw new TypeError("Expected a private cancellation boundary");
+768:  }
+769:  const state = boundary[boundaryState];
+770:  const lineage = state.kind === "link" ? state : state.lineage;
+771:  const origins = visibleOrigins(lineage);
+772:  const root = origins.find(origin => origin.role === "root-caller");
+773:  if (root) return throwingSelection(state, root.signal.reason, root);
+774:
+775:  const reported = validReport(state, captured as CapturedCancellationOutcome<unknown>);
+776:  const observed = captured.kind === "throw"
+777:    && observedOrigin !== undefined
+778:    && origins.includes(observedOrigin)
+779:    && Object.is(captured.reason, observedOrigin.signal.reason)
+780:    ? observedOrigin
+781:    : undefined;
+782:  const classified = reported ?? observed;
+783:
+784:  if (captured.kind === "throw" && classified?.role !== "invoke-option") {
+785:    return throwingSelection(state, captured.reason, classified);
+786:  }
+787:
+788:  const invokes = origins.filter(origin => origin.role === "invoke-option");
+789:  if (classified?.role === "invoke-option" && !invokes.includes(classified)) invokes.push(classified);
+790:  invokes.sort((left, right) => originRank(left) - originRank(right));
+791:  const selectedInvoke = invokes[0];
+792:  if (captured.kind === "return") {
+793:    return selectedInvoke
+794:      ? throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke)
+795:      : { outcome: { kind: "return", value: captured.value } };
+796:  }
+797:  if (selectedInvoke) return throwingSelection(state, selectedInvoke.signal.reason, selectedInvoke);
+798:  return throwingSelection(state, captured.reason, classified);
+799:}
+800:

@@ -1,0 +1,115 @@
+{
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "author": "cb94b17d0eefc62e2a51f5a6f7cf46ebbcad2faf",
+  "freeze": "e974d60a1c7153aa0491799e4784249311d62099",
+  "recordedAt": "2026-08-27T21:48:15.701Z",
+  "boundaries": {
+    "phase1": {
+      "files": 179,
+      "entries": 182,
+      "appendAware": true
+    },
+    "stage2": {
+      "files": 23,
+      "entries": 25,
+      "appendAware": true
+    },
+    "policyFiles": 3,
+    "frozenReviewFiles": 7,
+    "protectedCandidateHashes": 243,
+    "oldVerifiersInvoked": false,
+    "originalExclusions": {
+      "phase1": [
+        "stage2/"
+      ],
+      "stage2": [
+        "POLICY-v2.md",
+        "policy-invariants-v2.json",
+        "policy-v2-manifest.json",
+        "review-618d8967/"
+      ]
+    },
+    "qualification": "Original trees plus exact authorized layered appends; no arbitrary unknown exclusion or live product overlay."
+  },
+  "sourceFiles": 988,
+  "sourceBeforeAfterEntries": 1107,
+  "sourceIncludingNewEntriesUnchanged": true,
+  "generatedDirectoriesSeparatelyBound": [
+    "dist",
+    "node_modules"
+  ],
+  "compilerAndToolCopiesUnchanged": true,
+  "builtAndInstalledPackageUnchanged": true,
+  "sourceBindings": {
+    "src/shell/runtime.ts": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+    "src/shell/shell.ts": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332",
+    "src/shell/getopts.ts": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee"
+  },
+  "protectedCandidateEntries": 243,
+  "acceptedOwnedOutputAddedLines": 26,
+  "ownProductDelta": [
+    "src/shell/runtime.ts",
+    "src/shell/shell.ts"
+  ],
+  "wholeBaselineDelta": "M\tsrc/commands/expr/evaluate.ts\nM\tsrc/commands/expr/index.ts\nM\tsrc/commands/expr/syntax.ts\nM\tsrc/commands/html-to-markdown/README.md\nM\tsrc/commands/html-to-markdown/entities.ts\nM\tsrc/commands/html-to-markdown/input.ts\nM\tsrc/commands/html-to-markdown/parser.ts\nM\tsrc/commands/html-to-markdown/render.ts\nA\tsrc/commands/html-to-markdown/text.ts\nM\tsrc/shell/runtime.ts\nM\tsrc/shell/shell.ts\n",
+  "fullPackagePackInstallMove": true,
+  "packageTarballSHA256": "08667ba7a67c5e9342c062007265279965138afe99c700f756df3e8ec97533f3",
+  "importedInstalledFiles": 185,
+  "installedTypesPositive": 2,
+  "malformedTypeFixtures": 3,
+  "malformedTypeDiagnostic": "TS2322 only (four diagnostics across three fixtures)",
+  "boundedMeaningfulMutants": 2,
+  "supervisorProcessesClosed": 64,
+  "actualSafeJsChildrenClosed": 25,
+  "noKnownLiveOwnedChildren": true,
+  "noPrivateWrites": true,
+  "safejs": [
+    {
+      "family": "controls",
+      "status": "AUTHOR_COHORT_PASS",
+      "counts": {
+        "intended": 6,
+        "engineRuns": 6,
+        "pass": 6,
+        "nonpass": 0,
+        "blocked": 0
+      },
+      "privateBeforeAfter": "EXACTLY_UNCHANGED",
+      "copiedInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+      "publicBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+      "knownLiveChildren": 0
+    },
+    {
+      "family": "lifecycle",
+      "status": "AUTHOR_COHORT_PASS",
+      "counts": {
+        "intended": 11,
+        "engineRuns": 11,
+        "pass": 11,
+        "nonpass": 0,
+        "blocked": 0
+      },
+      "privateBeforeAfter": "EXACTLY_UNCHANGED",
+      "copiedInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+      "publicBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+      "knownLiveChildren": 0
+    },
+    {
+      "family": "surface",
+      "status": "AUTHOR_COHORT_PASS",
+      "counts": {
+        "intended": 8,
+        "engineRuns": 8,
+        "pass": 8,
+        "nonpass": 0,
+        "blocked": 0
+      },
+      "privateBeforeAfter": "EXACTLY_UNCHANGED",
+      "copiedInputsBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+      "publicBeforeAfter": "UNCHANGED_INCLUDING_NEW_ENTRIES",
+      "knownLiveChildren": 0
+    }
+  ],
+  "noNativeReruns": true,
+  "noGlobalGate": true
+}

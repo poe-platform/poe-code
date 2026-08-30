@@ -1,0 +1,319 @@
+{
+  "phase": "before diagnostic-only fix",
+  "capturedAt": "2026-08-27T06:23:57.664Z",
+  "head": "83124c351cf9d16e78fcf8706c39360d6fd20981",
+  "host": {
+    "platform": "darwin",
+    "release": "25.4.0",
+    "arch": "arm64",
+    "node": "v22.22.2"
+  },
+  "native": {
+    "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+    "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+    "version": "GNU coreutils 9.7",
+    "env": {
+      "LC_ALL": "C"
+    }
+  },
+  "sourceSha256": {
+    "src/commands/stream-format/index.ts": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+    "src/commands/stream-format/seq.ts": "ce1bbce84a6fb8a57ed43dfc52126d1e5ea64c0a93112dee7c44d7a0bcb36929",
+    "src/commands/stream-format/nl.ts": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+    "src/commands/stream-format/rev.ts": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+    "src/commands/stream-format/unexpand.ts": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+    "src/commands/stream-format/shared.ts": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb"
+  },
+  "backend": "actual Shell with memory FS and explicit streamFormatCommands; not independent backend replay",
+  "historical": "User-routed immutable1c745c3 review: original strict61/82 eachbackend, selectedstrong initial81/82 eachbackend. Original author22 diagnostic differences and frozen82 GNU/Apple evidence are untouched.",
+  "cases": [
+    {
+      "args": [
+        "-f",
+        "%f %f",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%f %f' has too many % directives\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%g %e",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%g %e' has too many % directives\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '' has no % directive\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "literal",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format 'literal' has no % directive\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%%",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%%' has no % directive\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%%f",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%%f' has no % directive\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%' ends in %\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format requires one f, e or g conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%%%",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%%%' ends in %\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format requires one f, e or g conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%s",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%s' has unknown %s directive\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format requires one f, e or g conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%%%s",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%%%s' has unknown %s directive\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format requires one f, e or g conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%f %",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%f %' has too many % directives\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%f %s",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%f %s' has too many % directives\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%f %% %g",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%f %% %g' has too many % directives\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%f %%%",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format '%f %%%' has too many % directives\n"
+      },
+      "source": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "seq: format must contain exactly one conversion\n"
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%f %%",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "312e30303030303020250a322e30303030303020250a332e30303030303020250a",
+        "stderr": ""
+      },
+      "source": {
+        "exitCode": 0,
+        "stdoutHex": "312e30303030303020250a322e30303030303020250a332e30303030303020250a",
+        "stderr": ""
+      }
+    },
+    {
+      "args": [
+        "-f",
+        "%%%f%%",
+        "3"
+      ],
+      "stdinHex": "",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "25312e303030303030250a25322e303030303030250a25332e303030303030250a",
+        "stderr": ""
+      },
+      "source": {
+        "exitCode": 0,
+        "stdoutHex": "25312e303030303030250a25322e303030303030250a25332e303030303030250a",
+        "stderr": ""
+      }
+    }
+  ]
+}

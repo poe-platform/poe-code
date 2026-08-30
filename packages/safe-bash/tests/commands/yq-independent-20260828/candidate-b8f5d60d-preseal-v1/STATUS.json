@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "INCOMPLETE_STATIC_INSPECTOR_FAILURE_DENY",
+  "admission": "DENY",
+  "presealCommit": "a59ac90a60ebdf3e87eb17814e7718b8177c125c",
+  "dataPresealSha256": "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664",
+  "source": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "evidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "handoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "failedInspection": {
+    "attempts": 1,
+    "exit": 1,
+    "elapsedMs": 922,
+    "reaped": true,
+    "retries": 0,
+    "rawCapture": "STATIC-CAPTURE.json",
+    "diagnosis": "FAILURE-DIAGNOSTIC.json",
+    "candidateArchiveParsingReached": false
+  },
+  "checks": {
+    "ownNodeSyntax": "PASS",
+    "writeSpecLint": "PASS_0_WARNINGS",
+    "fixedGitCommitObjects": "AUTHENTICATED_BEFORE_FAILURE",
+    "newRawArtifacts": "NOT_AUTHENTICATED",
+    "completeSelectedSourceMap": "NOT_REACHED",
+    "completePackageMap": "NOT_REACHED",
+    "historicalBeforeAfter": "INCOMPLETE",
+    "singleHistoricalFailureEntry": "MATCHES_COMMITTED_BYTES_AND_ORIGINAL_POSIX_SEAL"
+  },
+  "execution": {
+    "productImports": 0,
+    "productRuns": 0,
+    "compilerRuns": 0,
+    "builds": 0,
+    "types": 0,
+    "loadedMutants": 0,
+    "nativeYaml": 0,
+    "authorScripts": 0,
+    "harnessCohorts": 0,
+    "syntheticCases": 0,
+    "artifactMaterializations": 0,
+    "repacks": 0,
+    "dependencyInstalls": 0
+  },
+  "observedWrites": "Only this new owned packet and final root-routing /tmp readiness message; no old candidate/build/actual/framework/product changes",
+  "originalResults": "Old409 refusal, postprocessor failures, 35da build, 4b219 FAIL, CMD22 and deadline-UNRUN retained without rescoring",
+  "inspectionTiming": "Normative194+8 predates new candidate; candidate body inspection preceded complete successor executor preseal and is not independent precode behavior holdout",
+  "proposals": {
+    "bindings": "REBINDING-PROPOSAL.pending.json",
+    "tools": "TOOLCHAIN-ROLES.pending.json"
+  },
+  "remaining": "All not-reached artifact admission checks plus fresh exact executor seals and explicit root GO; no successor semantic acceptance"
+}

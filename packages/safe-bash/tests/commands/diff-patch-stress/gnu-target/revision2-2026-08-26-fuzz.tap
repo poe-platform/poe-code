@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: adversarial repeated-line unmatched rectangle rejects before oversized LCS allocation
+ok 1 - adversarial repeated-line unmatched rectangle rejects before oversized LCS allocation
+  ---
+  duration_ms: 3.258708
+  type: 'test'
+  ...
+# MATRIX_REPORT linesPerSide=2102 cells=4422609 limit=4000000 elapsedMs=2.82
+# Subtest: repeated-line rectangle within limit computes exact result and reverse
+ok 2 - repeated-line rectangle within limit computes exact result and reverse
+  ---
+  duration_ms: 149.717666
+  type: 'test'
+  ...
+# REPETITION_REPORT linesPerSide=352 cells=124609 elapsedMs=149.35
+# Subtest: long compared lines exhaust charged work rather than allocating a large rectangle
+ok 3 - long compared lines exhaust charged work rather than allocating a large rectangle
+  ---
+  duration_ms: 1.475834
+  type: 'test'
+  ...
+# Subtest: adversarial repetitive patch anchors terminate within an explicit work budget
+ok 4 - adversarial repetitive patch anchors terminate within an explicit work budget
+  ---
+  duration_ms: 2.557916
+  type: 'test'
+  ...
+# Subtest: legacy asymmetric budget input is a GNU boundary rejection, not an expensive search
+ok 5 - legacy asymmetric budget input is a GNU boundary rejection, not an expensive search
+  ---
+  duration_ms: 44.989708
+  type: 'test'
+  ...
+# Subtest: 64 seeded handwritten adjacent/separated hunks retain displaced anchors and reverse
+ok 6 - 64 seeded handwritten adjacent/separated hunks retain displaced anchors and reverse
+  ---
+  duration_ms: 1512.995916
+  type: 'test'
+  ...
+# HANDWRITTEN_REPORT {"baseSeed":397082915,"denominator":64,"pass":64,"fail":0,"skips":0}
+# Subtest: all six file-section orderings apply coding-agent create/edit/delete flows and reverse
+ok 7 - all six file-section orderings apply coding-agent create/edit/delete flows and reverse
+  ---
+  duration_ms: 156.828583
+  type: 'test'
+  ...
+# ORDER_REPORT {"denominator":6,"virtualPass":6,"nativePass":6,"nativeFail":0,"skips":0}
+# Subtest: atomic extension malformed missing-old-body is not swallowed after a valid file section
+ok 8 - atomic extension malformed missing-old-body is not swallowed after a valid file section
+  ---
+  duration_ms: 0.420709
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed missing-new-body is not swallowed after a valid file section
+ok 9 - atomic extension malformed missing-new-body is not swallowed after a valid file section
+  ---
+  duration_ms: 0.214459
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed extra-old-body is not swallowed after a valid file section
+ok 10 - atomic extension malformed extra-old-body is not swallowed after a valid file section
+  ---
+  duration_ms: 0.25675
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed extra-new-body is not swallowed after a valid file section
+ok 11 - atomic extension malformed extra-new-body is not swallowed after a valid file section
+  ---
+  duration_ms: 0.285042
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed zero-count-noop is not swallowed after a valid file section
+ok 12 - atomic extension malformed zero-count-noop is not swallowed after a valid file section
+  ---
+  duration_ms: 0.362292
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed zero-start-nonempty is not swallowed after a valid file section
+ok 13 - atomic extension malformed zero-start-nonempty is not swallowed after a valid file section
+  ---
+  duration_ms: 0.196375
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed negative-count is not swallowed after a valid file section
+ok 14 - atomic extension malformed negative-count is not swallowed after a valid file section
+  ---
+  duration_ms: 0.573583
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed noninteger-count is not swallowed after a valid file section
+ok 15 - atomic extension malformed noninteger-count is not swallowed after a valid file section
+  ---
+  duration_ms: 0.713875
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed orphan-newline-marker is not swallowed after a valid file section
+ok 16 - atomic extension malformed orphan-newline-marker is not swallowed after a valid file section
+  ---
+  duration_ms: 0.39825
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed duplicate-newline-marker is not swallowed after a valid file section
+ok 17 - atomic extension malformed duplicate-newline-marker is not swallowed after a valid file section
+  ---
+  duration_ms: 0.471375
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed empty-incomplete-line is not swallowed after a valid file section
+ok 18 - atomic extension malformed empty-incomplete-line is not swallowed after a valid file section
+  ---
+  duration_ms: 0.37375
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed content-after-incomplete-old is not swallowed after a valid file section
+ok 19 - atomic extension malformed content-after-incomplete-old is not swallowed after a valid file section
+  ---
+  duration_ms: 0.361916
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed content-after-incomplete-new is not swallowed after a valid file section
+ok 20 - atomic extension malformed content-after-incomplete-new is not swallowed after a valid file section
+  ---
+  duration_ms: 0.18775
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed backward-second-hunk is not swallowed after a valid file section
+ok 21 - atomic extension malformed backward-second-hunk is not swallowed after a valid file section
+  ---
+  duration_ms: 0.136584
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed missing-physical-newline is not swallowed after a valid file section
+ok 22 - atomic extension malformed missing-physical-newline is not swallowed after a valid file section
+  ---
+  duration_ms: 0.101
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed header-only is not swallowed after a valid file section
+ok 23 - atomic extension malformed header-only is not swallowed after a valid file section
+  ---
+  duration_ms: 0.1155
+  type: 'test'
+  ...
+# Subtest: atomic extension malformed context-only-hunk is not swallowed after a valid file section
+ok 24 - atomic extension malformed context-only-hunk is not swallowed after a valid file section
+  ---
+  duration_ms: 0.115709
+  type: 'test'
+  ...
+# Subtest: GNU default advisory new coordinate in second hunk remains applicable
+ok 25 - GNU default advisory new coordinate in second hunk remains applicable
+  ---
+  duration_ms: 14.256791
+  type: 'test'
+  ...
+# Subtest: atomic extension advisory new coordinate in second hunk remains applicable
+ok 26 - atomic extension advisory new coordinate in second hunk remains applicable
+  ---
+  duration_ms: 13.935875
+  type: 'test'
+  ...
+# Subtest: 12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows
+ok 27 - 12 actual Shell plugin seeded pipeline/redirection/dry-run/reverse flows
+  ---
+  duration_ms: 61.801166
+  type: 'test'
+  ...
+# SHELL_REPORT denominator=12 pass=12 fail=0 skips=0
+# Subtest: record native identities without assuming GNU is installed
+ok 28 - record native identities without assuming GNU is installed
+  ---
+  duration_ms: 9.357
+  type: 'test'
+  ...
+# {"diff":{"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","version":"diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.","dialect":"gnu","sha256":"f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"},"patch":{"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}}
+# Subtest: 512 independent seeded diff/patch, reverse, native, golden, and minimality properties
+ok 29 - 512 independent seeded diff/patch, reverse, native, golden, and minimality properties
+  ---
+  duration_ms: 30491.35475
+  type: 'test'
+  ...
+# native identities {"diff":{"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff","version":"diff (GNU diffutils) 3.12\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Eggert, Mike Haertel, David Hayes,\\nRichard Stallman, and Len Tower.","dialect":"gnu","sha256":"f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"},"patch":{"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"}}; locale=C; skips=0
+# FUZZ_REPORT {"baseSeed":1831565813,"denominator":512,"families":{"empty-create":32,"empty-delete":32,"insert":32,"delete":32,"replace":32,"repetition":32,"whitespace":32,"unicode":32,"crlf":32,"terminal-newline":32,"long-lines":32,"separated-anchors":32,"adjacent-hunks":32,"move":32,"equal":32,"coding-edit":32},"counts":{"diff-status":{"pass":512,"fail":0},"minimal-edit-count":{"pass":512,"fail":0},"virtual-forward":{"pass":512,"fail":0},"virtual-reverse":{"pass":512,"fail":0},"golden-forward":{"pass":512,"fail":0},"golden-reverse":{"pass":512,"fail":0},"native-diff-status":{"pass":512,"fail":0},"native-diff-virtual-patch-forward":{"pass":512,"fail":0},"native-diff-virtual-patch-reverse":{"pass":512,"fail":0},"virtual-diff-native-patch-forward":{"pass":512,"fail":0},"virtual-diff-native-patch-reverse":{"pass":512,"fail":0},"golden-native-patch":{"pass":512,"fail":0},"native-control-forward":{"pass":512,"fail":0},"native-control-reverse":{"pass":512,"fail":0}},"skips":0}
+# FAILURE_INDEX []
+# Subtest: GAP-01 GNU literal-coordinate product contract forward
+ok 30 - GAP-01 GNU literal-coordinate product contract forward
+  ---
+  duration_ms: 4.866833
+  type: 'test'
+  ...
+# Subtest: GAP-01 GNU literal-coordinate product contract reverse
+ok 31 - GAP-01 GNU literal-coordinate product contract reverse
+  ---
+  duration_ms: 1.893125
+  type: 'test'
+  ...
+# Subtest: GAP-01 raw selected-oracle Apple-range compatibility forward
+ok 32 - GAP-01 raw selected-oracle Apple-range compatibility forward
+  ---
+  duration_ms: 22.605708
+  type: 'test'
+  ...
+# LEGACY_RANGE_NATIVE {"identity":{"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"},"reverse":false,"reference":{"exitCode":0,"stdout":"patching file target\\n","stderr":"","target":"b\\n"}}
+# Subtest: GAP-01 raw selected-oracle Apple-range compatibility reverse
+ok 33 - GAP-01 raw selected-oracle Apple-range compatibility reverse
+  ---
+  duration_ms: 14.670417
+  type: 'test'
+  ...
+# LEGACY_RANGE_NATIVE {"identity":{"path":"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","realpath":"/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch","version":"GNU patch 2.8\\nCopyright 1989-2025 Free Software Foundation, Inc.\\nCopyright 1984-1988 Larry Wall\\n\\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Larry Wall and Paul Eggert","dialect":"gnu","sha256":"c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"},"reverse":true,"reference":{"exitCode":0,"stdout":"patching file target\\n","stderr":"","target":"b\\na\\n"}}
+# Subtest: GAP-01 canonical GNU zero-context deletion applies and reverses
+ok 34 - GAP-01 canonical GNU zero-context deletion applies and reverses
+  ---
+  duration_ms: 46.376917
+  type: 'test'
+  ...
+# NATIVE_ZERO_CONTEXT "--- target\\n+++ target\\n@@ -1 +0,0 @@\\n-a\\n"
+# Subtest: GNU boundary anchoring: asymmetric non-EOF rejection
+ok 35 - GNU boundary anchoring: asymmetric non-EOF rejection
+  ---
+  duration_ms: 14.693041
+  type: 'test'
+  ...
+# Subtest: GNU boundary anchoring: asymmetric EOF positive control
+ok 36 - GNU boundary anchoring: asymmetric EOF positive control
+  ---
+  duration_ms: 12.813167
+  type: 'test'
+  ...
+# Subtest: GNU boundary anchoring: symmetric displaced positive control
+ok 37 - GNU boundary anchoring: symmetric displaced positive control
+  ---
+  duration_ms: 16.025541
+  type: 'test'
+  ...
+# Subtest: oracle calibration: native-generated unterminated context survives native reverse
+ok 38 - oracle calibration: native-generated unterminated context survives native reverse
+  ---
+  duration_ms: 40.160291
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 30675.904875

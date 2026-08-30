@@ -1,0 +1,28 @@
+{
+  "preparation": {
+    "conservativeKnownLaunchRoleSlots": 23,
+    "cap": 24,
+    "peakKnownRoles": 2,
+    "qualification": "Includes instruction/read helpers, explicit editing roles, metadata Git, failed prepare, unexecuted v2 correction publication, corrected prepare with one syntax-only child, and preseal administration. Not universal editing-tool/transitive process telemetry."
+  },
+  "actual": {
+    "directExecutionChildren": 25,
+    "outerAndCoordinator": 2,
+    "runtimeRoles": 27,
+    "peak": 3,
+    "postDataHelpers": 1,
+    "publicationEditRoleAllowance": 3,
+    "publicationOwnerAndGitRoles": 7,
+    "conservativeTotalWithPublication": 38,
+    "cap": 64,
+    "workers": 0,
+    "loaders": 0,
+    "naturalRuntimeRetirement": true,
+    "elapsedRuntimeMs": 6186,
+    "captureBytes": 71887,
+    "workBytes": 26185059
+  },
+  "retainedWork": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/ACTUAL-01/work",
+  "publicationCapture": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/ere-r02-v2-independent-pub-JzasNd",
+  "verdict": "R02-only qualified ACCEPT; original237/3 and R01 seven HOLDs not rescored; no ROOT/full-engine acceptance"
+}

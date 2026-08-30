@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "source": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "authorEvidence": "bd3a0422b10c8fc4d79ed0c69dda6fb2f28df5c3",
+  "tool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": "0755",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "source/errors.ts.data",
+      "bytes": 1003,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c",
+      "mode": 420
+    },
+    {
+      "path": "source/limits.ts.data",
+      "bytes": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af",
+      "mode": 420
+    },
+    {
+      "path": "source/matcher.ts.data",
+      "bytes": 9759,
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a",
+      "mode": 420
+    },
+    {
+      "path": "source/syntax.ts.data",
+      "bytes": 13070,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/accounting.ts.data",
+      "bytes": 7115,
+      "sha256": "66bab552db94e11764dad9e91d2dfb61c7e9655e2f1f0babdd75bd41431ca3a0",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/owner.ts.data",
+      "bytes": 6765,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/protocol.ts.data",
+      "bytes": 2815,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/root.ts.data",
+      "bytes": 12329,
+      "sha256": "1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/validation.ts.data",
+      "bytes": 13090,
+      "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/wire-engine.ts.data",
+      "bytes": 2481,
+      "sha256": "9b2f15733c71d0cc0080ee033c8867a6160f9aabd3a784a9a9868cf01c4fbb24",
+      "mode": 420
+    },
+    {
+      "path": "source/transport/worker-entry.ts.data",
+      "bytes": 1460,
+      "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37",
+      "mode": 420
+    },
+    {
+      "path": "source/types.ts.data",
+      "bytes": 1554,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b",
+      "mode": 420
+    },
+    {
+      "path": "emitted/errors.js",
+      "bytes": 1045,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44",
+      "mode": 420
+    },
+    {
+      "path": "emitted/limits.js",
+      "bytes": 3265,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6",
+      "mode": 420
+    },
+    {
+      "path": "emitted/transport/accounting.js",
+      "bytes": 7003,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48",
+      "mode": 420
+    },
+    {
+      "path": "emitted/transport/protocol.js",
+      "bytes": 1198,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f",
+      "mode": 420
+    },
+    {
+      "path": "emitted/transport/validation.js",
+      "bytes": 12831,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b",
+      "mode": 420
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 1902,
+      "sha256": "f3ea900c4007b6041c1c101d8e4f6751f3a5a4941af9fbbc23dd1dcaa73094f4",
+      "mode": 420
+    },
+    {
+      "path": "parent.mjs",
+      "bytes": 8378,
+      "sha256": "ad1b9535627ee120eec6d2317e08c0b8d8c5078ecb12811e133ae1146e8cea1f",
+      "mode": 420
+    },
+    {
+      "path": "pure.mjs",
+      "bytes": 8537,
+      "sha256": "43e6fdb0391e955a75d983159307e5354b0f0775d9e22431c7566106ae5e4aac",
+      "mode": 420
+    },
+    {
+      "path": "author.mjs",
+      "bytes": 14686,
+      "sha256": "85b9ead7746fd9446df766cb5cfd793579a64eeb727310148879a1eb96c0d354",
+      "mode": 420
+    },
+    {
+      "path": "PURE-LOADS.json",
+      "bytes": 1299,
+      "sha256": "06042d01a538a7cdeb452739e009c36fdf7fb08c232722ec77f045c1e6f549b2",
+      "mode": 420
+    },
+    {
+      "path": "COMBINED-12.json",
+      "bytes": 3396,
+      "sha256": "e785668f13549aba24323a6db568fb58805eca41a190ce18b41c299c28a53a5f",
+      "mode": 420
+    },
+    {
+      "path": "emitted/package.json",
+      "bytes": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae",
+      "mode": 420
+    }
+  ],
+  "authorGroups": 20,
+  "novelGroups": 12,
+  "pureHelpers": 3,
+  "pureChildren": 1,
+  "workerStarts": 0,
+  "compilerStarts": 0,
+  "captureCap": 1048576,
+  "deadlineMs": 30000
+}

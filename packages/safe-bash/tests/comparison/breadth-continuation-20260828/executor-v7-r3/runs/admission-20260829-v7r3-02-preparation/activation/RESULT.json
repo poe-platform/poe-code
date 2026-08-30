@@ -1,0 +1,642 @@
+{
+  "schema": "ACTUAL_V7_R3_ATTEMPT02_SCOPED_ADMISSION",
+  "runId": "admission-20260829-v7r3-02",
+  "attempt": 1,
+  "grantConsumed": true,
+  "status": "ADMISSION_ACCEPTED",
+  "admissionQualified": true,
+  "unsafe": false,
+  "grantCommit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+  "grantSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+  "authCommit": "68cf50c62b74f2d544126f46c9f599d0b2444321",
+  "authSha256": "75134e4e930402504642e8da92d86991194509514656a45af5892808f3f24bd2",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "comparator": "just-bash3.4.2 pinned, not latest",
+  "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "repairSealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+  "ownerSealSha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2",
+  "reviewAddenda": {
+    "original": {
+      "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+      "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+      "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+    },
+    "repairPeer": {
+      "commit": "409623ac5fc6b0da78ba6788a6f92f5e466e251c",
+      "path": "tests/comparison/v7-r3-independent-20260829/attempt02-source-review/REVIEW-RECEIPT.json",
+      "sha256": "22fde49753f7935f6fcede52e4aec56cae855b752a23b2b13d535fe09c09813a"
+    },
+    "outer": {
+      "commit": "ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae",
+      "path": "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json",
+      "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f"
+    }
+  },
+  "outcomes": {
+    "probes": 3,
+    "probesQualified": 3,
+    "admissionFamilies": 12,
+    "admissionFamiliesQualified": 12,
+    "presealedInProcessDefectControls": 20,
+    "presealedInProcessDefectControlsQualified": 20,
+    "plannedWorkerOperations": 14,
+    "launched": 14,
+    "closed": 14,
+    "unrun": 0,
+    "emptyC11Setups": 2,
+    "semanticCalls": 0
+  },
+  "operations": [
+    {
+      "operation": "probe-1",
+      "pid": 64108,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 327940,
+      "parts": 2
+    },
+    {
+      "operation": "probe-2",
+      "pid": 64252,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 327736,
+      "parts": 2
+    },
+    {
+      "operation": "probe-3",
+      "pid": 64415,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 59238,
+      "parts": 0
+    },
+    {
+      "operation": "C03-esm",
+      "pid": 64605,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 6226,
+      "parts": 0
+    },
+    {
+      "operation": "C03-cjs",
+      "pid": 64670,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 6203,
+      "parts": 0
+    },
+    {
+      "operation": "C03-require",
+      "pid": 64737,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 7808,
+      "parts": 0
+    },
+    {
+      "operation": "C03-wrong-hash",
+      "pid": 64784,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 9045,
+      "parts": 0
+    },
+    {
+      "operation": "C04-unbound",
+      "pid": 64940,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 10579,
+      "parts": 0
+    },
+    {
+      "operation": "C04-offline",
+      "pid": 65012,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 10334,
+      "parts": 0
+    },
+    {
+      "operation": "C09-status",
+      "pid": 65451,
+      "exit": {
+        "code": 7,
+        "signal": null
+      },
+      "close": {
+        "code": 7,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": false,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 5427,
+      "parts": 0
+    },
+    {
+      "operation": "C09-deadline",
+      "pid": 65540,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": false,
+      "failures": [
+        {
+          "code": "NATURAL_DEADLINE"
+        }
+      ],
+      "signals": [
+        "SIGTERM"
+      ],
+      "logicalReceiptBytes": 5507,
+      "parts": 0
+    },
+    {
+      "operation": "C11-positive",
+      "pid": 66009,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 330214,
+      "parts": 2
+    },
+    {
+      "operation": "C11-rejected",
+      "pid": 66024,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 328639,
+      "parts": 2
+    },
+    {
+      "operation": "C12-loaded-noop",
+      "pid": 66052,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "logicalReceiptBytes": 6226,
+      "parts": 0
+    }
+  ],
+  "probes": [
+    {
+      "layout": "target-installed",
+      "status": "QUALIFIED",
+      "exportEvaluation": true,
+      "exportFactoryCall": true,
+      "nextLoadWitnesses": 211,
+      "entryResolutions": [
+        {
+          "kind": "consumer-entry-resolution",
+          "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+          "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+          "expectedURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+          "accepted": true
+        }
+      ],
+      "consumerResolutions": [
+        {
+          "kind": "consumer-resolution",
+          "specifier": "virtual-bash",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/node_modules/virtual-bash/dist/index.js",
+          "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed/consumer-v5/consumer.mjs",
+          "accepted": true
+        }
+      ],
+      "pending": 0,
+      "descriptors": 0,
+      "violations": [],
+      "assetReads": 211,
+      "postGuard": true,
+      "late": [],
+      "bootstrap": null,
+      "semanticCalls": 0,
+      "setupCalls": 0
+    },
+    {
+      "layout": "target-moved",
+      "status": "QUALIFIED",
+      "exportEvaluation": true,
+      "exportFactoryCall": true,
+      "nextLoadWitnesses": 211,
+      "entryResolutions": [
+        {
+          "kind": "consumer-entry-resolution",
+          "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved/consumer-v5/consumer.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved/consumer-v5/consumer.mjs",
+          "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+          "expectedURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved/consumer-v5/consumer.mjs",
+          "accepted": true
+        }
+      ],
+      "consumerResolutions": [
+        {
+          "kind": "consumer-resolution",
+          "specifier": "virtual-bash",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved/consumer-v5/consumer.mjs",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved/node_modules/virtual-bash/dist/index.js",
+          "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved/consumer-v5/consumer.mjs",
+          "accepted": true
+        }
+      ],
+      "pending": 0,
+      "descriptors": 0,
+      "violations": [],
+      "assetReads": 211,
+      "postGuard": true,
+      "late": [],
+      "bootstrap": null,
+      "semanticCalls": 0,
+      "setupCalls": 0
+    },
+    {
+      "layout": "baseline-installed",
+      "status": "QUALIFIED",
+      "exportEvaluation": true,
+      "exportFactoryCall": true,
+      "nextLoadWitnesses": 21,
+      "entryResolutions": [
+        {
+          "kind": "consumer-entry-resolution",
+          "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+          "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+          "expectedURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+          "accepted": true
+        }
+      ],
+      "consumerResolutions": [
+        {
+          "kind": "consumer-resolution",
+          "specifier": "just-bash",
+          "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+          "accepted": true
+        }
+      ],
+      "pending": 0,
+      "descriptors": 0,
+      "violations": [],
+      "assetReads": 21,
+      "postGuard": true,
+      "late": [],
+      "bootstrap": {
+        "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+        "opened": true,
+        "revoked": true,
+        "consumed": 2,
+        "nativeDelegations": 0,
+        "violations": [],
+        "callerAuthenticated": false,
+        "stockNodeCapabilities": false
+      },
+      "semanticCalls": 0,
+      "setupCalls": 0
+    }
+  ],
+  "loads": [
+    {
+      "operation": "probe-1",
+      "layout": "target-installed",
+      "nextLoadWitnesses": 211,
+      "sourceHashesMatched": true,
+      "qualification": "Actual nextLoad source bytes; does not assert every module branch evaluated"
+    },
+    {
+      "operation": "probe-2",
+      "layout": "target-moved",
+      "nextLoadWitnesses": 211,
+      "sourceHashesMatched": true,
+      "qualification": "Actual nextLoad source bytes; does not assert every module branch evaluated"
+    },
+    {
+      "operation": "probe-3",
+      "layout": "baseline-installed",
+      "nextLoadWitnesses": 21,
+      "sourceHashesMatched": true,
+      "qualification": "Actual nextLoad source bytes; does not assert every module branch evaluated"
+    },
+    {
+      "operation": "C11-positive",
+      "layout": "target-installed",
+      "nextLoadWitnesses": 211,
+      "sourceHashesMatched": true,
+      "qualification": "Actual nextLoad source bytes; does not assert every module branch evaluated"
+    },
+    {
+      "operation": "C11-rejected",
+      "layout": "target-installed",
+      "nextLoadWitnesses": 211,
+      "sourceHashesMatched": true,
+      "qualification": "Actual nextLoad source bytes; does not assert every module branch evaluated"
+    }
+  ],
+  "stages": [
+    {
+      "name": "target-installed",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed",
+      "files": 860,
+      "dirs": 46,
+      "bytes": 4149191,
+      "oldOriginAbsent": null,
+      "newEntries": false,
+      "symlinks": 0,
+      "instructionFiles": 0,
+      "observedRowsSha256": "e0616346c92793dc6f71d95f7cae839a8877993abab831ceb19ef39723d730ee"
+    },
+    {
+      "name": "target-moved",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved",
+      "files": 860,
+      "dirs": 46,
+      "bytes": 4149191,
+      "oldOriginAbsent": true,
+      "newEntries": false,
+      "symlinks": 0,
+      "instructionFiles": 0,
+      "observedRowsSha256": "14508b817acee38fa8cecab0146bfcef7672768be970481c7d5df7f231a79144"
+    },
+    {
+      "name": "baseline-installed",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed",
+      "files": 3845,
+      "dirs": 432,
+      "bytes": 135294007,
+      "oldOriginAbsent": null,
+      "newEntries": false,
+      "symlinks": 0,
+      "instructionFiles": 0,
+      "observedRowsSha256": "91c5d54c56596b81729f63edefc351ab61c2c8c7d5f074ec6023d2e31cee50ff"
+    }
+  ],
+  "captures": {
+    "outerObserved501Retained501": true,
+    "outerLoss": 0,
+    "channelsVerified": 48,
+    "aggregateRawChannelBytes": 620527,
+    "bodyPhysicalBytes": 3823206,
+    "collectorPhysicalBytes": 8708,
+    "outerPhysicalBytes": 2552,
+    "perRecordMaximum": 262144,
+    "logicalDocumentsMultipart": true
+  },
+  "postguard": {
+    "schema": "ACTUAL_ATTEMPT02_POSTVERIFICATION",
+    "sourceCount": 416,
+    "repairCount": 80,
+    "archives": [
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+        "bytes": 749907,
+        "mode": 420,
+        "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+      },
+      {
+        "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+        "bytes": 9879070,
+        "mode": 292,
+        "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+      }
+    ],
+    "namespaces": [
+      {
+        "path": ".",
+        "entries": 37,
+        "excludedDescendants": [
+          "runs"
+        ],
+        "qualified": true
+      },
+      {
+        "path": "../executor-v7-r2",
+        "entries": 33,
+        "excludedDescendants": [
+          "runs"
+        ],
+        "qualified": true
+      },
+      {
+        "path": "../executor-v7-r1",
+        "entries": 28,
+        "excludedDescendants": [
+          "runs"
+        ],
+        "qualified": true
+      },
+      {
+        "path": "../executor-v7",
+        "entries": 30,
+        "excludedDescendants": [
+          "runs"
+        ],
+        "qualified": true
+      }
+    ],
+    "staged": [
+      {
+        "name": "target-installed",
+        "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed",
+        "files": 860,
+        "dirs": 46,
+        "bytes": 4149191,
+        "oldOriginAbsent": null,
+        "newEntries": false,
+        "symlinks": 0,
+        "instructionFiles": 0,
+        "observedRowsSha256": "e0616346c92793dc6f71d95f7cae839a8877993abab831ceb19ef39723d730ee"
+      },
+      {
+        "name": "target-moved",
+        "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved",
+        "files": 860,
+        "dirs": 46,
+        "bytes": 4149191,
+        "oldOriginAbsent": true,
+        "newEntries": false,
+        "symlinks": 0,
+        "instructionFiles": 0,
+        "observedRowsSha256": "14508b817acee38fa8cecab0146bfcef7672768be970481c7d5df7f231a79144"
+      },
+      {
+        "name": "baseline-installed",
+        "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed",
+        "files": 3845,
+        "dirs": 432,
+        "bytes": 135294007,
+        "oldOriginAbsent": null,
+        "newEntries": false,
+        "symlinks": 0,
+        "instructionFiles": 0,
+        "observedRowsSha256": "91c5d54c56596b81729f63edefc351ab61c2c8c7d5f074ec6023d2e31cee50ff"
+      }
+    ],
+    "workerCount": 14,
+    "authorityCount": 30,
+    "displayOnlyErrors": [
+      {
+        "phase": "post-run summary formatting",
+        "message": "row.report.loads.evaluated.slice is not a function",
+        "scope": "Display-only field-shape mistake after full staged authentication; no engine operation, child launch, or integrity check failed; no stage replay",
+        "rawToolReceiptPreserved": true
+      }
+    ]
+  },
+  "wrapper": {
+    "ownerPid": 63718,
+    "helperPids": [
+      63719,
+      63720
+    ],
+    "umask": "022",
+    "stdoutMode": "0600",
+    "stderrMode": "0600",
+    "environment": "Exact reviewed Darwin UID501 CF metadata; no guest inheritance; originUNKNOWN"
+  },
+  "intentionalNegatives": "C09-status exit7 and C09-deadline NATURAL_DEADLINE/SIGTERM with closed receipt are designated controls only; never general successful-child waivers",
+  "history": "Attempt01consumed0/14, originalwrapper5/8/newtails3/3 crossversion, V6loss294045/N02loss718,W07UNQUALIFIED unchanged",
+  "limits": "67planned/128cap/peak5;90min=75owner+15admin;257MiB partition with inner256unchanged;768MiBwork;Nodeoldspace256MiB notRSS; nohardpreemption",
+  "qualification": "Actual scoped runtime admission only. No99semantic authorization, benchmark, winner/superiority, stockNode capability, caller-authentication, network/native/service/fullgate claim.",
+  "inspectionFailure": [
+    {
+      "phase": "post-run summary formatting",
+      "message": "row.report.loads.evaluated.slice is not a function",
+      "scope": "Display-only field-shape mistake after full staged authentication; no engine operation, child launch, or integrity check failed; no stage replay",
+      "rawToolReceiptPreserved": true
+    }
+  ]
+}

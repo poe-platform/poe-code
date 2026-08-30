@@ -1,0 +1,4519 @@
+{
+  "deltas": [
+    {
+      "path": "admission.mjs",
+      "before": "export const packet = '5d432becbe385eb323c10feecfa5e982bfd3b099';",
+      "after": "export const packet = '7ef6e6b816ccc6b2449605c7950ab825d148a529';",
+      "occurrences": 1
+    },
+    {
+      "path": "admission.mjs",
+      "before": "export const directory = path.join(repository, 'tests/integration/priority-command-workflows-20260828');",
+      "after": "export const originalDirectory = path.join(repository, 'tests/integration/priority-command-workflows-20260828');\nexport const directory = path.join(originalDirectory, 'npm-pin-rebinding-v2');",
+      "occurrences": 1
+    },
+    {
+      "path": "admission.mjs",
+      "before": "const root = path.join(directory, 'future-run-01');",
+      "after": "const root = path.join(originalDirectory, 'future-run-01');",
+      "occurrences": 1
+    },
+    {
+      "path": "admission.mjs",
+      "before": "path.join(directory, 'PARENT-BUDGET.json')",
+      "after": "path.join(originalDirectory, 'PARENT-BUDGET.json')",
+      "occurrences": 1
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "before": "inventory, directory, repository,",
+      "after": "inventory, directory, originalDirectory, repository,",
+      "occurrences": 1
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "before": "path.join(directory, 'PARENT-BUDGET.json')",
+      "after": "path.join(originalDirectory, 'PARENT-BUDGET.json')",
+      "occurrences": 1
+    },
+    {
+      "path": "source-auth.mjs",
+      "before": "${packet}:tests/integration/priority-command-workflows-20260828/${name}",
+      "after": "${packet}:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/${name}",
+      "occurrences": 1
+    }
+  ],
+  "artifactRoles": [
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+      "sha256": "a9cd8a7e95a17184822de2f9bd626c5cd3f633cc2c4d30ce781ab07a2f244ae0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+      "sha256": "f6bd3d4946591b60ceb9e14e168ae4910edaa7c5770cb2f24617347963d8d706",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+      "sha256": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+      "sha256": "45bc9f53e43ca53062fbb556a829b9ba58ea31ac170cabc025c7160568611968",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "sha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "sha256": "aacd3cb7feb32a8507a1259f503a8abaa4f9c7f5c5a3cdc6cde82891bfa76cc4",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "stored-commit-path",
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+      "sha256": "c20bcfbe0fb5e8686081d074a45c667a0c67a03d27ea0575f5dd79d03ac50ccf",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "sha256": "bed4c29f237e3390ada45bfce377bf39c8cab4f54934e4da2186d8996e2e6b00",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "sha256": "e6c60c5ad2636b58faa9e5034f3d1c90fea46e8843ccfb522c0958cf84f91777",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "sha256": "d57c8e02b98fc8cae8abb50675a421d4ab95a682169dc5d4613e65d9dcdc75d9",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "sha256": "844a049bab1b3f6ee98564c83e62beaa22e1bfeaf07e19a68ebdbfa1405fd7ca",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "sha256": "5edcf468b80def2bfacddda31232c283154659289e0143353cec2c682be84686",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "sha256": "12cce30a194ebbdde1182437469a3f59fd4c6a1630859bc6e22a38a147a2cf5e",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "sha256": "9d96bfe343a6c98cc1a62bb4a6b1dee5f6d2da40456ef8fea20a1051bc13d8a0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "sha256": "8dfd42a776327c47e8865c4060934d8eaaf55637c71868c18da8624563b33fbf",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "sha256": "cab3dad4fc1225c00be746815abf73e0cc028ea75a7020bf5af56f46eb3ea173",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "sha256": "e22d0f077cd4e1b293e1125d10dd06df95e96994d0dbb7a49eb6fc4c03850a70",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "sha256": "c4b28043886d7687679cd4282d914ec076ce30b65f794a65e178769000f10ecd",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "sha256": "f86fdd5e090dfe070681c2db9efbf2d11677a6ca18ff49d06fa4e82b1eaa28b4",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "sha256": "9d795d66b755c4e75e815d7a129e67348f840a70cd989c2790b55c695f5be9a9",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "sha256": "5659b7f933878b07f45e19efd97e90646b8c7a0e0ea936eaaca4c8a717b1ff87",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "sha256": "34d1359437177505be2077948fb31429ffb41264ee2a58cc29722f1fae420061",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "sha256": "c56c9caca56b9f6b4aa90ccd398ef5169ea4af7f09c03f4940c6691e6e0688e1",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "sha256": "4bbffaca3d044e44f982af0b646f87c135113f47ca1f5446c470ad791c6a8568",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "sha256": "c8d8b50dca1d303aa08121678555f51c133475f6da263b3793feed12f6d886dd",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "sha256": "b899401d5999947d6aa466bb40607d24d2b49b479f058200ae2e3918aab17cc0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "sha256": "e5e496b194c21afff045777955b728c0730c42127a752c643b3db9de6346b00a",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "sha256": "e4e7ca7c2b1ebde15117a852b24af1fda5762420a7d890b6fa36a7b092a9bb48",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "sha256": "d7be58c018caaaf6587f23cfdef3a7dff0336d26889db34b631306c3db80b3b9",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "sha256": "1514e5720f07ee9ceeaf80152a0bdaa486ae851be3ab067e659167d8d5f3bc9f",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "sha256": "819f7b7433336e244311f4bdca2ca9121659d199c74cc8981ca23d1897a36437",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "sha256": "5f666ae49a67aa6e475418b4dd694f4ffee6ef3a3ad573785e31c7f2d3ec65e0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "sha256": "50b37a39371c92c137eb10c5f9a8998a3d4639f68da8a5722c66a65864e82609",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "sha256": "e7e020c7955f8d57b57539ea81756e6a3d109ac89cc804580e2d22b09b58314a",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "sha256": "a3438ab5049a07f14c138b57a92d137f68ce59849b7328f385d1df69456f29a8",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "sha256": "d5721a446c2e6ab6f32fad872f66bb29e3a42d5545a01e361460f4c0147a9148",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "sha256": "c6b42be207074c0454e85842793cf541e5b0f5f03a89ddff0d275da14042436a",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "sha256": "21e9eea2ab92bf1e9ec65f893780f19bcae582d7261d29e61da91da2a4f7eb72",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "sha256": "a6a765abdb7b9cd0e076219a25c567de9c447bd20d3724f70c656112d45c5acb",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "sha256": "cd96258d9859b2020378e24d232e32a3d7f29a3f60bdf368f3b3be88d1dd102a",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "sha256": "2bd7c6b16dd9bc8948d128f8b470503dd6676a9cf4b9126eabd3618bec5f69f2",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "sha256": "772c8d293757db3fc276dd18341f3deab8768b703742ec8e65375f20adb16f80",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "sha256": "05244cc2974e6da1bb39908c0e1ee5c7d4058bc86c3ddff93be5e66484f504e8",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "sha256": "3992671260f4ac946f80e95825252cea91b4995dc40f1a7cc5eebe0e8d6f2e20",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "sha256": "c1e949d4a8e702a2cdb420b03da88a2f55dc2b468aec5797ce029fd601caceca",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "sha256": "620a965285eeb2f59e23f0bf4892d45d1c6137bee087936cc5ec2fbf427a2f72",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "sha256": "16da06bcbdbf94d094ea0d5371bec14d7d75e609fe3cddc3099deaeb845c5109",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "sha256": "47bff20fc6f8f6f69aa58626a88f5114dc58bcf26c1b6e298b24d69f01486607",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "sha256": "4cfac42258569c9ca6138aa8f3ea1e9756b2911bb8c2bfe7b4d45a98c5a44c1e",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "sha256": "717e72e7f1e1950eefaf9575f3cfc5a2d23dee164fbe9e311450a3b2c5cccb65",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "sha256": "1be3970ed38bdbf23702b2636b485c316068b8888f48bd731938788e5bfda150",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "sha256": "88d3ee965fd849b07eec3fadfea8c1212c35341497ba16096a005ecd7e563a71",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "sha256": "09e2458889b6e81f697b6438e8f65ad3843658b85ef51314dee9d329c7630fe5",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "sha256": "6615a03343407dd13ff52b0fe546fefc1a4b7ba28cc0ed250f6a86be4a893ce0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "sha256": "8b6e8e900eb334330ce1792c61398c96a187151e42b5f8eed9a33f43d208ce6d",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "sha256": "b5652067a65ae98e69e867f85d333e242ba46037009f7e31829dda973c61fad0",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "sha256": "4b37d708f663f8b8e23ba5c5ad3e90d18d73c5cc34d3f3ba178ce8524e2b25bf",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "sha256": "9e78a8afb9d7d603a7f8c5d89ec07ded21cdf6a3eca3af6631be9181595045b9",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "sha256": "4113d6309ec90e1e6d56832e5f7c998858fb267b6d8ffe240a080ff5b20f9170",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "sha256": "06bc8ad9bf6e58267830843f0552b19c97913fa070c09b61bc30f02765770fa4",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "sha256": "829854a11113059a9092159f4c58d906146e78f26deae0f576798285a68f55e7",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce",
+      "authenticated": true,
+      "executableAuthorization": false
+    },
+    {
+      "role": "historical-content-only",
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3",
+      "authenticated": true,
+      "executableAuthorization": false
+    }
+  ],
+  "modes": [
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/admission.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/source-auth.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/future-adapter.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/runtime-entry.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/worker-observer.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/worker-preload.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/verify.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/CASES.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/FIXTURES.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/SCHEMA.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/EXECUTION-RECIPE.md",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/READY.md",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/SOURCE-AUTH.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "replacement": "tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "replacement": "tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "replacement": "tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "replacement": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "oldMode": "100644",
+      "newMode": "100644"
+    }
+  ],
+  "original110": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/admission.mjs",
+      "sha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a",
+      "bytes": 8788,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/source-auth.mjs",
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9",
+      "bytes": 6787,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00",
+      "bytes": 23692,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "bytes": 24859,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "bytes": 3074,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "bytes": 5646,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "bytes": 2105,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "bytes": 10816,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "bytes": 4148,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "bytes": 786,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "bytes": 53,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/verify.mjs",
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "bytes": 8822,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/CASES.json",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "bytes": 47429,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/FIXTURES.json",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "bytes": 15139,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "bytes": 30714,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4",
+      "bytes": 1542,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/SCHEMA.json",
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "bytes": 3969,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/EXECUTION-RECIPE.md",
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "bytes": 11958,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/READY.md",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "bytes": 11419,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "sha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+      "bytes": 4516,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "sha256": "aacd3cb7feb32a8507a1259f503a8abaa4f9c7f5c5a3cdc6cde82891bfa76cc4",
+      "bytes": 5166,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d",
+      "bytes": 67637,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "sha256": "bed4c29f237e3390ada45bfce377bf39c8cab4f54934e4da2186d8996e2e6b00",
+      "bytes": 8292,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "sha256": "e6c60c5ad2636b58faa9e5034f3d1c90fea46e8843ccfb522c0958cf84f91777",
+      "bytes": 6329,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "sha256": "d57c8e02b98fc8cae8abb50675a421d4ab95a682169dc5d4613e65d9dcdc75d9",
+      "bytes": 40103,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "sha256": "844a049bab1b3f6ee98564c83e62beaa22e1bfeaf07e19a68ebdbfa1405fd7ca",
+      "bytes": 2735,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "sha256": "5edcf468b80def2bfacddda31232c283154659289e0143353cec2c682be84686",
+      "bytes": 2136,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "sha256": "12cce30a194ebbdde1182437469a3f59fd4c6a1630859bc6e22a38a147a2cf5e",
+      "bytes": 4728,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "sha256": "9d96bfe343a6c98cc1a62bb4a6b1dee5f6d2da40456ef8fea20a1051bc13d8a0",
+      "bytes": 4679,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "sha256": "8dfd42a776327c47e8865c4060934d8eaaf55637c71868c18da8624563b33fbf",
+      "bytes": 3328,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "sha256": "cab3dad4fc1225c00be746815abf73e0cc028ea75a7020bf5af56f46eb3ea173",
+      "bytes": 9824,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "sha256": "e22d0f077cd4e1b293e1125d10dd06df95e96994d0dbb7a49eb6fc4c03850a70",
+      "bytes": 1741,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "sha256": "c4b28043886d7687679cd4282d914ec076ce30b65f794a65e178769000f10ecd",
+      "bytes": 1051,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "sha256": "f86fdd5e090dfe070681c2db9efbf2d11677a6ca18ff49d06fa4e82b1eaa28b4",
+      "bytes": 2301,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "sha256": "9d795d66b755c4e75e815d7a129e67348f840a70cd989c2790b55c695f5be9a9",
+      "bytes": 1713,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "sha256": "5659b7f933878b07f45e19efd97e90646b8c7a0e0ea936eaaca4c8a717b1ff87",
+      "bytes": 919,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "sha256": "34d1359437177505be2077948fb31429ffb41264ee2a58cc29722f1fae420061",
+      "bytes": 2346,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "sha256": "c56c9caca56b9f6b4aa90ccd398ef5169ea4af7f09c03f4940c6691e6e0688e1",
+      "bytes": 811,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "sha256": "4bbffaca3d044e44f982af0b646f87c135113f47ca1f5446c470ad791c6a8568",
+      "bytes": 2107,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "sha256": "c8d8b50dca1d303aa08121678555f51c133475f6da263b3793feed12f6d886dd",
+      "bytes": 1217,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "sha256": "b899401d5999947d6aa466bb40607d24d2b49b479f058200ae2e3918aab17cc0",
+      "bytes": 1953,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "sha256": "e5e496b194c21afff045777955b728c0730c42127a752c643b3db9de6346b00a",
+      "bytes": 1673,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "sha256": "e4e7ca7c2b1ebde15117a852b24af1fda5762420a7d890b6fa36a7b092a9bb48",
+      "bytes": 805,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "sha256": "d7be58c018caaaf6587f23cfdef3a7dff0336d26889db34b631306c3db80b3b9",
+      "bytes": 2366,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "sha256": "1514e5720f07ee9ceeaf80152a0bdaa486ae851be3ab067e659167d8d5f3bc9f",
+      "bytes": 2016,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "sha256": "819f7b7433336e244311f4bdca2ca9121659d199c74cc8981ca23d1897a36437",
+      "bytes": 1703,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "sha256": "5f666ae49a67aa6e475418b4dd694f4ffee6ef3a3ad573785e31c7f2d3ec65e0",
+      "bytes": 1058,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "sha256": "50b37a39371c92c137eb10c5f9a8998a3d4639f68da8a5722c66a65864e82609",
+      "bytes": 2346,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "sha256": "e7e020c7955f8d57b57539ea81756e6a3d109ac89cc804580e2d22b09b58314a",
+      "bytes": 290,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "sha256": "a3438ab5049a07f14c138b57a92d137f68ce59849b7328f385d1df69456f29a8",
+      "bytes": 41150,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "sha256": "d5721a446c2e6ab6f32fad872f66bb29e3a42d5545a01e361460f4c0147a9148",
+      "bytes": 2835,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "sha256": "c6b42be207074c0454e85842793cf541e5b0f5f03a89ddff0d275da14042436a",
+      "bytes": 3320,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "sha256": "21e9eea2ab92bf1e9ec65f893780f19bcae582d7261d29e61da91da2a4f7eb72",
+      "bytes": 4728,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "sha256": "a6a765abdb7b9cd0e076219a25c567de9c447bd20d3724f70c656112d45c5acb",
+      "bytes": 4779,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "sha256": "cd96258d9859b2020378e24d232e32a3d7f29a3f60bdf368f3b3be88d1dd102a",
+      "bytes": 5568,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "sha256": "2bd7c6b16dd9bc8948d128f8b470503dd6676a9cf4b9126eabd3618bec5f69f2",
+      "bytes": 9824,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "sha256": "772c8d293757db3fc276dd18341f3deab8768b703742ec8e65375f20adb16f80",
+      "bytes": 1773,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "sha256": "05244cc2974e6da1bb39908c0e1ee5c7d4058bc86c3ddff93be5e66484f504e8",
+      "bytes": 1572,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "sha256": "3992671260f4ac946f80e95825252cea91b4995dc40f1a7cc5eebe0e8d6f2e20",
+      "bytes": 2301,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "sha256": "c1e949d4a8e702a2cdb420b03da88a2f55dc2b468aec5797ce029fd601caceca",
+      "bytes": 1745,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "sha256": "620a965285eeb2f59e23f0bf4892d45d1c6137bee087936cc5ec2fbf427a2f72",
+      "bytes": 1436,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "sha256": "16da06bcbdbf94d094ea0d5371bec14d7d75e609fe3cddc3099deaeb845c5109",
+      "bytes": 2346,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "sha256": "47bff20fc6f8f6f69aa58626a88f5114dc58bcf26c1b6e298b24d69f01486607",
+      "bytes": 951,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "sha256": "4cfac42258569c9ca6138aa8f3ea1e9756b2911bb8c2bfe7b4d45a98c5a44c1e",
+      "bytes": 158,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "sha256": "717e72e7f1e1950eefaf9575f3cfc5a2d23dee164fbe9e311450a3b2c5cccb65",
+      "bytes": 2135,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "sha256": "1be3970ed38bdbf23702b2636b485c316068b8888f48bd731938788e5bfda150",
+      "bytes": 1741,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "sha256": "88d3ee965fd849b07eec3fadfea8c1212c35341497ba16096a005ecd7e563a71",
+      "bytes": 1953,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "sha256": "09e2458889b6e81f697b6438e8f65ad3843658b85ef51314dee9d329c7630fe5",
+      "bytes": 1701,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "sha256": "6615a03343407dd13ff52b0fe546fefc1a4b7ba28cc0ed250f6a86be4a893ce0",
+      "bytes": 1324,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "sha256": "8b6e8e900eb334330ce1792c61398c96a187151e42b5f8eed9a33f43d208ce6d",
+      "bytes": 2366,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "sha256": "b5652067a65ae98e69e867f85d333e242ba46037009f7e31829dda973c61fad0",
+      "bytes": 2016,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "sha256": "4b37d708f663f8b8e23ba5c5ad3e90d18d73c5cc34d3f3ba178ce8524e2b25bf",
+      "bytes": 442,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "sha256": "9e78a8afb9d7d603a7f8c5d89ec07ded21cdf6a3eca3af6631be9181595045b9",
+      "bytes": 1735,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "sha256": "4113d6309ec90e1e6d56832e5f7c998858fb267b6d8ffe240a080ff5b20f9170",
+      "bytes": 1584,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "sha256": "06bc8ad9bf6e58267830843f0552b19c97913fa070c09b61bc30f02765770fa4",
+      "bytes": 2346,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "sha256": "829854a11113059a9092159f4c58d906146e78f26deae0f576798285a68f55e7",
+      "bytes": 290,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f",
+      "bytes": 15814,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae",
+      "bytes": 3518,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+      "bytes": 6899,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+      "bytes": 8095,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "bytes": 12505,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "bytes": 4821,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+      "bytes": 9641,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3",
+      "bytes": 1562,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14",
+      "bytes": 1369,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30",
+      "bytes": 2480,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66",
+      "bytes": 1309,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd",
+      "bytes": 1770,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4",
+      "bytes": 2391,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23",
+      "bytes": 1896,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823",
+      "bytes": 1765,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7",
+      "bytes": 2480,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5",
+      "bytes": 1221,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce",
+      "bytes": 1354,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3",
+      "bytes": 2366,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+      "sha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+      "bytes": 20766,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/GO-v3.template.json",
+      "sha256": "9f84baf5a92e31e9824abc6a8bba23e1254d45fdf4400f6fa80d7705f67acef9",
+      "bytes": 3518,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/GO.json",
+      "sha256": "5ca5a1e9847c3306cf49f0f4894d8a6bf83dc39e2741ad49067bdc43148b4aa5",
+      "bytes": 3492,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json",
+      "sha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+      "bytes": 301,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/HOLD-RECEIPT.json",
+      "sha256": "fdf7d97d1a1584de741fe420ceef2a6d2d7ef1e3ffda4b87ee44c2cb0ec1d345",
+      "bytes": 15321,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/MANIFEST.json",
+      "sha256": "8dd5915da752a1dbf1ef7d57881e26306a5f458b4c2fc04b4d82d52cd02294a8",
+      "bytes": 2293,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/NPM-FAILURE.txt",
+      "sha256": "e10718f17ba7572b386f19ad7547630cdc6aee52af4722ccdcbce2e295517b66",
+      "bytes": 163,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/NPM-ORIGINAL-INVENTORY.json",
+      "sha256": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79",
+      "bytes": 301990,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/PREAUTH.json",
+      "sha256": "694033e88e505a182812ef564114c8a1980102e5c62ac47ea6c6ef006a43a4d3",
+      "bytes": 147250,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/ROOT-DISPATCH-CONFIRMATION.md",
+      "sha256": "5266dbdfe7e98f34f29116e1612defb797760f526a31164f4e00492e538f1efc",
+      "bytes": 5408,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/ROOT-HOLD-CONFIRMATION.txt",
+      "sha256": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079",
+      "bytes": 947,
+      "unchanged": true
+    }
+  ],
+  "source314": [
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+      "match": true
+    },
+    {
+      "expression": "7ef6e6b816ccc6b2449605c7950ab825d148a529:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-author-20260828/MANIFEST.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-author-20260828/CANDIDATE.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-author-20260828/FINAL-SEAL.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/PRESEAL.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/EXECUTOR-v2.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/EVIDENCE.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/REVIEW-v2.json",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/REPORT.md",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/loader.mjs.data",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/guard.mjs.data",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data",
+      "match": true
+    },
+    {
+      "expression": "dcaa5ccc54fb31b48d16a207484ea15a3bbedc91:docs/COMMAND_PRIORITIES.md",
+      "match": true
+    },
+    {
+      "expression": "633f6c82f738f1c69d6c7b6c91672524ec8688b2:tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:package.json",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/create.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/extract.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/format.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/internal.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/archive/stream.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/basic.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/checksums/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/checksums/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/compression/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/compression/files.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/compression/gunzip.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/compression/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/compression/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/compression/stream.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/encoding/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/encoding/base.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/encoding/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/encoding/od.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/encoding/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/encoding/xxd.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/bytes/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/column.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/display.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/internal.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/column/table.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/copy-identity.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/GNU-DIFF.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/GNU-PATCH.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/PARSER.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/diff-format.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/diff.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/patch-envelope.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/patch-formats.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/patch-gnu-paths.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/patch-gnu-reject.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/patch-path.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/patch.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/diff-patch/unified.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/arguments.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/budget.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/du.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/format.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/du/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/env-split.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/execution.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/bre-worker.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/evaluate.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/internal.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/expr/syntax.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/file/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/file/classify.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/file/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/file/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/filesystem.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/find.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/grep-aliases/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/grep-aliases/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/grep.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/budget.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/entities.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/input.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/parser.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/render.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/html-to-markdown/text.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/internal.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/metadata/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/metadata/chmod.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/metadata/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/metadata/internal.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/metadata/mktemp.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/metadata/stat.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/move.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/args.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/body.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/curl.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/output.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/transport.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/network/types.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/predicates.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/client.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/matching.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/protocol.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/regex-execution/worker.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/safejs/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/safejs/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/safejs/io.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/safejs/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/safejs/render.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/safejs/types.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/glob.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/matcher.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/output.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/rg.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/search/walk.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/io.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/names.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/outputs.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/split/split.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/nl.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/rev.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/seq.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-format/unexpand.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/expand.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/fold.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/numeric-options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/strings.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/stream-inspection/tac.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/streams.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/input.ts",
+      "match": true
+    },
+    {
+      "expression": "74361026502d76b8c2b696f9c60e410ac9b78d95:src/commands/structured/interpreter.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/jq.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/limits.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/numbers.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/parser.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/split.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/structured/values.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/table-text/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/table-text/comm.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/table-text/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/table-text/internal.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/table-text/join.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/table-text/paste.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/awk-runtime.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/awk-syntax.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/awk-values.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/awk.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/regex.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/sed.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text-programs/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/text.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/calendar.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/date.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/format.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/printenv.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/shared.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/time-env/sleep.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/timeout/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/timeout/duration.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/timeout/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/timeout/scheduler.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/arguments.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/charset.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/io.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/pattern.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/tree/tree.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/ACCESS-POLICY-v2.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/DESIGN.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/design-evidence/access-provenance-v2.json",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/design-evidence/getopt-source.data",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/design-evidence/provenance.json",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/design-evidence/which-manual.data",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/design-evidence/which-source.data",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/options.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/commands/which/which.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/command.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/command.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/errors.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/filesystem.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/filesystem.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/io.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/output.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/path.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/contracts/plugin.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/memory/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/mount/COMPARISON.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/mount/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/mount/comparison.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/mount/identity.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/mount/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/overlay/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/overlay/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/readonly/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/readonly/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/real/allocation.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/real/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/COMPARISON.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/SDK_COMPARISON.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/authority.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/filesystem.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/request.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/signature.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/transport.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/types.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/http/xml.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/mock.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/s3/transport.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+      "match": true
+    },
+    {
+      "expression": "ca1d33424b94a21ae0f40a36412fd8191611e2df:src/fs/webdav/README.md",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/webdav/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/webdav/resource-id.ts",
+      "match": true
+    },
+    {
+      "expression": "ca1d33424b94a21ae0f40a36412fd8191611e2df:src/fs/webdav/webdav.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/fs/webdav/xml.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/integrations/safejs/filesystem.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/integrations/safejs/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/integrations/safejs/shell.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/integrations/safejs/stats.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/integrations/safejs/values.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/plugins/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/arithmetic.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/cancellation.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/cleanup.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/display.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/getopts.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/index.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/input.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/locale.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/parser.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/pattern.ts",
+      "match": true
+    },
+    {
+      "expression": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a:src/shell/runtime.ts",
+      "match": true
+    },
+    {
+      "expression": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a:src/shell/shell.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:src/shell/types.ts",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:tsconfig.build.json",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36:tsconfig.json",
+      "match": true
+    },
+    {
+      "expression": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "match": true
+    },
+    {
+      "expression": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "match": true
+    },
+    {
+      "expression": "803be45d68b3c6e0593c8e36ca45dda75ffc766d",
+      "match": true
+    },
+    {
+      "expression": "186804b7ae9d8280aac3ee78e556bfd7c8bba7d3",
+      "match": true
+    },
+    {
+      "expression": "bf9f585b24fc9f92007a2c5ef0c584f4f639ab6e",
+      "match": true
+    },
+    {
+      "expression": "2512822b834ccb0843386b9558d372f654cd142f",
+      "match": true
+    },
+    {
+      "expression": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "match": true
+    },
+    {
+      "expression": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "match": true
+    },
+    {
+      "expression": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "match": true
+    },
+    {
+      "expression": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+      "match": true
+    },
+    {
+      "expression": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+      "match": true
+    },
+    {
+      "expression": "4420bfffc528a25cdea55138afb2d7148497a019",
+      "match": true
+    },
+    {
+      "expression": "dbfa396829cf6412d9283c632f39dbcc22e217c3",
+      "match": true
+    },
+    {
+      "expression": "026bff1fe0f045385f0b3142fd2562ebb37b62d4",
+      "match": true
+    },
+    {
+      "expression": "e94aea8a79e2202aac50342d6d75946ff43fa38b",
+      "match": true
+    },
+    {
+      "expression": "e39f5f45a31ae4a8b0e0ccd96c61fafe9b67043b",
+      "match": true
+    },
+    {
+      "expression": "5acf18c67b12d4e6894305018028cb6aead47adf",
+      "match": true
+    },
+    {
+      "expression": "4a3f09e110d8f8e7d550c34fccda2eb455667a81",
+      "match": true
+    },
+    {
+      "expression": "f64fd91310f7897563ac2a242b8f6336103907aa",
+      "match": true
+    },
+    {
+      "expression": "912131b81c73cfcca2ffc2a1a709290ad1f8ec2d",
+      "match": true
+    },
+    {
+      "expression": "51f7772adbe3d4f6d75ceb86be2d93694dd1bb0d",
+      "match": true
+    },
+    {
+      "expression": "9e3a1cec8b15693f677a669829c22f541e1a2418",
+      "match": true
+    },
+    {
+      "expression": "c16d7f029e2484e20a7cac746128e7310d778dd4",
+      "match": true
+    },
+    {
+      "expression": "e560a65e2c59147eb8f71779e05ce1284d8459da",
+      "match": true
+    },
+    {
+      "expression": "2922ffbc540b0f114905b3d3d9b80a508de23aed",
+      "match": true
+    }
+  ],
+  "case93": [
+    {
+      "ordinal": 1,
+      "id": "P01",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 2,
+      "id": "P02",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 3,
+      "id": "P03",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 4,
+      "id": "P04",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 5,
+      "id": "P05",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 6,
+      "id": "P06",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 7,
+      "id": "P07",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 8,
+      "id": "P08",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 9,
+      "id": "P09",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 10,
+      "id": "P10",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 11,
+      "id": "P11",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 12,
+      "id": "P12",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 13,
+      "id": "P13",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 14,
+      "id": "P14",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 15,
+      "id": "P15",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 16,
+      "id": "P16",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 17,
+      "id": "P17",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 18,
+      "id": "P18",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 19,
+      "id": "P19",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 20,
+      "id": "P20",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 21,
+      "id": "P21",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 22,
+      "id": "P22",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 23,
+      "id": "P23",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 24,
+      "id": "P24",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 25,
+      "id": "C01",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 26,
+      "id": "C02",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 27,
+      "id": "C03",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 28,
+      "id": "C04",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 29,
+      "id": "C05",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 30,
+      "id": "C06",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 31,
+      "id": "C07",
+      "layout": "source-build",
+      "match": true
+    },
+    {
+      "ordinal": 32,
+      "id": "P01",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 33,
+      "id": "P02",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 34,
+      "id": "P03",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 35,
+      "id": "P04",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 36,
+      "id": "P05",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 37,
+      "id": "P06",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 38,
+      "id": "P07",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 39,
+      "id": "P08",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 40,
+      "id": "P09",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 41,
+      "id": "P10",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 42,
+      "id": "P11",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 43,
+      "id": "P12",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 44,
+      "id": "P13",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 45,
+      "id": "P14",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 46,
+      "id": "P15",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 47,
+      "id": "P16",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 48,
+      "id": "P17",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 49,
+      "id": "P18",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 50,
+      "id": "P19",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 51,
+      "id": "P20",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 52,
+      "id": "P21",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 53,
+      "id": "P22",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 54,
+      "id": "P23",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 55,
+      "id": "P24",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 56,
+      "id": "C01",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 57,
+      "id": "C02",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 58,
+      "id": "C03",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 59,
+      "id": "C04",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 60,
+      "id": "C05",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 61,
+      "id": "C06",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 62,
+      "id": "C07",
+      "layout": "offline-installed",
+      "match": true
+    },
+    {
+      "ordinal": 63,
+      "id": "P01",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 64,
+      "id": "P02",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 65,
+      "id": "P03",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 66,
+      "id": "P04",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 67,
+      "id": "P05",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 68,
+      "id": "P06",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 69,
+      "id": "P07",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 70,
+      "id": "P08",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 71,
+      "id": "P09",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 72,
+      "id": "P10",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 73,
+      "id": "P11",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 74,
+      "id": "P12",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 75,
+      "id": "P13",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 76,
+      "id": "P14",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 77,
+      "id": "P15",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 78,
+      "id": "P16",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 79,
+      "id": "P17",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 80,
+      "id": "P18",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 81,
+      "id": "P19",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 82,
+      "id": "P20",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 83,
+      "id": "P21",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 84,
+      "id": "P22",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 85,
+      "id": "P23",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 86,
+      "id": "P24",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 87,
+      "id": "C01",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 88,
+      "id": "C02",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 89,
+      "id": "C03",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 90,
+      "id": "C04",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 91,
+      "id": "C05",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 92,
+      "id": "C06",
+      "layout": "physically-moved",
+      "match": true
+    },
+    {
+      "ordinal": 93,
+      "id": "C07",
+      "layout": "physically-moved",
+      "match": true
+    }
+  ],
+  "seal100": [
+    {
+      "path": "admission.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+      "bytes": 8891,
+      "sha256": "a9cd8a7e95a17184822de2f9bd626c5cd3f633cc2c4d30ce781ab07a2f244ae0",
+      "match": true
+    },
+    {
+      "path": "source-auth.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+      "bytes": 6808,
+      "sha256": "f6bd3d4946591b60ceb9e14e168ae4910edaa7c5770cb2f24617347963d8d706",
+      "match": true
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "bytes": 23719,
+      "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+      "match": true
+    },
+    {
+      "path": "future-adapter.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+      "bytes": 24859,
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "match": true
+    },
+    {
+      "path": "runtime-entry.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+      "bytes": 3074,
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "match": true
+    },
+    {
+      "path": "worker-observer.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+      "bytes": 5646,
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "match": true
+    },
+    {
+      "path": "worker-preload.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+      "bytes": 2105,
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "match": true
+    },
+    {
+      "path": "../stub-controls.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "bytes": 10816,
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "match": true
+    },
+    {
+      "path": "../stub-child.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "bytes": 4148,
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "match": true
+    },
+    {
+      "path": "../stub-entry.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "bytes": 786,
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "match": true
+    },
+    {
+      "path": "../stub-dependency.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "bytes": 53,
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "match": true
+    },
+    {
+      "path": "../stub-guard.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "bytes": 622,
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "match": true
+    },
+    {
+      "path": "verify.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+      "bytes": 8822,
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "match": true
+    },
+    {
+      "path": "CASES.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+      "bytes": 47429,
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "match": true
+    },
+    {
+      "path": "FIXTURES.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+      "bytes": 15139,
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "match": true
+    },
+    {
+      "path": "BINDINGS.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+      "bytes": 30714,
+      "sha256": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00",
+      "match": true
+    },
+    {
+      "path": "MANIFEST.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+      "bytes": 1542,
+      "sha256": "45bc9f53e43ca53062fbb556a829b9ba58ea31ac170cabc025c7160568611968",
+      "match": true
+    },
+    {
+      "path": "SCHEMA.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+      "bytes": 3969,
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "match": true
+    },
+    {
+      "path": "EXECUTION-RECIPE.md",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+      "bytes": 11958,
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "match": true
+    },
+    {
+      "path": "READY.md",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+      "bytes": 11419,
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "match": true
+    },
+    {
+      "path": "../STUB-PROTOCOL.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "bytes": 4516,
+      "sha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+      "match": true
+    },
+    {
+      "path": "../STUB-PROTOCOL-v2.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "bytes": 5166,
+      "sha256": "aacd3cb7feb32a8507a1259f503a8abaa4f9c7f5c5a3cdc6cde82891bfa76cc4",
+      "match": true
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+      "bytes": 99543,
+      "sha256": "c20bcfbe0fb5e8686081d074a45c667a0c67a03d27ea0575f5dd79d03ac50ccf",
+      "match": true
+    },
+    {
+      "path": "../CALLS.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "bytes": 67637,
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d",
+      "match": true
+    },
+    {
+      "path": "../PREPARATION.md",
+      "resolved": "tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "bytes": 8292,
+      "sha256": "bed4c29f237e3390ada45bfce377bf39c8cab4f54934e4da2186d8996e2e6b00",
+      "match": true
+    },
+    {
+      "path": "../FINAL-PREPARATION.md",
+      "resolved": "tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "bytes": 6329,
+      "sha256": "e6c60c5ad2636b58faa9e5034f3d1c90fea46e8843ccfb522c0958cf84f91777",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/RESULTS.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "bytes": 40103,
+      "sha256": "d57c8e02b98fc8cae8abb50675a421d4ab95a682169dc5d4613e65d9dcdc75d9",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/SOURCE-AUTH.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "bytes": 99375,
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/concurrent-bound.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "bytes": 2735,
+      "sha256": "844a049bab1b3f6ee98564c83e62beaa22e1bfeaf07e19a68ebdbfa1405fd7ca",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "bytes": 2136,
+      "sha256": "5edcf468b80def2bfacddda31232c283154659289e0143353cec2c682be84686",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "bytes": 4728,
+      "sha256": "12cce30a194ebbdde1182437469a3f59fd4c6a1630859bc6e22a38a147a2cf5e",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/cumulative-bound.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "bytes": 4679,
+      "sha256": "9d96bfe343a6c98cc1a62bb4a6b1dee5f6d2da40456ef8fea20a1051bc13d8a0",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "bytes": 3328,
+      "sha256": "8dfd42a776327c47e8865c4060934d8eaaf55637c71868c18da8624563b33fbf",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "bytes": 9824,
+      "sha256": "cab3dad4fc1225c00be746815abf73e0cc028ea75a7020bf5af56f46eb3ea173",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/emergency.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "bytes": 1741,
+      "sha256": "e22d0f077cd4e1b293e1125d10dd06df95e96994d0dbb7a49eb6fc4c03850a70",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/emergency.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "bytes": 1051,
+      "sha256": "c4b28043886d7687679cd4282d914ec076ce30b65f794a65e178769000f10ecd",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/emergency.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "bytes": 2301,
+      "sha256": "f86fdd5e090dfe070681c2db9efbf2d11677a6ca18ff49d06fa4e82b1eaa28b4",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/error.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "bytes": 1713,
+      "sha256": "9d795d66b755c4e75e815d7a129e67348f840a70cd989c2790b55c695f5be9a9",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/error.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "bytes": 919,
+      "sha256": "5659b7f933878b07f45e19efd97e90646b8c7a0e0ea936eaaca4c8a717b1ff87",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/error.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "bytes": 2346,
+      "sha256": "34d1359437177505be2077948fb31429ffb41264ee2a58cc29722f1fae420061",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/late-acquisition.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "bytes": 811,
+      "sha256": "c56c9caca56b9f6b4aa90ccd398ef5169ea4af7f09c03f4940c6691e6e0688e1",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/loader-drift.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "bytes": 2107,
+      "sha256": "4bbffaca3d044e44f982af0b646f87c135113f47ca1f5446c470ad791c6a8568",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/loader-drift.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "bytes": 1217,
+      "sha256": "c8d8b50dca1d303aa08121678555f51c133475f6da263b3793feed12f6d886dd",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/loader-drift.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "bytes": 1953,
+      "sha256": "b899401d5999947d6aa466bb40607d24d2b49b479f058200ae2e3918aab17cc0",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/natural.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "bytes": 1673,
+      "sha256": "e5e496b194c21afff045777955b728c0730c42127a752c643b3db9de6346b00a",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/natural.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "bytes": 805,
+      "sha256": "e4e7ca7c2b1ebde15117a852b24af1fda5762420a7d890b6fa36a7b092a9bb48",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/natural.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "bytes": 2366,
+      "sha256": "d7be58c018caaaf6587f23cfdef3a7dff0336d26889db34b631306c3db80b3b9",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/no-go-no-setup.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "bytes": 2016,
+      "sha256": "1514e5720f07ee9ceeaf80152a0bdaa486ae851be3ab067e659167d8d5f3bc9f",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/product-forced.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "bytes": 1703,
+      "sha256": "819f7b7433336e244311f4bdca2ca9121659d199c74cc8981ca23d1897a36437",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/product-forced.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "bytes": 1058,
+      "sha256": "5f666ae49a67aa6e475418b4dd694f4ffee6ef3a3ad573785e31c7f2d3ec65e0",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/product-forced.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "bytes": 2346,
+      "sha256": "50b37a39371c92c137eb10c5f9a8998a3d4639f68da8a5722c66a65864e82609",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v1/stored-object-data.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "bytes": 290,
+      "sha256": "e7e020c7955f8d57b57539ea81756e6a3d109ac89cc804580e2d22b09b58314a",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/RESULTS.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "bytes": 41150,
+      "sha256": "a3438ab5049a07f14c138b57a92d137f68ce59849b7328f385d1df69456f29a8",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/SOURCE-AUTH.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "bytes": 99375,
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/concurrent-bound.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "bytes": 2835,
+      "sha256": "d5721a446c2e6ab6f32fad872f66bb29e3a42d5545a01e361460f4c0147a9148",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "bytes": 3320,
+      "sha256": "c6b42be207074c0454e85842793cf541e5b0f5f03a89ddff0d275da14042436a",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "bytes": 4728,
+      "sha256": "21e9eea2ab92bf1e9ec65f893780f19bcae582d7261d29e61da91da2a4f7eb72",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/cumulative-bound.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "bytes": 4779,
+      "sha256": "a6a765abdb7b9cd0e076219a25c567de9c447bd20d3724f70c656112d45c5acb",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "bytes": 5568,
+      "sha256": "cd96258d9859b2020378e24d232e32a3d7f29a3f60bdf368f3b3be88d1dd102a",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "bytes": 9824,
+      "sha256": "2bd7c6b16dd9bc8948d128f8b470503dd6676a9cf4b9126eabd3618bec5f69f2",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/emergency.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "bytes": 1773,
+      "sha256": "772c8d293757db3fc276dd18341f3deab8768b703742ec8e65375f20adb16f80",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/emergency.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "bytes": 1572,
+      "sha256": "05244cc2974e6da1bb39908c0e1ee5c7d4058bc86c3ddff93be5e66484f504e8",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/emergency.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "bytes": 2301,
+      "sha256": "3992671260f4ac946f80e95825252cea91b4995dc40f1a7cc5eebe0e8d6f2e20",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/error.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "bytes": 1745,
+      "sha256": "c1e949d4a8e702a2cdb420b03da88a2f55dc2b468aec5797ce029fd601caceca",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/error.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "bytes": 1436,
+      "sha256": "620a965285eeb2f59e23f0bf4892d45d1c6137bee087936cc5ec2fbf427a2f72",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/error.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "bytes": 2346,
+      "sha256": "16da06bcbdbf94d094ea0d5371bec14d7d75e609fe3cddc3099deaeb845c5109",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/late-acquisition.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "bytes": 951,
+      "sha256": "47bff20fc6f8f6f69aa58626a88f5114dc58bcf26c1b6e298b24d69f01486607",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/late-acquisition.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "bytes": 158,
+      "sha256": "4cfac42258569c9ca6138aa8f3ea1e9756b2911bb8c2bfe7b4d45a98c5a44c1e",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/loader-drift.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "bytes": 2135,
+      "sha256": "717e72e7f1e1950eefaf9575f3cfc5a2d23dee164fbe9e311450a3b2c5cccb65",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/loader-drift.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "bytes": 1741,
+      "sha256": "1be3970ed38bdbf23702b2636b485c316068b8888f48bd731938788e5bfda150",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/loader-drift.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "bytes": 1953,
+      "sha256": "88d3ee965fd849b07eec3fadfea8c1212c35341497ba16096a005ecd7e563a71",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/natural.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "bytes": 1701,
+      "sha256": "09e2458889b6e81f697b6438e8f65ad3843658b85ef51314dee9d329c7630fe5",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/natural.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "bytes": 1324,
+      "sha256": "6615a03343407dd13ff52b0fe546fefc1a4b7ba28cc0ed250f6a86be4a893ce0",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/natural.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "bytes": 2366,
+      "sha256": "8b6e8e900eb334330ce1792c61398c96a187151e42b5f8eed9a33f43d208ce6d",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/no-go-no-setup.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "bytes": 2016,
+      "sha256": "b5652067a65ae98e69e867f85d333e242ba46037009f7e31829dda973c61fad0",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/no-start.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "bytes": 442,
+      "sha256": "4b37d708f663f8b8e23ba5c5ad3e90d18d73c5cc34d3f3ba178ce8524e2b25bf",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/product-forced.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "bytes": 1735,
+      "sha256": "9e78a8afb9d7d603a7f8c5d89ec07ded21cdf6a3eca3af6631be9181595045b9",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/product-forced.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "bytes": 1584,
+      "sha256": "4113d6309ec90e1e6d56832e5f7c998858fb267b6d8ffe240a080ff5b20f9170",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/product-forced.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "bytes": 2346,
+      "sha256": "06bc8ad9bf6e58267830843f0552b19c97913fa070c09b61bc30f02765770fa4",
+      "match": true
+    },
+    {
+      "path": "../stub-evidence-v2/stored-object-data.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "bytes": 290,
+      "sha256": "829854a11113059a9092159f4c58d906146e78f26deae0f576798285a68f55e7",
+      "match": true
+    },
+    {
+      "path": "../PREPARATION-SEAL.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "bytes": 15814,
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f",
+      "match": true
+    },
+    {
+      "path": "../GO.template.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "bytes": 3518,
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae",
+      "match": true
+    },
+    {
+      "path": "../REPAIR-PROTOCOL-v3.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "bytes": 6899,
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+      "match": true
+    },
+    {
+      "path": "../REPAIR-PREPARATION-v3.md",
+      "resolved": "tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "bytes": 8095,
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+      "match": true
+    },
+    {
+      "path": "../repair-controls.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "bytes": 12505,
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "match": true
+    },
+    {
+      "path": "../repair-child.mjs",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "bytes": 4821,
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/RESULTS.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "bytes": 9641,
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/caught-load.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "bytes": 1562,
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/caught-load.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "bytes": 1369,
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/caught-load.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "bytes": 2480,
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/independent-cleanup.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "bytes": 1309,
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "bytes": 1770,
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "bytes": 2391,
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/mapped-load.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "bytes": 1896,
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/mapped-load.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "bytes": 1765,
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/mapped-load.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "bytes": 2480,
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/natural.child.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "bytes": 1221,
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/natural.parent.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "bytes": 1354,
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce",
+      "match": true
+    },
+    {
+      "path": "../repair-evidence-v3/natural.worker.jsonl",
+      "resolved": "tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "bytes": 2366,
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3",
+      "match": true
+    },
+    {
+      "path": "../PREPARATION-SEAL-v3.json",
+      "resolved": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+      "bytes": 20766,
+      "sha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+      "match": true
+    }
+  ]
+}

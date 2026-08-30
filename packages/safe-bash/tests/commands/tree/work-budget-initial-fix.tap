@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows
+ok 1 - TREE-WORK-001: empty alternatives charge cumulatively without per-name DP rows
+  ---
+  duration_ms: 0.964541
+  type: 'test'
+  ...
+# {"entries":32,"alternatives":16,"nameBytes":32,"compilationSteps":47,"matchingSteps":512,"measuredRowAllocations":0,"measuredRowBytes":0,"originalInitializationFormulaBytes":16896}
+# Subtest: TREE-WORK-001: actual Shell many-entry matching exhausts one invocation budget
+not ok 2 - TREE-WORK-001: actual Shell many-entry matching exhausts one invocation budget
+  ---
+  duration_ms: 4.897916
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:1:2255'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:55:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: one name fits but many names share cumulative work for both include and exclude
+not ok 3 - one name fits but many names share cumulative work for both include and exclude
+  ---
+  duration_ms: 2.01875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:1:2577'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/tree/work-budget.test.ts:64:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: empty alternatives preserve empty-name, union, wildcard and literal matching semantics
+ok 4 - empty alternatives preserve empty-name, union, wildcard and literal matching semantics
+  ---
+  duration_ms: 0.377333
+  type: 'test'
+  ...
+# Subtest: initial and transition rows charge before allocation, with separate transition work
+ok 5 - initial and transition rows charge before allocation, with separate transition work
+  ---
+  duration_ms: 0.222
+  type: 'test'
+  ...
+# {"nameBytes":32,"admittedSteps":100,"measuredRowAllocations":2,"measuredRowBytes":66}
+# Subtest: compilation source/encoding/parser work and repeated flags use the same budget
+ok 6 - compilation source/encoding/parser work and repeated flags use the same budget
+  ---
+  duration_ms: 0.096833
+  type: 'test'
+  ...
+# Subtest: no per-name reset after an empty-alternative match attempt
+ok 7 - no per-name reset after an empty-alternative match attempt
+  ---
+  duration_ms: 0.06375
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 182.653333

@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/stress/adapters/core.test.ts",
+    "tests/stress/adapters/policy.test.ts",
+    "tests/stress/adapters/s3.test.ts",
+    "tests/stress/adapters/webdav.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/00-original/archive",
+  "start": "2026-08-26T23:30:45.526Z",
+  "end": "2026-08-26T23:30:45.606Z",
+  "status": 1,
+  "signal": null
+}

@@ -1,0 +1,156 @@
+{
+  "authenticated": [
+    {
+      "path": "benchmarks/reports/sort-performance-independent-20260827/README.md",
+      "commit": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+      "sha256": "5e2de105adc5cbe6f50d0b64a660e7e8da626aa615e8e44b49ffaf2c0a2d3639"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-independent-20260827/evidence/ARTIFACTS.json",
+      "commit": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+      "sha256": "69713aa51c22c75f2dd0e32a6b478a1cd1dd580e3c4f1dc9d9926673a220486c"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "commit": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+      "sha256": "fbe44160ba609de854c3434144cf7bdfc87aa046950dd0c55211f835a1f2767c"
+    },
+    {
+      "path": "benchmarks/reports/sort-performance-20260827/workloads.mjs",
+      "commit": "96e051e81312c7d33d8f4f5078efa09a4dd87947",
+      "sha256": "ced7d47cf2a34d296f432a9c1a743cbd3acb48083befb6b280ac6428fb53431b"
+    },
+    {
+      "path": "tests/commands/core-sort/native.json",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "sha256": "5bc9a663d8b3b161d4c8f56dffc5c920a7aaa993a7f67d36a87649768d5472f1"
+    },
+    {
+      "path": "tests/commands/core-sort/borrowed-buffer.test.ts",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "sha256": "8539cd88cea3e79a03d984febbba56afe7c2837dac0d3e54e948efacc05b8e81"
+    },
+    {
+      "path": "package.json",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "commit": "e090f29d9eb1aaf52eba08b2c2bf0aae53b9fb64",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    }
+  ],
+  "provenance": [
+    {
+      "id": "historical-sort-uniq-5000",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "plain-5000",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "unique-paths-20000",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "numeric-stable-8000",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "numeric-key-8000",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "in-place-5000",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "tiny-32",
+      "source": "benchmarks/reports/sort-performance-independent-20260827/evidence/workloads-native.json",
+      "exactRecipeInputOutputEffectsEqual": true
+    },
+    {
+      "id": "negative-native-4",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 4,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-5",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 5,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-6",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 6,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-28",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 28,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-29",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 29,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-30",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 30,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-32",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 32,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-33",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 33,
+      "exactInputOutputEqual": true
+    },
+    {
+      "id": "negative-native-34",
+      "source": "tests/commands/core-sort/native.json",
+      "index": 34,
+      "exactInputOutputEqual": true
+    }
+  ],
+  "nativeRowsCompared": 16,
+  "handDeclaredOrBorrowedRows": 5,
+  "nativeProfile": {
+    "nativeFixture": {
+      "capturedAt": "2026-08-27T02:07:11.633Z",
+      "executable": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+      "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5",
+      "version": "sort (GNU coreutils) 9.7"
+    },
+    "priorNode": "v22.22.2",
+    "priorNative": {
+      "sort": "4fb5d7f504e18e2b98c96c562837caf37c2494be89f56356a58c8295a50bcc59",
+      "uniq": "5df74cca1d5fb360e27cf3a6cf5ea3211b2aeafc38c3816c1098ef4eb03c9a97"
+    },
+    "baselineVersion": "3.4.2",
+    "baselineTarballSha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+    "baselinePublisherFiles": 955,
+    "authenticationCommit": "010411eff3dd210b9575e061914efccd65c13547",
+    "liveBaselineNotImported": true
+  },
+  "newNativeExecutions": 0
+}

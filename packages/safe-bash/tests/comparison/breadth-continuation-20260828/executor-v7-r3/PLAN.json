@@ -1,0 +1,20 @@
+{
+  "schema": "R3_WHOLE_WORKER_ORDERING_STUB_PLAN",
+  "runId": "ordering-stubs-01",
+  "attempts": 1,
+  "cases": [
+    { "id": "S01", "variant": "positive", "exit": 0, "predicate": "whole successor worker, real guards and auth validation; ordered two unavailable queries; revoke before factory; exact source/entry loads" },
+    { "id": "S02", "variant": "reversion", "exit": 1, "predicate": "whole immutable r2 worker reproduces OFFLINE_DENIED fs.lstatSync before consumer evaluation" },
+    { "id": "S03", "variant": "drift", "exit": 1, "predicate": "bound observer changes only stub index after bootstrap authentication; actual loader refuses source hash before index evaluation; post-view drift separately retained" },
+    { "id": "S04", "variant": "wrong-wrapper", "exit": 1, "predicate": "view/scope agree on changed wrapper bytes; unchanged bootstrap consumer profile rejects before guards/evaluation" },
+    { "id": "S05", "variant": "wrong-mode", "exit": 1, "predicate": "view/scope agree on0444 wrapper; required0644 bootstrap profile rejects before guards/evaluation" },
+    { "id": "S06", "variant": "bad-grant", "exit": 1, "predicate": "real authority receives exact hash-bound stub metadata with invalid role; ROOT_GRANT_SCHEMA before guards and evaluation" },
+    { "id": "S07", "variant": "guard-evaluation", "exit": 1, "predicate": "actual offline refusal at first stub index evaluation; caught violation still fails worker; guard ordinal precedes evaluation" },
+    { "id": "S08", "variant": "late-filesystem", "exit": 1, "predicate": "actual offline refusal in InMemoryFs constructor after consumer-evaluated; caught violation still fails after query window revocation" }
+  ],
+  "limits": { "workers": 8, "metadataStubChildren": 16, "concurrency": 1, "childOldSpaceMiB": 256, "childMs": 30000, "termGraceMs": 2000, "killGraceMs": 1000, "stdoutBytes": 65536, "stderrBytes": 65536, "metadataBytes": 262144, "evidenceBytes": 67108864 },
+  "fixtureAdapter": "Entire worker, authorization, schema, operation authorization, loader and offline function bodies run unchanged. Mirrored own helper files preserve relative routes; only bootstrap profile data, package/projection/consumer-scope data and metadata executable are stub-bound. Reversion body is exact old r2. No auth/guard function replacement; real Git authority prohibited. Stub receipts retain production role strings but are explicitly NOT actual Git authority or grants for the real successor.",
+  "environment": { "PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "HOME": "case cwd", "TMPDIR": "case cwd" },
+  "no": ["real product/comparator files or evaluation", "real Git authority", "native oracle", "actual package staging", "C11", "admission", "99 semantics", "retry", "old rescore"],
+  "history": "25cbb03f consumed3/14; target211loads each retained; comparator0loads and UNKNOWN numeric resource counters unchanged."
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "redirection-terminal-resource-receipt",
+  "originalGlobalStart": 1787977926793,
+  "observedTerminalAt": "2026-08-29T04:56:10.435Z",
+  "phases": [
+    {
+      "name": "original",
+      "directChildren": 7,
+      "observedProductWorkers": 0,
+      "implicitLoaderReservations": 4,
+      "boundedOwnedTotal": 11,
+      "allClosed": true,
+      "signals": [],
+      "noGlobalDescendantClaim": true,
+      "coordinatorExit": 1
+    },
+    {
+      "name": "continuation-v2",
+      "directChildren": 40,
+      "observedProductWorkers": 4,
+      "implicitLoaderReservations": 32,
+      "boundedOwnedTotal": 76,
+      "allClosed": true,
+      "signals": [],
+      "noGlobalDescendantClaim": true,
+      "coordinatorExit": 1
+    },
+    {
+      "name": "n11-v3",
+      "directChildren": 4,
+      "observedProductWorkers": 0,
+      "implicitLoaderReservations": 3,
+      "boundedOwnedTotal": 7,
+      "allClosed": true,
+      "signals": [],
+      "noGlobalDescendantClaim": true,
+      "coordinatorExit": 0
+    }
+  ],
+  "cohortDirectChildren": 51,
+  "loaderAdmissions": 39,
+  "loaderCap": 40,
+  "regexWorkers": 4,
+  "regexCap": 12,
+  "appRegexClosed": 4,
+  "cohortLogicalReservations": 94,
+  "outerAndCoordinatorProcesses": 6,
+  "cohortCaptureBytes": 3193214,
+  "retainedStagingBytes": 183134786,
+  "allCohortDirectClosed": true,
+  "signals": [],
+  "ownedProcessGroupsAbsent": [
+    true,
+    true,
+    true
+  ],
+  "additionalDevelopmentProcesses": "Metadata/patch/syntax helpers separately preserved in receipts/tool transcript, not disguised as product outcomes. Per-command Git maintenance/hooks disabled. Not an independent global OS descendant census.",
+  "peakPolicy": "serial cohort launch; guarded application Worker peak1; outer and runner retained; no concurrent case children",
+  "noClaims": [
+    "No internal-loader Worker per-thread exit census",
+    "No global OS quota/native allocation/RSS/hard-preemption claim"
+  ],
+  "foreignTrackedOrIndexStateAtPublication": "",
+  "foreignStagingTouched": false
+}

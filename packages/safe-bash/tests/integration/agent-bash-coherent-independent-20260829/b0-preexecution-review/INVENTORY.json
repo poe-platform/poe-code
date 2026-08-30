@@ -1,0 +1,314 @@
+[
+  {
+    "mode": "100644",
+    "oid": "d975f732e3f11a685ef602629d45e3c7ea268554",
+    "bytes": 617,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/CONTROL-RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "7269feb8d5692fbe005b33cd6b4651cf979b25c3",
+    "bytes": 3303,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/HANDOFF.md"
+  },
+  {
+    "mode": "100644",
+    "oid": "6d92eb08af187e082cb5f30724189ce2856faa98",
+    "bytes": 129,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/INSPECT.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "4b266ad2f68737aab28f9317e644b81378c3db29",
+    "bytes": 796,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/LOCATOR-IDENTITIES.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "b89dfba2c5ec7207e295ecfd462bd7a61db60c47",
+    "bytes": 4397,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PREP-DATA.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "8e462e5b5a2fe7663b2d90dfcf954050fa5c2b02",
+    "bytes": 765,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PREPARATION-RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "28bb3f15f64ec730984d5e2b1252fadb886c7526",
+    "bytes": 11052,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "40957c5f43fd65ae66812f833ff9176d5c9a1b67",
+    "bytes": 4641,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/PROFILE.md"
+  },
+  {
+    "mode": "100644",
+    "oid": "f3346594e1f9a022a1a1a3a19fca6e0a3c05cfdf",
+    "bytes": 101,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/SEAL.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "c5d2ba77d73cdfb3cffacf51ff9bc5a669ec0d7b",
+    "bytes": 1072,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/bootstrap.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/detail.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "b06b03da9a7a94072314f167f26a0a438d8e6c58",
+    "bytes": 9676,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/detail.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "dd38292abcc88721ed2167e5beb1dc76966c3d7b",
+    "bytes": 647,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/failure-inspection.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e5cb5d2be6df26cef30796fe6aa3b335afcbaad9",
+    "bytes": 1893,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/failure-inspection.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "a11c791a7fad7f6b78eab34cc8048734a5c79655",
+    "bytes": 70,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-2.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "fc49359edaa989a5d5d182be5e913ba0486039e4",
+    "bytes": 1298,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-2.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-3.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "4ece31d790b61bbd6da3c50acaa3d40fba2548e3",
+    "bytes": 103,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-3.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-4.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "6c54770ba2fcecaeb167022014a3a7b5430949fe",
+    "bytes": 56318,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/git-4.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/inspect.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "983700051d0b7d258acc797b518a36bdcb2582bb",
+    "bytes": 21890,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/inspect.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/owner-source.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "6e73cfeb2df9ddc75307dcd794a0eb14360244c3",
+    "bytes": 19508,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/owner-source.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "ecccaaec17c0265ca2d98cb55cb63ed9b7119842",
+    "bytes": 1026,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/prepare.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/prepare.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "7af09fee55b7dd7439d8f1f7fe7d2769717cb4b6",
+    "bytes": 867,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/seal.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/seal.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/supervisor-source.stderr"
+  },
+  {
+    "mode": "100644",
+    "oid": "c53f2514a17344a851d83eaab087dfbc9af67abf",
+    "bytes": 4468,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/capture/supervisor-source.stdout"
+  },
+  {
+    "mode": "100644",
+    "oid": "08c7fe6aa244dbef08ccc10b5a86d69c188f73af",
+    "bytes": 1509,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/controls.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "a7d8e06f8e0736296b71d828e4c26559772cb403",
+    "bytes": 627,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/denials.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "ca0089204f444cc5f746fa85a6d0fb521154bd65",
+    "bytes": 990,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/detail.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "030f357f70fe98807c6948aa2ae25bec043eb53c",
+    "bytes": 2766,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/finish.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "f00dc0df4f43daab7e280bbcad94bccfccbf2021",
+    "bytes": 3497,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/helpers.patch"
+  },
+  {
+    "mode": "100644",
+    "oid": "723a28191713e227d2a35a356502712fdc32b55a",
+    "bytes": 4298,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/inspect.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "5da53452809f5a52924fb92d4f1c96a7bb7e009d",
+    "bytes": 383,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/launch.sh"
+  },
+  {
+    "mode": "100644",
+    "oid": "9d2747828f958687f0ab5c2b93977c3988bf7ed6",
+    "bytes": 1180,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/loader.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "6bfbb1825fe7648c8de4930db1d25097ed28db60",
+    "bytes": 466,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/outer.sh"
+  },
+  {
+    "mode": "100644",
+    "oid": "d104e09a25d14c3a81fe1f8ef4e4f75e5fee651c",
+    "bytes": 649,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/owner-source.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "52854b7532e873164bedd6248be86a351aa45bbb",
+    "bytes": 2668,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "f57ddbeecc878698bc03a5f265f3f76386107fbb",
+    "bytes": 1978,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/resources.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "ecf9fbe1b54ce0b8e96814f33c99c7c48b50f187",
+    "bytes": 10929,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/run.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "476b3eb2cc29dd2d80c61486edd3210b49c30e4d",
+    "bytes": 1507,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/runner.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "5c80ef8f1d3dcb6bae1142aa71443df01aa9894f",
+    "bytes": 3559,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/seal.mjs"
+  },
+  {
+    "mode": "100644",
+    "oid": "07885258c60b0d2b8b72df21001e3ae79da0ba48",
+    "bytes": 47291,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/stageAProducerPreseal.json"
+  },
+  {
+    "mode": "100644",
+    "oid": "c2fd250aa87370d508156631b3c2305e3e7260ca",
+    "bytes": 8922,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2/workflowFixtureV4Preseal.json"
+  }
+]

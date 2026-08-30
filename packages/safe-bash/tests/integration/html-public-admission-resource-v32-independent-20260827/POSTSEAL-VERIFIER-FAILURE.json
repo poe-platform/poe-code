@@ -1,0 +1,27 @@
+{
+  "at": "2026-08-28T00:41:12.509Z",
+  "type": "verifier-only-postseal-committed-inventory-failure",
+  "evidenceCommit": "49a35b8944728e05f3730a5a79aad91a5c9f8390",
+  "evidenceManifestSha256": "feb3574dadb2321325813de165222c04b9d4fdedd0c1449aa104257b5332a5b1",
+  "liveManifestVerification": "passed at initial seal",
+  "committedManifestVerification": "FAIL: root-owned coordination note included by live inventory but intentionally not committed as foreign work",
+  "missingCommittedPaths": [
+    "ROOT-COORDINATION.md"
+  ],
+  "unexpectedCommittedPaths": [],
+  "failure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    'CLEANUP.json',\n    'COMPACTION.json',\n    'EVIDENCE-MANIFEST.json',\n    'FINAL-AUTH.json',\n...\n    'RESULT.json',\n-   'ROOT-COORDINATION.md',\n    'captures.tgz',\n    'recipe/ADAPTATION.json',\n    'recipe/MANIFEST.json',\n    'recipe/PREFLIGHT.json',\n    'recipe/REVIEW.md',\n"
+  },
+  "rootNote": {
+    "path": "ROOT-COORDINATION.md",
+    "sha256": "78ada5e63d1245dca287b2f179db2952663d1cad715cb2d0070074841d52757a",
+    "birthtime": "2026-08-28T00:30:23.891Z",
+    "mtime": "2026-08-28T00:30:23.891Z",
+    "firstReadAfterExecution": true,
+    "foreignWorkPreservedUnstaged": true
+  },
+  "actualResourceReruns": 0,
+  "scopeClarification": "Root coordination requests prerequisite28 consumer synthetic /6 forwarding cohorts /8 ordered predicates /33 original readonly; these were not executed independently. Exact actual remains5 real cases and21 own read-only postchecks. Current-profile completeness HOLD. No retry authorized."
+}

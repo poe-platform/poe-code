@@ -1,0 +1,1512 @@
+{
+  "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+  "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+  "binarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+  "fixtureSha256": "1229ec31941ad36dd6055f4dd6ccc9eeb8ec1d4bd51e0692529fde5f0c622c02",
+  "cases": {
+    "unified/first-hunk-success-later-reject": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #2 FAILED at 5.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "6f6c640a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d35202b352040400a2d7461696c0a2b5441494c0a"
+          }
+        }
+      }
+    ],
+    "unified/first-hunk-reject-later-success": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a5441494c0a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a7461696c0a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/two-rejects-existing-reject-replacement": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\nHunk #2 FAILED at 5.\n2 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a4040202d35202b352040400a2d7461696c0a2b5441494c0a"
+          }
+        }
+      }
+    ],
+    "unified/dry-run-partial": [
+      {
+        "args": [
+          "--batch",
+          "--dry-run"
+        ],
+        "status": 1,
+        "stdout": "checking file target\nHunk #2 FAILED at 5.\n1 out of 2 hunks FAILED\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6f6c640a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "70726573657276652072656a6563740a"
+          }
+        }
+      }
+    ],
+    "unified/explicit-absolute-target-strip-ignored": [
+      {
+        "args": [
+          "--batch",
+          "-p9",
+          "@ROOT@/work/target"
+        ],
+        "status": 0,
+        "stdout": "patching file @ROOT@/work/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/later-file-reject-continue-third": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file first\npatching file second\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file second.rej\npatching file third\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/first": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/second": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/second.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/second.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207365636f6e640a2b2b2b207365636f6e640a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          },
+          "work/third": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "context/first-hunk-success-later-reject": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #2 FAILED at 5.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "6f6c640a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2035202a2a2a2a0a21207461696c0a2d2d2d2035202d2d2d2d0a21205441494c0a"
+          }
+        }
+      }
+    ],
+    "context/first-hunk-reject-later-success": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a5441494c0a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a7461696c0a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a"
+          }
+        }
+      }
+    ],
+    "context/two-rejects-existing-reject-replacement": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\nHunk #2 FAILED at 5.\n2 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2035202a2a2a2a0a21207461696c0a2d2d2d2035202d2d2d2d0a21205441494c0a"
+          }
+        }
+      }
+    ],
+    "context/dry-run-partial": [
+      {
+        "args": [
+          "--batch",
+          "--dry-run"
+        ],
+        "status": 1,
+        "stdout": "checking file target\nHunk #2 FAILED at 5.\n1 out of 2 hunks FAILED\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6f6c640a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "70726573657276652072656a6563740a"
+          }
+        }
+      }
+    ],
+    "context/explicit-absolute-target-strip-ignored": [
+      {
+        "args": [
+          "--batch",
+          "-p9",
+          "@ROOT@/work/target"
+        ],
+        "status": 0,
+        "stdout": "patching file @ROOT@/work/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "context/later-file-reject-continue-third": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file first\npatching file second\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file second.rej\npatching file third\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/first": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/second": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/second.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/second.rej": {
+            "kind": "file",
+            "hex": "2a2a2a207365636f6e640a2d2d2d207365636f6e640a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a"
+          },
+          "work/third": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "normal/first-hunk-success-later-reject": [
+      {
+        "args": [
+          "--batch",
+          "target"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #2 FAILED at 5.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "6f6c640a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20350a2d207461696c0a2d2d2d2035202d2d2d2d2d0a2b205441494c0a"
+          }
+        }
+      }
+    ],
+    "normal/first-hunk-reject-later-success": [
+      {
+        "args": [
+          "--batch",
+          "target"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a5441494c0a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a7461696c0a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a"
+          }
+        }
+      }
+    ],
+    "normal/two-rejects-existing-reject-replacement": [
+      {
+        "args": [
+          "--batch",
+          "target"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\nHunk #2 FAILED at 5.\n2 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20350a2d207461696c0a2d2d2d2035202d2d2d2d2d0a2b205441494c0a"
+          }
+        }
+      }
+    ],
+    "normal/dry-run-partial": [
+      {
+        "args": [
+          "--batch",
+          "--dry-run",
+          "target"
+        ],
+        "status": 1,
+        "stdout": "checking file target\nHunk #2 FAILED at 5.\n1 out of 2 hunks FAILED\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6f6c640a6b6565702d610a6b6565702d620a6b6565702d630a77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "70726573657276652072656a6563740a"
+          }
+        }
+      }
+    ],
+    "normal/explicit-absolute-target-strip-ignored": [
+      {
+        "args": [
+          "--batch",
+          "-p9",
+          "@ROOT@/work/target"
+        ],
+        "status": 0,
+        "stdout": "patching file @ROOT@/work/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "normal/later-file-reject-continue-third": [
+      {
+        "args": [
+          "--batch",
+          "-n"
+        ],
+        "status": 1,
+        "stdout": "patching file first\npatching file second\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file second.rej\npatching file third\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/first": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/second": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/second.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/second.rej": {
+            "kind": "file",
+            "hex": "496e6465783a207365636f6e640a2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a"
+          },
+          "work/third": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/old-name-only-exists": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file oldname\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/oldname": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/new-name-only-exists": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file newname\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/newname": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/both-names-shorter-component-count": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file newname\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/deep": {
+            "kind": "directory"
+          },
+          "work/deep/oldname": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          },
+          "work/newname": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/both-names-shorter-basename": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file new\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/longername": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          },
+          "work/new": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/default-strip-basename": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/deep": {
+            "kind": "directory"
+          },
+          "work/deep/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/explicit-p0-retains-directory": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/deep": {
+            "kind": "directory"
+          },
+          "work/deep/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ],
+    "unified/strip-one": [
+      {
+        "args": [
+          "--batch",
+          "-p1"
+        ],
+        "status": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "unified/explicit-relative-overrides-headers": [
+      {
+        "args": [
+          "--batch",
+          "chosen"
+        ],
+        "status": 0,
+        "stdout": "patching file chosen\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/chosen": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "756e746f75636865640a"
+          }
+        }
+      }
+    ],
+    "unified/later-missing-file-continue-third": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file first\ncan't find file to patch at input line 8\nPerhaps you should have used the -p or --strip option?\nThe text leading up to this was:\n--------------------------\n|--- missing\n|+++ missing\n--------------------------\nNo file to patch.  Skipping patch.\n1 out of 1 hunk ignored\npatching file third\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/first": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/third": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "sequential/same-target-success": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file target\npatching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "sequential/normalized-target-success": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file target\npatching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          }
+        }
+      }
+    ],
+    "sequential/same-target-later-reject": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\npatching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6e65770a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6d697373696e670a2b6c6173740a"
+          }
+        }
+      }
+    ],
+    "sequential/same-target-rejects-append-invocation": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\npatching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d616e6f746865720a2b6c6173740a"
+          }
+        }
+      }
+    ],
+    "sequential/reject-replacement-next-invocation": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6e65770a"
+          }
+        }
+      },
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 1,
+        "stdout": "patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/target.orig": {
+            "kind": "file",
+            "hex": "77726f6e670a"
+          },
+          "work/target.rej": {
+            "kind": "file",
+            "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d616e6f746865720a2b6c6173740a"
+          }
+        }
+      }
+    ],
+    "sequential/create-edit-delete": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file target\npatching file target\npatching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "null/create-nested-parents": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/tree": {
+            "kind": "directory"
+          },
+          "work/tree/deep": {
+            "kind": "directory"
+          },
+          "work/tree/deep/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ],
+    "null/delete-prunes-to-cwd": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "null/delete-stops-at-nonempty-parent": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/tree": {
+            "kind": "directory"
+          },
+          "work/tree/sibling": {
+            "kind": "file",
+            "hex": "6b6565700a"
+          }
+        }
+      }
+    ],
+    "null/delete-preserves-unrelated-empty-directory": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/unrelated": {
+            "kind": "directory"
+          },
+          "work/unrelated/empty": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "null/reverse-create-deletes-and-prunes": [
+      {
+        "args": [
+          "--batch",
+          "-R",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "null/reverse-delete-creates-parents": [
+      {
+        "args": [
+          "--batch",
+          "-R",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/tree": {
+            "kind": "directory"
+          },
+          "work/tree/deep": {
+            "kind": "directory"
+          },
+          "work/tree/deep/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ],
+    "null/dry-run-create-no-parents": [
+      {
+        "args": [
+          "--batch",
+          "--dry-run",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "checking file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "null/dry-run-delete-no-pruning": [
+      {
+        "args": [
+          "--batch",
+          "--dry-run",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "checking file tree/deep/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/tree": {
+            "kind": "directory"
+          },
+          "work/tree/deep": {
+            "kind": "directory"
+          },
+          "work/tree/deep/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ],
+    "epoch/create": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ],
+    "epoch/delete": [
+      {
+        "args": [
+          "--batch"
+        ],
+        "status": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "epoch/reverse-create": [
+      {
+        "args": [
+          "--batch",
+          "-R"
+        ],
+        "status": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "epoch/reverse-delete": [
+      {
+        "args": [
+          "--batch",
+          "-R"
+        ],
+        "status": 0,
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ],
+    "empty/default-retains-empty-file": [
+      {
+        "args": [
+          "--batch",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/tree": {
+            "kind": "directory"
+          },
+          "work/tree/target": {
+            "kind": "file",
+            "hex": ""
+          }
+        }
+      }
+    ],
+    "empty/E-removes-and-prunes": [
+      {
+        "args": [
+          "--batch",
+          "-E",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "patching file tree/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          }
+        }
+      }
+    ],
+    "empty/E-dry-run-retains-file": [
+      {
+        "args": [
+          "--batch",
+          "-E",
+          "--dry-run",
+          "-p0"
+        ],
+        "status": 0,
+        "stdout": "checking file tree/target\n",
+        "stderr": "",
+        "namespace": {
+          ".": {
+            "kind": "directory"
+          },
+          "boundary": {
+            "kind": "file",
+            "hex": "6669787475726520626f756e646172790a"
+          },
+          "work": {
+            "kind": "directory"
+          },
+          "work/tree": {
+            "kind": "directory"
+          },
+          "work/tree/target": {
+            "kind": "file",
+            "hex": "6f6c640a"
+          }
+        }
+      }
+    ]
+  }
+}

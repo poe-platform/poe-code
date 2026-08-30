@@ -1,0 +1,310 @@
+TAP version 13
+# Subtest: memory rmdir removes only empty directories without consulting rm or readdir
+ok 1 - memory rmdir removes only empty directories without consulting rm or readdir
+  ---
+  duration_ms: 1.22275
+  type: 'test'
+  ...
+# Subtest: memory rmdir /missing reports ENOENT with its exact operand
+ok 2 - memory rmdir /missing reports ENOENT with its exact operand
+  ---
+  duration_ms: 0.653625
+  type: 'test'
+  ...
+# Subtest: memory rmdir /file reports ENOTDIR with its exact operand
+ok 3 - memory rmdir /file reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.243458
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link reports ENOTDIR with its exact operand
+ok 4 - memory rmdir /link reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.156291
+  type: 'test'
+  ...
+# Subtest: memory rmdir /link/ reports ENOTDIR with its exact operand
+ok 5 - memory rmdir /link/ reports ENOTDIR with its exact operand
+  ---
+  duration_ms: 0.086166
+  type: 'test'
+  ...
+# Subtest: memory rmdir /tree reports ENOTEMPTY with its exact operand
+ok 6 - memory rmdir /tree reports ENOTEMPTY with its exact operand
+  ---
+  duration_ms: 0.204834
+  type: 'test'
+  ...
+# Subtest: memory rmdir / reports EBUSY with its exact operand
+ok 7 - memory rmdir / reports EBUSY with its exact operand
+  ---
+  duration_ms: 0.079459
+  type: 'test'
+  ...
+# Subtest: memory rmdir /empty/. reports EINVAL with its exact operand
+ok 8 - memory rmdir /empty/. reports EINVAL with its exact operand
+  ---
+  duration_ms: 0.067917
+  type: 'test'
+  ...
+# Subtest: memory rmdir and child creation cannot interleave emptiness check and deletion
+ok 9 - memory rmdir and child creation cannot interleave emptiness check and deletion
+  ---
+  duration_ms: 0.834084
+  type: 'test'
+  ...
+# Subtest: memory rmdir preserves directories on cancellation and parent permission denial
+ok 10 - memory rmdir preserves directories on cancellation and parent permission denial
+  ---
+  duration_ms: 0.460292
+  type: 'test'
+  ...
+# Subtest: memory rm semantics remain unchanged for an empty directory
+ok 11 - memory rm semantics remain unchanged for an empty directory
+  ---
+  duration_ms: 0.139667
+  type: 'test'
+  ...
+# Subtest: mount rmdir routes nested mounts with the original signal and no rm fallback
+ok 12 - mount rmdir routes nested mounts with the original signal and no rm fallback
+  ---
+  duration_ms: 1.910458
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/missing reports ENOENT and preserves descendants
+ok 13 - mount rmdir /disk/missing reports ENOENT and preserves descendants
+  ---
+  duration_ms: 0.842084
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/file reports ENOTDIR and preserves descendants
+ok 14 - mount rmdir /disk/file reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.850625
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/link reports ENOTDIR and preserves descendants
+ok 15 - mount rmdir /disk/link reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.214625
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/link/ reports ENOTDIR and preserves descendants
+ok 16 - mount rmdir /disk/link/ reports ENOTDIR and preserves descendants
+  ---
+  duration_ms: 0.209709
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/tree reports ENOTEMPTY and preserves descendants
+ok 17 - mount rmdir /disk/tree reports ENOTEMPTY and preserves descendants
+  ---
+  duration_ms: 0.262708
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk reports EBUSY and preserves descendants
+ok 18 - mount rmdir /disk reports EBUSY and preserves descendants
+  ---
+  duration_ms: 0.094875
+  type: 'test'
+  ...
+# Subtest: mount rmdir /disk/empty/. reports EINVAL and preserves descendants
+ok 19 - mount rmdir /disk/empty/. reports EINVAL and preserves descendants
+  ---
+  duration_ms: 0.093542
+  type: 'test'
+  ...
+# Subtest: mount rmdir preserves a child created at the delegate boundary
+ok 20 - mount rmdir preserves a child created at the delegate boundary
+  ---
+  duration_ms: 0.704792
+  type: 'test'
+  ...
+# Subtest: mount rmdir missing provider support fails ENOTSUP without inspecting children or using rm
+ok 21 - mount rmdir missing provider support fails ENOTSUP without inspecting children or using rm
+  ---
+  duration_ms: 0.473333
+  type: 'test'
+  ...
+# Subtest: mount rmdir respects readonly mounts and protected synthetic ancestors
+ok 22 - mount rmdir respects readonly mounts and protected synthetic ancestors
+  ---
+  duration_ms: 0.386667
+  type: 'test'
+  ...
+# Subtest: mount rmdir propagates arbitrary delegate failures and cancellation without effects
+ok 23 - mount rmdir propagates arbitrary delegate failures and cancellation without effects
+  ---
+  duration_ms: 0.181625
+  type: 'test'
+  ...
+# Subtest: overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+ok 24 - overlay rmdir uses only backing rmdir and preserves whiteouted lower descendants
+  ---
+  duration_ms: 4.166125
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /missing reports ENOENT without hiding descendants
+ok 25 - overlay rmdir /missing reports ENOENT without hiding descendants
+  ---
+  duration_ms: 1.0675
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /file reports ENOTDIR without hiding descendants
+ok 26 - overlay rmdir /file reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.73225
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link reports ENOTDIR without hiding descendants
+ok 27 - overlay rmdir /link reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 1.129417
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /link/ reports ENOTDIR without hiding descendants
+ok 28 - overlay rmdir /link/ reports ENOTDIR without hiding descendants
+  ---
+  duration_ms: 0.994541
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+ok 29 - overlay rmdir /tree reports ENOTEMPTY without hiding descendants
+  ---
+  duration_ms: 0.660209
+  type: 'test'
+  ...
+# Subtest: overlay rmdir / reports EBUSY without hiding descendants
+ok 30 - overlay rmdir / reports EBUSY without hiding descendants
+  ---
+  duration_ms: 1.319625
+  type: 'test'
+  ...
+# Subtest: overlay rmdir /empty/. reports EINVAL without hiding descendants
+ok 31 - overlay rmdir /empty/. reports EINVAL without hiding descendants
+  ---
+  duration_ms: 0.949834
+  type: 'test'
+  ...
+# Subtest: overlay rmdir retains a raced upper child and does not publish a whiteout
+ok 32 - overlay rmdir retains a raced upper child and does not publish a whiteout
+  ---
+  duration_ms: 0.98675
+  type: 'test'
+  ...
+# Subtest: overlay live lower directory, merged=false: refuses stale emptiness without hiding a new child
+ok 33 - overlay live lower directory, merged=false: refuses stale emptiness without hiding a new child
+  ---
+  duration_ms: 0.539334
+  type: 'test'
+  ...
+# Subtest: overlay live lower directory, merged=true: refuses stale emptiness without hiding a new child
+ok 34 - overlay live lower directory, merged=true: refuses stale emptiness without hiding a new child
+  ---
+  duration_ms: 0.176084
+  type: 'test'
+  ...
+# Subtest: overlay cannot infer immutable lower storage from readOnly capability or current absence
+ok 35 - overlay cannot infer immutable lower storage from readOnly capability or current absence
+  ---
+  duration_ms: 0.255375
+  type: 'test'
+  ...
+# Subtest: overlay missing backing rmdir refuses without staging or changing namespace
+ok 36 - overlay missing backing rmdir refuses without staging or changing namespace
+  ---
+  duration_ms: 0.292
+  type: 'test'
+  ...
+# Subtest: overlay rmdir propagates provider errors, cancellation and readonly denial
+ok 37 - overlay rmdir propagates provider errors, cancellation and readonly denial
+  ---
+  duration_ms: 0.217833
+  type: 'test'
+  ...
+# Subtest: overlay rmdir never retries recursive garbage cleanup
+ok 38 - overlay rmdir never retries recursive garbage cleanup
+  ---
+  duration_ms: 0.182209
+  type: 'test'
+  ...
+# Subtest: readonly rmdir always rejects before delegate access, path checks, or options access
+ok 39 - readonly rmdir always rejects before delegate access, path checks, or options access
+  ---
+  duration_ms: 0.784834
+  type: 'test'
+  ...
+# Subtest: real rmdir removes empty directories and preserves rm semantics
+ok 40 - real rmdir removes empty directories and preserves rm semantics
+  ---
+  duration_ms: 6.008583
+  type: 'test'
+  ...
+# Subtest: real rmdir /missing reports ENOENT with its exact virtual operand
+ok 41 - real rmdir /missing reports ENOENT with its exact virtual operand
+  ---
+  duration_ms: 6.065292
+  type: 'test'
+  ...
+# Subtest: real rmdir /file reports ENOTDIR with its exact virtual operand
+ok 42 - real rmdir /file reports ENOTDIR with its exact virtual operand
+  ---
+  duration_ms: 4.737166
+  type: 'test'
+  ...
+# Subtest: real rmdir /link reports ENOTDIR with its exact virtual operand
+ok 43 - real rmdir /link reports ENOTDIR with its exact virtual operand
+  ---
+  duration_ms: 4.340417
+  type: 'test'
+  ...
+# Subtest: real rmdir /link/ reports ENOTDIR with its exact virtual operand
+ok 44 - real rmdir /link/ reports ENOTDIR with its exact virtual operand
+  ---
+  duration_ms: 5.592083
+  type: 'test'
+  ...
+# Subtest: real rmdir /tree reports ENOTEMPTY with its exact virtual operand
+ok 45 - real rmdir /tree reports ENOTEMPTY with its exact virtual operand
+  ---
+  duration_ms: 3.605583
+  type: 'test'
+  ...
+# Subtest: real rmdir / reports EBUSY with its exact virtual operand
+ok 46 - real rmdir / reports EBUSY with its exact virtual operand
+  ---
+  duration_ms: 4.072292
+  type: 'test'
+  ...
+# Subtest: real rmdir /empty/. reports EINVAL with its exact virtual operand
+ok 47 - real rmdir /empty/. reports EINVAL with its exact virtual operand
+  ---
+  duration_ms: 3.552041
+  type: 'test'
+  ...
+# Subtest: real rmdir preserves a child inserted immediately before the native deletion
+ok 48 - real rmdir preserves a child inserted immediately before the native deletion
+  ---
+  duration_ms: 2.721125
+  type: 'test'
+  ...
+# Subtest: real rmdir preserves a directory replaced with a symlink just before native deletion
+ok 49 - real rmdir preserves a directory replaced with a symlink just before native deletion
+  ---
+  duration_ms: 3.193125
+  type: 'test'
+  ...
+# Subtest: real rmdir observes pre-aborted cancellation without removing its directory
+ok 50 - real rmdir observes pre-aborted cancellation without removing its directory
+  ---
+  duration_ms: 2.613667
+  type: 'test'
+  ...
+1..50
+# tests 50
+# suites 0
+# pass 50
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.697292

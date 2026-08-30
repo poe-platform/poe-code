@@ -1,0 +1,192 @@
+{
+  "schema": "functional-reference-source-preseal-v3",
+  "sourceCommit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "created": 1787989687636,
+  "files": [
+    {
+      "path": "AUDIT.json",
+      "bytes": 40103,
+      "mode": 420,
+      "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6",
+      "role": "source-commit"
+    },
+    {
+      "path": "AUTHORITY.md",
+      "bytes": 1079,
+      "mode": 420,
+      "sha256": "93e12cacd26cdd2ccd8190af1a385974b6c3893c81623c4f1275d70c54e5492a",
+      "role": "source-commit"
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "bytes": 3909,
+      "mode": 420,
+      "sha256": "70d45565ebb21f5d7899de8d6b138b8a004394ec10b9ffaf0ba62e382c5d449c",
+      "role": "source-commit"
+    },
+    {
+      "path": "CONTROLS-RESULTS.json",
+      "bytes": 4032,
+      "mode": 420,
+      "sha256": "dd3e8a861e03b3a0f86bed11a8d8e018a518e6d6dd3685b1b301cdeb61a78c57",
+      "role": "author-evidence"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 2017,
+      "mode": 420,
+      "sha256": "03eac37006c71476408955f424afc57b9b5cf3e69b434435adbbef449ffc4b1b",
+      "role": "source-commit"
+    },
+    {
+      "path": "DATA-CONTROLS.jsonl",
+      "bytes": 2465,
+      "mode": 420,
+      "sha256": "503e6871c50a4316e534a82cadf8d0cf8598b7ce7812fc10f6ef18d2db4677b2",
+      "role": "author-evidence"
+    },
+    {
+      "path": "INPUT-DELTA.json",
+      "bytes": 914,
+      "mode": 420,
+      "sha256": "4abdd03bf1b2b5fc1875d797fb416ac574e3afa4dab0d3ffd81331f754a69a7c",
+      "role": "source-commit"
+    },
+    {
+      "path": "PREPROVISION.json",
+      "bytes": 950,
+      "mode": 420,
+      "sha256": "9f66aa7ba19b019b8c50cc582d8f49116d1eb7bec4bb8a89887b829024bcc5ac",
+      "role": "source-commit"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 2969,
+      "mode": 420,
+      "sha256": "f90eb997ba9ab2f5555a86143b76c4b3c8db00aa1177c2f5fe348dfd079a9082",
+      "role": "source-commit"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6462,
+      "mode": 420,
+      "sha256": "eb209ede0a4a8858f3ad7384a5ed98468d6500ac7188c28763c67fc0e8cdbafd",
+      "role": "author-evidence"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 30175,
+      "mode": 420,
+      "sha256": "e69d98fc697e20462193d7e5a794537394fa66004ee685da3a8da401ea50c22d",
+      "role": "source-commit"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2657,
+      "mode": 420,
+      "sha256": "77da774f9aae8e1409c6a8dd0425387d435c01842164abe47ce3f6e4f7bfbcc6",
+      "role": "source-commit"
+    },
+    {
+      "path": "VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "mode": 420,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb",
+      "role": "source-commit"
+    },
+    {
+      "path": "WRAPPER-TOOL.json",
+      "bytes": 364,
+      "mode": 420,
+      "sha256": "aae59bd1db096ebe2424096fa15147b880cc412311ff768b609fa752de316116",
+      "role": "source-commit"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 3973,
+      "mode": 420,
+      "sha256": "04c3cdacc18a2ef331e45ec8f0c4b9c7578ae944eccab9e472e38cc26e614bdc",
+      "role": "source-commit"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1888,
+      "mode": 420,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "role": "source-commit"
+    },
+    {
+      "path": "data-controls.mjs",
+      "bytes": 5389,
+      "mode": 420,
+      "sha256": "f23abe007f844edda13a2dd783af8a5c6c47d8492fde232ad2d870212d57e0ef",
+      "role": "source-commit"
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 7559,
+      "mode": 420,
+      "sha256": "29dee367786c98d4fc2e8f0dd448da5278a177b318b4a1a1f307d23cb51a9d30",
+      "role": "source-commit"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "mode": 420,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "role": "source-commit"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 420,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "role": "source-commit"
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "mode": 420,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "role": "source-commit"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4011,
+      "mode": 420,
+      "sha256": "56c795fb54d969c45ddd50ed65b674cec942c79d62f305690a6955b86d7ee46f",
+      "role": "source-commit"
+    },
+    {
+      "path": "state.mjs",
+      "bytes": 1824,
+      "mode": 420,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "role": "source-commit"
+    },
+    {
+      "path": "storage.mjs",
+      "bytes": 3583,
+      "mode": 420,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "role": "source-commit"
+    }
+  ],
+  "controls": {
+    "presealSha256": "70d45565ebb21f5d7899de8d6b138b8a004394ec10b9ffaf0ba62e382c5d449c",
+    "identities": 6,
+    "matched": 6,
+    "kind": "DATA_SYNTHETIC_CLOCK_IO",
+    "newRealChildStarts": 0,
+    "entryImported": false,
+    "fullNativeEntryExecuted": false,
+    "execWrapperExecuted": false
+  },
+  "startupScope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+  "authority": "SAGAN_NARROW_REREVIEW_FRESH_ROOT_GO_AND_TOOL_APPROVAL_REQUIRED",
+  "originalV2": "UNCHANGED_N08_DEFECT_RETAINED",
+  "nativeBash": 0,
+  "product": 0,
+  "original9and40": "HOLD_UNCHANGED",
+  "future37": "UNRUN"
+}

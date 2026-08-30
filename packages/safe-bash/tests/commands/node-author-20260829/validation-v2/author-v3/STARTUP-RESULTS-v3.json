@@ -1,0 +1,253 @@
+{
+  "schema": "node-author-v3-startup-HOLD",
+  "date": "2026-08-29",
+  "source": "d6e0dc7d62a64b33869be79068d13b8d96fa735a",
+  "moduleSha256": "1828ab40eca376bd34d8b07c99aa07cfcf60ac28d25b4d099dbc4d1794a860df",
+  "startupPreseal": "82117e7e918d20ebe78d2f970400be8eb9cf4b86",
+  "startupSealSha256": "4f0434e7c0374db5bd695a860696d1089b58506f155ff1001936ec9592efcd1c",
+  "parentPrep": "6dc34bca5e41becf12c98a92a75dbb01ff07ee6d",
+  "qualified": 4,
+  "failed": 1,
+  "unrun": [
+    "S06"
+  ],
+  "rows": [
+    {
+      "id": "S01",
+      "pass": true,
+      "spawned": false,
+      "pid": null,
+      "closed": false,
+      "code": null,
+      "signal": null,
+      "bytes": 0,
+      "timedOut": false,
+      "primary": {
+        "present": true,
+        "isUndefined": false,
+        "name": null,
+        "message": "ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/absent/one'",
+        "code": "ENOENT"
+      },
+      "cleanup": [],
+      "events": [],
+      "clean": false
+    },
+    {
+      "id": "S02",
+      "pass": true,
+      "spawned": false,
+      "pid": null,
+      "closed": false,
+      "code": null,
+      "signal": null,
+      "bytes": 0,
+      "timedOut": false,
+      "primary": {
+        "present": true,
+        "isUndefined": true,
+        "name": null,
+        "message": null,
+        "code": null
+      },
+      "cleanup": [],
+      "events": [],
+      "clean": false,
+      "rawUndefined": true
+    },
+    {
+      "id": "S03",
+      "pass": true,
+      "spawned": false,
+      "pid": null,
+      "closed": false,
+      "code": null,
+      "signal": null,
+      "bytes": 0,
+      "timedOut": false,
+      "primary": {
+        "present": true,
+        "isUndefined": false,
+        "name": null,
+        "message": null,
+        "code": null
+      },
+      "cleanup": [],
+      "events": [],
+      "clean": false,
+      "descriptorClosed": true
+    },
+    {
+      "id": "S04",
+      "pass": true,
+      "spawned": false,
+      "pid": null,
+      "closed": false,
+      "code": null,
+      "signal": null,
+      "bytes": 0,
+      "timedOut": false,
+      "primary": {
+        "present": true,
+        "isUndefined": false,
+        "name": null,
+        "message": null,
+        "code": null
+      },
+      "cleanup": [],
+      "events": [
+        "captureOwned"
+      ],
+      "clean": false,
+      "rawIdentity": true
+    },
+    {
+      "id": "S05",
+      "pass": false,
+      "spawned": true,
+      "pid": 71740,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "bytes": 221,
+      "timedOut": false,
+      "primary": null,
+      "cleanup": [],
+      "events": [
+        "captureOwned",
+        "authenticated",
+        "spawned",
+        "closed"
+      ],
+      "clean": true
+    }
+  ],
+  "outer": {
+    "role": "node-v3-captured-dispatch",
+    "spawned": true,
+    "pid": 71739,
+    "closed": true,
+    "code": 1,
+    "signal": null,
+    "bytes": 2520,
+    "primary": null,
+    "cleanup": []
+  },
+  "actualCompiler": 0,
+  "actualWorkers": 0,
+  "actualGuests": 0,
+  "actualProductCases": 0,
+  "sourceRegressionsUnrun": [
+    "F33",
+    "F34",
+    "W26",
+    "W27"
+  ],
+  "integrity": [
+    {
+      "path": "startup-capture-v3.mjs",
+      "sha256": "97fbc0901a25c6a50b1f554a0ef8376071a2d8adddd7bb70c0731020b17e63a0",
+      "bytes": 3238,
+      "match": true
+    },
+    {
+      "path": "startup-controls-v3.mjs",
+      "sha256": "e928168978dd53bd51fb1fbc616528b996a2fc50f2179ec2680c8b61de09303b",
+      "bytes": 3430,
+      "match": true
+    },
+    {
+      "path": "DISPATCH-CONTROLS-v3.mjs.data",
+      "sha256": "b6cc76388a6399722981839d09a280589b2b57ea30dd16e8d6b4c3abf1176027",
+      "bytes": 5051,
+      "match": true
+    },
+    {
+      "path": "harmless-v3.mjs",
+      "sha256": "2a8bfd4632cf3bd28dd3336b9095acec9367a1e2217ec38ae815819393f8fceb",
+      "bytes": 38,
+      "match": true
+    },
+    {
+      "path": "capture-v1.mjs",
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177",
+      "bytes": 3135,
+      "match": true
+    },
+    {
+      "path": "CONTROL-v2.json",
+      "sha256": "b77f1591caae22ee4be19ecb4759e473bfe3e9684e04dc4f88cd354bb15c6217",
+      "bytes": 3397,
+      "match": true
+    },
+    {
+      "path": "PARENTS.json",
+      "sha256": "4cf690f4b0175ca1ed64c77e19f6203699c45efd4e8c9c0f1ee3f1465c86db03",
+      "bytes": 1240,
+      "match": true
+    }
+  ],
+  "raw": [
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/v3-controls.stdout",
+      "bytes": 1442,
+      "sha256": "9843242835f700d2e3397bd0c8ab6bc26ad95370d6ea0461f20e703587aee867",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/v3-controls.stderr",
+      "bytes": 1078,
+      "sha256": "a903f35e267f32299f318f1a78d23f49d55d5fdf75f5f38cbb2e248382796224",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/v3-controls.RECEIPT.json",
+      "bytes": 142,
+      "sha256": "8a20802441653efc5e7c40d091f459b6417375ba1cfc2983d6399900da3d2de2",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S03.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S04.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S04.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S05.stderr",
+      "bytes": 210,
+      "sha256": "3cd00e54aeaf34d8c23d25cfb9ba45cd304215be0cb7287bafd9cc6a251ab495",
+      "mode": 384
+    },
+    {
+      "path": "tests/commands/node-author-20260829/validation-v2/author-v3/startup-controls/S05.stdout",
+      "bytes": 11,
+      "sha256": "0d20dea78f8466b94e03edafba478978219f60ef57f7d0091c5e99fef49ca5a4",
+      "mode": 384
+    }
+  ],
+  "processes": {
+    "activation": 2,
+    "activationClosed": 2,
+    "signalTerminations": 0,
+    "prepToolsBeforePublication": 16,
+    "publicationPlanned": 4,
+    "allOwnedUpper": 22,
+    "rootCeiling": 32
+  },
+  "elapsedBeforePublicationMs": 832060,
+  "disposition": "No retry. S05 normal child exited0 and stdout matched; its captured SecurityWarning contradicted zero-stderr expectation. S06 not reached. Actual v3 conditional activation withheld; complete corrected actual preseal not yet composed.",
+  "primaryIdentity": "S02 raw undefined and S04 raw object reference compared in controls, not reconstructed from JSON",
+  "captureCleanup": "All opened actual descriptors closed; S03 fstat confirms first closed; S04 negative captured before authentication; S05 and outer children both close observed. Exact empty actual capture/bootstrap/evidence/outer parents remain; no actual work directory created."
+}

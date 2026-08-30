@@ -1,0 +1,1563 @@
+{
+  "provenance": {
+    "executable": "/usr/bin/jq",
+    "version": "jq-1.7.1-apple",
+    "date": "2026-08-26",
+    "shell": false,
+    "timeout": 2000,
+    "maxBuffer": 65536
+  },
+  "cases": [
+    {
+      "id": "empty:\"-\"",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:null",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:false",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:1",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:[]",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:empty",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:(\"-\",\":\")",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"\"\n\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:\"-\"",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"a\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:null",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"a\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:false",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "\"a\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:1",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "\"a\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:[]",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "\"a\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:empty",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "singleton:(\"-\",\":\")",
+      "input": "[\"a\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"a\"\n\"a\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "pair:\"-\"",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"a-b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "pair:null",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"ab\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "pair:false",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and boolean (false) cannot be added\n"
+    },
+    {
+      "id": "pair:1",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and number (1) cannot be added\n"
+    },
+    {
+      "id": "pair:[]",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and array ([]) cannot be added\n"
+    },
+    {
+      "id": "pair:empty",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "pair:(\"-\",\":\")",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"a-b\"\n\"a:b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nulls:\"-\"",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"-\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nulls:null",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nulls:false",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and boolean (false) cannot be added\n"
+    },
+    {
+      "id": "nulls:1",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and number (1) cannot be added\n"
+    },
+    {
+      "id": "nulls:[]",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([]) cannot be added\n"
+    },
+    {
+      "id": "nulls:empty",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nulls:(\"-\",\":\")",
+      "input": "[null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"-\"\n\":\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "mixed:\"-\"",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"a--0--0-1.5-true-false-\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "mixed:null",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"a0-01.5truefalse\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "mixed:false",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and boolean (false) cannot be added\n"
+    },
+    {
+      "id": "mixed:1",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and number (1) cannot be added\n"
+    },
+    {
+      "id": "mixed:[]",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and array ([]) cannot be added\n"
+    },
+    {
+      "id": "mixed:empty",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "mixed:(\"-\",\":\")",
+      "input": "[\"a\",null,0,-0,1.5,true,false,\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"a--0--0-1.5-true-false-\"\n\"a::0:-0:1.5:true:false:\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:\"-\"",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"😀-é-雪-\\u0000-\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:null",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"😀é雪\\u0000\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:false",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"😀\") and boolean (false) cannot be added\n"
+    },
+    {
+      "id": "unicode:1",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"😀\") and number (1) cannot be added\n"
+    },
+    {
+      "id": "unicode:[]",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"😀\") and array ([]) cannot be added\n"
+    },
+    {
+      "id": "unicode:empty",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:(\"-\",\":\")",
+      "input": "[\"😀\",\"é\",\"雪\",\"\\u0000\",\"\\n\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"😀-é-雪-\\u0000-\\n\"\n\"😀:é:雪:\\u0000:\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "object:\"-\"",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"b-a-safe-own-\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "object:null",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"basafeown\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "object:false",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"b\") and boolean (false) cannot be added\n"
+    },
+    {
+      "id": "object:1",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"b\") and number (1) cannot be added\n"
+    },
+    {
+      "id": "object:[]",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"b\") and array ([]) cannot be added\n"
+    },
+    {
+      "id": "object:empty",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "object:(\"-\",\":\")",
+      "input": "{\"2\":\"b\",\"1\":\"a\",\"__proto__\":\"safe\",\"constructor\":\"own\",\"prototype\":null}",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"b-a-safe-own-\"\n\"b:a:safe:own:\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:\"-\"",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:null",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:false",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:1",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:[]",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:empty",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "emptyObject:(\"-\",\":\")",
+      "input": "{}",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "\"\"\n\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nestedArray:\"-\"",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([\"x\"]) cannot be added\n"
+    },
+    {
+      "id": "nestedArray:null",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([\"x\"]) cannot be added\n"
+    },
+    {
+      "id": "nestedArray:false",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([\"x\"]) cannot be added\n"
+    },
+    {
+      "id": "nestedArray:1",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([\"x\"]) cannot be added\n"
+    },
+    {
+      "id": "nestedArray:[]",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([\"x\"]) cannot be added\n"
+    },
+    {
+      "id": "nestedArray:empty",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nestedArray:(\"-\",\":\")",
+      "input": "[[\"x\"]]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and array ([\"x\"]) cannot be added\n"
+    },
+    {
+      "id": "nestedObject:\"-\"",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and object ({\"x\":1}) cannot be added\n"
+    },
+    {
+      "id": "nestedObject:null",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and object ({\"x\":1}) cannot be added\n"
+    },
+    {
+      "id": "nestedObject:false",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and object ({\"x\":1}) cannot be added\n"
+    },
+    {
+      "id": "nestedObject:1",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and object ({\"x\":1}) cannot be added\n"
+    },
+    {
+      "id": "nestedObject:[]",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and object ({\"x\":1}) cannot be added\n"
+    },
+    {
+      "id": "nestedObject:empty",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nestedObject:(\"-\",\":\")",
+      "input": "[{\"x\":1}]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"\") and object ({\"x\":1}) cannot be added\n"
+    },
+    {
+      "id": "nullInput:\"-\"",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over null (null)\n"
+    },
+    {
+      "id": "nullInput:null",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over null (null)\n"
+    },
+    {
+      "id": "nullInput:false",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over null (null)\n"
+    },
+    {
+      "id": "nullInput:1",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over null (null)\n"
+    },
+    {
+      "id": "nullInput:[]",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over null (null)\n"
+    },
+    {
+      "id": "nullInput:empty",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "nullInput:(\"-\",\":\")",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over null (null)\n"
+    },
+    {
+      "id": "stringInput:\"-\"",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over string (\"abc\")\n"
+    },
+    {
+      "id": "stringInput:null",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join(null)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over string (\"abc\")\n"
+    },
+    {
+      "id": "stringInput:false",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join(false)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over string (\"abc\")\n"
+    },
+    {
+      "id": "stringInput:1",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join(1)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over string (\"abc\")\n"
+    },
+    {
+      "id": "stringInput:[]",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join([])"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over string (\"abc\")\n"
+    },
+    {
+      "id": "stringInput:empty",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "stringInput:(\"-\",\":\")",
+      "input": "\"abc\"",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over string (\"abc\")\n"
+    },
+    {
+      "id": "separator-object",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join({})"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and object ({}) cannot be added\n"
+    },
+    {
+      "id": "separator-true",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(true)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and boolean (true) cannot be added\n"
+    },
+    {
+      "id": "singleton-object-separator",
+      "input": "[true]",
+      "argv": [
+        "-c",
+        "--",
+        "join({})"
+      ],
+      "stdout": "\"true\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty-object-separator",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join({})"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "booleans",
+      "input": "[false,true]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\":\")"
+      ],
+      "stdout": "\"false:true\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "all-null",
+      "input": "[null,null,null]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"|\")"
+      ],
+      "stdout": "\"||\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty-strings",
+      "input": "[\"\",\"\",\"\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"|\")"
+      ],
+      "stdout": "\"||\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "input-bound-separator",
+      "input": "[\"sep\",\"x\",\"y\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(.[0])"
+      ],
+      "stdout": "\"sepsepxsepy\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "object-bound-separator",
+      "input": "{\"sep\":\"-\",\"value\":\"x\"}",
+      "argv": [
+        "-c",
+        "--",
+        "join(.sep)"
+      ],
+      "stdout": "\"--x\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "separator-iteration",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(.[])"
+      ],
+      "stdout": "\"aab\"\n\"abb\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "separator-duplicates",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",\"-\"))"
+      ],
+      "stdout": "\"a-b\"\n\"a-b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty-separator-error",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1/0)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): number (1) and number (0) cannot be divided because the divisor is zero\n"
+    },
+    {
+      "id": "singleton-separator-error",
+      "input": "[\"x\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join(1/0)"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): number (1) and number (0) cannot be divided because the divisor is zero\n"
+    },
+    {
+      "id": "separator-error-prefix",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",1/0))"
+      ],
+      "stdout": "\"a-b\"\n",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): number (1) and number (0) cannot be divided because the divisor is zero\n"
+    },
+    {
+      "id": "empty-separator-error-prefix",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",1/0))"
+      ],
+      "stdout": "\"\"\n",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): number (1) and number (0) cannot be divided because the divisor is zero\n"
+    },
+    {
+      "id": "separator-type-prefix",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((\"-\",0,\":\"))"
+      ],
+      "stdout": "\"a-b\"\n",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a\") and number (0) cannot be added\n"
+    },
+    {
+      "id": "outer-prefix-error",
+      "input": "[\"a\",{}]",
+      "argv": [
+        "-c",
+        "--",
+        "\"prefix\",join(\"-\")"
+      ],
+      "stdout": "\"prefix\"\n",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): string (\"a-\") and object ({}) cannot be added\n"
+    },
+    {
+      "id": "optional-error-prefix",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "[join((\"-\",1/0))?]"
+      ],
+      "stdout": "[\"a-b\"]\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "optional-type-prefix",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "[join((\"-\",0,\":\"))?]"
+      ],
+      "stdout": "[\"a-b\"]\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "first-lazy",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "first(join((\"-\",1/0)))"
+      ],
+      "stdout": "\"a-b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "first-empty-lazy",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "first(join((\"-\",1/0)))"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "first-million-separators",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "first(join(range(1000000)))"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "limit-separators",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "limit(2;join((\"-\",\":\",1/0)))"
+      ],
+      "stdout": "\"a-b\"\n\"a:b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "limit-zero",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "limit(0;join(1/0))"
+      ],
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "null-empty-lazy",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "[join(empty)]"
+      ],
+      "stdout": "[]\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "null-error-order",
+      "input": "null",
+      "argv": [
+        "-c",
+        "--",
+        "join((1/0,\"-\"))"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): number (1) and number (0) cannot be divided because the divisor is zero\n"
+    },
+    {
+      "id": "nested-empty-lazy",
+      "input": "[{}]",
+      "argv": [
+        "-c",
+        "--",
+        "[join(empty)]"
+      ],
+      "stdout": "[]\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "multi-input-cartesian",
+      "input": "[[\"a\",\"b\"],[\"c\",\"d\"]]",
+      "argv": [
+        "-c",
+        "--",
+        ".[]|join((\"-\",\":\"))"
+      ],
+      "stdout": "\"a-b\"\n\"a:b\"\n\"c-d\"\n\"c:d\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "generator-with-filter",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-c",
+        "--",
+        "join((empty,\"-\",empty,\":\"))"
+      ],
+      "stdout": "\"a-b\"\n\"a:b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-in-assignment",
+      "input": "{\"a\":[\"x\",\"y\"]}",
+      "argv": [
+        "-c",
+        "--",
+        ".a |= join((\"-\",1/0))"
+      ],
+      "stdout": "{\"a\":\"x-y\"}\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-computed-index",
+      "input": "[[\"a\",\"b\"],[\"c\",\"d\"]]",
+      "argv": [
+        "-c",
+        "--",
+        ".[(0,1)]|join(\"-\")"
+      ],
+      "stdout": "\"a-b\"\n\"c-d\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-empty-last",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "last(join(empty))"
+      ],
+      "stdout": "null\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-numeric-input",
+      "input": "42",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over number (42)\n"
+    },
+    {
+      "id": "join-bool-input",
+      "input": "false",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\")"
+      ],
+      "stdout": "",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:0): Cannot iterate over boolean (false)\n"
+    },
+    {
+      "id": "join-zero-arity",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join"
+      ],
+      "stdout": "",
+      "status": 3,
+      "stderr": "jq: error: join/0 is not defined at <top-level>, line 1:\njoin\njq: 1 compile error\n"
+    },
+    {
+      "id": "join-two-arity",
+      "input": "[]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\";\":\")"
+      ],
+      "stdout": "",
+      "status": 3,
+      "stderr": "jq: error: join/2 is not defined at <top-level>, line 1:\njoin(\"-\";\":\")\njq: 1 compile error\n"
+    },
+    {
+      "id": "decimal-lexeme",
+      "input": "[1e2]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\",\")"
+      ],
+      "policy": "documented-numeric-rendering",
+      "policyStdout": "\"100\"\n",
+      "policyStatus": 0,
+      "stdout": "\"1E+2\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "tiny-exponent",
+      "input": "[0.0000001]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\",\")"
+      ],
+      "policy": "documented-numeric-rendering",
+      "policyStdout": "\"1e-7\"\n",
+      "policyStatus": 0,
+      "stdout": "\"1E-7\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "large-exponent",
+      "input": "[1e21]",
+      "argv": [
+        "-c",
+        "--",
+        "join(\",\")"
+      ],
+      "policy": "documented-numeric-rendering",
+      "policyStdout": "\"1e+21\"\n",
+      "policyStatus": 0,
+      "stdout": "\"1E+21\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "raw-output",
+      "input": "[\"a\",null,true,2]",
+      "argv": [
+        "-r",
+        "join(\":\")"
+      ],
+      "stdout": "a::true:2\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-output",
+      "input": "[\"a\",\"b\"]",
+      "argv": [
+        "-j",
+        "join((\"-\",\":\"))"
+      ],
+      "stdout": "a-ba:b",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "exit-empty-string",
+      "input": "[]",
+      "argv": [
+        "-e",
+        "join(\"-\")"
+      ],
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "exit-no-results",
+      "input": "[]",
+      "argv": [
+        "-e",
+        "join(empty)"
+      ],
+      "stdout": "",
+      "status": 4,
+      "stderr": ""
+    },
+    {
+      "id": "raw-slurp-composition",
+      "input": "a\nb",
+      "argv": [
+        "-Rs",
+        "[.]|join(\"-\")"
+      ],
+      "stdout": "\"a\\nb\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "json-slurp-composition",
+      "input": "\"a\"\n\"b\"",
+      "argv": [
+        "-sr",
+        "join(\"-\")"
+      ],
+      "stdout": "a-b\n",
+      "status": 0,
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "productChildren": 0,
+  "nativeChildren": 0,
+  "nonproductTestInvocations": 2,
+  "bothCompleted": true,
+  "activeOwnedJobs": 0,
+  "servers": 0,
+  "noFurtherProductAuthorization": true,
+  "nodeTestTimeoutFlagMs": 5000,
+  "separateWholeProcessWatchdogClaimed": false
+}

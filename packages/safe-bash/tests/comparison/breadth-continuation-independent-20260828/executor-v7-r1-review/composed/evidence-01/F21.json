@@ -1,0 +1,78 @@
+{
+  "id": "F21",
+  "expected": "Actual loader/importWithWindow ordered literal source sees undefined twice, revokes at slot2 before factory, captured aliases refuse, sentinel never runs.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.643Z",
+  "finished": "2026-08-28T15:01:02.697Z",
+  "detail": {
+    "mode": "ordered",
+    "nativeCalls": 0,
+    "factoryCalls": 1,
+    "revokedBeforeReturn": true,
+    "firstSlot": {
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "opened": true,
+      "revoked": false,
+      "consumed": 1,
+      "nativeDelegations": 0,
+      "violations": [],
+      "callerAuthenticated": false,
+      "stockNodeCapabilities": false
+    },
+    "secondSlot": {
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "opened": true,
+      "revoked": true,
+      "consumed": 2,
+      "nativeDelegations": 0,
+      "violations": [],
+      "callerAuthenticated": false,
+      "stockNodeCapabilities": false
+    },
+    "snapshot": {
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "opened": true,
+      "revoked": true,
+      "consumed": 2,
+      "nativeDelegations": 0,
+      "violations": [
+        {
+          "code": "BOOTSTRAP_REVOKED",
+          "consumed": 2
+        }
+      ],
+      "callerAuthenticated": false,
+      "stockNodeCapabilities": false
+    },
+    "events": [
+      {
+        "kind": "nextLoad",
+        "path": "ordered.mjs",
+        "format": "module",
+        "bytes": 376,
+        "sha256": "2b3f2e499432ca8c87e31ef234e5bb8153d74813658955875f5a02d14baf5fec",
+        "evaluationProven": false,
+        "origin": "actual-nextLoad-source"
+      },
+      {
+        "kind": "bootstrap-unavailable",
+        "query": "module",
+        "slot": 1,
+        "nativeDelegation": false
+      },
+      {
+        "kind": "bootstrap-unavailable",
+        "query": "worker_threads",
+        "slot": 2,
+        "nativeDelegation": false
+      },
+      {
+        "kind": "bootstrap-denied",
+        "code": "BOOTSTRAP_REVOKED",
+        "consumed": 2
+      }
+    ],
+    "identityPreserved": true,
+    "loaderClosed": true
+  }
+}

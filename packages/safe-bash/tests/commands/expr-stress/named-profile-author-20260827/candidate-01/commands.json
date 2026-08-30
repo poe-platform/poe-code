@@ -1,0 +1,62 @@
+[
+  {
+    "name": "build",
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+    "args": [
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "started": "2026-08-27T19:30:23.296Z",
+    "finished": "2026-08-27T19:30:26.147Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "name": "expr-types",
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+    "args": [
+      "-p",
+      "tests/commands/expr/tsconfig.json"
+    ],
+    "started": "2026-08-27T19:30:26.238Z",
+    "finished": "2026-08-27T19:30:28.007Z",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "name": "shared-types",
+    "command": "/Users/kjopek/Workspace/safe-bash/node_modules/.bin/tsc",
+    "args": [
+      "--noEmit",
+      "--strict",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--target",
+      "ES2023",
+      "--noUncheckedIndexedAccess",
+      "--exactOptionalPropertyTypes",
+      "--verbatimModuleSyntax",
+      "--skipLibCheck",
+      "--types",
+      "node",
+      "tests/commands/regex-execution/executor.test.ts",
+      "tests/commands/regex-execution/commands.test.ts",
+      "tests/commands/regex-execution/cleanup-registration/controls.test.ts"
+    ],
+    "started": "2026-08-27T19:30:28.007Z",
+    "finished": "2026-08-27T19:30:29.728Z",
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "stdout": "src/fs/webdav/webdav.ts(725,72): error TS2353: Object literal may only specify known properties, and 'duplex' does not exist in type 'RequestInit'.\n",
+    "stderr": ""
+  }
+]

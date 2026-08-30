@@ -1,0 +1,8 @@
+{
+  "id": "obligation-inactive-documents",
+  "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+  "outcome": "MATCH",
+  "failure": null,
+  "raw": "obligation-inactive-documents-raw.json",
+  "semanticPasses": 0
+}

@@ -1,0 +1,304 @@
+TAP version 13
+# Subtest: direct same-path, reverse=false: rejects before I/O or publication
+ok 1 - direct same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 12.882958
+  type: 'test'
+  ...
+# Subtest: direct same-path, reverse=true: rejects before I/O or publication
+ok 2 - direct same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.817042
+  type: 'test'
+  ...
+# Subtest: direct hardlink, reverse=false: rejects before I/O or publication
+ok 3 - direct hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 6.591708
+  type: 'test'
+  ...
+# Subtest: direct hardlink, reverse=true: rejects before I/O or publication
+ok 4 - direct hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.262541
+  type: 'test'
+  ...
+# Subtest: direct symlink, reverse=false: rejects before I/O or publication
+ok 5 - direct symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 8.633416
+  type: 'test'
+  ...
+# Subtest: direct symlink, reverse=true: rejects before I/O or publication
+ok 6 - direct symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.865167
+  type: 'test'
+  ...
+# Subtest: readonly same-path, reverse=false: rejects before I/O or publication
+ok 7 - readonly same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.745917
+  type: 'test'
+  ...
+# Subtest: readonly hardlink, reverse=false: rejects before I/O or publication
+ok 8 - readonly hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.805542
+  type: 'test'
+  ...
+# Subtest: readonly symlink, reverse=false: rejects before I/O or publication
+ok 9 - readonly symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 6.349583
+  type: 'test'
+  ...
+# Subtest: nested same-path, reverse=false: rejects before I/O or publication
+ok 10 - nested same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.676959
+  type: 'test'
+  ...
+# Subtest: nested same-path, reverse=true: rejects before I/O or publication
+ok 11 - nested same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 5.871125
+  type: 'test'
+  ...
+# Subtest: nested hardlink, reverse=false: rejects before I/O or publication
+ok 12 - nested hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 6.4795
+  type: 'test'
+  ...
+# Subtest: nested hardlink, reverse=true: rejects before I/O or publication
+ok 13 - nested hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.073417
+  type: 'test'
+  ...
+# Subtest: nested symlink, reverse=false: rejects before I/O or publication
+ok 14 - nested symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 7.196917
+  type: 'test'
+  ...
+# Subtest: nested symlink, reverse=true: rejects before I/O or publication
+ok 15 - nested symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 7.096083
+  type: 'test'
+  ...
+# Subtest: overlay-lower same-path, reverse=false: rejects before I/O or publication
+ok 16 - overlay-lower same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.462625
+  type: 'test'
+  ...
+# Subtest: overlay-lower same-path, reverse=true: rejects before I/O or publication
+ok 17 - overlay-lower same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.488458
+  type: 'test'
+  ...
+# Subtest: overlay-lower hardlink, reverse=false: rejects before I/O or publication
+ok 18 - overlay-lower hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.511541
+  type: 'test'
+  ...
+# Subtest: overlay-lower hardlink, reverse=true: rejects before I/O or publication
+ok 19 - overlay-lower hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.732291
+  type: 'test'
+  ...
+# Subtest: overlay-lower symlink, reverse=false: rejects before I/O or publication
+ok 20 - overlay-lower symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.421708
+  type: 'test'
+  ...
+# Subtest: overlay-lower symlink, reverse=true: rejects before I/O or publication
+ok 21 - overlay-lower symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 7.016
+  type: 'test'
+  ...
+# Subtest: overlay-upper same-path, reverse=false: rejects before I/O or publication
+ok 22 - overlay-upper same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.919
+  type: 'test'
+  ...
+# Subtest: overlay-upper same-path, reverse=true: rejects before I/O or publication
+ok 23 - overlay-upper same-path, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 4.832958
+  type: 'test'
+  ...
+# Subtest: overlay-upper hardlink, reverse=false: rejects before I/O or publication
+ok 24 - overlay-upper hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 5.536542
+  type: 'test'
+  ...
+# Subtest: overlay-upper hardlink, reverse=true: rejects before I/O or publication
+ok 25 - overlay-upper hardlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.23
+  type: 'test'
+  ...
+# Subtest: overlay-upper symlink, reverse=false: rejects before I/O or publication
+ok 26 - overlay-upper symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 6.482166
+  type: 'test'
+  ...
+# Subtest: overlay-upper symlink, reverse=true: rejects before I/O or publication
+ok 27 - overlay-upper symlink, reverse=true: rejects before I/O or publication
+  ---
+  duration_ms: 6.358166
+  type: 'test'
+  ...
+# Subtest: readonly-overlay same-path, reverse=false: rejects before I/O or publication
+ok 28 - readonly-overlay same-path, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.72625
+  type: 'test'
+  ...
+# Subtest: readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+ok 29 - readonly-overlay hardlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 3.989209
+  type: 'test'
+  ...
+# Subtest: readonly-overlay symlink, reverse=false: rejects before I/O or publication
+ok 30 - readonly-overlay symlink, reverse=false: rejects before I/O or publication
+  ---
+  duration_ms: 4.341
+  type: 'test'
+  ...
+# Subtest: same memory backend, multipleMounts=false: mount rejects before delegation
+ok 31 - same memory backend, multipleMounts=false: mount rejects before delegation
+  ---
+  duration_ms: 0.3305
+  type: 'test'
+  ...
+# Subtest: same memory backend, multipleMounts=true: mount rejects before delegation
+ok 32 - same memory backend, multipleMounts=true: mount rejects before delegation
+  ---
+  duration_ms: 0.085625
+  type: 'test'
+  ...
+# Subtest: overlapping native roots identify the same file without exposing host paths
+ok 33 - overlapping native roots identify the same file without exposing host paths
+  ---
+  duration_ms: 4.389667
+  type: 'test'
+  ...
+# Subtest: separate native roots and files remain copyable
+ok 34 - separate native roots and files remain copyable
+  ---
+  duration_ms: 6.772375
+  type: 'test'
+  ...
+# Subtest: unknown source identity rejects existing cross-mount target before effects
+ok 35 - unknown source identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.711083
+  type: 'test'
+  ...
+# Subtest: unknown target identity rejects existing cross-mount target before effects
+ok 36 - unknown target identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.165541
+  type: 'test'
+  ...
+# Subtest: unknown both identity rejects existing cross-mount target before effects
+ok 37 - unknown both identity rejects existing cross-mount target before effects
+  ---
+  duration_ms: 0.144083
+  type: 'test'
+  ...
+# Subtest: unknown providers can copy to missing targets using exclusive creation
+ok 38 - unknown providers can copy to missing targets using exclusive creation
+  ---
+  duration_ms: 0.3325
+  type: 'test'
+  ...
+# Subtest: destination races from missing to source alias, streaming=false: exclusive write preserves source
+ok 39 - destination races from missing to source alias, streaming=false: exclusive write preserves source
+  ---
+  duration_ms: 0.153083
+  type: 'test'
+  ...
+# Subtest: destination races from missing to source alias, streaming=true: exclusive write preserves source
+ok 40 - destination races from missing to source alias, streaming=true: exclusive write preserves source
+  ---
+  duration_ms: 0.160625
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=false: source survives genuine target failure
+ok 41 - disjoint failed writer, streaming=false: source survives genuine target failure
+  ---
+  duration_ms: 0.389042
+  type: 'test'
+  ...
+# Subtest: disjoint failed writer, streaming=true: source survives genuine target failure
+ok 42 - disjoint failed writer, streaming=true: source survives genuine target failure
+  ---
+  duration_ms: 0.188958
+  type: 'test'
+  ...
+# Subtest: upper same-path: overlay copy rejects before staging or reading source
+ok 43 - upper same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 1.867708
+  type: 'test'
+  ...
+# Subtest: upper hardlink: overlay copy rejects before staging or reading source
+ok 44 - upper hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.534833
+  type: 'test'
+  ...
+# Subtest: upper symlink: overlay copy rejects before staging or reading source
+ok 45 - upper symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.596791
+  type: 'test'
+  ...
+# Subtest: lower same-path: overlay copy rejects before staging or reading source
+ok 46 - lower same-path: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.503084
+  type: 'test'
+  ...
+# Subtest: lower hardlink: overlay copy rejects before staging or reading source
+ok 47 - lower hardlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.456209
+  type: 'test'
+  ...
+# Subtest: lower symlink: overlay copy rejects before staging or reading source
+ok 48 - lower symlink: overlay copy rejects before staging or reading source
+  ---
+  duration_ms: 0.421917
+  type: 'test'
+  ...
+# Subtest: overlay distinct lower/upper files with colliding local inode numbers remain copyable
+ok 49 - overlay distinct lower/upper files with colliding local inode numbers remain copyable
+  ---
+  duration_ms: 0.967959
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 331.509917

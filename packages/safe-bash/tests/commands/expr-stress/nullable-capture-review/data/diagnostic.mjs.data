@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { Worker } from 'node:worker_threads';
+import ts from '/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js';
+const directory = '/tmp/expr-nullable-review.VNLKcM';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const observed = readFileSync(directory + '/bre-worker.observed.ts', 'utf8');
+const protocolPath = root + '/src/commands/regex-execution/protocol.ts';
+const protocol = readFileSync(protocolPath, 'utf8');
+const descriptor = { kind: 'expr-match', profile: 'byte', limits: { maxPatternBytes: 65536, maxSubjectBytes: 1048576, maxNodes: 8192, maxDepth: 128, maxSteps: 50000000, maxStates: 65536, maxAllocatedUnits: 4000000 } };
+const capture = JSON.parse(readFileSync(directory + '/capture.json'));
+const transpile = text => ts.transpileModule(text, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
+writeFileSync(directory + '/protocol.mjs', transpile(protocol), { flag: 'wx' });
+const sources = {
+  unguarded: observed.replace('  validateCaptureRepetition(tree, work);', ''),
+  captureAwareCycleOnly: observed.replace('  validateCaptureRepetition(tree, work);', '').replace('state.visited.includes(state.program)', 'state.visited.includes(`${state.program}:${state.captures.join(",")}`)').replace('state.visited.push(state.program)', 'state.visited.push(`${state.program}:${state.captures.join(",")}`)'),
+};
+const outputs = {};
+for (const [name, source] of Object.entries(sources)) {
+  assert.notEqual(source, observed);
+  const module = transpile(source.replace('../regex-execution/protocol.js', './protocol.mjs'));
+  writeFileSync(directory + '/' + name + '.mjs', module, { flag: 'wx' });
+  const worker = new Worker(`const {parentPort,workerData}=require('node:worker_threads'); import(workerData).then(({matchExpr})=>parentPort.on('message',request=>{try{parentPort.postMessage({result:matchExpr(request.descriptor,request.subject)})}catch(error){parentPort.postMessage({error:error.message})}}));`, { eval: true, workerData: 'file://' + directory + '/' + name + '.mjs' });
+  const rows = [];
+  for (const specimen of capture.rows) {
+    const result = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('diagnostic worker deadline')), 2000);
+      worker.once('message', value => { clearTimeout(timer); resolve(value); });
+      worker.once('error', reject);
+      worker.postMessage({ descriptor: { ...descriptor, pattern: Buffer.from(specimen.args[3]) }, subject: Buffer.from(specimen.args[1]) });
+    });
+    rows.push({ name: specimen.name, args: specimen.args, ...result });
+  }
+  await worker.terminate();
+  outputs[name] = { moduleHash: hash(module), rows };
+}
+const distPaths = ['dist/commands/expr/bre-worker.js', 'dist/commands/regex-execution/protocol.js', 'dist/commands/regex-execution/worker.js', 'dist/commands/regex-execution/matching.js'];
+const builtInputs = Object.fromEntries(distPaths.map(path => [path, hash(readFileSync(root + '/' + path))]));
+writeFileSync(directory + '/diagnostic.json', JSON.stringify({ capturedAt: new Date().toISOString(), sourceHash: hash(observed), protocolHash: hash(protocol), typescriptVersion: ts.version, builtInputs, note: 'OS-temp diagnostic variants only, not product edits or a candidate. unguarded removes only rejection; captureAwareCycleOnly is a deliberately incomplete negative-control hypothesis. Built worker hashes recorded after the earlier helper capture, not before it. The TS helper uses dist for its actual worker.', outputs }, null, 2) + '\n', { flag: 'wx' });
+for (const name of ['nullable-audit/12/0', 'nullable-audit/12/1', 'nullable-audit/12/2', 'nullable-audit/12/3', 'no-backref/aaa', 'mandatory-repeat/aaa', 'bounded-repeat/aaa']) console.log(name, ...Object.entries(outputs).map(([variant, output]) => [variant, output.rows.find(row => row.name === name)?.result]));

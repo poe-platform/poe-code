@@ -1,0 +1,167 @@
+{
+  "claim": {
+    "snapshotName": "production-final",
+    "job": "transport",
+    "label": "transport",
+    "time": "2026-08-27T06:25:54.373Z",
+    "risky": false,
+    "watchdogAfterReadyMs": 15000,
+    "outputCap": 65536,
+    "oldSpaceMb": 128,
+    "historical": "12 archived, prior revision 0/6; not rerun",
+    "reservation": "benign; no risk reservation consumed",
+    "harnessSha256": "dea8e28027e968916729d2cd6d2c6364c2968ccc091c164ab2599e6a921db740"
+  },
+  "pid": 29885,
+  "events": [
+    {
+      "kind": "ready",
+      "at": 1787811954456
+    },
+    {
+      "kind": "disconnect"
+    },
+    {
+      "kind": "output-close"
+    },
+    {
+      "kind": "error-close"
+    },
+    {
+      "kind": "exit",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "output": "",
+  "error": "",
+  "result": {
+    "kind": "result",
+    "pass": true,
+    "summary": {
+      "passed": 15,
+      "total": 15,
+      "active": 0,
+      "peak": 0,
+      "workers": 0
+    },
+    "observations": [
+      {
+        "name": "default-policy-inspection",
+        "pass": true,
+        "details": {
+          "requestTimeoutMs": 1000,
+          "startupTimeoutMs": 3000,
+          "maxWorkers": 2,
+          "maxQueuedRequests": 64,
+          "maxQueuedBytes": 134217728,
+          "idleTimeoutMs": 100,
+          "workerOldGenerationMb": 128,
+          "workerStackMb": 4
+        }
+      },
+      {
+        "name": "preabort-no-construction",
+        "pass": true
+      },
+      {
+        "name": "default-no-caller-signal-safe-static-stall",
+        "pass": true,
+        "details": {
+          "elapsed": 1003.845875,
+          "error": "regex REQUEST_TIMEOUT: active request exceeded 1000ms",
+          "noRegexExecuted": true,
+          "callerNeverAborted": true
+        }
+      },
+      {
+        "name": "startup-short-safe-stall",
+        "pass": true
+      },
+      {
+        "name": "fifo-cancel-bytes-overflow",
+        "pass": true,
+        "details": {
+          "byteAccounting": 179,
+          "dispatchedIds": [
+            1,
+            2,
+            3
+          ],
+          "cancelledNeverDispatched": true
+        }
+      },
+      {
+        "name": "descriptor-and-row-byte-limit",
+        "pass": true,
+        "details": {
+          "independentlyExpectedBytes": 179,
+          "actualBytes": 179
+        }
+      },
+      {
+        "name": "default-two-workers-and-independent-executors",
+        "pass": true
+      },
+      {
+        "name": "active-abort-waits-termination-before-admitting-next",
+        "pass": true
+      },
+      {
+        "name": "worker-wrong-id",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: invalid reply identity"
+        }
+      },
+      {
+        "name": "worker-odd-ranges",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: invalid match ranges"
+        }
+      },
+      {
+        "name": "worker-out-of-bounds",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: invalid match bounds"
+        }
+      },
+      {
+        "name": "worker-fatal",
+        "pass": true,
+        "details": {
+          "code": "WORKER_ERROR",
+          "error": "regex WORKER_ERROR: controlled worker fatal"
+        }
+      },
+      {
+        "name": "worker-messageerror",
+        "pass": true,
+        "details": {
+          "code": "PROTOCOL",
+          "error": "regex PROTOCOL: worker message could not be deserialized"
+        }
+      },
+      {
+        "name": "idle-fatal-retirement",
+        "pass": true
+      },
+      {
+        "name": "timeout-then-abort-during-awaited-cleanup",
+        "pass": true,
+        "details": {
+          "precedence": "first timeout retained after cleanup-time abort"
+        }
+      }
+    ],
+    "metrics": []
+  },
+  "killed": false,
+  "code": 0,
+  "signal": null
+}

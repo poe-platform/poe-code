@@ -1,0 +1,214 @@
+TAP version 13
+# Subtest: minimum mutation capabilities preflight {"conditionalDelete":true}
+ok 1 - minimum mutation capabilities preflight {"conditionalDelete":true}
+  ---
+  duration_ms: 1.567083
+  type: 'test'
+  ...
+# Subtest: minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+ok 2 - minimum mutation capabilities preflight {"conditionalCopy":false,"conditionalDelete":true}
+  ---
+  duration_ms: 0.598292
+  type: 'test'
+  ...
+# Subtest: no destination guard capability must not clobber concurrent create
+ok 3 - no destination guard capability must not clobber concurrent create
+  ---
+  duration_ms: 0.227833
+  type: 'test'
+  ...
+# Subtest: conditional PUT without conditional current-object deletion rejects before host calls
+ok 4 - conditional PUT without conditional current-object deletion rejects before host calls
+  ---
+  duration_ms: 0.195708
+  type: 'test'
+  ...
+# Subtest: buffered PUT rename creates destination without CopyObject capability
+ok 5 - buffered PUT rename creates destination without CopyObject capability
+  ---
+  duration_ms: 1.7005
+  type: 'test'
+  ...
+# Subtest: buffered PUT destination creation race retains both writers
+ok 6 - buffered PUT destination creation race retains both writers
+  ---
+  duration_ms: 0.6225
+  type: 'test'
+  ...
+# Subtest: buffered PUT rename replaces stable destination without CopyObject capability
+ok 7 - buffered PUT rename replaces stable destination without CopyObject capability
+  ---
+  duration_ms: 0.608208
+  type: 'test'
+  ...
+# Subtest: buffered PUT destination replacement race retains both writers
+ok 8 - buffered PUT destination replacement race retains both writers
+  ---
+  duration_ms: 0.786167
+  type: 'test'
+  ...
+# Subtest: buffered PUT source replacement before GET produces no destination
+ok 9 - buffered PUT source replacement before GET produces no destination
+  ---
+  duration_ms: 0.450375
+  type: 'test'
+  ...
+# Subtest: buffered PUT changed source after publication survives conditional deletion
+ok 10 - buffered PUT changed source after publication survives conditional deletion
+  ---
+  duration_ms: 0.471792
+  type: 'test'
+  ...
+# Subtest: buffered PUT deletion failure reports acknowledged publication without rollback
+ok 11 - buffered PUT deletion failure reports acknowledged publication without rollback
+  ---
+  duration_ms: 0.37225
+  type: 'test'
+  ...
+# Subtest: buffered PUT lost publication acknowledgement never authorizes source deletion
+ok 12 - buffered PUT lost publication acknowledgement never authorizes source deletion
+  ---
+  duration_ms: 0.307625
+  type: 'test'
+  ...
+# Subtest: buffered PUT directory size preflight rejects before publishing any earlier child
+ok 13 - buffered PUT directory size preflight rejects before publishing any earlier child
+  ---
+  duration_ms: 0.337333
+  type: 'test'
+  ...
+# Subtest: buffered PUT supports absent conditionalCopy advertisement without upgrading it
+ok 14 - buffered PUT supports absent conditionalCopy advertisement without upgrading it
+  ---
+  duration_ms: 0.333
+  type: 'test'
+  ...
+# Subtest: streaming PUT rename creates destination without CopyObject capability
+ok 15 - streaming PUT rename creates destination without CopyObject capability
+  ---
+  duration_ms: 0.6135
+  type: 'test'
+  ...
+# Subtest: streaming PUT destination creation race retains both writers
+ok 16 - streaming PUT destination creation race retains both writers
+  ---
+  duration_ms: 0.672958
+  type: 'test'
+  ...
+# Subtest: streaming PUT rename replaces stable destination without CopyObject capability
+ok 17 - streaming PUT rename replaces stable destination without CopyObject capability
+  ---
+  duration_ms: 0.357583
+  type: 'test'
+  ...
+# Subtest: streaming PUT destination replacement race retains both writers
+ok 18 - streaming PUT destination replacement race retains both writers
+  ---
+  duration_ms: 0.274
+  type: 'test'
+  ...
+# Subtest: streaming PUT source replacement before GET produces no destination
+ok 19 - streaming PUT source replacement before GET produces no destination
+  ---
+  duration_ms: 0.308625
+  type: 'test'
+  ...
+# Subtest: streaming PUT changed source after publication survives conditional deletion
+ok 20 - streaming PUT changed source after publication survives conditional deletion
+  ---
+  duration_ms: 0.283292
+  type: 'test'
+  ...
+# Subtest: streaming PUT deletion failure reports acknowledged publication without rollback
+ok 21 - streaming PUT deletion failure reports acknowledged publication without rollback
+  ---
+  duration_ms: 0.258417
+  type: 'test'
+  ...
+# Subtest: streaming PUT lost publication acknowledgement never authorizes source deletion
+ok 22 - streaming PUT lost publication acknowledgement never authorizes source deletion
+  ---
+  duration_ms: 0.24225
+  type: 'test'
+  ...
+# Subtest: streaming PUT directory size preflight rejects before publishing any earlier child
+ok 23 - streaming PUT directory size preflight rejects before publishing any earlier child
+  ---
+  duration_ms: 0.29125
+  type: 'test'
+  ...
+# Subtest: streaming PUT supports absent conditionalCopy advertisement without upgrading it
+ok 24 - streaming PUT supports absent conditionalCopy advertisement without upgrading it
+  ---
+  duration_ms: 0.235291
+  type: 'test'
+  ...
+# Subtest: LIMIT copy: same-content ABA can delete a new source incarnation with matching ETag
+ok 25 - LIMIT copy: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.376041
+  type: 'test'
+  ...
+# Subtest: LIMIT copy: a new source child survives successful enumerated-key rename
+ok 26 - LIMIT copy: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 0.489333
+  type: 'test'
+  ...
+# Subtest: LIMIT buffered PUT: same-content ABA can delete a new source incarnation with matching ETag
+ok 27 - LIMIT buffered PUT: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.233042
+  type: 'test'
+  ...
+# Subtest: LIMIT buffered PUT: a new source child survives successful enumerated-key rename
+ok 28 - LIMIT buffered PUT: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 0.534667
+  type: 'test'
+  ...
+# Subtest: LIMIT streaming PUT: same-content ABA can delete a new source incarnation with matching ETag
+ok 29 - LIMIT streaming PUT: same-content ABA can delete a new source incarnation with matching ETag
+  ---
+  duration_ms: 0.443625
+  type: 'test'
+  ...
+# Subtest: LIMIT streaming PUT: a new source child survives successful enumerated-key rename
+ok 30 - LIMIT streaming PUT: a new source child survives successful enumerated-key rename
+  ---
+  duration_ms: 1.042417
+  type: 'test'
+  ...
+# Subtest: streaming PUT fallback abort closes a stalled source and never deletes or publishes
+ok 31 - streaming PUT fallback abort closes a stalled source and never deletes or publishes
+  ---
+  duration_ms: 4.323208
+  type: 'test'
+  ...
+# Subtest: streaming PUT fallback rejects success without full body consumption and closes source
+ok 32 - streaming PUT fallback rejects success without full body consumption and closes source
+  ---
+  duration_ms: 0.27675
+  type: 'test'
+  ...
+# Subtest: buffered fallback rejects missing source ETag before destination PUT
+ok 33 - buffered fallback rejects missing source ETag before destination PUT
+  ---
+  duration_ms: 0.196125
+  type: 'test'
+  ...
+# Subtest: streaming fallback rejects missing source ETag before destination PUT
+ok 34 - streaming fallback rejects missing source ETag before destination PUT
+  ---
+  duration_ms: 0.155417
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 142.462875

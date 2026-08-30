@@ -1,0 +1,11 @@
+finite.mjs exit=0
+fence.mjs exit=0
+recipe.mjs exit=0
+account.mjs exit=0
+whole-h11.mjs exit=0
+bridge.mjs exit=0
+collector.mjs exit=0
+synthetic.mjs exit=0
+future-recipe.mjs exit=0
+seal.mjs exit=0
+run-synthetic.mjs exit=0

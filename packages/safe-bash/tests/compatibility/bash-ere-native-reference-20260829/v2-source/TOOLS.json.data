@@ -1,0 +1,80 @@
+{
+  "schema": "functional-existing-tool-evidence-v1",
+  "priorReadinessTools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/provider-v1/bash-readiness-v1/TOOLS.json",
+    "bytes": 9204,
+    "sha256": "4c28e4a209e5a6277ae0ab807dc7f08a437b0e834906eb51086c9085fb3d141d"
+  },
+  "sourceBindings": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/CACHE-BINDING.json",
+      "object": "a93b71e71a5d4a21e29a05b705ca58d8ce6f722f",
+      "bytes": 4488,
+      "sha256": "3ec808fd077357d190021d096ae24e7785f9a1a37dcaf51f88a02ff97cd7e2e1"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/LOADER-GRAPH.json",
+      "object": "d0280494cf43129d0b786ee0ce609ebf3df4cd93",
+      "bytes": 74957,
+      "sha256": "a43776521a54462851a3ad91fd20a39375380ac5934df69c6e94c9fc085ae7c3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/TOOL-IDENTITIES.json",
+      "object": "80cd0d32f2105a8860ea7941d11b4ba820bd91ff",
+      "bytes": 10248,
+      "sha256": "2eb3cab6394677af2fcc11a07ebbdeed3dac530e02ac04edf48030be0d7d5ada"
+    }
+  ],
+  "bashLoadCommands": [
+    {
+      "path": "/bin/bash",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libncurses.5.4.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    }
+  ],
+  "qualifiedRuntimeLoaderGraph": false,
+  "currentCacheRehash": false,
+  "toolPins": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "environmentLauncher": {
+    "path": "/usr/bin/env",
+    "bytes": 102368,
+    "mode": 493,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+    "phase": "metadata-read-only-not-executed"
+  },
+  "fullArchive": {
+    "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+    "bytes": 864000,
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "membersVerified": 950,
+    "extracted": false,
+    "imported": false,
+    "sourceInputsRecomposed": false
+  }
+}

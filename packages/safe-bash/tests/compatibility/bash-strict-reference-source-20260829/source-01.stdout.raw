@@ -1,0 +1,133 @@
+GNU_5_3_15 builtins/set.def
+293: list_minus_o_opts (int mode, int reusable)
+374: 	    change_flag (o_options[i].letter, v);
+484:       return (EX_USAGE);
+495:       if ((previous_option_value = change_flag (o_options[i].letter, on_or_off)) == FLAG_ERROR)
+498: 	  return (EXECUTION_FAILURE);
+683: 	    return (EX_USAGE);
+687: 	    return (list_optopt == '?' ? EXECUTION_SUCCESS : EX_USAGE);
+715: 	      change_flag ('x', '+');
+716: 	      change_flag ('v', '+');
+741: 		      list_minus_o_opts (-1, (on_or_off == '+'));
+751: 		      list_minus_o_opts (-1, (on_or_off == '+'));
+763: 	      else if (change_flag (flag_name, on_or_off) == FLAG_ERROR)
+771: 		  return (EXECUTION_FAILURE);
+855: 	  return (EX_USAGE);
+864:       return (EXECUTION_FAILURE);
+1046:   return (any_failed ? (posix_utility_error ? EX_UTILERROR : EXECUTION_FAILURE) : EXECUTION_SUCCESS);
+GNU_5_3_15 expr.c
+167:   int noeval;
+179: static int	noeval;		/* set to 1 if no assignment to be done */
+196: static intmax_t	expr_streval (char *, int, struct lvalue *);
+198: static void	evalerror (const char *);
+248:     (X)->noeval = noeval; \
+260:     noeval = (X)->noeval; \
+272:     evalerror (_("expression recursion level exceeded"));
+300:       evalerror (_("recursion stack underflow"));
+327:   noeval = 0;	/* XXX */
+424:   noeval = 0;
+485:     evalerror (_("arithmetic syntax error in expression"));
+529: 	evalerror (_("attempted assignment to non-variable"));
+538: 	evalerror (_("arithmetic syntax error in variable assignment"));
+551: 	      if (noeval == 0)
+552: 		evalerror (_("division by 0"));
+600: 	      evalerror (_("bug: bad expassign token"));
+607:       if (noeval == 0)
+633:   int set_noeval;
+635:   set_noeval = 0;
+641: 	  set_noeval = 1;
+642: 	  noeval++;
+647: 	evalerror (_("expression expected"));
+651:       if (set_noeval)
+652: 	noeval--;
+654: 	evalerror (_("`:' expected for conditional expression"));
+656:       set_noeval = 0;
+659:  	  set_noeval = 1;
+660: 	  noeval++;
+665: 	evalerror (_("expression expected"));
+668:       if (set_noeval)
+669: 	noeval--;
+681:   int set_noeval;
+687:       set_noeval = 0;
+690: 	  noeval++;
+691: 	  set_noeval = 1;
+695:       if (set_noeval)
+696: 	noeval--;
+709:   int set_noeval;
+715:       set_noeval = 0;
+718: 	  set_noeval = 1;
+719: 	  noeval++;
+723:       if (set_noeval)
+724: 	noeval--;
+911: 	  if (noeval == 0)
+917: 	      evalerror (_("division by 0"));
+GNU_5_3_15 subst.c
+329: static arrayind_t array_length_reference (const char *);
+340: static void parameter_brace_expand_error (char *, char *, int);
+343: static intmax_t parameter_brace_expand_length (char *);
+7488: array_length_reference (const char *s)
+7502:   if ((var == 0 || invisible_p (var) || (assoc_p (var) == 0 && array_p (var) == 0)) && unbound_vars_is_error)
+7514:       err_unboundvar (s);
+8216: parameter_brace_expand_error (char *name, char *value, int check_null)
+8241: /* Return 1 if NAME is something for which parameter_brace_expand_length is
+8258: parameter_brace_expand_length (char *name)
+8301:     number = array_length_reference (name + 1);
+8306:       if (t == 0 && unbound_vars_is_error)
+8321: 	  if (t == 0 && unbound_vars_is_error)
+8343: 		number = parameter_brace_expand_length (newname);
+8347:       else if (var == 0 && unbound_vars_is_error == 0)
+9944:       number = parameter_brace_expand_length (name);
+9945:       if (number == INTMAX_MIN && unbound_vars_is_error)
+9948: 	  err_unboundvar (name+1);
+10165:       if (var_is_set == 0 && unbound_vars_is_error && ((name[0] != '@' && name[0] != '*') || name[1]) && all_element_arrayref == 0)
+10168: 	  err_unboundvar (name);
+10414: 	      parameter_brace_expand_error (name, value, check_nullness);
+10502:       if (unbound_vars_is_error && temp1 == (char *)NULL)
+10508: 	  err_unboundvar (uerror);
+10544: 	  if (unbound_vars_is_error && (pflags & PF_IGNUNBOUND) == 0)
+10550: 	      err_unboundvar (uerror);
+10571:       if (list == 0 && unbound_vars_is_error && (pflags & PF_IGNUNBOUND) == 0)
+10577: 	  err_unboundvar (uerror);
+10703:       if (list == 0 && unbound_vars_is_error && (pflags & PF_IGNUNBOUND) == 0)
+10709: 	  err_unboundvar (uerror);
+10965: 	  if (temp == 0 && unbound_vars_is_error)
+10992: 	      if ((tdesc == 0 || tdesc->word == 0) && unbound_vars_is_error)
+11024:       if (unbound_vars_is_error)
+11027: 	  err_unboundvar (temp1);
+11037:       return ((unbound_vars_is_error && interactive_shell == 0)
+GNU_5_3_15 error.c
+50: extern int executing_line_number (void);
+61: static void error_prolog (int);
+74: error_prolog (int print_lineno)
+80:   line = (print_lineno && interactive_shell == 0) ? executing_line_number () : -1;
+110:   if (name == 0 && shell_name && *shell_name)
+111:     name = base_pathname (shell_name);
+174:   error_prolog (1);
+195:   error_prolog (0);
+207: internal_error (const char *format, ...)
+211:   error_prolog (1);
+226:   error_prolog (1);
+242:   error_prolog (1);
+260:   error_prolog (1);
+281:   error_prolog (0);
+293: 	shell_name: input file name: line number: message
+447: err_unboundvar (const char *s)
+461:   internal_error (_("`%s': not a valid identifier"), s);
+FROZEN_PRODUCT runtime
+212:   nounset?: boolean;
+283: class NounsetFailure extends ExpansionFailure {}
+285: class NounsetDiagnosticFailure extends Flow {
+976:           if (error instanceof NounsetDiagnosticFailure) throw error.reason;
+1059:     if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
+1332:       if (error instanceof NounsetDiagnosticFailure) {
+1470:       if (error instanceof NounsetDiagnosticFailure) throw error;
+1504:     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
+1584:       if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
+1595:       if (error instanceof NounsetFailure) {
+1600:           diagnosticFailure = new NounsetDiagnosticFailure(reason);
+1701:           if (error instanceof NounsetFailure) throw error;
+3225:         if (flags && (!named || name === "pipefail" || name === "errexit" || name === "nounset")) {
+3229:             else if (flag === "u" || flag === "o" && name === "nounset") state.nounset = enabled;
+3236:           await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+3245:       await writeText(stderr, "set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
+3532:       : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}`

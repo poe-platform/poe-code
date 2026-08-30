@@ -1,0 +1,202 @@
+{
+  "args": [
+    "-f",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work/observer/observer.sb",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/observer-probe.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work/observer/config.json"
+  ],
+  "policy": "(version 1)\n(allow default)\n(deny file-write*)\n(allow file-write* (subpath \"/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work/observer\") (literal \"/dev/null\"))\n(deny network*)\n(deny process-exec)\n(allow process-exec (literal \"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\") (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/git\") (literal \"/bin/ps\"))\n",
+  "stdout": "{\"controls\":[{\"id\":\"inner-ps-and-write-fences\",\"status\":\"PASS\",\"evidence\":{\"ps\":{\"status\":null,\"error\":\"EPERM\"},\"writeError\":\"EPERM\"}},{\"id\":\"foreign-pid-registration-refused\",\"status\":\"PASS\",\"evidence\":{\"message\":\"observer accepts only actual direct children of its owned requester\\n\\n29646 !== 30678\\n\"}},{\"id\":\"unknown-handle-refused\",\"status\":\"PASS\",\"evidence\":{\"message\":\"unknown observation capability\"}},{\"id\":\"wrong-channel-token-refused\",\"status\":\"PASS\",\"evidence\":{\"message\":\"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'independent-wrong-token'\\n- 'e4747050-5d9a-4bb4-94e4-8658b5131d1f'\\n\"}},{\"id\":\"positive-exact-backslash-and-contained-link\",\"status\":\"PASS\",\"evidence\":{\"result\":{\"status\":0,\"signal\":null,\"closed\":true,\"stderrBytes\":0,\"survivors\":[],\"entries\":6,\"bytes\":74,\"transferBytes\":371,\"hashes\":{\"ordinary\":\"c66850e65f543eb51801432a07c3114c1a2d448c132f9177282973a8b9ed08d6\",\"contained\":\"03822375f2aca5e53d66838a3e803183e0c1a7921da8e4056d3341ea95777cd9\",\"tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\\\slash\":\"3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d\",\"tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\\\slash\":\"3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d\",\"literal\\\\name\":\"fe6195ddef72414a1c4640265fbde5e1e68f8ecf4423d5197d924fc68605d6a2\",\"literal-link\":\"77be8c89b3a74301e778527d628aeaf459545d91fe3be63e12504b753b91cd21\"},\"method\":\"validated declared Git blobs streamed directly; no tar headers or extraction filters\"},\"archive\":{\"files\":{\"ordinary\":{\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"sha256\":\"c66850e65f543eb51801432a07c3114c1a2d448c132f9177282973a8b9ed08d6\",\"bytes\":28,\"mode\":420,\"symlink\":false},\"contained\":{\"blob\":\"1dc8238bd238e49120ab4aad8afc4f037732ca83\",\"sha256\":\"03822375f2aca5e53d66838a3e803183e0c1a7921da8e4056d3341ea95777cd9\",\"bytes\":8,\"mode\":493,\"symlink\":true},\"tests/commands/filesystem-inspection-stress/tree/evidence/final-436bda3/harness/derived/native-fixtures/controls/back\\\\slash\":{\"blob\":\"63d8dbd40c23542e740659a7168a0ce3138ea748\",\"sha256\":\"3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d\",\"bytes\":1,\"mode\":420,\"symlink\":false},\"tests/commands/filesystem-inspection-stress/tree/sealed/native-fixtures/controls/back\\\\slash\":{\"blob\":\"63d8dbd40c23542e740659a7168a0ce3138ea748\",\"sha256\":\"3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d\",\"bytes\":1,\"mode\":420,\"symlink\":false},\"literal\\\\name\":{\"blob\":\"56724d12d722a5900d786f17622c355317b8f647\",\"sha256\":\"fe6195ddef72414a1c4640265fbde5e1e68f8ecf4423d5197d924fc68605d6a2\",\"bytes\":24,\"mode\":420,\"symlink\":false},\"literal-link\":{\"blob\":\"c4a5493cce42252251214a254b37fe046267cc6c\",\"sha256\":\"77be8c89b3a74301e778527d628aeaf459545d91fe3be63e12504b753b91cd21\",\"bytes\":12,\"mode\":493,\"symlink\":true}},\"count\":6,\"source\":\"exact committed input and directory sets, streamed Git blob/SHA256/mode/type authentication\"},\"pathProfile\":{\"platform\":\"darwin\",\"arch\":\"arm64\",\"syntax\":\"posix\",\"separator\":\"/\"}}},{\"id\":\"traversal\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"../ESCAPED\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":28}]},\"refusal\":{\"message\":\"The expression evaluated to a falsy value:\\n\\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"git-metadata\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\".git/config\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":28}]},\"refusal\":{\"message\":\"The expression evaluated to a falsy value:\\n\\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"duplicate-entry\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"ordinary\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":28},{\"path\":\"ordinary\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":28}]},\"refusal\":{\"message\":\"The expression evaluated to a falsy value:\\n\\n  assert.ok(!seen.has(entry.path))\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"link-ancestor\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"contained\",\"mode\":\"120000\",\"blob\":\"1dc8238bd238e49120ab4aad8afc4f037732ca83\",\"bytes\":8},{\"path\":\"contained/child\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":28}]},\"refusal\":{\"message\":\"symlink ancestor is not an extraction directory\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"wrong-platform\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"ordinary\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":28}],\"pathProfile\":{\"platform\":\"win32\",\"arch\":\"arm64\",\"syntax\":\"posix\",\"separator\":\"/\"}},\"refusal\":{\"message\":\"only the pinned POSIX archive path profile is supported\\n+ actual - expected\\n\\n  {\\n    arch: 'arm64',\\n+   platform: 'win32',\\n-   platform: 'darwin',\\n    separator: '/',\\n    syntax: 'posix'\\n  }\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"wrong-size-header\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"ordinary\",\"mode\":\"100644\",\"blob\":\"a76db6d0092895bbc2b2d72e9e0d5c0477f27797\",\"bytes\":29}]},\"refusal\":{\"message\":\"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'a76db6d0092895bbc2b2d72e9e0d5c0477f27797 blob 28'\\n- 'a76db6d0092895bbc2b2d72e9e0d5c0477f27797 blob 29'\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"missing-object-header\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"ordinary\",\"mode\":\"100644\",\"blob\":\"0000000000000000000000000000000000000000\",\"bytes\":28}]},\"refusal\":{\"message\":\"Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ '0000000000000000000000000000000000000000 missing'\\n- '0000000000000000000000000000000000000000 blob 28'\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":false}},{\"id\":\"escaping-link\",\"status\":\"PASS\",\"evidence\":{\"input\":{\"entries\":[{\"path\":\"escape\",\"mode\":\"120000\",\"blob\":\"530908c64177608e5adf9d4628484bd63ca6cf44\",\"bytes\":10}]},\"refusal\":{\"message\":\"The expression evaluated to a falsy value:\\n\\n  assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\\\\0'))\\n\",\"code\":\"ERR_ASSERTION\"},\"destinationExists\":true}}],\"loads\":[{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/transport.mjs\",\"sha256\":\"c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/policy.mjs\",\"sha256\":\"23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/inventory.mjs\",\"sha256\":\"075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/process-observer.mjs\",\"sha256\":\"b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12\"},{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/supervise.mjs\",\"sha256\":\"0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55\"}]}\n",
+  "stderr": "",
+  "result": {
+    "status": 0,
+    "signal": null
+  },
+  "forced": false,
+  "observed": {
+    "root": {
+      "pid": 30678,
+      "parent": 29646,
+      "group": 30678,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/observer-probe.mjs /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work/observer/config.json"
+    },
+    "groups": [
+      {
+        "pid": 30689,
+        "parent": 30678,
+        "group": 30689,
+        "born": "Thu Aug 27 22:41:39 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 30703,
+        "parent": 30678,
+        "group": 30703,
+        "born": "Thu Aug 27 22:41:39 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 30709,
+        "parent": 30678,
+        "group": 30709,
+        "born": "Thu Aug 27 22:41:39 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 30718,
+        "parent": 30678,
+        "group": 30718,
+        "born": "Thu Aug 27 22:41:40 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      }
+    ],
+    "events": [
+      {
+        "id": "a5498d61-9560-4f92-8773-a634eaf94a8c",
+        "action": "register",
+        "error": "observer accepts only actual direct children of its owned requester\n\n29646 !== 30678\n"
+      },
+      {
+        "id": "369c2432-eec7-44e1-bc86-abcf3169a868",
+        "action": "members",
+        "error": "unknown observation capability"
+      },
+      {
+        "id": "21cabd05-d360-40d3-a617-a1dd80515ee2",
+        "action": "register",
+        "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'independent-wrong-token'\n- 'e4747050-5d9a-4bb4-94e4-8658b5131d1f'\n"
+      },
+      {
+        "id": "b9dd2595-3ebf-4f6d-bbb3-775c0fe755cc",
+        "action": "register",
+        "result": {
+          "handle": "c3e65228-1ce6-4e52-beee-42f13774152e",
+          "identity": {
+            "pid": 30689,
+            "parent": 30678,
+            "group": 30689,
+            "born": "Thu Aug 27 22:41:39 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          }
+        }
+      },
+      {
+        "id": "e7ecc778-3352-4671-8c54-8b2de77efca0",
+        "action": "members",
+        "result": {
+          "identity": {
+            "pid": 30689,
+            "parent": 30678,
+            "group": 30689,
+            "born": "Thu Aug 27 22:41:39 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          },
+          "members": []
+        }
+      },
+      {
+        "id": "ec22bb61-af57-41d9-b3d5-405600412d21",
+        "action": "register",
+        "result": {
+          "handle": "ac8d6446-5cee-48f8-9ed5-9db45d312f9d",
+          "identity": {
+            "pid": 30703,
+            "parent": 30678,
+            "group": 30703,
+            "born": "Thu Aug 27 22:41:39 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          }
+        }
+      },
+      {
+        "id": "b8cbb0a4-cb46-426b-8cf8-1966bdfe6052",
+        "action": "members",
+        "result": {
+          "identity": {
+            "pid": 30703,
+            "parent": 30678,
+            "group": 30703,
+            "born": "Thu Aug 27 22:41:39 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          },
+          "members": []
+        }
+      },
+      {
+        "id": "00772d3f-384f-43de-9bc1-136e58eda534",
+        "action": "register",
+        "result": {
+          "handle": "6cde819f-96ff-4a97-9f2a-325348e02320",
+          "identity": {
+            "pid": 30709,
+            "parent": 30678,
+            "group": 30709,
+            "born": "Thu Aug 27 22:41:39 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          }
+        }
+      },
+      {
+        "id": "477402b9-43a5-4c9e-b50d-646d2af379fb",
+        "action": "members",
+        "result": {
+          "identity": {
+            "pid": 30709,
+            "parent": 30678,
+            "group": 30709,
+            "born": "Thu Aug 27 22:41:39 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          },
+          "members": []
+        }
+      },
+      {
+        "id": "79f99cc7-8646-4adb-965c-3402b5a690d8",
+        "action": "register",
+        "result": {
+          "handle": "cd20a94d-f1da-4c9e-823b-21a46d6ff922",
+          "identity": {
+            "pid": 30718,
+            "parent": 30678,
+            "group": 30718,
+            "born": "Thu Aug 27 22:41:40 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          }
+        }
+      },
+      {
+        "id": "ddbc5118-440e-44ae-9349-8469bd138118",
+        "action": "members",
+        "result": {
+          "identity": {
+            "pid": 30718,
+            "parent": 30678,
+            "group": 30718,
+            "born": "Thu Aug 27 22:41:40 2026",
+            "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+          },
+          "members": []
+        }
+      }
+    ],
+    "survivors": [],
+    "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+  },
+  "foreignBefore": {
+    "pid": 30675,
+    "parent": 29646,
+    "group": 30675,
+    "born": "Thu Aug 27 22:41:39 2026",
+    "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+  },
+  "foreignAfter": {
+    "pid": 30675,
+    "parent": 29646,
+    "group": 30675,
+    "born": "Thu Aug 27 22:41:39 2026",
+    "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+  },
+  "forbiddenExists": false
+}

@@ -1,0 +1,193 @@
+{
+  "schema": "SEMANTIC_STOP_PUBLICATION_V1",
+  "createdAt": "2026-08-29T06:06:04.011Z",
+  "grantCommit": "2ea9666fc2e955c919f90a783b6c1f674963ac0f",
+  "authCommit": "56da0c0345ab8c04ec03e99ab8a6abf92b32aa6b",
+  "status": "UNSAFE_STOP",
+  "attemptConsumed": true,
+  "sourceUnchanged": true,
+  "actualEngineOpsStopped": true,
+  "counts": {
+    "plannedWorkers": 99,
+    "launchedWorkers": 2,
+    "qualifiedCapturedRows": 1,
+    "unsafeStoppedRows": 1,
+    "unlaunchedRows": 97,
+    "unqualifiedIdentities": 98,
+    "observedSemanticExecAttempts": 2,
+    "observedEmptySetups": 1,
+    "observedC11": 0,
+    "runtimeOSProcesses": 11,
+    "administrativeChildrenBeforePublication": 16,
+    "finalPublicationChildren": 3,
+    "finalNewOwnedOSProcesses": 30,
+    "processCap": 336,
+    "peakBound": 5,
+    "existingExternalToolService": {
+      "pid": 21303,
+      "countedAsNewOwnedOSProcess": false,
+      "reason": "Pre-existing execution-tool service, not launched by this task and not an additional waiting parent of actual capture-owner route"
+    }
+  },
+  "closedAdministrationChildren": [
+    {
+      "ordinal": 1,
+      "pid": 22201,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 2,
+      "pid": 23137,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 3,
+      "pid": 23138,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 4,
+      "pid": 24875,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 5,
+      "pid": 26571,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 6,
+      "pid": 27180,
+      "file": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 7,
+      "pid": 27181,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 8,
+      "pid": 27184,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 9,
+      "pid": 27672,
+      "file": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 10,
+      "pid": 27673,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 11,
+      "pid": 27675,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 12,
+      "pid": 27678,
+      "file": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 13,
+      "pid": 33431,
+      "file": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    },
+    {
+      "ordinal": 14,
+      "pid": 40934,
+      "file": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+      "exit": 0,
+      "signal": null,
+      "closed": true
+    }
+  ],
+  "retiredRuntimePids": [
+    28200,
+    28203,
+    28204,
+    28372,
+    28574,
+    28216,
+    28217,
+    28453,
+    28456,
+    28577,
+    28578
+  ],
+  "retiredWrapperPids": [
+    28201,
+    28202
+  ],
+  "partitionBeforePublication": {
+    "body": {
+      "files": 14,
+      "bytes": 1364163,
+      "maxPhysicalRecord": 262144
+    },
+    "collector": {
+      "files": 3,
+      "bytes": 6984,
+      "maxPhysicalRecord": 4798
+    },
+    "outer": {
+      "files": 6,
+      "bytes": 2824,
+      "maxPhysicalRecord": 1763
+    },
+    "administration": {
+      "files": 16,
+      "bytes": 298193,
+      "maxPhysicalRecord": 155205
+    }
+  },
+  "working": {
+    "retainedStageBytes": 143592389,
+    "newEvidenceBytesBeforePublication": 1672164,
+    "cap": 805306368
+  },
+  "elapsedAtPublicationMs": 588228,
+  "deadlineEpochMs": 1787988375784,
+  "finalTail": "Three exact Git metadata children: add explicit paths, commit --only same paths, scoped status. Their raw output/PIDs/exit/close preserved in tool transport; no recursive self-hash. No further runtime operation."
+}

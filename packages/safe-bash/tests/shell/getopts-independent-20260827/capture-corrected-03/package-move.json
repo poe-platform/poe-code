@@ -1,0 +1,30 @@
+{
+  "from": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-corrected-03/staging-package",
+  "to": "/Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/scratch-corrected-03/moved-virtual-bash",
+  "oldLocationAbsent": true,
+  "packageBefore": {
+    "dist": {
+      "type": "directory"
+    },
+    "dist/shell": {
+      "type": "directory"
+    },
+    "dist/shell/getopts.d.ts": {
+      "type": "file",
+      "bytes": 1754,
+      "sha256": "25f6cef9448d16e85ba1df757fde407da5aa22df5785d4ccf4f0ae56ac58546a"
+    },
+    "dist/shell/getopts.js": {
+      "type": "file",
+      "bytes": 9066,
+      "sha256": "e6c92f625e233c1a6994580cba6832e21bc2f397191f7d6476325c99b867bbe0"
+    },
+    "package.json": {
+      "type": "file",
+      "bytes": 4287,
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+    }
+  },
+  "reusedAuthenticatedOriginalBuild": true,
+  "rebuiltThisPhase": false
+}

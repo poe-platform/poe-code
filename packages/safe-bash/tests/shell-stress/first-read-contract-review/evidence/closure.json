@@ -1,0 +1,181 @@
+{
+  "finishedAt": "2026-08-27T09:27:16.926Z",
+  "pinStartedAt": "2026-08-27T09:13:05.261Z",
+  "currentHeadForContextOnly": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+  "currentForeignStatusForContextOnly": " M tests/stress/regex-execution/runtime-containment-final-review/evidence/journal.jsonl\n",
+  "dirtyArchives": [
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "sha256": "848b3e07aafefc67de77efccaa446904d9a1920cb158e094217c18e24a6a2762",
+      "archive": "preserved/src/commands/tree/arguments.ts.data"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "sha256": "163f2412e5fcca1dc0cd0ac7264beb29b8180efdd65c34fdff08f84a670471e1",
+      "archive": "preserved/src/commands/tree/io.ts.data"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "sha256": "2ebcf54d9804e7000bf3de4780d598b8b6bc157ee411c134dea5c62717738ef1",
+      "archive": "preserved/src/commands/tree/tree.ts.data"
+    }
+  ],
+  "scratchRemoved": true,
+  "nativeFixturesRemoved": [
+    "native-C3",
+    "native-C4",
+    "native-C5",
+    "native-C6",
+    "native-C7"
+  ],
+  "restore": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/restore.mjs"
+    ],
+    "pid": 57645,
+    "status": 0,
+    "signal": null,
+    "stdout": "{\"candidate\":\"/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/.scratch/candidate\",\"verifiedFiles\":227,\"head\":\"c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79\",\"dependencies\":\"Existing explicitly hash-checked dev tooling; no install\"}\n",
+    "stderr": "",
+    "sourceAndInputFilesHashVerified": 227,
+    "executionCasesRerun": 0
+  },
+  "maintainedSyntaxChecks": [
+    {
+      "path": "controls.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/controls.mjs"
+      ],
+      "pid": 58658,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "finalize.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/finalize.mjs"
+      ],
+      "pid": 58659,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "freeze.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/freeze.mjs"
+      ],
+      "pid": 58660,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "native.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/native.mjs"
+      ],
+      "pid": 58662,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "prepare.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/prepare.mjs"
+      ],
+      "pid": 58667,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "restore.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/restore.mjs"
+      ],
+      "pid": 58673,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "run-controls.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/run-controls.mjs"
+      ],
+      "pid": 58680,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "run-existing.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/run-existing.mjs"
+      ],
+      "pid": 58681,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "summarize.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/summarize.mjs"
+      ],
+      "pid": 58682,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "supervisor.mjs",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/supervisor.mjs"
+      ],
+      "pid": 58683,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "ownedTypeScript": [],
+  "ownedDiscoveredTests": [],
+  "canonicalInventory": "Only maintained .mjs harnesses, syntax checked. Archived source/test/native payloads use .data/.bash-data; temporary TS execution tree removed. Root config unchanged.",
+  "lifecycle": "All recorded supervised runs reaped/drained with no residual group, no sent kill or SIGSTOP. No persistent owned server/worker. Root must independently verify leaf CLOSED after return.",
+  "scope": "No global quiescence, release qualification, 72-hour completion or other-owner acceptance claim."
+}

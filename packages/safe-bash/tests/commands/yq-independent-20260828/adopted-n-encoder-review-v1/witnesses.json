@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "state": "prepared-static-expectations-not-executed",
+  "args": ["-o", "json", "-c", "."],
+  "source": "explicit-stdin",
+  "framingLfHex": "0a",
+  "acceptDefaults": {"status": 0, "stderrUtf8": ""},
+  "refuseDefaults": {"status": 5, "stdoutUtf8": "", "exactDiagnosticSuffix": "pending-truthful-parser-location"},
+  "witnesses": [
+    {
+      "id": "W01", "decision": "N1", "inputUtf8": "{\"copper\n    finch\": 4}\n",
+      "expect": {"kind": "accept", "value": {"copper finch": 4}, "jsonPayloadUtf8": "{\"copper finch\":4}"}
+    },
+    {
+      "id": "W02", "decision": "N1", "inputUtf8": "{\"copper\n\n    finch\": 4}\n",
+      "expect": {"kind": "accept", "value": {"copper\nfinch": 4}, "jsonPayloadUtf8": "{\"copper\\nfinch\":4}"}
+    },
+    {
+      "id": "W03", "decision": "N1", "inputUtf8": "\"copper\n    finch\": 4\n",
+      "expect": {"kind": "refuse", "category": "input", "code": "INPUT_YAML_SYNTAX"}
+    },
+    {
+      "id": "W04", "decision": "N2", "inputUtf8": "10e-1147483647\n",
+      "expect": {"kind": "accept", "decimal": {"digits": "1", "exponent": -1147483646, "negative": false, "text": "1E-1147483646", "double": 0, "exactIntegral": false}, "canonicalAdmissionToken": "1e-1147483646", "jsonPayloadUtf8": "1E-1147483646"}
+    },
+    {
+      "id": "W05", "decision": "N2", "inputUtf8": "0e-1147483647\n",
+      "expect": {"kind": "refuse", "category": "schema", "code": "SCHEMA_DECIMAL_RANGE"}
+    },
+    {
+      "id": "W06", "decision": "N2", "inputUtf8": "3e-1147483647\n",
+      "expect": {"kind": "refuse", "category": "schema", "code": "SCHEMA_DECIMAL_RANGE"}
+    },
+    {
+      "id": "W07", "decision": "N2", "inputUtf8": "0e-99999999999999999999\n",
+      "expect": {"kind": "refuse", "category": "schema", "code": "SCHEMA_DECIMAL_RANGE"}
+    },
+    {
+      "id": "W08", "decision": "N3", "inputUtf8": "\"\\uD83E\\uDDED\"\n",
+      "expect": {"kind": "accept", "value": "🧭", "scalarHex": ["1f9ed"], "jsonPayloadUtf8": "\"🧭\"", "jsonPayloadHex": "22f09fa7ad22"}
+    },
+    {
+      "id": "W09", "decision": "N3-unpaired-high", "inputUtf8": "\"\\uD83E\"\n",
+      "expect": {"kind": "refuse", "category": "input", "code": "INPUT_YAML_SYNTAX"}
+    },
+    {
+      "id": "W10", "decision": "N3-unpaired-low", "inputUtf8": "\"\\uDDED\"\n",
+      "expect": {"kind": "refuse", "category": "input", "code": "INPUT_YAML_SYNTAX"}
+    },
+    {
+      "id": "W11", "decision": "N3-reversed", "inputUtf8": "\"\\uDDED\\uD83E\"\n",
+      "expect": {"kind": "refuse", "category": "input", "code": "INPUT_YAML_SYNTAX"}
+    },
+    {
+      "id": "W12", "decision": "N3-intervening", "inputUtf8": "\"\\uD83Ex\\uDDED\"\n",
+      "expect": {"kind": "refuse", "category": "input", "code": "INPUT_YAML_SYNTAX"}
+    },
+    {
+      "id": "W13", "decision": "N3-mismatched", "inputUtf8": "\"\\uD83E\\u0041\"\n",
+      "expect": {"kind": "refuse", "category": "input", "code": "INPUT_YAML_SYNTAX"}
+    },
+    {
+      "id": "W14", "decision": "N3-U-scalar", "inputUtf8": "\"\\U0001F9ED\"\n",
+      "expect": {"kind": "accept", "value": "🧭", "scalarHex": ["1f9ed"], "jsonPayloadUtf8": "\"🧭\"", "jsonPayloadHex": "22f09fa7ad22"}
+    },
+    {
+      "id": "W15", "decision": "N4", "inputUtf8": "!!float 7\n",
+      "expect": {"kind": "accept", "value": 7, "jsonPayloadUtf8": "7"}
+    },
+    {
+      "id": "W16", "decision": "N4", "inputUtf8": "!!int 7.0\n",
+      "expect": {"kind": "refuse", "category": "schema", "code": "SCHEMA_TAG_LEXEME_MISMATCH"}
+    },
+    {
+      "id": "W17", "decision": "NUL", "inputUtf8": "\"oak\\u0000elm\"\n",
+      "expect": {"kind": "accept", "value": "oak\u0000elm", "jsonPayloadUtf8": "\"oak\\u0000elm\"", "jsonPayloadHex": "226f616b5c7530303030656c6d22", "yamlPayloadUtf8": "\"oak\\u0000elm\"", "yamlPayloadHex": "226f616b5c7530303030656c6d22"}
+    },
+    {
+      "id": "W18", "decision": "NUL-literal-backslash", "inputUtf8": "'oak\\u0000elm'\n",
+      "expect": {"kind": "accept", "value": "oak\\u0000elm", "jsonPayloadUtf8": "\"oak\\\\u0000elm\"", "jsonPayloadHex": "226f616b5c5c7530303030656c6d22"}
+    }
+  ],
+  "negativeControls": [
+    {"id": "M-NUL", "target": "W17/W18", "mutations": ["replace W17 escape with \\0", "replace W17 escape with \\x00", "insert raw byte 00", "double the NUL escape backslash", "make W18 equal W17", "include framing LF inside payload"], "requiredDetection": "literal payload/hex/value/framing mismatch, not only a stale hash"},
+    {"id": "M-FLOW", "target": "W01/W02/W03", "mutations": ["W01 decoded key contains LF instead of space", "W02 decoded key contains space instead of LF", "reject W01 under blanket implicit-key rule", "accept W03 as a folded key"], "requiredDetection": "production-context or exact key/payload mismatch"},
+    {"id": "M-RANGE", "target": "W04/W05/W06/W07", "mutations": ["reject W04 before trailing-zero normalization", "encode W04 as zero", "accept W05 by zero clamping", "accept W06 after Decimal rounding", "accept W07 after losing raw exponent token"], "requiredDetection": "frozen numeric gate or nonzero Decimal payload mismatch"},
+    {"id": "M-PAIR", "target": "W08/W09/W10/W11/W12/W13/W14", "mutations": ["reject W08 before combining", "accept each refusal W09 through W13 separately", "change W14 scalar"], "requiredDetection": "scalar or literal-adjacency/refusal mismatch"},
+    {"id": "M-TAG", "target": "W15/W16", "mutations": ["reject W15 by implicit integer resolution", "accept W16 through numeric coercion"], "requiredDetection": "direct explicit lexical-family mismatch"},
+    {"id": "M-HISTORY", "target": "synthetic protected-tree inventory", "mutations": ["change one byte of an original cohort file", "add an extra filename inside a protected subtree", "delete an original file", "change an original file mode"], "requiredDetection": "tree/original-file integrity failure even when additive packet expectations remain identical"},
+    {"id": "M-RESOURCE", "target": "QB-F1/QB-F2 decision wording and synthetic state", "remainingSharedStepsAfterSeparatelyChargedEstimation": 1024, "copyOwnedUnits": 1024, "minimumAdditionalCheckpointCharges": 1, "requiredDecision": "whole-copy refusal before first copy; at least 1025 steps needed", "mechanismState": "pending-product-author-proposal", "mutations": ["accept a step(1024)-only reservation", "count estimation as free", "double-charge reserved copy units", "refund unused admission", "use another alias/document Budget", "permit query interleaving", "claim synchronous helper yields", "mark resource implementation accepted without proposal/evidence"], "requiredDetection": "resource invariant violation or premature-acceptance claim; no invented admission API"}
+  ]
+}

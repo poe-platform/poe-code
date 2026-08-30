@@ -1,0 +1,34 @@
+{
+  "label": "r1-H11-frozen",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs",
+    "H11"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:14:43.700Z",
+  "finishedAt": "2026-08-27T10:14:43.798Z",
+  "durationMs": 97.77916600000003,
+  "timeoutMs": 15000,
+  "maxBytes": 1048576,
+  "pid": 31209,
+  "initialIdentity": "31209 31093 31209 Thu Aug 27 05:14:43 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /tmp/safe-bash-owned-output-prototype-review-execution-e9I2ro/holdouts-r1.mjs H11",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"H11\",\"verdict\":\"PASS\",\"records\":[{\"pipefail\":false,\"beforeResponseRequestAborted\":false},{\"wireBase64\":\"SFRUUC8xLjEgMjAwIE9LDQpYLU93bmVkLVJldmlldzogZml4ZWQNCkNvbnRlbnQtTGVuZ3RoOiAxOA0KQ29ubmVjdGlvbjogY2xvc2UNCg0KYm9keS1vbmUKYm9keS10d28K\",\"capturedHeaders\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\"},{\"pipefail\":false,\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":0},\"producerStatus\":141,\"body\":\"body-one\\nbody-two\\n\",\"headers\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"expectedHeaders\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"events\":[\"request.started\",\"stdout.closed\",\"response.sent\",\"response.closed\"],\"stageLiveAtClose\":true,\"callerLiveAtClose\":true},{\"pipefail\":false,\"socketsAfterClose\":0},{\"subrun\":false,\"passed\":true},{\"pipefail\":true,\"beforeResponseRequestAborted\":false},{\"wireBase64\":\"SFRUUC8xLjEgMjAwIE9LDQpYLU93bmVkLVJldmlldzogZml4ZWQNCkNvbnRlbnQtTGVuZ3RoOiAxOA0KQ29ubmVjdGlvbjogY2xvc2UNCg0KYm9keS1vbmUKYm9keS10d28K\",\"capturedHeaders\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\"},{\"pipefail\":true,\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":141},\"producerStatus\":141,\"body\":\"body-one\\nbody-two\\n\",\"headers\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"expectedHeaders\":\"HTTP/1.1 200 OK\\r\\nX-Owned-Review: fixed\\r\\nContent-Length: 18\\r\\nConnection: close\\r\\n\\r\\n\",\"events\":[\"request.started\",\"stdout.closed\",\"response.sent\",\"response.closed\"],\"stageLiveAtClose\":true,\"callerLiveAtClose\":true},{\"pipefail\":true,\"socketsAfterClose\":0},{\"subrun\":true,\"passed\":true}]}\n",
+  "stderr": ""
+}

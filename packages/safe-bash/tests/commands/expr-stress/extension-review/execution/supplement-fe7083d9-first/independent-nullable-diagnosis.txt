@@ -1,0 +1,287 @@
+EXPR NULLABLE CAPTURE: READONLY DEFECT DIAGNOSIS
+Date: 2026-08-27 UTC. Report prepared after 17:17 UTC.
+Owner: delegated READONLY DEFECT-DIAGNOSIS LEAF. No delegation.
+Author remains sole production/current-test writer; root routes this report.
+
+BOTTOM LINE
+The original GNU9.7 difference is real and must remain a difference. It is
+not safely fixed by preferring empty captures, nor by rejecting the pattern
+and calling that native parity. There are two distinct observations:
+1. The product's program-counter-only epsilon-cycle guard prunes legitimate
+   repeated captures, including a longer overall match. This is a real engine
+   issue even where expr's returned first-capture bytes hide it.
+2. The pinned GNU9.7 implementation itself reports a partially open capture
+   register for the original aaa case. Its empty expr result is not evidence
+   that POSIX requires a terminal empty repetition to replace a nonempty one.
+   A POSIX-correct repeat fix and exact GNU9.7 bug compatibility are different
+   deliverables. No safe small GNU-profile parity patch was established here.
+
+OWNERSHIP / INPUT STATE
+Read ../AGENTS.md and repository AGENTS.md; inspected root/status/index.
+No repo writes, staging, commits, source changes, test changes, oracle changes,
+builds, dependency installation, independent frozen-answer inspection, or
+network writes. Read only the author-discovered pattern-12 slice from the
+author capture; did not inspect other workers' expected answers.
+All created artifacts are in /tmp/expr-nullable-review.VNLKcM plus this report.
+Manual files used apply_patch. No evidence commit: default no committed writes.
+
+Original author log: /tmp/expr-extension-author.log around line 14660.
+Actual generator: tests/commands/expr-author/regex-audit-cases.ts, pattern 12.
+Author capture: tests/commands/expr-author/regex-capture-kdugBl/results.json.
+Original capture time: 2026-08-27T17:12:00.380Z.
+Original recorded HEAD: cb940da68052a9f1ab7e115279900d277e051fdb.
+Original recorded bre-worker.ts SHA256:
+1109c0506cd2606cd2f5c13143683ff3ced53e98071d2412697cf8a47a5f0e1a
+This historical source was NOT recovered/reconstructed as an exact candidate.
+
+New direct expr capture: 2026-08-27T17:14:44.488Z to 17:14:45.373Z.
+HEAD observed at end: 92fe8a6335366b93cbc9a80d61fede69af711444.
+Dirty/untracked concurrent source; not a sealed candidate or full gate.
+Enumerated source hashes were unchanged during this short capture, not an
+append-proof tree assertion. Full before/after hashes and status: capture.json.
+The helper's client actually launches dist/commands/regex-execution/worker.js.
+Dist hashes were recorded only later, at 17:16:50.036Z, NOT before the helper
+capture. Consequently helper rows do NOT certify source/build correspondence.
+Separate diagnostic workers below transpile the exact retained source snapshot
+with installed TypeScript and avoid that dist ambiguity.
+
+SHA256, live read snapshot:
+src/commands/expr/bre-worker.ts
+f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0
+src/commands/expr/index.ts
+f4763994bb7b52cc15706bc4134600d2f3bfc4aaab54cf3929744336c04178c0
+src/commands/expr/internal.ts
+12ba86e1164d34a7fee89de4f8c1470fffa2fe624d26641584c08c9c96e90f56
+src/commands/regex-execution/protocol.ts
+3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1
+src/commands/regex-execution/client.ts
+dcd4ea63c2ea76d5c5007369f029d6b7788929c0473b84f54e65ea8243016b49
+src/commands/regex-execution/worker.ts
+a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6
+tests/commands/expr-author/regex-audit-cases.ts
+06eb8c20c6b1f24e96baa76c2be0eaec7087d7d0a14c4c8d25e4c5c9b3074a1f
+tests/commands/expr-author/regex-capture-kdugBl/results.json
+7e96970537744eefa44359524e04effbced33be652236bfbb0a0a83d19e13db7
+tests/commands/expr-author/regex-capture-kdugBl/summary.json
+4769358bb6c80c62f3e4f97be2f6c75a56c731cd44e7fe9417afac147aadf518
+
+NATIVE IDENTITY / EXACT COMMANDS
+Profile: Darwin 25.4.0 arm64, LC_ALL=C, Node v22.22.2.
+Not GNU/Linux evidence. Apple /bin/expr was not used.
+Binary:
+/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr
+Version first line: expr (GNU coreutils) 9.7
+SHA256: e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c
+Version output and exact bytes retained in capture.json. Pin checked before use.
+
+Literal BRE argv bytes: \(a*\)*\1
+JSON/TypeScript string: "\\(a*\\)*\\1"
+Exact argv: ["+", "aaa", ":", "\\(a*\\)*\\1"]
+Reproduction shell command (no interpolation in the BRE):
+LC_ALL=C /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr + aaa : '\(a*\)*\1'
+Tuple convention: (exitCode, stdoutHex, stderrHex).
+GNU: (1, "0a", ""); author original: (0, "610a", "").
+Native invocations used spawnSync without shell, owned temp cwd, env exactly
+{LC_ALL:"C"}, 2s deadline, 16KiB output cap, <=8 argv / <=256 characters.
+New native rows: original 11 subjects plus 25 closely related controls, total 36.
+No broad corpus expansion. Native data written exclusively with flag wx.
+
+ORIGINAL PATTERN-12 TUPLES (all stderr empty)
+subject       GNU status/stdoutHex     original author status/stdoutHex
+""            1 / 0a                  1 / 0a
+"a"           1 / 0a                  1 / 0a
+"aa"          0 / 610a                0 / 610a
+"aaa"         1 / 0a                  0 / 610a   ORIGINAL DIFFERENCE
+"b"           1 / 0a                  1 / 0a
+"ab"          1 / 0a                  1 / 0a
+"aba"         1 / 0a                  1 / 0a
+"abab"        1 / 0a                  1 / 0a
+"aab"         0 / 610a                0 / 610a
+"abb"         1 / 0a                  1 / 0a
+"ba"          1 / 0a                  1 / 0a
+All 11 fresh native tuples reproduce the original native data.
+The guarded helper now returns status 2, zero stdout bytes, and exact stderr
+"expr: unsupported BRE: backreference to a capture in nullable repetition\n"
+for every one of these 11 cases. That is 11 differences, not 11 parity passes.
+
+SUPPLEMENTAL NATIVE REGISTER OBSERVATION
+An independently authored 30-line C API probe calls the already-built local
+GNU regex archive; no GNU implementation was copied. This is supplemental
+instrumentation, not a replacement for the pinned expr binary above.
+Built with Apple clang 21.0.0 (clang-2100.1.1.101), target arm64-apple-darwin25.4.0:
+clang -I /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7 -I /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib /tmp/expr-nullable-review.VNLKcM/registers.c /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/libcoreutils.a -o /tmp/expr-nullable-review.VNLKcM/registers
+nm confirms defined _rpl_re_compile_pattern and _rpl_re_match, not Apple regex.
+otool reports only /usr/lib/libSystem.B.dylib as a dynamic dependency.
+Archive SHA256: 285645d4438ee034d06a8322954adc1ee48f3abc62e539cf7102a1107b42b977
+Local lib/regexec.c SHA256:
+5cf9d377abdcc8be6469690c9f9454f468257bd07200e37c23acaa4ee587944b
+Other header/config/source hashes are in register-capture.json. This is not
+a reproducible-build proof that archive and expr share identical build inputs.
+No claim that local source bytes equal the fetched upstream bytes.
+
+Command: /tmp/expr-nullable-review.VNLKcM/registers aaa '\(a*\)*\1'
+Result: {"length":3,"registers":[[0,3],[0,-1],[-1,-1]]}
+Thus this native empty expr result corresponds to an open/unfinished capture,
+not a valid empty interval [3,3], and not a failed overall match.
+For the same BRE:
+subject    overall length    first capture
+""         0                 [0,0]
+"a"        1                 [0,0]
+"aa"       2                 [0,1]
+"aaa"      3                 [0,-1]
+"aaaa"     4                 [0,2]
+"aaaaa"    5                 [0,-1]
+"aaaaaa"   6                 [0,3]
+These finite observations do not establish a general odd/even rule.
+Appending $ preserves the aaa malformed capture; appending b with subject
+aaab gives overall length 4 and capture [0,-1].
+
+PRIMARY SOURCE / NORMATIVE READING (web.run used 2026-08-27)
+[G1] Official GNU9.7 release announcement identifies coreutils commit
+8e075ff8ee11692c5504d8e82a48ed47a7f07ba9 and gnulib
+41e7b7e0d159d8ac0eb385964119f350ac9dfc3f:
+https://lists.gnu.org/archive/html/coreutils/2025-04/msg00025.html
+[G2] Tagged GNU9.7 expr source, docolon:
+https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/expr.c
+Uses GNU POSIX_BASIC with two flags cleared, calls re_match from position 0,
+and turns a negative first-capture end into the empty string. That explains
+the observed visible tuple without asserting a valid empty captured match.
+[G3] Tagged GNU9.7 manual, String expressions:
+https://raw.githubusercontent.com/coreutils/coreutils/v9.7/doc/coreutils.texi
+Documents anchored matching and returning the first captured substring, or
+empty on failed/noncontributing capture. It does not prescribe odd-length
+nullable-loop capture corruption as a dialect rule.
+[G4] Release-pinned gnulib regex execution source, set_regs, update_regs,
+proceed_next_node:
+https://raw.githubusercontent.com/coreutils/gnulib/41e7b7e0d159d8ac0eb385964119f350ac9dfc3f/lib/regexec.c
+Keeps capture-history snapshots, restores earlier registers for optional empty
+iterations, and reconstructs capture paths after overall matching. Its cycle
+exit and partially open register handling are relevant to the observed anomaly;
+I did not trace every native internal transition or prove its exact failing
+branch. Do not translate/copy this GPL/LGPL implementation into the product.
+[P1] Official POSIX Issue 6, XBD 9.1 and 9.3.6:
+https://pubs.opengroup.org/onlinepubs/009696899/basedefs/xbd_chap09.html
+[P2] Official POSIX Issue 7 (2018), XBD 9, available search extract:
+https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html
+[P3] Official POSIX Issue 8 rationale A.9.1 and A.9.3.6:
+https://pubs.opengroup.org/onlinepubs/9799919799/xrat/V4_xbd_chap01.html
+Required distinction: overall leftmost-longest, subexpression selection within
+that constraint, and backreference to the last participating repeated capture.
+P1 explicitly disallows gratuitous null repeated subexpressions except sole
+empty match or required minimum/exact occurrences. Empty and unmatched are
+different. P3 explains whole-match priority and context-dependent captures.
+The exact BRE here uses ordinary standard grouping, star, and backreference;
+it is not intrinsically invalid merely because the repeated group is nullable.
+
+Inference from those rules for aaa: group iterations [0,1] and [1,2], followed
+by backreference [2,3], give full length 3 and first capture "a". Returning an
+unfinished capture is not a POSIX-required alternative. For empty subject,
+participating empty capture with length-0 overall match must remain possible.
+For a, a terminal optional empty iteration after consuming a is not the rule
+that justifies replacing the prior nonempty capture; an empty overall match is
+available instead. Preserve GNU-profile observations separately, not as POSIX
+normative expected answers. This is a bounded inference, not universal parity.
+
+PRODUCT ROOT CAUSE / NEGATIVE EXPERIMENT
+Snapshot src/commands/expr/bre-worker.ts lines approximately 161-197 reject
+nullable repeated capture references. Lines 281-313 keep visited:number[];
+revisiting any program counter without a character consumed kills the state.
+The compile() repeat lowering has no per-iteration progress/capture frame.
+
+For this exact pattern its unguarded instructions are:
+0 outer split; 1 save-open; 2 inner split; 3 literal a; 4 jump 2;
+5 save-close; 6 jump 0; 7 backref1; 8 accept.
+After an inner iteration consumes a, exiting inner split 2 then entering the
+next outer iteration at the same input offset revisits split 2 with a different
+capture start. visited rejects it before it can consume another a. Similarly
+the first empty outer iteration returns to split 0 and is killed before taking
+the continuation with the newly participating empty capture.
+
+diagnostic.json records two OS-temp, non-candidate variants, both run inside
+actual Worker threads with explicit worker termination and bounded deadlines:
+A. unguarded: remove only validateCaptureRepetition() call from retained source.
+B. captureAwareCycleOnly: additionally key visited by program+capture slots.
+No product source edited; transpilation is diagnostic only, not a build.
+
+Selected results (overall/capture are half-open byte intervals):
+case                            A                     B
+original BRE / empty            no match              [0,0] / [0,0]
+original BRE / a                no match              [0,1] / [1,1]
+original BRE / aa               [0,2] / [0,1]         [0,2] / [2,2]
+original BRE / aaa              [0,2] / [0,1]         [0,3] / [3,3]
+no backref '\(a*\)*' / aaa      [0,3] / [0,3]         [0,3] / [3,3]
+A reproduces original visible a on aaa but underconsumes: not a correct
+whole-match result. B turns aaa green against expr bytes alone, but breaks aa
+and even the no-backreference control; it is NOT a fix.
+
+MINIMAL PROPOSAL FOR AUTHOR, NOT AN IMPLEMENTED/PASSING PATCH
+Keep changes confined to bre-worker.ts if undertaking the semantic fix:
+1. Preserve repeat identity and iteration entry offset in the lowering/executor,
+   plus branch-local capture snapshot and required/optional iteration count.
+   Backtracking must restore these frames together with captures.
+2. Admit a new productive iteration even when it revisits a program counter at
+   the current offset with different capture history. A loop-local progress
+   boundary or capture/frame-aware epsilon state is necessary; pc alone is not.
+3. On zero-progress repeat completion, exit that repeat rather than killing the
+   whole continuation or blindly looping. Permit the initial sole empty match
+   and enough mandatory empty iterations to meet the minimum. Do not overwrite
+   prior productive captures with an additional gratuitous optional empty
+   iteration; restore affected nested capture slots when abandoning it.
+4. Keep completed, empty, and nonparticipating captures distinct. Choose maximal
+   overall extent first, then correct capture-history precedence among valid
+   paths. Merely changing first-accept/last-accept tie preference is insufficient.
+5. Charge frame/capture copies and comparisons to Work allocation/steps/states;
+   maintain existing cancellation/worker protocol/limits. Never clear visited
+   indiscriminately or remove loop protection.
+This is the minimum structural direction for this cause, not a claim that a
+fully general POSIX submatch-ordering algorithm was implemented or verified.
+It should produce aaa length 3/capture a; it will NOT reproduce GNU9.7's
+unfinished first capture. Exact GNU9.7 parity would need separately specified
+and narrowly qualified compatibility behavior, not a hardcoded odd-length rule.
+I cannot justify a safe generic GNU-profile change from this bounded evidence.
+
+REQUIRED NEGATIVE CONTROLS (already captured natively, no new corpus request)
+* '\(a*\)*\1' / aa: GNU (0,610a,empty); must not become empty.
+* '\(a*\)*' / aaa: GNU (0,6161610a,empty); terminal empty must not erase aaa.
+* '\(a*\)\1' / aaa: GNU overall 2/capture a; no repeated-group case.
+* '\(a\)*\1' / aaa: GNU overall 3/capture [1,2]; nonnullable repetition.
+* '\(a*\)\{2\}\1' / empty,a,aa,aaa: GNU visible empty, supplemental
+  native overall -1; product unguarded mandatory-empty behavior differs
+  internally despite same visible output. Do not erase mandatory-empty support
+  just to copy the native anomaly or confuse no-match with empty-match.
+* '\(a*\)\{1,3\}\1' / aaa: GNU overall 2/capture a; repetition lowering
+  changes observed native history. No extrapolation from unbounded star.
+* Original BRE plus $ / aaa and plus b / aaab retain native [0,-1] anomaly.
+
+CURRENT REFUSAL / HONEST LIMIT
+validateCaptureRepetition currently rejects any referenced group nested inside
+a repeat with maximum>1 whose child is classified nullable, including fixed
+minimum repetitions, nested groups, and conservative nullable backreferences.
+That is broader than the exact discovered '\(a*\)*\1' tuple. It can be an
+explicit documented limitation while unresolved, but must stay in the original
+native denominator as unsupported/different, never recategorized as parity.
+Do not silently remove the native case, revise its expected bytes, or claim
+general nullable-capture support. Root/author must decide GNU compatibility vs
+normative semantics explicitly; this leaf did not change the contract.
+
+EVIDENCE / CLEANUP
+Owned directory: /tmp/expr-nullable-review.VNLKcM
+capture.mjs: explicit 36-case native/helper driver; capture.json: immutable data.
+bre-worker.observed.ts: exact retained dirty source, not a sealed candidate.
+registers.c / registers: own supplemental GNU API driver/binary.
+register-capture.json: native register rows and oracle source/header hashes.
+diagnostic.mjs / protocol.mjs / unguarded.mjs / captureAwareCycleOnly.mjs:
+temporary diagnostic harness/transpilation only.
+diagnostic.json: exact module hashes, results and late dist identity caveat.
+integrity.json: final owned-artifact hashes and post-read oracle/source checks.
+No repo files created, so no --only commit made. Native and diagnostic children
+settled; both diagnostic Workers were explicitly terminated. Diagnostic harness
+emitted MaxListenersExceededWarning from its accumulating once(error) listeners;
+the finite workers terminated successfully. This is a harness-only limitation,
+not evidence of a product listener leak. An initial metadata capture attempt
+looked for config.h at oracle root, failed ENOENT after probes, and wrote no
+capture file; the successful explicit capture uses lib/config.h.
+Retain this owned temp directory for root review; no shared artifacts deleted.
+Captured evidence and this report are made read-only after finalization.
+No claim of full support, sealed-candidate qualification, GNU/Linux parity,
+superiority, or completion beyond this bounded diagnosis.

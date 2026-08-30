@@ -1,0 +1,15 @@
+{
+  "started": "2026-08-27T06:20:37.527Z",
+  "finished": "2026-08-27T06:20:44.091Z",
+  "command": "npm",
+  "args": [
+    "run",
+    "typecheck"
+  ],
+  "status": 0,
+  "signal": null,
+  "stdoutSha256": "1fdde720d88bceb0944ea367ca22ed421eb773fe2037128aef9cf9646f975e47",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceChangedDuringRun": [],
+  "afterHead": "558d00cd8351f11c9efcbc1895da52f53cbaabd1"
+}

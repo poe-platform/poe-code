@@ -1,0 +1,4 @@
+fresh publication authorization: 10min / 24 known OS starts / peak2; this shell is start P01; no historical process probes
+P01 instruction read completed; instructions printed only as context, not copied to evidence
+P02 shell pid=20862; replacing shell with apply_patch for publication-only helper and handoff; no source edit
+P03 shell pid=21611; publication helper environment correction via apply_patch; then exec Node coordinator (same PID boundary)

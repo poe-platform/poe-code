@@ -1,0 +1,233 @@
+{
+  "role": "SOURCE_DATA_BINDINGS_NOT_BUILD_RECEIPT",
+  "rootStatements": {
+    "engineVersionTarget": "GNU Bash 5.3.15",
+    "oldFencedSIGABRT": "HOLD cause unproved; not investigated or rescored",
+    "native37": "separate trusted-host history per ROOT; not replayed"
+  },
+  "artifacts": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "78fe551a06d90351c57c1a53a5cb03ed038f2a45",
+      "bytes": 6656,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/HANDOFF.md",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "0e1619d65847db10a31d1fd155336ae0f14e11b039326f25e148a0824446f066"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "922efd9b3e88481b1297e503cc2eed4c4dddf797",
+      "bytes": 6716,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/BUILD-PROPOSAL.md",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "758c76115391f23a32fa66d4a3632c872c3a6a12a8f0f1e7bfde9881b00f3e21"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "bbf506be03e59e1316551d66d1489bd71df2ef80",
+      "bytes": 8047,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/BUILD-RECIPE-DETAILS.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "e39da121bc87a688f533723c160ee09563c28fc7c9a05567ab07e69db5afd597"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f6f77022541008ee93f37f451ad12e82c51c4e5c",
+      "bytes": 10977,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/PROFILE-P2.md",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "7920649b610022066e573786abfa1a62b77f716423bde0649cd51187fed0a4ac"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "5ffce038bbe99e7f859621da5aa5b50d931a344b",
+      "bytes": 1516,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/HANDOFF.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "521e7a108266e9de21541e39d6056ec5eeebad2eceb9c7b1053ef0064c340b01"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "fad6344388e7bd695dc8036efa6c9d0bc8741989",
+      "bytes": 196623,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/BUILD-FENCE-PROFILE-P2.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "83a79cdbe5a387ddc95f72a74011639743847daa0ee056296a386bfe5deaea68"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "3542f9cc69bb948fd2430467ee1eff77bcd1d332",
+      "bytes": 101613,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/GENERATED-SOURCE-BINDINGS.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "eed9ced93a354c6fc62495c5e3a1af4860b2fd462553f58e771fbb1def8867d9"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a3eac9828e2e9a1a864c162ba28acb3094d9047c",
+      "bytes": 76902,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/RESULT.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "e0a768a121944893b71718149be3aa867c54f727586fdbe95fa159e1f6790b38"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "139a6476bb1821cb74d18bf3b4e5fe5c71b9423d",
+      "bytes": 365787,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/FINAL-SOURCE-INVENTORY.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "a09a69e158ef9bd277f39e05688d9b4f44a708d61f7e6d164d8463a8c3162cc6"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "2b8296977adc84f00f9d9d59f3523a28e4c1fb9d",
+      "bytes": 14167,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/BUILD-SOURCE-OBSERVATIONS.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "e71afc5376a04a89987948b785fc53688928f6f2bf8173a07a8a2b65b26c2d43"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "80cd0d32f2105a8860ea7941d11b4ba820bd91ff",
+      "bytes": 10248,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/closure-preparation-v1/RUN-01/TOOL-IDENTITIES.json",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "2eb3cab6394677af2fcc11a07ebbdeed3dac530e02ac04edf48030be0d7d5ada"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "aaf16fd29e327f63db7c4c02a0be14e7860911be",
+      "bytes": 23146,
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/prepare-source.mjs",
+      "commit": "ff2ebe449eacdfa40763fa0041db7fc0d59d678f",
+      "sha256": "e8ce75c66d8c0134a49c43fd8ff177679556271ec3d99ed68f3f5bd915ea9442"
+    }
+  ],
+  "selectedUpstreamFiles": [
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/configure",
+      "sourceRelative": "configure",
+      "bytes": 670802,
+      "sha256": "0067a8ec3bd2e6a0f9a5c1f6bf81fef653b48f7be21661b3dc931b0d72f1f4cd",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@ff2ebe44; source commit efcd8b49",
+      "scope": "selected file reauthentication only; not whole retained tree"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/Makefile.in",
+      "sourceRelative": "Makefile.in",
+      "bytes": 96494,
+      "sha256": "fe439ebe8ed9eea641f8538881be5b29bbfc7129d5f8e9fd25d04885f52762db",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@ff2ebe44; source commit efcd8b49",
+      "scope": "selected file reauthentication only; not whole retained tree"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/builtins/Makefile.in",
+      "sourceRelative": "builtins/Makefile.in",
+      "bytes": 38755,
+      "sha256": "d89046dcb1604c10ed7ae2a1c211b7dc791d2201d70c18c55b67664015d00755",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@ff2ebe44; source commit efcd8b49",
+      "scope": "selected file reauthentication only; not whole retained tree"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/builtins/psize.sh",
+      "sourceRelative": "builtins/psize.sh",
+      "bytes": 1075,
+      "sha256": "01d3e145e083777e5a94baf4e1cacb239509877de6709500014c468461b600ab",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@ff2ebe44; source commit efcd8b49",
+      "scope": "selected file reauthentication only; not whole retained tree"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/support/mkversion.sh",
+      "sourceRelative": "support/mkversion.sh",
+      "bytes": 4764,
+      "sha256": "c81af1ccb3ce32b5cdd1d4eddc4ded0136b5c198716b0580da01dee1501ab666",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@ff2ebe44; source commit efcd8b49",
+      "scope": "selected file reauthentication only; not whole retained tree"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/config-top.h",
+      "sourceRelative": "config-top.h",
+      "bytes": 8247,
+      "sha256": "16142a6ae0e1732ba2090f2b4f522e4b9632d3d645724501336379c074b80e60",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@ff2ebe44; source commit efcd8b49",
+      "scope": "selected file reauthentication only; not whole retained tree"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/support/config.guess",
+      "sourceRelative": "support/config.guess",
+      "bytes": 50743,
+      "sha256": "e3d148130e9151735f8b9a8e69a70d06890ece51468a9762eb7ac0feddddcc2f",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@efcd8b49",
+      "scope": "selected source file only"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/support/config.sub",
+      "sourceRelative": "support/config.sub",
+      "bytes": 39713,
+      "sha256": "11c54f55c3ac99e5d2c3dc2bb0bcccbf69f8223cc68f6b2438daa806cf0d16d8",
+      "mode": "600",
+      "binding": "FINAL-SOURCE-INVENTORY.json@efcd8b49",
+      "scope": "selected source file only"
+    }
+  ],
+  "archivePayload": {
+    "mode": "100644",
+    "type": "blob",
+    "blob": "a065be6ff458affd7f89f459b25d2d7279990f52",
+    "bytes": 11355854,
+    "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data",
+    "atCommit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+    "expectedSha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+    "bodyRead": false,
+    "decoded": false
+  },
+  "historicalCommitChecks": [
+    {
+      "commit": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/RESULT.json",
+      "sameBlobAsClosure": true
+    },
+    {
+      "commit": "efcd8b49a63ceb4276ae9d075da59bfb027b3510",
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/FINAL-SOURCE-INVENTORY.json",
+      "sameBlobAsClosure": true
+    },
+    {
+      "commit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+      "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data",
+      "sameBlobAsClosure": true
+    }
+  ],
+  "dataChecks": {
+    "inventoryTupleHashRecomputed": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+    "inventoryRows": 1602,
+    "signatureOutcomeConsistency": 16,
+    "freshCryptographicVerifications": 0,
+    "sourceFileHashChecks": 8,
+    "wholeLiveSourceTree": false
+  },
+  "administrativeTool": {
+    "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "bytes": 3704880,
+    "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+  }
+}

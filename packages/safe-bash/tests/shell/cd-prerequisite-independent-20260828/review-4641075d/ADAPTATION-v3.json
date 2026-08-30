@@ -1,0 +1,31 @@
+{
+  "stage": "post-source86 public passes and artifact-bound driver nonpass, pre-continuation",
+  "changes": [
+    "Lossless per-case error catalogue removes repeated long path/message copies; decoded call traces byte-value-equivalent",
+    "Continuation reuses already executed source86 from exact attempt02; no source rerun/rescore",
+    "Complete source types/load negatives and2 bounded localReal/S3mock controls; pack actual built package; installed/moved same86+types+load/adapter controls"
+  ],
+  "originalBytes": 21449775,
+  "compactBytes": 5181785,
+  "originalSourceSha256": "71badfa8e6aa04ae19ea76fc97996d2c070ee9e5c516c585b24373e4282d5c18",
+  "noExpectationChanges": true,
+  "L24Qualification": "unchanged fromv2; not actualMemory long-name acceptance",
+  "scripts": [
+    {
+      "name": "fixtures-v3.mjs",
+      "sha256": "41ba7dfa4771f69137be545e490f0770b47a3258192501f79c1754c9e10e32e6"
+    },
+    {
+      "name": "entry-v2.mjs",
+      "sha256": "0e4b5de6bbf3f48594b7612aa413c42b1b65d7f2691132c19d678735e374fc99"
+    },
+    {
+      "name": "adapter-checks.mjs",
+      "sha256": "2807dbb6ebedd7ea80e6adb33666b8da3086fe963b9af7ddbf2341808bf2c9f5"
+    },
+    {
+      "name": "continue.mjs",
+      "sha256": "0a853a5509524be55c05088c69f18c8f9960ff6c9d71841db1e0a581e413fd7e"
+    }
+  ]
+}

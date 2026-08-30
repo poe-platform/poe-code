@@ -1,0 +1,76 @@
+{
+  "schema": "d03-unified-log-v1-terminal-stop",
+  "at": 1787983075558,
+  "sourceCommit": "a1f98c3fad9601996ad7998d454e7b7bd611544d",
+  "presealSha256": "b896f4434eed1ab926ec488323d8e71e7b5719697ed19156d7f52ee85d79abc5",
+  "queryAttempts": 1,
+  "queryCode": 0,
+  "queryPid": 22397,
+  "queryMs": 4392,
+  "structuredRecordCount": 0,
+  "selectedMatchCount": 0,
+  "meaning": "Zero records returned for the exact sealed query, not absence of denial or permission-cause proof.",
+  "disposition": "STOP_GROUP_RETIREMENT_UNKNOWN",
+  "knownQueryChild": {
+    "exit": true,
+    "close": true,
+    "stdoutEOF": true,
+    "stderrEOF": true
+  },
+  "groupObserver": {
+    "observedAbsent": false,
+    "errorDetailRetained": false,
+    "markers": [
+      "GROUP_CHECK_UNKNOWN",
+      "RETIREMENT_UNKNOWN"
+    ],
+    "noRecheck": true
+  },
+  "phase": {
+    "registeredChildren": 12,
+    "registeredPeak": 1,
+    "knownChildExits": 12,
+    "knownChildCloses": 12,
+    "activeRegistered": 0,
+    "halted": true,
+    "administrativeAndQueryStreamCaptureBytes": 3882,
+    "ownedCaptureCensus": {
+      "files": 41,
+      "bytes": 51457
+    }
+  },
+  "captureClosed": true,
+  "artifactHashes": [
+    {
+      "path": "QUERY.stdout",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "QUERY.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "QUERY-EVENTS.jsonl",
+      "bytes": 1848,
+      "sha256": "7272ced9726075a7e4046dc20f7e49a1f7ce7ca49eca01871f80a1533c411e08"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 1474,
+      "sha256": "f55dd97a6dd87662a3be79dda6ebc5e3355bcff742a8e6d964d176718769bf85"
+    },
+    {
+      "path": "STATE.json",
+      "bytes": 9712,
+      "sha256": "db99e99f463b7c19a1f0e3dcf36fe37f602f964586d1fdd4c599ccbffdfdb492"
+    }
+  ],
+  "publication": "Source/preseal committed before query. Post-query Git/apply_patch children not admitted after unknown-retirement STOP; generated terminal receipt retained in owned capture, not falsely called an evidence commit.",
+  "minimumNextDecision": "Root may authorize SOURCE/DATA-only review of the group-observer path and captured error-retention gap; no query retry, new process probe, fence change, or permission expansion follows.",
+  "native9": "UNRUN",
+  "semantic40": "UNRUN",
+  "cause": "UNKNOWN",
+  "recordRereads": 0
+}

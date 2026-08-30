@@ -1,0 +1,27 @@
+{
+  "schema": "timeout-author-regression-manifest/2",
+  "predecessor": {
+    "commit": "6b7c77b2",
+    "manifest": "FREEZE.json",
+    "preserved": true
+  },
+  "changes": [
+    "admit the borrowed context signal on informational writes",
+    "repair strict test-only typing without changing runtime expectations",
+    "add actual Shell and CommandRegistry literal-invocation coverage"
+  ],
+  "files": {
+    "CORRECTION-v2.md": "b05e99a40706c9dc632d9f00de0a69943d41c7314a90dac09fd0909806038f4b",
+    "fixtures.ts": "93bbf4a05cb301e8f6fe12bd57dbcfbd94ffcb8afb24c2b373735d0ea3f7cfe2",
+    "timeout.test.ts": "2d68bd499071fccc16bd43f38e03c25fae97946253c3c4d57746169ab926fe1a",
+    "types-negative.mts.fixture.data": "1361fba734e39736b95451e878c81d0367d6bb25f17cb1c81469cbd4d9ff5916",
+    "types-positive.mts.fixture.data": "e1aaa0d1f28786dfe62d7dbfe7eae2303601586dcd1643ed4e3603d3972eccbc"
+  },
+  "focusedRuntime": {
+    "tests": 14,
+    "passed": 14,
+    "failed": 0
+  },
+  "independentCohortExecuted": 0,
+  "nativeExecuted": 0
+}

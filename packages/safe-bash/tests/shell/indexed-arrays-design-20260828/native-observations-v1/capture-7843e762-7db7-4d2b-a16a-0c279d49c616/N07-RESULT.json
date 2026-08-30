@@ -1,0 +1,91 @@
+{
+  "id": "N07",
+  "startedAt": "2026-08-28T10:07:08.020Z",
+  "scriptSha256": "e79b9ea4a4a039753f9d6566fafec6c5a2a2d15dda07fb7f03a025409c37be84",
+  "binary": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "argv": [
+    "--noprofile",
+    "--norc",
+    "-c",
+    "a=([2]=outer)\nreadonly a\nf() { local a; printf 'local=%s\\n' \"$?\"; local a=inner; printf 'initialized=%s\\n' \"$?\"; declare -p a; }\nf\ndeclare -p a\n",
+    "indexed-preseal-v1"
+  ],
+  "env": {
+    "PATH": "",
+    "ENV": "",
+    "BASH_ENV": "",
+    "HOME": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+    "TMPDIR": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+  "stdin": "empty /dev/null via ignore",
+  "spawnSucceeded": true,
+  "pid": 69645,
+  "pgid": 69645,
+  "exitCode": 0,
+  "signal": null,
+  "errors": [],
+  "stdoutObservedBytes": 78,
+  "stderrObservedBytes": 112,
+  "groupSignals": [],
+  "groupChecks": [
+    {
+      "atMs": 11.929165999999896,
+      "exists": false
+    }
+  ],
+  "stopReasons": [],
+  "groupCheckCount": 1,
+  "cleanupRegisteredBeforeSpawn": true,
+  "exitObserved": true,
+  "exitedAt": "2026-08-28T10:07:08.032Z",
+  "lastGroupExists": false,
+  "elapsedMs": 11.940832999999657,
+  "closedAt": "2026-08-28T10:07:08.032Z",
+  "observedClosureByDeadline": true,
+  "childCloseObserved": true,
+  "childReaped": true,
+  "groupAbsent": true,
+  "retainedBytes": 190,
+  "stdout": {
+    "bytes": 78,
+    "sha256": "9c04c17b8600dfe35ff0a1685bb75bc4d1d3c8519e5aa7629ab6458f1c5a1f68"
+  },
+  "stderr": {
+    "bytes": 112,
+    "sha256": "7d7c6d9d0de65ff1de958bbaff9943d8b8e5812aaa06e73a9076ae030c5009d4"
+  },
+  "after": [
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+      "dev": 16777232,
+      "ino": 181263727,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    },
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+      "dev": 16777232,
+      "ino": 181263728,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    },
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+      "dev": 16777232,
+      "ino": 181263729,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    }
+  ],
+  "newEntries": []
+}

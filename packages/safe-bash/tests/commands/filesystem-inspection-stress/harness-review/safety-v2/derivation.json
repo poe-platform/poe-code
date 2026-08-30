@@ -1,0 +1,77 @@
+{
+  "transformations": [
+    {
+      "name": "child.mjs",
+      "originalSha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1",
+      "derivedSha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1",
+      "replacements": []
+    },
+    {
+      "name": "loader.mjs",
+      "originalSha256": "e82d22fa5341f76519033cb8bd7976e584bf86d118776150e7a50b380efe7eb3",
+      "derivedSha256": "18c047c90b16767d91d53e73f38316ef851d9fe90754f92c9160d8aef9c2d93d",
+      "replacements": [
+        [
+          "const root = dirname(fileURLToPath(import.meta.url));",
+          "const root = dirname(dirname(fileURLToPath(import.meta.url)));"
+        ],
+        [
+          "const approval = JSON.parse(readFileSync(process.env.SAFETY_AUTH, 'utf8'));",
+          "const correction = JSON.parse(readFileSync(process.env.SAFETY_AUTH, 'utf8'));\nconst approval = JSON.parse(readFileSync(correction.baseAuthorization.path, 'utf8'));"
+        ]
+      ]
+    },
+    {
+      "name": "run.mjs",
+      "originalSha256": "b2593e5b57315356e2df47a2912804aa6636da4820db779c8f39db7419286f2c",
+      "derivedSha256": "d6bd6939ac26c311b8a0b3b9007718289229a870d7b25280552698d650c6b4eb",
+      "replacements": [
+        [
+          "import { authorize, harnessIdentity } from './authorization.mjs';",
+          "import { authorize, harnessIdentity, claimExecution } from './authorization.mjs';"
+        ],
+        [
+          "join(directory, 'PRESEAL.json')",
+          "join(directory, 'SEAL.json')"
+        ],
+        [
+          "  mkdirSync(output);",
+          "  mkdirSync(output);\n  claimExecution(authorized, authHash);"
+        ],
+        [
+          "  let activeChild;",
+          "  let activeChild;\n  let spawnedChildren = 0;"
+        ],
+        [
+          "        const child = fork(",
+          "        assert(++spawnedChildren <= 2, 'Exactly two correction children at most; never replay the four prior rows');\n        const child = fork("
+        ],
+        [
+          "incompleteChildrenHaveUnknownFinalProductEffects: rows.some",
+          "previousProductInvocations: 4, maximumNewProductInvocations: 2, reuseWithoutRerun: approval.reuseWithoutRerun, previousRun: approval.previousRun,\n    incompleteChildrenHaveUnknownFinalProductEffects: rows.some"
+        ]
+      ]
+    },
+    {
+      "name": "oracle.mjs",
+      "originalSha256": "c4f5c5fbd73777ccbb9654ac8d86ef00372c7276800f25c02034a9c49111f64e",
+      "derivedSha256": "e121409bb544fee91c2b3281962a802d54bc0b19f38dd0e9e7e3d84cbd7891fa",
+      "replacements": [
+        [
+          "import assert from 'node:assert/strict';\n",
+          "import assert from 'node:assert/strict';\n\nexport function assertWorkDiagnostic(stderr, limit) {\n  assert(typeof stderr === 'string' && Buffer.byteLength(stderr) <= 512);\n  assert(stderr.endsWith('\\n'));\n  let body = stderr.slice(0, -1);\n  assert(!body.includes('\\n') && !body.includes('\\r'));\n  if (body.startsWith('shell: line ')) {\n    const rest = body.slice(12);\n    const end = rest.indexOf(': ');\n    assert(end > 0 && end <= 6);\n    const number = rest.slice(0, end);\n    assert(number[0] >= '1' && number[0] <= '9');\n    for (const digit of number) assert(digit >= '0' && digit <= '9');\n    body = rest.slice(end + 2);\n  }\n  if (body.startsWith('EFBIG: ')) body = body.slice(7);\n  if (body.startsWith('tree: ')) body = 'tree ' + body.slice(6);\n  assert.equal(body, 'tree work limit exceeded (' + limit + ')');\n}\n\nexport function assertPhase(entry, report) {\n  assert.equal(report.error, undefined);\n  assert.deepEqual(report.calls.map(call => [call.method, call.path]), [['lstat', '/root'], ['readdir', '/root']]);\n  assert.equal(report.listings.length, 1);\n  const listing = report.listings[0];\n  const names = entry.entries.filter(item => item.path.startsWith('/root/')).map(item => item.path.slice(6));\n  assert.deepEqual(listing, { path: '/root', ...entry.expected.listing, names: names.slice(0, entry.expected.listing.yielded) });\n}\n"
+        ],
+        [
+          "expected.mode === 'tree-work-rejection'",
+          "expected.mode === 'tree-shell-work-limit'"
+        ],
+        [
+          "    assert.equal(report.rejected, true);\n    assert.equal(report.error.code, expected.code);\n    assert.equal(report.error.truncated, false);\n    assert(report.error.message.includes('tree') && report.error.message.includes('work') && report.error.message.includes('limit'));\n    assert.equal(report.stdout, expected.stdout);\n    assert.equal(report.stderr, expected.stderr);",
+          "    assert.equal(report.rejected, false);\n    assert.equal(report.exitCode, expected.exitCode);\n    assert.equal(report.stdout, expected.stdout);\n    assertWorkDiagnostic(report.stderr, entry.limits.maxSteps);\n    assertPhase(entry, report);"
+        ]
+      ]
+    }
+  ],
+  "originalArtifactsModified": false,
+  "productExecutions": 0
+}

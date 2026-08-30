@@ -1,0 +1,87 @@
+{
+  "preparedSha256": "75e2c89496a1d7f9f19c8bb1bbbcefc3ca8898fb0fd5f263bc95f3c4a4987b87",
+  "commits": {
+    "runtime": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+    "registration": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+    "fixture": "10273352f8d65d929cbf5a23e69119414dacee60"
+  },
+  "candidate": {
+    "snapshotRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified",
+    "packageRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash",
+    "freezeSha256": "ef7d7c018ca19cc699a3ddcd009b8d1197de416f154651885738ce7537369b2e",
+    "buildSha256": "9194095150789c25ff250aa746b567aac584d433a6330180f37d4924195a30d9",
+    "archivePath": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/virtual-bash-0.0.0.tgz",
+    "archiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b",
+    "sourceFiles": 216,
+    "emittedFiles": 704
+  },
+  "baseline": {
+    "snapshotRoot": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/snapshots/baseline",
+    "head": "329eb2722052e8ace0ec18a751f12c30ed87a25b",
+    "frozenAt": "839f2d4",
+    "freezeSha256": "ded2ab6a8e44b860463b8015a405d93e570da6edbd13118099926ca97076beb8",
+    "buildSha256": "52641ec74771095f07f16c9c8fd30057a89a358461b42e9f74bac055b4ef48ee",
+    "sourceFiles": 152,
+    "emittedFiles": 588,
+    "captureStatus": "M tests/commands/diff-patch-stress/evidence/fullgate-51282a9-review/mutations.mjs\n M tests/fs/webdav/real-service-independent/run.mjs\n M tests/shell-stress/invocation-closure/holdout.test.ts\n?? benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/s3/rmdir-real-service/evidence-1D1P9B/\n?? tests/fs/s3/rmdir-real-service/evidence-EK5WvL/\n?? tests/fs/s3/rmdir-real-service/evidence-GScgVQ/\n?? tests/fs/s3/rmdir-real-service/evidence-Xyjrmo/\n?? tests/fs/webdav/real-service-independent/scope-neighbors.mts\n?? tests/fs/webdav/rmdir-real-service/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-MCzKZA/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-Utom8y/\n?? tests/shell-stress/canonical-profile-migration/.candidate-B-hwqqUo/\n?? tests/shell-stress/canonical-profile-migration/.candidate-C-jWPzgO/\n?? tests/shell-stress/canonical-profile-migration/.candidate-FINAL-T42B3X/\n?? tests/shell-stress/canonical-profile-migration/.source-6e-9PS0KC/\n?? tests/shell-stress/canonical-profile-migration/candidate-C.json\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n?? tests/stress/regex-execution/production-continuation-review/",
+    "dirtyCapturedIdentities": []
+  },
+  "preparationSource": [
+    {
+      "path": "child.mjs",
+      "sha256": "382f844e71317844bbc61e824f335a27fed8b40704d4ddb491e718b3eb3f0374"
+    },
+    {
+      "path": "observe.mjs",
+      "sha256": "a5226d1e24a8c091be3d98f5ed477b2b07e0b1bdcd6dec51cfe56467e8be3312"
+    },
+    {
+      "path": "benchmark.mjs",
+      "sha256": "7ebe01feacbb085d7355a06e5eb91bcfa5e3a1cccda445fae01329f67f0d8d45"
+    },
+    {
+      "path": "guard.mjs",
+      "sha256": "eab23888c87e18aeb1effc79ec29ef3ace4ec170f2d0344cf3cf004b6349f336"
+    },
+    {
+      "path": "binding.mjs",
+      "sha256": "2a81a61f9e95ab811d84744775633b2d84abf5d23fd99701fedc9f7db393ca1e"
+    },
+    {
+      "path": "prepare.mjs",
+      "sha256": "7b4361c996449e48a72df8c0a0913a1f7b4732e01b19343545375e7b713feb58"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "7ccca206c1424427bdcb046c2d24c13155cc9299c7124a5c7a292455985530b7"
+    }
+  ],
+  "preparationEmitted": [
+    {
+      "path": ".temporary/compiled/child.mjs",
+      "sha256": "c2b89481e5a06a820526a3463493919ab47585bc1d5677f5dc50eb7143f6b8fc"
+    },
+    {
+      "path": ".temporary/compiled/observe.mjs",
+      "sha256": "85b997898052fb1c1df27a0422929e1e7667e2ee848c7b4dabf25be839eda2de"
+    },
+    {
+      "path": ".temporary/compiled/benchmark.mjs",
+      "sha256": "8b1e0d2ac84978e83fd8a060f3046c5b86fdc164afb248e99ac5f0ffd739548e"
+    }
+  ],
+  "runner": [
+    {
+      "path": "run.mjs",
+      "sha256": "40d008dc7c91936176ea92f111ea690e7dc24a7c883d4a0f53b4a5c2d48dc15c"
+    },
+    {
+      "path": "intervals.mjs",
+      "sha256": "ea701c6ed976223d81576b29d2441d939f1966222cc0adcd178c5cd35e3c56d5"
+    },
+    {
+      "path": "package.json",
+      "sha256": "5f29a2ad1d53067ba79cd3fec79b2bd40543e406f24019c7a93406cbcb7280d4"
+    }
+  ]
+}

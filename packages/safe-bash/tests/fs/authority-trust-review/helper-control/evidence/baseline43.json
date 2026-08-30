@@ -1,0 +1,237 @@
+{
+  "name": "baseline43",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-helper-control-BhKTOp",
+  "startedAt": "2026-08-27T03:34:43.398Z",
+  "finishedAt": "2026-08-27T03:34:44.156Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "residualGroup": false,
+  "before": {
+    "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+    "helperSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "fixtureSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+    "inputsChecked": 165,
+    "allOther164InputsUnchanged": true,
+    "inputSetSha256": "2093b33763eac6337fc73173ea4ceaab03c907f755cf44e8d67cd7e5e21dd314",
+    "noLiveAliases": true
+  },
+  "after": {
+    "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+    "helperSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+    "fixtureSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+    "inputsChecked": 165,
+    "allOther164InputsUnchanged": true,
+    "inputSetSha256": "2093b33763eac6337fc73173ea4ceaab03c907f755cf44e8d67cd7e5e21dd314",
+    "noLiveAliases": true
+  },
+  "rawNodeCounts": {
+    "tests": 43,
+    "pass": 43,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0
+  },
+  "originalCases": {
+    "executed": 43,
+    "pass": 43,
+    "fail": 0
+  },
+  "webdavPositives": {
+    "executed": 14,
+    "pass": 14,
+    "fail": 0
+  },
+  "webdavControls": {
+    "executed": 1,
+    "pass": 1,
+    "fail": 0
+  },
+  "cases": [
+    {
+      "name": "positive overwrite: independent-memory, distinct backing files",
+      "pass": true
+    },
+    {
+      "name": "positive overwrite: shared-memory, distinct backing files",
+      "pass": true
+    },
+    {
+      "name": "positive overwrite: readonly, distinct backing files",
+      "pass": true
+    },
+    {
+      "name": "positive overwrite: overlay, distinct backing files",
+      "pass": true
+    },
+    {
+      "name": "positive overwrite: opaque, distinct backing files",
+      "pass": true
+    },
+    {
+      "name": "positive overwrite: real-shared-root, distinct backing files",
+      "pass": true
+    },
+    {
+      "name": "paired alias control: opaque does not manufacture disjoint scopes",
+      "pass": true
+    },
+    {
+      "name": "paired alias control: real-shared-root does not manufacture disjoint scopes",
+      "pass": true
+    },
+    {
+      "name": "positive same-mount memory rename replaces a distinct file",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED shared memory backend mounted twice: distinct-file mv overwrite",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED cross-mount memory mv, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED cross-mount memory mv, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 direct copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 direct copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 one-mount copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 one-mount copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 separate-clients copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 separate-clients copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "positive s3 direct existing-target rename (non-atomic opt-in)",
+      "pass": true
+    },
+    {
+      "name": "positive s3 one-mount existing-target rename (non-atomic opt-in)",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 separate-clients cross-mount mv, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED s3 separate-clients cross-mount mv, target existing",
+      "pass": true
+    },
+    {
+      "name": "paired s3 opaque separate-client alias stays unchanged (traversal may reject first)",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory to-remote s3 copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory to-remote s3 copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory from-remote s3 copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory from-remote s3 copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav direct copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav direct copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav one-mount copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav one-mount copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav separate-clients copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav separate-clients copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "positive webdav direct existing-target rename (default lock policy)",
+      "pass": true
+    },
+    {
+      "name": "positive webdav one-mount existing-target rename (default lock policy)",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav separate-clients cross-mount mv, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED webdav separate-clients cross-mount mv, target existing",
+      "pass": true
+    },
+    {
+      "name": "paired webdav opaque separate-client alias stays unchanged (traversal may reject first)",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory to-remote webdav copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory to-remote webdav copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory from-remote webdav copy, target missing",
+      "pass": true
+    },
+    {
+      "name": "REQUIRED memory from-remote webdav copy, target existing",
+      "pass": true
+    },
+    {
+      "name": "declared S3 default rename limit remains typed ENOTSUP and effect-free",
+      "pass": true
+    }
+  ],
+  "stdoutSha256": "c179c794cb737891251d13440fc69953f392fdffa550e61dd7a221c8405fa229",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

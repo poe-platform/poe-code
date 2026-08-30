@@ -1,0 +1,23 @@
+{
+  "schema": "m1b-captured-phase-arithmetic-counterexample-v1",
+  "role": "ARITHMETIC_DERIVATION_FROM_IMMUTABLE_CAPTURE_NOT_REEXECUTION",
+  "reportedStart": 134479.474417,
+  "reportedDeadline": 254479.47441700002,
+  "capMs": 120000,
+  "recomputedUpperBound": 254479.474417,
+  "excessMs": 2.9103830456733704e-11,
+  "violatedPredicate": "deadlineOffsetMs <= startedOffsetMs + capMs",
+  "interpretation": "Binary64 arithmetic on separately translated absolute deadlines; no actual120s expiration",
+  "actualMessage": {
+    "role": "BATCH_PHASE_START",
+    "batchId": "T01-M",
+    "kind": "VERIFY",
+    "startedOffsetMs": 134479.474417,
+    "deadlineOffsetMs": 254479.47441700002,
+    "capMs": 120000
+  },
+  "sourceCommit": "69b5afa5635629dd2a75b113376c9a9401aae81f",
+  "sourceSha256": "8ef2086f1ee22b92777d48e4aec464dc5b702fac0b21a66aeddaaadb9a49ea1d",
+  "actualOuterError": "Error: PHASE_START_BOUND",
+  "qualification": "The displayed cap inequality is false independently of other conjuncts; other parent-receive timestamp conjuncts were not separately captured."
+}

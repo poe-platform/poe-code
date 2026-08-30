@@ -1,0 +1,23 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "tests/fs/s3/copy-races.test.ts",
+    "tests/fs/s3/filesystem.test.ts",
+    "tests/fs/s3/mock.test.ts",
+    "tests/fs/s3/mutation-regressions.test.ts",
+    "tests/fs/s3/production-flows.test.ts",
+    "tests/fs/s3/rename-guards.test.ts",
+    "tests/fs/s3/rmdir.test.ts",
+    "tests/fs/s3/streaming.test.ts",
+    "tests/fs/s3/stress.test.ts"
+  ],
+  "started": "2026-08-27T00:22:52.636Z",
+  "finished": "2026-08-27T00:22:53.031Z",
+  "status": 0,
+  "signal": null,
+  "error": null
+}

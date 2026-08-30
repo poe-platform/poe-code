@@ -1,0 +1,19 @@
+{
+  "consultedAt": "2026-08-27",
+  "method": "web.run search and open of primary sources; native behavior separately executed against frozen authenticated Darwin binaries",
+  "references": [
+    {
+      "url": "https://dom.spec.whatwg.org/#abortcontroller",
+      "scope": "DOM abort(undefined) supplies an AbortError DOMException rather than leaving an undefined native reason; structural host signals are not native AbortSignal objects. The independent consumer verifies actual runtime reason identity."
+    },
+    {
+      "url": "https://nodejs.org/download/release/latest-jod/docs/api/globals.html#abortsignalreason",
+      "scope": "Node AbortSignal reason and throwIfAborted semantics and native AbortSignal.any composition. The fetched documentation identifies v22.23.2; actual executed Node version is recorded in native/stage receipts, not inferred from this documentation version."
+    },
+    {
+      "url": "https://github.com/coreutils/coreutils/blob/v9.7/src/expr.c",
+      "scope": "Version-pinned primary expr implementation. Online source does not turn Darwin linked-library observations or unfinished-register anomalies into universal GNU/Linux or normative repetition semantics. Local binary/archive/source hashes and native tuples are the replay authority."
+    }
+  ],
+  "nullableHistoricalAuthority": "7f22cb8c13d5520f870585ab0d1b476083a213bc; preserved cause evidence only, not a new acceptance denominator or an authorized patch"
+}

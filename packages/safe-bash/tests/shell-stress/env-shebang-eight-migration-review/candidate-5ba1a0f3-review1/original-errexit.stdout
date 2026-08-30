@@ -1,0 +1,222 @@
+TAP version 13
+# Subtest: literal invoke returns nonzero to its custom caller
+ok 1 - literal invoke returns nonzero to its custom caller
+  ---
+  duration_ms: 7.55175
+  type: 'test'
+  ...
+# Subtest: literal invoke child interpreter honors its own option in tested parent
+ok 2 - literal invoke child interpreter honors its own option in tested parent
+  ---
+  duration_ms: 2.260334
+  type: 'test'
+  ...
+# Subtest: e presence only, state isolation across exec and nested child
+ok 3 - e presence only, state isolation across exec and nested child
+  ---
+  duration_ms: 2.000125
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared commands budget
+ok 4 - errexit never swallows shared commands budget
+  ---
+  duration_ms: 0.9215
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared source budget
+ok 5 - errexit never swallows shared source budget
+  ---
+  duration_ms: 0.672375
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared depth budget
+ok 6 - errexit never swallows shared depth budget
+  ---
+  duration_ms: 0.892375
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared loops budget
+ok 7 - errexit never swallows shared loops budget
+  ---
+  duration_ms: 0.885625
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared expansion budget
+ok 8 - errexit never swallows shared expansion budget
+  ---
+  duration_ms: 0.679417
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared output budget
+ok 9 - errexit never swallows shared output budget
+  ---
+  duration_ms: 5.732833
+  type: 'test'
+  ...
+# Subtest: pipeline succeeds at unchanged producer plus consumer byte budget
+ok 10 - pipeline succeeds at unchanged producer plus consumer byte budget
+  ---
+  duration_ms: 1.891542
+  type: 'test'
+  ...
+# Subtest: parent cancellation identity survives tested context
+ok 11 - parent cancellation identity survives tested context
+  ---
+  duration_ms: 0.575917
+  type: 'test'
+  ...
+# Subtest: cancellation during delayed command observes late rejection
+ok 12 - cancellation during delayed command observes late rejection
+  ---
+  duration_ms: 31.976833
+  type: 'test'
+  ...
+# Subtest: delayed pipeline consumer drains before aggregate exit
+ok 13 - delayed pipeline consumer drains before aggregate exit
+  ---
+  duration_ms: 2.870375
+  type: 'test'
+  ...
+# Subtest: failed redirected group stops but earlier file effect is retained
+ok 14 - failed redirected group stops but earlier file effect is retained
+  ---
+  duration_ms: 0.947583
+  type: 'test'
+  ...
+# Subtest: source cleanup after errexit preserves parent literal caller
+ok 15 - source cleanup after errexit preserves parent literal caller
+  ---
+  duration_ms: 0.906667
+  type: 'test'
+  ...
+# Subtest: binary stdin and default origin survive nested literal invocation
+ok 16 - binary stdin and default origin survive nested literal invocation
+  ---
+  duration_ms: 0.81
+  type: 'test'
+  ...
+# Subtest: single optional shebang argument \#!/bin/bash -e
+ok 17 - single optional shebang argument \#!/bin/bash -e
+  ---
+  duration_ms: 0.740042
+  type: 'test'
+  ...
+# Subtest: single optional shebang argument \#!/usr/bin/bash -ee
+ok 18 - single optional shebang argument \#!/usr/bin/bash -ee
+  ---
+  duration_ms: 0.785208
+  type: 'test'
+  ...
+# Subtest: explicit interpreter does not apply file header option twice
+ok 19 - explicit interpreter does not apply file header option twice
+  ---
+  duration_ms: 1.057584
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env bash -e
+not ok 20 - literal shebang refusal \#!/usr/bin/env bash -e
+  ---
+  duration_ms: 1.743375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/errexit-host.test.ts:3:698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    127 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 127
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/errexit-host.test.ts:131:54)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env -S bash -e
+not ok 21 - literal shebang refusal \#!/usr/bin/env -S bash -e
+  ---
+  duration_ms: 1.086208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/errexit-host.test.ts:3:698'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 126
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 126
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/env-shebang-eight-migration-review/.scratch/candidate-5ba1a0f3-review1/source/tests/shell/errexit-host.test.ts:131:54)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -e -e
+ok 22 - literal shebang refusal \#!/bin/bash -e -e
+  ---
+  duration_ms: 0.461625
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -c
+ok 23 - literal shebang refusal \#!/bin/bash -c
+  ---
+  duration_ms: 0.468958
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash '-e'
+ok 24 - literal shebang refusal \#!/bin/bash '-e'
+  ---
+  duration_ms: 0.447625
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/unknown -e
+ok 25 - literal shebang refusal \#!/unknown -e
+  ---
+  duration_ms: 0.353542
+  type: 'test'
+  ...
+# Subtest: direct permission and invalid UTF8 refusals remain
+ok 26 - direct permission and invalid UTF8 refusals remain
+  ---
+  duration_ms: 0.518917
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash -u -c true
+ok 27 - unimplemented switch stays rejected bash -u -c true
+  ---
+  duration_ms: 0.21825
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash +c true
+ok 28 - unimplemented switch stays rejected bash +c true
+  ---
+  duration_ms: 0.211209
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -u
+ok 29 - unimplemented switch stays rejected set -u
+  ---
+  duration_ms: 1.499792
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -o inherit_errexit
+ok 30 - unimplemented switch stays rejected set -o inherit_errexit
+  ---
+  duration_ms: 0.257667
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 28
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 311.3015

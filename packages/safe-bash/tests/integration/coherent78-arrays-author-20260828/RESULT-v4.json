@@ -1,0 +1,112 @@
+{
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "status": "AUTHOR_SCOPED_PASS",
+  "pack": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+  "phases": [],
+  "failures": [],
+  "typeGroups": 6,
+  "typePass": 6,
+  "controls": [
+    {
+      "id": "changed-binding",
+      "pass": true
+    },
+    {
+      "id": "missing-entry",
+      "pass": true
+    },
+    {
+      "id": "outside-source",
+      "pass": true
+    },
+    {
+      "id": "loaded-zero-view-mutant",
+      "pass": true,
+      "mutantSha256": "11ae27a8172dd6255c2bd686b8085fe1a465c4f6c4a56b6806a8d095ad5ab460",
+      "observations": [
+        {
+          "id": "A02",
+          "pass": false,
+          "disposed": true,
+          "actual": {
+            "stdout": "__array_mutant__\n<__array_mutant__>\n<one>\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 95,
+              "1": 95,
+              "2": 97,
+              "3": 114,
+              "4": 114,
+              "5": 97,
+              "6": 121,
+              "7": 95,
+              "8": 109,
+              "9": 117,
+              "10": 116,
+              "11": 97,
+              "12": 110,
+              "13": 116,
+              "14": 95,
+              "15": 95,
+              "16": 10,
+              "17": 60,
+              "18": 95,
+              "19": 95,
+              "20": 97,
+              "21": 114,
+              "22": 114,
+              "23": 97,
+              "24": 121,
+              "25": 95,
+              "26": 109,
+              "27": 117,
+              "28": 116,
+              "29": 97,
+              "30": 110,
+              "31": 116,
+              "32": 95,
+              "33": 95,
+              "34": 62,
+              "35": 10,
+              "36": 60,
+              "37": 111,
+              "38": 110,
+              "39": 101,
+              "40": 62,
+              "41": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "error": {
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '__array_mutant__\\n<__array_mutant__>\\n<one>\\n'\n- 'zero\\n<changed>\\n<one>\\n'\n",
+            "code": "ERR_ASSERTION",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '__array_mutant__\\n<__array_mutant__>\\n<one>\\n'\n- 'zero\\n<changed>\\n<one>\\n'\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-ui2FKQ/physically%20moved%20consumer/arrays.mjs:29:14"
+          }
+        },
+        {
+          "summary": {
+            "profile": "coherent78-array-author-v1",
+            "cases": 1,
+            "pass": 0,
+            "disposed": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "restored-positive",
+      "pass": true
+    }
+  ],
+  "cleanup": {
+    "directChildren": 12,
+    "closed": 12,
+    "active": 0,
+    "signals": [],
+    "scratchRetained": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-ui2FKQ",
+    "noForeignCleanup": true
+  },
+  "elapsedMilliseconds": 7297,
+  "rawSha256": "34e7c1c67e8cd843667fe6d30bad76e8f764b6663173fc1cb674e7e70bc5916f"
+}

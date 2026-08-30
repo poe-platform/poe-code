@@ -1,0 +1,1182 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "eval.c",
+      "bytes": 10406,
+      "sha256": "21bfede320d640a219fc0ffa66d7b90d8f1fae87605847d4d06e6e058c4e7051",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 424
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "bytes": 25533,
+      "sha256": "063da6502b5472c1a126f86fcdb4fc8c351ae1d3a1510cb2167ff0b6be3b066f",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 867
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "bytes": 26063,
+      "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1084
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "bytes": 26063,
+      "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1084
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "bytes": 30119,
+      "sha256": "ec6b093d992985412690dcfb359710a2bd237a9fc28be96a9ed3791d5c810d1c",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1048
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "flags.c",
+      "bytes": 10554,
+      "sha256": "5696d846e008e46ec754d55acd1d29d328e4966af4d8577245d2cddfcd50d468",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 382
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "array.c",
+      "bytes": 28361,
+      "sha256": "0f2ee790d9c4851b66fdff46ac9e289c30d88241e232ef062d10c06f344e7019",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1231
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "array.h",
+      "bytes": 5625,
+      "sha256": "9cb9af1ad5165cce13780a331d68dfadb6c6e5342815fd225793fc7036bfa53d",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 183
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "bytes": 48005,
+      "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1700
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "bytes": 48005,
+      "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1700
+    }
+  ],
+  "sourceBytesRead": 1409147,
+  "cumulativeSourceBytes": 6287354,
+  "distinctSources": 15,
+  "requests": [
+    {
+      "file": "subst.c",
+      "start": 12444,
+      "end": 12458
+    },
+    {
+      "file": "subst.c",
+      "start": 11163,
+      "end": 11178
+    },
+    {
+      "file": "subst.c",
+      "start": 10158,
+      "end": 10177
+    },
+    {
+      "file": "eval.c",
+      "start": 90,
+      "end": 125
+    },
+    {
+      "file": "builtins/evalstring.c",
+      "start": 423,
+      "end": 449
+    },
+    {
+      "file": "builtins/common.c",
+      "start": 127,
+      "end": 147
+    },
+    {
+      "file": "builtins/common.c",
+      "pattern": "sh_invalidopt|invalid option",
+      "limit": 7
+    },
+    {
+      "file": "builtins/set.def",
+      "start": 293,
+      "end": 314
+    },
+    {
+      "file": "flags.c",
+      "start": 226,
+      "end": 250
+    },
+    {
+      "file": "array.c",
+      "pattern": "array_create|num_elements = 0",
+      "limit": 8
+    },
+    {
+      "file": "array.h",
+      "pattern": "array_num_elements|array_empty",
+      "limit": 5
+    },
+    {
+      "file": "arrayfunc.c",
+      "pattern": "VUNSETATTR.*invisible|assign_array_from_string",
+      "limit": 8
+    },
+    {
+      "file": "arrayfunc.c",
+      "start": 507,
+      "end": 534
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 12444,
+          "text": "exp_jump_to_top_level (int v)"
+        },
+        {
+          "line": 12445,
+          "text": "{"
+        },
+        {
+          "line": 12446,
+          "text": "  set_pipestatus_from_exit (last_command_exit_value);"
+        },
+        {
+          "line": 12447,
+          "text": ""
+        },
+        {
+          "line": 12448,
+          "text": "  /* Cleanup code goes here. */"
+        },
+        {
+          "line": 12449,
+          "text": "  expand_no_split_dollar_star = 0;\t/* XXX */"
+        },
+        {
+          "line": 12450,
+          "text": "  if (expanding_redir)"
+        },
+        {
+          "line": 12451,
+          "text": "    undo_partial_redirects ();"
+        },
+        {
+          "line": 12452,
+          "text": "  expanding_redir = 0;"
+        },
+        {
+          "line": 12453,
+          "text": "  assigning_in_environment = 0;"
+        },
+        {
+          "line": 12454,
+          "text": ""
+        },
+        {
+          "line": 12455,
+          "text": "  if (parse_and_execute_level == 0)"
+        },
+        {
+          "line": 12456,
+          "text": "    top_level_cleanup ();\t\t\t/* from sig.c */"
+        },
+        {
+          "line": 12457,
+          "text": ""
+        },
+        {
+          "line": 12458,
+          "text": "  jump_to_top_level (v);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 11163,
+          "text": "  return ret;"
+        },
+        {
+          "line": 11164,
+          "text": "}"
+        },
+        {
+          "line": 11165,
+          "text": "#endif"
+        },
+        {
+          "line": 11166,
+          "text": ""
+        },
+        {
+          "line": 11167,
+          "text": "/* Handle a variable assignment error in default mode. */"
+        },
+        {
+          "line": 11168,
+          "text": "static inline void"
+        },
+        {
+          "line": 11169,
+          "text": "bash_variable_assignment_error (int force_exit)"
+        },
+        {
+          "line": 11170,
+          "text": "{"
+        },
+        {
+          "line": 11171,
+          "text": "  if (interactive_shell == 0 && force_exit)"
+        },
+        {
+          "line": 11172,
+          "text": "    exp_jump_to_top_level (FORCE_EOF);"
+        },
+        {
+          "line": 11173,
+          "text": "  else if (interactive_shell == 0)"
+        },
+        {
+          "line": 11174,
+          "text": "    exp_jump_to_top_level (DISCARD);\t/* XXX - maybe change later */"
+        },
+        {
+          "line": 11175,
+          "text": "  else"
+        },
+        {
+          "line": 11176,
+          "text": "    exp_jump_to_top_level (DISCARD);"
+        },
+        {
+          "line": 11177,
+          "text": "}"
+        },
+        {
+          "line": 11178,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 10158,
+          "text": ""
+        },
+        {
+          "line": 10159,
+          "text": "  *indexp = sindex;"
+        },
+        {
+          "line": 10160,
+          "text": ""
+        },
+        {
+          "line": 10161,
+          "text": "  /* All the cases where an expansion can possibly generate an unbound"
+        },
+        {
+          "line": 10162,
+          "text": "     variable error. */"
+        },
+        {
+          "line": 10163,
+          "text": "  if (want_substring || want_patsub || want_casemod || c == '@' || c == '#' || c == '%' || c == RBRACE)"
+        },
+        {
+          "line": 10164,
+          "text": "    {"
+        },
+        {
+          "line": 10165,
+          "text": "      if (var_is_set == 0 && unbound_vars_is_error && ((name[0] != '@' && name[0] != '*') || name[1]) && all_element_arrayref == 0)"
+        },
+        {
+          "line": 10166,
+          "text": "\t{"
+        },
+        {
+          "line": 10167,
+          "text": "\t  set_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 10168,
+          "text": "\t  err_unboundvar (name);"
+        },
+        {
+          "line": 10169,
+          "text": "\t  FREE (value);"
+        },
+        {
+          "line": 10170,
+          "text": "\t  FREE (temp);"
+        },
+        {
+          "line": 10171,
+          "text": "\t  free (name);"
+        },
+        {
+          "line": 10172,
+          "text": "\t  return (interactive_shell ? &expand_wdesc_error : &expand_wdesc_fatal);"
+        },
+        {
+          "line": 10173,
+          "text": "\t}"
+        },
+        {
+          "line": 10174,
+          "text": "    }"
+        },
+        {
+          "line": 10175,
+          "text": "    "
+        },
+        {
+          "line": 10176,
+          "text": "  /* If this is a substring spec, process it and add the result. */"
+        },
+        {
+          "line": 10177,
+          "text": "  if (want_substring)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "eval.c",
+      "selected": [
+        {
+          "line": 90,
+          "text": "      if (code != NOT_JUMPED)"
+        },
+        {
+          "line": 91,
+          "text": "\t{"
+        },
+        {
+          "line": 92,
+          "text": "\t  indirection_level = our_indirection_level;"
+        },
+        {
+          "line": 93,
+          "text": ""
+        },
+        {
+          "line": 94,
+          "text": "\t  switch (code)"
+        },
+        {
+          "line": 95,
+          "text": "\t    {"
+        },
+        {
+          "line": 96,
+          "text": "\t      /* Some kind of throw to top_level has occurred. */"
+        },
+        {
+          "line": 97,
+          "text": "\t    case ERREXIT:"
+        },
+        {
+          "line": 98,
+          "text": "\t      /* POSIX says to exit on error \"as if by executing the"
+        },
+        {
+          "line": 99,
+          "text": "\t\t exit special built-in utility with no arguments,\" so we"
+        },
+        {
+          "line": 100,
+          "text": "\t\t don't reset any local contexts and keep the execution"
+        },
+        {
+          "line": 101,
+          "text": "\t\t context in a shell function if we were executing one. */"
+        },
+        {
+          "line": 102,
+          "text": "\t      if (exit_immediately_on_error && posixly_correct == 0)"
+        },
+        {
+          "line": 103,
+          "text": "\t\treset_local_contexts ();\t/* not in a function */"
+        },
+        {
+          "line": 104,
+          "text": "\t    case FORCE_EOF:"
+        },
+        {
+          "line": 105,
+          "text": "\t    case EXITPROG:"
+        },
+        {
+          "line": 106,
+          "text": "\t    case EXITBLTIN:"
+        },
+        {
+          "line": 107,
+          "text": "\t      current_command = (COMMAND *)NULL;"
+        },
+        {
+          "line": 108,
+          "text": "\t      EOF_Reached = EOF;"
+        },
+        {
+          "line": 109,
+          "text": "\t      goto exec_done;"
+        },
+        {
+          "line": 110,
+          "text": ""
+        },
+        {
+          "line": 111,
+          "text": "\t    case DISCARD:"
+        },
+        {
+          "line": 112,
+          "text": "\t      /* Make sure the exit status is reset to a non-zero value, but"
+        },
+        {
+          "line": 113,
+          "text": "\t\t leave existing non-zero values (e.g., > 128 on signal)"
+        },
+        {
+          "line": 114,
+          "text": "\t\t alone. */"
+        },
+        {
+          "line": 115,
+          "text": "\t      if (last_command_exit_value == 0)"
+        },
+        {
+          "line": 116,
+          "text": "\t\tset_exit_status (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 117,
+          "text": "\t      if (subshell_environment)"
+        },
+        {
+          "line": 118,
+          "text": "\t\t{"
+        },
+        {
+          "line": 119,
+          "text": "\t\t  current_command = (COMMAND *)NULL;"
+        },
+        {
+          "line": 120,
+          "text": "\t\t  EOF_Reached = EOF;"
+        },
+        {
+          "line": 121,
+          "text": "\t\t  goto exec_done;"
+        },
+        {
+          "line": 122,
+          "text": "\t\t}"
+        },
+        {
+          "line": 123,
+          "text": "\t      /* Obstack free command elements, etc. */"
+        },
+        {
+          "line": 124,
+          "text": "\t      if (current_command)"
+        },
+        {
+          "line": 125,
+          "text": "\t\t{"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/evalstring.c",
+      "selected": [
+        {
+          "line": 423,
+          "text": "\t    case DISCARD:"
+        },
+        {
+          "line": 424,
+          "text": "\t      if (command)"
+        },
+        {
+          "line": 425,
+          "text": "\t\trun_unwind_frame (\"pe_dispose\");"
+        },
+        {
+          "line": 426,
+          "text": "\t      last_result = last_command_exit_value = EXECUTION_FAILURE; /* XXX */"
+        },
+        {
+          "line": 427,
+          "text": "\t      set_pipestatus_from_exit (last_command_exit_value);"
+        },
+        {
+          "line": 428,
+          "text": "\t      "
+        },
+        {
+          "line": 429,
+          "text": "\t      if (subshell_environment)"
+        },
+        {
+          "line": 430,
+          "text": "\t\t{"
+        },
+        {
+          "line": 431,
+          "text": "\t\t  should_jump_to_top_level = 1;"
+        },
+        {
+          "line": 432,
+          "text": "\t\t  goto out;"
+        },
+        {
+          "line": 433,
+          "text": "\t\t}"
+        },
+        {
+          "line": 434,
+          "text": "\t      else"
+        },
+        {
+          "line": 435,
+          "text": "\t\t{"
+        },
+        {
+          "line": 436,
+          "text": "#if 0"
+        },
+        {
+          "line": 437,
+          "text": "\t\t  dispose_command (command);\t/* pe_dispose does this */"
+        },
+        {
+          "line": 438,
+          "text": "#endif"
+        },
+        {
+          "line": 439,
+          "text": "#if defined (HAVE_POSIX_SIGNALS)"
+        },
+        {
+          "line": 440,
+          "text": "\t\t  sigprocmask (SIG_SETMASK, (sigset_t *)&pe_sigmask, (sigset_t *)NULL);"
+        },
+        {
+          "line": 441,
+          "text": "#endif"
+        },
+        {
+          "line": 442,
+          "text": "\t\t  continue;"
+        },
+        {
+          "line": 443,
+          "text": "\t\t}"
+        },
+        {
+          "line": 444,
+          "text": ""
+        },
+        {
+          "line": 445,
+          "text": "\t    default:"
+        },
+        {
+          "line": 446,
+          "text": "\t      command_error (\"parse_and_execute\", CMDERR_BADJUMP, code, 0);"
+        },
+        {
+          "line": 447,
+          "text": "\t      break;"
+        },
+        {
+          "line": 448,
+          "text": "\t    }"
+        },
+        {
+          "line": 449,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "selected": [
+        {
+          "line": 127,
+          "text": "void"
+        },
+        {
+          "line": 128,
+          "text": "builtin_usage (void)"
+        },
+        {
+          "line": 129,
+          "text": "{"
+        },
+        {
+          "line": 130,
+          "text": "  if (this_command_name && *this_command_name)"
+        },
+        {
+          "line": 131,
+          "text": "    fprintf (stderr, _(\"%s: usage: \"), this_command_name);"
+        },
+        {
+          "line": 132,
+          "text": "  fprintf (stderr, \"%s\\n\", _(current_builtin->short_doc));"
+        },
+        {
+          "line": 133,
+          "text": "  fflush (stderr);"
+        },
+        {
+          "line": 134,
+          "text": "}"
+        },
+        {
+          "line": 135,
+          "text": ""
+        },
+        {
+          "line": 136,
+          "text": "/* Return if LIST is NULL else barf and jump to top_level.  Used by some"
+        },
+        {
+          "line": 137,
+          "text": "   builtins that do not accept arguments. */"
+        },
+        {
+          "line": 138,
+          "text": "void"
+        },
+        {
+          "line": 139,
+          "text": "no_args (WORD_LIST *list, int fatal)"
+        },
+        {
+          "line": 140,
+          "text": "{"
+        },
+        {
+          "line": 141,
+          "text": "  if (list)"
+        },
+        {
+          "line": 142,
+          "text": "    {"
+        },
+        {
+          "line": 143,
+          "text": "      builtin_error (_(\"too many arguments\"));"
+        },
+        {
+          "line": 144,
+          "text": "      top_level_cleanup ();"
+        },
+        {
+          "line": 145,
+          "text": "      set_exit_status (EX_BADUSAGE);"
+        },
+        {
+          "line": 146,
+          "text": "      /* for now, the caller determines whether this is a fatal error */"
+        },
+        {
+          "line": 147,
+          "text": "      if (interactive_shell == 0 && fatal)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/common.c",
+      "selected": [
+        {
+          "line": 196,
+          "text": "sh_invalidopt (const char *s)"
+        },
+        {
+          "line": 198,
+          "text": "  builtin_error (_(\"%s: invalid option\"), s);"
+        },
+        {
+          "line": 202,
+          "text": "sh_invalidoptname (const char *s)"
+        },
+        {
+          "line": 204,
+          "text": "  builtin_error (_(\"%s: invalid option name\"), s);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "selected": [
+        {
+          "line": 293,
+          "text": "list_minus_o_opts (int mode, int reusable)"
+        },
+        {
+          "line": 294,
+          "text": "{"
+        },
+        {
+          "line": 295,
+          "text": "  register int\ti;"
+        },
+        {
+          "line": 296,
+          "text": "  int *on_or_off, value;"
+        },
+        {
+          "line": 297,
+          "text": ""
+        },
+        {
+          "line": 298,
+          "text": "  for (i = 0; o_options[i].name; i++)"
+        },
+        {
+          "line": 299,
+          "text": "    {"
+        },
+        {
+          "line": 300,
+          "text": "      if (o_options[i].letter)"
+        },
+        {
+          "line": 301,
+          "text": "\t{"
+        },
+        {
+          "line": 302,
+          "text": "\t  value = 0;"
+        },
+        {
+          "line": 303,
+          "text": "\t  on_or_off = find_flag (o_options[i].letter);"
+        },
+        {
+          "line": 304,
+          "text": "\t  if (on_or_off == FLAG_UNKNOWN)"
+        },
+        {
+          "line": 305,
+          "text": "\t    on_or_off = &value;"
+        },
+        {
+          "line": 306,
+          "text": "\t  if (mode == -1 || mode == *on_or_off)"
+        },
+        {
+          "line": 307,
+          "text": "\t    print_minus_o_option (o_options[i].name, *on_or_off, reusable);"
+        },
+        {
+          "line": 308,
+          "text": "\t}"
+        },
+        {
+          "line": 309,
+          "text": "      else"
+        },
+        {
+          "line": 310,
+          "text": "\t{"
+        },
+        {
+          "line": 311,
+          "text": "\t  value = GET_BINARY_O_OPTION_VALUE (i, o_options[i].name);"
+        },
+        {
+          "line": 312,
+          "text": "\t  if (mode == -1 || mode == value)"
+        },
+        {
+          "line": 313,
+          "text": "\t    print_minus_o_option (o_options[i].name, value, reusable);"
+        },
+        {
+          "line": 314,
+          "text": "\t}"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "flags.c",
+      "selected": [
+        {
+          "line": 226,
+          "text": "change_flag (int flag, int on_or_off)"
+        },
+        {
+          "line": 227,
+          "text": "{"
+        },
+        {
+          "line": 228,
+          "text": "  int *value, old_value;"
+        },
+        {
+          "line": 229,
+          "text": ""
+        },
+        {
+          "line": 230,
+          "text": "#if defined (RESTRICTED_SHELL)"
+        },
+        {
+          "line": 231,
+          "text": "  /* Don't allow \"set +r\" in a shell which is `restricted'. */"
+        },
+        {
+          "line": 232,
+          "text": "  if (restricted && flag == 'r' && on_or_off == FLAG_OFF)"
+        },
+        {
+          "line": 233,
+          "text": "    return (FLAG_ERROR);"
+        },
+        {
+          "line": 234,
+          "text": "#endif /* RESTRICTED_SHELL */"
+        },
+        {
+          "line": 235,
+          "text": ""
+        },
+        {
+          "line": 236,
+          "text": "  value = find_flag (flag);"
+        },
+        {
+          "line": 237,
+          "text": ""
+        },
+        {
+          "line": 238,
+          "text": "  if ((value == (int *)FLAG_UNKNOWN) || (on_or_off != FLAG_ON && on_or_off != FLAG_OFF))"
+        },
+        {
+          "line": 239,
+          "text": "    return (FLAG_ERROR);"
+        },
+        {
+          "line": 240,
+          "text": ""
+        },
+        {
+          "line": 241,
+          "text": "  old_value = *value;"
+        },
+        {
+          "line": 242,
+          "text": "  *value = (on_or_off == FLAG_ON) ? 1 : 0;"
+        },
+        {
+          "line": 243,
+          "text": ""
+        },
+        {
+          "line": 244,
+          "text": "  /* Special cases for a few flags. */"
+        },
+        {
+          "line": 245,
+          "text": "  switch (flag)"
+        },
+        {
+          "line": 246,
+          "text": "    {"
+        },
+        {
+          "line": 247,
+          "text": "#if defined (BANG_HISTORY)"
+        },
+        {
+          "line": 248,
+          "text": "    case 'H':"
+        },
+        {
+          "line": 249,
+          "text": "      history_expansion = histexp_flag;"
+        },
+        {
+          "line": 250,
+          "text": "      if (on_or_off == FLAG_ON)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "array.c",
+      "selected": [
+        {
+          "line": 81,
+          "text": "array_create(void)"
+        },
+        {
+          "line": 88,
+          "text": "\tr->num_elements = 0;"
+        },
+        {
+          "line": 90,
+          "text": "\thead = array_create_element(-1, (char *)NULL);\t/* dummy head */"
+        },
+        {
+          "line": 110,
+          "text": "\ta->num_elements = 0;"
+        },
+        {
+          "line": 132,
+          "text": "\ta1 = array_create();"
+        },
+        {
+          "line": 136,
+          "text": "\t\tnew = array_create_element(element_index(ae), element_value(ae));"
+        },
+        {
+          "line": 156,
+          "text": "\ta = array_create ();"
+        },
+        {
+          "line": 159,
+          "text": "\t\tn = array_create_element (element_index(p), element_value(p));"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "array.h",
+      "selected": [
+        {
+          "line": 121,
+          "text": "#define array_num_elements(a)\t((a)->num_elements)"
+        },
+        {
+          "line": 131,
+          "text": "#define array_empty(a)\t\t((a)->num_elements == 0)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "selected": [
+        {
+          "line": 97,
+          "text": "    VUNSETATTR (var, att_invisible);"
+        },
+        {
+          "line": 134,
+          "text": "    VUNSETATTR (var, att_invisible);"
+        },
+        {
+          "line": 225,
+          "text": "  VUNSETATTR (entry, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 248,
+          "text": "  VUNSETATTR (entry, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 507,
+          "text": "assign_array_from_string (const char *name, char *value, int flags)"
+        },
+        {
+          "line": 551,
+          "text": "  VUNSETATTR (var, att_invisible);\t/* no longer invisible */"
+        },
+        {
+          "line": 929,
+          "text": "    VUNSETATTR (var, att_invisible);\t/* no longer invisible */"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "arrayfunc.c",
+      "selected": [
+        {
+          "line": 507,
+          "text": "assign_array_from_string (const char *name, char *value, int flags)"
+        },
+        {
+          "line": 508,
+          "text": "{"
+        },
+        {
+          "line": 509,
+          "text": "  SHELL_VAR *var;"
+        },
+        {
+          "line": 510,
+          "text": "  int vflags;"
+        },
+        {
+          "line": 511,
+          "text": ""
+        },
+        {
+          "line": 512,
+          "text": "  vflags = 1;"
+        },
+        {
+          "line": 513,
+          "text": "  if (flags & ASS_MKASSOC)"
+        },
+        {
+          "line": 514,
+          "text": "    vflags |= 2;"
+        },
+        {
+          "line": 515,
+          "text": "  vflags |= 4;\t\t/* we want to handle noassign variables ourselves */"
+        },
+        {
+          "line": 516,
+          "text": ""
+        },
+        {
+          "line": 517,
+          "text": "  var = find_or_make_array_variable (name, vflags);"
+        },
+        {
+          "line": 518,
+          "text": "  if (var == 0 || noassign_p (var))"
+        },
+        {
+          "line": 519,
+          "text": "    return (var);"
+        },
+        {
+          "line": 520,
+          "text": ""
+        },
+        {
+          "line": 521,
+          "text": "  return (assign_array_var_from_string (var, value, flags));"
+        },
+        {
+          "line": 522,
+          "text": "}"
+        },
+        {
+          "line": 523,
+          "text": ""
+        },
+        {
+          "line": 524,
+          "text": "/* Sequentially assign the indices of indexed array variable VAR from the"
+        },
+        {
+          "line": 525,
+          "text": "   words in LIST. */"
+        },
+        {
+          "line": 526,
+          "text": "SHELL_VAR *"
+        },
+        {
+          "line": 527,
+          "text": "assign_array_var_from_word_list (SHELL_VAR *var, WORD_LIST *list, int flags)"
+        },
+        {
+          "line": 528,
+          "text": "{"
+        },
+        {
+          "line": 529,
+          "text": "  register arrayind_t i;"
+        },
+        {
+          "line": 530,
+          "text": "  register WORD_LIST *l;"
+        },
+        {
+          "line": 531,
+          "text": "  ARRAY *a;"
+        },
+        {
+          "line": 532,
+          "text": ""
+        },
+        {
+          "line": 533,
+          "text": "  a = array_cell (var);"
+        },
+        {
+          "line": 534,
+          "text": "  i = (flags & ASS_APPEND) ? array_max_index (a) + 1 : 0;"
+        }
+      ]
+    }
+  ]
+}

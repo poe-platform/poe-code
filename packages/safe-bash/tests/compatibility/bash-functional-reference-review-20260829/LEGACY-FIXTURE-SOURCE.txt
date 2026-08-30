@@ -1,0 +1,13 @@
+23:       const filename = path.join(destination, relative); fs.mkdirSync(path.dirname(filename), { recursive: true }); fs.writeFileSync(filename, bytes, { flag: 'wx', mode: member.mode }); expected.delete(relative); count++;
+29: function setupCase(caseRoot, fixtures, qualification) {
+32:   for (const [name, text] of Object.entries(fixtures)) fs.writeFileSync(path.join(caseRoot, 'work', name), Buffer.from(text), { flag: 'wx', mode: 384 });
+35:     fs.writeFileSync(path.join(caseRoot, 'work/input'), qualification.input, { flag: 'wx', mode: 384 });
+36:     fs.writeFileSync(path.join(caseRoot, 'forbidden/read-sentinel'), qualification.forbiddenRead, { flag: 'wx', mode: 384 });
+37:     fs.writeFileSync(path.join(caseRoot, 'forbidden/write-sentinel'), qualification.forbiddenWrite, { flag: 'wx', mode: 384 });
+42:   const output = path.join(root, 'OUTER.jsonl'); fs.writeFileSync(output, JSON.stringify({ event: 'RAW_START', at: Date.now(), phase }) + '\n', { flag: 'wx', mode: 384 });
+63:       const caseRoot = path.join(root, row.id); setupCase(caseRoot, phase === 'semantics' ? inputs.cases.fixtures : {}, phase === 'qualification' ? inputs.qualification.fixture : null);
+68:       fs.writeFileSync(path.join(root, row.id + '.native.json'), JSON.stringify(native) + '\n', { flag: 'wx' });
+71:       fs.writeFileSync(configPath, JSON.stringify({ id: row.id, phase, rootQualifiedExecution: true, productRoot }) + '\n', { flag: 'wx' });
+75:       const admissionPath = path.join(root, row.id + '.admission.json'); fs.writeFileSync(admissionPath, JSON.stringify({ files }) + '\n', { flag: 'wx' });
+83:       fs.writeFileSync(path.join(root, row.id + '.comparison.json'), JSON.stringify(result) + '\n', { flag: 'wx' });
+88:   fs.writeFileSync(path.join(root, 'OBSERVATIONS.json'), JSON.stringify(observations, null, 2) + '\n', { flag: 'wx' });

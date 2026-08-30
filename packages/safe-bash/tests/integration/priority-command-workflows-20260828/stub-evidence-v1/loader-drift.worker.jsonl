@@ -1,0 +1,9 @@
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"preload","requested":{"execArgv":[],"resourceLimits":{"maxOldGenerationSizeMb":128,"stackSizeMb":4}},"effective":{"execArgv":["--import","file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"],"resourceLimits":{"maxOldGenerationSizeMb":128,"stackSizeMb":4}},"resourceLimits":{"maxYoungGenerationSizeMb":48,"maxOldGenerationSizeMb":128,"codeRangeSizeMb":0,"stackSizeMb":4}}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"load","url":"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-guard.mjs","filename":"/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-guard.mjs","sha256":"aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2","role":"benign-stub-or-harness","relative":"stub-guard.mjs","bytes":622}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"builtin-load","url":"node:child_process"}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"builtin-load","url":"node:http"}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"builtin-load","url":"node:https"}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"builtin-load","url":"node:net"}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"builtin-load","url":"node:tls"}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"load","url":"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs","filename":"/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs","sha256":"168c0f26fff5cec0761ae0b5f68fc65499b672538bd10c10de0ad4afdfb665b9","role":"benign-stub-or-harness","relative":"stub-entry.mjs","bytes":558}
+{"token":"loader-drift:1","pid":56191,"threadId":1,"event":"thread-exit-hook","code":1}

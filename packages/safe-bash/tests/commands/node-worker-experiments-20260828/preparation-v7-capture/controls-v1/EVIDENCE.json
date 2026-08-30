@@ -1,0 +1,99 @@
+{
+  "schema": "capture-repair-controls-v7",
+  "date": "2026-08-28",
+  "sourceCommit": "8a2668f80e487b258532ec6c20469d9f7e230157",
+  "review": "f4e92bb14ff75cc68da136a9a7253d9f2917165e",
+  "presealSha256": "2ed7cf80eab72684b97f286f124dc0e167ab32e86b3f0ebb4eafe12ba218ef48",
+  "actual": {
+    "code": 0,
+    "signal": null,
+    "pid": 90652
+  },
+  "capture": {
+    "primary": {
+      "present": false,
+      "origin": null
+    },
+    "secondary": [],
+    "slots": [
+      {
+        "acquired": true,
+        "closeAttempted": true,
+        "closed": true
+      },
+      {
+        "acquired": true,
+        "closeAttempted": true,
+        "closed": true
+      }
+    ],
+    "bytesSeen": 769,
+    "bytesWritten": 769,
+    "writeCalls": 1,
+    "cleanupComplete": true
+  },
+  "results": {
+    "results": [
+      {
+        "id": "C01-first-open-undefined",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C02-second-open-closes-first",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C03-first-close-undefined-second-attempted",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C04-both-closes-preserve-secondary",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C05-existing-undefined-and-cleanup",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C06-short-write-completes-bounded",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C07-zero-write-rejected",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C08-write-falsy-reason-retained",
+        "pass": true,
+        "error": null
+      },
+      {
+        "id": "C09-normal-full-capture",
+        "pass": true,
+        "error": null
+      }
+    ],
+    "pass": 9,
+    "total": 9,
+    "workers": 0,
+    "engines": 0,
+    "proof": "actual capture helper with finite injected IO; not actual OS descriptor exhaustion or whole Worker owner execution"
+  },
+  "stdoutSha256": "3060e465f85c45e4c1192b5d9b705523a3197b0444be3a2dde568958ead2bfcb",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "primaryPresent": false,
+  "secondaryCount": 0,
+  "elapsedAtReceiptMs": 396838,
+  "ownedStartsSoFar": 5,
+  "workers": 0,
+  "engines": 0,
+  "compilerRetries": 0,
+  "proof": "same helper, nine injected finite IO controls plus actual harmless-child capture; not actual OS exhaustion or Worker proof"
+}

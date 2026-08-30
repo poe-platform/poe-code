@@ -1,0 +1,314 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-current-l7jXfm/candidate",
+  "mode": "source",
+  "mutant": "none",
+  "node": "v22.22.2",
+  "cases": [
+    {
+      "id": "C01",
+      "name": "raw normal return gate delays exec",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "outcome": {
+        "kind": "result",
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a"
+      },
+      "retiredAfterControlledRelease": true,
+      "returns": 1,
+      "reads": 1,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C02",
+      "name": "raw column rejection preserves exact error",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: raw return sentinel"
+      },
+      "exactReasonIdentity": true,
+      "retiredAfterControlledRelease": true,
+      "returns": 1,
+      "reads": 1,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C03",
+      "name": "public standard grep rejection control",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: raw return sentinel"
+      },
+      "exactReasonIdentity": true,
+      "retiredAfterControlledRelease": true,
+      "returns": 1,
+      "reads": 1,
+      "observedStdoutHex": "",
+      "observedStderrHex": "",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C04",
+      "name": "dispose interrupts opaque return; late rejection observed",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "afterInterruptBeforeRelease": {
+        "execSettled": true,
+        "disposeSettled": true,
+        "returns": 1,
+        "retired": false
+      },
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: Shell is disposed"
+      },
+      "retiredAfterControlledRelease": true,
+      "returns": 1,
+      "reads": 1,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C05",
+      "name": "caller abort identity; late raw rejection observed",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "afterInterruptBeforeRelease": {
+        "execSettled": true,
+        "disposeSettled": true,
+        "returns": 1,
+        "retired": false
+      },
+      "exactReasonIdentity": true,
+      "outcome": {
+        "kind": "rejection",
+        "error": "[object Object]"
+      },
+      "retiredAfterControlledRelease": true,
+      "returns": 1,
+      "reads": 1,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C06",
+      "name": "registered normal return gate delays exec",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "outcome": {
+        "kind": "result",
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a"
+      },
+      "sharedCompletionIdentity": true,
+      "trace": [
+        "registered",
+        "acquired",
+        "return-requested",
+        "retired"
+      ],
+      "registrations": 1,
+      "returns": 1,
+      "externalReturns": 1,
+      "cleanupCalls": 3,
+      "closedAdmission": true,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C07",
+      "name": "registered exec and repeated dispose strong barrier",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false,
+        false,
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: Shell is disposed"
+      },
+      "sharedCompletionIdentity": true,
+      "trace": [
+        "registered",
+        "acquired",
+        "return-requested",
+        "retired"
+      ],
+      "registrations": 1,
+      "returns": 1,
+      "externalReturns": 1,
+      "cleanupCalls": 3,
+      "closedAdmission": true,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C08",
+      "name": "registered caller abort barrier and exact identity",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false,
+        false,
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "[object Object]"
+      },
+      "exactReasonIdentity": true,
+      "sharedCompletionIdentity": true,
+      "trace": [
+        "registered",
+        "acquired",
+        "return-requested",
+        "retired"
+      ],
+      "registrations": 1,
+      "returns": 1,
+      "externalReturns": 1,
+      "cleanupCalls": 3,
+      "closedAdmission": true,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C09",
+      "name": "registered cleanup rejection beats nonzero result",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: owned return sentinel"
+      },
+      "exactReasonIdentity": true,
+      "sharedCompletionIdentity": true,
+      "trace": [
+        "registered",
+        "acquired",
+        "return-requested",
+        "retired"
+      ],
+      "registrations": 1,
+      "returns": 1,
+      "externalReturns": 1,
+      "cleanupCalls": 3,
+      "closedAdmission": true,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a7368656c6c3a206c696e6520313a206f776e65642072657475726e2073656e74696e656c0a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C10",
+      "name": "caller abort wins registered retirement rejection",
+      "status": "fail",
+      "effects": {},
+      "beforeRelease": [
+        false,
+        false,
+        false
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "[object Object]"
+      },
+      "exactReasonIdentity": true,
+      "failure": {
+        "message": "Error: owned return sentinel",
+        "stack": "Error: owned return sentinel\n    at owned (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:105:113)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:183:73\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:15)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:202:102"
+      }
+    },
+    {
+      "id": "C11",
+      "name": "same owner without registration lacks strong barrier",
+      "status": "pass",
+      "effects": {},
+      "beforeRelease": [
+        false
+      ],
+      "negativeBeforeRelease": [
+        true,
+        true,
+        true
+      ],
+      "outcome": {
+        "kind": "rejection",
+        "error": "Error: Shell is disposed"
+      },
+      "sharedCompletionIdentity": true,
+      "trace": [
+        "acquired",
+        "return-requested",
+        "retired"
+      ],
+      "registrations": 0,
+      "returns": 1,
+      "externalReturns": 1,
+      "cleanupCalls": 2,
+      "closedAdmission": true,
+      "observedStdoutHex": "",
+      "observedStderrHex": "636f6c756d6e3a2045464249473a20636f6c756d6e20696e707574206c696d69742065786365656465640a",
+      "allOwnedGatesReleased": true
+    },
+    {
+      "id": "C12",
+      "name": "public Shell internal column exact bytes and VFS effects",
+      "status": "pass",
+      "effects": {
+        "inputHex": "6120620a6320640a",
+        "outputHex": "612020620a632020640a"
+      },
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      }
+    }
+  ],
+  "counts": {
+    "total": 12,
+    "pass": 11,
+    "fail": 1
+  },
+  "unhandledRejections": [],
+  "allCasesAndGatesFinished": true
+}

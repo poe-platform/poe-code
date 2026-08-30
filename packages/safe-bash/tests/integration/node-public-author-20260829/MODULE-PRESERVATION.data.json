@@ -1,0 +1,13 @@
+{
+  "unchangedModuleTypeScript": 14,
+  "acceptedModuleIndexSha256": "954c9ed43187eb40cd72dd7cd56e196b945c6ccac6f125f8feddfb949aad4b2a",
+  "currentIndexSha256": "b55193aceb8d2f960a444372166bfef598fc5bfec5f53159d49363035bb7b6ce",
+  "existingIndexImplementationSuffixSha256": "c44ca2b04cd9df4c16b02f013dc516578304fbae3e0f490de1ad21b4b3331a99",
+  "suffixByteEqual": true,
+  "baseBuildInputChanges": [
+    "README.md",
+    "package.json",
+    "src/index.ts"
+  ],
+  "addedBuildInputCount": 16
+}

@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-28T01:56:23.666Z",
+  "preImplementationHead": "c71287455f518c92175dd8d52febe2bb421bfc27",
+  "base": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+  "sourcePaths": [
+    {
+      "path": "src/shell/cancellation.ts",
+      "revision": "57855a0293edb83bff98113123806497b4427416",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "beforeSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+      "baseBlob": "88fff30270f01d7eab63279e5777cb88db1cbb8e",
+      "baseSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+      "afterSha256": "4b26e93acfe8ff5b178f3a529519cb5db941157b3c6dd1ab8a0fe4779431f957",
+      "edits": [
+        {
+          "line": 38,
+          "from": "test(\"actual default registry contains 76 including split without duplicate installation\", async () => {",
+          "to": "test(\"actual default registry contains 77 including split without duplicate installation\", async () => {"
+        },
+        {
+          "line": 39,
+          "from": "  assert.equal(createAgentCommands().length, 76);",
+          "to": "  assert.equal(createAgentCommands().length, 77);"
+        },
+        {
+          "line": 45,
+          "from": "    assert.equal(shell.commands.list().length, 76);",
+          "to": "    assert.equal(shell.commands.list().length, 77);"
+        }
+      ]
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "beforeSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+      "baseBlob": "23a999dfd948993e45976276225645f861af3db1",
+      "baseSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+      "afterSha256": "c9174c37590ca02e367e5674bee185965a4530b3ef1edaa94a5cc483807ea4ab",
+      "edits": [
+        {
+          "line": 17,
+          "from": "test(\"default factory contains76 and standalone formatting installs exactly four without split\", async () => {",
+          "to": "test(\"default factory contains77 and standalone formatting installs exactly four without split\", async () => {"
+        },
+        {
+          "line": 19,
+          "from": "  assert.equal(createAgentCommands().length, 76);",
+          "to": "  assert.equal(createAgentCommands().length, 77);"
+        },
+        {
+          "line": 26,
+          "from": "  assert.equal(instance.commands.list().length, 76);",
+          "to": "  assert.equal(instance.commands.list().length, 77);"
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "beforeSha256": "c56c449a03b99ce393db85aa480af3ffe8f65b1a71cf0946c012606e49f74864",
+      "baseBlob": "8426f7d1dbfff1cc8ca0965659438d05423fd305",
+      "baseSha256": "be43f926bbfd9d48e3100435b9d36ffa419c80aac189e2c17c9a253fcbea3908",
+      "afterSha256": "9431438e95b088146bc9c56b7e24c87e0ab333b26de97205b4da424e67c0a928",
+      "edits": [
+        {
+          "line": 25,
+          "from": "test(\"root family exports preserve four inspection definitions in the 76-command aggregate\", async () => {",
+          "to": "test(\"root family exports preserve four inspection definitions in the 77-command aggregate\", async () => {"
+        },
+        {
+          "line": 31,
+          "from": "  assert.equal(definitions.length, 76);",
+          "to": "  assert.equal(definitions.length, 77);"
+        },
+        {
+          "line": 32,
+          "from": "  assert.equal(new Set(definitions).size, 76);",
+          "to": "  assert.equal(new Set(definitions).size, 77);"
+        },
+        {
+          "line": 34,
+          "from": "  assert.deepEqual(definitions.slice(60), [\"seq\", \"nl\", \"rev\", \"unexpand\", \"split\", \"date\", \"sleep\", \"printenv\", \"tree\", \"file\", \"egrep\", \"fgrep\", \"column\", \"html-to-markdown\", \"du\", \"expr\"]);",
+          "to": "  assert.deepEqual(definitions.slice(60), [\"seq\", \"nl\", \"rev\", \"unexpand\", \"split\", \"date\", \"sleep\", \"printenv\", \"tree\", \"file\", \"egrep\", \"fgrep\", \"column\", \"html-to-markdown\", \"du\", \"expr\", \"which\"]);"
+        },
+        {
+          "line": 79,
+          "from": "  assert.equal(target.commands.list().length, 77);",
+          "to": "  assert.equal(target.commands.list().length, 78);"
+        },
+        {
+          "line": 86,
+          "from": "  assert.equal(target.commands.list().length, 77);",
+          "to": "  assert.equal(target.commands.list().length, 78);"
+        }
+      ]
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "beforeSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+      "baseBlob": "4434cfa99fec9c9d8559718d45edf8c71f9c13bc",
+      "baseSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+      "afterSha256": "3e840eefb1f1bfd3b14b7168bcb5b89116679d6dbd28f8784c988e40dcecf221",
+      "edits": [
+        {
+          "line": 33,
+          "from": "  assert.equal(names.length, 76);",
+          "to": "  assert.equal(names.length, 77);"
+        },
+        {
+          "line": 34,
+          "from": "  assert.equal(new Set(names).size, 76);",
+          "to": "  assert.equal(new Set(names).size, 77);"
+        },
+        {
+          "line": 126,
+          "from": "    assert.equal(commands.list().length, 76);",
+          "to": "    assert.equal(commands.list().length, 77);"
+        }
+      ]
+    }
+  ],
+  "expectedNames": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "column",
+    "comm",
+    "cp",
+    "cut",
+    "date",
+    "diff",
+    "dirname",
+    "du",
+    "echo",
+    "egrep",
+    "env",
+    "expand",
+    "expr",
+    "false",
+    "fgrep",
+    "file",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "html-to-markdown",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printenv",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sleep",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "tree",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "which",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "inventoryAuthority": "02ccea66d1e7983056c0ed114f8842fbd7ec3255",
+  "allowedPathCount": 10,
+  "defaultCount": 77,
+  "customCount": 78,
+  "controls": [
+    "exact15 changed lines only in same4 files",
+    "actualfixtureassertions remain exact",
+    "missing helper/import closure fails before tests",
+    "fullthree source files and maintained packed consumer",
+    "zero runtime dependencies and actual package imports",
+    "strict positive/negative public and child signal types",
+    "installed/moved package immutability",
+    "reconstructible synthetic parent chain",
+    "no timeout/TEMP/live unrelated input"
+  ],
+  "historical76": "f5e9fc49b6abb38e180cc9de16c95fced102ff75 and2713 driver unchanged",
+  "productExecutions": 0,
+  "wholeGateLaunched": false
+}

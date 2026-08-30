@@ -1,0 +1,11 @@
+{
+  "schema": "NEW_REVIEW_FIXTURE_CLEANUP_V1",
+  "removedFiles": 746,
+  "removedDirectories": 322,
+  "archiveManifestSha256": "bac48e18795e31defacd83089879f354d631c50ca0b1e99e2b17475ed7227f07",
+  "storedArchiveRoundtripVerified": true,
+  "allMembersHashModeVerifiedBeforeRemoval": true,
+  "oldEvidenceUntouched": true,
+  "processCensus": false,
+  "runtimeProcesses": "existing captured exit/close and supervisor receipts only; no new census"
+}

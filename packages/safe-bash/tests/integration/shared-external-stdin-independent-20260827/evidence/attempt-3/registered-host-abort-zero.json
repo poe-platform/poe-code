@@ -1,0 +1,28 @@
+{
+  "id": "registered-host-abort-zero",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "registered-acquired:release",
+    "registered-entered:release",
+    "return",
+    "return-entered:release",
+    "registered-release:release",
+    "rejected:0",
+    "registered-retirement:1;close-calls:2",
+    "next-entered:release",
+    "next-entered:release",
+    "return-entered:release"
+  ],
+  "input": {
+    "reads": 0,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 0
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

@@ -1,0 +1,9 @@
+{
+  "command": "execution-prep-v1/run-review.mjs --candidate=c26892c3a1a419311c9cf46a6c2976e696e00624 --runtime-sha256=eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193 --preseal=7a4ccb782cfbeca21ca710aa6f8f8839e491dc41 --label=original-types-01",
+  "exitCode": 1,
+  "error": "Error: named --key=value admission required",
+  "location": "run-review.mjs:12:140",
+  "rootCause": "frozen option regex [a-z-]+ excludes digits in declared runtime-sha256 option",
+  "productExecutions": 0,
+  "preserved": true
+}

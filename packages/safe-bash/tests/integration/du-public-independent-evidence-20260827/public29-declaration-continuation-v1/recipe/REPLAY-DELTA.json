@@ -1,0 +1,24 @@
+{
+  "originalPath": "tests/integration/du-public-independent-evidence-20260827/public29-v1/recipe/replay-bindings.json",
+  "originalSha256": "643f453dbd23281ffa7139db6a0fd4b6b25007e582efd775fb00faeca5e37a46",
+  "updates": {
+    "supervisorIdentity": {
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/executor.mjs",
+      "sha256": "471828f6915debadf281a61650435d4355cf493d09726499af0184b105c94b3d"
+    },
+    "admissionPolicy": {
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/RECIPE.md",
+      "sha256": "78ab31b5a4f8526ded731147b4102fb9f26e09349e2d82b2fe1d7d9457f179df",
+      "mode": "scoped-committed-archive",
+      "postRunDetectsNewEntries": true
+    },
+    "replayAuthorization": {
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/ROOT-AUTHORIZATION.md",
+      "sha256": "6d15a85e253d2ab997dd5c4634a2b6ec66dbb27a0d45ee4c198e3176e5d7379c",
+      "candidateCommit": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+      "freezeCommit": "1bd1048b0075adf9ee1ebf041e299122f72c3459"
+    }
+  },
+  "resultSha256": "19841f68cdffab82c79af78592d6a83cb2f15bfd32551d7f43ff54006a1cbdf2",
+  "otherFieldsChanged": 0
+}

@@ -1,0 +1,201 @@
+{
+  "date": "2026-08-28",
+  "completedAt": "2026-08-28T11:36:59.609Z",
+  "status": "DATA_BOUND_DENY_PENDING_MODE_AUTHORITY_AND_FRESH_ROOT_GO",
+  "revisions": {
+    "source": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "length": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "oldSource": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "oldPacket": "71a16afd5b430175180fc4741531b75c31b25882",
+    "oldBuild": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "oldActual": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+    "consumers": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+    "baselineConsumers": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+    "originalTests": "1d802e7af02add9e334ab934668d41d6e5ffbbe2",
+    "repairTests": "e889e5236ec5666977697bb758dce510d689efe3",
+    "driver": "03dd10ec4901a4356df5bfcf5b24bd9ae125d371",
+    "freeze": "bd471ef682d768692a682d40009a874f51e3ad68",
+    "freezeReview": "de89e478d8ddce62eac955708f1b87d7be1bd137"
+  },
+  "admission": "DENY",
+  "currentGuardObservation": "Static code inspection: consumers-v2 SOURCE-AUTHORITY pins35da; new candidate would fail selected-origin condition. No guard execution was performed.",
+  "ownDataPresealSha256": "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83",
+  "historicalModeAuthorityDenials": [
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "path": "FINAL-SEAL.json",
+      "reason": "MODE_AUTHORITY_MISSING",
+      "goldenPosixModeVerified": false
+    }
+  ],
+  "preservedV1Failure": {
+    "exit": 1,
+    "elapsedMs": 922,
+    "reaped": true,
+    "artifactAuthenticationReached": false,
+    "classification": "IMMUTABLE_V1_FAIL_NOT_RESCORED"
+  },
+  "modeDataControls": 10,
+  "handoff": {
+    "revision": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md",
+    "blob": "b5ab7278928c7fba62e6d5ecb6bb5db375c6eb00",
+    "sha256": "4f8bf5635a5efd2fb41244b557b0f7685bbf3f8d82e44827ff6b905c45409685",
+    "bytes": 6668,
+    "mode": 420
+  },
+  "authorManifest": {
+    "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+    "blob": "52038d7ec7b05f3162eebf3cff11bae74b2b6306",
+    "sha256": "b1e11c9dfc076c4b9ae307e0ff48ac0f18c4d002ed8ff06394bf49d5a562d9e1",
+    "bytes": 70320,
+    "mode": 420
+  },
+  "archive": {
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+    "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "bytes": 2727936,
+    "mode": 420
+  },
+  "package": {
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+    "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "bytes": 786778,
+    "mode": 420
+  },
+  "counts": {
+    "authorManifest": 281,
+    "excludedAuthorData": 8,
+    "sourceProjection": 271,
+    "sourceBase": 264,
+    "selectedAdditions": 7,
+    "changedSourcePaths": 5,
+    "archive": 273,
+    "baselinePackage": 846,
+    "packageAdditions": 24,
+    "fullPackage": 870,
+    "changedPackageFiles": 17,
+    "wholeProductScope": 301
+  },
+  "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+  "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+  "files": {
+    "sourceAuthority": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "mode": 420
+    },
+    "sourceReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "fullReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455,
+      "mode": 420
+    },
+    "authorArtifactReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+      "bytes": 1368,
+      "mode": 420
+    },
+    "composition": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+      "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "bytes": 25587,
+      "mode": 420
+    },
+    "wholeGit": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/GIT-IDENTITIES.json",
+      "sha256": "7502886ae594a13b1c8d1c358b7925ce6376463c84608489a1dac7744bd93528",
+      "bytes": 13993,
+      "mode": 420
+    },
+    "toolchain": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+      "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+      "bytes": 4800,
+      "mode": 420
+    },
+    "history": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+      "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+      "bytes": 15621,
+      "mode": 420
+    }
+  },
+  "authorEvidenceOnly": {
+    "report": {
+      "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+      "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPORT.json",
+      "blob": "da3353c0d42f3e19ff99b8f71390770fe268dc1e",
+      "sha256": "536383aca7dd7024ac851476c3b371c958d2c46926446eb163ba0e0df48f902b",
+      "bytes": 31135,
+      "mode": 420
+    },
+    "tests": {
+      "repair": {
+        "passed": 9,
+        "total": 9
+      },
+      "originalAuthor": {
+        "passed": 26,
+        "total": 26
+      },
+      "selectedParentJq": {
+        "passed": 19,
+        "total": 19
+      }
+    },
+    "captureRoles": 18,
+    "packageClaims": {
+      "runtimeDependencies": 0,
+      "installedRuntime": true,
+      "installedTypes": true,
+      "movedRuntime": true,
+      "movedTypes": true,
+      "shellPluginRuntime": true,
+      "rootYqExport": false,
+      "defaultRegistration": false,
+      "wrongSourceDenied": true,
+      "wrongModuleHashDenied": true
+    },
+    "qualification": "author repair evidence for four source allocation-order contradictions; not independent acceptance, exploit proof, public integration, or closure of 31 unfulfilled review obligations",
+    "notIndependentPasses": true
+  },
+  "observationTiming": "194+8 normative freeze predates candidate; candidate body/data inspection occurred before complete successor executor preseal. This is not an independent precode behavioral holdout.",
+  "execution": {
+    "productImports": 0,
+    "productRuns": 0,
+    "builds": 0,
+    "compilerRuns": 0,
+    "typeConsumers": 0,
+    "loadedMutants": 0,
+    "nativeYaml": 0,
+    "authorScripts": 0,
+    "harnessCohorts": 0,
+    "syntheticCases": 0,
+    "staticModeDataControls": 10,
+    "materializations": 0,
+    "repacks": 0,
+    "dependencies": 0
+  },
+  "remaining": [
+    "Missing committed POSIX-mode authority for prior v1 self-excluded FINAL-SEAL.json; full golden-mode admission remains DENY, not inferred or waived",
+    "Root/plan-owner exact successor source/consumer/loader/runtime/integration seals and fresh execution GO",
+    "New independently authenticated scoped source-to-output build",
+    "Fresh affected source/installed/moved semantic and fixed-public-cap obligations",
+    "Separately owned runtime-v3-CMD22 result; preserve prior failures and UNRUN",
+    "Public YQ integration remains absent"
+  ]
+}

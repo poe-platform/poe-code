@@ -1,0 +1,16 @@
+{
+  "label": "natural",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+    "natural",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+  ],
+  "pid": 56186,
+  "status": 0,
+  "signal": null,
+  "reaped": true,
+  "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJuYXR1cmFsIiwicGFzcyI6dHJ1ZSwicm93cyI6W3sidG9rZW4iOiJuYXR1cmFsOjEiLCJlbnRyeSI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvc3R1Yi1lbnRyeS5tanMiLCJyZXF1ZXN0ZWQiOnsiZXhlY0FyZ3YiOltdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImVmZmVjdGl2ZSI6eyJleGVjQXJndiI6WyItLWltcG9ydCIsImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvd29ya2VyLXByZWxvYWQubWpzIl0sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZXhpdGVkIjp0cnVlLCJleGl0Q29kZSI6MCwidGVybWluYXRlUGVuZGluZyI6MCwidGVybWluYXRlRXJyb3JzIjpbXSwiZW1lcmdlbmN5IjpmYWxzZSwicHJvZHVjdFRlcm1pbmF0ZUNhbGxzIjowLCJlcnJvcnMiOltdLCJ0aHJlYWRJZCI6MSwicmVzb3VyY2VMaW1pdHMiOnsibWF4WW91bmdHZW5lcmF0aW9uU2l6ZU1iIjotMSwibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJjb2RlUmFuZ2VTaXplTWIiOi0xLCJzdGFja1NpemVNYiI6NH0sIm9ubGluZSI6dHJ1ZX1dLCJwcm9kdWN0SW1wb3J0cyI6MCwicHJvZHVjdERpc3BhdGNoZXMiOjB9Cg==",
+  "stdoutSha256": "018f509fe4c45cd3bb881e769553c08c5e213a97f8266b4aad353085e1424087",
+  "stderrBase64": ""
+}

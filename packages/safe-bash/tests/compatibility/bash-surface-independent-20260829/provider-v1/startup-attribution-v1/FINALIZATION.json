@@ -1,0 +1,55 @@
+{
+  "schema": "startup-attribution-publication-v1",
+  "sourceCommit": "7c36744b62c27a921ff6b936c2142e5d1e210f88",
+  "at": 1787981011945,
+  "phaseStarted": 1787980447269,
+  "phaseDeadline": 1787981647269,
+  "elapsedMs": 564677,
+  "limits": {
+    "allProcesses": 40,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 268435456
+  },
+  "recordedChildren": 17,
+  "recordedRetired": 17,
+  "active": 0,
+  "additionalMetadataCommands": 1,
+  "targetReadinessLaunches": 0,
+  "nativeBashLaunches": 0,
+  "productLaunches": 0,
+  "workerLaunches": 0,
+  "privateOrHostLogReads": 0,
+  "profileChanges": 0,
+  "knownPeakDirectChildren": 1,
+  "qualification": "Registered direct metadata/editing children observed exited/closed; not a kernel census of implicit tool internals. Source-bounded serial roles, no hard preemption/RSS claim. Capture counters cover owned child streams; scope storage is sampled logical retained bytes, not whole invocation memory.",
+  "capturedChildBytes": 44001,
+  "rawNamespaceBytes": 258230,
+  "publication": {
+    "path": "PUBLICATION-CAPTURE.json.gz.base64",
+    "cutoff": "through child17, excludes its own later patch/add/commit/status publication",
+    "jsonBytes": 352461,
+    "jsonSha256": "3ec8b6b13e2842433281991e1b9d934cc357c9b40d507eabfc8e9fcf3cd4be26",
+    "gzipBytes": 152445,
+    "gzipSha256": "860f854c7382b829bdee09d1e7685241bcb69ed9da2f08eb72c7b230a6ef49fe",
+    "encodedSha256": "9cbb17a040142e985b08b1af4fdc06b966d013ca7b6ca4678b85b9287f2504fb"
+  },
+  "remainingPublication": {
+    "maxChildren": 4,
+    "roles": [
+      "apply_patch finalization",
+      "git add exact finalization files",
+      "git commit --only exact finalization files",
+      "git status/log scoped terminal receipt"
+    ],
+    "noAdditionalTargetOrMetadataProbe": true
+  },
+  "preparationDefectsPreserved": [
+    "Unsupported data URL module locator before first child",
+    "Empty-input Git cat-file0/empty; explicit-input correction captured",
+    "Unsupported query-suffixed module locator before metadata; exact helper copy bound"
+  ],
+  "nextDecision": "One existing D03 diagnostic record, exactPID17408 and time window in REPORT.md; root must approve locator/collector; no acquisition or runtime permission here",
+  "native9And40": "UNRUN",
+  "phaseAfterPublication": "CLOSED; no task-owned work intentionally left running"
+}

@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "rows": [
+    {
+      "id": "J01-own-data-accessor",
+      "pass": true
+    },
+    {
+      "id": "J02-journal-reserve-cap",
+      "pass": true
+    },
+    {
+      "id": "J03-short-zero-undefined",
+      "pass": true
+    },
+    {
+      "id": "J04-normal-strict-receipt",
+      "pass": true
+    },
+    {
+      "id": "J05-false-retirement-refused",
+      "pass": true
+    },
+    {
+      "id": "J06-unknown-distinct-from-process-close",
+      "pass": true
+    },
+    {
+      "id": "J07-hash-request-binding",
+      "pass": true
+    },
+    {
+      "id": "J08-chronology",
+      "pass": true
+    },
+    {
+      "id": "J09-natural-owned",
+      "pass": true
+    },
+    {
+      "id": "J10-nonzero-owned",
+      "pass": true
+    }
+  ],
+  "passed": 10,
+  "children": [
+    {
+      "schema": 3,
+      "role": "J09-natural-owned",
+      "ownerPid": 28931,
+      "clockDomain": "owner:28931",
+      "pid": 28932,
+      "admitted": true,
+      "created": true,
+      "spawned": true,
+      "exited": true,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "exitCode": 0,
+      "exitSignal": null,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "stdoutEnded": true,
+      "stderrEnded": true,
+      "state": "RETIRED",
+      "captureComplete": true,
+      "captureTruncated": false,
+      "termRequested": false,
+      "killRequested": false,
+      "primary": {
+        "present": false
+      },
+      "secondary": [],
+      "trace": [
+        {
+          "seq": 1,
+          "at": 42665,
+          "kind": "admit"
+        },
+        {
+          "seq": 2,
+          "at": 45165,
+          "kind": "created",
+          "pid": 28932
+        },
+        {
+          "seq": 3,
+          "at": 45289,
+          "kind": "spawn",
+          "pid": 28932
+        },
+        {
+          "seq": 4,
+          "at": 95165,
+          "kind": "stderrEnd"
+        },
+        {
+          "seq": 5,
+          "at": 95534,
+          "kind": "stdoutEnd"
+        },
+        {
+          "seq": 6,
+          "at": 95919,
+          "kind": "stdoutClose"
+        },
+        {
+          "seq": 7,
+          "at": 95924,
+          "kind": "stderrClose"
+        },
+        {
+          "seq": 8,
+          "at": 95972,
+          "kind": "exit",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "seq": 9,
+          "at": 96001,
+          "kind": "close",
+          "code": 0,
+          "signal": null
+        },
+        {
+          "seq": 10,
+          "at": 96014,
+          "kind": "retired"
+        }
+      ]
+    },
+    {
+      "schema": 3,
+      "role": "J10-nonzero-owned",
+      "ownerPid": 28931,
+      "clockDomain": "owner:28931",
+      "pid": 28933,
+      "admitted": true,
+      "created": true,
+      "spawned": true,
+      "exited": true,
+      "closed": true,
+      "code": 7,
+      "signal": null,
+      "exitCode": 7,
+      "exitSignal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 14,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "stdoutEnded": true,
+      "stderrEnded": true,
+      "state": "RETIRED",
+      "captureComplete": true,
+      "captureTruncated": false,
+      "termRequested": false,
+      "killRequested": false,
+      "primary": {
+        "present": false
+      },
+      "secondary": [],
+      "trace": [
+        {
+          "seq": 1,
+          "at": 96522,
+          "kind": "admit"
+        },
+        {
+          "seq": 2,
+          "at": 97453,
+          "kind": "created",
+          "pid": 28933
+        },
+        {
+          "seq": 3,
+          "at": 97476,
+          "kind": "spawn",
+          "pid": 28933
+        },
+        {
+          "seq": 4,
+          "at": 136280,
+          "kind": "stderrEnd"
+        },
+        {
+          "seq": 5,
+          "at": 136428,
+          "kind": "stdoutEnd"
+        },
+        {
+          "seq": 6,
+          "at": 136504,
+          "kind": "stdoutClose"
+        },
+        {
+          "seq": 7,
+          "at": 136508,
+          "kind": "stderrClose"
+        },
+        {
+          "seq": 8,
+          "at": 136536,
+          "kind": "exit",
+          "code": 7,
+          "signal": null
+        },
+        {
+          "seq": 9,
+          "at": 136542,
+          "kind": "close",
+          "code": 7,
+          "signal": null
+        },
+        {
+          "seq": 10,
+          "at": 136545,
+          "kind": "retired"
+        }
+      ]
+    }
+  ],
+  "actualWorkers": 0,
+  "productImports": 0
+}

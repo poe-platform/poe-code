@@ -1,0 +1,74 @@
+92:     for (const entry of seal.tools) {
+93:       const destination = join(work, relative(repo, entry.path)); await mkdir(dirname(destination), { recursive: true }); await copyFile(entry.path, destination); await chmod(destination, entry.mode);
+94:       assert.equal((await hash(destination)).sha256, entry.sha256);
+95:     }
+96:     const source = join(work, 'source'); await mkdir(source);
+97:     for (const entry of seal.sources) { const destination = join(source, basename(entry.path)); await copyFile(entry.path, destination); assert.equal((await hash(destination)).sha256, entry.sha256); }
+98:     await writeFile(join(source, 'package.json'), '{"type":"module","private":true}\n');
+99:     const compiler = join(work, relative(repo, seal.compiler)); const typeRoots = join(work, 'node_modules/@types'); const emitted = join(work, 'emitted');
+100:     const build = await child('strict-build', [compiler, ...seal.tscFlags, '--typeRoots', typeRoots, '--declaration', '--outDir', emitted, ...seal.sources.map(entry => join(source, basename(entry.path)))], work, 120000);
+101:     if (build.code !== 0) throw new Error('ORDINARY compiler failure; dependent product loads withheld');
+102:     await writeFile(join(emitted, 'package.json'), '{"type":"module","private":true}\n'); const emittedBindings = await census(emitted);
+103:     const rows = []; const types = [];
+104:     async function runCases(role, directory, target = false, selection = 'all', mutated = null) {
+105:       const script = target ? join(own, 'checkpoints.mjs') : join(author, 'suite.mjs');
+106:       const args = target ? [script,directory,selection] : [script,directory,join(author,'cases.json')];
+107:       const result = await child(role,args,work);
+108:       const records = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+109:       const observed = records.find(record => record.event === 'results'); const loaded = records.find(record => record.event === 'loaded');
+110:       if (!observed || !loaded || observed.rows.length === 0 || result.code !== (observed.fail ? 1 : 0)) throw new Error('SAFETY result/exit/capture mismatch');
+111:       assert.equal(loaded.execPath, seal.node.path, 'SAFETY child binary');
+112:       for (const [name, entry] of Object.entries(loaded.files)) {
+113:         const expected = emittedBindings.find(item => basename(item.path) === `${name}.js`);
+114:         const actual = await hash(join(directory, `${name}.js`)); assert.equal(entry.sha256, actual.sha256, 'SAFETY loaded witness');
+115:         if (name === mutated) assert.notEqual(entry.sha256, expected.sha256); else assert.equal(entry.sha256, expected.sha256, 'SAFETY artifact member binding');
+116:       }
+117:       rows.push({ role, mutated, exitCode: result.code, observed, loaded }); return observed;
+118:     }
+119:     const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{"type":"module"}\n');
+120:     for (const entry of emittedBindings) await copyFile(entry.path,join(app,'artifact',basename(entry.path)));
+121:     for (const name of ['consumer.mts','negative.mts']) await copyFile(join(author,name),join(app,name));
+122:     for (const layout of ['source','installed','moved']) {
+123:       const location = layout === 'moved' ? join(work,'physically-moved-app') : app;
+124:       if (layout === 'moved') { await rename(app,location); await assert.rejects(lstat(app),error=>error.code==='ENOENT'); }
+125:       const directory = layout === 'source' ? emitted : join(location,'artifact');
+126:       await runCases(`${layout}-author66`,directory); await runCases(`${layout}-checkpoints8`,directory,true);
+127:       const positive = await child(`${layout}-types-positive`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'consumer.mts')],work,120000);
+128:       const negative = await child(`${layout}-types-negative`,[compiler,...seal.tscFlags,'--typeRoots',typeRoots,'--noEmit',join(location,'negative.mts')],work,120000);
+129:       const diagnostics = [...negative.stdout.matchAll(/error TS(\d+):/g)].map(entry=>Number(entry[1]));
+130:       types.push({layout,positive:positive.code,negative:negative.code,diagnostics,pass:positive.code===0 && negative.code===2 && JSON.stringify(diagnostics)==='[2345,2339,2322]'});
+131:     }
+132:     const mutations = [
+133:       {id:'M01',name:'matcher',start:'async function historyOrder(',oldStart:'async function historyOrder(',end:'async function preferred(',selection:'C01'},
+134:       {id:'M02',name:'syntax',start:'    async count()',oldStart:'    count()',end:'    async atom(',selection:'C05'},
+135:       {id:'M03',name:'syntax',start:'    async set(begin)',oldStart:'    set(begin)',end:'\n}\nexport async function compileEre',selection:'C07'},
+136:     ];
+137:     const mutants = [];
+138:     for (const spec of mutations) {
+139:       const location = join(emitted,`${spec.name}.js`); const original = await text(location);
+140:       const oldLocation = seal.reversionInputs.find(entry=>basename(entry.path)===`${spec.name}.js`).path; const old = await text(oldLocation);
+141:       const begin=original.indexOf(spec.start), end=original.indexOf(spec.end,begin), oldBegin=old.indexOf(spec.oldStart), oldEnd=old.indexOf(spec.end,oldBegin);
+142:       if ([begin,end,oldBegin,oldEnd].some(index=>index<0)) { mutants.push({id:spec.id,activated:false,reason:'exact method marker absent'}); continue; }
+143:       const changed = original.slice(0,begin)+old.slice(oldBegin,oldEnd)+original.slice(end); assert.notEqual(changed,original);
+144:       await writeFile(location,changed); let outcome;
+145:       try { outcome=await runCases(spec.id,emitted,true,spec.selection,spec.name); } finally { await writeFile(location,original); }
+146:       await bound(emittedBindings); const restored=await runCases(`${spec.id}-restore`,emitted,true,spec.selection);
+147:       mutants.push({id:spec.id,activated:true,killed:outcome.fail>0,restored:restored.fail===0,methodSha256:createHash('sha256').update(old.slice(oldBegin,oldEnd)).digest('hex')});
+148:     }
+149:     const bad = join(work,'binding-negative.js'); await writeFile(bad,'changed');
+150:     const expected = { ...emittedBindings.find(entry=>basename(entry.path)==='matcher.js'),path:bad };
+151:     const guards=[];
+152:     for (const [id,entry] of [['B01-content',expected],['B02-missing',{...expected,path:join(work,'absent.js')}]]) {
+153:       let reason; try { await bound([entry]); } catch(error) {reason=String(error);}
+154:       assert.ok(reason); guards.push({id,refused:true,reason,dataOnly:true});
+155:     }
+156:     await bound(inputs); await bound(emittedBindings); const finalCensus=await census(work); const workBytes=finalCensus.reduce((sum,entry)=>sum+entry.size,0);
+157:     if(workBytes>512*1024*1024) throw new Error('SAFETY work cap');
+158:     const result={sourceBindings:seal.sources,emittedBindings,rows,types,mutants,guards,receipts,children:count,peakChildren:peak,active,captureBytes,workBytes,finalCensus,elapsedMs:Date.now()-started};
+159:     await writeFile(join(output,'RESULT.json'),JSON.stringify(result,null,2)+'\n');
+160:     const failed=rows.some(row=>!row.mutated&&row.observed.fail)||types.some(row=>!row.pass)||mutants.some(row=>!row.activated||!row.killed||!row.restored);
+161:     await event({event:'complete',failed,children:count,active,captureBytes,workBytes}); if(failed) process.exitCode=1;
+162:   }
+163: } catch(error) { await event({event:'failure',error:String(error?.stack??error),receipts,active}); process.exitCode=1; }
+164: finally { await event({event:'settled',active,count,peak,captureBytes}); await outer.close(); if(active) process.exitCode=78; }
+165: 

@@ -1,0 +1,25 @@
+{
+  "schema": "REGEX_WORKER_SOURCE_PROPOSED_CONTROLS_V1",
+  "status": "PLAN_SEALED_IMPLEMENTATION_AND_EXECUTION_NOT_AUTHORIZED",
+  "groups": [
+    {"id":"G01","instances":["exact installed closure accepted","exact moved closure with origin absent accepted","one member hash drift refused before construction","member mode and symlink substitution two separate refusals"]},
+    {"id":"G02","instances":["genuine exact file URL accepted","prototype-forged URL refused without user getter","plain object with href getter refused without invoking getter","query fragment percent-alias and outside URL four separate refusals"]},
+    {"id":"G03","instances":["exact own-data options 128MiB old generation 4MiB stack empty argv accepted","inherited option refused","accessor option refused without getter","extra option and changed limit two separate refusals"]},
+    {"id":"G04","instances":["data URL refused","eval option refused","caller execArgv import refused","string path and foreign Worker URL two separate refusals"]},
+    {"id":"G05","instances":["entry changes after parent admission refused by nested loader","dependency loaded.source differs refused","unknown nested module refused","unknown nested builtin refused"]},
+    {"id":"G06","instances":["caught parent admission refusal remains unsafe","caught nested load refusal remains unsafe","refusal publication throws still sets sticky flag","exit zero with sticky violation cannot qualify"]},
+    {"id":"G07","instances":["eligible case start eight within proposed cap","ninth cumulative start refused","second concurrent start refused","zero-allowance case or empty setup Worker refused"]},
+    {"id":"G08","instances":["four exact nested nextLoad witnesses reconcile","missing worker entry witness refuses qualification","duplicate or foreign token refuses qualification","parent hash-only receipt cannot satisfy nested witness"]},
+    {"id":"G09","instances":["natural result waits product termination and exit","caller abort waits cleanup","startup failure preserves primary plus cleanup error","constructor acquisition unknown stops rather than clean retirement"]},
+    {"id":"G10","instances":["start receipt write failure after native construction still reaps enrolled Worker","terminate receipt write failure still invokes native terminate","missing exit remains unknown and unsafe","bounded record or aggregate overflow stops and retains observed/lost counts"]},
+    {"id":"G11","instances":["requested argv empty and exact effective preload separately recorded","effective preload or helper hash drift refused","product-requested preload never mistaken for observer-owned preload","second-generation Worker and unbound source fallback two separate refusals"]},
+    {"id":"G12","instances":["unknown allocation retained as UNKNOWN not zero","known zero allocation not unknown","known nonzero allocation is not inferred from logical bytes","historical DU FAIL cannot be relabelled by qualification metadata"]}
+  ],
+  "groupsCount": 12,
+  "finiteInstantiations": 55,
+  "executed": 0,
+  "note": "G01 last entry expands to two; G02 last entry four; G03 last entry two; G04 last entry two; G11 last entry two. Remaining entries are single cases. G12 is DATA classification, not a product DU replay.",
+  "futureControls": "harmless authenticated stubs before any real Worker; whole actual successor guard/observer/assessor bodies, not detached replacements",
+  "futureRealProof": "only fresh root-authorized exact frozen semantic roles; no trial cases or C11 repetitions",
+  "approvalNeeded": ["explicit instrumentation changes effective execArgv only", "new nested strict observer closure", "per-case start budgets in WORKER-SCHEDULE-PROPOSAL.json", "finite control execution budget and independent review"]
+}

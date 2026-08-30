@@ -1,0 +1,81 @@
+TAP version 13
+# Subtest: desired action-abort observes original host rejection without hiding abort
+ok 1 - desired action-abort observes original host rejection without hiding abort
+  ---
+  duration_ms: 345.423333
+  type: 'test'
+  ...
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-ZicyG4/patched/packages/safejs/src/run.ts","sha256":"c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1"}
+# {"actualEngineLoad":"/private/tmp/safe-bash-safejs-isolated-ZicyG4/patched/packages/safejs/src/interp/interpreter.ts","sha256":"9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"}
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Error("constructed").message
+ok 2 - UNRESOLVED desired live-signal plugin behavior: new Error("constructed").message
+  ---
+  duration_ms: 150.5365
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new TypeError("constructed").message
+ok 3 - UNRESOLVED desired live-signal plugin behavior: new TypeError("constructed").message
+  ---
+  duration_ms: 2.69075
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Map([["key", "value"]]).get("key")
+ok 4 - UNRESOLVED desired live-signal plugin behavior: new Map([["key", "value"]]).get("key")
+  ---
+  duration_ms: 3.907
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new Set(["value"]).has("value")
+ok 5 - UNRESOLVED desired live-signal plugin behavior: new Set(["value"]).has("value")
+  ---
+  duration_ms: 4.441458
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: new RegExp("^value$").test("value")
+ok 6 - UNRESOLVED desired live-signal plugin behavior: new RegExp("^value$").test("value")
+  ---
+  duration_ms: 3.105584
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: Array.isArray([])
+ok 7 - UNRESOLVED desired live-signal plugin behavior: Array.isArray([])
+  ---
+  duration_ms: 2.182125
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])
+ok 8 - UNRESOLVED desired live-signal plugin behavior: Array.from([1, 2])
+  ---
+  duration_ms: 2.262625
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data
+ok 9 - UNRESOLVED desired live-signal plugin behavior: own __proto__ environment data
+  ---
+  duration_ms: 2.751083
+  type: 'test'
+  ...
+# Subtest: UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason
+not ok 10 - UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason
+  ---
+  duration_ms: 1.422666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:2:412'
+  failureType: 'testCodeFailure'
+  error: 'The validation function is expected to return "true". Received false'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/safejs-stress/upstream-desired.probe.ts:37:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 9
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 484.14875

@@ -1,0 +1,15 @@
+{
+  "pid": 56941,
+  "childPid": 56944,
+  "primaryPresent": false,
+  "primary": null,
+  "terminal": {
+    "code": 1,
+    "signal": null,
+    "exited": {
+      "code": 1,
+      "signal": null
+    }
+  },
+  "captured": 0
+}

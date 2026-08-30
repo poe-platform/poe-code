@@ -1,0 +1,7 @@
+{
+  "name": "syntax",
+  "before": "if (child.nullable && child.captured && max > 1)",
+  "after": "if (false)",
+  "base": "1dd893b7afdcd0afae025cd51562bc3255e3c78030e3876e6e33c5750f818a02",
+  "changed": "0494c04980fdf6fc2f61412f5f121d3a5405354e6af27c6b00dd281e9d6da31c"
+}

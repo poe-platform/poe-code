@@ -1,0 +1,30 @@
+{
+  "schema": "primary-public-source-attribution-v3",
+  "accessed": "2026-08-29",
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/xnu/xnu-12377.101.15/bsd/sys/reason.h",
+      "binding": "Apple public versioned tag xnu-12377.101.15; NOT authenticated host kernel source/binary identity",
+      "anchors": "lines168,187-199,220-230",
+      "finding": "Namespace35 is OS_REASON_LIBIGNITION. The header does not define the meaning of libignition code2. flags582=0x246 corresponds to GENERATE_CRASH_REPORT, FROM_USERSPACE, CONSISTENT_FAILURE, ABORT under this versioned definition."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/dyld/dyld-1376.6/dyld/DyldProcessConfig.cpp",
+      "binding": "Apple public dyld-1376.6; NOT matched by UUID to the recorded host dyld",
+      "anchors": "CacheFinder constructor lines1050-1112; DyldCache constructor lines1204-1220",
+      "finding": "CacheFinder invokes ignite and DyldCache constructs CacheFinder. This corroborates the recorded symbolic cache-initialization boundary, not a cause or exact instruction/source match."
+    },
+    {
+      "url": "https://github.com/apple-oss-distributions/dyld/tags",
+      "binding": "Public tag listing retrieved; no host version substitution",
+      "finding": "Versioned dyld-1376.6 source selected; exact host image source remains unbound."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/distribution-macOS/macos-264/.gitmodules",
+      "binding": "Public macos-264 module list only; not host build attestation",
+      "finding": "No ignition entry in retrieved module list; not proof no private or unpublished implementation exists."
+    }
+  ],
+  "excludedEvidence": "Unrelated search results and user issue reports were not used as authoritative mappings.",
+  "lookupLimit": "No primary source definition of libignition code2 was located in this bounded search; no errno/signal/permission interpretation is assigned."
+}

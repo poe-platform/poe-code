@@ -1,0 +1,14 @@
+{
+  "id": "PREP02",
+  "role": "STATIC_MANIFEST_INSPECTOR_FAILURE",
+  "status": "RETAINED_FAIL",
+  "defect": "Inspector incorrectly assumed every selected input uses revision; the 14 module-origin records use commit. No missing origin is authorized.",
+  "child": { "argv": ["git", "ls-tree", "-rz", "undefined"], "pid": 8216, "exit": 128, "signal": null, "stdout": "", "stderr": "fatal: Not a valid object name undefined\n" },
+  "parentExit": 1,
+  "artifactWritesBeforeFailure": 0,
+  "captureLocation": "Conversation receipt ac1b5e",
+  "correction": "Validate explicit per-row revision or commit origin schema; reject absent/conflicting origins. Authenticate selected input against that exact stored origin. No HEAD fallback.",
+  "targetExecutions": 0,
+  "compilerExecutions": 0,
+  "controlsExecuted": 0
+}

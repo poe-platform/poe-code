@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: all argument and environment validation happens before any filesystem call
+not ok 1 - all argument and environment validation happens before any filesystem call
+  ---
+  duration_ms: 5.329167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/parent/extracted/tests/commands/du/behavior.test.ts:1:6148'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/migration-audit-9a5a6f92/protocol-correction-v2/.scratch/run-2026-08-27T190004580Z-fe09c9a6/parent/extracted/tests/commands/du/behavior.test.ts:124:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 261.576666

@@ -1,0 +1,338 @@
+{
+  "status": "SOURCE_DATA_ONLY_NO_BEHAVIOR_PASSES",
+  "date": "2026-08-29",
+  "programs": {
+    "count": 32,
+    "allUnrun": true,
+    "uniqueIDs": 32
+  },
+  "hostProtocols": {
+    "count": 8,
+    "allUnrun": true
+  },
+  "sourceReadEntries": 31,
+  "firstReadBytes": 1887455,
+  "gnuSourcePostguard": true,
+  "gnuPostguardReadBytes": 652933,
+  "administrativeGitChildren": {
+    "count": 12,
+    "knownClosed": 12,
+    "signalOrOverflow": 0,
+    "expectedRoleMistakeExit128": 1,
+    "otherExit0": 11
+  },
+  "metadataHistory": [
+    {
+      "label": "metadata",
+      "events": [
+        {
+          "event": "spawn",
+          "number": 1,
+          "pid": 90121,
+          "args": [
+            "rev-parse",
+            "--verify",
+            "7a5c6200^{commit}"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 1,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "ref": "7a5c6200",
+          "full": "7a5c620005fb04518d44bb284f4e99284e4a7c33"
+        },
+        {
+          "event": "spawn",
+          "number": 2,
+          "pid": 90122,
+          "args": [
+            "ls-tree",
+            "-r",
+            "-z",
+            "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+            "src/shell",
+            "src/commands/expr",
+            "src/regex",
+            "src/contracts",
+            "tests/compatibility/bash-strict-extension-author-20260829",
+            "tests/compatibility/bash-native-reference-20260829"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 2,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "event": "spawn",
+          "number": 3,
+          "pid": 90123,
+          "args": [
+            "rev-parse",
+            "--verify",
+            "37e793ce^{commit}"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 3,
+          "code": 128,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "complete": false,
+          "message": "Git metadata refusal"
+        }
+      ]
+    },
+    {
+      "label": "metadata-v2",
+      "events": [
+        {
+          "event": "spawn",
+          "number": 1,
+          "pid": 90902,
+          "args": [
+            "rev-parse",
+            "--verify",
+            "9bb91c370a0672687399c0a9da4ce1b161f79615^{commit}"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 1,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "ref": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+          "full": "9bb91c370a0672687399c0a9da4ce1b161f79615"
+        },
+        {
+          "event": "spawn",
+          "number": 2,
+          "pid": 90903,
+          "args": [
+            "ls-tree",
+            "-r",
+            "-z",
+            "9bb91c370a0672687399c0a9da4ce1b161f79615",
+            "src/shell/runtime.ts",
+            "src/commands/regex-execution",
+            "tests/compatibility/bash-reference-preparation-20260829",
+            "tests/compatibility/bash-strict-reference-source-20260829",
+            "tests/compatibility/bash-functional-reference-review-20260829"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 2,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "event": "spawn",
+          "number": 3,
+          "pid": 90906,
+          "args": [
+            "rev-parse",
+            "--verify",
+            "41d488^{commit}"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 3,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "ref": "41d488",
+          "full": "41d4880614cdb02659f7cdbe1f94cc3564c68d26"
+        },
+        {
+          "event": "spawn",
+          "number": 4,
+          "pid": 90907,
+          "args": [
+            "ls-tree",
+            "-r",
+            "-z",
+            "41d4880614cdb02659f7cdbe1f94cc3564c68d26",
+            "src/shell/runtime.ts",
+            "src/commands/regex-execution",
+            "tests/compatibility/bash-reference-preparation-20260829",
+            "tests/compatibility/bash-strict-reference-source-20260829",
+            "tests/compatibility/bash-functional-reference-review-20260829"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 4,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "event": "spawn",
+          "number": 5,
+          "pid": 90908,
+          "args": [
+            "rev-parse",
+            "--verify",
+            "efcd8b49^{commit}"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 5,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "ref": "efcd8b49",
+          "full": "efcd8b49a63ceb4276ae9d075da59bfb027b3510"
+        },
+        {
+          "event": "spawn",
+          "number": 6,
+          "pid": 90909,
+          "args": [
+            "ls-tree",
+            "-r",
+            "-z",
+            "efcd8b49a63ceb4276ae9d075da59bfb027b3510",
+            "src/shell/runtime.ts",
+            "src/commands/regex-execution",
+            "tests/compatibility/bash-reference-preparation-20260829",
+            "tests/compatibility/bash-strict-reference-source-20260829",
+            "tests/compatibility/bash-functional-reference-review-20260829"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 6,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "complete": true,
+          "children": 6,
+          "totalCapturedBytes": 266124,
+          "elapsedMs": 257
+        }
+      ]
+    },
+    {
+      "label": "blobs",
+      "events": [
+        {
+          "event": "spawn",
+          "number": 1,
+          "pid": 92210,
+          "args": [
+            "cat-file",
+            "--batch"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 1,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "complete": true,
+          "children": 1,
+          "totalCapturedBytes": 625886,
+          "elapsedMs": 59
+        }
+      ]
+    },
+    {
+      "label": "metadata-bindings",
+      "events": [
+        {
+          "event": "spawn",
+          "number": 1,
+          "pid": 9758,
+          "args": [
+            "rev-parse",
+            "--verify",
+            "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d^{commit}"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 1,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "ref": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d",
+          "full": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d"
+        },
+        {
+          "event": "spawn",
+          "number": 2,
+          "pid": 9759,
+          "args": [
+            "ls-tree",
+            "-r",
+            "-z",
+            "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d",
+            "tests/compatibility/bash-conditional-author-20260829/SOURCE-v4.json"
+          ]
+        },
+        {
+          "event": "close",
+          "number": 2,
+          "code": 0,
+          "signal": null,
+          "overflow": false
+        },
+        {
+          "complete": true,
+          "children": 2,
+          "totalCapturedBytes": 162,
+          "elapsedMs": 81
+        }
+      ]
+    }
+  ],
+  "qualifiedProofs": {
+    "newRuntime": false,
+    "newNative": false,
+    "newWorker": false,
+    "newCompiler": false,
+    "newPackage": false,
+    "newArchive": false,
+    "existingNative37of40": "UNCHANGED"
+  },
+  "limits": {
+    "minutes": 25,
+    "knownOSStarts": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "sourceFileReads": 48,
+    "sourceBytes": 8388608
+  },
+  "qualification": "Tool-shell/editing/controller/publication starts are additional to12 PID-recorded Git children; final publication accounts known administrative roles separately. No kernel-wide descendant or hardRSS claim.",
+  "elapsedBeforePublicationSeconds": 838.341
+}

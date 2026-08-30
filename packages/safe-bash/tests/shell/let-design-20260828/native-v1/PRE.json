@@ -1,0 +1,42 @@
+{
+  "started": "2026-08-28T06:57:12.824Z",
+  "manifestSHA256": "f47b59eee0c8072334788bed76bb969969a4a2e4ca5d1e21c6686c9df9483d10",
+  "limits": {
+    "rows": 28,
+    "millisecondsPerRow": 5000,
+    "combinedBytesPerRow": 16384,
+    "killGraceMilliseconds": 250
+  },
+  "pid": 20120,
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "tools": [
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "bytes": 1395864,
+      "mode": 493,
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "bytes": 415804,
+      "mode": 420,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "guards": "passed",
+  "productLoads": 0
+}

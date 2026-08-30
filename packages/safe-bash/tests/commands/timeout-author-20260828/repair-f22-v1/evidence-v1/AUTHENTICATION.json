@@ -1,0 +1,62 @@
+{
+  "schema": "timeout-f22-repair-authentication/1",
+  "independentFinding": {
+    "candidate": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+    "recipeCommit": "289d00d253136032c1bd6b078662ba5f37e39a3d",
+    "recipeManifestSha256": "6bc3c407c859e7ba1c1790c581cd10df44de2299149fcfa6adfad4c654984d99",
+    "evidenceCommit": "a8ebf811c57fbb1084ccfe9dd34a8265f5dff69a",
+    "finding": "F22 returned 125 instead of child status 7 in source and moved layouts",
+    "originalCombinedQualification": "31/34 in each layout",
+    "rescored": false,
+    "originalStderrRetained": false,
+    "originalUnderlyingExceptionRetained": false
+  },
+  "originalAuthor": {
+    "implementation": "6cf34b63e396d14ee1c687f3f6892e71c12317df",
+    "finalSource": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+    "freeze": "6b7c77b218ba5015b6d6dd9552c1e9626977232e",
+    "fixtureCorrection": "c332a17f09dfe17fd8fa29252a48db729c83c67d",
+    "reconstructionProtocol": "bd8708379a4e578fd3b08c9e97edb0ff99ca3830",
+    "correctedProtocol": "07dd21f5be100206ee5ad1a78e8d31cbb9c2cdd7",
+    "appendDetectionSeal": "494b05d6ce23a5cc6448e6e54285fa054d1178de",
+    "evidence": "38b0b159bc97aa39e6a804cbdeed3e022e53769c"
+  },
+  "coherentBaseline": {
+    "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5"
+  },
+  "repair": {
+    "presealedRegression": "72a109971d6c82f783ae91de62f7c15e2af21d8b",
+    "sourceCommit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+    "changedSourcePath": "src/commands/timeout/scheduler.ts",
+    "changedSourceLines": "one receiver initializer only",
+    "oldSchedulerBlob": "d49ef949bc6189b5b32536b8750c34db85a7f909",
+    "newSchedulerBlob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+    "oldSchedulerSha256": "b6ba0e2bf22051f4032686a58821bddcdb211faa918beac4ec004f4d46ca00e8",
+    "newSchedulerSha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3"
+  },
+  "freshPrepatchCapture": {
+    "classification": "fresh post-candidate diagnosis and baseline; not recovered independent-run data",
+    "directStatus": 125,
+    "actualShellStatus": 125,
+    "freshProductStderrBase64": "dGltZW91dDogdGltZXIgc2V0dXAgZmFpbGVkCg==",
+    "underlyingProductExceptionRetained": false,
+    "separateDirectReceiverDiagnostic": "TypeError ERR_INVALID_THIS: Value of this must be of type Performance"
+  },
+  "reconstructedRepair": {
+    "sourceArchiveSha256": "ee7fae20f2c3f99839893afe31b93aa4b6633e1baa36cfbde465e0394161de56",
+    "sourceArchiveEntries": 268,
+    "packageSha256": "e6f42dbb063044c0a0d9eaa3029ee9ef0b9ed26aabafd42c9346b18e1901c80c",
+    "packageMembers": 857,
+    "oldSourceArchiveAccepted": false,
+    "oldPackageAccepted": false
+  },
+  "scope": {
+    "independentFixturesModified": false,
+    "publicRootModified": false,
+    "defaultRegistryModified": false,
+    "packageExportsModified": false,
+    "nativeExecuted": 0,
+    "safeJsExecuted": 0
+  }
+}

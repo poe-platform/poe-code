@@ -1,0 +1,54 @@
+function installV4(model, child) {
+  if (!model.scenario.startsWith('v4-') || model.scenario === 'v4-current-closure-mode') return false;
+  if (model.scenario === 'v4-sync-error-close-no-pid') {
+    child.pid = undefined; model.alive = false;
+    child.stdin.end = (bytes, callback) => {
+      model.log('stdin.end', { bytes: bytes.length, sha256: digest(bytes) });
+      child.emit('error', model.reason); child.emit('close', null, null); callback(null);
+    };
+    return true;
+  }
+  const event = (at, name, code = 0) => model.timer(at, () => child.emit(name, code, null));
+  event(0, 'spawn');
+  if (model.scenario === 'v4-duplicate-spawn') { event(1, 'spawn'); event(3, 'exit'); }
+  if (model.scenario === 'v4-duplicate-exit') { event(1, 'exit'); event(2, 'exit', 7); }
+  if (model.scenario === 'v4-duplicate-close') { event(1, 'exit'); event(2, 'close'); event(3, 'close', 7); }
+  if (model.scenario === 'v4-first-falsy-error') {
+    model.timer(1, () => child.stderr.emit('error', undefined));
+    model.timer(2, () => child.stderr.emit('error', model.reason)); event(3, 'exit');
+  }
+  model.timer(4, () => { model.alive = false; if (model.scenario !== 'v4-duplicate-close') child.emit('close', 0, null); });
+  return true;
+}
+
+function verifyV4(model, report) {
+  const scenario = model.scenario, row = report.rows[0];
+  if (['close-before-spawn-live-group', 'exit-before-spawn-live-group'].includes(scenario)) {
+    assert.equal(report.success, false); assert.equal(row.lifecycleState, 'invalid');
+    assert.equal(row.chronologyViolation.event, 'exit'); assert.equal(row.chronologyViolation.state, 'awaiting-spawn');
+    assert.equal(row.chronologyViolation.at, 1); assert.equal(model.starts, 1);
+  }
+  if (!scenario.startsWith('v4-')) return;
+  assert.equal(report.success, false); assert.equal(model.starts, 1); assert.equal(model.releases, 1);
+  assert.equal(model.hostCallbackExceptions.length, 0);
+  if (scenario.startsWith('v4-duplicate-')) {
+    const name = scenario.slice('v4-duplicate-'.length);
+    assert.equal(row.lifecycleState, 'invalid'); assert.equal(row.chronologyViolation.event, name);
+    assert.equal(row.eventCounts[name], 2); assert.equal(row.eventCounts.error, 0);
+    assert.equal(model.trace.filter(item => item.operation === 'fs.writeFileSync' && item.target === '/owned/records/spawn-N01.json').length, 1);
+    assert.equal(report.launched, 1); assert.equal(report.actualCloseEvents, 1);
+    if (name !== 'spawn') assert.ok(row.events.some(item => item.name === name && item.code === 7));
+  }
+  if (scenario === 'v4-sync-error-close-no-pid') {
+    assert.equal(row.lifecycleState, 'failed-before-spawn'); assert.equal(row.chronologyViolation, null);
+    assert.equal(report.launched, 0); assert.equal(report.actualCloseEvents, 1); assert.equal(row.exitObserved, false);
+    assert.equal(row.failureReason, model.reason); assert.equal(report.failureReason, model.reason);
+  }
+  if (scenario === 'v4-first-falsy-error') {
+    assert.equal(row.eventCounts.error, 2); assert.equal(row.chronologyViolation, null);
+    assert.ok(Object.hasOwn(row, 'failureReason')); assert.ok(Object.hasOwn(report, 'failureReason'));
+    assert.equal(row.failureReason, undefined); assert.equal(report.failureReason, undefined);
+    assert.ok(report.failures.some(item => Object.hasOwn(item, 'reason') && item.reason === undefined));
+  }
+  if (scenario === 'v4-current-closure-mode') assert.ok(report.failures.some(item => item.phase === 'post-persistence-integrity'));
+}

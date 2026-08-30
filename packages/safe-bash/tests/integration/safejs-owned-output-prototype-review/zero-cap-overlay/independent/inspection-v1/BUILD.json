@@ -1,0 +1,67 @@
+{
+  "started": "2026-08-27T17:41:43.464357+00:00",
+  "status": "PUBLIC_RECONSTRUCTION_AND_BUILD_MATCH",
+  "commands": [
+    {
+      "label": "emit",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json",
+        "--listFiles",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/candidate",
+      "started": "2026-08-27T17:41:44.182202+00:00",
+      "finished": "2026-08-27T17:41:46.399734+00:00",
+      "exitCode": 0,
+      "stdoutSha256": "c85c3311a67615056ed84a1ae4fda425eeb592cf68ca15e2bd7dd9597604ce6a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputCount": 343
+    },
+    {
+      "label": "noemit",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json",
+        "--noEmit",
+        "--listFiles",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/candidate",
+      "started": "2026-08-27T17:41:46.448204+00:00",
+      "finished": "2026-08-27T17:41:48.294069+00:00",
+      "exitCode": 0,
+      "stdoutSha256": "cd78eb38702fd5e92f1ba15f9536ad42000a62af12e98c381cc8c36285c89be5",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputCount": 358
+    }
+  ],
+  "scratch": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec",
+  "privateQueries": 0,
+  "productImports": 0,
+  "guestExecutions": 0,
+  "privateEngineImports": 0,
+  "transportCalls": 0,
+  "noPromotion": true,
+  "nodeBeforeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "candidateRoot": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/candidate",
+  "packageRoot": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/consumer/node_modules/virtual-bash",
+  "candidateFiles": 940,
+  "packageFiles": 709,
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "parserOnlyChecks": 14,
+  "unchangedNonOutputInputs": true,
+  "copiedToolsUnchanged": true,
+  "sharedBeforeAfterEqual": true,
+  "nodeAfterSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "finished": "2026-08-27T17:41:49.443591+00:00"
+}

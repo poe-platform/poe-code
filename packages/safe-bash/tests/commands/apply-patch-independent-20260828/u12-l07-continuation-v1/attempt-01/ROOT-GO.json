@@ -1,0 +1,26 @@
+{
+  "schema": "AP753-U12-L07-root-go-v1",
+  "sourcePresealCommit": "4eb3bf73",
+  "sealSha256": "b23396701e4e06318eb200b8b04866bb81d87c3b1cd511bd528604f86d0ed4a4",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "authorization": "ROOT narrow versioned continuation PREP plus ONE actual after committed preseal; user message following 83c2711f adjudication; no retries",
+  "attempt": 1,
+  "command": "exec -c /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --no-warnings /Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/u12-l07-continuation-v1/owner.mjs b23396701e4e06318eb200b8b04866bb81d87c3b1cd511bd528604f86d0ed4a4 >> /Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/u12-l07-continuation-v1/attempt-01/OWNER.stdout.raw 2>> /Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/u12-l07-continuation-v1/attempt-01/OWNER.stderr.raw",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "capturePrecreated": true,
+  "canonicalRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/u12-l07-continuation-v1/attempt-01",
+  "bounds": {
+    "runtimeProcesses": 4,
+    "runtimePeak": 2,
+    "allOwnedAdmissionsMaximum": 16,
+    "totalPeakMaximum": 3,
+    "milliseconds": 600000,
+    "caseMilliseconds": 30000,
+    "childMilliseconds": 100000,
+    "combinedCaptureBytes": 33554432,
+    "outerRawReservationBytes": 65536,
+    "workingBytes": 268435456,
+    "childCombinedBytes": 4194304
+  }
+}

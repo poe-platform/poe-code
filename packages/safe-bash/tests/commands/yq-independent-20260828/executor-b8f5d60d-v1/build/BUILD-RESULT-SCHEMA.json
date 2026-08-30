@@ -1,0 +1,865 @@
+{
+  "schema": 1,
+  "kind": "BUILD_RESULT_AND_CORE_INTEGRATION_CONTRACT",
+  "date": "2026-08-28",
+  "status": "STATIC_ONLY_DYNAMIC_PROOF_UNRUN",
+  "apiVersion": "yq-b8-core-worker-v1",
+  "coreInterfaceCommit": "9d582d791336fd66d865f6592b830c39a359d344",
+  "coreInterfaceSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+  "newApiMethods": [],
+  "missingBaseAbiField": "runTool result.provenance; required before future GO, not established by this component",
+  "peerRefinement": "c0353685540288d504b93f206735fe4c448268ef:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/RESULT-SCHEMA.json",
+  "schemaDialect": "JSON Schema 2020-12 keywords; local $defs references only",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "path",
+        "sha256",
+        "bytes",
+        "mode"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4095
+        }
+      }
+    },
+    "compilerRequest": {
+      "type": "object",
+      "required": [
+        "kind",
+        "configPath",
+        "timeoutMs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "compiler"
+        },
+        "configPath": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "timeoutMs": {
+          "const": 120000
+        }
+      }
+    },
+    "expectedInvocation": {
+      "type": "object",
+      "required": [
+        "argv",
+        "cwd",
+        "executable",
+        "typescript",
+        "environment"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "argv": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^/"
+            },
+            {
+              "const": "--project"
+            },
+            {
+              "type": "string",
+              "pattern": "^/"
+            },
+            {
+              "const": "--pretty"
+            },
+            {
+              "const": "false"
+            }
+          ],
+          "items": false
+        },
+        "cwd": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "executable": {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "typescript": {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256",
+            "version"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "version": {
+              "const": "5.9.3"
+            }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "required": [
+            "LANG",
+            "LC_ALL"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "LANG": {
+              "const": "C"
+            },
+            "LC_ALL": {
+              "const": "C"
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "argv",
+        "cwd",
+        "executable",
+        "typescript",
+        "environment",
+        "startedNs",
+        "endedNs",
+        "reapedNs",
+        "overflow"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "argv": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {
+              "type": "string",
+              "pattern": "^/"
+            },
+            {
+              "const": "--project"
+            },
+            {
+              "type": "string",
+              "pattern": "^/"
+            },
+            {
+              "const": "--pretty"
+            },
+            {
+              "const": "false"
+            }
+          ],
+          "items": false
+        },
+        "cwd": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "executable": {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "typescript": {
+          "type": "object",
+          "required": [
+            "path",
+            "sha256",
+            "version"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "version": {
+              "const": "5.9.3"
+            }
+          }
+        },
+        "environment": {
+          "type": "object",
+          "required": [
+            "LANG",
+            "LC_ALL"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "LANG": {
+              "const": "C"
+            },
+            "LC_ALL": {
+              "const": "C"
+            }
+          }
+        },
+        "startedNs": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "endedNs": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "reapedNs": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*$"
+        },
+        "overflow": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stageOutput": {
+      "type": "object",
+      "required": [
+        "schema",
+        "kind",
+        "candidate",
+        "source",
+        "tools",
+        "sourceBuiltRoot",
+        "sourceBuiltManifest",
+        "packageMapSha256",
+        "entry",
+        "declarationEntries",
+        "rawOutputRoot",
+        "rawOutputMap",
+        "rawOutputManifestPointer",
+        "comparisons",
+        "archive",
+        "uncompressedArchive",
+        "proof",
+        "integrityAfter",
+        "independentlyCompiled",
+        "coreRevalidationRequired"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": 1
+        },
+        "kind": {
+          "const": "INDEPENDENT_BUILD_REPRODUCTION"
+        },
+        "candidate": {
+          "const": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "root",
+            "manifest",
+            "manifestPointer",
+            "mapSha256"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "root": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "manifest": {
+              "$ref": "#/$defs/artifact"
+            },
+            "manifestPointer": {
+              "const": "/manifest"
+            },
+            "mapSha256": {
+              "const": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002"
+            }
+          }
+        },
+        "tools": {
+          "type": "object",
+          "required": [
+            "root",
+            "manifest",
+            "manifestPointer"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "root": {
+              "type": "string",
+              "pattern": "^/"
+            },
+            "manifest": {
+              "$ref": "#/$defs/artifact"
+            },
+            "manifestPointer": {
+              "const": "/manifest"
+            }
+          }
+        },
+        "sourceBuiltRoot": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "sourceBuiltManifest": {
+          "$ref": "#/$defs/artifact"
+        },
+        "packageMapSha256": {
+          "const": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321"
+        },
+        "entry": {
+          "$ref": "#/$defs/identity"
+        },
+        "declarationEntries": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/identity"
+          }
+        },
+        "rawOutputRoot": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "rawOutputMap": {
+          "$ref": "#/$defs/artifact"
+        },
+        "rawOutputManifestPointer": {
+          "const": "/manifest"
+        },
+        "comparisons": {
+          "$ref": "#/$defs/artifact"
+        },
+        "archive": {
+          "$ref": "#/$defs/artifact"
+        },
+        "uncompressedArchive": {
+          "$ref": "#/$defs/artifact"
+        },
+        "proof": {
+          "$ref": "#/$defs/artifact"
+        },
+        "integrityAfter": {
+          "$ref": "#/$defs/artifact"
+        },
+        "independentlyCompiled": {
+          "const": true
+        },
+        "coreRevalidationRequired": {
+          "const": true
+        }
+      }
+    }
+  },
+  "runToolReturn": {
+    "type": "object",
+    "required": [
+      "code",
+      "signal",
+      "timedOut",
+      "reaped",
+      "stdoutPath",
+      "stderrPath",
+      "stdoutBytes",
+      "stderrBytes",
+      "stdoutSha256",
+      "stderrSha256",
+      "provenance"
+    ],
+    "additionalProperties": true,
+    "properties": {
+      "code": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "signal": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "timedOut": {
+        "type": "boolean"
+      },
+      "reaped": {
+        "type": "boolean"
+      },
+      "stdoutPath": {
+        "type": "string",
+        "pattern": "^/"
+      },
+      "stderrPath": {
+        "type": "string",
+        "pattern": "^/"
+      },
+      "stdoutBytes": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stderrBytes": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "stdoutSha256": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "stderrSha256": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "provenance": {
+        "$ref": "#/$defs/provenance"
+      }
+    }
+  },
+  "toolManifest": {
+    "type": "object",
+    "required": [
+      "node",
+      "typescript",
+      "nodeTypes",
+      "undiciTypes"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "node": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "version"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "sha256": {
+            "const": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+          },
+          "version": {
+            "const": "v22.22.2"
+          }
+        }
+      },
+      "typescript": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "version",
+          "entries"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "sha256": {
+            "const": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410"
+          },
+          "version": {
+            "const": "5.9.3"
+          },
+          "entries": {
+            "const": 147
+          }
+        }
+      },
+      "nodeTypes": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "entries"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "sha256": {
+            "const": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9"
+          },
+          "entries": {
+            "const": 83
+          }
+        }
+      },
+      "undiciTypes": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "entries"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "sha256": {
+            "const": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb"
+          },
+          "entries": {
+            "const": 41
+          }
+        }
+      }
+    }
+  },
+  "generatedInputNote": {
+    "kind": "generated-build-inputs",
+    "payload": {
+      "type": "object",
+      "required": [
+        "directory",
+        "files",
+        "compilerRequest",
+        "expectedInvocation",
+        "sourceRoot",
+        "rawOutputRoot",
+        "packageRoot",
+        "configuration"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "directory": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "sha256",
+              "bytes",
+              "mode",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^/"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "mode": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "kind": {
+                "const": "file"
+              }
+            }
+          }
+        },
+        "compilerRequest": {
+          "$ref": "#/$defs/compilerRequest"
+        },
+        "expectedInvocation": {
+          "$ref": "#/$defs/expectedInvocation"
+        },
+        "sourceRoot": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "rawOutputRoot": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "packageRoot": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "configuration": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    }
+  },
+  "generatedOutputNote": {
+    "kind": "generated-build-output",
+    "payload": {
+      "type": "object",
+      "required": [
+        "root",
+        "manifest",
+        "entry",
+        "rawRoot",
+        "rawOutputMap",
+        "archive",
+        "classification"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "root": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "manifest": {
+          "$ref": "#/$defs/artifact"
+        },
+        "entry": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "rawRoot": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "rawOutputMap": {
+          "$ref": "#/$defs/artifact"
+        },
+        "archive": {
+          "$ref": "#/$defs/artifact"
+        },
+        "classification": {
+          "const": "PENDING_FINAL_GUARDS_NOT_YET_PROFILE_A"
+        }
+      }
+    }
+  },
+  "successfulWorkerReturn": {
+    "type": "object",
+    "required": [
+      "status",
+      "proofRole",
+      "details",
+      "artifacts",
+      "stageOutput"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "status": {
+        "const": "PASS"
+      },
+      "proofRole": {
+        "const": "INDEPENDENT_BUILD_REPRODUCTION"
+      },
+      "details": {
+        "type": "object",
+        "required": [
+          "counts",
+          "compilerAttempts",
+          "serializationAttempts",
+          "rootAcceptance",
+          "semanticPasses"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "counts": {
+            "type": "object"
+          },
+          "compilerAttempts": {
+            "const": 1
+          },
+          "serializationAttempts": {
+            "const": 1
+          },
+          "rootAcceptance": {
+            "const": false
+          },
+          "semanticPasses": {
+            "const": 0
+          }
+        }
+      },
+      "artifacts": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/artifact"
+        }
+      },
+      "stageOutput": {
+        "$ref": "#/$defs/stageOutput"
+      }
+    }
+  },
+  "failedWorkerReturn": {
+    "type": "object",
+    "required": [
+      "status",
+      "proofRole",
+      "details",
+      "artifacts"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "status": {
+        "const": "FAIL"
+      },
+      "proofRole": {
+        "const": "INDEPENDENT_BUILD_REPRODUCTION_FAILED"
+      },
+      "details": {
+        "type": "object",
+        "required": [
+          "error",
+          "code",
+          "integrity",
+          "compilerAttempts",
+          "retry",
+          "sourceBugInferred"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "integrity": {
+            "$ref": "#/$defs/artifact"
+          },
+          "compilerAttempts": {
+            "const": 1
+          },
+          "retry": {
+            "const": false
+          },
+          "sourceBugInferred": {
+            "const": false
+          }
+        }
+      },
+      "artifacts": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    }
+  },
+  "refinementsNotExpressibleByShape": [
+    "Every absolute path is canonical, regular-file or real-directory as appropriate, has no symlink/hardlink aliases, and belongs to the exact admitted root and mode authority.",
+    "toolManifest paths are toolRoot plus build-plan tools[name].relativePath; typescriptRoot/nodeTypesRoot/undiciTypesRoot match those paths. Every tool byte/mode/membership is separately compared to the sealed trees.",
+    "generated-build-inputs is enrollment of a deterministic config, not authority to choose arbitrary compiler flags: compare exact UTF-8 JSON.stringify(config,null,2)+newline bytes and full mode0644. Extend sourceRoot/tsconfig.build.json, override only outDir=rawOutputRoot/dist and typeRoots=[dirname(nodeTypesRoot)].",
+    "argv exactly [typescriptRoot/lib/tsc.js,--project,configPath,--pretty,false]; cwd exactly scratchRoot; environment exactly LANG=C,LC_ALL=C without ambient inheritance/NODE_PATH.",
+    "Observed parent executable/TS path+digest and version equal guarded copied tool identities. startedNs <= endedNs <= reapedNs <= request.deadline.workNs; workNs is no later than phase/job/global deadlines. Successful reap-start is at most120000000000ns.",
+    "stdout/stderr are distinct regular evidence files whose full byte lengths and SHA256 equal the return; combined at most8388608 bytes. Publish raw return before assertions. code0,signalnull,timedOutfalse,reapedtrue,overflowfalse are all necessary, not independently sufficient.",
+    "All writeJson/writeBytes publications are local capability operations, with compact hashed artifact references sent over IPC only. Per-artifact maximum16777216, metadata maximum33554432, IPC maximum262144; no invented extra allowance.",
+    "Parent enrolls generated directory/config/output paths with fresh mode provenance and rechecks candidate/source/tool/config plus all partial or complete scratch entries. Notifications never authorize loading.",
+    "sourceBuiltManifest is plain {files,directories}; source/tools/rawOutputMap wrappers contain their map at /manifest. Paths in entry/declarations equal the declared package-relative entries, and descriptors equal the expected package map.",
+    "Core rereads manifest/proof/archive hashes and full870 membership/modes, confirms candidate/sourceMap/packageMap pins and all434raw+434relocated-map comparisons, requires successful outer exit and known reap, then enrolls sourceBuiltRoot for A. Parent failure overrides worker PASS.",
+    "Raw output, maps, fresh package, config, evidence, original source/tools and all previous candidate installations remain retained and cumulatively guarded. Before/after snapshots are not a transaction or change-and-restore detector.",
+    "No stageOutput on FAIL, unknown errors or unsafe admission. No retries; public integration and all semantic/type/moved/lifecycle proofs remain separate. This schema itself grants no execution."
+  ],
+  "futureRequiredCoreDecisions": [
+    "Seal exact provenance return implementation under existing runTool result before GO.",
+    "Seal generated-build-inputs deterministic enrollment and local evidence publication before GO.",
+    "Seal compact stageOutput artifact dereference and outer-exit/reap adoption gate before A."
+  ],
+  "currentActualCompilerRuns": 0,
+  "currentWorkerInvocations": 0,
+  "currentProductImports": 0,
+  "currentPackingInvocations": 0
+}

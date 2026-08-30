@@ -1,0 +1,123 @@
+{
+  "schema": "B1-R6-WINDOW-V2-RECEIPT-1",
+  "decision": "ACCEPT_FRESH_BINDING_ONLY",
+  "source": "ee7d38d7287893717f3a5f95f5f4fbbc10aaa13c",
+  "evidence": "d315fe2f610f5cd21ecc5a8030e1f874f5c65876",
+  "final": {
+    "bytes": 25661,
+    "sha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b"
+  },
+  "commandSha256": "78d9094248ae4dd0e99e0ee643b3c8de27a8b3cad208aedc7f4c854df5521cb4",
+  "checkedUTC": "2026-08-29T16:39:30.055Z",
+  "publishedUTC": "2026-08-29T16:40:20.296Z",
+  "window": {
+    "issuedUTC": "2026-08-29T16:30:22.830Z",
+    "latestStartUTC": "2026-08-29T16:50:22.830Z",
+    "expiresUTC": "2026-08-29T17:20:22.830Z"
+  },
+  "checks": 4,
+  "pins": 71,
+  "postguards": 71,
+  "actualGo": false,
+  "ownProcessAccounting": {
+    "knownBeforeGit": 7,
+    "reservedGit": 4,
+    "cap": 18,
+    "peakKnown": 2,
+    "dataHelpers": 1,
+    "unresolvedKnown": 0
+  },
+  "qualifications": [
+    "prior 6acd8e3c HOLD and root qualified adjudication remain distinct",
+    "prior 1e7f2c4d UTC STOP exact time/conjunct remains unknown",
+    "fresh binding only, not runtime or universal census acceptance",
+    "initial host tool startup remains inherited trusted boundary"
+  ],
+  "files": [
+    {
+      "path": "evidence/01-handoff.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/01-handoff.stdout",
+      "bytes": 1579,
+      "sha256": "293a43b48a74b05f148a68fa0005f8314245248d8280ef9ddcda6881855093e0"
+    },
+    {
+      "path": "evidence/01-role.json",
+      "bytes": 151,
+      "sha256": "651c64659a8b1806b06e2867e7a85a3bf51fd8fd5d754410a390e504a34a8a29"
+    },
+    {
+      "path": "evidence/02-role.json",
+      "bytes": 78,
+      "sha256": "d42b142fa13644c3a431153a3df9bc36b5901fafb30bd9378a8268e9e131c6d9"
+    },
+    {
+      "path": "evidence/02-tree.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/02-tree.stdout",
+      "bytes": 3407,
+      "sha256": "5cfc159281cca9aabd2173f543db63382317e8fc90f8eac40a17263dcaf323cd"
+    },
+    {
+      "path": "evidence/03-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/03-patch.stdout",
+      "bytes": 297,
+      "sha256": "30016a5e317580950789551fce903b2d758f54788d0889e415707e2bec96a611"
+    },
+    {
+      "path": "evidence/04-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/04-check.stdout",
+      "bytes": 2287,
+      "sha256": "ed9d30311c9f36dd54089ea4c6584dbeadbcd650c38ecf3ca28e62316ac30076"
+    },
+    {
+      "path": "evidence/04-role.json",
+      "bytes": 151,
+      "sha256": "726586df7857549b5093ff416e0549d8f9906f405edbdd6aecf8e06bd13a4664"
+    },
+    {
+      "path": "evidence/05-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/05-patch.stdout",
+      "bytes": 166,
+      "sha256": "7ef38238e6dfd0fc01bfd852e78c6c7093542da59a30dcd077c53773bd6887fe"
+    },
+    {
+      "path": "evidence/RESULT.json",
+      "bytes": 2702,
+      "sha256": "4f6d3e4c114a772cbdc342ae58c79f5e5a9031da2c935e60e6e68b8565c15f9c"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 902,
+      "sha256": "df721e8c850356d2219d47da6bbfd86c3579aa62e9883501cc02598fb10f4f7f"
+    },
+    {
+      "path": "check.mjs",
+      "bytes": 6511,
+      "sha256": "94d5e17b63a1b50f90624863a0048a30d0094a2c261770f544510a85e6281f5c"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 3145,
+      "sha256": "31c7f380a33fea03d5f42eb5f1bf0dbd3e6692428e3bd22bd4fd11fb5d8968a7"
+    }
+  ]
+}

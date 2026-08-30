@@ -1,0 +1,21 @@
+{
+  "failure": {
+    "name": "Error",
+    "message": "EEXIST: file already exists, mkdir '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/KEYRING/'",
+    "starts": 0,
+    "ownedClosed": true,
+    "pairsCompleted": 0
+  },
+  "sameOwnedDirectory": {
+    "dev": "16777232",
+    "ino": "184801372",
+    "empty": true
+  },
+  "planSha256": "ff05daec0baad0f0da57879204de00cf0c0ca74e3c2251332da80b203bbe3e10",
+  "sourceSha256": "e9b71ee922a6bc9a9cd96f2ba182a01baf1c3a5557fe35758d75dfa4badb4d5e",
+  "originalControllerMs": 480000,
+  "remainingControllerMs": 263781,
+  "startsBeforeCorrection": 0,
+  "pairsUnchanged": true,
+  "trustUnchanged": true
+}

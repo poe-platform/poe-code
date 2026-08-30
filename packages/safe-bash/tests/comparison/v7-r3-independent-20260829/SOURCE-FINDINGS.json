@@ -1,0 +1,64 @@
+{
+  "schema": "v7-r3-source-review-supplement-v1",
+  "phase": "SOURCE_ONLY_DYNAMIC_HOLD",
+  "repair": "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+  "sealFile": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/SEAL.json",
+    "mode": 420,
+    "bytes": 105131,
+    "gitBlob": "d62448efc31b75dfe544eda1b4035fbc36fbd286",
+    "sha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c"
+  },
+  "interfaceFile": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/INTERFACE.json",
+    "mode": 420,
+    "bytes": 10977,
+    "gitBlob": "1034641a8bdd90878cd97de34db8913d6c314612",
+    "sha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18"
+  },
+  "findings": [
+    {
+      "id": "H01",
+      "category": "independent metadata helper",
+      "status": "HOLD",
+      "facts": "process binding unavailable; intended PID absence check not performed; exit/close0 recorded; no retry"
+    },
+    {
+      "id": "H02",
+      "category": "synthetic replay process topology",
+      "status": "SOURCE_BARRIER",
+      "paths": [
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/test.mjs:98",
+        "tests/comparison/breadth-continuation-20260828/executor-v7/supervisor.mjs:31",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/authorization.mjs:77"
+      ],
+      "facts": "Author test runner + supervised worker + synchronous metadata-stub grandchild coexist; unchanged full runner cannot be called total peak2."
+    },
+    {
+      "id": "S01",
+      "category": "f7 preparation/test entrypoint budget",
+      "status": "SOURCE_ONLY_NEEDS_LATER_PREP_ADJUDICATION",
+      "paths": [
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/test.mjs:21",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/prepare-controls.mjs:16",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:70"
+      ],
+      "facts": "createStore without budget reaches mandatory SHARED_EVIDENCE_BUDGET_REQUIRED before the test loop or prepared-fixture receipt publication. No runtime reproduction. Later prep fe803701/seal d306b837/evidence9b6 have not been independently authenticated and may contain repairs."
+    }
+  ],
+  "controls": {
+    "S01": "UNRUN",
+    "S02": "UNRUN",
+    "S03": "UNRUN",
+    "S04": "UNRUN",
+    "S05": "UNRUN",
+    "S06": "UNRUN",
+    "S07": "UNRUN",
+    "S08": "UNRUN"
+  },
+  "adversarialControlPreparation": "Not presealed/executed; authentication failure, caught getter/revocation, consumer-before-guard, truncation and cleanup remain required.",
+  "realEngines": 0,
+  "semanticCalls": 0,
+  "admissionRuns": 0,
+  "noRetry": true
+}

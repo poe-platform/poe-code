@@ -1,0 +1,69 @@
+{
+  "groups": [
+    {
+      "id": "F01-output-only-runtime",
+      "pass": true
+    },
+    {
+      "id": "F02-single-direct-command",
+      "pass": true
+    },
+    {
+      "id": "F03-flat-bound-closure",
+      "pass": true
+    },
+    {
+      "id": "F04-unobserved-streams-null",
+      "pass": true
+    },
+    {
+      "id": "N01-exact-parent-and-extra-open-role",
+      "pass": true
+    },
+    {
+      "id": "N02-start-count-missing-or-phantom",
+      "pass": true
+    },
+    {
+      "id": "N03-closed-not-falsy-or-missing",
+      "pass": true
+    },
+    {
+      "id": "N04-reservations-exact-boundary",
+      "pass": true
+    },
+    {
+      "id": "N05-closed-preimport-before-publisher",
+      "pass": true
+    },
+    {
+      "id": "N06-falsy-primary-partial-open-secondary",
+      "pass": true
+    },
+    {
+      "id": "N07-git-pid-not-reservation-or-duplicate",
+      "pass": true
+    },
+    {
+      "id": "N08-startup-stream-reservation-covers-all-declared-files",
+      "pass": false,
+      "message": "four 4096-byte startup files exceed the retained 8192-byte reservation"
+    }
+  ],
+  "accounting": {
+    "files": [
+      "/private/tmp/coherent-b1-r5-owner.stdout",
+      "/private/tmp/coherent-b1-r5-owner.stderr",
+      "/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout",
+      "/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr"
+    ],
+    "perFileAcceptedCeiling": 4096,
+    "requiredAggregateCeiling": 16384,
+    "chargedAggregateCeiling": 8192,
+    "shortfall": 8192,
+    "qualification": "SOURCE arithmetic plus pure Ledger call; no publisher or byte streams executed"
+  },
+  "postguards": 24,
+  "productCalls": 0,
+  "realPublisherCalls": 0
+}

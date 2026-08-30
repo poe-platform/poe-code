@@ -1,0 +1,106 @@
+{
+  "verdict": "bounded independent supported-profile acceptance; original failures retained",
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "runtimeSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+  "selectedInputs": 265,
+  "fullPackMembers": 846,
+  "packageHashes": [
+    {
+      "directory": "actual-frozen-01",
+      "sha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+      "members": 846
+    },
+    {
+      "directory": "actual-frozen-02",
+      "sha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+      "members": 846
+    },
+    {
+      "directory": "actual-amendments-01",
+      "sha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+      "members": 846
+    }
+  ],
+  "sealedFiles": 56,
+  "cohorts": {
+    "source": {
+      "original": {
+        "count": 84,
+        "pass": 81,
+        "failed": [
+          "P39",
+          "P58",
+          "S26"
+        ]
+      },
+      "qualifiedSupportedProfile": {
+        "carriedUnchangedPasses": 81,
+        "versionedSupplementPasses": 3,
+        "total": 84,
+        "nounsetSupported": false
+      }
+    },
+    "moved": {
+      "original": {
+        "count": 84,
+        "pass": 81,
+        "failed": [
+          "P39",
+          "P58",
+          "S26"
+        ]
+      },
+      "qualifiedSupportedProfile": {
+        "carriedUnchangedPasses": 81,
+        "versionedSupplementPasses": 3,
+        "total": 84,
+        "nounsetSupported": false
+      }
+    }
+  },
+  "families": 22,
+  "installedSupplement": {
+    "pass": 3,
+    "total": 3
+  },
+  "typeResults": {
+    "installed": {
+      "qualifiedChecks": 5,
+      "pass": 5,
+      "originalTS2305MatcherStillFails": true
+    },
+    "moved": {
+      "qualifiedChecks": 5,
+      "pass": 5,
+      "originalTS2305MatcherStillFails": true
+    }
+  },
+  "strictProductionBuild": true,
+  "regressions": {
+    "pass": 167,
+    "total": 167,
+    "skipped": 0
+  },
+  "admissionNegatives": 7,
+  "originalMutants": {
+    "killed": 6,
+    "total": 7,
+    "survivor": "ineffective M3"
+  },
+  "qualifiedMutantGroups": {
+    "killed": 7,
+    "total": 7,
+    "replacement": "actual M3-v2 with unchanged P21"
+  },
+  "actualPackageSettlementControls": 2,
+  "supervisedChildren": 123,
+  "ownedScratchRemoved": true,
+  "productEdits": 0,
+  "nativeReruns": 0,
+  "wholeGate": false,
+  "sourceCompleteness": "265 selected committed inputs, not full Git archive",
+  "sourceBase": {
+    "revision": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3"
+  }
+}

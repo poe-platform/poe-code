@@ -1,0 +1,347 @@
+{
+  "head": "b92841a8ceaba9fb1f9c8c7915e218f880a9d1ed",
+  "snapshot": "/tmp/safe-bash-diff-checkpoint-Fpgf5L",
+  "artifact": "/tmp/safe-bash-diff-checkpoint-Fpgf5L-evidence",
+  "integrity": {
+    "head": "b92841a8ceaba9fb1f9c8c7915e218f880a9d1ed",
+    "snapshot": "/tmp/safe-bash-diff-checkpoint-Fpgf5L",
+    "checkedAt": "2026-08-26T21:09:22.611Z",
+    "archivedFileCount": 543,
+    "changed": [],
+    "archiveSha256": "1c3f142a4a4cfa88abb8282dc2a1b04f221664f9c8a4420777a9a58ba0aea42e",
+    "manifestBeforeSha256": "4a2874f07f57c1951d58bf961a2ac9d2ebe3176fb673a7fe2475dc593fd6f9a9",
+    "manifestAfterSha256": "4a2874f07f57c1951d58bf961a2ac9d2ebe3176fb673a7fe2475dc593fd6f9a9",
+    "aggregateAlgorithm": "SHA-256 of localeCompare-path-sorted path + NUL + file SHA-256 + newline",
+    "allSourceSha256": "180fddef39fbfcc650f53544d308ccbf84ce23a07b73250cf67f4c310ea70be8",
+    "diffPatchSourceSha256": "e44828bbc404cffbb077545fa628e3928436429bf79a67dd7ad47cd85ce942d9",
+    "authorTestsSha256": "83a92c9598f5cb6cf34cfb31d49206b504153a8731e50f54b937e39873ac8a91",
+    "independentTestsSha256": "c24d8551aea93e736a1f4859d65866269ac7e9ac28aa5a08bcb49f43f15efa4e",
+    "scoped": {
+      "src/commands/diff-patch/PARSER.md": "cc045d0c257aeb6cc259a3422831403aa0293737ede4bbb6a2fd703ab8b09146",
+      "src/commands/diff-patch/README.md": "d1866f85380fff0a544addc44ce3da1456c6e785dba6315794bc83299254e460",
+      "src/commands/diff-patch/diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+      "src/commands/diff-patch/diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "abb8182193cc91ad3d1865cf659fd8acdf76657a9048790270d1b47f85f71b94",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "be1596cbafcb0cc0e6bf3d7d1a9b1b36871560a9d669097e823e8d7203c708ff",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "efea01c9ebb9a046953f4aa24e74739f666e857b61991ac474759adadb5b8d30"
+    }
+  },
+  "suites": {
+    "author": {
+      "tests": 813,
+      "pass": 813,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0
+    },
+    "formats-full": {
+      "tests": 1069,
+      "pass": 1055,
+      "fail": 14,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1
+    },
+    "path-regressions": {
+      "tests": 619,
+      "pass": 619,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0
+    },
+    "editflows": {
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0
+    },
+    "absolute-target": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0
+    },
+    "parser-regressions": {
+      "tests": 80,
+      "pass": 75,
+      "fail": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1
+    },
+    "compatibility": {
+      "tests": 110,
+      "pass": 101,
+      "fail": 9,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1
+    },
+    "fuzz": {
+      "tests": 36,
+      "pass": 34,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1
+    },
+    "safety": {
+      "tests": 151,
+      "pass": 151,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0
+    }
+  },
+  "totals": {
+    "tests": 2939,
+    "pass": 2909,
+    "fail": 30,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "gnuFuzz": {
+    "cases": 512,
+    "propertiesPerCase": 14,
+    "total": 7168,
+    "pass": 7168,
+    "fail": 0,
+    "skips": 0
+  },
+  "parserProduct": {
+    "total": 76,
+    "pass": 76,
+    "fail": 0,
+    "skip": 0
+  },
+  "strictScopedTypecheck": 0,
+  "compatibilityScopedTypecheck": 0,
+  "build": 0,
+  "publicPackage": {
+    "total": 14,
+    "pass": 14,
+    "fail": 0,
+    "childProcessAttempts": 0
+  },
+  "actualPublicComparatorCase": {
+    "name": "plugin-diff-patch-roundtrip",
+    "indexInFullComparator": 113,
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "childProcessAttempts": 0
+  },
+  "comparator": {
+    "exitCode": 1,
+    "versions": {
+      "pinnedVersion": "3.4.2",
+      "installedVersion": "3.4.2",
+      "version": "3.4.2",
+      "resolved": "https://registry.npmjs.org/just-bash/-/just-bash-3.4.2.tgz",
+      "integrity": "sha512-T0Vpy7YRgCjxJdqG3tkxn0ZnIDLJvVwb8hH4L+6NVdp+Te27jQxjxnszW9ODjEKbWxWujj83rP5S0GQxCSufgg==",
+      "dev": true,
+      "license": "Apache-2.0",
+      "dependencies": {
+        "diff": "^8.0.4",
+        "fast-xml-parser": "^5.10.1",
+        "file-type": "^21.3.4",
+        "ini": "^6.0.0",
+        "minimatch": "^10.2.6",
+        "modern-tar": "^0.7.7",
+        "papaparse": "^5.6.0",
+        "quickjs-emscripten": "^0.32.0",
+        "re2js": "^1.3.3",
+        "seek-bzip": "^2.0.0",
+        "smol-toml": "^1.8.0",
+        "sprintf-js": "^1.1.3",
+        "sql.js": "^1.14.1",
+        "turndown": "^7.2.4",
+        "undici": "^7.29.0",
+        "yaml": "^2.9.0"
+      },
+      "bin": {
+        "just-bash": "dist/bin/just-bash.js",
+        "just-bash-shell": "dist/bin/shell/shell.js"
+      },
+      "engines": {
+        "node": ">=20.18.1"
+      },
+      "optionalDependencies": {
+        "@mongodb-js/zstd": "^7.0.0",
+        "node-liblzma": "^2.2.0"
+      },
+      "isolatedLockSha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+    },
+    "corpus": {
+      "path": "tests/fixtures/shell-cases.json",
+      "sha256": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c",
+      "fixtureCount": 88,
+      "generatedCaseCount": 18,
+      "pluginIntegrationCount": 7,
+      "pinnedGnuDialectCount": 2,
+      "probeCount": 3,
+      "totalPerEngine": 118,
+      "seed": 1526603814,
+      "filters": null,
+      "everyFixtureIncluded": true
+    },
+    "summary": {
+      "virtual-bash": {
+        "total": 118,
+        "pass": 118,
+        "fail": 0,
+        "error": 0,
+        "timeout": 0,
+        "pending": 0,
+        "unsupported": 0,
+        "passRate": 1
+      },
+      "just-bash": {
+        "total": 118,
+        "pass": 108,
+        "fail": 9,
+        "error": 0,
+        "timeout": 0,
+        "pending": 0,
+        "unsupported": 1,
+        "passRate": 0.9152542372881356
+      }
+    },
+    "validity": {
+      "sourceChangedDuringRun": false,
+      "backgroundErrors": [],
+      "comparableSnapshot": true
+    },
+    "nonPass": [
+      {
+        "name": "ordinary-assignment-is-not-exported",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "sequential-cats-share-consumed-stdin",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "cat-dash-operands-do-not-replay-stdin",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "read-then-cat-consume-one-shared-stream",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "binary-file-byte-fidelity",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "plugin-rg-file-locations",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "plugin-rg-empty-pipe-implicit",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "plugin-diff-patch-roundtrip",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "gnu-sed-4.9:sed-inplace-quit-per-file",
+        "engine": "just-bash",
+        "status": "fail"
+      },
+      {
+        "name": "streaming-backpressure",
+        "engine": "just-bash",
+        "status": "unsupported",
+        "reason": "Pinned public custom-command API returns buffered stdout and exposes no ByteSink; this probe measures extension API support, not all internal pipeline implementations"
+      }
+    ]
+  },
+  "initialParserEvidenceHook": {
+    "tests": 81,
+    "pass": 75,
+    "fail": 6,
+    "extraFailure": "after-hook rejected outside-subtree PARSER_EVIDENCE path; corrected rerun unsets the variable without editing tests",
+    "raw": "parser-regressions.stdout"
+  },
+  "excludedFollowupCommits": [
+    "a3a1b8d807abdf394a9fafcb17386121ecb0da55 docs(patch): record focused parser checkpoint and native failures",
+    "b0446d63e483685dc4c5598b8fe54121460c7e77 docs(diff-patch): reconcile parser and empty-file behavior",
+    "6e1240ef82679996c2a6ba9a3566ec6a38f6e5a9 fix(patch): support remove-empty and creation into empty targets"
+  ],
+  "scope": "Read-only frozen committed code; no source/backend/benchmark/manifest/existing-test edits; no full repository test or whole-repository typecheck claim",
+  "oracleIdentities": [
+    {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "version": "diff (GNU diffutils) 3.12"
+    },
+    {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "version": "GNU patch 2.8"
+    },
+    {
+      "path": "/usr/bin/diff",
+      "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede",
+      "version": "Apple diff (based on FreeBSD diff)"
+    },
+    {
+      "path": "/usr/bin/patch",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+      "version": "patch 2.0-12u11-Apple"
+    }
+  ],
+  "artifactHashes": {
+    "committed-source.tar": "1c3f142a4a4cfa88abb8282dc2a1b04f221664f9c8a4420777a9a58ba0aea42e",
+    "snapshot-hashes-before.json": "4a2874f07f57c1951d58bf961a2ac9d2ebe3176fb673a7fe2475dc593fd6f9a9",
+    "snapshot-hashes-after.json": "4a2874f07f57c1951d58bf961a2ac9d2ebe3176fb673a7fe2475dc593fd6f9a9",
+    "suite-runs.json": "dd580ad1f865bb41f5fc242513717cc3859b7efcef0008cbf9108bf804dc84b1",
+    "validation-runs.json": "33bf4c756c7dd7accc7c92df1de09fef48fe32e3e671f0645d5434a134072164",
+    "environment.json": "0915126c298e0d13c05b46bb34583f117b7f0caa56ebf926c51a60b08b5ef2eb",
+    "formats.stdout": "1c40be15e734c17fd113990c3f57124eaa351aa5b4804c472523d38f2aee330e",
+    "formats-full.stdout": "1db388208db57a55a099688191d729068222b492506a7471c6522ba66f151c20",
+    "parser-regressions.stdout": "8cf43ec5ac510cbb9437ae025c5c78eec10e2d2fe2d914811270e5f73c74b8c5",
+    "parser-regressions-corrected.stdout": "1adccb904b114e46c3f6e5949c3a6c8033bd46f49a0f0fb87e4cdcea64e1cfae",
+    "parser-product-acceptance.json": "7b95aafbd570ae897f2a1d12d159f6acf3c30807125621c7dd6c8347d01fa6ae",
+    "compatibility.stdout": "d76334ebe7b6e3070bfb5c20ec280dce48fd87e69a4d759664dc698b8df13747",
+    "reconciliation-report.json": "71257c8aa0739e19730d598f4a03b67825974670e918f803140810670dc28b71",
+    "package-checks.json": "d1e952168070731787a444263f3fd79f4132ca641297fd2136bdfa5650166381",
+    "public-script-provenance.json": "7dc6ac81ac9a0d583680df2374177986166b774475e1269f0b122ea44ac327ce",
+    "public-actual-comparator-case.json": "5f1df4d4668e98bf82499747a818c0eef01a8e9b8711d8c2dd31e09d62cd7365",
+    "full-comparator.json": "cb5fd7c0d6e6b0f368fc65435e2b59ac19b469d41577b5e6a6912f27b090fd78",
+    "safe-bash-diff-checkpoint-Fpgf5L.pending-diffpatch.patch": "0eb8d9199c89d8025171fc0298a8b5dc1c721bbeb24f56b5a8c0bcf785e1dd7e",
+    "safe-bash-diff-checkpoint-Fpgf5L.staged-diffpatch.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "safe-bash-diff-checkpoint-Fpgf5L.pending-status.txt": "ebfc95945a19291a7f917d092ccc1f9c1978163fe377dddd32cc1d7529d21722"
+  }
+}

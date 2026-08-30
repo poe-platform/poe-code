@@ -1,0 +1,58 @@
+{
+  "name": "ordinary-failure-continues-after-reap",
+  "expected": true,
+  "cohort": {
+    "rows": [
+      {
+        "mode": "semantic-failure",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": true,
+          "missing": [],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 17,
+          "signal": null
+        },
+        "signals": []
+      },
+      {
+        "mode": "marker",
+        "outcome": "expected-control-outcome",
+        "safety": {
+          "safe": true,
+          "missing": [],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": true
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "signals": []
+      }
+    ],
+    "unexecuted": [],
+    "exitCode": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "accessDate": "2026-08-29",
+  "kind": "PRIMARY_SOURCE_READING_ONLY",
+  "references": [
+    {"id":"BASH-MANUAL","url":"https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html","role":"substring matching, quoted portions, status2, captures; global-only wording contradicted by pinned5.3 source and release note"},
+    {"id":"BASH53-MAINTAINER","url":"https://lists.gnu.org/archive/html/help-bash/2024-04/msg00023.html","role":"maintainer5.3 change list explicitly permits local BASH_REMATCH; authenticated final source inspected independently"},
+    {"id":"POSIX2017-RE","url":"https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap09.html","role":"selected traditional ERE grammar, leftmost-longest/subpattern priorities, null versus nonparticipation, C locale, backreference BRE distinction"},
+    {"id":"POSIX2024-RATIONALE","url":"https://pubs.opengroup.org/onlinepubs/9799919799/xrat/V4_xbd_chap01.html","role":"context-dependent submatch selection and later shortest-modifier extension; not claiming all2024 features"}
+  ],
+  "qualification":"No new native observations; normative documents do not prove Darwin libc or existing product behavior. Direct regcomp/regexec-page fetch returned no usable content; no claim based on that empty fetch."
+}

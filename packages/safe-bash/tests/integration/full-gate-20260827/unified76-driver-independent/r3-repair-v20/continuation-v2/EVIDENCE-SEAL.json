@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "sealedAt": "2026-08-28T16:30:45.361101+00:00",
+  "presealCommit": "2978c5a3b34e2df51af7e7eda08475b570647696",
+  "sourceCommit": "437778996f60109e212e20b1b242455866fda285",
+  "sourceEvidenceCommit": "2ae74702def6b06f1519c9a88c12d6f748611250",
+  "toolRecipeCommit": "adcb1467caad7165361f035f110b40dd1bbdf07d",
+  "toolEvidenceCommit": "26de751f7c1e2e39edfe38c976dc52ce9516fac3",
+  "originalFreezeCommit": "bc60e57b246bf2be853004bd7b5a301e3ee4a339",
+  "originalFindingsCommit": "2434ae624c8241d835cb08cf21c2c75591c070a9",
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RUN-CLAIM.json",
+      "bytes": 279,
+      "sha256": "907bfa7080269147316d764c5aa58e6be9d1982df5b2a1edd3a6f45c94f7b161"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RESULTS.json",
+      "bytes": 92628,
+      "sha256": "b7841c3c812b988595cd414fc2efc634de0f04e19f766ee8d3f9e407fe85cc16"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stdout.raw",
+      "bytes": 60,
+      "sha256": "d121098569b9bb64393ecf3018bda292976a7467fe3b0a40105b74993470e89b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/cohort.exit.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/REVIEW-RESULTS.json",
+      "bytes": 36001,
+      "sha256": "88257afab6813ee59ead23e8f11ed5234c44d068df0614fc2a86d4454132498b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/PRESERVATION.json",
+      "bytes": 18917,
+      "sha256": "ed2d37d3ee470fddb58be7f94f928d0a843a3a7aef54d58fd6aac9211bc14f6d"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/FINDINGS.md",
+      "bytes": 10286,
+      "sha256": "58869bdd6598fee23f5ecdb158912f9e47a949837e222b134b1fa34dc44e805e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/HANDOFF.md",
+      "bytes": 7100,
+      "sha256": "a8b1d243405bea6dc86b3cd2a20bcac544cd5d3d5b52017cae649d4e1b0ca9cd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/r3-repair-v20/continuation-v2/RESULTS.md",
+      "bytes": 5065,
+      "sha256": "d622598fd37363b40c91b948ee5eda68ed144555912c22cbef38bd2d4bff4fd0"
+    }
+  ],
+  "selfIncluded": false,
+  "commitBinding": "This seal and its ten members are committed together using explicit individual owned paths; the final handoff returns the full evidence commit ID.",
+  "verdict": "HOLD",
+  "raw": {
+    "checks": 53,
+    "pass": 47,
+    "fail": 6,
+    "harnessErrors": 0,
+    "skip": 0
+  },
+  "reviewed": {
+    "planned": 53,
+    "wrappersAttempted": 53,
+    "pass": 47,
+    "sourceFailures": 4,
+    "reviewHarnessFailures": 2,
+    "skipped": 0,
+    "unexecutedWrappers": 0,
+    "unexecutedIntendedStreamOperations": 2,
+    "qualification": "Two stream operations are unexecuted within the two failed harness wrappers, not additional controls. Raw FAIL6/HARNESS0 is preserved, not trusted as failure provenance."
+  },
+  "fatalStopRequirementSatisfied": false,
+  "actualCohortAttempts": 1,
+  "noRetry": true,
+  "all53ControlBytesUnchangedExceptBrace": true,
+  "oldFilesUnchanged": true,
+  "sourceFilesUnchanged": true,
+  "noFurtherGO": true
+}

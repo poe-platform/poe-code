@@ -1,0 +1,81 @@
+{
+  "at": "2026-08-27T14:52:11.011Z",
+  "attempts": [
+    {
+      "name": "r0",
+      "status": "REFUSE_ASSEMBLY",
+      "before": "2026-08-27T14:39:28.636Z",
+      "after": "2026-08-27T14:46:20.578Z",
+      "privateUnchanged": true,
+      "settledChildren": 1086,
+      "failedScratchAbsent": true
+    },
+    {
+      "name": "r1",
+      "status": "REFUSE_ASSEMBLY",
+      "before": "2026-08-27T14:48:20.144Z",
+      "after": "2026-08-27T14:48:42.321Z",
+      "privateUnchanged": true,
+      "settledChildren": 1093,
+      "failedScratchAbsent": true
+    },
+    {
+      "name": "r2",
+      "status": "QUALIFIED_ACCEPT_ASSEMBLY_ONLY",
+      "before": "2026-08-27T14:49:39.608Z",
+      "after": "2026-08-27T14:50:06.234Z",
+      "privateUnchanged": true,
+      "settledChildren": 1101,
+      "failedScratchAbsent": null
+    }
+  ],
+  "independentResultAssertions": "PASS",
+  "actualSourceRouteFiles": 940,
+  "actualPackagedRouteFiles": 940,
+  "committedBaseFilesIndependentlyMatched": 216,
+  "freshCleanGitBlobBindingsMatchedRecordedDirtyStatus": true,
+  "authorCompilerTools": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+      "actualPath": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/node_modules/typescript/lib/_tsc.js",
+      "matched": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+      "actualPath": "/private/tmp/safe-bash-owned-output-receipt-review-zqBitE/node_modules/typescript/package.json",
+      "matched": true
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "matchesAuthorNode": true
+  },
+  "artifactCommitPathBindings": 856,
+  "uniqueArtifactPaths": 731,
+  "currentArtifactBytesAllStillMatchFrozenBindings": true,
+  "publicChanges": [
+    {
+      "path": "src/shell/runtime.ts",
+      "before": {
+        "bytes": 103171,
+        "sha256": "8aaa3e6bd403e83071a3535551d6211f112d46232347a3e6f7a6b2e871bfeda1",
+        "mode": 420,
+        "mtimeMs": 1787842076929.1194,
+        "ctimeMs": 1787842076929.1194
+      },
+      "after": {
+        "bytes": 103171,
+        "sha256": "7587a6f5176f919138e96f70b00aff491d0b4a42ec2c1c8c1f7454544d6404c5",
+        "mode": 420,
+        "mtimeMs": 1787842195214.7964,
+        "ctimeMs": 1787842195214.7964
+      },
+      "includedInCandidate": false
+    }
+  ],
+  "currentWholeGateOrGuestRuntimeAcceptance": false
+}

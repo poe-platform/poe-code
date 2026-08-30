@@ -1,0 +1,17 @@
+{
+  "schema": "direct-profile-candidate-source-closure-v1",
+  "decision": "ACCEPT",
+  "scope": "Previously ROOT-accepted candidate source only; NOT B mechanism or activation acceptance",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "profile": "bash-surface-direct-owned-child-functional-v1",
+  "identityKind": "DERIVED_COMPOSITION_NOT_GIT_OBJECT",
+  "rootCandidateAcceptance": "76648c572b26486c02e45c65ad42dd74bc938e15",
+  "locatorHandoff": "2660137c4af1c58362e42ae2950f43635071a714",
+  "sourceInventorySha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4",
+  "sourceMembersSha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3",
+  "sourceFiles": 293,
+  "sourceBytes": 2689324,
+  "shippingMembers": 954,
+  "packageSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "qualification": "Authoritative input projection and fresh individual blob payload checks, not a new complete derived-tree proof. Independent B plus packet review remains mandatory."
+}

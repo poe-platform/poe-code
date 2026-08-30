@@ -1,0 +1,2 @@
+import type { SplitCommandsOptions } from 'virtual-bash/commands/split';
+export const invalid: SplitCommandsOptions = { limits: { maxChunkBytes: [] } };

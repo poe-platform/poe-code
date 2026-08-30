@@ -1,0 +1,112 @@
+{
+  "status": "PROPOSAL_SEALED_NO_APPROVAL_NO_EXECUTION",
+  "at": "2026-08-27T15:49:30.411Z",
+  "threadId": "01a04292-c8dd-7331-9dac-619c9861b11b",
+  "noPromotion": true,
+  "originalCommit": "19da254941847de60e80ea18407332bbe10b5265",
+  "originalFileCount": 74,
+  "originalBeforeAfterIdentical": true,
+  "fullPublicSourceFiles": 940,
+  "fullCompiledFiles": 708,
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "sourceAndPackageMetadataStillEqualToOriginalExecution": true,
+  "files": [
+    {
+      "path": "inspect-static.mjs",
+      "bytes": 11530,
+      "sha256": "0ca236e2fe5220b775560dc61395c4c25f452be5f514cb46d96bf3f0de326de4"
+    },
+    {
+      "path": "STATIC-PROOF.json",
+      "bytes": 29730,
+      "sha256": "08401e66357c75031b1901c8cb1771256277c4b4e0931e77102a9ecf380850db"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 16558,
+      "sha256": "0998b9ddd1cfeafc0099ad3721f3fc86c194dacf636ee15d83a7a503af081cf0"
+    },
+    {
+      "path": "PROPOSALS.json",
+      "bytes": 9377,
+      "sha256": "f72ffec48a257ccab4cf62ed6c15a654651d72cd73736165b3a54a4d2b5ba3ba"
+    }
+  ],
+  "exactProposalChecks": {
+    "changedHostLimitFields": [
+      "maxRedirects",
+      "maxRetries"
+    ],
+    "allOtherHostLimitsEqual": true,
+    "unchangedCurlInputFields": [
+      "args",
+      "method",
+      "uploadChunksHex",
+      "responseStatus",
+      "responseStatusText",
+      "responseHttpVersion",
+      "responseHeaders",
+      "responseChunksHex",
+      "requiredFiles",
+      "independentStderr"
+    ],
+    "originalCurlBothExpectationsEqual": true,
+    "originalL05PublicExpectationEqual": true,
+    "newPrecedenceScenario": true,
+    "newSourceAddedBytesHex": "0a29",
+    "noOriginalWriteTargets": true,
+    "constructorMin1NotDocumented": true
+  },
+  "preservedBudgets": {
+    "defaultSafeJsLimits": {
+      "maxSourceBytes": 16384,
+      "maxInputBytes": 65536,
+      "maxOutputBytes": 65536,
+      "timeoutMs": 3500,
+      "maxSteps": 200000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 8192,
+      "dataSize": 1048576
+    },
+    "containment": {
+      "caseChildrenAtOnce": 1,
+      "childDeadlineMs": 7000,
+      "supervisorDeadlineMs": 9000,
+      "wholeCohortDeadlineMs": 120000,
+      "heapMb": 256,
+      "childOutputMaxBytes": 1048576,
+      "eventMaxCount": 4096,
+      "unexpectedWorkersAllowed": 0,
+      "unexpectedSubprocessesAllowed": 0,
+      "socketsAllowed": 0,
+      "acceptanceAfterContainment": false,
+      "automaticRetries": 0
+    }
+  },
+  "zeroExecution": {
+    "guest": 0,
+    "engine": 0,
+    "product": 0,
+    "nativeCurl": 0,
+    "privateQueries": 0,
+    "privateReads": 0,
+    "builds": 0,
+    "installs": 0
+  },
+  "privateClosure": "No private checkout or private-source read/query; original private before/after records remain authenticated, not recaptured or asserted current.",
+  "originalEvidenceCounts": {
+    "total": 11,
+    "logicalWorkflows": 6,
+    "executed": 9,
+    "valid": 9,
+    "pass": 8,
+    "failed": 1,
+    "invalid": 1,
+    "unproved": 0,
+    "blocked": 1
+  },
+  "constraints": "No runtime acceptance, source fix, original assertion relaxation, self-approval or permission to execute; separate ROOT decision and reviewer required.",
+  "validation": "Node --check plus builtin JSON/Git/regular-file metadata checks only. No product imports, tests, parser calls, builds or guest probes.",
+  "inspectionNotes": "Read-only exploration corrected missing guessed paths (safejs/safejs.ts, network/arguments.ts, network/security.test.ts and receipt attempts/r2/verification.json); those were metadata/read lookup failures, not runtime results. Existing actual paths were then inspected. No guest retry occurred."
+}

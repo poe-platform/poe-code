@@ -1,0 +1,128 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "E11",
+  "mutation": "none",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "E11/padding-abort-late-resolve",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "613a623a630a780a",
+          "status": null,
+          "rejection": {
+            "message": "[object Object]",
+            "code": "ENOENT"
+          },
+          "stdoutBytes": 1,
+          "stdoutSha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+          "stdoutHex": "61",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 1,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "attempts": 2
+    },
+    {
+      "name": "E11/padding-abort-late-reject",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "613a623a630a780a",
+          "status": null,
+          "rejection": {
+            "message": "[object Object]",
+            "code": "ENOENT"
+          },
+          "stdoutBytes": 1,
+          "stdoutSha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+          "stdoutHex": "61",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 1,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "attempts": 2
+    },
+    {
+      "name": "E11/registered-owned-return",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "/input"
+          ],
+          "limits": {},
+          "inputHex": null,
+          "status": null,
+          "rejection": {
+            "message": "[object Object]",
+            "code": null
+          },
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutHex": "",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 0,
+          "maxWriteBytes": 0,
+          "pulls": 0,
+          "registeredCleanupCount": 1,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "beforeRelease": {
+        "settled": false,
+        "returns": 1,
+        "events": [
+          "register",
+          "acquire"
+        ]
+      }
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 69,
+    "units": 83
+  },
+  "counts": {
+    "total": 3,
+    "pass": 3,
+    "fail": 0
+  }
+}

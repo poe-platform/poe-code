@@ -1,0 +1,103 @@
+PRODUCTION FOLLOWUP FIX READY — F2 FIXED; F1 BLOCKED; NO DEFAULT ACCEPTANCE
+Published 2026-08-27T06:24:53.530Z. Followup source/evidence edits STOP.
+Distinct followup AUTHOR, not independent verifier; no subagents.
+
+Commits:
+frozen regression/failures beaeeeaaaadc57729ccdb6ff9f51c1e38c393c9f
+source c467e8a7bdd78048985f97539bc76e38ff786b09
+evidence/report 52059e7973016e74ae59ad453ae68c200d9de425
+Prior source b1939d76b8e28687320a7253380a00b446424548 and evidence
+35249954c1994940a8a89bad295ab34e4285bbee remain intact. Original independent
+failure commit a818f24b7cbac9b5f86c224b88af7bb429e18089 remains unchanged.
+Old author-ready marker preserved verbatim in tests/commands/regex-execution/followup/prior-author-ready.txt.
+Owned working tree/index clean after explicit owned-path --only commits;
+other-owner work/staging/native artifacts preserved. Shared HEAD may move.
+
+F2: three code lines in client.ts register a receive messageerror handler that
+fails PROTOCOL and removes the same listener only after awaited retirement.
+Existing active/startup failure, idle retirement, idempotence, signal and first
+recorded error semantics reused. Narrow README corrects public-cleanup claim.
+No runtime/FS/registry/lifecycle/API/export/glob/walk production edits.
+Before: frozen9 tests had4 pass/5 fail, including startupSTARTUP_TIMEOUT,
+active/nativeREQUEST_TIMEOUT, missing idle retirement, lost protocol precedence.
+Unchanged fixed9/9 pass; final scoped65/65 = original56 author + followup9,
+zero failed/skipped/TODO. Controlled gate proves prompt termination START and
+pending settlement until released; duplicate faults/capacity/close/listeners and
+abort/timeout/fatal/disposal/protocol precedence covered. One real Worker test
+injects the native receiver event; not a naturally induced deserialization fault.
+
+Build via existing npm run build PASS. Followup and original author scoped
+types PASS. Current global npm run typecheck PASS; original unrelated diagnostics
+remain untouched. This is not a full test gate or replay of prior730 tests.
+One offline actual product tarball moved after extraction; eight JS/declaration
+worker hashes equal build; public declarations and bare Node22 grep/rg controls
+plus packed injectedF2 pass. No copied prototype or alternate worker compiler.
+Packed consumer exits1 for TWO RETAINED F1 assertions; packaging harness records
+that failure, never treats it as public cleanup acceptance.
+
+F1 STILL BLOCKED: ORIGINAL tiny public Shell+agentCommands grep -E '^a' | head -n 1
+on 'ab\n'.repeat(200), 600 bytes, reproduces status0/stdout'ab\n'/stderr empty.
+One worker remains alive at exec settlement AND after await shell.dispose;
+terminateCalls1, message1/messageerror1/error1/exit3 including observer/native
+termination machinery. Later exact awaited termination finishes; all4 package
+workers eventually threadId-1, terminateCalls1, zero listeners. No delay trick,
+manual safety terminate, kill or retry. This is an awaited-cleanup defect,
+NOT an indefinite leak. No F1 implementation attempted after contract finding.
+
+Exact path: grep.ts86 and search/rg.ts164 await session.close in finally;
+client.ts222 awaits pending and retirement. runtime.ts100/110 Promise.race
+abandons waiting on cancellation, including dispatch870 and pipeline345;
+early downstream abort338/361 then raced tasks371 can settle before finally.
+shell/shell.ts107 races runtime, finally128 closes stdin; dispose138-146 awaits
+plugin disposal only, not outstanding invocation resource cleanup.
+contracts/command.ts20/44 expose no invocation cleanup registration/barrier.
+contracts/plugin.ts16 DOES have optional plugin-wide dispose, but current
+plugins/index.ts53 and commands/index.ts31 do not expose executor disposal;
+plugin disposal alone cannot fix earlier exec settlement. Middleware awaiting
+next still sits beneath the same runtime race.
+
+REQUIRED APPROVED CONTRACT, NOT INVENTED API: invocation-owned cooperative
+resource cleanup must be represented independently of interruptible/uncooperative
+command/host work, propagated through dispatch/pipeline cancellation, and drained
+before relevant public exec settlement AND Shell disposal. Define ownership,
+once-only registration/drain, cancellation/error precedence and disposal behavior.
+Requires root-approved command/runtime/Shell lifecycle ownership; do not blanket
+await uncooperative host promises. No wrapper, blocking, unref/listener-removal
+mask, early-close disabling, or unauthorized lifecycle change is supplied.
+Detailed source lines and evidence: tests/commands/regex-execution/followup/REPORT.md.
+
+Audit: 40 original author files and 659 historical artifacts byte-identical;
+frozen regression byte-identical; old failures and historical12 immutable.
+tests/commands/regex-execution/followup/audit.json records exact source/emitted/evidence hashes;
+package-evidence.json retains F1 failures and eventual cleanup separately.
+Raw npm trailing blank lines retained despite diff-check warnings; authored
+code/JSON/docs check passes. FINAL_CHECK.md preserves that staging observation.
+
+Risk ledger UNCHANGED: followup0; author0/2, independent0/4; separate6 unused.
+No pathological probe, warmup/fuzz, baseline or timing matrix was run.
+Separate glob/walk host-regex blocker remains; no ownership extension assumed.
+Different active verifier should now rerun ORIGINAL frozen checks on this hash,
+retain F1 unless approved lifecycle work resolves it, and preserve all old results.
+No default/production acceptance, fullgate, parity, superiority or72-hour claim.
+
+Exact source hashes:
+src/commands/regex-execution/client.ts 79031a09a0d4259494d130aa47abcccebcd4230d7c83cc9feab07303ddf3a139
+src/commands/regex-execution/README.md e5bf76ec9f79673a54d8a4988425807a952a5c72f47b385aa1bdb4ce84263e51
+src/commands/regex-execution/worker.ts 75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea
+src/commands/regex-execution/protocol.ts 90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33
+src/commands/regex-execution/matching.ts cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497
+src/commands/grep.ts 529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74
+src/commands/search/rg.ts 6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6
+src/commands/search/matcher.ts db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e
+src/commands/search/glob.ts d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425
+src/commands/search/walk.ts 474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a
+src/shell/runtime.ts 5589f60a1db983538d37168e3b9276555ef71a2bc67446783535e47789f9d6eb
+src/shell/shell.ts 4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e
+src/contracts/command.ts 1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa
+src/contracts/plugin.ts b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae
+src/plugins/index.ts df8834110688f62ce16f06d273f783b33e7b0fdf4944e3083da4d360b4fa5045
+src/commands/index.ts 67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9
+src/index.ts 59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2
+package.json 82858a418d8974cc53ec4b9eff231e49415b51224490a78baad61f3da291eb22
+Product archive SHA256 fbae0541c9bee1e58a78aa1e1a7329b60392f834feb124efad155a89d26c993f
+Frozen test SHA256 29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214

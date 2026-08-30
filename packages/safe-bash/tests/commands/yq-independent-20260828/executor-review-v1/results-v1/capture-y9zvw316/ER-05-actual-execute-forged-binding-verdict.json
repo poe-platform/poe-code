@@ -1,0 +1,9 @@
+{
+  "family": "ER-05",
+  "name": "actual-execute-forged-binding",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-05-actual-execute-forged-binding-input.json",
+  "raw": "ER-05-actual-execute-forged-binding-raw.json"
+}

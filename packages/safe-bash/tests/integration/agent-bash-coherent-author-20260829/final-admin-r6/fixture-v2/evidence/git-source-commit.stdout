@@ -1,0 +1,20 @@
+[main 730aee6b5] Preseal fixture-only r6 active-tail setup correction
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 5 files changed, 177 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/launch.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/fixture-v2/run.mjs

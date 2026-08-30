@@ -1,0 +1,561 @@
+{
+  "candidate": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "startedAt": "2026-08-27T18:45:31.835Z",
+  "measuredThrough": "2026-08-27T18:52:36.541Z",
+  "source": {
+    "count": 237,
+    "sha256": "d219506fb17ebe1d988b692c9ede0fd6d77c14289ce2fa71acdd530b6b701f55",
+    "sourceTreeGitId": "ae6ea79a296702decfb891aea1cd141b7af17bc5"
+  },
+  "sourceTests": 28167,
+  "sourceTestsDigest": "5c4a65fc6f22f5068223be1bf039040688b395cbf7f1e18a8febda7c343c412b",
+  "distribution": {
+    "build": [
+      {
+        "binary": "git",
+        "args": [
+          "archive",
+          "--format=tar",
+          "--output=/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/candidate.tar",
+          "21220b465537bf45ffcfb36740956a69f43bf75e"
+        ],
+        "status": 0,
+        "failure": null
+      },
+      {
+        "binary": "/usr/bin/tar",
+        "args": [
+          "-xf",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/candidate.tar",
+          "-C",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source"
+        ],
+        "status": 0,
+        "failure": null
+      },
+      {
+        "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source/node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "status": 0,
+        "failure": null
+      },
+      {
+        "binary": "npm",
+        "args": [
+          "pack",
+          "--json",
+          "--ignore-scripts",
+          "--offline",
+          "--pack-destination",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt"
+        ],
+        "status": 0,
+        "failure": null
+      },
+      {
+        "binary": "npm",
+        "args": [
+          "install",
+          "--prefix",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/install-origin",
+          "--ignore-scripts",
+          "--offline",
+          "--no-audit",
+          "--no-fund",
+          "--package-lock=false",
+          "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/virtual-bash-0.0.0.tgz"
+        ],
+        "status": 0,
+        "failure": null
+      }
+    ],
+    "strictInstalledDeclarations": 0,
+    "plainNodePhysicalModule": 0
+  },
+  "nativeQualification": [
+    {
+      "id": "original95",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 95,
+          "strictMatches": 95
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "denominator": 9,
+          "strictMatches": 9
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 95,
+          "strictMatches": 95
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "denominator": 9,
+          "strictMatches": 9
+        }
+      ]
+    },
+    {
+      "id": "extension-original20",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 20,
+          "strictMatches": 20
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "denominator": 3,
+          "strictMatches": 3
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 20,
+          "strictMatches": 20
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "denominator": 3,
+          "strictMatches": 3
+        }
+      ]
+    },
+    {
+      "id": "extension-correction1",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 1,
+          "strictMatches": 1
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 1,
+          "strictMatches": 1
+        }
+      ]
+    }
+  ],
+  "fullFrozenCandidate": [
+    {
+      "cohort": "original95",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 95,
+          "semanticMatches": 95,
+          "diagnosticMatches": 95,
+          "strictMatches": 95
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "denominator": 9,
+          "semanticMatches": 2,
+          "diagnosticMatches": 2,
+          "strictMatches": 2
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 95,
+          "semanticMatches": 61,
+          "diagnosticMatches": 46,
+          "strictMatches": 42
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "denominator": 9,
+          "semanticMatches": 5,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        }
+      ]
+    },
+    {
+      "cohort": "extension-original20",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 20,
+          "semanticMatches": 20,
+          "diagnosticMatches": 20,
+          "strictMatches": 20
+        },
+        {
+          "id": "gnu-9.7-darwin-en_US.UTF-8",
+          "denominator": 3,
+          "semanticMatches": 0,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 20,
+          "semanticMatches": 16,
+          "diagnosticMatches": 19,
+          "strictMatches": 15
+        },
+        {
+          "id": "apple-darwin-en_US.UTF-8",
+          "denominator": 3,
+          "semanticMatches": 0,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        }
+      ]
+    },
+    {
+      "cohort": "extension-correction1",
+      "profiles": [
+        {
+          "id": "gnu-9.7-darwin-C",
+          "denominator": 1,
+          "semanticMatches": 1,
+          "diagnosticMatches": 1,
+          "strictMatches": 1
+        },
+        {
+          "id": "apple-darwin-C",
+          "denominator": 1,
+          "semanticMatches": 0,
+          "diagnosticMatches": 0,
+          "strictMatches": 0
+        }
+      ]
+    }
+  ],
+  "independent": {
+    "nineStrict": 9,
+    "nineTotal": 9,
+    "independentStrict": 25,
+    "independentTotal": 26,
+    "runtimePassed": 11,
+    "runtimeTotal": 12,
+    "workers": 0
+  },
+  "independentFailedInputs": [
+    {
+      "id": "ast-first-precedence-counterexample",
+      "argv": [
+        "1",
+        "/",
+        "0",
+        "x"
+      ],
+      "expected": {
+        "status": 2,
+        "signal": null,
+        "failure": null,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo="
+      },
+      "actual": {
+        "status": 2,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGFyZ3VtZW50ICd4Jwo=",
+        "signal": null,
+        "failure": null,
+        "mainCompiles": 0,
+        "stdinAccess": 0,
+        "fsAccess": 0,
+        "invokeAccess": 0
+      },
+      "comparison": {
+        "semantic": true,
+        "diagnostic": false,
+        "strict": false
+      },
+      "classification": "Record divergence separately; not a requested source fix or closure condition."
+    }
+  ],
+  "independentFailedControls": [
+    {
+      "id": "syntax-output-one",
+      "input": {
+        "id": "syntax-output-one",
+        "argv": [
+          "1",
+          "x"
+        ],
+        "limits": {
+          "maxOutputBytes": 1
+        },
+        "expectedStatus": 2,
+        "expectedStderr": "expr: syntax error: unexpected argument 'x'\n",
+        "workers": 0
+      },
+      "actual": {
+        "status": 3,
+        "stdoutBase64": "",
+        "stderrBase64": "ZXhwcjogb3V0cHV0IGJ5dGVzIGxpbWl0IGV4Y2VlZGVkCg=="
+      }
+    }
+  ],
+  "core": {
+    "count": 146,
+    "failed": []
+  },
+  "supplemental": {
+    "count": 42,
+    "failed": [],
+    "nullableStrict": 3,
+    "nullableTotal": 8,
+    "nullableFailures": [
+      "empty",
+      "a",
+      "aa",
+      "aaa",
+      "mandatory-empty"
+    ],
+    "historicalNullableInputsAndNativeTuplesUnchanged": true
+  },
+  "regressions": [
+    {
+      "path": "regressions/shared-legacy276.json",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=spec",
+        "tests/commands/regex-execution/executor.test.ts",
+        "tests/commands/regex-execution/commands.test.ts",
+        "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+        "tests/commands/regex-execution/followup/messageerror.test.ts",
+        "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+        "tests/commands/regex-execution/continuation/glob.test.ts",
+        "tests/commands/regex-execution/continuation/public.test.ts",
+        "tests/commands/grep-aliases/aliases.test.ts",
+        "tests/commands/grep-aliases/safety.test.ts",
+        "tests/commands/search/rg.test.ts",
+        "tests/commands/search/safety.test.ts"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source",
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "counts": {
+        "tests": 276,
+        "suites": 0,
+        "pass": 276,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerReceipts": [
+        {
+          "actualWorkers": 24,
+          "exited": 24,
+          "active": 0
+        },
+        {
+          "controlledWorkers": 23,
+          "active": 0,
+          "listeners": 0,
+          "pathologicalAllocations": 0
+        },
+        {
+          "executorWorkers": 17,
+          "activeBeforeSafetyCleanup": 0,
+          "activeAfter": 0,
+          "remainingOwnedListeners": 0
+        }
+      ]
+    },
+    {
+      "path": "regressions/author-diagnostics71.json",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=spec",
+        "tests/commands/expr/diagnostics-regression.test.ts"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source",
+      "status": 0,
+      "signal": null,
+      "failure": null,
+      "counts": {
+        "tests": 71,
+        "suites": 0,
+        "pass": 71,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerReceipts": []
+    },
+    {
+      "path": "regressions/expr-legacy241.json",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=spec",
+        "tests/commands/expr/abort-reason-regression.test.ts",
+        "tests/commands/expr/contracts.test.ts",
+        "tests/commands/expr/grammar.test.ts",
+        "tests/commands/expr/native.test.ts",
+        "tests/commands/expr/regex-lifecycle.test.ts",
+        "tests/commands/expr/regex-limits.test.ts",
+        "tests/commands/expr/regex-native.test.ts",
+        "tests/commands/expr/regex-protocol.test.ts"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source",
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "counts": {
+        "tests": 241,
+        "suites": 0,
+        "pass": 235,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerReceipts": [
+        {
+          "abortReasonWorkers": 138,
+          "activeBeforeSafetyCleanup": 0,
+          "activeAfter": 0
+        },
+        {
+          "exprWorkers": 20,
+          "activeBeforeSafetyCleanup": 0,
+          "activeAfter": 0
+        }
+      ]
+    },
+    {
+      "path": "regressions/expr-legacy241-qualified.json",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=spec",
+        "tests/commands/expr/abort-reason-regression.test.ts",
+        "tests/commands/expr/contracts.test.ts",
+        "tests/commands/expr/grammar.test.ts",
+        "tests/commands/expr/native.test.ts",
+        "tests/commands/expr/regex-lifecycle.test.ts",
+        "tests/commands/expr/regex-limits.test.ts",
+        "tests/commands/expr/regex-native.test.ts",
+        "tests/commands/expr/regex-protocol.test.ts"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-ypjPKt/source",
+      "status": 1,
+      "signal": null,
+      "failure": null,
+      "counts": {
+        "tests": 241,
+        "suites": 0,
+        "pass": 239,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "workerReceipts": [
+        {
+          "abortReasonWorkers": 138,
+          "activeBeforeSafetyCleanup": 0,
+          "activeAfter": 0
+        },
+        {
+          "exprWorkers": 20,
+          "activeBeforeSafetyCleanup": 0,
+          "activeAfter": 0
+        }
+      ]
+    }
+  ],
+  "optionalNative": {
+    "path": "frozen-comparators/opt-in-native-regressions.json",
+    "summary": [
+      "# tests 52",
+      "# pass 50",
+      "# fail 0",
+      "# cancelled 0",
+      "# skipped 2",
+      "# todo 0"
+    ]
+  },
+  "safetyCounts": {
+    "nativeTupleProbes": {
+      "jobs": 256,
+      "returned": 256,
+      "outerTerminationAwaited": 256,
+      "preSafetyMeasured": 256,
+      "preSafetyNonzero": [],
+      "liveWorkersMeasured": 0,
+      "liveWorkersNonzero": [],
+      "workerStartEvents": 86,
+      "eventsQualification": "Worker-start events may include deterministic synthetic transport workers. liveWorkers in lifecycle helpers is measured after their finally cleanup, not necessarily before safety; no upgraded pre-safety claim."
+    },
+    "independentNativeInputs": {
+      "jobs": 35,
+      "returned": 35,
+      "outerTerminationAwaited": 35,
+      "preSafetyMeasured": 35,
+      "preSafetyNonzero": [],
+      "liveWorkersMeasured": 0,
+      "liveWorkersNonzero": [],
+      "workerStartEvents": 0,
+      "eventsQualification": "Worker-start events may include deterministic synthetic transport workers. liveWorkers in lifecycle helpers is measured after their finally cleanup, not necessarily before safety; no upgraded pre-safety claim."
+    },
+    "independentRuntime": {
+      "jobs": 12,
+      "returned": 12,
+      "outerTerminationAwaited": 12,
+      "preSafetyMeasured": 12,
+      "preSafetyNonzero": [],
+      "liveWorkersMeasured": 0,
+      "liveWorkersNonzero": [],
+      "workerStartEvents": 0,
+      "eventsQualification": "Worker-start events may include deterministic synthetic transport workers. liveWorkers in lifecycle helpers is measured after their finally cleanup, not necessarily before safety; no upgraded pre-safety claim."
+    },
+    "core": {
+      "jobs": 146,
+      "returned": 146,
+      "outerTerminationAwaited": 146,
+      "preSafetyMeasured": 90,
+      "preSafetyNonzero": [],
+      "liveWorkersMeasured": 19,
+      "liveWorkersNonzero": [],
+      "workerStartEvents": 45,
+      "eventsQualification": "Worker-start events may include deterministic synthetic transport workers. liveWorkers in lifecycle helpers is measured after their finally cleanup, not necessarily before safety; no upgraded pre-safety claim."
+    },
+    "supplemental": {
+      "jobs": 42,
+      "returned": 42,
+      "outerTerminationAwaited": 42,
+      "preSafetyMeasured": 22,
+      "preSafetyNonzero": [],
+      "liveWorkersMeasured": 1,
+      "liveWorkersNonzero": [],
+      "workerStartEvents": 23,
+      "eventsQualification": "Worker-start events may include deterministic synthetic transport workers. liveWorkers in lifecycle helpers is measured after their finally cleanup, not necessarily before safety; no upgraded pre-safety claim."
+    }
+  },
+  "limitations": [
+    "No source repair or golden normalization.",
+    "Full frozen cohorts retain ten GNU locale mismatches; Apple is separate.",
+    "AST-first counterexample is one failed independent holdout, never one of requested nine.",
+    "Frozen output-one profile remains failed, not rebaselined.",
+    "Author71 and expr241 overlap prior/native/control coverage; no unique-test summation.",
+    "Native profiling is GNU9.7 on Darwin, not Linux.",
+    "No root expr integration, public expr subpath, full gate, duration target, superiority or completion claim."
+  ]
+}

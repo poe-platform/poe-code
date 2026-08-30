@@ -1,0 +1,55 @@
+{
+  "schema": 3,
+  "started": "2026-08-29T13:23:52.564Z",
+  "sampledAt": "2026-08-29T13:47:12.682Z",
+  "status": "HARNESS_REPAIR_READY_FOR_REVIEW_ACTUAL_PENDING",
+  "controls": {
+    "C1": {
+      "oldVersioned": 33,
+      "independent": 8,
+      "additional": 10,
+      "passed": true
+    },
+    "C2": {
+      "originalNormalGateFailure": 1,
+      "normalChildExited0": true,
+      "normalRetired": true,
+      "threeNotStarted": true
+    },
+    "C3": {
+      "oldVersioned": 33,
+      "independent": 8,
+      "additional": 10,
+      "passed": true,
+      "separateRetainedNormalData": 1,
+      "syntaxTexts": 19,
+      "cellsData": 135
+    },
+    "C4": {
+      "remainingHarmlessPass": 3,
+      "retired": 3
+    }
+  },
+  "controllerStarts": 4,
+  "realHarmlessChildren": 4,
+  "actualWorkers": 0,
+  "compiler": 0,
+  "productImports": 0,
+  "matching": 0,
+  "rescue": 0,
+  "knownOSClosedAtSnapshot": 27,
+  "reservedPublicationStarts": 4,
+  "plannedTotalKnownOS": 31,
+  "peakKnownOS": 3,
+  "knownRoleQualification": "explicit tool exec transitions plus four child PIDs; not universal host census",
+  "resources": {
+    "snapshotBytes": 24295656,
+    "snapshotEntries": 5083,
+    "captureBytes": 30386,
+    "captureEntries": 73,
+    "method": "sealed file-based data-support.census explicit own roots; invocation-local immutable snapshot"
+  },
+  "proposalSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+  "authoritySha256": "554f8aa10ff57f4ce3feb0be38dff63b21585aae6ca471e10b09f2a8d4031f8c",
+  "all60": "UNRUN"
+}

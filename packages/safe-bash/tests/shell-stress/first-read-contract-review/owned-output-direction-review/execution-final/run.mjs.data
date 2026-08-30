@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {capture, candidate, owned, put} from './supervisor.mjs';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const scope = `${root}/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final`;
+const sha = value => createHash('sha256').update(value).digest('hex');
+const seal = JSON.parse(readFileSync(`${owned}/execution-seal.json`));
+for (const entry of seal.files) assert.equal(sha(readFileSync(entry.path === 'BINDING.md' ? `${scope}/BINDING.md` : `${owned}/${entry.path}`)), entry.sha256);
+const syntax = await capture('driver-syntax-r0', process.execPath, ['--check', `${owned}/driver.mjs`]);
+const api = await capture('declared-binding-typecheck', process.execPath, [`${candidate}/node_modules/typescript/bin/tsc`, '-p', `${owned}/api-tsconfig.json`], {timeoutMs: 30000});
+const oldTypes = await capture('old-bound-scoped-typecheck', process.execPath, [`${candidate}/node_modules/typescript/bin/tsc`, '--noEmit', '-p', `${owned}/bound/tsconfig.json`], {timeoutMs: 30000});
+assert.equal(syntax.status, 0); assert.equal(api.status, 0); assert.equal(oldTypes.status, 0);
+for (const id of ['D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07']) {
+  const result = await capture(`new7-r0-${id}`, process.execPath, ['--unhandled-rejections=strict', `${owned}/driver.mjs`, id]);
+  if (result.status !== 0) {
+    const message = `Actual ${id} first execution failed at ${result.finishedAt}. Source remains authenticated v2; no prototype fixes. Raw evidence ${owned}/final-runs/new7-r0-${id}.json. Continue remaining frozen cases and sealed replays; preserve failure.\n`;
+    put('/tmp/safe-bash-owned-output-direction-review-final-status.txt', message);
+    put('/tmp/safe-bash-owned-output-direction-review-final-needs-root.txt', message);
+  }
+}
+const scenarios = ['first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers'];
+for (const [index, scenario] of scenarios.entries()) await capture(`old16-shared-H0${index + 1}-adapted`, process.execPath, ['--unhandled-rejections=strict', '--import', 'tsx', `${owned}/bound/tests/shell/adapted-first-read-probe.ts`, scenario], {timeoutMs: 3000});
+for (const [profile, driver] of [['initial', 'holdouts.mjs'], ['corrected', 'holdouts-r1.mjs']]) {
+  for (const id of ['H01', 'H06', 'H07', 'H08', 'H09', 'H10', 'H11', 'H12', 'H13', 'H14', 'H15', 'H16']) await capture(`old16-${profile}-${id}`, process.execPath, ['--unhandled-rejections=strict', `${owned}/${driver}`, id], {timeoutMs: 15000});
+}
+const testArgs = ['--unhandled-rejections=strict', '--import', 'tsx', '--test', '--test-concurrency=1'];
+await capture('original-five-and-head-zero', process.execPath, [...testArgs, '--test-name-pattern=pipeline close: first-read-', 'tests/shell/remote-close.test.ts'], {timeoutMs: 30000});
+await capture('adapted-five', process.execPath, [...testArgs, '--test-name-pattern=pipeline close: first-read-(?!head-zero)', 'tests/shell/adapted-remote-close.test.ts'], {timeoutMs: 30000});
+await capture('existing-remote-after-write-and-no-write', process.execPath, [...testArgs, '--test-name-pattern=pipeline close: (?!first-read-)', 'tests/shell/remote-close.test.ts'], {timeoutMs: 30000});
+await capture('existing-byte-io', process.execPath, [...testArgs, 'tests/contracts/io.test.ts', 'tests/contracts/io.stress.test.ts'], {timeoutMs: 30000});
+await capture('existing-shared-lifecycle', process.execPath, [...testArgs, '--test-name-pattern=hard-timeout lifecycle regression: shared-', 'tests/shell/lifecycle.test.ts'], {timeoutMs: 30000});
+await capture('existing-streaming', process.execPath, [...testArgs, '--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches', 'tests/shell/streaming.test.ts'], {timeoutMs: 30000});
+for (const id of ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']) await capture(`control-${id}`, process.execPath, ['--unhandled-rejections=strict', `${owned}/controls.mjs`, id], {timeoutMs: 3000, maxBytes: 65536});
+console.log('All requested first executions and sealed replays captured. Failures remain failures.');

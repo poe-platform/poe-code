@@ -1,0 +1,96 @@
+{
+  "schema": "B2_R6_ACTUAL_ADMISSION_STOP_V1",
+  "status": "STOP_TOOL_TRANSPORT_TIMEOUT_BEFORE_RUNTIME_DISPATCH_ROOT_ADJUDICATION_REQUIRED",
+  "utc": "2026-08-29T15:16:40.003Z",
+  "timerRole": {
+    "role": "one-scheduling-timer",
+    "pid": 68311,
+    "started": "2026-08-29T15:07:17.771Z",
+    "children": 0,
+    "runtimeLaunched": false,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "ended": "2026-08-29T15:15:12.266Z"
+  },
+  "transportError": {
+    "afterMilliseconds": 300006.5,
+    "message": "timed out awaiting tools/call after 300s",
+    "authority": "tool transcript only",
+    "serverSideByteCapture": "UNAVAILABLE"
+  },
+  "recovery": {
+    "existingTimerNotRetried": true,
+    "inspectionQueuedUntilOriginalOperationCompleted": true,
+    "knownSchedulerRetired": true,
+    "captureComplete": true
+  },
+  "runtimeCommandInvocations": 0,
+  "supervisedRuntimeChildren": 0,
+  "actualLoaderAdmissions": 0,
+  "actualWorkers": 0,
+  "install": 0,
+  "compiler": 0,
+  "productCalls": 0,
+  "matrix": {
+    "retainedDeclared": 672,
+    "retainedExecuted": 0,
+    "retainedStatus": "UNRUN",
+    "typeProcessesDeclared": 6,
+    "typeProcessesExecuted": 0,
+    "diagnosticIdentitiesDeclared": 24,
+    "mutantsDeclared": 7,
+    "mutantsExecuted": 0,
+    "restoresDeclared": 7,
+    "restoresExecuted": 0,
+    "bindingsDeclared": 2,
+    "bindingsExecuted": 0
+  },
+  "grantUnchanged": true,
+  "datesUnchanged": true,
+  "automaticRetry": false,
+  "codeOrExpectationChanges": false,
+  "evidence": [
+    {
+      "path": "administration/06-role.json",
+      "bytes": 280,
+      "sha256": "7ef479d4c11b14b357626ca860a10e8fdd3651b474322f1e25d3550b36b07bb4"
+    },
+    {
+      "path": "administration/06-scheduler.stdout",
+      "bytes": 538,
+      "sha256": "61c0703e513d8f1a6a7494f71e0ac1474b5e61af6740e51466bfff9474dcb037"
+    },
+    {
+      "path": "administration/06-scheduler.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "DISPATCH-READY.json",
+      "bytes": 457,
+      "sha256": "b99409327f3b20fddedbc2c11ecdd51b7b9cc1042326817778fbf865e06d16a9"
+    },
+    {
+      "path": "SCHEDULER-TOOL-TIMEOUT-SNAPSHOT.json",
+      "bytes": 2096,
+      "sha256": "f8124f9d359fb419a80be04b6ae457a72c8c77f4c4af6e369d98d2e03999d513"
+    }
+  ],
+  "knownRoleAccounting": {
+    "completedCapturedDirect": 6,
+    "conservativeEditingRoles": 4,
+    "finalGitAdministrationReserved": 3,
+    "totalProspective": 13,
+    "maximum": 64,
+    "peakConservative": 2,
+    "activeKnownChildren": 0,
+    "universalCensus": false
+  },
+  "runtimeResultFileCreated": false
+}

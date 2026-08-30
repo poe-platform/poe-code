@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: independent seal authentication: 25 original raw files and 17 historical failure rows
+ok 1 - independent seal authentication: 25 original raw files and 17 historical failure rows
+  ---
+  duration_ms: 1256.520833
+  type: 'test'
+  ...
+# Subtest: independent inverse diff preserves every original vector and assertion
+ok 2 - independent inverse diff preserves every original vector and assertion
+  ---
+  duration_ms: 123.39725
+  type: 'test'
+  ...
+# Subtest: independent helper: authorized member group before mode, exact readback after mode
+ok 3 - independent helper: authorized member group before mode, exact readback after mode
+  ---
+  duration_ms: 26.081333
+  type: 'test'
+  ...
+# Subtest: independent helper: ownership, symlink, namespace and identity rejection before mutation
+ok 4 - independent helper: ownership, symlink, namespace and identity rejection before mutation
+  ---
+  duration_ms: 43.735292
+  type: 'test'
+  ...
+# Subtest: independent helper: unavailable chgrp and dishonest group readback fail explicitly
+ok 5 - independent helper: unavailable chgrp and dishonest group readback fail explicitly
+  ---
+  duration_ms: 6.303083
+  type: 'test'
+  ...
+# Subtest: independent helper: changed entry/group/root and invalid modes cannot reach chmod
+ok 6 - independent helper: changed entry/group/root and invalid modes cannot reach chmod
+  ---
+  duration_ms: 15.547541
+  type: 'test'
+  ...
+# Subtest: independent static profile guard rejects equality and typed-denial weakening; discovery is explicit
+ok 7 - independent static profile guard rejects equality and typed-denial weakening; discovery is explicit
+  ---
+  duration_ms: 67.985333
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2005.454291

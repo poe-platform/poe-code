@@ -1,0 +1,59 @@
+{
+  "schema": "indexed-array-independent-holdouts-v1",
+  "status": "Unexecuted; frozen before candidate-body inspection, not before author implementation began",
+  "baseComposition": "37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e",
+  "semantic": [
+    {"id":"H01","script":"a=([0]=old); a=([2147483647]=x \"${receipt:=seen}\"); printf '%s|%s|%s\\n' \"$?\" \"${receipt-unset}\" \"${a[0]}\"","stdout":"1|unset|old\n","exitCode":0,"stderr":"nonempty"},
+    {"id":"H02","script":"a=([2147483647]=old); a+=(${receipt:=seen}); printf '%s|%s|%s\\n' \"$?\" \"${receipt-unset}\" \"${a[2147483647]}\"","stdout":"1|seen|old\n","exitCode":0,"stderr":"nonempty"},
+    {"id":"H03","script":"a=([2147483647]=old); a+=(); printf '%s|%s\\n' \"$?\" \"${a[2147483647]}\"; a+=([0]=reset); printf '%s\\n' \"${a[@]}\"","stdout":"0|old\nreset\nold\n","exitCode":0,"stderr":"empty"},
+    {"id":"H04","script":"a=([0]=old); readonly a; a+=(); printf '%s|%s\\n' \"$?\" \"$a\"","stdout":"1|old\n","exitCode":0,"stderr":"nonempty"},
+    {"id":"H05","script":"a=([5]=outer); f() { local a; printf '%s\\n' \"${#a[@]}\"; a[2]=inner; unset a; a=scalar; printf '%s\\n' \"$a\"; }; f; printf '%s|%s\\n' \"${#a[@]}\" \"${a[5]}\"","stdout":"0\nscalar\n1|outer\n","exitCode":0,"stderr":"empty"},
+    {"id":"H06","script":"export a=scalar; a=(new); printf '%s|%s\\n' \"$?\" \"$a\"","stdout":"1|scalar\n","exitCode":0,"stderr":"nonempty"},
+    {"id":"H07","script":"printf before; false && printf '%s' \"${a[0]:-x}\"","stdout":"","exitCode":2,"stderr":"nonempty"},
+    {"id":"H08","script":"a=([0]=old); a=\"${receipt:=seen}\" true; printf '%s|%s|%s\\n' \"$?\" \"${receipt-unset}\" \"$a\"","stdout":"1|seen|old\n","exitCode":0,"stderr":"nonempty"},
+    {"id":"H09","script":"a=([0]=first [2147483647]=last); unset 'a[2147483647]'; a+=(next); printf '%s|%s|%s\\n' \"${#a[@]}\" \"${a[0]}\" \"${a[1]}\"","stdout":"2|first|next\n","exitCode":0,"stderr":"empty"},
+    {"id":"H10","script":"a=([0]=old [7]=tail); a=new; printf '%s|%s|%s\\n' \"${#a[@]}\" \"$a\" \"${a[7]}\"; unset 'a[@]'; printf '%s|%s\\n' \"${#a[@]}\" \"${a-unset}\"","stdout":"2|new|tail\n0|unset\n","exitCode":0,"stderr":"empty"},
+    {"id":"H11","script":"a=([0]=old); ( a[0]=child; printf '%s\\n' \"$a\" ); printf '%s\\n' \"$a\"","stdout":"child\nold\n","exitCode":0,"stderr":"empty"},
+    {"id":"H12","script":"a=([0]=v [2]=w); b=\"${a[@]}:${a[@]}\"; printf '%s\\n' \"$b\"","status":"held-adapter-shape","expect":"Assignment-mode multi-field aggregate behavior must be bound explicitly; do not infer ordinary argv splice applies when split=false. No expected stdout invented."},
+    {"id":"H13","script":"a=([0]=old); let 'a=7'; printf '%s|%s\\n' \"$?\" \"$a\"","stdout":"1|old\n","exitCode":0,"stderr":"nonempty"},
+    {"id":"H14","script":"a=([0]=x [7]=tail); readonly a=next; printf '%s|%s|%s\\n' \"$?\" \"$a\" \"${a[7]}\"","stdout":"0|next|tail\n","exitCode":0,"stderr":"empty"},
+    {"id":"H15","script":"a=([0]=v); printf '%s|%s|%s\\n' \"${a#v}\" \"${a/v/X}\" \"${a:0:1}\"","stdout":"|X|v\n","exitCode":0,"stderr":"empty"},
+    {"id":"H16","script":"a=([0]='' [9]=tail); printf '%s|%s\\n' \"${a?missing}\" \"${a=other}\"; printf '%s|%s\\n' \"${#a[@]}\" \"${a[9]}\"","stdout":"|\n2|tail\n","exitCode":0,"stderr":"empty"}
+  ],
+  "operations": [
+    {"id":"P01","kind":"public","mechanism":"preaborted exec, reasons false/0/undefined/custom object independently","assert":"reason identity unchanged where existing API preserves it; no RHS/plugin/VFS writes; dispose settles"},
+    {"id":"P02","kind":"public","mechanism":"abort from compliant RHS command after a VFS receipt and registered cleanup acquisition","assert":"one RHS invocation; primary reason identity; receipt survives; registered cleanup finishes before exec/dispose; no opaque-promise ownership extension"},
+    {"id":"P03","kind":"instrumented-candidate","mechanism":"pause after source snapshot chunk; mutate dotglob through actual writer; resume","assert":"epoch conflict ordinary failure1, no mixed clone/no retry; partial owned clone drained"},
+    {"id":"P04","kind":"instrumented-candidate","mechanism":"pause prepared zero write; readonly and version both change; caller abort companion","assert":"readonly before stale absent primary failure; caller identity first; no partial slot"},
+    {"id":"P05","kind":"instrumented-candidate","mechanism":"close outer before inner with shared payload, last watch observer and three overlapping closes","assert":"one drain/completion, child before restore, all live counters zero; cumulative nonrefund; mutation hooks activate"},
+    {"id":"P06","kind":"public","mechanism":"scalar A overlaid B, body writes B/C/C-then-B/unset-then-B; unrelated indexed name companion","assert":"A/C/A/A respectively; unrelated arrays do not change scalar overlay equality"},
+    {"id":"P07","kind":"public","mechanism":"typed sparse saved binding overlaid scalar B, untouched/same-value/new-indexed-publication companions","assert":"untouched restores typed state; same-value publication survives as scalar; initially-scalar typed publication permanently supersedes overlay"},
+    {"id":"P08","kind":"public-and-source","mechanism":"shared invoke descendants then independent public exec with same configured limits","assert":"internal descendants share ledger, fresh public exec does not; parent Budget semantics unchanged; distinguish parent admission failures"},
+    {"id":"P09","kind":"public-and-instrumented","mechanism":"array-derived output at exact configured byte cap, cap-1 and sink backpressure/error","assert":"UTF8 byte charging; no writes after failure/abort; cleanup preserves primary sink error; never lower hidden private caps"},
+    {"id":"P10","kind":"source-and-public","mechanism":"getopts/OPTIND, CD/PWD/STACK Symbol, LET and dotglob in array-bearing clones/restorations","assert":"accepted behaviors and Symbol ownership retained; each clone-visible writer covered by epoch; existing STACK qualifications retained"}
+  ],
+  "mutants": [
+    {"id":"U01","role":"independent shared-ticket capacity checks","kills":["M01"]},
+    {"id":"U02","role":"watch retirement waits total refcount zero","kills":["M04"]},
+    {"id":"U03","role":"reuse identity after unset/same-value ABA","kills":["M05"]},
+    {"id":"U04","role":"refund shared payload on first decrement","kills":["M06"]},
+    {"id":"U05","role":"omit dotglob epoch write","kills":["M17","P03"]},
+    {"id":"U06","role":"new ledger per internal invocation","kills":["M18","P08"]},
+    {"id":"U07","role":"delete cached maximum before charged scan","kills":["M16"]},
+    {"id":"U08","role":"stale failure wins over readonly/caller","kills":["M22","P04"]},
+    {"id":"U09","role":"Cartesian or flattened aggregate composition","kills":["S01","O15"]},
+    {"id":"U10","role":"skip static-certain overflow planning","kills":["H01"]},
+    {"id":"U11","role":"token restoration applied to all scalar overlays","kills":["P06"]},
+    {"id":"U12","role":"each close allocates/repeats drain or restores parent first","kills":["M07","M08","P05"]}
+  ],
+  "typeAndAst": [
+    {"id":"T01","requirement":"Existing public ShellOptions/ShellResult/CommandContext consumer compiles unchanged"},
+    {"id":"T02","requirement":"Existing parser AST consumer exhaustive WordPart.kind switch compiles unchanged unless separate public AST/type change is explicitly root-approved"},
+    {"id":"T03","requirement":"No invented public ShellOptions.arrays property; exact excess-property diagnostic at marked site"},
+    {"id":"T04","requirement":"No public ledger option/limit or ArrayLedger root export; exact missing-export/excess-property controls"},
+    {"id":"T05","requirement":"Root/default inventory remains77 and optional families unchanged; command discovery does not invent declare/mapfile/readarray"},
+    {"id":"T06","requirement":"Actual root and supported subpath imports resolve solely inside each moved package; private arrays modules have no public subpath export"},
+    {"id":"T07","requirement":"No source fallback after original source/install tree becomes inaccessible; changed/missing .js/.d.ts/member denied before product import"},
+    {"id":"T08","requirement":"Parent Budget limits and constructor types unchanged; public AST/type-file deltas require distinct root authorization"}
+  ]
+}

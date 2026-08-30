@@ -1,0 +1,165 @@
+TAP version 13
+# Subtest: actual local SafeJS factories are structurally assignable without private runtime dependencies
+ok 1 - actual local SafeJS factories are structurally assignable without private runtime dependencies
+  ---
+  duration_ms: 337.169459
+  type: 'test'
+  ...
+# run.ts: sha256=243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b
+# interp/budget.ts: sha256=df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3
+# interp/host-bridge.ts: sha256=68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90
+# modules/fs.ts: sha256=99fc3a501ce906aa2021f298ef8803b63d2272de5f412dfcdf3714757510b142
+# Subtest: real SafeJS shares shell pipeline input, virtual files, argv, cwd and env
+ok 2 - real SafeJS shares shell pipeline input, virtual files, argv, cwd and env
+  ---
+  duration_ms: 146.546
+  type: 'test'
+  ...
+# Subtest: real SafeJS script files use the virtual cwd, not the script directory
+ok 3 - real SafeJS script files use the virtual cwd, not the script directory
+  ---
+  duration_ms: 2.4215
+  type: 'test'
+  ...
+# Subtest: real SafeJS source stdin is single-use and guest byte IO stays exact
+ok 4 - real SafeJS source stdin is single-use and guest byte IO stays exact
+  ---
+  duration_ms: 1.988875
+  type: 'test'
+  ...
+# Subtest: real SafeJS console output and return-value printing do not escape to host console
+ok 5 - real SafeJS console output and return-value printing do not escape to host console
+  ---
+  duration_ms: 1.450917
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: return process;
+ok 6 - real SafeJS denies ungranted host capability: return process;
+  ---
+  duration_ms: 1.158791
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: return require("node:fs");
+ok 7 - real SafeJS denies ungranted host capability: return require("node:fs");
+  ---
+  duration_ms: 0.952166
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: return Function("return process")();
+ok 8 - real SafeJS denies ungranted host capability: return Function("return process")();
+  ---
+  duration_ms: 0.818292
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: return globalThis.process;
+ok 9 - real SafeJS denies ungranted host capability: return globalThis.process;
+  ---
+  duration_ms: 1.264042
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: return ({}).constructor.constructor("return process")();
+ok 10 - real SafeJS denies ungranted host capability: return ({}).constructor.constructor("return process")();
+  ---
+  duration_ms: 2.031667
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: import { readFile } from "node:fs/promises"; return await readFile("/etc/passwd", "utf8");
+ok 11 - real SafeJS denies ungranted host capability: import { readFile } from "node:fs/promises"; return await readFile("/etc/passwd", "utf8");
+  ---
+  duration_ms: 0.754292
+  type: 'test'
+  ...
+# Subtest: real SafeJS denies ungranted host capability: import { readFile } from "fs"; return await readFile("/etc/passwd", "utf8");
+ok 12 - real SafeJS denies ungranted host capability: import { readFile } from "fs"; return await readFile("/etc/passwd", "utf8");
+  ---
+  duration_ms: 1.510583
+  type: 'test'
+  ...
+# Subtest: real SafeJS parse, guest error, step budget, deadline and explicit status remain distinct
+ok 13 - real SafeJS parse, guest error, step budget, deadline and explicit status remain distinct
+  ---
+  duration_ms: 14.09275
+  type: 'test'
+  ...
+# Subtest: real SafeJS session effects persist only in VFS; module/env/cwd mutations do not leak
+ok 14 - real SafeJS session effects persist only in VFS; module/env/cwd mutations do not leak
+  ---
+  duration_ms: 3.860458
+  type: 'test'
+  ...
+# Subtest: real SafeJS host-call journal marks consumed stdin/output and writes as effects
+ok 15 - real SafeJS host-call journal marks consumed stdin/output and writes as effects
+  ---
+  duration_ms: 1.79425
+  type: 'test'
+  ...
+# Subtest: actual current engine preserves constructed Error messages with active cancellation
+ok 16 - actual current engine preserves constructed Error messages with active cancellation
+  ---
+  duration_ms: 2.183667
+  type: 'test'
+  ...
+# Positive Error-message regression with cancellation enabled; the historical losing-constructor assertion remains in fa6c095/b4cde0b evidence.
+# Subtest: real SafeJS cancellation stops a pending guest read and later filesystem effects
+ok 17 - real SafeJS cancellation stops a pending guest read and later filesystem effects
+  ---
+  duration_ms: 11.617292
+  type: 'test'
+  ...
+# Subtest: real SafeJS quota is fatal with no leaked rejection: import { write } from "stdio"; try { await write("too large"); } catch (error) {} return "recovered";
+ok 18 - real SafeJS quota is fatal with no leaked rejection: import { write } from "stdio"; try { await write("too large"); } catch (error) {} return "recovered";
+  ---
+  duration_ms: 6.377167
+  type: 'test'
+  ...
+# Subtest: real SafeJS quota is fatal with no leaked rejection: import { writeBytes } from "stdio"; await writeBytes([1, 2, 3]);
+ok 19 - real SafeJS quota is fatal with no leaked rejection: import { writeBytes } from "stdio"; await writeBytes([1, 2, 3]);
+  ---
+  duration_ms: 7.121166
+  type: 'test'
+  ...
+# Subtest: real SafeJS quota is fatal with no leaked rejection: console.log("too large");
+ok 20 - real SafeJS quota is fatal with no leaked rejection: console.log("too large");
+  ---
+  duration_ms: 6.947875
+  type: 'test'
+  ...
+# Subtest: real SafeJS quota is fatal with no leaked rejection: console.error("too large");
+ok 21 - real SafeJS quota is fatal with no leaked rejection: console.error("too large");
+  ---
+  duration_ms: 6.979208
+  type: 'test'
+  ...
+# Subtest: real SafeJS readonly fs denies mutations without reading host paths
+ok 22 - real SafeJS readonly fs denies mutations without reading host paths
+  ---
+  duration_ms: 2.101083
+  type: 'test'
+  ...
+# Subtest: real SafeJS repeated guest chunks compose as a binary streaming pipeline
+ok 23 - real SafeJS repeated guest chunks compose as a binary streaming pipeline
+  ---
+  duration_ms: 104.870167
+  type: 'test'
+  ...
+# Subtest: real SafeJS modules and environment have no ambient env or time imports
+ok 24 - real SafeJS modules and environment have no ambient env or time imports
+  ---
+  duration_ms: 2.541
+  type: 'test'
+  ...
+# Subtest: real SafeJS respects enclosing shell output limits independently of its own budget
+ok 25 - real SafeJS respects enclosing shell output limits independently of its own budget
+  ---
+  duration_ms: 1.22
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1513.508542

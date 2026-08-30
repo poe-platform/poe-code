@@ -1,0 +1,162 @@
+{
+  "utc": "2026-08-29T14:44:38.802Z",
+  "purePassed": 10,
+  "harmlessPassed": 4,
+  "controllerPid": 20157,
+  "fixtures": [
+    {
+      "id": "H01",
+      "pid": 20158,
+      "exitCode": 0,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 29,
+      "stderrBytes": 0
+    },
+    {
+      "id": "H02",
+      "pid": 20159,
+      "exitCode": 1,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 482
+    },
+    {
+      "id": "H03",
+      "pid": 20160,
+      "exitCode": 1,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 0,
+      "stderrBytes": 489
+    },
+    {
+      "id": "H04",
+      "pid": 20161,
+      "exitCode": 2,
+      "exited": true,
+      "closed": true,
+      "signalCount": 0,
+      "stdoutBytes": 112,
+      "stderrBytes": 0
+    }
+  ],
+  "retirement": {
+    "children": 4,
+    "attemptedBytes": 1112,
+    "storedBytes": 1112,
+    "elapsedMs": 208.67479200000002,
+    "failures": []
+  },
+  "packetBindings": 33,
+  "originCount": 6,
+  "fixtureOrigins": 672,
+  "sourceConsumedPins": 10,
+  "staticEdges": [
+    {
+      "importer": "legacy/harness/redirections.mjs",
+      "specifier": "./names.mjs",
+      "target": "legacy/harness/names.mjs"
+    },
+    {
+      "importer": "new/controls.mjs",
+      "specifier": "./owner.mjs",
+      "target": "new/owner.mjs"
+    },
+    {
+      "importer": "new/controls.mjs",
+      "specifier": "./support.mjs",
+      "target": "new/support.mjs"
+    },
+    {
+      "importer": "new/controls.mjs",
+      "specifier": "./classify.mjs",
+      "target": "new/classify.mjs"
+    },
+    {
+      "importer": "new/coordinator.mjs",
+      "specifier": "./owner.mjs",
+      "target": "new/owner.mjs"
+    },
+    {
+      "importer": "new/coordinator.mjs",
+      "specifier": "../legacy/stage-a-r2/common.mjs",
+      "target": "legacy/stage-a-r2/common.mjs"
+    },
+    {
+      "importer": "new/coordinator.mjs",
+      "specifier": "./tar.mjs",
+      "target": "new/tar.mjs"
+    },
+    {
+      "importer": "new/coordinator.mjs",
+      "specifier": "./support.mjs",
+      "target": "new/support.mjs"
+    },
+    {
+      "importer": "new/coordinator.mjs",
+      "specifier": "./classify.mjs",
+      "target": "new/classify.mjs"
+    },
+    {
+      "importer": "new/loader.mjs",
+      "specifier": "./support.mjs",
+      "target": "new/support.mjs"
+    },
+    {
+      "importer": "new/outer.mjs",
+      "specifier": "./support.mjs",
+      "target": "new/support.mjs"
+    },
+    {
+      "importer": "new/owner.mjs",
+      "specifier": "../legacy/stage-a-r2/common.mjs",
+      "target": "legacy/stage-a-r2/common.mjs"
+    },
+    {
+      "importer": "new/tar.mjs",
+      "specifier": "../legacy/stage-a-r2/common.mjs",
+      "target": "legacy/stage-a-r2/common.mjs"
+    }
+  ],
+  "roleKinds": {
+    "retained": 18,
+    "type": 6,
+    "install": 1,
+    "mutant": 7,
+    "restore": 7,
+    "binding": 2
+  },
+  "roles": 41,
+  "retainedCountsByLayout": {
+    "source-built": [
+      48,
+      50,
+      67,
+      35,
+      12,
+      12
+    ],
+    "installed": [
+      48,
+      50,
+      67,
+      35,
+      12,
+      12
+    ],
+    "physically-moved": [
+      48,
+      50,
+      67,
+      35,
+      12,
+      12
+    ]
+  },
+  "runJournal": "{\"phase\":\"run\",\"pid\":20156,\"utc\":\"2026-08-29T14:43:11.251Z\"}\n{\"pid\":20157,\"status\":0,\"signal\":null,\"returned\":true}\n{\"postguards\":33,\"archiveBytes\":18368,\"files\":24,\"ownedWorkRemoved\":true,\"stdout\":80,\"stderr\":0}\n"
+}

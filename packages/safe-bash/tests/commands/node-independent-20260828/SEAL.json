@@ -1,0 +1,42 @@
+{
+  "schema": "node-independent-review-seal-v1",
+  "date": "2026-08-28",
+  "classification": "DESIGN_REVIEW_NOT_EXECUTION_AUTHORIZATION",
+  "authorCommit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+  "feasibilityReportCommit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+  "files": [
+    {
+      "path": "README.md",
+      "mode": "0644",
+      "bytes": 3221,
+      "sha256": "9ff15cdbc8668948ac3319c324645c3e4435cf2714980a99662ef34309cfd952"
+    },
+    {
+      "path": "REVIEW.md",
+      "mode": "0644",
+      "bytes": 15603,
+      "sha256": "5b30be4312f90c327e572d32a9b7809ec66530be8a346058b3b3b647661e3a92"
+    },
+    {
+      "path": "HOLDOUTS.json",
+      "mode": "0644",
+      "bytes": 20295,
+      "sha256": "6a4a9c5925b8565cd4e56107b5127ec14fd5a28e913f0b533dff629c94cd79d8"
+    },
+    {
+      "path": "SOURCES.json",
+      "mode": "0644",
+      "bytes": 11859,
+      "sha256": "b73e0257174305ff9fe229c87e3414b7d48ea7ba4b71ea9fdbface34248cca78"
+    },
+    {
+      "path": "VALIDATION.json",
+      "mode": "0644",
+      "bytes": 3092,
+      "sha256": "4f8cdbf0fa906d24bd5a47513cebdc1c3e368b86fb9ac548da06058cd0ded97e"
+    }
+  ],
+  "selfExcluded": true,
+  "actualRuns": 0,
+  "verdict": "HOLD_CONTRACT_COMPLETION_AND_PROVIDER_QUALIFICATION"
+}

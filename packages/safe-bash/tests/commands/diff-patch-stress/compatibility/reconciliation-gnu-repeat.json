@@ -1,0 +1,101 @@
+{
+  "startedAt": "2026-08-26T20:51:18.525Z",
+  "head": "22fd7e5d46fb00409761196cbaf1ddc27f16f9bf",
+  "selected": {
+    "diff": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+    "patch": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch"
+  },
+  "sourceBefore": {
+    "diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+    "diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "64e853a01bacdf15c8fb32cee7073bff5d3ee6015d98a09bb7268cc12657250c",
+    "patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+    "patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "patch.ts": "be1596cbafcb0cc0e6bf3d7d1a9b1b36871560a9d669097e823e8d7203c708ff",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "4c3bf3040184cc9566a8853796019b00abcb62388d11746a9e370fda18c9fd2c"
+  },
+  "suites": {
+    "compatibility": {
+      "status": 1,
+      "signal": null,
+      "summary": [
+        "# tests 110",
+        "# pass 101",
+        "# fail 9",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 1971.284333"
+      ],
+      "failures": [
+        "not ok 1 - golden diff flags: short explicit context then short format",
+        "not ok 2 - native diff flags: short explicit context then short format",
+        "not ok 3 - golden diff flags: short explicit context then long format",
+        "not ok 4 - native diff flags: short explicit context then long format",
+        "not ok 5 - golden diff flags: long explicit context then grouped format",
+        "not ok 6 - native diff flags: long explicit context then grouped format",
+        "not ok 7 - golden diff flags: format then explicit context control",
+        "not ok 8 - native diff flags: format then explicit context control",
+        "not ok 110 - Shell+Memory repeated format options retain GNU maximum context"
+      ],
+      "stdoutSha256": "2b803117b95cb724732b87a663d13b69a231b8152327a917536cd651729ad395"
+    },
+    "fuzz": {
+      "status": 1,
+      "signal": null,
+      "summary": [
+        "# FUZZ_REPORT {\"baseSeed\":1831565813,\"denominator\":512,\"families\":{\"empty-create\":32,\"empty-delete\":32,\"insert\":32,\"delete\":32,\"replace\":32,\"repetition\":32,\"whitespace\":32,\"unicode\":32,\"crlf\":32,\"terminal-newline\":32,\"long-lines\":32,\"separated-anchors\":32,\"adjacent-hunks\":32,\"move\":32,\"equal\":32,\"coding-edit\":32},\"counts\":{\"diff-status\":{\"pass\":512,\"fail\":0},\"minimal-edit-count\":{\"pass\":512,\"fail\":0},\"virtual-forward\":{\"pass\":512,\"fail\":0},\"virtual-reverse\":{\"pass\":512,\"fail\":0},\"golden-forward\":{\"pass\":512,\"fail\":0},\"golden-reverse\":{\"pass\":512,\"fail\":0},\"native-diff-status\":{\"pass\":512,\"fail\":0},\"native-diff-virtual-patch-forward\":{\"pass\":512,\"fail\":0},\"native-diff-virtual-patch-reverse\":{\"pass\":512,\"fail\":0},\"virtual-diff-native-patch-forward\":{\"pass\":512,\"fail\":0},\"virtual-diff-native-patch-reverse\":{\"pass\":512,\"fail\":0},\"golden-native-patch\":{\"pass\":512,\"fail\":0},\"native-control-forward\":{\"pass\":512,\"fail\":0},\"native-control-reverse\":{\"pass\":512,\"fail\":0}},\"skips\":0}",
+        "# FAILURE_INDEX []",
+        "# tests 36",
+        "# pass 34",
+        "# fail 2",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 51584.546208"
+      ],
+      "failures": [
+        "not ok 31 - GAP-01 raw selected-oracle Apple-range compatibility reverse",
+        "not ok 33 - GNU boundary anchoring: asymmetric non-EOF rejection"
+      ],
+      "stdoutSha256": "dc8482dbb4eb8203c2e2296611a73e828ff3bc5ac6f940cbe00c3589f6e6c077"
+    },
+    "safety": {
+      "status": 1,
+      "signal": null,
+      "summary": [
+        "# tests 151",
+        "# pass 150",
+        "# fail 1",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 438.813125"
+      ],
+      "failures": [
+        "not ok 98 - unsafe second header leaves all identities and bytes intact: absolute"
+      ],
+      "stdoutSha256": "9c3386e6b410910a713eb483df33454e48e66f71ca4bf9a79c76004f35460dcb"
+    }
+  },
+  "typescript": {
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  "sourceAfter": {
+    "diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+    "diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+    "index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "patch-envelope.ts": "64e853a01bacdf15c8fb32cee7073bff5d3ee6015d98a09bb7268cc12657250c",
+    "patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+    "patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "patch.ts": "be1596cbafcb0cc0e6bf3d7d1a9b1b36871560a9d669097e823e8d7203c708ff",
+    "shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "unified.ts": "4c3bf3040184cc9566a8853796019b00abcb62388d11746a9e370fda18c9fd2c"
+  },
+  "sourceChanged": false
+}

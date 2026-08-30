@@ -1,0 +1,377 @@
+{
+  "frozenAt": "2026-08-27T15:00:20.804Z",
+  "status": "PREPARED_NOT_EXECUTED",
+  "threadId": "01a04292-c8dd-7331-9dac-619c9861b11b",
+  "owner": "tests/integration/safejs-owned-output-prototype-review/lifecycle",
+  "executionRelease": false,
+  "logicalWorkflows": 6,
+  "executionRows": 11,
+  "guestExecutions": 0,
+  "engineImports": 0,
+  "productImports": 0,
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 9256,
+      "sha256": "acdc370de3e67573a1f3033740688a39cce6b35f9e4c511484598f56408809b3"
+    },
+    {
+      "path": "HARNESS-PLAN.md",
+      "bytes": 20818,
+      "sha256": "53296a65dd9b224531319bdab40588e4f1476cae52c0a65f08cbc5d997452d52"
+    },
+    {
+      "path": "PREPARATION-NOTES.md",
+      "bytes": 1366,
+      "sha256": "e51ca7abfc3a073a57e234757e16b9cd103d4937cf6d44e1f8b70a1184695ee1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4498,
+      "sha256": "698cd4155d4671d2455949fe4eb2a282317c200a17dc096fe8c00958a1055e10"
+    },
+    {
+      "path": "SOURCE-PINS.json",
+      "bytes": 17846,
+      "sha256": "4b50b445e623976f52d5e16bb6023b16f3f427d95575c4350ee8bfa540b241d2"
+    },
+    {
+      "path": "guests/aliases.ajs.data",
+      "bytes": 287,
+      "sha256": "0bd9972ad3287df00cb92f66727de788255ce9b7af9a4e1aee9bbac6ec57cd0c"
+    },
+    {
+      "path": "guests/budget-callback.ajs.data",
+      "bytes": 322,
+      "sha256": "e1657c2e8201b754ca2203a611c48f71bbeda66957628dd5dbef75307e8dafd8"
+    },
+    {
+      "path": "guests/children.ajs.data",
+      "bytes": 406,
+      "sha256": "c740c72d5d4d91786b597897287f8679809f5262676017a53bf8768f9dc6dfda"
+    },
+    {
+      "path": "guests/curl.ajs.data",
+      "bytes": 355,
+      "sha256": "75da33a2321c9d19efe15ccb64a31b7a309b8d8b6b11abef7464f5ec88a18363"
+    },
+    {
+      "path": "guests/lifetime-callback.ajs.data",
+      "bytes": 462,
+      "sha256": "21cb95c43780bd27b185ff1f21c6b921722de39aa269062cb7fba77a4e0b6063"
+    },
+    {
+      "path": "guests/precedence.ajs.data",
+      "bytes": 170,
+      "sha256": "d08209d733eac4792eb3bd4033c2a8fa7c92eae25accdcb99a1b7e6cf90bb69c"
+    },
+    {
+      "path": "inspect-source-pins.mjs",
+      "bytes": 8750,
+      "sha256": "a3c34748c4d95aece2178dd3eed7bf4284738bc32eecc0221e7bf393f98030ef"
+    },
+    {
+      "path": "verify-freeze.mjs",
+      "bytes": 5109,
+      "sha256": "cb34f2e86e13492c8745872a971500ba8d14328b32547083519b200040e9153b"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "L01-aliases",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/aliases.ajs.data",
+      "guestSha256": "0bd9972ad3287df00cb92f66727de788255ce9b7af9a4e1aee9bbac6ec57cd0c",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwppbXBvcnQgKiBhcyBjb21tYW5kIGZyb20gImNvbW1hbmQiOwpjb25zdCBhbGlhc2VzID0gW3N0ZGlvLndyaXRlLCBzdGRpby53cml0ZUJ5dGVzLCBzdGRpby5lcnJvciwgY29tbWFuZC5zZXRFeGl0Q29kZV07CmF3YWl0IGFsaWFzZXNbMF0oImFsaWFzXG4iKTsKYXdhaXQgYWxpYXNlc1sxXShbMCwgMTI3LCAyNTUsIDEwXSk7CmF3YWl0IGFsaWFzZXNbMl0oInN0ZGVyclxuIik7CmFsaWFzZXNbM10oNyk7CnJldHVybiAiYWxpYXMtY29tcGxldGUiOwo=",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nimport * as command from \"command\";\nconst aliases = [stdio.write, stdio.writeBytes, stdio.error, command.setExitCode];\nawait aliases[0](\"alias\\n\");\nawait aliases[1]([0, 127, 255, 10]);\nawait aliases[2](\"stderr\\n\");\naliases[3](7);\nreturn \"alias-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L02-budget-positive",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/budget-callback.ajs.data",
+      "guestSha256": "e1657c2e8201b754ca2203a611c48f71bbeda66957628dd5dbef75307e8dafd8",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwpjb25zdCBlbWl0ID0gc3RkaW8ud3JpdGU7CmF3YWl0IGVtaXQoImJlZm9yZS1idWRnZXRcbiIpOwpjb25zdCBjYWxsYmFja3MgPSBbYXN5bmMgKCkgPT4gewogIGxldCBjb3VudCA9IDA7CiAgZm9yIChsZXQgaW5kZXggPSAwOyBpbmRleCA8IDQwOTY7IGluZGV4KyspIGNvdW50ICs9IDE7CiAgYXdhaXQgZW1pdCgiYWZ0ZXItYnVkZ2V0XG4iKTsKICByZXR1cm4gY291bnQ7Cn1dOwpjb25zdCByZXN1bHQgPSBhd2FpdCBQcm9taXNlLnJlc29sdmUoKS50aGVuKGNhbGxiYWNrc1swXSk7CnJldHVybiByZXN1bHQ7Cg==",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nconst emit = stdio.write;\nawait emit(\"before-budget\\n\");\nconst callbacks = [async () => {\n  let count = 0;\n  for (let index = 0; index < 4096; index++) count += 1;\n  await emit(\"after-budget\\n\");\n  return count;\n}];\nconst result = await Promise.resolve().then(callbacks[0]);\nreturn result;\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L02-budget-exhausted",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/budget-callback.ajs.data",
+      "guestSha256": "e1657c2e8201b754ca2203a611c48f71bbeda66957628dd5dbef75307e8dafd8",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwpjb25zdCBlbWl0ID0gc3RkaW8ud3JpdGU7CmF3YWl0IGVtaXQoImJlZm9yZS1idWRnZXRcbiIpOwpjb25zdCBjYWxsYmFja3MgPSBbYXN5bmMgKCkgPT4gewogIGxldCBjb3VudCA9IDA7CiAgZm9yIChsZXQgaW5kZXggPSAwOyBpbmRleCA8IDQwOTY7IGluZGV4KyspIGNvdW50ICs9IDE7CiAgYXdhaXQgZW1pdCgiYWZ0ZXItYnVkZ2V0XG4iKTsKICByZXR1cm4gY291bnQ7Cn1dOwpjb25zdCByZXN1bHQgPSBhd2FpdCBQcm9taXNlLnJlc29sdmUoKS50aGVuKGNhbGxiYWNrc1swXSk7CnJldHVybiByZXN1bHQ7Cg==",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nconst emit = stdio.write;\nawait emit(\"before-budget\\n\");\nconst callbacks = [async () => {\n  let count = 0;\n  for (let index = 0; index < 4096; index++) count += 1;\n  await emit(\"after-budget\\n\");\n  return count;\n}];\nconst result = await Promise.resolve().then(callbacks[0]);\nreturn result;\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 2048,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L03-callback-live",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/lifetime-callback.ajs.data",
+      "guestSha256": "21cb95c43780bd27b185ff1f21c6b921722de39aa269062cb7fba77a4e0b6063",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwppbXBvcnQgKiBhcyBjb21tYW5kIGZyb20gImNvbW1hbmQiOwppbXBvcnQgKiBhcyBzaGVsbCBmcm9tICJzaGVsbCI7CmNvbnN0IGVtaXQgPSBzdGRpby53cml0ZTsKY29uc3QgZXhlY3V0ZSA9IHNoZWxsLmV4ZWM7CmNvbnN0IGRlbGl2ZXIgPSBhc3luYyAoKSA9PiB7CiAgYXdhaXQgZW1pdCgiY2FsbGJhY2tcbiIpOwogIGF3YWl0IGV4ZWN1dGUoIm93bmVkLWxhdGUiKTsKfTsKY29uc3QgcGVuZGluZyA9IGV4ZWN1dGUoIm93bmVkLWhvbGQiKTsKY29uc3Qgc2NoZWR1bGVkID0gcGVuZGluZy50aGVuKGRlbGl2ZXIsIGRlbGl2ZXIpOwpzY2hlZHVsZWQuY2F0Y2goKCkgPT4gMCk7CmF3YWl0IGVtaXQoInF1ZXVlZFxuIik7CmlmIChjb21tYW5kLmFyZ3NbMF0gPT09ICJsaXZlIikgYXdhaXQgc2NoZWR1bGVkOwpyZXR1cm4gImxpZmV0aW1lLWNvbXBsZXRlIjsK",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nimport * as command from \"command\";\nimport * as shell from \"shell\";\nconst emit = stdio.write;\nconst execute = shell.exec;\nconst deliver = async () => {\n  await emit(\"callback\\n\");\n  await execute(\"owned-late\");\n};\nconst pending = execute(\"owned-hold\");\nconst scheduled = pending.then(deliver, deliver);\nscheduled.catch(() => 0);\nawait emit(\"queued\\n\");\nif (command.args[0] === \"live\") await scheduled;\nreturn \"lifetime-complete\";\n",
+        "--",
+        "live"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L03-callback-after-lifetime",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/lifetime-callback.ajs.data",
+      "guestSha256": "21cb95c43780bd27b185ff1f21c6b921722de39aa269062cb7fba77a4e0b6063",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwppbXBvcnQgKiBhcyBjb21tYW5kIGZyb20gImNvbW1hbmQiOwppbXBvcnQgKiBhcyBzaGVsbCBmcm9tICJzaGVsbCI7CmNvbnN0IGVtaXQgPSBzdGRpby53cml0ZTsKY29uc3QgZXhlY3V0ZSA9IHNoZWxsLmV4ZWM7CmNvbnN0IGRlbGl2ZXIgPSBhc3luYyAoKSA9PiB7CiAgYXdhaXQgZW1pdCgiY2FsbGJhY2tcbiIpOwogIGF3YWl0IGV4ZWN1dGUoIm93bmVkLWxhdGUiKTsKfTsKY29uc3QgcGVuZGluZyA9IGV4ZWN1dGUoIm93bmVkLWhvbGQiKTsKY29uc3Qgc2NoZWR1bGVkID0gcGVuZGluZy50aGVuKGRlbGl2ZXIsIGRlbGl2ZXIpOwpzY2hlZHVsZWQuY2F0Y2goKCkgPT4gMCk7CmF3YWl0IGVtaXQoInF1ZXVlZFxuIik7CmlmIChjb21tYW5kLmFyZ3NbMF0gPT09ICJsaXZlIikgYXdhaXQgc2NoZWR1bGVkOwpyZXR1cm4gImxpZmV0aW1lLWNvbXBsZXRlIjsK",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nimport * as command from \"command\";\nimport * as shell from \"shell\";\nconst emit = stdio.write;\nconst execute = shell.exec;\nconst deliver = async () => {\n  await emit(\"callback\\n\");\n  await execute(\"owned-late\");\n};\nconst pending = execute(\"owned-hold\");\nconst scheduled = pending.then(deliver, deliver);\nscheduled.catch(() => 0);\nawait emit(\"queued\\n\");\nif (command.args[0] === \"live\") await scheduled;\nreturn \"lifetime-complete\";\n",
+        "--",
+        "detached"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L04-explicit-children",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/children.ajs.data",
+      "guestSha256": "c740c72d5d4d91786b597897287f8679809f5262676017a53bf8768f9dc6dfda",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwppbXBvcnQgKiBhcyBzaGVsbCBmcm9tICJzaGVsbCI7CmNvbnN0IGV4ZWN1dGUgPSBzaGVsbC5leGVjOwpjb25zdCBmaXJzdCA9IGV4ZWN1dGUoIm93bmVkLWxlYWYgbGVmdCIpOwpjb25zdCBzZWNvbmQgPSBleGVjdXRlKCJvd25lZC1sZWFmIHJpZ2h0Iik7CmNvbnN0IHJlc3VsdHMgPSBhd2FpdCBQcm9taXNlLmFsbChbZmlyc3QsIHNlY29uZF0pOwpjb25zdCBsYXRlID0gYXdhaXQgZXhlY3V0ZSgib3duZWQtbGVhZiBsYXRlIik7CmF3YWl0IHN0ZGlvLndyaXRlKEpTT04uc3RyaW5naWZ5KFtyZXN1bHRzWzBdLmV4aXRDb2RlLCByZXN1bHRzWzFdLmV4aXRDb2RlLCBsYXRlLmV4aXRDb2RlXSkgKyAiXG4iKTsKcmV0dXJuICJjaGlsZHJlbi1jb21wbGV0ZSI7Cg==",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nimport * as shell from \"shell\";\nconst execute = shell.exec;\nconst first = execute(\"owned-leaf left\");\nconst second = execute(\"owned-leaf right\");\nconst results = await Promise.all([first, second]);\nconst late = await execute(\"owned-leaf late\");\nawait stdio.write(JSON.stringify([results[0].exitCode, results[1].exitCode, late.exitCode]) + \"\\n\");\nreturn \"children-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L05-caller-error",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/precedence.ajs.data",
+      "guestSha256": "d08209d733eac4792eb3bd4033c2a8fa7c92eae25accdcb99a1b7e6cf90bb69c",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwpjb25zdCBlbWl0ID0gc3RkaW8ud3JpdGU7CmF3YWl0IGVtaXQoImFkbWl0dGVkXG4iKTsKYXdhaXQgUHJvbWlzZS5yZXNvbHZlKCkudGhlbigoKSA9PiBlbWl0KCJzZWxlY3RlZFxuIikpOwpyZXR1cm4gInByZWNlZGVuY2UtY29tcGxldGUiOwo=",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nconst emit = stdio.write;\nawait emit(\"admitted\\n\");\nawait Promise.resolve().then(() => emit(\"selected\\n\"));\nreturn \"precedence-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L05-execution-error",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/precedence.ajs.data",
+      "guestSha256": "d08209d733eac4792eb3bd4033c2a8fa7c92eae25accdcb99a1b7e6cf90bb69c",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwpjb25zdCBlbWl0ID0gc3RkaW8ud3JpdGU7CmF3YWl0IGVtaXQoImFkbWl0dGVkXG4iKTsKYXdhaXQgUHJvbWlzZS5yZXNvbHZlKCkudGhlbigoKSA9PiBlbWl0KCJzZWxlY3RlZFxuIikpOwpyZXR1cm4gInByZWNlZGVuY2UtY29tcGxldGUiOwo=",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nconst emit = stdio.write;\nawait emit(\"admitted\\n\");\nawait Promise.resolve().then(() => emit(\"selected\\n\"));\nreturn \"precedence-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L05-cleanup-error",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/precedence.ajs.data",
+      "guestSha256": "d08209d733eac4792eb3bd4033c2a8fa7c92eae25accdcb99a1b7e6cf90bb69c",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwpjb25zdCBlbWl0ID0gc3RkaW8ud3JpdGU7CmF3YWl0IGVtaXQoImFkbWl0dGVkXG4iKTsKYXdhaXQgUHJvbWlzZS5yZXNvbHZlKCkudGhlbigoKSA9PiBlbWl0KCJzZWxlY3RlZFxuIikpOwpyZXR1cm4gInByZWNlZGVuY2UtY29tcGxldGUiOwo=",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nconst emit = stdio.write;\nawait emit(\"admitted\\n\");\nawait Promise.resolve().then(() => emit(\"selected\\n\"));\nreturn \"precedence-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L06-curl-open",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/curl.ajs.data",
+      "guestSha256": "75da33a2321c9d19efe15ccb64a31b7a309b8d8b6b11abef7464f5ec88a18363",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwppbXBvcnQgKiBhcyBjb21tYW5kIGZyb20gImNvbW1hbmQiOwppbXBvcnQgKiBhcyBzaGVsbCBmcm9tICJzaGVsbCI7CmNvbnN0IGV4ZWN1dGUgPSBzaGVsbC5leGVjOwpjb25zdCByZXN1bHQgPSBhd2FpdCBleGVjdXRlKCJvd25lZC1jdXJsIik7CmF3YWl0IHN0ZGlvLndyaXRlKHJlc3VsdC5zdGRvdXQpOwphd2FpdCBzdGRpby53cml0ZSgiY3VybDoiICsgcmVzdWx0LmV4aXRDb2RlICsgIlxuIik7CmF3YWl0IHN0ZGlvLmVycm9yKHJlc3VsdC5zdGRlcnIpOwpjb21tYW5kLnNldEV4aXRDb2RlKHJlc3VsdC5leGl0Q29kZSk7CnJldHVybiAiY3VybC1jb21wbGV0ZSI7Cg==",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nimport * as command from \"command\";\nimport * as shell from \"shell\";\nconst execute = shell.exec;\nconst result = await execute(\"owned-curl\");\nawait stdio.write(result.stdout);\nawait stdio.write(\"curl:\" + result.exitCode + \"\\n\");\nawait stdio.error(result.stderr);\ncommand.setExitCode(result.exitCode);\nreturn \"curl-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    },
+    {
+      "id": "L06-curl-consumer-closed",
+      "status": "UNRUN_RELEASE_REQUIRED",
+      "syntaxAndReachability": "UNPROVED",
+      "guest": "guests/curl.ajs.data",
+      "guestSha256": "75da33a2321c9d19efe15ccb64a31b7a309b8d8b6b11abef7464f5ec88a18363",
+      "guestBytesBase64": "aW1wb3J0ICogYXMgc3RkaW8gZnJvbSAic3RkaW8iOwppbXBvcnQgKiBhcyBjb21tYW5kIGZyb20gImNvbW1hbmQiOwppbXBvcnQgKiBhcyBzaGVsbCBmcm9tICJzaGVsbCI7CmNvbnN0IGV4ZWN1dGUgPSBzaGVsbC5leGVjOwpjb25zdCByZXN1bHQgPSBhd2FpdCBleGVjdXRlKCJvd25lZC1jdXJsIik7CmF3YWl0IHN0ZGlvLndyaXRlKHJlc3VsdC5zdGRvdXQpOwphd2FpdCBzdGRpby53cml0ZSgiY3VybDoiICsgcmVzdWx0LmV4aXRDb2RlICsgIlxuIik7CmF3YWl0IHN0ZGlvLmVycm9yKHJlc3VsdC5zdGRlcnIpOwpjb21tYW5kLnNldEV4aXRDb2RlKHJlc3VsdC5leGl0Q29kZSk7CnJldHVybiAiY3VybC1jb21wbGV0ZSI7Cg==",
+      "publicShellCommand": "owned-guest",
+      "invokeName": "safejs",
+      "invokeArgv": [
+        "-e",
+        "import * as stdio from \"stdio\";\nimport * as command from \"command\";\nimport * as shell from \"shell\";\nconst execute = shell.exec;\nconst result = await execute(\"owned-curl\");\nawait stdio.write(result.stdout);\nawait stdio.write(\"curl:\" + result.exitCode + \"\\n\");\nawait stdio.error(result.stderr);\ncommand.setExitCode(result.exitCode);\nreturn \"curl-complete\";\n",
+        "--"
+      ],
+      "limits": {
+        "maxSourceBytes": 16384,
+        "maxInputBytes": 65536,
+        "maxOutputBytes": 65536,
+        "timeoutMs": 3500,
+        "maxSteps": 200000,
+        "maxCallDepth": 64,
+        "stringLength": 65536,
+        "arrayLength": 8192,
+        "dataSize": 1048576
+      }
+    }
+  ],
+  "remainingPrerequisites": [
+    "Independent receipt reconciliation of original chain, Q archive and current prepared assembly",
+    "Explicit ROOT release after reconciliation is sealed",
+    "Fresh actual private HEAD/index/status/six metadata/all 264 engine-file before-and-after guards",
+    "Separate regular owned TMP copies with full source/package/tool/loader/import inventory guards",
+    "Materialize and freeze execution driver against this plan before first child; no input or expectation changes"
+  ],
+  "limits": "Prototype lifecycle/budget preparation only; no runtime verdict, general surface proof, production change, parity or promotion"
+}

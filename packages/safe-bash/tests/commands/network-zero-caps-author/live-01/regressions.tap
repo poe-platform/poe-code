@@ -1,0 +1,388 @@
+TAP version 13
+# Subtest: async policy request mutation cannot retarget the authorized transport
+ok 1 - async policy request mutation cannot retarget the authorized transport
+  ---
+  duration_ms: 3.687167
+  type: 'test'
+  ...
+# Subtest: pending policy retains captured authorizer and transport for later URLs
+ok 2 - pending policy retains captured authorizer and transport for later URLs
+  ---
+  duration_ms: 0.858792
+  type: 'test'
+  ...
+# Subtest: pending denial never invokes transport
+ok 3 - pending denial never invokes transport
+  ---
+  duration_ms: 1.262084
+  type: 'test'
+  ...
+# Subtest: caller abort during pending policy wins over late approval
+ok 4 - caller abort during pending policy wins over late approval
+  ---
+  duration_ms: 1.078667
+  type: 'test'
+  ...
+# Subtest: host deadline aborts pending policy before any approval
+ok 5 - host deadline aborts pending policy before any approval
+  ---
+  duration_ms: 50.876667
+  type: 'test'
+  ...
+# Subtest: approval settlement followed by same-turn abort cannot start transport
+ok 6 - approval settlement followed by same-turn abort cannot start transport
+  ---
+  duration_ms: 1.292
+  type: 'test'
+  ...
+# Subtest: policy rejection fails closed without disclosing callback error
+ok 7 - policy rejection fails closed without disclosing callback error
+  ---
+  duration_ms: 0.549375
+  type: 'test'
+  ...
+# Subtest: late policy rejection after abort is observed and child exits cleanly
+ok 8 - late policy rejection after abort is observed and child exits cleanly
+  ---
+  duration_ms: 169.549583
+  type: 'test'
+  ...
+# Subtest: late policy rejection after deadline is observed and child exits cleanly
+ok 9 - late policy rejection after deadline is observed and child exits cleanly
+  ---
+  duration_ms: 185.209833
+  type: 'test'
+  ...
+# Subtest: userinfo cannot disguise abbreviated loopback
+ok 10 - userinfo cannot disguise abbreviated loopback
+  ---
+  duration_ms: 2.154542
+  type: 'test'
+  ...
+# Subtest: decimal IPv4 is canonical before policy
+ok 11 - decimal IPv4 is canonical before policy
+  ---
+  duration_ms: 0.4985
+  type: 'test'
+  ...
+# Subtest: hexadecimal IPv4 is canonical before policy
+ok 12 - hexadecimal IPv4 is canonical before policy
+  ---
+  duration_ms: 0.348875
+  type: 'test'
+  ...
+# Subtest: percent-encoded hostname is canonical before policy
+ok 13 - percent-encoded hostname is canonical before policy
+  ---
+  duration_ms: 0.351542
+  type: 'test'
+  ...
+# Subtest: backslash authority boundary agrees between policy and transport
+ok 14 - backslash authority boundary agrees between policy and transport
+  ---
+  duration_ms: 0.437667
+  type: 'test'
+  ...
+# Subtest: IPv6 brackets reach policy without path glob rejection
+ok 15 - IPv6 brackets reach policy without path glob rejection
+  ---
+  duration_ms: 0.239125
+  type: 'test'
+  ...
+# Subtest: scheme case default port and fragment normalize before policy
+ok 16 - scheme case default port and fragment normalize before policy
+  ---
+  duration_ms: 0.237208
+  type: 'test'
+  ...
+# Subtest: non-HTTP protocol rejected before policy
+ok 17 - non-HTTP protocol rejected before policy
+  ---
+  duration_ms: 0.222459
+  type: 'test'
+  ...
+# Subtest: malformed percent-encoded userinfo rejected before policy
+ok 18 - malformed percent-encoded userinfo rejected before policy
+  ---
+  duration_ms: 0.356541
+  type: 'test'
+  ...
+# Subtest: out-of-range port rejected before policy
+ok 19 - out-of-range port rejected before policy
+  ---
+  duration_ms: 0.452916
+  type: 'test'
+  ...
+# Subtest: embedded URL control byte rejected before policy
+ok 20 - embedded URL control byte rejected before policy
+  ---
+  duration_ms: 0.13525
+  type: 'test'
+  ...
+# Subtest: normalized loopback redirect remains blocked during asynchronous policy
+ok 21 - normalized loopback redirect remains blocked during asynchronous policy
+  ---
+  duration_ms: 5.093167
+  type: 'test'
+  ...
+# Subtest: credential-bearing redirect is rejected before another policy or transport
+ok 22 - credential-bearing redirect is rejected before another policy or transport
+  ---
+  duration_ms: 0.4405
+  type: 'test'
+  ...
+# Subtest: curl retries exact ragged offset Buffer bytes after reuse and finalization
+ok 23 - curl retries exact ragged offset Buffer bytes after reuse and finalization
+  ---
+  duration_ms: 6.582125
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Buffer offset view after finalizer mutation
+ok 24 - curl -T replays a final Buffer offset view after finalizer mutation
+  ---
+  duration_ms: 2.632084
+  type: 'test'
+  ...
+# Subtest: curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+ok 25 - curl retries exact ragged offset Uint8Array bytes after reuse and finalization
+  ---
+  duration_ms: 1.439458
+  type: 'test'
+  ...
+# Subtest: curl -T replays a final Uint8Array offset view after finalizer mutation
+ok 26 - curl -T replays a final Uint8Array offset view after finalizer mutation
+  ---
+  duration_ms: 2.654458
+  type: 'test'
+  ...
+# Subtest: curl replay leaves stable Buffer input and surrounding sentinels unchanged
+ok 27 - curl replay leaves stable Buffer input and surrounding sentinels unchanged
+  ---
+  duration_ms: 2.638041
+  type: 'test'
+  ...
+# Subtest: curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+ok 28 - curl replay budget accepts its exact boundary and refuses overflow without a partial replay
+  ---
+  duration_ms: 4.60225
+  type: 'test'
+  ...
+# Subtest: curl upload limit stops before publishing an overflowing retained fragment
+ok 29 - curl upload limit stops before publishing an overflowing retained fragment
+  ---
+  duration_ms: 0.565542
+  type: 'test'
+  ...
+# Subtest: curl cancellation preserves the caller reason and closes retained source storage
+ok 30 - curl cancellation preserves the caller reason and closes retained source storage
+  ---
+  duration_ms: 0.807084
+  type: 'test'
+  ...
+# Subtest: curl first upload remains transient and pull-driven while its replay is owned
+ok 31 - curl first upload remains transient and pull-driven while its replay is owned
+  ---
+  duration_ms: 2.387792
+  type: 'test'
+  ...
+# Subtest: root exposes the explicit usable network capability without altering aggregate
+ok 32 - root exposes the explicit usable network capability without altering aggregate
+  ---
+  duration_ms: 10.924875
+  type: 'test'
+  ...
+# Subtest: registration requires an explicit authorizer
+ok 33 - registration requires an explicit authorizer
+  ---
+  duration_ms: 0.688
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--connect-timeout","1"]
+ok 34 - unsupported/malformed arguments fail before networking: ["--connect-timeout","1"]
+  ---
+  duration_ms: 1.260417
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--proxy","http://proxy.invalid"]
+ok 35 - unsupported/malformed arguments fail before networking: ["--proxy","http://proxy.invalid"]
+  ---
+  duration_ms: 0.2855
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--netrc"]
+ok 36 - unsupported/malformed arguments fail before networking: ["--netrc"]
+  ---
+  duration_ms: 0.14425
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-k"]
+ok 37 - unsupported/malformed arguments fail before networking: ["-k"]
+  ---
+  duration_ms: 0.157459
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--compressed"]
+ok 38 - unsupported/malformed arguments fail before networking: ["--compressed"]
+  ---
+  duration_ms: 0.203875
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-X","GET\\r\\nInjected: bad"]
+ok 39 - unsupported/malformed arguments fail before networking: ["-X","GET\\r\\nInjected: bad"]
+  ---
+  duration_ms: 0.122458
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-X","CONNECT"]
+ok 40 - unsupported/malformed arguments fail before networking: ["-X","CONNECT"]
+  ---
+  duration_ms: 0.113833
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Authorization: secret\\r\\nX: injection"]
+ok 41 - unsupported/malformed arguments fail before networking: ["-H","Authorization: secret\\r\\nX: injection"]
+  ---
+  duration_ms: 0.65825
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Content-Length: 9"]
+ok 42 - unsupported/malformed arguments fail before networking: ["-H","Content-Length: 9"]
+  ---
+  duration_ms: 0.584917
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-H","Host: elsewhere"]
+ok 43 - unsupported/malformed arguments fail before networking: ["-H","Host: elsewhere"]
+  ---
+  duration_ms: 0.156125
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--max-time","NaN"]
+ok 44 - unsupported/malformed arguments fail before networking: ["--max-time","NaN"]
+  ---
+  duration_ms: 0.182917
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--retry","-1"]
+ok 45 - unsupported/malformed arguments fail before networking: ["--retry","-1"]
+  ---
+  duration_ms: 0.139333
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--data","x","-T","file"]
+ok 46 - unsupported/malformed arguments fail before networking: ["--data","x","-T","file"]
+  ---
+  duration_ms: 0.099708
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["--json","{}","-F","x=y"]
+ok 47 - unsupported/malformed arguments fail before networking: ["--json","{}","-F","x=y"]
+  ---
+  duration_ms: 0.737167
+  type: 'test'
+  ...
+# Subtest: unsupported/malformed arguments fail before networking: ["-u","user-without-password"]
+ok 48 - unsupported/malformed arguments fail before networking: ["-u","user-without-password"]
+  ---
+  duration_ms: 0.081625
+  type: 'test'
+  ...
+# Subtest: denied URLs neither invoke transport nor consume uploads
+ok 49 - denied URLs neither invoke transport nor consume uploads
+  ---
+  duration_ms: 0.958708
+  type: 'test'
+  ...
+# Subtest: timeout covers authorization and observes late rejection
+ok 50 - timeout covers authorization and observes late rejection
+  ---
+  duration_ms: 51.416708
+  type: 'test'
+  ...
+# Subtest: late transport responses are disposed after timeout
+ok 51 - late transport responses are disposed after timeout
+  ---
+  duration_ms: 53.161917
+  type: 'test'
+  ...
+# Subtest: pre-aborted commands perform no work
+ok 52 - pre-aborted commands perform no work
+  ---
+  duration_ms: 0.234958
+  type: 'test'
+  ...
+# Subtest: external abort closes a streaming HTTP response
+ok 53 - external abort closes a streaming HTTP response
+  ---
+  duration_ms: 58.055209
+  type: 'test'
+  ...
+# Subtest: downstream EPIPE closes request/body without a shell workaround
+ok 54 - downstream EPIPE closes request/body without a shell workaround
+  ---
+  duration_ms: 49.74775
+  type: 'test'
+  ...
+# Subtest: total timeout closes a server that never sends headers
+ok 55 - total timeout closes a server that never sends headers
+  ---
+  duration_ms: 61.878875
+  type: 'test'
+  ...
+# Subtest: download quota stops stream and returns curl 63
+ok 56 - download quota stops stream and returns curl 63
+  ---
+  duration_ms: 37.145667
+  type: 'test'
+  ...
+# Subtest: upload quota stops bytes rather than truncating successfully
+ok 57 - upload quota stops bytes rather than truncating successfully
+  ---
+  duration_ms: 1.035875
+  type: 'test'
+  ...
+# Subtest: stdin replay overflow fails honestly instead of sending a prefix
+ok 58 - stdin replay overflow fails honestly instead of sending a prefix
+  ---
+  duration_ms: 2.840584
+  type: 'test'
+  ...
+# Subtest: output awaits sink pressure before pulling subsequent chunks
+ok 59 - output awaits sink pressure before pulling subsequent chunks
+  ---
+  duration_ms: 14.825958
+  type: 'test'
+  ...
+# Subtest: producer throws and partial output cannot become success
+ok 60 - producer throws and partial output cannot become success
+  ---
+  duration_ms: 0.685291
+  type: 'test'
+  ...
+# Subtest: empty-chunk producers do not starve timeout cancellation
+ok 61 - empty-chunk producers do not starve timeout cancellation
+  ---
+  duration_ms: 20.526041
+  type: 'test'
+  ...
+# Subtest: VFS output errors remain failure and dispose the response
+ok 62 - VFS output errors remain failure and dispose the response
+  ---
+  duration_ms: 0.531042
+  type: 'test'
+  ...
+# Subtest: sensitive URL userinfo is absent from policy, transport and diagnostics
+ok 63 - sensitive URL userinfo is absent from policy, transport and diagnostics
+  ---
+  duration_ms: 0.30425
+  type: 'test'
+  ...
+1..63
+# tests 63
+# suites 0
+# pass 63
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 642.424333

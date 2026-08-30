@@ -1,0 +1,27 @@
+#include "config.h"
+#include <regex.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+
+int main(int argument_count, char **arguments) {
+  if (argument_count != 3 || strlen(arguments[1]) > 128 || strlen(arguments[2]) > 128) return 99;
+  setlocale(LC_ALL, "C");
+  struct re_pattern_buffer pattern = {0};
+  struct re_registers registers = {0};
+  re_set_syntax(RE_SYNTAX_POSIX_BASIC & ~RE_CONTEXT_INVALID_DUP & ~RE_NO_EMPTY_RANGES);
+  const char *error = re_compile_pattern(arguments[2], strlen(arguments[2]), &pattern);
+  if (error) { fprintf(stderr, "%s\n", error); return 98; }
+  pattern.newline_anchor = 0;
+  regoff_t length = re_match(&pattern, arguments[1], strlen(arguments[1]), 0, &registers);
+  printf("{\"length\":%ld,\"registers\":[", (long)length);
+  for (size_t index = 0; index < registers.num_regs; index++) {
+    printf("%s[%ld,%ld]", index ? "," : "", (long)registers.start[index], (long)registers.end[index]);
+  }
+  printf("]}\n");
+  free(registers.start);
+  free(registers.end);
+  regfree(&pattern);
+  return 0;
+}

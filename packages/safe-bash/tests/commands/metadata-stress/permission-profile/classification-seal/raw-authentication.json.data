@@ -1,0 +1,14 @@
+[
+  {
+    "key": "canonical/test.stdout.log",
+    "storedSha256": "9bcc6ef303a27cfc1749eece78b991acdb2e43b48f2990e5a089a751d91985f3",
+    "originalSha256": "f51ee8beb275d7a4fd53024f57b98e614886a2ed7ae143b133d95d73e6fec3bd",
+    "originalBytes": 4246176
+  },
+  {
+    "key": "canonical/prerequisites.json",
+    "storedSha256": "4ebb64b990ae398317c5f68edf17a9ae0f9fe2bd5c7232c9cf2f4fd70381eb7a",
+    "originalSha256": "54feee5e1ece8b6ecef698e75a93ba2b6ce8db9d127ec0bba86011b85c4ce813",
+    "originalBytes": 81488
+  }
+]

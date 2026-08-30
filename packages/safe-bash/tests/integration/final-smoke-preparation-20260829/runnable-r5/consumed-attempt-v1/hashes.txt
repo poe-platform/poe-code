@@ -1,0 +1,8 @@
+39d3b7e7ccc2010b0a3ce60e784580c0f03a1f5317023cb04ad4f52de48dd7eb  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/FINAL-SMOKE-R4-ROOT-GO.json
+4da24e5b3f8376885988e95d20287036df81e63eead1c8712f0d3a953e31bfba  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/PACKET.json
+4bd69ecffa94beb58ccc716959b9c9dfbb456cb75af8b88696e306bcab5bb975  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/final-coherent-smoke-r5-20260829.outer.stderr
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/final-coherent-smoke-r5-20260829.outer.stdout
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/final-smoke-r5-actual-inspection.stderr
+15e125251dc00d78e0d9875e4b85f8aecbdd2cad3662d3a5c996f6847cba8cc2  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/final-smoke-r5-actual-inspection.stdout
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/final-smoke-r5-actual-root.stderr
+4a2697667f91056032610fed0f1178a1a0fff16a43e444b6a220fc48207e2adc  tests/integration/final-smoke-preparation-20260829/runnable-r5/consumed-attempt-v1/raw/final-smoke-r5-actual-root.stdout

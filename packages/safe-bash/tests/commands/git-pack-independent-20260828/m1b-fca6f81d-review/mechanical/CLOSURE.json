@@ -1,0 +1,363 @@
+{
+  "schema": "m1b-mechanical-active-closure-v1",
+  "harnessModules": [
+    {
+      "path": "mechanical/checkpoints.mjs",
+      "mode": 420,
+      "bytes": 3536,
+      "sha256": "c2d14cba023194cee68f3692370fd137f9e19ddf66618585a95a47ae8d0fa28b",
+      "imports": [
+        "node:buffer",
+        "node:crypto",
+        "./session-observation.mjs"
+      ]
+    },
+    {
+      "path": "mechanical/counter.mjs",
+      "mode": 420,
+      "bytes": 1395,
+      "sha256": "f376fc1322132af4308825f79dec3abb231474d1584740f33d420e4fe438f575",
+      "imports": [
+        "./session-observation.mjs"
+      ]
+    },
+    {
+      "path": "mechanical/fixture-data.mjs",
+      "mode": 420,
+      "bytes": 1729,
+      "sha256": "a7005b60f913bf395094bd4bea0df971052be7da265384992b702cddd0695677",
+      "imports": [
+        "node:buffer"
+      ]
+    },
+    {
+      "path": "mechanical/ownership.mjs",
+      "mode": 420,
+      "bytes": 5919,
+      "sha256": "abdb7c32441578a5b2415bd484c2bdf244dba723d555afaa021210ef7264ad84",
+      "imports": [
+        "node:buffer",
+        "./fixture-data.mjs",
+        "./session-observation.mjs"
+      ]
+    },
+    {
+      "path": "mechanical/session-observation.mjs",
+      "mode": 420,
+      "bytes": 3368,
+      "sha256": "1161e5091ba13f0fc880244202b10778dd0ac7692a32c8b60d5595c03b6f3b14",
+      "imports": []
+    },
+    {
+      "path": "mechanical/types.mjs",
+      "mode": 420,
+      "bytes": 1967,
+      "sha256": "dcf5f30373989dcddc6f87ca3a04c790381f54cfba12c5084e694d7d7391a892",
+      "imports": [
+        "node:buffer"
+      ]
+    }
+  ],
+  "hostBuiltins": [
+    "node:buffer",
+    "node:crypto"
+  ],
+  "candidateBuiltins": [
+    "node:crypto",
+    "node:path",
+    "node:stream/web",
+    "node:timers/promises",
+    "node:util",
+    "node:zlib"
+  ],
+  "candidateRoots": [
+    "dist/commands/git/io.js",
+    "dist/commands/git/pack.js",
+    "dist/commands/git/crc.js",
+    "dist/commands/git/delta.js"
+  ],
+  "candidateModuleStaticClosure": [
+    {
+      "path": "dist/commands/git/codec.js",
+      "mode": 420,
+      "bytes": 9085,
+      "sha256": "d698a63c4555ee41e50e49b1853716a23b23ababd7d01c653ccde71bdf397d99"
+    },
+    {
+      "path": "dist/commands/git/crc.js",
+      "mode": 420,
+      "bytes": 543,
+      "sha256": "ed67685923068db1dc079ab6cebda92871143ba09e287b9c90982705bf746439"
+    },
+    {
+      "path": "dist/commands/git/delta.js",
+      "mode": 420,
+      "bytes": 2797,
+      "sha256": "0518e9185fd7564c994e4e0287a9cdf344e4bce5170470901ef52d732e21a44e"
+    },
+    {
+      "path": "dist/commands/git/io.js",
+      "mode": 420,
+      "bytes": 17198,
+      "sha256": "d84c0bb8d259d5720d33f0321e1db42cc7f1393cbe21228957a1017b61816f52"
+    },
+    {
+      "path": "dist/commands/git/limits.js",
+      "mode": 420,
+      "bytes": 1970,
+      "sha256": "6b115a80e4ce29ed252c434f537938dacbfe5eda8c268e02fe5113462c93c182"
+    },
+    {
+      "path": "dist/commands/git/pack.js",
+      "mode": 420,
+      "bytes": 14326,
+      "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+    },
+    {
+      "path": "dist/contracts/command.js",
+      "mode": 420,
+      "bytes": 1353,
+      "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f"
+    },
+    {
+      "path": "dist/contracts/errors.js",
+      "mode": 420,
+      "bytes": 3225,
+      "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+    },
+    {
+      "path": "dist/contracts/filesystem.js",
+      "mode": 420,
+      "bytes": 121,
+      "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25"
+    },
+    {
+      "path": "dist/contracts/index.js",
+      "mode": 420,
+      "bytes": 235,
+      "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c"
+    },
+    {
+      "path": "dist/contracts/io.js",
+      "mode": 420,
+      "bytes": 7461,
+      "sha256": "d09037f7726d63bbe883ca5bd8f75b40e407b2973a4d7628c501087137cd2464"
+    },
+    {
+      "path": "dist/contracts/output.js",
+      "mode": 420,
+      "bytes": 4498,
+      "sha256": "8f91c95eebe5a3f84baa042318a0d30dcdaede30c0197a0ec5fb9beb38abb3ba"
+    },
+    {
+      "path": "dist/contracts/path.js",
+      "mode": 420,
+      "bytes": 1631,
+      "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7"
+    },
+    {
+      "path": "dist/contracts/plugin.js",
+      "mode": 420,
+      "bytes": 1878,
+      "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937"
+    }
+  ],
+  "candidateEdges": [
+    {
+      "from": "dist/commands/git/io.js",
+      "specifier": "node:crypto",
+      "role": "NODE_BUILTIN"
+    },
+    {
+      "from": "dist/commands/git/io.js",
+      "specifier": "node:timers/promises",
+      "role": "NODE_BUILTIN"
+    },
+    {
+      "from": "dist/commands/git/io.js",
+      "specifier": "../../contracts/index.js",
+      "target": "dist/contracts/index.js"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./command.js",
+      "target": "dist/contracts/command.js"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./errors.js",
+      "target": "dist/contracts/errors.js"
+    },
+    {
+      "from": "dist/contracts/errors.js",
+      "specifier": "node:util",
+      "role": "NODE_BUILTIN"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./filesystem.js",
+      "target": "dist/contracts/filesystem.js"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./io.js",
+      "target": "dist/contracts/io.js"
+    },
+    {
+      "from": "dist/contracts/io.js",
+      "specifier": "node:stream/web",
+      "role": "NODE_BUILTIN"
+    },
+    {
+      "from": "dist/contracts/io.js",
+      "specifier": "./errors.js",
+      "target": "dist/contracts/errors.js"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./output.js",
+      "target": "dist/contracts/output.js"
+    },
+    {
+      "from": "dist/contracts/output.js",
+      "specifier": "./io.js",
+      "target": "dist/contracts/io.js"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./path.js",
+      "target": "dist/contracts/path.js"
+    },
+    {
+      "from": "dist/contracts/path.js",
+      "specifier": "node:path",
+      "role": "NODE_BUILTIN"
+    },
+    {
+      "from": "dist/contracts/path.js",
+      "specifier": "./errors.js",
+      "target": "dist/contracts/errors.js"
+    },
+    {
+      "from": "dist/contracts/index.js",
+      "specifier": "./plugin.js",
+      "target": "dist/contracts/plugin.js"
+    },
+    {
+      "from": "dist/commands/git/io.js",
+      "specifier": "./limits.js",
+      "target": "dist/commands/git/limits.js"
+    },
+    {
+      "from": "dist/commands/git/pack.js",
+      "specifier": "./codec.js",
+      "target": "dist/commands/git/codec.js"
+    },
+    {
+      "from": "dist/commands/git/codec.js",
+      "specifier": "node:zlib",
+      "role": "NODE_BUILTIN"
+    },
+    {
+      "from": "dist/commands/git/codec.js",
+      "specifier": "./limits.js",
+      "target": "dist/commands/git/limits.js"
+    },
+    {
+      "from": "dist/commands/git/pack.js",
+      "specifier": "./crc.js",
+      "target": "dist/commands/git/crc.js"
+    },
+    {
+      "from": "dist/commands/git/pack.js",
+      "specifier": "./delta.js",
+      "target": "dist/commands/git/delta.js"
+    },
+    {
+      "from": "dist/commands/git/delta.js",
+      "specifier": "./limits.js",
+      "target": "dist/commands/git/limits.js"
+    },
+    {
+      "from": "dist/commands/git/pack.js",
+      "specifier": "./limits.js",
+      "target": "dist/commands/git/limits.js"
+    }
+  ],
+  "declarationRoots": [
+    "dist/commands/git/index.d.ts",
+    "dist/contracts/index.d.ts"
+  ],
+  "declarationStaticClosure": [
+    {
+      "path": "dist/commands/git/index.d.ts",
+      "mode": 420,
+      "bytes": 513,
+      "sha256": "603f6c8d07e508c45b9f04189dae45fa72ed07658a75d750723e08ed8ce29991"
+    },
+    {
+      "path": "dist/commands/git/limits.d.ts",
+      "mode": 420,
+      "bytes": 1189,
+      "sha256": "eb8f1d1006c7329af2c83e9c4ce832eed09cecb5ce014a65bacaf317bfec2a53"
+    },
+    {
+      "path": "dist/contracts/command.d.ts",
+      "mode": 420,
+      "bytes": 2024,
+      "sha256": "dba1185c9c0d49f8bee2a27b44b52b604e7ed14133eaa01cbd5969a75a723c08"
+    },
+    {
+      "path": "dist/contracts/errors.d.ts",
+      "mode": 420,
+      "bytes": 2102,
+      "sha256": "b0771794e6ff1d92c0b259fdf68015474f4b8009e6102995846f56e17839c1b9"
+    },
+    {
+      "path": "dist/contracts/filesystem.d.ts",
+      "mode": 420,
+      "bytes": 4060,
+      "sha256": "c7d0b55454b6e39e575524b015b6cf90f14cc6063a0259f5698eb37c19b23f0f"
+    },
+    {
+      "path": "dist/contracts/index.d.ts",
+      "mode": 420,
+      "bytes": 237,
+      "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c"
+    },
+    {
+      "path": "dist/contracts/io.d.ts",
+      "mode": 420,
+      "bytes": 1430,
+      "sha256": "9e8c6720bf4beb2206bbe0bfd2ab34a6337907c78d48b41d42de43cda1d78548"
+    },
+    {
+      "path": "dist/contracts/output.d.ts",
+      "mode": 420,
+      "bytes": 676,
+      "sha256": "501a15692aa88f6299cb8eef285c9ddb723c2baaf9f07dcaf644075943d97ce1"
+    },
+    {
+      "path": "dist/contracts/path.d.ts",
+      "mode": 420,
+      "bytes": 844,
+      "sha256": "1a1f13de7c072f5323be1f1d1e7a602b377c2a887730e6af2e92ad1d5bdbdc5f"
+    },
+    {
+      "path": "dist/contracts/plugin.d.ts",
+      "mode": 420,
+      "bytes": 836,
+      "sha256": "23c31a917e681f99d0ff846c8e03e591cb0e19a5359ec79ffa570ca3a83680a0"
+    }
+  ],
+  "typeBuiltins": [
+    {
+      "from": "dist/contracts/path.d.ts",
+      "specifier": "path",
+      "role": "TYPE_ONLY_NODE_BUILTIN"
+    }
+  ],
+  "analysisRole": "Lexical direct ESM references in exact artifact DATA, not actual loaded census. Runner full910 guard/actual loader records remain required.",
+  "tools": "SOURCE-BINDINGS.json#/tools; runner authenticates full copied regular Node/TS/@types/node/undici-types closure, including bare Node type path; no ambient fallback",
+  "mutants": "MUTANT-PROJECTIONS.json; one output changes per fresh910 diagnostic profile, actual loading required"
+}

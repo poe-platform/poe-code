@@ -1,0 +1,20 @@
+{
+  "label": "candidate-outside-negative-cli",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--incremental",
+    "false",
+    "--pretty",
+    "false"
+  ],
+  "cwd": "tests/integration/native-data-config-review/.scratch/attempt-03/candidate",
+  "started": "2026-08-27T09:00:08.659Z",
+  "ended": "2026-08-27T09:00:14.136Z",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "stdout": "src/review-control.ts(1,1): error TS2304: Cannot find name 'REVIEW_OUTSIDE_UNDEFINED_20260827'.\ntests/commands/regex-execution/continuation/artifacts/native space 🙂/control.ts(1,1): error TS2304: Cannot find name 'REVIEW_OUTSIDE_UNDEFINED_20260827'.\ntests/commands/regex-execution/continuation/artifacts/native-sibling/control.ts(1,1): error TS2304: Cannot find name 'REVIEW_OUTSIDE_UNDEFINED_20260827'.\ntests/commands/regex-execution/continuation/artifacts/neighbor.ts(1,1): error TS2304: Cannot find name 'REVIEW_OUTSIDE_UNDEFINED_20260827'.\ntests/review/canonical.test.ts(1,1): error TS2304: Cannot find name 'REVIEW_OUTSIDE_UNDEFINED_20260827'.\ntests/review/helpers/helper.ts(1,1): error TS2304: Cannot find name 'REVIEW_OUTSIDE_UNDEFINED_20260827'.\n",
+  "stderr": ""
+}

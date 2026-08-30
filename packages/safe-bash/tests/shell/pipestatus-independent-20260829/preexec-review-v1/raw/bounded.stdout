@@ -1,0 +1,199 @@
+
+FILE owner.mjs
+        verifyPackage(productRoot,prepared.admitted.rows);persist(roleId+'.json',{receipt,lifecycle:child.row,trace:{bytes:trace.length,sha256:hash(trace)},loaded});results.push(receipt);
+      }
+    }
+    if(results.length!==78||ledger.starts!==79)throw Error('FINAL_MEMBERSHIP');
+  }catch(reason){primaryPresent=true;primary=reason;}
+  clearTimeout(timer);
+  const final=finalize({primaryPresent,primary,census(){if(ledger.active||ledger.rows.some(row=>row.knownOutstanding))throw Error('RETIREMENT_UNKNOWN');return sample(seal.actualRoot,536870912);},publish(state){persist('RESULT.json',{...state,primary:state.primaryPresent?errorRecord(state.primary):undefined,results,ledger,finished:Date.now()});}});
+  return {status:final.primaryPresent||!final.publicationSucceeded?'STOP':results.some(row=>!row.pass)?'ASSERTION_FAILURES':'PASS',cases:results.length,managedChildren:ledger.starts,retired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0),final};
+}
+
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+  const seal=JSON.parse(readPinned(process.env.PIPE_SEAL,{bytes:Number(process.env.PIPE_SEAL_BYTES),sha256:process.env.PIPE_SEAL_SHA256},2097152));
+  const grant=JSON.parse(readPinned(process.env.PIPE_GRANT,{bytes:Number(process.env.PIPE_GRANT_BYTES),sha256:process.env.PIPE_GRANT_SHA256},65536));
+  const result=await execute(seal,grant);process.stdout.write(JSON.stringify(result)+'\n');process.exitCode=result.status==='PASS'?0:result.status==='ASSERTION_FAILURES'?2:1;
+}
+
+FILE controls.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const own='/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1';
+const work='/private/tmp/safe-bash-pipestatus-preexec';
+const hash=value=>createHash('sha256').update(value).digest('hex');
+const prepared=JSON.parse(fs.readFileSync(own+'/PREPARED.json','utf8'));const sealStat=fs.lstatSync(own+'/SEAL.json');if(!sealStat.isFile()||sealStat.size!==prepared.seal.bytes||sealStat.size>2097152)throw Error('CONTROL_SEAL_SIZE');const sealBytes=fs.readFileSync(own+'/SEAL.json');if(hash(sealBytes)!==prepared.seal.sha256)throw Error('CONTROL_SEAL_HASH');const seal=JSON.parse(sealBytes);
+for(const row of seal.files){const stat=fs.lstatSync(row.path);if(!stat.isFile()||stat.size!==row.bytes||hash(fs.readFileSync(row.path))!==row.sha256)throw Error('CONTROL_HELPER_BINDING');}
+const {preEvaluation,makeRole}=await import(pathToFileURL(own+'/owner.mjs'));
+const {validateTar,admitArchive,verifyPackage,timeWindow}=await import(pathToFileURL(own+'/admission.mjs'));
+const {Primary,readPinned}=await import(pathToFileURL(own+'/reuse/auth.mjs'));
+const {runDirect,openCapturePair}=await import(pathToFileURL(own+'/reuse/direct-child.mjs'));
+const {finalize}=await import(pathToFileURL(own+'/reuse/finalization.mjs'));
+const results=[];const record=(id,body)=>{try{body();results.push({id,pass:true});}catch(error){results.push({id,pass:false,message:String(error)});}};
+const stage=work+'/admission';fs.mkdirSync(stage);const now=Date.now();
+let admitted;
+record('C01',()=>{admitted=preEvaluation(seal,stage,now,now+1800000);assert.equal(admitted.admitted.rows.length,1010);verifyPackage(admitted.sourceRoot,admitted.admitted.rows);});
+if(!admitted)throw Error('ACTUAL_ADMISSION_STOP');
+record('C02',()=>{const altered=Buffer.from(readPinned(seal.archive.path,seal.archive));altered[altered.length-1]^=1;const filename=work+'/changed.tgz';fs.writeFileSync(filename,altered,{flag:'wx'});assert.throws(()=>admitArchive(filename,admitted.manifest),/AUTH_HASH/u);});
+record('C03',()=>assert.throws(()=>validateTar(admitted.admitted.tar,{...admitted.manifest,count:1002}),/CARDINALITY/u));
+record('C04',()=>{const tar=Buffer.from(admitted.admitted.tar);const firstSize=admitted.manifest.members[0].size;const next=512+Math.ceil(firstSize/512)*512;tar.subarray(0,100).copy(tar,next);tar.subarray(345,500).copy(tar,next+345);tar.fill(32,next+148,next+156);let sum=0;for(let index=0;index<512;index++)sum+=tar[next+index];tar.write(sum.toString(8).padStart(6,'0')+'\0 ',next+148,8,'ascii');assert.throws(()=>validateTar(tar,admitted.manifest),/TAR_MEMBER/u);});
+record('C05',()=>assert.throws(()=>validateTar(admitted.admitted.tar.subarray(1),admitted.manifest),/ALIGNMENT/u));
+record('C06',()=>{const filename=admitted.sourceRoot+'/package.json';const before=fs.readFileSync(filename);const changed=Buffer.from(before);changed[0]^=1;try{fs.writeFileSync(filename,changed);assert.throws(()=>verifyPackage(admitted.sourceRoot,admitted.admitted.rows),/AUTH_HASH/u);}finally{fs.writeFileSync(filename,before);}verifyPackage(admitted.sourceRoot,admitted.admitted.rows);});
+record('C07',()=>{assert.throws(()=>timeWindow(NaN,now+1800000),/TIME/u);assert.throws(()=>timeWindow(now,now+1800000,now+1800000),/TIME/u);});
+record('C08',()=>{const result=finalize({primaryPresent:true,primary:false,census(){throw null;},publish(){throw 0;}});assert.equal(result.primary,false);assert.equal(result.secondary.length,2);assert.equal(result.secondary[0].reason,null);assert.equal(result.secondary[1].reason,0);});
+record('C09',()=>{let acquired,closed=false,opens=0;const operations={openSync(...args){if(opens++)throw false;return acquired=fs.openSync(...args);},closeSync(descriptor){assert.equal(descriptor,acquired);fs.closeSync(descriptor);closed=true;}};const primary=new Primary(),ledger={rows:[]},row={};let rejected=false;try{openCapturePair({capture:work+'/partial'},ledger,row,primary,operations);}catch(reason){rejected=true;assert.equal(reason,false);}assert(rejected&&closed);assert.equal(row.childStarted,false);assert.equal(row.knownOutstanding,0);});
+const capture=work+'/harmless';fs.mkdirSync(capture);
+const ledger={starts:0,maximum:3,active:0,stopped:false,captureBytes:0,captureMaximum:2097152,rows:[]};
+for(const [id,source,negative]of [
+  ['C10',"import assert from 'node:assert/strict'; assert.equal(1,1); process.stdout.write('HARMLESS\\n');",undefined],
+  ['C11',"await import('node:os');",'EDGE_REFUSED'],
+  ['C12',"process.stdout.write('never');",'AUTH_HASH'],
+]){
+  const app=work+'/'+id;const bound=makeRole(seal,app,app+'/no-product',{roleId:id,layout:'harmless',case:{id}},capture,'harmless-control',Buffer.from(source));
+  if(id==='C11')bound.role.edges[bound.role.entry]=[];
+  if(id==='C12')bound.role.files[bound.role.entry].sha256='0'.repeat(64);
+  if(negative){bound.bytes=Buffer.from(JSON.stringify(bound.role));fs.writeFileSync(bound.role.rolePath,bound.bytes);bound.env.SURFACE_ROLE_BYTES=String(bound.bytes.length);bound.env.SURFACE_ROLE_SHA256=hash(bound.bytes);}
+  fs.appendFileSync(work+'/roles.log','harmless child '+id+' spawn requested\n');
+  const child=await runDirect({id,node:seal.node,args:bound.args,cwd:app,env:bound.env,capture:capture+'/'+id,bodyDeadline:Date.now()+30000,finalDeadline:Date.now()+40000,timeoutMs:5000},ledger);
+  if(!child.row.qualified)throw Error('HARMLESS_RETIREMENT_STOP');
+  const stdout=Buffer.from(child.row.captures.find(row=>row.kind==='stdout').base64,'base64').toString();const stderr=Buffer.from(child.row.captures.find(row=>row.kind==='stderr').base64,'base64').toString();
+  const trace=fs.readFileSync(bound.role.trace);const events=trace.toString().split('\n').filter(Boolean).map(line=>JSON.parse(line));
+  results.push({id,pass:negative?child.row.status!==0&&stderr.includes(negative):child.row.status===0&&stdout==='HARMLESS\n'&&stderr==='',status:child.row.status,expectedRefusal:negative,permission:events.some(row=>row.event==='permission-admitted'),hooks:events.some(row=>row.event==='synchronous-hooks-installed'),trace:{bytes:trace.length,sha256:hash(trace)},lifecycle:child.row});
+}
+verifyPackage(admitted.sourceRoot,admitted.admitted.rows);
+fs.writeFileSync(own+'/CONTROLS.json',JSON.stringify({results,passed:results.filter(row=>row.pass).length,total:12,actualAdmissionMembers:1010,managedChildren:ledger.starts,retired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0),productEvaluations:0,Workers:0,tarBytes:admitted.admitted.tar.length},null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({passed:results.filter(row=>row.pass).length,total:12,children:ledger.starts,productEvaluations:0}));process.exitCode=results.some(row=>!row.pass)?1:0;
+
+FILE reuse/finalization.mjs
+export function finalize({primaryPresent, primary, census, publish}) {
+  const state = {primaryPresent, primary, secondaryPresent: false, secondary: [], sampledWorkPresent: false, sampledWork: undefined, publicationAttempted: false, publicationSucceeded: false};
+  const retain = (phase, reason) => {
+    if (state.primaryPresent) {
+      state.secondaryPresent = true;
+      state.secondary.push({phase, present: true, reason});
+    } else {
+      state.primaryPresent = true;
+      state.primary = reason;
+    }
+  };
+  try {
+    state.sampledWork = census();
+    state.sampledWorkPresent = true;
+  } catch (reason) {
+    retain('final-census', reason);
+  }
+  state.publicationAttempted = true;
+  try {
+    publish(state);
+    state.publicationSucceeded = true;
+  } catch (reason) {
+    retain('terminal-publication', reason);
+  }
+  return state;
+}
+
+FILE reuse/direct-child.mjs
+5: export const qualifyDirect = row => !row.primaryPresent && !row.forced && row.exit && row.close && row.stdoutEOF && row.stderrEOF && row.capturesQualified && row.knownOutstanding === 0;
+9:     stdoutFd=operations.openSync(spec.capture+'.stdout','wx+',384);
+10:     stderrFd=operations.openSync(spec.capture+'.stderr','wx+',384);
+17:     row.childStarted=false;row.captureOpenFailure=true;row.captureCleanup=cleanup;
+18:     row.knownOutstanding=cleanup.acquired&&!cleanup.closed?1:0;row.qualified=false;row.primaryPresent=true;
+23:     } finally {throw reason;}
+27:   if(spec.signal?.aborted)throw spec.signal.reason;
+31:   const row = {id:spec.id,events:[],exit:false,close:false,stdoutEOF:false,stderrEOF:false,captures:[],signals:[],forced:false,capturesQualified:false,knownOutstanding:1};
+34:   event('capture-open');
+39:   let stdoutBytes=0,stderrBytes=0;const abort=()=>fail(spec.signal.reason);if(spec.signal)spec.signal.addEventListener('abort',abort,{once:true});
+41:     if(spec.signal?.aborted)throw spec.signal.reason;
+46:     child.on('exit',(status,signal)=>{row.exit=true;row.status=status;row.signal=signal;event('exit');});
+50:       if ((kind==='stdout'?stdoutBytes:stderrBytes)+bytes.length>65536 || ledger.captureBytes+bytes.length>ledger.captureMaximum) {fail(Error('CAPTURE_LIMIT'));return;}
+51:       try {fs.writeFileSync(descriptor,bytes);ledger.captureBytes+=bytes.length;if(kind==='stdout')stdoutBytes+=bytes.length;else stderrBytes+=bytes.length;} catch(reason){fail(reason);}
+60:       for(const [signal,grace] of [['SIGTERM',spec.ownerGrace?4000:2000],['SIGKILL',1000]]){
+62:         try{row.signals.push({signal,at:Date.now(),returned:child.kill(signal)});}catch(reason){primary.fail(reason);}
+68:   finally {
+69:     if(spec.signal)spec.signal.removeEventListener('abort',abort);
+71:       let capture,closed=false;
+72:       try {fs.fsyncSync(descriptor);const stat=fs.fstatSync(descriptor);if(stat.size!==expected)throw Error('CAPTURE_SIZE');const bytes=Buffer.alloc(expected);let offset=0;while(offset<bytes.length){const count=fs.readSync(descriptor,bytes,offset,bytes.length-offset,offset);if(!count)throw Error('CAPTURE_SHORT');offset+=count;}capture={kind,bytes:expected,sha256:hash(bytes),base64:bytes.toString('base64'),flushed:true};}catch(reason){primary.fail(reason);}
+73:       finally{try{fs.closeSync(descriptor);closed=true;}catch(reason){primary.fail(reason);}}
+74:       if(capture)row.captures.push({...capture,closed});
+76:     row.capturesQualified=row.captures.length===2&&row.captures.every(capture=>capture.closed&&capture.flushed);
+80:     row.qualified=qualifyDirect(row);
+81:     row.finished=Date.now();ledger.rows.push(row);ledger.active--;if(!row.qualified)ledger.stopped=true;
+FILE reuse/auth.mjs
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+export function readPinned(filename, pin, maximum = 16777216) {
+  const before = fs.lstatSync(filename);
+  if (!before.isFile() || before.isSymbolicLink() || before.size !== pin.bytes || before.size > maximum) throw Error('AUTH_TYPE_SIZE');
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const opened = fs.fstatSync(descriptor);
+    if (opened.dev !== before.dev || opened.ino !== before.ino || opened.size !== before.size) throw Error('AUTH_CHANGED');
+    const bytes = Buffer.alloc(pin.bytes);
+    let offset = 0;
+    while (offset < bytes.length) {
+      const count = fs.readSync(descriptor, bytes, offset, Math.min(65536, bytes.length - offset), offset);
+      if (!count) throw Error('AUTH_SHORT');
+      offset += count;
+    }
+    if (fs.readSync(descriptor, Buffer.alloc(1), 0, 1, offset) || hash(bytes) !== pin.sha256) throw Error('AUTH_HASH');
+    return bytes;
+  } finally { fs.closeSync(descriptor); }
+}
+export function pinExecutable(pin) {
+  const before = fs.lstatSync(pin.path);
+  if (!before.isFile() || before.isSymbolicLink() || before.size !== pin.bytes || (before.mode & 4095) !== pin.mode) throw Error('TOOL_TYPE_SIZE_MODE');
+  const descriptor = fs.openSync(pin.path, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  const digest = createHash('sha256'), buffer = Buffer.alloc(65536);
+  let size = 0;
+  try {
+    const opened = fs.fstatSync(descriptor);
+    if (opened.dev !== before.dev || opened.ino !== before.ino) throw Error('TOOL_CHANGED');
+    for (;;) {
+      const count = fs.readSync(descriptor, buffer, 0, buffer.length, null);
+      if (!count) break;
+      size += count;
+      if (size > pin.bytes) throw Error('TOOL_LONG');
+      digest.update(buffer.subarray(0, count));
+    }
+  } finally { fs.closeSync(descriptor); }
+  if (size !== pin.bytes || digest.digest('hex') !== pin.sha256) throw Error('TOOL_HASH');
+}
+export function errorRecord(reason) {
+  if (reason === undefined) return {kind:'undefined'};
+  if (reason === null) return {kind:'null'};
+  if (typeof reason !== 'object') return {kind:typeof reason, value:reason};
+  const row = {kind:'object'};
+  for (const key of ['name','message','code','errno','syscall','permission']) if (typeof reason[key] === 'string' || typeof reason[key] === 'number') row[key] = typeof reason[key] === 'string' ? reason[key].slice(0,1024) : reason[key];
+  return row;
+}
+export class Primary {
+  present = false;
+  reason;
+  secondary = [];
+  fail(reason) { if (!this.present) {this.present = true; this.reason = reason;} else this.secondary.push(errorRecord(reason)); }
+}
+export function publish(filename, bytes, finalDeadline, operations = fs) {
+  if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+  let descriptor, primary = new Primary();
+  try {
+    descriptor = operations.openSync(filename, 'wx+', 384);
+    if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+    operations.writeFileSync(descriptor, bytes);
+    operations.fsyncSync(descriptor);
+    if (operations.fstatSync(descriptor).size !== bytes.length) throw Error('PUBLICATION_SIZE');
+    const observed = Buffer.alloc(bytes.length);
+    let offset = 0;
+    while (offset < observed.length) { const count = operations.readSync(descriptor, observed, offset, observed.length-offset, offset); if (!count) throw Error('PUBLICATION_SHORT'); offset += count; }
+    if (hash(observed) !== hash(bytes)) throw Error('PUBLICATION_HASH');
+  } catch (reason) { primary.fail(reason); }
+  finally { if (descriptor !== undefined) try { operations.closeSync(descriptor); } catch(reason) { primary.fail(reason); } }
+  if (primary.present) throw primary.reason;
+  if (Date.now() >= finalDeadline) throw Error('FINAL_DEADLINE');
+  return {bytes:bytes.length,sha256:hash(bytes),qualified:true};
+}
+
+SEAL-SUMMARY {"hash":"f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5","keys":["schema","sourceIdentity","sourceProjection","sourceRoot","sources","node","archive","packageManifest","files","reuse","host","driver","owner","outer","actualRoot","cases","npmRoot","npmVersion","npmFiles","npmDirectories","bootstrap","limits","shippingManifestSha256","productExecutions","launcher","predecessorSealSha256","launcherQualification"],"sourceRoot":"/private/tmp/safe-bash-pipestatus-corrected/candidate","archive":{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/corrected-v2/corrected-build-artifact.tgz","bytes":1005288,"mode":420,"sha256":"6c60e2d766fa675b7972afdc0eb6f5304f99231abceff1daf5cb196b897346a5"},"packageManifest":{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/corrected-v2/PACKAGE.json","bytes":197547,"mode":420,"sha256":"55bfb3ac054fc7525a2127487ce90e42dd51e3c281561739e7d50113b6aa546c"},"node":{"path":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","bytes":112989184,"mode":493,"sha256":"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"},"files":[{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/PRESEAL.md","bytes":3247,"mode":420,"sha256":"169f0f245a1e0e01e5b2064d0a4896d7c736495fc44f836820faad632bb30498"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/admission.mjs","bytes":4824,"mode":420,"sha256":"e342a6ef3096b055f62b5f6613e49a99a8a40f694b3d92110b914ec1e1b7ebe8"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/owner.mjs","bytes":11317,"mode":420,"sha256":"7f0035e066545778999f9882a4f701aa97501e124ba204f3012f973b12f506f5"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/outer.mjs","bytes":1843,"mode":420,"sha256":"6366925db189416976a8549e9bc621b6e65439dac912e9fb61f74af0516d1f10"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/case-driver.mjs","bytes":1451,"mode":420,"sha256":"f56abd3051a8f77897f313697d336c90cde86be4f7f7f8dd0407de6050e67a74"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/prepare.mjs","bytes":6428,"mode":420,"sha256":"1cad15ce5335b05aa640f888d6f6b5b005e52c69f1724faca24a07e21531a9cc"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/controls.mjs","bytes":6844,"mode":420,"sha256":"0de7227158f00a21f56c03ad256e7f9471f9cfe42c5a661b0a420e4644031201"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch.sh","bytes":1424,"mode":420,"sha256":"7443fe1707c6346ad18600c550fa14b5dde55158bb780c3640160c798d3a2a17"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/host-protocols.mjs","bytes":5203,"mode":420,"sha256":"2fcfa24394c38a04b58831582511df8dca463db00f382239c5323cc3768a740c"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/auth.mjs","bytes":3951,"mode":420,"sha256":"da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/profile.mjs","bytes":2114,"mode":420,"sha256":"731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/guard.mjs","bytes":2245,"mode":420,"sha256":"2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/finalization.mjs","bytes":850,"mode":420,"sha256":"d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/reuse/direct-child.mjs","bytes":5895,"mode":420,"sha256":"97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/launch-v2.sh","bytes":1432,"mode":420,"sha256":"03ac0191474946baf903e0c8bd3c2003988d0518015c5fb15af22617c8407ca4"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/publish.mjs","bytes":4592,"mode":420,"sha256":"6a18912215282b60e19a40cdefa84e4268c2f57d5d14e03ad383779bdb80d4ca"},{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/HANDOFF.md","bytes":5619,"mode":420,"sha256":"d8cc33a468e291e1070ba9993aa04b25dd460b483f6cb4b18b3fd880b12a2b00"}],"sourcesCount":307,"caseCount":26,"npmFiles":2039,"npmDirectories":517,"actualRoot":"/private/tmp/safe-bash-pipestatus-actual-78-v1"}c440c86b6b19b95d393b06ad6df65b994531b37b

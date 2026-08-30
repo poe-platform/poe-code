@@ -1,0 +1,17 @@
+{
+  "schema": "INDEPENDENT_REGEX_V4_PREEXECUTION_REVIEW",
+  "role": "different-reviewer",
+  "verdict": "PREEXECUTION_ACCEPTED_SCOPED",
+  "sourceCommit": "131a898c3edb25edc34e2d26dfdcd28b74e7c015",
+  "sourceSealSha256": "95d3707e7117e6101fd96549e823e7299ba0c058ea179eaf7336160d53a903ec",
+  "independentPresealSha256": "d4eaeaf5e96c11f1990c950939ab75c1ba5080f17d82e5b7a62d6a6570b43676",
+  "smallFixtureQualifications": 2,
+  "smallFixtureExpectedOrdinaryFailures": 2,
+  "novelControlsPassed": 12,
+  "novelControlsTotal": 12,
+  "actualWorkers": 0,
+  "actualEngines": 0,
+  "full55Executed": false,
+  "activationAuthorized": false,
+  "next": "Fresh versioned full55 plan/seal/root grant required; current campaignEnabled:false, expired fixture deadline and Workers:0 remain binding. Actual nested product qualification is a later separate phase."
+}

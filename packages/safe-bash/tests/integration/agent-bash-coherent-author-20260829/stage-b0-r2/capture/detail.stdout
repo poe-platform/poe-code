@@ -1,0 +1,214 @@
+{
+  "inputs": [
+    {
+      "path": "outer.sh",
+      "bytes": 594,
+      "sha256": "3116ac5877ee115e32173d95ccfec29eefc3f7409d30c7c7013bee22804e9807"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 8445,
+      "sha256": "c72adbb5de3dda93a82e60ae504cedc748e1f35cda7a56a47e20c0e36c09c0fa"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "produce.mjs",
+      "bytes": 12388,
+      "sha256": "90e859b3d261295875038789ccc99fd3625aaa1d2c31509143c50d3ed9690842"
+    },
+    {
+      "path": "PROFILE.md",
+      "bytes": 2302,
+      "sha256": "46db17c9e7edb7a3abc5a6176082d4a8f7f1250c8e0f9d52e72a53deb2058e4e"
+    }
+  ],
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+    "bytes": 137864,
+    "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae"
+  },
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+    "bytes": 558790,
+    "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+  },
+  "links": [
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/arborist",
+      "type": "symlink",
+      "target": "../@npmcli/arborist/bin/index.js",
+      "resolvedRelative": "node_modules/@npmcli/arborist/bin/index.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/cssesc",
+      "type": "symlink",
+      "target": "../cssesc/bin/cssesc",
+      "resolvedRelative": "node_modules/cssesc/bin/cssesc"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/glob",
+      "type": "symlink",
+      "target": "../glob/dist/esm/bin.mjs",
+      "resolvedRelative": "node_modules/glob/dist/esm/bin.mjs"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/installed-package-contents",
+      "type": "symlink",
+      "target": "../@npmcli/installed-package-contents/bin/index.js",
+      "resolvedRelative": "node_modules/@npmcli/installed-package-contents/bin/index.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/node-gyp",
+      "type": "symlink",
+      "target": "../node-gyp/bin/node-gyp.js",
+      "resolvedRelative": "node_modules/node-gyp/bin/node-gyp.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/node-which",
+      "type": "symlink",
+      "target": "../which/bin/which.js",
+      "resolvedRelative": "node_modules/which/bin/which.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/nopt",
+      "type": "symlink",
+      "target": "../nopt/bin/nopt.js",
+      "resolvedRelative": "node_modules/nopt/bin/nopt.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/pacote",
+      "type": "symlink",
+      "target": "../pacote/bin/index.js",
+      "resolvedRelative": "node_modules/pacote/bin/index.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/qrcode-terminal",
+      "type": "symlink",
+      "target": "../qrcode-terminal/bin/qrcode-terminal.js",
+      "resolvedRelative": "node_modules/qrcode-terminal/bin/qrcode-terminal.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/.bin/semver",
+      "type": "symlink",
+      "target": "../semver/bin/semver.js",
+      "resolvedRelative": "node_modules/semver/bin/semver.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+      "type": "symlink",
+      "target": "../pacote/bin/index.js",
+      "resolvedRelative": "node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js"
+    },
+    {
+      "package": "npm",
+      "path": "node_modules/cross-spawn/node_modules/.bin/node-which",
+      "type": "symlink",
+      "target": "../which/bin/node-which",
+      "resolvedRelative": "node_modules/cross-spawn/node_modules/which/bin/node-which"
+    }
+  ],
+  "bounds": {
+    "seconds": 1200,
+    "childSeconds": 120,
+    "knownStarts": 32,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 805306368,
+    "encodedPackageBytes": 16777216,
+    "decodedPackageBytes": 67108864,
+    "simultaneousAccountedDataBuffers": 100663296
+  }
+}
+tests/integration/git-public-20260829/resources.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import workerThreads from 'node:worker_threads';
+import { syncBuiltinESMExports } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+
+const destination = process.env.RESOURCE_LOG;
+const allowance = Number(process.env.RESOURCE_ALLOWANCE);
+assert.ok(destination && Number.isSafeInteger(allowance) && allowance >= 0);
+const binding = JSON.parse(fs.readFileSync(process.env.PUBLIC_BINDING));
+const emit = event => fs.appendFileSync(destination, JSON.stringify(event) + '\n');
+const NativeWorker = workerThreads.Worker;
+let created = 0, live = 0;
+emit({ kind: 'bootstrap', pid: process.pid, allowance });
+workerThreads.Worker = class extends NativeWorker {
+  constructor(filename, options) {
+    assert.ok(created < allowance && live < 2, 'owned worker admission budget');
+    const entry = filename instanceof URL ? fileURLToPath(filename) : filename;
+    const expected = path.join(binding.root, 'dist/commands/regex-execution/worker.js');
+    assert.equal(entry, expected, 'only selected RegexWorker is admitted');
+    const metadata = fs.lstatSync(entry); assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
+    assert.equal(fs.realpathSync(entry), entry);
+    const row = binding.inputs.find(item => item.path === 'commands/regex-execution/worker.js');
+    assert.ok(row); assert.equal(createHash('sha256').update(fs.readFileSync(entry)).digest('hex'), row.sha256);
+    assert.deepEqual(options.execArgv, []);
+    super(filename, options);
+    const id = ++created; live++;
+    emit({ kind: 'worker-create', id, threadId: this.threadId, entry, sha256: row.sha256, live });
+    this.once('exit', code => { live--; emit({ kind: 'worker-exit', id, code, live }); });
+  }
+};
+syncBuiltinESMExports();
+process.once('beforeExit', () => { emit({ kind: 'before-exit', created, live }); if (live !== 0) process.exitCode = 78; });
+
+tests/integration/git-public-20260829/loader.mjs
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+const binding = JSON.parse(await fs.readFile(process.env.PUBLIC_BINDING));
+const admitted = new Map(binding.inputs.map(row => [path.join(binding.root, 'dist', row.path), row]));
+const harness = new Map(binding.harness.map(row => [row.path, row]));
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+export async function load(url, context, next) {
+  if (!url.startsWith('file:')) return next(url, context);
+  const file = fileURLToPath(url), data = await fs.readFile(file);
+  if (harness.has(file)) {
+    if (digest(data) !== harness.get(file).sha256) throw Error('harness hash mismatch');
+  } else {
+    if (!file.startsWith(binding.root + '/dist/')) throw Error('package outside authenticated compiled root');
+    const row = admitted.get(file); if (!row) throw Error('package binding missing member');
+    if (digest(data) !== row.sha256) throw Error('package hash mismatch');
+    await fs.appendFile(binding.trace, JSON.stringify({ file, sha256: row.sha256 }) + '\n');
+  }
+  return next(url, context);
+}
+
+  };
+  try {
+    if (id === 'C01') {
+      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
+      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
+      assert.throws(() => nodeApi.nodeCommands({}));
+    } else if (id === 'C02') await expect(make(), 'set -eu -o pipefail; value=\'a b\'; [[ "$value" == \'a b\' && ( x == x || $missing == z ) ]]; printf \'%s\\n\' "$value" | cat', 'a b\n');
+    else if (id === 'C03') await expect(make(), "[[ abc == a* ]]; printf '%s\\n' \"$?\"; [[ abc == 'a*' ]]; printf '%s\\n' \"$?\"", '0\n1\n');
+    else if (id === 'C04') await expect(make(), 'set -u; a=(zero one); f(){ printf \'%s\\n\' "${a[1]}"; }; f', 'one\n');
+    else if (id === 'C05') await expect(make(), 'set -o pipefail; false | cat; printf \'%s\\n\' "$?"', '1\n');
+    else if (id === 'C06') { await expect(make(), 'f(){ printf out; printf err >&2; }; f 2>/audit |& cat', 'outerr'); assert.equal(text(await memory.readFile('/audit')), ''); }
+    else if (id === 'C07') {
+      await expect(make(), 'f(){ printf out; printf err >&2; }; f &>/both 1>/out', '');
+      assert.equal(text(await memory.readFile('/both')), 'err'); assert.equal(text(await memory.readFile('/out')), 'out');
+      facts.writerQualification = 'Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.';
+    } else if (id === 'C08') { await memory.writeFile('/source.sh', encode("let 'n+=3'")); await expect(make(), 'n=2; . /source.sh; printf \'%s\\n\' "$n"', '5\n'); }

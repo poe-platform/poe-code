@@ -1,0 +1,24 @@
+{
+  "role": "sdk-directory",
+  "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+  "initial": {
+    "mode": 493,
+    "bytes": 14,
+    "dev": 16777232,
+    "ino": 142204354,
+    "mtimeMs": 1785171076445.437,
+    "ctimeMs": 1785171178397.6816
+  },
+  "symbolicLink": true,
+  "linkText": "MacOSX26.5.sdk",
+  "resolved": "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk",
+  "target": {
+    "mode": 493,
+    "bytes": 224,
+    "dev": 16777232,
+    "ino": 27304118,
+    "mtimeMs": 1785171242985.198,
+    "ctimeMs": 1785171242985.198
+  },
+  "disposition": "DIRECTORY_METADATA_ONLY_NO_CONTENT_CLOSURE"
+}

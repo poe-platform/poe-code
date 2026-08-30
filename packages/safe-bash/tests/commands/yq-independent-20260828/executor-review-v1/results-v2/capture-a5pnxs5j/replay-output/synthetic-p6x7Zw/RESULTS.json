@@ -1,0 +1,189 @@
+{
+  "observations": [
+    {
+      "id": "valid-tree",
+      "expected": "accept",
+      "matched": true
+    },
+    {
+      "id": "readme-absent",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "matched": true
+    },
+    {
+      "id": "readme-wrong-bytes",
+      "expected": "PACKAGE_FILE",
+      "matched": true
+    },
+    {
+      "id": "baseline-omitted",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "matched": true
+    },
+    {
+      "id": "unapproved-addition",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "matched": true
+    },
+    {
+      "id": "symlink-entry",
+      "expected": "SYMLINK",
+      "matched": true
+    },
+    {
+      "id": "hardlink-entry",
+      "expected": "HARDLINK",
+      "matched": true
+    },
+    {
+      "id": "mode-mismatch",
+      "expected": "PACKAGE_FILE",
+      "matched": true
+    },
+    {
+      "id": "binding-mismatch",
+      "expected": "BINDING",
+      "matched": true
+    },
+    {
+      "id": "hash-mismatch",
+      "expected": "RECEIPT_HASH",
+      "matched": true
+    },
+    {
+      "id": "workspace-fallback",
+      "expected": "WORKSPACE",
+      "matched": true
+    },
+    {
+      "id": "in-place-not-moved",
+      "expected": "NOT_MOVED",
+      "matched": true
+    },
+    {
+      "id": "source-import",
+      "expected": "IMPORT_KIND",
+      "matched": true
+    },
+    {
+      "id": "declaration-tampered",
+      "expected": "PACKAGE_FILE",
+      "matched": true
+    },
+    {
+      "id": "declaration-omitted",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "matched": true
+    },
+    {
+      "id": "new-empty-directory",
+      "expected": "PACKAGE_DIRECTORIES",
+      "matched": true
+    },
+    {
+      "id": "symlink-root",
+      "expected": "SYMLINK",
+      "matched": true
+    },
+    {
+      "id": "node-modules-fallback",
+      "expected": "IMPORT_BINDING",
+      "matched": true
+    },
+    {
+      "id": "unapproved-builtin",
+      "expected": "IMPORT_BINDING",
+      "matched": true
+    },
+    {
+      "id": "unknown-receipt-field",
+      "expected": "RECEIPT_SCHEMA",
+      "matched": true
+    },
+    {
+      "id": "duplicate-receipt-key",
+      "expected": "JSON_DUPLICATE",
+      "matched": true
+    },
+    {
+      "id": "source-delta",
+      "expected": "SOURCE_BINDING",
+      "matched": true
+    },
+    {
+      "id": "fake-readme-authority",
+      "expected": "README_IDENTITY",
+      "matched": true
+    },
+    {
+      "id": "projection-only",
+      "expected": "README_IDENTITY",
+      "matched": true
+    },
+    {
+      "id": "positive-compiler-outcome",
+      "expected": "accept",
+      "matched": true
+    },
+    {
+      "id": "negative-compiler-outcome",
+      "expected": "accept",
+      "matched": true
+    },
+    {
+      "id": "negative-unrelated-diagnostic",
+      "expected": "COMPILER_DIAGNOSTICS",
+      "matched": true
+    },
+    {
+      "id": "negative-status-zero",
+      "expected": "COMPILER_STATUS",
+      "matched": true
+    },
+    {
+      "id": "compiler-child-signal",
+      "expected": "COMPILER_STATUS",
+      "matched": true
+    },
+    {
+      "id": "compiler-outside-binding",
+      "expected": "COMPILER_BINDING",
+      "matched": true
+    },
+    {
+      "id": "raw-source-fallback",
+      "expected": "COMPILER_BINDING",
+      "matched": true
+    },
+    {
+      "id": "public-export-gap",
+      "expected": "PUBLIC_EXPORT_GAP",
+      "matched": true
+    },
+    {
+      "id": "mutable-binding",
+      "expected": "BINDING",
+      "matched": true
+    },
+    {
+      "id": "post-check-added-file",
+      "expected": "PACKAGE_MEMBERSHIP",
+      "matched": true
+    },
+    {
+      "id": "import-parent-outside",
+      "expected": "IMPORT_BINDING",
+      "matched": true
+    },
+    {
+      "id": "import-url-fragment",
+      "expected": "IMPORT_BINDING",
+      "matched": true
+    }
+  ],
+  "count": 36,
+  "matched": 36,
+  "excluded": "Original supplemental tool-tree audit not run",
+  "productImports": 0,
+  "compilerRuns": 0
+}

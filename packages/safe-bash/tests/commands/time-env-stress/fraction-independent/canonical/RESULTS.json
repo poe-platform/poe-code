@@ -1,0 +1,461 @@
+{
+  "source": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "startedAt": "2026-08-27T09:18:46.010Z",
+  "scratch": "/tmp/safe-bash-fraction-canonical-fHOcaA",
+  "commands": {
+    "canonical223": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "tests/commands/time-env/date.test.ts",
+        "tests/commands/time-env/integration.test.ts",
+        "tests/commands/time-env/native.test.ts",
+        "tests/commands/time-env/printenv.test.ts",
+        "tests/commands/time-env/sleep.test.ts",
+        "tests/commands/time-env/stress.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-fraction-canonical-fHOcaA/archive",
+      "pid": 38918,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": true,
+      "elapsedMs": 2404,
+      "timeoutMs": 120000,
+      "outputBytes": 38028,
+      "observed": [
+        {
+          "pid": 38918,
+          "parent": 35739,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:01 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/date.test.ts tests/commands/time-env/integration.test.ts tests/commands/time-env/native.test.ts tests/commands/time-env/printenv.test.ts tests/commands/time-env/sleep.test.ts tests/commands/time-env/stress.test.ts"
+        },
+        {
+          "pid": 38920,
+          "parent": 38918,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:01 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/date.test.ts"
+        },
+        {
+          "pid": 38921,
+          "parent": 38920,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:01 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+        },
+        {
+          "pid": 38927,
+          "parent": 38918,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/integration.test.ts"
+        },
+        {
+          "pid": 38930,
+          "parent": 38927,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+        },
+        {
+          "pid": 38933,
+          "parent": 38927,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --input-type=module -e import { createTimeEnvCommands } from './src/commands/time-env/index.ts';\\012import { createMemoryFileSystem } from './src/fs/memory/index.ts';\\012const controller = new AbortController();\\012const reason = new Error('owned abort');\\012const command = createTimeEnvCommands().find(entry => entry.name === 'sleep');\\012const result = command.execute({ command:'sleep', args:['3600'], cwd:'/', env:{}, fs:createMemoryFileSystem(), signal:controller.signal,\\012stdin:(async function*(){})(), stdout:{async write(){throw new Error('unexpected output')}}, stderr:{async write(){throw new Error('unexpected output')}} });\\012setTimeout(() => controller.abort(reason), 10);\\012try { await result; throw new Error('missing abort'); } catch(error) { if(error !== reason) throw error; }\\012"
+        },
+        {
+          "pid": 38941,
+          "parent": 38918,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/native.test.ts"
+        },
+        {
+          "pid": 38943,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+        },
+        {
+          "pid": 38944,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date --version"
+        },
+        {
+          "pid": 38947,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep --version"
+        },
+        {
+          "pid": 38950,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:02 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv --version"
+        },
+        {
+          "pid": 38956,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "(date)"
+        },
+        {
+          "pid": 38972,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "(date)"
+        },
+        {
+          "pid": 38989,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "(date)"
+        },
+        {
+          "pid": 39008,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "(printenv)"
+        },
+        {
+          "pid": 39023,
+          "parent": 38941,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "(sleep)"
+        },
+        {
+          "pid": 39030,
+          "parent": 38918,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/printenv.test.ts"
+        },
+        {
+          "pid": 39034,
+          "parent": 38918,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/sleep.test.ts"
+        },
+        {
+          "pid": 39037,
+          "parent": 38918,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 --test-timeout=30000 tests/commands/time-env/stress.test.ts"
+        },
+        {
+          "pid": 39039,
+          "parent": 39037,
+          "group": 38918,
+          "born": "Thu Aug 27 04:19:03 2026",
+          "command": "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+        }
+      ],
+      "signals": [],
+      "survivors": [],
+      "listeners": [],
+      "cleanupRequired": false,
+      "clean": true,
+      "counts": {
+        "tests": 223,
+        "pass": 223,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "stdoutSha256": "bbe1765edea7182897cb19e0eec22d8b00a95134fe86f8958f8885a25a7971b8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scoped-types": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "-p",
+        "tests/commands/time-env/tsconfig.json",
+        "--noEmit"
+      ],
+      "cwd": "/tmp/safe-bash-fraction-canonical-fHOcaA/archive",
+      "pid": 39044,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": true,
+      "elapsedMs": 799,
+      "timeoutMs": 120000,
+      "outputBytes": 0,
+      "observed": [
+        {
+          "pid": 39044,
+          "parent": 35739,
+          "group": 39044,
+          "born": "Thu Aug 27 04:19:04 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node node_modules/typescript/bin/tsc -p tests/commands/time-env/tsconfig.json --noEmit"
+        }
+      ],
+      "signals": [],
+      "survivors": [],
+      "listeners": [],
+      "cleanupRequired": false,
+      "clean": true,
+      "counts": {},
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "versions": {
+    "node": "22.22.2",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.5",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.3.0",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.1",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.64.0",
+    "openssl": "3.5.5",
+    "simdjson": "4.2.4",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.2",
+    "tz": "2025c",
+    "undici": "6.24.1",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.39",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "platform": "darwin",
+  "architecture": "arm64",
+  "archive": {
+    "sha256": "4ba2f44723111446087b45a56269492492b34fa88df21b007a50aabf38e21530",
+    "bytes": 913039360
+  },
+  "originalArchive": {
+    "paths": 14482,
+    "sha256": "00eeeb33d43f1771b92e2a9042d6182378d1062d11d6e39a34bb5bce8007840b"
+  },
+  "tools": {
+    "typescript/lib/_tsc.js": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+    "typescript/package.json": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+    "tsx/package.json": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659",
+    "tsx/dist/loader.mjs": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2",
+    "@types/node/package.json": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de",
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "native": {
+    "date": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+      "priorVersion": "date (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n"
+    },
+    "sleep": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+      "priorVersion": "sleep (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Paul Eggert.\n"
+    },
+    "printenv": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+      "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+      "priorVersion": "printenv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Richard Mlynarik.\n"
+    }
+  },
+  "supervisor": {
+    "revision": "61c66bca1212ad511af2ce057f866c8839027b8a",
+    "path": "tests/integration/full-gate-20260827/supervise.mjs",
+    "sha256": "e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9"
+  },
+  "typecheckPassed": true,
+  "archiveChanges": [
+    {
+      "path": "tests/commands/time-env/date.test.ts",
+      "before": "9fab5e8bdcf0044fea983fa78159bf9ab7163167be12b263a95c8e969bfcafbd",
+      "after": "91065b8d1b9e7cf08e34fb40d44e4307286040ba11ce14ae13c1ec8c015c8b67"
+    }
+  ],
+  "sourceAfterSha256": "6378bc59080697726a3f8f0b88005da84f8fd9712e53603bb778930241eaba5e",
+  "archiveAfterSha256": "b0feced8a7efe00355f90aacccbc9a8e5501860a9941b095d0323126a103cda9",
+  "cacheCleanup": [
+    {
+      "path": "/tmp/tsx-501/17878-1af3bc4a0a2b5b09155d462870d2e2d82bdf7afc",
+      "sha256": "32fa4d1e017a845fe2d4397903e62cc61112ba6a0b778cfae2f1be2efd011daf",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/plugin.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-238d750eb88ee3c9da2657bb263b0f0afd1ade24",
+      "sha256": "2a1468621f6d32466aa933176bd77c8bce7589b6bd71fd21fab865a2ca905bc1",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/path.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-2987e0b7a707319253ba3b0b83f6fc4b0d928ab0",
+      "sha256": "3b74e28567fcb383911f20dd3abc2d0425891c9188c4868fe6d9d7a67a21aaea",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/fs/memory/index.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-35e13ac3882b16def2351351a7f5a59e59d05f19",
+      "sha256": "47241d57fb91d33b7fec8a38d2ae33f342a96bcc29113cfbab0d15c92cf227cd",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/calendar.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-6b118297db6581aabf866d24b14da90e3e425456",
+      "sha256": "b259e1d845dccd1cbb248ebd50acbff91a445a489d56fca1efaac0f2807f2a97",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/printenv.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-7de8e3f3797bf316a1299c78f1470e6369958766",
+      "sha256": "1b8afb996e17e3f119f1e9ba286dd167361b6953381007e6bb54dc7766773cd8",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/index.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-847b89528285e09149c32a5165bb2925ac9b3c75",
+      "sha256": "13c1cc76b6f09b58041c2d63510644f228f604f94f95286eae0e3f6420ca9c76",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/fs/mount/comparison.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-881a2077a9f9c8d4ddccd259abb2968f76171beb",
+      "sha256": "3b610ab45ab61ccde30c2bc8d9c82bf80293bd6dad2eb4d3275848356773b64d",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/sleep.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-8ea9dcd1e66226a428f1c0ad6d471d94877389f6",
+      "sha256": "9ab1a99fddd08ecfed680f1394805a2ea4df6876a0e23adeb9e37a789f711ab6",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/fs/s3/authority.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-a3d931f9e275c4198f4c7c8cc059bf29e0886c5a",
+      "sha256": "5d5325a846b470f52e850f61c57a98ce8f11cb5fd5f31ccab4d045d385a1c894",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/index.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-a585846d61c49c8b38369a7593ad7029ed496127",
+      "sha256": "afed715171f55dc43fd4d03e622e8fd31e59a0f4f0def9b4c093e9203d9a01e3",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/fs/mount/identity.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-a69ed675a95dd103565804b59a7575f276e5ca23",
+      "sha256": "3fd99883cc6ef1fbe79a53cc7c550754f0908dc7c0eee0dd688bf54d943d81f6",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/errors.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-a7b18b22ab59c2e70f60958cf319ce32e707d238",
+      "sha256": "1c324965ad5124ed25925ba99b23022db358168ca363218bf3c41bf2bbcaf07c",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/filesystem.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-b39999558894b12af1e1121a08499992a974e1fd",
+      "sha256": "6fa9392a1c1c74bcaa2e47a1bc737a46c651b6b078af28f2db6740fe692df408",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/format.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-b4de4d46ff2482ec59d25a5737d487d8e1d7f6fd",
+      "sha256": "0d56d9ff3ccd810210cd2a993a0d4f5697b47a393f7a2b1592d50345c3d5718f",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/command.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-b9096aa33ae5809085219a9296a94f2993c39359",
+      "sha256": "4ef5522135b685614e70d0a6bc84729f841e8fb16678fccde45458631f7bac53",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/fs/webdav/resource-id.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-bde0b6ef8c5ae6ab94a611188fc0fc77e74b8a0d",
+      "sha256": "945cf543a84190f2fee38141d7e7dbff7a46e8128bb4459b8e86d048bc0ea591",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/shared.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-c4f35b403745f5fb1b270ebf0ef5529776ded5bb",
+      "sha256": "fc2217cf49cd4bf23f50037a27a312cfa91066af6be6fe1ece0fe671990d187a",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/commands/time-env/date.ts"
+      ]
+    },
+    {
+      "path": "/tmp/tsx-501/17878-e99a28b92be5d6cd0fbda56ee6c6034d61bd881d",
+      "sha256": "9883a7d0001a15377c1b806ff81285298ece4ab0dd76890112f28e6c3dfeb2e6",
+      "sources": [
+        "/private/tmp/safe-bash-fraction-canonical-fHOcaA/archive/src/contracts/io.ts"
+      ]
+    }
+  ],
+  "worktreeGuards": {
+    "paths": 15298,
+    "beforeSha256": "535a5eccb5ce7cce654bac5eb068ba4455d4532d7af212048d24e94f79d29673",
+    "afterSha256": "3fbffba653bcaf6924a1266a6530348212effa498da593567b895063176c1324",
+    "changes": [
+      {
+        "path": "tests/commands/tree/SORT-TEXT.md",
+        "before": "57b371b3ac9f81aa2ce163139531f59cd4faf102f824022b1863ceff7a5f6852",
+        "after": "9348b0ddaf4a1ad2247e7f79634ac5d7c07f6c552b3ec24fe2d6b0d5d89e18ad"
+      }
+    ]
+  },
+  "stagedBefore": ":100644 100644 b239249 64cd79d M\tsrc/commands/tree/README.md\n:100644 100644 3e645e4 545875a M\tsrc/commands/tree/arguments.ts\n:100644 100644 d1f63b6 799c1ed M\tsrc/commands/tree/io.ts\n:100644 100644 7450265 70948ef M\tsrc/commands/tree/tree.ts\n:000000 100644 0000000 ef7e77c A\ttests/commands/tree/SORT-TEXT.md\n:000000 100644 0000000 b8b9b11 A\ttests/commands/tree/sort-text-bound.test.ts\n:000000 100644 0000000 320f364 A\ttests/commands/tree/sort-text-fixed.tap\n:000000 100644 0000000 8daef62 A\ttests/commands/tree/sort-text-original.tap\n:000000 100644 0000000 659d3f0 A\ttests/commands/tree/sort-text-source-manifest.json\n",
+  "stagedAfter": "",
+  "headAfter": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "cleanedOwnedScratch": true,
+  "finishedAt": "2026-08-27T09:19:12.305Z"
+}

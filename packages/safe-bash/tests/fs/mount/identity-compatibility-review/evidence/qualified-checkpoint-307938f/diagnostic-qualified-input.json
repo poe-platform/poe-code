@@ -1,0 +1,29 @@
+{
+  "originalSha256": "9d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734",
+  "diagnosticSha256": "53061e040a1d54531670f5a2cfb9ad9eae1aa5d9afa155531572cd85c9dd9365",
+  "assertionsByteIdentical": true,
+  "assertionCallCount": 30,
+  "replacements": [
+    [
+      "import { MockS3Client, S3FileSystem }",
+      "import { createS3Transport, MockS3Client, S3FileSystem }"
+    ],
+    [
+      "const firstClient = opaque(service);",
+      "const firstClient = createS3Transport(service, service.capabilities);"
+    ],
+    [
+      "const secondClient = opaque(service);",
+      "const secondClient = createS3Transport(service, service.capabilities);"
+    ],
+    [
+      "const firstClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };",
+      "const firstClient = { fetch: service.createFetch() };"
+    ],
+    [
+      "const secondClient = { fetch: (url: string, init: RequestInit) => service.fetch(url, init) };",
+      "const secondClient = { fetch: service.createFetch() };"
+    ]
+  ],
+  "interpretation": "Diagnostic only; no original acceptance replacement. Existing helper transport type annotation is deliberately untouched."
+}

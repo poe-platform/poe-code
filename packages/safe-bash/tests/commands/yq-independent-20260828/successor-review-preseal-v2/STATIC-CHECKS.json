@@ -1,0 +1,167 @@
+{
+  "schema": 2,
+  "date": "2026-08-28",
+  "classification": "STATIC_DATA_VALIDATION_NOT_TEST_OR_EXECUTION",
+  "productImports": 0,
+  "productBuilds": 0,
+  "typeChecks": 0,
+  "loaderOrPredicateCalls": 0,
+  "harnessOrControlRuns": 0,
+  "mutantModulesPersisted": 0,
+  "activeOwnedExecutionChildren": 0,
+  "data": {
+    "state": "VERIFIED_STATIC_INVARIANTS",
+    "selectedImmutableReferences": 95,
+    "jsonManifests": 12,
+    "priorSourceFilesUnchanged": 22,
+    "originalIds": 194,
+    "overlays": 8,
+    "outerSlots": 336,
+    "nestedCompilers": 18,
+    "globalCapMs": 24165000,
+    "perEnvironmentJobs": 149,
+    "uniqueRuntimeIds": 132,
+    "missingBindingRecords": 80,
+    "missingBindings": 135,
+    "selectedSourcePaths": 7,
+    "changedSourcePaths": 5,
+    "transformationRecipes": 3,
+    "mutantWitnessSlots": 4,
+    "actualLoadedSlots": 10,
+    "directTypeFixtures": 6,
+    "publicOnlyGaps": 5,
+    "sourceBoundaryArguments": "REQUIRED_NOT_PROVED",
+    "fullPacketMaps": "BOUND_STATIC_DATA_GOLDEN_MODE_ADMISSION_DENY",
+    "directTypeFixturesPerEnvironment": 6,
+    "directTypeCompilerInvocations": 12,
+    "packetSourceEntries": 271,
+    "packetArchiveEntries": 273,
+    "packetPackageEntries": 870,
+    "packetFilesAuthenticated": 25,
+    "controlMapHashesBound": 3,
+    "scheduleFinding": "SS-F01_EXPLICITLY_ADOPTED_NOT_INDEPENDENTLY_ACCEPTED"
+  },
+  "specification": {
+    "exitCode": 0,
+    "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/successor-review-preseal-v2/PRESEAL.md (0 warning(s))\n",
+    "stderr": ""
+  },
+  "preparationFailures": {
+    "count": 2,
+    "reference": "PREPARATION-LOG.md",
+    "candidateActions": 0
+  },
+  "independentAcceptance": false,
+  "RootGO": false,
+  "pending": [
+    "authentic original POSIX mode for prior90a633e8 FINAL-SEAL.json",
+    "fresh copied toolchain and b8 independent build/serialization",
+    "complete future runtime/consumer/loader/compound recipe seals",
+    "actual implemented reviewed phase/reap/type/loaded wrappers",
+    "source23/four-repair and fixed-gate arguments",
+    "root expected receipt hash and fresh GO"
+  ],
+  "planSourceCommit": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+  "sourceSealSha256": "79e92aeed9364d390b8aabed2df2c52e3eecd5ce2abbf7caef83765304ae7fa8",
+  "additiveDiff": {
+    "argv": [
+      "diff",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--full-index",
+      "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56^",
+      "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+      "--",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/BOUNDARY-PROOFS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/CANDIDATE-BINDINGS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/INPUTS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/MUTANT-TRANSFORMS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PACKET-BINDING.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PEER-BINDINGS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PLAN.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PREPARATION-LOG.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PRESEAL.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/README.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/RECIPE-COMPOSITION.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/ROOT-DECISIONS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SCHEDULE-DELTA.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SOURCE-DELTA.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SOURCE-SEAL.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v2/TOOL-LOADER-TYPES.json"
+    ],
+    "sha256": "05215ba24a104b58847bdd78686d617001871f6276d44933abe49c0d8fffb8d6",
+    "bytes": 193110,
+    "paths": [
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/BOUNDARY-PROOFS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/CANDIDATE-BINDINGS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/INPUTS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/MUTANT-TRANSFORMS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PACKET-BINDING.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PEER-BINDINGS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PLAN.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PREPARATION-LOG.md"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PRESEAL.md"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/README.md"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/RECIPE-COMPOSITION.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/ROOT-DECISIONS.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SCHEDULE-DELTA.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SOURCE-DELTA.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/SOURCE-SEAL.json"
+      },
+      {
+        "status": "A",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/TOOL-LOADER-TYPES.json"
+      }
+    ],
+    "nonOwnedChanges": 0
+  },
+  "reproducibility": {
+    "dataMethod": "Read selected exact Git refs from INPUTS; parse owned JSON; apply SCHEDULE-DELTA to immutable v1 job/phase data; compare canonical effective hashes, counts, phases and remaining-DENY fields; derive source/full/control map hashes from authenticated baseline/receipt descriptors; compare literal mutation before/after data only. No inspector/loader/predicate module is imported or executed.",
+    "specificationCommand": "PYTHONDONTWRITEBYTECODE=1 python3 /Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py tests/commands/yq-independent-20260828/successor-review-preseal-v2/PRESEAL.md"
+  }
+}

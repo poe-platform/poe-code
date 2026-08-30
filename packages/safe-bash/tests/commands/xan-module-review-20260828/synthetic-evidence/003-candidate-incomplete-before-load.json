@@ -1,0 +1,14 @@
+{
+  "id": "candidate-incomplete-before-load",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "HANDOFF_KEYS",
+      "name": "Error",
+      "message": "HANDOFF_KEYS"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

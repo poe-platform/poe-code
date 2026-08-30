@@ -1,0 +1,45 @@
+{
+  "author": "independent reviewer72352",
+  "approval": "ROOT APPROVED: apply the requested reviewer-only mode expectation correction.\nUse explicit per-backend fixture modes, retain/assert every raw mode, preserve\ninitial failed evidence. No source/editor/original test/frozen-input overwrite.\nSupplemental proof only against the identical frozen source/dist/dependencies;\nhash corrected tool bytes separately and revalidate source/dependency hashes.\nNo fullcohort rerun. Do not waive existing original failures or build/type errors.\nFull approval also exists in the original ROOT editor.closed coordination marker.\n",
+  "approvalSha256": "fdd92af6a03c08c4e54a96ffae706f534e9d2182732cd1aedfff4d4f32de20f0",
+  "output": "/tmp/safe-bash-diff-revised-full-WB04o4/independent-supplement-0grB1h",
+  "snapshot": "/private/tmp/safe-bash-diff-revised-full-WB04o4/snapshot-1",
+  "startedAt": "2026-08-27T00:12:08.167Z",
+  "finishedAt": "2026-08-27T00:12:08.689Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "./tests/commands/diff-patch-stress/gnu-rmdir-checkpoint/guard.mjs",
+    "tests/commands/diff-patch-stress/gnu-revised-full-review/probe-supplement-11b71a6ea976.mjs",
+    "/tmp/safe-bash-diff-revised-full-WB04o4/independent-supplement-0grB1h/native-product.json",
+    "--product"
+  ],
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "before": {
+    "inputs": "fdcb4cbe746d2e16ee3a76b8eb9cea0df911a7c0e7ab1934b4127308fcb7f96b",
+    "source": "a1c82c6caac9b8703757d6448dd77da6e23667c99eef01661ed781677662e5f5",
+    "dependencies": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+    "buildOutputs": "0a7c0c331e2509b71aa95eccc29d8b575a32f7d503d39e2a5c2f00f11cdc27ac",
+    "toolSha256": "11b71a6ea97607b373b81e9dee0f75d41f757078f19a4c9c0c4cb378d1da02a4",
+    "originalToolSha256": "1b58877bc7f34e83ed11754c1f6e4e6a2ece778c846fdfafdc920131653b3720",
+    "binariesStable": true
+  },
+  "after": {
+    "inputs": "fdcb4cbe746d2e16ee3a76b8eb9cea0df911a7c0e7ab1934b4127308fcb7f96b",
+    "source": "a1c82c6caac9b8703757d6448dd77da6e23667c99eef01661ed781677662e5f5",
+    "dependencies": "2ae2d5c2f258eee84f94640fd96662fe98365c4d6e99f6952884afc0bf3f8eee",
+    "buildOutputs": "0a7c0c331e2509b71aa95eccc29d8b575a32f7d503d39e2a5c2f00f11cdc27ac",
+    "toolSha256": "11b71a6ea97607b373b81e9dee0f75d41f757078f19a4c9c0c4cb378d1da02a4",
+    "originalToolSha256": "1b58877bc7f34e83ed11754c1f6e4e6a2ece778c846fdfafdc920131653b3720",
+    "binariesStable": true
+  },
+  "newReviewerToolOnly": "tests/commands/diff-patch-stress/gnu-revised-full-review/probe-supplement-11b71a6ea976.mjs",
+  "frozenInputsOverwritten": false,
+  "fullCohortsRerun": false,
+  "initialFailedProbePreserved": true,
+  "stdoutSha256": "f8db8cc1e597055a45d69f4e5777e9a02fed029f32f65b44d8ae0a1fae0fce0f",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

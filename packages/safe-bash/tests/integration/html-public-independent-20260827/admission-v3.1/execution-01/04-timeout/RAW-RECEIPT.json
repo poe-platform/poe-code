@@ -1,0 +1,259 @@
+{
+  "control": "timeout",
+  "started": "2026-08-27T23:58:07.335Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=96",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs",
+    "timeout",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/execution-01/04-timeout"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/execution-01/04-timeout/tmp",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/execution-01/04-timeout/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "freeze": "2461f905416b7260ff02742af87fba8bc31c2977",
+  "manifestSha256": "0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3",
+  "signalsSent": [],
+  "messages": [
+    {
+      "type": "ready",
+      "producer": {
+        "pid": 34643,
+        "ppid": 34642,
+        "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "execArgv": [
+          "--max-old-space-size=96",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/producer-observer.mjs"
+        ],
+        "memory": {
+          "baseline": {
+            "rss": 45203456,
+            "heapTotal": 5652480,
+            "heapUsed": 4871000,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "fieldwisePeaks": {
+            "rss": 45203456,
+            "heapTotal": 5652480,
+            "heapUsed": 4871000,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "latest": {
+            "rss": 45203456,
+            "heapTotal": 5652480,
+            "heapUsed": 4871000,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "samples": 0,
+          "fieldsUnit": "bytes",
+          "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+        }
+      }
+    },
+    {
+      "type": "timeout-ready",
+      "chunks": 16
+    },
+    {
+      "type": "receipt",
+      "control": "timeout",
+      "failed": true,
+      "code": "V3_TIMEOUT"
+    }
+  ],
+  "unexpected": [],
+  "deadlineMs": 45000,
+  "naturalConsumerClose": true,
+  "ready": true,
+  "receiptForwarded": true,
+  "timeoutTriggered": true,
+  "resourceBoundary": null,
+  "producerPid": 34643,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "pid": 34642,
+  "forwardedFailureCode": "V3_TIMEOUT",
+  "code": 17,
+  "signal": null,
+  "closeObserved": true,
+  "finished": "2026-08-27T23:58:07.752Z",
+  "membersAtClose": [],
+  "remainingGroupMembers": [],
+  "consumerState": {
+    "pid": 34642,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "producerState": {
+    "pid": 34643,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "consumer": {
+    "value": {
+      "control": "timeout",
+      "pid": 34642,
+      "ppid": 34501,
+      "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "execArgv": [
+        "--max-old-space-size=96"
+      ],
+      "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+      "assertionState": "not evaluated; persisted before coordinator assertions",
+      "proposedExitCode": 17,
+      "failure": {
+        "name": "Error",
+        "code": "V3_TIMEOUT",
+        "message": "CONTROL_BOUNDARY:V3_TIMEOUT",
+        "stack": "Error: CONTROL_BOUNDARY:V3_TIMEOUT\n    at boundary (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:21:48)\n    at consume (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:57:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/core.mjs:169:7)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/core.mjs:193:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:34:12",
+        "process": {
+          "status": 1,
+          "signal": null,
+          "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nError: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19) {\n  errno: -32,\n  code: 'EPIPE',\n  syscall: 'write'\n}\n\nNode.js v22.22.2\n",
+          "timedOut": false,
+          "stderrOverflow": false
+        }
+      },
+      "result": null,
+      "memory": {
+        "baseline": {
+          "rss": 46137344,
+          "heapTotal": 5914624,
+          "heapUsed": 5235704,
+          "external": 2109762,
+          "arrayBuffers": 22168
+        },
+        "fieldwisePeaks": {
+          "rss": 54067200,
+          "heapTotal": 7225344,
+          "heapUsed": 5379864,
+          "external": 3278274,
+          "arrayBuffers": 1131241
+        },
+        "latest": {
+          "rss": 54067200,
+          "heapTotal": 7225344,
+          "heapUsed": 5379864,
+          "external": 3278274,
+          "arrayBuffers": 1131241
+        },
+        "samples": 4,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "chunks": 16,
+        "bytes": 1048576,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "consumerObservation": null,
+      "observedSha256": "9bc1b2a288b26af7257a36277ae3816a7d4f16e89c1e7e77d0a5c48bad62b360",
+      "mutation": {
+        "steps": 0,
+        "retainedBytes": 0,
+        "touchedByte": null
+      },
+      "retainedAllocations": 0,
+      "thresholdBytes": 268435456,
+      "operator": "<",
+      "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+    },
+    "error": null
+  },
+  "producer": {
+    "value": {
+      "pid": 34643,
+      "ppid": 34642,
+      "status": 1,
+      "signal": null,
+      "uncaught": null,
+      "memory": {
+        "baseline": {
+          "rss": 45203456,
+          "heapTotal": 5652480,
+          "heapUsed": 4871000,
+          "external": 1962447,
+          "arrayBuffers": 16655
+        },
+        "fieldwisePeaks": {
+          "rss": 47120384,
+          "heapTotal": 6701056,
+          "heapUsed": 4951048,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "latest": {
+          "rss": 47120384,
+          "heapTotal": 6701056,
+          "heapUsed": 4662016,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "writes": 19,
+        "acceptedBytes": 1245184,
+        "maxChunkBytes": 65536,
+        "falseWrites": 15,
+        "drains": 14,
+        "pendingDrains": 1,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 0
+      },
+      "scope": "producer only; accepted writes are not a claim of delivered bytes"
+    },
+    "error": null
+  },
+  "operationSucceeded": false,
+  "supervisorMemoryExcluded": {
+    "baseline": {
+      "rss": 59883520,
+      "heapTotal": 11878400,
+      "heapUsed": 8385816,
+      "external": 2981536,
+      "arrayBuffers": 739524
+    },
+    "fieldwisePeaks": {
+      "rss": 60014592,
+      "heapTotal": 11878400,
+      "heapUsed": 8385816,
+      "external": 2981536,
+      "arrayBuffers": 739524
+    },
+    "latest": {
+      "rss": 60014592,
+      "heapTotal": 11878400,
+      "heapUsed": 7992960,
+      "external": 2719791,
+      "arrayBuffers": 477779
+    },
+    "samples": 4,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "assertionState": "not evaluated; all available numeric and process outcomes durable first",
+  "outputHashes": {
+    "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "harnessSettlementAt": "2026-08-27T23:58:07.859Z"
+}

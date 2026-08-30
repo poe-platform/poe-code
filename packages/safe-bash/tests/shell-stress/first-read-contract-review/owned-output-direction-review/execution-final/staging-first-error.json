@@ -1,0 +1,7 @@
+{
+  "classification": "evidence-staging-error-not-product-or-harness-case",
+  "status": 1,
+  "stdout": "",
+  "stderr": "The following paths are ignored by one of your .gitignore files:\ntests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-final/source-reference/dist\nhint: Use -f if you really want to add them.\nhint: Disable this message with \"git config set advice.addIgnoredFile false\"\n",
+  "resolution": "Force-stage only explicit owned inert evidence paths; no ignore/config change and no root dist build."
+}

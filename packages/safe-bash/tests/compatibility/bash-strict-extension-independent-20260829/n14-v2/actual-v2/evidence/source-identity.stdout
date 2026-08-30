@@ -1,0 +1,9 @@
+{"id":"J01-consume-zero-then-unrelated-zero","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","kind":"return","writes":2,"seen":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J02-consume-undefined-then-unrelated-undefined","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","kind":"return","writes":2,"seen":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J03-forwarding-thenable-is-not-exact-promise","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","kind":"return","writes":2,"qualification":"This exact thenable is outside the exact-Promise guarantee; not arbitrary thenable parity.","created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J04-Promise-resolve-preserves-exact-identity","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","kind":"throw","exactFalse":true,"writes":1,"cleaned":1,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J05-side-catch-does-not-consume-returned-original","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","kind":"throw","exactUndefined":true,"writes":1,"seen":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J06-caller-zero-during-cleanup-beats-sink-false","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","events":["diagnostic","cleanup"],"kind":"throw","exactZero":true,"writes":1,"cleaned":1,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J07-sibling-promises-same-reason-independent-provenance","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","kind":"throw","exactZero":true,"writes":2,"consumed":true,"created":1,"disposed":1,"cleanupFailure":false}
+{"id":"J08-next-execution-does-not-inherit-diagnostic-poison","pass":true,"role":"INDEPENDENT_EXACT_PROMISE_PROFILE_NOT_NATIVE","first":"throw","second":"return","writes":2,"created":1,"disposed":1,"cleanupFailure":false}
+{"summary":{"cases":8,"pass":8,"fail":0,"native":0,"unhandled":[]}}

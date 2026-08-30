@@ -1,0 +1,253 @@
+{
+  "originalAggregate": "FAIL",
+  "stop": "total-admission-bound",
+  "parent": {
+    "pid": 87703,
+    "group": 87703,
+    "exitCode": 1,
+    "signal": null,
+    "spawnError": null,
+    "timedOut": false,
+    "overflow": false,
+    "combinedBytes": 229,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 619594,
+    "stdout": {
+      "sha256": "197008db9c456675bf780005f2a1bc807f57e77ea15e9d5f8ea03d8c6a342746",
+      "bytes": 229,
+      "mode": 420
+    },
+    "stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    }
+  },
+  "admissionBudgetMs": 600000,
+  "plannedChildren": 301,
+  "actualChildren": 167,
+  "runtimeJobs": 166,
+  "originalJobs": 149,
+  "movedJobs": 17,
+  "unrunPlannedChildren": 134,
+  "originalUniqueRuntimeIds": 132,
+  "failureJobs": {
+    "incomplete": 31,
+    "harness": 1
+  },
+  "sourceAdmission": [
+    {
+      "capture": "a:source-admission",
+      "originalIds": [
+        "MOV-01",
+        "MOV-03"
+      ],
+      "role": "SOURCE_PACKAGE_ADMISSION_NOT_SEMANTICS",
+      "rawAggregate": "PASS",
+      "receipt": {
+        "schemaVersion": 1,
+        "jobId": "source-admission",
+        "outcome": "CAPTURED",
+        "mode": "source-admission",
+        "rootHash": "74afb45f09d1a7189f816ec09a68fe1727a4cab3a285ba844f05d7a7e3afdce9",
+        "sealHash": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+        "movement": null,
+        "capture": null,
+        "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+        "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+        "sourceFiles": 271,
+        "packageFiles": 870,
+        "publicStatus": "PUBLIC_EXPORT_GAP",
+        "proofRole": "SOURCE_PACKAGE_IDENTITY_NOT_BUILD_REPRODUCTION",
+        "failure": null
+      },
+      "child": {
+        "pid": 87705,
+        "group": 87705,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 15938
+      },
+      "newExecution": false
+    }
+  ],
+  "observationsByEnvironment": {
+    "original-runtime": {
+      "jobs": 149,
+      "uniqueOriginalIds": 132,
+      "scopedMatches": 120,
+      "failedJobs": 29,
+      "unfulfilledJobs": 28,
+      "semanticRoleUniqueIdsObserved": 111,
+      "semanticRoleUniqueIdsAllAdmittedFragmentsMatched": 86,
+      "roles": {
+        "command-semantic-runtime": {
+          "jobs": 128,
+          "scopedMatches": 103,
+          "failures": 25
+        },
+        "admission-error-boundary": {
+          "jobs": 21,
+          "scopedMatches": 17,
+          "failures": 4
+        }
+      },
+      "noFullRecordPassClaim": true
+    },
+    "moved-runtime": {
+      "jobs": 17,
+      "uniqueOriginalIds": 17,
+      "scopedMatches": 14,
+      "failedJobs": 3,
+      "unfulfilledJobs": 3,
+      "semanticRoleUniqueIdsObserved": 3,
+      "semanticRoleUniqueIdsAllAdmittedFragmentsMatched": 3,
+      "roles": {
+        "command-semantic-runtime": {
+          "jobs": 3,
+          "scopedMatches": 3,
+          "failures": 0
+        },
+        "admission-error-boundary": {
+          "jobs": 14,
+          "scopedMatches": 11,
+          "failures": 3
+        }
+      },
+      "noFullRecordPassClaim": true
+    }
+  },
+  "movedElapsedRangeMs": [
+    16840,
+    27231
+  ],
+  "stopwatchPerformanceClaim": false,
+  "isolatedTimingRootCause": false,
+  "reapIntegrity": {
+    "ref": {
+      "artifact": "reap",
+      "pointer": ""
+    },
+    "knownOwnedReap": true,
+    "children": 167,
+    "completeInputGuards": 42,
+    "newReapOrRuntimeExperiment": false
+  },
+  "dedicatedLoaded": "UNRUN",
+  "loadedMutantControl": "UNRUN",
+  "negativeControlIds": [
+    "NEG-01",
+    "NEG-02",
+    "NEG-03",
+    "NEG-04",
+    "NEG-05",
+    "NEG-06"
+  ],
+  "negativeControlRuns": 0,
+  "typeWorkerRuns": 0,
+  "compilerFixtureRuns": 0,
+  "scopedTypeFixtures": [
+    {
+      "id": "TYP-01",
+      "name": "positive",
+      "fixture": "fixtures/positive.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "accept",
+      "diagnostic": null,
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-02",
+      "name": "factory-command-extra",
+      "fixture": "fixtures/factory-command-extra.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-02",
+      "name": "factory-array-extra",
+      "fixture": "fixtures/factory-array-extra.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-03",
+      "name": "unknown-limits",
+      "fixture": "fixtures/unknown-limits.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2353,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-03",
+      "name": "replace-string",
+      "fixture": "fixtures/replace-string.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2322,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-07",
+      "name": "replace-undefined",
+      "fixture": "fixtures/replace-undefined.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2379,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    }
+  ],
+  "pendingPublicTypeFixtures": [
+    {
+      "id": "TYP-04",
+      "name": "hidden-limits"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-defaults"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-session"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-factory"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-parser"
+    }
+  ],
+  "overallFailureUnchanged": true,
+  "unrunIsProductFailure": false,
+  "newExecutionAuthorization": false
+}

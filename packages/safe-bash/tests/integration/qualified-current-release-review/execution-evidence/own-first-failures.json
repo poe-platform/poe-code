@@ -1,0 +1,18 @@
+{
+  "scope": "Own verifier mechanics only; original product failure remains unchanged",
+  "initialRead": {
+    "commandStatus": 127,
+    "cause": "Read-only zsh loop used reserved path variable and temporarily shadowed PATH; cat was not found. Repeated with file variable. No persistent environment or repository edit."
+  },
+  "postcheck": {
+    "command": "node tests/integration/qualified-current-release-review/postcheck.mjs",
+    "status": 1,
+    "phase": "After all three independent strict negative controls passed and first three authenticated v2 evidence files were archived",
+    "location": "postcheck.mjs:78",
+    "cause": "apply_patch text archive added a final newline to other-agent baseline.json, whose source has no final newline; exact SHA assertion correctly rejected the copy",
+    "expectedOriginalSha256": "950d3ddeba273e9a5b2ee6f2ca1a6c2d7a736ba7cc21777759e791a8a1237f83",
+    "actualFirstCopySha256": "18d3e91d05df074845a7ce9c027bb9e6213159f4249d9d1b8914cadf132eb88d",
+    "retention": "Original postcheck.mjs and first copy remain unchanged. Independent type-control outputs already saved before archival failure remain valid.",
+    "correction": "Separate archive-handoff.mjs stores all six source files as exact base64 byte envelopes with source SHA256 and verifies decoding. No original file, candidate, consumer, fixture or frozen input changed; no product run repeated."
+  }
+}

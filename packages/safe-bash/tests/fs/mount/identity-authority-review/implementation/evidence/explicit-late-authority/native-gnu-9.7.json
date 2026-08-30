@@ -1,0 +1,216 @@
+{
+  "capturedAt": "2026-08-27T01:05:17.253Z",
+  "platform": "darwin",
+  "tools": [
+    {
+      "name": "cp",
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+      "version": "cp (GNU coreutils) 9.7",
+      "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5"
+    },
+    {
+      "name": "mv",
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+      "version": "mv (GNU coreutils) 9.7",
+      "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500"
+    }
+  ],
+  "observations": [
+    {
+      "name": "copy binary to missing",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "source": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    },
+    {
+      "name": "copy binary overwrite",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "source": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    },
+    {
+      "name": "copy same hardlink",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "cp: 'source' and 'target' are the same file\n",
+      "entries": {
+        "source": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    },
+    {
+      "name": "copy followed source symlink alias",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "cp: 'source' and 'target' are the same file\n",
+      "entries": {
+        "source": {
+          "kind": "symlink",
+          "value": "target"
+        },
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    },
+    {
+      "name": "copy preserved symlink replaces file",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "referent": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "source": {
+          "kind": "symlink",
+          "value": "referent"
+        },
+        "target": {
+          "kind": "symlink",
+          "value": "referent"
+        }
+      }
+    },
+    {
+      "name": "copy preserved symlink replaces symlink",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "other": {
+          "kind": "file",
+          "value": "cHJldmlvdXM="
+        },
+        "referent": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "source": {
+          "kind": "symlink",
+          "value": "referent"
+        },
+        "target": {
+          "kind": "symlink",
+          "value": "referent"
+        }
+      }
+    },
+    {
+      "name": "copy preserved dangling symlink",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "source": {
+          "kind": "symlink",
+          "value": "missing"
+        },
+        "target": {
+          "kind": "symlink",
+          "value": "missing"
+        }
+      }
+    },
+    {
+      "name": "move binary to missing",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    },
+    {
+      "name": "move binary overwrite",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    },
+    {
+      "name": "move preserved symlink replaces file",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "referent": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "target": {
+          "kind": "symlink",
+          "value": "referent"
+        }
+      }
+    },
+    {
+      "name": "move no-clobber existing",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "entries": {
+        "source": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "target": {
+          "kind": "file",
+          "value": "cHJldmlvdXM="
+        }
+      }
+    },
+    {
+      "name": "move same hardlink",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "mv: 'source' and 'target' are the same file\n",
+      "entries": {
+        "source": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        },
+        "target": {
+          "kind": "file",
+          "value": "AP/DqQoNACo="
+        }
+      }
+    }
+  ]
+}

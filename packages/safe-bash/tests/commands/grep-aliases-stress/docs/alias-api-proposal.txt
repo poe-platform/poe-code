@@ -1,0 +1,33 @@
+Bounded grep aliases author proposal (2026-08-27)
+Owned new paths only: src/commands/grep-aliases/**, tests/commands/grep-aliases/**.
+Inspected src/commands/grep.ts: grepCommands(RegexExecutionOptions) returns a grep
+definition closing over one RegexExecutor; execute uses withRegexSession, which
+registers invocation cleanup before executor.open. No shared edit is needed.
+
+Proposed module src/commands/grep-aliases/index.ts:
+interface GrepAliasOptions { readonly regex?: RegexExecutionOptions; readonly replace?: boolean }
+createGrepAliasCommands(options?: GrepAliasOptions): readonly CommandDefinition[]
+grepAliasCommands(options?: GrepAliasOptions): VirtualShellPlugin
+egrepCommand(options?: GrepAliasOptions): CommandDefinition
+fgrepCommand(options?: GrepAliasOptions): CommandDefinition
+
+Family creation calls grepCommands once, so both aliases share its executor limits.
+Each wrapper directly executes that definition with the original context fields,
+command set to the alias spelling and args ['-E' or '-F', ...literalOriginalArgs].
+No context.invoke, shell string, registered grep dependency, new engine or host work.
+Separate standalone factory calls have separate executors, like separate families.
+Plugin collision-preflights both names, then honors replace; it registers no grep.
+
+Profile: two spellings, not new matching capabilities. Inherit current bounded
+grep options/conflicts/status/bytes/errors and cleanup. Alias-prefixed diagnostics;
+no GNU obsolescence warning. Native GNU warnings remain raw, separately qualified;
+BSD/GNU differences and unsupported grep options are documented, not normalized.
+Always-runnable native-derived cases plus optional exact pinned native replay.
+Root proposal only: later export these names/options and a commands/grep-aliases
+subpath if approved; no root exports/defaults/package edits by this author.
+
+Native prerequisite update: /usr/bin grep/egrep/fgrep are BSD 2.6.0-FreeBSD.
+No GNU grep executable found on PATH, Homebrew grep locations, repository native
+fixtures, /tmp, or the observed user temp directory (bounded filename search).
+GNU capture remains unavailable, not passed. Root/verifier may supply a local
+GNU bin directory with genuine grep/egrep/fgrep; author will not install dependencies.

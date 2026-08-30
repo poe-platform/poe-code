@@ -1,0 +1,40 @@
+{
+  "frozenAt": "2026-08-27T15:17:57.941Z",
+  "originalInputsCommit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+  "releaseReceipt": "07a7dae5db51612a23e74d1d164d33723d4d61b6",
+  "reportCorrection": "db139ae983ad66364e0367f9fb1ed0262ee61f63",
+  "rows": 11,
+  "workflows": 6,
+  "priorGuestExecutions": 0,
+  "priorProductImports": 0,
+  "priorEngineImports": 0,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2960,
+      "sha256": "4f50ce20b6d35c74f4ff1c226b1d948ff746263a96f591090936200dedf75632"
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 29173,
+      "sha256": "920b35f341b394486f89e4d0c314f30daa86c96d99fabfab60ae05f63881f112"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 4639,
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553"
+    },
+    {
+      "path": "guard.mjs",
+      "bytes": 5232,
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 15580,
+      "sha256": "3cf17701b773e2d9f29dd917f14fde4f2104def950aeea58b3424fc370511a0a"
+    }
+  ],
+  "assertionPolicy": "Exact c8df guest inputs/criteria/budgets; no calibration or assertion migration. Missing reachability invalid/unproved, not security pass.",
+  "sourceGuards": "Entire included immutable regular-file sets, bytes, mode/mtime/ctime; new files and symlinks detected; empty directory additions not covered."
+}

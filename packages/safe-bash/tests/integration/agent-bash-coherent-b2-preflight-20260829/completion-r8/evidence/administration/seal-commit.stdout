@@ -1,0 +1,56 @@
+[main 90c90f8da] test: seal r8 scoped cache-race and publication repair proposal
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 41 files changed, 42421 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/INITIAL-DATA-CORRECTION.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/ORIGIN.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/PENDING-AUTHORITY.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/POLICY.md
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/check.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/churn.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/publication.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/PACKET.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/ARRAY-CASES.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/arrays.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/close-observer.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/conditional.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/extension-design.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/extension.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/loader.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/n14.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/names.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/redirection-cases.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/redirections.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/resources.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/strict-design.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/harness/strict.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/stage-a-r2/common.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/types/consumer-negative.mts.fixture
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/legacy/types/consumer-positive.mts.fixture
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/metadata/FROZEN-BINDINGS.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/metadata/RECIPE.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/metadata/REGEX-CLOSURE.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/cache-census.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/classify.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/coordinator.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/fixture.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/launch.sh
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/loader.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/outer.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/owner.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/support.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/tar.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/staged/new/trace.mjs

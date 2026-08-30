@@ -1,0 +1,7 @@
+{"label":"native-profile","status":0,"durationMs":27.841874999999995,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"native-C3","status":141,"durationMs":92.1845,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"native-C4","status":0,"durationMs":94.222208,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"native-C5","status":0,"durationMs":90.91020800000001,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"native-C6","status":7,"durationMs":90.19595800000002,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+{"label":"native-C7","status":141,"durationMs":96.70862499999998,"timedOut":false,"oversized":false,"groupExists":false,"counts":[]}
+[{"id":"C3","verdict":"PASS","failures":[]},{"id":"C4","verdict":"PASS","failures":[]},{"id":"C5","verdict":"PASS","failures":[]},{"id":"C6","verdict":"PASS","failures":[]},{"id":"C7","verdict":"PASS","failures":[]}]

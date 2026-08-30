@@ -1,0 +1,10 @@
+{
+  "id": "new-empty-directory",
+  "expected": "PACKAGE_DIRECTORIES",
+  "value": null,
+  "error": {
+    "code": "PACKAGE_DIRECTORIES",
+    "message": "PACKAGE_DIRECTORIES: ",
+    "stack": "Error: PACKAGE_DIRECTORIES: \n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at assertPackageTree (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:96:3)\n    at new-empty-directory (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:112:75)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

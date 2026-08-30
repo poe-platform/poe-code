@@ -1,0 +1,55 @@
+{
+  "at": "2026-08-27T22:19:29.914Z",
+  "message": "BOUNDARY:BLOB_LIMIT tests/commands/html-to-markdown/inline-normalization-fix/EVIDENCE.json.gz.base64",
+  "stack": "Error: BOUNDARY:BLOB_LIMIT tests/commands/html-to-markdown/inline-normalization-fix/EVIDENCE.json.gz.base64\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:11:39)\n    at blob (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:49:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/bind.mjs:72:31\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+  "reads": [
+    {
+      "sequence": 1,
+      "at": "2026-08-27T22:19:17.455Z",
+      "commit": "9dc858c81672ff52b56d25f174d04714906cdff5",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "7462735ff8e309aa4c925b0c6d0cf8974cdc37c8",
+      "path": "tests/plugins/html-to-markdown-public-author/evidence-v1/INDEPENDENT-BINDINGS-BLOCKED.json",
+      "sha256": "f4abf562b80e31c1c43962ffc84820c6df8ea443e924adf693f238fca8e764d0",
+      "bytes": 6296570,
+      "purpose": "exact root receipt, parsed"
+    },
+    {
+      "sequence": 2,
+      "at": "2026-08-27T22:19:17.558Z",
+      "commit": "9dc858c81672ff52b56d25f174d04714906cdff5",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c9e87bee2540f0a0f2691e132a6261bbeb61b9a5",
+      "path": "tests/plugins/html-to-markdown-public-author/README.md",
+      "sha256": "ab22fb99a15b085329d4aa5b320cd23963d5768af95218f5a4c38a0cf25d47b4",
+      "bytes": 11814,
+      "purpose": "exact receipt parent README, read"
+    },
+    {
+      "sequence": 3,
+      "at": "2026-08-27T22:19:17.693Z",
+      "commit": "9dc858c81672ff52b56d25f174d04714906cdff5",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "1a565b421ae731fdaaab8dd13a70f42abf8126c6",
+      "path": "tests/plugins/html-to-markdown-public-author/evidence-v1/MANIFEST.json",
+      "sha256": "087bf6078ee75843206524f7b9bbd9273a2ec07fa4de903a5a88f178ad0ed373",
+      "bytes": 16076,
+      "purpose": "author capture authentication"
+    },
+    {
+      "sequence": 4,
+      "at": "2026-08-27T22:19:17.762Z",
+      "commit": "9dc858c81672ff52b56d25f174d04714906cdff5",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "4a52efaef6feb04cea34e23592c451b2d6e36544",
+      "path": "tests/plugins/html-to-markdown-public-author/evidence-v1/RAW.json.gz.base64",
+      "sha256": "86e5f1e6c99d6dde07cbf8038bbe266cc1975578a0f0aa2e42838972978212c7",
+      "bytes": 1158317,
+      "purpose": "decode immutable capture; no captured program executed"
+    }
+  ]
+}

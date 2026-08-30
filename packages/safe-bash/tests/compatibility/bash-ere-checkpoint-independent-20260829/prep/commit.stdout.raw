@@ -1,0 +1,25 @@
+[main b2ff9a3dfaa2392c5d27d37d280154df732f3351] test: preseal independent PUREERE R02 checkpoint review
+ 23 files changed, 5174 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/AUTHOR-SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/EXECUTOR.json
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/EXECUTOR.sha256
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/RUNNER-TRANSFORMS.json
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/SOURCE-GIT.json
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/novel.mjs
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/outer.mjs
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/START.json
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/api.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/focused.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/git-status.json
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/initial.stderr.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/initial.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/inspect.stderr.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/inspect.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/prepare.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/prepare.stderr.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/prepare.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/runner1.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prep/runner2.stdout.raw
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/prepare.mjs
+ create mode 100644 tests/compatibility/bash-ere-checkpoint-independent-20260829/runner.mjs

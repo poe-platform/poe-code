@@ -1,0 +1,17 @@
+import { resolve } from 'node:path';
+import { capture, candidate, owned } from './supervisor.mjs';
+
+const round = process.argv[2] ?? 'r0';
+const testArgs = ['--unhandled-rejections=strict', '--import', 'tsx', '--test', '--test-concurrency=1'];
+await capture(`${round}-source-build`, process.execPath, [resolve(candidate, 'node_modules/typescript/bin/tsc'), '-p', 'tsconfig.build.json']);
+await capture(`${round}-scoped-typecheck`, process.execPath, [resolve(candidate, 'node_modules/typescript/bin/tsc'), '--noEmit', '--listFiles', '-p', 'tsconfig.json']);
+await capture(`${round}-adapted-five`, process.execPath, [...testArgs, '--test-name-pattern=pipeline close: first-read-(?!head-zero)', 'tests/shell/adapted-remote-close.test.ts']);
+await capture(`${round}-original-five-and-head-zero`, process.execPath, [...testArgs, '--test-name-pattern=pipeline close: first-read-', 'tests/shell/remote-close.test.ts']);
+await capture(`${round}-existing-remote`, process.execPath, [...testArgs, '--test-name-pattern=pipeline close: (?!first-read-)', 'tests/shell/remote-close.test.ts']);
+await capture(`${round}-existing-byte-io`, process.execPath, [...testArgs, 'tests/contracts/io.test.ts', 'tests/contracts/io.stress.test.ts']);
+await capture(`${round}-existing-shared`, process.execPath, [...testArgs, '--test-name-pattern=hard-timeout lifecycle regression: shared-', 'tests/shell/lifecycle.test.ts']);
+await capture(`${round}-existing-streaming`, process.execPath, [...testArgs, '--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches', 'tests/shell/streaming.test.ts']);
+for (const scenario of ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']) {
+  await capture(`${round}-control-${scenario}`, process.execPath, ['--unhandled-rejections=strict', resolve(owned, 'controls.mjs'), scenario], { timeoutMs: 3000, maxBytes: 65536 });
+}
+await capture(`${round}-author`, process.execPath, [...testArgs, 'tests/shell/owned-output-author.test.ts']);

@@ -1,0 +1,1894 @@
+{
+  "verifiedAt": "2026-08-28T20:05:47.073Z",
+  "attemptConsumed": true,
+  "controllerExitCode": 1,
+  "plannedJobs": 70,
+  "executedJobs": 27,
+  "notRunJobs": [
+    "types-moved-positive",
+    "types-moved-bad-value",
+    "types-moved-bad-value-repair",
+    "types-moved-root-negative",
+    "types-moved-root-repair",
+    "cap-L01-minus",
+    "cap-L01-at",
+    "cap-L01-over",
+    "cap-L02-minus",
+    "cap-L02-at",
+    "cap-L02-over",
+    "cap-L05-minus",
+    "cap-L05-at",
+    "cap-L05-over",
+    "cap-L06-minus",
+    "cap-L06-at",
+    "cap-L06-over",
+    "cap-L07-minus",
+    "cap-L07-at",
+    "cap-L07-over",
+    "cap-L10-minus",
+    "cap-L10-at",
+    "cap-L10-over",
+    "real-scoped",
+    "mock-s3-scoped",
+    "mutation-M01-before",
+    "mutation-M01-mutant",
+    "mutation-M01-restored",
+    "mutation-M03-before",
+    "mutation-M03-mutant",
+    "mutation-M03-restored",
+    "mutation-M04-before",
+    "mutation-M04-mutant",
+    "mutation-M04-restored",
+    "mutation-M09-before",
+    "mutation-M09-mutant",
+    "mutation-M09-restored",
+    "mutation-M12-before",
+    "mutation-M12-mutant",
+    "mutation-M12-restored",
+    "mutation-M18-before",
+    "mutation-M18-mutant",
+    "mutation-M18-restored"
+  ],
+  "executedByRole": {
+    "git": 3,
+    "guard": 4,
+    "build": 1,
+    "type": 10,
+    "product": 9
+  },
+  "layouts": {
+    "source": {
+      "PASS": 115,
+      "FAIL": 4,
+      "NOT_RUN": 6,
+      "STATIC_NONCONFORMANCE": 1,
+      "HARNESS_ERROR": 0
+    },
+    "installed": {
+      "PASS": 115,
+      "FAIL": 4,
+      "NOT_RUN": 6,
+      "STATIC_NONCONFORMANCE": 1,
+      "HARNESS_ERROR": 0
+    },
+    "moved": {
+      "PASS": 116,
+      "FAIL": 3,
+      "NOT_RUN": 6,
+      "STATIC_NONCONFORMANCE": 1,
+      "HARNESS_ERROR": 0
+    }
+  },
+  "observedCaseReceipts": 378,
+  "observedCaseCounts": {
+    "PASS": 346,
+    "FAIL": 11,
+    "NOT_RUN": 18,
+    "STATIC_NONCONFORMANCE": 3,
+    "HARNESS_ERROR": 0
+  },
+  "plannedCaseReceipts": 422,
+  "undispatchedCaseReceipts": 44,
+  "limits": {
+    "plannedCases": 18,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 18
+  },
+  "adapters": {
+    "real": {
+      "pass": 0,
+      "fail": 0,
+      "unrun": 4
+    },
+    "mockS3": {
+      "pass": 0,
+      "fail": 0,
+      "unrun": 4
+    },
+    "dav": "NOT_RUN; not a frozen planned job"
+  },
+  "mutations": {
+    "sealedIntents": 6,
+    "plannedPhases": 18,
+    "dispatchedPhases": 0,
+    "killed": 0,
+    "unrun": 18
+  },
+  "types": {
+    "source": {
+      "pass": 5,
+      "fail": 0,
+      "unrun": 0
+    },
+    "installed": {
+      "pass": 5,
+      "fail": 0,
+      "unrun": 0
+    },
+    "moved": {
+      "pass": 0,
+      "fail": 0,
+      "unrun": 5
+    }
+  },
+  "loadObservations": {
+    "productChildren": 9,
+    "records": 1953,
+    "recordsPerChild": [
+      {
+        "id": "source-originals",
+        "records": 217
+      },
+      {
+        "id": "source-supplement-a",
+        "records": 217
+      },
+      {
+        "id": "source-supplement-b",
+        "records": 217
+      },
+      {
+        "id": "installed-originals",
+        "records": 217
+      },
+      {
+        "id": "installed-supplement-a",
+        "records": 217
+      },
+      {
+        "id": "installed-supplement-b",
+        "records": 217
+      },
+      {
+        "id": "moved-originals",
+        "records": 217
+      },
+      {
+        "id": "moved-supplement-a",
+        "records": 217
+      },
+      {
+        "id": "moved-supplement-b",
+        "records": 217
+      }
+    ],
+    "allMatchedRuntimeSeal": true,
+    "sixAppModulesPerChild": true,
+    "mutantLoads": 0
+  },
+  "checkedBindings": 555,
+  "toolFiles": 249,
+  "toolDirectories": 24,
+  "rawCaptureBytes": 10040242,
+  "captureFiles": 199,
+  "captureMembershipSha256": "74a5aeb0c16922f9e96a98a1fe71125b1e4ade52a95a725486f244568b071098",
+  "rawEvidenceFileBytes": 19933774,
+  "archive": {
+    "path": "evidence/work-archive.json.gz.base64",
+    "compressedBytes": 4839664,
+    "sha256": "95d29ab19d665ff0816a7d8703656fcb8fcb8f5e769cc66caf9e5727ea9ff69c",
+    "entries": 2231,
+    "decodedFileBytes": 14210103,
+    "verifiedFiles": 2078,
+    "instructionBodies": 0
+  },
+  "cleanup": {
+    "ownedRootRemoved": true,
+    "knownChildrenRetired": true
+  },
+  "knownChildren": [
+    {
+      "id": "git-base-tree",
+      "role": "git",
+      "pid": 69244,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "git-authenticated-inputs",
+      "role": "git",
+      "pid": 69251,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "guard-hash",
+      "role": "guard",
+      "pid": 69261,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "guard-missing",
+      "role": "guard",
+      "pid": 69262,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "guard-mode",
+      "role": "guard",
+      "pid": 69263,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "supervisor-binary",
+      "role": "guard",
+      "pid": 69265,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "build-source",
+      "role": "build",
+      "pid": 69267,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "git-runtime-seal",
+      "role": "git",
+      "pid": 71102,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "source-originals",
+      "role": "product",
+      "pid": 71111,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "source-supplement-a",
+      "role": "product",
+      "pid": 71118,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "source-supplement-b",
+      "role": "product",
+      "pid": 71120,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-source-positive",
+      "role": "type",
+      "pid": 71129,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-source-bad-value",
+      "role": "type",
+      "pid": 71137,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-source-bad-value-repair",
+      "role": "type",
+      "pid": 71149,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-source-root-negative",
+      "role": "type",
+      "pid": 71174,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-source-root-repair",
+      "role": "type",
+      "pid": 71179,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "installed-originals",
+      "role": "product",
+      "pid": 71204,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "installed-supplement-a",
+      "role": "product",
+      "pid": 71215,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "installed-supplement-b",
+      "role": "product",
+      "pid": 71220,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-installed-positive",
+      "role": "type",
+      "pid": 71228,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-installed-bad-value",
+      "role": "type",
+      "pid": 71235,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-installed-bad-value-repair",
+      "role": "type",
+      "pid": 71244,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-installed-root-negative",
+      "role": "type",
+      "pid": 71254,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "types-installed-root-repair",
+      "role": "type",
+      "pid": 71259,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "moved-originals",
+      "role": "product",
+      "pid": 71332,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "moved-supplement-a",
+      "role": "product",
+      "pid": 71910,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "moved-supplement-b",
+      "role": "product",
+      "pid": 71942,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    }
+  ],
+  "fatalStage": "types-moved-positive preparation, before child admission",
+  "fatalClassification": "sealed controller harness collision, not a compiler or product failure",
+  "fatal": {
+    "name": "Error",
+    "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/consumer-positive.mts'",
+    "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/consumer-positive.mts'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at put (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs:67:6)\n    at types (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs:213:68)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs:334:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "started": "2026-08-28T19:59:18.226Z",
+  "preCleanupElapsedMs": 176554.228875,
+  "finalArtifactMtimeUtc": "2026-08-28T20:02:16.110Z",
+  "controllerLogMtimeUtc": "2026-08-28T20:02:16.111Z",
+  "peakOwnedProcesses": 2,
+  "peakWorkingBytes": 14210103,
+  "admittedWorkingBytes": 75755140,
+  "finalSha256": "0f9cc57ffe3865f133846f0f82d88a2ac5b52dc1ecd06f37a61d4d50544e9e04",
+  "runtimeSealSha256": "9a5a3b4aa2fe5c39ae3ea1cc0b266459d5dccb7e373a4e9b56c78a321a86cf23",
+  "grantSha256": "233775f3295868f270de72ad12b3fc73ff2e10cd7e43ca021517cc75ff838a27",
+  "receipts": [
+    {
+      "id": "git-base-tree",
+      "role": "git",
+      "pid": 69244,
+      "code": 0,
+      "bytes": 5554546,
+      "receipt": "001-git-base-tree.json"
+    },
+    {
+      "id": "git-authenticated-inputs",
+      "role": "git",
+      "pid": 69251,
+      "code": 0,
+      "bytes": 2475165,
+      "receipt": "002-git-authenticated-inputs.json"
+    },
+    {
+      "id": "guard-hash",
+      "role": "guard",
+      "pid": 69261,
+      "code": 0,
+      "bytes": 387,
+      "receipt": "003-guard-hash.json"
+    },
+    {
+      "id": "guard-missing",
+      "role": "guard",
+      "pid": 69262,
+      "code": 0,
+      "bytes": 239,
+      "receipt": "004-guard-missing.json"
+    },
+    {
+      "id": "guard-mode",
+      "role": "guard",
+      "pid": 69263,
+      "code": 0,
+      "bytes": 239,
+      "receipt": "005-guard-mode.json"
+    },
+    {
+      "id": "supervisor-binary",
+      "role": "guard",
+      "pid": 69265,
+      "code": 0,
+      "bytes": 4,
+      "receipt": "006-supervisor-binary.json"
+    },
+    {
+      "id": "build-source",
+      "role": "build",
+      "pid": 69267,
+      "code": 0,
+      "bytes": 0,
+      "receipt": "007-build-source.json"
+    },
+    {
+      "id": "git-runtime-seal",
+      "role": "git",
+      "pid": 71102,
+      "code": 0,
+      "bytes": 419736,
+      "receipt": "008-git-runtime-seal.json"
+    },
+    {
+      "id": "source-originals",
+      "role": "product",
+      "pid": 71111,
+      "code": 0,
+      "bytes": 141668,
+      "receipt": "009-source-originals.json"
+    },
+    {
+      "id": "source-supplement-a",
+      "role": "product",
+      "pid": 71118,
+      "code": 0,
+      "bytes": 146956,
+      "receipt": "010-source-supplement-a.json"
+    },
+    {
+      "id": "source-supplement-b",
+      "role": "product",
+      "pid": 71120,
+      "code": 1,
+      "bytes": 166754,
+      "receipt": "011-source-supplement-b.json"
+    },
+    {
+      "id": "types-source-positive",
+      "role": "type",
+      "pid": 71129,
+      "code": 0,
+      "bytes": 15323,
+      "receipt": "012-types-source-positive.json"
+    },
+    {
+      "id": "types-source-bad-value",
+      "role": "type",
+      "pid": 71137,
+      "code": 2,
+      "bytes": 15418,
+      "receipt": "013-types-source-bad-value.json"
+    },
+    {
+      "id": "types-source-bad-value-repair",
+      "role": "type",
+      "pid": 71149,
+      "code": 0,
+      "bytes": 15331,
+      "receipt": "014-types-source-bad-value-repair.json"
+    },
+    {
+      "id": "types-source-root-negative",
+      "role": "type",
+      "pid": 71174,
+      "code": 2,
+      "bytes": 27766,
+      "receipt": "015-types-source-root-negative.json"
+    },
+    {
+      "id": "types-source-root-repair",
+      "role": "type",
+      "pid": 71179,
+      "code": 0,
+      "bytes": 15326,
+      "receipt": "016-types-source-root-repair.json"
+    },
+    {
+      "id": "installed-originals",
+      "role": "product",
+      "pid": 71204,
+      "code": 0,
+      "bytes": 147932,
+      "receipt": "017-installed-originals.json"
+    },
+    {
+      "id": "installed-supplement-a",
+      "role": "product",
+      "pid": 71215,
+      "code": 0,
+      "bytes": 153220,
+      "receipt": "018-installed-supplement-a.json"
+    },
+    {
+      "id": "installed-supplement-b",
+      "role": "product",
+      "pid": 71220,
+      "code": 1,
+      "bytes": 173018,
+      "receipt": "019-installed-supplement-b.json"
+    },
+    {
+      "id": "types-installed-positive",
+      "role": "type",
+      "pid": 71228,
+      "code": 0,
+      "bytes": 15607,
+      "receipt": "020-types-installed-positive.json"
+    },
+    {
+      "id": "types-installed-bad-value",
+      "role": "type",
+      "pid": 71235,
+      "code": 2,
+      "bytes": 15702,
+      "receipt": "021-types-installed-bad-value.json"
+    },
+    {
+      "id": "types-installed-bad-value-repair",
+      "role": "type",
+      "pid": 71244,
+      "code": 0,
+      "bytes": 15615,
+      "receipt": "022-types-installed-bad-value-repair.json"
+    },
+    {
+      "id": "types-installed-root-negative",
+      "role": "type",
+      "pid": 71254,
+      "code": 2,
+      "bytes": 30270,
+      "receipt": "023-types-installed-root-negative.json"
+    },
+    {
+      "id": "types-installed-root-repair",
+      "role": "type",
+      "pid": 71259,
+      "code": 0,
+      "bytes": 15610,
+      "receipt": "024-types-installed-root-repair.json"
+    },
+    {
+      "id": "moved-originals",
+      "role": "product",
+      "pid": 71332,
+      "code": 0,
+      "bytes": 149443,
+      "receipt": "025-moved-originals.json"
+    },
+    {
+      "id": "moved-supplement-a",
+      "role": "product",
+      "pid": 71910,
+      "code": 0,
+      "bytes": 154731,
+      "receipt": "026-moved-supplement-a.json"
+    },
+    {
+      "id": "moved-supplement-b",
+      "role": "product",
+      "pid": 71942,
+      "code": 1,
+      "bytes": 174236,
+      "receipt": "027-moved-supplement-b.json"
+    }
+  ],
+  "failures": [
+    {
+      "job": "source-supplement-b",
+      "id": "S62",
+      "failures": [
+        {
+          "label": "stderr",
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(text.endsWith(expected.diagnosticTruncationSuffix))\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 40,
+          "sha256": "820481b025ff245a74686d5eed6e66c240cc4ed7c40e5dcd1f93c4fbef033ed8",
+          "base64": "YXBwbHlfcGF0Y2g6IHBlcm1pc3Npb24gZGVuaWVkOiAvd29yay9hCg=="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "source-supplement-b",
+      "id": "S64",
+      "failures": [
+        {
+          "label": "outcome",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+        },
+        {
+          "label": "stdout",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ Buffer(0) [Uint8Array] []\n- Buffer(56) [Uint8Array] [\n-   83,\n-   117,\n-   99,\n-   99,\n-   101,\n-   115,\n-   115,\n-   46,\n-   32,\n-   85,\n-   112,\n-   100,\n-   97,\n-   116,\n-   101,\n-   100,\n-   32,\n-   116,\n-   104,\n-   101,\n-   32,\n-   102,\n-   111,\n-   108,\n-   108,\n-   111,\n-   119,\n-   105,\n-   110,\n-   103,\n-   32,\n-   102,\n-   105,\n-   108,\n-   101,\n-   115,\n-   58,\n-   10,\n-   65,\n-   32,\n-   36,\n-   72,\n-   79,\n-   77,\n-   69,\n-   96,\n-   119,\n-   104,\n-   111,\n-   97,\n-   109,\n-   105,\n-   96,\n-   92,\n-   97,\n-   10\n- ]\n"
+        },
+        {
+          "label": "complete namespace and exact bytes",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    '/': {\n      type: 'directory'\n    },\n    '/sentinel': {\n...\n    },\n-   '/work/$HOME`whoami`\\\\a': {\n-     base64: 'JCh0b3VjaCBlc2NhcGUpCg==',\n-     bytes: 16,\n-     sha256: '0016f5f0868e7ca6c8e5695ca7ca61e9cd32a99f6063647036ae264ca3e47050',\n-     type: 'file'\n-   }\n  }\n"
+        },
+        {
+          "label": "trace and safety",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          }
+        },
+        "rejected": true,
+        "exitCode": null,
+        "reasonType": "object",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "calls": [],
+        "pulls": 0,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 0,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "source-supplement-b",
+      "id": "S71",
+      "failures": [
+        {
+          "label": "trace and safety",
+          "message": "{\"method\":\"access\",\"path\":\"/work\",\"mode\":2}"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 38,
+          "sha256": "ad548ed8cf6d3eb8e90b7544f68fa6aefd7f04247592ee261beff98a19220b79",
+          "base64": "YXBwbHlfcGF0Y2g6IHBlcm1pc3Npb24gZGVuaWVkOiAvd29yawo="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "source-supplement-b",
+      "id": "S74",
+      "failures": [
+        {
+          "label": "stderr",
+          "message": "expected reason target changed since preflight: /work/b, got apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          },
+          "/work/b": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+            "base64": "bmV3Cg=="
+          },
+          "/work/b": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+            "base64": "bmV3Cg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 98,
+          "sha256": "3039aabb30d6ef9e97db6c0cde0884e2162b790ef13cfb963937ec0c5f5826ca",
+          "base64": "YXBwbHlfcGF0Y2g6IG9wZXJhdGlvbiAyOyBwcmlvciBjaGFuZ2VzIG1heSByZW1haW46IHRhcmdldCBieXRlcyBjaGFuZ2VkIHNpbmNlIHByZWZsaWdodDogL3dvcmsvYgo="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/b",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "compareEntry",
+            "path": "/work/a",
+            "peerPath": "/work/b",
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/b",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "readFile",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          },
+          {
+            "method": "readFile",
+            "path": "/work/b",
+            "occurrence": 1,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          },
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "readFile",
+            "path": "/work/a",
+            "occurrence": 2,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 3,
+            "signalMatches": true
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true,
+            "flag": "w",
+            "payload": {
+              "bytes": 4,
+              "sha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+              "base64": "bmV3Cg=="
+            }
+          },
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 3,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 4,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/b",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "readFile",
+            "path": "/work/b",
+            "occurrence": 2,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "installed-supplement-b",
+      "id": "S62",
+      "failures": [
+        {
+          "label": "stderr",
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(text.endsWith(expected.diagnosticTruncationSuffix))\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 40,
+          "sha256": "820481b025ff245a74686d5eed6e66c240cc4ed7c40e5dcd1f93c4fbef033ed8",
+          "base64": "YXBwbHlfcGF0Y2g6IHBlcm1pc3Npb24gZGVuaWVkOiAvd29yay9hCg=="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "installed-supplement-b",
+      "id": "S64",
+      "failures": [
+        {
+          "label": "outcome",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+        },
+        {
+          "label": "stdout",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ Buffer(0) [Uint8Array] []\n- Buffer(56) [Uint8Array] [\n-   83,\n-   117,\n-   99,\n-   99,\n-   101,\n-   115,\n-   115,\n-   46,\n-   32,\n-   85,\n-   112,\n-   100,\n-   97,\n-   116,\n-   101,\n-   100,\n-   32,\n-   116,\n-   104,\n-   101,\n-   32,\n-   102,\n-   111,\n-   108,\n-   108,\n-   111,\n-   119,\n-   105,\n-   110,\n-   103,\n-   32,\n-   102,\n-   105,\n-   108,\n-   101,\n-   115,\n-   58,\n-   10,\n-   65,\n-   32,\n-   36,\n-   72,\n-   79,\n-   77,\n-   69,\n-   96,\n-   119,\n-   104,\n-   111,\n-   97,\n-   109,\n-   105,\n-   96,\n-   92,\n-   97,\n-   10\n- ]\n"
+        },
+        {
+          "label": "complete namespace and exact bytes",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    '/': {\n      type: 'directory'\n    },\n    '/sentinel': {\n...\n    },\n-   '/work/$HOME`whoami`\\\\a': {\n-     base64: 'JCh0b3VjaCBlc2NhcGUpCg==',\n-     bytes: 16,\n-     sha256: '0016f5f0868e7ca6c8e5695ca7ca61e9cd32a99f6063647036ae264ca3e47050',\n-     type: 'file'\n-   }\n  }\n"
+        },
+        {
+          "label": "trace and safety",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          }
+        },
+        "rejected": true,
+        "exitCode": null,
+        "reasonType": "object",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "calls": [],
+        "pulls": 0,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 0,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "installed-supplement-b",
+      "id": "S71",
+      "failures": [
+        {
+          "label": "trace and safety",
+          "message": "{\"method\":\"access\",\"path\":\"/work\",\"mode\":2}"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 38,
+          "sha256": "ad548ed8cf6d3eb8e90b7544f68fa6aefd7f04247592ee261beff98a19220b79",
+          "base64": "YXBwbHlfcGF0Y2g6IHBlcm1pc3Npb24gZGVuaWVkOiAvd29yawo="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "installed-supplement-b",
+      "id": "S74",
+      "failures": [
+        {
+          "label": "stderr",
+          "message": "expected reason target changed since preflight: /work/b, got apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          },
+          "/work/b": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+            "base64": "bmV3Cg=="
+          },
+          "/work/b": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+            "base64": "bmV3Cg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 98,
+          "sha256": "3039aabb30d6ef9e97db6c0cde0884e2162b790ef13cfb963937ec0c5f5826ca",
+          "base64": "YXBwbHlfcGF0Y2g6IG9wZXJhdGlvbiAyOyBwcmlvciBjaGFuZ2VzIG1heSByZW1haW46IHRhcmdldCBieXRlcyBjaGFuZ2VkIHNpbmNlIHByZWZsaWdodDogL3dvcmsvYgo="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/b",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "compareEntry",
+            "path": "/work/a",
+            "peerPath": "/work/b",
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/b",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "readFile",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          },
+          {
+            "method": "readFile",
+            "path": "/work/b",
+            "occurrence": 1,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          },
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "readFile",
+            "path": "/work/a",
+            "occurrence": 2,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 3,
+            "signalMatches": true
+          },
+          {
+            "method": "writeFile",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true,
+            "flag": "w",
+            "payload": {
+              "bytes": 4,
+              "sha256": "7aa7a5359173d05b63cfd682e3c38487f3cb4f7f1d60659fe59fab1505977d4c",
+              "base64": "bmV3Cg=="
+            }
+          },
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 3,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 4,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/b",
+            "occurrence": 2,
+            "signalMatches": true
+          },
+          {
+            "method": "readFile",
+            "path": "/work/b",
+            "occurrence": 2,
+            "signalMatches": true,
+            "maxBytes": 8388608
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "moved-supplement-b",
+      "id": "S62",
+      "failures": [
+        {
+          "label": "stderr",
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(text.endsWith(expected.diagnosticTruncationSuffix))\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 40,
+          "sha256": "820481b025ff245a74686d5eed6e66c240cc4ed7c40e5dcd1f93c4fbef033ed8",
+          "base64": "YXBwbHlfcGF0Y2g6IHBlcm1pc3Npb24gZGVuaWVkOiAvd29yay9hCg=="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "moved-supplement-b",
+      "id": "S64",
+      "failures": [
+        {
+          "label": "outcome",
+          "message": "Expected values to be strictly equal:\n\ntrue !== false\n"
+        },
+        {
+          "label": "stdout",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ Buffer(0) [Uint8Array] []\n- Buffer(56) [Uint8Array] [\n-   83,\n-   117,\n-   99,\n-   99,\n-   101,\n-   115,\n-   115,\n-   46,\n-   32,\n-   85,\n-   112,\n-   100,\n-   97,\n-   116,\n-   101,\n-   100,\n-   32,\n-   116,\n-   104,\n-   101,\n-   32,\n-   102,\n-   111,\n-   108,\n-   108,\n-   111,\n-   119,\n-   105,\n-   110,\n-   103,\n-   32,\n-   102,\n-   105,\n-   108,\n-   101,\n-   115,\n-   58,\n-   10,\n-   65,\n-   32,\n-   36,\n-   72,\n-   79,\n-   77,\n-   69,\n-   96,\n-   119,\n-   104,\n-   111,\n-   97,\n-   109,\n-   105,\n-   96,\n-   92,\n-   97,\n-   10\n- ]\n"
+        },
+        {
+          "label": "complete namespace and exact bytes",
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  {\n    '/': {\n      type: 'directory'\n    },\n    '/sentinel': {\n...\n    },\n-   '/work/$HOME`whoami`\\\\a': {\n-     base64: 'JCh0b3VjaCBlc2NhcGUpCg==',\n-     bytes: 16,\n-     sha256: '0016f5f0868e7ca6c8e5695ca7ca61e9cd32a99f6063647036ae264ca3e47050',\n-     type: 'file'\n-   }\n  }\n"
+        },
+        {
+          "label": "trace and safety",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          }
+        },
+        "rejected": true,
+        "exitCode": null,
+        "reasonType": "object",
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "calls": [],
+        "pulls": 0,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 0,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    },
+    {
+      "job": "moved-supplement-b",
+      "id": "S71",
+      "failures": [
+        {
+          "label": "trace and safety",
+          "message": "{\"method\":\"access\",\"path\":\"/work\",\"mode\":2}"
+        }
+      ],
+      "raw": {
+        "before": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "after": {
+          "/": {
+            "type": "directory"
+          },
+          "/sentinel": {
+            "type": "file",
+            "bytes": 13,
+            "sha256": "dc483acda4ca6e87b1b867c576d24c13ea9e6e4346201cac177b2f08d5224e42",
+            "base64": "AP+AU2VudGluZWwNCg=="
+          },
+          "/work": {
+            "type": "directory"
+          },
+          "/work/a": {
+            "type": "file",
+            "bytes": 4,
+            "sha256": "01d09d19c2139a46aebfb577780d123d7396e97201bc7ead210a2ebff8239dee",
+            "base64": "b2xkCg=="
+          }
+        },
+        "rejected": false,
+        "exitCode": 1,
+        "reasonType": null,
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "base64": ""
+        },
+        "stderr": {
+          "bytes": 38,
+          "sha256": "ad548ed8cf6d3eb8e90b7544f68fa6aefd7f04247592ee261beff98a19220b79",
+          "base64": "YXBwbHlfcGF0Y2g6IHBlcm1pc3Npb24gZGVuaWVkOiAvd29yawo="
+        },
+        "calls": [
+          {
+            "method": "lstat",
+            "path": "/",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "lstat",
+            "path": "/work/a",
+            "occurrence": 1,
+            "signalMatches": true
+          },
+          {
+            "method": "access",
+            "path": "/work",
+            "occurrence": 1,
+            "signalMatches": true
+          }
+        ],
+        "pulls": 2,
+        "returns": 0,
+        "acquired": 1,
+        "outputWrites": 0,
+        "cleanups": 1,
+        "hiddenGarbageRemoved": false,
+        "cleanupFailures": 0,
+        "rootAborted": false
+      }
+    }
+  ],
+  "qualification": "Post-run data verification only. No product dispatch, C18 proof rerun, replay, fixture correction, retry, unexecuted mutant kill or full acceptance inferred."
+}

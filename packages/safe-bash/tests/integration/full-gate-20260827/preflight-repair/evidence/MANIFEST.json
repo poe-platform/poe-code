@@ -1,0 +1,151 @@
+{
+  "capturedAt": "2026-08-27T11:53:51.796Z",
+  "harnessBaseCommit": "fbd4a2c4c8c8215bbc04a1ab923af47e1bd64d22",
+  "policyCandidate": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "wholeSuiteLaunched": false,
+  "productSourceChanged": false,
+  "counts": {
+    "tests": 23,
+    "pass": 23,
+    "fail": 0,
+    "skip": 0,
+    "todo": 0,
+    "cancelled": 0,
+    "includesMutantControls": 2
+  },
+  "nativeMaterialization": {
+    "executables": [
+      "nl",
+      "seq",
+      "unexpand",
+      "split",
+      "date",
+      "sleep",
+      "printenv"
+    ],
+    "commands": "--version only, no product test execution",
+    "profile": "GNU9.7 Darwin, exact materialized fixture paths"
+  },
+  "nativeInventory": {
+    "assets": 48,
+    "issues": [
+      {
+        "kind": "native-unavailable",
+        "name": "tree",
+        "environment": "TREE_NATIVE_BIN"
+      }
+    ],
+    "required": 49
+  },
+  "preflightIssues": [
+    {
+      "kind": "dirty-tracked-inputs",
+      "records": [
+        " M package.json"
+      ]
+    },
+    {
+      "kind": "historical-source-binding",
+      "path": "tests/shell-stress/differential.test.ts"
+    },
+    {
+      "kind": "historical-source-binding",
+      "path": "tests/shell-stress/current-gaps/compatibility.test.ts"
+    },
+    {
+      "kind": "historical-source-binding",
+      "path": "src/shell/shell.ts"
+    },
+    {
+      "kind": "known-tracked-artifact-writer",
+      "path": "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+    },
+    {
+      "kind": "native-unavailable",
+      "name": "tree"
+    }
+  ],
+  "temporaryControlsRemaining": [],
+  "frozenEvidenceVerification": {
+    "commit": "95440687",
+    "captures": 812,
+    "failures": 307,
+    "skips": 13,
+    "unchanged": true
+  },
+  "sourceHashes": [
+    {
+      "path": "package.json",
+      "sha256": "8e2f368f83680bf443335e7347328abe7d74d6b23768f283b3a8b0970aca5427"
+    },
+    {
+      "path": "scripts/verify-whole-gate.mjs",
+      "sha256": "0456fc2658dda1aa4a6beb04e360d52cb34e55646396a5eb5b04a4c54ccdd955"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs",
+      "sha256": "4e328502a8713fe6bba64f231cab846ceb1d2dc5454a8276205de3009d17944e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/preflight.test.mjs",
+      "sha256": "190edc8adf00d446db5091098043e1c4098f6419240b2e0beeca2eca357a5223"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/run.mjs",
+      "sha256": "80157b14e685e7c30d9aee6a3416148fcfcf4f568c0cc5f00b331dc6c95310ea"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/policy.json",
+      "sha256": "eb2575674ba51a5c8a8f5c82609281e56f5cbff77889e4e86e22dc7974cdc11e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/README.md",
+      "sha256": "91fd1581b90293e942f7fd2d45205a0a1e1bfcbaa9737bb300db5eb7c628407c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/HANDOFF.md",
+      "sha256": "207a99e009cdf55477e4510ca68e1dbb4f249cbc8f824db74947f8844bc11758"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/preflight-repair/TYPE_DIAGNOSTICS.md",
+      "sha256": "e9073993042c949c296f397133f74f41ada487ae6d490612087f113f6a6c7ed3"
+    }
+  ],
+  "captures": [
+    {
+      "path": "evidence/initial-21.tap.gzbase64.data",
+      "encoding": "gzip-base64",
+      "originalBytes": 3935,
+      "originalSha256": "393b93c95b9d00c4fee610e8f714abf5373b2e0062f7d552329941d905b18777",
+      "storedSha256": "0d33ac1fb711296eb0a8636263b401ba71f2db484930c0f34df5b5fac0841ace"
+    },
+    {
+      "path": "evidence/expanded-23.tap.gzbase64.data",
+      "encoding": "gzip-base64",
+      "originalBytes": 4373,
+      "originalSha256": "35db7f7d7af203cc92ea160cb2cb14687eed6c3ea3dda2e378e33b511257a91e",
+      "storedSha256": "cc61e9bc4c3b419965f1376b2a28c9dfccf231d0ab97c4c90a4911e9cefec2c5"
+    },
+    {
+      "path": "evidence/final-23.tap.gzbase64.data",
+      "encoding": "gzip-base64",
+      "originalBytes": 4365,
+      "originalSha256": "acaa5ca67fe22a9f6541f71129779e837e49a8a7c575e6ea9e16e35c586bc82a",
+      "storedSha256": "de3d4cf839ef0daab8ab21241a9cc735216991fd1eec48a18669821e72af1fa0"
+    },
+    {
+      "path": "evidence/first-preflight.json.gzbase64.data",
+      "encoding": "gzip-base64",
+      "originalBytes": 47209,
+      "originalSha256": "e4d73093712b6e4dc3443a17c135a3d3beec2d9f19a541ac15c0268a7612118c",
+      "storedSha256": "20283e13fe759f766ce5133b11bf1ab177423c0bf4714ca8246b059b7dda3f83"
+    },
+    {
+      "path": "evidence/final-preflight.json.gzbase64.data",
+      "encoding": "gzip-base64",
+      "originalBytes": 33024,
+      "originalSha256": "38ec4406dac7e761770b7e3574d9345690d484b73128fbbbc15feaaaacd060fc",
+      "storedSha256": "97c1d52dfb59cf5f46e1341488709e7b857c3960efdfb5d191ec3230bf059803"
+    }
+  ]
+}

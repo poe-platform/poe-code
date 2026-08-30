@@ -1,0 +1,20 @@
+{
+  "startedUTC": "2026-08-29T13:16:46.167Z",
+  "finishedUTC": "2026-08-29T13:16:46.401Z",
+  "reviews": [
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-review/RECEIPT.json",
+      "blob": "db14dc141e3027861a80fe423ed4d062ac80faf3",
+      "bytes": 6857,
+      "sha256": "41113e45260e254776bfdf97ff5ed44c5d87f00b53bfb0e6d9698b2eaddf42b8"
+    },
+    {
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/b1-final-binding-review/REPORT.md",
+      "blob": "90e5d7aee5da16f2277b7c4c3bf4348691a85431",
+      "bytes": 7404,
+      "sha256": "2b0ca0a9cfe3e6d41dc1b42e42ec6f29f15af82e45645b14274b4b7bb847582b"
+    }
+  ],
+  "actual": 0,
+  "gitChildren": 5
+}

@@ -1,0 +1,860 @@
+{
+  "schema": "git-independent-design-review-binding-v1",
+  "status": "DESIGN_REVIEW_COMPLETE_NO_IMPLEMENTATION_OR_PUBLIC_GO",
+  "date": "2026-08-28",
+  "timezone": "America/Chicago",
+  "subject": {
+    "commit": "589d1d93e2cd87296949ff32d8bf4d9bbef6cbcc",
+    "bindingSha256": "b046c0dd2765eb86d7fc9ec1b77092d61a2f987568138465bb77bbf0790f1aff",
+    "scope": "tests/commands/git-design-20260828/**",
+    "storedCommitVerified": true,
+    "storedTreeAncestry": [
+      {
+        "path": "/",
+        "oid": "2328f6e12fc30b613d989156c7fd9654261f05ad",
+        "canonicalBytes": 449
+      },
+      {
+        "path": "tests",
+        "oid": "466882d6f9490910f091565728792cbb7dc75c1e",
+        "canonicalBytes": 387
+      },
+      {
+        "path": "tests/commands",
+        "oid": "25290578e3985f20842ccd5d8bdd8e453c35ac5e",
+        "canonicalBytes": 3876
+      },
+      {
+        "path": "tests/commands/git-design-20260828",
+        "oid": "c59c05c970d3a6294ef0b28f1f38035863b81a1b",
+        "canonicalBytes": 254
+      }
+    ],
+    "packetTreeRecomputed": {
+      "oid": "c59c05c970d3a6294ef0b28f1f38035863b81a1b",
+      "canonicalBytes": 254,
+      "storedObjectVerified": true
+    },
+    "authorDeclaredDerivedOnlyIdentities": [],
+    "qualification": "Author binding is a selected-file live capture subsequently committed; its null commit and historical zero Git executions are qualified by immutable AUTHORITY-CLARIFICATION.md."
+  },
+  "inspection": {
+    "initialObservedHead": "9b6c8a04d0e3227ead7d055253b80fec7479f04b",
+    "bindingCaptureUtc": "2026-08-28T16:38:59.992Z",
+    "checksCompletedUtc": "2026-08-28T16:50:03.419Z",
+    "timing": "Post-author/post-design review. Criteria supplied before inspection; written criteria and matrix after packet/source/document reads, before any authorized product implementation in this task."
+  },
+  "packet": [
+    {
+      "path": "tests/commands/git-design-20260828/AUTHORITY-CLARIFICATION.md",
+      "bytes": 939,
+      "sha256": "bb935f30f090406a96b5b8dd38611a15789a58e5da33c74f9b68600612f8405f",
+      "gitBlob": "4b84396fe7d17a296fae785a5cdd28d072c382a5",
+      "liveEqual": true
+    },
+    {
+      "path": "tests/commands/git-design-20260828/BINDING.json",
+      "bytes": 4403,
+      "sha256": "b046c0dd2765eb86d7fc9ec1b77092d61a2f987568138465bb77bbf0790f1aff",
+      "gitBlob": "60a5d39f27bba46082d4c536a949ae20fabb0675",
+      "liveEqual": true
+    },
+    {
+      "path": "tests/commands/git-design-20260828/MATRIX.md",
+      "bytes": 6073,
+      "sha256": "303c6f3194131a93e359ada3719b9e25286e71ab2b3613f1358c4b17f1537dec",
+      "gitBlob": "42cd808299608bbfb9f3bbf8d1d0b7f5e5b94b92",
+      "liveEqual": true
+    },
+    {
+      "path": "tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074",
+      "gitBlob": "2c38c00a61576f6abd00dbd23ade7885267f94d5",
+      "liveEqual": true
+    },
+    {
+      "path": "tests/commands/git-design-20260828/README.md",
+      "bytes": 21911,
+      "sha256": "75a77904e143976524fa01ca1599405567e304777eac4a1e1ffb2347ddad255d",
+      "gitBlob": "3f2f946a63938f7423b04fd95c94a5ea8d6a7405",
+      "liveEqual": true
+    },
+    {
+      "path": "tests/commands/git-design-20260828/SOURCES.md",
+      "bytes": 2927,
+      "sha256": "6a526346c5d58a1ce8c0661483b1cdcf7cdfb78e2e05ad7aa6a060e0e5fb4f52",
+      "gitBlob": "5f63cd0a0bbfa69d3e0464488b6f3dafc7bbc2f2",
+      "liveEqual": true
+    }
+  ],
+  "sourceInputs": [
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "liveEqual": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "gitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "liveEqual": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "gitBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "liveEqual": true
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "gitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/bytes/checksums/index.ts",
+      "bytes": 12862,
+      "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+      "gitBlob": "9d0af357a4b97d4ab145e3d9d2e57013ee2f271a",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/bytes/compression/gunzip.ts",
+      "bytes": 5874,
+      "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "gitBlob": "f9f612b09588199a4f5ac8352b548505d3af41a7",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/bytes/compression/stream.ts",
+      "bytes": 3390,
+      "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "gitBlob": "ad4faddb6372786fff00ea0a6f2666c46fb4827c",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "bytes": 6906,
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "gitBlob": "99d12adf757d03e779d180a1d027735bed88a6cb",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "bytes": 12580,
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "gitBlob": "3df080754f641b8119f5e920022632aa00344409",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "bytes": 5221,
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "gitBlob": "ff3fd370362301cccd39322b643deb99b314b0fd",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "bytes": 3157,
+      "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da",
+      "gitBlob": "922d148336c9a612f7e604d0aa32b3ce1ba6c8c6",
+      "liveEqual": true
+    }
+  ],
+  "extraSources": [
+    {
+      "path": "src/plugins/index.ts",
+      "bytes": 6665,
+      "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751",
+      "gitBlob": "1741b55650062b6ae282d410d20969cac283fa8e",
+      "liveEqual": true
+    },
+    {
+      "path": "src/commands/index.ts",
+      "bytes": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "gitBlob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "liveEqual": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "bytes": 195094,
+      "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd",
+      "gitBlob": "7660086a09c9dedbdd86bd15ae10ea729886654e",
+      "liveEqual": true
+    }
+  ],
+  "derivedSelectedSourceTree": {
+    "oid": "66912c06b1b047ac47c4b34548f0fef51d61908c",
+    "identityKind": "DERIVED_ONLY_NOT_ASSERTED_STORED",
+    "algorithm": "For the 14 authenticated source blobs only, construct hierarchical tree entries: mode SP UTF8-name NUL raw20-byte-OID, Git byte order (directories compare with trailing slash); SHA1 of tree SP decimal-byte-length NUL plus exact entries. No git object lookup/write for these derived identities.",
+    "trees": [
+      {
+        "path": "src/contracts",
+        "oid": "a2fd8256858cce00817ad47de1b7cfafa4e4b089",
+        "canonicalBytes": 149
+      },
+      {
+        "path": "src/commands/bytes/checksums",
+        "oid": "fc864298ad5a5b471c38c234b8a82d1afc7e2b29",
+        "canonicalBytes": 36
+      },
+      {
+        "path": "src/commands/bytes/compression",
+        "oid": "0904f8b2ebb190a7d3de37a8afb271246d2d8f98",
+        "canonicalBytes": 74
+      },
+      {
+        "path": "src/commands/bytes",
+        "oid": "df031964c92d16e8d66347bd9bf9dff914f7fed0",
+        "canonicalBytes": 74
+      },
+      {
+        "path": "src/commands/diff-patch",
+        "oid": "fc02823653b9979bfbb667e6efacca5d9d0f7980",
+        "canonicalBytes": 114
+      },
+      {
+        "path": "src/commands/search",
+        "oid": "f4f6e476d2554831dacf02011a95925c4efd1aa0",
+        "canonicalBytes": 35
+      },
+      {
+        "path": "src/commands",
+        "oid": "2adb42cfec6288acf1257fd1fc7636b3825812f5",
+        "canonicalBytes": 138
+      },
+      {
+        "path": "src/plugins",
+        "oid": "fe61c2df56e02b4b88b7fde64c2c7ec6f0ad6cf3",
+        "canonicalBytes": 36
+      },
+      {
+        "path": "src/shell",
+        "oid": "3ec135225b8c7f24f5c214dfe61e5d67359529a1",
+        "canonicalBytes": 38
+      },
+      {
+        "path": "src",
+        "oid": "54b595ec7de426011164f4cde41bdf12a893d338",
+        "canonicalBytes": 137
+      },
+      {
+        "path": "/",
+        "oid": "66912c06b1b047ac47c4b34548f0fef51d61908c",
+        "canonicalBytes": 30
+      }
+    ]
+  },
+  "literalFixture": {
+    "qualification": "In-memory checksums and structural fields only; no Git semantics, native acceptance, product/parser imports or filesystem materialization.",
+    "maxCompressedInputBytesPerObject": 1024,
+    "maxInflatedBytesPerObject": 4096,
+    "objects": [
+      {
+        "oid": "ce013625030ba8dba906f756967f9e9ca394464a",
+        "type": "blob",
+        "compressedBytes": 21,
+        "bodyBytes": 6,
+        "compressedSha256": "93aeb3c1fad42d632b7848d4010daf85939a0238a98702abb03a44209151f375"
+      },
+      {
+        "oid": "5671f837b11e71420ad6d8da84ba07569e3961b1",
+        "type": "blob",
+        "compressedBytes": 29,
+        "bodyBytes": 13,
+        "compressedSha256": "3f6fb828ddb29aa675f9c6c32717c17139e7e5572a0f59890d6d31d9bd860c99"
+      },
+      {
+        "oid": "df967b96a579e45a18b8251732d16804b2e56a55",
+        "type": "blob",
+        "compressedBytes": 20,
+        "bodyBytes": 5,
+        "compressedSha256": "ed7e0d47fabfe7f0597401c0aa7a4de9f885ddf26f1752c26090ffa8ba004b43"
+      },
+      {
+        "oid": "f719efd430d52bcfc8566a43b2eb655688d38871",
+        "type": "blob",
+        "compressedBytes": 19,
+        "bodyBytes": 4,
+        "compressedSha256": "22c13adbaa1a69b9e11e31286b451984dc3831cbad5690fde4b88324bedf9b9d"
+      },
+      {
+        "oid": "286c5f5776916d7d7d5849988ca9d83e722cf9c2",
+        "type": "blob",
+        "compressedBytes": 20,
+        "bodyBytes": 5,
+        "compressedSha256": "1a8e4b0a9b7c628aad99691e87a7e923199d69cf8f3708c7ac8c75d979d1b3ec"
+      },
+      {
+        "oid": "8214f2a3867e2bcbe05172f870629f24ebd0048e",
+        "type": "tree",
+        "compressedBytes": 52,
+        "bodyBytes": 35,
+        "compressedSha256": "e5d3876bea74b208ca35601bbb61672e8032bfdabdf4cf0ba523155a2131ca90"
+      },
+      {
+        "oid": "7202976aee2fe6822ad399e62d81746506a10c8e",
+        "type": "tree",
+        "compressedBytes": 52,
+        "bodyBytes": 35,
+        "compressedSha256": "ab611253b4994ec00e874b1c7dca45547268864baed3196b5cc884b33ab1f247"
+      },
+      {
+        "oid": "d6933c40519b4db4904e71cf3b7ec5c50e09000f",
+        "type": "tree",
+        "compressedBytes": 122,
+        "bodyBytes": 107,
+        "compressedSha256": "d823fad914fd24b8e38397dacdc34a38316262a8ddd539128afb7d563e1915f2"
+      },
+      {
+        "oid": "b17f2aba562322af347fa8aa023d9d0e571a4369",
+        "type": "tree",
+        "compressedBytes": 122,
+        "bodyBytes": 107,
+        "compressedSha256": "4ea97c2b03ef2b030c4d6d9a2ba4329a118e9d31e27f61d434f4a790a60edf1c"
+      },
+      {
+        "oid": "dde68226091aa6adddca45e02370c5127430e55a",
+        "type": "commit",
+        "compressedBytes": 129,
+        "bodyBytes": 182,
+        "compressedSha256": "6acfac02df37f0cd43efbc70dd55a722203f33dcdfe4c54ce8bec5630cb732a2"
+      },
+      {
+        "oid": "1cec77171d8321d533b3aa50b7a1a9df02b10816",
+        "type": "commit",
+        "compressedBytes": 157,
+        "bodyBytes": 229,
+        "compressedSha256": "069bc846c09c79693ff913d8bbbe372761a223c6ce443801b02e1ab5e85fc89f"
+      }
+    ],
+    "index": {
+      "bytes": 184,
+      "version": 2,
+      "entries": [
+        {
+          "offset": 12,
+          "next": 84,
+          "path": "README.md",
+          "mode": "100644",
+          "stage": 0,
+          "flags": 9,
+          "oid": "5671f837b11e71420ad6d8da84ba07569e3961b1",
+          "size": 13
+        },
+        {
+          "offset": 84,
+          "next": 164,
+          "path": "src/app.txt",
+          "mode": "100644",
+          "stage": 0,
+          "flags": 11,
+          "oid": "f719efd430d52bcfc8566a43b2eb655688d38871",
+          "size": 4
+        }
+      ],
+      "checksum": "4e0756cbe19b4a1c86b447b76cc78f90709041a7",
+      "sha256": "ba0d03f2d774c396f9c15502384c0ee1fdbe15069120a12a08e0a463d3cbf872",
+      "extensionsBytes": 0
+    },
+    "trees": [
+      {
+        "oid": "8214f2a3867e2bcbe05172f870629f24ebd0048e",
+        "entries": [
+          {
+            "mode": "100644",
+            "name": "app.txt",
+            "oid": "df967b96a579e45a18b8251732d16804b2e56a55"
+          }
+        ]
+      },
+      {
+        "oid": "7202976aee2fe6822ad399e62d81746506a10c8e",
+        "entries": [
+          {
+            "mode": "100644",
+            "name": "app.txt",
+            "oid": "f719efd430d52bcfc8566a43b2eb655688d38871"
+          }
+        ]
+      },
+      {
+        "oid": "d6933c40519b4db4904e71cf3b7ec5c50e09000f",
+        "entries": [
+          {
+            "mode": "100644",
+            "name": "README.md",
+            "oid": "ce013625030ba8dba906f756967f9e9ca394464a"
+          },
+          {
+            "mode": "100644",
+            "name": "obsolete.txt",
+            "oid": "286c5f5776916d7d7d5849988ca9d83e722cf9c2"
+          },
+          {
+            "mode": "40000",
+            "name": "src",
+            "oid": "8214f2a3867e2bcbe05172f870629f24ebd0048e"
+          }
+        ]
+      },
+      {
+        "oid": "b17f2aba562322af347fa8aa023d9d0e571a4369",
+        "entries": [
+          {
+            "mode": "100644",
+            "name": "README.md",
+            "oid": "ce013625030ba8dba906f756967f9e9ca394464a"
+          },
+          {
+            "mode": "100644",
+            "name": "obsolete.txt",
+            "oid": "286c5f5776916d7d7d5849988ca9d83e722cf9c2"
+          },
+          {
+            "mode": "40000",
+            "name": "src",
+            "oid": "7202976aee2fe6822ad399e62d81746506a10c8e"
+          }
+        ]
+      }
+    ],
+    "commits": [
+      {
+        "oid": "dde68226091aa6adddca45e02370c5127430e55a",
+        "tree": "d6933c40519b4db4904e71cf3b7ec5c50e09000f",
+        "parents": []
+      },
+      {
+        "oid": "1cec77171d8321d533b3aa50b7a1a9df02b10816",
+        "tree": "b17f2aba562322af347fa8aa023d9d0e571a4369",
+        "parents": [
+          "dde68226091aa6adddca45e02370c5127430e55a"
+        ]
+      }
+    ],
+    "counts": {
+      "looseObjects": 11,
+      "blobs": 5,
+      "trees": 4,
+      "commits": 2,
+      "indexBytes": 184,
+      "indexEntries": 2,
+      "preparedWorkflows": 6,
+      "semanticPasses": 0
+    },
+    "checks": [
+      "all literal compressed bytes consumed in this small-data decode",
+      "actual inflated header/body size and requested SHA1 match",
+      "tree record boundaries, typed mode set, child existence and byte ordering for supplied fixture",
+      "commit tree/parent references structurally present",
+      "index DIRC/v2/count/checksum/name lengths/stages/modes/padding/entry-end offsets"
+    ],
+    "limitations": [
+      "not a general Git parser or hostile-input certification",
+      "no emitted CLI outputs computed or accepted",
+      "original transcription failures remain preserved in author binding"
+    ]
+  },
+  "reviewDocuments": [
+    {
+      "path": "tests/commands/git-independent-20260828/CRITERIA.md",
+      "bytes": 3636,
+      "sha256": "e167885dbdf6f19dbff558525215ea92cd5b9a1a505ce701a25a5d4046cab086"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/REVIEW.md",
+      "bytes": 19122,
+      "sha256": "36ff222980ad6e6d52a3facdf1503dcc5b6181bda3a69f5da20d862de53ffbf3"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/MATRIX.md",
+      "bytes": 16173,
+      "sha256": "22ffee2be1420d1f9109dce8ae8702817cb418decace594676d2e8fb050a4ad8"
+    },
+    {
+      "path": "tests/commands/git-independent-20260828/SOURCES.md",
+      "bytes": 5963,
+      "sha256": "0abadaf5dd5434eb0050e491b88ccf0b8aaca7753d222eaa3f663f29fd64d8cb"
+    }
+  ],
+  "matrix": {
+    "rows": 72,
+    "M1A": 60,
+    "inheritedNeutral": 6,
+    "independentM1A": 54,
+    "M1B": 12,
+    "all": "UNRUN",
+    "ids": [
+      "A01",
+      "A02",
+      "A03",
+      "A04",
+      "A05",
+      "A06",
+      "A07",
+      "A08",
+      "A09",
+      "A10",
+      "A11",
+      "A12",
+      "A13",
+      "A14",
+      "A15",
+      "A16",
+      "A17",
+      "A18",
+      "A19",
+      "A20",
+      "A21",
+      "A22",
+      "A23",
+      "A24",
+      "A25",
+      "A26",
+      "A27",
+      "A28",
+      "A29",
+      "A30",
+      "A31",
+      "A32",
+      "A33",
+      "A34",
+      "A35",
+      "A36",
+      "A37",
+      "A38",
+      "A39",
+      "A40",
+      "A41",
+      "A42",
+      "A43",
+      "A44",
+      "A45",
+      "A46",
+      "A47",
+      "A48",
+      "A49",
+      "A50",
+      "A51",
+      "A52",
+      "A53",
+      "A54",
+      "A55",
+      "A56",
+      "A57",
+      "A58",
+      "A59",
+      "A60",
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07",
+      "B08",
+      "B09",
+      "B10",
+      "B11",
+      "B12"
+    ]
+  },
+  "protection": {
+    "before": [
+      {
+        "path": "tests/commands/git-design-20260828/AUTHORITY-CLARIFICATION.md",
+        "bytes": 939,
+        "sha256": "bb935f30f090406a96b5b8dd38611a15789a58e5da33c74f9b68600612f8405f"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/BINDING.json",
+        "bytes": 4403,
+        "sha256": "b046c0dd2765eb86d7fc9ec1b77092d61a2f987568138465bb77bbf0790f1aff"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/MATRIX.md",
+        "bytes": 6073,
+        "sha256": "303c6f3194131a93e359ada3719b9e25286e71ab2b3613f1358c4b17f1537dec"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+        "bytes": 4160,
+        "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/README.md",
+        "bytes": 21911,
+        "sha256": "75a77904e143976524fa01ca1599405567e304777eac4a1e1ffb2347ddad255d"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/SOURCES.md",
+        "bytes": 2927,
+        "sha256": "6a526346c5d58a1ce8c0661483b1cdcf7cdfb78e2e05ad7aa6a060e0e5fb4f52"
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "bytes": 2968,
+        "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+      },
+      {
+        "path": "src/contracts/filesystem.ts",
+        "bytes": 3897,
+        "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+      },
+      {
+        "path": "src/contracts/io.ts",
+        "bytes": 7663,
+        "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "bytes": 4661,
+        "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+      },
+      {
+        "path": "src/commands/bytes/checksums/index.ts",
+        "bytes": 12862,
+        "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab"
+      },
+      {
+        "path": "src/commands/bytes/compression/gunzip.ts",
+        "bytes": 5874,
+        "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+      },
+      {
+        "path": "src/commands/bytes/compression/stream.ts",
+        "bytes": 3390,
+        "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+      },
+      {
+        "path": "src/commands/diff-patch/shared.ts",
+        "bytes": 6906,
+        "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+      },
+      {
+        "path": "src/commands/diff-patch/diff.ts",
+        "bytes": 12580,
+        "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+      },
+      {
+        "path": "src/commands/diff-patch/diff-format.ts",
+        "bytes": 5221,
+        "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+      },
+      {
+        "path": "src/commands/search/glob.ts",
+        "bytes": 3157,
+        "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da"
+      },
+      {
+        "path": "AGENTS.md",
+        "bytes": 14250,
+        "sha256": "e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6"
+      },
+      {
+        "path": "docs/COMMAND_PRIORITIES.md",
+        "bytes": 16839,
+        "sha256": "713d89f0f03223dcc5c0d5a4f9151754c3b79fc065770f019035cf6774e4e048"
+      },
+      {
+        "path": "src/index.ts",
+        "bytes": 1638,
+        "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472"
+      },
+      {
+        "path": "src/commands/agent/index.ts",
+        "absent": true
+      },
+      {
+        "path": "package.json",
+        "bytes": 4979,
+        "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "bytes": 6665,
+        "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751"
+      },
+      {
+        "path": "src/commands/index.ts",
+        "bytes": 2292,
+        "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "bytes": 195094,
+        "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd"
+      }
+    ],
+    "after": [
+      {
+        "path": "tests/commands/git-design-20260828/AUTHORITY-CLARIFICATION.md",
+        "unchanged": true,
+        "sha256": "bb935f30f090406a96b5b8dd38611a15789a58e5da33c74f9b68600612f8405f"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/BINDING.json",
+        "unchanged": true,
+        "sha256": "b046c0dd2765eb86d7fc9ec1b77092d61a2f987568138465bb77bbf0790f1aff"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/MATRIX.md",
+        "unchanged": true,
+        "sha256": "303c6f3194131a93e359ada3719b9e25286e71ab2b3613f1358c4b17f1537dec"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+        "unchanged": true,
+        "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/README.md",
+        "unchanged": true,
+        "sha256": "75a77904e143976524fa01ca1599405567e304777eac4a1e1ffb2347ddad255d"
+      },
+      {
+        "path": "tests/commands/git-design-20260828/SOURCES.md",
+        "unchanged": true,
+        "sha256": "6a526346c5d58a1ce8c0661483b1cdcf7cdfb78e2e05ad7aa6a060e0e5fb4f52"
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "unchanged": true,
+        "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+      },
+      {
+        "path": "src/contracts/filesystem.ts",
+        "unchanged": true,
+        "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+      },
+      {
+        "path": "src/contracts/io.ts",
+        "unchanged": true,
+        "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+      },
+      {
+        "path": "src/contracts/output.ts",
+        "unchanged": true,
+        "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+      },
+      {
+        "path": "src/commands/bytes/checksums/index.ts",
+        "unchanged": true,
+        "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab"
+      },
+      {
+        "path": "src/commands/bytes/compression/gunzip.ts",
+        "unchanged": true,
+        "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+      },
+      {
+        "path": "src/commands/bytes/compression/stream.ts",
+        "unchanged": true,
+        "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+      },
+      {
+        "path": "src/commands/diff-patch/shared.ts",
+        "unchanged": true,
+        "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+      },
+      {
+        "path": "src/commands/diff-patch/diff.ts",
+        "unchanged": true,
+        "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+      },
+      {
+        "path": "src/commands/diff-patch/diff-format.ts",
+        "unchanged": true,
+        "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+      },
+      {
+        "path": "src/commands/search/glob.ts",
+        "unchanged": true,
+        "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da"
+      },
+      {
+        "path": "AGENTS.md",
+        "unchanged": true,
+        "sha256": "e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6"
+      },
+      {
+        "path": "docs/COMMAND_PRIORITIES.md",
+        "unchanged": true,
+        "sha256": "713d89f0f03223dcc5c0d5a4f9151754c3b79fc065770f019035cf6774e4e048"
+      },
+      {
+        "path": "src/index.ts",
+        "unchanged": true,
+        "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472"
+      },
+      {
+        "path": "src/commands/agent/index.ts",
+        "unchanged": true
+      },
+      {
+        "path": "package.json",
+        "unchanged": true,
+        "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "unchanged": true,
+        "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751"
+      },
+      {
+        "path": "src/commands/index.ts",
+        "unchanged": true,
+        "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "unchanged": true,
+        "sha256": "ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd"
+      }
+    ],
+    "allObservedEntriesUnchanged": true,
+    "authorDirectoryNamesBefore": [
+      "AUTHORITY-CLARIFICATION.md",
+      "BINDING.json",
+      "MATRIX.md",
+      "NEUTRAL-FIXTURE.json",
+      "README.md",
+      "SOURCES.md"
+    ],
+    "authorDirectoryNamesAfter": [
+      "AUTHORITY-CLARIFICATION.md",
+      "BINDING.json",
+      "MATRIX.md",
+      "NEUTRAL-FIXTURE.json",
+      "README.md",
+      "SOURCES.md"
+    ],
+    "appendCheckScope": "Immediate author packet directory names compared, plus listed-file content hashes and protected tracked diff. Not whole-repository append-proof or a namespace snapshot.",
+    "protectedTrackedDiffEmpty": true,
+    "initialIndexEntriesSha256": "8beb382d03063f43416385dcc9bfa336a1c24b6c565db2d18a3536b9897f4047",
+    "initialStagedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "initialForeignStagedPaths": [],
+    "qualification": "Initial index empty of staged changes; unrelated untracked artifacts present and preserved. Final immediate pre/post-commit foreign index comparison is reported in handoff, not predicted here."
+  },
+  "execution": {
+    "developmentGitMetadataUsed": true,
+    "nativeGitVersionQueries": 0,
+    "nativeGitOracleExecutions": 0,
+    "productExecutions": 0,
+    "fixtureMaterializations": 0,
+    "testBuildHelperExecutions": 0,
+    "privateAccesses": 0,
+    "gateOrDeclarationReplays": 0,
+    "sourceOrPackageEdits": 0,
+    "dependenciesAdded": 0
+  },
+  "commitBinding": "This self-excluding manifest binds the four review documents. The final development commit OID is reported in the handoff; a commit cannot include its own OID. Only five explicit new review documents are to be committed with hooks disabled."
+}

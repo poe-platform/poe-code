@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "createdAt": "2026-08-28T11:30:22.180Z",
+  "phase": "before any composition build or product execution; after accepted-component source/handoff inspection",
+  "cases": 18,
+  "types": {
+    "positive": 2,
+    "negative": 4,
+    "inversions": 4
+  },
+  "expectedFullPackageFiles": 858,
+  "compositionTree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "namesOrigin": "fef944359c93880544ec1e7b7fa9e6aa1b7fb3fe:tests/integration/timeout-public-author-20260828/names.mjs",
+  "artifacts": {
+    "compose.mjs": "326b23a6322756a2cd838462687b9ec20aa58d5c185f61b8f101c9a8caf85db5",
+    "MANIFEST.json": "4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e",
+    "CASES.json": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+    "README.md": "fec2d9190556b6d1414258d6cff2d987893eef6e37bee586d1d0929d06710c2c",
+    "names.mjs": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee",
+    "TYPES.json": "447fb41c072e964b5dc6be4089756b6ebf41e0e4de849abeca12d7a2aee2cd9c"
+  }
+}

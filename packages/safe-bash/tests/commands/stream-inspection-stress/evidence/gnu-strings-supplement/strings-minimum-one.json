@@ -1,0 +1,23 @@
+{
+  "id": "strings-minimum-one",
+  "args": [
+    "-n",
+    "1"
+  ],
+  "locale": "C",
+  "inputSha256": "b22e8c5ba004b0f997dc3ce6b8e8d9a5b171f198e68ccf95da95e872d36eb1c8",
+  "fileHashes": {},
+  "originalExpected": {
+    "stdoutHex": "090a207e0a410a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "expected": {
+    "stdoutHex": "090a207e0a410a",
+    "stderrHex": "",
+    "exitCode": 0
+  },
+  "differences": [],
+  "signal": null,
+  "error": null
+}

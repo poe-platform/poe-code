@@ -1,0 +1,9 @@
+{
+  "family": "ER-09",
+  "name": "inventory-accounting",
+  "classification": "DATA_SOURCE_NOT_RUNTIME_SEMANTIC",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-09-inventory-accounting-input.json",
+  "raw": "ER-09-inventory-accounting-raw.json"
+}

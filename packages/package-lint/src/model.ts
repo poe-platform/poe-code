@@ -12,6 +12,7 @@ import {
   type RuntimeFileAssetView
 } from "./runtime-files.js";
 import { scanImportFiles, scanSourceImports, type SourceImportView } from "./source-imports.js";
+import { parseSourceExclude } from "./source-files.js";
 
 /**
  * Minimal filesystem surface the analyzer needs. Injected so the CLI can pass
@@ -22,7 +23,17 @@ export interface LintFs {
   readFile(p: string): Promise<string>;
   readdir(p: string): Promise<{ name: string; isDirectory(): boolean }[]>;
   stat?(p: string): Promise<{ isDirectory(): boolean; isFile(): boolean }>;
+  lstat?(p: string): Promise<LintStat>;
+  realpath?(p: string): Promise<string>;
   listFiles?(p: string): Promise<string[]>;
+}
+
+export interface LintStat {
+  dev: number | bigint;
+  ino: number | bigint;
+  isDirectory(): boolean;
+  isFile(): boolean;
+  isSymbolicLink(): boolean;
 }
 
 export type Ecosystem = "npm" | "pypi";
@@ -52,6 +63,7 @@ export interface PackageInfo {
   files: string[];
   scripts: Record<string, string>;
   runtimeAssets: RuntimeAssetDeclaration[];
+  sourceExclude?: readonly string[];
   hasReadme: boolean;
 }
 
@@ -262,6 +274,7 @@ async function loadPackage(
       : [],
     scripts: toStringRecord(pkg.scripts),
     runtimeAssets: parseRuntimeAssets(pkg),
+    sourceExclude: parseSourceExclude(poeCode?.packageLint, relDir),
     hasReadme: entries.some((e) => e.name === "README.md" && !e.isDirectory())
   };
 }
@@ -543,9 +556,14 @@ export async function loadWorkspace(
   const workspaceNames = new Set(packages.map((p) => p.name));
   const sourceImportPackages = packages.map((pkg) => ({
     dir: pkg.dir,
+    sourceExclude: pkg.sourceExclude,
     workspaceNames: new Set([...workspaceNames].filter((name) => name !== pkg.name))
   }));
-  const runtimePackages = packages.map((pkg) => ({ name: pkg.name, dir: pkg.dir }));
+  const runtimePackages = packages.map((pkg) => ({
+    name: pkg.name,
+    dir: pkg.dir,
+    sourceExclude: pkg.sourceExclude
+  }));
   const partialModel = {
     root,
     packages
@@ -553,7 +571,7 @@ export async function loadWorkspace(
   const shippedDistEntryFiles = [...new Set(rootEntryPoints.map((entry) => entry.target))];
   const [sourceImports, shippedDistImports, runtimeFileAssets, packageFiles] = await Promise.all([
     scanSourceImports(fs, rootDir, sourceImportPackages),
-    scanImportFiles(fs, rootDir, shippedDistEntryFiles),
+    scanImportFiles(fs, rootDir, shippedDistEntryFiles, [root, ...packages]),
     scanRuntimeFileAssets(fs, rootDir, runtimePackages),
     loadPackageFileView(options.packlistProvider ?? createNpmPacklistProvider(fs), {
       rootDir,

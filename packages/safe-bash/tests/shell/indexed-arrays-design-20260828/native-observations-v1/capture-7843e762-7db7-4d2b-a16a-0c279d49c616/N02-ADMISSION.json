@@ -1,0 +1,65 @@
+{
+  "id": "N02",
+  "at": "2026-08-28T10:07:07.837Z",
+  "binary": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "dev": 16777232,
+    "ino": 167971824,
+    "mode": 493,
+    "kind": "file",
+    "bytes": 1395864,
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "nlink": 1
+  },
+  "before": [
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+      "dev": 16777232,
+      "ino": 181263727,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    },
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+      "dev": 16777232,
+      "ino": 181263728,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    },
+    {
+      "path": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+      "realpath": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+      "dev": 16777232,
+      "ino": 181263729,
+      "mode": 448,
+      "kind": "directory",
+      "bytes": 0
+    }
+  ],
+  "argv": {
+    "id": "N02",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "a=([2]=two [9]='')\nexport a\nprintf 'export=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+      "indexed-preseal-v1"
+    ],
+    "scriptSha256": "2f03a02d6dd29c97eddc53bf6fb03261eb039b0d1ef64929a5ff187751516a82"
+  },
+  "env": {
+    "PATH": "",
+    "ENV": "",
+    "BASH_ENV": "",
+    "HOME": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+    "TMPDIR": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  }
+}

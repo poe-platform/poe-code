@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-08-27T10:21:37.213Z",
+  "fullOwnedWhitespaceCheck": {
+    "status": 2,
+    "meaning": "Preserved raw TAP and unified-patch context whitespace only; no payload normalization",
+    "stdout": "whitespace-check.stdout.data"
+  },
+  "maintainedCodeDocsJsonWhitespaceCheck": {
+    "status": 0,
+    "paths": [
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/REPORT.md",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/authentication-first-failure.txt.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/authentication.json",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/binding-r1-seal.json",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/binding-seal.json",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/controls.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/holdouts-r1.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/native.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/package.json.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/run-controls.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/run-existing.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/supervisor.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/tests/fs/webdav/mock.ts.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/tests/shell/adapted-first-read-probe.ts.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/tests/shell/diagnostic-first-read-probe.ts.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/tests/stress/remote-cancellation/helpers.ts.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/bound/tsconfig.json.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/correct-binding.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/finalize.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/h12-diagnosis-seal.json",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/h12-diagnosis.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/holdouts.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/prepare-binding.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/reconstruction-proof.json",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/report-parser-first-failure.txt.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/restore.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/results.json",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/run.mjs.data",
+      "tests/shell-stress/first-read-contract-review/owned-output-prototype-review/execution-r1/source-alignment.json"
+    ]
+  },
+  "rootBuildOrGlobalTypecheck": false,
+  "testDiscoveryFilesAdded": 0
+}

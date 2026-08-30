@@ -1,0 +1,73 @@
+{
+  "schema": "bash-surface-qualification-cases-v1",
+  "status": "PRESEALED_UNRUN_REQUIRES_SEPARATE_ROOT_GO",
+  "oracle": {
+    "path": "/bin/bash",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "version": "UNKNOWN",
+    "profile": "LOCAL_METADATA_CANDIDATE_NOT_GNU53"
+  },
+  "cases": [
+    {
+      "id": "Q01",
+      "role": "version observation",
+      "program": "printf \"%s\\n\" \"$BASH_VERSION\" \"${BASH_VERSINFO[@]}\"",
+      "predicate": "Record all bytes/status; version is observed, never assumed. No automatic GNU qualification."
+    },
+    {
+      "id": "Q02",
+      "role": "startup/environment observation",
+      "program": "printf \"BASH_ENV=<%s> ENV=<%s> HOME=<%s> PATH=<%s> PWD=<%s>\\n\" \"${BASH_ENV-unset}\" \"${ENV-unset}\" \"$HOME\" \"$PATH\" \"$PWD\"; declare -F",
+      "predicate": "Exact owned HOME/PATH/cwd, unset startup variables, no inherited functions; retain shell/version differences."
+    },
+    {
+      "id": "Q03",
+      "role": "positive owned file/read/write",
+      "program": "printf owned > out; IFS= read -r line < input; printf \"%s\" \"$line\"",
+      "predicate": "status0, stdout=fixture, out bytes=owned, no other effects"
+    },
+    {
+      "id": "Q04",
+      "role": "outside-read denial",
+      "program": "IFS= read -r stolen < ../forbidden/read-sentinel",
+      "predicate": "nonzero, no secret marker output, denied-read observer event, sentinel unchanged"
+    },
+    {
+      "id": "Q05",
+      "role": "outside-write denial",
+      "program": "printf changed > ../forbidden/write-sentinel",
+      "predicate": "nonzero, denied-write observer event, no outside file changes"
+    },
+    {
+      "id": "Q06",
+      "role": "symlink escape denial",
+      "program": "IFS= read -r stolen < blocked-link",
+      "predicate": "nonzero, denied-read observer event, target remains unchanged"
+    },
+    {
+      "id": "Q07",
+      "role": "unexpected executable denial",
+      "program": "exec /usr/bin/true",
+      "predicate": "nonzero and observer confirms denied exec; absence of marker alone is insufficient"
+    },
+    {
+      "id": "Q08",
+      "role": "fork denial in qualification profile",
+      "program": "(printf child)",
+      "predicate": "observer confirms denied fork, no unaccounted process; semantic phase needs a DIFFERENT reviewed fork policy"
+    },
+    {
+      "id": "Q09",
+      "role": "network denial observation",
+      "program": ": > /dev/tcp/127.0.0.1/9",
+      "predicate": "observer must confirm denied network, zero established sockets; unsupported net-redirection is INSUFFICIENT not a fence pass"
+    }
+  ],
+  "fixture": {
+    "input": "fixture\n",
+    "forbiddenRead": "OWNED_SENTINEL_NOT_USER_DATA\n",
+    "forbiddenWrite": "unchanged\n",
+    "symlinkTarget": "../forbidden/read-sentinel"
+  },
+  "outputBoundPerStream": 262144
+}

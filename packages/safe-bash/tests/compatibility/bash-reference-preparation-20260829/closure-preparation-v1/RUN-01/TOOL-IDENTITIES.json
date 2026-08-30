@@ -1,0 +1,378 @@
+[
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/clang",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/clang",
+    "isLink": false,
+    "bytes": 290664032,
+    "mode": "755",
+    "sha256": "f30550eab15fdf5ab8c0dc54c52679711241e5d4b636b027e18c09fef531775d"
+  },
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/ld",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/ld",
+    "isLink": false,
+    "bytes": 4953232,
+    "mode": "755",
+    "sha256": "28d85b9af18c923db12e0b4ce70b80ee217f2b7cade0e872baa9e8ddc396c08d"
+  },
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/make",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/make",
+    "isLink": false,
+    "bytes": 403216,
+    "mode": "755",
+    "sha256": "1cb12712fad2ccd6f67c05b73e8dece382f14bfef3be7550bc814eb7975c555b"
+  },
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/ar",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/ar",
+    "isLink": false,
+    "bytes": 139056,
+    "mode": "755",
+    "sha256": "d26c671be515802ff5a18edde5ca73c6bcaaf87048ef192025f00002be515794"
+  },
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/ranlib",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+    "isLink": true,
+    "bytes": 440176,
+    "mode": "755",
+    "sha256": "4189d552f0ee7efbd013a56baf1ab8f2865eaa972acc0fc3de6686a7498db393"
+  },
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/libtool",
+    "isLink": false,
+    "bytes": 440176,
+    "mode": "755",
+    "sha256": "4189d552f0ee7efbd013a56baf1ab8f2865eaa972acc0fc3de6686a7498db393"
+  },
+  {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "isLink": false,
+    "bytes": 138208,
+    "mode": "755",
+    "sha256": "61ff2c63cf68eeeadf9c4700dadb8271740ff4960f98500f30db82b31521c0de"
+  },
+  {
+    "path": "/bin/sh",
+    "resolved": "/bin/sh",
+    "isLink": false,
+    "bytes": 101232,
+    "mode": "755",
+    "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+  },
+  {
+    "path": "/bin/bash",
+    "resolved": "/bin/bash",
+    "isLink": false,
+    "bytes": 1293840,
+    "mode": "555",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+  },
+  {
+    "path": "/usr/bin/sed",
+    "resolved": "/usr/bin/sed",
+    "isLink": false,
+    "bytes": 170336,
+    "mode": "755",
+    "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+  },
+  {
+    "path": "/usr/bin/awk",
+    "resolved": "/usr/bin/awk",
+    "isLink": false,
+    "bytes": 302368,
+    "mode": "755",
+    "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+  },
+  {
+    "path": "/usr/bin/grep",
+    "resolved": "/usr/bin/grep",
+    "isLink": false,
+    "bytes": 153760,
+    "mode": "755",
+    "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab"
+  },
+  {
+    "path": "/usr/bin/tr",
+    "resolved": "/usr/bin/tr",
+    "isLink": false,
+    "bytes": 135344,
+    "mode": "755",
+    "sha256": "960e2fe0e8ede52e11ee228d90b6f37cfe81410f0e22fc327413dd3ed7b572e4"
+  },
+  {
+    "path": "/usr/bin/sort",
+    "resolved": "/usr/bin/sort",
+    "isLink": false,
+    "bytes": 206032,
+    "mode": "755",
+    "sha256": "e1cae8c9638af1466950fd7c241434c81242d4bbc54fff5f2d18e0e86ea9c7e3"
+  },
+  {
+    "path": "/bin/expr",
+    "resolved": "/bin/expr",
+    "isLink": false,
+    "bytes": 102000,
+    "mode": "755",
+    "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f"
+  },
+  {
+    "path": "/usr/bin/expr",
+    "absent": true
+  },
+  {
+    "path": "/usr/bin/wc",
+    "resolved": "/usr/bin/wc",
+    "isLink": false,
+    "bytes": 102240,
+    "mode": "755",
+    "sha256": "88b57f3ba569cf4e48c87bf0bb0faab30c5664c82c2aa2a9706e24388b39ffe5"
+  },
+  {
+    "path": "/usr/bin/dirname",
+    "resolved": "/usr/bin/dirname",
+    "isLink": false,
+    "bytes": 101168,
+    "mode": "755",
+    "sha256": "95865913a51848f4c6f6971e149980e1150b119f6223b918aea5375f36a1d634"
+  },
+  {
+    "path": "/usr/bin/basename",
+    "resolved": "/usr/bin/basename",
+    "isLink": false,
+    "bytes": 101568,
+    "mode": "755",
+    "sha256": "6af59ba90e74d2c3ffa6ea8b157a03f392d93716c14d555158da8faefcdebefa"
+  },
+  {
+    "path": "/bin/cat",
+    "resolved": "/bin/cat",
+    "isLink": false,
+    "bytes": 118992,
+    "mode": "755",
+    "sha256": "580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6"
+  },
+  {
+    "path": "/bin/rm",
+    "resolved": "/bin/rm",
+    "isLink": false,
+    "bytes": 119200,
+    "mode": "755",
+    "sha256": "eac5b0e334d4c89493b505c72191a106af3b42bfe4ae5224967d71f11cc7f9ba"
+  },
+  {
+    "path": "/bin/mkdir",
+    "resolved": "/bin/mkdir",
+    "isLink": false,
+    "bytes": 101472,
+    "mode": "755",
+    "sha256": "7b98111d92aba1c3679a6633db281945f55f2e2581ca3cf982c999f1865e3b4c"
+  },
+  {
+    "path": "/bin/cp",
+    "resolved": "/bin/cp",
+    "isLink": false,
+    "bytes": 153360,
+    "mode": "755",
+    "sha256": "abdacc2fc3183df9a2e68d22556cf5509fbd62799bb71ec2a38febfb4fbd9c5c"
+  },
+  {
+    "path": "/bin/mv",
+    "resolved": "/bin/mv",
+    "isLink": false,
+    "bytes": 119440,
+    "mode": "755",
+    "sha256": "e17db5197afe47d1f4c8fd0a6ff32f153cce19183f3a70e33d043976a0943695"
+  },
+  {
+    "path": "/bin/chmod",
+    "resolved": "/bin/chmod",
+    "isLink": false,
+    "bytes": 120656,
+    "mode": "755",
+    "sha256": "378aded8fd0852a4930c39bd8ff8584be2c8b590ec8f74a298e56300264164c7"
+  },
+  {
+    "path": "/usr/bin/touch",
+    "resolved": "/usr/bin/touch",
+    "isLink": false,
+    "bytes": 101792,
+    "mode": "755",
+    "sha256": "79853859b2c5e8713fcf1d3d849d5baa414a1cbf77858bf088490906580e35ca"
+  },
+  {
+    "path": "/usr/bin/env",
+    "resolved": "/usr/bin/env",
+    "isLink": false,
+    "bytes": 102368,
+    "mode": "755",
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+  },
+  {
+    "path": "/usr/bin/uname",
+    "resolved": "/usr/bin/uname",
+    "isLink": false,
+    "bytes": 101456,
+    "mode": "755",
+    "sha256": "9abecf7a88117e093ff6c34ce07bacf7dc1277af1193b1cb0a0bf8fa4b2d4696"
+  },
+  {
+    "path": "/usr/bin/head",
+    "resolved": "/usr/bin/head",
+    "isLink": false,
+    "bytes": 101952,
+    "mode": "755",
+    "sha256": "b4d147753ce0a14a40c5f9aaca06c04eb7697f2d56c207c0a5e7ce16f31ebfc1"
+  },
+  {
+    "path": "/usr/bin/tail",
+    "resolved": "/usr/bin/tail",
+    "isLink": false,
+    "bytes": 119344,
+    "mode": "755",
+    "sha256": "62e8775ff33fe74777183d6c7b049b334f8db20081eca7447cd93998b902d348"
+  },
+  {
+    "path": "/usr/bin/cut",
+    "resolved": "/usr/bin/cut",
+    "isLink": false,
+    "bytes": 102480,
+    "mode": "755",
+    "sha256": "f2199a84b3bcad698217c78448615f296ee30d2b8dca713036cf8cdce3b783da"
+  },
+  {
+    "path": "/usr/bin/cmp",
+    "resolved": "/usr/bin/cmp",
+    "isLink": false,
+    "bytes": 102304,
+    "mode": "755",
+    "sha256": "4d4e8f93a65a0298e32211cae89185002b2ab1d5762d227d3a9dca4e713b9d2e"
+  },
+  {
+    "path": "/usr/bin/install",
+    "resolved": "/usr/bin/install",
+    "isLink": false,
+    "bytes": 137744,
+    "mode": "755",
+    "sha256": "cf73ef9e88daf4addd35b69b1c36762facf32cba8f6167980ab2938bb04afe38"
+  },
+  {
+    "path": "/usr/bin/printf",
+    "resolved": "/usr/bin/printf",
+    "isLink": false,
+    "bytes": 102000,
+    "mode": "755",
+    "sha256": "6782b8853c3828af658c025cd80d827738a1b5824deb2f25d4190bbf32805e66"
+  },
+  {
+    "path": "/usr/bin/true",
+    "resolved": "/usr/bin/true",
+    "isLink": false,
+    "bytes": 84128,
+    "mode": "755",
+    "sha256": "832a18b591b2e17982f84feb5545b824454a6526d1bb741677144615f7a50118"
+  },
+  {
+    "path": "/usr/bin/false",
+    "resolved": "/usr/bin/false",
+    "isLink": false,
+    "bytes": 84128,
+    "mode": "755",
+    "sha256": "dc022de07897e40c01f5ed96aa998d2b5cf4d1add95fe697e841718a2da2bf39"
+  },
+  {
+    "path": "/usr/bin/test",
+    "absent": true
+  },
+  {
+    "path": "/usr/bin/tee",
+    "resolved": "/usr/bin/tee",
+    "isLink": false,
+    "bytes": 101232,
+    "mode": "755",
+    "sha256": "97832f8519ebacf737782b40cf0a33dc5b27bd4bfe7493e952c6c65ef309bea0"
+  },
+  {
+    "path": "/usr/bin/od",
+    "resolved": "/usr/bin/od",
+    "isLink": false,
+    "bytes": 136128,
+    "mode": "755",
+    "sha256": "7a75ea290e89a30322d8a0a35b94db733aadffcfbd2d23f7a4ce5966ce8950b9"
+  },
+  {
+    "path": "/usr/bin/du",
+    "resolved": "/usr/bin/du",
+    "isLink": false,
+    "bytes": 135360,
+    "mode": "755",
+    "sha256": "38e16077c9017d23930a10ea1d03932d17f6bedc8e2558addd0b2418d7df57cd"
+  },
+  {
+    "path": "/usr/bin/ls",
+    "absent": true
+  },
+  {
+    "path": "/bin/ls",
+    "resolved": "/bin/ls",
+    "isLink": false,
+    "bytes": 154624,
+    "mode": "755",
+    "sha256": "f90c753b625f3ca75d33bf8fdda26991c1816e4c6fe17808dfd1fedc423c8936"
+  },
+  {
+    "path": "/usr/bin/readlink",
+    "resolved": "/usr/bin/readlink",
+    "isLink": false,
+    "bytes": 118768,
+    "mode": "755",
+    "sha256": "a1de52ec9a6c81a62e4a320d90d694e65a32976f51154e998199de7030afc263"
+  },
+  {
+    "path": "/bin/pwd",
+    "resolved": "/bin/pwd",
+    "isLink": false,
+    "bytes": 101296,
+    "mode": "755",
+    "sha256": "aeb1af51957fa86dfcaa11ee3cd0164704096a2c93102b72683d1d262bd9bd7b"
+  },
+  {
+    "path": "/bin/sleep",
+    "resolved": "/bin/sleep",
+    "isLink": false,
+    "bytes": 101168,
+    "mode": "755",
+    "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+  },
+  {
+    "path": "/usr/bin/sandbox-exec",
+    "resolved": "/usr/bin/sandbox-exec",
+    "isLink": false,
+    "bytes": 102560,
+    "mode": "755",
+    "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+  },
+  {
+    "path": "/usr/bin/eslogger",
+    "resolved": "/usr/bin/eslogger",
+    "isLink": false,
+    "bytes": 1183680,
+    "mode": "755",
+    "sha256": "6394d699c75b416a1e7c8bce099d1060c303957c373ab6572a75d1e3cf21ecb2"
+  },
+  {
+    "path": "/usr/sbin/dtrace",
+    "resolved": "/usr/sbin/dtrace",
+    "isLink": false,
+    "bytes": 173664,
+    "mode": "755",
+    "sha256": "98856c0a34e4f1b9ee5919c52e694baa3d2ad2aaac5c713bdea7208e883eabb6"
+  },
+  {
+    "path": "/usr/bin/ps",
+    "absent": true
+  }
+]

@@ -1,0 +1,125 @@
+TAP version 13
+# Subtest: memory: dangling stdin and writeFile fallback use exclusive resolved target
+ok 1 - memory: dangling stdin and writeFile fallback use exclusive resolved target
+  ---
+  duration_ms: 2.429875
+  type: 'test'
+  ...
+# Subtest: memory: target insertion at exclusive write preserves raced data and aliases
+ok 2 - memory: target insertion at exclusive write preserves raced data and aliases
+  ---
+  duration_ms: 1.653292
+  type: 'test'
+  ...
+# Subtest: memory: alias inserted during target resolution is checked before input acquisition
+ok 3 - memory: alias inserted during target resolution is checked before input acquisition
+  ---
+  duration_ms: 0.321416
+  type: 'test'
+  ...
+# Subtest: memory: subsequent link to newly created target cannot erase earlier output
+ok 4 - memory: subsequent link to newly created target cannot erase earlier output
+  ---
+  duration_ms: 0.414042
+  type: 'test'
+  ...
+# Subtest: memory: dangling current output retains partial bytes after budget failure
+ok 5 - memory: dangling current output retains partial bytes after budget failure
+  ---
+  duration_ms: 0.653208
+  type: 'test'
+  ...
+# Subtest: memory: cancellation during resolved target write preserves completed and partial bytes
+ok 6 - memory: cancellation during resolved target write preserves completed and partial bytes
+  ---
+  duration_ms: 1.073834
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: dangling stdin and writeFile fallback use exclusive resolved target
+ok 7 - explicit-root-real: dangling stdin and writeFile fallback use exclusive resolved target
+  ---
+  duration_ms: 10.299417
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: target insertion at exclusive write preserves raced data and aliases
+ok 8 - explicit-root-real: target insertion at exclusive write preserves raced data and aliases
+  ---
+  duration_ms: 10.226709
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: alias inserted during target resolution is checked before input acquisition
+ok 9 - explicit-root-real: alias inserted during target resolution is checked before input acquisition
+  ---
+  duration_ms: 2.323
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: subsequent link to newly created target cannot erase earlier output
+ok 10 - explicit-root-real: subsequent link to newly created target cannot erase earlier output
+  ---
+  duration_ms: 2.727208
+  type: 'test'
+  ...
+# Subtest: explicit-root-real: dangling current output retains partial bytes after budget failure
+not ok 11 - explicit-root-real: dangling current output retains partial bytes after budget failure
+  ---
+  duration_ms: 3.819209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/split/dangling-contracts.test.ts:1:3914'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /output limit/. Input:
+    
+    "split: file too large, writeStream '/second'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    split: file too large, writeStream '/second'
+    
+  operator: 'match'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/dangling-contracts.test.ts:102:12)
+    async withFs (/Users/kjopek/Workspace/safe-bash/tests/commands/split/dangling-contracts.test.ts:17:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: explicit-root-real: cancellation during resolved target write preserves completed and partial bytes
+ok 12 - explicit-root-real: cancellation during resolved target write preserves completed and partial bytes
+  ---
+  duration_ms: 5.406709
+  type: 'test'
+  ...
+# Subtest: dangling resolution propagates readlink/realpath errors without creation
+ok 13 - dangling resolution propagates readlink/realpath errors without creation
+  ---
+  duration_ms: 0.986875
+  type: 'test'
+  ...
+# Subtest: missing readlink is a narrow capability gap, not a ban on existing symlinks
+ok 14 - missing readlink is a narrow capability gap, not a ban on existing symlinks
+  ---
+  duration_ms: 0.246334
+  type: 'test'
+  ...
+# Subtest: opaque existing symlink identity stays unsupported, while absent targets need no invented identity
+ok 15 - opaque existing symlink identity stays unsupported, while absent targets need no invented identity
+  ---
+  duration_ms: 0.237834
+  type: 'test'
+  ...
+# Subtest: blocked dangling resolution forwards signal, aborts exactly and observes late rejection
+ok 16 - blocked dangling resolution forwards signal, aborts exactly and observes late rejection
+  ---
+  duration_ms: 0.599125
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 15
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.254416

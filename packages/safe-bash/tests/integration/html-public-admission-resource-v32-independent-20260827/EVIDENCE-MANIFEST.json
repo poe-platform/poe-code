@@ -1,0 +1,104 @@
+{
+  "schema": "independent-html-admission-v3.2-resource-evidence/1",
+  "at": "2026-08-28T00:40:01.325Z",
+  "recipeCommit": "c308fc79ea1e0a5ff7fe8d3bdcc116aadc09825b",
+  "recipeManifestSha256": "8970bef9f5b58b1c094fc08f70924b3209c683cc5a8f9e6542af63c218579f8d",
+  "files": {
+    "CLEANUP.json": {
+      "sha256": "06c3bbe7f73c12a793e30b83155fd0a59790edda44df053a646ab637ccd68852",
+      "bytes": 631
+    },
+    "COMPACTION.json": {
+      "sha256": "2c024c6df5b3cb68c883284e4d1e15b355671fcb270c7f5380658730243406b6",
+      "bytes": 6958
+    },
+    "FINAL-AUTH.json": {
+      "sha256": "af04a9747e2c48d8569fdadad1394e61f39f9a1427f7a0ac3aed789ed932d4dc",
+      "bytes": 21631
+    },
+    "INVOCATION-LOCK.json": {
+      "sha256": "14d97cb9b2e40efaabfbb61bc3bd728ed8f1dc3f8114652a85bee37484272b08",
+      "bytes": 133
+    },
+    "RAW-INVENTORY.json": {
+      "sha256": "386c5998421a130a4532fa15fbfde56a71d6f7388b17346c9e288f0f2f0a1917",
+      "bytes": 16425
+    },
+    "README.md": {
+      "sha256": "1faaf4ab8bd4c9459b8226dea9e5926cadc2130c8eeaa30213f77e491ca429ab",
+      "bytes": 9416
+    },
+    "RESULT.json": {
+      "sha256": "c2e4d4ef1db07ace05ded97b6951acba4f235038140b7bdec71016013115ac09",
+      "bytes": 22817
+    },
+    "ROOT-COORDINATION.md": {
+      "sha256": "78ada5e63d1245dca287b2f179db2952663d1cad715cb2d0070074841d52757a",
+      "bytes": 1206
+    },
+    "captures.tgz": {
+      "sha256": "b7c98a088b835831c23121e794e5bb946264db7ec9eccb6a5aacd78a42975ac3",
+      "bytes": 107288
+    },
+    "recipe/ADAPTATION.json": {
+      "sha256": "3cc6b61bb0bc5cd98839b2614efabf627239cddb31b85349378d3644f8cf3163",
+      "bytes": 3449
+    },
+    "recipe/MANIFEST.json": {
+      "sha256": "8970bef9f5b58b1c094fc08f70924b3209c683cc5a8f9e6542af63c218579f8d",
+      "bytes": 1709
+    },
+    "recipe/PREFLIGHT.json": {
+      "sha256": "1d2d59ecc89948bcb61aeec274f33e98fd1b042339ad45133f0ffcbd99280696",
+      "bytes": 21631
+    },
+    "recipe/REVIEW.md": {
+      "sha256": "f7993cb30e8b3e4ea07c11f65cde5a466c1d67a0438fd5527d7ed5a37b76813b",
+      "bytes": 9445
+    },
+    "recipe/adapt.mjs": {
+      "sha256": "65aa0a647cb1f0222be2b388fdf67ebce4a7e70a718fb479004b5eba6c6b68e0",
+      "bytes": 3193
+    },
+    "recipe/authenticate.mjs": {
+      "sha256": "a97584263a34160df70879803ae53879da0a4f8a28440f0d6096f7b1feb477cd",
+      "bytes": 6475
+    },
+    "recipe/coordinator.mjs": {
+      "sha256": "dae7a0014e4af0aa2754e3cd0d99ddcd7f0ed0dd094a3e9c1b140aec9c73b74f",
+      "bytes": 21362
+    },
+    "recipe/launch.mjs": {
+      "sha256": "94ab0fce4164a966efa2b8f3d9a8834fba2b255824447ffcc7c152c9b9d7db37",
+      "bytes": 5595
+    },
+    "recipe/observe.mjs": {
+      "sha256": "b8ab3d6cfa6ba4a76667b45b7786312fa3a0ef1f3b629d87aa08c5c37f4b3836",
+      "bytes": 3558
+    },
+    "recipe/postcheck.mjs": {
+      "sha256": "55b734cbaefddd2d785c6afafe4381ba2f2d0aecbf807d523e6729d10f90d69c",
+      "bytes": 11979
+    },
+    "seal-evidence.mjs": {
+      "sha256": "702fb70e0104c114775827276f90a724594863a5f2c9fc98f45f26280512727c",
+      "bytes": 8774
+    }
+  },
+  "directories": [
+    "recipe"
+  ],
+  "coveredFiles": 20,
+  "filesIncludingManifest": 21,
+  "archiveSha256": "b7c98a088b835831c23121e794e5bb946264db7ec9eccb6a5aacd78a42975ac3",
+  "actualCases": 5,
+  "expected": 5,
+  "unexpected": 0,
+  "unrun": [],
+  "postcheckPassed": 21,
+  "postcheckFailed": 0,
+  "exactEnvelopeInventory": true,
+  "protectedOriginalFiles": 176,
+  "preservedPriorFiles": 78,
+  "scope": "new five-case stream component evidence only; no HTML acceptance or historical rescore"
+}

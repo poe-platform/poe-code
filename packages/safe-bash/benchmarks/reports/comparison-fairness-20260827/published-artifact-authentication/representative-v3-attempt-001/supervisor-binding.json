@@ -1,0 +1,33 @@
+{
+  "approvalPath": "/tmp/safe-bash-baseline-auth-approval-v3.json",
+  "approvalSha256": "40d096afcb54a38a3fab58ea16ba550350917ce81f80765c07a7c9068b7f0938",
+  "approval": {
+    "approved": true,
+    "authority": "root",
+    "resultBearingCalls": 8,
+    "engineChildren": 8,
+    "coordinatorProcesses": 1,
+    "supervisorProcesses": 1,
+    "textPlanSha256": "e219c827254eaa68fed589e1766b658500a1a067f74932eb481f36baff9b3ce9",
+    "files": {
+      "supervise-representative.mjs": "33ab65aa4a08e4d25cd5fcf23e82b5c7385f47f14615efe845485e6cc90ff311",
+      "representative.mjs": "521c2a5ccc8818093c16641fa9b4f13b6323fda9df13a906b56beb320d1a86e5",
+      "launch-seal.mjs": "00bd30ae42cbdebdb28a1f3c7a258dfcb1fc906897c33037b934f6a8dddcec2b",
+      "driver-lifecycle.mjs": "0de8d75a0492f6bbc633301eb93a8b9a06abd79d7bfa961242d1224f255301b6",
+      "observe-process.mjs": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "observe-load.mjs": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "representative-plan-v3.json": "6fa2285192516a5969821645daed2f4bb2f1d48b1bd96f70108dd7a60e2193dc",
+      "execution-closure.json": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821",
+      "download.json": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0",
+      "package-comparison.json": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e"
+    },
+    "note": "Root authorizes this exact independently reviewed v3 once: eight baseline observations, seven existing IDs, eight sequential engine children plus one coordinator and one supervisor, max three managed concurrent processes. No retries, warmups, new controls, full cohorts, performance, native recapture, or follow-up scope. Any changed approved bytes or runtime failure stops at an honest checkpoint."
+  },
+  "actualNodePath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "actualNodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "exactClosure": {
+    "files": 3842,
+    "exactMembership": true,
+    "observerAdditions": []
+  }
+}

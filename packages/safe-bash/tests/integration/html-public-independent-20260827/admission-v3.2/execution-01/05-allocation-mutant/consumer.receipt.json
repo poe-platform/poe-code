@@ -1,0 +1,170 @@
+{
+  "control": "allocation-mutant",
+  "pid": 89725,
+  "ppid": 86238,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "execArgv": [
+    "--max-old-space-size=96"
+  ],
+  "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+  "assertionState": "not evaluated; persisted before coordinator assertions",
+  "proposedExitCode": 17,
+  "failure": {
+    "name": "Error",
+    "code": "V3_RSS_LIMIT",
+    "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT",
+    "stack": "Error: CONTROL_BOUNDARY:V3_RSS_LIMIT\n    at boundary (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:22:48)\n    at consume (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:71:52)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/core.mjs:169:7)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/core.mjs:193:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:37:12",
+    "process": {
+      "status": null,
+      "signal": "SIGTERM",
+      "stderr": "",
+      "timedOut": false,
+      "stderrOverflow": false
+    }
+  },
+  "result": null,
+  "memory": {
+    "baseline": {
+      "rss": 47448064,
+      "heapTotal": 6963200,
+      "heapUsed": 4948896,
+      "external": 2118259,
+      "arrayBuffers": 25023
+    },
+    "fieldwisePeaks": {
+      "rss": 273842176,
+      "heapTotal": 8273920,
+      "heapUsed": 5436848,
+      "external": 220709361,
+      "arrayBuffers": 218456542
+    },
+    "latest": {
+      "rss": 273842176,
+      "heapTotal": 8273920,
+      "heapUsed": 5158008,
+      "external": 220709361,
+      "arrayBuffers": 218259874
+    },
+    "samples": 29,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "chunks": 26,
+    "bytes": 1703936,
+    "maxChunkBytes": 65536,
+    "pending": 0,
+    "maxPending": 1,
+    "pendingBytes": 0,
+    "maxPendingBytes": 65536
+  },
+  "consumerObservation": null,
+  "orderedObservation": {
+    "control": "allocation-mutant",
+    "consumerPid": 89725,
+    "producerPid": 89727,
+    "events": [
+      {
+        "sequence": 1,
+        "monotonicNs": "119636811736000",
+        "type": "spawn",
+        "pid": 89727,
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--max-old-space-size=96",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs",
+          "1073872896",
+          "0"
+        ]
+      },
+      {
+        "sequence": 2,
+        "monotonicNs": "119637284681625",
+        "type": "stop-request",
+        "reason": {
+          "code": "V3_RSS_LIMIT",
+          "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+        },
+        "pipeDestroyed": false
+      },
+      {
+        "sequence": 3,
+        "monotonicNs": "119637284730208",
+        "type": "signal-return",
+        "accepted": true
+      },
+      {
+        "sequence": 4,
+        "monotonicNs": "119637295040208",
+        "type": "producer-exit",
+        "status": null,
+        "signal": "SIGTERM",
+        "pipeDestroyed": false
+      },
+      {
+        "sequence": 5,
+        "monotonicNs": "119637295084541",
+        "type": "owned-pipe-destroy",
+        "exited": true,
+        "status": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "sequence": 6,
+        "monotonicNs": "119637295132750",
+        "type": "producer-close",
+        "status": null,
+        "signal": "SIGTERM"
+      },
+      {
+        "sequence": 7,
+        "monotonicNs": "119637295152375",
+        "type": "pipe-close",
+        "exited": true
+      },
+      {
+        "sequence": 8,
+        "monotonicNs": "119637295198875",
+        "type": "throw-original",
+        "code": "V3_RSS_LIMIT",
+        "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+      },
+      {
+        "sequence": 9,
+        "monotonicNs": "119637295374125",
+        "type": "core-settled",
+        "exited": true,
+        "closed": true,
+        "sameFailureObject": true
+      }
+    ],
+    "sameFailureObject": true,
+    "completed": true,
+    "error": null,
+    "caller": {
+      "code": "V3_RSS_LIMIT",
+      "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+    },
+    "signalAccepted": true,
+    "exit": {
+      "status": null,
+      "signal": "SIGTERM"
+    },
+    "close": {
+      "status": null,
+      "signal": "SIGTERM"
+    }
+  },
+  "observedSha256": "c3e10e0e51ada8382e41fe4a7b44648b57bb1bbe0086930dc21a434b81084656",
+  "mutation": {
+    "steps": 26,
+    "retainedBytes": 218103808,
+    "touchedByte": 180
+  },
+  "retainedAllocations": 26,
+  "thresholdBytes": 268435456,
+  "operator": "<",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+}

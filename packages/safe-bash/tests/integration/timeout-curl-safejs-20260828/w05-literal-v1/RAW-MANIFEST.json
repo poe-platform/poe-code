@@ -1,0 +1,119 @@
+{
+  "sha256": "02eb69297ae5c87ccef022886a0e81a5ea5cf4889ae482d593faf141e80077d3",
+  "bytes": 134260,
+  "files": 16,
+  "rawInventory": [
+    {
+      "path": "MATERIALIZED.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 282949,
+      "sha256": "45dce078a717e44b38ec6f5f67755c20b5117711d5541638f94cb01824e48005"
+    },
+    {
+      "path": "PREDICATE-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 995,
+      "sha256": "c8ba0458e94b70fb89bab3dfd4f4341d10140bd46d621e120f499b7abd69e5e8"
+    },
+    {
+      "path": "installed-W05/ASSESSMENT.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 470,
+      "sha256": "dda6c180519470d62dc7fa701d407e97ddc35e6dd0c576e20e44cac08f699f59"
+    },
+    {
+      "path": "installed-W05/LOADS.jsonl",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 58933,
+      "sha256": "102b371d844e08df3b44677f6377c9aa4c025c249e4d106572dc99c3d889231c"
+    },
+    {
+      "path": "installed-W05/PRE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1550,
+      "sha256": "f0bcac2fbe199636852ef9b573d8bbcbddddd1188cb65b529b9e2402f927d295"
+    },
+    {
+      "path": "installed-W05/RESULT.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4043,
+      "sha256": "89f3e8bed3fcd6d453d802947efed8c860d74aa1213f05c429ff2c4d3278c5ce"
+    },
+    {
+      "path": "installed-W05/STATUS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1732,
+      "sha256": "f496b424071630da4602ffc00aca82143928f45becdf075cd9442de6c828b385"
+    },
+    {
+      "path": "installed-W05/stderr.data",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "installed-W05/stdout.data",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 79,
+      "sha256": "7b8f195f936ddbe474d19418b0f5772b1262c642bfe123c2596b2905b56ea043"
+    },
+    {
+      "path": "moved-W05/ASSESSMENT.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 462,
+      "sha256": "861d0ecf623b9ee4717d3cdbf497b32787649a0fcc05d1ab1c759bab682a5c6b"
+    },
+    {
+      "path": "moved-W05/LOADS.jsonl",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 58933,
+      "sha256": "102b371d844e08df3b44677f6377c9aa4c025c249e4d106572dc99c3d889231c"
+    },
+    {
+      "path": "moved-W05/PRE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1534,
+      "sha256": "0bf6d40d946571bf48068b4fa5f7484c57d50fb7e40482322fa15fd615663e4a"
+    },
+    {
+      "path": "moved-W05/RESULT.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4039,
+      "sha256": "4e459f8f4719ee2bb0aef87f57bb5326759c24f3d3efce77b03d7a40c2437c17"
+    },
+    {
+      "path": "moved-W05/STATUS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1716,
+      "sha256": "411870a6c8c53a9c25e29cc69814ea59bf1a78a5f2699a4ed5b494323bdd1980"
+    },
+    {
+      "path": "moved-W05/stderr.data",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "moved-W05/stdout.data",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 79,
+      "sha256": "7b8f195f936ddbe474d19418b0f5772b1262c642bfe123c2596b2905b56ea043"
+    }
+  ]
+}

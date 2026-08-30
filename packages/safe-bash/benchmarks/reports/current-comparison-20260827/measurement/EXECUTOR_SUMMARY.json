@@ -1,0 +1,3992 @@
+{
+  "status": "MEASURED_NOT_REVIEWED",
+  "reviewRequired": true,
+  "score": null,
+  "unionScore": null,
+  "scope": "COMMITTED_FROZEN_COMPARISON_ONLY",
+  "completedRecords": 1032,
+  "plannedRecords": 1032,
+  "counts": {
+    "original/virtual-bash/original224": 224,
+    "original/just-bash/original224": 224,
+    "aligned/virtual-bash/original224": 224,
+    "aligned/just-bash/original224": 224,
+    "breadth/virtual-bash/shared-control": 3,
+    "breadth/just-bash/shared-control": 3,
+    "breadth/virtual-bash/shared-optional-control": 1,
+    "breadth/just-bash/shared-optional-control": 1,
+    "breadth/virtual-bash/historical-unmeasured": 50,
+    "breadth/just-bash/historical-unmeasured": 50,
+    "breadth/virtual-bash/additional-optional": 4,
+    "breadth/just-bash/additional-optional": 4,
+    "breadth/virtual-bash/historical-measured-control": 3,
+    "breadth/just-bash/historical-measured-control": 3,
+    "breadth/virtual-bash/direct-diagnostic": 7,
+    "breadth/just-bash/direct-diagnostic": 7
+  },
+  "remainingNotRecorded": [],
+  "scoredAdmissions": 1032,
+  "initializationAdmissions": 448,
+  "rawChannelObservations": 1032,
+  "failureGroups": {
+    "original/just-bash/original224/fail": 69,
+    "original/virtual-bash/original224/fail": 2,
+    "aligned/just-bash/original224/fail": 69,
+    "aligned/virtual-bash/original224/fail": 1,
+    "breadth/just-bash/shared-control/partial-functionality": 1,
+    "breadth/virtual-bash/historical-unmeasured/missing-handler": 29,
+    "breadth/virtual-bash/historical-unmeasured/dependency-blocked": 4,
+    "breadth/just-bash/historical-unmeasured/partial-functionality": 3,
+    "breadth/just-bash/historical-unmeasured/documentation-only": 1,
+    "breadth/virtual-bash/historical-unmeasured/syntax-blocked-before-target": 2,
+    "breadth/virtual-bash/historical-unmeasured/partial-functionality": 1,
+    "breadth/virtual-bash/historical-unmeasured/no-op-not-operational-proof": 1,
+    "breadth/just-bash/historical-unmeasured/no-op-not-operational-proof": 1,
+    "breadth/virtual-bash/additional-optional/missing-handler": 4,
+    "breadth/just-bash/additional-optional/lifecycle-or-capture-failure": 1,
+    "breadth/just-bash/additional-optional/baseline-stub": 1,
+    "breadth/virtual-bash/direct-diagnostic/missing-handler": 7,
+    "breadth/just-bash/direct-diagnostic/direct-target-observed-no-functional-credit": 7
+  },
+  "exceptions": [
+    {
+      "evidence": "attempt-0035.json",
+      "id": "command/dirname/nul",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0039.json",
+      "id": "command/printf/binary",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0046.json",
+      "id": "command/mkdir/mode",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0054.json",
+      "id": "command/touch/reference",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0059.json",
+      "id": "command/cp/preserve-link",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0071.json",
+      "id": "command/rm/empty-directory",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0079.json",
+      "id": "command/ln/hardlink",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0087.json",
+      "id": "command/readlink/no-newline",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0091.json",
+      "id": "command/realpath/existing",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0094.json",
+      "id": "command/realpath/missing-tail",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0095.json",
+      "id": "command/realpath/relative",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0103.json",
+      "id": "command/cat/binary-stdin",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0114.json",
+      "id": "command/head/negative",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0119.json",
+      "id": "command/tail/bytes",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0123.json",
+      "id": "command/wc/words-lines",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0126.json",
+      "id": "command/wc/unicode",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0127.json",
+      "id": "command/tee/file",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0143.json",
+      "id": "command/sort/nul-unique",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0146.json",
+      "id": "command/uniq/counts",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0154.json",
+      "id": "command/cut/bytes",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0155.json",
+      "id": "command/cut/complement",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0175.json",
+      "id": "command/env/clean",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0178.json",
+      "id": "command/env/unset",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0179.json",
+      "id": "command/env/nested",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0182.json",
+      "id": "command/xargs/batch",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0186.json",
+      "id": "command/xargs/replace",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0191.json",
+      "id": "command/find/nul",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0211.json",
+      "id": "command/rg/fixed",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0219.json",
+      "id": "command/base64/decode",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0223.json",
+      "id": "command/base32/encode",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0226.json",
+      "id": "command/base32/decode",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0227.json",
+      "id": "command/base32/wrap",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0230.json",
+      "id": "command/xxd/plain",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0231.json",
+      "id": "command/xxd/reverse",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0234.json",
+      "id": "command/xxd/layout",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0235.json",
+      "id": "command/od/hex",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0238.json",
+      "id": "command/od/decimal",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0239.json",
+      "id": "command/od/skip-count",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0259.json",
+      "id": "command/cksum/stdin",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0262.json",
+      "id": "command/cksum/files",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0263.json",
+      "id": "command/cksum/algorithm",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0266.json",
+      "id": "command/gzip/roundtrip",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0271.json",
+      "id": "command/gunzip/stdin",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0278.json",
+      "id": "command/zcat/stdin",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0286.json",
+      "id": "command/diff/unified",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0287.json",
+      "id": "command/diff/ignore-space",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0290.json",
+      "id": "command/patch/apply",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0291.json",
+      "id": "command/patch/dry-run",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0292.json",
+      "id": "command/patch/dry-run",
+      "profile": "original",
+      "engine": "virtual-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0294.json",
+      "id": "command/patch/reverse",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0299.json",
+      "id": "command/chmod/recursive-reference",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0303.json",
+      "id": "command/stat/follow",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0306.json",
+      "id": "command/stat/timestamp",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0307.json",
+      "id": "command/mktemp/file",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0310.json",
+      "id": "command/mktemp/directory",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0311.json",
+      "id": "command/mktemp/suffix-dry-run",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0323.json",
+      "id": "command/paste/nul-shared",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0330.json",
+      "id": "command/comm/totals",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0334.json",
+      "id": "command/join/outer",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0335.json",
+      "id": "command/join/duplicate",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0364.json",
+      "id": "kernel/type/type",
+      "profile": "original",
+      "engine": "virtual-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0410.json",
+      "id": "composition/text-filter/text-filter",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0415.json",
+      "id": "composition/binary-roundtrip/binary-roundtrip",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0419.json",
+      "id": "composition/patch-hash/patch-hash",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0423.json",
+      "id": "composition/find-xargs/find-xargs",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0434.json",
+      "id": "network/curl/get",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0435.json",
+      "id": "network/curl/post-stdin",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0438.json",
+      "id": "network/curl/post-file",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0439.json",
+      "id": "network/curl/json",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0442.json",
+      "id": "network/curl/redirect",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0446.json",
+      "id": "network/curl/fail-body",
+      "profile": "original",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0483.json",
+      "id": "command/dirname/nul",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0487.json",
+      "id": "command/printf/binary",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0494.json",
+      "id": "command/mkdir/mode",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0502.json",
+      "id": "command/touch/reference",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0507.json",
+      "id": "command/cp/preserve-link",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0519.json",
+      "id": "command/rm/empty-directory",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0527.json",
+      "id": "command/ln/hardlink",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0535.json",
+      "id": "command/readlink/no-newline",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0539.json",
+      "id": "command/realpath/existing",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0542.json",
+      "id": "command/realpath/missing-tail",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0543.json",
+      "id": "command/realpath/relative",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0551.json",
+      "id": "command/cat/binary-stdin",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0562.json",
+      "id": "command/head/negative",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0567.json",
+      "id": "command/tail/bytes",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0571.json",
+      "id": "command/wc/words-lines",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0574.json",
+      "id": "command/wc/unicode",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0575.json",
+      "id": "command/tee/file",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0591.json",
+      "id": "command/sort/nul-unique",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0594.json",
+      "id": "command/uniq/counts",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0602.json",
+      "id": "command/cut/bytes",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0603.json",
+      "id": "command/cut/complement",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0623.json",
+      "id": "command/env/clean",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0626.json",
+      "id": "command/env/unset",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0627.json",
+      "id": "command/env/nested",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0630.json",
+      "id": "command/xargs/batch",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0634.json",
+      "id": "command/xargs/replace",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0639.json",
+      "id": "command/find/nul",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0659.json",
+      "id": "command/rg/fixed",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0667.json",
+      "id": "command/base64/decode",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0671.json",
+      "id": "command/base32/encode",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0674.json",
+      "id": "command/base32/decode",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0675.json",
+      "id": "command/base32/wrap",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0678.json",
+      "id": "command/xxd/plain",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0679.json",
+      "id": "command/xxd/reverse",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0682.json",
+      "id": "command/xxd/layout",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0683.json",
+      "id": "command/od/hex",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0686.json",
+      "id": "command/od/decimal",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0687.json",
+      "id": "command/od/skip-count",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0707.json",
+      "id": "command/cksum/stdin",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0710.json",
+      "id": "command/cksum/files",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0711.json",
+      "id": "command/cksum/algorithm",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0714.json",
+      "id": "command/gzip/roundtrip",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0719.json",
+      "id": "command/gunzip/stdin",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0726.json",
+      "id": "command/zcat/stdin",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0734.json",
+      "id": "command/diff/unified",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0735.json",
+      "id": "command/diff/ignore-space",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0738.json",
+      "id": "command/patch/apply",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0739.json",
+      "id": "command/patch/dry-run",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0742.json",
+      "id": "command/patch/reverse",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0747.json",
+      "id": "command/chmod/recursive-reference",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stderr",
+        "exitCode",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0751.json",
+      "id": "command/stat/follow",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0754.json",
+      "id": "command/stat/timestamp",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0755.json",
+      "id": "command/mktemp/file",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0758.json",
+      "id": "command/mktemp/directory",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0759.json",
+      "id": "command/mktemp/suffix-dry-run",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0771.json",
+      "id": "command/paste/nul-shared",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0778.json",
+      "id": "command/comm/totals",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0782.json",
+      "id": "command/join/outer",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0783.json",
+      "id": "command/join/duplicate",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0812.json",
+      "id": "kernel/type/type",
+      "profile": "aligned",
+      "engine": "virtual-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0858.json",
+      "id": "composition/text-filter/text-filter",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0863.json",
+      "id": "composition/binary-roundtrip/binary-roundtrip",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0867.json",
+      "id": "composition/patch-hash/patch-hash",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "entries"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0871.json",
+      "id": "composition/find-xargs/find-xargs",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0882.json",
+      "id": "network/curl/get",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0883.json",
+      "id": "network/curl/post-stdin",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0886.json",
+      "id": "network/curl/post-file",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0887.json",
+      "id": "network/curl/json",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0890.json",
+      "id": "network/curl/redirect",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0894.json",
+      "id": "network/curl/fail-body",
+      "profile": "aligned",
+      "engine": "just-bash",
+      "cohort": "original224",
+      "status": "fail",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [
+        "stdout",
+        "stderr",
+        "exitCode"
+      ],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0900.json",
+      "id": "terminal-byte-control",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "shared-control",
+      "status": "partial-functionality",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "stdoutBase64",
+        "file bytes: bytes"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0905.json",
+      "id": "alias-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0907.json",
+      "id": "builtin-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0909.json",
+      "id": "clear-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0911.json",
+      "id": "column-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0913.json",
+      "id": "compgen-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0915.json",
+      "id": "complete-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stderrBase64",
+        "stdout includes \"complete\"",
+        "stdout includes \"alpha beta\"",
+        "stdout includes \"deploy\""
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0917.json",
+      "id": "compopt-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "dependency-blocked",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stderrBase64",
+        "stdout includes \"nospace\"",
+        "stdout includes \"deploy\""
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0918.json",
+      "id": "compopt-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "historical-unmeasured",
+      "status": "partial-functionality",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "stdout includes \"nospace\"",
+        "stdout includes \"deploy\""
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0921.json",
+      "id": "declare-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0923.json",
+      "id": "dirs-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "dependency-blocked",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0925.json",
+      "id": "du-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0927.json",
+      "id": "egrep-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0929.json",
+      "id": "exec-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64",
+        "path absent: after-exec"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0930.json",
+      "id": "exec-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "historical-unmeasured",
+      "status": "partial-functionality",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "path absent: after-exec"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0933.json",
+      "id": "expr-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0935.json",
+      "id": "fgrep-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0941.json",
+      "id": "getopts-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0943.json",
+      "id": "hash-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0945.json",
+      "id": "help-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stderrBase64",
+        "file contains printf: help.txt"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0946.json",
+      "id": "help-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "historical-unmeasured",
+      "status": "documentation-only",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0947.json",
+      "id": "history-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0949.json",
+      "id": "hostname-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0951.json",
+      "id": "html-to-markdown-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stderrBase64",
+        "stdout includes \"# Release\"",
+        "stdout includes \"**now**\""
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0953.json",
+      "id": "let-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0955.json",
+      "id": "mapfile-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "syntax-blocked-before-target",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0959.json",
+      "id": "popd-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "dependency-blocked",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0963.json",
+      "id": "pushd-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0965.json",
+      "id": "readarray-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "syntax-blocked-before-target",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0971.json",
+      "id": "shopt-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0977.json",
+      "id": "sqlite3-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64",
+        "file exists: data.db",
+        "file prefix: data.db",
+        "file minimum bytes: data.db"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0983.json",
+      "id": "time-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0985.json",
+      "id": "timeout-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0987.json",
+      "id": "tree-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "partial-functionality",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "stdoutBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0988.json",
+      "id": "tree-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "historical-unmeasured",
+      "status": "partial-functionality",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "stdoutBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0989.json",
+      "id": "typeset-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0991.json",
+      "id": "unalias-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "dependency-blocked",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0995.json",
+      "id": "wait-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "no-op-not-operational-proof",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stderrBase64",
+        "file exists: child.txt",
+        "file bytes: child.txt"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0996.json",
+      "id": "wait-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "historical-unmeasured",
+      "status": "no-op-not-operational-proof",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0997.json",
+      "id": "which-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-0999.json",
+      "id": "whoami-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1001.json",
+      "id": "xan-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1003.json",
+      "id": "yq-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "historical-unmeasured",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1005.json",
+      "id": "js-exec-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "additional-optional",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1006.json",
+      "id": "js-exec-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "additional-optional",
+      "status": "lifecycle-or-capture-failure",
+      "lifecycleClean": false,
+      "lifecycleFailures": [
+        "natural deadline",
+        "coordinator crash/forced exit",
+        "engine did not exit/close naturally",
+        "coordinator did not exit/close naturally",
+        "unverified pipe/fixture/group closure"
+      ],
+      "signals": [
+        "SIGTERM"
+      ],
+      "failedFields": [],
+      "historicalFailures": [
+        "child did not return normally"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1007.json",
+      "id": "node-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "additional-optional",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1008.json",
+      "id": "node-positive",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "additional-optional",
+      "status": "baseline-stub",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1009.json",
+      "id": "python-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "additional-optional",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64",
+        "file exists: result.txt",
+        "file bytes: result.txt"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1011.json",
+      "id": "python3-positive",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "additional-optional",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [
+        "exit status",
+        "stdoutBase64",
+        "stderrBase64",
+        "file exists: result.txt",
+        "file bytes: result.txt"
+      ],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1019.json",
+      "id": "compopt-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1020.json",
+      "id": "compopt-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1021.json",
+      "id": "dirs-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1022.json",
+      "id": "dirs-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1023.json",
+      "id": "popd-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1024.json",
+      "id": "popd-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1025.json",
+      "id": "unalias-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1026.json",
+      "id": "unalias-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1027.json",
+      "id": "wait-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1028.json",
+      "id": "wait-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1029.json",
+      "id": "mapfile-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1030.json",
+      "id": "mapfile-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1031.json",
+      "id": "readarray-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "cohort": "direct-diagnostic",
+      "status": "missing-handler",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    },
+    {
+      "evidence": "attempt-1032.json",
+      "id": "readarray-direct-diagnostic",
+      "profile": "breadth",
+      "engine": "just-bash",
+      "cohort": "direct-diagnostic",
+      "status": "direct-target-observed-no-functional-credit",
+      "lifecycleClean": true,
+      "lifecycleFailures": [],
+      "signals": [],
+      "failedFields": [],
+      "historicalFailures": [],
+      "resultError": null,
+      "captureErrors": [],
+      "cleanupError": null
+    }
+  ],
+  "integrityErrors": [],
+  "lifecycleFailureRecords": 1,
+  "cleanupUnresolved": [],
+  "driverExit": {
+    "code": 0,
+    "signal": null
+  },
+  "driverClose": {
+    "code": 0,
+    "signal": null
+  },
+  "closureProof": {
+    "runner": {
+      "boundFiles": 15,
+      "postFiles": 15,
+      "exactHashesMatchBinding": true,
+      "proof": "Frozen driver post-membership verification; not a second package scan"
+    },
+    "virtual-bash": {
+      "boundFiles": 711,
+      "postFiles": 711,
+      "exactHashesMatchBinding": true,
+      "proof": "Frozen driver post-membership verification; not a second package scan"
+    },
+    "just-bash": {
+      "boundFiles": 3844,
+      "postFiles": 3844,
+      "exactHashesMatchBinding": true,
+      "proof": "Frozen driver post-membership verification; not a second package scan"
+    }
+  },
+  "qualification": "Unreviewed historical predicate diagnostics, not product fault attribution or accepted comparative scores. env-S partial; shebang unsupported; independent fixture validity unresolved."
+}

@@ -1,0 +1,499 @@
+diff --git a/src/fs/webdav/resource-id.ts b/src/fs/webdav/resource-id.ts
+index 9d6bd86..538da7f 100644
+--- a/src/fs/webdav/resource-id.ts
++++ b/src/fs/webdav/resource-id.ts
+@@ -36,10 +36,12 @@ export function ownedResponseIdentifier(response: Response, path: string): strin
+ type ResourceQuery = (path: string, options: FsOptions) => Promise<string | undefined>;
+ const queries = new WeakMap<FileSystem, ResourceQuery>();
+ const comparisons = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
++const callbacks = new WeakMap<FileSystem, NonNullable<FileSystem["compareEntry"]>>();
+ 
+ export function registerResourceQuery(filesystem: FileSystem, query: ResourceQuery,
+-  baseComparison: NonNullable<FileSystem["compareEntry"]>): void {
++  baseComparison: NonNullable<FileSystem["compareEntry"]>, callback?: NonNullable<FileSystem["compareEntry"]>): void {
+   comparisons.set(filesystem, baseComparison);
++  if (callback) callbacks.set(filesystem, callback);
+   queries.set(filesystem, async (path, options) => {
+     options.signal?.throwIfAborted();
+     const identifier = await query(path, options);
+@@ -68,8 +70,10 @@ export const compareWebDavResources: EntryAuthority = async (own, peer, options)
+   const visited = new Set<FileSystem>();
+   for (const [left, right] of [[own, peer], [peer, own]] as const) {
+     const baseComparison = comparisons.get(left.filesystem);
+-    const comparison = left.filesystem.compareEntry;
+-    if (!baseComparison || comparison === baseComparison) continue;
++    if (!baseComparison) continue;
++    const method = left.filesystem.compareEntry;
++    const comparison = method === baseComparison ? callbacks.get(left.filesystem) : method;
++    if (method === baseComparison && !comparison) continue;
+     explicit = true;
+     if (!comparison || visited.has(left.filesystem)) continue;
+     visited.add(left.filesystem);
+@@ -85,7 +89,15 @@ export const compareWebDavResources: EntryAuthority = async (own, peer, options)
+     }
+     answer = result;
+   }
+-  if (explicit) return answer;
++  const builtin = await compareProtocolEntries(own, peer, options);
++  if (answer !== "unknown" && builtin !== "unknown" && answer !== builtin) {
++    throw new FsError("EIO", { path: own.path, dest: peer.path, message: "explicit WebDAV comparison contradicts built-in identity" });
++  }
++  if (builtin === "same") return "same";
++  return explicit ? answer : builtin;
++};
++
++async function compareProtocolEntries(own: EntryView, peer: EntryView, options: FsOptions): Promise<EntryComparison> {
+   const left = getOwnedWebDavEntry(own);
+   const right = getOwnedWebDavEntry(peer);
+   const ownQuery = queries.get(own.filesystem);
+@@ -102,4 +114,4 @@ export const compareWebDavResources: EntryAuthority = async (own, peer, options)
+     if (same !== (ownId === peerId)) throw new FsError("EIO", { path: own.path, dest: peer.path, message: "conflicting owned and protocol WebDAV identities" });
+   }
+   return ownId === peerId ? "same" : "distinct";
+-};
++}
+diff --git a/src/fs/webdav/webdav.ts b/src/fs/webdav/webdav.ts
+index a4e6af0..d8398e0 100644
+--- a/src/fs/webdav/webdav.ts
++++ b/src/fs/webdav/webdav.ts
+@@ -22,6 +22,8 @@ export interface WebDavFileSystemOptions {
+   readonly maxEntries?: number;
+   readonly timeoutMs?: number;
+   readonly overwritePolicy?: "lock" | "etag";
++  readonly compareEntry?: (this: FileSystem, ...args: Parameters<NonNullable<FileSystem["compareEntry"]>>)
++    => ReturnType<NonNullable<FileSystem["compareEntry"]>>;
+ }
+ 
+ const timestampNamespace = "urn:virtual-bash:metadata";
+@@ -117,6 +119,9 @@ export class WebDavFileSystem implements FileSystem {
+ 
+   constructor(options: WebDavFileSystemOptions) {
+     if (typeof options.fetch !== "function") throw new FsError("EINVAL", { message: "an explicit fetch transport is required" });
++    if (options.compareEntry !== undefined && typeof options.compareEntry !== "function") {
++      throw new FsError("EINVAL", { message: "compareEntry must be a function" });
++    }
+     try {
+       validateUrlText(options.baseUrl);
+       this.base = new URL(options.baseUrl);
+@@ -145,7 +150,7 @@ export class WebDavFileSystem implements FileSystem {
+     this.overwritePolicy = options.overwritePolicy ?? "lock";
+     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
+     if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
+-    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison);
++    registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison, options.compareEntry);
+     registerEntryAuthority(this, compareWebDavResources);
+   }
+ 
+diff --git a/tests/fs/webdav/constructor-comparison.test.ts b/tests/fs/webdav/constructor-comparison.test.ts
+new file mode 100644
+index 0000000..bc423f1
+--- /dev/null
++++ b/tests/fs/webdav/constructor-comparison.test.ts
+@@ -0,0 +1,124 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import type { FileSystem, FsOptions } from "../../../src/contracts/filesystem.js";
++import { FsError } from "../../../src/contracts/errors.js";
++import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
++import { compareEntries } from "../../../src/fs/mount/comparison.js";
++import { createMountFileSystem } from "../../../src/fs/mount/index.js";
++import { createReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
++import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
++import { MockDav } from "./mock.js";
++
++const baseUrl = "https://constructor.example/dav/";
++const payload = new Uint8Array([0, 255, 128, 65]);
++const previous = new Uint8Array([79, 76, 68]);
++const rejectCode = (code: string) => (error: unknown) => { assert.ok(error instanceof FsError); assert.equal(error.code, code); return true; };
++function provider() {
++  const mock = new MockDav();
++  mock.files.set("/source", payload.slice());
++  mock.files.set("/target", previous.slice());
++  return { mock, fetch: async (url: string, init: RequestInit) => (await mock.fetch(url, init)).clone() };
++}
++
++test("constructor callback receives backend receiver, followed paths, actual peer and signal once", async () => {
++  const { mock, fetch } = provider();
++  const memory = createMemoryFileSystem();
++  await memory.writeFile("/target", previous);
++  await memory.symlink("/target", "/link");
++  const controller = new AbortController();
++  let calls = 0;
++  const remote = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async function(path, peer, peerPath, options) {
++    calls++;
++    assert.equal(this, remote);
++    assert.equal(path, "/source");
++    assert.equal(peer, memory);
++    assert.equal(peerPath, "/target");
++    assert.equal(options?.signal, controller.signal);
++    return "unknown";
++  } });
++  const mounted = createMountFileSystem({ root: memory, mounts: { "/remote": createReadOnlyFileSystem(remote) } });
++  assert.equal(await mounted.compareEntry("/remote/source", memory, "/link", { signal: controller.signal }), "unknown");
++  assert.equal(calls, 1);
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
++
++test("constructor unknown does not fall back to built-in protocol distinctness", async () => {
++  const { mock, fetch } = provider();
++  const remote = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async () => "unknown" });
++  assert.equal(await remote.compareEntry("/source", remote, "/target"), "unknown");
++  const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/remote": remote } });
++  await assert.rejects(mounted.copyFile("/remote/source", "/remote/target"), rejectCode("ENOTSUP"));
++  assert.deepEqual(mock.files.get("/source"), payload);
++  assert.deepEqual(mock.files.get("/target"), previous);
++  assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++});
++
++for (const result of ["same", "unknown", "distinct"] as const) {
++  test(`built-in protocol alias with constructor ${result} cannot authorize effects`, async () => {
++    const { mock, fetch } = provider();
++    let calls = 0;
++    const remote = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async () => { calls++; return result; } });
++    if (result === "distinct") await assert.rejects(remote.compareEntry("/source", remote, "/source"), rejectCode("EIO"));
++    else assert.equal(await remote.compareEntry("/source", remote, "/source"), "same");
++    assert.equal(calls, 1);
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++    assert.deepEqual(mock.files.get("/source"), payload);
++  });
++}
++
++for (const outcome of ["EACCES", "abort", "invalid"] as const) {
++  test(`constructor ${outcome} remains observable even for a built-in alias`, async () => {
++    const { mock, fetch } = provider();
++    const controller = new AbortController();
++    const reason = new FsError("ENOENT");
++    const callback = async () => {
++      if (outcome === "EACCES") throw new FsError("EACCES");
++      if (outcome === "abort") { controller.abort(reason); return "same"; }
++      return "invalid";
++    };
++    const remote: WebDavFileSystem = Reflect.construct(WebDavFileSystem, [{ baseUrl, fetch, compareEntry: callback }]);
++    await assert.rejects(remote.compareEntry("/source", remote, "/source", { signal: controller.signal }),
++      outcome === "abort" ? error => error === reason : rejectCode(outcome === "invalid" ? "EIO" : "EACCES"));
++    assert.ok(mock.requests.every(request => request.init.method === "PROPFIND"));
++    assert.deepEqual(mock.files.get("/source"), payload);
++  });
++}
++
++test("a late public override replaces rather than double-invokes the constructor callback", async () => {
++  const { fetch } = provider();
++  const memory = createMemoryFileSystem();
++  await memory.writeFile("/source", payload);
++  let constructorCalls = 0, lateCalls = 0;
++  const remote = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async () => { constructorCalls++; return "distinct"; } });
++  remote.compareEntry = async () => { lateCalls++; throw new FsError("EACCES"); };
++  await assert.rejects(compareEntries(remote, "/source", memory, "/source"), rejectCode("EACCES"));
++  assert.equal(constructorCalls, 0);
++  assert.equal(lateCalls, 1);
++});
++
++test("two constructor authorities are each queried once and conflicts fail EIO", async () => {
++  const { fetch } = provider();
++  const calls: string[] = [];
++  const first = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async () => { calls.push("first"); return "same"; } });
++  const second = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async () => { calls.push("second"); return "distinct"; } });
++  await assert.rejects(first.compareEntry("/source", second, "/target"), rejectCode("EIO"));
++  assert.deepEqual(calls, ["first", "second"]);
++});
++
++test("missing or denied metadata and pre-abort precede callback invocation", async () => {
++  const { fetch } = provider();
++  let calls = 0;
++  const remote = new WebDavFileSystem({ baseUrl, fetch, compareEntry: async () => { calls++; return "distinct"; } });
++  await assert.rejects(remote.compareEntry("/missing", remote, "/target"), rejectCode("ENOENT"));
++  const denied = new WebDavFileSystem({ baseUrl, fetch: async () => new Response(null, { status: 403 }), compareEntry: async () => { calls++; return "distinct"; } });
++  await assert.rejects(denied.compareEntry("/source", remote, "/target"), rejectCode("EACCES"));
++  const reason = new FsError("ENOENT");
++  await assert.rejects(remote.compareEntry("/source", remote, "/target", { signal: AbortSignal.abort(reason) }), error => error === reason);
++  assert.equal(calls, 0);
++});
++
++test("callback type remains compatible with FileSystem.compareEntry and invalid option fails EINVAL", () => {
++  const callback: NonNullable<FileSystem["compareEntry"]> = async (_path: string, _peer: FileSystem, _peerPath: string, _options?: FsOptions) => "unknown";
++  new WebDavFileSystem({ baseUrl, fetch: provider().fetch, compareEntry: callback });
++  assert.throws(() => Reflect.construct(WebDavFileSystem, [{ baseUrl, fetch: provider().fetch, compareEntry: true }]), rejectCode("EINVAL"));
++});
+diff --git a/tests/fs/webdav/consumer/consumer.test.ts b/tests/fs/webdav/consumer/consumer.test.ts
+new file mode 100644
+index 0000000..653790b
+--- /dev/null
++++ b/tests/fs/webdav/consumer/consumer.test.ts
+@@ -0,0 +1,131 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { createMemoryFileSystem, createMountFileSystem, FsError, Shell, standardCommands, WebDavFileSystem } from "virtual-bash";
++import type { FileSystem, FsOptions } from "virtual-bash";
++import { applicationWebDav } from "./example.js";
++import { withBackingDav } from "./provider.js";
++
++const payload = new Uint8Array([0, 255, 128, 13, 10, 65]);
++const previous = new Uint8Array([79, 76, 68]);
++async function seeded() {
++  const backing = createMemoryFileSystem();
++  await backing.writeFile("/source", payload);
++  await backing.writeFile("/target", previous);
++  return backing;
++}
++function bound(baseUrl: string, backing: FileSystem) {
++  const remote: WebDavFileSystem = applicationWebDav(baseUrl, globalThis.fetch, async (filesystem, path, options) => {
++    options.signal?.throwIfAborted();
++    return filesystem === remote || filesystem === backing ? { filesystem: backing, path } : undefined;
++  });
++  return remote;
++}
++
++for (const command of ["cp", "mv"]) {
++  for (const direction of ["to-remote", "from-remote"]) {
++    test(`built public consumer: existing-target ${command} ${direction} through actual serialized HTTP`, async () => {
++      const backing = await seeded();
++      await withBackingDav(backing, async (baseUrl, requests) => {
++        const remote = bound(baseUrl, backing);
++        const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/local": backing, "/remote": remote } });
++        const shell = new Shell({ fs: mounted }).use(standardCommands());
++        const paths = direction === "to-remote" ? "/local/source /remote/target" : "/remote/source /local/target";
++        const result = await shell.exec(`${command} ${paths}`);
++        assert.equal(result.exitCode, 0, result.stderr);
++        assert.equal(result.stdout, "");
++        assert.equal(result.stderr, "");
++        assert.deepEqual(await backing.readFile("/target"), payload);
++        if (command === "cp") assert.deepEqual(await backing.readFile("/source"), payload);
++        else await assert.rejects(backing.stat("/source"), error => error instanceof FsError && error.code === "ENOENT");
++        assert.deepEqual((await backing.readdir("/")).map(entry => entry.name), command === "cp" ? ["source", "target"] : ["target"]);
++        assert.ok(requests.includes(direction === "to-remote" ? "PUT" : "GET"));
++        assert.equal(requests.includes("DELETE"), command === "mv" && direction === "from-remote");
++      });
++    });
++  }
++}
++
++for (const command of ["cp", "mv"]) {
++  test(`built public consumer: ${command} overlapping backing alias preserves bytes`, async () => {
++    const backing = await seeded();
++    await withBackingDav(backing, async (baseUrl, requests) => {
++      const remote = bound(baseUrl, backing);
++      const mounted = createMountFileSystem({ root: backing, mounts: { "/remote": remote } });
++      assert.equal(await remote.compareEntry("/source", backing, "/source"), "same");
++      const result = await new Shell({ fs: mounted }).use(standardCommands()).exec(`${command} /remote/source /source`);
++      assert.equal(result.exitCode, 1);
++      assert.notEqual(result.stderr, "");
++      assert.deepEqual(await backing.readFile("/source"), payload);
++      assert.deepEqual(await backing.readFile("/target"), previous);
++      assert.ok(requests.every(method => method === "PROPFIND"));
++    });
++  });
++
++  test(`built public consumer: absent authority refuses existing-target ${command}`, async () => {
++    const backing = await seeded();
++    await withBackingDav(backing, async (baseUrl, requests) => {
++      const remote = new WebDavFileSystem({ baseUrl, fetch: globalThis.fetch, overwritePolicy: "etag" });
++      assert.equal(await remote.compareEntry("/source", backing, "/target"), "unknown");
++      const mounted = createMountFileSystem({ root: backing, mounts: { "/remote": remote } });
++      await assert.rejects(mounted.copyFile("/remote/source", "/target"), error => error instanceof FsError && error.code === "ENOTSUP");
++      const result = await new Shell({ fs: mounted }).use(standardCommands()).exec(`${command} /remote/source /target`);
++      assert.equal(result.exitCode, 1);
++      assert.notEqual(result.stderr, "");
++      assert.deepEqual(await backing.readFile("/source"), payload);
++      assert.deepEqual(await backing.readFile("/target"), previous);
++      assert.ok(requests.every(method => method === "PROPFIND"));
++    });
++  });
++}
++
++for (const abort of [false, true]) {
++  test(`built public constructor callback propagates ${abort ? "abort" : "EACCES"} before content`, async () => {
++    const backing = await seeded();
++    await withBackingDav(backing, async (baseUrl, requests) => {
++      const controller = new AbortController();
++      const reason = new FsError("ENOENT");
++      let calls = 0;
++      const remote = new WebDavFileSystem({ baseUrl, fetch: globalThis.fetch, compareEntry: async function() {
++        assert.equal(this, remote);
++        calls++;
++        if (abort) { controller.abort(reason); return "distinct"; }
++        throw new FsError("EACCES");
++      } });
++      const mounted = createMountFileSystem({ root: backing, mounts: { "/remote": remote } });
++      await assert.rejects(mounted.copyFile("/remote/source", "/target", { signal: controller.signal }),
++        error => abort ? error === reason : error instanceof FsError && error.code === "EACCES");
++      assert.equal(calls, 1);
++      assert.ok(requests.every(method => method === "PROPFIND"));
++      assert.deepEqual(await backing.readFile("/source"), payload);
++      assert.deepEqual(await backing.readFile("/target"), previous);
++    });
++  });
++}
++
++test("built public constructor distinct cannot override serialized protocol alias proof", async () => {
++  const backing = await seeded();
++  await withBackingDav(backing, async (baseUrl, requests) => {
++    let calls = 0;
++    const remote = new WebDavFileSystem({ baseUrl, fetch: globalThis.fetch, compareEntry: async () => { calls++; return "distinct"; } });
++    await assert.rejects(remote.compareEntry("/source", remote, "/source"), error => error instanceof FsError && error.code === "EIO");
++    assert.equal(calls, 1);
++    assert.ok(requests.every(method => method === "PROPFIND"));
++    assert.deepEqual(await backing.readFile("/source"), payload);
++  });
++});
++
++test("built public complete backing identities retain precedence without callback invocation", async () => {
++  const backing = await seeded();
++  await withBackingDav(backing, async (baseUrl, requests) => {
++    class ScopedGateway extends WebDavFileSystem {
++      override stat(path: string, options?: FsOptions) { return backing.stat(path, options); }
++      override lstat(path: string, options?: FsOptions) { return backing.lstat(path, options); }
++    }
++    let calls = 0;
++    const remote = new ScopedGateway({ baseUrl, fetch: globalThis.fetch, compareEntry: async () => { calls++; return "distinct"; } });
++    assert.equal(await remote.compareEntry("/source", backing, "/source"), "same");
++    assert.equal(calls, 0);
++    assert.deepEqual(requests, []);
++    assert.deepEqual(await backing.readFile("/source"), payload);
++  });
++});
+diff --git a/tests/fs/webdav/consumer/example.ts b/tests/fs/webdav/consumer/example.ts
+new file mode 100644
+index 0000000..eb22a29
+--- /dev/null
++++ b/tests/fs/webdav/consumer/example.ts
+@@ -0,0 +1,35 @@
++import { WebDavFileSystem } from "virtual-bash";
++import type { FileStat, FileSystem, FsOptions, WebDavFetch } from "virtual-bash";
++
++export interface BackingLocation {
++  readonly filesystem: FileSystem;
++  readonly path: string;
++}
++
++export type BackingResolver = (filesystem: FileSystem, path: string, options: FsOptions)
++  => Promise<BackingLocation | undefined>;
++
++function identity(stat: FileStat) {
++  const scope = stat.identityScope;
++  if (!(typeof scope === "symbol" || (typeof scope === "object" && scope !== null))
++    || typeof stat.dev !== "number" || !Number.isSafeInteger(stat.dev) || stat.dev < 0
++    || typeof stat.ino !== "number" || !Number.isSafeInteger(stat.ino) || stat.ino < 0) return undefined;
++  return { scope, dev: stat.dev, ino: stat.ino };
++}
++
++export function applicationWebDav(baseUrl: string, fetch: WebDavFetch, resolveBacking: BackingResolver): WebDavFileSystem {
++  return new WebDavFileSystem({ baseUrl, fetch, overwritePolicy: "etag", compareEntry: async function(path, peer, peerPath, options = {}) {
++    options.signal?.throwIfAborted();
++    const own = await resolveBacking(this, path, options);
++    options.signal?.throwIfAborted();
++    const other = await resolveBacking(peer, peerPath, options);
++    options.signal?.throwIfAborted();
++    if (!own || !other) return "unknown";
++    const left = identity(await own.filesystem.stat(own.path, options));
++    options.signal?.throwIfAborted();
++    const right = identity(await other.filesystem.stat(other.path, options));
++    options.signal?.throwIfAborted();
++    if (!left || !right) return "unknown";
++    return left.scope === right.scope && left.dev === right.dev && left.ino === right.ino ? "same" : "distinct";
++  } });
++}
+diff --git a/tests/fs/webdav/consumer/provider.ts b/tests/fs/webdav/consumer/provider.ts
+new file mode 100644
+index 0000000..20c5978
+--- /dev/null
++++ b/tests/fs/webdav/consumer/provider.ts
+@@ -0,0 +1,99 @@
++import { once } from "node:events";
++import { createServer } from "node:http";
++import { randomUUID } from "node:crypto";
++import type { FileStat, FileSystem } from "virtual-bash";
++
++const xml = (value: string) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
++
++export async function withBackingDav(backing: FileSystem, operation: (baseUrl: string, requests: string[]) => Promise<void>): Promise<void> {
++  const requests: string[] = [];
++  const resources = new Map<object | symbol | undefined, Map<string, string>>();
++  const versions = new Map<string, { stamp: string; version: number }>();
++  let nextVersion = 0;
++  const identifier = (stat: FileStat) => {
++    let scope = resources.get(stat.identityScope);
++    if (!scope) { scope = new Map(); resources.set(stat.identityScope, scope); }
++    const key = `${stat.dev}:${stat.ino}`;
++    let value = scope.get(key);
++    if (!value) { value = `urn:uuid:${randomUUID()}`; scope.set(key, value); }
++    return value;
++  };
++  const etag = (path: string, stat: FileStat) => {
++    const stamp = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}`;
++    let version = versions.get(path);
++    if (!version || version.stamp !== stamp) { version = { stamp, version: nextVersion++ }; versions.set(path, version); }
++    return `"fixture-${version.version}"`;
++  };
++  const server = createServer(async (request, response) => {
++    const method = request.method ?? "GET";
++    requests.push(method);
++    try {
++      const url = new URL(request.url ?? "/", "http://127.0.0.1");
++      if (!url.pathname.startsWith("/dav/")) { response.writeHead(404); response.end(); return; }
++      const path = decodeURIComponent(url.pathname.slice(4));
++      const chunks: Buffer[] = [];
++      let size = 0;
++      for await (const chunk of request) {
++        size += chunk.length;
++        if (size > 1024 * 1024) { response.writeHead(413); response.end(); return; }
++        chunks.push(Buffer.from(chunk));
++      }
++      const body = Buffer.concat(chunks);
++      let stat: FileStat | undefined;
++      try { stat = await backing.stat(path); }
++      catch (error) { if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) throw error; }
++      const validator = stat && etag(path, stat);
++      if (request.headers["if-match"] && request.headers["if-match"] !== validator) { response.writeHead(412); response.end(); return; }
++      if (request.headers["if-none-match"] === "*" && stat) { response.writeHead(412); response.end(); return; }
++      if (method === "PROPFIND") {
++        if (!stat) { response.writeHead(404); response.end(); return; }
++        const paths = [path];
++        if (request.headers.depth === "1" && stat.type === "directory") {
++          for (const entry of await backing.readdir(path)) paths.push(`${path === "/" ? "" : path}/${entry.name}`);
++        }
++        const entries: string[] = [];
++        for (const entryPath of paths) {
++          const entry = await backing.stat(entryPath);
++          const href = `/dav${entryPath.split("/").map(encodeURIComponent).join("/")}`;
++          entries.push(`<d:response><d:href>${xml(href)}</d:href><d:propstat><d:prop>`
++            + `<d:resourcetype>${entry.type === "directory" ? "<d:collection/>" : ""}</d:resourcetype>`
++            + `<d:getcontentlength>${entry.size}</d:getcontentlength><d:getetag>${xml(etag(entryPath, entry))}</d:getetag>`
++            + `<d:getlastmodified>${new Date(entry.mtimeMs).toUTCString()}</d:getlastmodified>`
++            + (body.toString().includes("resource-id") ? `<d:resource-id><d:href>${identifier(entry)}</d:href></d:resource-id>` : "")
++            + `</d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`);
++        }
++        const content = Buffer.from(`<d:multistatus xmlns:d="DAV:">${entries.join("")}</d:multistatus>`);
++        response.writeHead(207, { "Content-Type": "application/xml", "Content-Length": content.length });
++        response.end(content);
++      } else if (method === "GET") {
++        if (!stat) { response.writeHead(404); response.end(); return; }
++        const content = await backing.readFile(path);
++        response.writeHead(200, { ETag: validator!, "Content-Length": content.byteLength });
++        response.end(content);
++      } else if (method === "PUT") {
++        await backing.writeFile(path, new Uint8Array(body));
++        versions.delete(path);
++        response.writeHead(stat ? 204 : 201); response.end();
++      } else if (method === "DELETE") {
++        await backing.rm(path);
++        versions.delete(path);
++        response.writeHead(204); response.end();
++      } else { response.writeHead(501); response.end(); }
++    } catch (error) {
++      const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
++      response.writeHead(code === "ENOENT" ? 404 : code === "EACCES" ? 403 : 500);
++      response.end();
++    }
++  });
++  server.requestTimeout = 3000;
++  server.listen(0, "127.0.0.1");
++  await once(server, "listening");
++  try {
++    const address = server.address();
++    if (!address || typeof address === "string") throw new Error("missing loopback address");
++    await operation(`http://127.0.0.1:${address.port}/dav/`, requests);
++  } finally {
++    server.closeAllConnections();
++    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
++  }
++}

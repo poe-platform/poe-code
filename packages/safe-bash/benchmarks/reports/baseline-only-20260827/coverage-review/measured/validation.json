@@ -1,0 +1,148 @@
+{
+  "authorCommit": "849dbf18b1e865c7d12927c11f0e20ba0555c540",
+  "sourceSha256": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732",
+  "counts": {
+    "declaredPrimary": 61,
+    "declaredDiagnostics": 7,
+    "declaredAttempts": 136,
+    "actualAttempts": 136,
+    "reusedPrefixCaptures": 12,
+    "newLaunches": 124,
+    "totalReviewerLaunches": 137,
+    "lostDeliveryLaunches": 1,
+    "lostDeliveryProductPhase": "unknown: full capture not durably published",
+    "productExecCalls": 136,
+    "normalChildren": 135,
+    "agreement": 136,
+    "disagreement": 0
+  },
+  "exactPositive54": {
+    "ours": 0,
+    "baseline": 47
+  },
+  "exactPositive50": {
+    "ours": 0,
+    "baseline": 45
+  },
+  "exactPositiveAllPrimary": {
+    "ours": 7,
+    "baseline": 53
+  },
+  "targetClassifications": {
+    "ours": {
+      "missing-handler": 47,
+      "dependency-blocked": 4,
+      "syntax-blocked-before-target": 2,
+      "primary syntax failure; direct diagnostic missing": 1
+    },
+    "baseline": {
+      "functional-positive": 47,
+      "partial-functionality": 2,
+      "documentation-only": 1,
+      "display-profile mismatch; hierarchy/counts present": 1,
+      "no-op-not-operational-proof": 1,
+      "guest semantics positive; cleanup timeout": 1,
+      "baseline-stub": 1
+    }
+  },
+  "independentPredicateDisagreements": [],
+  "confirmedMissingCompatibleNames": 54,
+  "allObservedLoadedFilesMatchFreeze": true,
+  "serverClosed": true,
+  "requests": [
+    {
+      "case": {
+        "engine": "ours",
+        "id": "curl-positive"
+      },
+      "method": "GET",
+      "path": "/fixture.txt",
+      "remoteAddress": "127.0.0.1"
+    },
+    {
+      "case": {
+        "engine": "baseline",
+        "id": "curl-positive"
+      },
+      "method": "GET",
+      "path": "/fixture.txt",
+      "remoteAddress": "127.0.0.1"
+    }
+  ],
+  "prefixRequestCount": 2,
+  "continuationRequestCount": 0,
+  "authorCounts": {
+    "declaredPrimaryRecipes": 61,
+    "declaredDiagnostics": 7,
+    "declaredEngineAttempts": 136,
+    "actualEngineAttempts": 136,
+    "actualProductExecCalls": 136,
+    "normalChildren": 135,
+    "original50": {
+      "ours": {
+        "missing-handler": 43,
+        "dependency-blocked": 4,
+        "syntax-blocked-before-target": 2,
+        "no-op-not-operational-proof": 1
+      },
+      "baseline": {
+        "functional-positive": 45,
+        "partial-functionality": 3,
+        "documentation-only": 1,
+        "no-op-not-operational-proof": 1
+      }
+    },
+    "optional4": {
+      "ours": {
+        "missing-handler": 4
+      },
+      "baseline": {
+        "timeout": 1,
+        "baseline-stub": 1,
+        "functional-positive": 2
+      }
+    },
+    "primary54": {
+      "ours": {
+        "missing-handler": 47,
+        "dependency-blocked": 4,
+        "syntax-blocked-before-target": 2,
+        "no-op-not-operational-proof": 1
+      },
+      "baseline": {
+        "functional-positive": 47,
+        "partial-functionality": 3,
+        "documentation-only": 1,
+        "no-op-not-operational-proof": 1,
+        "timeout": 1,
+        "baseline-stub": 1
+      }
+    },
+    "historicalOverlap3": {
+      "ours": {
+        "functional-positive": 3
+      },
+      "baseline": {
+        "functional-positive": 3
+      }
+    },
+    "shared4": {
+      "ours": {
+        "functional-positive": 4
+      },
+      "baseline": {
+        "functional-positive": 3,
+        "partial-functionality": 1
+      }
+    },
+    "diagnostics": {
+      "ours": {
+        "missing-handler": 7
+      },
+      "baseline": {
+        "direct-target-observed-no-functional-credit": 7
+      }
+    }
+  },
+  "classifications": "Exact frozen predicates retained. Tree display mismatch and JS successful execution/failed host cleanup separately identified; no modified input; only root-authorized single lost-delivery repeat."
+}

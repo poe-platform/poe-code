@@ -1,0 +1,70 @@
+{
+  "schema": "explicit-adapter-v1-v2-delta",
+  "base": {
+    "path": "../executor-preparation-v1/adapter.mjs",
+    "sha256": "151a6d5e7800443c231712f21c6b5d2a37a5f435ffa278c182d8913b18d26b90"
+  },
+  "patched": {
+    "path": "adapter.mjs",
+    "sha256": "e2c3900dc4f3738074521e7302b45e08386e8c93161d9169e1c5eea7f52022a9"
+  },
+  "changes": [
+    {
+      "before": "import { admissionBarrier } from './predicates.mjs';",
+      "after": "import { publicAdmission } from './admission.mjs';\nimport { census } from './namespace.mjs';\nimport { byteInput, telemetryOutcome } from './telemetry.mjs';"
+    },
+    {
+      "before": "from './core.mjs';",
+      "after": "from '../executor-preparation-v1/core.mjs';"
+    },
+    {
+      "before": "bindings, signal, emit })",
+      "after": "bindings, namespaces, signal, emit })"
+    },
+    {
+      "before": "let filesystem;",
+      "after": "let filesystem;\n  const dispatches = [];\n  let stdinAdmission;"
+    },
+    {
+      "before": "async function snapshot() {",
+      "after": "async function snapshot() {\n    if (!legacy) return census(filesystem, engine, namespaces[engine], signal);"
+    },
+    {
+      "before": "    requireThat(!specimen.inputChunkLengths, 'UNQUALIFIED_CHUNK_ADMISSION', 'W03 chunk boundaries are not represented by the historical scalar baseline stdin adapter; no silent rewrite.');\n",
+      "after": ""
+    },
+    {
+      "before": "      shell.use(library.agentCommands());",
+      "after": "      shell.use(async (context, next) => {\n        requireThat(dispatches.length < 256 && Buffer.byteLength(context.command) <= 1024, 'DISPATCH_TELEMETRY_CAP', context.command);\n        dispatches.push({ command: context.command });\n        return next();\n      });\n      shell.use(library.agentCommands());"
+    },
+    {
+      "before": "await admissionBarrier(shell, bindings.target.defaultNames, event => report.events.push(event));",
+      "after": "await publicAdmission(shell, bindings.target.defaultNames, event => report.events.push(event), signal);"
+    },
+    {
+      "before": "      const bytes = Buffer.from(specimen.stdinBase64, 'base64');",
+      "after": "      const input = byteInput(specimen, engine);\n      stdinAdmission = input.receipt;"
+    },
+    {
+      "before": "{ cwd: specimen.cwd, env, stdin: bytes, signal }",
+      "after": "{ cwd: specimen.cwd, env, stdin: input.stdin, signal, ...input.options }"
+    },
+    {
+      "before": "{ cwd: specimen.cwd, env, replaceEnv: true, rawScript: true, stdin: bytes.toString('latin1'), stdinKind: 'bytes', signal }",
+      "after": "{ cwd: specimen.cwd, env, stdin: input.stdin, signal, ...input.options }"
+    },
+    {
+      "before": "  return report;",
+      "after": "  if (stdinAdmission) report.telemetry = telemetryOutcome(specimen, engine, stdinAdmission, dispatches, report.cleanup?.completion === 'returned');\n  return report;"
+    },
+    {
+      "before": "bindings, namespaces, signal, emit })",
+      "after": "bindings, namespaces, signal, emit, authorization })"
+    },
+    {
+      "before": "  requireThat(['virtual-bash', 'just-bash'].includes(engine), 'ENGINE', engine);",
+      "after": "  requireThat(authorization?.rootGo === true && authorization?.differentFreeze && authorization?.candidate === '67eab12e315054907ef4ef435c6bbca2f59e0c36', 'ROOT_GO_REQUIRED', 'adapter-v2 is preparation only until rootGO');\n  requireThat(['virtual-bash', 'just-bash'].includes(engine), 'ENGINE', engine);"
+    }
+  ],
+  "baseUnchanged": true
+}

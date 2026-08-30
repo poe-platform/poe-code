@@ -1,0 +1,18 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/current-qsW1UX/snapshot/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "--listFilesOnly",
+    "--pretty",
+    "false"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/current-type-diagnostics-20260827/.runs/current-qsW1UX/snapshot",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 1004.2305410000008,
+  "stdoutSha256": "f4750e9ff35c93eed901c83e4e3f0a4467b93b5c655976fd53fa367387501b1d",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": []
+}

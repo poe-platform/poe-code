@@ -1,0 +1,6 @@
+?? tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/START.json
+?? tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/bootstrap.stderr.raw
+?? tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/bootstrap.stdout.raw
+?? tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/metadata.events.jsonl
+?? tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/owned-status.raw
+?? tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/capture/owned-status.raw.stderr

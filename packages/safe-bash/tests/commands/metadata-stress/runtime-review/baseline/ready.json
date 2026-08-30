@@ -1,0 +1,13 @@
+{
+  "recordedAt": "2026-08-27T00:48:00.662Z",
+  "baselineSourceConsumingExecutionComplete": true,
+  "baselineDigest": "74391e831d04052eddb8207980f9b3d2769136461105067e34c2cb9ba7b774ac",
+  "baselineHead": "d1f78d43880c94300c0019b07a88110e9b3e8f08",
+  "pluginHash": "a44eb6d2e2b63995d1930027e6a1f7d8d1dabe7269386c957e2fdf94714e3f8e",
+  "sourceChangesAfterGate": [
+    "src/shell/input.ts",
+    "src/shell/runtime.ts"
+  ],
+  "status": "/tmp/safe-bash-metadata-runtime-review-status.txt",
+  "note": "Fixer may now write owned metadata and existing stress; reviewer will continue row calibration and wait runtime-fixes.closed before acceptance replay."
+}

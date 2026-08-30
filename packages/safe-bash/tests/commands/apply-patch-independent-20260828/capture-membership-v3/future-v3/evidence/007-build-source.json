@@ -1,0 +1,31 @@
+{
+  "id": "build-source",
+  "role": "build",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/source/tsconfig.build.json",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+  ],
+  "started": "2026-08-28T19:59:24.501Z",
+  "finished": "2026-08-28T19:59:28.754Z",
+  "startedElapsedMs": 6310.6885,
+  "finishedElapsedMs": 10563.947,
+  "pid": 69267,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 0,
+  "fragments": [],
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

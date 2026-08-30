@@ -1,0 +1,84 @@
+{
+  "schema": "node-abi-static-tool-bound-v1",
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "git": {
+    "role": "git",
+    "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "version": "git version 2.50.1 (Apple Git-155)",
+    "mode": 493,
+    "bytes": 3704880,
+    "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+  },
+  "compiler": {
+    "version": "5.9.3",
+    "files": [
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+        "relativePath": "lib/typescript.js",
+        "mode": 420,
+        "bytes": 9112572,
+        "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+        "relativePath": "package.json",
+        "mode": 420,
+        "bytes": 3620,
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      }
+    ]
+  },
+  "builtinAllowlist": [
+    "assert",
+    "assert/strict",
+    "async_hooks",
+    "buffer",
+    "child_process",
+    "constants",
+    "crypto",
+    "dgram",
+    "dns",
+    "dns/promises",
+    "events",
+    "fs",
+    "fs/promises",
+    "http",
+    "http2",
+    "https",
+    "inspector",
+    "module",
+    "net",
+    "os",
+    "path",
+    "path/win32",
+    "perf_hooks",
+    "process",
+    "querystring",
+    "stream",
+    "stream/promises",
+    "stream/web",
+    "string_decoder",
+    "timers",
+    "timers/promises",
+    "tls",
+    "tty",
+    "url",
+    "util",
+    "v8",
+    "worker_threads",
+    "zlib"
+  ],
+  "npmFiles": [],
+  "npmExecutions": 0,
+  "externalRegularFiles": 4,
+  "qualification": "Exact Node/Git binaries plus two TypeScript files from inherited qualified tooling; no npm load/install. Builtins retain the reviewed static allowlist, not a minimal claim. All other resolved files refuse. Compiler runs only after fresh GO, using the unchanged reviewed per-file in-memory transform and inherited emission hashes; no build command."
+}

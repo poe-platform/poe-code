@@ -1,0 +1,1461 @@
+7636967827685c8fd8a10c083dc6419dfb574b30 blob 13001
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { deflateSync } from 'node:zlib';
+import * as api from 'virtual-bash';
+import * as leaf from 'virtual-bash/commands/git';
+import { expectedNames } from './names.mjs';
+
+const neutral = JSON.parse(await fs.readFile(new URL('fixture.json', import.meta.url)));
+const packedData = JSON.parse(await fs.readFile(new URL('packs.json', import.meta.url)));
+const rows = [], shells = new Set();
+const quote = text => "'" + text.replaceAll("'", "'\\''") + "'";
+const host = commands => ({ commands, use() { throw Error('unexpected middleware'); }, registerFileSystem() { throw Error('unexpected filesystem'); } });
+async function put(memory, name, bytes) { await memory.mkdir(path.posix.dirname(name), { recursive: true }); await memory.writeFile(name, bytes); }
+async function memoryFixture() {
+  const memory = new api.MemoryFileSystem();
+  for (const item of neutral.files) { await put(memory, '/repo/' + item.path, item.text === undefined ? Buffer.from(item.base64, 'base64') : Buffer.from(item.text)); await memory.chmod('/repo/' + item.path, item.mode); }
+  return memory;
+}
+async function installPack(memory, fixture, remove = false) {
+  if (remove) for (const name of packedData.workflowTransformation.removeExactly) await memory.rm('/repo/' + name);
+  const pack = Buffer.from(fixture.packBase64, 'base64');
+  const stem = '/repo/.git/objects/pack/pack-' + pack.subarray(-20).toString('hex');
+  await put(memory, stem + '.pack', pack); await put(memory, stem + '.idx', Buffer.from(fixture.indexBase64, 'base64'));
+  return stem;
+}
+function shellFor(memory, options = {}, cwd = '/repo') {
+  const shell = new api.Shell({ fs: memory, cwd }).use(api.agentCommands(options)); shells.add(shell); return shell;
+}
+async function record(id, run) {
+  if (process.env.PUBLIC_CASE && id !== process.env.PUBLIC_CASE) return;
+  const timer = setTimeout(() => { console.error('PUBLIC_CASE_DEADLINE', id); process.exit(78); }, 30000);
+  const row = { id, pass: false };
+  try { await run(); row.pass = true; } catch (error) { row.error = String(error?.stack ?? error); }
+  finally {
+    const settled = await Promise.allSettled([...shells].map(shell => shell.dispose()));
+    row.shells = shells.size; row.closed = settled.filter(item => item.status === 'fulfilled').length;
+    if (row.closed !== row.shells) { row.pass = false; row.cleanupFailure = true; }
+    shells.clear(); clearTimeout(timer);
+  }
+  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);
+}
+async function object(memory, type, bytes) {
+  const body = Buffer.concat([Buffer.from(`${type} ${bytes.length}\0`), bytes]);
+  const oid = createHash('sha1').update(body).digest('hex');
+  await put(memory, `/repo/.git/objects/${oid.slice(0, 2)}/${oid.slice(2)}`, deflateSync(body)); return oid;
+}
+await record('G01-public-exports', async () => {
+  for (const name of ['createGitCommand', 'createGitCommands', 'gitCommands']) assert.equal(api[name], leaf[name]);
+  assert.equal(api.createGitCommand().name, 'git'); assert.deepEqual(api.createGitCommands().map(command => command.name), ['git']);
+  const root = await fs.realpath(process.env.PRODUCT_ROOT);
+  assert.equal(await fs.realpath(fileURLToPath(import.meta.resolve('virtual-bash'))), path.join(root, 'dist/index.js'));
+  assert.equal(await fs.realpath(fileURLToPath(import.meta.resolve('virtual-bash/commands/git'))), path.join(root, 'dist/commands/git/index.js'));
+  const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json')));
+  assert.deepEqual(metadata.dependencies ?? {}, {});
+  assert.deepEqual(metadata.exports['./commands/git'], { types: './dist/commands/git/index.d.ts', import: './dist/commands/git/index.js' });
+  assert.equal('GIT_LIMITS' in api, false);
+});
+await record('G02-exact80', async () => {
+  assert.equal(expectedNames.length, 80); assert.equal(new Set(expectedNames).size, 80);
+  assert.deepEqual(api.createAgentCommands().map(command => command.name).sort(), expectedNames);
+  for (const name of ['curl', 'safejs', 'node', 'npm', 'npx', 'yq', 'xan', 'getopts']) assert.ok(!expectedNames.includes(name));
+  const shell = shellFor(await memoryFixture()); await shell.exec('true'); assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expectedNames);
+});
+await record('G03-standalone', async () => {
+  const shell = new api.Shell({ fs: await memoryFixture(), cwd: '/repo' }).use(api.gitCommands()); shells.add(shell);
+  const result = await shell.exec('git rev-parse HEAD'); assert.equal(result.exitCode, 0); assert.equal(result.stdout, neutral.oids.headCommit + '\n'); assert.equal(result.stderr, ''); assert.equal(shell.commands.list().length, 1);
+});
+await record('G04-collision-global-false', () => {
+  const commands = new api.CommandRegistry([{ name: 'git', execute: () => ({ exitCode: 19 }) }]); const original = commands.get('git');
+  assert.throws(() => api.agentCommands({ git: { replace: true } }).setup(host(commands)), /already registered/); assert.equal(commands.list().length, 1); assert.equal(commands.get('git'), original);
+});
+await record('G05-replace-global-true', () => {
+  const commands = new api.CommandRegistry([{ name: 'git', execute: () => ({ exitCode: 19 }) }, { name: 'custom', execute: () => ({ exitCode: 17 }) }]);
+  const previous = commands.get('git'), custom = commands.get('custom');
+  api.agentCommands({ replace: true, git: { replace: false } }).setup(host(commands)); assert.equal(commands.list().length, 81); assert.notEqual(commands.get('git'), previous); assert.equal(commands.get('custom'), custom);
+});
+await record('G06-discovery-boundary', async () => {
+  const memory = await memoryFixture(); await memory.mkdir('/repo/sub');
+  const allowed = shellFor(memory, { git: { discoveryBoundary: '/repo' } }, '/repo/sub'); const good = await allowed.exec('git rev-parse --show-toplevel'); assert.equal(good.exitCode, 0); assert.equal(good.stdout, '/repo\n');
+  const denied = shellFor(memory, { git: { discoveryBoundary: '/repo/sub' } }, '/repo/sub'); const bad = await denied.exec('git rev-parse HEAD'); assert.equal(bad.exitCode, 128); assert.equal(bad.stdout, ''); assert.ok(bad.stderr.length > 0);
+});
+await record('G07-fixed-options', () => {
+  for (const options of [{ limits: {} }, { maxReadBytes: 1 }, { discoveryBoundary: 3 }, { spawn: true }]) assert.throws(() => api.createGitCommand(options), TypeError);
+  assert.throws(() => api.createAgentCommands({ git: { limits: {} } }), TypeError);
+  assert.throws(() => api.createGitCommands({ discoveryBoundary: 'relative' }), TypeError);
+});
+await record('G08-standalone-replacement', async () => {
+  const commands = new api.CommandRegistry([{ name: 'git', execute: () => ({ exitCode: 17 }) }]); const prior = commands.get('git');
+  api.gitCommands({ replace: true }).setup(host(commands)); assert.notEqual(commands.get('git'), prior);
+  assert.throws(() => api.gitCommands().setup(host(commands)), /already registered/);
+});
+await record('G09-readonly-packed', async () => {
+  const memory = await memoryFixture(); await installPack(memory, packedData.fixtures[0], true);
+  const before = Buffer.from(await memory.readFile('/repo/.git/index'));
+  const result = await shellFor(api.createReadOnlyFileSystem(memory)).exec('git status --porcelain=v1 --no-renames -uall');
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, neutral.proposedOutputs[0].stdout); assert.deepEqual(Buffer.from(await memory.readFile('/repo/.git/index')), before);
+});
+await record('G10-pipeline', async () => {
+  const result = await shellFor(await memoryFixture()).exec('git ls-files | head -n 1'); assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'README.md\n'); assert.equal(result.stderr, '');
+});
+await record('G11-apply-crossfeature', async () => {
+  const memory = await memoryFixture(), shell = shellFor(memory);
+  const patch = '*** Begin Patch\n*** Update File: src/app.txt\n@@\n-working\n+patched\n*** End Patch\n';
+  const changed = await shell.exec('apply_patch', { stdin: patch }); assert.equal(changed.exitCode, 0, changed.stderr);
+  const result = await shell.exec('git diff --name-only | cat'); assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'src/app.txt\n'); assert.equal(Buffer.from(await memory.readFile('/repo/src/app.txt')).toString(), 'patched\n');
+});
+await record('G12-array-function', async () => {
+  const result = await shellFor(await memoryFixture()).exec('args=(rev-parse HEAD); f(){ git "${args[@]}"; }; f | cat'); assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, neutral.oids.headCommit + '\n');
+});
+await record('G13-preaborted-caller', async () => {
+  const reason = { caller: true }, controller = new AbortController(); controller.abort(reason);
+  await assert.rejects(shellFor(await memoryFixture()).exec('git status --short', { signal: controller.signal }), error => error === reason);
+});
+await record('G14-corrupt-pack-before-output', async () => {
+  const memory = await memoryFixture(), stem = await installPack(memory, packedData.fixtures[0]); const bytes = Buffer.from(await memory.readFile(stem + '.pack')); bytes[bytes.length - 1] ^= 1; await memory.writeFile(stem + '.pack', bytes);
+  const result = await shellFor(memory).exec('git rev-parse --show-toplevel'); assert.equal(result.exitCode, 128); assert.equal(result.stdout, ''); assert.ok(result.stderr.length > 0);
+});
+await record('G15-unsupported-storage', async () => {
+  const memory = await memoryFixture(); await memory.writeFile('/repo/.git/shallow', Buffer.from(neutral.oids.headCommit + '\n'));
+  const result = await shellFor(memory).exec('git rev-parse HEAD'); assert.equal(result.exitCode, 128); assert.equal(result.stdout, ''); assert.match(result.stderr, /shallow|unsupported/);
+});
+await record('G16-usage-not-version-stub', async () => {
+  const result = await shellFor(await memoryFixture()).exec('git --version'); assert.equal(result.exitCode, 129); assert.equal(result.stdout, ''); assert.ok(result.stderr.length > 0);
+});
+await record('G17-diff-exit-one', async () => {
+  const result = await shellFor(await memoryFixture()).exec('git diff --quiet'); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+});
+await record('G18-stdout-backpressure', async () => {
+  const shell = shellFor(await memoryFixture()); let enter, release, settled = false; const entered = new Promise(resolve => { enter = resolve; }), held = new Promise(resolve => { release = resolve; });
+  const execution = shell.exec('git show HEAD:src/app.txt', { stdout: { async write() { enter(); await held; } } }); execution.then(() => { settled = true; }, () => { settled = true; });
+  try { await entered; await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false); } finally { release(); }
+  assert.equal((await execution).exitCode, 0);
+});
+for (const storage of ['loose', 'P01', 'P02']) for (const [index, workflow] of neutral.proposedOutputs.entries()) await record(`${storage}-workflow-${index + 1}`, async () => {
+  const memory = await memoryFixture(); if (storage !== 'loose') await installPack(memory, packedData.fixtures.find(item => item.id === storage), true);
+  const result = await shellFor(memory).exec(['git', ...workflow.args].map(quote).join(' ')); assert.equal(result.exitCode, workflow.exitCode, result.stderr); assert.equal(result.stdout, workflow.stdout); assert.equal(result.stderr, '');
+});
+for (const id of ['P03', 'P04', 'P05', 'P06', 'P07', 'P08', 'P09', 'P11', 'P12']) await record(`${id}-public-verified-blob`, async () => {
+  const memory = await memoryFixture(), fixture = packedData.fixtures.find(item => item.id === id); await installPack(memory, fixture);
+  const entry = fixture.entries.at(-1); assert.equal(entry.type, 'blob');
+  const tree = await object(memory, 'tree', Buffer.concat([Buffer.from('100644 data\0'), Buffer.from(entry.oid, 'hex')]));
+  const commit = await object(memory, 'commit', Buffer.from(`tree ${tree}\nauthor A <a@b> 0 +0000\ncommitter A <a@b> 0 +0000\n\nData\n`));
+  await memory.writeFile('/repo/.git/refs/heads/main', Buffer.from(commit + '\n'));
+  const chunks = []; const result = await shellFor(memory).exec('git show HEAD:data', { stdout: { async write(bytes) { chunks.push(Buffer.from(bytes)); } } });
+  assert.equal(result.exitCode, 0, result.stderr); assert.deepEqual(Buffer.concat(chunks), Buffer.from(entry.bodyBase64, 'base64'));
+});
+const result = { cases: rows, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, nativeRuns: 0, privateRuns: 0 };
+await fs.writeFile(process.env.PUBLIC_RESULT, JSON.stringify(result, null, 2) + '\n');
+console.log(JSON.stringify({ summary: { pass: result.pass, fail: result.fail, cases: rows.length } }));
+process.exitCode = result.fail ? 1 : 0;
+
+8034086f5f50c4e99ea2c1706753dc333d7cb507 blob 15895
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import * as api from 'virtual-bash';
+import * as leaf from 'virtual-bash/commands/apply-patch';
+import { expectedNames } from './names.mjs';
+
+const rows = [], shells = new Set();
+const quote = text => "'" + text.replaceAll("'", "'\\''") + "'";
+const add = (name = 'note', text = 'hello') => `*** Begin Patch\n*** Add File: ${name}\n+${text}\n*** End Patch\n`;
+const update = (name = 'note') => `*** Begin Patch\n*** Update File: ${name}\n@@\n-old\n+new\n*** End Patch\n`;
+const summary = label => `Success. Updated the following files:\n${label}\n`;
+const text = async (filesystem, name) => Buffer.from(await filesystem.readFile(name)).toString();
+const absent = async (filesystem, name) => assert.rejects(filesystem.lstat(name), error => error.code === 'ENOENT');
+const host = commands => ({ commands, use() { throw Error('unexpected middleware'); }, registerFileSystem() { throw Error('unexpected filesystem'); } });
+async function fixture(options = {}, filesystem = new api.MemoryFileSystem(), cwd = '/w') {
+  await filesystem.mkdir(cwd, { recursive: true });
+  const shell = new api.Shell({ fs: filesystem, cwd }).use(api.agentCommands(options)); shells.add(shell);
+  return { shell, filesystem };
+}
+async function record(id, run) {
+  if (process.env.PUBLIC_CASE && id !== process.env.PUBLIC_CASE) return;
+  const timer = setTimeout(() => { console.error('PUBLIC_CASE_DEADLINE', id); process.exit(78); }, 30000);
+  const row = { id, pass: false };
+  try { await run(); row.pass = true; } catch (error) { row.error = String(error?.stack ?? error); }
+  finally {
+    const settled = await Promise.allSettled([...shells].map(shell => shell.dispose()));
+    row.shells = shells.size; row.closed = settled.filter(item => item.status === 'fulfilled').length;
+    if (row.closed !== row.shells) { row.pass = false; row.cleanupFailure = true; }
+    shells.clear(); clearTimeout(timer);
+  }
+  rows.push(row); console.log(JSON.stringify(row));
+  if (row.cleanupFailure) process.exit(78);
+}
+await record('P01-public-exports', async () => {
+  for (const name of ['createApplyPatchCommand', 'createApplyPatchCommands', 'applyPatchCommands']) assert.equal(api[name], leaf[name]);
+  assert.equal(api.createApplyPatchCommand().name, 'apply_patch');
+  assert.deepEqual(api.createApplyPatchCommands().map(command => command.name), ['apply_patch']);
+  const root = await fs.realpath(process.env.PRODUCT_ROOT);
+  assert.equal(await fs.realpath(fileURLToPath(import.meta.resolve('virtual-bash'))), path.join(root, 'dist/index.js'));
+  assert.equal(await fs.realpath(fileURLToPath(import.meta.resolve('virtual-bash/commands/apply-patch'))), path.join(root, 'dist/commands/apply-patch/index.js'));
+  const metadata = JSON.parse(await fs.readFile(path.join(root, 'package.json')));
+  assert.deepEqual(metadata.dependencies ?? {}, {});
+  assert.deepEqual(metadata.exports['./commands/apply-patch'], { types: './dist/commands/apply-patch/index.d.ts', import: './dist/commands/apply-patch/index.js' });
+});
+await record('P02-exact80', async () => {
+  assert.equal(expectedNames.length, 80); assert.equal(new Set(expectedNames).size, 80);
+  const names = api.createAgentCommands().map(command => command.name).sort(); assert.deepEqual(names, expectedNames);
+  for (const name of ['curl', 'safejs', 'node', 'npm', 'npx', 'yq', 'xan', 'getopts']) assert.ok(!names.includes(name));
+  const { shell } = await fixture(); await shell.exec('true'); assert.deepEqual(shell.commands.list().map(command => command.name).sort(), expectedNames);
+});
+await record('P03-standalone', async () => {
+  const filesystem = new api.MemoryFileSystem(); const shell = new api.Shell({ fs: filesystem }).use(api.applyPatchCommands()); shells.add(shell);
+  const result = await shell.exec('apply_patch', { stdin: add() }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('A note')); assert.equal(await text(filesystem, '/note'), 'hello\n'); assert.equal(shell.commands.list().length, 1);
+});
+await record('P04-collision-global-false', () => {
+  const sentinel = { name: 'apply_patch', execute: () => ({ exitCode: 19 }) }, commands = new api.CommandRegistry([sentinel]);
+  assert.throws(() => api.agentCommands({ applyPatch: { replace: true } }).setup(host(commands)), /already registered/); assert.deepEqual(commands.list(), [sentinel]);
+});
+await record('P05-replace-global-true', () => {
+  const sentinel = { name: 'apply_patch', execute: () => ({ exitCode: 19 }) }, custom = { name: 'custom', execute: () => ({ exitCode: 17 }) }, commands = new api.CommandRegistry([sentinel, custom]);
+  const priorPatch = commands.get('apply_patch'), retainedCustom = commands.get('custom');
+  api.agentCommands({ replace: true, applyPatch: { replace: false } }).setup(host(commands)); assert.equal(commands.list().length, 81); assert.notEqual(commands.get('apply_patch'), priorPatch); assert.equal(commands.get('custom'), retainedCustom); assert.equal(commands.get('custom').execute, custom.execute);
+});
+await record('P06-invalid-options-atomic', () => {
+  const commands = new api.CommandRegistry(); assert.throws(() => api.agentCommands({ applyPatch: { limits: { maxFiles: 0 } } }).setup(host(commands)), RangeError); assert.equal(commands.list().length, 0);
+  assert.throws(() => api.createApplyPatchCommand({ limits: { maxFiles: 257 } }), RangeError);
+  assert.throws(() => api.createApplyPatchCommand({ limits: { unexpected: 1 } }), TypeError);
+});
+await record('P07-forwarded-limit', async () => {
+  const { shell, filesystem } = await fixture({ applyPatch: { limits: { maxPatchBytes: 8 } } });
+  const result = await shell.exec('apply_patch', { stdin: add() }); assert.equal(result.exitCode, 1); assert.match(result.stderr, /maxPatchBytes/); assert.equal(result.stdout, ''); await absent(filesystem, '/w/note');
+});
+await record('P08-literal-argument', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('apply_patch ' + quote(add('space name', 'hé😀'))); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('A space name')); assert.equal(result.stderr, ''); assert.equal(await text(filesystem, '/w/space name'), 'hé😀\n');
+});
+await record('P09-heredoc-input', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('apply_patch <<\'PATCH\'\n' + add() + 'PATCH\n'); assert.equal(result.exitCode, 0); assert.equal(await text(filesystem, '/w/note'), 'hello\n');
+});
+await record('P10-update', async () => {
+  const { shell, filesystem } = await fixture(); await filesystem.writeFile('/w/note', Buffer.from('old\n')); const result = await shell.exec('apply_patch', { stdin: update() }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('M note')); assert.equal(await text(filesystem, '/w/note'), 'new\n');
+});
+await record('P11-move', async () => {
+  const { shell, filesystem } = await fixture(); await filesystem.writeFile('/w/note', Buffer.from('old\n')); const patch = update().replace('*** Update File: note\n', '*** Update File: note\n*** Move to: folder/new\n'); const result = await shell.exec('apply_patch', { stdin: patch }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('M folder/new')); await absent(filesystem, '/w/note'); assert.equal(await text(filesystem, '/w/folder/new'), 'new\n');
+});
+await record('P12-delete', async () => {
+  const { shell, filesystem } = await fixture(); await filesystem.writeFile('/w/note', Buffer.from('old\n')); const result = await shell.exec('apply_patch', { stdin: '*** Begin Patch\n*** Delete File: note\n*** End Patch\n' }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('D note')); await absent(filesystem, '/w/note');
+});
+await record('P13-staging-before-publication', async () => {
+  const { shell, filesystem } = await fixture(); const patch = add().replace('*** End Patch\n', '*** Update File: missing\n@@\n-old\n+new\n*** End Patch\n'); const result = await shell.exec('apply_patch', { stdin: patch }); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing target/); await absent(filesystem, '/w/note');
+});
+await record('P14-readonly', async () => {
+  const memory = new api.MemoryFileSystem(); await memory.mkdir('/w'); await memory.writeFile('/w/note', Buffer.from('old\n')); const shell = new api.Shell({ fs: api.createReadOnlyFileSystem(memory), cwd: '/w' }).use(api.agentCommands()); shells.add(shell); const result = await shell.exec('apply_patch', { stdin: update() }); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /read-only/); assert.equal(await text(memory, '/w/note'), 'old\n');
+});
+await record('P15-mount', async () => {
+  const root = new api.MemoryFileSystem(), child = new api.MemoryFileSystem(); await root.mkdir('/mounted'); const mount = api.createMountFileSystem({ root, mounts: { '/mounted': child } });
+  const shell = new api.Shell({ fs: mount, cwd: '/mounted' }).use(api.agentCommands()); shells.add(shell); const result = await shell.exec('apply_patch', { stdin: add() }); assert.equal(result.exitCode, 0); assert.equal(await text(child, '/note'), 'hello\n'); await absent(root, '/mounted/note');
+});
+await record('P16-symlink-refusal', async () => {
+  const { shell, filesystem } = await fixture(); await filesystem.writeFile('/w/target', Buffer.from('old\n')); await filesystem.symlink('/w/target', '/w/note'); const result = await shell.exec('apply_patch', { stdin: update() }); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /symlink/); assert.equal(await text(filesystem, '/w/target'), 'old\n');
+});
+await record('P17-traversal-refusal', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('apply_patch', { stdin: add('../outside') }); assert.equal(result.exitCode, 2); assert.match(result.stderr, /parent traversal/); assert.equal(result.stdout, ''); await absent(filesystem, '/outside');
+});
+await record('P18-invalid-encoding', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('apply_patch', { stdin: Uint8Array.of(255) }); assert.equal(result.exitCode, 2); assert.equal(result.stdout, ''); assert.match(result.stderr, /UTF-8/); await absent(filesystem, '/w/note');
+});
+await record('P19-pipeline', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec("printf '%s' " + quote(add()) + ' | apply_patch | head -n 1'); assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'Success. Updated the following files:\n'); assert.equal(await text(filesystem, '/w/note'), 'hello\n');
+});
+await record('P20-array-arguments', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('patches=(' + quote(add()) + '); apply_patch "${patches[@]}"; printf "%s\\n" "${#patches[@]}"'); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('A note') + '1\n'); assert.equal(await text(filesystem, '/w/note'), 'hello\n');
+});
+await record('P21-local-array-scope', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('args=(outer); f(){ local args; args=(' + quote(add()) + '); apply_patch "${args[@]}"; }; f; printf "%s\\n" "${args[0]}"'); assert.equal(result.exitCode, 0); assert.equal(result.stdout, summary('A note') + 'outer\n'); assert.equal(await text(filesystem, '/w/note'), 'hello\n');
+});
+await record('P22-borrowed-input', async () => {
+  const { shell, filesystem } = await fixture(); const bytes = Buffer.from(add('note', '😀')); let returned = false;
+  const input = (async function* () { try { const reused = Buffer.alloc(1); for (const byte of bytes) { reused[0] = byte; yield reused; } reused[0] = 0; } finally { returned = true; } })();
+  const result = await shell.exec('apply_patch', { stdin: input }); assert.equal(result.exitCode, 0); assert.equal(await text(filesystem, '/w/note'), '😀\n'); assert.equal(returned, true);
+});
+await record('P23-preabort-identity', async () => {
+  const { shell, filesystem } = await fixture(); const controller = new AbortController(), reason = Object.freeze({ caller: 'before' }); controller.abort(reason); await assert.rejects(shell.exec('apply_patch', { stdin: add(), signal: controller.signal }), error => error === reason); await absent(filesystem, '/w/note');
+});
+await record('P24-required-stderr', async () => {
+  const { shell } = await fixture(); let writes = 0; const result = await shell.exec('apply_patch', { stdin: 'bad', stdout: { async write() { writes++; throw Error('must not write stdout'); } } }); assert.equal(result.exitCode, 2); assert.equal(writes, 0); assert.match(result.stderr, /^apply_patch:/); assert.equal(result.stdout, '');
+});
+await record('P25-output-failure-after-publication', async () => {
+  const { shell, filesystem } = await fixture(); const result = await shell.exec('apply_patch', { stdin: add(), stdout: { async write() { throw new Error('public sink failure'); } } }); assert.equal(result.exitCode, 1); assert.match(result.stderr, /public sink failure/); assert.equal(await text(filesystem, '/w/note'), 'hello\n');
+});
+await record('P26-registered-cleanups-idempotent', async () => {
+  const filesystem = new api.MemoryFileSystem(), callbacks = [], chunks = []; let closes = 0, settled = false;
+  const context = { command: 'apply_patch', args: [add()], cwd: '/', env: {}, fs: filesystem, signal: new AbortController().signal, stdin: api.toByteSource(''), stdout: { async write(bytes) { chunks.push(Buffer.from(bytes)); } }, stderr: { async write() { throw Error('unexpected diagnostic'); } }, registerCleanup(fn) { callbacks.push(fn); } };
+  const result = await api.createApplyPatchCommand().execute(context); settled = true;
+  assert.equal(result.exitCode, 0); assert.equal(callbacks.length, 2);
+  for (const fn of callbacks) { await fn(); closes++; } for (const fn of callbacks) await fn();
+  assert.equal(closes, 2); assert.equal(settled, true); assert.equal(Buffer.concat(chunks).toString(), summary('A note')); assert.equal(await text(filesystem, '/note'), 'hello\n');
+});
+await record('P27-caller-abort-after-publication', async () => {
+  const { shell, filesystem } = await fixture(); const controller = new AbortController(), reason = Object.freeze({ caller: 'after-publication' });
+  await assert.rejects(shell.exec('apply_patch', { stdin: add(), signal: controller.signal, stdout: { async write() { controller.abort(reason); throw new Error('secondary sink error'); } } }), error => error === reason);
+  assert.equal(await text(filesystem, '/w/note'), 'hello\n');
+});
+await record('P28-awaited-output', async () => {
+  const { shell, filesystem } = await fixture(); let enter, release, settled = false;
+  const entered = new Promise(resolve => { enter = resolve; }), gate = new Promise(resolve => { release = resolve; });
+  const execution = shell.exec('apply_patch', { stdin: add(), stdout: { async write() { enter(); await gate; } } });
+  execution.then(() => { settled = true; }, () => { settled = true; });
+  try { await entered; await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false); assert.equal(await text(filesystem, '/w/note'), 'hello\n'); }
+  finally { release(); }
+  assert.equal((await execution).exitCode, 0);
+});
+const result = { cases: rows, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, nativeRuns: 0, privateRuns: 0 };
+await fs.writeFile(process.env.PUBLIC_RESULT, JSON.stringify(result, null, 2) + '\n');
+console.log(JSON.stringify({ summary: { pass: result.pass, fail: result.fail, cases: rows.length } }));
+process.exitCode = result.fail ? 1 : 0;
+
+c9723f7471f3e14309db432a55e9befa6aebd42b blob 879
+export const expectedNames = [
+  "[",
+  "apply_patch",
+  "awk",
+  "base32",
+  "base64",
+  "basename",
+  "cat",
+  "chmod",
+  "cksum",
+  "column",
+  "comm",
+  "cp",
+  "cut",
+  "date",
+  "diff",
+  "dirname",
+  "du",
+  "echo",
+  "egrep",
+  "env",
+  "expand",
+  "expr",
+  "false",
+  "fgrep",
+  "file",
+  "find",
+  "fold",
+  "git",
+  "grep",
+  "gunzip",
+  "gzip",
+  "head",
+  "html-to-markdown",
+  "join",
+  "jq",
+  "ln",
+  "ls",
+  "md5sum",
+  "mkdir",
+  "mktemp",
+  "mv",
+  "nl",
+  "od",
+  "paste",
+  "patch",
+  "printenv",
+  "printf",
+  "pwd",
+  "readlink",
+  "realpath",
+  "rev",
+  "rg",
+  "rm",
+  "rmdir",
+  "sed",
+  "seq",
+  "sha1sum",
+  "sha256sum",
+  "sleep",
+  "sort",
+  "split",
+  "stat",
+  "strings",
+  "tac",
+  "tail",
+  "tar",
+  "tee",
+  "test",
+  "timeout",
+  "touch",
+  "tr",
+  "tree",
+  "true",
+  "unexpand",
+  "uniq",
+  "wc",
+  "which",
+  "xargs",
+  "xxd",
+  "zcat"
+];
+
+2118e2786fb54e55c1749b239275dfb246f90e01 blob 1336
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createGitCommand, createGitCommands, gitCommands, type AgentCommandsOptions, type GitCommandsOptions } from "virtual-bash";
+import { createGitCommand as subpath, type GitCommandsOptions as LeafOptions } from "virtual-bash/commands/git";
+const direct: GitCommandsOptions = { replace: true, discoveryBoundary: "/repo" };
+const leaf: LeafOptions = direct;
+const aggregate: AgentCommandsOptions = { git: { discoveryBoundary: "/repo" }, replace: true };
+new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(aggregate));
+createAgentCommands(aggregate); createGitCommand(direct); createGitCommands(leaf); gitCommands(direct); subpath(leaf);
+// @ts-expect-error aggregate replacement belongs to the top-level policy
+agentCommands({ git: { replace: true } });
+// @ts-expect-error there are no numeric Git limit overrides
+gitCommands({ limits: { maxReadBytes: 1 } });
+// @ts-expect-error discovery is a VFS pathname
+createGitCommand({ discoveryBoundary: 3 });
+// @ts-expect-error native process fallback is absent
+createGitCommands({ spawn: true });
+// @ts-expect-error aggregate limits cannot be added
+createAgentCommands({ git: { maxPackBytes: 100 } });
+// @ts-expect-error full host Git is not an injected command option
+gitCommands({ executable: "/usr/bin/git" });
+
+f689e2ceb93ec4484f6a1da9bf9840b3f10eddac blob 2507
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { Shell, MemoryFileSystem, agentCommands, ShellLimitError } from 'virtual-bash';
+const data = JSON.parse(fs.readFileSync(new URL('./ARRAY-CASES.json', import.meta.url)));
+const encoder = new TextEncoder();
+const rows = data.cases.filter(row => !process.env.ARRAY_CASE || row.id === process.env.ARRAY_CASE);
+assert.equal(rows.length, process.env.ARRAY_CASE ? 1 : 12);
+const observations = [];
+for (const row of rows) {
+  const filesystem = new MemoryFileSystem();
+  const shell = new Shell({ fs: filesystem, cwd: '/w', ...(row.id === 'A12' ? { limits: { maxCommands: 1 } } : {}) }).use(agentCommands());
+  const result = { id: row.id, pass: false, disposed: false };
+  try {
+    await filesystem.mkdir('/w', { recursive: true }); await filesystem.mkdir('/other');
+    for (const [name, text] of Object.entries(data.files)) await filesystem.writeFile(name, encoder.encode(text));
+    if (row.id === 'A11') shell.register({ name: 'relay', async execute(context) {
+      assert.ok(context.invoke);
+      assert.equal((await context.invoke('f', [])).exitCode, 0);
+      assert.equal(context.signal.aborted, false);
+      return { exitCode: 0 };
+    } });
+    const script = row.id === 'A11' ? `f(){ local a; a=(child); printf '%s\\n' "\${a[@]}"; }; ${row.script}` : row.script;
+    if (row.id === 'A12') {
+      await assert.rejects(shell.exec(script), error => error instanceof ShellLimitError && error.limit === 'maxCommands');
+    } else {
+      const actual = await shell.exec(script);
+      result.actual = actual;
+      assert.equal(actual.exitCode, row.status);
+      assert.equal(actual.stdout, row.stdout);
+      if (row.stderrContains) assert.ok(actual.stderr.includes(row.stderrContains));
+      else assert.equal(actual.stderr, '');
+    }
+    result.pass = true;
+  } catch (error) { result.error = { message: error?.message ?? String(error), code: error?.code, stack: error?.stack }; }
+  finally { try { await shell.dispose(); result.disposed = true; } catch (error) { result.cleanupError = String(error); result.pass = false; } }
+  observations.push(result); console.log(JSON.stringify(result));
+}
+const summary = { profile: 'coherent78-array-author-v1', cases: rows.length, pass: observations.filter(row => row.pass).length, disposed: observations.filter(row => row.disposed).length };
+console.log(JSON.stringify({ summary }));
+if (summary.pass !== summary.cases || summary.disposed !== summary.cases) process.exitCode = 1;
+
+4928c2331f264a7b4b8389c791c4d1c0f6298fb2 blob 3019
+{
+  "role": "New literal author expectations frozen before candidate execution; no native parity claim",
+  "files": {"/w/from-source": "a[3]=sourced\n", "/w/.hidden": "h", "/w/visible": "v"},
+  "cases": [
+    {"id":"A01","name":"sparse order, quoted values and empty member","script":"a=([2]=two [0]='zero value' [7]=''); printf '<%s>\\n' \"${a[@]}\"; printf '%s\\n' \"${#a[@]}\"","stdout":"<zero value>\n<two>\n<>\n3\n","status":0},
+    {"id":"A02","name":"scalar view and zero-element replacement","script":"a=(zero one); printf '%s\\n' \"$a\"; a=changed; printf '<%s>\\n' \"${a[@]}\"","stdout":"zero\n<changed>\n<one>\n","status":0},
+    {"id":"A03","name":"function local array restores parent","script":"a=(outer tail); f(){ local a; a=(inner); printf '%s\\n' \"${a[@]}\"; }; f; printf '%s\\n' \"${a[@]}\"","stdout":"inner\nouter\ntail\n","status":0},
+    {"id":"A04","name":"source updates indexed member","script":"a=(zero one); . /w/from-source; printf '<%s>\\n' \"${a[@]}\"","stdout":"<zero>\n<one>\n<sourced>\n","status":0},
+    {"id":"A05","name":"subshell and command substitution isolate array stores","script":"a=(parent); (a[0]=child; printf '%s\\n' \"${a[0]}\"); value=$(a[0]=sub; printf '%s' \"${a[0]}\"); printf '%s|%s\\n' \"$value\" \"${a[0]}\"","stdout":"child\nsub|parent\n","status":0},
+    {"id":"A06","name":"readonly indexed mutation preserves values","script":"a=(safe); readonly a; a[0]=bad; printf '%s|%s\\n' \"$?\" \"${a[0]}\"","stdout":"1|safe\n","status":0,"stderrContains":"readonly"},
+    {"id":"A07","name":"dotglob, LET and stack share function state without loss","script":"a=(keep); shopt -s dotglob; pushd -n /other >/sink; let total=2+3; printf '%s|%s\\n' \"${a[0]}\" \"$total\"; printf '<%s>\\n' *; dirs -l -p","stdout":"keep|5\n<.hidden>\n<from-source>\n<visible>\n/w\n/other\n","status":0},
+    {"id":"A08","name":"array arguments and getopts cursor","script":"args=(-a -b); set -- \"${args[@]}\"; getopts ab first; getopts ab second; printf '%s|%s|%s\\n' \"$first\" \"$second\" \"${#args[@]}\"","stdout":"a|b|2\n","status":0},
+    {"id":"A09","name":"array expansion feeds unchanged jq length","script":"a=('😀' 'abc'); printf '%s\\n' \"${a[@]}\" | jq -R length","stdout":"1\n3\n","status":0},
+    {"id":"A10","name":"prefix scalar environment does not promote array members","script":"a=(base other); A=one printenv A; printf '%s|%s\\n' \"${a[0]}\" \"${A-unset}\"","stdout":"one\nbase|unset\n","status":0},
+    {"id":"A11","name":"nested literal invoke preserves caller array","script":"a=(parent second); relay; printf '%s\\n' \"${a[@]}\"","stdout":"child\nparent\nsecond\n","status":0,"host":"relay invokes registered f, whose local array is isolated, then verifies parent command signal remains live"},
+    {"id":"A12","name":"array substitution nested invoke shares command budget","script":"a=(kept); timeout 0 printf '%s' \"${a[0]}\"","host":"Shell maxCommands1 must reject ShellLimitError.limit=maxCommands rather than new nested budget or successful output"}
+  ]
+}
+
+51862b3d2e72c40d31ee66e0d0a02ddaf9de4a93 blob 16819
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import http from "node:http";
+import https from "node:https";
+import { syncBuiltinESMExports } from "node:module";
+import { expectedNames } from "./names.mjs";
+
+const root = fs.realpathSync(process.env.PRODUCT_ROOT);
+assert.equal(import.meta.resolve("virtual-bash"), pathToFileURL(path.join(root, "dist/index.js")).href);
+let forbiddenNetwork = 0;
+const denyNetwork = () => { forbiddenNetwork++; throw new Error("Unconfigured host network is forbidden in this fixture"); };
+http.request = denyNetwork; https.request = denyNetwork; globalThis.fetch = denyNetwork;
+syncBuiltinESMExports();
+const api = await import("virtual-bash");
+const timeoutApi = await import("virtual-bash/commands/timeout");
+const frozen = JSON.parse(fs.readFileSync(new URL("./CASES.json", import.meta.url), "utf8"));
+const amendment = JSON.parse(fs.readFileSync(new URL("./CASES-v2-overlay.json", import.meta.url), "utf8"));
+const revised = frozen.cases.map(row => row.id === "C15" ? { ...row, unicodeValues: amendment.C15.unicodeValues } : row);
+const originalC15 = frozen.cases.find(row => row.id === "C15");
+const refusal = { ...originalC15, ...amendment.refusal };
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
+let resources = [];
+let detail = {};
+
+function clock() {
+  const scheduler = {
+    time: 0, calls: [], handles: new Map(), sequence: 0,
+    now() { assert.equal(this, scheduler); this.calls.push("now"); return this.time; },
+    setTimeout(callback, milliseconds) { assert.equal(this, scheduler); const handle = ++this.sequence; this.calls.push(["arm", milliseconds]); this.handles.set(handle, callback); return handle; },
+    clearTimeout(handle) { assert.equal(this, scheduler); this.calls.push(["clear", handle]); this.handles.delete(handle); },
+    fire(time) { this.time = time; const callbacks = [...this.handles.values()]; this.handles.clear(); for (const callback of callbacks) callback(); },
+  };
+  return scheduler;
+}
+
+async function fixture(options = {}) {
+  const filesystem = options.fs ?? new api.MemoryFileSystem();
+  if (!options.fs) {
+    for (const directory of frozen.fixture.directories) await filesystem.mkdir(directory, { recursive: true });
+    for (const [name, value] of Object.entries(frozen.fixture.files)) await filesystem.writeFile(name, encoder.encode(value));
+  }
+  const shell = new api.Shell({ fs: filesystem, cwd: "/w", env: { HOME: "/home", PATH: "" }, ...(options.limits ? { limits: options.limits } : {}) }).use(api.agentCommands(options.plugin));
+  resources.push(shell);
+  return { shell, fs: filesystem };
+}
+
+function match(row, result) {
+  detail.result = { stdout: result.stdout, stderr: result.stderr, status: result.exitCode, stdoutBytes: [...result.stdoutBytes] };
+  assert.equal(result.exitCode, row.status);
+  if (row.stdout !== undefined) assert.equal(result.stdout, row.stdout + (process.env.CONTROL === "assertion" && row.id === "C02" ? "!" : ""));
+  if (row.stdoutBytes) assert.deepEqual([...result.stdoutBytes], row.stdoutBytes);
+  if (row.stderrContains) assert.ok(result.stderr.includes(row.stderrContains));
+  else if (row.id !== "C17") assert.equal(result.stderr, row.stderr ?? "");
+}
+
+function network(mode) {
+  const started = deferred();
+  const events = { authorized: 0, requests: 0, acquires: 0, next: 0, delivered: 0, returned: 0, finalized: 0, disposed: 0, pending: 0, listeners: 0, order: [] };
+  let requestSignal;
+  let pending;
+  let finalized = false;
+  const finish = () => { if (!finalized) { finalized = true; events.finalized++; } };
+  const bytes = encoder.encode(JSON.stringify({ text: "😀é" }));
+  const chunks = [bytes.subarray(0, 10), bytes.subarray(10)];
+  const options = {
+    authorize(request) { assert.equal(new URL(request.url).origin, "https://fixture.invalid"); events.authorized++; return true; },
+    async transport(request) {
+      assert.equal(new URL(request.url).origin, "https://fixture.invalid");
+      requestSignal = request.signal; events.requests++; events.order.push("request");
+      let position = 0;
+      return {
+        status: 200, statusText: "OK", headers: [["X-Fixture", "yes"]],
+        body: { [Symbol.asyncIterator]() {
+          events.acquires++; events.order.push("acquire");
+          return {
+            async next() {
+              events.next++;
+              if (mode === "finite") {
+                if (position === chunks.length) { finish(); return { done: true }; }
+                events.delivered++; return { done: false, value: chunks[position++] };
+              }
+              if (mode === "head" && position++ === 0) { events.delivered++; return { done: false, value: encoder.encode("xyz") }; }
+              started.resolve();
+              request.signal.throwIfAborted();
+              events.pending++; events.listeners++;
+              const gate = deferred();
+              const stop = reason => {
+                if (pending?.gate !== gate) return;
+                request.signal.removeEventListener("abort", abort);
+                events.pending--; events.listeners--; pending = undefined;
+                gate.reject(reason);
+              };
+              const abort = () => stop(request.signal.reason);
+              pending = { gate, stop };
+              request.signal.addEventListener("abort", abort, { once: true });
+              return gate.promise;
+            },
+            async return() { events.returned++; events.order.push("return"); pending?.stop(new Error("fixture iterator returned")); finish(); return { done: true }; },
+          };
+        } },
+        async dispose() { events.disposed++; events.order.push("dispose"); pending?.stop(new Error("fixture response disposed")); finish(); },
+      };
+    },
+  };
+  return { events, options, started, signal: () => requestSignal };
+}
+
+function webdav() {
+  const calls = [];
+  const entries = new Map([["/", "directory"], ["/w", "directory"], ["/search", "directory"], ["/search/project", "directory"], ["/search/project/.hidden", "file"], ["/search/project/visible", "file"]]);
+  const fetch = async (url, init) => {
+    const parsed = new URL(url);
+    assert.equal(parsed.origin, "https://dav.invalid");
+    assert.ok(parsed.pathname.startsWith("/dav/"));
+    init.signal?.throwIfAborted();
+    const name = decodeURIComponent(parsed.pathname.slice(4)).replace(/\/$/, "") || "/";
+    const depth = new Headers(init.headers).get("depth");
+    calls.push({ method: init.method, depth, name });
+    assert.equal(init.method, "PROPFIND");
+    assert.ok(depth === "0" || depth === "1");
+    if (name === "/denied") return new Response(null, { status: 403 });
+    if (!entries.has(name)) return new Response(null, { status: 404 });
+    const selected = [name];
+    if (depth === "1") for (const target of entries.keys()) if (target !== name && path.posix.dirname(target) === name) selected.push(target);
+    const response = selected.map(target => `<d:response><d:href>/dav${target === "/" ? "/" : target}</d:href><d:propstat><d:prop><d:resourcetype>${entries.get(target) === "directory" ? "<d:collection/>" : ""}</d:resourcetype><d:getcontentlength>1</d:getcontentlength></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`).join("");
+    return new Response(`<d:multistatus xmlns:d="DAV:">${response}</d:multistatus>`, { status: 207 });
+  };
+  return { fs: new api.WebDavFileSystem({ baseUrl: "https://dav.invalid/dav/", fetch }), calls };
+}
+
+async function execute(row) {
+  if (row.id === "C01") {
+    const definitions = api.createAgentCommands();
+    assert.deepEqual(definitions.map(command => command.name).sort(), expectedNames);
+    assert.equal(definitions.length, 78);
+    for (const name of ["curl", "js", "safejs", "pushd", "dirs", "popd", "shopt", "let", "getopts"]) assert.ok(!definitions.some(command => command.name === name));
+    for (const name of ["createTimeoutCommand", "createTimeoutCommands", "timeoutCommands"]) assert.equal(api[name], timeoutApi[name]);
+    const metadata = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+    for (const name of ["dependencies", "optionalDependencies", "peerDependencies"]) assert.deepEqual(Object.keys(metadata[name] ?? {}), []);
+  }
+  if (["C07", "C08"].includes(row.id)) {
+    const scheduler = clock();
+    const limit = row.id === "C07" ? "maxCommands" : "maxOutputBytes";
+    const { shell } = await fixture({ limits: { [limit]: row.id === "C07" ? 1 : 2 }, plugin: { timeout: { scheduler } } });
+    await assert.rejects(shell.exec(row.script), error => error instanceof api.ShellLimitError && error.limit === limit);
+    assert.deepEqual(scheduler.calls, []); detail.limit = limit; return;
+  }
+  if (row.id === "C09") {
+    detail.reasons = [];
+    for (const reason of [false, 0, new api.FsError("ENOENT")]) {
+      const { shell, fs: filesystem } = await fixture();
+      const controller = new AbortController();
+      filesystem.access = async () => { controller.abort(reason); throw new api.FsError("EACCES"); };
+      await assert.rejects(shell.exec(row.script, { signal: controller.signal }), error => Object.is(error, reason));
+      detail.reasons.push({ exactIdentity: true, type: typeof reason });
+    }
+    return;
+  }
+  if (row.id === "C16") {
+    const dav = webdav(), wrapped = new api.ReadOnlyFileSystem(dav.fs);
+    const { shell } = await fixture({ fs: wrapped });
+    match(row, await shell.exec(row.script));
+    assert.equal(dav.fs.capabilities.permissions, false);
+    for (const [target, mode, code] of [["/denied", 1, "EACCES"], ["/w/missing", 1, "ENOENT"], ["/search/project/visible", 1, "ENOTSUP"]]) await assert.rejects(dav.fs.access(target, mode), error => error instanceof api.FsError && error.code === code);
+    const before = dav.calls.length;
+    await assert.rejects(wrapped.access("/w", 2), error => error instanceof api.FsError && error.code === "EROFS");
+    assert.equal(dav.calls.length, before); detail.requests = dav.calls; return;
+  }
+  const scheduler = clock();
+  const { shell, fs: filesystem } = await fixture({ plugin: { timeout: { scheduler } } });
+  if (row.id === "C04") shell.commands.register({ name: "relay", async execute(context) {
+    for (const [command, args, options] of [["pushd", ["-n", "/child"]], ["shopt", ["-u", "dotglob"]], ["shopt", ["-q", "dotglob"]], ["getopts", ["ab", "child", "-ab"]], ["let", ["value=99"]], ["dirs", ["-l", "-p"], { cwd: "/search/project", env: {}, replaceEnv: true }]]) assert.equal((await context.invoke(command, args, options)).exitCode, 0);
+    return { exitCode: 0 };
+  } });
+  if (row.id === "C06") shell.use(async (context, next) => { if (context.command === "f") { await Promise.resolve(); context.cwd = "/borrowed"; } return next(); });
+  if (row.id === "C10") {
+    const parent = new AbortController(), local = new AbortController(), started = deferred(), reason = { local: "compound" };
+    let cleaned = 0;
+    shell.commands.register({ name: "gate-child", async execute(context) {
+      context.registerCleanup(() => { cleaned++; });
+      started.resolve();
+      await new Promise((resolve, reject) => { if (context.signal.aborted) reject(context.signal.reason); else context.signal.addEventListener("abort", () => reject(context.signal.reason), { once: true }); });
+      return { exitCode: 0 };
+    } });
+    shell.commands.register({ name: "relay", async execute(context) {
+      const child = context.invoke("gate-child", [], { signal: local.signal });
+      const rejection = assert.rejects(child, error => error === reason);
+      await started.promise; local.abort(reason); await rejection;
+      assert.equal(cleaned, 1); assert.equal(context.signal.aborted, false);
+      assert.equal((await context.invoke("dirs", ["-c"])).exitCode, 0);
+      return { exitCode: 0 };
+    } });
+    match(row, await shell.exec(row.script, { signal: parent.signal }));
+    assert.equal(parent.signal.aborted, false); detail.cleaned = cleaned; return;
+  }
+  if (row.id === "C11") {
+    const result = await shell.exec(row.script, { stdin: Uint8Array.from(row.stdinBytes) });
+    match(row, result); assert.deepEqual([...await filesystem.readFile("/copy")], row.stdinBytes);
+    assert.deepEqual(scheduler.calls, []); return;
+  }
+  if (["C12", "C13", "C14"].includes(row.id)) {
+    const net = network(row.id === "C12" ? "finite" : row.id === "C13" ? "blocked" : "head");
+    shell.use(api.networkCommands(net.options));
+    const caller = new AbortController();
+    const outcome = shell.exec(row.script, { signal: caller.signal });
+    if (row.id === "C13") {
+      const admitted = await Promise.race([net.started.promise.then(() => true), outcome.then(() => false, () => false)]);
+      assert.equal(admitted, true, "Timeout must acquire a pending body before manual delivery");
+      scheduler.fire(1);
+    }
+    const result = await outcome; net.events.order.push("settled");
+    detail.network = net.events; detail.requestSignalAborted = net.signal().aborted;
+    detail.schedulerCalls = scheduler.calls;
+    match(row, result);
+    assert.equal(caller.signal.aborted, false);
+    assert.equal(net.events.authorized, 1); assert.equal(net.events.requests, 1);
+    assert.equal(net.events.acquires, 1); assert.equal(net.events.finalized, 1); assert.equal(net.events.disposed, 1);
+    assert.equal(net.events.pending, 0); assert.equal(net.events.listeners, 0);
+    assert.ok(net.events.order.indexOf("dispose") < net.events.order.indexOf("settled"));
+    if (row.id !== "C12") assert.equal(net.events.returned, 1);
+    if (row.id === "C13") assert.equal(net.signal().aborted, true);
+    if (row.id === "C14") { assert.equal(net.events.delivered, 1); assert.ok(net.events.next === 1 || net.events.next === 2); }
+    if (row.id !== "C13") {
+      assert.ok(decoder.decode(await filesystem.readFile("/headers")).includes("X-Fixture: yes"));
+      assert.deepEqual(scheduler.calls, []);
+    }
+    assert.equal(scheduler.handles.size, 0); detail.network = net.events; detail.schedulerCalls = scheduler.calls; return;
+  }
+  if (row.id === "C15" || row.id === "R15") await filesystem.writeFile("/unicode.json", encoder.encode(JSON.stringify(row.unicodeValues)));
+  if (row.id === "C17") shell.use((context, next) => { if (context.command === "pushd") Object.assign(context, { stdout: { async write() { throw Object.assign(new Error("fixture closed"), { code: "EPIPE" }); } } }); return next(); });
+  if (row.id === "C18") {
+    const setup = await shell.exec("pushd /search/project >/sink; shopt -s dotglob; let value=3; set -- -ab; getopts ab first");
+    assert.equal(setup.exitCode, 0); assert.equal(setup.stderr, "");
+    assert.ok((await filesystem.readFile("/sink")).length > 0);
+  }
+  match(row, await shell.exec(row.script));
+}
+
+if (process.env.CONTROL === "source-fallback") await import(pathToFileURL(process.env.FALLBACK_PATH).href);
+const ids = process.env.CASE_IDS?.split(",");
+const rows = [...revised, refusal].filter(row => !ids || ids.includes(row.id));
+assert.equal(rows.length, ids?.length ?? 19);
+const observations = [];
+for (const row of rows) {
+  resources = []; detail = {};
+  const observation = { id: row.id, pass: false, detail, created: 0, disposed: 0 };
+  try { await execute(row); assert.equal(forbiddenNetwork, 0); observation.pass = true; }
+  catch (error) { observation.error = { name: error?.name, code: error?.code, message: error?.message ?? String(error), stack: error?.stack }; }
+  finally {
+    observation.created = resources.length;
+    for (const shell of resources) {
+      try { await shell.dispose(); observation.disposed++; }
+      catch (error) { observation.pass = false; observation.cleanupError = String(error); }
+    }
+  }
+  observations.push(observation); console.log(JSON.stringify(observation));
+}
+const summary = { layout: process.env.LAYOUT, profile: "root-approved-v2", cases: observations.length, positives: observations.filter(row => row.id !== "R15").length, positivePass: observations.filter(row => row.id !== "R15" && row.pass).length, refusalControls: observations.filter(row => row.id === "R15").length, refusalPass: observations.filter(row => row.id === "R15" && row.pass).length, pass: observations.filter(row => row.pass).length, failed: observations.filter(row => !row.pass).map(row => row.id), created: observations.reduce((sum, row) => sum + row.created, 0), disposed: observations.reduce((sum, row) => sum + row.disposed, 0), forbiddenNetwork, nativeRuns: 0, privateSafeJsRuns: 0 };
+console.log(JSON.stringify({ summary }));
+if (summary.pass !== summary.cases || summary.created !== summary.disposed) process.exitCode = 1;
+
+d02d20a36d10fe4e098c3728fc23d6e8d495735f blob 853
+export const expectedNames = [
+  "[",
+  "awk",
+  "base32",
+  "base64",
+  "basename",
+  "cat",
+  "chmod",
+  "cksum",
+  "column",
+  "comm",
+  "cp",
+  "cut",
+  "date",
+  "diff",
+  "dirname",
+  "du",
+  "echo",
+  "egrep",
+  "env",
+  "expand",
+  "expr",
+  "false",
+  "fgrep",
+  "file",
+  "find",
+  "fold",
+  "grep",
+  "gunzip",
+  "gzip",
+  "head",
+  "html-to-markdown",
+  "join",
+  "jq",
+  "ln",
+  "ls",
+  "md5sum",
+  "mkdir",
+  "mktemp",
+  "mv",
+  "nl",
+  "od",
+  "paste",
+  "patch",
+  "printenv",
+  "printf",
+  "pwd",
+  "readlink",
+  "realpath",
+  "rev",
+  "rg",
+  "rm",
+  "rmdir",
+  "sed",
+  "seq",
+  "sha1sum",
+  "sha256sum",
+  "sleep",
+  "sort",
+  "split",
+  "stat",
+  "strings",
+  "tac",
+  "tail",
+  "tar",
+  "tee",
+  "test",
+  "timeout",
+  "touch",
+  "tr",
+  "tree",
+  "true",
+  "unexpand",
+  "uniq",
+  "wc",
+  "which",
+  "xargs",
+  "xxd",
+  "zcat"
+];
+
+6ec9a04c33e6a9e6ef482ba62d5fead9bb736d67 blob 8553
+{
+  "version": 1,
+  "role": "finite pre-execution compound obligations; expectations not derived from tested outputs",
+  "fixture": {"cwd":"/w","directories":["/w","/search/project","/borrowed"],"files":{"/search/project/.hidden":"h","/search/project/visible":"v","/borrowed/.hidden":"h","/borrowed/visible":"v","/w/opts":"shopt -s dotglob; let 'total+=2'; getopts ab sourced"}},
+  "cases": [
+    {"id":"C01","name":"public identities and exact78 inventory","script":"type -t pushd dirs popd shopt let getopts","stdout":"builtin\nbuiltin\nbuiltin\nbuiltin\nbuiltin\nbuiltin\n","status":0,"host":"Compare exact independently pinned names; root/subpath timeout factories identical; curl/js/safejs and six tested builtin-only names absent from defaults; zero runtime dependencies in admitted manifest."},
+    {"id":"C02","name":"function and source combine CDPATH stack dotglob LET and local getopts","script":"total=1; set -- -ab; getopts ab outer; f(){ local OPTIND=1; CDPATH=/search; pushd project >/sink; . /w/opts; getopts ab inner; printf '%s|%s|%s|%s\\n' \"$total\" \"$sourced\" \"$inner\" \"$PWD\"; printf '<%s>\\n' *; popd >/sink; }; f \"$@\"; getopts ab after; printf '%s|%s|%s\\n' \"$outer\" \"$after\" \"$total\"; dirs -l -p","stdout":"3|a|b|/search/project\n<.hidden>\n<visible>\na|b|3\n/w\n","status":0},
+    {"id":"C03","name":"subshell substitution and pipeline leave shared parent state intact","script":"pushd -n /search/project >/sink; shopt -s dotglob; value=7; (dirs -c; shopt -u dotglob; let value=9); ignored=$(dirs -c; shopt -u dotglob; let value=2); dirs -c | cat >/sink; printf '%s|%s\\n' \"$value\" \"$ignored\"; shopt -q dotglob; printf '%s\\n' \"$?\"; dirs -l -p","stdout":"7|\n0\n/w\n/search/project\n","status":0},
+    {"id":"C04","name":"literal invoke child and sibling stack dotglob getopts isolation","script":"value=10; pushd -n /search/project >/sink; shopt -s dotglob; getopts ab before -ab; relay; getopts ab after -ab; printf '%s|%s\\n' \"$after\" \"$value\"; dirs -l -p","stdout":"/w /child /search/project\n/search/project\n/search/project\nb|10\n/w\n/search/project\n","status":0,"host":"relay invokes pushd -n /child; shopt -u then a separate shopt -q must still return0; getopts child on -ab; let value=99; dirs -l -p with cwd=/search/project and env={} replaceEnv=true. Every invocation returns0; parent/siblings do not receive writes."},
+    {"id":"C05","name":"strong readonly PWD keeps actual cwd but prevents later push tail publication","script":"readonly PWD; shopt -s dotglob; let count=2; pushd /search/project; status=$?; dirs -l -p; printf '%s|%s|%s|%s\\n' \"$status\" \"$PWD\" \"$OLDPWD\" \"$count\"","stdout":"/search/project\n1|/w|/w|2\n","status":0,"stderrContains":"PWD: readonly variable"},
+    {"id":"C06","name":"async same-path middleware publication with dotglob and LET","script":"f(){ pushd /borrowed >/sink; shopt -s dotglob; let value=3; }; f; pwd; printf '<%s>\\n' *; printf '%s\\n' \"$value\"","stdout":"/borrowed\n<.hidden>\n<visible>\n3\n","status":0,"host":"Only f receives cwd=/borrowed after one awaited microtask; subsequent cwd publication must survive its enclosing restore branch."},
+    {"id":"C07","name":"timeout zero shares command admission budget","script":"timeout 0 dirs","host":"maxCommands=1; escaping ShellLimitError.limit exactly maxCommands, not deadline124 or fresh Budget. Fake timeout scheduler has zero calls."},
+    {"id":"C08","name":"stack uses existing output budget","script":"pushd /search/project","host":"maxOutputBytes=2; escaping ShellLimitError.limit exactly maxOutputBytes. No post-abort hidden-state claim through fresh exec."},
+    {"id":"C09","name":"caller reason precedence over directory lookup miss","script":"pushd /search/project","host":"Three isolated subobservations: access aborts caller with false,0,typed FsError(ENOENT), then throws EACCES. Exact caller reason escapes; no generic errno conversion."},
+    {"id":"C10","name":"invoke-local cancellation and cleanup do not poison sibling or parent","script":"relay; dirs -l -p","stdout":"/w\n","status":0,"host":"relay awaits started cooperative gate child; local AbortController aborts a unique object; exact inner rejection is caught; child registered cleanup completed before rejection, parent caller remains live, sibling invoke dirs -c returns0. Cleanup registered once/drained once; no wall-clock deadline."},
+    {"id":"C11","name":"binary timeout pipelines preserve stdin and virtual file bytes","script":"timeout 0 cat | tee /copy | timeout 0 cat","stdinBytes":[0,255,65,10],"stdoutBytes":[0,255,65,10],"status":0,"host":"Read actual /copy bytes, both timeout zero paths acquire no timer; no text roundtrip."},
+    {"id":"C12","name":"opt-in curl timeout pipeline to jq Unicode length","script":"timeout 0 curl -sS -D /headers https://fixture.invalid/body | jq -r '.text | length'","stdout":"3\n","status":0,"host":"Authorized injected HTTP response contains {text:'😀é'} JSON split across UTF8 bytes; body acquired/finalized once, response disposed once before settlement; request/header file survives. Fake timeout scheduler remains unused; no actual network."},
+    {"id":"C13","name":"manually delivered timeout closes acquired curl body before124","script":"timeout .001 curl -sS https://fixture.invalid/slow","stdout":"","status":124,"host":"Explicit scheduler receiver checked; after body next starts, advance fake clock to1 and deliver callback. Cooperative request abort closes pending read and iterator/response before public settlement; caller remains live, scheduler handles empty. No elapsed-time/native deadline claim."},
+    {"id":"C14","name":"curl acquired-body early consumer close preserves header and caller","script":"timeout 0 curl -sS -D /headers https://fixture.invalid/slow | head -c1","stdout":"x","status":0,"host":"First body chunk is xyz, later read cooperatively waits if requested. Require body acquisition and first delivery (not no-acquisition false positive), one return and one response disposal before public settlement, no pending read/listener, caller live, header file present. Number of next calls may be1 or2 according to demand."},
+    {"id":"C15","name":"jq string codepoint length across decoded Unicode values","script":"jq -c 'map(length)' < /unicode.json","unicodeValues":["","😀","é","👩‍💻","\ud800"],"stdout":"[0,1,2,3,1]\n","status":0,"host":"Exact74361026 branch bound by source hash. This tests values, not physical allocation/RSS or universal Unicode normalization."},
+    {"id":"C16","name":"WebDAV logical X navigation plus readonly stack and hidden listing","script":"CDPATH=/search; pushd project; shopt -s dotglob; printf '<%s>\\n' *; popd","stdout":"/search/project\n/search/project /w\n<.hidden>\n<visible>\n/w\n","status":0,"host":"ReadOnly wrapper over explicitly injected namespace-bound DAV PROPFIND mock; all requests are PROPFIND depth0/1. permissions:false remains. Separately verify denied EACCES, missing ENOENT, file X ENOTSUP, readonly W EROFS with no extra request; no ACL/real-service/future-grant claim."},
+    {"id":"C17","name":"EPIPE after stack publication retains later state","script":"pushd /search/project; printf '%s:' \"$?\"; dirs -l -p","stdout":"141:/search/project\n/w\n","status":0,"host":"Only pushd stdout replaced by explicit EPIPE sink; no whole-caller abort. New tail/cwd remain after failed automatic display."},
+    {"id":"C18","name":"same Shell retains filesystem but not process stack option or bindings","script":"dirs -l -p; shopt -q dotglob; printf '%s|%s|%s\\n' \"$?\" \"${value-unset}\" \"$OPTIND\"","stdout":"/w\n1|unset|1\n","status":0,"host":"First exec publishes pushd, enables dotglob, assigns LET value and advances getopts; second exec is this script on same Shell. Tail/option/env/cursor are fresh; underlying virtual files remain."}
+  ],
+  "types": {"positiveFamilies":2,"negativeFamilies":4,"inversions":4,"layouts":["source-build","installed","moved"],"noTrackedMts":true},
+  "controls": ["manifest wrong accepted blob hash refuses before materialization","tampered emitted runtime refuses before behavior","source fallback outside admitted root refuses","assertion inversion causes genuine assertion failure","absent timeout entrypoint cannot pass consumer import"],
+  "exclusions": ["No /bin/sh or nounset claims","No native/SafeJS engine execution","No external network or service","No timing benchmark or wall-clock expiry assertion","No full gate/native parity","No original component cohort rescore","No unaccepted YQ/XAN/root wiring"]
+}
+
+0877328dfc424a2afdc4c7ce596eb5b0cd36e0f1 blob 1344
+{
+  "version": 2,
+  "authority": "Root approval of precise versioned corrections at bf9f585b; no product changes",
+  "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "originalCasesSha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+  "originalC15InputSha256": "3ccdc18d9ad25252c6c3f96cc768d5597f363143eedd7ed081d7ac4fbf46b1ed",
+  "originalResult": "Source-build original16/18 retained; C14 executor over-specification and C15 invalid positive remain historical failures",
+  "C14": "All original lifecycle/header/caller/cleanup assertions retained; completed request signal recorded, not required aborted; C13 timeout abort remains required",
+  "C15": {
+    "unicodeValues": [
+      "",
+      "😀",
+      "é",
+      "👩‍💻",
+      "�"
+    ]
+  },
+  "refusal": {
+    "id": "R15",
+    "name": "Original C15 lone-high-surrogate input exact parser refusal",
+    "stdout": "",
+    "status": 5,
+    "stderr": "jq: parse error: Invalid \\uXXXX\\uXXXX surrogate pair escape at line 1, column 39\n"
+  },
+  "counting": {
+    "source": "Only affected C14/C15 positives and added R15 refusal on a fresh reproducible build",
+    "installed": "18 revised positives plus1 separate refusal",
+    "moved": "18 revised positives plus1 separate refusal",
+    "original": "Original source16/18 is not rescored"
+  }
+}
+
+c0e93cc3e644a2c92a681490c5a59fd2a4aa1103 blob 9613
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import * as api from "virtual-bash";
+import { expectedNames } from "./names.mjs";
+
+const cases = JSON.parse(await fs.readFile(new URL("redirection-cases.json", import.meta.url)));
+const rows = [], shells = new Set(), releases = new Set();
+const bytes = value => Buffer.from(value);
+const turn = () => new Promise(resolve => setImmediate(resolve));
+const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
+function create(memory = new api.MemoryFileSystem(), counters = {}) {
+  const shell = new api.Shell({ fs: memory, cwd: "/" }).use(api.agentCommands());
+  shells.add(shell);
+  shell.commands.register({ name: "emit", async execute(context) {
+    counters.entered = (counters.entered ?? 0) + 1;
+    context.registerCleanup(() => { counters.cleaned = (counters.cleaned ?? 0) + 1; });
+    await context.stdout.write(bytes("O"));
+    await context.stderr.write(bytes("E"));
+    return { exitCode: 0 };
+  } });
+  return shell;
+}
+async function record(id, execute) {
+  if (process.env.REDIRECTION_CASE && process.env.REDIRECTION_CASE !== id) return;
+  const row = { id, pass: false };
+  const timer = setTimeout(() => { console.error("CASE_DEADLINE", id); process.exit(78); }, 30000);
+  try { await execute(); row.pass = true; }
+  catch (error) { row.error = String(error?.stack ?? error); }
+  finally {
+    for (const release of releases) release();
+    releases.clear();
+    const closed = await Promise.allSettled([...shells].map(shell => shell.dispose()));
+    row.created = shells.size; row.disposed = closed.filter(result => result.status === "fulfilled").length;
+    row.cleanupFailure = row.created !== row.disposed;
+    shells.clear(); clearTimeout(timer);
+  }
+  rows.push(row); console.log(JSON.stringify(row));
+  if (row.cleanupFailure) process.exit(78);
+}
+for (const row of cases.cases) await record(row.id, async () => {
+  const memory = new api.MemoryFileSystem(), counters = {};
+  const shell = create(memory, counters);
+  const result = await shell.exec(row.script);
+  assert.equal(result.exitCode, row.exitCode ?? 0, result.stderr);
+  assert.deepEqual(Buffer.from(result.stdoutBytes), bytes(row.stdout ?? ""));
+  assert.deepEqual(Buffer.from(result.stderrBytes), bytes(row.stderr ?? ""));
+  assert.deepEqual((await memory.readdir("/")).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name))), Object.keys(row.files ?? {}).sort().map(name => ({ name, type: "file" })));
+  for (const [name, content] of Object.entries(row.files ?? {})) assert.deepEqual(Buffer.from(await memory.readFile("/" + name)), bytes(content));
+  assert.equal(counters.cleaned ?? 0, counters.entered ?? 0, "registered cleanup before public settlement");
+});
+await record("C01-default80-display", async () => {
+  assert.deepEqual(api.createAgentCommands().map(command => command.name).sort(), expectedNames);
+  const shell = create();
+  const result = await shell.exec("f(){ emit 2>err |& cat; }; g(){ emit &>out; }; type f g");
+  assert.equal(result.exitCode, 0); assert.match(result.stdout, /\|&/); assert.match(result.stdout, /&> out/);
+  assert.doesNotMatch(result.stdout, /2>& 1/);
+});
+await record("C02-versioned-conditional-support", async () => {
+  for (const script of ["emit &", "emit &>>out", "[[ x ]]", "exec {fd}>out"]) {
+    const memory = new api.MemoryFileSystem();
+    const result = await create(memory).exec(script);
+    if (script === "[[ x ]]") { assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); }
+    else { assert.notEqual(result.exitCode, 0, script); assert.notEqual(result.stderr, "", script); }
+  }
+});
+await record("C03-single-open-and-raw-bytes", async () => {
+  const memory = new api.MemoryFileSystem(); let opens = 0;
+  const write = memory.writeFile.bind(memory);
+  memory.writeFile = async (name, value, options) => { if (name === "/out" && options?.flag === "w") opens++; return write(name, value, options); };
+  const shell = create(memory);
+  shell.commands.register({ name: "binary", async execute(context) {
+    await context.stdout.write(Uint8Array.from([0, 255, 65]));
+    await context.stderr.write(Uint8Array.from([128])); return { exitCode: 0 };
+  } });
+  assert.equal((await shell.exec("binary &>out")).exitCode, 0);
+  assert.equal(opens, 1); assert.deepEqual(Buffer.from(await memory.readFile("/out")), Buffer.from([0, 255, 65, 128]));
+  const piped = await shell.exec("binary |& cat");
+  assert.equal(piped.exitCode, 0); assert.deepEqual(Buffer.from(piped.stdoutBytes), Buffer.from([0, 255, 65, 128]));
+});
+await record("C04-before-open-caller-identity", async () => {
+  const memory = new api.MemoryFileSystem(), shell = create(memory);
+  const controller = new AbortController(), reason = { caller: "before-open" }; controller.abort(reason);
+  await assert.rejects(shell.exec("emit &>out", { signal: controller.signal }), error => error === reason);
+  assert.deepEqual(await memory.readdir("/"), []);
+});
+await record("C05-blocked-write-caller-identity", async () => {
+  const shell = create(), controller = new AbortController(), reason = { caller: "in-write" };
+  const entered = deferred(), released = deferred(); releases.add(released.resolve);
+  const execution = shell.exec("emit |& cat", { signal: controller.signal, stdout: { async write() { entered.resolve(); await released.promise; } } });
+  const outcome = execution.then(value => ({ value }), error => ({ error }));
+  await entered.promise; controller.abort(reason); released.resolve();
+  assert.equal((await outcome).error, reason);
+});
+await record("C06-backpressure", async () => {
+  const shell = create(), entered = deferred(), released = deferred(); releases.add(released.resolve);
+  const chunks = []; let settled = false;
+  const execution = shell.exec("emit |& cat", { stdout: { async write(chunk) { chunks.push(Buffer.from(chunk)); entered.resolve(); await released.promise; } } });
+  const outcome = execution.then(value => { settled = true; return { value }; }, error => { settled = true; return { error }; });
+  await entered.promise; await turn(); assert.equal(settled, false); released.resolve();
+  assert.equal((await outcome).value.exitCode, 0); assert.deepEqual(Buffer.concat(chunks), bytes("OE"));
+});
+await record("C07-sink-fault-profile-preserved", async () => {
+  const reason = { sink: "raw" }, observations = [];
+  for (const script of ["emit 2>&1 | cat", "emit |& cat"]) {
+    const shell = create(); let delivered = 0;
+    const value = await shell.exec(script, { stdout: { write() { delivered++; throw reason; } } }).then(result => ({ kind: "return", exitCode: result.exitCode, stderr: result.stderr }), error => ({ kind: "throw", exact: error === reason }));
+    assert.ok(delivered > 0); observations.push(value);
+  }
+  assert.deepEqual(observations[1], observations[0]);
+  if (observations[0].kind === "throw") assert.equal(observations[0].exact, true);
+});
+await record("C08-required-file-after-downstream-close", async () => {
+  const memory = new api.MemoryFileSystem(), counters = {}, shell = create(memory, counters);
+  const result = await shell.exec("emit &>out |& head -n 0");
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(await memory.readFile("/out")).toString(), "OE"); assert.equal(counters.cleaned, 1);
+});
+await record("C09-open-failure-and-prior-effect", async () => {
+  const memory = new api.MemoryFileSystem(), counters = {}, shell = create(memory, counters);
+  const result = await shell.exec("emit >first &>/missing/out");
+  assert.notEqual(result.exitCode, 0); assert.notEqual(result.stderr, ""); assert.equal(counters.entered ?? 0, 0);
+  assert.deepEqual(Buffer.from(await memory.readFile("/first")), Buffer.alloc(0));
+  assert.deepEqual(await memory.readdir("/"), [{ name: "first", type: "file" }]);
+});
+await record("C10-output-limit-and-cleanup", async () => {
+  const memory = new api.MemoryFileSystem(), counters = {}, shell = create(memory, counters);
+  await assert.rejects(shell.exec("emit &>out", { limits: { maxOutputBytes: 1 } }), error => error instanceof api.ShellLimitError);
+  assert.equal(counters.cleaned, 1); assert.equal(Buffer.from(await memory.readFile("/out")).toString(), "O");
+});
+await record("C11-closed-descriptor-error", async () => {
+  const memory = new api.MemoryFileSystem(), counters = {}, shell = create(memory, counters);
+  const result = await shell.exec("set -o pipefail; emit 1>&- |& cat");
+  assert.notEqual(result.exitCode, 0); assert.match(result.stderr, /Bad file descriptor/);
+  assert.equal(counters.entered ?? 0, 0);
+});
+await record("C12-owned-real-file", async () => {
+  const root = await fs.mkdtemp(path.join(process.env.TMPDIR, "redirect-real-"));
+  try {
+    const real = await api.createRealFileSystem({ root }), shell = create(real);
+    const result = await shell.exec("emit 2>err >out |& cat");
+    assert.equal(result.exitCode, 0); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+    assert.deepEqual(await fs.readFile(path.join(root, "out")), bytes("OE"));
+    assert.deepEqual(await fs.readFile(path.join(root, "err")), Buffer.alloc(0));
+    await shell.dispose(); shells.delete(shell);
+  } finally { await fs.rm(root, { recursive: true }); }
+});
+const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+summary.fail = summary.cases - summary.pass;
+console.log(JSON.stringify({ summary })); process.exitCode = summary.fail ? 1 : 0;
+
+aa0becf7144cdfc4efa32b5cc030d530364bfb33 blob 2790
+{
+  "role": "AUTHOR_LITERAL_EXPECTATIONS_NOT_NATIVE_OBSERVATIONS",
+  "cases": [
+    {"id":"R01","script":"emit |& cat","stdout":"OE"},
+    {"id":"R02","script":"emit | cat","stdout":"O","stderr":"E"},
+    {"id":"R03","script":"emit 2>err |& cat","stdout":"OE","files":{"err":""}},
+    {"id":"R04","script":"emit >out |& cat","files":{"out":"OE"}},
+    {"id":"R05","script":"emit 2>&1 >out |& cat","files":{"out":"OE"}},
+    {"id":"R06","script":"emit >out 2>&1 |& cat","files":{"out":"OE"}},
+    {"id":"R07","script":"emit |& cat | cat","stdout":"OE"},
+    {"id":"R08","script":"emit |& cat |& cat","stdout":"OE"},
+    {"id":"R09","script":"{ emit; } 2>err |& cat","stdout":"OE","files":{"err":""}},
+    {"id":"R10","script":"( emit ) |& cat","stdout":"OE"},
+    {"id":"R11","script":"emit &>out","files":{"out":"OE"}},
+    {"id":"R12","script":"emit &>first >second","files":{"first":"E","second":"O"}},
+    {"id":"R13","script":"emit >first &>second","files":{"first":"","second":"OE"}},
+    {"id":"R14","script":"emit &>first 2>second","files":{"first":"O","second":"E"}},
+    {"id":"R15","script":"emit 2>first &>second","files":{"first":"","second":"OE"}},
+    {"id":"R16","script":"emit &>out | cat","files":{"out":"OE"}},
+    {"id":"R17","script":"emit &>out |& cat","files":{"out":"OE"}},
+    {"id":"R18","script":"( emit ) &>out","files":{"out":"OE"}},
+    {"id":"R19","script":"if true; then emit; fi &>out","files":{"out":"OE"}},
+    {"id":"R20","script":"f(){ emit; }; f &>out","files":{"out":"OE"}},
+    {"id":"R21","script":"f(){ emit |& cat; }; f","stdout":"OE"},
+    {"id":"R22","script":"emit &>'space file'","files":{"space file":"OE"}},
+    {"id":"R23","script":"emit &>$(printf out; printf X >>count)","files":{"out":"OE","count":"X"}},
+    {"id":"R24","script":"printf '%s' '&>' '|&'","stdout":"&>|&"},
+    {"id":"R25","script":"emit |&\ncat","stdout":"OE"},
+    {"id":"R26","script":"emit &>out; printf tail","stdout":"tail","files":{"out":"OE"}},
+    {"id":"R27","script":"f(){ emit; return 7; }; f &>out","exitCode":7,"files":{"out":"OE"}},
+    {"id":"R28","script":"set -o pipefail; { emit; false; } |& cat","stdout":"OE","exitCode":1},
+    {"id":"R29","script":"set -e; { emit; false; } |& cat; printf tail","stdout":"OEtail"},
+    {"id":"R30","script":"&>out","files":{"out":""}},
+    {"id":"R31","script":"emit &>first &>second","files":{"first":"","second":"OE"}},
+    {"id":"R32","script":"emit 2>&1 | cat","stdout":"OE"},
+    {"id":"R33","script":"emit 2>err | cat","stdout":"O","files":{"err":"E"}},
+    {"id":"R34","script":"{ emit; } 3>&1 1>out 2>&3","stdout":"E","files":{"out":"O"}},
+    {"id":"R35","script":"while false; do emit; done &>out","files":{"out":""}},
+    {"id":"R36","script":"{ printf a; printf b >&2; } &>out","files":{"out":"ab"}}
+  ]
+}
+
+f73b632fb607e8fe0c0067656cf5a1cf29026503 blob 11148
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import * as api from 'virtual-bash';
+
+const design = JSON.parse(await fs.readFile(new URL('strict-design.json', import.meta.url)));
+const expected = {
+  U01: 'ready\n', U02: '<>\n', U03: '<>\n', U04: '2|<-x>|<>\n0\n', U05: '2:a\n1:c\n',
+  U08: 'eu\ne\n', U09: '<>\n', U10: null, U11: '<>\n', U12: 'default|default||default\n',
+  U13: '<>|<>|<yes>|<>\n', U14: 'ok\nok\n', U15: 'ok|<>\n', U16: null, U18: null,
+  U19: '<>|default\n', U20: 'n=0\n<>\n<>\n', U21: '<a>\n<>\n<b>\n<a::b>\n',
+  U22: '<>\n<>\n', U23: '<>\n<>\n', U24: '<>\n', U25: null, U26: '<>\n',
+  U29: null, U30: null, U37: '\nparent-after\n', U38: 'parent:1\n', U39: null,
+  U40: null, U41: null, U42: 'parent:1\n', U43: 'pipeline:1\n', U44: 'guarded\ndone\n',
+};
+const fatal = new Set(['U10', 'U16', 'U18', 'U24', 'U25', 'U26', 'U29', 'U30', 'U39', 'U40', 'U41']);
+const diagnosed = new Set([...fatal, 'U37', 'U38', 'U42', 'U43']);
+const shells = new Set(), releases = new Set(), rows = [];
+const turn = () => new Promise(resolve => setImmediate(resolve));
+function deferred() { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; }
+function create(memory = new api.MemoryFileSystem()) {
+  const shell = new api.Shell({ fs: memory, cwd: '/' }).use(api.agentCommands());
+  shells.add(shell); return shell;
+}
+const capture = promise => promise.then(value => ({ kind: 'return', value }), reason => ({ kind: 'throw', reason }));
+async function record(id, execute) {
+  if (process.env.STRICT_CASE && process.env.STRICT_CASE !== id) return;
+  const row = { id, role: id.startsWith('U') ? 'ROOT_RESOLVED_PRODUCT_SELECTION_NOT_GNU_GOLDEN' : 'ADDITIONAL_CONTROL', pass: false };
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+  try { await execute(row); row.pass = true; }
+  catch (error) { row.error = String(error?.stack ?? error); }
+  finally {
+    for (const release of releases) release(); releases.clear();
+    const results = await Promise.allSettled([...shells].map(shell => shell.dispose()));
+    row.created = shells.size; row.disposed = results.filter(result => result.status === 'fulfilled').length;
+    row.cleanupFailure = row.created !== row.disposed;
+    shells.clear(); clearTimeout(timer);
+  }
+  rows.push(row); console.log(JSON.stringify(row));
+  if (row.cleanupFailure) process.exit(78);
+}
+for (const item of design.cases) {
+  if (!Object.hasOwn(expected, item.id)) continue;
+  await record(item.id, async row => {
+    const memory = new api.MemoryFileSystem();
+    for (const [name, text] of Object.entries(item.files ?? {})) await memory.writeFile('/' + name, new TextEncoder().encode(text));
+    const result = await create(memory).exec(item.program);
+    row.actual = { status: result.exitCode, stdout: result.stdout, stderr: result.stderr };
+    assert.equal(result.exitCode, fatal.has(item.id) ? 1 : 0);
+    assert.equal(result.stdout, expected[item.id] ?? '');
+    if (diagnosed.has(item.id)) {
+      assert.equal(result.stderr.split('unbound variable').length - 1, 1);
+      assert.ok(result.stderr.endsWith('\n'));
+      assert.doesNotMatch(result.stderr, /after|NounsetFailure|NounsetDiagnosticFailure/);
+    } else assert.equal(result.stderr, '');
+    for (const [name, text] of Object.entries(item.files ?? {})) assert.equal(Buffer.from(await memory.readFile('/' + name)).toString(), text);
+  });
+}
+await record('U45', async () => {
+  const shell = create();
+  assert.equal((await shell.exec('set -u; printf "%s" "$missing"')).exitCode, 1);
+  const next = await shell.exec('printf "<%s>" "$missing"');
+  assert.equal(next.exitCode, 0); assert.equal(next.stdout, '<>'); assert.equal(next.stderr, '');
+});
+await record('U46', async () => {
+  const shell = create(); let cleaned = 0;
+  shell.commands.register({ name: 'bridge', async execute(context) {
+    context.registerCleanup(async () => { await turn(); cleaned++; });
+    const child = await context.invoke('f', []);
+    await context.stdout.write(Buffer.from(`child:${child.exitCode}\n`));
+    return { exitCode: 0 };
+  } });
+  const result = await shell.exec('set -u; f(){ printf "%s" "$missing"; printf child-after; }; bridge; printf "parent\\n"');
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'child:1\nparent\n');
+  assert.equal(result.stderr.split('unbound variable').length - 1, 1); assert.equal(cleaned, 1);
+});
+await record('U47', async () => {
+  const shell = create(), controller = new AbortController(), started = deferred(), gate = deferred();
+  releases.add(gate.resolve); let cleaned = 0;
+  shell.commands.register({ name: 'guard', async execute(context) {
+    context.registerCleanup(async () => { await turn(); cleaned++; }); return { exitCode: 0 };
+  } });
+  const reason = Object.freeze({ role: 'caller' });
+  const pending = capture(shell.exec('guard; set -u; printf "%s" "$missing"', {
+    signal: controller.signal, stderr: { async write() { started.resolve(); await gate.promise; } },
+  }));
+  await started.promise; controller.abort(reason); gate.resolve();
+  const outcome = await pending;
+  assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(cleaned, 1);
+});
+await record('U48', async () => {
+  let writes = 0;
+  const outcome = await capture(create().exec('set -u; printf "%s" "$missing"', {
+    limits: { maxOutputBytes: 0 }, stderr: { async write() { writes++; } },
+  }));
+  assert.equal(outcome.kind, 'throw'); assert.ok(outcome.reason instanceof api.ShellLimitError);
+  assert.equal(outcome.reason.limit, 'maxOutputBytes'); assert.equal(writes, 0);
+});
+await record('U49', async () => {
+  for (const reason of [Object.freeze({ role: 'diagnostic-sink' }), undefined]) {
+    let writes = 0;
+    const outcome = await capture(create().exec('set -u; printf "%s" "$missing"', {
+      stderr: { async write() { writes++; throw reason; } },
+    }));
+    assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(writes, 1);
+  }
+});
+await record('U50', async () => {
+  const shell = create(), reason = Object.freeze({ role: 'registered-cleanup' }); let cleaned = 0;
+  shell.commands.register({ name: 'guard', async execute(context) {
+    context.registerCleanup(async () => { await turn(); cleaned++; throw reason; }); return { exitCode: 0 };
+  } });
+  const outcome = await capture(shell.exec('guard; set -u; printf "%s" "$missing"'));
+  assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(cleaned, 1);
+});
+await record('E01-active-file-stderr', async () => {
+  const memory = new api.MemoryFileSystem();
+  const result = await create(memory).exec('set -u; { printf "%s" "$missing"; } 2>err; printf after');
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+  assert.match(Buffer.from(await memory.readFile('/err')).toString(), /missing: unbound variable\n$/);
+});
+await record('E02-here-string', async () => {
+  const result = await create().exec('set -u; cat <<<"$missing"; printf after');
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing: unbound variable\n$/);
+});
+await record('E03-ordered-redirect-effects', async () => {
+  const memory = new api.MemoryFileSystem();
+  const result = await create(memory).exec('set -u; : >created 2>err >"$missing"; printf after');
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+  assert.equal((await memory.readFile('/created')).length, 0);
+  assert.match(Buffer.from(await memory.readFile('/err')).toString(), /missing: unbound variable\n$/);
+  assert.deepEqual((await memory.readdir('/')).map(entry => entry.name).sort(), ['created', 'err']);
+});
+await record('E04-lazy-array-zero', async () => {
+  const result = await create().exec('set -u; a=([0]=ok); printf "%s|%s" "${a:-$missing}" "${a:=ignored}"');
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'ok|ok'); assert.equal(result.stderr, '');
+});
+await record('E05-function-option-state', async () => {
+  const result = await create().exec('set -u; f(){ set +u; }; f; printf "<%s>" "$missing"');
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, '<>'); assert.equal(result.stderr, '');
+});
+await record('E06-if-not-errexit', async () => {
+  const result = await create().exec('set -u; if printf "%s" "$missing"; then printf bad; fi; printf after');
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /unbound variable/);
+});
+await record('E07-here-document', async () => {
+  const result = await create().exec('set -u\ncat <<EOF\n$missing\nEOF\nprintf after');
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /unbound variable/);
+});
+await record('E08-nested-sink-rejection', async () => {
+  for (const program of ['set -u; f(){ printf "%s" "$missing"; }; f', 'set -u; (printf "%s" "$missing")', 'set -u; printf "%s" "$missing" | cat']) {
+    const reason = Object.freeze({ program }); let writes = 0;
+    const outcome = await capture(create().exec(program, { stderr: { async write() { writes++; throw reason; } } }));
+    assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(writes, 1);
+  }
+});
+await record('E09-invoke-sink-boundary', async () => {
+  const shell = create(), reason = Object.freeze({ role: 'child-stderr' }); let caught = 0;
+  shell.commands.register({ name: 'bridge', async execute(context) {
+    const result = await capture(context.invoke('f', [], { stderr: { async write() { throw reason; } } }));
+    assert.equal(result.kind, 'throw'); assert.equal(result.reason, reason); caught++; return { exitCode: 0 };
+  } });
+  const result = await shell.exec('set -u; f(){ printf "%s" "$missing"; }; bridge; printf parent');
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, 'parent'); assert.equal(caught, 1);
+});
+await record('E10-primary-sink-cleanup', async () => {
+  const shell = create(), sink = Object.freeze({ role: 'primary' }), cleanup = Object.freeze({ role: 'secondary' }); let cleaned = 0;
+  shell.commands.register({ name: 'guard', async execute(context) {
+    context.registerCleanup(async () => { await turn(); cleaned++; throw cleanup; }); return { exitCode: 0 };
+  } });
+  const outcome = await capture(shell.exec('guard; set -u; printf "%s" "$missing"', { stderr: { async write() { throw sink; } } }));
+  assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, sink); assert.equal(cleaned, 1);
+});
+await record('E11-substitution-errexit', async () => {
+  const result = await create().exec('set -eu; value=$(printf "%s" "$missing"); printf after');
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /unbound variable/);
+});
+const summary = { cases: rows.length, pass: rows.filter(row => row.pass && !row.cleanupFailure).length };
+summary.fail = summary.cases - summary.pass;
+console.log(JSON.stringify({ summary })); process.exitCode = summary.fail ? 1 : 0;
+
+4d0fe40653cf150cf790dacf0418da8b15072eba blob 9222
+{
+  "schema": "bash-strict-mode-proposed-identities-v1",
+  "date": "2026-08-29",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "execution": "UNRUN",
+  "expectedRuntimeForEveryCase": null,
+  "rule": "Questions and proposed invariants are not observed outputs or native goldens. No product/native/compiler/worker execution authorized.",
+  "cases": [
+    {"id":"U01","program":"set -euo pipefail; printf '%s\\n' ready","question":"Common header accepts clusters; existing e/pipefail unchanged","basis":"P1/G1"},
+    {"id":"U02","program":"set -eu; set +ue; printf '<%s>\\n' \"$missing\"","question":"Both bits disable; missing value after+u","basis":"P1/G1"},
+    {"id":"U03","program":"set -o nounset; set +o nounset; printf '<%s>\\n' \"$missing\"","question":"Named on/off agrees with short forms","basis":"P1/G1"},
+    {"id":"U04","program":"set -u -- -x ''; printf '%s|<%s>|<%s>\\n' \"$#\" \"$1\" \"$2\"; set --; printf '%s\\n' \"$#\"","question":"-- replaces/clears positionals and preserves empty","basis":"G1/P1"},
+    {"id":"U05","program":"set -- a b; set -; printf '%s:%s\\n' \"$#\" \"$1\"; set - c; printf '%s:%s\\n' \"$#\" \"$1\"","question":"Lone- positional behavior","basis":"P1"},
+    {"id":"U06","program":"set -uz; printf '%s\\n' after","question":"Invalid-tail status/termination/partial mutation must be qualified","basis":"OPEN-P1"},
+    {"id":"U07","program":"set -u; set -o; printf '%s\\n' after","question":"Missing o operand/listing remains explicit supported-profile gap","basis":"OUTSIDE-P1"},
+    {"id":"U08","program":"set -eu; printf '%s\\n' \"$-\"; set +u; printf '%s\\n' \"$-\"","question":"Actual e/u visibility; native extra flags retained as differences","basis":"P1"},
+    {"id":"U09","program":"printf '<%s>\\n' \"$missing\"","question":"Default nounset off","basis":"ROOT"},
+    {"id":"U10","program":"set -u; printf '<%s>\\n' \"$missing\"; printf '%s\\n' after","question":"Fatal unguarded scalar expansion and no later statement","basis":"G1/P4"},
+    {"id":"U11","program":"set -u; empty=; printf '<%s>\\n' \"$empty\"","question":"Empty value is set","basis":"G2"},
+    {"id":"U12","program":"set -u; empty=; printf '%s|%s|%s|%s\\n' \"${missing-default}\" \"${missing:-default}\" \"${empty-default}\" \"${empty:-default}\"","question":"Unset versus empty colon tests","basis":"G2"},
+    {"id":"U13","program":"set -u; empty=; printf '<%s>|<%s>|<%s>|<%s>\\n' \"${missing+yes}\" \"${missing:+yes}\" \"${empty+yes}\" \"${empty:+yes}\"","question":"Alternative presence tests without eager read failure","basis":"G2"},
+    {"id":"U14","program":"set -u; printf '%s\\n' \"${missing:=ok}\"; printf '%s\\n' \"$missing\"","question":"Guarded assignment creates value","basis":"G2"},
+    {"id":"U15","program":"set -u; value=ok; printf '%s|<%s>\\n' \"${value:-$missing}\" \"${absent:+$missing}\"","question":"Unselected alternates not expanded","basis":"G2/P2"},
+    {"id":"U16","program":"set -u; printf '%s\\n' \"${absent:-$missing}\"; printf '%s\\n' after","question":"Selected alternate missing read fails","basis":"G2/P2"},
+    {"id":"U17","program":"set -u; printf '%s\\n' \"${missing:?required}\"; printf '%s\\n' after","question":"Existing explicit-error behavior separate from new nounset mapping","basis":"G2/KNOWN-PROFILE"},
+    {"id":"U18","program":"set -u; set --; printf '<%s>\\n' \"$1\"; printf '%s\\n' after","question":"Missing positional error","basis":"G1"},
+    {"id":"U19","program":"set -u; set -- ''; printf '<%s>|%s\\n' \"$1\" \"${10-default}\"","question":"Present empty and guarded multi-digit positional","basis":"G2"},
+    {"id":"U20","program":"set -u; set --; printf 'n=%s\\n' \"$#\"; printf '<%s>\\n' \"$@\"; printf '<%s>\\n' \"$*\"","question":"Zero positionals @/* exceptions and word counts","basis":"G1"},
+    {"id":"U21","program":"set -u; set -- a '' b; IFS=:; printf '<%s>\\n' \"$@\"; printf '<%s>\\n' \"$*\"","question":"Exceptions preserve joins and empty members","basis":"G1/G2"},
+    {"id":"U22","program":"set -u; printf '<%s>\\n' \"${a[@]}\"; printf '<%s>\\n' \"${a[*]}\"","question":"Unset array member expansion exemption","basis":"G1"},
+    {"id":"U23","program":"set -u; a=(); printf '<%s>\\n' \"${a[@]}\"; printf '<%s>\\n' \"${a[*]}\"","question":"Present empty array member exemption","basis":"G1/G4"},
+    {"id":"U24","program":"set -u; a=([2]=''); printf '<%s>\\n' \"${a[2]}\"; printf '<%s>\\n' \"${a[1]}\"","question":"Sparse missing versus present empty element","basis":"G4/P2"},
+    {"id":"U25","program":"set -u; a=([2]=x); printf '<%s>\\n' \"$a\"","question":"Bare sparse array reads element0 not any-member existence","basis":"G4/P2"},
+    {"id":"U26","program":"set -u; a=; printf '<%s>\\n' \"${a[0]}\"; printf '<%s>\\n' \"${a[1]}\"","question":"Scalar-as-array zero versus missing nonzero","basis":"P2"},
+    {"id":"U27","program":"set -u; printf '%s\\n' \"${#a[@]}\"","question":"Unset array count exception: exact GNU5.3 rule unresolved","basis":"OPEN-P2"},
+    {"id":"U28","program":"set -u; a=(); printf '%s|%s\\n' \"${#a[@]}\" \"${#a[*]}\"","question":"Empty array count: exact GNU5.3 rule unresolved","basis":"OPEN-P2"},
+    {"id":"U29","program":"set -u; printf '%s\\n' \"${#missing}\"","question":"Scalar length consumes missing value","basis":"P2"},
+    {"id":"U30","program":"set -u; printf '%s\\n' \"${missing#x}\"","question":"Pattern removal consumes missing value","basis":"P2"},
+    {"id":"U31","program":"set -u; printf '%s\\n' \"$((missing+1))\"; printf '%s\\n' after","question":"Arithmetic bare read nounset override needs primary/native qualification","basis":"OPEN-P3"},
+    {"id":"U32","program":"set -u; ((missing=2)); printf '%s\\n' \"$missing\"","question":"Pure assignment LHS not read","basis":"P3"},
+    {"id":"U33","program":"set -u; ((missing+=2)); printf '%s\\n' after","question":"Compound LHS read and fatal scope","basis":"OPEN-P3"},
+    {"id":"U34","program":"set -u; let 'missing++'; printf '%s\\n' after","question":"LET increment read/control preservation","basis":"OPEN-P3"},
+    {"id":"U35","program":"set -u; empty=; printf '%s\\n' \"$((empty+1))\"; printf '%s\\n' \"$((1 || missing))\"; printf '%s\\n' \"$((0 ? missing : 4))\"","question":"Empty zero and unvisited branches","basis":"G3/P3"},
+    {"id":"U36","program":"set -u; value=missing; let 'value+1'; printf '%s\\n' after","question":"Recursive arithmetic missing-name diagnostic/termination","basis":"OPEN-P3"},
+    {"id":"U37","program":"set -u; printf '%s\\n' \"$(printf '%s' \"$missing\"; printf '%s' child-after)\"; printf '%s\\n' parent-after","question":"Substitution child terminates; outer command status not forcibly replaced","basis":"G5/P4"},
+    {"id":"U38","program":"set -u; value=$(printf '%s' \"$missing\"); printf 'parent:%s\\n' \"$?\"","question":"Assignment-only substitution status without-e","basis":"G5/P4"},
+    {"id":"U39","program":"set -u; f() { printf '%s\\n' \"$missing\"; }; f || printf '%s\\n' caught; printf '%s\\n' after","question":"Function/current-scope nounset versus errexit suppression","basis":"P4"},
+    {"id":"U40","program":"set -u; source ./unit2-source.sh; printf '%s\\n' after","files":{"unit2-source.sh":"printf '%s\\n' \"$missing\"\nprintf '%s\\n' source-after\n"},"question":"Sourced fatal scope and exact source line","basis":"G5/P4"},
+    {"id":"U41","program":"set -u; eval 'printf \"%s\\n\" \"$missing\"'; printf '%s\\n' after","question":"Eval current fatal scope/source attribution","basis":"P4"},
+    {"id":"U42","program":"set -u; (printf '%s\\n' \"$missing\"); printf 'parent:%s\\n' \"$?\"","question":"Subshell isolation and parent status","basis":"G5/P4"},
+    {"id":"U43","program":"set -u -o pipefail; printf '%s\\n' \"$missing\" | cat; printf 'pipeline:%s\\n' \"$?\"","question":"Pipeline child failure through unchanged pipefail","basis":"G1/G5/P4"},
+    {"id":"U44","program":"set -euo pipefail; if false; then printf bad; fi; false || printf '%s\\n' guarded; printf '%s\\n' done","question":"Existing errexit exemptions remain unchanged","basis":"G1/P1"},
+    {"id":"U45","protocol":"PUBLIC_REUSE","question":"Exec set-u fatal then fresh exec missing expansion on same Shell; options reset, original stdin/shared budgets not leaked"},
+    {"id":"U46","protocol":"NESTED_INVOKE","question":"Literal registered command invokes current function under copied nounset; no environment/local promotion; sibling and parent option isolation"},
+    {"id":"U47","protocol":"CALLER_PRECEDENCE","question":"Controlled caller abort during blocked diagnostic; exact caller reason including falsy sentinel, owned cleanup completed before settlement"},
+    {"id":"U48","protocol":"LIMIT_PRECEDENCE","question":"Exact existing ShellLimitError from diagnostic budget is not swallowed/recast as nounset status or duplicate diagnostic"},
+    {"id":"U49","protocol":"SINK_REJECTION","question":"Diagnostic sink throws distinct object/undefined in predeclared separate control roles; exact escaping reason, no fallback message or success"},
+    {"id":"U50","protocol":"UNWIND_RESOURCES","question":"Controlled source/function/array/input owners unwind once on nounset; required cleanup awaited; failures retained, sibling lease untouched; no opaque host preemption"}
+  ]
+}
+
+cb41a2556e3ddf4662b2be40fb10756d61838180 blob 14524
+import assert from 'node:assert/strict';
+import * as api from 'virtual-bash';
+const { parseShell } = api;
+const shells = new Set(), rows = [];
+const capture = promise => promise.then(value => ({ value }), reason => ({ reason }));
+function create(memory = new api.MemoryFileSystem(), options = {}) { const shell = new api.Shell({ fs: memory, cwd: '/', ...options }).use(api.agentCommands()); shells.add(shell); return shell; }
+async function record(id, body) {
+  if (process.env.CONDITIONAL_CASE && process.env.CONDITIONAL_CASE !== id) return;
+  const row = { id, role: 'RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN', pass: false };
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+  try { await body(row); row.pass = true; } catch (error) { row.error = String(error?.stack ?? error); }
+  finally { const disposed = await Promise.allSettled([...shells].map(shell => shell.dispose())); row.created = shells.size; row.disposed = disposed.filter(item => item.status === 'fulfilled').length; row.cleanupFailure = row.created !== row.disposed; shells.clear(); clearTimeout(timer); }
+  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);
+}
+const scripts = [
+  ['A01', '[[ "" ]]', 1], ['A02', '[[ value ]]', 0],
+  ['A03', 'IFS=:; x="a:b c"; [[ $x == "a:b c" ]]', 0],
+  ['A04', 'x="*"; [[ $x == "*" ]]', 0], ['A05', '[[ "]]" == "]]" ]]', 0],
+  ['A06', '[[ alpha == a* ]]', 0], ['A07', '[[ alpha == "a*" ]]', 1],
+  ['A08', '[[ "a*b" == "a*"? ]]', 0], ['A09', 'p="a*"; [[ alpha == $p ]]', 0],
+  ['A10', 'p="a*"; [[ alpha == "$p" ]]', 1], ['A11', '[[ beta != a* && beta = b* ]]', 0],
+  ['A12', '[[ "a*b" == a\\*b ]]', 0], ['A13', '[[ b == [a-c] ]]', 0],
+  ['A14', '[[ ab == @(ab|cd) ]]', 2], ['A15', '[[ "@(ab|cd)" == "@(ab|cd)" ]]', 0],
+  ['A16', '[[ "" && $(printf bad > marker) ]]', 1],
+  ['A17', 'set -u; [[ x || $missing ]]; printf after', 0, 'after'],
+  ['A18', '[[ x || "" && "" ]]', 0], ['A19', '[[ ! ( x && "" ) ]]', 0],
+  ['A20', 'x="||"; [[ $x == "||" ]]', 0],
+  ['A21', '[[ $(printf once >> visits; printf value) == v* ]]', 0],
+  ['A22', '[[ -f file && -d dir && ! -f dir && ! -e "" ]]', 0],
+  ['A23', '[[ -L dangling && ! -e dangling && -h link ]]', 0],
+  ['A24', '[[ -s file && ! -s empty && -r file && -w file && -x executable ]]', 0],
+  ['A25', 'unset x; [[ -v x ]]', 1], ['A26', 'x=; [[ -v x ]]', 0],
+  ['A27', 'a=(); a[3]=; [[ -v a[3] && ! -v a[0] ]]', 0],
+  ['A28', 'set -u; [[ -o nounset && ! -o pipefail ]]', 0],
+  ['A29', '[[ A < z && z > A ]]', 0],
+  ['A30', '[[ 010 -eq 8 && -2 -lt 0 && 16#ff -eq 255 ]]', 0],
+  ['A31', 'x=; [[ $x -eq 0 ]]', 0], ['A32', 'set -- a; [[ $# -gt 0 ]]', 0],
+  ['A33', '[[ x+1 -eq 3 ]]', 2], ['A34', '[[ x =~ (x)+ ]]', 2],
+  ['A35', '[[ x || x =~ (x)+ ]]', 0], ['A36', '[[ "" ]] > out', 1],
+  ['A37', 'f() [[ x == x ]]; f |& printf pipe; [[ x ]] &> combined', 0, 'pipe'],
+  ['A38', 'set -e; if [[ "" ]]; then printf bad; fi; printf after', 0, 'after'],
+  ['A39', 'set -e; [[ "" ]]; printf bad', 1],
+  ['A40', 'set -u; f() { [[ $missing ]]; printf bad; }; f; printf bad', 1],
+];
+for (const [id, program, status, stdout = ''] of scripts) await record(id, async row => {
+  const memory = new api.MemoryFileSystem();
+  await memory.writeFile('/file', Buffer.from('data')); await memory.writeFile('/empty', new Uint8Array()); await memory.mkdir('/dir');
+  await memory.writeFile('/executable', Buffer.from('x'), { mode: 0o755 }); await memory.symlink('/missing', '/dangling'); await memory.symlink('/file', '/link');
+  const result = await create(memory).exec(program); row.actual = { status: result.exitCode, stdout: result.stdout, stderr: result.stderr };
+  assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout);
+  if (status === 2) assert.match(result.stderr, /unsupported conditional profile/);
+  else if (id === 'A40') assert.match(result.stderr, /missing: unbound variable/);
+  else assert.equal(result.stderr, '');
+  if (id === 'A16') await assert.rejects(memory.stat('/marker'), error => error.code === 'ENOENT');
+  if (id === 'A21') assert.equal(Buffer.from(await memory.readFile('/visits')).toString(), 'once');
+  if (id === 'A36') assert.equal((await memory.stat('/out')).size, 0);
+  if (id === 'A37') assert.equal((await memory.stat('/combined')).size, 0);
+});
+function adapted(memory, changes) { return new Proxy(memory, { get(target, key) { if (Object.hasOwn(changes, key)) return changes[key]; const value = Reflect.get(target, key, target); return typeof value === 'function' ? value.bind(target) : value; } }); }
+await record('H01', async () => { const reason = Object.freeze({ caller: true }), controller = new AbortController(); controller.abort(reason); let reads = 0; const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { reads++; throw Error('unreachable'); } })); assert.equal((await capture(shell.exec('[[ -f file ]]', { signal: controller.signal }))).reason, reason); assert.equal(reads, 0); });
+function deferred() { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; }
+await record('H02-v4', async row => {
+  const reason = Object.freeze({ during: true }), controller = new AbortController();
+  const release = deferred(), finished = deferred(), events = []; let closed = false;
+  const shell = create(adapted(new api.MemoryFileSystem(), { stat: async (_path, options) => {
+    events.push('acquired'); try { events.push('abort'); controller.abort(reason); options.signal.throwIfAborted(); }
+    finally { await release.promise; closed = true; events.push('provider-finalized'); finished.resolve(); }
+  } }));
+  const pending = capture(shell.exec('[[ -f file ]]', { signal: controller.signal }));
+  try { const outcome = await pending; events.push('public-rejected'); assert.equal(outcome.reason, reason); assert.equal(closed, false); row.beforeRelease = { closed, exactCallerReason: outcome.reason === reason }; }
+  finally { events.push('test-release'); release.resolve(); await finished.promise; await pending; }
+  assert.equal(closed, true); row.afterRelease = { closed }; row.events = events;
+  assert.deepEqual(events, ['acquired', 'abort', 'public-rejected', 'test-release', 'provider-finalized']);
+});
+await record('H03', async () => { let reads = 0; const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { reads++; throw Error('unvisited'); } })); assert.equal((await shell.exec('[[ x || -f file ]]')).exitCode, 0); assert.equal(reads, 0); });
+await record('H04', async () => { const shell = create(); const outcome = await capture(shell.exec('[[ abcdef == a* ]]', { limits: { maxExpansionBytes: 2 } })); assert.ok(outcome.reason instanceof api.ShellLimitError); assert.equal(outcome.reason.limit, 'maxExpansionBytes'); });
+await record('H05', async () => { const reason = Object.freeze({ sink: true }); const result = await capture(create().exec('[[ x =~ x ]]', { stderr: { async write() { throw reason; } } })); assert.equal(result.reason, reason); });
+await record('H06', async () => { const reason = Object.freeze({ provider: true }); const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); });
+await record('H07', async () => { const memory = new api.MemoryFileSystem(), shell = new api.Shell({ fs: memory }); shells.add(shell); assert.equal((await shell.exec('[[ x == x ]]')).exitCode, 0); assert.equal((await shell.exec('[[ "" ]]')).exitCode, 1); });
+await record('H08', async () => { const expression = Array(2048).fill('x').join(' && '); const accepted = parseShell(`[[ ! ${expression} ]]`); assert.equal(accepted.lists[0].pipelines[0].commands[0].kind, 'conditional'); assert.throws(() => parseShell(`[[ x && ${expression} ]]`), error => error instanceof api.ShellSyntaxError && /4096/.test(error.reason)); assert.throws(() => parseShell(`[[ ${'('.repeat(64)}x${')'.repeat(64)} ]]`), error => error instanceof api.ShellSyntaxError && /64/.test(error.reason)); });
+await record('H09', async () => { const shell = create(); const result = await shell.exec('BASH_REMATCH=keep; [[ x =~ x ]]; printf "%s" "$BASH_REMATCH"'); assert.equal(result.stdout, 'keep'); assert.match(result.stderr, /unsupported conditional profile/); const parsed = parseShell('[[ "a*" == "a*" ]]'); assert.ok(parsed.lists[0].pipelines[0].commands[0].expression.left.parts.every(part => part.quoted)); });
+await record('H10', async () => { const shell = create(adapted(new api.MemoryFileSystem(), { capabilities: { permissions: false } })); const result = await shell.exec('[[ -r file ]]'); assert.equal(result.exitCode, 2); assert.match(result.stderr, /unobservable access permission/); });
+
+await record('S01-registered', async row => {
+  const reason = Object.freeze({ registered: true }), controller = new AbortController();
+  const release = deferred(), finished = deferred(), draining = deferred(); const events = []; let closed = false, settled = false;
+  const shell = create(adapted(new api.MemoryFileSystem(), { stat: async (_path, options) => {
+    events.push('acquired'); try { controller.abort(reason); options.signal.throwIfAborted(); }
+    finally { await release.promise; closed = true; events.push('provider-finalized'); finished.resolve(); }
+  } }));
+  shell.commands.register({ name: 'guard', async execute(context) {
+    assert.equal(typeof context.registerCleanup, 'function'); assert.equal(typeof context.invoke, 'function');
+    context.registerCleanup(async () => { events.push('cleanup-enter'); draining.resolve(); await finished.promise; events.push('cleanup-finished'); });
+    events.push('registered'); return context.invoke('check', []);
+  } });
+  const pending = capture(shell.exec('check() { [[ -f file ]]; }; guard', { signal: controller.signal })).then(outcome => { settled = true; events.push('public-rejected'); return outcome; });
+  try { await draining.promise; await new Promise(resolve => setImmediate(resolve)); assert.equal(settled, false); assert.equal(closed, false); row.beforeRelease = { settled, closed }; }
+  finally { events.push('test-release'); release.resolve(); await finished.promise; }
+  const outcome = await pending; assert.equal(outcome.reason, reason); assert.equal(closed, true);
+  assert.deepEqual(events, ['registered', 'acquired', 'cleanup-enter', 'test-release', 'provider-finalized', 'cleanup-finished', 'public-rejected']); row.events = events; row.afterRelease = { settled, closed, exactCallerReason: outcome.reason === reason };
+});
+for (const [id, program] of [['S02-at', 'a=(); a[3]=x; [[ -v a[@] ]]'], ['S03-star', 'a=(); a[3]=x; [[ -v a[*] ]]']]) await record(id, async () => { const result = await create().exec(program); assert.equal(result.exitCode, 2); assert.equal(result.stdout, ''); assert.match(result.stderr, /aggregate variable selector: unsupported conditional profile/); });
+await record('S04-skipped', async () => { const result = await create().exec('[[ x || -v a[@] ]]; [[ "" && -v a[*] ]]'); assert.equal(result.exitCode, 1); assert.equal(result.stderr, ''); });
+for (const [index, code] of ['ENOENT', 'ENOTDIR', 'EACCES', 'EPERM'].entries()) await record('S0' + (index + 5) + '-' + code, async row => {
+  const denial = new api.FsError(code); let calls = 0; const reject = async () => { calls++; throw denial; };
+  const shell = create(adapted(new api.MemoryFileSystem(), { stat: reject, lstat: reject, access: reject })); row.predicates = [];
+  for (const operator of ['-e', '-a', '-f', '-d', '-s', '-L', '-h', '-r', '-w', '-x']) { const result = await shell.exec('[[ ' + operator + ' file ]]'); assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.equal(result.stderr, ''); row.predicates.push(operator); }
+  assert.equal(calls, 10);
+});
+for (const [index, code] of ['ENOTSUP', 'EOPNOTSUPP', 'ENOSYS'].entries()) await record('S' + String(index + 9).padStart(2, '0') + '-' + code, async () => {
+  const reject = async () => { throw new api.FsError(code); }; const shell = create(adapted(new api.MemoryFileSystem(), { stat: reject, access: reject }));
+  for (const operator of ['-f', '-r']) { const result = await shell.exec('[[ ' + operator + ' file ]]'); assert.equal(result.exitCode, 2); assert.match(result.stderr, /filesystem capability: unsupported conditional profile/); }
+});
+for (const [index, code] of ['EACCES', 'ENOENT', 'ENOTSUP'].entries()) await record('S' + (index + 12) + '-untyped', async () => {
+  for (const reason of [Object.freeze({ code }), Object.assign(new Error('untyped'), { code })]) { const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); }
+});
+await record('S15-unclassified', async () => {
+  for (const code of ['ELOOP', 'EIO', 'EROFS']) { const reason = new api.FsError(code); const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); }
+  const result = await create(adapted(new api.MemoryFileSystem(), { access: async () => { throw new api.FsError('EROFS'); } })).exec('[[ -w file ]]'); assert.equal(result.exitCode, 1); assert.equal(result.stderr, '');
+});
+await record('S16-code-getter', async () => { let reads = 0; const reason = Object.freeze({ get code() { reads++; throw Error('must not inspect'); } }); const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason); assert.equal(reads, 0); });
+await record('S17-limit-caller', async () => {
+  const reason = new api.ShellLimitError('maxExpansionBytes'); const shell = create(adapted(new api.MemoryFileSystem(), { stat: async () => { throw reason; } })); assert.equal((await capture(shell.exec('[[ -f file ]]'))).reason, reason);
+  const caller = Object.freeze({ caller: 'wins' }), controller = new AbortController(); const denied = create(adapted(new api.MemoryFileSystem(), { stat: async () => { controller.abort(caller); throw new api.FsError('EACCES'); } })); assert.equal((await capture(denied.exec('[[ -f file ]]', { signal: controller.signal }))).reason, caller);
+});
+
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length, native: 0 } }));
+process.exitCode = rows.every(row => row.pass) ? 0 : 1;
+
+

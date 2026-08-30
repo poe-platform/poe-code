@@ -1,0 +1,28 @@
+{
+  "parents": [
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+      "device": "16777232",
+      "inode": "187030136",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer",
+      "device": "16777232",
+      "inode": "187030137",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases",
+      "device": "16777232",
+      "inode": "187030138",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/captures",
+      "device": "16777232",
+      "inode": "187030139",
+      "mode": 448
+    }
+  ]
+}

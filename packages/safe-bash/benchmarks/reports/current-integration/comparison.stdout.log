@@ -1,0 +1,5 @@
+
+> virtual-bash@0.0.0 benchmark
+> node --import tsx benchmarks/run.ts --output /Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/comparison.json
+
+{"output":"/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/comparison.json","validity":{"sourceChangedDuringRun":false,"backgroundErrors":[],"comparableSnapshot":true},"summary":{"virtual-bash":{"total":118,"pass":118,"fail":0,"error":0,"timeout":0,"pending":0,"unsupported":0,"passRate":1},"just-bash":{"total":118,"pass":108,"fail":9,"error":0,"timeout":0,"pending":0,"unsupported":1,"passRate":0.9152542372881356}},"overall":"fail"}

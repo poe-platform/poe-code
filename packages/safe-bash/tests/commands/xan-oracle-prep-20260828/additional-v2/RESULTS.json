@@ -1,0 +1,671 @@
+{
+  "classification": "author-dev-observations-not-independent-acceptance",
+  "protocolCommit": "3346e3dd320c63ba0429431a1658b92d145c9efb",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0",
+    "node": "v22.22.2"
+  },
+  "interrupted": null,
+  "receipts": [
+    {
+      "id": "01-start-zero",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-s",
+        "1",
+        "-l",
+        "0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/01-start-zero",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/01-start-zero",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/01-start-zero"
+      },
+      "stdinBase64": "YQowCjEKMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.299Z",
+      "pid": 54753,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.324Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQoxCjIK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "02-equal",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-s",
+        "1",
+        "-e",
+        "1"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/02-equal",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/02-equal",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/02-equal"
+      },
+      "stdinBase64": "YQowCjEKMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.325Z",
+      "pid": 54754,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.339Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQoxCjIK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "03-end-zero",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-e",
+        "0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/03-end-zero",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/03-end-zero",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/03-end-zero"
+      },
+      "stdinBase64": "YQowCjEKMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.340Z",
+      "pid": 54755,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.356Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQowCjEKMgo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "04-tail-zero-stdin",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-L",
+        "0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/04-tail-zero-stdin",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/04-tail-zero-stdin",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/04-tail-zero-stdin"
+      },
+      "stdinBase64": "YQowCjEKMgo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.358Z",
+      "pid": 54756,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.373Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQoyCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "05-tail-zero-file",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice",
+        "-L",
+        "0",
+        "a.csv"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/05-tail-zero-file",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/05-tail-zero-file",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/05-tail-zero-file"
+      },
+      "stdinBase64": "",
+      "fixtureFiles": {
+        "a.csv": "a\n0\n1\n2\n"
+      },
+      "started": "2026-08-28T02:35:56.375Z",
+      "pid": 54757,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.392Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQo=",
+      "stderrBase64": "",
+      "effects": {
+        "a.csv": {
+          "bytes": 8,
+          "base64": "YQowCjEKMgo="
+        }
+      }
+    },
+    {
+      "id": "06-cr-headers",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "-j"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/06-cr-headers",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/06-cr-headers",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/06-cr-headers"
+      },
+      "stdinBase64": "DWEsYg0KeA15LHoNCnUsdg0=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.394Z",
+      "pid": 54758,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.408Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YQpiCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "07-cr-count",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/07-cr-count",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/07-cr-count",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/07-cr-count"
+      },
+      "stdinBase64": "DWEsYg0KeA15LHoNCnUsdg0=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.409Z",
+      "pid": 54759,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.423Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "Mgo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "08-cr-select",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "*"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/08-cr-select",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/08-cr-select",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/08-cr-select"
+      },
+      "stdinBase64": "DWEsYg0KeA15LHoNCnUsdg0=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.424Z",
+      "pid": 54760,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.436Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCngNeSx6CnUsdg0K",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "09-cr-slice",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/09-cr-slice",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/09-cr-slice",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/09-cr-slice"
+      },
+      "stdinBase64": "DWEsYg0KeA15LHoNCnUsdg0=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.437Z",
+      "pid": 54761,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.449Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCiJ4DXkiLHoKdSx2Cg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "10-embedded-headers",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "-j"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/10-embedded-headers",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/10-embedded-headers",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/10-embedded-headers"
+      },
+      "stdinBase64": "YSJiLGMK",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.451Z",
+      "pid": 54762,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.462Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSJiCmMK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "11-embedded-count",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "count"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/11-embedded-count",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/11-embedded-count",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/11-embedded-count"
+      },
+      "stdinBase64": "YSxiCjEseCJ5CjIsego=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.463Z",
+      "pid": 54763,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.475Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "MQo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "12-unterminated-slice",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "slice"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/12-unterminated-slice",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/12-unterminated-slice",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/12-unterminated-slice"
+      },
+      "stdinBase64": "YSxiCjEsIngKeQ==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.476Z",
+      "pid": 54764,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.490Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCjEsIngKeSIK",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "13-bom-reorder",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "-n",
+        "1,0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/13-bom-reorder",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/13-bom-reorder",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/13-bom-reorder"
+      },
+      "stdinBase64": "eCzvu796Cg==",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.492Z",
+      "pid": 54765,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.505Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "77u/eix4Cg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "14-bom-only-headers",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "headers",
+        "--csv"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/14-bom-only-headers",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/14-bom-only-headers",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/14-bom-only-headers"
+      },
+      "stdinBase64": "77u/",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.506Z",
+      "pid": 54766,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.520Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "PHN0ZGluPgo=",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "15-cross-delimiter",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "-n",
+        "-d",
+        ";",
+        "1,0"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/15-cross-delimiter",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/15-cross-delimiter",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/15-cross-delimiter"
+      },
+      "stdinBase64": "ImE7YiI7IngseSINCiIiOyIiDQoicSIiciI7InUNCnYiDQo=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.521Z",
+      "pid": 54767,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.534Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "IngseSIsYTtiCiwKInUNCnYiLCJxIiIiInIiCg==",
+      "stderrBase64": "",
+      "effects": {}
+    },
+    {
+      "id": "16-postquote-select",
+      "binary": {
+        "path": "/tmp/xan-precode-20260828.X6abEd/xan",
+        "sha256": "2600a522a9a47d079a9ee93eaa4a2f6e4ce541eb381cde7b41ee6c04a6615d46",
+        "format": "Mach-O arm64",
+        "runtimeVersion": "UNKNOWN until frozen row 01"
+      },
+      "argv": [
+        "select",
+        "*"
+      ],
+      "cwd": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/16-postquote-select",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/16-postquote-select",
+        "TMPDIR": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-final-profile-v2-20260828-DDAHHp/16-postquote-select"
+      },
+      "stdinBase64": "YSxiCjEsIngiego=",
+      "fixtureFiles": {},
+      "started": "2026-08-28T02:35:56.535Z",
+      "pid": 54768,
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:56.548Z"
+      },
+      "groupAbsent": true,
+      "limit": null,
+      "spawnError": null,
+      "stdinError": null,
+      "stdoutBase64": "YSxiCjEsIngiego=",
+      "stderrBase64": "",
+      "effects": {}
+    }
+  ]
+}

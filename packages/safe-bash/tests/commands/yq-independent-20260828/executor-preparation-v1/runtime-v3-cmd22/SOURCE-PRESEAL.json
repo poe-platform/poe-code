@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "version": "runtime-v3-cmd22-path-domain-preseal",
+  "date": "2026-08-28",
+  "status": "UNEXECUTED_SUCCESSOR_REVIEW_PRESEAL",
+  "sourceCommitBinding": "Independently route the exact commit containing these files and this preseal SHA-256; no HEAD fallback",
+  "baseSourceCommit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+  "baseEvidenceCommit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+  "baseRecipeSealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "historicalActualReviewCommit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+  "diffSha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c",
+  "predicateSha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+  "bindingSha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+  "fixtureDefinitionsSha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+  "fixtureBasesSha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+  "fixtureModuleSha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+  "files": [
+    {
+      "path": "ADAPTATION.json",
+      "bytes": 3702,
+      "sha256": "5390e1a8efe69786af65b9825331cc22e6698f77d0ca4fde0681dd8c94ba943d",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "CMD22-BINDING.json",
+      "bytes": 2321,
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "CMD22-DELTA.diff",
+      "bytes": 14856,
+      "sha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "CONTROL-BASES.json",
+      "bytes": 8697,
+      "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "DEFERRED-CONTROLS.json",
+      "bytes": 6480,
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 5735,
+      "sha256": "cd328b68a904e5becd186c91b1a99dae7a3d85161d74da656db69f2bbab5e433",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "HISTORICAL-BINDINGS.json",
+      "bytes": 14315,
+      "sha256": "b3c863e244f67b84962f643a1f7672ff357460e69cc684b86c9e5f56cf66652f",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "PATH-ASSERTION-AUDIT.json",
+      "bytes": 3912,
+      "sha256": "5df808c0dd897d658fb4570729f67fc26a8bdb48989ee3cf65095cccaa39270d",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 9307,
+      "sha256": "072f6896ae2f4bb7612de298fa0e535d0499dfa862a2844c502d909e8e0bed6e",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "bytes": 3000,
+      "sha256": "ab9742abb12553c26e1b36ec64bdaa5a339f9efa01991ea584f0d075b66657ef",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "STATIC-PREPARATION.md",
+      "bytes": 1422,
+      "sha256": "9c02a44c8e21fca37e86cf15ccc852c11a045ae8b00356ef56c3b54cf72d7762",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "adapter.mjs",
+      "bytes": 1846,
+      "sha256": "4c32d0f793079986d2fd2882b4db4bb8d9883349f8858b238fedc44dcfb42cea",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "deferred-fixtures.mjs",
+      "bytes": 4442,
+      "sha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+      "gitMode": "100644",
+      "mode": 420
+    },
+    {
+      "path": "read-path-binding.mjs",
+      "bytes": 2499,
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "gitMode": "100644",
+      "mode": 420
+    }
+  ],
+  "declaredControls": 31,
+  "controlsExecuted": 0,
+  "syntheticPasses": 0,
+  "productExecutions": 0,
+  "semanticPasses": 0,
+  "grantsGO": false
+}

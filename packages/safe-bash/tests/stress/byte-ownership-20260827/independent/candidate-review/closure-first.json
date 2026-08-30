@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-08-27T10:23:38.711Z",
+  "fixtureHashesUnchanged": true,
+  "sourceCandidate": "7a517cecab21d9fbff204df01a6a2ad2712a7673",
+  "liveSourceChangedSinceFreeze": [
+    "src/commands/streams.ts"
+  ],
+  "ownedProcessesRemaining": [],
+  "serversLaunched": 0,
+  "detachedChildrenLaunched": 0,
+  "authorTrimReadyMarkerPresent": true,
+  "evidenceHashes": {
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/REPORT.md": "3e6a732998196c69e33d4d2f9fa2b3741de0b227a4149c42355bd317a4b1d1e0",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-binding.json": "20050de4d92dfee7c1f6082884e61d439b10581e98bf9f4db8a549ed8841fd20",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-build.json": "154b8d75c3283de3c685ec7f10450e3e1e608ab9b2b3c1b10c6be0668c5604b7",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-harness-failure.md": "639e0b178414ca20dbc1f3ddcc62882a1494cf0b29fc36f4b63a49884bb9910c",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-npm-pack.json": "81e5a4eb83b71f86e19d58b7369f3108c5ec7063ae845b15452e1a0f3381aa9c",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-package.json": "461a2ca68181f3bd66b3508d9fef01e504730d5b1954b475b3d7f846f0fa5ea5",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-v2-binding.json": "41cdea44a2017484a768d959a4ad682bef1f4b3b5a460b6c3e19732be3812627",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-v2-build.json": "2a699b831a6744a1a0dc92df0cb631660e7e03afcbdf3a7ce529b94c2d7112b1",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-v2-npm-pack.json": "e28cb612ff6408041a90cad16640093471c51dd77e46c09ed9faed8000c3ddca",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-v2-package.json": "cdb8a3046c8f3867558806583f6cb7a321d6983824d2044bf24c1b937264fb5d",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-v2-results.json": "4dd1823bc344e8634b9284ff8500822318b1b823ca65c540d0714c2cdd0cc9fb",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/baseline-trim-v2-trim.tap": "acf193015dfe636e51c31b715265ec866c7a440baa9851719c1bccc61870aaad",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-binding.json": "e93efaa8609f6317943d58abc2afafa6ff9bce9314430a7dd2ba17c48ccaf0d6",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-build.json": "abd4c4aa9688342b01e4ad25572bca410d1375428eafe1235aecfe80ae17f219",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-internal.tap": "f7fbcb0f08b48750d69a717a767da3279ec55a6b1991a81f223d64448f34167f",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-npm-pack.json": "98fed16c5795e0d9c6829bd510182132a2ab81d4d9f2230b7051ba40e4df5719",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-package.json": "d81657bb2a5124eaa5ff427e658e96064c8a0af5b89e858fa0f077d12813a485",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-public.tap": "5cd52fe37c920d2d6edd7c380ddffab63e288c361ce932d9bcd4e824be540a8a",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-results.json": "7754da4a3c2d386e00cafdd8dd2b262bf4bbdb370a56faeab6bce953d94c9982",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/evidence/candidate-first-trim.tap": "fb3cbeec0c6a750bce9cdd3282465263ae3587c849eaf98779d4f6c7992fcb77",
+    "tests/stress/byte-ownership-20260827/independent/candidate-review/run-packed.mjs": "312de2135b1d6631c08ba30d06b161dd1da8f37c8bcc941cdfe728911a8f8673"
+  }
+}

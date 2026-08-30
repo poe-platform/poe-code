@@ -1,0 +1,77 @@
+BOUNDED CURRENT-STATE INTEGRATED AUDIT CHECKPOINT
+Created: 2026-08-26T23:45:55Z
+HEAD: 57d9d9860bd51fabd910814efeea4efbca0e4c26; DIRTY CURRENT SNAPSHOT, NOT COMMITTED VALIDATION
+Snapshot: /tmp/safe-bash-current-integration-69dbdy0m/source
+Source SHA256: 20b8ecb2d2b6e47fc86784b23ba0094f0486a1197fcfcb71dcb61731cfea31ab
+All selected inputs SHA256: 961d9e6b81e8b0669b9ce65038f1f1c6f0ec58cb15ed157db4bd9004463df764
+Selected 1341 regular files (13 relevant untracked); 99 explicitly excluded paths.
+Exact per-file hashes, selection/exclusions: /Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-integration/inputs.json
+Dirty files at freeze:
+ M package.json
+ M src/fs/s3/README.md
+ M src/fs/webdav/README.md
+ M src/index.ts
+ M src/plugins/index.ts
+ M tests/fs/mount/mutation-identity.probe.ts
+ M tests/plugins/agent-commands.test.ts
+?? benchmarks/reports/current-integration/audit.py
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target
+?? tests/commands/diff-patch-stress/gnu-revised-full-review/.gitignore
+?? tests/commands/diff-patch-stress/gnu-revised-full-review/native-preparation.json
+?? tests/commands/diff-patch-stress/gnu-revised-full-review/probe.mjs
+?? tests/commands/diff-patch-stress/gnu-revised-full/delta-v1.mjs
+?? tests/commands/diff-patch-stress/gnu-revised-full/proof.mjs
+?? tests/commands/diff-patch-stress/gnu-revised-full/run.mjs
+?? tests/commands/metadata/integration.test.ts
+?? tests/commands/search-stress/.native-1m4O1e/input
+?? tests/shell-stress/invocation-modes/capture-native.ts
+?? tests/shell-stress/invocation-modes/cases.ts
+?? tests/shell-stress/invocation-modes/harness.ts
+?? tests/shell-stress/invocation-modes/native-capture.log
+?? tests/shell-stress/invocation-modes/native-evidence.json
+?? tests/shell-stress/invocation-modes/trace.mjs
+?? tests/stress/adapters/remote-safe-workflows.test.ts
+
+Relevant untracked selected:
+tests/commands/diff-patch-stress/gnu-revised-full-review/.gitignore
+tests/commands/diff-patch-stress/gnu-revised-full-review/native-preparation.json
+tests/commands/diff-patch-stress/gnu-revised-full-review/probe.mjs
+tests/commands/diff-patch-stress/gnu-revised-full/delta-v1.mjs
+tests/commands/diff-patch-stress/gnu-revised-full/proof.mjs
+tests/commands/diff-patch-stress/gnu-revised-full/run.mjs
+tests/commands/metadata/integration.test.ts
+tests/shell-stress/invocation-modes/capture-native.ts
+tests/shell-stress/invocation-modes/cases.ts
+tests/shell-stress/invocation-modes/harness.ts
+tests/shell-stress/invocation-modes/native-evidence.json
+tests/shell-stress/invocation-modes/trace.mjs
+tests/stress/adapters/remote-safe-workflows.test.ts
+Actual complete root package scripts:
+{
+  "benchmark": "node --import tsx benchmarks/run.ts",
+  "build": "tsc -p tsconfig.build.json",
+  "typecheck": "tsc --noEmit",
+  "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+  "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\""
+}
+Bounded serial phase order:
+typecheck: npm run typecheck (hard timeout 180s)
+build: npm run build (hard timeout 180s)
+test: npm test (hard timeout 900s)
+contracts: npm run test:contracts (hard timeout 180s)
+benchmark-typecheck: npm --prefix benchmarks run typecheck (hard timeout 180s)
+comparison: npm run benchmark -- --output <owned-reportdir>/comparison.json (hard timeout 300s)
+Dependencies: reuse only privately copied installed locked trees; no installation/network, no workspace links, no source symlinks/hardlinks. Copy excluded from source inventory.
+root: lock=9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b; installed fingerprint=586849fa6b54ecc1e4668cc1fa9018a5209bb74a7410f13bca8ebc1a884554c1; 7 installed locked packages; 25 absent optional; issues=[]
+benchmark: lock=6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70; installed fingerprint=1262b097a360f1597e2aff1e9791c2c209152291b6af7bf5c232944da4e9b24f; 81 installed locked packages; 0 absent optional; issues=[]
+just-bash pinned existing 3.4.2 only; comparison BLOCKED if version/lock/hidden-lock evidence fails. Tarball cryptographic authenticity is NOT re-established from installed files.
+Environment rebuilt from allowlist: isolated HOME/TMPDIR/TMP/TEMP/XDG/npm cache, TSX_DISABLE_CACHE=1; SAFEJS_LOCAL_ROOT and all optional oracle override variables unset; no private checkout access.
+Full scripts unchanged; TAP stdout/stderr retained. Private process groups with timeout TERM/KILL cleanup; descendant native helper groups tracked, only owned children stopped.
+Native system oracles may differ by dialect; conditional-env omissions and every skip/TODO/cancel/failure remain explicit. Comparison only existing harness, no new breadth or superiority claim.
+After validation: exact unique test accounting, highest-impact documented gaps and existing crossbackend/pipeline/stdin coverage; live-after hashes separate from frozen source; no archive work.
+
+BOUNDED ENVIRONMENT CORRECTION: initial full run finished in 67.82s; omitted PATH-only preinstalled rg caused native ENOENT. Preserve initial results and rerun the unchanged FULL npm test once, same frozen source, timeout 900s, adding only the hash-verified private rg binary copy to isolated PATH. No new tests, dependencies, expectations, source or archive work.
+
+SOURCE-SELECTION CORRECTION: removed 75 historical generated stdout/stderr/out/err copies in a fresh regular-file derivative of the FROZEN inputs, not newer live source. Final snapshot /tmp/safe-bash-current-integration-69dbdy0m/source-clean; 1266 files; fingerprint 5905112264b83a5e12ca549eec5a88d90f956b2838d54095e97bcec545c91560; product source hash unchanged. Repeat unchanged full root scripts and existing comparator under original bounds; retain earlier evidence separately.

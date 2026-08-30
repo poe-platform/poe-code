@@ -1,0 +1,14 @@
+{
+  "algorithm": "sha256",
+  "artifacts": {
+    "REPORT.md": "9191131f5922b589ee5a905fb6307a4760114e6c7accf9470375b8f58e9f3ca5",
+    "after-independent.tap": "eb795dfb7d1e22ca30b7f7ec6d887ee4422d569ccc36feb2b3fe8d92734fe521",
+    "after.json": "14c0fe7847e330f846fad8eb605c9fe165777d118e83fa796539dadb3512f0f6",
+    "author17.tap": "f4ead3ba66ade1732807c9eb2f8e249423050392512561da4f1b5cfcba6d4309",
+    "before-independent.tap": "a0486467f11fea9dd281ff0360150f46d03b41aeaa3721daf1eb604c9404f472",
+    "before-source.ts.txt": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d",
+    "before.json": "7cba00010d6f01051bd8d5d62ed1517189842c76bcda51286beb4d998bb52fed",
+    "focused135.tap": "5d178c9299054e4153d35a53e1d13dd1ff308e9b13cdc27cf63f048785445530",
+    "independent-fixture.ts.txt": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712"
+  }
+}

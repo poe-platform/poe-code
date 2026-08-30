@@ -1,0 +1,618 @@
+{
+  "identities": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "bytes": 30119,
+      "sha256": "ec6b093d992985412690dcfb359710a2bd237a9fc28be96a9ed3791d5c810d1c",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1048
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "bytes": 37239,
+      "sha256": "014aabf3c591c496bfcb39851d38f3691eb56d14c1e99b69e2b7cd3134f6e05b",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 1695
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "bytes": 383471,
+      "sha256": "501f0941105ce39281f3c60c8e5853d8e77f1558ca2383e1757b8c2cc0a3ba56",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 13280
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "bytes": 9304,
+      "sha256": "1437faf7b83170a35abb9381c2d169d66b6c6c925ad7fbec7329a3f02316f402",
+      "authority": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+      "lines": 463
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66",
+      "authority": "928be5585f05c15867fbbb5f4b5debe153b0734e:src/shell/runtime.ts",
+      "lines": 3899
+    }
+  ],
+  "sourceBytesRead": 657738,
+  "cumulativeSourceBytes": 657738,
+  "distinctSources": 5,
+  "requests": [
+    {
+      "file": "builtins/set.def",
+      "pattern": "change_flag|case .o.|FLAG_ERROR|EX_USAGE|EXECUTION_FAILURE|list_minus_o_opts"
+    },
+    {
+      "file": "expr.c",
+      "pattern": "unbound_vars_is_error|noeval|expr_unbound|evalerror|expr_streval",
+      "limit": 45
+    },
+    {
+      "file": "subst.c",
+      "pattern": "unbound_vars_is_error|array_length_reference|parameter_brace_expand_length|parameter_brace_expand_error|err_unboundvar",
+      "limit": 70
+    },
+    {
+      "file": "error.c",
+      "pattern": "err_unboundvar|error_prolog|error_name|line_number|shell_name|internal_error",
+      "limit": 40
+    },
+    {
+      "file": "runtime",
+      "product": true,
+      "pattern": "Nounset|nounset|unbound variable",
+      "limit": 65
+    }
+  ],
+  "results": [
+    {
+      "role": "GNU_5_3_15",
+      "name": "builtins/set.def",
+      "selected": [
+        {
+          "line": 293,
+          "text": "list_minus_o_opts (int mode, int reusable)"
+        },
+        {
+          "line": 374,
+          "text": "\t    change_flag (o_options[i].letter, v);"
+        },
+        {
+          "line": 484,
+          "text": "      return (EX_USAGE);"
+        },
+        {
+          "line": 495,
+          "text": "      if ((previous_option_value = change_flag (o_options[i].letter, on_or_off)) == FLAG_ERROR)"
+        },
+        {
+          "line": 498,
+          "text": "\t  return (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 683,
+          "text": "\t    return (EX_USAGE);"
+        },
+        {
+          "line": 687,
+          "text": "\t    return (list_optopt == '?' ? EXECUTION_SUCCESS : EX_USAGE);"
+        },
+        {
+          "line": 715,
+          "text": "\t      change_flag ('x', '+');"
+        },
+        {
+          "line": 716,
+          "text": "\t      change_flag ('v', '+');"
+        },
+        {
+          "line": 741,
+          "text": "\t\t      list_minus_o_opts (-1, (on_or_off == '+'));"
+        },
+        {
+          "line": 751,
+          "text": "\t\t      list_minus_o_opts (-1, (on_or_off == '+'));"
+        },
+        {
+          "line": 763,
+          "text": "\t      else if (change_flag (flag_name, on_or_off) == FLAG_ERROR)"
+        },
+        {
+          "line": 771,
+          "text": "\t\t  return (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 855,
+          "text": "\t  return (EX_USAGE);"
+        },
+        {
+          "line": 864,
+          "text": "      return (EXECUTION_FAILURE);"
+        },
+        {
+          "line": 1046,
+          "text": "  return (any_failed ? (posix_utility_error ? EX_UTILERROR : EXECUTION_FAILURE) : EXECUTION_SUCCESS);"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "expr.c",
+      "selected": [
+        {
+          "line": 167,
+          "text": "  int noeval;"
+        },
+        {
+          "line": 179,
+          "text": "static int\tnoeval;\t\t/* set to 1 if no assignment to be done */"
+        },
+        {
+          "line": 196,
+          "text": "static intmax_t\texpr_streval (char *, int, struct lvalue *);"
+        },
+        {
+          "line": 198,
+          "text": "static void\tevalerror (const char *);"
+        },
+        {
+          "line": 248,
+          "text": "    (X)->noeval = noeval; \\"
+        },
+        {
+          "line": 260,
+          "text": "    noeval = (X)->noeval; \\"
+        },
+        {
+          "line": 272,
+          "text": "    evalerror (_(\"expression recursion level exceeded\"));"
+        },
+        {
+          "line": 300,
+          "text": "      evalerror (_(\"recursion stack underflow\"));"
+        },
+        {
+          "line": 327,
+          "text": "  noeval = 0;\t/* XXX */"
+        },
+        {
+          "line": 424,
+          "text": "  noeval = 0;"
+        },
+        {
+          "line": 485,
+          "text": "    evalerror (_(\"arithmetic syntax error in expression\"));"
+        },
+        {
+          "line": 529,
+          "text": "\tevalerror (_(\"attempted assignment to non-variable\"));"
+        },
+        {
+          "line": 538,
+          "text": "\tevalerror (_(\"arithmetic syntax error in variable assignment\"));"
+        },
+        {
+          "line": 551,
+          "text": "\t      if (noeval == 0)"
+        },
+        {
+          "line": 552,
+          "text": "\t\tevalerror (_(\"division by 0\"));"
+        },
+        {
+          "line": 600,
+          "text": "\t      evalerror (_(\"bug: bad expassign token\"));"
+        },
+        {
+          "line": 607,
+          "text": "      if (noeval == 0)"
+        },
+        {
+          "line": 633,
+          "text": "  int set_noeval;"
+        },
+        {
+          "line": 635,
+          "text": "  set_noeval = 0;"
+        },
+        {
+          "line": 641,
+          "text": "\t  set_noeval = 1;"
+        },
+        {
+          "line": 642,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 647,
+          "text": "\tevalerror (_(\"expression expected\"));"
+        },
+        {
+          "line": 651,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 652,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 654,
+          "text": "\tevalerror (_(\"`:' expected for conditional expression\"));"
+        },
+        {
+          "line": 656,
+          "text": "      set_noeval = 0;"
+        },
+        {
+          "line": 659,
+          "text": " \t  set_noeval = 1;"
+        },
+        {
+          "line": 660,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 665,
+          "text": "\tevalerror (_(\"expression expected\"));"
+        },
+        {
+          "line": 668,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 669,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 681,
+          "text": "  int set_noeval;"
+        },
+        {
+          "line": 687,
+          "text": "      set_noeval = 0;"
+        },
+        {
+          "line": 690,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 691,
+          "text": "\t  set_noeval = 1;"
+        },
+        {
+          "line": 695,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 696,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 709,
+          "text": "  int set_noeval;"
+        },
+        {
+          "line": 715,
+          "text": "      set_noeval = 0;"
+        },
+        {
+          "line": 718,
+          "text": "\t  set_noeval = 1;"
+        },
+        {
+          "line": 719,
+          "text": "\t  noeval++;"
+        },
+        {
+          "line": 723,
+          "text": "      if (set_noeval)"
+        },
+        {
+          "line": 724,
+          "text": "\tnoeval--;"
+        },
+        {
+          "line": 911,
+          "text": "\t  if (noeval == 0)"
+        },
+        {
+          "line": 917,
+          "text": "\t      evalerror (_(\"division by 0\"));"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "subst.c",
+      "selected": [
+        {
+          "line": 329,
+          "text": "static arrayind_t array_length_reference (const char *);"
+        },
+        {
+          "line": 340,
+          "text": "static void parameter_brace_expand_error (char *, char *, int);"
+        },
+        {
+          "line": 343,
+          "text": "static intmax_t parameter_brace_expand_length (char *);"
+        },
+        {
+          "line": 7488,
+          "text": "array_length_reference (const char *s)"
+        },
+        {
+          "line": 7502,
+          "text": "  if ((var == 0 || invisible_p (var) || (assoc_p (var) == 0 && array_p (var) == 0)) && unbound_vars_is_error)"
+        },
+        {
+          "line": 7514,
+          "text": "      err_unboundvar (s);"
+        },
+        {
+          "line": 8216,
+          "text": "parameter_brace_expand_error (char *name, char *value, int check_null)"
+        },
+        {
+          "line": 8241,
+          "text": "/* Return 1 if NAME is something for which parameter_brace_expand_length is"
+        },
+        {
+          "line": 8258,
+          "text": "parameter_brace_expand_length (char *name)"
+        },
+        {
+          "line": 8301,
+          "text": "    number = array_length_reference (name + 1);"
+        },
+        {
+          "line": 8306,
+          "text": "      if (t == 0 && unbound_vars_is_error)"
+        },
+        {
+          "line": 8321,
+          "text": "\t  if (t == 0 && unbound_vars_is_error)"
+        },
+        {
+          "line": 8343,
+          "text": "\t\tnumber = parameter_brace_expand_length (newname);"
+        },
+        {
+          "line": 8347,
+          "text": "      else if (var == 0 && unbound_vars_is_error == 0)"
+        },
+        {
+          "line": 9944,
+          "text": "      number = parameter_brace_expand_length (name);"
+        },
+        {
+          "line": 9945,
+          "text": "      if (number == INTMAX_MIN && unbound_vars_is_error)"
+        },
+        {
+          "line": 9948,
+          "text": "\t  err_unboundvar (name+1);"
+        },
+        {
+          "line": 10165,
+          "text": "      if (var_is_set == 0 && unbound_vars_is_error && ((name[0] != '@' && name[0] != '*') || name[1]) && all_element_arrayref == 0)"
+        },
+        {
+          "line": 10168,
+          "text": "\t  err_unboundvar (name);"
+        },
+        {
+          "line": 10414,
+          "text": "\t      parameter_brace_expand_error (name, value, check_nullness);"
+        },
+        {
+          "line": 10502,
+          "text": "      if (unbound_vars_is_error && temp1 == (char *)NULL)"
+        },
+        {
+          "line": 10508,
+          "text": "\t  err_unboundvar (uerror);"
+        },
+        {
+          "line": 10544,
+          "text": "\t  if (unbound_vars_is_error && (pflags & PF_IGNUNBOUND) == 0)"
+        },
+        {
+          "line": 10550,
+          "text": "\t      err_unboundvar (uerror);"
+        },
+        {
+          "line": 10571,
+          "text": "      if (list == 0 && unbound_vars_is_error && (pflags & PF_IGNUNBOUND) == 0)"
+        },
+        {
+          "line": 10577,
+          "text": "\t  err_unboundvar (uerror);"
+        },
+        {
+          "line": 10703,
+          "text": "      if (list == 0 && unbound_vars_is_error && (pflags & PF_IGNUNBOUND) == 0)"
+        },
+        {
+          "line": 10709,
+          "text": "\t  err_unboundvar (uerror);"
+        },
+        {
+          "line": 10965,
+          "text": "\t  if (temp == 0 && unbound_vars_is_error)"
+        },
+        {
+          "line": 10992,
+          "text": "\t      if ((tdesc == 0 || tdesc->word == 0) && unbound_vars_is_error)"
+        },
+        {
+          "line": 11024,
+          "text": "      if (unbound_vars_is_error)"
+        },
+        {
+          "line": 11027,
+          "text": "\t  err_unboundvar (temp1);"
+        },
+        {
+          "line": 11037,
+          "text": "      return ((unbound_vars_is_error && interactive_shell == 0)"
+        }
+      ]
+    },
+    {
+      "role": "GNU_5_3_15",
+      "name": "error.c",
+      "selected": [
+        {
+          "line": 50,
+          "text": "extern int executing_line_number (void);"
+        },
+        {
+          "line": 61,
+          "text": "static void error_prolog (int);"
+        },
+        {
+          "line": 74,
+          "text": "error_prolog (int print_lineno)"
+        },
+        {
+          "line": 80,
+          "text": "  line = (print_lineno && interactive_shell == 0) ? executing_line_number () : -1;"
+        },
+        {
+          "line": 110,
+          "text": "  if (name == 0 && shell_name && *shell_name)"
+        },
+        {
+          "line": 111,
+          "text": "    name = base_pathname (shell_name);"
+        },
+        {
+          "line": 174,
+          "text": "  error_prolog (1);"
+        },
+        {
+          "line": 195,
+          "text": "  error_prolog (0);"
+        },
+        {
+          "line": 207,
+          "text": "internal_error (const char *format, ...)"
+        },
+        {
+          "line": 211,
+          "text": "  error_prolog (1);"
+        },
+        {
+          "line": 226,
+          "text": "  error_prolog (1);"
+        },
+        {
+          "line": 242,
+          "text": "  error_prolog (1);"
+        },
+        {
+          "line": 260,
+          "text": "  error_prolog (1);"
+        },
+        {
+          "line": 281,
+          "text": "  error_prolog (0);"
+        },
+        {
+          "line": 293,
+          "text": "\tshell_name: input file name: line number: message"
+        },
+        {
+          "line": 447,
+          "text": "err_unboundvar (const char *s)"
+        },
+        {
+          "line": 461,
+          "text": "  internal_error (_(\"`%s': not a valid identifier\"), s);"
+        }
+      ]
+    },
+    {
+      "role": "FROZEN_PRODUCT",
+      "name": "runtime",
+      "selected": [
+        {
+          "line": 212,
+          "text": "  nounset?: boolean;"
+        },
+        {
+          "line": 283,
+          "text": "class NounsetFailure extends ExpansionFailure {}"
+        },
+        {
+          "line": 285,
+          "text": "class NounsetDiagnosticFailure extends Flow {"
+        },
+        {
+          "line": 976,
+          "text": "          if (error instanceof NounsetDiagnosticFailure) throw error.reason;"
+        },
+        {
+          "line": 1059,
+          "text": "    if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);"
+        },
+        {
+          "line": 1332,
+          "text": "      if (error instanceof NounsetDiagnosticFailure) {"
+        },
+        {
+          "line": 1470,
+          "text": "      if (error instanceof NounsetDiagnosticFailure) throw error;"
+        },
+        {
+          "line": 1504,
+          "text": "    let diagnosticFailure: NounsetDiagnosticFailure | undefined;"
+        },
+        {
+          "line": 1584,
+          "text": "      if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;"
+        },
+        {
+          "line": 1595,
+          "text": "      if (error instanceof NounsetFailure) {"
+        },
+        {
+          "line": 1600,
+          "text": "          diagnosticFailure = new NounsetDiagnosticFailure(reason);"
+        },
+        {
+          "line": 1701,
+          "text": "          if (error instanceof NounsetFailure) throw error;"
+        },
+        {
+          "line": 3225,
+          "text": "        if (flags && (!named || name === \"pipefail\" || name === \"errexit\" || name === \"nounset\")) {"
+        },
+        {
+          "line": 3229,
+          "text": "            else if (flag === \"u\" || flag === \"o\" && name === \"nounset\") state.nounset = enabled;"
+        },
+        {
+          "line": 3236,
+          "text": "          await writeText(stderr, \"set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\\n\");"
+        },
+        {
+          "line": 3245,
+          "text": "      await writeText(stderr, \"set: supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\\n\");"
+        },
+        {
+          "line": 3532,
+          "text": "      : part.name === \"-\" ? `${state.errexit ? \"e\" : \"\"}${state.nounset ? \"u\" : \"\"}`"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "name": "baseline-streaming",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/search-stress/streaming.test.ts"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 1055.536082999999,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.07183299999996962,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/commands/search-stress/streaming.test.ts"
+      ],
+      "timeout": 120000
+    },
+    {
+      "event": "spawn",
+      "ms": 0.5125000000007276,
+      "pid": 53994
+    },
+    {
+      "event": "stdin-close",
+      "ms": 0.5554580000007263
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1048.7373329999991,
+      "bytes": 15
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1048.8226250000007,
+      "bytes": 79
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.1047909999998,
+      "bytes": 75
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.1242500000008,
+      "bytes": 53
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.5184580000005,
+      "bytes": 26
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.5705409999991,
+      "bytes": 18
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.6760410000006,
+      "bytes": 14
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.7504580000004,
+      "bytes": 12
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1049.7907080000004,
+      "bytes": 34
+    },
+    {
+      "event": "stderr-end",
+      "ms": 1055.3209580000002
+    },
+    {
+      "event": "stdout-end",
+      "ms": 1055.3957910000008
+    },
+    {
+      "event": "stdout-close",
+      "ms": 1055.4750409999997
+    },
+    {
+      "event": "stderr-close",
+      "ms": 1055.478583
+    },
+    {
+      "event": "exit",
+      "ms": 1055.496416,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 1055.5124159999996,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

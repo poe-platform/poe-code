@@ -1,0 +1,107 @@
+[main fae32e768651adbb54cb31abf2848aa7a42e2ad2] Preserve one functional-v2 UNSAFE_STOP cohort and exact raw outcomes
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 93 files changed, 4334 insertions(+)
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision/COORDINATOR-RECEIPT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision/LAUNCH.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision/OUTER.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/AUTHORITY.lock
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/AUTHORIZATION.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/RESULT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-001.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-001.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-001.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-001.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-002.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-002.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-002.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-002.json.part-0002.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-002.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-003.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-003.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-003.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-003.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-004.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-004.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-004.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-004.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-005.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-005.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-005.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-005.json.part-0002.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-005.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-006.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-006.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-006.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-006.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-007.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-008.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-008.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-008.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-008.json.part-0002.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-008.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-009.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.receipt.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.receipt.json.part-0000.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/child-010.receipt.json.part-0001.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-1.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-10.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-2.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-3.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-4.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-5.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-6.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-7.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-8.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01/operation-case-9.claim
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ACTUAL-DISPATCH.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ACTUAL-LIFECYCLE.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/CAPTURE-RECONCILIATION.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/EVIDENCE-MANIFEST.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/FINITE-OUTCOMES.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/LOADED-EDGE-RECONCILIATION.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/POSTFLIGHT-DATA.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/PUBLICATION-HELPER-ERROR.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/REPORT.md
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/TOOL-LAUNCH-RECEIPT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture/EXEC-PID.data
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture/FD-GUARD.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture/PREPARE.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture/stderr.raw
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture/stdout.raw
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-06.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-06.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-07.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-07.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-08.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-08.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-09.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-09.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-10.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-10.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-11.stderr
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/admin-11.stdout
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/RECEIPT.json
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/events.ndjson
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/fd3.raw
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/intent.ndjson
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/stderr.raw
+ create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture/stdout.raw

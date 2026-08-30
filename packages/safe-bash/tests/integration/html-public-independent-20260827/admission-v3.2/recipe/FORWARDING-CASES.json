@@ -1,0 +1,21 @@
+{
+  "actualSupervisionCohorts": [
+    { "name": "ordinary-failure-continues-after-reap", "mode": "semantic-failure", "expectedExecuted": 2, "expectedExit": 1 },
+    { "name": "cleanup-escalation-stops-marker", "mode": "ignore-term", "expectedExecuted": 1, "expectedExit": 1 },
+    { "name": "private-binding-mismatch-stops-marker", "mode": "binding-change", "expectedExecuted": 1, "expectedExit": 1 },
+    { "name": "missing-receipt-stops-marker", "mode": "missing-receipt", "expectedExecuted": 1, "expectedExit": 1 },
+    { "name": "omitted-reap-proof-stops-marker", "mode": "omit-reap-proof", "expectedExecuted": 1, "expectedExit": 1 },
+    { "name": "wrong-reason-fails-and-continues", "mode": "wrong-reason", "expectedExecuted": 2, "expectedExit": 1 }
+  ],
+  "syntheticOrderedPredicates": [
+    { "name": "strict-timeout-accepted", "control": "timeout", "mutation": "none", "expected": true },
+    { "name": "strict-allocation-accepted", "control": "allocation-mutant", "mutation": "none", "expected": true },
+    { "name": "timeout-reason-lost-rejected", "control": "timeout", "mutation": "reason", "expected": false },
+    { "name": "allocation-reason-lost-rejected", "control": "allocation-mutant", "mutation": "reason", "expected": false },
+    { "name": "timeout-exit1-rejected", "control": "timeout", "mutation": "terminal", "expected": false },
+    { "name": "allocation-exit1-rejected", "control": "allocation-mutant", "mutation": "terminal", "expected": false },
+    { "name": "same-error-identity-lost-rejected", "control": "timeout", "mutation": "identity", "expected": false },
+    { "name": "pipe-closed-before-exit-rejected", "control": "timeout", "mutation": "ordering", "expected": false }
+  ],
+  "qualification": "Actual supervised small child processes exercise the shared aggregation/safety logic, receipts, close and SIGTERM/SIGKILL escalation. Private fixture binding corruption does not alter recipe bindings. Omitted reap proof is deliberately injected only after actual reaping. Synthetic ordered predicates use constructed records, not real producer executions. Actual five stream controls remain separate."
+}

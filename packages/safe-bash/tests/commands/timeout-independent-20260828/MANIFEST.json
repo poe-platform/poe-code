@@ -1,0 +1,23 @@
+{
+  "schema": "timeout-independent-precode-freeze/1",
+  "sealedAt": "2026-08-28T02:13:52.089Z",
+  "scope": "tests/commands/timeout-independent-20260828",
+  "chronology": "after DU29 actual checkpoint; before declared timeout candidate and implementation release",
+  "families": 32,
+  "numericVectors": 70,
+  "diagnosticRecords": 14,
+  "nativeProspective": 12,
+  "productExecuted": 0,
+  "nativeExecuted": 0,
+  "files": {
+    "BINDINGS.json": "29453f2ba93daf30c65ccf272614ae532cd897e34fb3be6aafa75b408a071225",
+    "NATIVE.json": "8f3211a05c307bd45742267ee9a113a618eead4c4cdcef47b524570b2cbec8eb",
+    "NUMERIC.json": "823e6484ef378f75adb1f891ea7e20f0ab475a00000c888eff84bb6de834fcfd",
+    "README.md": "df59fe322221fa52bed10f20bce9b551918e08fc6a0b86d8b5dfd22ff2497f73",
+    "clock.mjs": "86b98eee4ec0b3d2aeb740eb8922b7dcff31a050c52b7088e0878d0e3f08d61d",
+    "families.mjs": "6da3fb0790adeb25977e172ad0563577a39e3f7b7f0a61be3496d7c269a14548",
+    "oracle.mjs": "47d4ca6e53315fe59fa920ab92a76a0d9a49e9b7afdb7574e061303a4f1f573e",
+    "prepare.mjs": "ee9925f49463b2889045be8030b1838da3143d353589e69aeb4477bb67eed650",
+    "verify-freeze.mjs": "2da637c40655f1ae3a42c23cbd3e0d93b4f92ec755698d34f7247add5eaf6b5d"
+  }
+}

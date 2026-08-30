@@ -1,0 +1,31 @@
+import * as command from "command";
+import * as stdio from "stdio";
+import * as fs from "fs";
+function shape(value) {
+  const fields = ["ownedOutput","consumerClosed","write","acquire","child","close","registerCleanup","output","signal","context","__proto__","prototype","constructor"];
+  return {
+    keys: Object.keys(value).sort(),
+    entries: Object.entries(value).map(entry => [entry[0], typeof entry[1]]).sort(),
+    types: fields.map(field => [field, typeof value[field]]),
+    own: fields.map(field => [field, Object.hasOwn(value, field)])
+  };
+}
+const nested = { command: { module: command }, stdio: { module: stdio }, fs: { module: fs } };
+const commandCopy = { ...nested.command.module };
+const stdioCopy = { ...nested.stdio.module };
+const fsCopy = Object.assign({}, nested.fs.module);
+await stdioCopy.write("namespace-ok\n");
+return {
+  nestedCommand: shape(nested.command.module),
+  nestedStdio: shape(nested.stdio.module),
+  nestedFs: shape(nested.fs.module),
+  commandCopy: shape(commandCopy),
+  stdioCopy: shape(stdioCopy),
+  fsCopy: shape(fsCopy),
+  writeAlias: shape(stdioCopy.write),
+  commandCall: shape(commandCopy.setExitCode.call),
+  commandApply: shape(commandCopy.setExitCode.apply),
+  sameWrite: Object.is(stdioCopy.write, stdio.write),
+  sameExit: Object.is(commandCopy.setExitCode, command.setExitCode),
+  sameRead: Object.is(fsCopy.readFile, fs.readFile)
+};

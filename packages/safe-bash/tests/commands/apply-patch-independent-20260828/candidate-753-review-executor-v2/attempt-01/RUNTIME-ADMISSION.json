@@ -1,0 +1,20 @@
+{
+  "runtimeCommit": "9790b146fda6e78083e4016754fd38916a53402c",
+  "paths": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "15d69e15c5a4a5d105a88ff2cb9f9534f86c3476",
+      "path": "tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/BUILD-RECEIPT.json"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "3b8a38b85734b8e1810cccab3a5358962f32a297",
+      "path": "tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/RUNTIME-SEAL.json"
+    }
+  ],
+  "presealSha256": "d75db6e78b9a891705c8d8ffd753ef54624df4bb64b1670a523ecb365290e364",
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "productLoadsBefore": 0
+}

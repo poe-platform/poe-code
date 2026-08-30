@@ -1,0 +1,270 @@
+{
+  "schema": "b0-final-authorization-binding-v1",
+  "prospectiveOnly": true,
+  "actualAuthorized": false,
+  "issuedAt": "2026-08-29T11:53:14.522Z",
+  "latestStartAt": "2026-08-29T12:13:14.522Z",
+  "expiresAt": "2026-08-29T12:43:14.522Z",
+  "timestampAuthority": "Local UTC clock observed at this binding preparation; original message timestamp unavailable",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "preseal": {
+    "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json",
+    "blob": "5a873717b6ac20439e93d59404526d74a7a43abe",
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "rootReview": "360b22fba2f180031fe4c4bd1eccda46e6d90b08",
+  "reviewReceipt": {
+    "commit": "360b22fba2f180031fe4c4bd1eccda46e6d90b08",
+    "path": "tests/integration/agent-bash-coherent-independent-20260829/r3-observation-adjudication/ROOT-B0-PREEXECUTION-ACCEPTANCE-RECEIPT.json",
+    "blob": "398e79c64737b7e51a713a8727f1f80f021d69e8",
+    "bytes": 3460,
+    "sha256": "d490a5a2d1efe36dfc8b737267cf3762d04d1d273cbcba30b636e0123bf91a35"
+  },
+  "rootDisposition": "FINITE SOURCE +24 PURE controls; known-role-only functional profile",
+  "retainedQualifications": [
+    "Historical eff15eba HOLD/group UNKNOWN unchanged",
+    "No group-absence/full-census acceptance claim",
+    "Sealed owner guards unchanged; a future guard failure is not waived"
+  ],
+  "selectedSource": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "sourceInputs": 309,
+  "actualStageADist": 1012,
+  "package": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+    "members": 1014
+  },
+  "command": "B0_ROOT_GO=ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json 78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7 11952",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "slot": {
+    "workRoot": "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+    "outerCaptures": [
+      "/private/tmp/coherent-b0-39-20260829-r3.launch.stdout",
+      "/private/tmp/coherent-b0-39-20260829-r3.launch.stderr"
+    ],
+    "observedAbsentAt": "2026-08-29T11:53:15.209Z",
+    "activationMustRecheck": true,
+    "attempts": 1
+  },
+  "roles": [
+    "offline-install",
+    "workflow-source-built",
+    "workflow-installed",
+    "workflow-physically-moved"
+  ],
+  "ids": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C12",
+    "C13",
+    "C14",
+    "C17"
+  ],
+  "layouts": [
+    "source-built",
+    "installed",
+    "physically-moved"
+  ],
+  "calls": 39,
+  "bounds": {
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationSeconds": 180,
+    "knownOSStarts": 32,
+    "supervisedChildren": 4,
+    "peakOS": 3,
+    "caseSeconds": 30,
+    "layoutSeconds": 420,
+    "installSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368,
+    "regexWorkersPerLayout": 2,
+    "regexWorkersTotal": 6,
+    "regexLivePerConsumer": 2,
+    "internalLoaderAdmissions": 3,
+    "nodeGuestWorkers": 0,
+    "absoluteStart": "bootstrap monotonic start passed unchanged"
+  },
+  "knownRoleProfile": {
+    "knownOS": 32,
+    "peak": 3,
+    "sequentialChildren": 4,
+    "regexPerLayout": 2,
+    "regexTotal": 6,
+    "regexLiveConsumer": 2,
+    "internalLoaderAdmissions": 3,
+    "guestWorkers": 0,
+    "PUBLIC95": 0
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "toolManifest": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+      "bytes": 558790,
+      "sha256": "ba8c249f94d3ce894754ceff84aaba11d2fcb0f517624f5c2427c8b21da825b2"
+    },
+    "links": [
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/arborist",
+        "type": "symlink",
+        "target": "../@npmcli/arborist/bin/index.js",
+        "resolvedRelative": "node_modules/@npmcli/arborist/bin/index.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/cssesc",
+        "type": "symlink",
+        "target": "../cssesc/bin/cssesc",
+        "resolvedRelative": "node_modules/cssesc/bin/cssesc"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/glob",
+        "type": "symlink",
+        "target": "../glob/dist/esm/bin.mjs",
+        "resolvedRelative": "node_modules/glob/dist/esm/bin.mjs"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/installed-package-contents",
+        "type": "symlink",
+        "target": "../@npmcli/installed-package-contents/bin/index.js",
+        "resolvedRelative": "node_modules/@npmcli/installed-package-contents/bin/index.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/node-gyp",
+        "type": "symlink",
+        "target": "../node-gyp/bin/node-gyp.js",
+        "resolvedRelative": "node_modules/node-gyp/bin/node-gyp.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/node-which",
+        "type": "symlink",
+        "target": "../which/bin/which.js",
+        "resolvedRelative": "node_modules/which/bin/which.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/nopt",
+        "type": "symlink",
+        "target": "../nopt/bin/nopt.js",
+        "resolvedRelative": "node_modules/nopt/bin/nopt.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/pacote",
+        "type": "symlink",
+        "target": "../pacote/bin/index.js",
+        "resolvedRelative": "node_modules/pacote/bin/index.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/qrcode-terminal",
+        "type": "symlink",
+        "target": "../qrcode-terminal/bin/qrcode-terminal.js",
+        "resolvedRelative": "node_modules/qrcode-terminal/bin/qrcode-terminal.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/.bin/semver",
+        "type": "symlink",
+        "target": "../semver/bin/semver.js",
+        "resolvedRelative": "node_modules/semver/bin/semver.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+        "type": "symlink",
+        "target": "../pacote/bin/index.js",
+        "resolvedRelative": "node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js"
+      },
+      {
+        "package": "npm",
+        "path": "node_modules/cross-spawn/node_modules/.bin/node-which",
+        "type": "symlink",
+        "target": "../which/bin/node-which",
+        "resolvedRelative": "node_modules/cross-spawn/node_modules/which/bin/node-which"
+      }
+    ],
+    "toolCounts": "Inherited fixed2274 files/12 links; immutable manifest bound, not tool execution"
+  },
+  "files": [
+    {
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json",
+      "blob": "5a873717b6ac20439e93d59404526d74a7a43abe",
+      "bytes": 11952,
+      "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+    },
+    {
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh",
+      "blob": "93835851eba50524b0071310f2e0665145225ae1",
+      "bytes": 383,
+      "sha256": "79517b807510970efe95e35a140ed4ff700ba41e4f2ffca7f4c8c614caf87c34"
+    },
+    {
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/bootstrap.mjs",
+      "blob": "a062844be40f3c6f9b3fb09b2ec7568e228653a6",
+      "bytes": 1094,
+      "sha256": "10d7d7356f54c449b76584c62781d24584031eaf42cc56fefbb4f42bb519995c"
+    },
+    {
+      "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+      "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/run.mjs",
+      "blob": "a530b96d6410f96ed730498290db1da006027efe",
+      "bytes": 11225,
+      "sha256": "318ea0b32769928a79608966ae33e9769a43c46156b7420ce964e0da5d2d352f"
+    },
+    {
+      "commit": "360b22fba2f180031fe4c4bd1eccda46e6d90b08",
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/r3-observation-adjudication/ROOT-B0-PREEXECUTION-ACCEPTANCE-RECEIPT.json",
+      "blob": "398e79c64737b7e51a713a8727f1f80f021d69e8",
+      "bytes": 3460,
+      "sha256": "d490a5a2d1efe36dfc8b737267cf3762d04d1d273cbcba30b636e0123bf91a35"
+    },
+    {
+      "commit": "360b22fba2f180031fe4c4bd1eccda46e6d90b08",
+      "path": "tests/integration/agent-bash-coherent-independent-20260829/r3-observation-adjudication/ROOT-B0-PREEXECUTION-ACCEPTANCE.md",
+      "blob": "37137b3618e81f728fd4860aa321adb6d05313e9",
+      "bytes": 6820,
+      "sha256": "9d8b223859e76c55abde2ff9f1e3c74a987dec1de5b9a0dc8df58eee86d71fe4"
+    }
+  ],
+  "activationRequirements": [
+    "Different final binding ACCEPT",
+    "Fresh ROOT activation referencing this exact packet and UTC window",
+    "Start no later than latestStartAt; finish before expiresAt",
+    "Exact sealed launch route only; no code or permission changes",
+    "Recheck absent work/capture slots before launch"
+  ],
+  "timestampEnforcement": "External ROOT binding only; sealed code has no UTC activation-window field. Do not mutate candidate. Launcher monotonic1800s remains unchanged.",
+  "actionsThisPreparation": {
+    "sourceAndDistHashChecks": true,
+    "packageInflations": 0,
+    "productImports": 0,
+    "installs": 0,
+    "compiler": 0,
+    "workers": 0,
+    "actualCalls": 0
+  }
+}

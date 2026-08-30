@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "jobId": "identities-v1-0",
+  "outcome": "CAPTURED",
+  "captured": {
+    "first": {
+      "kind": "object",
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "firstAgain": {
+      "kind": "object",
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "second": {
+      "kind": "object",
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "primitives": [
+      {
+        "kind": "undefined"
+      },
+      {
+        "kind": "null"
+      },
+      {
+        "kind": "boolean",
+        "value": "false"
+      },
+      {
+        "kind": "boolean",
+        "value": "true"
+      },
+      {
+        "kind": "number",
+        "value": "0"
+      },
+      {
+        "kind": "number",
+        "value": "0"
+      },
+      {
+        "kind": "number",
+        "value": "1"
+      },
+      {
+        "kind": "string",
+        "value": "1"
+      },
+      {
+        "kind": "bigint",
+        "name": "",
+        "message": "1",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "number",
+        "value": "NaN"
+      },
+      {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      {
+        "kind": "number",
+        "value": "-Infinity"
+      },
+      {
+        "kind": "string",
+        "value": "undefined"
+      },
+      {
+        "kind": "string",
+        "value": "null"
+      },
+      {
+        "kind": "string",
+        "value": "false"
+      }
+    ],
+    "symbols": [
+      {
+        "kind": "symbol",
+        "name": "",
+        "message": "Symbol(same)",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "symbol",
+        "name": "",
+        "message": "Symbol(same)",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "symbol",
+        "name": "",
+        "message": "Symbol(same)",
+        "code": "",
+        "stack": ""
+      }
+    ],
+    "functions": [
+      {
+        "kind": "function",
+        "name": "callback",
+        "message": "() => {}",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "function",
+        "name": "callback",
+        "message": "() => {}",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "function",
+        "name": "",
+        "message": "() => {}",
+        "code": "",
+        "stack": ""
+      }
+    ],
+    "cleanup": [
+      {
+        "kind": "object",
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "object",
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      }
+    ]
+  }
+}

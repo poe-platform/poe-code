@@ -1,0 +1,107 @@
+{
+  "format": "independent-getopts-correction-freeze-validation-record-v1",
+  "recordedAt": "2026-08-27T21:20:58.817Z",
+  "scope": "Own metadata-only verifier; zero candidate/native tests or code execution",
+  "firstVerifierAttempt": {
+    "result": "failed in reviewer integrity script, before candidate/native work",
+    "error": "AssertionError assert(name.startsWith(`${root}/`)) at tree line33",
+    "cause": "git ls-tree -t also reports ancestor tree entries for scoped pathspecs",
+    "fix": "Skip only actual ancestor tree entries; still reject unexpected paths and compare complete descendant membership. No product/old verifier/fixture changed."
+  },
+  "syntax": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--check",
+      "tests/shell/getopts-independent-20260827/stage2/review-618d8967/verify-freeze.mjs"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "beforeAppendControl": {
+    "format": "independent-getopts-freeze-validation-v1",
+    "checkedAt": "2026-08-27T21:20:55.063Z",
+    "mode": "preseal",
+    "freezeCommit": null,
+    "phase1": {
+      "entries": 182,
+      "files": 179,
+      "detectsNewEntries": true
+    },
+    "stage2": {
+      "entries": 25,
+      "files": 23,
+      "detectsNewEntries": true
+    },
+    "documents": 26,
+    "originalFreezeFiles": 12,
+    "policyFiles": 3,
+    "protectedLiveHashes": 243,
+    "correctedNativeRecords": 4,
+    "ownedEntries": 5,
+    "candidateCommitBodyAuthenticated": true,
+    "candidateImplementationInspected": false,
+    "candidateExecutions": 0,
+    "nativeExecutions": 0,
+    "oldVerifiersExecuted": false,
+    "privateAccess": false,
+    "interpretation": "Metadata, recorded native corrections and content/membership integrity only; not candidate acceptance."
+  },
+  "appendNegativeControl": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "tests/shell/getopts-independent-20260827/stage2/review-618d8967/verify-freeze.mjs",
+      "--preseal"
+    ],
+    "temporaryOwnedPath": "tests/shell/getopts-independent-20260827/stage2/review-618d8967/UNEXPECTED-MEMBERSHIP.data",
+    "status": 1,
+    "signal": null,
+    "stdout": "",
+    "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'FREEZE.md',\n    'INPUTS.json',\n    'REVIEW-PROCEDURE.md',\n+   'UNEXPECTED-MEMBERSHIP.data',\n    'native-corrections-v1.json',\n    'verify-freeze.mjs'\n  ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/getopts-independent-20260827/stage2/review-618d8967/verify-freeze.mjs:147:21\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: [\n    'FREEZE.md',\n    'INPUTS.json',\n    'REVIEW-PROCEDURE.md',\n    'UNEXPECTED-MEMBERSHIP.data',\n    'native-corrections-v1.json',\n    'verify-freeze.mjs'\n  ],\n  expected: [\n    'FREEZE.md',\n    'INPUTS.json',\n    'REVIEW-PROCEDURE.md',\n    'native-corrections-v1.json',\n    'verify-freeze.mjs'\n  ],\n  operator: 'deepStrictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+    "markerRemovedWithApplyPatch": true,
+    "qualification": "Expected review-subtree membership failure only; not a candidate negative test."
+  },
+  "afterAppendControl": {
+    "format": "independent-getopts-freeze-validation-v1",
+    "checkedAt": "2026-08-27T21:20:58.743Z",
+    "mode": "preseal",
+    "freezeCommit": null,
+    "phase1": {
+      "entries": 182,
+      "files": 179,
+      "detectsNewEntries": true
+    },
+    "stage2": {
+      "entries": 25,
+      "files": 23,
+      "detectsNewEntries": true
+    },
+    "documents": 26,
+    "originalFreezeFiles": 12,
+    "policyFiles": 3,
+    "protectedLiveHashes": 243,
+    "correctedNativeRecords": 4,
+    "ownedEntries": 5,
+    "candidateCommitBodyAuthenticated": true,
+    "candidateImplementationInspected": false,
+    "candidateExecutions": 0,
+    "nativeExecutions": 0,
+    "oldVerifiersExecuted": false,
+    "privateAccess": false,
+    "interpretation": "Metadata, recorded native corrections and content/membership integrity only; not candidate acceptance."
+  },
+  "prestageSnapshot": {
+    "head": "3ad8f4d5f19f7df87290dff0a03b0c6b1a676c23",
+    "foreignStageEntriesSHA256": "c588a2db206f939143e3bb5aa7c9b50024219419865ece5f48209080b8d19466",
+    "foreignStageEncoding": "git ls-files --stage -z entries excluding exact review subtree; join NUL and final NUL",
+    "stagedDiff": "",
+    "status": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-type-workflow-20260827/\n?? tests/integration/du-v9-final-independent-20260827/lineage-overlay-0bd5a1f3/\n?? tests/shell/getopts-independent-20260827/stage2/review-618d8967/\n"
+  },
+  "validationLimits": [
+    "Original verifier invocations not run; new append-aware integrity boundary only.",
+    "Original 179 Phase1 files/182 entries and23 Stage2 files/25 entries unchanged;3 policy append files separately authenticated.",
+    "All243 protected live hashes and candidate/author blob bindings checked; not semantic preservation proof.",
+    "No candidate implementation inspection, runtime suite, compiler/build, native execution or private engine access.",
+    "Final sealed and post-commit verification remain external terminal results; this immutable record precedes its own seal."
+  ]
+}

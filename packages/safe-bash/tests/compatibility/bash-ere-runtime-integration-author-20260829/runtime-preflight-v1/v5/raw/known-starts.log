@@ -1,0 +1,20 @@
+1 startup-shell 49338
+2 namespace-mkdir PID-unrecorded synchronous-retired0
+3 inspection-shell 49530
+4 source-read-shell 49625
+5 tail-read-shell 49826
+6 patch-shell 57026
+7 apply_patch 57028
+patch-retired0
+8 prepare-launch-shell 57220
+9 preseal-shasum 57221
+preseal-shasum-retired0
+10 PURE-prepare 57223
+PURE-prepare-retired=1
+11 prepare-diagnostic-shell 57301
+12 failure-classification-shell 57877
+13 publication-shell 62211
+14 publication-apply_patch 62213
+publication-apply_patch-retired0
+15 evidence-mkdir 62214
+16 exact-evidence-copy 62215

@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "-e",
+    "const {spawn}=require('node:child_process');const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});process.stdout.write(String(child.pid));process.exit(0)"
+  ],
+  "cwd": "/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "startedAt": "2026-08-27T15:58:36.710Z",
+  "endedAt": "2026-08-27T15:58:36.757Z",
+  "pid": 87430,
+  "deadlineMs": 2000,
+  "outputCap": 65536,
+  "status": 0,
+  "signal": null,
+  "termination": "surviving-process-group",
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 5,
+    "stderr": 0
+  },
+  "stdoutHex": "3837343439",
+  "stderrHex": "",
+  "groupAliveAtClose": true,
+  "groupAliveAfterRetirement": false,
+  "cleanup": "close-observed-group-checked-and-retired",
+  "forcedCleanupIsPass": false
+}

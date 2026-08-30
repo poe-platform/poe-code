@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "designCommit": "618d8967009117547ab476256bc6eb0a9463309a",
+  "candidateHeadBeforeFreeze": "290e175d19f065758b8586c79660fc927db65c9d",
+  "groups": {
+    "borrowAndAdmission": [
+      { "id": "borrow-omitted", "expected": "borrowed; no cancellation resources; close no-op" },
+      { "id": "borrow-explicit-undefined", "expected": "same as omitted" },
+      { "id": "borrow-absent-signal", "expected": "same as omitted" },
+      { "id": "borrow-explicit-undefined-signal", "expected": "same as omitted" },
+      { "id": "invalid-container", "expected": "TypeError before child resources" },
+      { "id": "invalid-native-brand", "expected": "TypeError before child resources" },
+      { "id": "ordinary-inherited-lookup", "expected": "accepted native signal" },
+      { "id": "ordinary-array-function-lookup", "expected": "accepted at runtime" },
+      { "id": "getter-read-once", "expected": "one read" },
+      { "id": "getter-thrown-identity", "expected": "exact thrown value, including undefined" },
+      { "id": "ancestor-preabort-skips-getter", "expected": "exact ancestor reason and zero getter effects" },
+      { "id": "ancestor-during-getter", "expected": "ancestor exact reason beats staged getter failure" },
+      { "id": "parent-closed", "expected": "stable closed-admission error" },
+      { "id": "parent-closed-ancestor-preabort", "expected": "ancestor exact reason" },
+      { "id": "getter-closes-parent", "expected": "stable closed error beats staged getter failure" },
+      { "id": "local-preabort-falsy", "expected": "exact null, 0, false, empty string, NaN, and undefined identities" },
+      { "id": "bounded-snapshot", "expected": "safe depth and finite resource validation before listeners" },
+      { "id": "initialization-rollback", "expected": "parent subscription released and exact setup failure surfaced" }
+    ],
+    "orderingAndSelection": [
+      { "id": "inner-outer-root", "expected": "inner delivery fixed; selected reason improves to root" },
+      { "id": "root-outer-inner", "expected": "root delivery and selection remain root" },
+      { "id": "outer-inner", "expected": "inner delivery and selection remain outer" },
+      { "id": "closed-inner-later-ancestor", "expected": "closed inner outcome stays inner" },
+      { "id": "numeric-own-during-cleanup", "expected": "own invoke reason replaces numeric return" },
+      { "id": "unrelated-own-during-cleanup", "expected": "exact unrelated rejection" },
+      { "id": "descendant-then-outer", "expected": "outer invoke reason replaces explicitly reported descendant cancellation" },
+      { "id": "control-then-invoke", "expected": "exact control failure remains unrelated" },
+      { "id": "root-over-unrelated", "expected": "exact root caller reason" },
+      { "id": "object-is-nan", "expected": "NaN cancellation is classified only by explicit matching report" },
+      { "id": "thrown-undefined", "expected": "throw outcome remains distinct from return and preserves undefined" }
+    ],
+    "isolationAndLifecycle": [
+      { "id": "handled-child-no-poison", "expected": "parent numeric return remains numeric without explicit report" },
+      { "id": "sibling-primitive-no-poison", "expected": "same primitive without exact sibling report remains unrelated" },
+      { "id": "callback-failure", "expected": "exact failure returned by close; callback detached after first failure" },
+      { "id": "callback-thrown-undefined", "expected": "undefined retained in close failures" },
+      { "id": "listeners-detach", "expected": "all owned signal listeners removed on close" },
+      { "id": "repeated-close", "expected": "same close result object and no repeated detach" },
+      { "id": "capacity-before-resource", "expected": "capacity rejection leaves prospective child signal listener-free" },
+      { "id": "borrow-close-isolation", "expected": "borrow close cannot close or cancel parent" },
+      { "id": "cleanup-failure-separate", "expected": "callback failures do not replace selected boundary outcome" }
+    ]
+  }
+}

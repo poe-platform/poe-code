@@ -1,0 +1,34 @@
+[
+  {
+    "id": "case-data-0",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/BINDINGS.json",
+    "sha256": "d75356103715a979d786e903bd1739b26e95cc2d3bb849e4c1b6fa0e70ea52b3",
+    "data": true
+  },
+  {
+    "id": "case-data-1",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/LEGACY-RECIPES.json",
+    "sha256": "0abf11b0d43532bad7038c9d26d65712c9f877dfbda9517537c0235709e29d7f",
+    "data": true
+  },
+  {
+    "id": "case-data-2",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/WORKFLOWS.json",
+    "sha256": "4349becef09b9b01487190ed6356dae7083b177771c153b102c72341f8a427d1",
+    "data": true
+  },
+  {
+    "id": "run02-bindings",
+    "kind": "git",
+    "ref": "8918f35bed8d9ec11f523a53e52488f885f627f3:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/EXACT-BINDINGS.json"
+  },
+  {
+    "id": "fs-instrumentation",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/w07.mjs",
+    "sha256": "b837fe5fda30bf2a089b9407c5ef8a7f7f47e6bcab2909c1f24ce58e2cce4669"
+  }
+]

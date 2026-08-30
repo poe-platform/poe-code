@@ -1,0 +1,50 @@
+--- author71/admission.mjs
++++ independent-v3/admission.mjs
+@@ -5,7 +5,7 @@
+ import { dirname, join, relative, resolve } from "node:path";
+ import { fileURLToPath } from "node:url";
+ 
+-export const author = "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/frozen-author";
++export const author = "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/frozen-author";
+ export const repository = "/Users/kjopek/Workspace/safe-bash";
+ const environment = { PATH: "/usr/bin:/bin", LC_ALL: "C", GIT_OPTIONAL_LOCKS: "0" };
+ const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+@@ -124,10 +124,10 @@
+   return { ...admission, freezeCommit };
+ }
+ 
+-const bindingOwner = "/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2";
++const bindingOwner = "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/status-author";
+ const runtimeRoot = dirname(fileURLToPath(import.meta.url));
+ function verifyBindingInputs() {
+-  const freezePath = relative(repository, join(bindingOwner, "EXECUTION-FREEZE.json"));
++  const freezePath = "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/EXECUTION-FREEZE.json";
+   const commit = git("log", "-1", "--format=%H", "--", freezePath).toString().trim();
+   assert.match(commit, /^[a-f0-9]{40}$/u);
+   const bytes = regular(join(bindingOwner, "EXECUTION-FREEZE.json"));
+@@ -136,9 +136,14 @@
+   assert.deepEqual(inventory(bindingOwner).filter(entry => entry.path !== "EXECUTION-FREEZE.json"), freeze.files);
+   for (const entry of freeze.files) {
+     const filename = join(bindingOwner, entry.path);
+-    assert.deepEqual(regular(filename), git("show", `${commit}:${relative(repository, filename)}`));
++    assert.deepEqual(regular(filename), git("show", `${commit}:tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/${entry.path}`));
+   }
+-  const preparation = load(join(bindingOwner, "PREPARATION.json"));
++  const preparationPath = "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v3/execution/PREPARATION.json";
++  const preparationCommit = git("log", "-1", "--format=%H", "--", preparationPath).toString().trim();
++  assert.match(preparationCommit, /^[a-f0-9]{40}$/u);
++  const preparationBytes = regular(join(repository, preparationPath));
++  assert.deepEqual(preparationBytes, git("show", `${preparationCommit}:${preparationPath}`));
++  const preparation = JSON.parse(preparationBytes);
+   assert.equal(runtimeRoot, preparation.runtimeRoot);
+   assert.deepEqual(inventory(runtimeRoot), preparation.runtimeEntries);
+   assert.deepEqual(regular(join(runtimeRoot, "PRIVATE-STATUS.json")), regular(join(bindingOwner, "PRIVATE-STATUS.json")));
+@@ -170,7 +175,7 @@
+   assert.equal(admission.independentReviewCommit, "88367f70feb90b589a3aa2651700ba187b1336dc");
+   assert.equal(admission.independentReviewPath, "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json");
+   const descriptor = resolve(process.env.ZERO_OVERLAY_ROOT_RELEASE);
+-  assert.ok(descriptor.startsWith(join(repository, "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author") + "/"));
++  assert.ok(descriptor.startsWith(join(repository, "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v3/execution") + "/"));
+   const descriptorPath = relative(repository, descriptor);
+   const descriptorCommit = git("log", "-1", "--format=%H", "--", descriptorPath).toString().trim();
+   assert.match(descriptorCommit, /^[a-f0-9]{40}$/u);

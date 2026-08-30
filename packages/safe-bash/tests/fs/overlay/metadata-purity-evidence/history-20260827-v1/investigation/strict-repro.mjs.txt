@@ -1,0 +1,59 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const root = "/Users/kjopek/Workspace/safe-bash";
+const output = dirname(fileURLToPath(import.meta.url));
+const originalResult = "tests/commands/du/independent/evidence/review-MduamP/independent.json";
+const originalHarness = "tests/commands/du/independent/evidence/review-MduamP/harness/contracts.mjs.txt";
+const reviewer = "tests/commands/du/independent/contracts.mjs";
+const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+const save = (name, value) => writeFileSync(join(output, name), `${JSON.stringify(value, null, 2)}\n`, { flag: "wx" });
+const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+const paths = git("ls-files", "--", "src", "tests/commands/du/helpers.ts", "tests/commands/du/backends.test.ts",
+  reviewer, "tests/commands/du/independent/typed-oldstats.ts", originalResult, originalHarness,
+  "tests/fs/webdav/mock.ts", "AGENTS.md", "package.json", "package-lock.json").split("\n");
+const manifest = () => Object.fromEntries(paths.map(path => [path, digest(readFileSync(join(root, path)))]));
+const before = manifest();
+save("manifest-before.json", before);
+save("provenance.json", { startedAt: new Date().toISOString(), head: git("rev-parse", "HEAD"),
+  status: git("status", "--short"), node: process.version, platform: process.platform,
+  profile: "current source, original reviewer callback only, memory-only fixtures; not a build/archive/full gate",
+  originalFrozenCandidate: "877144ea3a5223bbdf3e7ebfd50a8f8caaa474f3" });
+for (const path of [originalResult, originalHarness, "tests/commands/du/backends.test.ts"]) {
+  copyFileSync(join(root, path), join(output, path.replaceAll("/", "__") + ".txt"));
+}
+assert.equal(digest(readFileSync(join(root, reviewer))), digest(readFileSync(join(root, originalHarness))));
+assert.equal(before["src/fs/overlay/index.ts"], digest(execFileSync("git", ["show", "877144ea:src/fs/overlay/index.ts"], { cwd: root })));
+const { verify } = await import(pathToFileURL(join(root, reviewer)).href);
+const { shellRun } = await import(pathToFileURL(join(root, "tests/commands/du/helpers.ts")).href);
+const results = { blockers: [], selected: [] };
+let notRun = 0;
+await verify({
+  candidate: root,
+  load: path => import(pathToFileURL(join(root, "src", path.replace(/\.js$/, ".ts"))).href),
+  async run(filesystem, args, env = {}, options = {}) {
+    const result = await shellRun(filesystem, args, env, options);
+    return { status: result.exitCode, stdout: result.stdout, stderr: result.stderr };
+  },
+  async check(name, operation) {
+    if (name !== "RED control detects actual Overlay internal backend mutation unchanged") { notRun++; return; }
+    await operation();
+    results.selected.push({ name, detector: "reproduced original expected red" });
+  },
+  results,
+});
+assert.equal(results.selected.length, 1);
+assert.equal(results.blockers.length, 1);
+save("result.json", { ...results, unselectedCallbacksNotRun: notRun });
+console.log(JSON.stringify(results, null, 2));
+const after = manifest();
+save("manifest-after.json", after);
+const changed = paths.filter(path => before[path] !== after[path]);
+save("stability.json", { finishedAt: new Date().toISOString(), head: git("rev-parse", "HEAD"), changed,
+  scope: "original tracked input paths only; not append-proof", stable: changed.length === 0 });
+assert.deepEqual(changed, []);
+assert.deepEqual(results.blockers[0].mutations, [], "strict actual no backend mutations MUST hold; existing red is not acceptance");

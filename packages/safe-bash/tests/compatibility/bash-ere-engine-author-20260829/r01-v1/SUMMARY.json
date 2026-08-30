@@ -1,0 +1,1240 @@
+{
+  "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "sourceBindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/errors.ts",
+      "size": 1003,
+      "mode": 420,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/limits.ts",
+      "size": 3471,
+      "mode": 420,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/syntax.ts",
+      "size": 13070,
+      "mode": 420,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/matcher.ts",
+      "size": 9759,
+      "mode": 420,
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a"
+    }
+  ],
+  "seal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/SEAL.json",
+    "size": 66104,
+    "mode": 420,
+    "sha256": "c87cadc0ca841bc3c07bd4110fbce3419b696ecae331ed433bc7bb1a0f5945b0"
+  },
+  "result": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/RESULT.json",
+    "size": 236559,
+    "mode": 420,
+    "sha256": "3e2397f142751ed960e689784b4f07a69aa639ebc9f80dfd4da89a9bbd81de0d"
+  },
+  "raw": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/01-strict-build.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/01-strict-build.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/02-source-author.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/02-source-author.stdout",
+      "size": 3243,
+      "mode": 420,
+      "sha256": "6df93ea4c678bb65892921ca7138e59e9dc677bf98ac64df451d889df6fca567"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/03-source-checkpoint.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/03-source-checkpoint.stdout",
+      "size": 10232,
+      "mode": 420,
+      "sha256": "cc0f213ac4dcb60d3a17014a84d1fbff04c920dc6a12c4f1a8b71f5405409a55"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/04-source-empty.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/04-source-empty.stdout",
+      "size": 4197,
+      "mode": 420,
+      "sha256": "98c88fd7202c544d49267dfe62bc4dccd8c75a6e35c3ff51bf2280036a5e7cfa"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/05-source-policy.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/05-source-policy.stdout",
+      "size": 5172,
+      "mode": 420,
+      "sha256": "ea0411c70f021d42456f65b8c1ecbb784399bb2d1d83038d56bf153c9798d5b1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/06-source-reporting.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/06-source-reporting.stdout",
+      "size": 1734,
+      "mode": 420,
+      "sha256": "7b3558366beb1fb09c81f698feeb7d1b41b8df36038cd847a2552a416d405cf0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/07-source-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/07-source-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/08-source-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/08-source-types-negative.stdout",
+      "size": 344,
+      "mode": 420,
+      "sha256": "b7ce6065d14f0036644f5866a7c0d7946cf36975a70ac8f9b55263b9c9a81fe1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/09-installed-author.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/09-installed-author.stdout",
+      "size": 3318,
+      "mode": 420,
+      "sha256": "26b3ea29fbfc81e738106a540c354fefa0f8c35ea1cc458fe0038146ef48c54a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/10-installed-checkpoint.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/10-installed-checkpoint.stdout",
+      "size": 10547,
+      "mode": 420,
+      "sha256": "591a067bf6c77c98563f208f4e70a891d7e8e863f65a7457950b352cf7f5f068"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/11-installed-empty.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/11-installed-empty.stdout",
+      "size": 4257,
+      "mode": 420,
+      "sha256": "1df6afda9041cf4e83ba096e10233a3b39014af62a4059e9a0f711680df71689"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/12-installed-policy.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/12-installed-policy.stdout",
+      "size": 5247,
+      "mode": 420,
+      "sha256": "8dcedb82e55602eac2a295636219f040496f3e8cc97cf810f80b1e6b9f8d422d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/13-installed-reporting.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/13-installed-reporting.stdout",
+      "size": 1809,
+      "mode": 420,
+      "sha256": "538b4dcef649ddee5c70d757a54827af05d57aabda761c6d9b4a15a0e6e23104"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/14-installed-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/14-installed-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/15-installed-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/15-installed-types-negative.stdout",
+      "size": 344,
+      "mode": 420,
+      "sha256": "b7ce6065d14f0036644f5866a7c0d7946cf36975a70ac8f9b55263b9c9a81fe1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/16-moved-author.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/16-moved-author.stdout",
+      "size": 3353,
+      "mode": 420,
+      "sha256": "b468c8b89a1f9cf77d24ce88462cd8152d9b6bb51e06d148aca57245b2959736"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/17-moved-checkpoint.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/17-moved-checkpoint.stdout",
+      "size": 10694,
+      "mode": 420,
+      "sha256": "49db5d105018d1201ea1c9e0eb99628f0fbe090ec65e455f86d7a62caf258e97"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/18-moved-empty.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/18-moved-empty.stdout",
+      "size": 4285,
+      "mode": 420,
+      "sha256": "161ca05f35d37f97aed041971156abcdd535b0786a07607dbafec58ee37dfb09"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/19-moved-policy.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/19-moved-policy.stdout",
+      "size": 5282,
+      "mode": 420,
+      "sha256": "985726af25af125947a5ea6de43b97e0dbf56e9f1b49864af435b8e9fd807dd1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/20-moved-reporting.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/20-moved-reporting.stdout",
+      "size": 1844,
+      "mode": 420,
+      "sha256": "c587df9d3b5bfa990b425ed30abe75fad589728ad28fd12ff7ae4d05a265fdfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/21-moved-types-positive.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/21-moved-types-positive.stdout",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/22-moved-types-negative.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/22-moved-types-negative.stdout",
+      "size": 365,
+      "mode": 420,
+      "sha256": "acbb9a6600e2b09b23fde46956af7840f6fd4db724b11ec2083bb89381a5258e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/23-M01-old-reporting.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/23-M01-old-reporting.stdout",
+      "size": 2079,
+      "mode": 420,
+      "sha256": "48fb423f37ba71920baf8fd4f4de5e1f183505615548f24595b960217e41a227"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/24-M01-old-reporting-restored.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/24-M01-old-reporting-restored.stdout",
+      "size": 1296,
+      "mode": 420,
+      "sha256": "3177386cd2f9589e724072c97495325e0ad5ce3814a15edfe68966ce72215deb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/25-M02-history-link.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/25-M02-history-link.stdout",
+      "size": 1913,
+      "mode": 420,
+      "sha256": "f718ecf66e4b9e67c49bc1f193f4d75721766f70cda4985e4978db4f26f558c7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/26-M02-history-link-restored.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/26-M02-history-link-restored.stdout",
+      "size": 1344,
+      "mode": 420,
+      "sha256": "b56732c04b8cfc3801f28582a428164aa6ce881a70c5fbae181321047764aefc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/27-M03-reset-checkpoint.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/27-M03-reset-checkpoint.stdout",
+      "size": 1836,
+      "mode": 420,
+      "sha256": "f8763f693c95db467d69919c4400d2734eda5e8d32e3e0e778fc0d6735f3e444"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/28-M03-reset-checkpoint-restored.stderr",
+      "size": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/28-M03-reset-checkpoint-restored.stdout",
+      "size": 1313,
+      "mode": 420,
+      "sha256": "68d8b4ba65d371f82d21dbc26eb0019ba30b50b4ec740f05650453d618420157"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/RESULT.json",
+      "size": 236559,
+      "mode": 420,
+      "sha256": "3e2397f142751ed960e689784b4f07a69aa639ebc9f80dfd4da89a9bbd81de0d"
+    }
+  ],
+  "snapshots": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/package.json",
+      "size": 33,
+      "mode": 420,
+      "sha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/matcher.js",
+      "size": 9747,
+      "mode": 420,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/package.json",
+      "size": 33,
+      "mode": 420,
+      "sha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/errors.ts",
+      "size": 1003,
+      "mode": 420,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/limits.ts",
+      "size": 3471,
+      "mode": 420,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/matcher.ts",
+      "size": 9759,
+      "mode": 420,
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/package.json",
+      "size": 33,
+      "mode": 420,
+      "sha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/syntax.ts",
+      "size": 13070,
+      "mode": 420,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  ],
+  "perLayout": {
+    "author66": 66,
+    "checkpoints": 8,
+    "empty": 4,
+    "independentPolicy": 24,
+    "nativeVisible": 12,
+    "targeted": 4,
+    "total": 118
+  },
+  "layoutPasses": 354,
+  "types": [
+    {
+      "layout": "source",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "installed",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    },
+    {
+      "layout": "moved",
+      "positive": 0,
+      "negative": 2,
+      "diagnostics": [
+        2345,
+        2339,
+        2322
+      ],
+      "pass": true
+    }
+  ],
+  "declarations": [
+    {
+      "path": "errors.d.ts",
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "limits.d.ts",
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "matcher.d.ts",
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "syntax.d.ts",
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "types.d.ts",
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01-old-reporting",
+      "loaded": true,
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "changedSha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb"
+    },
+    {
+      "id": "M02-history-link",
+      "loaded": true,
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "changedSha256": "e92e66a58856bad2dfff24676993945a69238d4d0f61afad37451dffb94a4bc3"
+    },
+    {
+      "id": "M03-reset-checkpoint",
+      "loaded": true,
+      "activated": true,
+      "killed": true,
+      "restored": true,
+      "changedSha256": "246d083c592ab75b1e1ee4f59f51e1763a433929530c9b1e2551f6cd39e57d97"
+    }
+  ],
+  "guards": [
+    {
+      "id": "B01-content",
+      "refused": true,
+      "reason": "AssertionError [ERR_ASSERTION]: SAFETY input binding\n+ actual - expected\n\n  {\n    mode: 420,\n    path: '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/changed.js',\n+   sha256: 'd67e2e944994496c8d8ec76eed0cf9f09679448d584b532bebf941852a37f5ed',\n+   size: 7\n-   sha256: '194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891',\n-   size: 9747\n  }\n",
+      "dataOnly": true
+    },
+    {
+      "id": "B02-missing",
+      "refused": true,
+      "reason": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/absent.js'",
+      "dataOnly": true
+    }
+  ],
+  "children": [
+    {
+      "role": "strict-build",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--declaration",
+        "--outDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/types.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/errors.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/limits.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/syntax.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/source/matcher.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001369249,
+      "pid": 90939,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 749
+    },
+    {
+      "role": "source-author",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001370012,
+      "pid": 90953,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 146
+    },
+    {
+      "role": "source-checkpoint",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/checkpoints.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001370161,
+      "pid": 90954,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 132
+    },
+    {
+      "role": "source-empty",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001370296,
+      "pid": 90956,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 78
+    },
+    {
+      "role": "source-policy",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/policy.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/independent.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001370376,
+      "pid": 90957,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 79
+    },
+    {
+      "role": "source-reporting",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001370458,
+      "pid": 90959,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 66
+    },
+    {
+      "role": "source-types-positive",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/consumer.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001370526,
+      "pid": 90960,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 490
+    },
+    {
+      "role": "source-types-negative",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/negative.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371016,
+      "pid": 90963,
+      "closed": true,
+      "code": 2,
+      "signal": null,
+      "elapsedMs": 469
+    },
+    {
+      "role": "installed-author",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/artifact",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371486,
+      "pid": 90971,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 148
+    },
+    {
+      "role": "installed-checkpoint",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/checkpoints.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/artifact",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371636,
+      "pid": 90975,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 147
+    },
+    {
+      "role": "installed-empty",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/artifact",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371785,
+      "pid": 90976,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 68
+    },
+    {
+      "role": "installed-policy",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/policy.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/artifact",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/independent.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371855,
+      "pid": 90977,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 73
+    },
+    {
+      "role": "installed-reporting",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/artifact",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371930,
+      "pid": 90978,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 63
+    },
+    {
+      "role": "installed-types-positive",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/consumer.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001371996,
+      "pid": 90979,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 422
+    },
+    {
+      "role": "installed-types-negative",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/installed-app/negative.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001372419,
+      "pid": 90981,
+      "closed": true,
+      "code": 2,
+      "signal": null,
+      "elapsedMs": 456
+    },
+    {
+      "role": "moved-author",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001372876,
+      "pid": 90983,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 141
+    },
+    {
+      "role": "moved-checkpoint",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/checkpoints.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001373020,
+      "pid": 90984,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 132
+    },
+    {
+      "role": "moved-empty",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v2/empty.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001373154,
+      "pid": 90986,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 63
+    },
+    {
+      "role": "moved-policy",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/policy.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-independent-20260829/independent.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001373220,
+      "pid": 90987,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 71
+    },
+    {
+      "role": "moved-reporting",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/artifact",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "all"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001373293,
+      "pid": 90988,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 60
+    },
+    {
+      "role": "moved-types-positive",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/consumer.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001373355,
+      "pid": 90990,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 431
+    },
+    {
+      "role": "moved-types-negative",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/physically-moved-app/negative.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001373786,
+      "pid": 90992,
+      "closed": true,
+      "code": 2,
+      "signal": null,
+      "elapsedMs": 431
+    },
+    {
+      "role": "M01-old-reporting",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "N01"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001374219,
+      "pid": 90994,
+      "closed": true,
+      "code": 1,
+      "signal": null,
+      "elapsedMs": 63
+    },
+    {
+      "role": "M01-old-reporting-restored",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "N01"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001374287,
+      "pid": 90996,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 58
+    },
+    {
+      "role": "M02-history-link",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+        "E28"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001374348,
+      "pid": 90998,
+      "closed": true,
+      "code": 1,
+      "signal": null,
+      "elapsedMs": 58
+    },
+    {
+      "role": "M02-history-link-restored",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/cases-v2.json",
+        "E28"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001374411,
+      "pid": 91002,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 59
+    },
+    {
+      "role": "M03-reset-checkpoint",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "R02-reset-checkpoint"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001374473,
+      "pid": 91005,
+      "closed": true,
+      "code": 1,
+      "signal": null,
+      "elapsedMs": 58
+    },
+    {
+      "role": "M03-reset-checkpoint-restored",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/reporting.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work/emitted",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/native-visible.json",
+        "R02-reset-checkpoint"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r01-v1/ACTUAL-01/work",
+      "started": 1788001374535,
+      "pid": 91006,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 60
+    }
+  ],
+  "elapsedMs": 6132,
+  "captureBytes": 86048,
+  "workBytes": 26188785,
+  "runtimeRestrictions": {
+    "workers": 0,
+    "loaders": 0,
+    "transport": 0,
+    "shellEre": 0,
+    "native": 0,
+    "network": 0,
+    "private": 0
+  },
+  "status": "AUTHOR ONLY; different verifier required"
+}

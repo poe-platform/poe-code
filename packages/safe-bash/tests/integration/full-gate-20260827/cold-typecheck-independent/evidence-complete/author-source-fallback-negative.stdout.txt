@@ -1,0 +1,12 @@
+aggregate.mts(1,185): error TS7016: Could not find a declaration file for module 'virtual-bash'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/virtual-bash` if it exists or add a new declaration (.d.ts) file containing `declare module 'virtual-bash';`
+aggregate.mts(2,65): error TS7016: Could not find a declaration file for module 'virtual-bash/commands/stream-inspection'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/virtual-bash` if it exists or add a new declaration (.d.ts) file containing `declare module 'virtual-bash/commands/stream-inspection';`
+aggregate.mts(3,59): error TS7016: Could not find a declaration file for module 'virtual-bash/fs/s3/http'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/virtual-bash` if it exists or add a new declaration (.d.ts) file containing `declare module 'virtual-bash/fs/s3/http';`
+consumer.mts(8,8): error TS7016: Could not find a declaration file for module 'virtual-bash'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/virtual-bash` if it exists or add a new declaration (.d.ts) file containing `declare module 'virtual-bash';`
+consumer.mts(15,8): error TS7016: Could not find a declaration file for module 'virtual-bash/fs/s3/http'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/fs/s3/http/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/virtual-bash` if it exists or add a new declaration (.d.ts) file containing `declare module 'virtual-bash/fs/s3/http';`
+consumer.mts(16,54): error TS7016: Could not find a declaration file for module 'virtual-bash/fs/s3'. '/private/tmp/safe-bash-cold-typecheck-independent-run-ARHlPi/author/consumer/node_modules/virtual-bash/dist/fs/s3/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/virtual-bash` if it exists or add a new declaration (.d.ts) file containing `declare module 'virtual-bash/fs/s3';`

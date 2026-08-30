@@ -1,0 +1,507 @@
+{
+  "version": 1,
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "runtimeBlob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14",
+  "runtimeSha256": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+  "timing": "post-source inspection, before product execution; not originalprecode or dynamic measurements",
+  "proofs": [
+    {
+      "id": "I01",
+      "title": "Private representation only",
+      "require": "Optional internal tail entries/bytes and publication Symbol; no public session/stack/limit fields or production module beyond runtime.ts/shell.ts. Absence means empty.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Dispatch remains builtin-only; no registry plugin or publictype changes in265 selected inputs.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 34,
+          "endLine": 43,
+          "sha256": "81d31fc89fa237d449ad3d0541d2c25e89f9384f53342df48611e6596003eddf"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2550,
+          "endLine": 2565,
+          "sha256": "ebd10bba12638aa80c606204c41ece8e2e5bd4e60ad67b68f63af6ea172f4b49"
+        }
+      ]
+    },
+    {
+      "id": "I02",
+      "title": "Fresh constructors",
+      "require": "Shell.exec initializer and processState for sh/bash/executable scripts each start empty without publication stamp; Shell object retains no tail across concurrent/success/failure/cancelled execs.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Shell fresh initializer and processState emptytail; independent Shell diff is one initializer line. Shell.exec preserves existing fresh cwd/env semantics.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1740,
+          "endLine": 1755,
+          "sha256": "8362349ccf6e90ed7cac4ad19f3a680d47ec6197c98fd62618d81a15dc51c852"
+        }
+      ]
+    },
+    {
+      "id": "I03",
+      "title": "All child copies are distinct",
+      "require": "cloneState object AND entries array distinct even empty; primitive stamp copied. Cover pipeline, subshell, substitution, isolated-inline input, redirectState spread, shebang forwarding/target, invokeScoped before cwd/env replacement. Strings may share, no mutable tail alias.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "cloneState owns copied array; primitive cached bytes and Symbol copied byvalue. Redirect-state copy also owns array. invokeScoped clones before applying override.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 280,
+          "endLine": 290,
+          "sha256": "eec349020a1025bc54c69a10907d94c645f35f40fd5fed44f5ab6e0e7144839f"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1450,
+          "endLine": 1458,
+          "sha256": "e996a86865c7dc425911ffc402c99a3aa0def9701d1a90d37324ec8b6fd57ed8"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2232,
+          "endLine": 2252,
+          "sha256": "034c702c54c057b8fda26fb5b82198ee81fba04a328f144f953ebbad753c3670"
+        }
+      ]
+    },
+    {
+      "id": "I04",
+      "title": "Same-State sharing",
+      "require": "Functions, braces, source, eval and successive input units share tail; local variable restoration never restores tail. No persistent global/Shell stack.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Function/source state is shared; function finally restores positional/local variables, not directory tail.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1554,
+          "endLine": 1596,
+          "sha256": "938efafcf9757193983c220e5bbebcde298d1f22780c928144352f0aa8b654c7"
+        }
+      ]
+    },
+    {
+      "id": "I05",
+      "title": "Publication stamp exact placement",
+      "require": "Fresh private Symbol immediately after actual stack cwd assignment, before checked PWD, including same-path/readonly-PWD partial failure. Never lookup failure/readonly OLDPWD/dirs/-n/non-top pop. No ordinary-cd stamp.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Only stack cd callback replaces Symbol immediately after cwd assignment before checked PWD; dirs/-n and lookup/OLDPWD failure do not invoke it.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 186,
+          "endLine": 187,
+          "sha256": "b950b61c56e16e4f818cbdc5b09c5ccc645643f3592cacddac653d7e0d482ab1"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1535,
+          "endLine": 1543,
+          "sha256": "75c4e4fcfeccdbb5e4a8b3965be4781447a1242f7d478d533dc3d039d0a43e8b"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2398,
+          "endLine": 2406,
+          "sha256": "bc0011b76ac1836e6314f835acf22b1f6929dbc9386c375d208101dfa10227c1"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2449,
+          "endLine": 2456,
+          "sha256": "3ad3139a3cf0ea6ba330a2af1b1de0063111d6c49273e3a0c958b0fdac550f98"
+        }
+      ]
+    },
+    {
+      "id": "I06",
+      "title": "Enclosing middleware restore",
+      "require": "Every enclosing same-State dispatch frame snapshots stamp before overlay; conditional restore requires unchanged stamp. Preserve even same forwarded cwd or later ordinary cd back. Child stamp cannot affect parent; ordinary-cd-only unchanged.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Same-State enclosing restoration compares Symbol as well as path; child copies cannot mutate parent primitive stamp.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1535,
+          "endLine": 1543,
+          "sha256": "75c4e4fcfeccdbb5e4a8b3965be4781447a1242f7d478d533dc3d039d0a43e8b"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1605,
+          "endLine": 1614,
+          "sha256": "edd153285cda9f4d9a57d50890b7281a6a0a93202be90a1e71bb263e8eec4686"
+        }
+      ]
+    },
+    {
+      "id": "I07",
+      "title": "Immutable admitted tail publication",
+      "require": "Reserve count/bytes/path and result-slot work BEFORE array allocation/provider work; build immutable new tail, publish one reference. Check inserted C in swap/rotation; no in-place splice. Removal scans bounded removed entry; checked arithmetic never wrap/saturate.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Count/path/byte plan validation and work admission precede arrayallocation/publication. Tail cache excludes implicit cwd except inserted entry.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2433,
+          "endLine": 2449,
+          "sha256": "eb924c8f4d7dfe8a4e74b9009fded492c6f0941c68bc1cd48f10fbe92ce0dd46"
+        }
+      ]
+    },
+    {
+      "id": "I08",
+      "title": "Work units, reservation and flush",
+      "require": "One per reached argv field, scanned UTF8 byte for field/used HOME/added C-path/removed entry, inspected UTF16 unit for numeric grammar/HOME comparison, copied result-tail slot, visited display entry, emitted encoded stdout byte. Field-byte and numeric scans distinct. Reuse known byte length. Whole reservation before work/allocation; every reached128 boundary interruptible setImmediate with checks before/after. Flush partial batch before publication/provider delegation; before return only newly unflushed work. No unconditional no-op yield.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "charge checks signal,128-step flush; publish/cd final partial flush before state/provider action; finally flush not a rollback. No private work measured.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 476,
+          "endLine": 496,
+          "sha256": "8725791c7797f084a976cd1a222caa3f7ea15f43661c0a32b01abeef925e6ade"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2443,
+          "endLine": 2453,
+          "sha256": "117532984324d14b941e9df1ecd4f93ee786b8bb658f2f43fa4e791f4c076480"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2546,
+          "endLine": 2551,
+          "sha256": "a43311969be32a94d3bbd3d26b881a1ada6ffdc43f5c72cea8e3c02457d92fcb"
+        }
+      ]
+    },
+    {
+      "id": "I09",
+      "title": "Separate bounded work counters",
+      "require": "Stack counter persists entire builtin, separate CdLookup per-call8388608/8194-public-call profile; never reset stack around cd. Combined is NOT one8388608 bound, deadline, RPC bound or arbitrary-host preemption.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "DirectoryStackWork and CdLookup constructed separately; shared cd does not reset stack work. Separate8Mi ceilings are not combined8Mi.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 375,
+          "endLine": 456,
+          "sha256": "95697f22eb2db107ca6df7d7411681807436e1654bf5a472df445587ab45af31"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2413,
+          "endLine": 2418,
+          "sha256": "0f43270b0beca4070e0101d8ac2950f89d861cfb5cdce3853c22d32f8def7a43"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2449,
+          "endLine": 2457,
+          "sha256": "c795ccb688616a9b395dab4b96ca0283f57ea72b649c1388474ee7ad26ceb3ec"
+        }
+      ]
+    },
+    {
+      "id": "I10",
+      "title": "Reached-only bounded scanning",
+      "require": "Only reached argv fields scan<=65536; ignored extras/stop tokens acquire no helper scans/charges. Used HOME scan<=65536 only when formatting; -l/clear/silent -n skip unused HOME/display cwd. Existing shell expansion still applies.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Only reached tokens are scanned; stop/extra qualifications preserved. HOME only read during nonlong formatting.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 497,
+          "endLine": 509,
+          "sha256": "fa59a4ac5f70e92ab746773ec8bf2fe6e4a2cf9d443e8929f72e78627614cfc5"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2459,
+          "endLine": 2494,
+          "sha256": "183831501464b09d035813199f19fc59e2a5437261fafb4b833e02090acd2592"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 557,
+          "endLine": 584,
+          "sha256": "3d5db69db349526b40b9c6a7a8374104294f8c7e1ea3b8e6618123e30e4cacd3"
+        }
+      ]
+    },
+    {
+      "id": "I11",
+      "title": "Inclusive caps and inserted cwd",
+      "require": "4096 tail entries/4194304 remembered UTF8/65536 remembered or resolved path; cached sum excludes implicit cwd unless inserted. At-boundary representability/reachability recorded; rotation/swap can exceed bytes without increasing count. Stack plan before missing OLDPWD; shared cd missing variable before its own limits.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Inclusive4096/4Mi/64Ki checks and inserted cwd accounted. Public L01/L02/L13/L14/L15 scheduled; successful setup still requires actual results.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2433,
+          "endLine": 2443,
+          "sha256": "a66c7d3a58e334a8280626e92e58f1825b53f94e150868b322778764ce73e599"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2499,
+          "endLine": 2534,
+          "sha256": "2473cfc1684db5b51ab48f2f2e03bf2babd2be30d540296afeb5a32ce39f9f84"
+        }
+      ]
+    },
+    {
+      "id": "I12",
+      "title": "Bounded exact signed64 parser",
+      "require": "ASCII whitespace/optional inner sign/ASCII digits; max19 significant decimal digits without unbounded BigInt/Number construction. Range[-9223372036854775808,9223372036854775807]; exact final index, no overflow emulation. Invalid number2 vs valid out-of-stack1. Push early range; pop/dirs final range; dirs -c only overrides valid range, not malformed grammar.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Digit-by-digit signed64 with bounded growth after eachdigit; leadingzeros scanned within argument/workcap. Push checks range eagerly; pop/dirs afterscan; malformedclear not suppressed.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 511,
+          "endLine": 535,
+          "sha256": "2968f17c7dd77884044c2804cdb8d3904f9d72d5d13f77b6b592528a2bd7b3b7"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2459,
+          "endLine": 2494,
+          "sha256": "183831501464b09d035813199f19fc59e2a5437261fafb4b833e02090acd2592"
+        }
+      ]
+    },
+    {
+      "id": "I13",
+      "title": "Raw HOME and formatting",
+      "require": "Raw byte-length>1 prefix at slash/end boundary; no normalization/host lookup; exact trailing-slash/relative rules. -l bypass; -v dominates -p, original full index width at least2 plus two spaces, raw whitespace/newline data.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Raw HOME>1byte, exact prefix/slash checks. Long/line/verbose formatting doesnot normalize hostpaths.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 557,
+          "endLine": 584,
+          "sha256": "3d5db69db349526b40b9c6a7a8374104294f8c7e1ea3b8e6618123e30e4cacd3"
+        }
+      ]
+    },
+    {
+      "id": "I14",
+      "title": "Combined display admission",
+      "require": "One8388608 display counter includes shared cd required path print AND automatic stack display. Reserve every scalar before append. Work cap may mask display cap; record reachability. Failure retains prior bytes and state, never atomic-output promise.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Same emitter/output counter charges both requiredcdprint and stackdisplay. Display8Mi is masked bywork8Mi plus earlier charges; not runtime measured.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 537,
+          "endLine": 555,
+          "sha256": "40112aa419ee2da182bf551bfcddbae5bdf62743ee48b651b2b89f269dd124e3"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2449,
+          "endLine": 2459,
+          "sha256": "92df53ae912eb12ce44ac354cf4463160120dc33181aaa36e7f8a90696567ce3"
+        }
+      ]
+    },
+    {
+      "id": "I15",
+      "title": "Awaited chunks and destination ownership",
+      "require": "Encode chunks<=16384 without splitting surrogate pairs; await each write and do not mutate bytes while it is pending. Sink snapshots copy before returning; no invented post-return borrowed-buffer lease or indiscriminate copy for completed transient writes. Original stdout and its optional ownedOutput enrollment survive required cd print routing. No implicit wrapping ownership or sibling cancellation.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "flushOutput constructsfresh encodedbytes, awaitswriteText tooriginal destination, retains enrollment viaexisting budgetedsink wrappers. Public C04/C07/C10 still required.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 257,
+          "endLine": 276,
+          "sha256": "e53b2a0209adeb05e24ca6fee6a54d569747c341353f5f1bf3992d4ebc2268ad"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 537,
+          "endLine": 555,
+          "sha256": "40112aa419ee2da182bf551bfcddbae5bdf62743ee48b651b2b89f269dd124e3"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2405,
+          "endLine": 2410,
+          "sha256": "83ac21e2a45285edac44c130bc39837605a30c4fbd42608043febe85a5f2996d"
+        }
+      ]
+    },
+    {
+      "id": "I16",
+      "title": "Bounded owned diagnostic payload",
+      "require": "65792 UTF8 bytes includes command text/internal usage separators, excludes existing shell-origin prefix/final newline. On truncation longest scalar prefix<=65780 plus exact12-byte suffix ' [truncated]'. Incremental formatting independent of exhausted stack work, parent write accounting retained. No global formatter/envelope.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "cdDiagnostic incrementally scalarbounds65792, suffix boundary65780 and12bytesuffix; existing shellprefix outside. No globaldiagnostic limit claimed.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 346,
+          "endLine": 374,
+          "sha256": "6669a20f2b131d1fc8ac4bc4f39e8589972a8ec871dd6ee278320d3708428290"
+        }
+      ]
+    },
+    {
+      "id": "I17",
+      "title": "Shared cd seam and exact publication",
+      "require": "Same private lookup/X_OK/checked OLDPWD/cwd/stamp/checked PWD/exports/awaited required print sequence reused without invoke/function override/new Shell/extra tick. Ordinary push/top-pop tail after COMPLETE cd including required print; swap/rotation before cd. No rollback on readonly/write/cancel; diagnostics label actual stack command.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Checked OLDPWD,cwd,stamp,checkedPWD,exports,awaitedprint order preserved. Ordinarypush/toppop tailpublish aftercompletecd; rotation/swap beforecd; no rollback catch.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2381,
+          "endLine": 2411,
+          "sha256": "e3be3d177991a4c0818499634ae0ec65c65875831ce93263a5fbd1857d2d4a20"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2499,
+          "endLine": 2550,
+          "sha256": "c9ffe5ab4677eaa664185eb1f315250f7cd64f7a812988916a88835f2f61a841"
+        }
+      ]
+    },
+    {
+      "id": "I18",
+      "title": "Cancellation and cleanup provenance",
+      "require": "Existing caller>escaping execution/control>local cancellation precedence; signals propagate, equal/falsy/errno-shaped reasons do not establish provenance. Numeric mapped statuses never re-raised. Cooperative registration before acquisition, idempotent shared drain, late rejections observed; no opaque-host preemption promise.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Existing invoke/cancellation/cleanup methods require byte-equivalence check and regression receipts. C06 public sibling/local subobservation doesnot alone prove every equal-reason provenance branch.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2130,
+          "endLine": 2378,
+          "sha256": "4378a2c4e2962cb699aae80669013860f79fb0e6986df923c7eebbfdfbe4a5ab"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1500,
+          "endLine": 1534,
+          "sha256": "877f759fc873ea7bf64ffe42dcd9db1fb34ffa65d79b295010191d14acdf046e"
+        }
+      ]
+    },
+    {
+      "id": "I19",
+      "title": "Shared budgets and no hidden command",
+      "require": "Exactly normal command admission, monotonic inherited output/depth/expansion budgets, no reset; stack planning not extra command/loop charges. Declared private limits not ShellLimits keys.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Privatehelper invokesno newcommand, usescurrentbudgetedsinks; no reset or publiclimit. C11 actual one-command limit is mandatory.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 1498,
+          "endLine": 1534,
+          "sha256": "28c1dfd57637009c5d775c340404b6a6a019cb181aa8ed6492adcf172e6b3125"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2413,
+          "endLine": 2550,
+          "sha256": "4c8a78e425152720c579f0bb6ee53f60ced9165a236388e0c4a896397bf3d270"
+        }
+      ]
+    },
+    {
+      "id": "I20",
+      "title": "Metadata-inert and host-free",
+      "require": "dirs/-n/non-top pop never stat/access/content or cwd/env writes; no process spawn, ambient cwd/home/credentials/native helper, network enablement, provider implementation changes or new dependency.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Inertbranches noFS APIs; only cddelegates. Unchangedproviders/contracts and nohostaccess introduced.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2494,
+          "endLine": 2550,
+          "sha256": "dcab36af8386c1e1346421e91944533589d52575b8c3673f082de8ce8ce3b1de"
+        }
+      ]
+    },
+    {
+      "id": "I21",
+      "title": "Environment and stdin provenance",
+      "require": "Invoke tail copy before cwd/env override; replaceEnv exact env with no PWD injection/local promotion; absent/undefined borrowed signal adds no local resources. Preserve parent exports/readonly and stdinIsDefault across transparent forwarding.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "invokeScoped clonebeforeoverrides; existing envreplace/provenance code unchanged; exact scoped regressions required.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2232,
+          "endLine": 2270,
+          "sha256": "d6ff956753eee42dbd9f05c65af7b02a577fd55ec89b8488926d91df0ae0a4eb"
+        }
+      ]
+    },
+    {
+      "id": "I22",
+      "title": "Public and registry invariants",
+      "require": "Three genuine builtins with ordinary shadowing/command/type; exact default names/count and public keys unchanged from ratified newbase, expectations declared independently of tested registry. No DIRSTACK arrays/stack tilde/physical-cd feature expansion.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Independently declared77 names/publicvaluekeys beforecandidateimport; src/index/plugins/types/package unchanged; noarray/stacktilde feature.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 34,
+          "endLine": 43,
+          "sha256": "81d31fc89fa237d449ad3d0541d2c25e89f9384f53342df48611e6596003eddf"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2550,
+          "endLine": 2565,
+          "sha256": "ebd10bba12638aa80c606204c41ece8e2e5bd4e60ad67b68f63af6ea172f4b49"
+        }
+      ]
+    },
+    {
+      "id": "I23",
+      "title": "CD evidence remains honestly reused",
+      "require": "Accepted CD85 fully bound+L24 scripted-only each layout; 82+4 original rows;12 pinned-source invariants not measured work counters;7 controls/12 import negatives/2 mutants; preserve L07 setup-after61 and L24 blocked history. No original native34 or CD replay now.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "AcceptedCD464/evidence2585/final192ab reused with85fullybound+L24scripted-only andL07after61/L24blocked; this source extraction isnot native/provider/fullCD acceptance.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2381,
+          "endLine": 2411,
+          "sha256": "e3be3d177991a4c0818499634ae0ec65c65875831ce93263a5fbd1857d2d4a20"
+        }
+      ]
+    },
+    {
+      "id": "I24",
+      "title": "Boundary proof reachability",
+      "require": "For remembered-byte equality/overflow, work8388608 equality/next-step, display8388608 equality/next-scalar including required cd print, inserted cwd65536/65537, diagnostic scalar boundary and128/final flush: independently enumerate inputs, earlier limiting work, output prefix and publication point. A masked branch remains source-only/instrumentation-gated; arithmetic is not runtime data.",
+      "role": "pinned-source-proof-not-runtime-measurement",
+      "finding": "Remembered4Mi equality reachable via64 raw65536 entries; seed EPIPE afterpublish limitssetupdisplay. Display8Mi equality masked: eachdisplay scalar also chargeswork and earlierargs/cwd/home/planning charge>0, so workexhausts first. Final128partialflush/diagnosticpayload derivations remain source-only.",
+      "anchors": [
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 463,
+          "endLine": 590,
+          "sha256": "4d6fc724e9213041b8dc3cd2f16e3fe4a5bac9051e7f3c125fc306ff2f8a3e4a"
+        },
+        {
+          "path": "src/shell/runtime.ts",
+          "startLine": 2433,
+          "endLine": 2457,
+          "sha256": "b04c4819bebd6e013ab88c1b4204ec92a510d39de9eff655f6f4fdd9b3b72148"
+        }
+      ]
+    }
+  ]
+}

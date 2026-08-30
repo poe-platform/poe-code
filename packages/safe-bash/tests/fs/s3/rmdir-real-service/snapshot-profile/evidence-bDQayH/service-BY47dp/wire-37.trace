@@ -1,0 +1,31 @@
+*   Trying 127.0.0.1:49359...
+* Connected to 127.0.0.1 (127.0.0.1) port 49359
+> GET /safe-bash-interop/snapshot/race/file HTTP/1.1
+> Host: 127.0.0.1:49359
+> User-Agent: curl/8.7.1
+> Accept: */*
+> x-amz-date: 20260827T072432Z
+> x-amz-content-sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+> authorization: AWS4-HMAC-SHA256 Credential=safe-bash-synthetic/20260827/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=d25132159758c97c5b832ebdadec96f15587cdd06302380e5440e21b10979934
+> 
+* Request completely sent off
+< HTTP/1.1 200 OK
+< Accept-Ranges: bytes
+< Content-Length: 2
+< Content-Type: application/x-www-form-urlencoded
+< ETag: "d07d34efac6328007ad67c7e0a985e00"
+< Last-Modified: Thu, 27 Aug 2026 07:24:32 GMT
+< Server: MinIO
+< Strict-Transport-Security: max-age=31536000; includeSubDomains
+< Vary: Origin
+< Vary: Accept-Encoding
+< X-Amz-Id-2: f58614f44c8d4bb3be213c4bf5d1e66e68781e93272ad031f60ac61627b04b14
+< X-Amz-Request-Id: 18CF98B32281BCC0
+< X-Content-Type-Options: nosniff
+< X-Ratelimit-Limit: 1572
+< X-Ratelimit-Remaining: 1572
+< X-Xss-Protection: 1; mode=block
+< Date: Thu, 27 Aug 2026 07:24:32 GMT
+< 
+{ [2 bytes data]
+* Connection #0 to host 127.0.0.1 left intact

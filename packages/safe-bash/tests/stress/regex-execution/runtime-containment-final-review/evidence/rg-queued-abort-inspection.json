@@ -1,0 +1,46 @@
+{
+  "job": "rg-queued-abort",
+  "resultSha256": "ce927e099e40869398a6d8e8d3ab2a43abdd91d4ddc5a0a50caf6863a13e27fa",
+  "decision": "PASS_REVIEWED_COMPLETE_BUDGET_EXHAUSTED",
+  "review": "Independent final-slot leaf manually inspected recorded queued-target, sibling-one and sibling-two public settlement boundaries; source-ordering ownership interpretation follows preserved independent adjudication. No blanket per-boundary worker-zero assertion or new harness guarantee.",
+  "findings": {
+    "queuedExactCallerReasonIdentity": true,
+    "queuedOwnedWorkersAndTrackedListeners": 0,
+    "admissions": 5,
+    "postedSiblingValidations": 2,
+    "postedBenignMatches": 2,
+    "targetPosts": 0,
+    "workersCreated": 2,
+    "pathologicalRequests": 0,
+    "siblingsAliveUntouchedAtTargetSettlement": 2,
+    "abortLatencyMs": 0.3454579999999936,
+    "siblingResults": [
+      {
+        "exitCode": 0,
+        "stdout": "YWIK",
+        "stderr": ""
+      },
+      {
+        "exitCode": 0,
+        "stdout": "YWIK",
+        "stderr": ""
+      }
+    ],
+    "firstSiblingPublicSettlement": "Both shared workers still retiring, not invocation-owned merely because of constructor labels; tracked signal listeners zero.",
+    "lastCloserPublicSettlement": "sibling-two: both workers exited, terminationCalls 1 each, terminationAwaited true, held replies zero and all worker/signal listeners zero BEFORE dispose.",
+    "ownershipBasis": "Frozen client.ts releases slot.busy before pending.resolve (240–251); successful session close awaits its own retirements and executor close (264–279); only shared session count zero awaits pool retirement (140–148); native termination precedes listener removal (111–127). Session counters/native-call entry are not directly instrumented.",
+    "beforeDisposeAndFinalRetirementVerified": true,
+    "workerUrl": "file:///Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/cleanup-boundary-review/.temporary/runtime-r1-verified-packed-old-five/production-continuation-review/node_modules/virtual-bash/dist/commands/regex-execution/worker.js",
+    "workerSha256": "bb568433f1194d957dd14d1eb8229e9733bd13cd42db7ca5f2ac77b5f739b8f7",
+    "childPid": 71911,
+    "pidAbsent": "ESRCH",
+    "childElapsedMs": 171.8445840000004,
+    "parentKilled": false,
+    "childExitCode": 0,
+    "outputBytes": 0,
+    "ipcBytes": 14542,
+    "closeAwaitedAndStreamsIPCClosed": true,
+    "lateErrors": []
+  },
+  "limit": "Benign real-worker protocol/control boundary only; no universal preemption, RSS, all-regex, full-shell or superiority claim. All six slots consumed; no further launch authorized."
+}

@@ -1,0 +1,19 @@
+2026-08-27 primary-source design checkpoint; delegated normative leaf, no engine/native execution.
+Read 8897ece3 independent REPORT and b6eaa23a minimal-counterexample REPORT first. Only NEW normative evidence owned; live c3e40f8b integration, old evidence, canonical tests remain read-only.
+
+Author may proceed with representation, NOT a universal-POSIX comparator claim:
+1. Give every semantic AST node stable identity and ordered children, INCLUDING uncaptured concatenations, quantified prefixes, repeat bodies and enclosing nodes. Retain all boundaries initially; optimization needs a preservation proof. Final capture-number sorting loses a* before \(a*\).
+2. Keep immutable branch-local full event history (enter/exit/skip, parent activation, iteration ordinal and boundaries), repeat activation state, and a SEPARATE live backreference environment. Absent, open, completed-empty and completed-nonempty are distinct. Opening clears completion; skip is not reentry under ROOT TEMP retained-descendant profile.
+3. Compare only complete valid accepted histories initially: whole leftmost-longest, then explicitly named parse-tree/history policy including uncaptured nodes and earlier iterations. No early pruning on (pc,inputpos) or final captures. Backreference environments can give different continuation languages. Prefix-stability for regular tagged automata is not a theorem for backreferences or our TEMP lifetime/cycle rules.
+4. Admission/work/allocation/cancellation checks include history creation/comparison; exhaustion is refusal/error even after an incumbent, never best-so-far success. Required empty iterations are activation-local; only proved-equivalent zero-progress cycles may be cut. Merely repeating pc/position is NOT equivalence.
+
+IMPORTANT normative/profile separation: Issue8 XBD9.3.6 explicitly says \(a\(b\)*\)*\2 fails on abab. Root TEMP retention yields a valid retained-b witness, so label this deliberate project-profile departure; do not silently clear descendants or call retained behavior universally POSIX. Narrow P/aaa -> a remains adopted; old GNU empty mismatch is NOT upstream-confirmed bug.
+
+Five primary sources, accessed 2026-08-27 (web.run searched/opened; publisher HTTPS bodies also fingerprinted):
+N8 https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html (9.1 whole/subpattern/empty; 9.3.6 backrefs, containment, required empties; 9.3.7 precedence).
+H43 https://www.open-std.org/jtc1/sc22/wg15/docs/rr/9945-2/9945-2-43.html (historical 1993-standard interpretation, NOT modern replacement).
+H135 https://www.open-std.org/JTC1/SC22/WG15/docs/rr/9945-2/9945-2-135.html (historical competing repeated-group priority readings).
+T17 https://re2c.org/2017_trofimovich_tagged_deterministic_finite_automata_with_lookahead.pdf (definition24 p7 common-suffix prefix property; pp11-15 POSIX histories, fictive hierarchy tags; backreference-free formalism).
+BT19 https://re2c.org/2019_borsotti_trofimovich_efficient_posix_submatch_extraction_on_nfa.pdf (tagged-NFA path ordering/proofs; requires its exact construction and epsilon-loop assumptions).
+
+Final report will give theoretical witnesses (NOT guessed native outcomes), completed-history comparator alternatives and exact proof obligations. No source changes, corpus/quota reruns or native installations.

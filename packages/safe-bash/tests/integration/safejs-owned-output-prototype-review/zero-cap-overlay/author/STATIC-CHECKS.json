@@ -1,0 +1,96 @@
+{
+  "kind": "AUTHOR_STATIC_ONLY_NOT_RUNTIME_ACCEPTANCE",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "changedEntries": [
+    "dist/commands/network/shared.d.ts.map",
+    "dist/commands/network/shared.js",
+    "dist/commands/network/shared.js.map",
+    "src/commands/network/shared.ts"
+  ],
+  "unchangedParentEntries": 936,
+  "sourceFiles": 213,
+  "compiledFiles": 708,
+  "compilerInputs": 358,
+  "referencesAuthenticated": 77,
+  "baseSurfaceProfiles": 8,
+  "baseLifecycleProfiles": 11,
+  "additionalControls": 6,
+  "parserChecks": [
+    {
+      "path": "admission.mjs",
+      "sha256": "7898b51be299cb08bf0991991b846cb91371c6b3855918eb657d26601aa7a06c",
+      "parseExitCode": 0
+    },
+    {
+      "path": "controls/child.mjs",
+      "sha256": "0f0c5ef984557b152c56e2bdc3bf05eec4c4392e603aae93ece697e61a83a972",
+      "parseExitCode": 0
+    },
+    {
+      "path": "controls/common.mjs",
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "parseExitCode": 0
+    },
+    {
+      "path": "controls/guard.mjs",
+      "sha256": "567acf8c3dd250be35e5c51d90d30a7f7e0d6874b8a3204fd6d6a1f799486e69",
+      "parseExitCode": 0
+    },
+    {
+      "path": "controls/profile.mjs",
+      "sha256": "e39f607da507e78f4b4a2e10935e423019d02b376ed27992eb1d7a525f71a545",
+      "parseExitCode": 0
+    },
+    {
+      "path": "controls/run.mjs",
+      "sha256": "58ab98f8fde42d962894185654cce0ca7cc337bbddacb687f7f8077689e57d35",
+      "parseExitCode": 0
+    },
+    {
+      "path": "lifecycle/child.mjs",
+      "sha256": "4977d53279d39c9e53b1583a93558264b140efcc784ee9811db9250c61cb7a2e",
+      "parseExitCode": 0
+    },
+    {
+      "path": "lifecycle/common.mjs",
+      "sha256": "ed322786f0c81da997766c9da36a80c5eef6c97a0be90b82162b6fcadc2a1553",
+      "parseExitCode": 0
+    },
+    {
+      "path": "lifecycle/guard.mjs",
+      "sha256": "a9b0aac6323730370bd70cc0932d15883653536d187fb934e16e22341d7e54e8",
+      "parseExitCode": 0
+    },
+    {
+      "path": "lifecycle/profile.mjs",
+      "sha256": "d0a5c072fbd2facf292cd6ef70c013ba0bda00af145124dfc673b9a1203fbfed",
+      "parseExitCode": 0
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "sha256": "61841d0c20c49449bd7f5ac7e07ac5d3f103c330e729a1ac41f57be58709047a",
+      "parseExitCode": 0
+    },
+    {
+      "path": "surface/child.mjs",
+      "sha256": "358dffdec0e11672206beb3c74d97a5cda44f55b83c8104dec9717543a2c64f4",
+      "parseExitCode": 0
+    },
+    {
+      "path": "surface/controls.mjs",
+      "sha256": "97506ec3a663f784b0ce7f0f8d64479b68948a1ff9b39743b959d9e4d2957c75",
+      "parseExitCode": 0
+    },
+    {
+      "path": "surface/run.mjs",
+      "sha256": "ca303265266cf7533e9f912b436eb0b21965f6386c508375ad430a53d51d14a0",
+      "parseExitCode": 0
+    }
+  ],
+  "guestExecutions": 0,
+  "productImports": 0,
+  "privateEngineImports": 0,
+  "transportCalls": 0,
+  "privateQueries": 0,
+  "noPromotion": true
+}

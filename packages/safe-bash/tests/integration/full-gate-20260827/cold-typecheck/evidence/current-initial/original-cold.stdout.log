@@ -1,0 +1,12 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+tests/commands/stream-next-stress/independent.test.ts(91,95): error TS7053: Element implicitly has an 'any' type because expression of type 'keyof Actual' can't be used to index type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'.
+  Property 'thrown' does not exist on type '{ status: number; stdout: string; stderr: string; after: Entry[]; }'.
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(34,119): error TS2307: Cannot find module 'virtual-bash' or its corresponding type declarations.
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(35,65): error TS2307: Cannot find module 'virtual-bash/commands/table-text' or its corresponding type declarations.
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(37,50): error TS7006: Parameter 'command' implicitly has an 'any' type.
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(38,43): error TS7006: Parameter 'command' implicitly has an 'any' type.
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(41,29): error TS7006: Parameter 'name' implicitly has an 'any' type.
+tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts(61,58): error TS7006: Parameter 'entry' implicitly has an 'any' type.

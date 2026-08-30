@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "status": "SOURCE_AND_SIX_HOST_DOUBLE_GROUPS_QUALIFIED_NOT_RUNTIME_PROOF",
+  "at": "2026-08-29T14:50:05.739Z",
+  "elapsedMilliseconds": 602205,
+  "helpers": 2,
+  "helperExits": [
+    0,
+    0
+  ],
+  "groupsPassed": 6,
+  "groupsTotal": 6,
+  "actualWorkers": 0,
+  "productImports": 0,
+  "nativeTerminateInvocations": 0,
+  "compiler": 0,
+  "productionEdits": 0,
+  "knownRoles": {
+    "completedDirectExecs": 10,
+    "pendingFinalGitRoles": 4,
+    "additionalPatchWrapperAllowance": 3,
+    "existingDataController": 1,
+    "totalConservative": 18,
+    "cap": 28,
+    "peakConservative": 3
+  },
+  "bindings": [
+    {
+      "path": "PRESEAL.json",
+      "size": 2193,
+      "sha256": "bbe04df4bf22d47299f002cd010463afa0ac355ffaad19419bb69cd3ea9aa507"
+    },
+    {
+      "path": "DOUBLE-PRESEAL.json",
+      "size": 1365,
+      "sha256": "2908650d1b2aeb45260971928018dc36023ca6ddf87e3cd6ae1b7a88c077a4bd"
+    },
+    {
+      "path": "TERMINATE-SOURCE.json",
+      "size": 1497,
+      "sha256": "485ef75ae79da94d8e730de32b9fbf94b0056e41486dfeaa4216d4d9c6525dc7"
+    },
+    {
+      "path": "DOUBLE-RESULT.json",
+      "size": 3199,
+      "sha256": "6288ae921fa579fccc79cf67bc31c828588187a4cf45d768d83ff377fa6c6f29"
+    },
+    {
+      "path": "PROPOSAL.md",
+      "size": 8111,
+      "sha256": "3af4cf2169b090484729a3a1b22bdd75a8b2a7ca0237d07b22b923f756cd644b"
+    },
+    {
+      "path": "DEFERRED-SIX.json",
+      "size": 4874,
+      "sha256": "1b781b1b240efe8b3b66ccd2b152f98a563a048e82562a9c5e5acfa3c1d757a2"
+    },
+    {
+      "path": "positive.mts.data",
+      "size": 514,
+      "sha256": "4b5e7f69c506aaf3e62429ede79ed8b87b1ab30e6e205246fdb4103281882b2d"
+    },
+    {
+      "path": "HANDOFF.md",
+      "size": 1779,
+      "sha256": "4681098e180a072217b62062302b52ff462c0687a5308a84698ebfe1679560f9"
+    }
+  ],
+  "originalActual": "5001adc71a9c1549822843d9cdd3bc2410fcf357:75PASS/1nonpass/59UNRUN; cell76 Worker telemetry remains UNKNOWN",
+  "noOriginalRescore": true,
+  "noActualRetry": true,
+  "unrun": "Six nonpublic obligations and proposed follow-up actual cohort remain UNRUN",
+  "receiptQualification": "Raw model reason assertions retain false/undefined identity; serialized details are not original runtime reason evidence. Final Git capture trails this receipt/commit."
+}

@@ -1,0 +1,817 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-padding-MmS9An/candidate",
+  "rootUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/index.js",
+  "columnUrl": "file:///private/tmp/safe-bash-column-padding-MmS9An/candidate/dist/commands/column/index.js",
+  "rootSha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+  "columnSha256": "44987f5058cc8c49af0705ae9600ddccbdb6b021f794e4d1e30dca1b2da1af81",
+  "group": "literals",
+  "mutation": "wrong-padding",
+  "expectedSha256": "9d324e6895268e2e46a4a655ef01e107d6379034abd8e8f95349c86b28b18faf",
+  "schedulesSha256": "cb1b017e5b66f9cb8ae927f03c6ae4b10226a129bcfb90dbb0445a3ab01257b5",
+  "harnessSha256": "ca1f70038175505c9bd4d3109b07a1be01d0b3ad7f2bb728161392d20362dec3",
+  "cases": [
+    {
+      "name": "P01",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {},
+          "inputHex": "207a093920200a616c706861202031207461696c0a20620932320a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 18,
+          "stdoutSha256": "d111bc3ccd3103162afd5d01e8bf64ffdb93915f7930c184368495aa4b5b6458",
+          "stdoutHex": "7a390a616c706861317461696c0a6232320a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 10,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a202020202020390a616c7068612020312020207461696c0a6220202020202032320a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '7a390a616c706861317461696c0a6232320a'\n- '7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '7a390a616c706861317461696c0a6232320a'\n- '7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P02",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ",:"
+          ],
+          "limits": {},
+          "inputHex": "612c623a630a643a3a652c0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 7,
+          "stdoutSha256": "d09b944c90fb5449a7fb3cb629b03481e0031ff6986b5488af0121f6f345c6c8",
+          "stdoutHex": "6162630a64650a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 7,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020622020630a642020650a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "6120206220206320200a6420202020206520200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '6162630a64650a'\n- '6120206220206320200a6420202020206520200a'\n     ^\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '6162630a64650a'\n- '6120206220206320200a6420202020206520200a'\n     ^\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P03",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {},
+          "inputHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 19,
+          "stdoutSha256": "0bd06a35b3c0ac1a6cd7d1c980aca94f256ed266b2bec46aee0a9e7b8513beec",
+          "stdoutHex": "616262636363646464640a7a0a6c6f6e67780a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 10,
+          "maxWriteBytes": 4,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a0a6c6f6e672020780a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '616262636363646464640a7a0a6c6f6e67780a'\n- '612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '616262636363646464640a7a0a6c6f6e67780a'\n- '612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P04",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            "|"
+          ],
+          "limits": {},
+          "inputHex": "613a62623a6363633a646464640a7a0a6c6f6e673a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 28,
+          "stdoutSha256": "f4c41f09d3addc8e8f2c471c064ed2951ee52894b3ced8bb91d251831941510f",
+          "stdoutHex": "617c62627c6363637c646464640a7a7c7c7c0a6c6f6e677c787c7c0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 16,
+          "maxWriteBytes": 4,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '617c62627c6363637c646464640a7a7c7c7c0a6c6f6e677c787c7c0a'\n- '612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '617c62627c6363637c646464640a7a7c7c7c0a6c6f6e677c787c7c0a'\n- '612020207c62627c6363637c646464640a7a2020207c20207c2020207c0a6c6f6e677c78207c2020207c0a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P05",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            "界"
+          ],
+          "limits": {},
+          "inputHex": "613a62623a6363630a7a0a6c6f6e673a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 33,
+          "stdoutSha256": "909fee7cba476318475cc750ba4604fa8683dc1ed3ca40d2539046236bb19249",
+          "stdoutHex": "61e7958c6262e7958c6363630a7ae7958ce7958c0a6c6f6e67e7958c78e7958c0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 6,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '61e7958c6262e7958c6363630a7ae7958ce7958c0a6c6f6e67e7958c78e7958c0a'\n- '61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '61e7958c6262e7958c6363630a7ae7958ce7958c0a6c6f6e67e7958c78e7958c0a'\n- '61202020e7958c6262e7958c6363630a7a202020e7958c2020e7958c0a6c6f6e67e7958c7820e7958c0a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P06",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            ""
+          ],
+          "limits": {},
+          "inputHex": "613a62623a6363630a7a0a713a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 11,
+          "stdoutSha256": "61fb3c79c1e3e38fc4899cee87e4b8bf4cf9e3d1aae343cd6f8515e46dcfd6b3",
+          "stdoutHex": "6162626363630a7a0a710a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 8,
+          "maxWriteBytes": 3,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "6162626363630a7a20200a7120200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '6162626363630a7a0a710a'\n- '6162626363630a7a20200a7120200a'\n                   ^\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '6162626363630a7a0a710a'\n- '6162626363630a7a20200a7120200a'\n                   ^\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P07",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "3a613a3a0a623a3a633a0a3a3a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 6,
+          "stdoutSha256": "de756504e061aa952740aaf398715507d4f46e961486043dc860bbeb08fde4df",
+          "stdoutHex": "610a62630a0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 6,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "610a622020630a286e756c6c290a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "2020206120202020200a6220202020206320200a2020202020202020200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '610a62630a0a'\n- '2020206120202020200a6220202020206320200a2020202020202020200a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '610a62630a0a'\n- '2020206120202020200a6220202020206320200a2020202020202020200a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P08",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "613a3a0a620a3a3a0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 5,
+          "stdoutSha256": "dd31f7aed6a0d50f3271d4b3317235ffb619038130db1ef5f4c3b7b2c0fb9216",
+          "stdoutHex": "610a620a0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 5,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "610a620a286e756c6c290a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "61202020200a62202020200a20202020200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '610a620a0a'\n- '61202020200a62202020200a20202020200a'\n     ^\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '610a620a0a'\n- '61202020200a62202020200a20202020200a'\n     ^\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P09",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":",
+            "-o",
+            ""
+          ],
+          "limits": {},
+          "inputHex": "613acc813acc800a620a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 8,
+          "stdoutSha256": "d253dac5919340a6fdb92a6546b739633488fec1436e41b99e96447a8029d964",
+          "stdoutHex": "61cc81cc800a620a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 6,
+          "maxWriteBytes": 2,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "",
+          "rawStderrHex": "2f7573722f62696e2f636f6c756d6e3a20696c6c6567616c206f7074696f6e202d2d206f0a75736167653a20636f6c756d6e205b2d74785d205b2d6320636f6c756d6e735d205b2d73207365705d205b66696c65202e2e2e5d0a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "61cc81cc800a620a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P10",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ":"
+          ],
+          "limits": {},
+          "inputHex": "e7958c3a65cc813af09f98800a610a62623ae4b8ad0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 19,
+          "stdoutSha256": "b5faf4a3b5a31a594c00482539eb8dae00a603a679940c808778b0f43a208dcb",
+          "stdoutHex": "e7958c65cc81f09f98800a610a6262e4b8ad0a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 9,
+          "maxWriteBytes": 4,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "e7958c202065cc81202020f09f98800a610a62622020e4b8ad0a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'e7958c65cc81f09f98800a610a6262e4b8ad0a'\n- 'e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'e7958c65cc81f09f98800a610a6262e4b8ad0a'\n- 'e7958c202065cc81202020f09f98800a61202020202020200a62622020e4b8ad20200a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P11",
+      "observations": [
+        {
+          "argv": [
+            "-t"
+          ],
+          "limits": {},
+          "inputHex": "20090a7a20390a616c7068612031207461696c0a62203232",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 18,
+          "stdoutSha256": "d111bc3ccd3103162afd5d01e8bf64ffdb93915f7930c184368495aa4b5b6458",
+          "stdoutHex": "7a390a616c706861317461696c0a6232320a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 10,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 1,
+          "rawStdoutHex": "7a202020202020390a616c70686120203120207461696c0a",
+          "rawStderrHex": "636f6c756d6e3a206c696e6520746f6f206c6f6e670a",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '7a390a616c706861317461696c0a6232320a'\n- '7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '7a390a616c706861317461696c0a6232320a'\n- '7a202020202020392020200a616c7068612020312020207461696c0a62202020202020323220200a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P12",
+      "observations": [
+        {
+          "argv": [],
+          "limits": {},
+          "inputHex": "7a0a610a710a620a790a630a780a640a770a650a760a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 22,
+          "stdoutSha256": "3679a97eef65bc2fd878a62b44573380d2ae01b929b6fe66759475e8f893fb65",
+          "stdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 22,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a097109790978097709760a6109620963096409650a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P13",
+      "observations": [
+        {
+          "argv": [
+            "-x",
+            "-c",
+            "24"
+          ],
+          "limits": {},
+          "inputHex": "7a0a610a710a620a790a630a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 14,
+          "stdoutSha256": "34aee529fb0645b92b032a3ab58cc596e5b278388c2d257cdd614ff96bead1af",
+          "stdoutHex": "7a096109710a62097909630a780a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096109710a62097909630a780a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096109710a62097909630a780a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P14",
+      "observations": [
+        {
+          "argv": [
+            "-c",
+            "24"
+          ],
+          "limits": {},
+          "inputHex": "7a0a610a710a620a790a630a780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 14,
+          "stdoutSha256": "93a277000a0914cd2118dcec53b56b36e794909ee0048b4f678ef7c33d91f9f9",
+          "stdoutHex": "7a096209780a6109790a7109630a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 14,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096209780a6109790a7109630a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "7a096209780a6109790a7109630a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P15",
+      "observations": [
+        {
+          "argv": [
+            "-x",
+            "-c",
+            "1"
+          ],
+          "limits": {},
+          "inputHex": "616c7068610a620a630a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 10,
+          "stdoutSha256": "094aa0d67546bf307476d368523c8c5d3381e69ba349aa67f5d54520f8d233f5",
+          "stdoutHex": "616c7068610a620a630a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 6,
+          "maxWriteBytes": 5,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "pass",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "616c7068610a620a630a",
+          "rawStderrHex": "",
+          "equal": true
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "616c7068610a620a630a",
+          "rawStderrHex": "",
+          "equal": true
+        }
+      ]
+    },
+    {
+      "name": "P16",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-c",
+            "1"
+          ],
+          "limits": {},
+          "inputHex": "612062622063636320646464640a7a0a6c6f6e6720780a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 19,
+          "stdoutSha256": "0bd06a35b3c0ac1a6cd7d1c980aca94f256ed266b2bec46aee0a9e7b8513beec",
+          "stdoutHex": "616262636363646464640a7a0a6c6f6e67780a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 10,
+          "maxWriteBytes": 4,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a0a6c6f6e672020780a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '616262636363646464640a7a0a6c6f6e67780a'\n- '612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '616262636363646464640a7a0a6c6f6e67780a'\n- '612020202020626220206363632020646464640a7a20202020202020202020202020200a6c6f6e6720207820202020202020200a'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    },
+    {
+      "name": "P17",
+      "observations": [
+        {
+          "argv": [
+            "-t",
+            "-s",
+            ",界"
+          ],
+          "limits": {},
+          "inputHex": "61e7958c622c630a64e7958ce7958c652c0a",
+          "status": 0,
+          "rejection": null,
+          "stdoutBytes": 7,
+          "stdoutSha256": "d09b944c90fb5449a7fb3cb629b03481e0031ff6986b5488af0121f6f345c6c8",
+          "stdoutHex": "6162630a64650a",
+          "retainedPrefixHex": null,
+          "captureMode": "exact-bytes",
+          "stderrHex": "",
+          "writes": 7,
+          "maxWriteBytes": 1,
+          "pulls": 2,
+          "registeredCleanupCount": 0,
+          "effects": {}
+        }
+      ],
+      "verdict": "fail",
+      "nativeProfiles": [
+        {
+          "profile": "bsd-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "612020622020630a642020650a",
+          "rawStderrHex": "",
+          "equal": false
+        },
+        {
+          "profile": "util-linux-2.41.2-darwin",
+          "rawStatus": 0,
+          "rawStdoutHex": "6120206220206320200a6420202020206520200a",
+          "rawStderrHex": "",
+          "equal": false
+        }
+      ],
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '6162630a64650a'\n- '6120206220206320200a6420202020206520200a'\n     ^\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '6162630a64650a'\n- '6120206220206320200a6420202020206520200a'\n     ^\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:115:100\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:39:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/padding-evolution/execution-20260827/cases.mjs:112:70"
+      }
+    }
+  ],
+  "unhandled": [],
+  "work": {
+    "calls": 1052,
+    "units": 1328
+  },
+  "counts": {
+    "total": 17,
+    "pass": 5,
+    "fail": 12
+  }
+}

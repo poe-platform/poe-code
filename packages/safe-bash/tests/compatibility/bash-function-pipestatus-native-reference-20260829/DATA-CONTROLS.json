@@ -1,0 +1,50 @@
+{
+  "status": "PREPARATION_DATA_ONLY",
+  "count": 8,
+  "results": [
+    {
+      "id": "DATA01",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA02",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA03",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA04",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA05",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA06",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA07",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    },
+    {
+      "id": "DATA08",
+      "role": "DATA_ONLY_NO_TARGET_IMPORT",
+      "result": "PASS"
+    }
+  ],
+  "newExecutorControls": "D01-D12 UNRUN",
+  "nativeStarts": 0,
+  "targetImports": 0,
+  "fixtureChildren": 0
+}

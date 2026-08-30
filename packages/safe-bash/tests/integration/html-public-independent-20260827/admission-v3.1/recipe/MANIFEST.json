@@ -1,0 +1,44 @@
+{
+  "schema": "html-admission-v3.1-recipe/1",
+  "authorityDate": "2026-08-27",
+  "controls": [
+    "positive",
+    "producer-exit7",
+    "consumer-failure",
+    "timeout",
+    "allocation-mutant"
+  ],
+  "syntheticDeclared": 28,
+  "syntheticAcceptances": 2,
+  "syntheticRejections": 26,
+  "baseRecipeCommit": "eb56ed1eff6e7061aa219fb4877bc2382cf15a27",
+  "baseManifestSha256": "35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+  "producerSha256": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+  "files": {
+    "AMENDMENT.json": "8eeae2c05fd39ce4332ed728340657b463757225f5b6d3e0731a9c45da99116e",
+    "PIN.json": "10a7426689ce09863e1db949826b9b7f3b7872ecc43cd0b9d173187cc4487c69",
+    "RECIPE.data": "a175bcabd14f51a50196e1e1ca3029264fd5edc9daa2479dd4337172eb4075cd",
+    "STATIC-CHECKS.json": "09d97bcb18055caa03b57ac69a24a629b106c706b6a73a48ae15af4dddf67c35",
+    "STATIC-FINAL.json": "702871e46da2a066047b24f93e05b78bd0c9aa5742b39e9c672bfbb3029838ac",
+    "STATIC-MISTAKE-01.json": "dd2653ee5212b20a9a68d7ef22c67721fd5c9a297ef0c3d0e8bbc19d5298720a",
+    "SYNTHETIC-CASES.json": "9031bea4a7bcb6a06866b378c71b55042a22d86a933ab8217aa6a545169169bd",
+    "authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+    "consumer-observation.mjs": "bf45931f2e5b6ad7d5b90140444fadc010f3df58dfc6805fbb34a078ba51e977",
+    "coordinator.mjs": "ea67c3b73e5af666c660a0d8bb76ac8a02bfd59b35d2d4eb17d35bfda91988ff",
+    "core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+    "producer-observer.mjs": "5394054ac87d331a327ef31a3e57fc3c00dd3213b69438f4160c269e734c3ca0",
+    "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+    "synthetic-controls.mjs": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202",
+    "telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+    "terminal-predicate.mjs": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf",
+    "worker.mjs": "7cbf5454c97b20033515147934eff2b2e57e4e711612806fc9b81a1358449eb0"
+  },
+  "coveredFiles": 17,
+  "filesIncludingManifest": 18,
+  "controlExecutionsBeforeFreeze": 0,
+  "staticMistakes": [
+    "STATIC-MISTAKE-01.json"
+  ],
+  "scope": "Consumer-failure terminal amendment only; actual HTML34 and all archive/materializer/build/pack gates HELD"
+}

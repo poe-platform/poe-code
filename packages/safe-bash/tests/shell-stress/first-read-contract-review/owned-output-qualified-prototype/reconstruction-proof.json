@@ -1,0 +1,102 @@
+{
+  "completedAt": "2026-08-27T12:30:03.198Z",
+  "task": "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4",
+  "sourceProfileSha256": "dde465c6636625f7802f5ead10bbeb236f62c271d8a078459a5c8bb120de1ce2",
+  "sourceManifestSha256": "6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea",
+  "testManifestSha256": "dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c",
+  "compiledManifestSha256": "2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f",
+  "sourceFallback": false,
+  "rebuilt": false,
+  "qualifier": "Exact source/tests/config/compiled archive restoration. Original copied build/typecheck evidence remains separate; no live build or independent acceptance claimed.",
+  "restored": [
+    {
+      "name": "original-preoperation",
+      "base": "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4/original-preoperation",
+      "filesMatched": 931,
+      "archiveSha256": "2a48639c4a838622483abd7d98ed39126e37176fe2a4712eeb10442244f3c73c",
+      "readonly": true
+    },
+    {
+      "name": "current-capture",
+      "base": "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4/current-capture",
+      "filesMatched": 925,
+      "archiveSha256": "69f61616cc590a7da0e80cadce5342a36debb5a0b1b6ce1cd3b1414eb04de208",
+      "readonly": true
+    },
+    {
+      "name": "candidate",
+      "base": "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4/candidate",
+      "filesMatched": 940,
+      "archiveSha256": "a3b9aa6fcb4596e8281de2c30943b98baa01449941c8368401d1172bce95d420",
+      "readonly": true
+    }
+  ],
+  "children": [
+    {
+      "pid": 45065,
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/original-preoperation.tar.gz.data"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "pid": 45066,
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/original-preoperation.tar.gz.data",
+        "-C",
+        "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4/original-preoperation"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "pid": 45067,
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/current-capture.tar.gz.data"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "pid": 45068,
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/current-capture.tar.gz.data",
+        "-C",
+        "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4/current-capture"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "pid": 45081,
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/candidate.tar.gz.data"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    },
+    {
+      "pid": 45082,
+      "args": [
+        "-xzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-qualified-prototype/candidate.tar.gz.data",
+        "-C",
+        "/tmp/safe-bash-owned-output-qualified-prototype-restore-lG2sI4/candidate"
+      ],
+      "status": 0,
+      "signal": null,
+      "reaped": true
+    }
+  ]
+}

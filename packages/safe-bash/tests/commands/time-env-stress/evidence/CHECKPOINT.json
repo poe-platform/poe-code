@@ -1,0 +1,811 @@
+{
+  "source": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+  "createdAt": "2026-08-27T08:04:27.711Z",
+  "sourceAcceptance": {
+    "date": false,
+    "sleep": false,
+    "printenv": "scoped GNU-profile/own-key checks only"
+  },
+  "publicDefaultIntegration": false,
+  "wholeProductAcceptance": false,
+  "captures": [
+    {
+      "label": "attempt1",
+      "startedAt": "2026-08-27T07:57:12.636Z",
+      "finishedAt": "2026-08-27T07:57:22.909Z",
+      "total": 288,
+      "pass": 278,
+      "fail": 10,
+      "statuses": {
+        "unchanged-author": 0,
+        "author-types": 0,
+        "build": 0,
+        "consumer-types": 2,
+        "independent": 1,
+        "negative-types": 2
+      },
+      "summary": {
+        "public-api": {
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        "GNU9.7-Darwin-required-date": {
+          "total": 229,
+          "pass": 223,
+          "fail": 6
+        },
+        "required-date-errors": {
+          "total": 8,
+          "pass": 8,
+          "fail": 0
+        },
+        "required-declared-rejection": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "clock": {
+          "total": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        "clock-vfs": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-printenv": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "printenv-own-keys": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "sleep-arithmetic": {
+          "total": 6,
+          "pass": 4,
+          "fail": 2
+        },
+        "sleep-lifecycle": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-sleep": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "declared-unsupported-profile": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "Apple-BSD-qualified-date": {
+          "total": 3,
+          "pass": 3,
+          "fail": 0
+        },
+        "Apple-BSD-qualified": {
+          "total": 2,
+          "pass": 1,
+          "fail": 1
+        },
+        "public-shell": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "public-sleep-lifecycle": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "limits-output": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "host-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "attempt2",
+      "startedAt": "2026-08-27T07:59:25.028Z",
+      "finishedAt": "2026-08-27T07:59:35.151Z",
+      "total": 305,
+      "pass": 295,
+      "fail": 10,
+      "statuses": {
+        "unchanged-author": 0,
+        "author-types": 0,
+        "build": 0,
+        "consumer-types": 0,
+        "independent": 1,
+        "negative-types": 2
+      },
+      "summary": {
+        "public-api": {
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        "GNU9.7-Darwin-required-date": {
+          "total": 239,
+          "pass": 233,
+          "fail": 6
+        },
+        "required-date-errors": {
+          "total": 8,
+          "pass": 8,
+          "fail": 0
+        },
+        "required-declared-rejection": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "clock": {
+          "total": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        "clock-vfs": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-printenv": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "printenv-own-keys": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "sleep-arithmetic": {
+          "total": 6,
+          "pass": 4,
+          "fail": 2
+        },
+        "sleep-lifecycle": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-sleep": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "declared-unsupported-profile": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "Apple-BSD-qualified-date": {
+          "total": 3,
+          "pass": 3,
+          "fail": 0
+        },
+        "Apple-BSD-observed-not-target": {
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        "Apple-BSD-qualified": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "public-shell": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "public-sleep-lifecycle": {
+          "total": 7,
+          "pass": 7,
+          "fail": 0
+        },
+        "public-sleep-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "limits-output": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "host-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "label": "final",
+      "startedAt": "2026-08-27T08:00:54.837Z",
+      "finishedAt": "2026-08-27T08:01:05.722Z",
+      "total": 305,
+      "pass": 296,
+      "fail": 9,
+      "statuses": {
+        "unchanged-author": 0,
+        "author-types": 0,
+        "build": 0,
+        "consumer-types": 0,
+        "independent": 1,
+        "negative-types": 2
+      },
+      "summary": {
+        "public-api": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-required-date": {
+          "total": 239,
+          "pass": 233,
+          "fail": 6
+        },
+        "required-date-errors": {
+          "total": 8,
+          "pass": 8,
+          "fail": 0
+        },
+        "required-declared-rejection": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "clock": {
+          "total": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        "clock-vfs": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-printenv": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "printenv-own-keys": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "sleep-arithmetic": {
+          "total": 6,
+          "pass": 4,
+          "fail": 2
+        },
+        "sleep-lifecycle": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "GNU9.7-Darwin-sleep": {
+          "total": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "declared-unsupported-profile": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "Apple-BSD-qualified-date": {
+          "total": 3,
+          "pass": 3,
+          "fail": 0
+        },
+        "Apple-BSD-observed-not-target": {
+          "total": 1,
+          "pass": 0,
+          "fail": 1
+        },
+        "Apple-BSD-qualified": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "public-shell": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "public-sleep-lifecycle": {
+          "total": 7,
+          "pass": 7,
+          "fail": 0
+        },
+        "public-sleep-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "limits-output": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "host-isolation": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      }
+    }
+  ],
+  "reviewerInputs": {
+    "run.mjs": "41c76487bb5673d1b6483b190751d9c7759931ab8b96ecfbf7c5ce54a53330c6",
+    "guard.mjs": "6513e46e3de7e012d0f192b3490084724ac1169fc233f9051c127d8f4852b12b",
+    "consumer.mts": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+    "seal.mjs": "43b0ece789381d1ddf4ef41f7454490d689906976fd58ccab20c7ac22d98a400",
+    "EARLY_FINDINGS.md": "9917c6fc91670260ccc323c97be28f0d87acea49e16ae4b8f784680f4682f1a6"
+  },
+  "productFailures": [
+    {
+      "name": "flag %12F",
+      "category": "GNU9.7-Darwin-required-date",
+      "args": [
+        "-d@1704164645.123456789",
+        "+%12F"
+      ],
+      "env": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "3030323032342d30312d30320a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2020323032342d30312d30320a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2020323032342d30312d30320a'\n-   stdoutHex: '3030323032342d30312d30320a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2020323032342d30312d30320a'\n-   stdoutHex: '3030323032342d30312d30320a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:65:69)"
+      }
+    },
+    {
+      "name": "flag %#c",
+      "category": "GNU9.7-Darwin-required-date",
+      "args": [
+        "-d@1704164645.123456789",
+        "+%#c"
+      ],
+      "env": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "547565204a616e2020322030333a30343a303520323032340a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "545545204a414e2020322030333a30343a303520323032340a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '545545204a414e2020322030333a30343a303520323032340a'\n-   stdoutHex: '547565204a616e2020322030333a30343a303520323032340a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '545545204a414e2020322030333a30343a303520323032340a'\n-   stdoutHex: '547565204a616e2020322030333a30343a303520323032340a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:65:69)"
+      }
+    },
+    {
+      "name": "flag %-z",
+      "category": "GNU9.7-Darwin-required-date",
+      "args": [
+        "-d@1704164645.123456789",
+        "+%-z"
+      ],
+      "env": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2b300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2b303030300a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2b300a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:65:69)"
+      }
+    },
+    {
+      "name": "flag %_z",
+      "category": "GNU9.7-Darwin-required-date",
+      "args": [
+        "-d@1704164645.123456789",
+        "+%_z"
+      ],
+      "env": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2020202b300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2b303030300a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2020202b300a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '2b303030300a'\n-   stdoutHex: '2020202b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:65:69)"
+      }
+    },
+    {
+      "name": "flag %_12z",
+      "category": "GNU9.7-Darwin-required-date",
+      "args": [
+        "-d@1704164645.123456789",
+        "+%_12z"
+      ],
+      "env": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "202020202020202020202b300a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "202020202020202b303030300a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '202020202020202b303030300a'\n-   stdoutHex: '202020202020202020202b300a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '202020202020202b303030300a'\n-   stdoutHex: '202020202020202020202b300a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:65:69)"
+      }
+    },
+    {
+      "name": "flag %^P",
+      "category": "GNU9.7-Darwin-required-date",
+      "args": [
+        "-d@1704164645.123456789",
+        "+%^P"
+      ],
+      "env": {},
+      "expected": {
+        "status": 0,
+        "stdoutHex": "616d0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "414d0a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '414d0a'\n-   stdoutHex: '616d0a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '414d0a'\n-   stdoutHex: '616d0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:43:12)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async differential (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:38:3)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:65:69)"
+      }
+    },
+    {
+      "name": "sleep exact total 0.0009999999 0.0000000001",
+      "category": "sleep-arithmetic",
+      "delays": [
+        2
+      ],
+      "expectedMilliseconds": 1,
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n2 !== 1\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:147:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:142:13)"
+      }
+    },
+    {
+      "name": "sleep exact total 0.0004999999 0.0005000001",
+      "category": "sleep-arithmetic",
+      "delays": [
+        2
+      ],
+      "expectedMilliseconds": 1,
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n2 !== 1\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 1\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:147:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:142:13)"
+      }
+    }
+  ],
+  "profileDisagreements": [
+    {
+      "name": "Apple BSD printenv separate profile",
+      "category": "Apple-BSD-observed-not-target",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "0ae99baa0a",
+        "stderrHex": ""
+      },
+      "result": "fail",
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    status: 0,\n    stderrHex: '',\n+   stdoutHex: '0ae99baa0a'\n-   stdoutHex: '0a'\n  }\n\n    at <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:181:10)\n    at async row (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:32:9)\n    at async <anonymous> (/private/tmp/safe-bash-time-env-independent-GHBIOj/consumer.mts:176:43)"
+      }
+    }
+  ],
+  "actualFrozenRegistry": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "comm",
+    "cp",
+    "cut",
+    "diff",
+    "dirname",
+    "echo",
+    "env",
+    "expand",
+    "false",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "sourceHashes": {
+    "src/commands/time-env/calendar.ts": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+    "src/commands/time-env/date.ts": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+    "src/commands/time-env/format.ts": "742160b2a241aeabae58f7b198b901ae109b9806dc75b176fbfb1a77594e70fd",
+    "src/commands/time-env/index.ts": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+    "src/commands/time-env/printenv.ts": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+    "src/commands/time-env/README.md": "5988969d14e93fb5cf00668f51320f8bf1b8aa646489ddaa5050bd5f4b966d00",
+    "src/commands/time-env/shared.ts": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+    "src/commands/time-env/sleep.ts": "130fa7b2e9f2d838b8908d47f89a61b67964ed3b36ed3f42d23624898fe4aed1"
+  },
+  "archiveSha256": "bb0cb4d96ef8bea502b4a298299a7f039da5e5e190970d12d4208d84de25a47f",
+  "versions": {
+    "node": "22.22.2",
+    "acorn": "8.15.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.5",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.3.0",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.1",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.64.0",
+    "openssl": "3.5.5",
+    "simdjson": "4.2.4",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.2",
+    "tz": "2025c",
+    "undici": "6.24.1",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.39",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "native": {
+    "date": {
+      "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+      "version": "date (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n"
+    },
+    "sleep": {
+      "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+      "version": "sleep (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Paul Eggert.\n"
+    },
+    "printenv": {
+      "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+      "version": "printenv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Richard Mlynarik.\n"
+    },
+    "/bin/date": {
+      "sha256": "9964fccef703f02120a04a06f6349b82057697617e025d05a9c93bb10799f0a3"
+    },
+    "/bin/sleep": {
+      "sha256": "00c84d198e2b80da7dc47c0e30d311cd632f74c257793c4b45723f2cb7ca5d2c"
+    },
+    "/usr/bin/printenv": {
+      "sha256": "1146eee6351e08f609d8a0b69aca0bd601223a932c9e00ef56a7b392c4df0331"
+    }
+  },
+  "publicSleep": [
+    {
+      "name": "compiled public sleep cancellation repeat0",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat1",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat2",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat3",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat4",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat5",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "public preabort creates no timer and preserves caller identity",
+      "category": "public-sleep-lifecycle",
+      "result": "pass"
+    },
+    {
+      "name": "cancelling one Shell does not clear a sibling timer",
+      "category": "public-sleep-isolation",
+      "siblingTimers": 1,
+      "result": "pass"
+    }
+  ]
+}

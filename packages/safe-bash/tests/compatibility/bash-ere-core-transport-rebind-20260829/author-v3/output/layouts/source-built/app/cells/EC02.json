@@ -1,0 +1,361 @@
+{
+  "definition": {
+    "id": "EC02",
+    "script": "bad='('; [[ ! x =~ $bad ]]",
+    "predictedStatus": 0,
+    "status": "UNRUN",
+    "qualification": "SOURCE control-flow expectation; no native diagnostic golden; EC19 structural parse question",
+    "state": "UNRUN",
+    "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+    "workerStartsMaximum": 1,
+    "route": "script",
+    "expected": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": {
+        "observedCategory": "visited invalid ERE only; literal visit-count below"
+      }
+    },
+    "invalidVisits": 1
+  },
+  "modulePath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/index.js",
+  "worker": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.js",
+    "size": 1542,
+    "mode": 420,
+    "sha256": "4bf935cd0195cb94a86cd63f861d82ac2808a2df0d7b0a3cee60f0df94aaa261",
+    "optionKeys": [
+      "workerData",
+      "env",
+      "execArgv",
+      "stdout",
+      "stderr",
+      "resourceLimits"
+    ],
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 128,
+      "stackSizeMb": 4
+    },
+    "closure": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/errors.d.ts",
+        "size": 727,
+        "mode": 420,
+        "sha256": "1c70fc199aa3864d9e32126390d483f78a1e06b4c00b2a168ed00efb29628a69"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/errors.d.ts.map",
+        "size": 692,
+        "mode": 420,
+        "sha256": "17bb108ef309b6a0d03b5e4812a68c614196b1d1d1c700a6493fdf61b0491dd1"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/errors.js",
+        "size": 1079,
+        "mode": 420,
+        "sha256": "4e873952a3a73ae8241e537aeec1c85f07d77cf0608e89052303b4870e49253d"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/errors.js.map",
+        "size": 1029,
+        "mode": 420,
+        "sha256": "9614011e1ed05228cc9ec8b50532e58739907b310910b5a47bea66cf3d0e2a76"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/limits.d.ts",
+        "size": 707,
+        "mode": 420,
+        "sha256": "2bfcf80593e92b052a13512d5e42f06d27ead309396cd182cc56a9dc1f7cf7ee"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/limits.d.ts.map",
+        "size": 758,
+        "mode": 420,
+        "sha256": "4a3bc2ada849ad6b3f129e83e3bc7ceedf850f5166485cb8aead4fd430954143"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/limits.js",
+        "size": 3299,
+        "mode": 420,
+        "sha256": "b2a459c51289cf533fb9106c08dc24bf3932cddce0d40d4a160ac01cdb8d5da9"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/limits.js.map",
+        "size": 3665,
+        "mode": 420,
+        "sha256": "1901dc5a06d1931503ed8ca10d7b538cd2c50ddae4660e7e44e0bf56d12b7ea1"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/matcher.d.ts",
+        "size": 268,
+        "mode": 420,
+        "sha256": "66455438cadcdd60b4c6d1c57385a1e3f34f4a115f1d9dc48afa77d3c309dbe3"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/matcher.d.ts.map",
+        "size": 377,
+        "mode": 420,
+        "sha256": "ee2139d056109a925a2e13640df6617acab08276b045a0badfcc6c9c0a7c86f4"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/matcher.js",
+        "size": 9782,
+        "mode": 420,
+        "sha256": "cbf96f19e2a2b9ef6399af8a423c893dd1785a21153c213f41096490eb25c63a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/matcher.js.map",
+        "size": 11263,
+        "mode": 420,
+        "sha256": "fc7ad65c4b2fdf2434f2bb09589aeb0b0bef549c17c68b47aabe622f98c3b7c3"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/syntax.d.ts",
+        "size": 481,
+        "mode": 420,
+        "sha256": "53fd457a78706242ea00d332655c3c68a3cff3f7eb1047cc6168034690655410"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/syntax.d.ts.map",
+        "size": 573,
+        "mode": 420,
+        "sha256": "3567cc99e0620efe6deb6441c097f0e4dd66c61e613022f7d1032fdbed5fd8ca"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/syntax.js",
+        "size": 14304,
+        "mode": 420,
+        "sha256": "4a4f12d3584eba1d06f6b4c0dc66607bf61a2f19c1d2171b1fbf834a3116f0b1"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/syntax.js.map",
+        "size": 16575,
+        "mode": 420,
+        "sha256": "270dec45a34385c2bad6895796fab92b1797f2be30b4c16fd7a9bb802856d828"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.d.ts",
+        "size": 1965,
+        "mode": 420,
+        "sha256": "ed123952e01467c4939194cc1c52984a55991437104e738f13c1bf7731f22e07"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.d.ts.map",
+        "size": 1806,
+        "mode": 420,
+        "sha256": "e47807969fb8884549949aad46467869828af4eb628ce670be62c3c81823173a"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.js",
+        "size": 7041,
+        "mode": 420,
+        "sha256": "61ee964e6be5548616a105e4149f1a4afb1b9957b389dde8c6d6cdb977e7a005"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.js.map",
+        "size": 7655,
+        "mode": 420,
+        "sha256": "290565cf01be2a1fe954b049c14a1419f1f4b306956dd67a6a3814ea3a568a59"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/owner.d.ts",
+        "size": 693,
+        "mode": 420,
+        "sha256": "0da64ca3c5718c521aac19995acf28875bcaf38287bec34c8b4e57d6252ddda6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/owner.d.ts.map",
+        "size": 721,
+        "mode": 420,
+        "sha256": "85e850df71655867d523406f757c874855a434db7a1f7c1d812e3e0d40bd8209"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/owner.js",
+        "size": 9930,
+        "mode": 420,
+        "sha256": "78292898f3536ccaaeebb79c229b3984c0cfa0bdad5c216e50d781c07eb654af"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/owner.js.map",
+        "size": 9409,
+        "mode": 420,
+        "sha256": "0cc7f16d39b50c4b377244e81b0b9ae77eaa89901ac87b62d7ffbdf3231d5ca4"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/protocol.d.ts",
+        "size": 2696,
+        "mode": 420,
+        "sha256": "c67c427afd248dd681cde4535f438bca81d16d0c1f3dd54664d0b93f1d3f481f"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/protocol.d.ts.map",
+        "size": 2659,
+        "mode": 420,
+        "sha256": "45a6946b7cd08bf0e061245a82144a1a570d11f44a25f924519bb7fb24f19652"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/protocol.js",
+        "size": 1234,
+        "mode": 420,
+        "sha256": "07e51800aa83237e8e7de8aa5f59bd36c9ad418e6ea8016d934662cb301f80f6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/protocol.js.map",
+        "size": 1223,
+        "mode": 420,
+        "sha256": "a3db190da428c2aaa9f9c65e2f054eb9b14f6d87b41372abd8f7d244b601cd76"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/root.d.ts",
+        "size": 679,
+        "mode": 420,
+        "sha256": "10282c9c472b87b89d6ae5d62f754acaf1ea0e1b5bc8332f78076d72fac623a4"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/root.d.ts.map",
+        "size": 648,
+        "mode": 420,
+        "sha256": "cfe9cb6583758f1bb07156920f90d633e8bc42db14137f68effbf869432c6413"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/root.js",
+        "size": 14651,
+        "mode": 420,
+        "sha256": "2bacc6d8d6fe8d3be5c71060badaa97449ac66b0bee31e2df4b48c0a597181a8"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/root.js.map",
+        "size": 14712,
+        "mode": 420,
+        "sha256": "61d9eb41c556120256302e0c21147595abc0c6efdba4ab4e32caf8d0321fe213"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/validation.d.ts",
+        "size": 1502,
+        "mode": 420,
+        "sha256": "0473b4b5bdb700e972a05896f7132bcc41e8dbfb8c0bdef5de8408f8d8179505"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/validation.d.ts.map",
+        "size": 1493,
+        "mode": 420,
+        "sha256": "07f60fbd9fd6d4daf36d95194fa8fb67de61c461c3dd663027c5aa6640978617"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/validation.js",
+        "size": 12869,
+        "mode": 420,
+        "sha256": "e8085470966d7b3089d610656e6a0e29ce5c9c6fec9de84a467c8f7780f06ce6"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/validation.js.map",
+        "size": 14967,
+        "mode": 420,
+        "sha256": "c8029f1c6f21b547d9ce5a8fedecc2f8b0e60a5eb24a434f78e779a308751dde"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/wire-engine.d.ts",
+        "size": 205,
+        "mode": 420,
+        "sha256": "6d3b46426cbdbc8c8df3f52d304d03c74c6f4025d20446f6464eae8f3e8438ce"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/wire-engine.d.ts.map",
+        "size": 302,
+        "mode": 420,
+        "sha256": "95da688738929bb0e564368038002a0eeae1c98d9fefdbb9a3719b3b1161956e"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/wire-engine.js",
+        "size": 2553,
+        "mode": 420,
+        "sha256": "b4c89719e38c5f3f9afb3a2ed17163dbdb6a948d33e483ea043faf8e1ca8e1d1"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/wire-engine.js.map",
+        "size": 2803,
+        "mode": 420,
+        "sha256": "b7d520bc6aa641f7e423b2edb35d1eb4b21f4f86b56a9cc73c894718f9ea5819"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.d.ts",
+        "size": 53,
+        "mode": 420,
+        "sha256": "57f60909631a717817c55363296d4d5243b577870af92bcc080a4bfda7d8adea"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.d.ts.map",
+        "size": 169,
+        "mode": 420,
+        "sha256": "434b49e49a6f41199f93203277ec576988424a37103f5393a908805e76377147"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.js",
+        "size": 1542,
+        "mode": 420,
+        "sha256": "4bf935cd0195cb94a86cd63f861d82ac2808a2df0d7b0a3cee60f0df94aaa261"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.js.map",
+        "size": 1889,
+        "mode": 420,
+        "sha256": "ed9aabaffdf410aba4110511f541433c8ffd75282003f056b99023c559c1dfc7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/types.d.ts",
+        "size": 1641,
+        "mode": 420,
+        "sha256": "7e5dfef6fc2ce024751b95c0b388c565d8f0c77ef7fa014f53958277e97672c9"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/types.d.ts.map",
+        "size": 1915,
+        "mode": 420,
+        "sha256": "74592c1f9e1dacb8c4779bc0eadd67697c498a23d8feb42406785151da938a47"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/types.js",
+        "size": 44,
+        "mode": 420,
+        "sha256": "01ae2a5b120382f9a648ced7ee8507493a134f216d100fc61600c6c9738235d2"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/commands/regex-execution/ere/types.js.map",
+        "size": 140,
+        "mode": 420,
+        "sha256": "cd0e7d57975079c458f0205f743e5abe49ec9f322d33589868ea8cb38ce4e48c"
+      }
+    ],
+    "roles": [
+      {
+        "name": "stock",
+        "file": null
+      }
+    ]
+  },
+  "arrayModules": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/shell/arrays/ledger.js",
+      "size": 9152,
+      "mode": 420,
+      "sha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/package/dist/shell/arrays/bindings.js",
+      "size": 10249,
+      "mode": 420,
+      "sha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484"
+    }
+  ],
+  "limits": {
+    "maxOutputBytes": 65536,
+    "maxCommands": 500,
+    "maxLoopIterations": 1000,
+    "maxSubstitutionDepth": 16,
+    "maxSourceBytes": 65536,
+    "maxExpansionFields": 16384,
+    "maxExpansionBytes": 1048576,
+    "pipeHighWaterMark": 65536
+  },
+  "deniedFile": "/private/tmp/safe-bash-core70-v4-20260829/move-origin/app/forbidden-origin.js"
+}

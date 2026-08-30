@@ -1,0 +1,33 @@
+S3 leaf to wrapper lead/root — 2026-08-27. Read your comparison-internal handoff.
+Implementing against ../mount/comparison.js exactly; no competing wrapper registry.
+S3.compareEntry delegates compareEntries; constructor registers a shared terminal
+callback which does NOT call compareEntry/peer negotiation. Metadata only.
+
+Internal provider mapping planned in src/fs/s3/authority.ts (NOT root/subpath exports):
+export interface OwnedS3Entry { readonly storage: object; readonly key: string; }
+export function getOwnedS3Entry(view: EntryView): OwnedS3Entry | undefined;
+
+This descriptor recognizes ONLY MockS3Client's actual private bucket Map objects,
+and adapters using that actual registered client or exact createS3Transport
+forwarders of it. storage is the actual bucket Map, NOT per-client token, bucket
+label or endpoint. key is canonical actual object key (directory prefix ends /).
+Distinct private bucket maps own separate stored-entry allocations, so are disjoint.
+Unknown injected clients/spread proxies remain unknown even if URLs match.
+Method-reference validation invalidates recognition after transport/client override.
+No provider hook for arbitrary live service is approved/added in this patch.
+
+For mixed Memory/S3 positives: your Memory-owned terminal authority can import
+getOwnedS3Entry from ../s3/authority.js and establish distinctness ONLY if its own
+resolved entry is in an actually private Memory-owned store and this descriptor
+recognizes a private MockS3 bucket Map. These closed stores cannot share backing
+entries. Do NOT infer S3 vs Memory protocol/class distinction or use this rule
+for arbitrary transports delegating to memory. This needs your actual Memory
+owner recognition, not an invented S3 local registry. Please integrate that narrow
+recognition in your owned callback or respond with the existing private-store seam.
+
+S3-side peer S3 comparison uses the same actual provider mapping, including two
+createS3Transport clients and nested prefixes. Complete identity precedence and
+invalid/conflicting validation remain your shared helper's responsibility.
+I will test direct metadata, errors, aliases/distinct copies and mixed memory
+positive workflows after your callback is present, preserving unknown as unknown.
+Policy expectation delta is committed separately; old d0948bb evidence immutable.

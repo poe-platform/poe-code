@@ -1,0 +1,187 @@
+{
+  "schema": "l02-repair-harmless-controls-preseal-v1",
+  "history": {
+    "originalWorker": "345b9851f00e77ba520014b36567259440fd4ed0",
+    "parentOnlyProbe": "4d7f8531dc72a8006e9f8548cddbf0a181595621"
+  },
+  "authority": "23 harmless DATA/synthetic controls; no original probe or Worker rerun",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "modules": [
+    {
+      "path": "candidate/errors.mjs",
+      "bytes": 2278,
+      "sha256": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+      "edges": [
+        {
+          "specifier": "./wire.mjs",
+          "target": "candidate/wire.mjs"
+        }
+      ]
+    },
+    {
+      "path": "candidate/parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b",
+      "edges": [
+        {
+          "specifier": "./wire.mjs",
+          "target": "candidate/wire.mjs"
+        },
+        {
+          "specifier": "./errors.mjs",
+          "target": "candidate/errors.mjs"
+        }
+      ]
+    },
+    {
+      "path": "candidate/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44",
+      "edges": [
+        {
+          "specifier": "./json-size.mjs",
+          "target": "candidate/json-size.mjs"
+        }
+      ]
+    },
+    {
+      "path": "candidate/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5",
+      "edges": []
+    },
+    {
+      "path": "candidate/reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde",
+      "edges": []
+    },
+    {
+      "path": "observe.mjs",
+      "bytes": 2360,
+      "sha256": "e7a291f776f8249cc316ecbe73de55dcfe538ab196146683d25958073bcc0777",
+      "edges": [
+        {
+          "specifier": "node:util",
+          "target": "node:util"
+        }
+      ]
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 8092,
+      "sha256": "516c1ace42cf55f201d6727409cf47429eed6b2c944a40a50031558083e88c27",
+      "edges": [
+        {
+          "specifier": "./candidate/errors.mjs",
+          "target": "candidate/errors.mjs"
+        },
+        {
+          "specifier": "./candidate/parent-rpc.mjs",
+          "target": "candidate/parent-rpc.mjs"
+        },
+        {
+          "specifier": "./candidate/reservations.mjs",
+          "target": "candidate/reservations.mjs"
+        },
+        {
+          "specifier": "./candidate/wire.mjs",
+          "target": "candidate/wire.mjs"
+        },
+        {
+          "specifier": "./observe.mjs",
+          "target": "observe.mjs"
+        }
+      ]
+    },
+    {
+      "path": "control-entry.mjs",
+      "bytes": 2436,
+      "sha256": "7acc2b36fdbbf4efb4804fa6ad12fee10443713f59bb46b0b4c02cf9edf61bf7",
+      "edges": [
+        {
+          "specifier": "./controls.mjs",
+          "target": "controls.mjs"
+        }
+      ]
+    }
+  ],
+  "hostInputs": [
+    {
+      "path": "launch.mjs",
+      "bytes": 3611,
+      "sha256": "7d544cf6168b883a988aa62d9b4375692074b2d07b417938c772385b0caeeb33"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "bytes": 3125,
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "argv": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/candidate/errors.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/candidate/parent-rpc.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/candidate/wire.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/candidate/json-size.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/candidate/reservations.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/observe.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/controls.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/control-entry.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/PRESEAL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v9-l02-repair/control-entry.mjs"
+  ],
+  "limits": {
+    "rootWallMs": 300000,
+    "childWallMs": 30000,
+    "killGraceMs": 2000,
+    "maximumChildren": 6,
+    "peakOSProcesses": 3,
+    "captureBytes": 1048576,
+    "rootCaptureBytes": 16777216,
+    "rootWorkBytes": 134217728,
+    "moduleBytes": 65536,
+    "moduleRecords": 16,
+    "edgeRecords": 32,
+    "reasonKeys": 16,
+    "reasonFieldBytes": 1024,
+    "receiptBytes": 65536
+  },
+  "expectations": {
+    "strictDescriptorObserverControls": 18,
+    "composedParentRpcControls": 5,
+    "total": 23,
+    "allPassRequired": true,
+    "originalFsErrorRuntimeProbeRuns": 0,
+    "Workers": 0,
+    "guests": 0,
+    "engineLoads": 0,
+    "compilerRuns": 0,
+    "retries": 0
+  },
+  "actualLoadExpected": [
+    "candidate/errors.mjs",
+    "candidate/parent-rpc.mjs",
+    "candidate/wire.mjs",
+    "candidate/json-size.mjs",
+    "candidate/reservations.mjs",
+    "observe.mjs",
+    "controls.mjs"
+  ],
+  "sourceOnly": {
+    "parentRpcUnchanged": true,
+    "FSOperationGate": "unchanged exact parent-rpc source; dynamic synthetic controls R01-R03 exercise true/false/closed gate",
+    "supervisorMissingTerminalReconcile": "unchanged source only; R04 directly calls actual RPC reconcile twice without a terminal; does not execute supervisor"
+  },
+  "observerQualification": "separate parent diagnostic module; not wired into future Worker capsule; no runtime publication guarantee"
+}

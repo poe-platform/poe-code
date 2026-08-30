@@ -1,0 +1,173 @@
+{
+  "schema": "ATTEMPT02_PREPARATION_REPAIR_RESULT",
+  "status": "PREPARATION_QUALIFIED_PENDING_DIFFERENT_REVIEW_AND_FRESH_ACTUAL_GO",
+  "probe": {
+    "presealCommit": "ce47629f43f9e466dccd4cc1e9fcc0cf72aa0918",
+    "sealSha256": "8a22599e56af42e7a48c7da78b88910023074293747351ac007c6ffecc398041",
+    "runnerPid": 28659,
+    "exitCode": 0,
+    "closed": true,
+    "attempts": 1,
+    "processes": 4,
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/probe-01/RECEIPT.json",
+      "bytes": 1584,
+      "mode": 384,
+      "sha256": "85f7297bbea04ad40e0f2ac1aba7a24432db35c90b4f278abc6b8912df641d9f"
+    },
+    "qualification": "One actual host-Node environment probe only; known finite metadata, origin unknown"
+  },
+  "data": {
+    "presealCommit": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+    "sealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+    "runnerPid": 35811,
+    "exitCode": 0,
+    "closed": true,
+    "attempts": 1,
+    "processes": 1,
+    "qualified": 26,
+    "total": 26,
+    "unrun": 0,
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/DATA-RESULT.json",
+      "bytes": 2655,
+      "mode": 384,
+      "sha256": "893f5a647e57fac86e8c0cc8f29555cd85898175001142ec552154f97388ff5e"
+    },
+    "qualification": "Actual DATA/helper checks, no actual owner module evaluation"
+  },
+  "tails": {
+    "presealCommit": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+    "sealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+    "runnerPid": 35873,
+    "exitCode": 0,
+    "closed": true,
+    "attempts": 1,
+    "processes": 10,
+    "qualified": 3,
+    "total": 3,
+    "unrun": 0,
+    "unsafe": false,
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/REPORT.json",
+      "bytes": 5553,
+      "mode": 384,
+      "sha256": "cc6d58c51dabacd8597e12248ade253f58c46aa2f4ff92a7903cca399819344d"
+    },
+    "qualification": "New versioned M01-M03 all complete trailing assertions; old3failures unrescored"
+  },
+  "hostAllowance": {
+    "schema": "EXACT_HOST_TOOL_ENVIRONMENT_ALLOWANCE_V1",
+    "scope": "Host Node22.22.2 tooling only, empty exec -c inheritance; no guest env change; no generic ambient inheritance",
+    "platform": "darwin",
+    "uid": 501,
+    "keys": [
+      "__CF_USER_TEXT_ENCODING"
+    ],
+    "key": "__CF_USER_TEXT_ENCODING",
+    "value": "0x1F5:0x0:0x0",
+    "valueBytes": 13,
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "probePresealCommit": "ce47629f43f9e466dccd4cc1e9fcc0cf72aa0918",
+    "probeSealSha256": "8a22599e56af42e7a48c7da78b88910023074293747351ac007c6ffecc398041",
+    "probeReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/probe-01/RECEIPT.json",
+      "bytes": 1584,
+      "mode": 384,
+      "sha256": "85f7297bbea04ad40e0f2ac1aba7a24432db35c90b4f278abc6b8912df641d9f"
+    },
+    "origin": "UNKNOWN",
+    "authority": "Current root conditional allowance activated by exactly one qualified bounded probe; not actual admission authorization"
+  },
+  "ownerInstance": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/SEAL.json",
+    "bytes": 2103,
+    "mode": 420,
+    "sha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2"
+  },
+  "sourceDelta": [
+    {
+      "file": "owner.mjs",
+      "old": "const runId = 'admission-20260829-v7r3-01';",
+      "new": "const runId = 'admission-20260829-v7r3-02';",
+      "count": 1
+    }
+  ],
+  "metadataDelta": {
+    "runId": [
+      "admission-20260829-v7r3-01",
+      "admission-20260829-v7r3-02"
+    ],
+    "rootGrantTemplate": [
+      "../INACTIVE-ROOT-GRANT.TEMPLATE.json",
+      "../wrapper-v3/INACTIVE-ROOT-GRANT.TEMPLATE.json"
+    ],
+    "authTemplate": [
+      "../INACTIVE-AUTH.TEMPLATE.json",
+      "../wrapper-v3/INACTIVE-AUTH.TEMPLATE.json"
+    ],
+    "futureCommand.args[2]": [
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/owner.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/owner.mjs"
+    ],
+    "futureCommand.args[3]": [
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/activation/AUTH.json",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json"
+    ],
+    "futureTopology.administrationProcesses": [
+      8,
+      20
+    ],
+    "futureTopology.totalPlanned": [
+      55,
+      67
+    ]
+  },
+  "sourceReviewQualification": "Byte-identity/source/DATA checks only for actual owner; owner not evaluated",
+  "postBindings": 80,
+  "namespaces": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-supervision",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/admin-capture",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/actual-capture",
+      "absent": true
+    }
+  ],
+  "actualRunIdConsumed": false,
+  "actualGrantWritten": false,
+  "actualAuthWritten": false,
+  "actualWorkers": 0,
+  "actualC11": 0,
+  "actualSemantics": 0,
+  "prospectiveLimits": {
+    "planned": 67,
+    "admin": 20,
+    "cap": 128,
+    "peak": 5,
+    "overallCaptureBytes": 269484032,
+    "innerUnchangedBytes": 268435456,
+    "totalMilliseconds": 5400000,
+    "ownerWindowMilliseconds": 4500000
+  },
+  "historical": "Old6e40e32a5/8 remains; three old tails unexecuted retained. Old01 consumed6472790e0/14;212/212 stated capture qualification only. V6lost294045/N02lost718/W07unqualified unchanged.",
+  "remaining": "Different review of repaired wrapper/environment/owner instance, then fresh root actual GO and complete actual pinned preflight. No new source/runtime-policy repair is claimed necessary from this bounded preparation."
+}

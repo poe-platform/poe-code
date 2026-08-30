@@ -1,0 +1,742 @@
+{
+  "schema": "indexed-array-supervisor-seal-v1",
+  "createdAt": "2026-08-28T10:06:45.101Z",
+  "headAtPreparation": "7aa6510e33f7941cfdd0905f431b1ebc2ac8a3fd",
+  "authorization": "Current delegated user instruction; AUTHORIZATION.md preserves exact manifest GO, not a separate signature",
+  "supervisorFiles": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/supervisor.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/supervisor.mjs",
+      "dev": 16777232,
+      "ino": 181262948,
+      "mode": 420,
+      "kind": "file",
+      "bytes": 23452,
+      "sha256": "e52d0f3da4343761b8ce0b3b93ecc3b5a39338829a9b3b993c9b692b09d25194",
+      "nlink": 1
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/CONFIG.json",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/CONFIG.json",
+      "dev": 16777232,
+      "ino": 181262947,
+      "mode": 420,
+      "kind": "file",
+      "bytes": 925,
+      "sha256": "aa7819470af68337da6b3bdd5a6a221a10526d90fd73b1ff09b5d21c5278a4cf",
+      "nlink": 1
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/AUTHORIZATION.md",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/AUTHORIZATION.md",
+      "dev": 16777232,
+      "ino": 181262946,
+      "mode": 420,
+      "kind": "file",
+      "bytes": 2563,
+      "sha256": "abd008e47589f3237c88e8d409bd67b47a48992140b07abb86ea335e6430cc02",
+      "nlink": 1
+    }
+  ],
+  "fixture": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616",
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-observations-v1/capture-7843e762-7db7-4d2b-a16a-0c279d49c616",
+  "env": {
+    "PATH": "",
+    "ENV": "",
+    "BASH_ENV": "",
+    "HOME": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/home",
+    "TMPDIR": "/private/tmp/indexed-arrays-preseal-v1-7843e762-7db7-4d2b-a16a-0c279d49c616/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "argv": [
+    {
+      "id": "N01",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "export a=scalar\na=([2]=two)\nprintf 'assignment=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "434a41169c67d2087fbf339691271e39d57d007464d90e23c78c6b5371c34c03"
+    },
+    {
+      "id": "N02",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([2]=two [9]='')\nexport a\nprintf 'export=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "2f03a02d6dd29c97eddc53bf6fb03261eb039b0d1ef64929a5ff187751516a82"
+    },
+    {
+      "id": "N03",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([3]=three)\ndeclare +a a\nprintf 'plus_a=%s\\n' \"$?\"\ndeclare -p a\nunset a\na=scalar\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "f29c7d42dea82fa9024a224d09a09f2b377418ba05ab92da7f223fc70737cbbe"
+    },
+    {
+      "id": "N04",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=()\nreadonly a\ndeclare -p a\nreadonly -p\nunset a\nprintf 'unset=%s\\n' \"$?\"\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "a28588aaf638e65d0234475b758587057841c758b2b816a4b15d0dd31be3b202"
+    },
+    {
+      "id": "N05",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([2]=outer [7]='')\nf() { local a; declare -p a; local a=inner; declare -p a; return 7; }\nf\nprintf 'function=%s\\n' \"$?\"\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "06e63644112decaf17b815b300b9883cf608c0bf79d1367d4dd4a6d7de6b894d"
+    },
+    {
+      "id": "N06",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([2]=outer)\nf() { local a=inner; unset a; declare -p a; a=scalar; declare -p a; }\nf\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "3d19d67ccdbc59c376940102e9b9bf9d184c6df04ffed510f4af2f82616a2595"
+    },
+    {
+      "id": "N07",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([2]=outer)\nreadonly a\nf() { local a; printf 'local=%s\\n' \"$?\"; local a=inner; printf 'initialized=%s\\n' \"$?\"; declare -p a; }\nf\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "e79b9ea4a4a039753f9d6566fafec6c5a2a2d15dda07fb7f03a025409c37be84"
+    },
+    {
+      "id": "N08",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "export a=outer\nf() { local a; declare -p a; unset a; a=inner; readonly a; declare -p a; return 4; }\nf\nprintf 'function=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "478823318afd723a9fe36e4769af95f6458b0f6b5b70cedb0bc1a063d8f9ff8d"
+    },
+    {
+      "id": "N09",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([0]=old0 [2]=old2)\na=([0]=new0 [1]=\"${a[0]}\" [2]=\"${a[2]}\")\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "fbfe4f67f379361bd7cda3db383a078959b7d19c54c70410a5dd6ee44da02f4b"
+    },
+    {
+      "id": "N10",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([0]=old0 [2]=old2)\na+=([0]=new0 [3]=\"${a[0]}\")\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "f005dab927092857049a2440ea1fa82407f833efa68ff6650186e04973fcfadb"
+    },
+    {
+      "id": "N11",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([0]=old)\nside=before\nreadonly a\ntrap 'declare -p a side fresh' EXIT\na=(\"${side:=kept}\" \"${fresh:=created}\")\nprintf 'assignment=%s fresh=%s\\n' \"$?\" \"${fresh-unset}\"\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "6bdcf3c49230d4ffab37e6ba237be28dabee90fbc30cea1e816ae6764ad85440"
+    },
+    {
+      "id": "N12",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([0]=old [5]=tail)\ntrap 'declare -p a side' EXIT\na=([0]=new [1]=\"${side:=kept}\" [2]=\"${missing:?preseal-stop}\")\nprintf 'after\\n'\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "07672e6489965b5e146ea7011079f2728107d053d2dfaed2c424fb6936d5cf2a"
+    },
+    {
+      "id": "N13",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([2]=old2)\na=([1]=\"${a:=rhs-write}\")\nprintf 'assignment=%s\\n' \"$?\"\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "298d04e0670e91c251c92d55dae8809235887d772189178224e1c061b79890d4"
+    },
+    {
+      "id": "N14",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([0]=old)\nf() { readonly a; printf replacement; }\na=(\"$(f)\")\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "8a3cf7980ac0ba01addb6d234e2dbee7ed490dfca259887681143e6d0f7cf66d"
+    },
+    {
+      "id": "N15",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([0]=old)\nf() { printf 'kept\\n' > \"$TMPDIR/rhs.txt\"; printf replacement; }\ntrap 'declare -p a; IFS= read -r receipt < \"$TMPDIR/rhs.txt\"; printf \"receipt=%s\\n\" \"$receipt\"' EXIT\na=(\"$(f)\" \"${missing:?preseal-stop}\")\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "e5d3493a7dce70f4ab567dc146abd05d7de0997f668fb02e9fb598007d182baa"
+    },
+    {
+      "id": "N16",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "a=([2]=outer)\nf() { declare -p a; export -p; }\na=temporary f\nprintf 'command=%s\\n' \"$?\"\ndeclare -p a\n",
+        "indexed-preseal-v1"
+      ],
+      "scriptSha256": "857d3d43a750d154b0444a5c276d89118d9bf1967cadb0bfff730deb36a31fdc"
+    }
+  ],
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0",
+    "node": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  },
+  "authentication": {
+    "manifestSha256": "f731d304306b02d11df41b386d4528405ad307ca33098d25f1bc2a0193c0764f",
+    "binary": {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "dev": 16777232,
+      "ino": 167971824,
+      "mode": 493,
+      "kind": "file",
+      "bytes": 1395864,
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "nlink": 1
+    },
+    "manual": {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "realpath": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "dev": 16777232,
+      "ino": 167953835,
+      "mode": 420,
+      "kind": "file",
+      "bytes": 415804,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+      "nlink": 1
+    },
+    "sources": [
+      {
+        "path": "src/shell/runtime.ts",
+        "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+        "bytes": 139761,
+        "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+        "blob": "9e70a9d556e46ecf23b977a048f089b1c0d25e5c"
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 36304,
+        "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+        "blob": "f570235d1f65ade0f7279ccacf805ec1333155f7"
+      },
+      {
+        "path": "src/shell/arithmetic.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 9922,
+        "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 15002,
+        "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+        "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a"
+      },
+      {
+        "path": "src/shell/input.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 9881,
+        "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+        "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4"
+      },
+      {
+        "path": "src/shell/types.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 2223,
+        "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+        "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486"
+      },
+      {
+        "path": "src/contracts/command.md",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 9253,
+        "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+        "blob": "ef94adf238122441a66c2232fb3055aaee62d290"
+      },
+      {
+        "path": "src/shell/locale.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 207,
+        "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+        "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58"
+      },
+      {
+        "path": "src/shell/display.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 2605,
+        "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+        "blob": "ecff8bf185cd542940607a79ee5257f292e844f5"
+      },
+      {
+        "path": "src/shell/cleanup.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 1947,
+        "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+        "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c"
+      },
+      {
+        "path": "src/commands/execution.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 9269,
+        "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+        "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c"
+      },
+      {
+        "path": "src/commands/expr/internal.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 6600,
+        "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+        "blob": "46b7604d21fe6823167301e1012d97d0ed7b6342"
+      },
+      {
+        "path": "src/commands/table-text/internal.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 8443,
+        "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+        "blob": "ae46eef22675c641a0c47995c20ed1def0985a37"
+      },
+      {
+        "path": "src/commands/stream-format/rev.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 2772,
+        "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+        "blob": "8da48d7cb4426f7954f8a70c20ca5cd79dfe7ec6"
+      },
+      {
+        "path": "src/commands/streams.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 17782,
+        "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+        "blob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8"
+      },
+      {
+        "path": "src/commands/metadata/mktemp.ts",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "bytes": 5683,
+        "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+        "blob": "5e650b9bead674f831430d87da9e530c740e73d0"
+      }
+    ],
+    "scriptBytes": 1783,
+    "nestedContexts": 2,
+    "protectedCensus": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828",
+        "dev": 16777232,
+        "ino": 181125173,
+        "mode": 493,
+        "kind": "directory",
+        "bytes": 0
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/PROFILE.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/PROFILE.md",
+        "dev": 16777232,
+        "ino": 181125175,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 15448,
+        "sha256": "9607903a7d0c5dec46364b1b3f5db5e42cdfd187c4281121094c955e5e044eb2",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/REPORT.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/REPORT.md",
+        "dev": 16777232,
+        "ino": 181125174,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 4157,
+        "sha256": "7350cc8d646eb0851d3b7fdd6fa93fc19466e0a4709b58e42442713b25376175",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/SOURCE-BINDING.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/SOURCE-BINDING.json",
+        "dev": 16777232,
+        "ino": 181125176,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 3861,
+        "sha256": "6cda9ea07116d58cf5a47e5add7c56d4bf8b6ca1b52bfa552a2e478f427c6a72",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1",
+        "dev": 16777232,
+        "ino": 181165208,
+        "mode": 493,
+        "kind": "directory",
+        "bytes": 0
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/ACCOUNTING.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/ACCOUNTING.md",
+        "dev": 16777232,
+        "ino": 181165211,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 8500,
+        "sha256": "811cf0226c4232cf389e6e410c687bf952232b5ce9ea0a8cac49bbe7c21e2109",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/CHOICES.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/CHOICES.md",
+        "dev": 16777232,
+        "ino": 181165210,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 10534,
+        "sha256": "513e178786a1d27561cc113152aea69537b5f9ff7c3fe969bede4cf056a62569",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/REPORT.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/REPORT.md",
+        "dev": 16777232,
+        "ino": 181165209,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 4470,
+        "sha256": "4261ebf4b6350a285c50f92a979e80e3560bfdc11f803165e09e79b9a966eef4",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/SOURCE-BINDING.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/addendum-v1/SOURCE-BINDING.json",
+        "dev": 16777232,
+        "ino": 181167667,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 8400,
+        "sha256": "d83a4a447103186206d9937df671960d590a24d3901e56591020ee072d9b4202",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1",
+        "dev": 16777232,
+        "ino": 181166401,
+        "mode": 493,
+        "kind": "directory",
+        "bytes": 0
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1/MANIFEST.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1/MANIFEST.json",
+        "dev": 16777232,
+        "ino": 181168557,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 8667,
+        "sha256": "f731d304306b02d11df41b386d4528405ad307ca33098d25f1bc2a0193c0764f",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1/PROTOCOL.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1/PROTOCOL.md",
+        "dev": 16777232,
+        "ino": 181166402,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 4574,
+        "sha256": "e154c2509edb8bd08464730a2acb9153537055c39c862a0873cbf6c25d141286",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1/ROWS.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828/native-preseal-v1/ROWS.json",
+        "dev": 16777232,
+        "ino": 181166403,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 10817,
+        "sha256": "5f51dbeebcef0dcfb49e26f9592d7d9f6ce6cb37eda08c49502f042cb81e94f9",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828",
+        "dev": 16777232,
+        "ino": 181214917,
+        "mode": 493,
+        "kind": "directory",
+        "bytes": 0
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+        "dev": 16777232,
+        "ino": 181218072,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 13894,
+        "sha256": "3bcff7d04a679670c89797691075c004bfe2b704bf4b1aa4618737b7ef6c1eab",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/NATIVE-PRESEAL-REVIEW.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/NATIVE-PRESEAL-REVIEW.md",
+        "dev": 16777232,
+        "ino": 181226344,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 6013,
+        "sha256": "68f966b7f7e642b28e9bdbbb4aaeb14a6e9beb47a76dc0b7f9b3c7b548894003",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/README.md",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/README.md",
+        "dev": 16777232,
+        "ino": 181218071,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 7767,
+        "sha256": "f37b20aacb4c4a452baea1d6fb5c08e991a2f651f259ffde84d39ceb67073c1a",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/SEAL.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/SEAL.json",
+        "dev": 16777232,
+        "ino": 181227042,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 455,
+        "sha256": "53bac66644d145076e7ba5dc616b264683540d5a634952d91264d408b28f5711",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/STATIC-BINDINGS.json",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/STATIC-BINDINGS.json",
+        "dev": 16777232,
+        "ino": 181214928,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 16319,
+        "sha256": "cbd5fdb0e99374edadefce2479777876ff040754a953abf5b67aa916d21a5d24",
+        "nlink": 1
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/audit-metadata.mjs",
+        "realpath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/audit-metadata.mjs",
+        "dev": 16777232,
+        "ino": 181214918,
+        "mode": 420,
+        "kind": "file",
+        "bytes": 7933,
+        "sha256": "09d1c327eb04f31d7cd855cfc8eeaa31107b982f1a37ebe9a966fc841242e4e5",
+        "nlink": 1
+      }
+    ],
+    "rows": [
+      {
+        "id": "N01",
+        "question": "Does an already-exported scalar convert to indexed, and how do native declaration/export listings represent it?",
+        "script": "export a=scalar\na=([2]=two)\nprintf 'assignment=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+        "PROJECTcandidate": "Reject indexed conversion of exported scalar before RHS, status 1; preserve scalar and export membership. Deliberately stricter than any unobserved native behavior.",
+        "nativeexpected": null,
+        "qualification": "Native declaration/export listing only; not external-process environment proof.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N02",
+        "question": "What does native export of an existing array do, including empty elements and attribute display?",
+        "script": "a=([2]=two [9]='')\nexport a\nprintf 'export=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+        "PROJECTcandidate": "Reject export a with status 1, preserve unexported indexed binding; do not serialize zero or JSON. Product export-p remains unsupported.",
+        "nativeexpected": null,
+        "qualification": "No child exec and no inferred array environment encoding.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N03",
+        "question": "How do declare +a and whole-variable unset differ for conversion back to scalar?",
+        "script": "a=([3]=three)\ndeclare +a a\nprintf 'plus_a=%s\\n' \"$?\"\ndeclare -p a\nunset a\na=scalar\ndeclare -p a\n",
+        "PROJECTcandidate": "declare +a is future/unsupported, no success stub; unset a followed by assignment creates scalar without inherited export/readonly attributes.",
+        "nativeexpected": null,
+        "qualification": "Native declaration attribute behavior remains unknown until GO.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N04",
+        "question": "How are a readonly empty array and failed unset displayed?",
+        "script": "a=()\nreadonly a\ndeclare -p a\nreadonly -p\nunset a\nprintf 'unset=%s\\n' \"$?\"\ndeclare -p a\n",
+        "PROJECTcandidate": "Empty array is present; readonly freezes the binding and blocks unset. Product readonly listing encountering array refuses status 2 with no stdout until accurate formatter is separately authorized.",
+        "nativeexpected": null,
+        "qualification": "GNU may list unrelated startup readonly names; retain bounded exact output without assuming a line count.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N05",
+        "question": "Does local a retain indexed kind without values, and does local a=value restore outer sparse contents on return?",
+        "script": "a=([2]=outer [7]='')\nf() { local a; declare -p a; local a=inner; declare -p a; return 7; }\nf\nprintf 'function=%s\\n' \"$?\"\ndeclare -p a\n",
+        "PROJECTcandidate": "Save whole typed outer once; local indexed shadow starts empty, initializer writes zero; restore outer on return including empty element.",
+        "nativeexpected": null,
+        "qualification": "Native local inheritance tuple not yet observed; candidate is explicit profile policy.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N06",
+        "question": "Does unsetting local array expose outer immediately, and what kind is a subsequent local assignment?",
+        "script": "a=([2]=outer)\nf() { local a=inner; unset a; declare -p a; a=scalar; declare -p a; }\nf\ndeclare -p a\n",
+        "PROJECTcandidate": "Unset retains an absent local shadow; next assignment creates scalar. Outer typed snapshot restores only on function exit.",
+        "nativeexpected": null,
+        "qualification": "Nonzero declaration status inside function is an observation, no set-e.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N07",
+        "question": "Can local shadow readonly outer indexed binding with or without initializer?",
+        "script": "a=([2]=outer)\nreadonly a\nf() { local a; printf 'local=%s\\n' \"$?\"; local a=inner; printf 'initialized=%s\\n' \"$?\"; declare -p a; }\nf\ndeclare -p a\n",
+        "PROJECTcandidate": "Reject both local operations status 1 after declaration argument expansion, before snapshot/publication; preserve outer readonly array.",
+        "nativeexpected": null,
+        "qualification": "Keeps accepted scalar readonly-shadow rule; no claimed GNU diagnostic parity.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N08",
+        "question": "Which export/readonly attributes survive local creation, local unset and return?",
+        "script": "export a=outer\nf() { local a; declare -p a; unset a; a=inner; readonly a; declare -p a; return 4; }\nf\nprintf 'function=%s\\n' \"$?\"\ndeclare -p a\nexport -p\n",
+        "PROJECTcandidate": "Scalar local creation preserves accepted export membership; unset removes it; local readonly changes are removed on return and whole exported outer restored. Indexed local snapshots follow the same full-attribute discipline.",
+        "nativeexpected": null,
+        "qualification": "Focused scalar-attribute boundary companion, not a new scalar implementation or passing array case.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N09",
+        "question": "During compound replacement, do RHS references see old elements or earlier entries of the replacement?",
+        "script": "a=([0]=old0 [2]=old2)\na=([0]=new0 [1]=\"${a[0]}\" [2]=\"${a[2]}\")\ndeclare -p a\n",
+        "PROJECTcandidate": "All RHS references resolve live prior target, never private stage; replacement publication is one guarded transfer.",
+        "nativeexpected": null,
+        "qualification": "RHS visibility is an open native qualification, not assumed from documentation.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N10",
+        "question": "During compound append with an explicit replacement index, do later RHS references see earlier staged replacement?",
+        "script": "a=([0]=old0 [2]=old2)\na+=([0]=new0 [3]=\"${a[0]}\")\ndeclare -p a\n",
+        "PROJECTcandidate": "Clone old slots, stage changes, RHS sees prior target; no intermediate target publication.",
+        "nativeexpected": null,
+        "qualification": "No resource or arithmetic-index probe.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N11",
+        "question": "Does known readonly compound target prevent RHS state effects, and what state is visible on shell exit?",
+        "script": "a=([0]=old)\nside=before\nreadonly a\ntrap 'declare -p a side fresh' EXIT\na=(\"${side:=kept}\" \"${fresh:=created}\")\nprintf 'assignment=%s fresh=%s\\n' \"$?\" \"${fresh-unset}\"\n",
+        "PROJECTcandidate": "Known readonly array fails before array RHS, no fresh assignment; existing scalar RHS-before-readonly path is unchanged.",
+        "nativeexpected": null,
+        "qualification": "Static EXIT trap inspects target/side/fresh even if native terminates, retaining a missing-name diagnostic when applicable. No assumed exit status.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N12",
+        "question": "After a later RHS parameter error, are earlier target entries published and are unrelated RHS assignments retained?",
+        "script": "a=([0]=old [5]=tail)\ntrap 'declare -p a side' EXIT\na=([0]=new [1]=\"${side:=kept}\" [2]=\"${missing:?preseal-stop}\")\nprintf 'after\\n'\n",
+        "PROJECTcandidate": "Discard target stage; preserve side=kept and original target unless RHS independently mutated it. Expansion failure remains primary.",
+        "nativeexpected": null,
+        "qualification": "EXIT trap is fixed builtin inspection; parameter-error termination is not set-e behavior.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N13",
+        "question": "What happens when a RHS scalar-default assignment mutates the same array whose zero element was absent?",
+        "script": "a=([2]=old2)\na=([1]=\"${a:=rhs-write}\")\nprintf 'assignment=%s\\n' \"$?\"\ndeclare -p a\n",
+        "PROJECTcandidate": "Parameter assignment writes zero once on live target and advances version; stage rejects stale target status 1, preserving RHS mutation and old element 2 without resurrection/retry.",
+        "nativeexpected": null,
+        "qualification": "Parent-state self-mutation via parameter assignment, not arithmetic or a subshell-reentrancy claim.",
+        "nestedChildContextsUpperBound": 0
+      },
+      {
+        "id": "N14",
+        "question": "Does readonly set by a function in command substitution affect parent target attributes?",
+        "script": "a=([0]=old)\nf() { readonly a; printf replacement; }\na=(\"$(f)\")\ndeclare -p a\n",
+        "PROJECTcandidate": "Function runs in isolated substitution clone, so readonly is not a parent race; RHS executes once and parent staged replacement can publish absent other conflicts.",
+        "nativeexpected": null,
+        "qualification": "Cannot qualify host/async parent readonly timing or cancellation. Exactly one command-substitution child context.",
+        "nestedChildContextsUpperBound": 1
+      },
+      {
+        "id": "N15",
+        "question": "Does an owned-file RHS effect survive a later compound expansion failure while target state is inspectable?",
+        "script": "a=([0]=old)\nf() { printf 'kept\\n' > \"$TMPDIR/rhs.txt\"; printf replacement; }\ntrap 'declare -p a; IFS= read -r receipt < \"$TMPDIR/rhs.txt\"; printf \"receipt=%s\\n\" \"$receipt\"' EXIT\na=(\"$(f)\" \"${missing:?preseal-stop}\")\n",
+        "PROJECTcandidate": "Array stage fails without publication; completed owned-file side effect remains. Never claim whole-command transaction rollback.",
+        "nativeexpected": null,
+        "qualification": "Only future fixture write, five fixed bytes, one substitution child; no file or native process created during preseal.",
+        "nestedChildContextsUpperBound": 1
+      },
+      {
+        "id": "N16",
+        "question": "How does a scalar command prefix on an existing indexed array interact with function visibility and restoration?",
+        "script": "a=([2]=outer)\nf() { declare -p a; export -p; }\na=temporary f\nprintf 'command=%s\\n' \"$?\"\ndeclare -p a\n",
+        "PROJECTcandidate": "First profile rejects scalar command prefix on indexed target status 1 before dispatch; standalone scalar assignment still targets zero. Indexed/compound command prefixes remain excluded.",
+        "nativeexpected": null,
+        "qualification": "Builtin visibility only, no external environment or implicit serialization inference.",
+        "nestedChildContextsUpperBound": 0
+      }
+    ]
+  },
+  "tests": 0,
+  "productCalls": 0,
+  "nativeCalls": 0
+}

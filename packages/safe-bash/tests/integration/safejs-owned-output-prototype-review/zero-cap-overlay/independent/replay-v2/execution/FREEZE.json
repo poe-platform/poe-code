@@ -1,0 +1,66 @@
+{
+  "date": "2026-08-27",
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "admissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "priorRefusalCommit": "8e950bd846f69b86f851d2a901e62e0b3bb92ded",
+  "files": [
+    {
+      "path": "BINDING-REVIEW.md",
+      "bytes": 6725,
+      "sha256": "3de933ba1946133a5a545f6fed7f1a9f31257e0ea5fc71a5753043571af1c5aa"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 72059,
+      "sha256": "782b7f1d098220b5ec73576236baa04f6443d412070da7c253bc749dec7d94de"
+    },
+    {
+      "path": "INPUT-PROVENANCE.json",
+      "bytes": 46271,
+      "sha256": "166d51be289b64f01d43dae7cd98d30f34e1f59d17c27ec3be5f9b234b8ea2c9"
+    },
+    {
+      "path": "ROOT-RELEASE.json",
+      "bytes": 1263,
+      "sha256": "b76b657daf7f48e2716c3b3f748f32ad836e6557c7f70cc4c95ef5b10368ef27"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "bytes": 712,
+      "sha256": "70409446f0cc04934476a710a82c52420a835071acb1b428338352207e1a9685"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 12778,
+      "sha256": "08caf5d33ce427eefc48f05a9d397acb1d3851ac318de1c90da76f1397ca7522"
+    },
+    {
+      "path": "git-location-binding.mjs",
+      "bytes": 2883,
+      "sha256": "336faf2f18c54ba3bba2f806863105a53d5f29477d342e634e63145df491dd7c"
+    },
+    {
+      "path": "orchestration-delta.patch-data",
+      "bytes": 3549,
+      "sha256": "2c569f68f08dcbb4310d3b285911275c6dbfd9b1e65da78da21ae114421720b1"
+    },
+    {
+      "path": "prepare-inputs.py",
+      "bytes": 8724,
+      "sha256": "583c767b7d568b5624e460bc694c2ac687db2a3db9ac259df437a562a2d19428"
+    },
+    {
+      "path": "run.py",
+      "bytes": 19035,
+      "sha256": "e2aa5444865f96e5d0975bf244f71ae69d830635f18f1fdb2f8d4d4911164673"
+    }
+  ],
+  "manifestSha256": "12259ea32f3d303fc9a922a7ccfb5bbc190c2e319862a20012fbdc50cdc6ed24",
+  "originalAuthorBytesChanged": 0,
+  "independentAssessorBytesChanged": 0,
+  "verdict": "ALLOW_NARROW_ISOLATED_GIT_INPUT_BINDING_AND_ONE_RELEASED_ATTEMPT",
+  "actualRuntimeExecutionsAtFreeze": 0,
+  "attestation": "Independent SHA-256 byte attestation, not a cryptographic personal-identity claim. Exact88 original Git inputs remain unchanged; only the authorized public Git run-location lookup is rebound by the independent parent preload. No unsealed author work adopted.",
+  "noPromotion": true
+}

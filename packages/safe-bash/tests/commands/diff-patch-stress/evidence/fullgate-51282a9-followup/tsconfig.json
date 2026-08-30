@@ -1,0 +1,17 @@
+{
+  "extends": "../../../../../tsconfig.json",
+  "include": [
+    "../../fuzz/repeated-match-fixtures.ts",
+    "../../fuzz/repeated-match.test.ts",
+    "../../fuzz/edits.test.ts",
+    "../../emptyfile-delta/**/*.ts",
+    "../../editflows/quoted-safety.test.ts",
+    "../../../diff-patch/patch-gnu-coordinates.test.ts",
+    "../../../diff-patch/patch-hunk-diagnostics-followup.test.ts",
+    "../../../diff-patch/hunk-regressions.test.ts",
+    "../../../diff-patch/patch-gnu-publication.test.ts",
+    "../../fuzz/properties.test.ts",
+    "../../gnu-target/edit-correctness.test.ts"
+  ],
+  "exclude": []
+}

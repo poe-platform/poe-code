@@ -1,0 +1,14 @@
+{
+  "id": "cleanup-fatal-stops-dependent",
+  "families": [
+    "F08"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "DEPENDENTS_HELD_CLEANUP",
+      "name": "Error",
+      "message": "DEPENDENTS_HELD_CLEANUP"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

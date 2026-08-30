@@ -1,0 +1,21 @@
+{
+  "note": "Mandatory prerequisite rejection; zero tests.",
+  "command": [
+    "npm",
+    "run",
+    "verify:release:qualified",
+    "--",
+    "--source-commit",
+    "5456730f1307f8c7fd3e8fcad342dc2eb6db2c27",
+    "--native-assets-from",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7",
+    "--archive-tar-from",
+    "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/no-such-gtar"
+  ],
+  "GNU_TAR": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+  "status": 78,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 verify:release:qualified\n> node scripts/verify-qualified-release.mjs --source-commit 5456730f1307f8c7fd3e8fcad342dc2eb6db2c27 --native-assets-from /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7 --archive-tar-from /Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/no-such-gtar\n\n{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-jZtruT\",\"sourceCommit\":\"5456730f1307f8c7fd3e8fcad342dc2eb6db2c27\",\"sourceTreeSha256\":\"e7f64ecaa2cf5bce5fdebd3bfcca9e94d063d278b85ed9c263f742d104c32424\",\"testTreeSha256\":\"d602edfbb0a07ae8b54bfa19980716eb13db8c294064d73cce1b9e8ec60dd1c8\",\"harnessSha256\":\"1c0a4462bd7098e7f68088feba3bb1a34eb204f4b5865b064fe3df588aa1eb1c\"}\n{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-jZtruT\",\"sourceCommit\":\"5456730f1307f8c7fd3e8fcad342dc2eb6db2c27\",\"exitCode\":78,\"sourceUnchanged\":true}\n",
+  "stderr": ""
+}
+

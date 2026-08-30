@@ -1,0 +1,1321 @@
+{
+  "schema": "timeout-independent-numeric-freeze/1",
+  "chronology": "before declared timeout implementation",
+  "devOracleOnly": true,
+  "productIntegerAlgorithmNotImplemented": true,
+  "productTokenCap": null,
+  "vectorCount": 70,
+  "vectors": [
+    {
+      "id": "D001",
+      "group": "grammar",
+      "input": "",
+      "codeUnits": 0,
+      "utf8Bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D002",
+      "group": "grammar",
+      "input": ".",
+      "codeUnits": 1,
+      "utf8Bytes": 1,
+      "sha256": "cdb4ee2aea69cc6a83331bbe96dc2caa9a299d21329efb0336fc02a82e1839a8",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D003",
+      "group": "grammar",
+      "input": ".s",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "98c9df336c4713dc985e8fb26849f03bef77670ac3a9c81c1666363d7815ffc5",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D004",
+      "group": "grammar",
+      "input": "s",
+      "codeUnits": 1,
+      "utf8Bytes": 1,
+      "sha256": "043a718774c572bd8a25adbeb1bfcd5c0256ae11cecf9f9c3f925d0e52beaf89",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D005",
+      "group": "grammar",
+      "input": "1..0",
+      "codeUnits": 4,
+      "utf8Bytes": 4,
+      "sha256": "0804f64dc248093fb318aeee94823750acd008519193df9d4fcd2b26048e4111",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D006",
+      "group": "grammar",
+      "input": "1ss",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "83fcd9e8dc04d5ce246b86ac057eda14125902a60aad55e89ab745d4355e00de",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D007",
+      "group": "grammar",
+      "input": "1S",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "2ae52edcbeaabcdf8d448c873789d59d3496d6ba130fed326e4b601087deb02c",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D008",
+      "group": "grammar",
+      "input": " 1",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "e12a7e051731cf1dbeefa2142a8e1abb1eb5898e2cbe4aa522120829a5588dc7",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D009",
+      "group": "grammar",
+      "input": "1 ",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "0fc5165686190ca845407c03ad4572e801265487ce3d352487f32016af34ed05",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D010",
+      "group": "grammar",
+      "input": "\t1",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "ae2e476c6221a2c8c14ad5a689cd0fe26f77a621b704f417365e49bacdf24ec6",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D011",
+      "group": "grammar",
+      "input": "1\n",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D012",
+      "group": "grammar",
+      "input": "-1",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "1bad6b8cf97131fceab8543e81f7757195fbb1d36b376ee994ad1cf17699c464",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D013",
+      "group": "grammar",
+      "input": "+1",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "c59dc4e44ff99288156d4dff2168f6ac7ddee6b1fc7ccc0754656ffaa6d351ea",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D014",
+      "group": "grammar",
+      "input": "1e0",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "bcac40fbed4ed4e1042a0c9dafbe9cdd58447415f19a11e59add45fdc083e2f5",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D015",
+      "group": "grammar",
+      "input": "0x1p0d",
+      "codeUnits": 6,
+      "utf8Bytes": 6,
+      "sha256": "fd45623584b3773e8542eec02ce46393acd50d39bee03b91848541c94a48e63d",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D016",
+      "group": "grammar",
+      "input": "NaN",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "d5b592c05dc25b5032553f1b27f4139be95e881f73db33b02b05ab20c3f9981e",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D017",
+      "group": "grammar",
+      "input": "Infinity",
+      "codeUnits": 8,
+      "utf8Bytes": 8,
+      "sha256": "d0067cad9a63e0813759a2bb841051ca73570c0da2e08e840a8eb45db6a7a010",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D018",
+      "group": "grammar",
+      "input": "1,5",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "e10f709ed16cc5cdcb71a16d00c7fcc7886d6fadbb3099f8a23c8815f47ec477",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D019",
+      "group": "grammar",
+      "input": "١",
+      "codeUnits": 1,
+      "utf8Bytes": 2,
+      "sha256": "628f6d71f724c95194f3f35a98fb62413633b3cb6aeb0937d98eb4d331e9c37b",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D020",
+      "group": "grammar",
+      "input": "１",
+      "codeUnits": 1,
+      "utf8Bytes": 3,
+      "sha256": "58110af8933d6ffe9f1609a07a5bed4240cc2b53881d88dd728ab17756023f93",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D021",
+      "group": "grammar",
+      "input": "1\u0000",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "e79e418e48623569d75e2a7b09ae88ed9b77b126a445b9ff9dc6989a08efa079",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D022",
+      "group": "grammar",
+      "input": "999999999999999999999999999x",
+      "codeUnits": 28,
+      "utf8Bytes": 28,
+      "sha256": "9d7fb9431e24fb201e129ddb04bf75dda689a73f39130571dd58fc3f87f2d2fb",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D023",
+      "group": "grammar",
+      "input": "999999999999999999999999999.1.2d",
+      "codeUnits": 32,
+      "utf8Bytes": 32,
+      "sha256": "a5a95536129d00198102c9bbd129e735170d08c7ba721e6bd071ba47a106988a",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D024",
+      "group": "ordinary",
+      "input": "0",
+      "codeUnits": 1,
+      "utf8Bytes": 1,
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D025",
+      "group": "ordinary",
+      "input": "000",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "2ac9a6746aca543af8dff39894cfe8173afba21eb01c6fae33d52947222855ef",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D026",
+      "group": "ordinary",
+      "input": "0.",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "892f6e09c02c35b5381a165395599f21770c19b4f05d2ed71ccd2a45af414b1c",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D027",
+      "group": "ordinary",
+      "input": ".0",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "ce5829e1a023d49c88eca9ff6812ded618d4c3ed0d2a572b545609b9c4983153",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D028",
+      "group": "ordinary",
+      "input": "0.000d",
+      "codeUnits": 6,
+      "utf8Bytes": 6,
+      "sha256": "55d55981421d12e858330bcf47ba994dcd0addc950fe57ad33edacd18e2aa89b",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D029",
+      "group": "ordinary",
+      "input": "1",
+      "codeUnits": 1,
+      "utf8Bytes": 1,
+      "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D030",
+      "group": "ordinary",
+      "input": "1s",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "64c83df872d808a1820aab72aa20bf2cf33b96fff4933e691e30f7646dfcc1be",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D031",
+      "group": "ordinary",
+      "input": "1m",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "ade5880f369fd9765fb6cffdf67b5d4dfb2cf650a49c848a0ce7be1c10e80b23",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "60000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D032",
+      "group": "ordinary",
+      "input": "1h",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "894816281e236420190e5e2e5ec39503d42d599c90d15fcc29e38de82ebb33b7",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "3600000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D033",
+      "group": "ordinary",
+      "input": "1d",
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "de3246094525b21a870fc7d2a67490d0132535c6fa5993755c549f1a9d1bd8af",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "86400000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D034",
+      "group": "ordinary",
+      "input": ".001s",
+      "codeUnits": 5,
+      "utf8Bytes": 5,
+      "sha256": "e969b32f3f38d0ccc7fb75f3d4584eb29d2108a53019ff672e3a0e4ca65f435b",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D035",
+      "group": "ordinary",
+      "input": ".5m",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "919721eb2ee84d6ffafbfa31ff7db35ecfd89f5d5310a938d7e76539d12e8943",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "30000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D036",
+      "group": "ordinary",
+      "input": ".5h",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "083d81622a5e09fa15efbf6599e3fcda62e287f4f6c21dc6964cc0cfc3d4c1f3",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1800000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D037",
+      "group": "ordinary",
+      "input": ".5d",
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "9a704547e4143ef00af51d725892939da9c3d3c40209805ef175ae6154db292b",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "43200000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D038",
+      "group": "ordinary",
+      "input": "1.0001",
+      "codeUnits": 6,
+      "utf8Bytes": 6,
+      "sha256": "9a9204dd246ed0a069fce8ec42e292d339888f3728dffdbf714df7409fcbde52",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D039",
+      "group": "ordinary",
+      "input": ".00001m",
+      "codeUnits": 7,
+      "utf8Bytes": 7,
+      "sha256": "1b05824478c532cfef6071d5fe635a70df9a6a63f2d544375a3f108556916b5d",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D040",
+      "group": "ordinary",
+      "input": ".0000001d",
+      "codeUnits": 9,
+      "utf8Bytes": 9,
+      "sha256": "8b0cd30011a71ef01f71271e2e60fad20dfe3424bff15fc5353c332235ba9afb",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D041",
+      "group": "ordinary",
+      "input": "1.00000000001m",
+      "codeUnits": 14,
+      "utf8Bytes": 14,
+      "sha256": "73a1810a71ad12efb45a65f1a1c44bfb5d53eab286e5b7be3111e2db64f2ccd5",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "60001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D042",
+      "group": "carry",
+      "input": ".999999999999999999999d",
+      "codeUnits": 23,
+      "utf8Bytes": 23,
+      "sha256": "1f2e4ae90c2fd86556681d14016966aae516c8cd0e608936073df0b5080aa642",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "86400000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D043",
+      "group": "carry",
+      "input": "1.999999999999999999999d",
+      "codeUnits": 24,
+      "utf8Bytes": 24,
+      "sha256": "3647594159fec2f20a62c2fd5daced3757443f1dfa98809827bbf162cef83f27",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "172800000"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D044",
+      "group": "maximum",
+      "input": "9007199254740.990s",
+      "codeUnits": 18,
+      "utf8Bytes": 18,
+      "sha256": "e591c3c385428e8a6c1a0605dd593494ca30c1f8aa034daf9b94333fb17132d7",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9007199254740990"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D045",
+      "group": "maximum",
+      "input": "9007199254740.991s",
+      "codeUnits": 18,
+      "utf8Bytes": 18,
+      "sha256": "447da7569ee54471e928899412b55e990f1ef1a30ae023533c9847237191c940",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9007199254740991"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D046",
+      "group": "maximum",
+      "input": "9007199254740.9910s",
+      "codeUnits": 19,
+      "utf8Bytes": 19,
+      "sha256": "11572ec4042a6f85c73e66e8de074b950f4a50cc9d59facdc558d5d4790231b7",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9007199254740991"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D047",
+      "group": "maximum",
+      "input": "9007199254740.9911s",
+      "codeUnits": 19,
+      "utf8Bytes": 19,
+      "sha256": "7915ec7a0af0aa83929cccc3260443cd6b05db6c29356ea06eb83722d46fd1fa",
+      "expected": {
+        "kind": "duration-overflow"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D048",
+      "group": "maximum",
+      "input": "9007199254741s",
+      "codeUnits": 14,
+      "utf8Bytes": 14,
+      "sha256": "662b84415f868816a0d351127c77e490090073e1b2d0f589a3201932bded9c40",
+      "expected": {
+        "kind": "duration-overflow"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D049",
+      "group": "maximum",
+      "input": "150119987579.016516666666666666m",
+      "codeUnits": 32,
+      "utf8Bytes": 32,
+      "sha256": "7980bb81e6b900b4df61f8a38bbb4f46cd7cb16d8ac6d0c202becaa4a3b19454",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9007199254740991"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D050",
+      "group": "maximum",
+      "input": "150119987579.016516666666666667m",
+      "codeUnits": 32,
+      "utf8Bytes": 32,
+      "sha256": "80716217c8dcd8e4ff4b99cea9c8d7229a6551b1f491840207176e08349c8747",
+      "expected": {
+        "kind": "duration-overflow"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D051",
+      "group": "maximum",
+      "input": "2501999792.983608611111111111h",
+      "codeUnits": 30,
+      "utf8Bytes": 30,
+      "sha256": "ec43fb9e2a07a85c7510fe2253a207a2ee687999ee09dc39072f40d87556ac30",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9007199254740991"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D052",
+      "group": "maximum",
+      "input": "2501999792.983608611111111112h",
+      "codeUnits": 30,
+      "utf8Bytes": 30,
+      "sha256": "2169c17c68f2b9bbf28397628cc1899ea8464cb7bbdd052c888e01d789a83a23",
+      "expected": {
+        "kind": "duration-overflow"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D053",
+      "group": "maximum",
+      "input": "104249991.374317025462962962d",
+      "codeUnits": 29,
+      "utf8Bytes": 29,
+      "sha256": "6ffddbb2cf7a65e831df0b13f9840d3a6dead8b1b52006e27980bbc20f2f49a3",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "9007199254740991"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D054",
+      "group": "maximum",
+      "input": "104249991.374317025462962963d",
+      "codeUnits": 29,
+      "utf8Bytes": 29,
+      "sha256": "a9a6b3cc16c9c329d81937228a8d28694ef3b01d3323f1f95a3edad35d33afa3",
+      "expected": {
+        "kind": "duration-overflow"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D055",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 0,
+        "suffix": "0d"
+      },
+      "codeUnits": 2,
+      "utf8Bytes": 2,
+      "sha256": "2215f50cb99824ed2786a5d12df72b5dbc304b85f28cd5b873b645cccc3b7411",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D056",
+      "group": "long",
+      "input": {
+        "prefix": ".",
+        "repeat": "0",
+        "count": 3,
+        "suffix": "1s"
+      },
+      "codeUnits": 6,
+      "utf8Bytes": 6,
+      "sha256": "7e4d63c3ce4998f708bb508a1a3dbdf2f37d6920f5ca62aab51b5412ae3c7560",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D057",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 0,
+        "suffix": "1.001s"
+      },
+      "codeUnits": 6,
+      "utf8Bytes": 6,
+      "sha256": "3ba94dddd8ac8b26a50b1034e5958648fb5fe82313076d3201d2136de5c3c6c4",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D058",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 1,
+        "suffix": "0d"
+      },
+      "codeUnits": 3,
+      "utf8Bytes": 3,
+      "sha256": "cb681739ed612e46ffc2b13bfe0aa3c41486399e6526bd36af36a2e45d433667",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D059",
+      "group": "long",
+      "input": {
+        "prefix": ".",
+        "repeat": "0",
+        "count": 4,
+        "suffix": "1s"
+      },
+      "codeUnits": 7,
+      "utf8Bytes": 7,
+      "sha256": "f8def6b9aac5387acb9ab865f31b2d445120ca181cf2161caef1c8cc31dd7243",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D060",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 1,
+        "suffix": "1.001s"
+      },
+      "codeUnits": 7,
+      "utf8Bytes": 7,
+      "sha256": "9a1e7fd17c6b1594ff22a7f0f96f9e63c06c9a815f556708188425e77f844149",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D061",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 31,
+        "suffix": "0d"
+      },
+      "codeUnits": 33,
+      "utf8Bytes": 33,
+      "sha256": "fa537f84fab28068b192852eb73a4cd74fed28c7575344358154dece68fe939a",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D062",
+      "group": "long",
+      "input": {
+        "prefix": ".",
+        "repeat": "0",
+        "count": 34,
+        "suffix": "1s"
+      },
+      "codeUnits": 37,
+      "utf8Bytes": 37,
+      "sha256": "5619e0293ce9680422d158e05f6900c5a4117494c3391a4e2958c89ffbe331aa",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D063",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 31,
+        "suffix": "1.001s"
+      },
+      "codeUnits": 37,
+      "utf8Bytes": 37,
+      "sha256": "2845aec78e9d2a93b0dafad5802d9f6234a0893cf6b987a695d92c51a22062fa",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D064",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 4096,
+        "suffix": "0d"
+      },
+      "codeUnits": 4098,
+      "utf8Bytes": 4098,
+      "sha256": "2bc49bcfca7e528c5632304530a471c8b228dc4bb0fc507216ef9f9881485a3d",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D065",
+      "group": "long",
+      "input": {
+        "prefix": ".",
+        "repeat": "0",
+        "count": 4099,
+        "suffix": "1s"
+      },
+      "codeUnits": 4102,
+      "utf8Bytes": 4102,
+      "sha256": "9ace846dfdd58ecd05121b5c9c268bad66cbac0948aa18cff988bd76e413dee4",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D066",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 4096,
+        "suffix": "1.001s"
+      },
+      "codeUnits": 4102,
+      "utf8Bytes": 4102,
+      "sha256": "aa22402b4ea376d7e0121575dde495e227bdacff3465843a54d42a4244facd18",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D067",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 65536,
+        "suffix": "0d"
+      },
+      "codeUnits": 65538,
+      "utf8Bytes": 65538,
+      "sha256": "1b64cc161a035db82ead6328511b1916d5c9af4e4e04ea40328597d36b3460db",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "0"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D068",
+      "group": "long",
+      "input": {
+        "prefix": ".",
+        "repeat": "0",
+        "count": 65536,
+        "suffix": "1s"
+      },
+      "codeUnits": 65539,
+      "utf8Bytes": 65539,
+      "sha256": "fb53af43765df35e2d1d4978537856de3fb49241267bb96735c0e33c75a9f8a1",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D069",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "0",
+        "count": 65536,
+        "suffix": "1.001s"
+      },
+      "codeUnits": 65542,
+      "utf8Bytes": 65542,
+      "sha256": "97d2f134698a5c45a248f85449fb9f7bcd9ddf74380a30281ac83a3d221ff9a1",
+      "expected": {
+        "kind": "milliseconds",
+        "value": "1001"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    },
+    {
+      "id": "D070",
+      "group": "long",
+      "input": {
+        "prefix": "",
+        "repeat": "9",
+        "count": 65536,
+        "suffix": "x"
+      },
+      "codeUnits": 65537,
+      "utf8Bytes": 65537,
+      "sha256": "34ffcf1c72702702e3137ecd1852a7ebf65fbfbd287386722e0817158355c533",
+      "expected": {
+        "kind": "invalid-duration"
+      },
+      "route": [
+        "--",
+        "<materialized input>",
+        "fixture-status",
+        "7"
+      ]
+    }
+  ]
+}

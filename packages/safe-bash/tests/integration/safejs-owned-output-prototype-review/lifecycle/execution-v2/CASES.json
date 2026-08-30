@@ -1,0 +1,121 @@
+{
+  "version": "lifecycle-preparation-v1",
+  "status": "UNRUN_RELEASE_REQUIRED",
+  "logicalWorkflows": 6,
+  "executionRows": 11,
+  "executionOrder": ["L01-aliases", "L02-budget-positive", "L02-budget-exhausted", "L03-callback-live", "L03-callback-after-lifetime", "L04-explicit-children", "L05-caller-error", "L05-execution-error", "L05-cleanup-error", "L06-curl-open", "L06-curl-consumer-closed"],
+  "defaultSafeJsLimits": {
+    "maxSourceBytes": 16384,
+    "maxInputBytes": 65536,
+    "maxOutputBytes": 65536,
+    "timeoutMs": 3500,
+    "maxSteps": 200000,
+    "maxCallDepth": 64,
+    "stringLength": 65536,
+    "arrayLength": 8192,
+    "dataSize": 1048576
+  },
+  "containment": {
+    "caseChildrenAtOnce": 1,
+    "childDeadlineMs": 7000,
+    "supervisorDeadlineMs": 9000,
+    "wholeCohortDeadlineMs": 120000,
+    "heapMb": 256,
+    "childOutputMaxBytes": 1048576,
+    "eventMaxCount": 4096,
+    "unexpectedWorkersAllowed": 0,
+    "unexpectedSubprocessesAllowed": 0,
+    "socketsAllowed": 0,
+    "acceptanceAfterContainment": false,
+    "automaticRetries": 0
+  },
+  "commonInputs": {
+    "cwd": "/work",
+    "env": {},
+    "stdinHex": "",
+    "publicShellCommand": "owned-guest",
+    "nestedInvokeName": "safejs",
+    "nestedInvokeArgs": ["-e", "EXACT_GUEST_FILE_BYTES", "--", "EXACT_ROW_GUEST_ARGS"],
+    "printFlag": false,
+    "runtimeHooks": ["run", "createBudget", "makeFsModule", "declareHostOperation"],
+    "guestModules": ["fs", "stdio", "command"],
+    "bridgeRowsExtraModule": "shell",
+    "newGuestControlModules": []
+  },
+  "rows": [
+    {
+      "id": "L01-aliases", "workflow": "L01", "guest": "guests/aliases.ajs.data", "guestArgs": [], "route": "literal-invoke", "schedule": "alias-positive",
+      "expect": {"publicKind": "result", "exitCode": 7, "stdoutHex": "616c6961730a007fff0a", "stderr": "stderr\n", "accountedWriteCalls": 2, "ordinaryDestinationWriteCalls": 0, "acquisitions": 1, "releases": 1}
+    },
+    {
+      "id": "L02-budget-positive", "workflow": "L02", "guest": "guests/budget-callback.ajs.data", "guestArgs": [], "route": "literal-invoke", "schedule": "budget-pair", "maxSteps": 200000,
+      "expect": {"publicKind": "result", "exitCode": 0, "stdout": "before-budget\nafter-budget\n", "stderr": "", "accountedWriteCalls": 2, "releases": 1, "guestReturnValue": 4096}
+    },
+    {
+      "id": "L02-budget-exhausted", "workflow": "L02", "guest": "guests/budget-callback.ajs.data", "guestArgs": [], "route": "literal-invoke", "schedule": "budget-pair", "maxSteps": 2048, "requiresPositive": "L02-budget-positive",
+      "expect": {"publicKind": "result", "exitCode": 124, "stdout": "before-budget\n", "accountedWriteCalls": 1, "releases": 1, "engineErrorCode": "budgetExceeded", "engineErrorBudget": "steps", "engineErrorCurrent": 2049, "engineErrorLimit": 2048, "stderr": "safejs: Sandbox budget exceeded for steps: 2049 > 2048.\n", "afterBudgetHostWrites": 0}
+    },
+    {
+      "id": "L03-callback-live", "workflow": "L03", "guest": "guests/lifetime-callback.ajs.data", "guestArgs": ["live"], "route": "shell-module", "schedule": "hold-release-while-live",
+      "expect": {"publicKind": "result", "exitCode": 0, "stdout": "queued\ncallback\n", "stderr": "", "holdEntries": 1, "lateEntries": 1, "callbackEffects": 1}
+    },
+    {
+      "id": "L03-callback-after-lifetime", "workflow": "L03", "guest": "guests/lifetime-callback.ajs.data", "guestArgs": ["detached"], "route": "shell-module", "schedule": "hold-release-during-registered-close", "requiresPositive": "L03-callback-live",
+      "expect": {"publicKind": "result", "exitCode": 0, "stdout": "queued\n", "stderr": "", "holdEntries": 1, "lateEntries": 0, "callbackEffects": 0, "facadeSignalAbortedBeforeHoldRelease": true, "ownedCooperativeWorkDoneBeforePublicSettlement": true},
+      "qualification": "No claim that pure guest callback instructions cannot run; measure denied host effects through the real facade and invocation signal. Missing queued/admitted/settled controls is UNPROVED, not PASS."
+    },
+    {
+      "id": "L04-explicit-children", "workflow": "L04", "guest": "guests/children.ajs.data", "guestArgs": [], "route": "shell-module", "schedule": "child-isolation-then-parent-close",
+      "expect": {"publicKind": "result", "exitCode": 0, "stdout": "[0,0,3]\n", "stderr": "", "leftResourceReleases": 1, "rightResourceReleases": 1, "rightEffect": "right\n", "lateAcquisitionStarts": 0, "lateChildCreations": 0, "parentAbortedOnNormalClose": false},
+      "qualification": "Status 3 is the fixture command's explicit admission-denial result, not a new product status contract; actual helper refusals and resource counters must independently prove denial."
+    },
+    {
+      "id": "L05-caller-error", "workflow": "L05", "guest": "guests/precedence.ajs.data", "guestArgs": [], "route": "literal-invoke", "schedule": "caller-before-late-write-rejection",
+      "expect": {"publicKind": "rejection", "identity": "callerError", "stdout": "admitted\n", "cleanupFailureObserved": "cleanupError", "lateWriteFailureObserved": "executionError", "cleanupDoneBeforePublicSettlement": true},
+      "qualification": "A late local write rejection is not automatically a selected public execution rejection. No opaque losing-handler join is required."
+    },
+    {
+      "id": "L05-execution-error", "workflow": "L05", "guest": "guests/precedence.ajs.data", "guestArgs": [], "route": "literal-invoke", "schedule": "real-write-and-diagnostic-rejection",
+      "expect": {"publicKind": "rejection", "identity": "executionError", "stdout": "admitted\n", "cleanupFailureObserved": "cleanupError", "diagnosticSinkRejectedWithExecutionIdentity": true, "cleanupDoneBeforePublicSettlement": true},
+      "qualification": "Do not promote the guest/utility throw into a raw rejection. A real failing public diagnostic sink and source-selected rejection are required; a status-only observation leaves this precedence assertion UNPROVED."
+    },
+    {
+      "id": "L05-cleanup-error", "workflow": "L05", "guest": "guests/precedence.ajs.data", "guestArgs": [], "route": "literal-invoke", "schedule": "cleanup-only-after-successful-guest",
+      "expect": {"publicKind": "rejection", "identity": "cleanupError", "stdout": "admitted\nselected\n", "selectedGuestStatus": 0, "selectedExecutionRejection": false, "cleanupDoneBeforePublicSettlement": true}
+    },
+    {
+      "id": "L06-curl-open", "workflow": "L06", "guest": "guests/curl.ajs.data", "guestArgs": [], "route": "shell-module", "schedule": "curl-streaming-independent-effects", "closeCurlConsumer": false,
+      "expect": {"publicKind": "result", "exitCode": 0, "stdout": "200\ncurl:0\n", "stderr": "independent-stderr\n", "curlStatus": 0, "writeoutAccountedCalls": 1, "transportSignalAbortedByConsumer": false}
+    },
+    {
+      "id": "L06-curl-consumer-closed", "workflow": "L06", "guest": "guests/curl.ajs.data", "guestArgs": [], "route": "shell-module", "schedule": "curl-streaming-independent-effects", "closeCurlConsumer": true, "requiresPositive": "L06-curl-open",
+      "expect": {"publicKind": "result", "exitCode": 141, "stdout": "curl:141\n", "stderr": "independent-stderr\n", "curlStatus": 141, "writeoutAccountedCalls": 0, "transportSignalAbortedByConsumer": false},
+      "qualification": "Direct registered curl status with required files plus closed stdout, not pipeline default/pipefail or native curl parity."
+    }
+  ],
+  "errors": {
+    "callerError": {"constructor": "Error", "message": "caller:L05-caller-error"},
+    "executionError": {"constructor": "Error", "messageTemplate": "execution:ROW_ID"},
+    "cleanupError": {"constructor": "Error", "messageTemplate": "cleanup:ROW_ID"},
+    "curlConsumerError": {"constructor": "Error", "message": "consumer:L06-curl-consumer-closed", "ownCode": "EPIPE"},
+    "identityRule": "Construct once in each child; compare references before serialization. No wrapping, truthiness classification or expected-reason coercion.",
+    "undefinedRule": "No synthetic literal-undefined caller row. Native abort() and abort(undefined) produce the actual default AbortError; capture signal.reason, never assert literal undefined."
+  },
+  "curlInputs": {
+    "registryName": "curl",
+    "args": ["-sS", "-T", "-", "-o", "/work/body.bin", "-D", "/work/headers.txt", "-w", "%{http_code}\n", "https://owned.invalid/upload"],
+    "authorizedUrl": "https://owned.invalid/upload",
+    "method": "PUT",
+    "redirects": 0,
+    "uploadChunksHex": ["41300a", "42310a"],
+    "responseStatus": 200,
+    "responseStatusText": "OK",
+    "responseHttpVersion": "1.1",
+    "responseHeaders": [["Content-Type", "application/octet-stream"], ["Content-Length", "12"]],
+    "responseChunksHex": ["626f6479300a", "626f6479310a"],
+    "requiredFiles": {"/work/body.bin": "body0\nbody1\n", "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"},
+    "independentStderr": "independent-stderr\n",
+    "limits": {"maxUploadBytes": 1024, "maxDownloadBytes": 1024, "maxBufferBytes": 4096, "maxHeaderBytes": 4096, "maxRedirects": 1, "maxRetries": 1, "maxUrls": 1, "maxTimeMs": 2500},
+    "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+  }
+}

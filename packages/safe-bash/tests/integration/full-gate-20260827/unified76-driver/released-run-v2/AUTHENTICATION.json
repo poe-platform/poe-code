@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-28T11:00:58.325Z",
+  "receiptSha256": "6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d",
+  "packetCommit": "52e83606dc41297a20cbeb3e0fc4ecf703bb242d",
+  "metadataReview": "7ecfe4538beb1cbdc2beef7e7b6d055b187ea580",
+  "driverReview": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+  "records": 57,
+  "requireReleaseShapeCheck": "passed; not shipping admission or external tool probe",
+  "externalReceipt": "/tmp/unified76-release-f5-scopedenv-20260828-r2.json",
+  "outputStillAbsent": true,
+  "fullGateLaunches": 0,
+  "qualification": "Fresh root message plus pinned committed evidence. Actual run still performs external preflight before its receipt check; no cryptographic consumed-token mechanism."
+}

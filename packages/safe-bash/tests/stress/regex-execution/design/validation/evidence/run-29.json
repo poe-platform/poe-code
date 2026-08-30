@@ -1,0 +1,70 @@
+{
+  "args": [
+    "policy",
+    "live-one-record-stream"
+  ],
+  "pid": 69637,
+  "readyAt": 41.23504099999991,
+  "killed": false,
+  "events": [
+    {
+      "event": "disconnect",
+      "values": [],
+      "at": 65.1166659999999
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ],
+      "at": 66.93629099999998
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null,
+      "at": 66.94108299999971
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready"
+    },
+    {
+      "type": "done",
+      "result": {
+        "id": "live-one-record-stream",
+        "pass": true,
+        "pulled": 2,
+        "delivered": 2,
+        "returned": true,
+        "metrics": {
+          "created": 1,
+          "terminated": 1,
+          "requests": 3,
+          "execCalls": 4,
+          "inputBytes": 4,
+          "responseBytes": 112,
+          "startupMs": 21.250666,
+          "workMs": 0.38245800000000685,
+          "terminationMs": 0.9611669999999961,
+          "peakInflight": 1,
+          "listenersAfter": 0,
+          "exitCode": 1
+        }
+      }
+    }
+  ],
+  "stderr": "",
+  "ipcBytes": 361,
+  "streamBytes": 0,
+  "code": 0,
+  "signal": null
+}

@@ -1,0 +1,65 @@
+ROOT producer GO launch-contract admission; direct outer capture before external children.
+START 2026-08-29T15:38:28Z
+Limits: 20min / 48 known OS / peak3 / 96MiB capture / 512MiB logical work including publication.
+No compiler/package/decode/product command has been admitted.
+
+--- applicable owned instructions ---
+
+--- sealed executable identity ---
+commit c5a45fec840135ed38ac5533b8a15f1b64dafb2c
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Sat Aug 29 10:35:36 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Sat Aug 29 10:35:36 2026 -0500
+
+    Preseal exact CORE transport overlay producer and 1800-second guard recipe
+
+--- scoped sealed tracked drift ---
+
+--- staged inventory NUL ---
+
+--- sealed launch admission ---
+20:  const rows = []; let total = 0;
+21:  const walk = directory => { for (const name of fs.readdirSync(directory).sort()) { const filename = path.join(directory, name), stat = fs.lstatSync(filename); if (stat.isDirectory()) walk(filename); else { assert(stat.isFile()); total += stat.size; assert(total < 201326592 && rows.length < 10000); rows.push({ path: path.relative(root, filename), bytes: stat.size, mode: stat.mode & 511, sha256: hash(read(filename)) }); } } };
+22:  walk(root); return rows.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+23:}
+24:function writeJson(filename, value, frozen = false) { const bytes = Buffer.from(JSON.stringify(value, null, 2) + '\n'); fs.writeFileSync(filename, bytes, { flag: 'wx', mode: frozen ? 0o444 : 0o600 }); return hash(bytes); }
+25:
+26:export function executeProducer(arguments_) {
+27:  const [mode, expectedPreseal, grantPath, expectedGrant, outputRoot, expectedFrozenReceipt] = arguments_;
+28:  assert(['produce', 'decode-frozen'].includes(mode));
+29:  assert(/^[a-f0-9]{64}$/.test(expectedPreseal ?? '') && /^[a-f0-9]{64}$/.test(expectedGrant ?? ''));
+30:  assert(fs.fstatSync(1).isFile() && fs.fstatSync(2).isFile(), 'outer raw captures required before admission');
+31:  const sealBytes = read(path.join(own, 'PRESEAL.json')); assert.equal(hash(sealBytes), expectedPreseal);
+32:  const seal = JSON.parse(sealBytes);
+33:  for (const row of seal.files) verifyFile(row, path.join(own, row.path));
+34:  const grantBytes = read(grantPath, 16384); assert.equal(hash(grantBytes), expectedGrant);
+35:  const grant = JSON.parse(grantBytes);
+36:  assert.equal(grant.action, mode === 'produce' ? 'PRODUCE-CORE-TWO-SOURCE-OVERLAY' : 'DECODE-FROZEN-CORE-PRODUCER-ARCHIVE');
+37:  assert.equal(grant.presealSha256, expectedPreseal);
+38:  assert(/^[a-f0-9]{40}$/.test(grant.independentProducerReview) && /^[a-f0-9]{40}$/.test(grant.transportSourceReview));
+39:  assert.equal(grant.outputRoot, outputRoot);
+40:  assert(path.isAbsolute(outputRoot) && path.dirname(outputRoot) === own, 'new directly owned output root only');
+41:  const composition = JSON.parse(read(path.join(own, 'COMPOSITION.json')));
+42:  assert.equal(grant.composition, composition.derivedTree);
+43:  const baselineBytes = read(composition.baseSourceManifest.path); assert.equal(hash(baselineBytes), composition.baseSourceManifest.sha256);
+44:  validateComposition(composition, JSON.parse(baselineBytes));
+45:  const tools = composition.tools;
+46:  assert.equal(process.execPath, tools.node.path);
+47:  verifyFile(tools.node); verifyFile(tools.git);
+48:  for (const row of tools.typescript) verifyFile(row);
+49:  for (const row of tools.npm.rows) {
+50:    const filename = path.join(tools.npmRoot, row.path);
+51:    if (row.kind === 'link') { assert(fs.lstatSync(filename).isSymbolicLink()); assert.equal(fs.readlinkSync(filename), row.text); verifyFile({ size: row.targetSize, sha256: row.targetSha256 }, fs.realpathSync(filename)); }
+52:    else verifyFile(row, filename);
+53:  }
+54:  if (mode === 'decode-frozen') {
+55:    assert(/^[a-f0-9]{64}$/.test(expectedFrozenReceipt ?? ''));
+56:    const receiptPath = path.join(outputRoot, 'PRE-INFLATE-RECEIPT.json');
+57:    const receiptBytes = read(receiptPath); assert.equal(hash(receiptBytes), expectedFrozenReceipt);
+58:    assert.equal(fs.lstatSync(receiptPath).mode & 0o222, 0);
+59:    const receipt = JSON.parse(receiptBytes); assert.equal(receipt.composition, composition.derivedTree);
+60:    assert.equal(grant.frozenReceiptSha256, expectedFrozenReceipt);
+DATA_ADMISSION_HELPER_START
+{"phase":"STOP_BEFORE_PRODUCER_COMMAND","missingField":"grant.independentProducerReview","enforcingLine":38,"authenticatedFiles":10,"receipt":{"path":"tests/compatibility/bash-ere-core-transport-rebind-20260829/producer-go-attempt-v1/STOP.json","bytes":4395,"sha256":"d5a9778ed12b245b744793c013285dc6a6107422cc18fbe129efdc66a25a1e15"},"selectedOutputRootAlreadyExists":false,"compiler":0,"pack":0,"decode":0,"at":"2026-08-29T15:39:57.534Z"}
+DATA_ADMISSION_HELPER_EXIT 0

@@ -1,0 +1,104 @@
+{
+  "schema": "git-native-bridge-v4-evidence",
+  "date": "2026-08-28",
+  "status": "READY_FOR_SCOPED_OS_REVIEW_NOT_DISPATCH_READY",
+  "presealCommit": "4542386003fd8faa50cdd32dd27d04482be883d0",
+  "repairCommit": "08070a84cdb5f11008a0675d3e858b3c80c9b99d",
+  "checks": {
+    "syntax": 12,
+    "syntaxPassed": 12,
+    "launcherAttempts": 2,
+    "initialPreflightFailedBeforeImport": true,
+    "cohortExecutions": 1,
+    "scenarios": 26,
+    "passed": 26,
+    "failed": 0,
+    "scenarioReruns": 0,
+    "protectedV3Files": 20,
+    "protectedV3FullFilenameCensusUnchanged": true,
+    "sealedSourceModeHashUnchanged": true
+  },
+  "actual": {
+    "nativeSix": "UNRUN",
+    "OS": "UNEXECUTED",
+    "H11Children": 0,
+    "observerChildren": 0,
+    "helperChildren": 0,
+    "module": "UNRUN",
+    "typeAll": "UNRUN",
+    "compiler": "UNRUN",
+    "gate": "UNRUN"
+  },
+  "files": [
+    {
+      "path": "PRESEAL.json",
+      "bytes": 7990,
+      "sha256": "59741e3fbc15926bb8a6319e002331c537bdae1216a38dacf030f01ac6c1b537"
+    },
+    {
+      "path": "REPAIR-PRESEAL.json",
+      "bytes": 2702,
+      "sha256": "1791a911625a071a675e793b53e37a9c29ca354f7d22f2dbf9dc71731afdafee"
+    },
+    {
+      "path": "rendered.json",
+      "bytes": 34131,
+      "sha256": "9e685555f1f9115de1e6671e69da189353e36e97f76e2737dbb3a43232500272"
+    },
+    {
+      "path": "preflight-01.json",
+      "bytes": 1142,
+      "sha256": "9f5f208ccbc99d118a8fb85f15638c764bbaf0c755c3575244d853ebd2588c9f"
+    },
+    {
+      "path": "synthetic-02.stdout.jsonl",
+      "bytes": 2883,
+      "sha256": "a08ac53864a7da3d620aff4cdead5ea98907822304cd397f3d213f278cebe454"
+    },
+    {
+      "path": "synthetic-02.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "synthetic-02.status.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "syntax-01.stdout.txt",
+      "bytes": 219,
+      "sha256": "2c95624e805a2ce36da110ba4da92f687f7d4e746109e7338be3553697c84080"
+    },
+    {
+      "path": "syntax-01.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-01.status.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "syntax-repair-01.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-repair-01.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax-repair-01.status.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "RECEIPT.md",
+      "bytes": 6067,
+      "sha256": "9862e71f880ee2d668d799a75fdf6582d9c0fcab18f88e0e1c4bd1ff2c7e50b1"
+    }
+  ]
+}

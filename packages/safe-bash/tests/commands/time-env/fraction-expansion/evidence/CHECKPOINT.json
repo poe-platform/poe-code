@@ -1,0 +1,536 @@
+{
+  "source": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+  "capturedAt": "2026-08-27T08:51:35.629Z",
+  "independentAcceptance": false,
+  "rootExportsChanged": false,
+  "defaultIntegration": false,
+  "captures": [
+    {
+      "label": "regression-replay",
+      "source": "d904ca986fa945df8aef6e11b4165e2c2a63f814",
+      "candidate": "c782363",
+      "commands": {
+        "unchanged-author": {
+          "status": 1,
+          "counts": {
+            "tests": 223,
+            "pass": 221,
+            "fail": 2,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "new-author-regressions": {
+          "status": 0,
+          "counts": {
+            "tests": 83,
+            "pass": 83,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "author-types": {
+          "status": 0,
+          "counts": {}
+        },
+        "build": {
+          "status": 0,
+          "counts": {}
+        },
+        "consumer-types": {
+          "status": 0,
+          "counts": {}
+        },
+        "independent": {
+          "status": 1,
+          "counts": {}
+        },
+        "native-neighbors": {
+          "status": 0,
+          "counts": {}
+        },
+        "negative-types": {
+          "status": 2,
+          "counts": {}
+        }
+      },
+      "total": 305,
+      "pass": 304
+    },
+    {
+      "label": "packed-replay",
+      "source": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+      "commands": {
+        "build": {
+          "status": 0
+        },
+        "pack": {
+          "status": 0
+        },
+        "consumer-types": {
+          "status": 0
+        },
+        "consumer-build": {
+          "status": 0
+        },
+        "hidden": {
+          "status": 0
+        },
+        "negative-types": {
+          "status": 2
+        }
+      },
+      "total": 304,
+      "pass": 304
+    },
+    {
+      "label": "feature-controls",
+      "source": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+      "commands": {
+        "feature": {
+          "status": 0,
+          "counts": {
+            "tests": 54,
+            "pass": 54,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "types": {
+          "status": 0,
+          "counts": {}
+        },
+        "mutant-output-preflight": {
+          "status": 1,
+          "counts": {
+            "tests": 54,
+            "pass": 50,
+            "fail": 4,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "mutant-left-padding": {
+          "status": 1,
+          "counts": {
+            "tests": 54,
+            "pass": 40,
+            "fail": 14,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "mutant-ISO-wrap": {
+          "status": 1,
+          "counts": {
+            "tests": 54,
+            "pass": 50,
+            "fail": 4,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        },
+        "restored-feature": {
+          "status": 0,
+          "counts": {
+            "tests": 54,
+            "pass": 54,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          }
+        }
+      }
+    }
+  ],
+  "inputs": {
+    "native-v1.json": "949cf8167add4308bb9fb8d8bc8394acf6a77879b4d636d4b2a16e10917d8fd8",
+    "native-after-v1.json": "2d1ac3c84dbfafc3bfa9ed3709116e59ddfc0fc681e84fd79feb9d31576fd1d0",
+    "capture.mjs": "c644c1ea62f6ef285ca666f59c451ada16af2500c69ca6fbb277b5fa99c5e742",
+    "verify.mjs": "faf280f731eac4e98a551e0317c76d83e08acec53ac34364da450d963d480b38",
+    "packed-replay.mjs": "82df227e483fa55ecbdba67c3cbd5eb34f59682915d0fc7057f37ba40dc1b251",
+    "nanoseconds.test.ts": "2529639afffc2cd7cfe0d213f7f6a16df4251b58102f65fd720e0cf904cf6c85",
+    "iso-year.test.ts": "3ce99b115bd8b64588c97249b91506ab32f92c638c6cbd8cbbe5a013699cc66c",
+    "tsconfig.json": "04249634b0891c0217368cc743991a770b00cd8aeac5f8cbfba3a918190ceb83",
+    "SEMANTICS.md": "284bee4c773a53e1daa0ad346f3e2cb2cfd1d59f217ab052d07eb76edd85f785",
+    "archive.mjs": "41329f0abf1f9aa80d8f873e0f3d9000c2cc2f63759bbec7a9792627a5045ef6"
+  },
+  "publicSleep": [
+    {
+      "name": "compiled public sleep cancellation repeat0",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat1",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat2",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat3",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat4",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "compiled public sleep cancellation repeat5",
+      "category": "public-sleep-lifecycle",
+      "atExec": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "atDispose": {
+        "timers": 0,
+        "listeners": [
+          0
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "name": "public preabort creates no timer and preserves caller identity",
+      "category": "public-sleep-lifecycle",
+      "result": "pass"
+    },
+    {
+      "name": "cancelling one Shell does not clear a sibling timer",
+      "category": "public-sleep-isolation",
+      "siblingTimers": 1,
+      "result": "pass"
+    }
+  ],
+  "ICUProfileDifferences": [
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "0008-01-02T03:04:05Z",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-61914660955",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "America/New_York"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c676d742d343a35363a30327c676d742d343a35363a30327c676d742d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c474d542d343a35363a30327c20474d542d343a35363a30327c20474d542d343a35363a30327c30474d542d343a35363a30327c474d542d343a35363a30327c30474d542d343a35363a30327c20474d542d343a35363a30327c20202020202020202020202020202020202020676d742d343a35363a30327c30303030303030303030303030303030303030474d542d343a35363a30320a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c4c4d547c6c6d747c6c6d747c6c6d747c4c4d547c2020204c4d547c2020202020204c4d547c2020202020202020204c4d547c2020202020202020204c4d547c3030303030303030304c4d547c4c4d547c3030303030303030304c4d547c2020202020202020204c4d547c2020202020202020202020202020202020202020202020202020206c6d747c3030303030303030303030303030303030303030303030303030304c4d540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "0008-01-02T03:04:05Z",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-61914660955",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "Europe/Paris"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c676d742b303a30393a32317c676d742b303a30393a32317c676d742b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c474d542b303a30393a32317c20474d542b303a30393a32317c20474d542b303a30393a32317c30474d542b303a30393a32317c474d542b303a30393a32317c30474d542b303a30393a32317c20474d542b303a30393a32317c20202020202020202020202020202020202020676d742b303a30393a32317c30303030303030303030303030303030303030474d542b303a30393a32310a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c4c4d547c6c6d747c6c6d747c6c6d747c4c4d547c2020204c4d547c2020202020204c4d547c2020202020202020204c4d547c2020202020202020204c4d547c3030303030303030304c4d547c4c4d547c3030303030303030304c4d547c2020202020202020204c4d547c2020202020202020202020202020202020202020202020202020206c6d747c3030303030303030303030303030303030303030303030303030304c4d540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4c4d547c4c4d547c4c4d547c4c4d547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "2024-02-29T15:06:07Z",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "1709219167",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "Europe/Paris"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542b317c474d542b317c474d542b317c474d542b317c474d542b317c676d742b317c676d742b317c676d742b317c474d542b317c20474d542b317c20202020474d542b317c20202020202020474d542b317c20202020202020474d542b317c30303030303030474d542b317c474d542b317c30303030303030474d542b317c20202020202020474d542b317c20202020202020202020202020202020202020202020202020676d742b317c30303030303030303030303030303030303030303030303030474d542b310a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c4345547c6365747c6365747c6365747c4345547c2020204345547c2020202020204345547c2020202020202020204345547c2020202020202020204345547c3030303030303030304345547c4345547c3030303030303030304345547c2020202020202020204345547c2020202020202020202020202020202020202020202020202020206365747c3030303030303030303030303030303030303030303030303030304345540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "@-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "America/New_York"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542d357c474d542d357c474d542d357c474d542d357c474d542d357c676d742d357c676d742d357c676d742d357c474d542d357c20474d542d357c20202020474d542d357c20202020202020474d542d357c20202020202020474d542d357c30303030303030474d542d357c474d542d357c30303030303030474d542d357c20202020202020474d542d357c20202020202020202020202020202020202020202020202020676d742d357c30303030303030303030303030303030303030303030303030474d542d350a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4553547c4553547c4553547c4553547c4553547c6573747c6573747c6573747c4553547c2020204553547c2020202020204553547c2020202020202020204553547c2020202020202020204553547c3030303030303030304553547c4553547c3030303030303030304553547c2020202020202020204553547c2020202020202020202020202020202020202020202020202020206573747c3030303030303030303030303030303030303030303030303030304553540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4553547c4553547c4553547c4553547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    },
+    {
+      "category": "zone-label-profile",
+      "args": [
+        "-d",
+        "@-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "appleArgs": [
+        "-r",
+        "-1",
+        "+%Z|%-Z|%_Z|%0Z|%^Z|%#Z|%#^Z|%^#Z|%1Z|%6Z|%9Z|%12Z|%_12Z|%012Z|%-12Z|%_012Z|%0_12Z|%^#30Z|%030Z"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "TZ": "Europe/Paris"
+      },
+      "actual": {
+        "status": 0,
+        "stdoutHex": "474d542b317c474d542b317c474d542b317c474d542b317c474d542b317c676d742b317c676d742b317c676d742b317c474d542b317c20474d542b317c20202020474d542b317c20202020202020474d542b317c20202020202020474d542b317c30303030303030474d542b317c474d542b317c30303030303030474d542b317c20202020202020474d542b317c20202020202020202020202020202020202020202020202020676d742b317c30303030303030303030303030303030303030303030303030474d542b310a",
+        "stderrHex": ""
+      },
+      "gnu": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c4345547c6365747c6365747c6365747c4345547c2020204345547c2020202020204345547c2020202020202020204345547c2020202020202020204345547c3030303030303030304345547c4345547c3030303030303030304345547c2020202020202020204345547c2020202020202020202020202020202020202020202020202020206365747c3030303030303030303030303030303030303030303030303030304345540a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "status": 0,
+        "stdoutHex": "4345547c4345547c4345547c4345547c5e5a7c235a7c235e5a7c5e235a7c315a7c365a7c395a7c31325a7c31325a7c31325a7c31325a7c3031325a7c5f31325a7c5e2333305a7c33305a0a",
+        "stderrHex": ""
+      },
+      "gnuMatch": false,
+      "appleMatch": false
+    }
+  ],
+  "legacyRejectionFailures": [
+    "date rejects unsupported/invalid input without stdout: -d@0 +%12N",
+    "date rejects unsupported/invalid input without stdout: -d@0 +%-N"
+  ],
+  "tarballSha256": "d4b92cf564a96caeac3ee88dea0afe79458a592fe462c9765aa13127257f80d5",
+  "sourceHashes": {
+    "src/commands/time-env/calendar.ts": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+    "src/commands/time-env/date.ts": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+    "src/commands/time-env/format.ts": "ddbabf9ac2918869ed32a641fb9e2c290ee71b9bbf07ccaab64f9fc3b29b22b0",
+    "src/commands/time-env/index.ts": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+    "src/commands/time-env/printenv.ts": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+    "src/commands/time-env/README.md": "42351fecb1c1f7c293bec851fa48720b6557fc6af0e2e77e9784d51ff765d53b",
+    "src/commands/time-env/shared.ts": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+    "src/commands/time-env/sleep.ts": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96"
+  },
+  "actualRegistry": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "comm",
+    "cp",
+    "cut",
+    "diff",
+    "dirname",
+    "echo",
+    "env",
+    "expand",
+    "false",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "xargs",
+    "xxd",
+    "zcat"
+  ]
+}

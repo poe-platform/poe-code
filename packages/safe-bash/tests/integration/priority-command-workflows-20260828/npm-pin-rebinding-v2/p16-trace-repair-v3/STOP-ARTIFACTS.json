@@ -1,0 +1,43 @@
+{
+  "schema": "p16-incomplete-preparation-artifacts-v3",
+  "status": "STOP_NOT_RUNTIME_SEAL",
+  "files": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/AUTHOR-PROTOCOL.md",
+      "bytes": 1705,
+      "sha256": "68e3e1df686bcfcfb734b944ea5fcb5ab9a2cc42fbfa1ca483e9c5f24f04f953"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/DATA-CONTROLS.presealed.json",
+      "bytes": 15542,
+      "sha256": "0c6f669d90c70386e1dae72a3755fb64f498ee8e0d3fc43a19d776caad3d5872"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/PRECODE-SEAL.json",
+      "bytes": 238,
+      "sha256": "fcef7ee3b182b66f2bd22cef76fe8ee1ffe90b16b8acfffe111d4abb6055b7f7"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/PREPARATION-STOP.json",
+      "bytes": 5568,
+      "sha256": "e992d8e056f26f4c6afb3d0436537ae760d3022b574a206159399d59571d54ec"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/HANDOFF.md",
+      "bytes": 2871,
+      "sha256": "8433513f49279b979fd413354d1b5b63815e7df80b3adccf4b9cba7e231ebd86"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/PARENT-BUDGET.template.json",
+      "bytes": 301,
+      "sha256": "9878be2afe4281e9d359d9762ead9fb73eafb075f589e112e40a1026ad7a5c2f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v3/SELECTION.preparation.json",
+      "bytes": 11382,
+      "sha256": "26c0d914421a28200e7067b7c0e7355bd4495137eba2b5b7ee4c33ac68113e49"
+    }
+  ],
+  "selfExclusion": "This manifest excludes itself; its exact bytes/hash are reported in final handoff."
+}
+

@@ -1,0 +1,8 @@
+P01 shell pid=13935; SOURCE/type-only authorization; initial capture before helpers; no runtime
+context-only instruction reads complete; no instruction plaintext in evidence
+P02 shell pid=14187; create bounded source-reader; exec Node
+P05 shell pid=15649; source-binding helper edit then exec Node; at most4 scoped Git children
+P13 shell pid=29416; apply_patch four authorized core paths only
+P14 shell pid=32226; narrow source cleanup/locale correction before compiler preseal
+P15 shell pid=33791; preserve diagnostic/cleanup provenance before sealing
+P16 shell pid=35636; exact-bound constructor and quoted bracket lexical bookkeeping

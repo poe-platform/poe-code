@@ -1,0 +1,19 @@
+{
+  "PATH": "/tmp/safe-bash-current-integration-69dbdy0m/oracle-bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+  "LANG": "C",
+  "LC_ALL": "C",
+  "TZ": "UTC",
+  "TSX_DISABLE_CACHE": "1",
+  "NO_COLOR": "1",
+  "npm_config_update_notifier": "false",
+  "npm_config_audit": "false",
+  "npm_config_fund": "false",
+  "HOME": "/tmp/safe-bash-current-integration-69dbdy0m/home",
+  "TMPDIR": "/tmp/safe-bash-current-integration-69dbdy0m/tmp",
+  "TMP": "/tmp/safe-bash-current-integration-69dbdy0m/tmp",
+  "TEMP": "/tmp/safe-bash-current-integration-69dbdy0m/tmp",
+  "XDG_CACHE_HOME": "/tmp/safe-bash-current-integration-69dbdy0m/cache",
+  "XDG_CONFIG_HOME": "/tmp/safe-bash-current-integration-69dbdy0m/config",
+  "XDG_DATA_HOME": "/tmp/safe-bash-current-integration-69dbdy0m/data",
+  "npm_config_cache": "/tmp/safe-bash-current-integration-69dbdy0m/npm-cache"
+}

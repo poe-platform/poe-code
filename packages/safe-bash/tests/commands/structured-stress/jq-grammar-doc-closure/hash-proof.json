@@ -1,0 +1,179 @@
+{
+  "kind": "documentation-only hash provenance; no runtime validation rerun",
+  "beforeAt": "2026-08-27T03:01:21.487Z",
+  "afterAt": "2026-08-27T03:02:28.110Z",
+  "testedSourceCommit": "09926fb67452ca7db9bd793d87b78d2f41ff82be",
+  "independentFinalCommit": "ea11ceb85bbecf90f00f472969c11c443df7d2ab",
+  "headBefore": "f551b0e909d5583b2b0b4ced60a1ac2de7b119e0",
+  "docsCommit": "ceb3f5ff88624d6366a2b0f3810d6a93e489a327",
+  "docsParent": "408ff5991875199f3587e289ee1d9bbaed4d7f94",
+  "headAfter": "ceb3f5ff88624d6366a2b0f3810d6a93e489a327",
+  "oldTestedStructuredSha256": "913886e89fce8626d28f957d978243e3b8dd6bf94dd14348f5331f47607b4fb1",
+  "newDocsOnlyStructuredSha256": "04e7bacb7c0db05df3abc896dc21c9baf5abf0eb38ed018e8fbd3efcfed9d69c",
+  "docsCommitStructuredSha256": "04e7bacb7c0db05df3abc896dc21c9baf5abf0eb38ed018e8fbd3efcfed9d69c",
+  "hashAlgorithm": "sourceSnapshot(): SHA-256 of lexically path-sorted path + NUL + per-file SHA-256 + LF entries; structured includes README.md",
+  "runtimeOnlySha256": "53696061a9db15ae34e3f8908075e43123469c15a9e97ef7e7125a442397ee7c",
+  "runtimeOnlyHashAlgorithm": "Same entry algorithm, restricted to all src/commands/structured/**/*.ts files",
+  "runtimePathSetUnchanged": true,
+  "runtimeDigestsAllEqual": true,
+  "runtimeFiles": [
+    {
+      "path": "src/commands/structured/index.ts",
+      "handoffSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "parentBeforeSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "worktreeBeforeSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "docsParentSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "docsCommitSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "headAfterSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "worktreeAfterSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "handoffSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "parentBeforeSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "worktreeBeforeSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "docsParentSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "docsCommitSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "headAfterSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "worktreeAfterSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "handoffSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "parentBeforeSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "worktreeBeforeSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "docsParentSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "docsCommitSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "headAfterSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "worktreeAfterSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "handoffSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "parentBeforeSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "worktreeBeforeSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "docsParentSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "docsCommitSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "headAfterSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "worktreeAfterSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "handoffSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "parentBeforeSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "worktreeBeforeSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "docsParentSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "docsCommitSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "headAfterSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "worktreeAfterSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "handoffSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "parentBeforeSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "worktreeBeforeSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "docsParentSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "docsCommitSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "headAfterSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "worktreeAfterSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "handoffSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "parentBeforeSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "worktreeBeforeSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "docsParentSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "docsCommitSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "headAfterSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "worktreeAfterSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51"
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "handoffSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "parentBeforeSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "worktreeBeforeSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "docsParentSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "docsCommitSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "headAfterSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "worktreeAfterSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "handoffSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "parentBeforeSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "worktreeBeforeSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "docsParentSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "docsCommitSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "headAfterSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "worktreeAfterSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a"
+    }
+  ],
+  "structuredFiles": [
+    {
+      "path": "src/commands/structured/README.md",
+      "beforeSha256": "9b2cee22b2af50418969f3a7fff040d444dbf92aced31c946fcd2ed930a1e704",
+      "afterSha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b"
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "beforeSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "afterSha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "beforeSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "afterSha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "beforeSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "afterSha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "beforeSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "afterSha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "beforeSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "afterSha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "beforeSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "afterSha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "beforeSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "afterSha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51"
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "beforeSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "afterSha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "beforeSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "afterSha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a"
+    }
+  ],
+  "docsCommitChangedPaths": [
+    "src/commands/structured/README.md"
+  ],
+  "observedStructuredChangedPaths": [
+    "src/commands/structured/README.md"
+  ],
+  "statusBefore": " M src/fs/webdav/README.md\n M src/fs/webdav/resource-id.ts\n M src/fs/webdav/webdav.ts\n M tests/fs/webdav/operation-authority.test.ts\n?? tests/commands/core-regression-stress/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/shared-stdin-review/\n?? tests/fs/authority-trust-review/\n?? tests/fs/webdav/constructor-comparison.test.ts\n?? tests/fs/webdav/consumer/\n?? tests/fs/webdav/evidence/constructor-comparison/\n",
+  "statusAfter": "?? tests/commands/core-regression-stress/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/table-text-stress/shared-stdin-review/\n?? tests/fs/authority-trust-review/\n",
+  "testsRun": false,
+  "corpusRun": false,
+  "typecheckRun": false,
+  "buildRun": false,
+  "productImports": false,
+  "importedReadOnlyMetadata": "tests/commands/structured-stress/jq-42-independent-review/common.mjs#sourceSnapshot",
+  "newStructuredHashRuntimeTested": false,
+  "activeOwnedChildren": 0
+}

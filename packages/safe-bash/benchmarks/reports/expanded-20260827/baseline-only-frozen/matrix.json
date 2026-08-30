@@ -1,0 +1,487 @@
+{
+  "capturedAt": "2026-08-27T02:24:28.543Z",
+  "scope": "Frozen expanded224 coverage ledger, not a new execution or current-runtime claim",
+  "revision": "bd2cacb3a20403302fd0a49441932d5522793e56",
+  "harnessRevision": "0294afb6e690433aed994868e5ed437ecf58ae48",
+  "baseline": {
+    "version": "3.4.2",
+    "manifestSha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+    "bundleSha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+    "lockSha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+  },
+  "evidence": {
+    "reportSha256": "1f1c5474cc6d0b8dd5ed899d9a59a28d0f6469da2476a0f268ea777835e4f835",
+    "functionalSha256": "7e2b4bdfbbe64917ff88d94c9b97438aa6a1a709cff83b2a3c860d788b522b2e"
+  },
+  "totals": {
+    "names": 53,
+    "namesWithPrimaryRecipes": 3,
+    "unmeasuredNames": 50,
+    "recipes": 3,
+    "virtualPass": 0,
+    "virtualFail": 3,
+    "baselinePass": 3,
+    "baselineFail": 0
+  },
+  "limitations": [
+    "Only explicitly targeted primary recipes count; incidental token appearances are not coverage.",
+    "The dot recipe is explicitly mapped to the '.' dispatch name, not treated as an absent command.",
+    "Fifty unmeasured names are neither passes nor failures and remain outside the224 recipe denominator.",
+    "A passing recipe does not establish complete flags, aliases, limits or command semantics.",
+    "Later source/dot/eval implementation and dirty author tests do not rewrite this frozen cohort.",
+    "A separate native-backed baseline-led functional expansion and distinct fairness review remain required."
+  ],
+  "rows": [
+    {
+      "name": ".",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "bounded-primary-recipe",
+      "recipes": [
+        {
+          "id": "kernel/dot/dot",
+          "optionFamily": "dot",
+          "oracleValid": true,
+          "recipeHash": "f98c9431e2acb4d05f000772a4bd3030d1f5026ccc54ca23d96befcd49492ef0",
+          "virtual": "fail",
+          "baseline": "pass"
+        }
+      ]
+    },
+    {
+      "name": "alias",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "builtin",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "clear",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "column",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "compgen",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "complete",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "compopt",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "date",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "declare",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "dirs",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "du",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "egrep",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "eval",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "bounded-primary-recipe",
+      "recipes": [
+        {
+          "id": "kernel/eval/eval",
+          "optionFamily": "eval",
+          "oracleValid": true,
+          "recipeHash": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb",
+          "virtual": "fail",
+          "baseline": "pass"
+        }
+      ]
+    },
+    {
+      "name": "exec",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "expand",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "expr",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "fgrep",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "file",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "fold",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "getopts",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "hash",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "help",
+      "baselineRegistered": true,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "history",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "hostname",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "html-to-markdown",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "let",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "mapfile",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "nl",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "popd",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "printenv",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "pushd",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "readarray",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "rev",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "seq",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "shopt",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "sleep",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "source",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "bounded-primary-recipe",
+      "recipes": [
+        {
+          "id": "kernel/source/source",
+          "optionFamily": "source",
+          "oracleValid": true,
+          "recipeHash": "015ed7a630c4c22758ed6aebdbc33d677bf1aedcd021afc5579fd15f93e92bd0",
+          "virtual": "fail",
+          "baseline": "pass"
+        }
+      ]
+    },
+    {
+      "name": "split",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "sqlite3",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "strings",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "tac",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "time",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "timeout",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "tree",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "typeset",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "unalias",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "unexpand",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "wait",
+      "baselineRegistered": false,
+      "baselineKernel": true,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "which",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "whoami",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "xan",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    },
+    {
+      "name": "yq",
+      "baselineRegistered": true,
+      "baselineKernel": false,
+      "declaredInFrozenVirtualInventory": false,
+      "coverage": "not-measured",
+      "recipes": []
+    }
+  ]
+}

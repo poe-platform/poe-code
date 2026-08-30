@@ -1,0 +1,1359 @@
+{
+  "schemaVersion": 1,
+  "scope": "PROVENANCE_PRECONDITIONS_ONLY_NO_CANDIDATE_AUTHORIZED",
+  "primaryCommit": "010411eff3dd210b9575e061914efccd65c13547",
+  "oldReplayCommit": "245799e7498c849098ca971fe00270112aa5e06e",
+  "evidence": [
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/REPORT.md",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 12030,
+      "sha256": "cfe2a7dc2d7b378012a9591195b1afa56c4acb3a701291a6ee07017c884c5adb"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/download.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 9220,
+      "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/registry-metadata.raw.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 8127,
+      "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/published-files.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 234053,
+      "sha256": "75347f6df092ddf527dff58da2c1d3d58071764b20b3f1e5f55048101c4a4c9d"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/package-comparison.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 562114,
+      "sha256": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/manifest-lock-entry.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 80332,
+      "sha256": "c5c972804d9e0a2f44de85fe95e74c2403b899f9f515a73a66ddebf0a8d8e5a4"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/lock-graph-check.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 40512,
+      "sha256": "4f08c966b7ec57dff1b9412045eefff1ef59e34e020ff7301608d021ef18c602"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/dependency-tree-comparison.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 1564264,
+      "sha256": "82a6e2146ca62f1d3538c054981046fe3fea1b9d1e80804132ee386248b55f57"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/execution-closure.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 1083717,
+      "sha256": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/historical-import-authentication.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 43032,
+      "sha256": "e0389ee7fb9d8579f9d9f46af361a7051075c166ee01c374ae5deafa3e8062b9"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/final-offline-check.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 1041,
+      "sha256": "1769ade8c49ec902a86222724f02fe44c84d522894e6b110039f33080e5aa6b4"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/execution-v3-receipt.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 26094,
+      "sha256": "215e638e0693ecb4d1a34d28f5d6623699b28795f558fbff597f286a4c1d350e"
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/published-artifact-authentication/execution-post-run-check-attempt-1.json",
+      "commit": "010411eff3dd210b9575e061914efccd65c13547",
+      "bytes": 973965,
+      "sha256": "47c3fed832381c527ef1281a13e2c9731820438e18a2685ec6efe3f43ebecee6"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/README.md",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 12584,
+      "sha256": "b2c210ca75f9d9957726429ee08dd8f3f341f1ffc9e3abb48a3d4c1592806ed4"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/CAPTURE-LIMITS.md",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 10155,
+      "sha256": "a07a9d879e835e1c240f5fdbe3ef5b4018234a18b2473103e44f9f157d848b3d"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/location.json",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 280,
+      "sha256": "eb86cdd4fc673fc1c83f4b59d5bb9b2bc3c2039358b23e7f68d2ae49fe8909a9"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 43690,
+      "sha256": "29977972194cd34650a1c953151ee4ad217b3c736da4a8c85f4ced98e86ae421"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/profiles.json",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 80203,
+      "sha256": "19657d39799785dc446219bd8cc2ad4e80c882fc33b60805306ccf23d59e7526"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/source-manifest.json",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 35846,
+      "sha256": "9ae15b38d567d8e45fee927c275600783e35c1181c890f5e06dbfe7f6fbbc2f2"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/dependency-manifest.json",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 798727,
+      "sha256": "865495795e9a4b4bf9f28cb83786181184ee5c224c3e92d2ca77a713b6f64510"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/capture-qualification.json",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 23050,
+      "sha256": "e99ae63051c1c7b383b96451b54c2d7e86d0bf63f2cfc5e456994e0b2421aaa0"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/source-harness-goldens.tar.gz",
+      "commit": "245799e7498c849098ca971fe00270112aa5e06e",
+      "bytes": 881417,
+      "sha256": "47b9a6d61ac3b26cf93c5e59c805406cc07395c5b08d8ded8945e820954d0f73"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json",
+      "commit": "5a410d8420cd764bb4a4df82b17613688a92f907",
+      "bytes": 62117,
+      "sha256": "7c31c2028bdf2ee3b6fc92db59378554035650df8ca077c659be5ac89c1deaa6"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-profiles.json",
+      "commit": "5a410d8420cd764bb4a4df82b17613688a92f907",
+      "bytes": 5438,
+      "sha256": "5fb5659fe666b9638b3d399fa4066b3ea064f344fa8d467dda0e32930ead1ab2"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-setup/setup-local.json",
+      "commit": "5a410d8420cd764bb4a4df82b17613688a92f907",
+      "bytes": 26233,
+      "sha256": "cfddcc7d0d5c5728fdcee007230561ad437a8f5b0abb639a7050566ee9e11f0c"
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002/manifest.json",
+      "commit": "849dbf18b1e865c7d12927c11f0e20ba0555c540",
+      "bytes": 956360,
+      "sha256": "185eb4bb8dd79b8c51a39458043f8b592b0d36823a47320e0536b3f4346fecb4"
+    },
+    {
+      "path": "tests/commands/file/NATIVE_PROFILE.md",
+      "commit": "9f7fed68077a68ef3decb114ace83ad47b75ae14",
+      "bytes": 6624,
+      "sha256": "af3c091fd975a1f12b6fde489de20aa4c5ab641ced8ead3a224fb32a0beeec01"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.json",
+      "commit": "a31b7c36eef00c41763875c863a559594049f13f",
+      "bytes": 3689,
+      "sha256": "09ef1ac5ccce26567bf4606c492a9e9f3fcdac9f5f8b8cad411bbbc1c51c4a26"
+    }
+  ],
+  "nativePrerequisites": [
+    {
+      "name": "true",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+      "sha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6",
+      "versionStdout": "true (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "false",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+      "sha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab",
+      "versionStdout": "false (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 1,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "echo",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+      "sha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511",
+      "versionStdout": "echo (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Brian Fox and Chet Ramey.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "pwd",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+      "sha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2",
+      "versionStdout": "pwd (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "basename",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+      "sha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b",
+      "versionStdout": "basename (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "dirname",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+      "sha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c",
+      "versionStdout": "dirname (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "printf",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+      "sha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a",
+      "versionStdout": "printf (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "mkdir",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+      "sha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0",
+      "versionStdout": "mkdir (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "touch",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+      "sha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc",
+      "versionStdout": "touch (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, Arnold Robbins, Jim Kingdon,\nDavid MacKenzie, and Randy Smith.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "cp",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+      "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5",
+      "versionStdout": "cp (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund, David MacKenzie, and Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "mv",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+      "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500",
+      "versionStdout": "mv (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, David MacKenzie, and Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "rm",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+      "sha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e",
+      "versionStdout": "rm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, David MacKenzie, Richard M. Stallman,\nand Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "rmdir",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+      "sha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d",
+      "versionStdout": "rmdir (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "ln",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+      "sha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef",
+      "versionStdout": "ln (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "readlink",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+      "sha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9",
+      "versionStdout": "readlink (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Dmitry V. Levin.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "realpath",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+      "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81",
+      "versionStdout": "realpath (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Padraig Brady.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "ls",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+      "sha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3",
+      "versionStdout": "ls (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "cat",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+      "sha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96",
+      "versionStdout": "cat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Torbjorn Granlund and Richard M. Stallman.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "head",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+      "sha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62",
+      "versionStdout": "head (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "tail",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+      "sha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956",
+      "versionStdout": "tail (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin, David MacKenzie, Ian Lance Taylor,\nand Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "wc",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+      "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060",
+      "versionStdout": "wc (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Rubin and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "tee",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+      "sha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242",
+      "versionStdout": "tee (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Parker, Richard M. Stallman, and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "tr",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+      "sha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c",
+      "versionStdout": "tr (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "sort",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+      "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5",
+      "versionStdout": "sort (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel and Paul Eggert.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "uniq",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+      "sha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184",
+      "versionStdout": "uniq (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "cut",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+      "sha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d",
+      "versionStdout": "cut (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat, David MacKenzie, and Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "grep",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/grep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "versionStdout": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "test",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+      "sha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53",
+      "versionStdout": "",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "[",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+      "sha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c",
+      "versionStdout": "[ (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Kevin Braunsdorf and Matthew Bradburn.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "env",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "versionStdout": "env (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard Mlynarik, David MacKenzie, and Assaf Gordon.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "xargs",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/xargs",
+      "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+      "versionStdout": "",
+      "versionStderr": "xargs: unrecognized option `--version'\nusage: xargs [-0opt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]\n             [-J replstr] [-L number] [-n number [-x]] [-P maxprocs]\n             [-s size] [utility [argument ...]]\n",
+      "versionExit": 1,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "find",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/find",
+      "sha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4",
+      "versionStdout": "",
+      "versionStderr": "find: illegal option -- -\nusage: find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]\n       find [-H | -L | -P] [-EXdsx] -f path [path ...] [expression]\n",
+      "versionExit": 1,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "sed",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+      "sha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1",
+      "versionStdout": "sed (GNU sed) 4.9\nCopyright (C) 2022 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jay Fenlason, Tom Lord, Ken Pizzini,\nPaolo Bonzini, Jim Meyering, and Assaf Gordon.\n\nThis sed program was built without SELinux support.\n\nGNU sed home page: <https://www.gnu.org/software/sed/>.\nGeneral help using GNU software: <htt",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "awk",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/awk",
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "versionStdout": "awk version 20200816\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "jq",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/jq",
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+      "versionStdout": "jq-1.7.1-apple\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "rg",
+      "profile": "old224-mixed-Darwin",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "versionStdout": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "base64",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+      "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+      "versionStdout": "base64 (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Simon Josefsson.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "base32",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+      "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+      "versionStdout": "base32 (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Simon Josefsson.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "xxd",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/xxd",
+      "sha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161",
+      "versionStdout": "",
+      "versionStderr": "xxd 2025-08-24 by Juergen Weigert et al.\n",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "od",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+      "sha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8",
+      "versionStdout": "od (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "sha256sum",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "versionStdout": "sha256sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "sha1sum",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+      "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+      "versionStdout": "sha1sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "md5sum",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+      "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+      "versionStdout": "md5sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "cksum",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+      "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43",
+      "versionStdout": "cksum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Padraig Brady and Q. Frank Xia.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "gzip",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+      "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+      "versionStdout": "gzip 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nCopyright (C) 1993 Jean-loup Gailly.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jean-loup Gailly.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "gunzip",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+      "sha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df",
+      "versionStdout": "gunzip (gzip) 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "zcat",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+      "sha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef",
+      "versionStdout": "zcat (gzip) 1.14\nCopyright (C) 2025 Free Software Foundation, Inc.\nThis is free software.  You may redistribute copies of it under the terms of\nthe GNU General Public License <https://www.gnu.org/licenses/gpl.html>.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "diff",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "versionStdout": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "patch",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "versionStdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "chmod",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+      "sha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0",
+      "versionStdout": "chmod (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "stat",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "versionStdout": "stat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Michael Meskes.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "mktemp",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+      "sha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322",
+      "versionStdout": "mktemp (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Jim Meyering and Eric Blake.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "tar",
+      "profile": "old224-mixed-Darwin",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "versionStdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "paste",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+      "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc",
+      "versionStdout": "paste (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David M. Ihnat and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "comm",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+      "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718",
+      "versionStdout": "comm (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Richard M. Stallman and David MacKenzie.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "join",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+      "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e",
+      "versionStdout": "join (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Mike Haertel.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "bash",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "sh",
+      "profile": "old224-mixed-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "curl",
+      "profile": "old224-mixed-Darwin",
+      "path": "/usr/bin/curl",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+      "versionStdout": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+      "versionStderr": "",
+      "versionExit": 0,
+      "source": "benchmarks/reports/current-integration/comparison-replay-20260827/oracle-identities.json"
+    },
+    {
+      "name": "true",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+      "sha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "false",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+      "sha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "echo",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+      "sha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "pwd",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+      "sha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "basename",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+      "sha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "dirname",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+      "sha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "printf",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+      "sha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "mkdir",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+      "sha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "touch",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+      "sha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "cp",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+      "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "mv",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+      "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "rm",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+      "sha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "rmdir",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+      "sha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "ln",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+      "sha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "readlink",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+      "sha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "realpath",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+      "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "ls",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+      "sha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "cat",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+      "sha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "head",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+      "sha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "tail",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+      "sha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "wc",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+      "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "tee",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+      "sha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "tr",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+      "sha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "sort",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+      "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "uniq",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+      "sha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "cut",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+      "sha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "grep",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/grep",
+      "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "test",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+      "sha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "[",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+      "sha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "env",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+      "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "xargs",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/xargs",
+      "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "find",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/find",
+      "sha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "sed",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+      "sha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "awk",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/awk",
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "jq",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/jq",
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "rg",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "base64",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+      "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "base32",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+      "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "xxd",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/xxd",
+      "sha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "od",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+      "sha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "sha256sum",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "sha1sum",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+      "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "md5sum",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+      "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "cksum",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+      "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "gzip",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+      "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "gunzip",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+      "sha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "zcat",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+      "sha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "diff",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "patch",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "chmod",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+      "sha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "stat",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "mktemp",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+      "sha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "tar",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "paste",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+      "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "comm",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+      "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "join",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+      "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "bash",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "sh",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "curl",
+      "profile": "baseline-only-existing-Darwin",
+      "path": "/usr/bin/curl",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "date",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/date",
+      "sha256": "8d7c339a192d04e3de9768ebe4330d68bb541a4ed6c82f2bc3a807a270b156ff",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "du",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/du",
+      "sha256": "d5b770f4d4f859ce82aabe73c979f9c7b47f88fd5d42b15ec4b5406d540fd220",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "expand",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+      "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "expr",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expr",
+      "sha256": "aa486411e21451f494c346b60557dfd77b5efd5c2bc4f09b4eeb46ac93ffe8d2",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "fold",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+      "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "nl",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/nl",
+      "sha256": "e19fbc5869e2c80d0a38eb2dff97476ed86c3aaa90a85a9596c98d51f0db8314",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "printenv",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printenv",
+      "sha256": "32d4555106b6f9d0127892a4d60fe7612186712519097592090ff4a6dd9fc92a",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "seq",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/seq",
+      "sha256": "c6983fd667e824018ac773696230e52552827b5a41db331e8f83f0ef1c9af95b",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "sleep",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sleep",
+      "sha256": "ecf54817b59f054db59afb1ae303f19b1e280d070a838b91a902e55c7a7aa852",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "split",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/split",
+      "sha256": "33640a819b135912bc0c79c82d23d3dccf1ad71df64370e0ef2b5b10e49fa37e",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "strings",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/strings",
+      "sha256": null,
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "tac",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+      "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "timeout",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/timeout",
+      "sha256": "558c469d9e4288fa3d6fa31a590aa5ca401f24bfa7c30c80c0b70c2ee96fefda",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "unexpand",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/unexpand",
+      "sha256": "3d08be3d280f284a3117482233bf71d9dc6bd23914990242bff62b3bb3ee5a9f",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "whoami",
+      "profile": "baseline-only-additional-Darwin",
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/whoami",
+      "sha256": "9f0e412c9e1326ee503236fa25f640cb2840ebfa35d09f55ed5f00cb0c376e62",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "bash",
+      "profile": "system-Bash3.2-Darwin-not-GNU5.3",
+      "path": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "source": "benchmarks/reports/baseline-only-20260827/coverage-setup/native-and-helper-before.json"
+    },
+    {
+      "name": "file",
+      "profile": "file5.41-libmagic-Darwin",
+      "path": "/usr/bin/file",
+      "sha256": "d1fee5edf3c39243cca0c4a0afc94816c55feb032ad5eaeb6d8170d8c7aa64ce",
+      "source": "tests/commands/file/NATIVE_PROFILE.md"
+    },
+    {
+      "name": "magic.mgc",
+      "profile": "file5.41-libmagic-Darwin",
+      "path": "/usr/share/file/magic.mgc",
+      "sha256": "38fc8af9d342a3a1d32a626195314a913ee255d8cbd259067d665ea55735b7c0",
+      "source": "tests/commands/file/NATIVE_PROFILE.md",
+      "kind": "data"
+    },
+    {
+      "name": "tree",
+      "profile": "tree2.2.1-Darwin",
+      "path": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+      "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+      "bytes": 114488,
+      "modeOctal": "0755",
+      "source": "tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.json",
+      "kind": "native"
+    },
+    {
+      "name": "tree-2.2.1.tar.bz2",
+      "profile": "tree2.2.1-Darwin",
+      "path": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree-2.2.1.tar.bz2",
+      "sha256": "e911c4a2bea53586cc7be6f3d7d7f4d9c2f2bcbbad77d30700b31046e38f4bc5",
+      "bytes": 56345,
+      "modeOctal": "0644",
+      "source": "tests/commands/filesystem-inspection-stress/tree/EXTERNAL-ARTIFACTS.json",
+      "kind": "data"
+    }
+  ],
+  "unresolvedHistoricalNativeNames": [
+    "column",
+    "file",
+    "rev",
+    "tree",
+    "sqlite3",
+    "xan",
+    "yq",
+    "html-to-markdown",
+    "js-exec",
+    "python",
+    "python3",
+    "time"
+  ],
+  "limits": {
+    "perFileBytes": 134217728,
+    "totalHashBytes": 805306368,
+    "treeEntries": 10000,
+    "treeDepth": 32,
+    "readChunkBytes": 65536
+  },
+  "mandatoryFutureInputs": [
+    "root authorization of exact future candidate and execution envelope",
+    "root integration commit and git tree",
+    "accepted dirty capture or clean-source proof",
+    "packed artifact bytes and contents hashes",
+    "exact public/default 70-name inventory, optional curl/SafeJS separation",
+    "accepted tracked-consumer inventory and different-agent packed review, each hash-bound",
+    "authenticated available native profiles and accepted per-profile case denominator",
+    "captured actual request/settlement/import-evaluation/lifecycle evidence for newly authorized calls"
+  ]
+}

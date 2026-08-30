@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "at": "2026-08-28T06:58:56.193Z",
+  "staticValidation": {
+    "jsonFiles": 14,
+    "rawFiles": 38,
+    "rawHashVerified": true,
+    "ownedTreesAbsent": 7,
+    "priorArtifactsUnchanged": 303,
+    "ownFrozenCodeMatches": true
+  },
+  "commands": [
+    {
+      "command": "node24 seal.mjs",
+      "exit": 1,
+      "qualification": "metadata symlink-vs-physical size comparison; no control execution"
+    },
+    {
+      "command": "node24 seal-followup.mjs",
+      "exit": 0,
+      "qualification": "correct physical identity check, capture and owned cleanup only"
+    }
+  ],
+  "files": {
+    "BINDINGS.json": {
+      "sha256": "887b010d9424d2556543144ed31d6136f54a72a2f65bbc2e39d1df44f4e0daf3",
+      "bytes": 89698
+    },
+    "CLEANUP.json": {
+      "sha256": "784ce7fa8da614f84a85c2a69b4f603063d0a0e509395bd58c733bdde090ab6a",
+      "bytes": 4804
+    },
+    "COMPONENT-FOLLOWUP-RESULTS.json": {
+      "sha256": "4b07d0d61bac1455d3e0ee28f7246ea2ce1717b6c3b6d32713ee7590a5b91fa7",
+      "bytes": 18521
+    },
+    "COMPONENT-RESULTS.json": {
+      "sha256": "7f137f09bb4e88dc172ace5c2e9eaea2d3454c21c12269a53d73b33c882137d6",
+      "bytes": 10878
+    },
+    "FILESYSTEM.json": {
+      "sha256": "c5b0309ee160769cb5c2a2b1cafc7576b192647ce4a1656108cc45618b8b9c0b",
+      "bytes": 50111
+    },
+    "FINDING.json": {
+      "sha256": "9690a42c2b14b2020111eb96f016b62fae9fe9d951bac72d4add9cb46bd0e293",
+      "bytes": 4488
+    },
+    "FOLLOWUP-FREEZE.json": {
+      "sha256": "a45ddd3db86e684b32029f5133ec67e47bcef42b72e1022d16a28c048f8515ef",
+      "bytes": 910
+    },
+    "HANDOFF.md": {
+      "sha256": "298740ede9622d152adb3cf6c5ce6283097ec0af8b0a0921d1abf6304b541156",
+      "bytes": 6867
+    },
+    "RAW-INDEX.json": {
+      "sha256": "b4bb9e51ea5f7fd093477042ef9a8b8c1d32f2242b81fe2ec670533e6bde017e",
+      "bytes": 13689
+    },
+    "RAW.ndjson.gz": {
+      "sha256": "f6d6b6b3b067c2b04358e9fd22a55cdd65dc9951bf5758e167a09e3d3b7c2bdb",
+      "bytes": 14557
+    },
+    "RECIPE.json": {
+      "sha256": "65e6b1244eb47f53a9c74f01ea1d088a66ea98ffda8d5b8ededa0864d37eff67",
+      "bytes": 3604
+    },
+    "REQUIREMENTS.json": {
+      "sha256": "1163e235399f7c4e562f4273ce97fc82e0213246de500300f34d09e19609fc91",
+      "bytes": 4188
+    },
+    "RESULTS.json": {
+      "sha256": "8f03a0708871f9f8d1f4ecbc75605b3d7454dc10ef61d69e1f99c6e19bfe80d5",
+      "bytes": 8428
+    },
+    "SAFE-REMAINDER-FREEZE.json": {
+      "sha256": "51372987b29f1bebdbaeae1feb0edac05bf07a4442f05fc100203ede713c589d",
+      "bytes": 1011
+    },
+    "SAFE-REMAINDER-RESULTS.json": {
+      "sha256": "92b9ab088cccd49b5796662830748d163151f3196c9da7bc89499e8d9427c3bd",
+      "bytes": 21672
+    },
+    "SEAL-ATTEMPT.json": {
+      "sha256": "43e7164915379db55a72d6c4db6d8273aa05962abf5ee6ec0ebaefdbd77276e7",
+      "bytes": 838
+    },
+    "prepare.mjs": {
+      "sha256": "5de385eae2af654136625f3089a492fd07ca6759a1c9e6b33ec4dddadc7c5bd3",
+      "bytes": 3831
+    },
+    "probe.mjs": {
+      "sha256": "88db1945761bc2bc4c4e84a484ca5e01aee0bcb7b7e817a02a5e3c97f764b25a",
+      "bytes": 5084
+    },
+    "review-followup.mjs": {
+      "sha256": "02a8eb02ba975f09a5f8696135a62e89904e4e73826d38b64cbef30c8e459aa6",
+      "bytes": 5735
+    },
+    "review-safe-remainder.mjs": {
+      "sha256": "d9f9f0f38118275908e793f1dd6f6d4f32d9c15e2df2f7c5eeb9d5fe7653d980",
+      "bytes": 5738
+    },
+    "review.mjs": {
+      "sha256": "77a4e57f450df58b0b8cc79998b9ea8d13b5c68f1353f2a62daf35e939f711cc",
+      "bytes": 5663
+    },
+    "seal-followup.mjs": {
+      "sha256": "abfbc796026358358bc3d3a428b060f82cd11a6e624c041f73c22193c8145899",
+      "bytes": 11336
+    },
+    "seal.mjs": {
+      "sha256": "7e59a8978dbeddbbbbc7d273539d39c264052eb4154ccc8ca24e4e97cec50b75",
+      "bytes": 11142
+    },
+    "worker-followup.mjs": {
+      "sha256": "a26045aa1ce17640a22e0f71e07c712b9f8162a9388ce32d532d85519f130d3a",
+      "bytes": 2876
+    },
+    "worker.mjs": {
+      "sha256": "39e4feaa396c9d66e13db7f98790eb842f849d7ec667cf612043e120ef5b4236",
+      "bytes": 2440
+    }
+  },
+  "fullGate": false,
+  "status": "HOLD_FOR_DIRECTORY_IMPORT_POLICY",
+  "note": "This manifest excludes itself; final explicit commit binds it. No tests/control rerun during validation."
+}

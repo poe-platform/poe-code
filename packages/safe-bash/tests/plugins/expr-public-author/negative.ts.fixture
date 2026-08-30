@@ -1,0 +1,9 @@
+import { createExprCommands, type AgentCommandsOptions, type ExprCommandsOptions } from "virtual-bash";
+import { exprCommands } from "virtual-bash/commands/expr";
+const nestedReplace: AgentCommandsOptions = { expr: { replace: true } };
+const nestedRegex: AgentCommandsOptions = { expr: { regex: { maxWorkers: 1 } } };
+const badLimit: ExprCommandsOptions = { limits: { maxNodes: "bad" } };
+const badRegex: ExprCommandsOptions = { regex: { maxWorkers: "bad" } };
+exprCommands({ limits: { unsupportedLimit: 1 } });
+createExprCommands().push({ name: "wrong", execute: () => ({ exitCode: 0 }) });
+void [nestedReplace, nestedRegex, badLimit, badRegex];

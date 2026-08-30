@@ -1,0 +1,58 @@
+{
+  "at": "2026-08-27T07:53:38.411Z",
+  "node": "v22.22.2",
+  "syntax": [
+    {
+      "file": "support.mjs",
+      "sha256": "7f73a76e74e88092bba37878beab6ce5b64170a396069f7ecae8f816ce9d5e84",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "cases.mjs",
+      "sha256": "8b146a6bea9f1f27d7d8d7f4463d839b8ff9f7a8cb0eff2ec8d3d5a13a5ed843",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "child.mjs",
+      "sha256": "83d4ed3c571b415ce451112232ccd16ec35df31f342805456df8af6aef9babf6",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "trace.mjs",
+      "sha256": "5ae9834cfa6abd613a79472f7c609e58942fdaf9021f3abb88386bb3960def33",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "run.mjs",
+      "sha256": "ad078123a6a5e38a1a60ee4a439539240498760a535af6fe1997fcd6999a5eef",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "metadata": {
+    "idsExact": true,
+    "uniqueIds": true,
+    "assertionFunctions": true,
+    "sourcePolicy": "Own modules imported only to enumerate definitions; no case function called and no product API imported."
+  },
+  "productCasesExecuted": 0,
+  "nativeOracles": 0,
+  "baselineNotRun": true,
+  "candidateNotInspected": true,
+  "scratchCreated": [],
+  "productChildrenStarted": 0
+}

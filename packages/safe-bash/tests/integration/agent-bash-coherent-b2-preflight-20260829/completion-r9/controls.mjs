@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+const root = new URL('./staged/', import.meta.url);
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const preseal = JSON.parse(fs.readFileSync(new URL('./CONTROLS-PRESEAL.json', import.meta.url)));
+const bytes = fs.readFileSync(new URL('PACKET.json', root));
+assert.equal(sha(bytes), preseal.packetSha256);
+const packet = JSON.parse(bytes);
+for (const row of packet.files) {
+  const filename = new URL(row.path, root);
+  const stat = fs.lstatSync(filename);
+  assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size === row.bytes && stat.size <= 800000);
+  assert.equal(sha(fs.readFileSync(filename)), row.sha256);
+}
+const { verifyPackageInventory } = await import('./staged/new/coordinator.mjs');
+const frozen = JSON.parse(fs.readFileSync(new URL('metadata/FROZEN-BINDINGS.json', root)));
+const members = frozen.packageMembers;
+assert.equal(members.length, 1014);
+const sorted = rows => [...rows].sort((left, right) => left.path < right.path ? -1 : 1);
+const installed = sorted(members.map(row => ({ ...row, mode: 0o600 })));
+const outcomes = [];
+verifyPackageInventory(installed, members, true, 0o077); outcomes.push(preseal.groups[0]);
+assert.throws(() => verifyPackageInventory(installed.map((row,index) => index ? row : { ...row, mode: 0o644 }), members, true, 0o077)); outcomes.push(preseal.groups[1]);
+assert.throws(() => verifyPackageInventory(installed.map((row,index) => index ? row : { ...row, sha256: '0'.repeat(64) }), members, true, 0o077)); outcomes.push(preseal.groups[2]);
+assert.throws(() => verifyPackageInventory(installed, members, true, 0o022)); outcomes.push(preseal.groups[3]);
+assert.throws(() => verifyPackageInventory(installed, members.map((row,index) => index ? row : { ...row, mode: 0o600 }), true, 0o077)); outcomes.push(preseal.groups[4]);
+verifyPackageInventory(sorted(members), members, false, 0o077);
+assert.throws(() => verifyPackageInventory(installed, members, false, 0o077)); outcomes.push(preseal.groups[5]);
+console.log(JSON.stringify({status:'PASS',groups:outcomes,helpers:1,productImports:0,workers:0,installations:0,moved:'SOURCE_ONLY',packetSha256:preseal.packetSha256}));

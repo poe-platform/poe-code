@@ -1,0 +1,108 @@
+{
+  "inputsBefore": [
+    {
+      "path": "cancellation.ts",
+      "kind": "file",
+      "size": 22179,
+      "sha256": "d6f259fe53fa249d434832aed1654b4d96ac802ac74f43b46d200fa16cf184d0"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "size": 327,
+      "sha256": "448be926e1476a4f4cebc6db576da1809f263e29983bb52df6068f8d27a0dd4b"
+    }
+  ],
+  "inputsAfter": [
+    {
+      "path": "cancellation.ts",
+      "kind": "file",
+      "size": 22179,
+      "sha256": "d6f259fe53fa249d434832aed1654b4d96ac802ac74f43b46d200fa16cf184d0"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "size": 327,
+      "sha256": "448be926e1476a4f4cebc6db576da1809f263e29983bb52df6068f8d27a0dd4b"
+    }
+  ],
+  "allAfter": [
+    {
+      "path": "cancellation.ts",
+      "kind": "file",
+      "size": 22179,
+      "sha256": "d6f259fe53fa249d434832aed1654b4d96ac802ac74f43b46d200fa16cf184d0"
+    },
+    {
+      "path": "emitted/",
+      "kind": "directory"
+    },
+    {
+      "path": "emitted/cancellation.d.ts",
+      "kind": "file",
+      "size": 3951,
+      "sha256": "67b90043f40ef0c5a53ae0be912351cb05f51707523ca4a3ae4e7d8b9f432e65"
+    },
+    {
+      "path": "emitted/cancellation.js",
+      "kind": "file",
+      "size": 18597,
+      "sha256": "9f6a49170e47ba5cc13d53d2d779842239e32e1956ac70763089cafa6550408f"
+    },
+    {
+      "path": "emitted/positive.d.ts",
+      "kind": "file",
+      "size": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "emitted/positive.js",
+      "kind": "file",
+      "size": 1039,
+      "sha256": "0c0a6ee988b7893915a44b181abfa83f2b93be9e97f77f6e3c6d108d590d380f"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "size": 18,
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    },
+    {
+      "path": "positive.ts",
+      "kind": "file",
+      "size": 1315,
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "size": 327,
+      "sha256": "448be926e1476a4f4cebc6db576da1809f263e29983bb52df6068f8d27a0dd4b"
+    }
+  ]
+}

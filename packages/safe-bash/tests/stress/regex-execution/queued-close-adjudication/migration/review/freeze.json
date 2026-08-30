@@ -1,0 +1,208 @@
+{
+  "started": "2026-08-27T08:14:13.160Z",
+  "proposalCommit": "6dbd7d06f9c1901602b415773bb33ba1522a1c6e",
+  "reviewCommit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+  "sourceCommit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+  "head": "10273352f8d65d929cbf5a23e69119414dacee60",
+  "status": " M README.md\n M docs/PROJECT_LEDGER.md\n M src/commands/time-env/format.ts\n M src/commands/time-env/sleep.ts\n?? src/commands/file/\n?? src/commands/tree/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/format-regressions.test.ts\n?? tests/commands/time-env/sleep-regressions.test.ts\n?? tests/commands/tree/\n?? tests/fs/webdav/atomic-extension/dependencies.json\n?? tests/fs/webdav/atomic-extension/example.mts\n?? tests/fs/webdav/atomic-extension/https.mts\n?? tests/fs/webdav/atomic-extension/openssl.cnf\n?? tests/fs/webdav/atomic-extension/server.py\n?? tests/plugins/qualified-current-release/REPORT.md\n?? tests/plugins/qualified-current-release/evidence/current-binding.json\n?? tests/plugins/qualified-current-release/evidence/current-metadata.json\n?? tests/plugins/qualified-current-release/evidence/current-missing-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-result.json\n?? tests/plugins/qualified-current-release/evidence/current-setup-controls.json\n?? tests/plugins/qualified-current-release/evidence/current-setup-positive-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-stream-diagnostics.json\n?? tests/plugins/qualified-current-release/evidence/current-stream-results.json\n?? tests/plugins/qualified-current-release/evidence/current-unset-with-env-outer.json\n?? tests/plugins/qualified-current-release/evidence/current-wrong-outer.json\n?? tests/plugins/qualified-current-release/evidence/webdav-without-permission-control.json\n?? tests/stress/regex-execution/queued-close-adjudication/migration/\n",
+  "stagedPaths": "",
+  "canonicalPrechangeSha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214",
+  "expectedCanonicalSha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3",
+  "proposalSha256": "ff5d5e3e639b3f5f375920ec85168ce8dbeca7d9000da48a3b531a613aa4962a",
+  "preservation": [
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/PROPOSED-TEST-DELTA.md",
+      "sha256": "ff5d5e3e639b3f5f375920ec85168ce8dbeca7d9000da48a3b531a613aa4962a",
+      "liveSha256": "ff5d5e3e639b3f5f375920ec85168ce8dbeca7d9000da48a3b531a613aa4962a"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/REPORT.md",
+      "sha256": "5b71f4856f5fd54349c280783705f1e9085559a40e1c5ea085cb6e6ec55e5a46",
+      "liveSha256": "5b71f4856f5fd54349c280783705f1e9085559a40e1c5ea085cb6e6ec55e5a46"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/check.mjs",
+      "sha256": "643d5bfeb5a9b99e89955e681dc71bed260c9fc862e190d73c6ee4dad0e62f0d",
+      "liveSha256": "643d5bfeb5a9b99e89955e681dc71bed260c9fc862e190d73c6ee4dad0e62f0d"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/controls.test.ts",
+      "sha256": "8703a61da44228731ffaf09f0f0fef5373d507458dd4d3dcb098460b704c9cda",
+      "liveSha256": "8703a61da44228731ffaf09f0f0fef5373d507458dd4d3dcb098460b704c9cda"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/before-canonical.json",
+      "sha256": "66cd88bcfcbad3a8145ccd30e21256c9b865e621f616311faa8fadeda415fa47",
+      "liveSha256": "66cd88bcfcbad3a8145ccd30e21256c9b865e621f616311faa8fadeda415fa47"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/current-canonical.json",
+      "sha256": "f2ed5ac0f08407a10674f7dbc72ac7440bd01fc14e3f9d6ca52bf4b4a4ad7aa5",
+      "liveSha256": "f2ed5ac0f08407a10674f7dbc72ac7440bd01fc14e3f9d6ca52bf4b4a4ad7aa5"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/current-controls.json",
+      "sha256": "71ea03737a777b1bbaed1cdd897273339f78699695764367cdadc739373e1247",
+      "liveSha256": "71ea03737a777b1bbaed1cdd897273339f78699695764367cdadc739373e1247"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/finish.json",
+      "sha256": "b36462bd79fd3c16efd8550eba050278fceddf668bea850c6ec289ef65c408c4",
+      "liveSha256": "b36462bd79fd3c16efd8550eba050278fceddf668bea850c6ec289ef65c408c4"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/freeze.json",
+      "sha256": "2ffb50db4d7b278c0db1f126e600642728eb23129c244f0f5816c2949ffa4f80",
+      "liveSha256": "2ffb50db4d7b278c0db1f126e600642728eb23129c244f0f5816c2949ffa4f80"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/registration-canonical.json",
+      "sha256": "e48ceab9e83dd7bcd055d7209aee139ce08847c9ba14851cc1165ea8f883fc97",
+      "liveSha256": "e48ceab9e83dd7bcd055d7209aee139ce08847c9ba14851cc1165ea8f883fc97"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/evidence/types.json",
+      "sha256": "fb2d736ef3d595e5dc0e3ba7d438ca8e57396e1f6a9ae069de947cf90b37be02",
+      "liveSha256": "fb2d736ef3d595e5dc0e3ba7d438ca8e57396e1f6a9ae069de947cf90b37be02"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/.gitignore",
+      "sha256": "2ca99dacdf8870024dce15908b589ab4af26e80f7e1235a6d0f274dc2891efe0",
+      "liveSha256": "2ca99dacdf8870024dce15908b589ab4af26e80f7e1235a6d0f274dc2891efe0"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/EXPECTATIONS.md",
+      "sha256": "fda11ec0f1968c1626f04c907e9d7c7d3339edf86e8624f5db63d35540002030",
+      "liveSha256": "fda11ec0f1968c1626f04c907e9d7c7d3339edf86e8624f5db63d35540002030"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/INITIAL.md",
+      "sha256": "619562efdeb1e6e370744fd23cbd3e68bf967f69434a99dcc85ae69d74ab90ff",
+      "liveSha256": "619562efdeb1e6e370744fd23cbd3e68bf967f69434a99dcc85ae69d74ab90ff"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/POST-HANDOFF.md",
+      "sha256": "f5131a11f60624967b40e1159204b7137b51ca79633ed342858bab239f4bd506",
+      "liveSha256": "f5131a11f60624967b40e1159204b7137b51ca79633ed342858bab239f4bd506"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/REPORT.md",
+      "sha256": "352a054aa7baffa5a90d7dbb9471f57f4a7c05d4a8084ee7bc312f1df33dc8b3",
+      "liveSha256": "352a054aa7baffa5a90d7dbb9471f57f4a7c05d4a8084ee7bc312f1df33dc8b3"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/evidence.json",
+      "sha256": "9595b118ba7b5e56f28be3c860b85a1e468cfcb9121afb618c6a47b4d1ce55ec",
+      "liveSha256": "9595b118ba7b5e56f28be3c860b85a1e468cfcb9121afb618c6a47b4d1ce55ec"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/probe.mjs",
+      "sha256": "810f38bf5ab42f9731ddf12f36781e825892fa77b6cf99b66e7d2d61f269107b",
+      "liveSha256": "810f38bf5ab42f9731ddf12f36781e825892fa77b6cf99b66e7d2d61f269107b"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/review/run.mjs",
+      "sha256": "c0fe8a6845a66abe8a711e8f5933f8c1ce73371d989e7c05b6f6caf15811a981",
+      "liveSha256": "c0fe8a6845a66abe8a711e8f5933f8c1ce73371d989e7c05b6f6caf15811a981"
+    },
+    {
+      "commit": "c6bcfe0d7734be0207d67b28a0ece0f12ed8becb",
+      "path": "tests/stress/regex-execution/queued-close-adjudication/run.mjs",
+      "sha256": "8d6cf46cdf2c6c0f5c54497323ccd80bd777a2e639b19193469efe92657dbd7f",
+      "liveSha256": "8d6cf46cdf2c6c0f5c54497323ccd80bd777a2e639b19193469efe92657dbd7f"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "tests/commands/regex-execution/cleanup-registration/REPORT.md",
+      "sha256": "0bec30cd174ee3f5d2a947235e43b09b0ad30422bdf33a613df8e66eb92eb88f",
+      "liveSha256": "0bec30cd174ee3f5d2a947235e43b09b0ad30422bdf33a613df8e66eb92eb88f"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "tests/commands/regex-execution/cleanup-registration/isolated-validation.json",
+      "sha256": "6d54abccdec2bbd621aca7797cf3d65b6a63dd23dca61ce7ffb16a6cca2fc86b",
+      "liveSha256": "6d54abccdec2bbd621aca7797cf3d65b6a63dd23dca61ce7ffb16a6cca2fc86b"
+    },
+    {
+      "commit": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/REPORT.md",
+      "sha256": "1e0c1f71eb4fbd4ae565d00ec948329b0bd453cf3dff8208a60421c6928d675e",
+      "liveSha256": "1e0c1f71eb4fbd4ae565d00ec948329b0bd453cf3dff8208a60421c6928d675e"
+    },
+    {
+      "commit": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/evidence/phase-a-compiled-old-five.json",
+      "sha256": "1b4b4018a421a784fa2c3b3d3a9591dddffbf58e4760a8f2d9d2d827a5c84361",
+      "liveSha256": "1b4b4018a421a784fa2c3b3d3a9591dddffbf58e4760a8f2d9d2d827a5c84361"
+    },
+    {
+      "commit": "0b370e33cdb42128c6585cbebd1f6bad02753285",
+      "path": "tests/stress/regex-execution/cleanup-boundary-review/evidence/phase-a-packed-old-five.json",
+      "sha256": "73f72f69d7753f089eb2147f2f162afbc71c294ee100111330837331a7864cbe",
+      "liveSha256": "73f72f69d7753f089eb2147f2f162afbc71c294ee100111330837331a7864cbe"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "liveSha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "liveSha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "liveSha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "liveSha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "commit": "01aa1bffe0568cc6787d5ff8e0331e024a787385",
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "liveSha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    }
+  ],
+  "priorProbeSha256": "810f38bf5ab42f9731ddf12f36781e825892fa77b6cf99b66e7d2d61f269107b",
+  "priorCompiled": {
+    "src/commands/regex-execution/client.ts": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+    ".generated/client.js": "4ef51bb0fbd6599729482a6d6b228c2c0004c37181b2d8fca733d754a99dad1f",
+    "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+    ".generated/protocol.js": "37790c290d955e8faa97f77cfd4e8c7cd88a679df762ac1e87ae729169323b86",
+    "EXPECTATIONS.md": "fda11ec0f1968c1626f04c907e9d7c7d3339edf86e8624f5db63d35540002030",
+    "probe.mjs": "810f38bf5ab42f9731ddf12f36781e825892fa77b6cf99b66e7d2d61f269107b",
+    "run.mjs": "c0fe8a6845a66abe8a711e8f5933f8c1ce73371d989e7c05b6f6caf15811a981"
+  },
+  "node": "v22.22.2",
+  "typescript": "5.9.3",
+  "tsx": "4.23.12",
+  "runtimeAcceptance": "Await explicit root/user Sagan frozen handoff; fixture commit is not runtime acceptance."
+}

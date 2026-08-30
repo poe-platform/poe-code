@@ -1,0 +1,93 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync, chmodSync, realpathSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve, relative } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const temp = '/tmp/safe-bash-owned-output-direction-prototype-PMLamJ';
+const diagnosis = '/tmp/safe-bash-owned-output-direction-prototype-a1Rz7L';
+const candidate = resolve(temp, 'candidate');
+const old = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-prototype');
+const owned = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-direction-prototype');
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const oldHandoff = JSON.parse(readFileSync(resolve(old, 'handoff.json')));
+assert.equal(hash(readFileSync(resolve(old, 'handoff.json'))), '2707169adcf3fa6be4b58fc57a67f8950c0420d2a3f2a94456496eb92482a4ab');
+const oldArtifacts = JSON.parse(readFileSync(resolve(old, 'ARTIFACTS.json')));
+for (const entry of oldArtifacts.files) assert.equal(hash(readFileSync(resolve(old, entry.path))), entry.sha256, `Immutable v1 ${entry.path}`);
+for (const entry of [...oldHandoff.source, ...oldHandoff.tests, ...oldHandoff.compiled]) assert.equal(hash(readFileSync(resolve(oldHandoff.candidate, entry.path))), entry.sha256);
+for (const entry of oldHandoff.tests) assert.equal(hash(readFileSync(resolve(candidate, entry.path))), entry.sha256);
+const walk = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(resolve(directory, entry.name)) : entry.isFile() ? [resolve(directory, entry.name)] : []).sort();
+const inventory = directory => walk(resolve(candidate, directory)).map(path => ({ path: relative(candidate, path), bytes: readFileSync(path).length, sha256: hash(readFileSync(path)) }));
+const source = inventory('src');
+const tests = inventory('tests');
+const compiled = inventory('dist');
+const compilerInputs = readFileSync(resolve(temp, 'evidence/runs/v2-r1-scoped-typecheck.stdout'), 'utf8').trim().split('\n').map(path => {
+  const realpath = realpathSync(path);
+  const classification = realpath.startsWith(realpathSync(candidate) + '/') ? 'candidate-source-or-test' : realpath.startsWith(resolve(root, 'node_modules') + '/') ? 'authenticated-existing-dev-tooling' : 'unexpected';
+  assert.notEqual(classification, 'unexpected', path);
+  return { path, realpath, classification, sha256: hash(readFileSync(path)) };
+});
+const files = {};
+const runRecords = [];
+for (const [label, directory] of [['v2', temp], ['v1-diagnosis', diagnosis]]) {
+  for (const name of readdirSync(resolve(directory, 'evidence/runs')).filter(name => name.endsWith('.json')).sort()) {
+    const bytes = readFileSync(resolve(directory, 'evidence/runs', name), 'utf8');
+    const run = JSON.parse(bytes);
+    assert.equal(run.closeEventObserved, true); assert.equal(run.groupExistsAfterClose, false); assert.equal(run.pidAfterClose, ''); assert.equal(run.timedOut, false); assert.equal(run.oversized, false);
+    const current = spawnSync('/bin/ps', ['-p', String(run.pid), '-o', 'pid=,ppid=,pgid=,lstart=,command='], { encoding: 'utf8', timeout: 1000 }).stdout.trim();
+    assert.notEqual(current || 'absent', run.initialIdentity, 'Owned run still active');
+    files[`runs/${name}`] = bytes;
+    runRecords.push({ label, path: `runs/${name}`, sha256: hash(bytes), status: run.status, pid: run.pid, closeEventObserved: run.closeEventObserved, groupExistsAfterClose: false, currentIdentity: current || 'absent' });
+  }
+}
+for (const name of ['supervisor.mjs', 'run-prototype.mjs', 'run-direction.mjs', 'controls.mjs', 'freeze.mjs', 'archive.mjs']) files[`${name}.data`] = readFileSync(resolve(temp, name), 'utf8');
+files['restore-v1.mjs.data'] = readFileSync('/tmp/safe-bash-owned-output-direction-prototype-restore.mjs', 'utf8');
+files['run-diagnosis.mjs.data'] = readFileSync(resolve(diagnosis, 'run-diagnosis.mjs'), 'utf8');
+files['v1-diagnosis-reconstruction.json'] = readFileSync(resolve(diagnosis, 'reconstruction-proof.json'), 'utf8');
+const nativeNames = ['evidence/native-results.json', 'evidence/native-tools.json', ...['C3','C4','C5','C6','C7'].flatMap(id => [`evidence/native-${id}.bash-data`, `evidence/runs/native-${id}.json`])];
+files['native-preserved.json'] = JSON.stringify({ executedAgain: false, count: 5, profile: 'preserved v1 GNU Bash 5.3 on Darwin arm64, not GNU/Linux', v1EvidenceCommit: '1ff82cb748c60145740dba354610ac7ed7a7f15f', artifacts: nativeNames.map(path => ({ path: relative(root, resolve(old, path)), sha256: hash(readFileSync(resolve(old, path))) })) }, null, 2) + '\n';
+const sourcesForDiagnosis = {
+  'tests/shell/first-read-probe.ts': [[18, 120]],
+  'tests/shell/adapted-first-read-probe.ts': [[70, 105], [118, 148]],
+  'tests/stress/remote-cancellation/helpers.ts': [[20, 35]],
+  'src/commands/streams.ts': [[187, 200], [231, 238]],
+  'src/commands/network/curl.ts': [[109, 122], [178, 197], [280, 307]],
+  'src/commands/network/transport.ts': [[25, 84]],
+  'src/contracts/output.ts': [[12, 100]],
+  'src/contracts/io.ts': [[36, 126]],
+  'src/fs/webdav/webdav.ts': [[277, 320], [623, 644]]
+};
+files['diagnosis-source-excerpts.json'] = JSON.stringify(Object.entries(sourcesForDiagnosis).map(([path, ranges]) => {
+  const bytes = readFileSync(resolve(diagnosis, 'candidate', path));
+  const lines = bytes.toString().split('\n');
+  return { path, sha256: hash(bytes), version: 'authenticated v1/r1, not current live product', excerpts: ranges.map(([first, last]) => ({ first, last, lines: lines.slice(first - 1, last).map((text, index) => ({ line: first + index, text })) })) };
+}), null, 2) + '\n';
+const makeReadonly = directory => {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) makeReadonly(path);
+    else if (entry.isFile()) chmodSync(path, 0o444);
+  }
+  chmodSync(directory, 0o555);
+};
+makeReadonly(candidate); makeReadonly(resolve(diagnosis, 'candidate'));
+const finalHandoff = {
+  version: 'temporary v2/r1 direction prototype; NOT production authorization', capturedAt: new Date().toISOString(), authorState: 'candidate sealed read-only; root must observe actual author CLOSED before independent execution', root, temp, candidate, diagnosisTemp: diagnosis,
+  import: resolve(candidate, 'dist/index.js'), alternativeImport: resolve(candidate, 'dist/contracts/output.js'), candidateReadonly: true,
+  baselineEvidenceCommit: '1ff82cb748c60145740dba354610ac7ed7a7f15f', baselineHandoffSha256: hash(readFileSync(resolve(old, 'handoff.json'))), baselineSourceManifestSha256: oldHandoff.sourceManifestSha256, baselineTestManifestSha256: oldHandoff.testManifestSha256, baselineCompiledManifestSha256: oldHandoff.compiledManifestSha256,
+  baselineArchiveSha256: oldHandoff.baselineArchiveSha256, baselinePatchSha256: oldHandoff.sourcePatchSha256,
+  source, tests, compiled, sourceManifestSha256: hash(JSON.stringify(source)), testManifestSha256: hash(JSON.stringify(tests)), compiledManifestSha256: hash(JSON.stringify(compiled)), compilerInputs, compilerInputsManifestSha256: hash(JSON.stringify(compilerInputs)),
+  sourcePatch: 'source-v1-to-v2-r1.patch-data', sourcePatchSha256: hash(readFileSync(resolve(owned, 'source-v1-to-v2-r1.patch-data'))), sourceRefinementSha256: hash(readFileSync(resolve(owned, 'source-v2-r0-to-r1.patch-data'))),
+  authorFixture: 'author-r0.test.ts.data', authorFixtureSha256: hash(readFileSync(resolve(owned, 'author-r0.test.ts.data'))), apiSha256: hash(readFileSync(resolve(owned, 'API.txt.data'))), tools: oldHandoff.tools,
+  old14TestFilesUnchanged: true, authorLogicalCases: 8, authorFixtureCorrections: 0, focusedSourceSelfFixRounds: 1,
+  results: { historicalBaselineOriginal: '0/5 authenticated preserved evidence, not reexecuted', v1OriginalReplay: '1/5', v1AdaptedReplay: '5/5', v2Original: '1/5', v2Adapted: '5/5', v2Existing: '57/57 including head-zero control', v2ReviewControls: '9/9 including synthetic non-product C9', v2OldAuthor: '12/12', v2NewAuthor: '8/8', native: 'preserved 5/5; no new native case count' },
+  runRecords, immutableV1ArtifactsReverified: oldArtifacts.files.length, opaqueHostWorkClaimedDrained: false, independentBodiesRead: false,
+  sourceCommits: ['98462779', '630bf76f'], authorFreezeCommit: 'cabb9519', manifestSerialization: 'SHA256 UTF8 JSON.stringify(array); source/tests/compiled entries ordered path,bytes,sha256; paths sorted lexically'
+};
+files['handoff.json'] = JSON.stringify(finalHandoff, null, 2) + '\n';
+files['closure.json'] = JSON.stringify({ capturedAt: new Date().toISOString(), runs: runRecords, supervisedRunCount: runRecords.length, allCloseEventsObserved: true, noOwnRunIdentityRemains: true, loopbacks: 'All D1-D3 runs report serverClosed=true,sockets=0; v1 fixture processes exit normally after their own cleanup. No production/remote loopbacks remain.', noWatchers: true, noStopSignals: true, leafActualClosed: 'ROOT MUST OBSERVE AFTER THIS HANDOFF; not self-certified', opaquePending: 'All authored opaque gates explicitly resolved/rejected; no claim about arbitrary opaque host work' }, null, 2) + '\n';
+for (const [path, bytes] of Object.entries(files)) {
+  const patch = `*** Begin Patch\n*** Add File: ${resolve(owned, path)}\n${bytes.replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`;
+  execFileSync('apply_patch', [], { cwd: root, input: patch, encoding: 'utf8', maxBuffer: 1024 * 1024 });
+}
+console.log(JSON.stringify({ sourceFiles: source.length, testFiles: tests.length, compiledFiles: compiled.length, compilerInputs: compilerInputs.length, sourceManifestSha256: finalHandoff.sourceManifestSha256, testManifestSha256: finalHandoff.testManifestSha256, compiledManifestSha256: finalHandoff.compiledManifestSha256, runCount: runRecords.length, sourcePatchSha256: finalHandoff.sourcePatchSha256, handoffSha256: hash(readFileSync(resolve(owned, 'handoff.json'))) }, null, 2));

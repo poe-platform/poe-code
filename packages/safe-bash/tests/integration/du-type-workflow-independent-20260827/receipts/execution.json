@@ -1,0 +1,526 @@
+{
+  "candidate": "491da31cc6ef07a3bc4584c15ae2efe9f0482c96",
+  "evidence": "e9843e601859282de25fa40742529c6be6668bf3",
+  "startedAt": "2026-08-27T22:50:40.861Z",
+  "commands": [
+    {
+      "name": "misclassified-valid-role-swap",
+      "status": 1,
+      "signal": null,
+      "expected": 1,
+      "bytes": 2189,
+      "sha256": "ea5885f603c5b06efebeebbabdc70c2da798c0af07047e3e99b39b49c6f2b7f0",
+      "file": "commands/misclassified-valid-role-swap.json.gz"
+    },
+    {
+      "name": "unchanged-canonical-fixture-node22",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 2713,
+      "sha256": "244f45fe311d3a2159da6852fe2b3b7bc79fb77426102f1f72cdca0f36c2c353",
+      "file": "commands/unchanged-canonical-fixture-node22.json.gz"
+    },
+    {
+      "name": "unchanged-canonical-fixture-node24",
+      "status": 1,
+      "signal": null,
+      "expected": 1,
+      "bytes": 5656,
+      "sha256": "004985f67b978f258ad4b1ee3ac208fcc5b54ba57d4276ad44546e2af95ab752",
+      "file": "commands/unchanged-canonical-fixture-node24.json.gz"
+    },
+    {
+      "name": "direct-nested-reporter-node22",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 990,
+      "sha256": "5b9a354657319b915244e7c6ea953fc52a72e7ea3add9de7767f1b2c1a1ddc10",
+      "file": "commands/direct-nested-reporter-node22.json.gz"
+    },
+    {
+      "name": "direct-nested-reporter-node24",
+      "status": 1,
+      "signal": null,
+      "expected": 0,
+      "bytes": 7813,
+      "sha256": "79e7076e1b9d0a57491950d19e5fbab48c5a8d0fb73951115223a4aedc243aea",
+      "file": "commands/direct-nested-reporter-node24.json.gz"
+    },
+    {
+      "name": "installed-du-strict",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 1137619,
+      "sha256": "d0d0a49ac7a4db90b345fa440a24c0a234240e2a49686c01c9f63d21673766dd",
+      "file": "commands/installed-du-strict.json.gz"
+    },
+    {
+      "name": "installed-du-runtime-node22",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 708,
+      "sha256": "08b90aec84163f96da939f7e7dd5e6f9b3b2990115de8ee46163105c68cb4152",
+      "file": "commands/installed-du-runtime-node22.json.gz"
+    },
+    {
+      "name": "moved-du-runtime-node22",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 752,
+      "sha256": "37c0eaef519a26784d7166eb6aa229879377cb7f57089a6bf4cd58ef67bde6fe",
+      "file": "commands/moved-du-runtime-node22.json.gz"
+    },
+    {
+      "name": "moved-du-runtime-node24",
+      "status": 9,
+      "signal": null,
+      "expected": 0,
+      "bytes": 843,
+      "sha256": "d3a95c5217f2dd52357170f816549d5407a1208a5f2ef0f1f95af438a1754bca",
+      "file": "commands/moved-du-runtime-node24.json.gz"
+    },
+    {
+      "name": "moved-du-strict",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 1163663,
+      "sha256": "8264a38be803fcb2f64dd5ff52802a8ec00a80b3768cd00f9482ab292f183c87",
+      "file": "commands/moved-du-strict.json.gz"
+    },
+    {
+      "name": "source-read-denied",
+      "status": 9,
+      "signal": null,
+      "expected": 1,
+      "bytes": 929,
+      "sha256": "54f6b6471c478e83df650b166b735ffe40b7df422e423500fe97eb86bb6f2c5d",
+      "file": "commands/source-read-denied.json.gz"
+    },
+    {
+      "name": "original-template-0-type-only",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 1163128,
+      "sha256": "db248ade8c316a03ac0e022e367021a7ad4b17c34666805f583e88da5549d74c",
+      "file": "commands/original-template-0-type-only.json.gz"
+    },
+    {
+      "name": "original-template-1-type-only",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 1163128,
+      "sha256": "079492e0113887522a69ce02d134270e0754311b4d2eaee1f3a7209b467be3be",
+      "file": "commands/original-template-1-type-only.json.gz"
+    },
+    {
+      "name": "missing-leaf-types",
+      "status": 2,
+      "signal": null,
+      "expected": 2,
+      "bytes": 892,
+      "sha256": "2a1253d8817e0d7bcc3167f038ccf2fbaffc5d1578667e658a6c23d1709d0bc2",
+      "file": "commands/missing-leaf-types.json.gz"
+    },
+    {
+      "name": "missing-leaf-runtime",
+      "status": 1,
+      "signal": null,
+      "expected": 1,
+      "bytes": 1794,
+      "sha256": "44ee820c317969a014358170607c76efad3f8cb6402357b17585d791049f0117",
+      "file": "commands/missing-leaf-runtime.json.gz"
+    },
+    {
+      "name": "foreign-declaration-compiler-positive",
+      "status": 0,
+      "signal": null,
+      "expected": 0,
+      "bytes": 1163685,
+      "sha256": "675bd74f824de149c9d2342c9368b1d8fa0d3e9e866b1b7855f5f6c8bec0336c",
+      "file": "commands/foreign-declaration-compiler-positive.json.gz"
+    },
+    {
+      "name": "exact-du-exclusion-boundary",
+      "status": 2,
+      "signal": null,
+      "expected": 2,
+      "bytes": 1786,
+      "sha256": "2340d62df847ba409649fca91e53b8a78e3a24eecfbbc3aa8b717e893c509184",
+      "file": "commands/exact-du-exclusion-boundary.json.gz"
+    }
+  ],
+  "checks": [
+    {
+      "name": "complete candidate inventory admission",
+      "status": "pass",
+      "detail": {
+        "capturedData": 5,
+        "stagedInputs": [
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+            "role": "versioned-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+            "role": "versioned-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+            "role": "versioned-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+            "role": "versioned-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+            "role": "versioned-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+            "role": "sealed-capture",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+            "role": "sealed-capture",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+            "role": "sealed-capture",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+            "role": "sealed-capture",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+            "role": "reusable-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+            "role": "reusable-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+            "role": "reusable-template",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+            "role": "sealed-capture",
+            "currentGroup": "du-leaf"
+          },
+          {
+            "path": "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+            "role": "sealed-capture",
+            "currentGroup": "du-leaf"
+          }
+        ],
+        "currentSourceConsumerGroups": [
+          {
+            "name": "atomic-webdav-profile-source",
+            "files": [
+              "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+              "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"
+            ],
+            "route": "root-tsconfig-and-strict-build-first-consumer",
+            "qualification": "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof"
+          },
+          {
+            "name": "atomic-webdav-independent-source",
+            "files": [
+              "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"
+            ],
+            "route": "root-tsconfig-and-strict-build-first-consumer",
+            "qualification": "current public imports use built declarations; source fixture helpers remain explicit"
+          },
+          {
+            "name": "env-split-public-source",
+            "files": [
+              "tests/shell-stress/env-split-consumer/packed-public-types.ts"
+            ],
+            "route": "root-tsconfig-and-strict-build-first-consumer",
+            "qualification": "current public declaration consumer; typing is not env-S runtime acceptance"
+          }
+        ],
+        "standaloneInventory": {
+          "frozen-evidence": 147,
+          "current": 34,
+          "declaration": 7,
+          "frozen-oracle": 1,
+          "negative-types": 3
+        }
+      }
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "missing original: tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "mutated original: tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts",
+      "status": "pass"
+    },
+    {
+      "name": "unknown role",
+      "status": "pass"
+    },
+    {
+      "name": "duplicate input",
+      "status": "pass"
+    },
+    {
+      "name": "wildcard path",
+      "status": "pass"
+    },
+    {
+      "name": "unbound owner input",
+      "status": "pass"
+    },
+    {
+      "name": "missing maintained route",
+      "status": "pass"
+    },
+    {
+      "name": "changed owning manifest",
+      "status": "pass"
+    },
+    {
+      "name": "whole DU directory omission",
+      "status": "pass"
+    },
+    {
+      "name": "current source omission",
+      "status": "pass"
+    },
+    {
+      "name": "test include omission",
+      "status": "pass"
+    },
+    {
+      "name": "missing literal staged exclusion",
+      "status": "pass"
+    },
+    {
+      "name": "local package route removed",
+      "status": "pass"
+    },
+    {
+      "name": "runtime route removed",
+      "status": "pass"
+    },
+    {
+      "name": "missing maintained consumer",
+      "status": "pass"
+    },
+    {
+      "name": "valid-role swap accepted by structural verifier (boundary observation)",
+      "status": "pass"
+    },
+    {
+      "name": "canonical policy hash rejects count-preserving role swap",
+      "status": "pass"
+    },
+    {
+      "name": "installed declaration resolution bound to candidate",
+      "status": "pass"
+    },
+    {
+      "name": "moved declaration resolution bound to candidate",
+      "status": "pass"
+    },
+    {
+      "name": "source refusal is an actual permission failure",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /ERR_ACCESS_DENIED/u. Input:\n\n'/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:233:74\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:158:61)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:233:5"
+    },
+    {
+      "name": "original template 0 package binding",
+      "status": "pass"
+    },
+    {
+      "name": "original template 1 package binding",
+      "status": "pass"
+    },
+    {
+      "name": "missing leaf cannot resolve repository source",
+      "status": "pass"
+    },
+    {
+      "name": "missing runtime cannot resolve repository source",
+      "status": "pass"
+    },
+    {
+      "name": "binding rejects changed declaration despite compiler success",
+      "status": "pass"
+    },
+    {
+      "name": "seven neighbors fail while fourteen exact data paths stay excluded",
+      "status": "pass"
+    },
+    {
+      "name": "candidate package complete inventory unchanged after execution",
+      "status": "pass"
+    },
+    {
+      "name": "selected Git inputs unchanged and no new selected-tree files",
+      "status": "fail",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      bytes: 16734,\n      path: 'package-lock.json',\n      sha256: '9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b'\n...\n    {\n+     bytes: 4958,\n+     path: 'tests/commands/archive/helpers.ts',\n+     sha256: '7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0'\n+   },\n+   {\n+     bytes: 6668,\n+     path: 'tests/commands/archive/native.test.ts',\n+     sha256: 'a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45'\n+   },\n+   {\n      bytes: 15284,\n      path: 'tests/commands/archive-stress/pax-independent/controls.test.ts',\n      sha256: '1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56'\n    },\n    {\n...\n    {\n-     bytes: 4958,\n-     path: 'tests/commands/archive/helpers.ts',\n-     sha256: '7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0'\n-   },\n-   {\n-     bytes: 6668,\n-     path: 'tests/commands/archive/native.test.ts',\n-     sha256: 'a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45'\n-   },\n-   {\n      bytes: 11129,\n      path: 'tests/commands/column-stress/current-contract-review/REPORT.md',\n      sha256: '7981ff7ad7a374e79089c4a776c7b7cf0787855760c13027da4ace8f0814efb3'\n    },\n    {\n...\n    {\n+     bytes: 1090,\n+     path: 'tests/commands/grep-aliases/consumer.mts',\n+     sha256: '4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac'\n+   },\n+   {\n      bytes: 10853,\n      path: 'tests/commands/grep-aliases-stress/verification/REPORT.md',\n      sha256: '6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47'\n    },\n    {\n...\n    {\n-     bytes: 1090,\n-     path: 'tests/commands/grep-aliases/consumer.mts',\n-     sha256: '4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac'\n-   },\n-   {\n      bytes: 1537,\n      path: 'tests/commands/network-zero-caps-review/consumer.mts',\n      sha256: '6e7cf339e0414a58c68cb46e95bcc4a59a349c94d346c8389f9b5445c75a87a1'\n    },\n    {\n...\n    {\n+     bytes: 10916,\n+     path: 'tests/fs/s3/http/author/public-consumer.mts',\n+     sha256: '190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd'\n+   },\n+   {\n      bytes: 9380,\n      path: 'tests/fs/s3/http-independent/public-workflow.mts',\n      sha256: '1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf'\n    },\n    {\n-     bytes: 10916,\n-     path: 'tests/fs/s3/http/author/public-consumer.mts',\n-     sha256: '190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd'\n-   },\n-   {\n      bytes: 798,\n      path: 'tests/fs/s3/rmdir-independent/public-consumer.mts',\n      sha256: 'd409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea'\n    },\n    {\n-     bytes: 3090,\n-     path: 'tests/fs/webdav/atomic-extension-independent/consumer.mts',\n-     sha256: '097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46'\n-   },\n-   {\n      bytes: 13398,\n      path: 'tests/fs/webdav/atomic-extension/consumer.mts',\n      sha256: '2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd'\n    },\n    {\n...\n    {\n+     bytes: 3090,\n+     path: 'tests/fs/webdav/atomic-extension-independent/consumer.mts',\n+     sha256: '097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46'\n+   },\n+   {\n      bytes: 7305,\n      path: 'tests/fs/webdav/consumer/consumer.test.mts',\n      sha256: 'b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a'\n    },\n    {\n...\n    {\n-     bytes: 13312,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts',\n-     sha256: '06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5'\n-   },\n-   {\n-     bytes: 13686,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts',\n-     sha256: 'd1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2'\n-   },\n-   {\n-     bytes: 14987,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts',\n-     sha256: 'a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n      bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6496,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts',\n-     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6496,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts',\n-     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n      path: 'tests/fs/webdav/real-service/consumer.mts',\n      sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n    },\n    {\n      bytes: 22820,\n...\n    {\n+     bytes: 13312,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts',\n+     sha256: '06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5'\n+   },\n+   {\n+     bytes: 13686,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts',\n+     sha256: 'd1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2'\n+   },\n+   {\n+     bytes: 14987,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts',\n+     sha256: 'a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6496,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts',\n+     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6496,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts',\n+     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n      bytes: 14210,\n      path: 'tests/fs/webdav/release-timestamp-independent/independent.test.mts',\n      sha256: '9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358'\n    },\n    {\n...\n    {\n-     bytes: 14518,\n-     path: 'tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts',\n-     sha256: '3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58'\n-   },\n-   {\n      bytes: 2166,\n      path: 'tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts',\n      sha256: '70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf'\n    },\n    {\n...\n    {\n+     bytes: 14518,\n+     path: 'tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts',\n+     sha256: '3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58'\n+   },\n+   {\n      bytes: 4123,\n      path: 'tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/MANIFEST.json',\n      sha256: 'bb3d41beff906a712f4d87de987e6447c897e5704e072b04a75c6926cb482833'\n    },\n    {\n...\n    {\n+     bytes: 554,\n+     path: 'tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts',\n+     sha256: '89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc'\n+   },\n+   {\n      bytes: 603,\n      path: 'tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts',\n      sha256: '14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7'\n    },\n    {\n      bytes: 554,\n-     path: 'tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts',\n-     sha256: '89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc'\n-   },\n-   {\n-     bytes: 554,\n      path: 'tests/integration/du-overlay-independent-20260827/consumer/consumer.ts',\n      sha256: '89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc'\n    },\n    {\n      bytes: 554,\n...\n    {\n-     bytes: 3060611,\n-     path: 'tests/plugins/qualified-current-release-native-data/before-02.json',\n-     sha256: 'cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1'\n-   },\n-   {\n-     bytes: 28936,\n-     path: 'tests/plugins/qualified-current-release-native-data/classification.json',\n-     sha256: 'f2da4c6fa472789ed927085f97c1c770439414bf7aed81297ad7a5b634534864'\n-   },\n-   {\n-     bytes: 15666,\n-     path: 'tests/plugins/qualified-current-release-native-data/controls.test.ts',\n-     sha256: '8ef246ff8e6411bb35680d713bb808eccd371143122a026e745971e96a43c562'\n-   },\n-   {\n-     bytes: 2145,\n-     path: 'tests/plugins/qualified-current-release-native-data/helpers.ts',\n-     sha256: '87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af'\n-   },\n-   {\n      bytes: 2896,\n      path: 'tests/plugins/qualified-current-release/captured-types.json',\n      sha256: '70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f'\n    },\n    {\n...\n    {\n+     bytes: 3060611,\n+     path: 'tests/plugins/qualified-current-release-native-data/before-02.json',\n+     sha256: 'cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1'\n+   },\n+   {\n+     bytes: 28936,\n+     path: 'tests/plugins/qualified-current-release-native-data/classification.json',\n+     sha256: 'f2da4c6fa472789ed927085f97c1c770439414bf7aed81297ad7a5b634534864'\n+   },\n+   {\n+     bytes: 15666,\n+     path: 'tests/plugins/qualified-current-release-native-data/controls.test.ts',\n+     sha256: '8ef246ff8e6411bb35680d713bb808eccd371143122a026e745971e96a43c562'\n+   },\n+   {\n+     bytes: 2145,\n+     path: 'tests/plugins/qualified-current-release-native-data/helpers.ts',\n+     sha256: '87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af'\n+   },\n+   {\n      bytes: 4053,\n      path: 'tests/plugins/stream-five-fixture-migration/public-options.mts',\n      sha256: '5689b93155a0c198181dbb401615748b11ac230a514d30a35a1a4618244fe59a'\n    },\n    {\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:266:14\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:158:61)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/du-type-workflow-independent-20260827/review.mjs:264:5"
+    },
+    {
+      "name": "development tool inventory unchanged",
+      "status": "pass"
+    }
+  ],
+  "observations": [
+    "Known-role swaps pass the structural typecheck verifier but fail the separately pinned canonical policy fixture. No claim of structural per-role immutability."
+  ],
+  "failures": [
+    {
+      "name": "direct-nested-reporter-node24",
+      "expected": 0,
+      "actual": 1
+    },
+    {
+      "name": "moved-du-runtime-node24",
+      "expected": 0,
+      "actual": 9
+    },
+    {
+      "name": "source-read-denied",
+      "expected": 1,
+      "actual": 9
+    },
+    {
+      "name": "source refusal is an actual permission failure",
+      "error": "The input did not match the regular expression /ERR_ACCESS_DENIED/u. Input:\n\n'/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node: bad option: --experimental-permission\\n'\n"
+    },
+    {
+      "name": "selected Git inputs unchanged and no new selected-tree files",
+      "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      bytes: 16734,\n      path: 'package-lock.json',\n      sha256: '9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b'\n...\n    {\n+     bytes: 4958,\n+     path: 'tests/commands/archive/helpers.ts',\n+     sha256: '7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0'\n+   },\n+   {\n+     bytes: 6668,\n+     path: 'tests/commands/archive/native.test.ts',\n+     sha256: 'a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45'\n+   },\n+   {\n      bytes: 15284,\n      path: 'tests/commands/archive-stress/pax-independent/controls.test.ts',\n      sha256: '1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56'\n    },\n    {\n...\n    {\n-     bytes: 4958,\n-     path: 'tests/commands/archive/helpers.ts',\n-     sha256: '7a9e593f5fa7a9e003c4ee9d481df072c0acb17b4a46ee2db321356833a819e0'\n-   },\n-   {\n-     bytes: 6668,\n-     path: 'tests/commands/archive/native.test.ts',\n-     sha256: 'a7bde7f866349006aa5fce9f8615a4190ee279212e88fdd2a8568f45b88f3e45'\n-   },\n-   {\n      bytes: 11129,\n      path: 'tests/commands/column-stress/current-contract-review/REPORT.md',\n      sha256: '7981ff7ad7a374e79089c4a776c7b7cf0787855760c13027da4ace8f0814efb3'\n    },\n    {\n...\n    {\n+     bytes: 1090,\n+     path: 'tests/commands/grep-aliases/consumer.mts',\n+     sha256: '4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac'\n+   },\n+   {\n      bytes: 10853,\n      path: 'tests/commands/grep-aliases-stress/verification/REPORT.md',\n      sha256: '6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47'\n    },\n    {\n...\n    {\n-     bytes: 1090,\n-     path: 'tests/commands/grep-aliases/consumer.mts',\n-     sha256: '4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac'\n-   },\n-   {\n      bytes: 1537,\n      path: 'tests/commands/network-zero-caps-review/consumer.mts',\n      sha256: '6e7cf339e0414a58c68cb46e95bcc4a59a349c94d346c8389f9b5445c75a87a1'\n    },\n    {\n...\n    {\n+     bytes: 10916,\n+     path: 'tests/fs/s3/http/author/public-consumer.mts',\n+     sha256: '190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd'\n+   },\n+   {\n      bytes: 9380,\n      path: 'tests/fs/s3/http-independent/public-workflow.mts',\n      sha256: '1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf'\n    },\n    {\n-     bytes: 10916,\n-     path: 'tests/fs/s3/http/author/public-consumer.mts',\n-     sha256: '190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd'\n-   },\n-   {\n      bytes: 798,\n      path: 'tests/fs/s3/rmdir-independent/public-consumer.mts',\n      sha256: 'd409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea'\n    },\n    {\n-     bytes: 3090,\n-     path: 'tests/fs/webdav/atomic-extension-independent/consumer.mts',\n-     sha256: '097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46'\n-   },\n-   {\n      bytes: 13398,\n      path: 'tests/fs/webdav/atomic-extension/consumer.mts',\n      sha256: '2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd'\n    },\n    {\n...\n    {\n+     bytes: 3090,\n+     path: 'tests/fs/webdav/atomic-extension-independent/consumer.mts',\n+     sha256: '097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46'\n+   },\n+   {\n      bytes: 7305,\n      path: 'tests/fs/webdav/consumer/consumer.test.mts',\n      sha256: 'b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a'\n    },\n    {\n...\n    {\n-     bytes: 13312,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts',\n-     sha256: '06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5'\n-   },\n-   {\n-     bytes: 13686,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts',\n-     sha256: 'd1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2'\n-   },\n-   {\n-     bytes: 14987,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts',\n-     sha256: 'a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n      bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6496,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts',\n-     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6496,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts',\n-     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts',\n-     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n-   },\n-   {\n-     bytes: 3772,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts',\n-     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n-   },\n-   {\n-     bytes: 6105,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts',\n-     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n-   },\n-   {\n-     bytes: 16943,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts',\n-     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n-   },\n-   {\n-     bytes: 10900,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts',\n-     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 6517,\n-     path: 'tests/fs/webdav/real-service-independent/scope-neighbors.mts',\n-     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n-   },\n-   {\n-     bytes: 22820,\n      path: 'tests/fs/webdav/real-service/consumer.mts',\n      sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n    },\n    {\n      bytes: 22820,\n...\n    {\n+     bytes: 13312,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts',\n+     sha256: '06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5'\n+   },\n+   {\n+     bytes: 13686,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts',\n+     sha256: 'd1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2'\n+   },\n+   {\n+     bytes: 14987,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts',\n+     sha256: 'a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6496,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts',\n+     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6496,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts',\n+     sha256: 'a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 22820,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts',\n+     sha256: '1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f'\n+   },\n+   {\n+     bytes: 3772,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts',\n+     sha256: '912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b'\n+   },\n+   {\n+     bytes: 6105,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts',\n+     sha256: 'c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d'\n+   },\n+   {\n+     bytes: 16943,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts',\n+     sha256: '41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923'\n+   },\n+   {\n+     bytes: 10900,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts',\n+     sha256: '67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n+     bytes: 6517,\n+     path: 'tests/fs/webdav/real-service-independent/scope-neighbors.mts',\n+     sha256: '8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2'\n+   },\n+   {\n      bytes: 14210,\n      path: 'tests/fs/webdav/release-timestamp-independent/independent.test.mts',\n      sha256: '9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358'\n    },\n    {\n...\n    {\n-     bytes: 14518,\n-     path: 'tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts',\n-     sha256: '3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58'\n-   },\n-   {\n      bytes: 2166,\n      path: 'tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts',\n      sha256: '70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf'\n    },\n    {\n...\n    {\n+     bytes: 14518,\n+     path: 'tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts',\n+     sha256: '3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58'\n+   },\n+   {\n      bytes: 4123,\n      path: 'tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/MANIFEST.json',\n      sha256: 'bb3d41beff906a712f4d87de987e6447c897e5704e072b04a75c6926cb482833'\n    },\n    {\n...\n    {\n+     bytes: 554,\n+     path: 'tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts',\n+     sha256: '89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc'\n+   },\n+   {\n      bytes: 603,\n      path: 'tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts',\n      sha256: '14e55e16f60f8262c2b299fcf48911d2789e3ec1c7b44674dd622f5dab4552b7'\n    },\n    {\n      bytes: 554,\n-     path: 'tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts',\n-     sha256: '89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc'\n-   },\n-   {\n-     bytes: 554,\n      path: 'tests/integration/du-overlay-independent-20260827/consumer/consumer.ts',\n      sha256: '89932a1fed79a910d23d51fc2718c59fabd39ac8b58c62dc8f4e6a3946449edc'\n    },\n    {\n      bytes: 554,\n...\n    {\n-     bytes: 3060611,\n-     path: 'tests/plugins/qualified-current-release-native-data/before-02.json',\n-     sha256: 'cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1'\n-   },\n-   {\n-     bytes: 28936,\n-     path: 'tests/plugins/qualified-current-release-native-data/classification.json',\n-     sha256: 'f2da4c6fa472789ed927085f97c1c770439414bf7aed81297ad7a5b634534864'\n-   },\n-   {\n-     bytes: 15666,\n-     path: 'tests/plugins/qualified-current-release-native-data/controls.test.ts',\n-     sha256: '8ef246ff8e6411bb35680d713bb808eccd371143122a026e745971e96a43c562'\n-   },\n-   {\n-     bytes: 2145,\n-     path: 'tests/plugins/qualified-current-release-native-data/helpers.ts',\n-     sha256: '87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af'\n-   },\n-   {\n      bytes: 2896,\n      path: 'tests/plugins/qualified-current-release/captured-types.json',\n      sha256: '70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f'\n    },\n    {\n...\n    {\n+     bytes: 3060611,\n+     path: 'tests/plugins/qualified-current-release-native-data/before-02.json',\n+     sha256: 'cb0e439212ffb280f513b6104fa69d99399afc6813cd51fe250df942542f86c1'\n+   },\n+   {\n+     bytes: 28936,\n+     path: 'tests/plugins/qualified-current-release-native-data/classification.json',\n+     sha256: 'f2da4c6fa472789ed927085f97c1c770439414bf7aed81297ad7a5b634534864'\n+   },\n+   {\n+     bytes: 15666,\n+     path: 'tests/plugins/qualified-current-release-native-data/controls.test.ts',\n+     sha256: '8ef246ff8e6411bb35680d713bb808eccd371143122a026e745971e96a43c562'\n+   },\n+   {\n+     bytes: 2145,\n+     path: 'tests/plugins/qualified-current-release-native-data/helpers.ts',\n+     sha256: '87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af'\n+   },\n+   {\n      bytes: 4053,\n      path: 'tests/plugins/stream-five-fixture-migration/public-options.mts',\n      sha256: '5689b93155a0c198181dbb401615748b11ac230a514d30a35a1a4618244fe59a'\n    },\n    {\n"
+    }
+  ],
+  "finishedAt": "2026-08-27T22:50:51.723Z"
+}

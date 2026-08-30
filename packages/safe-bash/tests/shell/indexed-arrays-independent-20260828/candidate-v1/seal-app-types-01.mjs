@@ -1,0 +1,65 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { gzipSync, gunzipSync } from 'node:zlib';
+import { census, digest, tarInventory, verifyTree } from '../executor-v1/boundary.mjs';
+import { verifyTool } from './npm-tool.mjs';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const repository = path.resolve(here, '../../../..');
+const work = path.join(here, 'complete-app-LEJxv5');
+const raw = fs.readFileSync(path.join(work, 'TYPE-RESULT.json'));
+assert.equal(digest(raw), '6a45e01a58ce76c87e580885fead5b0dd0abcb7792926b2b4b086f84fa71f3b1');
+const report = JSON.parse(raw);
+assert.equal(report.work, work); assert.equal(report.accepted, false);
+assert.equal(report.types.length, 9); assert.equal(report.types.filter(row => row.accepted).length, 8);
+assert.deepEqual(report.types.filter(row => !row.accepted).map(row => row.id), ['public']);
+for (const row of report.types) assert.ok(row.run.closeObserved && row.run.groupAbsent && !row.run.signal && !row.run.fault && !row.run.spawnError);
+const bindingBytes = fs.readFileSync(report.bindingPath);
+assert.equal(digest(bindingBytes), 'aaa1e5471285dcc390dd4f22e633f6f552b140ef8943f67cc9b5a83b20893a0d');
+const binding = JSON.parse(bindingBytes);
+assert.deepEqual(binding.trees.map(tree => tree.root), [path.join(work, 'app'), path.join(work, 'tools')]);
+for (const tree of binding.trees) verifyTree(tree);
+const priorEncoded = fs.readFileSync(path.join(here, 'ADMISSION-02.json.gz.base64'));
+assert.equal(digest(priorEncoded), '26f232de331bd326e018b2c152405777795c1ea982cd671bda8237c3ea2c8e5a');
+const prior = JSON.parse(gunzipSync(Buffer.from(priorEncoded.toString().trim(), 'base64'), { maxOutputLength: 16 * 1024 * 1024 }));
+const packed = Buffer.from(prior.packageBase64, 'base64');
+assert.equal(digest(packed), report.packageSha256);
+const currentInventory = tarInventory(packed);
+assert.deepEqual(Object.fromEntries(Object.entries(census(report.packageRoot)).filter(([, entry]) => !entry.directory)), currentInventory);
+const oldEncoded = execFileSync('/usr/bin/git', ['show', '8fa48028:tests/shell/dotglob-independent-20260828/continuation-evidence-v2/continuation-01/PACKAGE.tgz.base64'], { cwd: repository, timeout: 10000, maxBuffer: 4 * 1024 * 1024 });
+const oldPack = Buffer.from(oldEncoded.toString().trim(), 'base64');
+assert.equal(digest(oldPack), 'b0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa');
+const oldInventory = tarInventory(oldPack);
+const declarationProof = ['dist/index.d.ts', 'dist/contracts/command.d.ts', 'dist/shell/types.d.ts', 'dist/shell/shell.d.ts'].map(filename => {
+  assert.deepEqual(currentInventory[filename], oldInventory[filename], 'affected public declarations identical to accepted DOTGLOB package');
+  return { path: filename, ...currentInventory[filename], acceptedBaselineEqual: true };
+});
+const baseline = JSON.parse(fs.readFileSync(path.join(here, '../executor-v1/BASELINE.json')));
+const sourceProof = ['src/contracts/command.ts', 'src/shell/types.ts', 'src/shell/shell.ts'].map(filename => {
+  const current = report.sourceProjection.find(entry => entry.path === filename), previous = baseline.source.find(entry => entry.path === filename);
+  assert.deepEqual(current, previous, 'affected source unchanged from admitted baseline');
+  return current;
+});
+const expectedDiagnostics = ["public.mts(5,39): error TS2322: Type '(context: ShellCommandContext) => Promise<CommandResult>' is not assignable to type 'CommandHandler'.", "public.mts(6,3): error TS2722: Cannot invoke an object which is possibly 'undefined'."];
+assert.deepEqual(report.types[0].run.stdout.split('\n').filter(line => /error TS\d+:/u.test(line)), expectedDiagnostics);
+const fixturePath = path.join(here, '../executor-v1/public.mts.fixture');
+assert.equal(digest(fs.readFileSync(fixturePath)), digest(fs.readFileSync(path.join(report.app, 'public.mts'))));
+const npm = verifyTool(JSON.parse(gunzipSync(Buffer.from(fs.readFileSync(path.join(here, 'NPM-TOOL-INVENTORY.json.gz.base64'), 'utf8').trim(), 'base64'))));
+assert.equal(digest(fs.readFileSync(report.node.path)), report.node.sha256);
+const stage = { root: work, entries: census(work) };
+const capsule = Buffer.from(JSON.stringify({ kind: 'array-independent-complete-app-types-attempt-01', sourcePreseal: '9027f94e', rawReportSha256: digest(raw), rawReportBase64: raw.toString('base64'), bindingSha256: digest(bindingBytes), bindingBase64: bindingBytes.toString('base64'), prelaunchBase64: fs.readFileSync(path.join(work, 'TYPE-PRELAUNCH.json')).toString('base64'), stage, declarationProof, sourceProof, packageReference: { encodedCapsuleSha256: digest(priorEncoded), packageSha256: digest(packed), wholeMembers: 862 }, diagnostics: expectedDiagnostics, publicFixtureSha256: digest(fs.readFileSync(fixturePath)) }));
+const encoded = gzipSync(capsule, { level: 9 }).toString('base64') + '\n';
+function put(name, text) {
+  const filename = path.join(here, name); assert.ok(!fs.existsSync(filename));
+  execFileSync('apply_patch', [], { input: `*** Begin Patch\n*** Add File: ${filename}\n${text.trimEnd().split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`, timeout: 10000, maxBuffer: 2 * 1024 * 1024 });
+}
+put('APP-TYPES-01.json.gz.base64', encoded);
+assert.equal(digest(gunzipSync(Buffer.from(fs.readFileSync(path.join(here, 'APP-TYPES-01.json.gz.base64'), 'utf8').trim(), 'base64'))), digest(capsule));
+verifyTree(stage); verifyTool(npm); assert.equal(fs.realpathSync(work), work);
+fs.rmSync(work, { recursive: true }); assert.ok(!fs.existsSync(work));
+const summary = { kind: 'array-complete-app-type-admission-01', preseal: '9027f94e', candidate: report.candidate, selectedTree: report.selectedTree, packageSha256: report.packageSha256, packageMembers: 862, encodedSha256: digest(encoded), decodedSha256: digest(capsule), rawReportSha256: digest(raw), rawReportBytes: raw.length, capsuleEncodedBytes: encoded.length, types: report.types.map(row => ({ id: row.id, accepted: row.accepted, code: row.run.code })), accepted: false, passed: 8, failed: 1, diagnostics: expectedDiagnostics, declarationProof, sourceProof, children: { count: 9, closed: 9, groupsAbsent: 9, active: 0 }, buildExecutions: 0, npmExecutions: 0, productRuntimeImports: 0, nativeCalls: 0, cleanup: { root: work, removedAfterPreservationAndIntegrity: true } };
+put('APP-TYPES-01-SUMMARY.json', JSON.stringify(summary, null, 2) + '\n');
+console.log(JSON.stringify(summary, null, 2));

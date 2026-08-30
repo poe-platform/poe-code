@@ -1,0 +1,3 @@
+src/commands/node/rules.ts(1,41): error TS1127: Invalid character.
+src/commands/node/rules.ts(1,42): error TS1134: Variable declaration expected.
+src/commands/node/rules.ts(134,1): error TS1160: Unterminated template literal.

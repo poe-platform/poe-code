@@ -1,0 +1,197 @@
+{
+  "role": "SOURCE_REPAIR_AND_PREEXECUTION_CONTROL_SEAL",
+  "version": 3,
+  "baseline": {
+    "composition": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "packageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "selectedInputs": 278
+  },
+  "predecessor": "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+  "independentReview": "289ec1887d67cbdd50a23296c59dfa36a46786d7",
+  "timing": "ROOT decisions precede these controls; successor source and executable fixtures are authored together and sealed before execution, not independent precode controls",
+  "executions": {
+    "authorValidation": 0,
+    "compiler": 0,
+    "workers": 0,
+    "guestEntries": 0,
+    "focusedControls": 0
+  },
+  "source": [
+    {
+      "path": "src/commands/node/admission.ts",
+      "bytes": 15660,
+      "sha256": "946dc675c8423a809cc7b27f9e1364a83f4c9a6b15687a165e66b9eabc238a31"
+    },
+    {
+      "path": "src/commands/node/channel.ts",
+      "bytes": 3877,
+      "sha256": "2e9badd57919fc8ac78f2e2bea11768d2ce2c473ac20571f2ef7876aaa69e3b4"
+    },
+    {
+      "path": "src/commands/node/cli.ts",
+      "bytes": 2797,
+      "sha256": "989ccbf7e5d44660ef1b842501c0bc4529de244d8415be952bc536eb5e4ac45d"
+    },
+    {
+      "path": "src/commands/node/diagnostics.ts",
+      "bytes": 2034,
+      "sha256": "db2a5229f32a10cdea69c39ca00669d03f20c17648797739ed896224d3f65a15"
+    },
+    {
+      "path": "src/commands/node/host.ts",
+      "bytes": 17891,
+      "sha256": "13b00c8cd62b13479176932a30dbbd5176b58bea1baf76e87c2e6eed5e159db6"
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "bytes": 7865,
+      "sha256": "9c4bc557f616fff9f3ba48d54ed4297c9650ae5f92d71f002a8599fd7577aee0"
+    },
+    {
+      "path": "src/commands/node/lifecycle.ts",
+      "bytes": 8055,
+      "sha256": "7b83d0650814cfdbbfac9476927fedb498d9d32b828f6c70ac8e09b78ad72aa3"
+    },
+    {
+      "path": "src/commands/node/lower.ts",
+      "bytes": 15050,
+      "sha256": "8b9572ff30e286d18be5f60d18ef4ab0e54a4dbbf3335419508d6f2929ba96f2"
+    },
+    {
+      "path": "src/commands/node/program.ts",
+      "bytes": 13110,
+      "sha256": "25d9228b41db9c0d4d0fd3450ddf70657558354cde14951039a26ab61f04c672"
+    },
+    {
+      "path": "src/commands/node/rules.ts",
+      "bytes": 9963,
+      "sha256": "ec5ac3cf6fa083ac1a800d4af8ef1d22d1ce0b30cda69ced9babdf6a9ef0631e"
+    },
+    {
+      "path": "src/commands/node/types.ts",
+      "bytes": 4197,
+      "sha256": "2c1ec0caa22d9dd580cae47c0de7549e9a591083c167a55a5f3ee62ec6160bbb"
+    },
+    {
+      "path": "src/commands/node/values.ts",
+      "bytes": 5778,
+      "sha256": "5b5a13fb321da4731adee82f8e3536092f0ec09525be1d09e0109a9ed12f4677"
+    },
+    {
+      "path": "src/commands/node/worker-main.ts",
+      "bytes": 8500,
+      "sha256": "0bb959239ce64246ad4bb1f9b3aa29c7b912a69bc4a9570fca22bda7cf435d25"
+    },
+    {
+      "path": "src/commands/node/worker-provider.ts",
+      "bytes": 15154,
+      "sha256": "dae379688b67ad90432a82308708ce4a50e5fdcbb54f25a4745c4fc978155aab"
+    },
+    {
+      "path": "src/commands/node/worker-types.ts",
+      "bytes": 1190,
+      "sha256": "40d3c97783a323e9c29d984d1c9300f7c3ff060148b2038a45c1af2830c72aa0"
+    }
+  ],
+  "controls": [
+    {
+      "path": "tests/commands/node-author-20260829/API-v3.md",
+      "bytes": 8116,
+      "sha256": "d65e20e99b19ebecd91ce129963009b678281e50405c01cae080d62a6ca9b80e"
+    },
+    {
+      "path": "tests/commands/node-author-20260829/focused-v1.mjs",
+      "bytes": 14322,
+      "sha256": "7b5a38c5d714391f0562e53454df18597e7b10c002207e9545633a215512f584"
+    }
+  ],
+  "cases": 32,
+  "findings": [
+    {
+      "id": "F01",
+      "repair": "Fatal execution aborts invocation-private parent-work signal before provider cancellation/retirement; normal cutoff drains without abort.",
+      "controls": [
+        "F01",
+        "F02",
+        "F03"
+      ],
+      "proof": "SOURCE only; F01 has a declared 1000ms failed-subject rescue and cannot pass if rescue ran."
+    },
+    {
+      "id": "F02",
+      "repair": "Accepted typed isFsError recognition before selected own-data DTO extraction; actual FS route only; unrelated extras remain raw.",
+      "controls": [
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "F10",
+        "F28"
+      ],
+      "proof": "SOURCE only; both helper and actual command adapter paths are prepared."
+    },
+    {
+      "id": "F03",
+      "repair": "Early bounded stderr uses an inert diagnostic host, without source/stdin/VFS/provider acquisition.",
+      "controls": [
+        "F11",
+        "F12",
+        "F13",
+        "F27"
+      ],
+      "proof": "SOURCE only"
+    },
+    {
+      "id": "Q01",
+      "repair": "Origin is explicitly recorded; start rejection escaping; explicit profileFailure completion for internal selection; services.fail for independent provider escape.",
+      "controls": [
+        "F14",
+        "F15",
+        "F16",
+        "F17",
+        "F18",
+        "F19",
+        "F24",
+        "F25",
+        "F26",
+        "F29"
+      ],
+      "proof": "SOURCE only; F17 is intentionally nonconforming forwarding and must remain raw, even identical reason."
+    },
+    {
+      "id": "Q02",
+      "repair": "Async publication is awaited through owned job and callback cleanup; raw undefined publisher rejection remains present; thenables refuse.",
+      "controls": [
+        "F20",
+        "F21",
+        "F22",
+        "F23",
+        "F31",
+        "F32"
+      ],
+      "proof": "SOURCE only; no guest async-FS API added."
+    },
+    {
+      "id": "Q03",
+      "repair": "After genuine FsError recognition only, own stack/cause ignored unread; all other selected descriptors remain strict.",
+      "controls": [
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09"
+      ],
+      "proof": "SOURCE only"
+    }
+  ],
+  "qualifications": [
+    "Not a final author candidate or provider acceptance",
+    "Original SOURCE-PROVENANCE-CONTROLS-v1 fourteen identities remain unrun, not rescored",
+    "Focused fixtures use genuine selected product modules when executed; inert provider records never claim actual Worker acquisition",
+    "Complete tool/capture/engine/layout/type/mutant execution preseal remains pending",
+    "No core, root export, default, package or private changes"
+  ]
+}
+

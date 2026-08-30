@@ -1,0 +1,18 @@
+{
+  "command": [
+    "npm",
+    "run",
+    "verify:release:qualified",
+    "--",
+    "--source-commit",
+    "f12141d4d0a4b7e46ffa5c5e0d1978cf41e72f02",
+    "--native-assets-from",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7"
+  ],
+  "GNU_TAR": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+  "status": 78,
+  "signal": null,
+  "stdout": "\n> virtual-bash@0.0.0 verify:release:qualified\n> node scripts/verify-qualified-release.mjs --source-commit f12141d4d0a4b7e46ffa5c5e0d1978cf41e72f02 --native-assets-from /Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7\n\n{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-8RZa6z\",\"sourceCommit\":\"f12141d4d0a4b7e46ffa5c5e0d1978cf41e72f02\",\"sourceTreeSha256\":\"e7f64ecaa2cf5bce5fdebd3bfcca9e94d063d278b85ed9c263f742d104c32424\",\"testTreeSha256\":\"d602edfbb0a07ae8b54bfa19980716eb13db8c294064d73cce1b9e8ec60dd1c8\",\"harnessSha256\":\"46ba874f5e30d8e8f47610f67bb41cf1fcdfad51937b72d314cf4fd0a9d819ea\"}\n{\"directory\":\"/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/.runs/qualified-8RZa6z\",\"sourceCommit\":\"f12141d4d0a4b7e46ffa5c5e0d1978cf41e72f02\",\"exitCode\":78,\"sourceUnchanged\":true}\n",
+  "stderr": ""
+}
+

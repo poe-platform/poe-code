@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v3/authenticate.py", line 273, in <module>
+    main()
+    ~~~~^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v3/authenticate.py", line 182, in main
+    assert lookup(source['computedTree'], row['path']) == (row['mode'], row['blob'])
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v3/authenticate.py", line 180, in lookup
+    return trees[tree][parts[-1]]
+           ~~~~~^^^^^^
+KeyError: 'fdbb9d78316afeeb53523db4302151e791c23634'

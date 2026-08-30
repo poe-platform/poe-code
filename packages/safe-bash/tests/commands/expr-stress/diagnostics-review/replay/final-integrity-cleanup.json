@@ -1,0 +1,286 @@
+{
+  "mode": "preparation-only",
+  "startedAt": "2026-08-27T18:40:39.686Z",
+  "freezeCommit": "d0fb3ef0bc9c3c04cae829a47454c10e565ad971",
+  "stages": [
+    {
+      "label": "baseline-27a77935",
+      "commit": "27a7793526830768484885afba5832bf8bb248b5",
+      "sourceTestsDigest": "28d4a12f7f00925c12aede33a33bf4416fb4019d9f6d2157f215b98f2f5d02cd",
+      "installedDigest": "3c7035e2917fab3b95eede6908065f544890ad60bc984a29941b559a34082ea5",
+      "sourceTreeGitId": "a68ba3a650473e23a96511535cec0d4833688da8",
+      "archiveSha256": "5a232b6ea331c3d2d74f012b77622d1e2273e61c4cb29f5899d12f7e586ba81c",
+      "packageSha256": "3271cd8a174146c53dadd2982f7a093a771b3231cdd0614550b5f52125cfede5",
+      "sourceAndTestAddedEntriesChecked": true,
+      "installedAddedEntriesChecked": true
+    },
+    {
+      "label": "baseline-8f19a9d5",
+      "commit": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+      "sourceTestsDigest": "0252ac87741dfe7b52f186d2518d873bedb7a6d053e8ac6544042f4bafd107b8",
+      "installedDigest": "4026e40d1a7e9faa532020171efe1526e7e9e443f3c4fce53cb97bb75422853f",
+      "sourceTreeGitId": "d29d1fa08c683bc800c750cfe587b1ca7014fc6f",
+      "archiveSha256": "832dfd8a94c7a459b712d5902d1c6458a09b087c5d8523f6f6ca0a67c006bf65",
+      "packageSha256": "fdebf13b99fd87850391d2fd57f822f9906b9820b0d5244301918b98973dbe66",
+      "sourceAndTestAddedEntriesChecked": true,
+      "installedAddedEntriesChecked": true
+    }
+  ],
+  "protected": [
+    {
+      "commit": "35aa8054ac0ebc1eacefc7cde63e4706f4c72137",
+      "base": "tests/commands/expr-stress/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/frozen/README.md",
+          "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/controls.json",
+          "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/manifest.json",
+          "sha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/oracle.json",
+          "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/validation-20260827.json",
+          "sha256": "5ae67ba3a82246567d9dae5124421b0f10eae385df153c3c7a9406c11f1b6fd0"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/inputs.json",
+          "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/primary-sources.json",
+          "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/runner.mjs.data",
+          "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+        }
+      ],
+      "appendedEntriesChecked": true
+    },
+    {
+      "commit": "92fe8a6335366b93cbc9a80d61fede69af711444",
+      "base": "tests/commands/expr-stress/extension-review/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/ADDENDUM.md",
+          "sha256": "8125965baffbfb4fc23746cf0b81515b73f4cbf7b0f2a3297008cb6fe77f2e6b"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/README.md",
+          "sha256": "6f29774d0dfaa6c75dfcc7154a8eb6db4b9a208e4b6540b6b7469e37cd7b7711"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+          "sha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-input.json",
+          "sha256": "5274c5c39857f0ff3e601aa35fee93ae7108309f3f2063598414adf7e063e8d5"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-native.mjs.data",
+          "sha256": "472b7dcd18b1d7eaa8c480751a910db44112d4267eaf848f85d4c8fb29ff61f3"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/manifest.json",
+          "sha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/oracle.json",
+          "sha256": "43f2f8c37004c91022c387ac88afd7ce15334ddabd30a1996c1606f89ff9dd08"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/quoted-parenthesis-20260827/oracle.json",
+          "sha256": "4366b45060a74a59b4c3772227062ee4ae4efec8ce9953a814463bb468386e4e"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/validation-20260827.json",
+          "sha256": "7997dc52a5a7326c021a5c979f80be98a62f86badf83fe5687af5852050b05dd"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/freeze-manifest.json",
+          "sha256": "8debc13022bebfd427c1862e75b7dcabe4eb17600bfb09c0b417c9d38f73c5f2"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/inputs.json",
+          "sha256": "4a02ebb53184ed13aa7627b322c7f87ea00389601f6acc5bc81feb234d520108"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+          "sha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/primary-sources.json",
+          "sha256": "6aa5dce418af4c1887e2c8d648cfa541b6765dbcffc6630d13172b392da83103"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/provenance.json",
+          "sha256": "79af9a119dcc71054d09a4a1ff17bce563633899d31ef1bd0b9153eae9148b87"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/runner.mjs.data",
+          "sha256": "ac40665793ea0230274b6f4523430b6d3c45f3f614700808289f20bf23493a11"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/verify-seal.mjs.data",
+          "sha256": "87703aaaa07e99cd6c3248dd6ba5dda948894d87e17de4e54fd5b02e96d24de9"
+        }
+      ],
+      "appendedEntriesChecked": true
+    }
+  ],
+  "cleanup": [
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-kN12vJ",
+      "removed": true,
+      "ownedStage": "baseline-27a77935"
+    },
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-vF3S5L",
+      "removed": true,
+      "ownedStage": "baseline-27a77935"
+    },
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-archive-vCyliO",
+      "removed": true,
+      "ownedStage": "baseline-8f19a9d5"
+    },
+    {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-moved-1Dvzbs",
+      "removed": true,
+      "ownedStage": "baseline-8f19a9d5"
+    }
+  ],
+  "limits": "Complete source/test and installed inventories include added entries; no whole-repository or entire archive-tree append-proof claim.",
+  "frozenFiles": [
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/FREEZE.md",
+      "sha256": "26f22d8fb2d052f3647026d61c155a0a648db7b69d78985f3f8a5e33fcc5c29a"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/bind-harness.mjs",
+      "sha256": "03d808336a7b72ab5e6b646edcc6a5df7a2e0f6a6feaa1c545ac262a262ec1da"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/freeze/baseline-source.txt",
+      "sha256": "ba791eba95ef220c2e8af9f1d26c15daa8ff28a77121a3fd4d52128e859731ee"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/freeze/independent-native.json",
+      "sha256": "252a342ef50d6721bd156d80efa602b988f2b3e600edca3cf42c7e8901ad2ea0"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/freeze/native-original-replay.json",
+      "sha256": "73963033fae8bb782a0d22e73ebe199fec39d97e354cb6ececf0692dbeb94352"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/freeze/nine-unchanged.json",
+      "sha256": "e8f45a480018d1fb52727c9a5fd9448350df35bcfcdd33739e469cd287604e4d"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/freeze/runtime-binding.json",
+      "sha256": "0d58cf989c6655a92ac284340919cb97226819865354125b3cbd43465ad4ad2b"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/freeze/seal.json",
+      "sha256": "2b813ece23533035090eb28da77160e73e5ed0b8cc297d7b56101b24bf1bf0fd"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/independent.mjs",
+      "sha256": "1133db0f2de868259835e3adfbef45b55a865f6bbf8eb1888a7fca8919924d6b"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/inputs.json",
+      "sha256": "dc758ff0c657d6ce7366e5f9b96af97d73a97773e092b17ed899f769ec251f28"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/prepare.mjs",
+      "sha256": "a255d5e66e32a86602504c09f77ea6bfd8bb9962e8fd2c0c6171f5655f9ab7b4"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/accept-controls.mjs",
+      "sha256": "47119f8655136b9eccc9578ecb569b72f2955a1f5703b635c480f9c2c8fcf97b"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/accept-native.mjs",
+      "sha256": "e3a6f2d40b4c468e41fa42fcb77633c68b41b16deadf7008e9d2fc408960532e"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/baseline-27a77935/stage.json",
+      "sha256": "e1d5ea032c70a4bb3f3538e6089f4dc59ddd1fcbc90917ad659d49e7cc248fa4"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/baseline-first/independent.json",
+      "sha256": "b2b76e79c48090475324d6a70193f5e3c90658ac9a095c154d2cd8e64a8130e0"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/comparators.mjs",
+      "sha256": "983eb4e43f8178300534074c0f41fab5d9b814d20c9c858caa945509b8f353de"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/devdeps-authentication.json",
+      "sha256": "4bfdf12d2d2eb073bdc62b56176e806d24c585a2e4a190792e396ded54cb98ae"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/distribution.mjs",
+      "sha256": "cc65dcb177350c1b2868b497e0cf77ac13fa737927e77b8b4b818f6aa9f5be44"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/extra-driver.mjs",
+      "sha256": "c05bc59571949eebfc14074b8e03bb4a0c87a00069e86bc44801db7ec82cdbf2"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/harness-bindings.json",
+      "sha256": "32907d1dead8f99a439378765c4826310683e15e6651b3eab82f3a08e5be2dda"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/lifecycle-driver.mjs",
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/protocol-driver.mjs",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/review.mjs",
+      "sha256": "f4ad8610633523eae4c510f396c54c78c9f050c3d0780e166012f25a39c7765b"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/runtime-driver.mjs",
+      "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/shell-lifecycle-driver.mjs",
+      "sha256": "00a054683c0694edae9484591ef8b99642c39c49153c2b0a1b4414b5cedf24c6"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/stage.mjs",
+      "sha256": "ed6fa329fa1f6816b69f9658e3d27428f2bb4bad0e0c4fd259c60724146b14bd"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/supplement.mjs",
+      "sha256": "4df7544c5b0a7847b88c34283ba073e5c7cb98ccfc729dbd3139b48e98cb7f65"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/replay/watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee"
+    },
+    {
+      "path": "tests/commands/expr-stress/diagnostics-review/runtime-driver.mjs",
+      "sha256": "649443266097a92d93e8e58e408c34a688a66b724a510a433be80eea11a1caf8"
+    }
+  ],
+  "ownFreezeAddedEntriesChecked": true,
+  "developmentDependencyTreesUnchangedIncludingAddedEntries": true,
+  "gitStatus": "A  tests/commands/expr-stress/c-profile-gap-review/frozen/CASES.md\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/CASE_MATRIX.json\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/MANIFEST.json\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/PRIMARY_SOURCES.json\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/REPORT.md\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/VALIDATION.md\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/audit.mjs\nA  tests/commands/expr-stress/c-profile-gap-review/frozen/extract.mjs\n?? src/commands/html-to-markdown/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/diagnostics-review/finalize.mjs\n?? tests/commands/expr-stress/diagnostics-review/integrity.mjs\n?? tests/commands/expr-stress/diagnostics-review/replay/baseline-8f19a9d5/\n?? tests/commands/expr-stress/diagnostics-review/replay/baseline-source-tests.json\n?? tests/commands/expr-stress/diagnostics-review/replay/final-inventory-baseline-27a77935.json\n?? tests/commands/expr-stress/diagnostics-review/replay/final-inventory-baseline-8f19a9d5.json\n?? tests/commands/expr-stress/diagnostics-review/replay/integrity-helper-v1-failure.json\n?? tests/commands/expr-stress/diagnostics-review/replay/integrity-helper-v1.mjs.data\n?? tests/commands/expr-stress/diagnostics-review/replay/legacy-plan.json\n?? tests/commands/expr-stress/diagnostics-review/replay/preparation-decision.json\n?? tests/commands/expr-stress/nullable-design-review/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/\n?? tests/integration/release-readiness-independent-20260827/candidate-aa84dbbf-review/\n",
+  "completedAt": "2026-08-27T18:41:12.330Z"
+}

@@ -1,0 +1,72 @@
+{
+  "closedAt": "2026-08-27T00:55:58.920Z",
+  "productionAndOwnedTestsFrozen": true,
+  "commits": {
+    "2cacd04": "2cacd04614baaa6e95f8663b73ded023eafd2c19",
+    "0c4709f": "0c4709fa8ca55b4e0414219ee5e3a57a59418fc7",
+    "220cd7e": "220cd7eed2aa480eceddf8a398a894f7ec181a07",
+    "2e3ae8f": "2e3ae8f60bd43955e5ded2b8dc488a2932fea66f"
+  },
+  "hashes": {
+    "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+    "tests/commands/metadata-stress/epoch-regression.test.ts": "a234fc1336d0f2bf943526d7fdd3857f55a3581c3393dd1a1418cc6c16df3f74",
+    "tests/commands/metadata-stress/provenance.test.ts": "154f459bc15e800be21668f29e149522b415ccf7fe731f0a9c5ac422574f8cce",
+    "tests/commands/metadata-stress/oracle-evidence.json": "4c02d4b362245afdf81665844df3dc986e66642bc95f624c207b1e11fecef124",
+    "tests/commands/metadata-stress/README.md": "1ef1074534699aab3841b79191bb6b1e163eddc74db65d01bd860b8210f2b815",
+    "tests/commands/metadata-stress/runtime-fix-evidence.json": "277d22c1e1bfeb9fd8d5cf325bcb080fc1f4b8be161b05a8e5fbb517c631f28c"
+  },
+  "acceptance": {
+    "originalTimestampReplay": {
+      "pass": 30,
+      "total": 30
+    },
+    "timestampClassification": {
+      "negativeOnly": 15,
+      "combined": 4,
+      "widthOnly": 11,
+      "semantic": 30,
+      "calibrationOnly": 0
+    },
+    "metadata": {
+      "pass": 43,
+      "total": 43
+    },
+    "agentPlugin": {
+      "pass": 31,
+      "total": 31
+    },
+    "safejsExports": {
+      "pass": 5,
+      "total": 5
+    },
+    "currentMetadataAndPluginTotal": 79,
+    "historicalOriginal71": "historical separate cohort; root-owned plugin changed, not edited here",
+    "stress": {
+      "pass": 51,
+      "total": 51,
+      "original": 48,
+      "newSemanticRegressions": 2,
+      "newProvenanceGuards": 1
+    },
+    "types": "scoped metadata and source-build both --noEmit exit0",
+    "build": "not run; no JS emitted"
+  },
+  "originalAuthorArtifacts": "all seven unchanged hashes verified",
+  "originalRawDifferences": "30 timestamp +6 chmod preserved in tests/commands/metadata-stress/runtime-fix-evidence.json",
+  "remaining": [
+    "Six measured chmod host status/effect differences routed Poincare/root; no chmod or FS edits, no waiver or parser-bug claim.",
+    "Independent final acceptance now released, not claimed by fixer.",
+    "Precision >3, full GNU stat/full-shell/product superiority and requested72h not established.",
+    "Four historical global TS diagnostics root-routed; global test/type audit not rerun."
+  ],
+  "ownedGitStatus": "",
+  "activeOwnedBackgroundProcesses": 0,
+  "ownedNativeFixturesRemaining": 0,
+  "sharedOracle": "untouched; reviewer still uses it",
+  "unattributedNativeArtifact": "tests/commands/diff-patch-stress/fuzz/.native-bvNFwI untouched"
+}

@@ -1,0 +1,248 @@
+{
+  "schema": "k08-independent-source-preexec-review-v1",
+  "finishedDataChecksAt": "2026-08-29T15:03:18.195Z",
+  "source": "ACCEPT_NARROW_SOURCE_ONLY",
+  "preexec": "HOLD",
+  "controls": [
+    {
+      "id": "C01",
+      "name": "NUL Git publication/evidence inventories",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "publicationRows": 34,
+        "evidenceRows": 31,
+        "publicationDifferences": [
+          "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/ADMIN-THROUGH-EVIDENCE-COMMIT.json",
+          "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/CAPTURES-THROUGH-EVIDENCE-COMMIT.json",
+          "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/PUBLICATION-CHECKPOINT.json"
+        ],
+        "publicationCommit": "bbe0b5c7bd8b9970b2842d26d0dc05d1c4f0aa6d",
+        "evidenceCommit": "71a5556b19ebf51e4ddd88bbd634399ca5243184"
+      }
+    },
+    {
+      "id": "C02",
+      "name": "Future seal and helper pins",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "local": 13,
+        "inherited": 9
+      }
+    },
+    {
+      "id": "C03",
+      "name": "306 exact built source inputs",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "count": 306,
+        "supportingLiveSourcesMatchPinnedInputs": true
+      }
+    },
+    {
+      "id": "C04",
+      "name": "Runtime inverse diff and ERE disjointness",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "reversedSha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1",
+        "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07"
+      }
+    },
+    {
+      "id": "C05",
+      "name": "Shipping hash without inflation",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "bytes": 981948,
+        "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+        "inflations": 0
+      }
+    },
+    {
+      "id": "C06",
+      "name": "1006 shipping member bindings",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "count": 1006,
+        "createdInstalledOrMovedLayouts": false
+      }
+    },
+    {
+      "id": "C07",
+      "name": "Existing public declaration byte comparison",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "existingDeclarationsByteEqual": 250,
+        "soleNewDeclaration": "dist/shell/arithmetic-parameters.d.ts",
+        "consumerExecutions": 0,
+        "qualification": "Retained old source-app comparison; old declaration bytes are not independently bound here to a historical archive seal."
+      }
+    },
+    {
+      "id": "C08",
+      "name": "Finite matrix and role arithmetic",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "primaryIdentities": 23,
+        "primaryCalls": 69,
+        "helperIdentities": 8,
+        "helperRowsPerBatch": 16,
+        "mutantShellCalls": 2,
+        "runtimeStarts": 79,
+        "proposedAllKnownStarts": 86,
+        "extraAdministration": 7,
+        "actualShellCalls": 0,
+        "actualProductionHelperCalls": 0,
+        "actualMutants": 0,
+        "actualBindingRefusals": 0
+      }
+    },
+    {
+      "id": "C09",
+      "name": "Failure and outer qualification source findings",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "disposition": "PREEXEC_HOLD",
+        "blockers": [
+          "B1 child primary precedence",
+          "B2 outer terminal-result qualification"
+        ],
+        "productionOrRunnerEvaluation": false
+      }
+    },
+    {
+      "id": "C10",
+      "name": "Mutation source findings",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "disposition": "PREEXEC_HOLD",
+        "blockers": [
+          "B3 M01 exact-defect and loaded-helper qualification"
+        ],
+        "mutationCount": 3,
+        "actualLoadedMutants": 0
+      }
+    },
+    {
+      "id": "C11",
+      "name": "Pending versioned authority and shared-clock finding",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "grant": "PENDING",
+        "review": "PENDING",
+        "blocker": "B4 inherit outer deadline and known-child retirement",
+        "historicalArchiveStopUnchanged": true,
+        "actualGO": false
+      }
+    },
+    {
+      "id": "C12",
+      "name": "Fresh owned census and inclusive review budget",
+      "status": "DATA_CHECK_COMPLETED",
+      "result": {
+        "at": "2026-08-29T15:03:18.193Z",
+        "total": 706250,
+        "capture": 165739,
+        "publicationReserve": 4194304,
+        "helperInvocations": 3,
+        "maximumKnownLaunchesIncludingPublication": 48,
+        "knownPeak": 3,
+        "shellControlGroupsIncludingPublication": 9,
+        "rows": [
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/REVIEW.md",
+            "bytes": 18840,
+            "sha256": "dc8bc1e98ab0292f998026a87499f91cbb942483b1cb000a4a1de56f887f10f4"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/admissions.json",
+            "bytes": 5786,
+            "sha256": "41b2bcd9a6a0b5eae29a1f33975f72cb116ece0ac8cacc5d15c8e24bde0005a2"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/audit.json",
+            "bytes": 236306,
+            "sha256": "5a6938218ade0982c2cb7863229b1e2c7ceab64ae230fbdf8ee4b5f41a9d3f50"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/audit.mjs",
+            "bytes": 7003,
+            "sha256": "9cc0a91dd7c582c48c36d10259e64028af5be4181a1ebafed7e19ffc199f4f38"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/audit.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/audit.stdout.txt",
+            "bytes": 71240,
+            "sha256": "ab6362422f1087549b1b3c30b69f6be82feb027bdd197c899387c917756b2a23"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/evidence-tree.txt",
+            "bytes": 4617,
+            "sha256": "874c4d8694534761f796682441feb2299e760d3e0454c09a4882f53924aa9a54"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/inspect.mjs",
+            "bytes": 2082,
+            "sha256": "fe2beccdfed951a8897301e370028276ffa1118591696ab33f60259e6ab9ec33"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/inspection.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/inspection.stdout.txt",
+            "bytes": 94499,
+            "sha256": "fa804020be48bb6f0970d417ec27acbf2a04ee7a8a619494bf86c027d31667aa"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-arithmetic-parameters.txt",
+            "bytes": 5221,
+            "sha256": "cedcbab5ece5b8b109b37a6a2d61945f79168d679040e67feb519d23219f516a"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-runtime.txt",
+            "bytes": 211843,
+            "sha256": "52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/publication-tree.txt",
+            "bytes": 5120,
+            "sha256": "2d69d01a9b7f6fc762218a5f8aa5455fccf1150768534729d080859b128defc0"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/source-contexts.json",
+            "bytes": 31303,
+            "sha256": "a95867c1d36ea1013ff8d9b6c7125e0795cf4b00b58dc203943650d860dc42b6"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/source.diff",
+            "bytes": 2726,
+            "sha256": "25e3d92969d1cd1327d371b060613488054403cda4dd7a2e14ea0d2f183e554a"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/verification.stderr.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/verification.stdout.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          {
+            "path": "tests/compatibility/bash-arithmetic-parameters-independent-20260829/verify.mjs",
+            "bytes": 9664,
+            "sha256": "ae34287251f8838c16522705c1595eb96d1cc3d0fb754319fc7d157334b59944"
+          }
+        ],
+        "qualification": "Pre-receipt/post-helper-1-and-2 owned-file sample, not RSS, physical quota, continuous peak, or universal process census."
+      }
+    }
+  ],
+  "bytesRead": 14306088,
+  "actualGO": false
+}

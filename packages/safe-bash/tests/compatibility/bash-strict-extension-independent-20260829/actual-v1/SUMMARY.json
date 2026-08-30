@@ -1,0 +1,155 @@
+{
+  "date": "2026-08-29",
+  "verdict": "HOLD_ONE_REPRODUCIBLE_INTEGRATION_FINDING",
+  "presealCommit": "b4b1f490b217dadfe01b215d9295fc0c89ed1ce1",
+  "executionSealSha256": "2bc4c4a68efa8649b40f2421941f1c6ce9a6e33d8604487d5af0cded3d0e12c6",
+  "production": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+  "derived": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+  "sourceInputs": 293,
+  "package": {
+    "sha256": "aaabea71bc3a7f1982a2ded488cbf5a905de304f0bc6f39302d15e293da8495f",
+    "bytes": 871837,
+    "members": 954
+  },
+  "main": {
+    "author": {
+      "pass": 636,
+      "fail": 0
+    },
+    "novel": {
+      "pass": 45,
+      "fail": 3
+    },
+    "combined": {
+      "pass": 681,
+      "fail": 3,
+      "total": 684
+    },
+    "skipped": 0,
+    "unexecutedWithinMain": 0
+  },
+  "layouts": [
+    {
+      "layout": "source",
+      "author": 212,
+      "authorPass": 212,
+      "novel": 16,
+      "novelPass": 15,
+      "novelFail": 1
+    },
+    {
+      "layout": "installed",
+      "author": 212,
+      "authorPass": 212,
+      "novel": 16,
+      "novelPass": 15,
+      "novelFail": 1
+    },
+    {
+      "layout": "moved",
+      "author": 212,
+      "authorPass": 212,
+      "novel": 16,
+      "novelPass": 15,
+      "novelFail": 1
+    }
+  ],
+  "types": [
+    {
+      "layout": "source",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "layout": "source",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    },
+    {
+      "layout": "installed",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "layout": "installed",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    },
+    {
+      "layout": "moved",
+      "negative": false,
+      "pass": true,
+      "diagnostics": 0
+    },
+    {
+      "layout": "moved",
+      "negative": true,
+      "pass": true,
+      "diagnostics": 8
+    }
+  ],
+  "controls": {
+    "loadedMutants": 6,
+    "kills": 6,
+    "restores": 6,
+    "restoresPass": 6,
+    "bindingRefusals": 2,
+    "bindingRefusalsPass": 2
+  },
+  "cleanup": {
+    "directChildren": 42,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 32,
+    "knownDirectOSChildren": 42,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "outer": {
+    "primaryPresent": false,
+    "cleanupPresent": false,
+    "closed": true,
+    "signals": [],
+    "bytes": 473,
+    "pid": 73661,
+    "exitCode": 1,
+    "ownedGroupAbsent": true,
+    "elapsedSeconds": 54.04938720798236
+  },
+  "observedLoaderHostProcesses": 32,
+  "loaderIndividualExitObserved": false,
+  "regexBirths": 0,
+  "regexExits": 0,
+  "elapsedMs": 53079,
+  "capturedChildBytes": 3266819,
+  "actualScratchBytes": 73436331,
+  "retainedScratch": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0",
+  "postguards": {
+    "source293": true,
+    "builtDist": true,
+    "movedPackage954": true,
+    "restoredMutantPackage954": true,
+    "executorFiles109": true,
+    "proof": "Reached final INDEPENDENT_ASSERTION_FAILURES after all in-run postguard assertions; independently rehashed below for publication. Not global working tree/private guards."
+  },
+  "openIds": [
+    "U27",
+    "S-U27-INPUT-UNIT-v1",
+    "S-U28-PRESENCE-v1",
+    "S-U31-STDIN-v1",
+    "E23-source-discard"
+  ],
+  "limitations": [
+    "Provisional Unit3 dependency",
+    "No native Bash execution or GNU invocation/status/diagnostic-byte parity",
+    "Source layout executes compiled JS in frozen source-built tree, not untransformed TS",
+    "N14 cause is source-supported composition loss of diagnostic provenance at invoke boundary; not proved new regression introduced by9bb",
+    "No independent internal-loader exit/global transitive process/RSS proof",
+    "No Node/liveHEAD/private/network/comparator/XAN/oldgate"
+  ],
+  "terminalExit": 1
+}

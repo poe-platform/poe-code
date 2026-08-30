@@ -1,0 +1,484 @@
+{
+  "profile": "GNU coreutils9.7 Darwin25.4.0 arm64; one explicitUTF8 byte-column control",
+  "cases": [
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a092020090a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "09612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a092020090a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "09610920620a313233343536370920580a3132333435363720580a313233343536370909580a09090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09610920620a313233343536370920580a3132333435363720580a313233343536370909580a09090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t4"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a092020090a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "090961090920620a313233343536370920580a3132333435363720580a313233343536370909580a09090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090961090920620a313233343536370920580a3132333435363720580a313233343536370909580a09090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--first-only",
+        "-a",
+        "-t4"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a092020090a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "0909612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t",
+        "4,8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "202020202020202020202020580a090909580a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "090920202020580a090909580a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "090920202020580a090909580a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t",
+        "4,8,+3"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020202020202020202020580a31323334353637202058",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "0909090909580a31323334353637092058",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909090909580a31323334353637092058",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--tabs=4,8,/3"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020202020202020202020580a31323334353637202058",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "09090909092020580a31323334353637090958",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09090909092020580a31323334353637090958",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "61620820202020202020780a082020202020202020790a31323334353637380820580a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "61620809780a0809790a31323334353637380820580a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "61620809780a0809790a31323334353637380820580a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "09",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "09",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "20202020202020",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "20202020202020",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "20202020202020",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t1"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "206120622020630a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "096120620909630a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "096120620909630a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t2"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "206120622020630a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "2061206209630a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "2061206209630a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-4"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a092020090a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "0909612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-4,8"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "2020202020202020612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a092020090a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "0909612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "0909612020202020202020620a313233343536372020580a3132333435363720580a313233343536372009580a09090a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-a"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "ff20202020202020000a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "ff09000a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "ff09000a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-a"
+      ],
+      "env": {
+        "LC_ALL": "en_US.UTF-8"
+      },
+      "inputHex": "c3a9202020202020f09f99822020202020202020780a",
+      "native": {
+        "exitCode": 0,
+        "stdoutHex": "c3a909f09f99820920202020780a",
+        "stderr": ""
+      },
+      "actual": {
+        "exitCode": 0,
+        "stdoutHex": "c3a909f09f99820920202020780a",
+        "stderr": ""
+      },
+      "strict": true,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t0"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: tab size cannot be 0\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: invalid number '0'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t4,3"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: tab sizes must be ascending\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: tab stops must be ascending\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t4,4"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: tab sizes must be ascending\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: tab stops must be ascending\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-t4,+2,/3"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: '/' specifier is mutually exclusive with '+'\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: repeating tab stop must be last\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "-txyz"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: tab size contains invalid character(s): 'xyz'\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: invalid number 'xyz'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    },
+    {
+      "args": [
+        "--bad"
+      ],
+      "env": {
+        "LC_ALL": "C"
+      },
+      "inputHex": "",
+      "native": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand: unrecognized option '--bad'\nTry 'tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand --help' for more information.\n"
+      },
+      "actual": {
+        "exitCode": 1,
+        "stdoutHex": "",
+        "stderr": "unexpand: unrecognized option '--bad'\n"
+      },
+      "strict": false,
+      "selectedSemantic": true
+    }
+  ]
+}

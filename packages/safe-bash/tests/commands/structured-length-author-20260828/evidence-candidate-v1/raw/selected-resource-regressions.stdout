@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: limits protect hidden Cartesian expansion, collections, and emitted results
+ok 1 - limits protect hidden Cartesian expansion, collections, and emitted results
+  ---
+  duration_ms: 99.634958
+  type: 'test'
+  ...
+# Subtest: input, source, output, slurp and result budgets enforce boundary values
+ok 2 - input, source, output, slurp and result budgets enforce boundary values
+  ---
+  duration_ms: 2.457584
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 306.932917

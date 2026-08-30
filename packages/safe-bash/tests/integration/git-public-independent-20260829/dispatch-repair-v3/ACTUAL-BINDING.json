@@ -1,0 +1,28 @@
+{
+  "conditionalRootGo": true,
+  "sourceCommitted": true,
+  "sourceCommit": "7b2cea72044957ab06faa374365cc98d12618515",
+  "dispatchSealSha256": "3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4",
+  "controlsPath": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/captures/entry-pikmhgvx/CONTROL-RESULT.json",
+  "controlsSha256": "664525b8fa7570e90476ddccd02c49d3ff860f4c58634c6b7f1b366f549ae27f",
+  "rootGrant": "Latest fresh20min dispatch-repair plus conditional unused actual-v2 GO; not retroactive compliance; one attempt only",
+  "authorization": {
+    "kind": "FRESH_ONE_PUBLIC80_INDEPENDENT_REVIEW",
+    "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+    "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+    "executionSealSha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+    "repairSealSha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+    "runDirectory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2",
+    "maxSeconds": 3600,
+    "maxAllOsProcesses": 128,
+    "maxRegexWorkers": 32,
+    "maxInternalLoaderAdmissions": 32,
+    "acceptHistoricalFailuresUnrescored": true,
+    "nonce": "c15d3c34-c34b-4a7a-b1e1-ffe46312d74f",
+    "expiresUnix": 1787979116,
+    "preparationOnly": false,
+    "dispatchSupplementSha256": "3ff48f525339d0fd60266012e89513d30e5e29cf2bf65fa1c56551dfcfa57ea4",
+    "peerReviewCommit": "053c4e942c66928972af6aa227177726ca503eab",
+    "conditionalGrant": true
+  }
+}

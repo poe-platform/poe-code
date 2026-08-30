@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "originalAuthorFreeze": "7023c28229ecb7939aee5eb7ca0f52ac57c795bb",
+  "withheldCandidate": "6747227230cd770379148552d471621717b766d7",
+  "originalAuthorEvidence": "3d247da92459f8526afaea42c0ce25b59f3bd263",
+  "independentFreeze": "3af5da9650f36081b093e2158065a2226126ad37",
+  "independentEvidence": "4d8ec6231b7bfd786eac93a86e33de1e987054ce",
+  "independentAudit": "146d5ad72cbccf61885baa9b33feee0891b7d32c",
+  "baselineHelper": {
+    "gitBlob": "d5ceafef56a9351bd77630db66d9acfdc19a38ee",
+    "sha256": "cde614b830e11f2040db65d2347c5f430df4b353324684585b2dc242ac733960"
+  },
+  "baseline": {
+    "runtimeCommandSha256": "ab89669ac4c616aff6b22f78ddd8b0d012be0c21c43a2b4509bf392a9221afdd",
+    "runtimeExit": 1,
+    "pass": 3,
+    "fail": 2,
+    "strictCommandSha256": "cc59eca6a54e155e04007cc1dfc04951cb22303ed02c6469011ceeae5016a7af",
+    "strictExit": 0,
+    "retried": false
+  },
+  "files": {
+    "cases.json": "5f5ff1749daebdeb53aa322fa766b77c6c9769ba937c379ca04f1c97b2aefd0d",
+    "POLICY.md": "89b93b92f1f7b46bf2c958f559680c079ab5e563ecd3993c9de42bc648a4f541",
+    "cancellation-repair.test.ts": "a8e3d2f3714c82c17bd66e62664896a584ab8d5435931df44bb37ec20f4e04fa",
+    "baseline.tap": "fcca1d6da725292b890a2fa66f0e436087aec11dd17a1cba587e1c77f0e08233",
+    "BASELINE.md": "7b5bbb67dea3b23cfe79411488471b1ec296916ba87f54abf5f5b9707b1e2ebf"
+  },
+  "historicalIndependentResult": {
+    "retained": "10/12",
+    "rescored": false
+  }
+}

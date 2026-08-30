@@ -1,0 +1,27 @@
+{
+  "at": "2026-08-28T10:02:03.693Z",
+  "results": [
+    {
+      "name": "child-process-v1.mjs",
+      "status": "syntax-only-pass"
+    },
+    {
+      "name": "integrity-v1.mjs",
+      "status": "syntax-only-pass"
+    },
+    {
+      "name": "load-hook-v1.mjs",
+      "status": "syntax-only-pass"
+    },
+    {
+      "name": "run-v1.mjs",
+      "status": "syntax-only-pass"
+    },
+    {
+      "name": "worker-v1.mjs",
+      "status": "syntax-only-pass"
+    }
+  ],
+  "productImports": 0,
+  "productExecutions": 0
+}

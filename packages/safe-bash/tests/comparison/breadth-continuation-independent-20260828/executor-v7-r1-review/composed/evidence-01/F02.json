@@ -1,0 +1,12 @@
+{
+  "id": "F02",
+  "expected": "All twelve literal PASS rows with actual exit7/close7 refuse outer qualification.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.101Z",
+  "finished": "2026-08-28T15:01:02.158Z",
+  "detail": {
+    "allPass": true,
+    "exit": 7,
+    "refused": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-08-27T19:30:21.680Z",
+  "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "freezeCommit": "875b0fb0e5fcc60e6ddd3947710779fc1fc74cea",
+  "records": [
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "sha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9",
+      "gitBlob": "f16cd1660764de311dc42f799c71e8712c3f36c7"
+    },
+    {
+      "path": "tests/commands/expr/inactive-prefix.test.ts",
+      "sha256": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70",
+      "gitBlob": "1d6b512c788f4236818982388a00ee3698d25f30"
+    }
+  ],
+  "sourceTree": "d3dcf9d8d43c3dad7f0a09990dbef44fc5b0646a",
+  "acceptedArchive": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "sourceIdentity": "Accepted committed archive + precisely listed owned overlays, NOT whole live HEAD. Tool packages are existing local tooling, not independently rebuilt or fully hash-pinned.",
+  "sourceCommitOnlyOwnedPaths": true,
+  "freezePrecedesSourceCommit": true,
+  "frozenBaselineFilesPreserved": 54,
+  "exactExecutedOverlayMatchesCommittedBlobs": true
+}

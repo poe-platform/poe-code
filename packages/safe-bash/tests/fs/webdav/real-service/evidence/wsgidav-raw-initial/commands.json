@@ -1,0 +1,143 @@
+[
+  {
+    "command": "git",
+    "args": [
+      "status",
+      "--porcelain=v1"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/\n?? tests/integration/safejs-current-independent/\n?? tests/stress/regex-execution/design/revision-review/\n",
+    "stderr": ""
+  },
+  {
+    "command": "tar",
+    "args": [
+      "xf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/baseline.tar",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/snapshot"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "/opt/homebrew/bin/python3",
+    "args": [
+      "-I",
+      "-m",
+      "venv",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/venv"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/venv/bin/python",
+    "args": [
+      "-I",
+      "-m",
+      "pip",
+      "--isolated",
+      "--disable-pip-version-check",
+      "--no-cache-dir",
+      "install",
+      "--no-index",
+      "--no-deps",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/wsgidav-4.3.5-py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/cheroot-11.1.2-py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/defusedxml-0.7.1-py2.py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/jinja2-3.1.6-py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/json5-0.15.0-py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/passlib-1.7.4-py2.py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/more_itertools-11.1.0-py3-none-any.whl",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/downloads/jaraco_functools-4.6.0-py3-none-any.whl"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "Processing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/wsgidav-4.3.5-py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/cheroot-11.1.2-py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/defusedxml-0.7.1-py2.py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/jinja2-3.1.6-py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/markupsafe-3.0.3-cp314-cp314-macosx_11_0_arm64.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/json5-0.15.0-py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/pyyaml-6.0.3-cp314-cp314-macosx_11_0_arm64.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/passlib-1.7.4-py2.py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/bcrypt-4.3.0-cp39-abi3-macosx_10_12_universal2.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/more_itertools-11.1.0-py3-none-any.whl\nProcessing ./tests/fs/webdav/real-service/.work-l0kCAC/downloads/jaraco_functools-4.6.0-py3-none-any.whl\nInstalling collected packages: wsgidav, passlib, pyyaml, more-itertools, markupsafe, json5, jinja2, jaraco-functools, defusedxml, cheroot, bcrypt\n\nSuccessfully installed bcrypt-4.3.0 cheroot-11.1.2 defusedxml-0.7.1 jaraco-functools-4.6.0 jinja2-3.1.6 json5-0.15.0 markupsafe-3.0.3 more-itertools-11.1.0 passlib-1.7.4 pyyaml-6.0.3 wsgidav-4.3.5\n",
+    "stderr": ""
+  },
+  {
+    "command": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/venv/bin/python",
+    "args": [
+      "-I",
+      "-m",
+      "pip",
+      "--isolated",
+      "--disable-pip-version-check",
+      "--no-cache-dir",
+      "check"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "No broken requirements found.\n",
+    "stderr": ""
+  },
+  {
+    "command": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/venv/bin/python",
+    "args": [
+      "-I",
+      "-m",
+      "pip",
+      "--isolated",
+      "--disable-pip-version-check",
+      "--no-cache-dir",
+      "list",
+      "--format=json"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "[{\"name\": \"bcrypt\", \"version\": \"4.3.0\"}, {\"name\": \"cheroot\", \"version\": \"11.1.2\"}, {\"name\": \"defusedxml\", \"version\": \"0.7.1\"}, {\"name\": \"jaraco.functools\", \"version\": \"4.6.0\"}, {\"name\": \"Jinja2\", \"version\": \"3.1.6\"}, {\"name\": \"json5\", \"version\": \"0.15.0\"}, {\"name\": \"MarkupSafe\", \"version\": \"3.0.3\"}, {\"name\": \"more-itertools\", \"version\": \"11.1.0\"}, {\"name\": \"passlib\", \"version\": \"1.7.4\"}, {\"name\": \"pip\", \"version\": \"26.2.1\"}, {\"name\": \"PyYAML\", \"version\": \"6.0.3\"}, {\"name\": \"wsgidav\", \"version\": \"4.3.5\"}]\n",
+    "stderr": ""
+  },
+  {
+    "command": "openssl",
+    "args": [
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-nodes",
+      "-keyout",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/key.pem",
+      "-out",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC/cert.pem",
+      "-days",
+      "1",
+      "-config",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/openssl.cnf"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": "....+...+.+..+....+...+.....+......+....+...+..+.......+.....+....+............+...+..+...+...............+....+...+...+............+..+...+.........+...+...+....+++++++++++++++++++++++++++++++++++++++*...+..+...+.........+.+.....+.......+...+.........+.....+....+.....+.+...+......+...........+.+..............+...+.+............+.....+..........+++++++++++++++++++++++++++++++++++++++*.......+.........+..+.+........+.+......+.....+...+.......+.....+..................+....+........+.........+...+..........+.....+.+.........+..+.+........+.........+.......+.....+.++++++\n......+.......+...+........+...+.+.....+.+........+....+......+......+.....+..........+......+...+......+.....+...+......+......+.+...+.....+....+...........+......+.+............+............+...+++++++++++++++++++++++++++++++++++++++*........+....+...+...+..+.+..+.........+++++++++++++++++++++++++++++++++++++++*....+....+........+.++++++\n-----\n"
+  },
+  {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/raw.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-l0kCAC",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/evidence/wsgidav-raw-initial"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "[\n  {\n    \"name\": \"PROPFIND namespace/base/trailing slash\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      0,\n      1\n    ]\n  },\n  {\n    \"name\": \"conditional PUT accepted and stale/exclusive PUT preserved\",\n    \"kind\": \"guard\",\n    \"result\": \"pass\",\n    \"events\": [\n      1,\n      8\n    ]\n  },\n  {\n    \"name\": \"COPY source If-Match with distinct destination ETag\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 204\\n\",\n    \"events\": [\n      8,\n      13\n    ]\n  },\n  {\n    \"name\": \"COPY absent target source If-Match\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      13,\n      17\n    ]\n  },\n  {\n    \"name\": \"COPY Overwrite F and stale destination tagged If\",\n    \"kind\": \"guard\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n204 !== 412\\n\",\n    \"events\": [\n      17,\n      21\n    ]\n  },\n  {\n    \"name\": \"COPY destination LOCK token and unlock after overwrite\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n409 !== 204\\n\",\n    \"events\": [\n      21,\n      28\n    ]\n  },\n  {\n    \"name\": \"MOVE source If-Match with distinct destination ETag\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 204\\n\",\n    \"events\": [\n      28,\n      33\n    ]\n  },\n  {\n    \"name\": \"MOVE absent target source If-Match\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      33,\n      37\n    ]\n  },\n  {\n    \"name\": \"MOVE Overwrite F and stale destination tagged If\",\n    \"kind\": \"guard\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n204 !== 412\\n\",\n    \"events\": [\n      37,\n      41\n    ]\n  },\n  {\n    \"name\": \"MOVE destination LOCK token and unlock after overwrite\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n409 !== 204\\n\",\n    \"events\": [\n      41,\n      48\n    ]\n  },\n  {\n    \"name\": \"LOCK header is RFC coded-URL\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^<[^<>]+>$/. Input:\\n\\n'opaquelocktoken:0x9cfb14d326c71ce73e77f55ebda7a98f32c21dcf2b069928e5bbfaaf794f0615'\\n\",\n    \"events\": [\n      48,\n      51\n    ]\n  }\n]\n",
+    "stderr": ""
+  }
+]

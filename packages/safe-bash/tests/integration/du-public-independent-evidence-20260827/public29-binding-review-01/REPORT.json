@@ -1,0 +1,114 @@
+{
+  "schema": "du29-public-binding-review/1",
+  "at": "2026-08-28T01:30:06.424Z",
+  "status": "PRE_EXECUTION_ROOT_MAPPING_HOLD",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "pack": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+  "rootReleaseAcknowledged": true,
+  "htmlPrerequisite": {
+    "acceptedCommit": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+    "manifest": {
+      "commit": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+      "path": "tests/integration/html-public-independent-20260827/actual34-v1/EVIDENCE-MANIFEST.json",
+      "sha256": "2a5e9f9e973eb9988062df68cfa2a3e7d61445fed5eb044ecdc26667cfd725dd",
+      "bytes": 2775
+    },
+    "authenticatedFiles": 29,
+    "actualCounts": {
+      "runtimeExecuted": 68,
+      "runtimePassed": 68,
+      "runtimeFailed": 0,
+      "runtimeUnexecuted": 0,
+      "typesExecuted": 10,
+      "typesExpected": 10,
+      "controlClassesExecuted": 10,
+      "controlClassesExpected": 10
+    },
+    "package": {
+      "sha256": "d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7",
+      "bytes": 717103,
+      "members": 830,
+      "distMembers": 828,
+      "physicallyMoved": true,
+      "originalInstalledPathAbsent": true
+    },
+    "notNameCountSubstitution": true
+  },
+  "bindings": {
+    "freeze": {
+      "commit": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+      "path": "tests/integration/du-public-independent-20260827/MANIFEST.json",
+      "sha256": "b180b9a384bdc3d257b243d315027a59ae792865a572b877dbe547f99149f6ff",
+      "bytes": 3202
+    },
+    "cases": {
+      "commit": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+      "path": "tests/integration/du-public-independent-20260827/cases.json",
+      "sha256": "c4bd0156197d8902839e4c1e24f261aeefcc52307537fa9aff05efca1b36efb2",
+      "bytes": 11315
+    },
+    "readme": {
+      "commit": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+      "path": "tests/integration/du-public-independent-20260827/README.md",
+      "sha256": "7bc16552cf2b232d83f56bb94f628383dbae2af0cf3908e389aa09b62ac83f6e",
+      "bytes": 11279
+    },
+    "handoff": {
+      "commit": "f397901033d47537a5671bfc202cd8111902b526",
+      "path": "tests/plugins/du-public-author/evidence-v1/REVIEW-HANDOFF.json",
+      "sha256": "1ff91fcf815f57a895bf46d4aeca8e5da488971d918009dbb1d24b356e7f5b8a",
+      "bytes": 424567
+    },
+    "policy": {
+      "commit": "f397901033d47537a5671bfc202cd8111902b526",
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "bytes": 11152
+    }
+  },
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "path": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  },
+  "unresolved": {
+    "case": {
+      "id": "R07",
+      "category": "registration",
+      "readiness": "blocked-spec",
+      "fixture": "README.md",
+      "assertion": "Two separate one-entry DU invocations both succeed with family maxEntries=1; restrictive DU limits do not restrict another root-selected family, and that family's limits do not become a shared DU/shell budget.",
+      "requires": [
+        "aggregateDuOptions",
+        "root-selected other-family control and exact outcome"
+      ]
+    },
+    "aggregateDuOptionsActuallySupplied": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "propertyPath": "AgentCommandsOptions.du",
+      "type": "Omit<DuCommandsOptions, \"replace\">",
+      "topLevelReplaceAuthoritative": true
+    },
+    "policyDeclaresOtherFamilyControl": false,
+    "missing": "Root-selected other-family limit-isolation control with exact outcomes for R07; frozen README required-root-answer 3 and cases.json R07 require it explicitly.",
+    "proposedClarification": "Root may select the accepted htmlToMarkdown family and authorize the reviewer to freeze exact isolation vectors from its accepted cases/types, or supply a different exact family/vector/outcome mapping."
+  },
+  "execution": {
+    "du29": 0,
+    "sourceRuntime": 0,
+    "movedRuntime": 0,
+    "typeOutcomes": 0,
+    "packageControls": 0,
+    "A06": "not credited; remaining required root mapping unresolved",
+    "P03": "unexecuted",
+    "authorizedActualAttemptStarted": false,
+    "retries": 0
+  },
+  "qualification": "No product failure, no weakening of frozen R07, no source/package replay, no whole76/fullgate verdict. Existing module/native/admission failures and acceptances unchanged."
+}

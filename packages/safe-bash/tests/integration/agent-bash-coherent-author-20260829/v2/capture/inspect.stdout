@@ -1,0 +1,403 @@
+{
+  "keys": [
+    "role",
+    "date",
+    "base",
+    "dependencies",
+    "replacements",
+    "computedTree",
+    "derivedOnly",
+    "inputCount",
+    "sourceTsCount",
+    "shippingInputPaths",
+    "shippingInputBytes",
+    "completeSrcTreeFiles",
+    "srcNonInputFiles",
+    "build",
+    "package",
+    "worktreeComparison",
+    "treeQualification",
+    "reconstructedTrees"
+  ],
+  "sourceKeys": [
+    "role",
+    "base",
+    "moduleCommit",
+    "integrationCommit",
+    "computedTree",
+    "inputs",
+    "module",
+    "publicRows",
+    "fixtures",
+    "documentation",
+    "reconstructedTrees",
+    "fetchedTrees",
+    "ancestorTrees",
+    "toolBindings",
+    "baseSourceSha256",
+    "overlay",
+    "sourceCommit"
+  ],
+  "sourceRow": {
+    "path": "src/shell/runtime.ts",
+    "mode": "100644",
+    "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+    "bytes": 203623,
+    "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+    "revision": "7196bace8ea2c141d5ed1020fef5bf721c321ace"
+  },
+  "nodeFiles": [
+    {
+      "path": "src/commands/node/README.md",
+      "mode": "100644",
+      "blob": "b1051294942349ee8d32124b593f8af8f66567d4",
+      "bytes": 5402,
+      "sha256": "b199fee068184b0d4b2491f8e77dc6cd1830b6b6577203670d20e2c7e574ee25",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/admission.ts",
+      "mode": "100644",
+      "blob": "4bf32489d6367538af1c2427d4b8da24f500991f",
+      "bytes": 15660,
+      "sha256": "946dc675c8423a809cc7b27f9e1364a83f4c9a6b15687a165e66b9eabc238a31",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/channel.ts",
+      "mode": "100644",
+      "blob": "48bf256cf0f6da57f2c31ccaeb80d59c7a2e8cc4",
+      "bytes": 3877,
+      "sha256": "2e9badd57919fc8ac78f2e2bea11768d2ce2c473ac20571f2ef7876aaa69e3b4",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/cli.ts",
+      "mode": "100644",
+      "blob": "5f13fd04b6dcbcf658c370c34b440fd864ed6001",
+      "bytes": 2797,
+      "sha256": "989ccbf7e5d44660ef1b842501c0bc4529de244d8415be952bc536eb5e4ac45d",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/diagnostics.ts",
+      "mode": "100644",
+      "blob": "455f946434ca7adb39e5bebac630854e138eb6a0",
+      "bytes": 2034,
+      "sha256": "db2a5229f32a10cdea69c39ca00669d03f20c17648797739ed896224d3f65a15",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/host.ts",
+      "mode": "100644",
+      "blob": "0de6f7fe1de0d6953a1de13d5c155cd1fdfc1589",
+      "bytes": 17891,
+      "sha256": "13b00c8cd62b13479176932a30dbbd5176b58bea1baf76e87c2e6eed5e159db6",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "mode": "100644",
+      "blob": "2af9e522d0aab55428e168f186f39668021ed8e6",
+      "bytes": 9619,
+      "sha256": "b55193aceb8d2f960a444372166bfef598fc5bfec5f53159d49363035bb7b6ce",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/lifecycle.ts",
+      "mode": "100644",
+      "blob": "93d28ad83ad3cd9d73822adb4c0b0e78f9b10851",
+      "bytes": 8239,
+      "sha256": "1746183490f8e5a4a7f719ddbaea2e43eaf6d29c7ef67ab3e88607f15492e4f9",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/lower.ts",
+      "mode": "100644",
+      "blob": "9790bcda552a84806e1b44c7fe9de87c7eb02a1a",
+      "bytes": 15050,
+      "sha256": "8b9572ff30e286d18be5f60d18ef4ab0e54a4dbbf3335419508d6f2929ba96f2",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/program.ts",
+      "mode": "100644",
+      "blob": "c21ad0637acaaee25e5cb9c019ec4b75b76de353",
+      "bytes": 13151,
+      "sha256": "dfc91dbda976f7b2b8a7a5857525e15b8b031a9fa72e826b34aeb9baeb2f3831",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/rules.ts",
+      "mode": "100644",
+      "blob": "682290df6dd4c92c04f8cb6975eefebc4d534277",
+      "bytes": 9961,
+      "sha256": "7aca4750d9e03e4f575b8a2e8937331124b6f0d6441ba01e2d78184596272993",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/types.ts",
+      "mode": "100644",
+      "blob": "62e4f598dded3652421613b3ade030d161315f76",
+      "bytes": 4335,
+      "sha256": "75aac3f18fe5d95d8eec82a4a57f133fd67cac75049cfd903aafe24ea6c99b61",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/values.ts",
+      "mode": "100644",
+      "blob": "70653a8e5622ab16b4bbaf2c73f0dc4dcf7a7761",
+      "bytes": 5778,
+      "sha256": "5b5a13fb321da4731adee82f8e3536092f0ec09525be1d09e0109a9ed12f4677",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/worker-main.ts",
+      "mode": "100644",
+      "blob": "53817b89a8c2003b9317f26e146b9d3893ffa6e4",
+      "bytes": 8519,
+      "sha256": "0ffc7f0f83580a6dad12ec2d4b82e3970b382475480b95a14b53afa0f7dfebf1",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/worker-provider.ts",
+      "mode": "100644",
+      "blob": "e22ff37000aa8af4e54384d5c437da37110dc522",
+      "bytes": 17151,
+      "sha256": "992758197bc26ee55674d7f5eb049dcc28a455abd83279c434edc1c74a9f72df",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    {
+      "path": "src/commands/node/worker-types.ts",
+      "mode": "100644",
+      "blob": "e681cb46302a97f1c0ed58ca10a1f6ff408c0e52",
+      "bytes": 1210,
+      "sha256": "6c987e85c11b0b6f1b9cb0042edc344e4063fbfb33783a66f48c22675b8a3585",
+      "role": "accepted a2 module plus explicitly authorized index/README integration additions",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    }
+  ],
+  "toolBindings": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  }
+}
+NODE_PUBLIC_FIXTURE
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import * as api from 'virtual-bash';
+import * as nodeApi from 'virtual-bash/commands/node';
+import { runWorkerCase } from './workers-v5.mjs';
+const symbols=['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError'].sort();
+const defaultNames=["[","apply_patch","awk","base32","base64","basename","cat","chmod","cksum","column","comm","cp","cut","date","diff","dirname","du","echo","egrep","env","expand","expr","false","fgrep","file","find","fold","git","grep","gunzip","gzip","head","html-to-markdown","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","nl","od","paste","patch","printenv","printf","pwd","readlink","realpath","rev","rg","rm","rmdir","sed","seq","sha1sum","sha256sum","sleep","sort","split","stat","strings","tac","tail","tar","tee","test","timeout","touch","tr","tree","true","unexpand","uniq","wc","which","xargs","xxd","zcat"];
+const bytes=text=>new TextEncoder().encode(text);
+const capture=promise=>promise.then(value=>({kind:'return',value}),reason=>({kind:'throw',reason}));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+export async function runPublic(input,id,publish){
+ const owners=[],events=[],facts={};let cleanupError=false;
+ const memory=new api.MemoryFileSystem();
+ const provider=(identity='author-public-bb23-node-adapter-v1',observe)=>nodeApi.createNodeWorkerProvider({entry:pathToFileURL(input.adapter).href,identity,observe:event=>{events.push(event);return observe?.(event);}});
+ const shell=(grants={stdoutWrite:true,stderrWrite:true},options={})=>{const owner=new api.Shell({fs:options.fs??memory,cwd:'/',env:{MARK:'bound'}});owners.push(owner);if(options.aggregate!==false)owner.use(api.agentCommands());owner.use(nodeApi.nodeCommands({provider:options.provider??provider(),grants,...(options.replace===undefined?{}:{replace:options.replace})}));return owner;};
+ const expect=async(owner,program,stdout,status=0,options)=>{const result=await owner.exec(program,options);facts.results??=[];facts.results.push({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr,stdoutHex:Buffer.from(result.stdoutBytes).toString('hex'),stderrHex:Buffer.from(result.stderrBytes).toString('hex')});assert.equal(result.exitCode,status);assert.equal(result.stdout,stdout);if(status===0)assert.equal(result.stderr,'');return result;};
+ let failure;
+ try{
+  if(id==='P01'){const names=api.createAgentCommands().map(item=>item.name).sort();assert.deepEqual(names,defaultNames);for(const name of ['node','npm','npx','curl'])assert(!names.includes(name));facts.names=names;}
+  else if(id==='P02'){assert.deepEqual(Object.keys(nodeApi).sort(),symbols);for(const name of symbols)assert.equal(api[name],nodeApi[name]);assert.equal(nodeApi.NODE_PROFILE,'NP1-CJS-WRQ-L-SYNC-1');assert.equal(Object.keys(nodeApi.nodeLimits).length,24);assert(Object.isFrozen(nodeApi.nodeLimits));}
+  else if(id==='P03'){const definitions=nodeApi.createNodeCommands({provider:provider()});assert.equal(definitions.length,1);assert.equal(definitions[0].name,'node');const owner=shell({}, {aggregate:false});await owner.exec('true').catch(()=>{});assert.deepEqual(owner.commands.list().map(item=>item.name),['node']);}
+  else if(id==='P04'){const owner=shell();await expect(owner,'true','');assert.equal(owner.commands.list().length,81);assert(owner.commands.has('node'));assert(!owner.commands.has('npm'));assert(!owner.commands.has('curl'));}
+  else if(id==='P05'){let invoked=0;const prepared={profile:nodeApi.NODE_PROFILE,identity:'inert-validation',prepare(){invoked++;throw Error('unexpected');}};for(const options of [{},{provider:null},{provider:prepared,replace:'yes'},{provider:prepared,limits:{}},{provider:prepared,grants:{stdoutWrite:1}}])assert.throws(()=>nodeApi.nodeCommands(options));const accessor={};Object.defineProperty(accessor,'provider',{get(){invoked++;return prepared;},enumerable:true});assert.throws(()=>nodeApi.nodeCommands(accessor));assert.equal(invoked,0);facts.rejections=6;}
+  else if(id==='P06'){let actual;const inert={profile:nodeApi.NODE_PROFILE,identity:'grant-inspection',prepare(request){actual=request.grants;return{async start(){return{kind:'entryReturned',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}},cancel(){},async retire(){return{acquisition:'none',exitCode:null}}}}};const definition=nodeApi.createNodeCommand({provider:inert});const owner=new api.Shell({fs:memory});owners.push(owner);owner.register(definition);await expect(owner,'node -e ""','');assert.deepEqual(Object.keys(actual).sort(),['dataRead','dataWrite','jsonModules','sourceRead','stderrWrite','stdinRead','stdoutWrite'].sort());assert(Object.values(actual).every(value=>value===false));facts.role='trusted-provider-protocol-not-engine';}
+  else if(id==='P07'){const owner=new api.Shell({fs:memory});owners.push(owner);let executed=0;const original={name:'node',execute(){executed++;return{exitCode:0}}};owner.register(original);owner.use(nodeApi.nodeCommands({provider:provider()}));const outcome=await capture(owner.exec('node -e ""'));assert.equal(outcome.kind,'throw');assert.equal(outcome.reason.message,'Command already registered: node');assert.equal(owner.commands.get('node'),original);assert.equal(executed,0);facts.setupRejected=true;}
+  else if(id==='P08'){const options={provider:provider(),grants:{stdoutWrite:true,stderrWrite:true},replace:true};const plugin=nodeApi.nodeCommands(options);options.replace=false;options.provider=null;options.grants.stdoutWrite=false;const owner=new api.Shell({fs:memory});owners.push(owner);let oldCalls=0;owner.register({name:'node',execute(){oldCalls++;return{exitCode:99}}});owner.use(plugin);await expect(owner,"node -p '8'",'8\n');assert.equal(oldCalls,0);}
+  else if(id==='P09'){const owner=shell();await expect(owner,"node -e 'console.log(2);'",'2\n');await expect(owner,"node -p '1+2'",'3\n');assert.equal(events.filter(event=>event.kind==='guestEntry').length,2);}
+  else if(id==='P10'){await memory.writeFile('/entry.cjs',bytes('console.log(process.argv[2],process.env.MARK,__dirname);'));await expect(shell({sourceRead:true,stdoutWrite:true,stderrWrite:true}),'node /entry.cjs tail','tail bound /\n');}
+  else if(id==='P11'){await expect(shell({sourceRead:true,stdinRead:true,stdoutWrite:true,stderrWrite:true}),'node','stdin-bom\n',0,{stdin:{async *[Symbol.asyncIterator](){yield bytes('\ufeffconsole.log("stdin-bom");')}}});}
+  else if(id==='P12'){await memory.writeFile('/data.json',bytes('{"n":1}'));await expect(shell({dataRead:true,dataWrite:true,jsonModules:true,stdoutWrite:true,stderrWrite:true}),`node -e 'const fs=require("fs");fs.writeFileSync("/copy","owned",{encoding:"utf8",flag:"wx"});console.log(require("./data.json").n,fs.readFileSync("/copy","utf8"));'`,'1 owned\n');assert.equal(Buffer.from(await memory.readFile('/copy')).toString(),'owned');}
+  else if(id==='P13'){for(const workerId of ['W28','W29']){const result=await runWorkerCase(input,workerId,async row=>{facts[workerId]=row;});assert(result.clean);assert(result.pass);}}
+  else if(id==='P14'){const owner=shell();let calls=0;owner.use(async(context,next)=>{if(context.command==='node')calls++;return next();});await expect(owner,"node -p '2+3' | cat",'5\n');assert.equal(calls,1);}
+  else if(id==='P15'){await memory.writeFile('/program.sh',bytes("set -u; node -p '6'; printf '%s' \"${missing:-ok}\""));await expect(shell(),'. /program.sh','6\nok');}
+  else if(id==='P16'){assert.throws(()=>nodeApi.createNodeWorkerProvider({entry:'https://invalid.example/adapter',identity:'wrong'}));await expect(shell(undefined,{provider:provider('wrong-identity')}),'node -e ""','',2);assert.equal(events.filter(event=>event.kind==='guestEntry').length,0);}
+  else if(id==='P17'){let prepared=0,started=0,retired=0;const fixture={profile:nodeApi.NODE_PROFILE,identity:'inert-contract',prepare(){prepared++;assert.equal(started,0);return{async start(){started++;return{kind:'entryReturned',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}},cancel(){},async retire(){retired++;return{acquisition:'none',exitCode:null}}}}};const plugin=nodeApi.nodeCommands({provider:fixture});assert.equal(prepared,0);const owner=new api.Shell({fs:memory});owners.push(owner);owner.use(plugin);assert.equal(prepared,0);await expect(owner,'node -e ""','');assert.deepEqual([prepared,started,retired],[1,1,1]);facts.role='trusted-provider-protocol-not-engine';}
+  else if(id==='P18'){const controller=new AbortController();const reason=false;let closed=false;memory.readFile=async(name,options)=>new Promise((resolve,reject)=>{const abort=()=>{closed=true;reject(options.signal.reason)};options.signal.addEventListener('abort',abort,{once:true});controller.abort(reason);if(options.signal.aborted&&!closed)abort();});const outcome=await capture(shell({dataRead:true,stdoutWrite:true,stderrWrite:true}).exec(`node -e 'require("fs").readFileSync("/held","utf8");'`,{signal:controller.signal}));assert.equal(outcome.kind,'throw');assert.equal(outcome.reason,reason);assert(closed);facts.sameReason=true;}
+  else if(id==='P19'){await expect(shell(),`node -e 'Promise.race([]);console.log("entry-return");'`,'entry-return\n');assert.equal(events.filter(event=>event.kind==='retired').length,1);}
+  else if(id==='P20'){assert.equal(nodeApi.nodeLimits.memoryBytes,16777216);assert.throws(()=>nodeApi.nodeCommands({provider:provider(),limits:{memoryBytes:1}}));let writes=0;const result=await capture(shell().exec("node -p '3'",{limits:{maxOutputBytes:0},stdout:{async write(){writes++;}}}));assert.equal(result.kind,'throw');assert(result.reason instanceof api.ShellLimitError);assert.equal(result.reason.limit,'maxOutputBytes');assert.equal(writes,0);}
+  else if(id==='P21'){const owner=shell();for(const program of ['node /unsupported.js','node --input-type=module -e ""','node --require x -e ""']){const result=await owner.exec(program);assert.equal(result.exitCode,2);assert.equal(result.stdout,'');}assert.equal(events.length,0);}
+  else if(id==='P22'){await expect(shell(),"node -p '22'",'22\n');facts.packageRoot=input.packageRoot;assert.equal(events.filter(event=>event.kind==='guestEntry').length,1);}
+  else if(id==='P23'){assert.throws(()=>nodeApi.nodeCommands({}));const owner=new api.Shell({fs:memory}).use(api.agentCommands());owners.push(owner);await expect(owner,'printf usable','usable');assert(!owner.commands.has('node'));facts.role='configuration-refusal-no-engine-fallback';}
+  else if(id==='P24'){const owner=shell();await expect(owner,`node -e 'throw new Error("guest-failure");'`,'',1);await expect(owner,"node -p '24'",'24\n');assert.equal(events.filter(event=>event.kind==='retired').length,2);}
+  else throw Error('unknown public identity');
+ }catch(reason){failure=reason;facts.error=String(reason?.stack??reason);}
+ finally{for(const owner of owners){try{await owner.dispose();}catch(reason){if(id==='P07'&&reason?.message==='Command already registered: node'){facts.repeatedSetupError=true;}else{cleanupError=true;facts.cleanupError=String(reason);}}}await turn();}
+ const births=events.filter(event=>event.kind==='workerCreated').length,exits=events.filter(event=>event.kind==='workerExit').length,retired=events.filter(event=>event.kind==='retired').length;
+ const clean=!cleanupError&&births===exits&&exits===retired;
+ const row={id,role:'public-node-integration',pass:failure===undefined&&clean,clean,workers:births,exits,retired,guestEntries:events.filter(event=>event.kind==='guestEntry').length,events,facts};await publish(row);return row;
+}
+
+EVIDENCE
+# Source/data publication receipt
+
+No product, native oracle, compiler, install, package, Worker or engine execution.
+No combined runtime success or public acceptance is recorded.
+
+- Outer capture began `2026-08-29T07:22:20.199Z` under
+  `/tmp/agent-bash-coherent-design-WooVtu`.
+- Final data-structure check at `2026-08-29T07:39:16.545Z`: 309 unique NUL paths,
+  four source replacements, 253 selected TypeScript modules, package hash null.
+- At that check: eight owned design files, 375455 bytes; 45 capture files,
+  3296984 bytes. These are point-in-time sizes, not final publication sizes.
+- Composition helper authenticated selected stored blobs and recomputed trees.
+  Updating Unit3's acceptance labels from ROOT's later message did not change
+  product bytes/tree and was not a second product/composition execution.
+- Helper logs identify their known direct Git children. Context-only instruction
+  reads and subsequent shell/admin commands are not comprehensively represented
+  by that ledger. It is **not** a complete transitive process/PGID census; no full
+  process-budget attestation is inferred from a reservation or log-entry count.
+- The separately attempted live-src metadata walk stopped at its 4096-entry
+  bound, with an error captured in events.jsonl. No broader inventory was retried.
+  The earlier source-display TypeError is preserved in the tool transcript but
+  lacks complete independently owned stderr capture. See README qualifications.
+
+## Final data-check bindings before this receipt
+
+| File | SHA256 |
+| --- | --- |
+| COMPOSITION.json | `9def80500ee79d157054dcdd8a8dd06b7f77c2f8a720bd34e34c550aec5831f9` |
+| SHIPPING-INPUT-PATHS.nul | `8bf61c57d048285d356b60de94089d7b4e96b66d5806b6fa2236417e269000ef` |
+| SOURCE-TREE-INVENTORY.json | `4f00a838cf440a8f09e9591495357037b33432d3cc141594295860d12fa4d8a4` |
+| TREE-WITNESSES.json | `64ed23c6e2f74890ecb2d72284d9458da00af3e59a9ea8975405fd75deb2610a` |
+| compose.mjs | `ed178a25053399aef01d419769af03b434ea9d3c7dea15be990304130cb3f92f` |
+| README.md | `1206d670900a9b9a62518868dafd268c0e756fbd6122ca49041962f83a010ab1` |
+| WORKFLOWS.md | `771e86b47d6e4b5d56680e2d6b0334d337d14a61d987938855e0a3e4893cafe2` |
+| VALIDATION-PROPOSAL.md | `e5b91f57ae582bb039811db638bc1e0c7e2bf4ff6e7f73bea8ab1dd328b5e763` |
+
+No AGENTS body or binary dump is included. Tree metadata naming AGENTS is not an
+instruction-file copy. No private state or old failed roots were touched. This
+receipt preserves the limits of source-only observation; future controlled
+combined execution still needs its own complete preseal and ROOT authorization.
+
+INDEPENDENT_PROBES
+{
+  "role": "independent proposed combined probes; not executable admission",
+  "date": "2026-08-29",
+  "timing": "After component implementations and N14 author result; before any combined build or execution by this reviewer",
+  "allRuntimeSlots": "UNRUN",
+  "requires": "Independent N14 acceptance, exact successor composition, complete fixture/tool/engine closure and separate ROOT actual grant",
+  "layouts": ["fresh source-built", "offline installed", "physically moved with old root absent"],
+  "identities": [
+    {
+      "id": "E01",
+      "role": "engine-free exact-Promise primary failure",
+      "script": "f(){ printf '%s' \"${absent:?required}\"; }; guard; node -p '1'",
+      "host": "Non-async guard synchronously registers gated cleanup throwing false and returns the EXACT context.invoke('f',[]) Promise, without then/catch/async wrapping. Diagnostic sink counts one write and throws undefined. Independent finally releases cleanup gate.",
+      "expected": "Rejection is present with exact undefined reason; one diagnostic attempt; registered cleanup finishes before public settlement; caller live; Node prepare/Worker/guest counts zero.",
+      "basis": "Pending N14 exact-public-Promise mechanism and existing caller/cleanup contract; only eligible after independently accepted successor",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E02",
+      "role": "engine-free caller dominance",
+      "host": "E01 shape, diagnostic rejects 0. After the diagnostic barrier, abort the actual caller with false before independently releasing registered cleanup which also rejects false.",
+      "expected": "Exact caller false, one diagnostic, cleanup finished, no Node preparation. Companion E01 distinguishes provenance; equal primitive values alone do not prove origin.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E03",
+      "role": "engine-free consumed failure versus unrelated same primitive",
+      "host": "A guard catches its invoke diagnostic rejection 0 and returns exitCode0. Later independent command synchronously throws 0 and registers cleanup throwing false; its stderr sink now accepts output.",
+      "expected": "Handled invocation does not poison later work. Independent handler error follows existing diagnostic/status1 mapping, not the private N14 path; root cleanup false outranks numeric status. Do not infer private provenance from primitive equality.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E04",
+      "role": "engine-free qualification countercontrol, not compatibility positive",
+      "host": "Separate exact-return and async-wrapper/catch-rethrow shapes bound to N14 author N07/N08. Do not silently replace the C17 guard with an async function.",
+      "expected": "Exact-Promise guarantee applies only to the exact-return shape. Preserve independently accepted transformed-Promise outcome/profile as a separately labeled countercontrol; author status1/two-diagnostic observations are not yet accepted evidence.",
+      "status": "UNRUN; exact numeric countercontrol binding waits for independent N14 decision"
+    },
+    {
+      "id": "E05",
+      "role": "engine-free child/sibling state and shared admission",
+      "host": "Invoke two functions with distinct explicit stdout/stderr sinks and child env/cwd. First enables nounset and reaches a missing variable; second prints its own argument. Parent verifies its original option state, env/cwd, positional values and ability to continue. Use actual CommandContext.invoke, no new Shell inside the handler.",
+      "expected": "First child gets accepted nounset failure status, second succeeds with exact literal argv bytes, and parent/sibling bindings remain unchanged. Genuine shared ShellLimitError is not reset or converted to ordinary failure; finite cap boundary must be separately fixed in executable preseal.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E06",
+      "role": "engine-free lazy VFS predicate authority",
+      "host": "Bind accepted Unit3 observable/unobservable -x fixtures. Compare a short-circuited predicate with a reached unobservable file predicate guarding Node. Recording provider remains inert.",
+      "expected": "Skipped branch performs no operand expansion/metadata access. Reached unobservable predicate refuses2 under accepted profile, rather than treating unsupported access as permission or ordinary false; Node never prepares. Use genuine FsError versus separately classified unexpected errors, not errno-shaped duck typing.",
+      "status": "UNRUN; exact accepted Unit3 fixture bytes still to bind"
+    },
+    {
+      "id": "E07",
+      "role": "PUBLIC engine, maximum one Node Worker and one guest per layout",
+      "script": "CDPATH=/work; cd repo; node ./entry.cjs",
+      "host": "Memory VFS /work/repo/entry.cjs contains console.log('ok');. Grant sourceRead/stdoutWrite explicitly. Record the actual resolved VFS source path and provider request cwd. Use accepted static PUBLIC adapter only.",
+      "expected": "Exact stdout /work/repo\nok\n; source is /work/repo/entry.cjs with cwd /work/repo; no host fallback. On physical move all product/adapter/engine paths rebind to admitted relocated files.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E08",
+      "role": "PUBLIC engine, maximum one Node Worker and one guest per layout",
+      "script": "node -p \"'ab'\"; printf c",
+      "host": "Shared Shell maxOutputBytes3, explicit stdoutWrite grant. Actual Node emits ab+LF, then ordinary printf attempts one more byte. No new Shell or Budget inside the provider/invoker.",
+      "expected": "Three emitted bytes ab+LF followed by genuine ShellLimitError from the existing budget; no reset/refund or diagnostic conversion. Node Worker and registered parent work retire before settlement. Freeze exact accepted limit discriminator, not a string-only diagnostic assertion.",
+      "status": "UNRUN"
+    }
+  ],
+  "types": [
+    "All21 declared Node type names imported from root and exact subpath; selected actual positive constructions separately enumerated",
+    "Provider required for both factories; invalid replace and grant fields rejected",
+    "No AgentCommandsOptions.node and no limits override",
+    "Private NodeOwner/host/worker implementation exports remain inaccessible",
+    "Fresh parseShell conditional AST discriminant and lazy operand shape type coherently",
+    "Existing CommandInvokeOptions signal/replaceEnv/stdio types remain unchanged"
+  ],
+  "bindingControls": [
+    "Native package export resolution, then exact load hash verification; no root/subpath alias substitution as sole proof",
+    "Stale held9bb runtime in successor pack is rejected before provider preparation",
+    "Wrong package import target with unchanged declaration target fails native consumer; restore exact bytes",
+    "Absent or changed conditional.js fails before engine/guest; private export denial remains distinct"
+  ],
+  "countQualification": "Eight proposed identities x3 layouts=24 slots, not executed outcomes. E04 remains a qualification countercontrol, not a successful guest command. Adding to author759 gives783 proposed slots only. Retaining all50 accepted Unit2 rows per layout would add150, yielding933 proposed slots, subject to separate finite admission."
+}
+
+TRACKED_STATUS_BYTES 0

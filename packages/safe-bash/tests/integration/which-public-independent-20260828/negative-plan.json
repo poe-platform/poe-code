@@ -1,0 +1,14 @@
+{
+  "timing": "Pre-public-wiring declarations; not executed controls or current acceptance",
+  "controls": [
+    { "id": "N01", "mutation": "remove only root WHICH re-export", "target": "R01/T01", "expected": "missing public factories/types rejected, no internal source fallback" },
+    { "id": "N02", "mutation": "remove commands/which package export-map entry", "target": "R01/T01", "expected": "public subpath import/type resolution rejected" },
+    { "id": "N03", "mutation": "omit which from aggregate definitions", "target": "R03/R12", "expected": "exact77 membership and nested fallback fail rather than accepting76" },
+    { "id": "N04", "mutation": "register name-only which returning success", "target": "R02/R08/R14", "expected": "actual output/status/cap behavior rejects stub" },
+    { "id": "N05", "mutation": "drop options.which limits forwarding", "target": "R08", "expected": "maxProbes1 outcome cannot silently use defaults" },
+    { "id": "N06", "mutation": "nested which.replace overrides aggregate top-level replacement", "target": "R07", "expected": "both false/true precedence controls reject mutation" },
+    { "id": "N07", "mutation": "AgentCommandsOptions.which accepts full WhichCommandsOptions including replace", "target": "T02", "expected": "type equality and expected-error controls fail" },
+    { "id": "N08", "mutation": "load changed/unlisted package bytes or resolve to live source/old install", "target": "external authenticated loader and R01", "expected": "reject before foreign/mutated module body; moved run has no original installation/source available" }
+  ],
+  "qualification": "No native oracle; no repeats of the module26 suite. Mutations must be made only in task-owned copies after an authenticated positive candidate is root-bound. Initial failures remain immutable."
+}

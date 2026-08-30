@@ -1,0 +1,89 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const review = root + '/tests/shell-stress/first-read-contract-review/owned-output-streaming-review';
+const owned = review + '/fixture-replay-s1';
+const temp = dirname(fileURLToPath(import.meta.url));
+const hash = content => createHash('sha256').update(content).digest('hex');
+const artifact = path => ({ path, sha256: hash(readFileSync(path)) });
+const readJson = path => JSON.parse(readFileSync(path));
+const json = (path, value) => writeFileSync(path, JSON.stringify(value, null, 2) + '\n');
+const auth = readJson(temp + '/authentication-before.json');
+const prereplay = readJson(temp + '/pre-replay-seal.json');
+const proof = readJson(temp + '/import-closure-proof.json');
+const config = readJson(temp + '/execution-inputs.json');
+const tools = readJson(temp + '/tool-manifest.json');
+const manifestPath = root + '/tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype/tested-manifest.json';
+const manifest = readJson(manifestPath);
+const pinned = { sourceManifestSha256: '6de9b96c7286cc320379d8f7f720f3d1a5ecffdc24b7268b198859550362feea', testManifestSha256: 'dd1814102e91c030d9cb1723bbaf69c3bf467ecd404e89dcb07cc315e5f5e35c', compiledManifestSha256: '2578b6ea39cfdeb5b942b9aff20ec9bfff1fcf907cd2af751d8e73f5c24e632f' };
+for (const [key, expected] of Object.entries(pinned)) assert.equal(manifest[key], expected);
+assert.equal(artifact(manifestPath).sha256, '4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9');
+assert.equal(auth.protectedFiles.find(entry => entry.path === manifestPath).sha256, artifact(manifestPath).sha256, 'before-capture also carries exact pinned tested-manifest bytes');
+const checks = [];
+for (const [section, entries] of Object.entries({ candidate: auth.candidateFiles, compilerAndOriginalToolAndPatch: auth.immutableFiles, immutablePriorEvidence: auth.protectedFiles, liveSourceAndRootFiles: auth.liveFiles, prereplayInputs: prereplay.files, importClosure: proof.files, currentToolClosure: tools.files })) {
+  for (const entry of entries) assert.equal(artifact(entry.path).sha256, entry.sha256, entry.path);
+  checks.push({ section, count: entries.length, matchesBefore: true });
+}
+const frozenCommit = '9e6c5e2394d5d36df42529d74d1dd21301ddeab6';
+const frozenPaths = execFileSync('git', ['diff-tree', '--no-commit-id', '--name-only', '-r', frozenCommit], { cwd: root, encoding: 'utf8' }).trim().split('\n');
+assert.equal(frozenPaths.length, 85);
+for (const path of frozenPaths) {
+  assert.ok(path.startsWith(owned.slice(root.length + 1) + '/'));
+  assert.equal(hash(execFileSync('git', ['show', frozenCommit + ':' + path], { cwd: root, maxBuffer: 4194304 })), artifact(root + '/' + path).sha256, 'prereplay evidence remains immutable: ' + path);
+}
+const walk = directory => readdirSync(directory, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(join(directory, entry.name)) : [join(directory, entry.name)]);
+const currentTempFiles = walk(temp + '/tmp').map(artifact);
+const after = { at: new Date().toISOString(), pinned, testedManifest: artifact(manifestPath), checks, before: artifact(temp + '/authentication-before.json'), prereplay: artifact(temp + '/pre-replay-seal.json'), sourceFixCount: 0, frozenCommit, frozenFilesUnchanged: frozenPaths.length, exactSourcePatchIdentities: auth.immutableFiles.filter(entry => entry.path.endsWith('.patch-data')), taskTempContents: currentTempFiles, ambientHistoricalCacheInspectedOrRemoved: false, currentToolVersions: tools.versions, currentTools: artifact(temp + '/tool-manifest.json'), allHistoricalTSInputBytesPreserved: true };
+json(temp + '/authentication-after.json', after);
+const acceptance = readJson(temp + '/acceptance.result.json');
+const history = readJson(temp + '/historical-five.result.json');
+const original = readJson(review + '/execution-s1/artifacts/acceptance.result.json');
+const mapping = readJson(temp + '/binding-map.json');
+assert.deepEqual(acceptance.runs.map(({ id, parameter }) => ({ id, parameter })), mapping.records.map(({ id, parameter }) => ({ id, parameter })));
+const counts = records => Object.fromEntries(['PASS', 'FAIL', 'BLOCKED', 'UNRUN', 'TIMEOUT'].map(status => [status, records.filter(record => record.status === status).length]));
+const groupAbsent = pid => {
+  try { process.kill(-pid, 0); return false; }
+  catch (error) { if (error.code !== 'ESRCH') throw error; return true; }
+};
+const childChecks = [];
+for (const [cohort, report] of [['acceptance', acceptance], ['original-five', history]]) {
+  for (const run of report.runs) {
+    const execution = run.execution;
+    assert.equal(execution.reapedDirectChild, true);
+    assert.equal(execution.residual, false);
+    assert.equal(execution.timedOut, false);
+    assert.equal(execution.oversized, false);
+    assert.equal(execution.signal, null);
+    const absent = groupAbsent(execution.pid);
+    assert.equal(absent, true);
+    if (cohort === 'acceptance') {
+      assert.deepEqual(run.observation.fixtureCleanup, { failures: [], timers: 0, sockets: 0, tasks: 0, children: 0 });
+    }
+    childChecks.push({ cohort, id: run.id, parameter: run.parameter, pid: execution.pid, exitCode: execution.exitCode, reaped: true, processGroupAbsentAtFinalCheck: absent, fixtureCleanup: run.observation?.fixtureCleanup ?? null });
+  }
+}
+const supervisors = ['qualify', 'acceptance', 'history'].map(name => readJson(temp + '/' + name + '.process.json'));
+for (const supervisor of supervisors) {
+  assert.equal(supervisor.reapedDirectChild, true);
+  assert.equal(supervisor.groupPresentAfterClose, false);
+  assert.equal(groupAbsent(supervisor.pid), true);
+}
+const fixtureWitness = readJson(temp + '/fixture-order-proof.json');
+for (const record of fixtureWitness.records) assert.deepEqual(record.teardown, { failures: [], timers: 0, sockets: 0, tasks: 0, children: 0 });
+json(temp + '/closure.json', { at: new Date().toISOString(), directRecordChildren: childChecks.length, acceptanceChildren: 20, originalFiveChildren: 5, childChecks, supervisors, fixtureOnlyWitnesses: fixtureWitness.records.map(record => ({ version: record.version, cleanup: record.teardown })), allTrackedGroupsAbsent: true, all20AcceptanceFixturesResourcesZero: true, opaqueFixturesExplicitlyReleased: acceptance.runs.filter(run => run.id === 'S12').map(run => ({ parameter: run.parameter, before: run.observation.beforeExternalRelease, after: run.observation.afterExternalRelease, cleanup: run.observation.fixtureCleanup })), originalFailureCountersArePreteardownSnapshotsNotCurrentProcessLeaks: true, currentLeafExitNotAttested: 'root must observe actual normal return' });
+const results = { at: new Date().toISOString(), sourceIdentity: config.sourceIdentity, sourceFixCount: 0, fixtureExecutionCorrectionRounds: 1, secondRoundUsed: false, original: { parameters: counts(original.runs), logical: counts(original.logical), raw: artifact(review + '/execution-s1/artifacts/acceptance.result.json') }, corrected: { parameters: counts(acceptance.runs), logical: counts(acceptance.logical), raw: artifact(temp + '/acceptance.result.json') }, originalFive: { parameters: counts(history.runs), raw: artifact(temp + '/historical-five.result.json'), historicalFirstIndependentResult: '1 PASS / 4 FAIL, unchanged' }, unchanged57Plus9: { rerun: false, firstIndependent: '57/57 plus9/9, C9 synthetic; not a new environment execution' }, parameterMapping: acceptance.runs.map((run, index) => ({ id: run.id, parameter: run.parameter, original: original.runs[index].status, corrected: run.status, diagnosticStatus: run.observation.diagnosticStatus ?? null, firstFailure: original.runs[index].observation?.failure ?? null, currentFailure: run.observation.failure ?? null })), strictBlockedDiagnostics: acceptance.runs.filter(run => run.status === 'BLOCKED').map(run => ({ id: run.id, parameter: run.parameter, observation: run.observation })), noGenuineSourceDefectEstablished: true, independentAcceptanceComplete: false };
+json(temp + '/results.json', results);
+mkdirSync(owned + '/round1', { recursive: true });
+for (const name of ['acceptance.result.json', 'historical-five.result.json', 'acceptance.process.json', 'history.process.json', 'acceptance.stdout.data', 'acceptance.stderr.data', 'history.stdout.data', 'history.stderr.data', 'authentication-after.json', 'closure.json', 'results.json']) copyFileSync(temp + '/' + name, owned + '/round1/' + name);
+for (const stream of ['stdout', 'stderr']) copyFileSync(temp + '/freeze.' + stream + '.data', owned + '/round1/freeze-complete.' + stream + '.data');
+for (const [cohort, report] of [['acceptance', acceptance], ['original-five', history]]) for (const run of report.runs) {
+  const prefix = owned + '/round1/' + cohort + '-' + run.id + '-' + run.parameter;
+  writeFileSync(prefix + '.stdout.data', run.execution.stdout);
+  writeFileSync(prefix + '.stderr.data', run.execution.stderr);
+}
+json(owned + '/round1/git-status-after.json', { at: new Date().toISOString(), status: execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }), index: execFileSync('git', ['diff', '--cached', '--name-only'], { cwd: root, encoding: 'utf8' }), note: 'Concurrent foreign activity exists; only explicit owned paths enter this leaf commits.' });
+console.log(JSON.stringify({ identitiesUnchanged: checks, parameterCounts: results.corrected.parameters, logicalCounts: results.corrected.logical, originalFive: results.originalFive.parameters, childGroupsAbsent: childChecks.length, sourceFixCount: 0, taskTempFiles: currentTempFiles.length }));

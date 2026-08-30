@@ -1,0 +1,70 @@
+{
+  "role": "SOURCE_AND_HARMLESS_ONLY_ONE_RUN",
+  "authorCommit": "7b2a72e98c50d43fe4d06ded0773ca857e5d233a",
+  "authorRepairSeal": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+  "successorCommit": "6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f",
+  "successorExecutionSeal": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+  "authenticationSha256": "8d85d1c7225b591b86e4389f444c313b1aef287372bef90e1b5f736af82aeed4",
+  "files": [
+    {
+      "path": "PLAN.md",
+      "bytes": 5139,
+      "mode": 420,
+      "sha256": "e93198aa613d9a375431bc65ebf128bed325779142b82a7edf2c7ed6515116a5"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 18971,
+      "mode": 420,
+      "sha256": "da2c260edb43bd926331dadd961e2356f4e0e3dd17735448e4183f05e50881ec"
+    },
+    {
+      "path": "novel-consumer.mjs",
+      "bytes": 2098,
+      "mode": 420,
+      "sha256": "d2aabcda95b95384663f7ec4b2ce0b56498df0abe7601d35de4fab052d066fc7"
+    },
+    {
+      "path": "early-loader.mjs",
+      "bytes": 270,
+      "mode": 420,
+      "sha256": "514d4b727cc82755a05d3bfb12c6b74a1abacaeec5417f1d4b224aed7f75a850"
+    }
+  ],
+  "cases": [
+    "R01",
+    "R02",
+    "R03",
+    "H01",
+    "H02",
+    "H03",
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08"
+  ],
+  "bounds": {
+    "seconds": 120,
+    "caseSeconds": 15,
+    "children": 8,
+    "peakOsProcesses": 2,
+    "internalAttempts": 7,
+    "applicationWorkers": 3,
+    "capture": 16777216,
+    "working": 16777216
+  },
+  "outerGrant": {
+    "seconds": 1800,
+    "allProcesses": 80,
+    "peak": 4,
+    "internalAttempts": 16,
+    "applicationWorkers": 8,
+    "capture": 134217728,
+    "working": 536870912
+  },
+  "qualification": "P09 original combined loader/error configuration UNRUN. No actual product or real Regex. No internal Worker exit census. Main actual resources source is exercised for refusals only; allowed app surrogate uses separate fixture bootstrap."
+}

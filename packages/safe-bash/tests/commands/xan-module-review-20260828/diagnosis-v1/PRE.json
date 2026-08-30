@@ -1,0 +1,62 @@
+{
+  "classification": "PRE_SYNTHETIC_EXECUTION_RECIPE_SEAL",
+  "created": "2026-08-28T07:01:44.358Z",
+  "ownership": "tests/commands/xan-module-review-20260828/diagnosis-v1/",
+  "inputs": [
+    {
+      "path": "BINDINGS.json",
+      "bytes": 64888,
+      "sha256": "99db2bb6b32ce5437b800c012b85c4ae6b397585c6f7fb5e171e2ddc245f2d9b"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 806662,
+      "sha256": "a06d2279cebad1cd5806909918197cb73e2f94a3f5f10e7a6447b31791d0137b"
+    },
+    {
+      "path": "CONTINUATION.md",
+      "bytes": 7103,
+      "sha256": "8a4551770beb25127af38320e13771b413db908345b226b22a3b7698f53a5138"
+    },
+    {
+      "path": "CORRECTIONS.json",
+      "bytes": 6444,
+      "sha256": "508024fe8eb823a3c7655d737ebe33daa3b0125ab48c7b24dfaa31ce378bc3f4"
+    },
+    {
+      "path": "F11.md",
+      "bytes": 8448,
+      "sha256": "ee163e085e383074fc0e1bdcf9ea34ca13327e6ff26d67ac95a6b9e180777d4b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5745,
+      "sha256": "770f5e2518ff813306c75c296d6d9b5d53bdafc15368de7d70b2175c7e8a4e21"
+    },
+    {
+      "path": "corrections.mjs",
+      "bytes": 4721,
+      "sha256": "b4ae26fec49ea590acf8d7495b41b2e1bce3cbb7a9c073ddb8eebdadae68f000"
+    },
+    {
+      "path": "diagnose.mjs",
+      "bytes": 15143,
+      "sha256": "3e9ad461cdfa412a18b53714626857ecf8477f2e75f8718585949e58a41c6971"
+    },
+    {
+      "path": "pinned.mjs",
+      "bytes": 3547,
+      "sha256": "e0cc583b9d597978f43ca14ac0051c14854f36aa8d57b38f1e98ff174c331929"
+    },
+    {
+      "path": "qualify.mjs",
+      "bytes": 11372,
+      "sha256": "bd6409c93a23e49b229ccd0b4c08d57712d84de4f4d1c1060617af09677cabb8"
+    }
+  ],
+  "authorizedRuns": "Synthetic verifier qualification and read-only archived diagnosis reproduction only",
+  "candidateRuns": 0,
+  "originalCaseReruns": 0,
+  "sourceInspection": "POSTCANDIDATE_AND_POST_ORIGINAL_COHORT",
+  "noPolicyChanges": true
+}

@@ -1,0 +1,87 @@
+{
+  "commit": "e36dab2b6abc216ddc89e5786a0eba76f08a1722",
+  "commitTree": "a73200db83a3e9c75d1138480c10c5c5e57bb16d",
+  "preparedAt": "2026-08-27T07:37:20.535Z",
+  "work": "/private/tmp/safe-bash-archive-prerequisites-e36dab2-20260827",
+  "files": [
+    "tests/commands/archive/native.test.ts",
+    "tests/commands/archive-stress/pax-independent/controls.test.ts"
+  ],
+  "snapshotId": "0b5610448c655b85414a5291559bbec2a4ee10e41d107a6abd4a7693833577b2",
+  "sourceGitBlobManifestSha256": "48ee7d930d0e0e4e29d7c2acafe594bde63118209f7f0a1f8d5899d4b33cd1b2",
+  "tools": {
+    "gnu": {
+      "suppliedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "realPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "versionStdout": "tar (GNU tar) 1.35\nCopyright (C) 2023 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by John Gilmore and Jay Fenlason.\n",
+      "versionStderr": "",
+      "versionStatus": 0
+    },
+    "bsd": {
+      "suppliedPath": "/usr/bin/bsdtar",
+      "realPath": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "versionStdout": "bsdtar 3.5.3 - libarchive 3.7.4 zlib/1.2.12 liblzma/5.4.3 bz2lib/1.0.8 \n",
+      "versionStderr": "",
+      "versionStatus": 0
+    },
+    "gzip": {
+      "suppliedPath": "/usr/bin/gzip",
+      "realPath": "/usr/bin/gzip",
+      "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+      "versionStdout": "",
+      "versionStderr": "Apple gzip 479\n",
+      "versionStatus": 0
+    },
+    "gunzip": {
+      "suppliedPath": "/usr/bin/gunzip",
+      "realPath": "/usr/bin/gunzip",
+      "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+      "versionStdout": "",
+      "versionStderr": "Apple gzip 479\n",
+      "versionStatus": 0
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "realPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "runnerSha256": "e6df589e5ec3962d1cc8b547b14d821252e49a500158ed00b6cf65b8910a1952",
+  "traceSha256": "f2f8dd0ae7755930474ab7e047d5b568bed5736a87b9355778879ebdfa200c93",
+  "scope": "Historical e36dab2 source/test Git blobs; installed lock-matching loader closure copied as regular files. Not current HEAD, dirty source, whole-product gate or full historical archive cohort.",
+  "budget": {
+    "testProcesses": 2,
+    "casesPerProcess": 11,
+    "historicalAffectedCases": 6,
+    "testOracleCallsExpected": 17,
+    "prepareVersionProbes": 4,
+    "copiedGnuVersionProbes": 1,
+    "testProcessDeadlineMs": 120000,
+    "testCaseDeadlineMs": 60000,
+    "outputCapPerProcessBytes": 16777216
+  },
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "HOME": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/home",
+    "TMPDIR": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "GNU_TAR": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/tree/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+    "ARCHIVE_PREREQUISITE_TRACE": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/trace",
+    "ARCHIVE_ACCEPTANCE_EVIDENCE": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/native-fixtures"
+  },
+  "exactSixNames": [
+    "I05 fixed local nanoseconds and global precedence have separate virtual and native profile assertions",
+    "pinned GNU cross-readability BOTH directions plain",
+    "pinned GNU cross-readability BOTH directions gzip",
+    "pinned GNU legacy long-name and long-link records are read without data conversion",
+    "native -C, files-from, excludes, selected strips agree on safe common fixtures",
+    "pinned GNU rejects forward hardlinks but continues; virtual rejects fail-fast"
+  ]
+}

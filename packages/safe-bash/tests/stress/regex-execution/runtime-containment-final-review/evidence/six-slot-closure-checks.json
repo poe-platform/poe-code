@@ -1,0 +1,125 @@
+{
+  "time": "2026-08-27T09:38:39.118Z",
+  "mode": "Passive existing-result/hash/PID checks only; no helper framework or test replay",
+  "resolutionCommit": "0f57ae90e4b50fbd1cc08a76b68579ba114494b2",
+  "result": [
+    {
+      "job": "grep-default",
+      "sha256": "ee88f4a18714aa952f6b2c26fa0e333ca2d81b5afb51a646549311d6981aa712",
+      "pid": 44880,
+      "childElapsedMs": 1171.665,
+      "ipcBytes": 4767
+    },
+    {
+      "job": "rg-default",
+      "sha256": "f540f63bc97375e22cd80c33c5daf38486637ed4185252a24cdecee702f28971",
+      "pid": 46942,
+      "childElapsedMs": 1172.6425829999998,
+      "ipcBytes": 4784
+    },
+    {
+      "job": "grep-abort",
+      "sha256": "707c4f99bb0ea54cf1faf2e358391a9f887d292a7ecf778be224e8c0fd38c1fc",
+      "pid": 49106,
+      "childElapsedMs": 194.3127089999998,
+      "ipcBytes": 4646
+    },
+    {
+      "job": "rg-abort",
+      "sha256": "461d9ca666b341ef571533a93c49fcf2ddf04b28472a68ad54bbf97572cf2df6",
+      "pid": 50484,
+      "childElapsedMs": 179.64758299999994,
+      "ipcBytes": 4635
+    },
+    {
+      "job": "grep-queued-abort",
+      "sha256": "572f59ca68457ae070a8bba059a14776e28b8446d119a338a831df4868ff94c5",
+      "pid": 55232,
+      "childElapsedMs": 180.39854100000048,
+      "ipcBytes": 14624
+    },
+    {
+      "job": "rg-queued-abort",
+      "sha256": "ce927e099e40869398a6d8e8d3ab2a43abdd91d4ddc5a0a50caf6863a13e27fa",
+      "pid": 71911,
+      "childElapsedMs": 171.8445840000004,
+      "ipcBytes": 14542
+    }
+  ],
+  "budget": {
+    "targetSlotsConsumed": 6,
+    "targetSlotsTotal": 6,
+    "pathologicalRequestsConsumed": 4,
+    "pathologicalRequestsTotal": 4,
+    "benignQueueJobs": 2,
+    "remainingLaunches": 0,
+    "retries": 0
+  },
+  "journalSha256": "d8bee51c57027b75e127fc6423bbd82c1c1022e1959af6c7d4f37625df3d8d38",
+  "priorJournalPreservedAsExactPrefix": true,
+  "pidChecks": [
+    {
+      "job": "success",
+      "pid": 13037,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "already-aborted",
+      "pid": 13038,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "owned-timeout",
+      "pid": 13039,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "late-rejection",
+      "pid": 13040,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "benign",
+      "pid": 14912,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "grep-default",
+      "pid": 44880,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "rg-default",
+      "pid": 46942,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "grep-abort",
+      "pid": 49106,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "rg-abort",
+      "pid": 50484,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "grep-queued-abort",
+      "pid": 55232,
+      "absent": "ESRCH"
+    },
+    {
+      "job": "rg-queued-abort",
+      "pid": 71911,
+      "absent": "ESRCH"
+    }
+  ],
+  "activeOwnedChildren": 0,
+  "activeLockAbsent": true,
+  "frozenPreparedFilesAndAssetsUnchanged": true,
+  "archiveSha256": "86c34e382c85563afbd9c760aa2e0f161308e8f43e14fe99dfec9ed96d77539b",
+  "firstFiveRawResultsIdenticalToPreviousCommit": true,
+  "archivedStopAndInspectionExactHashesVerified": true,
+  "historicalReportAndAuditUnchanged": true,
+  "allSixClaimsAccountedExactlyOnce": true
+}

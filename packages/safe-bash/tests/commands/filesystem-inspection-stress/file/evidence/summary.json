@@ -1,0 +1,492 @@
+{
+  "generatedAt": "2026-08-27T08:30:03.564Z",
+  "candidateCommit": "d168d18b118592e04a6eec9b00eb50cc2b1e5058",
+  "originalPreseal": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "sourceSha256": "606adf1a2f78b0668ec1f4cf0c3253115faf089f69c7617abd88b03fb83b5f2f",
+  "dependencySha256": "cda0820b8443488b19d0747cb97de37f8aec7492747bff286705a33f6026402e",
+  "initialRun": {
+    "cases": 40,
+    "completedChildren": 40,
+    "timeouts": 0,
+    "elapsedMs": 2635,
+    "nativeRecaptures": 0,
+    "repeatedCases": 0
+  },
+  "rawSemanticCounts": {
+    "pass": 35,
+    "fail": 3,
+    "backend-limitation": 2
+  },
+  "rawNativeLaneCounts": {
+    "pass": 16,
+    "native-profile-conflict": 4,
+    "not-run": 20
+  },
+  "adjudicatedCounts": {
+    "pass": 31,
+    "native-profile-conflict": 4,
+    "harness-defect": 3,
+    "backend-limitation": 2
+  },
+  "content": {
+    "cases": 20,
+    "views": 80,
+    "semanticAcceptedViews": 80,
+    "nativeByView": {
+      "brief-human": {
+        "observations": 20,
+        "exact": 4,
+        "semantic": 20,
+        "unavailable": 0
+      },
+      "brief-mime": {
+        "observations": 20,
+        "exact": 16,
+        "semantic": 20,
+        "unavailable": 0
+      },
+      "brief-mime-type": {
+        "observations": 20,
+        "exact": 17,
+        "semantic": 20,
+        "unavailable": 0
+      },
+      "brief-mime-encoding": {
+        "observations": 20,
+        "exact": 17,
+        "semantic": 20,
+        "unavailable": 0
+      }
+    },
+    "nativeMachineExact": {
+      "matched": 50,
+      "total": 60
+    },
+    "humanPolicy": "20 semantic assertions; raw exact observations retained but not a required parity score"
+  },
+  "unsupported": 0,
+  "characterizationOnlyBackendCases": [
+    "F30",
+    "F31"
+  ],
+  "incompleteHarnessCases": [
+    "F29",
+    "F33",
+    "F34"
+  ],
+  "lateRejectionAssertionsExecuted": false,
+  "lateRejectionBoundary": "F33/F34 passed prompt cancellation and exact caller reason checks, then stopped at overly strong signal object identity assertion before late-read/return rejection injection. They are NOT passes; no reruns or oracle changes.",
+  "eventCounts": {
+    "case-start": 40,
+    "execute-start": 100,
+    "fs-call": 203,
+    "signal-abort": 100,
+    "sink-write": 99,
+    "sink-resolved": 98,
+    "execute-result": 96,
+    "case-finished": 40,
+    "execute-rejected": 4,
+    "sink-rejected": 1,
+    "shell-start": 5,
+    "shell-result": 4,
+    "shell-disposed": 5,
+    "shell-rejected": 1
+  },
+  "loadedModules": [
+    {
+      "path": "candidate/dist/commands/file/classify.js",
+      "sha256": "eda330eedef089d772802a4df3c93dc7729f8f1ee5af7cdc62aa0a406ca7f9f9"
+    },
+    {
+      "path": "candidate/dist/commands/file/index.js",
+      "sha256": "ffd86a04a466c8cc9072c607099dc9be00e8f49ec5e3c4e97a3a49006b535319"
+    },
+    {
+      "path": "candidate/dist/commands/file/shared.js",
+      "sha256": "a0896f522ef26b0d43f99881ce12332d114708a3e6c15c21a421d1fb11731ace"
+    },
+    {
+      "path": "candidate/dist/contracts/command.js",
+      "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f"
+    },
+    {
+      "path": "candidate/dist/contracts/errors.js",
+      "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+    },
+    {
+      "path": "candidate/dist/contracts/filesystem.js",
+      "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25"
+    },
+    {
+      "path": "candidate/dist/contracts/index.js",
+      "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27"
+    },
+    {
+      "path": "candidate/dist/contracts/io.js",
+      "sha256": "866af6e5a93e9779453d3cc08507a96a94a3f7e82b201048e7ae5fc6203c2c3f"
+    },
+    {
+      "path": "candidate/dist/contracts/path.js",
+      "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7"
+    },
+    {
+      "path": "candidate/dist/contracts/plugin.js",
+      "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937"
+    },
+    {
+      "path": "candidate/dist/shell/arithmetic.js",
+      "sha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138"
+    },
+    {
+      "path": "candidate/dist/shell/cleanup.js",
+      "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+    },
+    {
+      "path": "candidate/dist/shell/display.js",
+      "sha256": "c1e7ade4879fc6f85d39dd718259eaf2bb9371fac463a3e574ec9f8a0490e368"
+    },
+    {
+      "path": "candidate/dist/shell/index.js",
+      "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+    },
+    {
+      "path": "candidate/dist/shell/input.js",
+      "sha256": "dfae555acaa51838dba66b81da380c0cd235bc3e0b3c784ea63b888404feb331"
+    },
+    {
+      "path": "candidate/dist/shell/locale.js",
+      "sha256": "9f6e1cdac781cd758231bfb7af854dbc87dd6544c0e3a1309dac9362f88f36dc"
+    },
+    {
+      "path": "candidate/dist/shell/parser.js",
+      "sha256": "5e7529b673dbc53503195c551e5a772632467de5e92e06682208b0e54eea90fd"
+    },
+    {
+      "path": "candidate/dist/shell/pattern.js",
+      "sha256": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19"
+    },
+    {
+      "path": "candidate/dist/shell/runtime.js",
+      "sha256": "ee3e045a1770cc43591a19936ec153e9a29c959c9de5886d2112427a9d20e97a"
+    },
+    {
+      "path": "candidate/dist/shell/shell.js",
+      "sha256": "46ffa189152f3630fa990b5a63c637c7abfbb92ce0132b4a8e25cf573e5825d5"
+    },
+    {
+      "path": "candidate/dist/shell/types.js",
+      "sha256": "8c79d4e7ff6e11e4adc173b19017e2f7c046cdeb6d7d24fb4f5057fd8d67b27c"
+    },
+    {
+      "path": "child.mjs",
+      "sha256": "66b252393f918fded0e660d2bae36b44e780e664331bda182ac82bdd8d35f2f9"
+    },
+    {
+      "path": "holdout/corpus.mjs",
+      "sha256": "a6fc2aea84b1a379e2ff520b7a723f1a77618e6392093a1a7ce42d3b7d5cc010"
+    },
+    {
+      "path": "holdout/isolated-runner.mjs",
+      "sha256": "5116aaf53899715e2497140528e5a2338664673e2d284eb688e009dd6e2a2fb5"
+    },
+    {
+      "path": "holdout/probes.mjs",
+      "sha256": "03ebcd24e9524c47f533bf4d5e07a5577e103d3386b888074ac39287f6ce91b6"
+    }
+  ],
+  "productBuiltins": [
+    "node:path",
+    "node:stream/web",
+    "node:util"
+  ],
+  "afterRunInputVerification": {
+    "candidateSourceAndDevAndBuildFiles": 590,
+    "unchangedHoldoutArtifacts": 54,
+    "allHashesMatch": true
+  },
+  "recommendations": [
+    "SQLITE-MIME-001"
+  ],
+  "outcomes": [
+    {
+      "id": "F01",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F02",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F03",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F04",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F05",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F06",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F07",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "native-profile-conflict",
+      "adjudication": "native-profile-conflict",
+      "recommendation": null
+    },
+    {
+      "id": "F08",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F09",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F10",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F11",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F12",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "native-profile-conflict",
+      "adjudication": "native-profile-conflict",
+      "recommendation": null
+    },
+    {
+      "id": "F13",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F14",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F15",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F16",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "native-profile-conflict",
+      "adjudication": "native-profile-conflict",
+      "recommendation": "SQLITE-MIME-001: prefer registered application/vnd.sqlite3; avoid deprecated alias absent compatibility requirement"
+    },
+    {
+      "id": "F17",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F18",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "native-profile-conflict",
+      "adjudication": "native-profile-conflict",
+      "recommendation": null
+    },
+    {
+      "id": "F19",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F20",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "pass",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F21",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F22",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F23",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F24",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F25",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F26",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F27",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F28",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F29",
+      "rawSemanticStatus": "fail",
+      "rawNativeStatus": "not-run",
+      "adjudication": "harness-defect",
+      "recommendation": null
+    },
+    {
+      "id": "F30",
+      "rawSemanticStatus": "backend-limitation",
+      "rawNativeStatus": "not-run",
+      "adjudication": "backend-limitation",
+      "recommendation": null
+    },
+    {
+      "id": "F31",
+      "rawSemanticStatus": "backend-limitation",
+      "rawNativeStatus": "not-run",
+      "adjudication": "backend-limitation",
+      "recommendation": null
+    },
+    {
+      "id": "F32",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F33",
+      "rawSemanticStatus": "fail",
+      "rawNativeStatus": "not-run",
+      "adjudication": "harness-defect",
+      "recommendation": null
+    },
+    {
+      "id": "F34",
+      "rawSemanticStatus": "fail",
+      "rawNativeStatus": "not-run",
+      "adjudication": "harness-defect",
+      "recommendation": null
+    },
+    {
+      "id": "F35",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F36",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F37",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F38",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F39",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    },
+    {
+      "id": "F40",
+      "rawSemanticStatus": "pass",
+      "rawNativeStatus": "not-run",
+      "adjudication": "pass",
+      "recommendation": null
+    }
+  ]
+}

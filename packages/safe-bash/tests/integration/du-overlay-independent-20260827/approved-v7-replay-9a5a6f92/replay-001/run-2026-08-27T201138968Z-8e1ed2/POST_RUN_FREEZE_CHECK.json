@@ -1,0 +1,10 @@
+{
+  "freeze": "a08227b95b5ac3fc9175df6ca90a7700e5bdcbf4",
+  "tree": "fbb92bc99161b52f4afdbdf2587f52f47e662d7e",
+  "fixtureTree": "cccd2d7693a10ac7609aa35db883b0530320383f",
+  "manifestSha256": "ae6c2dac28f30e94a6a4d07060cad8506608b5ec5aabeed254c964fd678c3ffc",
+  "fileCount": 21,
+  "allNonSelfBytesVerified": true,
+  "forbiddenAgents": 0,
+  "materializedInventorySha256BeforeAndAfterFailure": "db144097a79a98f9101a1d7cc2a2ac504861edc5f2099602ce2e6bfbca7c1728"
+}

@@ -1,0 +1,13 @@
+{
+  "name": "materialized-symlink-rejected",
+  "expectedBoundary": "MATERIALIZED_LINK",
+  "started": "2026-08-27T22:49:13.923Z",
+  "error": {
+    "name": "Error",
+    "message": "BOUNDARY:MATERIALIZED_LINK link",
+    "code": "MATERIALIZED_LINK",
+    "stack": "Error: BOUNDARY:MATERIALIZED_LINK link\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at inventory (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:105:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:59:192\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:24:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls.mjs:59:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:49:13.924Z"
+}

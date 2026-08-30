@@ -1,0 +1,529 @@
+{
+  "at": "2026-08-27T02:29:20.833Z",
+  "snapshotHead": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+  "sourceCommits": {
+    "patch": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+    "stat": "386196bc39bedd61910abf42b044cab7a2a83cdc"
+  },
+  "sourcePaths": {
+    "patch": "src/commands/diff-patch/patch.ts",
+    "stat": "src/commands/metadata/stat.ts"
+  },
+  "sourceHashes": {
+    "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+    "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b"
+  },
+  "commitPaths": {
+    "patch": [
+      "src/commands/diff-patch/README.md",
+      "src/commands/diff-patch/patch.ts",
+      "tests/commands/diff-patch/patch-quiet.test.ts"
+    ],
+    "stat": [
+      "src/commands/metadata/README.md",
+      "src/commands/metadata/stat.ts",
+      "tests/commands/metadata-stress/README.md",
+      "tests/commands/metadata-stress/stat-human-evidence/README.md",
+      "tests/commands/metadata-stress/stat-human-evidence/VALIDATION.json",
+      "tests/commands/metadata-stress/stat-human-evidence/author.log",
+      "tests/commands/metadata-stress/stat-human-evidence/green.log",
+      "tests/commands/metadata-stress/stat-human-evidence/native-final.log",
+      "tests/commands/metadata-stress/stat-human-evidence/native-freeze.json",
+      "tests/commands/metadata-stress/stat-human-evidence/native-freeze.log",
+      "tests/commands/metadata-stress/stat-human-evidence/native-initial-birth-failure.log",
+      "tests/commands/metadata-stress/stat-human-evidence/native-initial-classification-failure.log",
+      "tests/commands/metadata-stress/stat-human-evidence/native.json",
+      "tests/commands/metadata-stress/stat-human-evidence/red.log",
+      "tests/commands/metadata-stress/stat-human-evidence/stress-freeze.log",
+      "tests/commands/metadata-stress/stat-human-evidence/stress.log",
+      "tests/commands/metadata-stress/stat-human-evidence/tsconfig.json",
+      "tests/commands/metadata-stress/stat-human-native.test.ts",
+      "tests/commands/metadata-stress/stat-human.test.ts"
+    ]
+  },
+  "sourceFixCommits": 2,
+  "reviewerProductionChanges": 0,
+  "archiveCommits": {
+    "routed": "916fbb4eae610752f34ec25354f6bc2dff28925b",
+    "sgid": "277a63577aa03bbac1ff5c68eac0b04842ff5cd6"
+  },
+  "archiveByteExact": {
+    "routed": 10,
+    "sgid": 10
+  },
+  "five": {
+    "rows": 5,
+    "exact": 4,
+    "streamsAndStatus": 5,
+    "nativeFrozenExact": 5
+  },
+  "nativeHuman": {
+    "fixtures": 19,
+    "exactNumeric": 15,
+    "roundedMatch": 2,
+    "nonexact": 2
+  },
+  "testCohorts": [
+    {
+      "name": "patch-quiet-new",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch/patch-quiet.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "8141a3247ef8ff468e12a755169ddd69eb63534c391320115ff5a4520e40f4ce",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 41,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "stat-human-new",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata-stress/stat-human.test.ts",
+        "tests/commands/metadata-stress/stat-human-native.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "6edc7004d8886096ed8575dbe6541ad3edd64c2e48bdefbeab51b93b33cf502d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "patch-original-relevant",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/diff-patch/patch.test.ts",
+        "tests/commands/diff-patch/patch-formats.test.ts",
+        "tests/commands/diff-patch/patch-gnu-publication.test.ts",
+        "tests/commands/diff-patch/patch-hunk-diagnostics-followup.test.ts",
+        "tests/commands/diff-patch/patch-reject-orientation-followup.test.ts",
+        "tests/commands/diff-patch/safety.test.ts",
+        "tests/commands/diff-patch/options-regressions.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "825ed2ac06ae9ffdfff2bbbcda3b1936b1243c43606ac0ed797d6474f62ffefa",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 270,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "stat-original-epoch-width",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata-stress/epoch-regression.test.ts",
+        "tests/commands/metadata-stress/stat-precision.test.ts",
+        "tests/commands/metadata-stress/stat-flags.test.ts",
+        "tests/commands/metadata-stress/stat-effects.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "2b4f5fa25ac6cba2e9ae2856e2ef3a33a4d6c7c3b7df9ca814c9d7ad2c92f08f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "stat-original-author-profile",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^(?!stat common numeric metadata agrees with native stat and fs on real VFS)",
+        "tests/commands/metadata/stat.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "da16ac757daa872e39632599f9cdb6809942ae0fe08eccef4e554549d6527a4e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 5,
+      "fail": 1,
+      "skipped": 0
+    },
+    {
+      "name": "sgid-archive-bytes",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/metadata-stress/sgid-feasibility-archive.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "24a576b98418d45cf066b3797c35d6d828eff194aa61c5bc0b18b0fbb1d25c02",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "source-target-types",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "review-types.json"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "mutation-patch-baseline",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^quiet matches pinned native bytes/effects: (apply|reverse|failed hunk and reject)$",
+        "tests/commands/diff-patch/patch-quiet.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/mutant-patch",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "bd852a8a9fb7a10a5216caed8582b5e28de2dcf32b4bc6750c35febbf2740d55",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "mutation-patch-historical",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^quiet matches pinned native bytes/effects: (apply|reverse|failed hunk and reject)$",
+        "tests/commands/diff-patch/patch-quiet.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/mutant-patch",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "bb15e6cee07fa0977a2f2c9c5cf504e4b38fe83f70e6c7064551abe7574eec95",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 3,
+      "skipped": 0
+    },
+    {
+      "name": "mutation-patch-restored",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^quiet matches pinned native bytes/effects: (apply|reverse|failed hunk and reject)$",
+        "tests/commands/diff-patch/patch-quiet.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/mutant-patch",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "ffa8a2b45df073344aec191fbde7d15188da235e9e5b9ae7f93a11fea9ab5b1f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "mutation-stat-baseline",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^stat human numeric timestamp (-?0\\.125|1700000000123\\.456)$",
+        "tests/commands/metadata-stress/stat-human.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/mutant-stat",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "7c3372bfa69afe819e1ca644f5a6d08ccd4c0cb7fd5bd847b8b293f743889f12",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "mutation-stat-historical",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^stat human numeric timestamp (-?0\\.125|1700000000123\\.456)$",
+        "tests/commands/metadata-stress/stat-human.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/mutant-stat",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "f4c5b369985e403fa8b01b9acaef6553669bfcf41d4eb024f695d303a04268a8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 0,
+      "fail": 3,
+      "skipped": 0
+    },
+    {
+      "name": "mutation-stat-restored",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-name-pattern=^stat human numeric timestamp (-?0\\.125|1700000000123\\.456)$",
+        "tests/commands/metadata-stress/stat-human.test.ts"
+      ],
+      "cwd": "/tmp/safe-bash-five-final-review/mutant-stat",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e1a2908bfef4b38b7d5481ef79f21b7da6d1eb413e2788f4d2d545a0fd232c42",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "correctedOriginalAuthorProfile": {
+    "at": "2026-08-27T02:28:08.911Z",
+    "name": "stat-original-author-profile-corrected",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-name-pattern=^stat (prints|lstat/default|printf escapes|missing fields|limits,)",
+      "tests/commands/metadata/stat.test.ts"
+    ],
+    "cwd": "/tmp/safe-bash-five-final-review/snapshot",
+    "exitCode": 1,
+    "signal": null,
+    "error": null,
+    "pass": 4,
+    "fail": 1,
+    "skipped": 0,
+    "stdoutSha256": "c5eda8d6d7891ee9ecec4bd5f967c55d04cda6679878bfe1bb742c5ca0bc9e5d",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "snapshotDrift": [],
+    "liveDrift": [],
+    "incident": {
+      "initialName": "stat-original-author-profile",
+      "initialPass": 5,
+      "initialFail": 1,
+      "unintendedNativeInvocation": {
+        "executable": "/usr/bin/stat",
+        "args": [
+          "-f",
+          "%z:%N",
+          "file"
+        ],
+        "fixtureRoot": "/tmp/safe-bash-five-final-review/runtime-temp",
+        "scope": "One unchanged legacy numeric size/name author test; no human timestamp or patch oracle."
+      },
+      "cause": "The negative-lookahead name filter also matched the test-file ancestor, selecting all six tests. Explicit positive-name selection runs only the five intended tests.",
+      "disposition": "Initial raw output retained unchanged and not admitted as GNU acceptance. This incidental Apple invocation violates the requested execution restriction; do not claim zero Apple invocations. Exact-five engine/native replay and new human/quiet controls exclusively used pinned GNU utility expectations."
+    }
+  },
+  "mutationControls": [
+    {
+      "family": "patch",
+      "path": "src/commands/diff-patch/patch.ts",
+      "currentSha256": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "historicalSha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+      "baseline": {
+        "name": "mutation-patch-baseline",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-name-pattern=^quiet matches pinned native bytes/effects: (apply|reverse|failed hunk and reject)$",
+          "tests/commands/diff-patch/patch-quiet.test.ts"
+        ],
+        "cwd": "/tmp/safe-bash-five-final-review/mutant-patch",
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdoutSha256": "bd852a8a9fb7a10a5216caed8582b5e28de2dcf32b4bc6750c35febbf2740d55",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "mutation": {
+        "name": "mutation-patch-historical",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-name-pattern=^quiet matches pinned native bytes/effects: (apply|reverse|failed hunk and reject)$",
+          "tests/commands/diff-patch/patch-quiet.test.ts"
+        ],
+        "cwd": "/tmp/safe-bash-five-final-review/mutant-patch",
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdoutSha256": "bb15e6cee07fa0977a2f2c9c5cf504e4b38fe83f70e6c7064551abe7574eec95",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": 0,
+        "fail": 3,
+        "skipped": 0
+      },
+      "restored": {
+        "name": "mutation-patch-restored",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-name-pattern=^quiet matches pinned native bytes/effects: (apply|reverse|failed hunk and reject)$",
+          "tests/commands/diff-patch/patch-quiet.test.ts"
+        ],
+        "cwd": "/tmp/safe-bash-five-final-review/mutant-patch",
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdoutSha256": "ffa8a2b45df073344aec191fbde7d15188da235e9e5b9ae7f93a11fea9ab5b1f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "scope": "Three exact existing new-author cases; old source in owned isolated copy; assertion failures only, no compiler/load failures."
+    },
+    {
+      "family": "stat",
+      "path": "src/commands/metadata/stat.ts",
+      "currentSha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "historicalSha256": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+      "baseline": {
+        "name": "mutation-stat-baseline",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-name-pattern=^stat human numeric timestamp (-?0\\.125|1700000000123\\.456)$",
+          "tests/commands/metadata-stress/stat-human.test.ts"
+        ],
+        "cwd": "/tmp/safe-bash-five-final-review/mutant-stat",
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdoutSha256": "7c3372bfa69afe819e1ca644f5a6d08ccd4c0cb7fd5bd847b8b293f743889f12",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "mutation": {
+        "name": "mutation-stat-historical",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-name-pattern=^stat human numeric timestamp (-?0\\.125|1700000000123\\.456)$",
+          "tests/commands/metadata-stress/stat-human.test.ts"
+        ],
+        "cwd": "/tmp/safe-bash-five-final-review/mutant-stat",
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdoutSha256": "f4c5b369985e403fa8b01b9acaef6553669bfcf41d4eb024f695d303a04268a8",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": 0,
+        "fail": 3,
+        "skipped": 0
+      },
+      "restored": {
+        "name": "mutation-stat-restored",
+        "args": [
+          "--unhandled-rejections=strict",
+          "--import",
+          "tsx",
+          "--test",
+          "--test-name-pattern=^stat human numeric timestamp (-?0\\.125|1700000000123\\.456)$",
+          "tests/commands/metadata-stress/stat-human.test.ts"
+        ],
+        "cwd": "/tmp/safe-bash-five-final-review/mutant-stat",
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdoutSha256": "e1a2908bfef4b38b7d5481ef79f21b7da6d1eb413e2788f4d2d545a0fd232c42",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0
+      },
+      "scope": "Three exact existing new-author cases; old source in owned isolated copy; assertion failures only, no compiler/load failures."
+    }
+  ],
+  "historicalHarnessRevision": "0294afb6e690433aed994868e5ed437ecf58ae48",
+  "liveHarnessChangedFiles": [
+    "capture.mjs",
+    "common.mjs",
+    "engine.mjs",
+    "harness.test.mjs",
+    "native.mjs",
+    "run.mjs"
+  ],
+  "original18Retained": true,
+  "sgid6Unchanged": true,
+  "freshSGIDExecutions": 0,
+  "tablePhaseExecuted": false,
+  "requiresRootRelease": "/tmp/safe-bash-table-text-resume-after-five.ready",
+  "limitations": [
+    "Only4/5 full rows pass the untouched historical oracle; native-only dry-run tmp remains.",
+    "Original stat three-digit fixture fails against new nine-digit profile; unchanged file hash retained.",
+    "Native stat precision gaps2/19; birth availability and quiet deletion-warning differences retained.",
+    "Initial profile filter accidentally executed one Apple numeric size/name check, retained and excluded from GNU acceptance; corrected named selection executes no Apple test.",
+    "Moving worktree frozen at recorded hashes, not universal clean-HEAD validation; no full224/global3758/SGID rerun/superiority/72hour claim."
+  ],
+  "inputHashReference": "snapshot-inputs.json"
+}

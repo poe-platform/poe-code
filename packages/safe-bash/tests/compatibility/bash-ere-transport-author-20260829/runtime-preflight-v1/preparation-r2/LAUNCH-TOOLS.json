@@ -1,0 +1,16 @@
+[
+  {
+    "path": "/usr/bin/env",
+    "size": 102368,
+    "mode": 493,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+    "role": "future sanitized exec transition, not a child census expansion"
+  },
+  {
+    "path": "/bin/zsh",
+    "size": 1361216,
+    "mode": 493,
+    "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+    "role": "outer tool shell exec transition, no login/startup"
+  }
+]

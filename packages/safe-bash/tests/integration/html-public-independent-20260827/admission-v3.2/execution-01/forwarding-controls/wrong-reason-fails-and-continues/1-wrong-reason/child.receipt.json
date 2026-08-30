@@ -1,0 +1,22 @@
+{
+  "pid": 88419,
+  "ppid": 86238,
+  "mode": "wrong-reason",
+  "reason": "WRONG_REASON",
+  "memory": {
+    "baseline": {
+      "rss": 45989888,
+      "heapTotal": 5914624,
+      "heapUsed": 5036488,
+      "external": 2082455,
+      "arrayBuffers": 16831
+    },
+    "fieldwisePeaks": {
+      "rss": 45989888,
+      "heapTotal": 5914624,
+      "heapUsed": 5042960,
+      "external": 2082495,
+      "arrayBuffers": 16831
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "phase": "preparation-only; awaiting ROOT fixture-freeze release",
+  "reviewerThreadId": "01a042ef-2082-7a20-a1b5-c3ba7235ff76",
+  "root": "/Users/kjopek/Workspace/safe-bash",
+  "candidate": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+  "candidateTree": "223a56d93e4abd5a7ff149b3d95536a0129731f7",
+  "wholeTreeFiles": 20270,
+  "wholeTreeInventoryDigest": "a7363f38f7f9904772ae44c8b34e694fb1e4201031d877be2150a79d1619d188",
+  "sourceFiles": 213,
+  "archiveFiles": 220,
+  "rootFiles": [".gitignore", "AGENTS.md", "README.md", "package-lock.json", "package.json", "tsconfig.build.json", "tsconfig.json"],
+  "archiveSha256": "f17461ad17ddf23b1c194b2a422a3d41e229b1becf999faa2897c82cabb14f1f",
+  "selectedGitInputs": "f6a514fba365389d0c8b0044ff5045abef9f5cfb885067004bdcfa78fe0243e1",
+  "sourceManifest": "1da02d2959557c13f820f277309f053f6896ac3705e87c437779c8cf5b8dde3a",
+  "packedManifest": "c7494a682dfcb4c7a975ec45321df32ca349177a02b0defd2b4ad387f9b017ad",
+  "packedFiles": 710,
+  "emittedFiles": 708,
+  "packedEvidenceCommit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+  "tarball": {
+    "size": 630766,
+    "sha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+    "shasum": "09a3036291301ce501ec458ff4ca5bf29008e984",
+    "integrity": "sha512-1EzrjZuMG90ArnHsXuT6Mr7SljLgy7vdc03rXyZZ4ANkObs64lTkyQ3OpEmjDjrY578MIsK516fcK3Ecl4ec4Q=="
+  },
+  "node": {
+    "version": "v22.22.2",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "hash": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "historicalTrees": [
+    {
+      "commit": "a84dd195c13935587df0d53be85c86790a48e4d5",
+      "directory": "tests/shell-stress/env-split-author",
+      "tree": "e1730db64a11b088810126f7fff16d4a4b90297b",
+      "files": 35,
+      "inventorySha256": "e1bfbea9fca51affed780bcae9530b8d93bd57d69c93eef0e64e6b8ede6a2504"
+    },
+    {
+      "commit": "36425fc6e066c23b55bd17eb517931efb4706aa7",
+      "directory": "tests/shell-stress/env-split-holdout",
+      "tree": "b7c05a815b6c9d7ac640cfa1f28723f4eef981fb",
+      "files": 42,
+      "inventorySha256": "16e773499b0684fd6014dbd0c9074b101b45723272d07f3fac8af21824f967c2"
+    },
+    {
+      "commit": "b44fa142a0da9593df533c56fd149cb38603ea68",
+      "directory": "tests/shell-stress/env-split-consumer",
+      "tree": "32f2c5931cffbfe3817c32ceb23a27ebf9cde978",
+      "files": 17,
+      "inventorySha256": "099b39377c28dee50eb9744d78bd71150fcc02689118ac3a2ac127231e86b987"
+    }
+  ],
+  "evidenceSha256": {
+    "env-split-holdout/core-review-84ab66c.json": "96c72b5ceb73849cecc1a00a5d3d9253cd305a3ef6488ed8b94cc6f743915ea3",
+    "env-split-holdout/core-candidate-84ab66c.json": "ee173046443f38f9a503329a200882d4748c40c453d2d87ba28b9ba67394efca",
+    "env-split-holdout/native-aligned.json": "bca8b30a21de8f09e5e660d3f77480cdf8ac3b4a00c36490987b6d15ef9cf818",
+    "env-split-consumer/packed-core-84ab66c.json": "a711fb8baca7aab8eefa669afebb5294b83b3e81ca4421eb7e34343f183010ab",
+    "env-split-consumer/packed-core-84ab66c-audit.json": "12aa0fd6c959b3c54519aee1361a11ebf182fb2442080dcd57e817b0625a95d9",
+    "env-split-consumer/packed-core-84ab66c-tarball.json": "9e1fcfaa0f5dbabec37989780ba806bd9a8c4e4a49df87785d892662091ca302",
+    "env-split-consumer/native-frozen.json": "ae0d1e79eecfca3f2474bfaba8cc749a7abd371c1b273fd0b500711439cd78c4"
+  }
+}

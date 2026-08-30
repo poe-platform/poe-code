@@ -1,0 +1,5 @@
+{"pid":83925,"args":["status","--porcelain=v1","-z","--untracked-files=normal","--","tests/integration/agent-bash-coherent-author-20260829/stage-b0-r2"],"status":0,"signal":null}
+{"pid":83927,"args":["diff","--cached","--name-only","-z"],"status":0,"signal":null}
+{"pid":83967,"args":["ls-tree","-r","--name-only","-z","ab976f5ee31d0a793d6016f13cc46e6960ace2aa","--","tests/integration/agent-bash-coherent-author-20260829/stage-a-r2"],"status":0,"signal":null}
+{"pid":83982,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"status":0,"signal":null}
+{"pid":83983,"args":["cat-file","--batch"],"status":0,"signal":null}

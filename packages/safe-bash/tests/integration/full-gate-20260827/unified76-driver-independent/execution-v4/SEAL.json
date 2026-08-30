@@ -1,0 +1,618 @@
+{
+  "schema": "unified76-independent-final-receipt/v4",
+  "status": "QUALIFIED_BOUNDED_REVIEW_ONLY_HOLD_RELEASE",
+  "sealedAt": "2026-08-28T02:22:29.162Z",
+  "timezone": "America/Chicago",
+  "bindings": {
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "fixtureSource": "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+    "driver": "2713defc1f53a00dd975931946de4782a980836d",
+    "evidence": "b283eb0dad7a895168ad6b5df47db4066a95b7e3",
+    "prefix": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/",
+    "reportSha256": "30fa2e1f40501edd8656026a4f72910083bb55ba277d9f7fbb37e3b7a0df0625",
+    "driverFileSha256": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+    "driverCanonicalJsonSha256": "3a3019e02830baf599f7df46c938c44552067d160819e548688ccf6027a1441c",
+    "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "profileEncodedSha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "cleanupSha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "packSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageJsonSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "nodeSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+    "git": "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+  },
+  "preexecutionFreezeCommit": "2c5cf4676f8d5d4738f8765d5b1d67d4b93f1fdc",
+  "attempt1FollowupFreeze": "3856519ab1d9bf5fe4b9c722de2aa8b73eddb39d",
+  "followupCompletionFreeze": "79b40285303d57cba08b5ce6463d7558ed7610b4",
+  "summary": {
+    "boundedPASS": 19,
+    "HOLD": 3,
+    "groups": 22,
+    "release": "HOLD",
+    "wholeGateLaunched": false
+  },
+  "matrix": [
+    {
+      "id": "A01",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static identity plus dynamic negative admission"
+    },
+    {
+      "id": "A02",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static patch proof"
+    },
+    {
+      "id": "A03",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "dynamic actual namespace guard"
+    },
+    {
+      "id": "A04",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static declared closure plus actual external verification"
+    },
+    {
+      "id": "A05",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static membership plus actual profile negatives"
+    },
+    {
+      "id": "A06",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "dynamic actual archive/origin guard"
+    },
+    {
+      "id": "A07",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual tool identity/process"
+    },
+    {
+      "id": "A08",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual permission and pinned loader probes"
+    },
+    {
+      "id": "A09",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual argv and streamed TAP"
+    },
+    {
+      "id": "A10",
+      "status": "HOLD",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        }
+      ],
+      "criterion": "actual build-seam component plus integration boundary"
+    },
+    {
+      "id": "A11",
+      "status": "HOLD",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static package artifact binding"
+    },
+    {
+      "id": "A12",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual bounded transport"
+    },
+    {
+      "id": "A13",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual transport path refusal"
+    },
+    {
+      "id": "A14",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual namespace/build delta guard"
+    },
+    {
+      "id": "A15",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static manifest plus actual readable identities"
+    },
+    {
+      "id": "A16",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual cleanup-envelope validator"
+    },
+    {
+      "id": "A17",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual supervisor lifecycle"
+    },
+    {
+      "id": "A18",
+      "status": "HOLD",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        }
+      ],
+      "criterion": "product cooperative cleanup boundary"
+    },
+    {
+      "id": "A19",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual strict verdict and raw lifecycle"
+    },
+    {
+      "id": "A20",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual inert import and unreleased CLI"
+    },
+    {
+      "id": "A21",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual selected inventory checker"
+    },
+    {
+      "id": "A22",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static provenance/versioning"
+    }
+  ],
+  "attempts": [
+    {
+      "file": "RESULTS.json",
+      "started": "2026-08-28T02:09:28.528Z",
+      "finished": "2026-08-28T02:09:43.769Z",
+      "summary": {
+        "PASS": 12,
+        "FAIL": 7,
+        "HOLD": 3
+      }
+    },
+    {
+      "file": "FOLLOWUP-RESULTS.json",
+      "started": "2026-08-28T02:14:26.686Z",
+      "finished": "2026-08-28T02:14:30.465Z",
+      "summary": {
+        "PASS": 4,
+        "FAIL": 4
+      }
+    },
+    {
+      "file": "COMPLETION-RESULTS.json",
+      "started": "2026-08-28T02:17:12.688Z",
+      "finished": "2026-08-28T02:17:15.862Z",
+      "summary": {
+        "PASS": 4,
+        "FAIL": 0
+      }
+    }
+  ],
+  "sevenNew76Proofs": [
+    {
+      "id": "u76.binding-complete",
+      "status": "HOLD",
+      "evidence": "A01,A04,A10,A11,A18",
+      "limit": "Actual artifact/declared closure bound; build/type reuse, product cleanup and full/private execution not established"
+    },
+    {
+      "id": "u76.binding-pending-template",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A01/A19; COMPLETION:A20",
+      "limit": "Actual empty/missing authorization and missing-binding rejection; not historical template runner"
+    },
+    {
+      "id": "u76.binding-mutable-head",
+      "status": "NOT_EXECUTED_LITERAL_MUTANT",
+      "evidence": "RESULTS:A01",
+      "limit": "Wrong immutable candidate executed; literal HEAD not passed, only source-visible comparison"
+    },
+    {
+      "id": "u76.binding-missing-asset",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A03; FOLLOWUP:A15",
+      "limit": "Actual missing runtime input and readable tool refusal, not full admission"
+    },
+    {
+      "id": "u76.binding-missing-classification",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A05/A21",
+      "limit": "Actual missing/unknown classification validators"
+    },
+    {
+      "id": "u76.binding-missing-cleanup-manifest",
+      "status": "NOT_EXECUTED_LITERAL_MUTANT",
+      "evidence": "RESULTS:A16",
+      "limit": "Missing member/hash/revision executed; entire CLEANUP.json removal not executed"
+    },
+    {
+      "id": "u76.binding-skipped-case",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A19",
+      "limit": "Actual nonzero HOLD for explicitly synthetic skipped=1; not measured canonical cohort"
+    }
+  ],
+  "sevenSummary": {
+    "PASS_BOUNDED_REFUSAL": 4,
+    "NOT_EXECUTED_LITERAL_MUTANT": 2,
+    "HOLD": 1
+  },
+  "historical": {
+    "original22": "NOT_EXECUTED historical assertions; only v4 versioned controls scored",
+    "Meitner": "71 PASS / 7 NOT_EXECUTED unchanged",
+    "staticF01v2": "10 controls separate; old exit1 retained",
+    "authorComponents": "34+12 separate",
+    "authorLauncher": "56 separate",
+    "authorFixtures": "49 PASS / 1 missing-helper launch failure, then separate19/19 prior-unexecuted bodies",
+    "supersededCandidate2ff": "20/1 remains historical; not rescored"
+  },
+  "originalArtifactSha256": {
+    "PHASE-A.json": "c8df466748a048e91a7a28a0b83c58dca2f8fdba2773e359d7b647d51d41a37c",
+    "PHASE-B.json": "f7919534015ef0ab3e253a3f4721197d93c7747314bcbce24c30e33b27484802",
+    "RECEIPT.md": "4b1375ff8b6e5bac026655e83993d0b22345686c23f019a5996f4fa552abc0f7",
+    "integrityvalidation.mjs": "a22c657444e0730f9837706712ad95d060fd0b895321bbc08238ffcd80242944",
+    "AUTHORITY-v2.json": "3c17c2d58f257b0b33e721670d42485da2ec6d8ba022be6f44b50fb3e7028c20",
+    "static-predicate-v2.mjs": "c640116ec007c4ba096a3165f15f49ba71762005c43077ec609e2d602c3204f2",
+    "REVIEW-v2.md": "940dd1c16e04dd4205d4c4f48fa8f6abebf7e771532666243f3fae598af455bf",
+    "STATIC-POLICY-v3.json": "a7fa8f8c7c9d64950c69eda9a0a3198cf8cf4b79841a316bb76fa592ae222ad5",
+    "HANDOFF-v3.md": "4ef79cf29c670463a5082e0b69954b8693c84bfd584968e17cae2da0496b1a66"
+  },
+  "systemBoundary": {
+    "systemReferences": [
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libz.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libarchive.2.dylib"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "host": {
+      "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+      "stderr": "",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "qualification": "Explicit trusted macOS26.4.1/build25E253 boundary for exactly these eleven sampled references only. No readable-file hash, full OS attestation, complete process-image enumeration or broader library exception."
+  },
+  "scopeAndRemaining": "HANDOFF.md is normative qualification: A10 build/type reuse HOLD, A11 independent derivation HOLD despite actual c109 artifact, A18 product cleanup unexecuted; private/full integration/complete child fences unexecuted. No historical outcome rescoring.",
+  "processReceipt": {
+    "command": [
+      "/bin/ps",
+      "-p",
+      "26754,27858,27863,27871,27877,27879,32836,36336,36409,36416,36417,36422,36424,36427",
+      "-o",
+      "pid=,ppid=,pgid=,lstart=,command="
+    ],
+    "status": 1,
+    "stdout": "",
+    "stderr": "",
+    "checkedPids": [
+      26754,
+      27858,
+      27863,
+      27871,
+      27877,
+      27879,
+      32836,
+      36336,
+      36409,
+      36416,
+      36417,
+      36422,
+      36424,
+      36427
+    ],
+    "allOwnedProcessesSettled": true,
+    "noSIGSTOP": true,
+    "allThreeDataTreesRemoved": true,
+    "stagedDriverCopiesRemoved": true
+  },
+  "workspace": {
+    "head": "e7690860f56b18052375c4f24eda82628bb321fb",
+    "status": "?? src/commands/xan/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/\n?? tests/integration/expr-public-independent-20260827/component-execution-v5/\n?? tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-EXECUTION.txt\n?? tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-RESULTS.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/HANDOFF.md\n?? tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n?? tests/shell/directory-stack-design-20260828/supplemental-observations-01.json.gz.base64\n",
+    "index": "",
+    "foreign": "Observed only; preserve concurrent README/foreign artifacts. No broad staging/reset."
+  },
+  "executionCommands": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node --permission --allow-fs-read=* --allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4 --allow-child-process tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/review.mjs",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node --permission --allow-fs-read=* --allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4 --allow-child-process tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/followup.mjs",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node --permission --allow-fs-read=* --allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4 --allow-child-process tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs"
+  ],
+  "staticValidation": {
+    "ownJsonSyntax": true,
+    "oldAndPriorHashes": true,
+    "ownedDataRemoved": true,
+    "gitDiffCheck": true,
+    "firstReceiptGeneration": "Undefined local binding variable caused exit1 before writes; corrected without executing controls again"
+  },
+  "files": {
+    "COMPLETION-EXECUTION.txt": {
+      "bytes": 394,
+      "sha256": "ab3f7d8c6c49001f6da70a90286f55f6fdab22ed523656bfcdef57c60c1fee4a"
+    },
+    "COMPLETION-PLAN.json": {
+      "bytes": 1825,
+      "sha256": "5f986b35a4731371d47e874cf408853b4f94d04e7535fae5f9bc6977dc3c94db"
+    },
+    "COMPLETION-RESULTS.json": {
+      "bytes": 171927,
+      "sha256": "354aa2f54bc8500b6c94b1488aba33bf86b5fd4be8b8f0de9617d1589c24b256"
+    },
+    "EXECUTION.txt": {
+      "bytes": 718,
+      "sha256": "b25095e1d34e8d5fee047de86cb1486406aa0274056b7823abeb36d6b545bd8e"
+    },
+    "FOLLOWUP-EXECUTION.txt": {
+      "bytes": 526,
+      "sha256": "760c44752a70585f29c2f5d61bd4f18d66fdd557f774be43a5ea455bef418ed2"
+    },
+    "FOLLOWUP-PLAN.json": {
+      "bytes": 3299,
+      "sha256": "1cff3ee755d52674920bf7740e40c367f9308195fa020c78ea07326a510c9a3b"
+    },
+    "FOLLOWUP-RAW.ndjson": {
+      "bytes": 111532,
+      "sha256": "0a898b2ae1f78b7150b0524be24481cbac397a1653073a29b163e0c8b55a2fbd"
+    },
+    "FOLLOWUP-RESULTS.json": {
+      "bytes": 561600,
+      "sha256": "373f587ab9c1a8afec44c2656307683146ac439ad521e2f20725659a09af44ce"
+    },
+    "HANDOFF.md": {
+      "bytes": 12917,
+      "sha256": "e8db8b16fddb0ea4280069470303f1122eb0c87a465ac641c4d99c97eee41b30"
+    },
+    "PLAN.json": {
+      "bytes": 15619,
+      "sha256": "6828a41e7dfa70aa86651fcc03424fa2604ff964b2cfad515bf1ba864cd3d3a4"
+    },
+    "RAW-COMMANDS.ndjson": {
+      "bytes": 1672246,
+      "sha256": "800dc7bd16b192c5fc6cf14a04846c03a072289f1acc6eb769dd29310f374595"
+    },
+    "RESULTS.json": {
+      "bytes": 761993,
+      "sha256": "706f365dfa2748275fb0a90a05870edcd422ee423e3e6a306c252c62b167e9b0"
+    },
+    "completion.mjs": {
+      "bytes": 12955,
+      "sha256": "be8a498859eb80f400e74c38f073f805c16ca9d35129254dbff0309be537b567"
+    },
+    "followup.mjs": {
+      "bytes": 19469,
+      "sha256": "a2b20c7ea49491db18727126becf3fc0e99af4acc7f84e8d505af4f63fc2380e"
+    },
+    "review.mjs": {
+      "bytes": 39734,
+      "sha256": "7e4822ee798961c5e830ae171b2aff6b984d6d6ccbb318e51065f5f5f9ee1301"
+    }
+  }
+}

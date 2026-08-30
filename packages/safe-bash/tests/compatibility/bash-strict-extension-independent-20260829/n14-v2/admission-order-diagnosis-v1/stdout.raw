@@ -1,0 +1,362 @@
+{"runnerHash":"27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac"}
+RUNNER 1-90
+1: import assert from 'node:assert/strict';
+2: import { admitSource } from './admission.mjs';
+3: import fs from 'node:fs/promises';
+4: import fsSync from 'node:fs';
+5: import { internalLoaderArguments } from './internal-loader-arguments.mjs';
+6: import path from 'node:path';
+7: import os from 'node:os';
+8: import { spawn } from 'node:child_process';
+9: import { gunzipSync } from 'node:zlib';
+10: import { own, repo, sha, objectHash, hashExecutable } from './prepare-v2.mjs';
+11: 
+12: assert.deepEqual(process.argv.slice(2), ['--run']);
+13: const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL-v2.json')));
+14: const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v2.json')));
+15: for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
+16: const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json')));
+17: admitSource(manifest,JSON.parse(await fs.readFile(path.join(own,'SOURCE-TREES.json'))));
+18: assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE.json'))), executor.source);
+19: assert.equal(process.execPath, seal.node.path); assert.equal(process.version, seal.node.version); assert.equal(await hashExecutable(process.execPath), seal.node.sha256);
+20: const base = JSON.parse(await fs.readFile(path.join(own, 'TOOLS.json')));
+21: const started = Date.now(), output = await fs.mkdtemp(path.join(os.tmpdir(), 'strict-extension-independent-'));
+22: const campaignStart = started;
+23: console.log(JSON.stringify({ output, source: executor.source, candidate: manifest.computedTree }));
+24: const receipt = { schema: 'strict-extension-independent-result-v1', output, source: manifest, executor, status: 'PREPARING', children: [], cohorts: [], types: [], controls: [], failures: [], tools: {}, nativeRuns: 0, privateRuns: 0 };
+25: let captured = 0, written = 0, childCount = 0, workerCount = 0, loaderReservations = 0;
+26: async function scratchBytes() {
+27:   let total = 0;
+28:   const scan = async root => { for (const name of await fs.readdir(root)) { const filename = path.join(root, name), stat = await fs.lstat(filename); assert.ok(!stat.isSymbolicLink()); if (stat.isDirectory()) await scan(filename); else { total += stat.size; assert.ok(total <= seal.bounds.scratchBytes); } } };
+29:   await scan(output); return total;
+30: }
+31: const save = () => fs.writeFile(path.join(output, 'RESULT.json'), JSON.stringify(receipt, null, 2) + '\n');
+32: async function write(file, bytes, mode = 0o644) { written += Buffer.byteLength(bytes); assert.ok(written <= seal.bounds.scratchBytes); await fs.mkdir(path.dirname(file), { recursive: true }); await fs.writeFile(file, bytes, { flag: 'wx', mode }); }
+33: async function inventory(root) {
+34:   const rows = [];
+35:   const walk = async relative => { for (const name of (await fs.readdir(path.join(root, relative))).sort()) { assert.notEqual(name, 'AGENTS.md'); const filename = path.join(relative, name), target = path.join(root, filename), metadata = await fs.lstat(target); assert.ok(!metadata.isSymbolicLink()); if (metadata.isDirectory()) await walk(filename); else { assert.ok(metadata.isFile()); const bytes = await fs.readFile(target); rows.push({ path: filename, mode: metadata.mode & 0o777, bytes: bytes.length, sha256: sha(bytes) }); } } };
+36:   await walk(''); return rows.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+37: }
+38: const environment = { PATH: path.dirname(process.execPath), HOME: path.join(output, 'home'), TMPDIR: path.join(output, 'tmp'), npm_config_cache: path.join(output, 'cache'), npm_config_userconfig: path.join(output, 'npmrc'), npm_config_globalconfig: path.join(output, 'global-npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_update_notifier: 'false', NO_COLOR: '1' };
+39: async function child(label, executable, args, cwd, extra = {}, input) {
+40:   assert.ok(++childCount <= seal.bounds.children);
+41:   const guarded = args.includes('--loader');
+42:   if (guarded) { loaderReservations++; assert.ok(loaderReservations <= seal.bounds.loaderAdmissions); assert.ok(childCount <= seal.bounds.children); }
+43:   const resourceLog = path.join(output, label + '-resources.jsonl');
+44:   if (guarded) args = internalLoaderArguments(args, { root: await fs.realpath(output), loader: path.join(harness, 'loader.mjs'), bootstrap: path.join(harness, 'resources.mjs'), consumer: args.at(-1) });
+45:   extra = { ...extra, ...(guarded ? { RESOURCE_LOG: resourceLog, RESOURCE_ALLOWANCE: String(Math.min(seal.bounds.regexWorkers - workerCount, seal.bounds.regexWorkers-workerCount)) } : {}) }; assert.ok(Date.now() - campaignStart < seal.bounds.totalSeconds * 1000);
+46:   assert.ok(seal.plannedLabels.includes(label) && !receipt.children.some(row => row.label === label), 'unplanned/repeated child role');
+47:   const row = { label, executable, executableSha256: await hashExecutable(executable), args, cwd, signals: [], closed: false };
+48:   assert.equal(row.executableSha256, executable === seal.node.path ? seal.node.sha256 : seal.developmentGit.sha256); assert.ok(executable === seal.node.path || executable === seal.developmentGit.path);
+49:   receipt.children.push(row);
+50:   const stdoutFd = fsSync.openSync(path.join(output, label + '.stdout'), 'wx'), stderrFd = fsSync.openSync(path.join(output, label + '.stderr'), 'wx');
+51:   const out = [], err = []; let size = 0, rescue, spawnError, captureError, alarm = false, spawnErrorPresent = false, captureErrorPresent = false;
+52:   const instance = spawn(executable, args, { cwd, env: { ...environment, ...extra }, stdio: ['pipe', 'pipe', 'pipe'] }); row.pid = instance.pid;
+53:   const closed = new Promise(resolve => instance.once('close', (...values) => resolve(values)));
+54:   instance.once('error', error => { spawnErrorPresent = true; spawnError = error; }); instance.stdin.on('error', () => {});
+55:   const terminate = () => { if (alarm) return; alarm = true; row.signals.push('SIGTERM'); instance.kill('SIGTERM'); rescue = setTimeout(() => { if (!row.closed) { row.signals.push('SIGKILL'); instance.kill('SIGKILL'); } }, 1000); };
+56:   for (const [stream, chunks, descriptor] of [[instance.stdout, out, stdoutFd], [instance.stderr, err, stderrFd]]) stream.on('data', bytes => {
+57:     size += bytes.length; captured += bytes.length;
+58:     try { if (size > seal.bounds.childCaptureBytes || captured > seal.bounds.captureBytes) { terminate(); return; } fsSync.writeSync(descriptor, bytes); chunks.push(Buffer.from(bytes)); }
+59:     catch (error) { captureErrorPresent = true; captureError = error; terminate(); }
+60:   });
+61:   const timer = setTimeout(terminate, Math.min(120000, seal.bounds.totalSeconds * 1000 - (Date.now() - campaignStart)));
+62:   instance.stdin.end(input);
+63:   const [code, signal] = await closed;
+64:   row.closed = true; clearTimeout(timer); clearTimeout(rescue); fsSync.closeSync(stdoutFd); fsSync.closeSync(stderrFd);
+65:   Object.assign(row, { code, signal, alarm, spawnErrorPresent, captureErrorPresent });
+66:   await save();
+67:   assert.ok(!captureErrorPresent, 'capture integrity stop');
+68:   if (guarded) {
+69:     const events = (await fs.readFile(resourceLog, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; })).trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
+70:     const births = events.filter(event => event.kind === 'worker-create'), exits = events.filter(event => event.kind === 'worker-exit');
+71:     workerCount += births.length; assert.ok(workerCount <= seal.bounds.regexWorkers); row.resources = { events, births: births.length, exits: exits.length, loaderReservation: 1 };
+72:     assert.ok(childCount <= seal.bounds.children);
+73:     if (!events.some(event => event.kind === 'bootstrap') || births.length !== exits.length || births.some(event => !exits.some(exit => exit.id === event.id))) { row.resourceClosureUnknown = true; }
+74:   }
+75:   const stdout = Buffer.concat(out), stderr = Buffer.concat(err); Object.assign(row, { code, signal, spawnError, alarm, outputBytes: size, stdoutSha256: sha(stdout), stderrSha256: sha(stderr) });
+76:   assert.equal(sha(await fs.readFile(path.join(output, label + '.stdout'))), sha(stdout), 'raw stdout capture integrity');
+77:   assert.equal(sha(await fs.readFile(path.join(output, label + '.stderr'))), sha(stderr), 'raw stderr capture integrity');
+78:   await save();
+79:   row.scratchBytesAfterClose = await scratchBytes();
+80:   assert.ok(!row.resourceClosureUnknown && !alarm && !spawnErrorPresent && signal === null && code !== 78, `safety/setup/retirement stop: ${label}`);
+81:   return { row, code, out: stdout, err: stderr };
+82: }
+83: const source = path.join(output, 'source'), harness = path.join(output, 'harness');
+84: let compiler, npm, packageRows;
+85: const consumers = new Map();
+86: async function setupConsumer(product, layout) {
+87:   const directory = layout === 'source' ? path.join(product, '__consumer') : path.dirname(path.dirname(product));
+88:   await fs.mkdir(directory, { recursive: true });
+89:   for (const name of ['public.mjs', 'apply-public.mjs', 'm1a.mjs', 'packs.mjs', 'fixture.json', 'packs.json', 'names.mjs', 'arrays.mjs', 'ARRAY-CASES.json', 'stream-consumer.mjs', 'redirections.mjs', 'redirection-cases.json', 'close-observer.mjs', 'strict.mjs', 'strict-design.json', 'conditional.mjs', 'extension.mjs', 'extension-design.json', 'novel.mjs', 'n14.mjs', 'identity.mjs']) await write(path.join(directory, name), await fs.readFile(path.join(harness, name)));
+90:   await fs.mkdir(path.join(directory, 'coherence'));
+RUNNER 91-148
+91:   for (const name of ['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json']) await write(path.join(directory, 'coherence', name), await fs.readFile(path.join(harness, 'coherence', name)));
+92:   consumers.set(await fs.realpath(product), await fs.realpath(directory)); return directory;
+93: }
+94: async function run(label, product, script, extras = {}, bindingMutation) {
+95:   const real = await fs.realpath(product), directory = consumers.get(real); assert.ok(directory);
+96:   const rows = await inventory(path.join(real, 'dist')), harnessRows = [];
+97:   for (const file of [path.join(directory, script), path.join(directory, 'names.mjs'), path.join(directory, 'coherence/names.mjs'), path.join(harness, 'resources.mjs'), path.join(harness, 'worker-policy.mjs')]) { const bytes = await fs.readFile(file); harnessRows.push({ path: await fs.realpath(file), sha256: sha(bytes) }); }
+98:   const binding = { root: real, inputs: rows, harness: harnessRows, trace: path.join(output, label + '-loads.jsonl') }; if (bindingMutation) bindingMutation(binding);
+99:   const bindingFile = path.join(output, label + '-binding.json'); await write(bindingFile, JSON.stringify(binding));
+100:   return child(label, process.execPath, ['--test-reporter=tap', '--loader', path.join(harness, 'loader.mjs'), path.join(directory, script)], product, { PUBLIC_BINDING: bindingFile, GIT_AUTHOR_ROOT: real, GIT_AUTHOR_RESULT: path.join(output, label + '-git-cases.json'), PRODUCT_ROOT: real, PUBLIC_RESULT: path.join(output, label + '-cases.json'), LAYOUT: label, ...extras });
+101: }
+102: async function cohort(label, product, script, expected, extras = {}) {
+103:   const result = await run(label, product, script, extras);
+104:   const lines = result.out.toString().trim().split('\n').filter(Boolean).map(line => JSON.parse(line)); const summary = lines.at(-1)?.summary; assert.ok(summary); assert.equal(summary.cases, expected); assert.equal(result.code, summary.pass === expected ? 0 : 1);
+105:   const cases = lines.slice(0, -1); assert.equal(cases.length, expected);
+106:   assert.ok(cases.every(row => !row.cleanupError && !row.cleanupFailure && (row.disposed === undefined || row.disposed === true || row.disposed === row.created)), 'cleanup failure stops dependent execution');
+107:   receipt.cohorts.push({ label, ...summary, cases }); if (summary.pass !== expected) receipt.failures.push({ label, cases: cases.filter(row => !row.pass) });
+108: }
+109: async function moduleCohort(label, product, script, expected) {
+110:   const result = await run(label, product, script);
+111:   const summary = JSON.parse(await fs.readFile(path.join(output, label + '-git-cases.json')));
+112:   assert.equal(summary.cases.length, expected); assert.equal(summary.pass + summary.fail, expected); assert.equal(result.code, summary.fail ? 1 : 0);
+113:   receipt.cohorts.push({ label, ...summary }); if (summary.fail) receipt.failures.push({ label, cases: summary.cases.filter(row => row.status !== 'PASS') });
+114: }
+115: async function types(label, product) {
+116:   const original = await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8') + '\nimport { parseShell as parseConditionalSource } from "virtual-bash";\nconst conditionalNode = parseConditionalSource("[[ x ]]").lists[0]!.pipelines[0]!.commands[0]!;\nif (conditionalNode.kind === "conditional") { const expression = conditionalNode.expression; void expression;\n// @ts-expect-error\nconst invalid: string = conditionalNode.expression;\n// @ts-expect-error\nconditionalNode.notAProperty;\n}\n';
+117:   for (const negative of [false, true]) {
+118:     const filename = path.join(consumers.get(await fs.realpath(product)), `consumer-${label}-${negative}.mts`);
+119:     const text = original.replaceAll(negative ? '// @ts-expect-error' : 'NEVER_REPLACE', negative ? '// removed directive' : '');
+120:     await write(filename, text);
+121:     const result = await child(`types-${label}-${negative}`, process.execPath, [compiler, '--strict', '--exactOptionalPropertyTypes', '--noEmit', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--pretty', 'false', '--listFiles', '--typeRoots', path.join(source, 'node_modules/@types'), filename], output);
+122:     const diagnostic = result.out.toString() + result.err.toString(), errors = diagnostic.split('\n').filter(line => /error TS\d+:/.test(line));
+123:     const expected = JSON.parse(await fs.readFile(path.join(own, 'TYPE-EXPECTATIONS.json')));
+124:     const normalized = errors.map(line => line.slice(line.indexOf('(')));
+125:     const pass = negative ? result.code !== 0 && JSON.stringify(normalized) === JSON.stringify(expected) : result.code === 0 && errors.length === 0;
+126:     const declarations = result.out.toString().split('\n').filter(line => line.endsWith('.d.ts') && line.includes('/dist/'));
+127:     assert.ok(declarations.length > 0);
+128:     const real = await fs.realpath(product), bound = [];
+129:     for (const file of declarations) { const actual = await fs.realpath(file); assert.ok(actual.startsWith(real + '/dist/')); const row = packageRows.find(row => row.path === path.relative(real, actual)); assert.ok(row); assert.equal(sha(await fs.readFile(actual)), row.sha256); bound.push({ file: actual, sha256: row.sha256 }); }
+130:     receipt.types.push({ label, negative, pass, errors, declarations: bound }); if (!pass) receipt.failures.push({ label: `types-${label}`, negative, errors });
+131:   }
+132: }
+133: try {
+134:   for (const name of ['home', 'tmp', 'cache', 'source', 'harness']) await fs.mkdir(path.join(output, name));
+135:   for (const name of ['npmrc', 'global-npmrc']) await write(path.join(output, name), '');
+136:   const blobs = await child('development-blobs', '/usr/bin/git', ['-c','gc.auto=0','-c','maintenance.auto=false','-c','core.hooksPath=/dev/null','cat-file','--batch'], repo, { GIT_OPTIONAL_LOCKS: '0', PATH: '/usr/bin' }, manifest.inputs.map(row => row.blob).join('\n') + '\n');
+137:   assert.equal(blobs.code, 0); let offset = 0;
+138:   for (const row of manifest.inputs) {
+139:     assert.ok(!row.path.startsWith('/') && !row.path.split('/').some(part => part === '..' || part === 'AGENTS.md'));
+140:     const newline = blobs.out.indexOf(10, offset); assert.equal(blobs.out.subarray(offset, newline).toString(), `${row.blob} blob ${row.bytes}`); offset = newline + 1;
+141:     const bytes = blobs.out.subarray(offset, offset + row.bytes); offset += row.bytes + 1; assert.equal(sha(bytes), row.sha256); assert.equal(objectHash('blob', bytes), row.blob); assert.equal(blobs.out[offset - 1], 10);
+142:     await write(path.join(source, row.path), bytes, Number.parseInt(row.mode, 8) & 0o777);
+143:   }
+144:   assert.equal(offset, blobs.out.length);
+145:   for (const name of ['typescript', '@types/node', 'undici-types', 'npm']) {
+146:     const tool = base.tools[name], destination = name === 'npm' ? path.join(output, 'tools/npm') : path.join(source, 'node_modules', name);
+147:     assert.equal(sha(Buffer.from(JSON.stringify(tool.originalRows))), manifest.toolBindings[name].inventorySha256);
+148:     for (const [relative, mode, length, digest] of tool.originalRows) {
+RUNNER 150-210
+150:       if (mode === 'SYMLINK') { assert.ok(stat.isSymbolicLink()); assert.equal(await fs.readlink(filename), length); assert.ok(tool.omittedInternalBinLinks.some(([name, target]) => name === relative && target === length)); const target = await fs.realpath(filename), real = await fs.realpath(tool.origin); assert.ok(target.startsWith(real + path.sep)); const row = tool.originalRows.find(row => row[0] === path.relative(real, target)); assert.ok(row && row[1] !== 'SYMLINK'); assert.equal(sha(await fs.readFile(target)), row[3]); continue; }
+151:       assert.ok(stat.isFile() && !stat.isSymbolicLink()); assert.equal(stat.size, length); const bytes = await fs.readFile(filename); assert.equal(stat.mode & 0o777, mode); assert.equal(bytes.length, length); assert.equal(sha(bytes), digest); await write(path.join(destination, relative), bytes, mode);
+152:     }
+153:     receipt.tools[name] = { origin: tool.origin, rows: tool.originalRows, omittedInternalBinLinks: tool.omittedInternalBinLinks, copied: destination };
+154:     assert.equal(JSON.parse(await fs.readFile(path.join(destination, 'package.json'))).version, tool.version);
+155:   }
+156:   const harnessMap = [
+157:     ['fixture.json', 'tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json'], ['packs.json', 'tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json'],
+158:     ...['public.mjs', 'apply-public.mjs', 'm1a.mjs', 'packs.mjs', 'resources.mjs', 'names.mjs', 'loader.mjs', 'consumer.ts.fixture'].map(name => [name, ['resources.mjs','loader.mjs'].includes(name) ? 'tests/integration/git-public-independent-20260829/successor-bindings-v2/' + name : 'tests/integration/git-public-20260829/' + name]),
+159:     ['arrays.mjs', 'tests/integration/coherent78-arrays-author-20260828/arrays.mjs'], ['ARRAY-CASES.json', 'tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json'],
+160:     ...['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json'].map(name => ['coherence/' + name, 'tests/integration/coherent78-shell-author-20260828/' + name]),
+161:     ['stream-consumer.mjs', 'tests/plugins/stream-five-public/consumer.mjs'],
+162:   ];
+163:   harnessMap.push(['redirections.mjs', 'tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs'], ['redirection-cases.json', 'tests/compatibility/bash-redirection-author-20260829/CASES.json'], ['close-observer.mjs', 'tests/compatibility/bash-redirection-author-20260829/close-observer.mjs'], ['strict.mjs', 'tests/compatibility/bash-strict-mode-author-20260829/strict.mjs'], ['strict-design.json', 'tests/compatibility/bash-strict-mode-design-20260829/CASES.json']);
+164:   harnessMap.push(['conditional.mjs', 'tests/compatibility/bash-conditional-author-20260829/conditional-v4.mjs']);
+165:   harnessMap.push(['extension.mjs', 'tests/compatibility/bash-strict-extension-author-20260829/extension-v2.mjs'], ['extension-design.json', 'tests/compatibility/bash-strict-extension-design-20260829/CASES.json']);
+166:   harnessMap.push(['worker-policy.mjs','tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs'],['novel.mjs','tests/compatibility/bash-strict-extension-independent-20260829/novel.mjs']);
+167:   harnessMap.push(['n14.mjs','tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs'],['identity.mjs','tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/identity.mjs']);
+168:   for (const [destination, from] of harnessMap) { const row = executor.files.find(row => row.path === from), bytes = await fs.readFile(path.join(repo, from)); assert.equal(sha(bytes), row.sha256); await write(path.join(harness, destination), bytes); }
+169:   const sourceBefore = await inventory(path.join(source, 'src'));
+170:   compiler = path.join(source, 'node_modules/typescript/bin/tsc'); npm = path.join(output, 'tools/npm/bin/npm-cli.js');
+171:   const build = await child('production-build-once', process.execPath, [compiler, '-p', path.join(source, 'tsconfig.build.json')], source); assert.equal(build.code, 0, build.out.toString());
+172:   const packed = await child('offline-pack', process.execPath, [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', output], source); assert.equal(packed.code, 0, packed.err.toString());
+173:   const filename = JSON.parse(packed.out.toString())[0].filename; assert.equal(path.basename(filename), filename); const tarball = path.join(output, filename), archive = await fs.readFile(tarball);
+174:   receipt.package = { file: filename, bytes: archive.length, sha256: sha(archive), manifest: JSON.parse(packed.out.toString())[0] };
+175:   const tar = gunzipSync(archive, { maxOutputLength: 67108864 }), tarRows = []; let cursor = 0;
+176:   while (cursor + 512 <= tar.length && tar[cursor] !== 0) {
+177:     const header = tar.subarray(cursor, cursor + 512), name = header.subarray(0, 100).toString().split('\0')[0], size = Number.parseInt(header.subarray(124, 136).toString().replace(/\0/g, '').trim(), 8), mode = Number.parseInt(header.subarray(100, 108).toString().replace(/\0/g, '').trim(), 8), type = header[156];
+178:     assert.ok(name.startsWith('package/') && !name.split('/').some(part => part === '..' || part === 'AGENTS.md')); assert.ok(type === 0 || type === 48); assert.ok(Number.isSafeInteger(size) && size >= 0 && size <= tar.length - cursor - 512);
+179:     let checksum = 0; for (let position = 0; position < 512; position++) checksum += position >= 148 && position < 156 ? 32 : header[position]; assert.equal(checksum, Number.parseInt(header.subarray(148, 156).toString().replace(/\0/g, '').trim(), 8));
+180:     tarRows.push({ path: name.slice(8), mode, bytes: size, sha256: sha(tar.subarray(cursor + 512, cursor + 512 + size)) }); cursor += 512 + Math.ceil(size / 512) * 512;
+181:   }
+182:   assert.ok(tar.subarray(cursor).every(byte => byte === 0)); assert.equal(new Set(tarRows.map(row => row.path)).size, tarRows.length); receipt.package.members = tarRows;
+183:   packageRows = tarRows; assert.equal(receipt.package.sha256, seal.expectedPackageSha256); assert.equal(tarRows.length, seal.expectedPackageMembers); assert.deepEqual(JSON.parse(await fs.readFile(path.join(source, 'package.json'))).dependencies ?? {}, {});
+184:   const sourceDist = await inventory(path.join(source, 'dist'));
+185:   for (const row of tarRows) { const bytes = await fs.readFile(path.join(source, row.path)); assert.equal(sha(bytes), row.sha256); }
+186:   const coherenceIds = Array.from({ length: 17 }, (_, index) => 'C' + String(index + 2).padStart(2, '0')).concat('R15').join(',');
+187:   async function layout(label, product) {
+188:     await setupConsumer(product, label); await cohort(label + '-redirections-v3', product, 'redirections.mjs', 48); await cohort(label + '-strict', product, 'strict.mjs', 50); await cohort(label + '-conditional', product, 'conditional.mjs', 67); await cohort(label + '-extension', product, 'extension.mjs', 35); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-novel', product, 'novel.mjs', 16); await cohort(label + '-n14', product, 'n14.mjs', 12); await cohort(label + '-identity', product, 'identity.mjs', 8); await types(label, product);
+189:   }
+190:   await layout('source', source);
+191:   const installed = path.join(output, 'installed'); await write(path.join(installed, 'package.json'), '{"private":true,"type":"module"}\n');
+192:   const install = await child('offline-install', process.execPath, [npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', '--omit=dev', tarball], installed); assert.equal(install.code, 0, install.err.toString());
+193:   const installedRoot = path.join(installed, 'node_modules/virtual-bash'); assert.deepEqual(await inventory(installedRoot), [...tarRows].sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+194:   await layout('installed', installedRoot);
+195:   const moved = path.join(output, 'moved package'); await fs.rename(installed, moved); const movedRoot = path.join(moved, 'node_modules/virtual-bash');
+196:   consumers.set(await fs.realpath(movedRoot), await fs.realpath(moved));
+197:   await cohort('moved-redirections-v3', movedRoot, 'redirections.mjs', 48); await cohort('moved-strict', movedRoot, 'strict.mjs', 50); await cohort('moved-conditional', movedRoot, 'conditional.mjs', 67); await cohort('moved-extension', movedRoot, 'extension.mjs', 35); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-novel', movedRoot, 'novel.mjs', 16); await cohort('moved-n14', movedRoot, 'n14.mjs', 12); await cohort('moved-identity', movedRoot, 'identity.mjs', 8); await types('moved', movedRoot);
+198:   const mutant = path.join(output, 'operator-mutants'); await write(path.join(mutant, 'package.json'), '{"private":true,"type":"module"}\n');
+199:   const mutantRoot = path.join(mutant, 'node_modules/virtual-bash');
+200:   for (const row of tarRows) await write(path.join(mutantRoot, row.path), await fs.readFile(path.join(movedRoot, row.path)), row.mode);
+201:   await setupConsumer(mutantRoot, 'mutant');
+202:   const mutations = [
+203:   {
+204:     "id": "drop-exact-provenance",
+205:     "file": "shell/runtime.js",
+206:     "before": "this.cancellationState.recordDiagnostic(publicPromise, reason);",
+207:     "after": "void publicPromise;",
+208:     "case": "N10"
+209:   },
+210:   {
+RUNNER 265-320
+
+{"resultHash":"c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a","tools":[{"name":"typescript","origin":"/Users/kjopek/Workspace/safe-bash/node_modules/typescript","copied":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/typescript","rows":132},{"name":"@types/node","origin":"/Users/kjopek/Workspace/safe-bash/node_modules/@types/node","copied":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/@types/node","rows":74},{"name":"undici-types","origin":"/Users/kjopek/Workspace/safe-bash/node_modules/undici-types","copied":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/undici-types","rows":41},{"name":"npm","origin":"/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm","copied":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/tools/npm","rows":2039}],"package":{"name":"virtual-bash-0.0.0.tgz","bytes":872281,"sha256":"3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49","members":954},"children":[{"label":"development-blobs","pid":82659,"args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","cat-file","--batch"],"cwd":"/Users/kjopek/Workspace/safe-bash","exe":"/usr/bin/git","code":0,"outputBytes":2704624,"scratch":2972453},{"label":"production-build-once","pid":82941,"args":["/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/typescript/bin/tsc","-p","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/tsconfig.build.json"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":0,"scratch":51371233},{"label":"offline-pack","pid":83488,"args":["/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/tools/npm/bin/npm-cli.js","pack","--offline","--ignore-scripts","--json","--pack-destination","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":107251,"scratch":54570069},{"label":"source-redirections-v3","pid":83637,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/redirections.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":4627,"scratch":55668324},{"label":"source-strict","pid":83652,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/strict.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":9582,"scratch":55871515},{"label":"source-conditional","pid":83671,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/conditional.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":12119,"scratch":56085109},{"label":"source-extension","pid":83682,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/extension.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":21755,"scratch":56313884},{"label":"source-arrays","pid":83706,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/arrays.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":4591,"scratch":56553670},{"label":"source-novel","pid":83733,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/novel.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":13286,"scratch":56762638},{"label":"source-n14","pid":83746,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/n14.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":7139,"scratch":56985538},{"label":"source-identity","pid":83765,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/identity.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":2730,"scratch":57180813},{"label":"types-source-false","pid":83771,"args":["/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/typescript/bin/tsc","--strict","--exactOptionalPropertyTypes","--noEmit","--target","ES2022","--module","NodeNext","--moduleResolution","NodeNext","--skipLibCheck","--pretty","false","--listFiles","--typeRoots","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/@types","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/consumer-source-false.mts"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":34620,"scratch":57221815},{"label":"types-source-true","pid":83785,"args":["/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/typescript/bin/tsc","--strict","--exactOptionalPropertyTypes","--noEmit","--target","ES2022","--module","NodeNext","--moduleResolution","NodeNext","--skipLibCheck","--pretty","false","--listFiles","--typeRoots","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/node_modules/@types","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source/__consumer/consumer-source-true.mts"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":2,"outputBytes":36109,"scratch":57284386},{"label":"offline-install","pid":83824,"args":["/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/tools/npm/bin/npm-cli.js","install","--offline","--ignore-scripts","--no-audit","--no-fund","--package-lock=false","--omit=dev","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/installed","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":23,"scratch":62154147},{"label":"installed-redirections-v3","pid":83909,"args":["--experimental-permission","--allow-fs-read=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-fs-write=/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS","--allow-worker","--import","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/resources.mjs","--test-reporter=tap","--loader","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/harness/loader.mjs","/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/installed/redirections.mjs"],"cwd":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/installed/node_modules/virtual-bash","exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","code":0,"outputBytes":4627,"scratch":62952383}],"scratchWriteBytes":52563815,"actualScratchBytes":73056704,"work":"/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS"}
+[
+  {
+    "id": "virtual-bash@0.0.0",
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "size": 872281,
+    "unpackedSize": 4821648,
+    "shasum": "205b6ddd1da26da323a9cf6c496873f830ec0162",
+    "integrity": "sha512-WJJqCdFin9g9FxcdnlfvUBu9YRD1FTosTI2DZOsiln1JYzvb1mtArnqY6VWl6oqtJKLUrXLcIcQEVF3YWt6Orw==",
+    "filename": "virtual-bash-0.0.0.tgz",
+    "files": [
+      {
+        "path": "README.md",
+        "size": 51008,
+        "mode": 420
+      },
+      {
+        "path": "dist/commands/ap
+{
+  "role": "INDEPENDENT_FROZEN_STRICT_EXTENSION",
+  "date": "2026-08-29",
+  "repo": "/Users/kjopek/Workspace/safe-bash",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceCommit": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "sourceSha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4",
+  "base": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+  "provisionalUnit3": false,
+  "acceptedResolvedUnit2": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "expectedInputs": 293,
+  "expectedPackageMembers": 954,
+  "expectedPackageSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "developmentGit": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+  },
+  "bounds": {
+    "totalSeconds": 3157,
+    "children": 60,
+    "peak": 4,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 234881024,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608,
+    "loaderAdmissions": 48,
+    "regexWorkers": 8
+  },
+  "rootBounds": {
+    "seconds": 3600,
+    "knownAllOS": 128,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824
+  },
+  "workParent": "/private/tmp/strict-n14-independent-active-1AKd2V",
+  "plannedLabels": [
+    "development-blobs",
+    "production-build-once",
+    "offline-pack",
+    "source-redirections-v3",
+    "source-strict",
+    "source-conditional",
+    "source-extension",
+    "source-arrays",
+    "source-novel",
+    "types-source-false",
+    "types-source-true",
+    "offline-install",
+    "installed-redirections-v3",
+    "installed-strict",
+    "installed-conditional",
+    "installed-extension",
+    "installed-arrays",
+    "installed-novel",
+    "types-installed-false",
+    "types-installed-true",
+    "moved-redirections-v3",
+    "moved-strict",
+    "moved-conditional",
+    "moved-extension",
+    "moved-arrays",
+    "moved-novel",
+    "types-moved-false",
+    "types-moved-true",
+    "binding-missing",
+    "binding-changed",
+    "source-n14",
+    "source-identity",
+    "installed-n14",
+    "installed-identity",
+    "moved-n14",
+    "moved-identity",
+    "drop-exact-provenance",
+    "drop-exact-provenance-restored",
+    "expose-private-wrapper",
+    "expose-private-wrapper-restored"
+  ],
+  "cohorts": {
+    "authorPerLayout": 224,
+    "priorNovelPerLayout": 16,
+    "newIdentityPerLayout": 8,
+    "authorTotal": 672,
+    "priorNovelTotal": 48,
+    "newIdentityTotal": 24,
+    "mainTotal": 744,
+    "types": 6,
+    "negativeDiagnostics": 24,
+    "loadedMutants": 2,
+    "restores": 2,
+    "bindingRefusals": 2
+  },
+  "openIds": [
+    "U27",
+    "S-U27-INPUT-UNIT-v1",
+    "S-U28-PRESENCE-v1",
+    "S-U31-STDIN-v1",
+    "E23-source-discard"
+  ],
+  "resources": "Known processes and administration accounted separately from40 fixed loader and8 Regex ceilings; expectedRegex0. No internal individual-loader exit/globaldescendant/RSS attestation.",
+  "executions": 0,
+  "plannedProcesses": {
+    "directChildren": 40,
+    "coordinator": 1,
+    "outerPython": 1,
+    "conservativeExecShell": 1,
+    "administrationReserve": 40,
+    "conservativePlannedTotal": 83,
+    "rootCeiling": 128
+  },
+  "plannedWorkers": {
+    "fixedInternalLoaders": 30,
+    "ceilingInternal": 48,
+    "expectedRegex": 0,
+    "ceilingRegex": 8
+  },
+  "priorElapsedSeconds": 83,
+  "originalGrantStartedMs": 1787992110728.0342,
+  "correction": "Source-only rootlocator; original startup0setup/product preserved; same original actual60min budget."
+}
+

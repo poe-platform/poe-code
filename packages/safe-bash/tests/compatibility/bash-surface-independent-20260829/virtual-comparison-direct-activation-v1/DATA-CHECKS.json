@@ -1,0 +1,83 @@
+{
+  "schema": "activation-source-data-checks-v1",
+  "productRuns": 0,
+  "checks": [
+    {
+      "id": "immutable-profile",
+      "pass": true,
+      "scope": "17 exact464 source/data copies; no method edits"
+    },
+    {
+      "id": "source-inputs",
+      "pass": true,
+      "scope": "All293 typed payloads SHA256/GitSHA1 freshly authenticated; no prebuilt dist in producer inputs"
+    },
+    {
+      "id": "shipping-nondist",
+      "pass": true,
+      "scope": "README/package.json match authoritative inputs;952dist rows require future actual build"
+    },
+    {
+      "id": "matrix",
+      "pass": true,
+      "scope": "37 immutable literals/four fixture bytes;111 unique source-installed-moved entries"
+    },
+    {
+      "id": "permissions",
+      "pass": true,
+      "scope": "Source/DATA argv only; no rerun of prior controls"
+    },
+    {
+      "id": "preprovision",
+      "pass": true,
+      "scope": "Empty owned future parents only; no actual owner/case start"
+    }
+  ],
+  "freshMetadata": {
+    "at": "2026-08-29T10:17:01.502Z",
+    "toolFiles": [
+      {
+        "name": "typescript",
+        "count": 132,
+        "bytes": 23625066
+      },
+      {
+        "name": "@types/node",
+        "count": 74,
+        "bytes": 2438452
+      },
+      {
+        "name": "undici-types",
+        "count": 41,
+        "bytes": 83680
+      }
+    ],
+    "archive": {
+      "kind": "archive",
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "bytes": 872281,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+      "regular": true,
+      "decodeCalls": 0,
+      "executionCalls": 0
+    },
+    "envExecutable": {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "mode": 493,
+      "executed": false
+    },
+    "node": {
+      "kind": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493,
+      "regular": true,
+      "decodeCalls": 0,
+      "executionCalls": 0
+    }
+  },
+  "qualification": "SOURCE/DATA checks, not compiler/loader/product/runtime evidence"
+}

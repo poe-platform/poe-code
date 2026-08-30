@@ -1,0 +1,98 @@
+{
+  "classification": "COUNTERFEIT_FIXTURE_NOT_PRODUCT",
+  "receipt": {
+    "binding": {
+      "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "inventory": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+      "package": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+      "sourceBinding": "4afc02fce0e69c6168f14b6ee7b56f218fb642ea1b72b85bfef7be8b63960329",
+      "profile": "F11-ROOT-ALL-OWN-CAPS-v1-20260828",
+      "caseSha256": "c8ec0c70a7756798a3744f177654f9b4765c07ddd93027be403bdca6acecf2d9",
+      "argv": [
+        "count"
+      ],
+      "inputHex": "610a",
+      "factory": {
+        "limits": {
+          "maxWork": 14
+        }
+      },
+      "caps": {
+        "maxArgs": 128,
+        "maxArgumentBytes": 65536,
+        "maxInputFiles": 16,
+        "maxInputBytes": 268435456,
+        "maxChunks": 262144,
+        "maxChunkBytes": 8388608,
+        "maxRecordBytes": 8388608,
+        "maxCellBytes": 4194304,
+        "maxColumns": 16384,
+        "maxRecords": 1000000,
+        "maxSelectorBytes": 16384,
+        "maxSelectorNodes": 4096,
+        "maxSelectorDepth": 2,
+        "maxSelectedColumns": 16384,
+        "maxLastRows": 4096,
+        "maxWork": 14,
+        "maxOutputBytes": 268435456,
+        "maxRetainedBytes": 33554432
+      },
+      "parentShellOutputLimit": null,
+      "collectingCap": 65536
+    },
+    "evidenceKind": "PUBLIC_OBSERVATIONS_PLUS_STATIC_PATH_NOT_MEASURED_COUNTERS",
+    "staticPath": {
+      "classification": "STATIC_INFERENCE_FROM_PINNED_SOURCE_AND_EXACT_HOST_PATH_NOT_RUNTIME_ERROR_CAPTURE",
+      "primary": "maxWork",
+      "diagnosticPath": "index.ts:48 textSize admits x then rejects a; no stderr reservation/write",
+      "ledger": {
+        "atPrimary": {
+          "work": 13,
+          "retained": 34,
+          "reservedOutput": 2
+        },
+        "firstRejected": {
+          "resource": "maxWork",
+          "requested": 2,
+          "remaining": 1
+        },
+        "finalWork": 14,
+        "peakRetained": 64,
+        "finalRetained": 0,
+        "reservedOutput": 2,
+        "outputReservationsRefunded": false,
+        "diagnosticAdditionalWorkIfFit": 136,
+        "diagnosticPeakRetainedIfFit": 90,
+        "totalOutputIfFit": 36
+      }
+    },
+    "instrumentedCounters": false,
+    "observation": {
+      "settlement": "fulfilled",
+      "result": {
+        "exitCode": 1
+      },
+      "reason": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "counts": {
+        "acquisitions": 1,
+        "next": 2,
+        "returns": 0,
+        "stdoutWrites": 0,
+        "stderrWrites": 0,
+        "fsReadStream": 0
+      },
+      "cleanupRegistered": 3,
+      "cleanupPromiseIdentity": true,
+      "cleanupFailures": [],
+      "callerAborted": false
+    },
+    "invocations": 2,
+    "admissionBeforeAcquisition": true,
+    "closed": true,
+    "intact": true,
+    "rawBeforeAssertion": true
+  }
+}

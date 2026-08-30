@@ -1,0 +1,256 @@
+{
+  "schema": "cd-independent-inputs/v1",
+  "capturedAt": "2026-08-28T04:54:02.077Z",
+  "inputs": [
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/index.ts",
+      "blob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+      "bytes": 1593,
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "package.json",
+      "blob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+      "bytes": 4840,
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/index.ts",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/runtime.ts",
+      "blob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "bytes": 132362,
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/shell.ts",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/types.ts",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/index.ts",
+      "blob": "bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef",
+      "bytes": 202,
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/filesystem.ts",
+      "blob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/filesystem.md",
+      "blob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "bytes": 20876,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.ts",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/errors.ts",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/path.ts",
+      "blob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/memory/index.ts",
+      "blob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/real/index.ts",
+      "blob": "fd2e528075dd2f4be46eb18e2a72fa44dbfb57c4",
+      "bytes": 23656,
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/readonly/index.ts",
+      "blob": "c3f291f04374001d2070235de9bc07d99ef8c2a2",
+      "bytes": 5961,
+      "sha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/mount/index.ts",
+      "blob": "27c88f249f157b1073ba3cdd9252a088ac48a7a0",
+      "bytes": 25528,
+      "sha256": "5b7c81d0bf6e7bcd491c401fd3d0fc185f4767f15c81faaa4fddded14e53aaf6"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/s3/filesystem.ts",
+      "blob": "fd019babc0252f31cb3ae3c23bafd87898af4aae",
+      "bytes": 51254,
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/webdav/index.ts",
+      "blob": "c24b8f3d026e44a284bc3338bb961a366dd4a4cb",
+      "bytes": 230,
+      "sha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "tests/fs/webdav/mock.ts",
+      "blob": "1336483dea51168dbbe378225622b2399c5f6e0b",
+      "bytes": 11188,
+      "sha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "path": "src/fs/webdav/webdav.ts",
+      "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+      "bytes": 54400,
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5"
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "path": "src/fs/webdav/README.md",
+      "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+      "bytes": 43172,
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd"
+    },
+    {
+      "commit": "317128ddbce8ac9d321870f46957c33bca257612",
+      "path": "tests/shell/cd-prerequisite-20260828/FREEZE.json",
+      "blob": "03d8ca2221285c68ece2cb7a7fc500ee6492b18f",
+      "bytes": 2997,
+      "sha256": "149aac0ef0cf21aeabf468560320ce873dcd61772584b2ad8c36ede7cbfe57f1"
+    },
+    {
+      "commit": "317128ddbce8ac9d321870f46957c33bca257612",
+      "path": "tests/shell/cd-prerequisite-20260828/README.md",
+      "blob": "ea470878e3a69ce5e058163904d7fcaa3c6720f1",
+      "bytes": 3286,
+      "sha256": "b282eb524e01b03378f64b434f4597b8a9ad897cfa79a752811a748d1e773641"
+    },
+    {
+      "commit": "317128ddbce8ac9d321870f46957c33bca257612",
+      "path": "tests/shell/cd-prerequisite-20260828/cases.json",
+      "blob": "0f28ccc24aca3fe8c971a6ee66a16b40e422b2b0",
+      "bytes": 3317,
+      "sha256": "cc1b9d4486eea52c7f92ceff3d5710bc4483b8c329b246eccb5d12af247be634"
+    },
+    {
+      "commit": "317128ddbce8ac9d321870f46957c33bca257612",
+      "path": "tests/shell/cd-prerequisite-20260828/run.mjs",
+      "blob": "887e53345c64811181c5850c1711fa763470439d",
+      "bytes": 12231,
+      "sha256": "2fd9f8e1b99ed4845614830a456855490a7507a6ec1e25ad98d664bc60b71790"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/HANDOFF.md",
+      "blob": "713dbeee29bf6dfc0df5d1f956b17479f44803ff",
+      "bytes": 9606,
+      "sha256": "01fc0cb31422a6069235ed86acd096c64684363c092aebcc3627a4753c7d03f8"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/observations-01.json.gz.base64",
+      "blob": "05e4f2deff096a65be2de3e6c4657315b6cb3fb6",
+      "bytes": 116221,
+      "sha256": "fd8495c4fa3fea7ef168b097c026ce5382e4d3b7e21e0e4999b70aa74620bc90"
+    },
+    {
+      "commit": "882085678862a23cfeef6505fa41a03891743439",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v2.md",
+      "blob": "c00b94bf0e3e9341942a4708753a5b39ed109f33",
+      "bytes": 12128,
+      "sha256": "bbc2024017c6476b2f8c43af4a1088367303c86a4d894cd3ce6e57fda6bbc9ff"
+    },
+    {
+      "commit": "882085678862a23cfeef6505fa41a03891743439",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v2-SEAL.json",
+      "blob": "27aeb11a80c627adfd45c460e29ab1aced787604",
+      "bytes": 2694,
+      "sha256": "464934c2a63f83c7494ac0399c48b8c43eb1f0ccddb965e0d70fefc94c757eba"
+    },
+    {
+      "commit": "7728401ccb7bfa8f1961ffe100ca5617f3a6b553",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v3-DETAILS.md",
+      "blob": "357ce4e084224154d32ed72f7adde9f1bddc44cc",
+      "bytes": 7730,
+      "sha256": "5268aeafff4878926931c8ccf80cf2234134ae0d1fc594b00e44b6d157211489"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/REPORT.md",
+      "blob": "8f27bec36bdd20de4c43b02bd76d7234736f8463",
+      "bytes": 8574,
+      "sha256": "c8405b63eea24148f53abeb421a3e2671ef21558e0ab2b2c6317eef521aa4037"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/BINDING.json",
+      "blob": "ff388421325fd2260cb03eadfd78564c8cbd49ad",
+      "bytes": 10142,
+      "sha256": "d42b77343af58bc8e7e071fe2081e93b2358bf0e6ca9bee9f2d49e46534a0c22"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/integration/combined77-stage2-independent-20260828/actual-01.json.gz.base64",
+      "blob": "424358f873729c9a715f39f396d125fc2e68022c",
+      "bytes": 2203165,
+      "sha256": "583f870007f3fe4cd2f9d1b8e979e715b0d8bd975e486a88d2716d705063d0e6"
+    }
+  ],
+  "proof": {
+    "compositionTree": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352",
+    "looseTreeObjectRequired": false,
+    "rawCommitProofs": 4
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "role": "in-process display-only preparation diagnostic",
+    "message": "r2rawData.fullInstalledBefore.slice is not a function",
+    "cause": "Display assumed an array where the frozen archive supplies an object.",
+    "childStarts": 0,
+    "sourceRequests": 0,
+    "assertionsExecuted": 0,
+    "sourceProofRetried": false,
+    "qualification": "No failed admission, object hash or child result; raw source unchanged. Shape is inspected as data, never coerced or executed."
+  }
+]

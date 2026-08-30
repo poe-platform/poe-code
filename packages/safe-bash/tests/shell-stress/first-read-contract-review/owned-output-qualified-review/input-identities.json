@@ -1,0 +1,71 @@
+{
+  "classification": "immutable historical inputs only; never new candidate identities",
+  "capturedAt": "2026-08-27T12:16:46.904Z",
+  "correctedPrerequisiteFreeze": "9e6c5e2394d5d36df42529d74d1dd21301ddeab6",
+  "records": [
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/FREEZE.md",
+      "capture": "historical/FREEZE.md.data",
+      "sha256": "4095cb141a9e7d7e715daa99fc713f8734e00255969e76bdf49e4f82401040ca",
+      "gitBlob": "147affa2546fe106a724e3acf521d47089061199",
+      "bytes": 11790
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/case-plan.json",
+      "capture": "historical/case-plan.json.data",
+      "sha256": "03dfb836e8aa16a107c5ba344981aa4df58131a78f57df3354ac0695f69bf3dd",
+      "gitBlob": "ae33dfe9d0dc677c114a3f34e621f0dd3ad0b1f9",
+      "bytes": 3672
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/artifacts/driver-r1.mjs.data",
+      "capture": "historical/driver-r1.mjs.data",
+      "sha256": "28c090b7b2cfa0a6d9cb1f5c1837ca3d0726734dea630ab4557beb0a9da8bd82",
+      "gitBlob": "6abeeb9151c19ecde442e1934ab23f4c787b6219",
+      "bytes": 54631
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/artifacts/driver-fixture-delta.patch-data",
+      "capture": "historical/driver-fixture-delta.patch-data",
+      "sha256": "1f44d0a78d2664a78281e5dac9e5bc8ffe28071a10c4cbdcfe3c784dcba12e31",
+      "gitBlob": "4d82a5719811fc4aa1ceb43adce97eb534d8a09b",
+      "bytes": 6774
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/artifacts/binding-map.json",
+      "capture": "historical/binding-map.json.data",
+      "sha256": "2fb108c178225e3381c693fb796a13b53389a2db74607158c608af9c3b4eb3f2",
+      "gitBlob": "1c6ee3f4a1c2efbeaf50b8ca8fb4959bb956bbec",
+      "bytes": 24201
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/expected-observations.json",
+      "capture": "historical/expected-observations.json.data",
+      "sha256": "cfbaf336e5ba3dc31cc43384718c608cfebf4df8b4b3744c10b6a2c090b4ec25",
+      "gitBlob": "1f5a7b4766c51572df82ba279e66e8046ec17865",
+      "bytes": 11386
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/binding-s1/historical-inputs.json",
+      "capture": "historical/historical-inputs.json.data",
+      "sha256": "fe5bec0edc1d55cf574d035c36f7c41b2967cb9e3f43660b980773bec786acf2",
+      "gitBlob": "a53538bc9a39349f7acaba9d4daf37932b634b91",
+      "bytes": 10497
+    },
+    {
+      "commit": "669c881b7ae73e7731d721f124f457d10e7d8ec5",
+      "path": "tests/shell-stress/first-read-contract-review/owned-output-streaming-review/fixture-replay-s1/REPORT.md",
+      "capture": "historical/REPORT.md.data",
+      "sha256": "7cddb885236dce8335997433636ca712bc21987e85f5db722526032e23bf9bcc",
+      "gitBlob": "db6fb56c6551acfdd4986e08fb3d8d2f6addcfb4",
+      "bytes": 12984
+    }
+  ]
+}

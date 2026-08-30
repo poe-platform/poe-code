@@ -1,0 +1,687 @@
+{
+  "terminal": {
+    "rawBytes": 16777216,
+    "rawSha256": "4851193778874cd65ffbfc99b3ab70beed37c4060f3acf86cec6b28440c0d420",
+    "jsonThroughClosingBraceBytes": 1747369,
+    "jsonThroughClosingBraceSha256": "571a4df930e419a06e831d202a021c72857c116f4222bf1225c1cec34b35044a",
+    "jsonWithTrailingLFBytes": 1747370,
+    "jsonWithTrailingLFSha256": "6c845b1af4ab42227e20c0cfe8d0114ff21eb785c358e7eaea9016a0fe94c358",
+    "trailingLFBytes": 1,
+    "paddingSpaceBytes": 15029846,
+    "paddingSpaceSha256": "e6abd43f6ba257ff3a4503bc756599cf7974e3d64add90f8df378446ec646fbc",
+    "trailingWhitespaceBytes": 15029847,
+    "parsedCanonicalSerializationEqualsOriginalPrefix": true,
+    "fallbackTerminalReceipt": false
+  },
+  "childStreams": {
+    "bytes": 156266,
+    "rows": [
+      {
+        "command": 1,
+        "stream": "stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 1,
+        "stream": "stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 2,
+        "stream": "stdout",
+        "bytes": 96639,
+        "sha256": "ed461880e31d7a9e465f88088cd22ab6764a8a47e9919e83209b5df4a7d2f4b1",
+        "matches": true
+      },
+      {
+        "command": 2,
+        "stream": "stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 3,
+        "stream": "stdout",
+        "bytes": 23,
+        "sha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36",
+        "matches": true
+      },
+      {
+        "command": 3,
+        "stream": "stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 4,
+        "stream": "stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 4,
+        "stream": "stderr",
+        "bytes": 1342,
+        "sha256": "a7e5d6f00b953b545517febb56fb94a6dcd6ed19c84f553aa0a6e08b4cb21a35",
+        "matches": true
+      },
+      {
+        "command": 5,
+        "stream": "stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 5,
+        "stream": "stderr",
+        "bytes": 1494,
+        "sha256": "2f3bcd8319d04efab33935bc8338a8f5f46205290842c70f8f2571787dc5e8c6",
+        "matches": true
+      },
+      {
+        "command": 6,
+        "stream": "stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 6,
+        "stream": "stderr",
+        "bytes": 1226,
+        "sha256": "04ef07f009424284409e8f16de39d4f7f769e223409e7bb6711cb9fef2148a96",
+        "matches": true
+      },
+      {
+        "command": 7,
+        "stream": "stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "matches": true
+      },
+      {
+        "command": 7,
+        "stream": "stderr",
+        "bytes": 1337,
+        "sha256": "85bccbebeb64da4f3dc7af5a1098e3641e1713a830b30f70965066eddb8eb187",
+        "matches": true
+      },
+      {
+        "command": 8,
+        "stream": "stdout",
+        "bytes": 2480,
+        "sha256": "3439ecc14fe8e93206f76346de7ee14f423ed1a25d3275ae4f75579d5b86c9f8",
+        "matches": true
+      },
+      {
+        "command": 8,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "792fa1a124df70753ec8de16a8787d911720f7bcaace0163721c33ff73ee168f",
+        "matches": true
+      },
+      {
+        "command": 9,
+        "stream": "stdout",
+        "bytes": 2395,
+        "sha256": "2127228bfa01a32aa8c2d37b78f70972269bf1e6f0498bbbd32a2930c7f27bdd",
+        "matches": true
+      },
+      {
+        "command": 9,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "61945e967a4d42a3abe3d446416ac003b4fef5dcbb76d8dcf16a5bc763fe4136",
+        "matches": true
+      },
+      {
+        "command": 10,
+        "stream": "stdout",
+        "bytes": 2346,
+        "sha256": "8f0ba1e3dff57e24a71c63dae03432efab461eb3d2c028f589c93566edd0940d",
+        "matches": true
+      },
+      {
+        "command": 10,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "bebc261e505deee95b05a7d5d5c29cbd045460aad380344979d8124d21bd5992",
+        "matches": true
+      },
+      {
+        "command": 11,
+        "stream": "stdout",
+        "bytes": 2272,
+        "sha256": "730fbadf49c793bfdb1ddebeed9819d69f14b9bedeab8f0cafa00e7158b80a5e",
+        "matches": true
+      },
+      {
+        "command": 11,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "d1a4bf405ecc084bff7c07eb86323e388a047b8fd6e05bcbce5910ceaadd58a4",
+        "matches": true
+      },
+      {
+        "command": 12,
+        "stream": "stdout",
+        "bytes": 2355,
+        "sha256": "658ffe841d05bd899a78d492225e3c8d1c5da2e008f07fe606b8a25e6b813c79",
+        "matches": true
+      },
+      {
+        "command": 12,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "f8abc08e9caa758f01a4f2b983a3d9c7d101deb6afb4fcd50953da593053433d",
+        "matches": true
+      },
+      {
+        "command": 13,
+        "stream": "stdout",
+        "bytes": 2572,
+        "sha256": "155e6efff5509a70a7021ee2cc12465bb21f155cd0a40bf7ac8a1cdb7a77aa17",
+        "matches": true
+      },
+      {
+        "command": 13,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "784d1d3af8fd080136509000210c82245a51fcf36d986c07c5f6f49807089584",
+        "matches": true
+      },
+      {
+        "command": 14,
+        "stream": "stdout",
+        "bytes": 3108,
+        "sha256": "c11f6a59f7cf46916da1bda6e2c5a2ffc7d2bb8d9f4b99b67d2f1b823eb7a18c",
+        "matches": true
+      },
+      {
+        "command": 14,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "1ebabd8bfcc02365e43dceee9ba16dab26cf96cb407462cb0d3eed4aab066919",
+        "matches": true
+      },
+      {
+        "command": 15,
+        "stream": "stdout",
+        "bytes": 2573,
+        "sha256": "2e749d389005353be6cb35a8d36e93ca09476c02cd5437297e683628723fddb4",
+        "matches": true
+      },
+      {
+        "command": 15,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "75075c848fbc344a16e3fd17b23fe0cee760a28b4a85d6a16ac8fea4aa9e4cef",
+        "matches": true
+      },
+      {
+        "command": 16,
+        "stream": "stdout",
+        "bytes": 2320,
+        "sha256": "1c18160a01a05981defbaddeb23df552d0bbf66220dc277178ec9bea1c40a1cd",
+        "matches": true
+      },
+      {
+        "command": 16,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "1bb66a4bdbfe76d2c0013be15491ce752b1f7dfb483f99a73e95269e206aee93",
+        "matches": true
+      },
+      {
+        "command": 17,
+        "stream": "stdout",
+        "bytes": 2389,
+        "sha256": "1422e7249bc1e5d3bcdcdd0508881dfe66462af145284c240f7ae57a8c769c53",
+        "matches": true
+      },
+      {
+        "command": 17,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "16ba004dd0cb679feb2a1fdc1c5f7e13d85343ab06ceb0d7b5827ad28d96e935",
+        "matches": true
+      },
+      {
+        "command": 18,
+        "stream": "stdout",
+        "bytes": 2341,
+        "sha256": "521efb8a6706d7bf2a53175bbe204c4d1246fe0219cabdbf496f825e1011e680",
+        "matches": true
+      },
+      {
+        "command": 18,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "3d14e22db124055c101ac0720a9a593a05bfa184bdfe3e0afffd3dbca67e82d2",
+        "matches": true
+      },
+      {
+        "command": 19,
+        "stream": "stdout",
+        "bytes": 2286,
+        "sha256": "1e3936da2c3c0e5d0ff9c0d0385ea5f9beddb634a58a58a29a389b650365956e",
+        "matches": true
+      },
+      {
+        "command": 19,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "79dc15ab6584207cbf77647213d7571b67c67fadcbe532c44ccdbd656996a68c",
+        "matches": true
+      },
+      {
+        "command": 20,
+        "stream": "stdout",
+        "bytes": 2920,
+        "sha256": "e3f0ac30c3169247955aaf115b99b8e617b35fca8079ade731f0f09e515bb7f4",
+        "matches": true
+      },
+      {
+        "command": 20,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "db7ea90236328c53a62d1b199d78f401276bab60c115ca10d8f568754970d7ab",
+        "matches": true
+      },
+      {
+        "command": 21,
+        "stream": "stdout",
+        "bytes": 4118,
+        "sha256": "13161e807ed0310d9e1642ef53dd9a39a00ab268b487a054636461265ca053fa",
+        "matches": true
+      },
+      {
+        "command": 21,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "ea3c3670df30a47c0175e32537212d1ad7c4794288fba2298a37ea4e6eadb38d",
+        "matches": true
+      },
+      {
+        "command": 22,
+        "stream": "stdout",
+        "bytes": 5399,
+        "sha256": "c7023bc6f90a1283908410d64aa35b8288a373c338cde9e5a5f3f20bee3f2e13",
+        "matches": true
+      },
+      {
+        "command": 22,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "16855a946e09f125d2e9fdc1e8c5c12930cb762027e9299ea373036fddcc9653",
+        "matches": true
+      },
+      {
+        "command": 23,
+        "stream": "stdout",
+        "bytes": 5083,
+        "sha256": "1fb4590d22cf44c6340864e71b1be7f4ec815e2d48bccccf135664776d668e0a",
+        "matches": true
+      },
+      {
+        "command": 23,
+        "stream": "stderr",
+        "bytes": 453,
+        "sha256": "669bb951a8816433c0650e6a38ee6f481a5d63c01533a08aeed5f1d9b5341d95",
+        "matches": true
+      }
+    ]
+  },
+  "logs": {
+    "bytes": 1099927,
+    "files": [
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/missing-entry.jsonl",
+        "bytes": 250,
+        "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+        "rowCount": 1
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/outside-file.jsonl",
+        "bytes": 250,
+        "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+        "rowCount": 1
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "2bf71191cf7932f0ba12e35a1fc84067a5c7ac76ccb4cb4a7f94da31c47a5282",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "cb5b976f1096fc0d7e81cee32838618c5bfe5799bfe423bf5154cbeda13e5a35",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "a5b8663e08ecd1cc3ba03b33699b3ceda0499cd1a4a8c030ddcde5ab8f6aa5b6",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "c3a11bb2fd45e7c9c7ea8d8d485d3a0adc77a3113925211e0c7b09077f230f31",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "3bb2a4cbcb735d18da583b5727eabdcac2e445e0b2bdcadcb21fef33a858d34e",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "9055b96d589dc0bdfaa5de91fc28071980c218be495bf409aee4160106646077",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "051c9124d2afe331d6185d5792e256e2593b67253d007b26bbc1c9eb4c9daa4e",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "6b533f18e4f92c56377c0ca62925abd6af9f102c5eff4336ad1b6a9297ff2cf2",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "e66dfadf3224cf245887173549cec88395469cd4562ffda349b28078e4c3f49f",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "fd52815a7192142beb485466bef5c3be0871e6d3cedf4e267c22ee0641d0b569",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "22ff6bcf5bebca39e88203d24d7cd3f336cc92c3c88799feb2df385304b9232f",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "3a8adf36b3165260e790ab1561c2d06e64dba1dba12d219f305c57775409a784",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "b55622688c1c64c65cc2c5ca59a899577255b27f2b6bb6350ea010669be4d91c",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "2fe9f934ef15c6962654cdf05d323999c2385faa27fe78789c8710b38ab1d8d9",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "0aced6e144a6157d0b65a6febdf06169721b01f925602895277d64b63d7ca479",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "45d1ecb6399c390a1611b8e4e4d8eb6d56a29e5ed97b70709e8c81dda487c40a",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "0c38227d70e13e33d51a34aac48af694ed7fd93f6e9bbe88c7a3cef07fc2a2b3",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "3bd597a454470804506470f28e28af0d6364aee643987e3871ce765906ef7723",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "d9d3b5e08811fb4662297385a0deab9ae3b9b2a9ab02ec87e460d30a6468656c",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "fb9549e9afb18284ff8791d19859e59a1ac9d2fe0169111536c1678212837786",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "c1fffe9eed905db74a17709a2398c852bc2ed96f50716cc76e167d8df9eb1812",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "af00f0789f5f3e1e25b2d7613a030159161c9a9dc688929c2bd94368e869ccb1",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "f788491c6bb6c04e427f6785d291f31d9beb4ce8def0d478e9a26df2cf8acb61",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "cef34787a5f01c25363a40867edebc49cfdbba4b4d86a0996985fef33147670d",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "f283b2a3d4018708b7daedf4c0e18086bcf8eb7a0691ac41e2f5ccdc62d2d53c",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "c7cea342685f2f5ee7e8fee83707254b9ef4bcc3e44a6241bf38a75d03d264c1",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "cf3871a44a8c4038b22dcaeeba42add20e3caff92602888203cd82d1a29d7ef0",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "04d0723e7724a059cedff004d742596f0e9071c32606afdbb8acd3b5824ef50e",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "0114f7acefeb3ca71c73330b9004268e5f41c049e8a8d2def48673f4657a6b87",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "65c4cb3ea407ee6328e483f33cffb6bfb7f3103983471a665a0f664a7918e83f",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "3356c8d1dced58e8528eb66fd1d4d1d8bca21c73a7f4fdadd25a56b3f354999b",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "47124f4ec4b4a5cfdb9ae861fa2accea8f506d20a4b356761815c484ca995691",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "c50dfb5c2999ab03f1ce214a5727f6c524875025225b6ee3adb8c76801ae194a",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "15c74a4fd267ee8b675ea79932eafd6a64ba0527286a82f81b48ff580ab0a193",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "b26e67b3f63ce34c7fa5d355a97b800e2fe27929b08631141cc2acf188366e13",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "c309ab3beee01c75fe6ffd37bc3166176cfdd549a630b71207e5951c3c62a6fa",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "bbe26662ee2cd76ebfbf8ec38dd2d138a6ffb7630e437a2e93cf020a717bd1d0",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "bba4b10643927be677ebf238ea3afb73245c041c2155f63e2e31a63ee0381d87",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "8391d6bca5f8a0d074fcef6e78a5c87211f54ac026d192421a9c312328f5f631",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "3e3dafffbc93c1decc235877d1b9b0bcc333d36e942f926a84ec90d3d31c7c52",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "668cf385e3f9b4da64d1132e3984cfaea3c95f46dfdc59d836bdd0e74dc55e5e",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "c2d559a13b9d837700a10b81958227f727723405efea89912202b89c831c3bb2",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "464d40a3996dce2745b2689d5d0cf6440e21f3f7ed5feb4773eb89b69006d47c",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.worker-parent.jsonl",
+        "bytes": 1754,
+        "sha256": "8f761840a0286be6b7137490425756c165b72d45a9afe5099e37dd24b7e2fae7",
+        "rowCount": 6
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.worker.jsonl",
+        "bytes": 3781,
+        "sha256": "fbb3e5cec5a413018c19b64ff028d298e63f22ce6ce23e84d579a2ab06844fee",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.parent.jsonl",
+        "bytes": 62802,
+        "sha256": "cedf8215e12f31c80d1b75737b572340f99d01578d87f656cfdde42f96eddaeb",
+        "rowCount": 215
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.worker-parent.jsonl",
+        "bytes": 3508,
+        "sha256": "23f545ec55863aea52af9ff31572241008fab7754ea2243faa0bb83b34cc9946",
+        "rowCount": 12
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.worker.jsonl",
+        "bytes": 7562,
+        "sha256": "06cc870decd8705ebf9291df4b497db15a37a48d225486548417607d2f07c765",
+        "rowCount": 24
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/sourcefallback.jsonl",
+        "bytes": 250,
+        "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+        "rowCount": 1
+      },
+      {
+        "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/wrong-digest.jsonl",
+        "bytes": 250,
+        "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11",
+        "rowCount": 1
+      }
+    ]
+  },
+  "charged": 1256193,
+  "maximumChild": 96639,
+  "outer": {
+    "stdoutBytes": 62,
+    "stdoutSha256": "b8417e46ac90c96bbc35c6f22e9548ae378092d28363ef3f42bfcef39c3984a0",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "runRoot": {
+    "inventoryEntries": 5785,
+    "logicalRegularBytes": 189140420,
+    "sampledScratchBytes": 189140420,
+    "terminalIncluded": true,
+    "sidecars": {
+      "receipts": 1622703,
+      "admissions": 431892,
+      "logs": 1099927,
+      "terminal": 16777216
+    }
+  },
+  "externalAdministrativeManifests": {
+    "mainListedLeafFiles": 84,
+    "mainListedLeafBytes": 12779495,
+    "finalListedLeafFiles": 33,
+    "finalListedLeafBytes": 33797750,
+    "qualification": "Manifest-listed byte sums, exclude each self-manifest and any subsequent unlisted work; not chargeable direct-child stream totals or global physical usage."
+  }
+}

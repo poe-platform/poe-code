@@ -1,0 +1,37 @@
+{
+  "created": "2026-08-29T12:46:19.893Z",
+  "deadline": "2026-08-29T13:02:14.226Z",
+  "source": "bd0f227d081829512bafc2936f0b33632e02890b",
+  "evidence": "04ab09c7ab04547989803b85cfe67d859fd782ba",
+  "files": [
+    {
+      "path": "review.mjs",
+      "bytes": 9604,
+      "sha256": "122406f0797061aaf88b463af7df187d4c44baa4fc8e828681fa8ea418d01488"
+    },
+    {
+      "path": "CONTROL-PROFILE.md",
+      "bytes": 2055,
+      "sha256": "93e87d1f449ad87357ea17867244c6f714ea30f4e8aae14d5d1df0ca4eb13046"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 2127211,
+      "sha256": "14299d0468effaee61b8fe8ee7bc7164f334a088b85d822a441e4d253cdfef60"
+    },
+    {
+      "path": "DEPENDENCIES.json",
+      "bytes": 5670835,
+      "sha256": "3a7dbb3df9d7792038e9c112bbba138c1cb49c610d4077051d34d94b00ccfcbc"
+    }
+  ],
+  "entry": "review.mjs",
+  "seconds": 120,
+  "captureBytes": 4194304,
+  "authorGroups": 12,
+  "independentGroups": 8,
+  "productImports": 0,
+  "engineImports": 0,
+  "Workers": 0,
+  "realChildConstructions": 0
+}

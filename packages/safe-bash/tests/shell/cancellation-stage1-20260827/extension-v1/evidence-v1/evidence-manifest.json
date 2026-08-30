@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-27",
+  "freezeCommit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+  "candidateCommit": "373437cf84424939e1792470805cdd9e60bd3898",
+  "candidateBlob": "3b7b55abc14718c0e23aa0c352af392b967a4905",
+  "candidateSha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5",
+  "files": {
+    "supplement-v1/README.md": "5763c846a6dab3c10ec66dc0362d8ecbcb214c4a5c3da5540a69a4b176aa670d",
+    "supplement-v1/activation-replay.test.ts": "2960b7c844384681c6ce3ffad53d2c710e57a0e7ebf88b5aef90971ebc0a9c49",
+    "supplement-v1/tsconfig.strict.json": "f33215f6509dbf8c3268c6735a1934e03099f86173b4508746b9a6060a37c9b5",
+    "evidence-v1/initial-candidate-type-failure.txt": "a387887e6d2d5aff2267972f9f4ebf5b34b2d1c1891fd9eea3d6dda0437741fe",
+    "evidence-v1/checks.json": "4a644f6e25a54f5a82e28ab09e04b8dab6a62e3f3cf92a4f2d2ca08c78c0ae58",
+    "evidence-v1/RESULTS.md": "6ed023a5c29bd70d77f1904d456909bb9b625402d52e0470b0e8c8744ca878f0"
+  },
+  "frozenFilesChanged": false,
+  "productFilesChangedByEvidenceCommit": false,
+  "runtimeIntegrationClaimed": false,
+  "retriedBaseline": false
+}
+

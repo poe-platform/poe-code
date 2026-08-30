@@ -1,0 +1,17 @@
+{
+  "binding": "fd1daa123298568546d9ea4e95f8c81dde9c52ff synthetic input, not whole HEAD",
+  "timing": "Concrete source sites selected after original focused replay; frozen ten classes unchanged. Supplemental S01 is post-candidate, not pre-author.",
+  "mutations": [
+    { "id": "M01", "class": 1, "file": "src/shell/runtime.ts", "before": "        options,\n        this.cancellationAdmission(childDepth),", "after": "        undefined,\n        this.cancellationAdmission(childDepth),", "pattern": "^R07 " },
+    { "id": "M02", "class": 2, "file": "src/shell/cancellation.ts", "before": "try { candidate = options.signal; }", "after": "try { candidate = options.signal; void options.signal; }", "pattern": "^R02 " },
+    { "id": "M03", "class": 3, "file": "src/shell/cancellation.ts", "before": "  if (root) return throwingSelection(state, root.signal.reason, root);\n\n  const reported = validReport(state, captured as CapturedCancellationOutcome<unknown>);\n  const observed", "after": "  if (false && root) return throwingSelection(state, root.signal.reason, root);\n\n  const reported = validReport(state, captured as CapturedCancellationOutcome<unknown>);\n  const observed", "pattern": "^R09 " },
+    { "id": "M04", "class": 4, "file": "src/shell/runtime.ts", "before": "        const close = boundary.close();", "after": "        this.cancellation.close();\n        const close = boundary.close();", "pattern": "^R01 " },
+    { "id": "M05", "class": 5, "file": "src/shell/cancellation.ts", "before": "  const classified = reported ?? observed;", "after": "  const classified = reported ?? observed ?? (captured.kind === 'throw' ? matchingVisibleOrigin(lineage, captured.reason) : undefined);", "pattern": "^R1[34] ", "supplement": "^S01 " },
+    { "id": "M06", "class": 6, "file": "src/shell/shell.ts", "before": "    throwCleanupFailures(scope.failures);", "after": "    void scope.failures;", "pattern": "^R17 " },
+    { "id": "M07", "class": 7, "file": "src/shell/cancellation.ts", "before": "    const rollback = removeSignalListener(detacher);", "after": "    const rollback: unknown[] = [];", "pattern": "^R22 " },
+    { "id": "M08", "class": 8, "file": "src/shell/runtime.ts", "before": "      validate();\n\n      let scope:", "after": "      validate();\n      await this.budget.tick();\n\n      let scope:", "pattern": "^R15 " },
+    { "id": "M09", "class": 9, "file": "src/shell/cancellation.ts", "before": "  const controls = input.controls ?? [];", "after": "  const controls = [...(input.controls ?? [])].reverse();", "pattern": "^C01 " },
+    { "id": "M10", "class": 10, "file": "src/shell/types.ts", "before": "  readonly signal?: AbortSignal | undefined;", "after": "  signal?: AbortSignal | undefined;", "type": "T02" }
+  ],
+  "loaderControls": ["unlisted module", "post-manifest modified product", "live-checkout module"]
+}

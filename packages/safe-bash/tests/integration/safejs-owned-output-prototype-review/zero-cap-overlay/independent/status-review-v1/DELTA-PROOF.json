@@ -1,0 +1,20 @@
+{
+  "authorPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "originalAuthorFreeze": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "exactDerivations": [
+    {
+      "path": "lifecycle/run.mjs",
+      "exactTwoGuardOnlyReplacements": true
+    },
+    {
+      "path": "controls/run.mjs",
+      "exactTwoGuardOnlyReplacements": true
+    },
+    {
+      "path": "admission.mjs",
+      "exactThreeLocationBindingsTwoGuardCallsAndSealedHelper": true
+    }
+  ],
+  "childGuestScorerCaseBudgetTimerSignalCleanupChanges": 0,
+  "publicGitOnly": true
+}

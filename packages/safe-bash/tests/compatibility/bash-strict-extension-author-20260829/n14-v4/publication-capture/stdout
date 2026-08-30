@@ -1,0 +1,294 @@
+{
+  "role": "AUTHOR_SCOPED_NOT_INDEPENDENT_ACCEPTANCE",
+  "sourceCommit": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceManifestSha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4",
+  "sourceInputs": 293,
+  "runtime": {
+    "path": "src/shell/runtime.ts",
+    "mode": "100644",
+    "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+    "bytes": 203623,
+    "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+    "revision": "7196bace8ea2c141d5ed1020fef5bf721c321ace"
+  },
+  "packageSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "packageMembers": 954,
+  "main": [
+    {
+      "label": "source-redirections-v3",
+      "cases": 48,
+      "pass": 48
+    },
+    {
+      "label": "source-strict",
+      "cases": 50,
+      "pass": 50
+    },
+    {
+      "label": "source-conditional",
+      "cases": 67,
+      "pass": 67
+    },
+    {
+      "label": "source-extension",
+      "cases": 35,
+      "pass": 35
+    },
+    {
+      "label": "source-arrays",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "source-n14",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "installed-redirections-v3",
+      "cases": 48,
+      "pass": 48
+    },
+    {
+      "label": "installed-strict",
+      "cases": 50,
+      "pass": 50
+    },
+    {
+      "label": "installed-conditional",
+      "cases": 67,
+      "pass": 67
+    },
+    {
+      "label": "installed-extension",
+      "cases": 35,
+      "pass": 35
+    },
+    {
+      "label": "installed-arrays",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "installed-n14",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "moved-redirections-v3",
+      "cases": 48,
+      "pass": 48
+    },
+    {
+      "label": "moved-strict",
+      "cases": 50,
+      "pass": 50
+    },
+    {
+      "label": "moved-conditional",
+      "cases": 67,
+      "pass": 67
+    },
+    {
+      "label": "moved-extension",
+      "cases": 35,
+      "pass": 35
+    },
+    {
+      "label": "moved-arrays",
+      "cases": 12,
+      "pass": 12
+    },
+    {
+      "label": "moved-n14",
+      "cases": 12,
+      "pass": 12
+    }
+  ],
+  "mainCount": 672,
+  "focused": [
+    {
+      "label": "source-n14",
+      "cases": 12
+    },
+    {
+      "label": "installed-n14",
+      "cases": 12
+    },
+    {
+      "label": "moved-n14",
+      "cases": 12
+    }
+  ],
+  "types": [
+    {
+      "label": "source",
+      "negative": false,
+      "pass": true,
+      "errors": 0
+    },
+    {
+      "label": "source",
+      "negative": true,
+      "pass": true,
+      "errors": 8
+    },
+    {
+      "label": "installed",
+      "negative": false,
+      "pass": true,
+      "errors": 0
+    },
+    {
+      "label": "installed",
+      "negative": true,
+      "pass": true,
+      "errors": 8
+    },
+    {
+      "label": "moved",
+      "negative": false,
+      "pass": true,
+      "errors": 0
+    },
+    {
+      "label": "moved",
+      "negative": true,
+      "pass": true,
+      "errors": 8
+    }
+  ],
+  "controls": [
+    {
+      "name": "n14-drop-provenance",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "f5d93893f41a833918e3716dd1508156b1a9547080d89fe87eac11dac1551b65"
+    },
+    {
+      "name": "missing-read-zero",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "94ca1c53f3a478f9f59efd1b914750bd4ef0c3b4628279dc9d9d31f3fa9d6ed3"
+    },
+    {
+      "name": "read-assignment-lhs",
+      "detected": true,
+      "originalSha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138",
+      "mutantSha256": "1a8a7768f07e8fff005356c995584d38d09eacd3abaa786b3b7538b8b75d746a"
+    },
+    {
+      "name": "let-recast",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "617e65344b08cb5855f1ac0fe807f0452182c28a290b959d5b5ee2f69e4c183b"
+    },
+    {
+      "name": "rollback-prefix",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "cbfacdffad9cd29d5407a13dd01d742f05f24d0560e53d55e4700c4c1e03b3f2"
+    },
+    {
+      "name": "swallow-parameter-sink",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "c4365575528db1f4afd29de8ac49d7b556de3c21af86c2711349fca4abf4ba8d"
+    },
+    {
+      "name": "false-option-state",
+      "detected": true,
+      "originalSha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mutantSha256": "dec0e05d7d4ed0ab116a523a1662b62f8e81bb8161728734a30923ac81b5ffbb"
+    },
+    {
+      "name": "binding-missing",
+      "pass": true
+    },
+    {
+      "name": "binding-changed",
+      "pass": true
+    }
+  ],
+  "restores": [
+    {
+      "label": "n14-drop-provenance-restored",
+      "pass": 1
+    },
+    {
+      "label": "missing-read-zero-restored",
+      "pass": 1
+    },
+    {
+      "label": "read-assignment-lhs-restored",
+      "pass": 1
+    },
+    {
+      "label": "let-recast-restored",
+      "pass": 1
+    },
+    {
+      "label": "rollback-prefix-restored",
+      "pass": 1
+    },
+    {
+      "label": "swallow-parameter-sink-restored",
+      "pass": 1
+    },
+    {
+      "label": "false-option-state-restored",
+      "pass": 1
+    }
+  ],
+  "priorVersion": {
+    "status": "FAILED_OR_INCOMPLETE",
+    "error": "Error: ENOENT: no such file or directory, open '/private/tmp/strict-n14-v4-author-rD68Yv/source/__consumer/n14.mjs'\n    at async open (node:internal/fs/promises:639:25)\n    at async Object.readFile (node:internal/fs/promises:1249:14)\n    at async run (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v4.mjs:87:187)\n    at async cohort (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v4.mjs:93:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v4.mjs:177:35",
+    "mainPass": 212,
+    "typeGroups": 2,
+    "packageSha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "cleanup": {
+      "directChildren": 10,
+      "observedProductWorkers": 0,
+      "implicitLoaderReservations": 5,
+      "boundedOwnedTotal": 15,
+      "allClosed": true,
+      "signals": [],
+      "noGlobalDescendantClaim": true
+    }
+  },
+  "currentCleanup": {
+    "directChildren": 44,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 34,
+    "boundedOwnedTotal": 78,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "previousVersionUsage": {
+    "directChildren": 10,
+    "loaderReservations": 5,
+    "captureBytes": 2909943,
+    "retainedScratchBytes": 56511477
+  },
+  "captureBytesCumulative": 6066507,
+  "actualScratchBytesCumulative": 129708425,
+  "currentElapsedMs": 54749,
+  "postguards": {
+    "source": 293,
+    "movedPackage": 954
+  },
+  "archive": {
+    "bytes": 4816235,
+    "sha256": "0538f9ebacae7b102279fc0c8c387506a8db232221cbb07073fc9859e8530234",
+    "decodedJsonBytes": 17824436,
+    "originalCapturedBytes": 13362435,
+    "entries": 217
+  },
+  "processQualification": "Direct child exit/close/resource observations only; loader reservations are not OS births; no full transitive PGID/kernel-drain claim. Administrative commands separate.",
+  "nativeRuns": 0,
+  "privateRuns": 0,
+  "engineRuns": 0,
+  "coherentCompositionRuns": 0
+}

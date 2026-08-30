@@ -1,0 +1,191 @@
+{
+  "createdAt": "2026-08-27T06:49:37.280Z",
+  "phase": "Additive execution seal after one root-authorized v3 attempt; final independent review pending",
+  "files": [
+    {
+      "path": "EXECUTION-v3.md",
+      "bytes": 9810,
+      "sha256": "4267f3888b780f9dea6543faed546010af99b1ddc0c141c7a825b6bf2d4b15e8"
+    },
+    {
+      "path": "execution-approval-check-v3.json",
+      "bytes": 3886,
+      "sha256": "de35bec9e3de0f5328acea90e5e0a546b3dd74e27b96edd6712b570aa7d05720"
+    },
+    {
+      "path": "execution-post-run-check.mjs",
+      "bytes": 16457,
+      "sha256": "c5e7d33de3caf41b01719dc241cbe99011620cd78f83178182357f75768d7acb"
+    },
+    {
+      "path": "execution-post-run-check-process-1.json",
+      "bytes": 741,
+      "sha256": "7ecca3ec794a6fe4cce05eaae2eff2ca04615c9fdada8872a0a1bdefbc293230"
+    },
+    {
+      "path": "execution-post-run-check-attempt-1.json",
+      "bytes": 973965,
+      "sha256": "47c3fed832381c527ef1281a13e2c9731820438e18a2685ec6efe3f43ebecee6"
+    },
+    {
+      "path": "execution-v3-receipt.json",
+      "bytes": 26094,
+      "sha256": "215e638e0693ecb4d1a34d28f5d6623699b28795f558fbff597f286a4c1d350e"
+    },
+    {
+      "path": "representative-v3-attempt-001/events.jsonl",
+      "bytes": 43843,
+      "sha256": "d5b74c89a31a82c31cab6a2d30c9b9fecd52b4cfe0ade19d2bc3d62f163a00cf"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-1.jsonl",
+      "bytes": 105600,
+      "sha256": "5d5618fb5e22ec5cbdc170be2f9a835261eabcdce3f6f57ed24f32b24a0610fa"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-2.jsonl",
+      "bytes": 129899,
+      "sha256": "7d2fbdeec7595d190d5ce15a1759c7d2989bf6035cba72f0e3ac4272720b68e5"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-3.jsonl",
+      "bytes": 117501,
+      "sha256": "a5bd474f56589939780ff9dd734d4d4e25d70f352acf9f45407f6ed7ddc165b8"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-4.jsonl",
+      "bytes": 106830,
+      "sha256": "d9a57500ed4555e4c81bd57646a2870476381ce3a9745ac7886762f88ffc9368"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-5.jsonl",
+      "bytes": 106830,
+      "sha256": "45257dd028965f66f24f51c2aed85d65842b1e83e6728286a5c1dafc56258f5d"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-6.jsonl",
+      "bytes": 102326,
+      "sha256": "71de7fe958d044ba01f3290617d80f9bfd2e23119ca5dd4ac591d9fef513c122"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-7.jsonl",
+      "bytes": 102326,
+      "sha256": "8243fd036988b97c0977bb3b8f26c806ca0a0ca5396d677e59b0ab8df5a31cc4"
+    },
+    {
+      "path": "representative-v3-attempt-001/imports-8.jsonl",
+      "bytes": 102452,
+      "sha256": "ab04296c08a28a4d9d9878c7b0ab2449b05d12c1c2f5bc8a5b64468cea5c77b1"
+    },
+    {
+      "path": "representative-v3-attempt-001/integrity-after.json",
+      "bytes": 522,
+      "sha256": "40a1b5c463ed31bbdf019c009fe165aeac5d5404fba8ff8d38e8f130c306478d"
+    },
+    {
+      "path": "representative-v3-attempt-001/integrity-before.json",
+      "bytes": 74,
+      "sha256": "0e4543a2f92fe041894cc3a83c3f854a6c6c07f512b2156bac92f24c347cc16a"
+    },
+    {
+      "path": "representative-v3-attempt-001/integrity-staged.json",
+      "bytes": 522,
+      "sha256": "40a1b5c463ed31bbdf019c009fe165aeac5d5404fba8ff8d38e8f130c306478d"
+    },
+    {
+      "path": "representative-v3-attempt-001/launch-binding.json",
+      "bytes": 1407,
+      "sha256": "eb34f8d687d722fc3450b727de5ed51d791b8691f2d5f2e5950ab3c2c55478a7"
+    },
+    {
+      "path": "representative-v3-attempt-001/network-requests.json",
+      "bytes": 193,
+      "sha256": "11810f861a4af1028bc12b29ea1448703a7592488e821876ce8e7747770e3640"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-1.json",
+      "bytes": 2518,
+      "sha256": "d23eda33230518e5a9a23af6c132b52ade17535d08c2294c77248f6a6dd3cfb7"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-2.json",
+      "bytes": 3394,
+      "sha256": "fa8fc5f8a86f60d2a5fdf9245187f2e11b95cca6c1efd3c84c245e19432fa411"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-3.json",
+      "bytes": 2475,
+      "sha256": "e6657792d9bd033e2cdf9f6050457bd6a0a34b471a0e63bbbef267939dfc8bf8"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-4.json",
+      "bytes": 2524,
+      "sha256": "ddd28848a3102d0f4ddda1891b9c9b9ba92b90a0ca1af4cfbdaf5a28244ed2c0"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-5.json",
+      "bytes": 2653,
+      "sha256": "1dc351ba69fa3e0e0c067a31fc39937e7efec1589a7d80cf9c35b636707a62c2"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-6.json",
+      "bytes": 2399,
+      "sha256": "b3450239f2cfaa3c897587d0d60fe19b6883ddcacb529b054512cc7fe9794128"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-7.json",
+      "bytes": 2655,
+      "sha256": "f732bf0ad59227339a7bcc91e8c6a01908643480f0da82c35fb1efb93ffb9f79"
+    },
+    {
+      "path": "representative-v3-attempt-001/result-8.json",
+      "bytes": 2667,
+      "sha256": "aaa0e720da87bc65434efca69326f687d7167aa67353e68c6688fcb1845b1752"
+    },
+    {
+      "path": "representative-v3-attempt-001/summary.json",
+      "bytes": 6764,
+      "sha256": "97e82493a60738b4d6249773ee341f4c1d83d1247c8e4c9e1ccebf671646a8e2"
+    },
+    {
+      "path": "representative-v3-attempt-001/supervisor-binding.json",
+      "bytes": 2111,
+      "sha256": "8287a3ed9c88ec94add8c7d81ac621a243fd243d5d4a58f00cfda1fb6cc66a06"
+    },
+    {
+      "path": "representative-v3-attempt-001/supervisor-events.jsonl",
+      "bytes": 1010,
+      "sha256": "9f5f0011caf9b24706c1b60a5feba53dbc4342a6316985e78fb5eee7fff782cc"
+    },
+    {
+      "path": "representative-v3-attempt-001/supervisor-summary.json",
+      "bytes": 3215,
+      "sha256": "bc0816fda647afdbae46eb5d361d653bafd6823afb0ccd8aeca742637012eca1"
+    }
+  ],
+  "rootApproval": {
+    "path": "/tmp/safe-bash-baseline-auth-approval-v3.json",
+    "sha256": "40d096afcb54a38a3fab58ea16ba550350917ce81f80765c07a7c9068b7f0938"
+  },
+  "priorSeals": {
+    "driverFixManifestSha256": "3fbc048049654a3bc2698fe09365bd91879af06f4a3f5f8e5485dd08a0c40888",
+    "originalOfflineHandoffSha256": "17776da9868967eddcce038984ef5dcf5a8418f0901045d97ccba33d6d4dfc65",
+    "priorPreservationSha256": "f7c3e2ec96547a18c2e6da19223722da055c71c16bd80c4c7ecd18954eb0eb6b"
+  },
+  "noEarlierSealOrReportRewritten": true,
+  "executionSummary": {
+    "observations": 8,
+    "distinctIds": 7,
+    "oldFourFieldMatches": 8,
+    "nativePasses": 4,
+    "nativeFailures": 4,
+    "engineChildren": 8,
+    "supervisor": 1,
+    "coordinator": 1,
+    "maximumManagedConcurrentProcesses": 3,
+    "recordedLifecycleFailures": 0,
+    "packageFilesRehashed": 955,
+    "closureFilesRehashed": 3844
+  },
+  "noRetryNoFollowUpExecution": true
+}

@@ -1,0 +1,89 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-reporter=tap",
+    "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+    "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+    "tests/fs/mount/identity-authority-review/authority.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-authority-reconciliation-iLAVNp",
+  "pid": 52510,
+  "status": 1,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 689,
+  "timeoutMs": 120000,
+  "outputBytes": 37858,
+  "observed": [
+    {
+      "pid": 52510,
+      "parent": 51418,
+      "group": 52510,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-reporter=tap tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 52517,
+      "parent": 52510,
+      "group": 52510,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/authority.test.ts"
+    },
+    {
+      "pid": 52535,
+      "parent": 52517,
+      "group": 52510,
+      "born": "Thu Aug 27 01:31:49 2026",
+      "command": "/private/tmp/safe-bash-authority-reconciliation-iLAVNp/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 52559,
+      "parent": 52510,
+      "group": 52510,
+      "born": "Thu Aug 27 01:31:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts"
+    },
+    {
+      "pid": 52660,
+      "parent": 52510,
+      "group": 52510,
+      "born": "Thu Aug 27 01:31:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test-concurrency=1 tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {
+    "tests": 85,
+    "pass": 74,
+    "fail": 11,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failures": [
+    "memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority",
+    "s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority",
+    "memory post-construction explicit comparison error is not hidden by cached authority",
+    "s3 post-construction explicit comparison error is not hidden by cached authority",
+    "webdav post-construction explicit comparison error is not hidden by cached authority",
+    "WebDAV identity multistatus duplicate-property is not a distinctness shortcut",
+    "WebDAV identity multistatus duplicate-response is not a distinctness shortcut",
+    "WebDAV identity multistatus wrong-response-href is not a distinctness shortcut",
+    "WebDAV identity multistatus invalid-uri is not a distinctness shortcut",
+    "WebDAV identity multistatus property-403 is not a distinctness shortcut",
+    "WebDAV identity multistatus resource-404 is not a distinctness shortcut"
+  ],
+  "stdoutSha256": "15adbcf4c2a9c9339360d2f3041de96422813028171afe94efc909129ab20c87",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

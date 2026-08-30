@@ -1,0 +1,162 @@
+{
+  "returned": [
+    {
+      "input": {
+        "aggregate": "FAIL",
+        "stop": null,
+        "activeChildren": [],
+        "results": [
+          {
+            "admitted": true,
+            "integrity": true,
+            "reapProof": true,
+            "metadata": {
+              "reaped": true,
+              "exitCode": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "spawnError": null
+            }
+          }
+        ]
+      },
+      "result": {
+        "aggregate": "FAIL",
+        "admitIndependent": true
+      }
+    },
+    {
+      "input": {
+        "aggregate": "PASS",
+        "stop": null,
+        "activeChildren": [],
+        "results": [
+          {
+            "admitted": true,
+            "integrity": true,
+            "reapProof": true,
+            "metadata": {
+              "reaped": true,
+              "exitCode": 7,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "spawnError": null
+            }
+          }
+        ]
+      },
+      "result": {
+        "aggregate": "FAIL",
+        "admitIndependent": true
+      }
+    },
+    {
+      "input": {
+        "aggregate": "PASS",
+        "stop": null,
+        "activeChildren": [],
+        "results": [
+          {
+            "admitted": true,
+            "integrity": true,
+            "reapProof": true,
+            "metadata": {
+              "reaped": true,
+              "exitCode": 0,
+              "signal": null,
+              "timedOut": true,
+              "overflow": false,
+              "spawnError": null
+            }
+          }
+        ]
+      },
+      "result": {
+        "aggregate": "FAIL",
+        "admitIndependent": true
+      }
+    },
+    {
+      "input": {
+        "aggregate": "PASS",
+        "stop": null,
+        "activeChildren": [],
+        "results": [
+          {
+            "admitted": true,
+            "integrity": true,
+            "reapProof": true,
+            "metadata": {
+              "reaped": true,
+              "exitCode": 0,
+              "signal": "SIGTERM",
+              "timedOut": false,
+              "overflow": false,
+              "spawnError": null
+            }
+          }
+        ]
+      },
+      "result": {
+        "aggregate": "FAIL",
+        "admitIndependent": true
+      }
+    },
+    {
+      "input": {
+        "aggregate": "PASS",
+        "stop": null,
+        "activeChildren": [],
+        "results": [
+          {
+            "admitted": true,
+            "integrity": false,
+            "reapProof": true,
+            "metadata": {
+              "reaped": true,
+              "exitCode": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "spawnError": null
+            }
+          }
+        ]
+      },
+      "result": {
+        "aggregate": "FAIL",
+        "admitIndependent": false
+      }
+    },
+    {
+      "input": {
+        "aggregate": "PASS",
+        "stop": null,
+        "activeChildren": [],
+        "results": [
+          {
+            "admitted": true,
+            "integrity": true,
+            "reapProof": false,
+            "metadata": {
+              "reaped": true,
+              "exitCode": 0,
+              "signal": null,
+              "timedOut": false,
+              "overflow": false,
+              "spawnError": null
+            }
+          }
+        ]
+      },
+      "result": {
+        "aggregate": "FAIL",
+        "admitIndependent": false
+      }
+    }
+  ],
+  "rejected": null,
+  "classification": "CANNED_METADATA_NOT_ROOT_AUTHORIZATION"
+}

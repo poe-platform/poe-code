@@ -1,0 +1,15 @@
+{
+  "date": "2026-08-27T23:17:54.809Z",
+  "fullStaged": {
+    "exitCode": 2,
+    "stdout": "tests/commands/expr-stress/nullable-hierarchy-v5-20260827/replay/runner-binding.patch.data:10: trailing whitespace.\n+ \n",
+    "stderr": ""
+  },
+  "authoredSourceAndMarkdown": {
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "capturedDiffBytesPreserved": true,
+  "canonicalTestsOrConfigurationChanged": false
+}

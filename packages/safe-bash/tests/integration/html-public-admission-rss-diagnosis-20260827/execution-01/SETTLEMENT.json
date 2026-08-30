@@ -1,0 +1,15 @@
+{
+  "started": "2026-08-27T23:07:12.446Z",
+  "finished": "2026-08-27T23:07:13.105Z",
+  "pid": 64175,
+  "pgid": 64175,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "signalsSent": [],
+  "ps": {
+    "status": 0,
+    "signal": null
+  },
+  "remainingGroupMembers": []
+}

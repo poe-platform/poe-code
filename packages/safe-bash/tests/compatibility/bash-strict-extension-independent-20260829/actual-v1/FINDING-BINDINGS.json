@@ -1,0 +1,152 @@
+{
+  "sourceRuntime": {
+    "path": "src/shell/runtime.ts",
+    "sha256": "b14268b38f9a156c45cae80e6871a646086746654803c2b05eb0a7ec7438443b",
+    "blob": "180e6c8f8b86e17bee8723fda638b359531a6e79"
+  },
+  "sourceShell": {
+    "path": "src/shell/shell.ts",
+    "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+  },
+  "sourceCleanup": {
+    "path": "src/shell/cleanup.ts",
+    "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+  },
+  "loaded": [
+    {
+      "layout": "source",
+      "runtime": {
+        "file": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/dist/shell/runtime.js",
+        "sha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49"
+      },
+      "shell": {
+        "file": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/dist/shell/shell.js",
+        "sha256": "e69be22e76a307071a708cf3fc5d16d075748ab9e6ef60668bde51a4058b57a8"
+      }
+    },
+    {
+      "layout": "installed",
+      "runtime": {
+        "file": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/node_modules/virtual-bash/dist/shell/runtime.js",
+        "sha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49"
+      },
+      "shell": {
+        "file": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/node_modules/virtual-bash/dist/shell/shell.js",
+        "sha256": "e69be22e76a307071a708cf3fc5d16d075748ab9e6ef60668bde51a4058b57a8"
+      }
+    },
+    {
+      "layout": "moved",
+      "runtime": {
+        "file": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved package/node_modules/virtual-bash/dist/shell/runtime.js",
+        "sha256": "6e4ce527e907cdb9dc0c415806ed734ea7181f69624fce558a89796fe6debd49"
+      },
+      "shell": {
+        "file": "/private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved package/node_modules/virtual-bash/dist/shell/shell.js",
+        "sha256": "e69be22e76a307071a708cf3fc5d16d075748ab9e6ef60668bde51a4058b57a8"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "layout": "source-novel",
+      "case": "N14-zero-sink-held-cleanup",
+      "pass": false,
+      "events": [
+        "registered",
+        "diagnostic",
+        "cleanup-enter",
+        "release",
+        "cleanup-finished",
+        "diagnostic",
+        "settled"
+      ],
+      "kind": "throw",
+      "exactZero": false,
+      "cleaned": 1,
+      "writes": 2,
+      "assertion": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/__consumer/novel.mjs:36:165\n    at async record (file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/__consumer/novel.mjs:12:6)\n    at async file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/source/__consumer/novel.mjs:31:1"
+    },
+    {
+      "layout": "installed-novel",
+      "case": "N14-zero-sink-held-cleanup",
+      "pass": false,
+      "events": [
+        "registered",
+        "diagnostic",
+        "cleanup-enter",
+        "release",
+        "cleanup-finished",
+        "diagnostic",
+        "settled"
+      ],
+      "kind": "throw",
+      "exactZero": false,
+      "cleaned": 1,
+      "writes": 2,
+      "assertion": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/novel.mjs:36:165\n    at async record (file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/novel.mjs:12:6)\n    at async file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/installed/novel.mjs:31:1"
+    },
+    {
+      "layout": "moved-novel",
+      "case": "N14-zero-sink-held-cleanup",
+      "pass": false,
+      "events": [
+        "registered",
+        "diagnostic",
+        "cleanup-enter",
+        "release",
+        "cleanup-finished",
+        "diagnostic",
+        "settled"
+      ],
+      "kind": "throw",
+      "exactZero": false,
+      "cleaned": 1,
+      "writes": 2,
+      "assertion": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== 0\n\n    at file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved%20package/novel.mjs:36:165\n    at async record (file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved%20package/novel.mjs:12:6)\n    at async file:///private/tmp/strict-extension-independent-active-StDeJ9/strict-extension-independent-hPvdL0/moved%20package/novel.mjs:31:1"
+    }
+  ],
+  "dynamicQualification": "No instrumentation: exact public settlement and fixture event counters. Internal cause below is source analysis, not internal event telemetry.",
+  "sourcePath": [
+    [
+      "src/shell/runtime.ts",
+      1635,
+      "ParameterExpansionFailure diagnostic rejects0, wraps it as private NounsetDiagnosticFailure"
+    ],
+    [
+      "src/shell/runtime.ts",
+      975,
+      "invokeChild executeChild unwraps private NounsetDiagnosticFailure to public raw reason"
+    ],
+    [
+      "src/shell/runtime.ts",
+      2185,
+      "transparent registered command returns exact context.invoke Promise"
+    ],
+    [
+      "src/shell/runtime.ts",
+      1981,
+      "simple wraps ordinary raw reason as ExecutionFailure"
+    ],
+    [
+      "src/shell/runtime.ts",
+      1623,
+      "executeCommand unwraps ExecutionFailure; raw0 no longer has private flow identity"
+    ],
+    [
+      "src/shell/runtime.ts",
+      1649,
+      "generic error diagnostic writes again and suppresses its rejection"
+    ],
+    [
+      "src/shell/cleanup.ts",
+      51,
+      "registered cleanup catches false and stores it in shared failures"
+    ],
+    [
+      "src/shell/shell.ts",
+      189,
+      "successful runtime outcome allows stored cleanup reason false to be surfaced"
+    ]
+  ]
+}

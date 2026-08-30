@@ -1,0 +1,184 @@
+{
+  "schema": "native26-activation-binding-seal-v1",
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3243,
+      "mode": 384,
+      "sha256": "eb085693d582c484e2d46a222a86490e0fab1b6073ced1e08a30b33c663d0974"
+    },
+    {
+      "path": "PREPARATION.md",
+      "bytes": 1962,
+      "mode": 420,
+      "sha256": "64af676ffecabf2191432382d28f317437a5e56814baa5995a43d611c546fda2"
+    },
+    {
+      "path": "RESOLVED-APPROVAL.json",
+      "bytes": 1392,
+      "mode": 384,
+      "sha256": "b319f2f7904229328d7081be99de460bc9be951286662403503263816fb781a6"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 6150,
+      "mode": 384,
+      "sha256": "452b3c1b9c41105137cfc6b4219811bdd11e8b148f81b8984b963fa7c3f3d5ec"
+    },
+    {
+      "path": "ROOT-RECEIPT.json",
+      "bytes": 1347,
+      "mode": 384,
+      "sha256": "9ce43c9c1dc184ce370cc6b4b90396e2aaf1aeb1677aa26d77b877fd294e8a08"
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 45446,
+      "mode": 384,
+      "sha256": "78c6e51b71ba2ed071a343fe3d3d322b7bebcbda9c0b47f1d736633230834df6"
+    },
+    {
+      "path": "bind.mjs",
+      "bytes": 15120,
+      "mode": 420,
+      "sha256": "512ea0afef52e0a75128fcb2a0ebd3f06f1632b92c499b5bc1a7f3289b5b067c"
+    },
+    {
+      "path": "raw/accepted-review.receipt.json",
+      "bytes": 7916,
+      "mode": 420,
+      "sha256": "0233f45056a17fc87d3d1f8efd8a5937ff0a05ce5eb3c0acabb4f52311e6fbb3"
+    },
+    {
+      "path": "raw/author-tree.nul",
+      "bytes": 18287,
+      "mode": 384,
+      "sha256": "70a43eb6c6e63c7ee908e7bbc969f314348c2ddb5a5c3545dd47c76022eeef47"
+    },
+    {
+      "path": "raw/node-tool.sha256",
+      "bytes": 117,
+      "mode": 384,
+      "sha256": "c1a38e233b14242d37444401ffa1aab4e9ca75f73967ad62c204a406c4c0ad44"
+    },
+    {
+      "path": "raw/review-paths.nul",
+      "bytes": 4360,
+      "mode": 384,
+      "sha256": "f4d3df45a653eacbee1af5eff96112cf9da51e857ae4cc273bd125c24799b61b"
+    },
+    {
+      "path": "raw/startup.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/startup.stdout",
+      "bytes": 113,
+      "mode": 384,
+      "sha256": "0ecf78a1500cbda7b5cb7fc92352abb403d8333f68faedbc8964147a732ef5e3"
+    },
+    {
+      "path": "raw/syntax.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/syntax.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "resolved-command.txt",
+      "bytes": 871,
+      "mode": 384,
+      "sha256": "4e7905d3ea72325eb8922f80735a98d29192fb309fffac871a5f2c9817a3e72f"
+    }
+  ],
+  "bytes": 106324,
+  "externalSlots": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/REVIEW-ACCEPTANCE.json",
+      "bytes": 472,
+      "mode": 384,
+      "sha256": "2c35949395a504bb0b9a1cfe02f47526363052deb6d721b98e834c8f86ce0ae5",
+      "device": "16777232",
+      "inode": "188189896",
+      "uid": 501,
+      "descriptorClosed": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/PREPROVISION.json",
+      "bytes": 731,
+      "mode": 384,
+      "sha256": "38aea97a822e1fcc3e8be02876b1bfec2b6d16d295dc922e3579f86089716740",
+      "device": "16777232",
+      "inode": "188189897",
+      "uid": 501,
+      "descriptorClosed": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-pipestatus-native-reference-20260829/v2/materialized/GO.json",
+      "bytes": 1945,
+      "mode": 384,
+      "sha256": "d7fd91283815bf0cf6e153cd2d728afb76f43a04db2d3575cfcaf16d43e09bc7",
+      "device": "16777232",
+      "inode": "188189899",
+      "uid": 501,
+      "descriptorClosed": true
+    }
+  ],
+  "physicalParents": [
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2",
+      "device": "16777232",
+      "inode": "188189891",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/outer",
+      "device": "16777232",
+      "inode": "188189892",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/cases",
+      "device": "16777232",
+      "inode": "188189893",
+      "mode": 448
+    },
+    {
+      "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/captures",
+      "device": "16777232",
+      "inode": "188189894",
+      "mode": 448
+    }
+  ],
+  "journal": {
+    "path": "/private/tmp/safe-bash-function-pipestatus-observations-20260829-v2/JOURNAL.jsonl",
+    "bytes": 0,
+    "mode": 384,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "device": "16777232",
+    "inode": "188189895",
+    "uid": 501,
+    "descriptorClosed": true
+  },
+  "excludes": [
+    "SEAL.json",
+    "raw/bind.stdout",
+    "raw/bind.stderr",
+    "later publication metadata"
+  ],
+  "window": {
+    "issuedEpochMs": 1788009057530,
+    "issuedUTC": "2026-08-29T13:10:57.530Z",
+    "expiresEpochMs": 1788011757530,
+    "expiresUTC": "2026-08-29T13:55:57.530Z",
+    "latestFull600sStartEpochMs": 1788011157530,
+    "latestFull600sStartUTC": "2026-08-29T13:45:57.530Z"
+  }
+}

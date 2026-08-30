@@ -1,0 +1,35 @@
+{
+  "kind": "FOCUSED_CORRECTED_FORWARDING_NOT_REPLACEMENT_SCORE",
+  "presealCommit": "84530bf4240d582a5e5c96fd7a29b26b75332a26",
+  "presealSha256": "39803e6f2900c8ae34fbffe01c1ccf2f496ac6ff41aade3eaa818bf48fc0aec1",
+  "rows": [
+    {
+      "id": "missing-in-place",
+      "pid": 73055,
+      "reaped": true,
+      "status": "PASS",
+      "actualCode": "CONSUMER_ENTRY_PARENT",
+      "evaluations": [],
+      "importAttempted": true
+    },
+    {
+      "id": "explicit-undefined",
+      "pid": 73057,
+      "reaped": true,
+      "status": "PASS",
+      "actualCode": "CONSUMER_ENTRY_PARENT",
+      "evaluations": [],
+      "importAttempted": true
+    }
+  ],
+  "passed": 2,
+  "childrenReaped": 2,
+  "unsafe": false,
+  "sourceStable": true,
+  "supervisorPid": 72525,
+  "originalCaptureRetained": true,
+  "productImports": 0,
+  "comparatorImports": 0,
+  "admissionAttempts": 0,
+  "grantsMinted": 0
+}

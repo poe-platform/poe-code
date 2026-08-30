@@ -1,0 +1,17 @@
+{
+  "label": "old16-shared-H04-adapted",
+  "status": 0,
+  "signal": null,
+  "stdout": {
+    "utf8": "first-read-curl-body: passed\n{\"scenario\":\"first-read-curl-body\",\"active\":0,\"reads\":1,\"returned\":1,\"writes\":0,\"stageAborted\":false,\"operationAborted\":true,\"abortedBeforeTeardown\":false,\"events\":[\"http.socket.open\",\"http.request:GET:/dav/input\",\"http.GET:pending-before-first-byte\",\"command.settled:head:0\",\"command.settled:curl:141\",\"command.settled:true:0\",\"http.request.aborted:GET\",\"http.socket.close\",\"http.response.close:GET:finished=false\"]}\n",
+    "bytes": 447,
+    "base64": "Zmlyc3QtcmVhZC1jdXJsLWJvZHk6IHBhc3NlZAp7InNjZW5hcmlvIjoiZmlyc3QtcmVhZC1jdXJsLWJvZHkiLCJhY3RpdmUiOjAsInJlYWRzIjoxLCJyZXR1cm5lZCI6MSwid3JpdGVzIjowLCJzdGFnZUFib3J0ZWQiOmZhbHNlLCJvcGVyYXRpb25BYm9ydGVkIjp0cnVlLCJhYm9ydGVkQmVmb3JlVGVhcmRvd24iOmZhbHNlLCJldmVudHMiOlsiaHR0cC5zb2NrZXQub3BlbiIsImh0dHAucmVxdWVzdDpHRVQ6L2Rhdi9pbnB1dCIsImh0dHAuR0VUOnBlbmRpbmctYmVmb3JlLWZpcnN0LWJ5dGUiLCJjb21tYW5kLnNldHRsZWQ6aGVhZDowIiwiY29tbWFuZC5zZXR0bGVkOmN1cmw6MTQxIiwiY29tbWFuZC5zZXR0bGVkOnRydWU6MCIsImh0dHAucmVxdWVzdC5hYm9ydGVkOkdFVCIsImh0dHAuc29ja2V0LmNsb3NlIiwiaHR0cC5yZXNwb25zZS5jbG9zZTpHRVQ6ZmluaXNoZWQ9ZmFsc2UiXX0K",
+    "sha256": "ac79bc58164ca49f5cdb8804d0d6620d1ba976f8cda26575524a16fde550406a"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

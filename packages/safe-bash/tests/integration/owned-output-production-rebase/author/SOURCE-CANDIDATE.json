@@ -1,0 +1,176 @@
+{
+  "baseline": "a03b9288a6f4b652387be9fefa8faf17ef58b9e7",
+  "baselineTree": "d411959221ddce4c0b04d686aa5885c9db40e547",
+  "candidate": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "candidateTree": "62d75ef09e89d4d3b6afc032c518d2846dcd03b7",
+  "candidateParent": "954ddde45d7d77c36067f15f79d3881f2a51f8db",
+  "nineParentBlobsStillEqualBaseline": true,
+  "sourceManifestSha256": "40914b93fe1a1a82d9abdcdf4f4cc4360ab6e85ab16b5d9f75768e00c73213ec",
+  "sourceEntryCount": 247,
+  "sourceTypeScriptCount": 206,
+  "sourcePatchSha256": "83b339002970df881efb56cc50fa0e0e74f1f832edb6c8706287827a3dc5e4ad",
+  "sourcePaths": [
+    {
+      "path": "src/contracts/io.ts",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "blob": "bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef",
+      "bytes": 202,
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "blob": "038f2019c32fab0bf1712f8b7b8e1671e60a9a12",
+      "bytes": 108731,
+      "sha256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "blob": "6c9392e357e7f9da3ccd6ddff1c001a8d7a17b8f",
+      "bytes": 10644,
+      "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "blob": "41d192aaadeb0a727990392cc4df3e05d94aab31",
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19"
+    },
+    {
+      "path": "src/commands/network/transport.ts",
+      "blob": "020adb18e650364469ed450d0898d70aab942a00",
+      "bytes": 3613,
+      "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "blob": "21384b3a89411e832af7a4214c9869885b055a63",
+      "bytes": 17904,
+      "sha256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "blob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8",
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d"
+    }
+  ],
+  "runs": [
+    {
+      "run": "focused-final-02",
+      "exitCode": 0,
+      "counts": {
+        "tests": 42,
+        "pass": 42,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "ownedSourceMatchesCandidate": true,
+      "foreignTypeScriptDifferencesFromCandidate": [
+        "src/commands/html-to-markdown/entities.ts",
+        "src/commands/html-to-markdown/input.ts",
+        "src/commands/html-to-markdown/parser.ts",
+        "src/commands/html-to-markdown/render.ts",
+        "src/commands/html-to-markdown/text.ts"
+      ],
+      "selectedInputsUnchanged": true,
+      "sourceUnchangedIncludingEntries": true
+    },
+    {
+      "run": "legacy-core-final-02",
+      "exitCode": 0,
+      "counts": {
+        "tests": 505,
+        "pass": 505,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "ownedSourceMatchesCandidate": true,
+      "foreignTypeScriptDifferencesFromCandidate": [
+        "src/commands/html-to-markdown/entities.ts",
+        "src/commands/html-to-markdown/input.ts",
+        "src/commands/html-to-markdown/parser.ts",
+        "src/commands/html-to-markdown/render.ts",
+        "src/commands/html-to-markdown/text.ts"
+      ],
+      "selectedInputsUnchanged": true,
+      "sourceUnchangedIncludingEntries": true
+    },
+    {
+      "run": "legacy-state-final",
+      "exitCode": 0,
+      "counts": {
+        "tests": 203,
+        "pass": 203,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "ownedSourceMatchesCandidate": true,
+      "foreignTypeScriptDifferencesFromCandidate": [
+        "src/commands/html-to-markdown/entities.ts",
+        "src/commands/html-to-markdown/input.ts",
+        "src/commands/html-to-markdown/parser.ts",
+        "src/commands/html-to-markdown/render.ts",
+        "src/commands/html-to-markdown/text.ts"
+      ],
+      "selectedInputsUnchanged": true,
+      "sourceUnchangedIncludingEntries": true
+    },
+    {
+      "run": "focused-types-final-02",
+      "exitCode": 0,
+      "counts": {},
+      "ownedSourceMatchesCandidate": true,
+      "foreignTypeScriptDifferencesFromCandidate": [
+        "src/commands/html-to-markdown/entities.ts",
+        "src/commands/html-to-markdown/input.ts",
+        "src/commands/html-to-markdown/parser.ts",
+        "src/commands/html-to-markdown/render.ts",
+        "src/commands/html-to-markdown/text.ts"
+      ],
+      "selectedInputsUnchanged": true,
+      "sourceUnchangedIncludingEntries": true
+    },
+    {
+      "run": "source-types-final-02",
+      "exitCode": 0,
+      "counts": {},
+      "ownedSourceMatchesCandidate": true,
+      "foreignTypeScriptDifferencesFromCandidate": [
+        "src/commands/html-to-markdown/entities.ts",
+        "src/commands/html-to-markdown/input.ts",
+        "src/commands/html-to-markdown/parser.ts",
+        "src/commands/html-to-markdown/render.ts",
+        "src/commands/html-to-markdown/text.ts"
+      ],
+      "selectedInputsUnchanged": true,
+      "sourceUnchangedIncludingEntries": true
+    }
+  ],
+  "committedSourceAuthorRun": "runs/committed-source/RUN.json",
+  "status": "STAGED_SOURCE_AUTHOR_CHECKPOINT_NOT_RELEASE_ACCEPTANCE",
+  "pending": [
+    "actual built declarations",
+    "moved packed public package consumer",
+    "current private SafeJS regular copies and fresh guards",
+    "different final verifier"
+  ],
+  "foreignStatusAtSeal": " M src/commands/html-to-markdown/entities.ts\n M src/commands/html-to-markdown/input.ts\n M src/commands/html-to-markdown/parser.ts\n M src/commands/html-to-markdown/render.ts\n?? src/commands/html-to-markdown/text.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/prefix-wording-fixture-20260827/\n?? tests/commands/expr-stress/qualified-final-review-20260827/\n?? tests/commands/html-to-markdown/repair.test.ts\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/integration/owned-output-production-rebase/author/API-CHECKPOINT.md\n?? tests/integration/owned-output-production-rebase/author/BASELINE.json\n?? tests/integration/owned-output-production-rebase/author/DEVELOPMENT-ATTEMPTS.md\n?? tests/integration/owned-output-production-rebase/author/PROVENANCE.json\n?? tests/integration/owned-output-production-rebase/author/SOURCE-COMMIT.json\n?? tests/integration/owned-output-production-rebase/author/authenticate.py.data\n?? tests/integration/owned-output-production-rebase/author/capture.py.data\n?? tests/integration/owned-output-production-rebase/author/check-committed-source.py.data\n?? tests/integration/owned-output-production-rebase/author/runs/\n?? tests/integration/owned-output-production-rebase/author/source-rebase.patch-data\n?? tests/shell/getopts-independent-20260827/capture-01/\n",
+  "sealedAt": "2026-08-27T19:44:43.640705+00:00"
+}

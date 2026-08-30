@@ -1,0 +1,32 @@
+{
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "ssl": "OpenSSL 3.6.3 9 Jun 2026",
+  "order": {
+    "self._evaluate_if_headers(res, environ)": 1441,
+    "self._check_write_permission(parentRes": 1712,
+    "res.handle_delete()": 2220,
+    "res.get_descendants(": 2901
+  },
+  "modules": {
+    "wsgidav.request_server": {
+      "sha256": "232d1b902668d57eeb2be55cefe89b5b8bb269f169c1ae78bbc363198d8b6203",
+      "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/venv/lib/python3.14/site-packages/wsgidav/request_server.py"
+    },
+    "wsgidav.fs_dav_provider": {
+      "sha256": "6bacc94cac0c2ce1eeab975ef7e47b30e19521d70de5f0a0dc7643bb66806d8f",
+      "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/venv/lib/python3.14/site-packages/wsgidav/fs_dav_provider.py"
+    },
+    "wsgidav.dav_provider": {
+      "sha256": "36dd8501c8cd1e6198cdc25f7fff3bdd96a79049852a518b31456ede2f1c7b10",
+      "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/venv/lib/python3.14/site-packages/wsgidav/dav_provider.py"
+    },
+    "wsgidav.http_authenticator": {
+      "sha256": "8a32dba71c27c1e27ea0eb748d7a5e65a27bd2b2be3a4eee05b0bc3548137453",
+      "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/venv/lib/python3.14/site-packages/wsgidav/http_authenticator.py"
+    },
+    "wsgidav.lock_man.lock_manager": {
+      "sha256": "3c489dd3f3e9bcaf9ceacd3f3f97363f0eb357db07d1ad4cce0dcab866c0b346",
+      "file": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension/.service-J8Kew3/venv/lib/python3.14/site-packages/wsgidav/lock_man/lock_manager.py"
+    }
+  }
+}

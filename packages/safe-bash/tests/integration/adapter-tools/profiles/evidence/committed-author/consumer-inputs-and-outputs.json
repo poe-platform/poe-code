@@ -1,0 +1,130 @@
+[
+  {
+    "path": "historical-configured/out/tests/fs/webdav/mock.js",
+    "sha256": "03c2c0b5e5be4f25afd72f9f8d7f89d4c66a106bd112065de519c19052c547d9"
+  },
+  {
+    "path": "historical-configured/out/tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.js",
+    "sha256": "dac7dd55f9d2c2e7eef2db66ee9e87ace883dae9c812522264a6b284c5471187"
+  },
+  {
+    "path": "historical-configured/out/tests/integration/adapter-tools/fixtures.js",
+    "sha256": "dfae67aa59038f69660cb3b687d8748b062e6432d662db853eecce38e91c26c8"
+  },
+  {
+    "path": "historical-configured/out/tests/integration/adapter-tools/matrix.test.js",
+    "sha256": "3f29e2db2bfdf6ca611accccdf397bd5ee7fd7753b9529fce5eb30bca35e2c18"
+  },
+  {
+    "path": "historical-configured/out/tests/integration/adapter-tools/preflight-review/preflight.js",
+    "sha256": "dd606bc76ea8d9dd01c12760cf0d46023300cb5734944ff9e0963e22c2d8f731"
+  },
+  {
+    "path": "historical-configured/package.json",
+    "sha256": "db15fdd165dcbb8be5b3cc4977b44f8640149ce573f9819118056dcea3043e12"
+  },
+  {
+    "path": "historical-configured/tests/fs/webdav/mock.ts",
+    "sha256": "7a22f547ab3f7d14f2048df631c70770fe3294addaae3dde39861bf742088551"
+  },
+  {
+    "path": "historical-configured/tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+    "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf"
+  },
+  {
+    "path": "historical-configured/tests/integration/adapter-tools/fixtures.ts",
+    "sha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba"
+  },
+  {
+    "path": "historical-configured/tests/integration/adapter-tools/matrix.test.ts",
+    "sha256": "08f963a935a388beab71a483b0e9c254f4f1268f55330a4350c1ea24c0128674"
+  },
+  {
+    "path": "historical-configured/tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "sha256": "1808a99ebde194c2d4b95b8a8431c1a1415898925bf7929dbbc7710f4dbded62"
+  },
+  {
+    "path": "historical-configured/tsconfig.json",
+    "sha256": "1ebb798039ab00edd686bb1d9e5dc1d3bb96ec2a7f030bee89f381a49b1ae88a"
+  },
+  {
+    "path": "out/tests/fs/webdav/mock.js",
+    "sha256": "03c2c0b5e5be4f25afd72f9f8d7f89d4c66a106bd112065de519c19052c547d9"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js",
+    "sha256": "c6c631b84514258033abc0d4a1197c5bbb093908985049deae9709718e1847be"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.js",
+    "sha256": "dac7dd55f9d2c2e7eef2db66ee9e87ace883dae9c812522264a6b284c5471187"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/atomic-webdav-profile/controls.js",
+    "sha256": "eca978c6912daa4b0e5ad36e782abef698117c8f371ce75246961baa10ceaccc"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/fixtures.js",
+    "sha256": "309ef7b8b4c1fe61dfbb33b64068aa68babf7e2ddefb1353e71e344e01a038a7"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/matrix.test.js",
+    "sha256": "2d3d0e81a999a05202dda196e9b9552381030f11046d0b02168a3f520453f663"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/preflight-review/preflight.js",
+    "sha256": "dd606bc76ea8d9dd01c12760cf0d46023300cb5734944ff9e0963e22c2d8f731"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/profiles/rmdir-fixtures.js",
+    "sha256": "c5b7c0eaa01eff104fe1ec6ad91459da5b3270bd363b832be3f14d463747797b"
+  },
+  {
+    "path": "out/tests/integration/adapter-tools/profiles/stock-webdav-capability.test.js",
+    "sha256": "2be2affcbf2918b2321a888dbfcb3a04342592462c683c24eea389cf1b80be4c"
+  },
+  {
+    "path": "package.json",
+    "sha256": "d654c6d4d7952c1ebd735ae056ee6111a5e775ae7c5c84b40fba96d4aa6c36f3"
+  },
+  {
+    "path": "tests/fs/webdav/mock.ts",
+    "sha256": "7a22f547ab3f7d14f2048df631c70770fe3294addaae3dde39861bf742088551"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts",
+    "sha256": "3d780cc929b1171f45b77a7eed132536df0f240f7d4a0e6687b1390bdeb6df58"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+    "sha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf"
+  },
+  {
+    "path": "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts",
+    "sha256": "24a03650e519cca07962b563e886c31900da3a1905de01d7b28074ca78a43196"
+  },
+  {
+    "path": "tests/integration/adapter-tools/fixtures.ts",
+    "sha256": "eb6ec3f5a47c0d198129717ddede3830b4d23d6b2252aac1f56371768b16b37b"
+  },
+  {
+    "path": "tests/integration/adapter-tools/matrix.test.ts",
+    "sha256": "28a97098e394b541d030fa009d683b28d3d116e2fa4896bdc387cf50e9461e9a"
+  },
+  {
+    "path": "tests/integration/adapter-tools/preflight-review/preflight.ts",
+    "sha256": "1808a99ebde194c2d4b95b8a8431c1a1415898925bf7929dbbc7710f4dbded62"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/rmdir-fixtures.ts",
+    "sha256": "91dab02c45ad25919e7113c950eceb534bff98c05076d5116e7fd5b9fbcb7196"
+  },
+  {
+    "path": "tests/integration/adapter-tools/profiles/stock-webdav-capability.test.ts",
+    "sha256": "bfdaeafb71fac434069a0a80d5d6d27344a050e23222c0bb1909e34e2866535a"
+  },
+  {
+    "path": "tsconfig.json",
+    "sha256": "84e29c3f1a3a5b010bc49920773aecc52087eb5a79650239eed55b6dbdee9340"
+  }
+]

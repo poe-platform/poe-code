@@ -1,0 +1,43 @@
+{
+  "status": "DATA_PREPARED",
+  "pid": 65675,
+  "originalDependencies": [
+    [
+      "pure-controls.mjs",
+      "32f780a3262c59a9ec9e3c43ef5c7f39191f9231d60dbec7071777e02418e40f"
+    ],
+    [
+      "guards.mjs",
+      "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    ],
+    [
+      "array-observer.mjs",
+      "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    ]
+  ],
+  "sourceRoot": "/Users/kjopek/Workspace/safe-bash",
+  "syntaxChecks": 2,
+  "inventory": [
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/pure-controls.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/guards.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/array-observer.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/root-binding.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/prepare.mjs",
+    "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v6/PRESEAL.md",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/pure-controls.mjs",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/guards.mjs",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/array-observer.mjs",
+    "/private/tmp/safe-bash-core70-v6-20260829/controls/root-binding.mjs"
+  ],
+  "entrySha256": "95e7a72148f7aac0a0f040c619c615e78d8565dcbacdf064a94c1198a639a950",
+  "rootBindingSha256": "d9a2fecb17a403eeb26f9bc060472ca5cd6f88075dfc41f87cdb1386e1305aa3",
+  "inheritedExecutionSealSha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301",
+  "inheritedSealMetadata": {
+    "size": 351213,
+    "provenance": "98dcc03e5d31feb5b401999db52c9d151e875192/v4/BUILD-RESULT.json",
+    "authentication": "prior accepted DATA; not consumed by this narrow controller"
+  },
+  "productImports": 0,
+  "Workers": 0,
+  "finishedMs": 1788013370579
+}

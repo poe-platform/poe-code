@@ -1,0 +1,18 @@
+--- a/tests/commands/git-pack-design-20260828/check-data.mjs
++++ b/tests/commands/git-pack-design-20260828/check-data.mjs
+@@ -37,7 +37,8 @@
+   requireData(count <= 40, 'INDEX_COUNT');
+   const largeStart = 1032 + count * 28;
+   const extra = bytes.length - largeStart - 40;
+-  requireData(extra >= 0 && extra % 8 === 0 && extra / 8 <= count, 'INDEX_SIZE');
++  requireData(extra >= 0 && extra % 8 === 0
++    && (count === 0 ? extra === 0 : extra / 8 <= count - 1), 'INDEX_SIZE');
+   const largeCount = extra / 8;
+   const rows = [];
+   const usedLarge = new Set();
+@@ -71,4 +72,5 @@
+ const reconstruct = (base, program) => {
++  requireData(program.length >= 4, 'DELTA_MINIMUM');
+   let cursor = 0;
+   const byte = () => {
+     requireData(cursor < program.length, 'DELTA_TRUNCATED');

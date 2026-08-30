@@ -1,0 +1,226 @@
+{
+  "schema": "SOURCE_ANALYSIS_EVIDENCE_V1",
+  "status": "UNSAFE_STOP",
+  "files": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/PLAN.json",
+      "bytes": 1331,
+      "mode": 420,
+      "sha256": "582b1de9c357c110d3c05a2ff61181eb3f6564f1705f68c617b0617bf33470a8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/REPORT.md",
+      "bytes": 7024,
+      "mode": 420,
+      "sha256": "a0c80ec75a8263dd5c89b9e09b18db4f12ab8e901bb77f21e43cb65f2e77c2e8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/STATE.json",
+      "bytes": 9755,
+      "mode": 384,
+      "sha256": "45ef92f1cd70955305a924db3c1ea3e09c360a344115b6837e557e36bcaead62"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/STOP.json",
+      "bytes": 1573,
+      "mode": 384,
+      "sha256": "f98661f6eb27dd2f5870ab7c457d075e761be962a7f21cfbeb8aa6c071a02854"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/audit.mjs",
+      "bytes": 5574,
+      "mode": 420,
+      "sha256": "dedd0de3f482cbfaa1cf7afcd9882bc258a2b65329400cbc2fa207db585795bc"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/batch-01.json",
+      "bytes": 917,
+      "mode": 420,
+      "sha256": "d59d1f99dff96aa32675612b97aea47d1fae9e03f3b0d57ad85a976caa433350"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/batch-02.json",
+      "bytes": 1619,
+      "mode": 420,
+      "sha256": "98d969581dbee8a96b770abfba4f27ee35dcf69a7586abf94b2c4a9c1841a66d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/batch-03.json",
+      "bytes": 1087,
+      "mode": 420,
+      "sha256": "bdda1e57597210e3634eedfa2ee65d798187ee27e383c9fe7146ba04fe871c48"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/batch-04.json",
+      "bytes": 1240,
+      "mode": 420,
+      "sha256": "ddf02e07da0cbfb5dea1f0af796e7e20120a88228d87b17ea5aa5383fc6872f2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/du-implementation.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/du-implementation.stdout",
+      "bytes": 35526,
+      "mode": 384,
+      "sha256": "d8c894284d0da0bef311d551ea5bfb6b1f444dc64579a0a253679e22b23acf79"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/offline-guard.data",
+      "bytes": 8590,
+      "mode": 384,
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/public80-policy.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/public80-policy.stdout",
+      "bytes": 5716,
+      "mode": 384,
+      "sha256": "9f988a5fae61aa3cbbc93c3f139ad20281273466dc46a9031837bab42932dadd"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/qualified-reports.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/qualified-reports.stdout",
+      "bytes": 37218,
+      "mode": 384,
+      "sha256": "e234bb9d5336a9321f5bb12ec9e29a163ca753a017c531ab011d7eff4ba95fa8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/reference-packets.stderr",
+      "bytes": 31,
+      "mode": 384,
+      "sha256": "e103542feaa816a4b62ab0ff7fd4ff21f4e9495721a48b2b5c487bc9b7d8943b"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/reference-packets.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/references.stderr",
+      "bytes": 189,
+      "mode": 384,
+      "sha256": "213dfd4524006b5444e588ab5107287bf29be0eb9b3c17235bb1a756baf036b2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/references.stdout",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-client.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-client.stdout",
+      "bytes": 15319,
+      "mode": 384,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-matching.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-matching.stdout",
+      "bytes": 11796,
+      "mode": 384,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-protocol.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-protocol.stdout",
+      "bytes": 10890,
+      "mode": 384,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-worker.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/regex-worker.stdout",
+      "bytes": 1930,
+      "mode": 384,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/scope-status.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/scope-status.stdout",
+      "bytes": 112,
+      "mode": 384,
+      "sha256": "ab4f30716baacf9ff31ad885b94ce260873d08fa5fa7e6febc2aa0b2f4bab031"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/target-source-paths.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/target-source-paths.stdout",
+      "bytes": 8199,
+      "mode": 384,
+      "sha256": "8ecfe193bf6db552135a24366815fe08f61ff0bb92e3c32c5d6f2fc3516dbbcd"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/valid-packets.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/valid-packets.stdout",
+      "bytes": 1152,
+      "mode": 384,
+      "sha256": "bd6a60174630460ecc61f5db7bbf4be5890168d33cd1b1d9db640584eaf0306e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/valid-references.stderr",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-du-source-analysis-20260829/captures/valid-references.stdout",
+      "bytes": 1170,
+      "mode": 384,
+      "sha256": "78694c4ef8b5a5a8e4f39dfe77ad8fc5ec293a452f7f1882e7ace0e4500996c1"
+    }
+  ],
+  "bytes": 167958,
+  "oldArtifactsUnmodifiedByThisTask": true,
+  "knownProcessesBeforePublicationGit": 31,
+  "remainingPublicationToolsReserved": 6
+}

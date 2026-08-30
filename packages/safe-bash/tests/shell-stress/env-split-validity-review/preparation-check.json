@@ -1,0 +1,30 @@
+{
+  "phase": "preparation-only",
+  "reviewerThreadId": "01a042ef-2082-7a20-a1b5-c3ba7235ff76",
+  "checks": [
+    { "command": "node --check tests/shell-stress/env-split-validity-review/verify-preparation.mjs", "exitCode": 0 },
+    { "command": "node tests/shell-stress/env-split-validity-review/verify-preparation.mjs", "exitCode": 0 }
+  ],
+  "guardResult": {
+    "phase": "preparation-only",
+    "reviewerThreadId": "01a042ef-2082-7a20-a1b5-c3ba7235ff76",
+    "candidate": "84ab66ca717e0dff21abf57051b41cb553f3c7f3",
+    "candidateTree": "223a56d93e4abd5a7ff149b3d95536a0129731f7",
+    "historicalFilesPreserved": 94,
+    "sourceFilesAuthenticated": 213,
+    "archiveFilesAuthenticated": 220,
+    "archiveSha256": "f17461ad17ddf23b1c194b2a422a3d41e229b1becf999faa2897c82cabb14f1f",
+    "capturedTarballSha256": "3ac9f899fbabb14e0473a9345113642fbfd2d12ac6e957659695b6b9e2fbac8c",
+    "capturedTarballBytes": 630766,
+    "historicalCountsChecked": true,
+    "authorRevisionRead": false,
+    "productImports": 0,
+    "productExecutions": 0,
+    "productInstallations": 0,
+    "nativeExecutions": 0,
+    "scratchCreated": false,
+    "acceptance": "not released; awaiting ROOT author fixture freeze"
+  },
+  "childScope": "Only synchronous bounded Git metadata/blob/archive commands; no product/native-oracle child, background process, watcher or temporary installation.",
+  "qualification": "Authenticates historical evidence and exact candidate/archive/tgz identities only; no revised fixture read, installed replay, declaration execution or product acceptance."
+}

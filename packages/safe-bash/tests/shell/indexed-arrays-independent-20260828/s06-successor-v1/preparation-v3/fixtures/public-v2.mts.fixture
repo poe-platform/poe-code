@@ -1,0 +1,14 @@
+import { Shell, MemoryFileSystem } from 'virtual-bash';
+import type { ShellOptions, ShellResult, ShellCommandContext } from 'virtual-bash';
+const options: ShellOptions = { fs: new MemoryFileSystem(), env: { LC_ALL: 'C.UTF-8' } };
+const shell = new Shell(options);
+shell.register({ name: 'relay', async execute(context) {
+  if (!context.invoke || !context.registerCleanup) throw new Error('Required shell capabilities unavailable');
+  context.registerCleanup(() => Promise.resolve());
+  const invoke: ShellCommandContext['invoke'] = context.invoke;
+  return invoke('printf', ['%s', 'ok'], { signal: context.signal });
+} });
+const result: ShellResult = await shell.exec('a=([0]=value); printf "%s" "$a"');
+const status: number = result.exitCode;
+void status;
+await shell.dispose();

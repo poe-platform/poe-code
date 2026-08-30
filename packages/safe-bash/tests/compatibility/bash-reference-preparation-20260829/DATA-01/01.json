@@ -1,0 +1,26 @@
+{
+  "role": "bash",
+  "path": "/bin/bash",
+  "initial": {
+    "mode": 365,
+    "bytes": 1293840,
+    "dev": 16777232,
+    "ino": 1152921500312570800,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "symbolicLink": false,
+  "resolved": "/bin/bash",
+  "target": {
+    "mode": 365,
+    "bytes": 1293840,
+    "dev": 16777232,
+    "ino": 1152921500312570800,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

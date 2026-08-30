@@ -1,0 +1,33 @@
+{
+  "name": "backend-memory",
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/fs/memory/comparison.test.ts",
+    "tests/fs/memory/conformance.test.ts",
+    "tests/fs/memory/memory.test.ts",
+    "tests/fs/memory/review-regressions.test.ts",
+    "tests/fs/memory/rmdir.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:39:58.133Z",
+  "finishedAt": "2026-08-27T01:39:58.461Z",
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 126,
+    "pass": 126,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "0eb2de3120c038ef679fc6765a95d5257f7dba3177dd12113e055677603fa258",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

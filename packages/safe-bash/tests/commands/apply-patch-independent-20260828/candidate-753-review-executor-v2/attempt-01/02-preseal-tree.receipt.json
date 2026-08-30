@@ -1,0 +1,61 @@
+{
+  "id": "preseal-tree",
+  "role": "runtime-seal-git",
+  "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+  "args": [
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "maintenance.auto=false",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "commit.gpgsign=false",
+    "-c",
+    "core.abbrev=40",
+    "--no-replace-objects",
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "e0c80061c212929159ee3e727018d116f1534e8b",
+    "--",
+    "tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_NO_REPLACE_OBJECTS": "1",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/home",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/attempt-01/work/tmp",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "timeoutMs": 30000,
+  "maxCombinedBytes": 16777216,
+  "pid": 2929,
+  "closeObserved": true,
+  "absent": true,
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": {
+    "path": "02-preseal-tree.stdout.raw",
+    "bytes": 3099,
+    "sha256": "2dbb18d9a69b72492dbc1a11279e66973b73e71c2742be14678979e54770e5b5",
+    "mode": 384,
+    "observedBytes": 3099,
+    "lostBytes": 0
+  },
+  "stderr": {
+    "path": "02-preseal-tree.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 384,
+    "observedBytes": 0,
+    "lostBytes": 0
+  }
+}

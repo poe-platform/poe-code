@@ -1,0 +1,631 @@
+{
+  "date": "2026-08-29T01:06:56.406Z",
+  "candidate": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "base": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "module": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "integration": "83730c6085597d8480a25aa639793582984eebd0",
+  "package": {
+    "sha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "bytes": 814632,
+    "members": 898
+  },
+  "source": {
+    "inputs": 278,
+    "storedComparisons": 303,
+    "added": [
+      "src/commands/apply-patch/apply.ts",
+      "src/commands/apply-patch/index.ts",
+      "src/commands/apply-patch/matcher.ts",
+      "src/commands/apply-patch/options.ts",
+      "src/commands/apply-patch/parser.ts",
+      "src/commands/apply-patch/shared.ts"
+    ],
+    "changed": [
+      "README.md",
+      "package.json",
+      "src/index.ts",
+      "src/plugins/index.ts"
+    ],
+    "packageAdded": [
+      "dist/commands/apply-patch/apply.js",
+      "dist/commands/apply-patch/index.js",
+      "dist/commands/apply-patch/matcher.js",
+      "dist/commands/apply-patch/options.js",
+      "dist/commands/apply-patch/parser.js",
+      "dist/commands/apply-patch/shared.js",
+      "dist/commands/apply-patch/apply.d.ts.map",
+      "dist/commands/apply-patch/apply.js.map",
+      "dist/commands/apply-patch/index.d.ts.map",
+      "dist/commands/apply-patch/index.js.map",
+      "dist/commands/apply-patch/matcher.d.ts.map",
+      "dist/commands/apply-patch/matcher.js.map",
+      "dist/commands/apply-patch/options.d.ts.map",
+      "dist/commands/apply-patch/options.js.map",
+      "dist/commands/apply-patch/parser.d.ts.map",
+      "dist/commands/apply-patch/parser.js.map",
+      "dist/commands/apply-patch/shared.d.ts.map",
+      "dist/commands/apply-patch/shared.js.map",
+      "dist/commands/apply-patch/apply.d.ts",
+      "dist/commands/apply-patch/index.d.ts",
+      "dist/commands/apply-patch/matcher.d.ts",
+      "dist/commands/apply-patch/options.d.ts",
+      "dist/commands/apply-patch/parser.d.ts",
+      "dist/commands/apply-patch/shared.d.ts"
+    ],
+    "packageChanged": [
+      "dist/index.js",
+      "dist/plugins/index.js",
+      "package.json",
+      "dist/index.d.ts.map",
+      "dist/plugins/index.d.ts.map",
+      "dist/index.js.map",
+      "dist/plugins/index.js.map",
+      "README.md",
+      "dist/index.d.ts",
+      "dist/plugins/index.d.ts"
+    ],
+    "unchangedCommonMembers": 864
+  },
+  "terminal": {
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/records/FINAL.json",
+      "sha256": "bf40c0570eba4e9fcea64a7fa439b691d63d30af6a0aae93b5028406944a1f0e"
+    },
+    "accepted": false,
+    "unsafeStop": false,
+    "elapsedBeforeAnnouncementMs": 329193.509958,
+    "work": "/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01",
+    "childrenRetired": true,
+    "requiresZeroCoordinatorExit": true
+  },
+  "overallStatus": "COMPLETE_WITH_FOUR_REVIEWER_WORKER_PROFILE_FAILURES_EXIT1",
+  "public": [
+    {
+      "layout": "source-built-public-v2",
+      "code": 0,
+      "passed": 28,
+      "total": 28,
+      "created": 23,
+      "disposed": 23,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "moved-public-v2",
+      "code": 0,
+      "passed": 28,
+      "total": 28,
+      "created": 23,
+      "disposed": 23,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "installed-public-v2",
+      "code": 0,
+      "passed": 28,
+      "total": 28,
+      "created": 23,
+      "disposed": 23,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    }
+  ],
+  "arrays": [
+    {
+      "layout": "moved-arrays",
+      "code": 0,
+      "passed": 12,
+      "total": 12,
+      "created": 0,
+      "disposed": 12,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "source-built-arrays",
+      "code": 0,
+      "passed": 12,
+      "total": 12,
+      "created": 0,
+      "disposed": 12,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "installed-arrays",
+      "code": 0,
+      "passed": 12,
+      "total": 12,
+      "created": 0,
+      "disposed": 12,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    }
+  ],
+  "coherence": [
+    {
+      "layout": "moved-coherence",
+      "code": 0,
+      "passed": 18,
+      "total": 18,
+      "created": 20,
+      "disposed": 20,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "source-built-coherence",
+      "code": 0,
+      "passed": 18,
+      "total": 18,
+      "created": 20,
+      "disposed": 20,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "installed-coherence",
+      "code": 0,
+      "passed": 18,
+      "total": 18,
+      "created": 20,
+      "disposed": 20,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    }
+  ],
+  "novel": [
+    {
+      "layout": "moved-novel",
+      "code": 0,
+      "passed": 17,
+      "total": 17,
+      "created": 11,
+      "disposed": 11,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "source-built-novel",
+      "code": 0,
+      "passed": 17,
+      "total": 17,
+      "created": 11,
+      "disposed": 11,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    },
+    {
+      "layout": "installed-novel",
+      "code": 0,
+      "passed": 17,
+      "total": 17,
+      "created": 11,
+      "disposed": 11,
+      "productLoads": 220,
+      "uniqueProductLoads": 220
+    }
+  ],
+  "canonical": {
+    "tap": {
+      "tests": 83,
+      "pass": 79,
+      "fail": 4,
+      "skip": 0,
+      "cancel": 0
+    },
+    "failures": [
+      {
+        "test": 69,
+        "title": "definitions fallback resolves nested argv across families without a shell",
+        "raw": "# Subtest: definitions fallback resolves nested argv across families without a shell\nnot ok 69 - definitions fallback resolves nested argv across families without a shell\n  ---\n  duration_ms: 14.688209\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical-built/tests/plugins/agent-commands.test.js:64:5'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   exitCode: 2,\n    +   stderr: 'rg: Access to this API has been restricted. Use --allow-worker to manage permissions.\\n',\n    +   stdout: ''\n    -   exitCode: 0,\n    -   stderr: '',\n    -   stdout: 'a\\n'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    exitCode: 0\n    stdout: |-\n      a\n      \n    stderr: ''\n  actual:\n    exitCode: 2\n    stdout: ''\n    stderr: |-\n      rg: Access to this API has been restricted. Use --allow-worker to manage permissions.\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically%20moved/canonical-built/tests/plugins/agent-commands.test.js:70:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+      },
+      {
+        "test": 70,
+        "title": "plugin fallback resolves nested argv across families without a shell",
+        "raw": "# Subtest: plugin fallback resolves nested argv across families without a shell\nnot ok 70 - plugin fallback resolves nested argv across families without a shell\n  ---\n  duration_ms: 4.131833\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical-built/tests/plugins/agent-commands.test.js:64:5'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   exitCode: 2,\n    +   stderr: 'rg: Access to this API has been restricted. Use --allow-worker to manage permissions.\\n',\n    +   stdout: ''\n    -   exitCode: 0,\n    -   stderr: '',\n    -   stdout: 'a\\n'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    exitCode: 0\n    stdout: |-\n      a\n      \n    stderr: ''\n  actual:\n    exitCode: 2\n    stdout: ''\n    stderr: |-\n      rg: Access to this API has been restricted. Use --allow-worker to manage permissions.\n      \n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically%20moved/canonical-built/tests/plugins/agent-commands.test.js:70:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+      },
+      {
+        "test": 75,
+        "title": "aggregate forwards search limits without rewriting them",
+        "raw": "# Subtest: aggregate forwards search limits without rewriting them\nnot ok 75 - aggregate forwards search limits without rewriting them\n  ---\n  duration_ms: 1.344\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical-built/tests/plugins/agent-commands.test.js:109:5'\n  failureType: 'testCodeFailure'\n  error: |-\n    The input did not match the regular expression /limit/u. Input:\n    \n    'rg: Access to this API has been restricted. Use --allow-worker to manage permissions.\\n'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual: |-\n    rg: Access to this API has been restricted. Use --allow-worker to manage permissions.\n    \n  operator: 'match'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically%20moved/canonical-built/tests/plugins/agent-commands.test.js:114:20)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+      },
+      {
+        "test": 80,
+        "title": "search defaultInput remains an explicit family override",
+        "raw": "# Subtest: search defaultInput remains an explicit family override\nnot ok 80 - search defaultInput remains an explicit family override\n  ---\n  duration_ms: 1.246291\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical-built/tests/plugins/agent-commands.test.js:121:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    2 !== 1\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 1\n  actual: 2\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically%20moved/canonical-built/tests/plugins/agent-commands.test.js:127:16)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n"
+      }
+    ],
+    "relevantLines": [
+      {
+        "line": 31,
+        "text": "    \"sed\", \"awk\", \"jq\", \"rg\", \"base64\", \"base32\", \"xxd\", \"od\", \"sha256sum\", \"sha1sum\","
+      },
+      {
+        "line": 45,
+        "text": "for (const conflict of [\"printf\", \"sed\", \"jq\", \"rg\", \"gzip\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\", \"paste\", \"comm\", \"join\", \"date\", \"sleep\", \"printenv\", \"tree\", \"file\"]) {"
+      },
+      {
+        "line": 63,
+        "text": "  for (const name of [\"printf\", \"sed\", \"jq\", \"rg\", \"gzip\", \"patch\", \"chmod\", \"stat\", \"mktemp\", \"tar\", \"paste\", \"comm\", \"join\"]) {"
+      },
+      {
+        "line": 75,
+        "text": "  test(`${kind} fallback resolves nested argv across families without a shell`, async () => {"
+      },
+      {
+        "line": 80,
+        "text": "    assert.deepEqual(await direct(commands, \"env\", [\"env\", \"rg\", \"a\", \"-\"], \"a\\n\"), { exitCode: 0, stdout: \"a\\n\", stderr: \"\" });"
+      },
+      {
+        "line": 129,
+        "text": "test(\"search defaultInput remains an explicit family override\", async () => {"
+      },
+      {
+        "line": 132,
+        "text": "  const shell = new Shell({ fs }).use(agentCommands({ search: { defaultInput: \"stdin\" } }));"
+      }
+    ],
+    "childCode": 1,
+    "fixtureSha256": "d19dd492d498c3a7754b93cc9041615ab8011b4eacbbca3a64df8011cb8c46a2"
+  },
+  "stream": [
+    {
+      "tap": {
+        "tests": 21,
+        "pass": 21,
+        "fail": 0,
+        "skip": 0,
+        "cancel": 0
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "types-installed-negative.json",
+      "accepted": true,
+      "code": 2,
+      "diagnostics": [
+        "consumer-negative.mts(9,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ApplyPatchCommandsOptions, \"replace\">'.",
+        "consumer-negative.mts(11,22): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "consumer-negative.mts(13,37): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "consumer-negative.mts(15,38): error TS2353: Object literal may only specify known properties, and 'unlimited' does not exist in type 'Partial<ApplyPatchLimits>'.",
+        "consumer-negative.mts(17,51): error TS2353: Object literal may only specify known properties, and 'maxApplyPatchBytes' does not exist in type 'ShellLimits'.",
+        "consumer-negative.mts(19,8): error TS2540: Cannot assign to 'maxFiles' because it is a read-only property.",
+        "consumer-negative.mts(21,22): error TS2353: Object literal may only specify known properties, and 'cwd' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "consumer-negative.mts(23,27): error TS2322: Type 'null' is not assignable to type 'Partial<ApplyPatchLimits> | undefined'."
+      ],
+      "declarationCount": 88,
+      "uniqueDeclarations": 88
+    },
+    {
+      "name": "types-installed-positive.json",
+      "accepted": true,
+      "code": 0,
+      "diagnostics": [],
+      "declarationCount": 88,
+      "uniqueDeclarations": 88
+    },
+    {
+      "name": "types-moved-negative.json",
+      "accepted": true,
+      "code": 2,
+      "diagnostics": [
+        "consumer-negative.mts(9,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ApplyPatchCommandsOptions, \"replace\">'.",
+        "consumer-negative.mts(11,22): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "consumer-negative.mts(13,37): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "consumer-negative.mts(15,38): error TS2353: Object literal may only specify known properties, and 'unlimited' does not exist in type 'Partial<ApplyPatchLimits>'.",
+        "consumer-negative.mts(17,51): error TS2353: Object literal may only specify known properties, and 'maxApplyPatchBytes' does not exist in type 'ShellLimits'.",
+        "consumer-negative.mts(19,8): error TS2540: Cannot assign to 'maxFiles' because it is a read-only property.",
+        "consumer-negative.mts(21,22): error TS2353: Object literal may only specify known properties, and 'cwd' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "consumer-negative.mts(23,27): error TS2322: Type 'null' is not assignable to type 'Partial<ApplyPatchLimits> | undefined'."
+      ],
+      "declarationCount": 88,
+      "uniqueDeclarations": 88
+    },
+    {
+      "name": "types-moved-positive.json",
+      "accepted": true,
+      "code": 0,
+      "diagnostics": [],
+      "declarationCount": 88,
+      "uniqueDeclarations": 88
+    },
+    {
+      "name": "types-source-built-negative.json",
+      "accepted": true,
+      "code": 2,
+      "diagnostics": [
+        "consumer-negative.mts(9,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ApplyPatchCommandsOptions, \"replace\">'.",
+        "consumer-negative.mts(11,22): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "consumer-negative.mts(13,37): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "consumer-negative.mts(15,38): error TS2353: Object literal may only specify known properties, and 'unlimited' does not exist in type 'Partial<ApplyPatchLimits>'.",
+        "consumer-negative.mts(17,51): error TS2353: Object literal may only specify known properties, and 'maxApplyPatchBytes' does not exist in type 'ShellLimits'.",
+        "consumer-negative.mts(19,8): error TS2540: Cannot assign to 'maxFiles' because it is a read-only property.",
+        "consumer-negative.mts(21,22): error TS2353: Object literal may only specify known properties, and 'cwd' does not exist in type 'ApplyPatchCommandsOptions'.",
+        "consumer-negative.mts(23,27): error TS2322: Type 'null' is not assignable to type 'Partial<ApplyPatchLimits> | undefined'."
+      ],
+      "declarationCount": 88,
+      "uniqueDeclarations": 88
+    },
+    {
+      "name": "types-source-built-positive.json",
+      "accepted": true,
+      "code": 0,
+      "diagnostics": [],
+      "declarationCount": 88,
+      "uniqueDeclarations": 88
+    }
+  ],
+  "mutants": [
+    {
+      "label": "U01-registration-omission",
+      "accepted": true,
+      "sha256": "d4bf3fb6f4475bc6a3abd6e13d6969367698d9bb624802851b71a0b647794d1b",
+      "fail": "N06-exact79",
+      "pass": "N13-reused-input-and-owned-cleanups",
+      "observations": [
+        {
+          "id": "N06-exact79",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    '[',\n-   'apply_patch',\n    'awk',\n    'base32',\n    'base64',\n    'basename',\n    'cat',\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U01-registration-omission/novel.mjs:19:70\n    at record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U01-registration-omission/novel.mjs:13:242)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U01-registration-omission/novel.mjs:19:7",
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N13-reused-input-and-owned-cleanups",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        }
+      ],
+      "loads": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U01-registration-omission/node_modules/virtual-bash/dist/plugins/index.js",
+          "sha256": "d4bf3fb6f4475bc6a3abd6e13d6969367698d9bb624802851b71a0b647794d1b",
+          "role": "product"
+        }
+      ]
+    },
+    {
+      "label": "U02-limits-not-forwarded",
+      "accepted": true,
+      "sha256": "4334ae93fb2b1b587729ad8ff28f1ca564ffc371e251d112982ec81005054e4d",
+      "fail": "N11-lowered-files-no-publication",
+      "pass": "N06-exact79",
+      "observations": [
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N11-lowered-files-no-publication",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U02-limits-not-forwarded/novel.mjs:24:286\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U02-limits-not-forwarded/novel.mjs:13:236)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U02-limits-not-forwarded/novel.mjs:24:1",
+          "created": 1,
+          "disposed": 1
+        }
+      ],
+      "loads": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U02-limits-not-forwarded/node_modules/virtual-bash/dist/plugins/index.js",
+          "sha256": "4334ae93fb2b1b587729ad8ff28f1ca564ffc371e251d112982ec81005054e4d",
+          "role": "product"
+        }
+      ]
+    },
+    {
+      "label": "U03-unrelated-custom-replaced",
+      "accepted": true,
+      "sha256": "25ef8ccd440df43763103f9e4a02afe96ff9a9bcfa42c3aef9a2c0473d72a552",
+      "fail": "N04-custom-preservation",
+      "pass": "N06-exact79",
+      "observations": [
+        {
+          "id": "N04-custom-preservation",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Values have same structure but are not reference-equal:\n\n{\n  execute: [Function: execute],\n  name: 'custom'\n}\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U03-unrelated-custom-replaced/novel.mjs:17:244\n    at record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U03-unrelated-custom-replaced/novel.mjs:13:242)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U03-unrelated-custom-replaced/novel.mjs:17:7",
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        }
+      ],
+      "loads": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U03-unrelated-custom-replaced/node_modules/virtual-bash/dist/plugins/index.js",
+          "sha256": "25ef8ccd440df43763103f9e4a02afe96ff9a9bcfa42c3aef9a2c0473d72a552",
+          "role": "product"
+        }
+      ]
+    },
+    {
+      "label": "U04-existing-patch-not-replaced",
+      "accepted": true,
+      "sha256": "381b721905ca81ad23e4551d617333f1b5191e3d6ddde7bd856b40a99c57aed3",
+      "fail": "N05-replacement-authority",
+      "pass": "N06-exact79",
+      "observations": [
+        {
+          "id": "N05-replacement-authority",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected \"actual\" not to be reference-equal to \"expected\":\n\n{\n  execute: [Function: execute],\n  name: 'apply_patch'\n}\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U04-existing-patch-not-replaced/novel.mjs:18:268\n    at record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U04-existing-patch-not-replaced/novel.mjs:13:242)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U04-existing-patch-not-replaced/novel.mjs:18:7",
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        }
+      ],
+      "loads": [
+        {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/U04-existing-patch-not-replaced/node_modules/virtual-bash/dist/plugins/index.js",
+          "sha256": "381b721905ca81ad23e4551d617333f1b5191e3d6ddde7bd856b40a99c57aed3",
+          "role": "product"
+        }
+      ]
+    }
+  ],
+  "restores": [
+    {
+      "label": "U01-registration-omission-restored",
+      "accepted": true,
+      "cases": [
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N13-reused-input-and-owned-cleanups",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        }
+      ]
+    },
+    {
+      "label": "U02-limits-not-forwarded-restored",
+      "accepted": true,
+      "cases": [
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N11-lowered-files-no-publication",
+          "pass": true,
+          "created": 1,
+          "disposed": 1
+        }
+      ]
+    },
+    {
+      "label": "U03-unrelated-custom-replaced-restored",
+      "accepted": true,
+      "cases": [
+        {
+          "id": "N04-custom-preservation",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        }
+      ]
+    },
+    {
+      "label": "U04-existing-patch-not-replaced-restored",
+      "accepted": true,
+      "cases": [
+        {
+          "id": "N05-replacement-authority",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        },
+        {
+          "id": "N06-exact79",
+          "pass": true,
+          "created": 0,
+          "disposed": 0
+        }
+      ]
+    }
+  ],
+  "guards": [
+    {
+      "label": "installed-fallback-refusal",
+      "accepted": true,
+      "code": 0,
+      "kind": "fallback"
+    },
+    {
+      "label": "moved-fallback-refusal",
+      "accepted": true,
+      "code": 0,
+      "kind": "fallback"
+    },
+    {
+      "label": "binding-missing",
+      "accepted": true,
+      "code": 1,
+      "kind": "missing"
+    },
+    {
+      "label": "binding-changed",
+      "accepted": true,
+      "code": 1,
+      "kind": "changed"
+    },
+    {
+      "label": "binding-outside",
+      "accepted": true,
+      "code": 1,
+      "kind": "outside"
+    },
+    {
+      "label": "removed-subpath",
+      "accepted": true,
+      "code": 1,
+      "kind": "export"
+    },
+    {
+      "label": "old-origin-absent",
+      "accepted": true,
+      "code": 0,
+      "kind": "origin-absent"
+    },
+    {
+      "label": "source-built-fallback-refusal",
+      "accepted": true,
+      "code": 0,
+      "kind": "fallback"
+    }
+  ],
+  "resources": {
+    "controlledChildren": 40,
+    "retired": 40,
+    "signals": [],
+    "capturedBytes": 2161216,
+    "terminalElapsedMs": 329193.509958,
+    "maximumChildElapsedMs": 5753.2165,
+    "maximumRuntimeChildElapsedMs": 1528.3686659999948,
+    "workingBytes": 90301197,
+    "preparedBytes": 13466754,
+    "archiveBytes": 8780277,
+    "knownCombinedBytes": 112548228,
+    "preparationGitChildren": 1,
+    "workerStarts": 0,
+    "descendantQualification": "Node child/Worker grants absent, four regex worker attempts refused; natural direct closes/group absence observed. No continuous OS-global/transient process census or RSS guarantee."
+  },
+  "archive": {
+    "path": "RAW.json.gz.base64",
+    "sha256": "95398e911fa279431a90a4dad1c093a49531b5e1ac6f8c366d04b543420c8e84",
+    "compressedSha256": "c903ca7e1c40fe9319c08f2bf89f9176429ac64fffd1e7ab3875ee7168e899fc",
+    "decodedSha256": "0806a8224551274e11388a657862d72b3349fcd2eeb64d8c24210f8ae790e20d",
+    "decodedBytes": 21697371,
+    "entries": 123,
+    "rawBytes": 16256456,
+    "rawDeleted": 0
+  },
+  "immutablePreparedAndAuthorCensuses": true,
+  "remaining": "Four maintained regex cases require separately authorized worker-aware harness qualification; no retry or permission change here. Public integration evidence is qualified, not an all-green maintained suite or whole gate."
+}

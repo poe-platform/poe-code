@@ -1,0 +1,103 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-a",
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "YmFzaWMK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIC5oaWRkZW4udHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIC5zZWNyZXQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBwcml2YXRlLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIEFscGhhLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGItZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIHwtLSBkcm9wLmJpbgo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIHwtLSBrZWVwLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBuZXN0ZWQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgICAgICBgLS0gbGFzdC50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGIudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGVtcHR5Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHNraXAtZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBoaWRkZW4tYnktZmlsdGVyLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHotZGlyCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fCAgIGAtLSBkZWVwLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIHpldGEudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjcgZGlyZWN0b3JpZXMsIDEwIGZpbGVzCg==",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:27.006Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T09:27:27.008Z"
+    }
+  ],
+  "shells": []
+}

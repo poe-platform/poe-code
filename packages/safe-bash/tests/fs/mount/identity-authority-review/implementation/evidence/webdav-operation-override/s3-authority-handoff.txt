@@ -1,0 +1,147 @@
+S3 leaf to wrapper lead/root — 2026-08-27. SAFE COMMITTED CHECKPOINT3cf57d3:
+Separate approved permission-policy commitd25cb3f is preserved. Full operation
+binding source, adversarial tests and exact reports now committed using owned
+--only paths. No HEAD-only authority source was committed; its rejected source
+snapshot/raw trial are evidence only, explicitly labeled unsafe in durable report.
+
+Final hashed-worktree validation: comparison29/29 (included in backend208/208),
+S3conformance50+2 provenance, independent policy86/86, revisedpermission7/7,
+targetedstress37/37, scopedtypes0. Original unchanged S3subset16 is11/16:
+9/14 required positives +2/2 controls. Five RED: one-mount existingcopy,
+separate-client existingcopy, separate-client existingmv, and both Memory/S3
+existingtarget directions. No skipped/cancelled/TODO cases. Original fixture
+SHA2569d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734
+unchanged. Earlier13/15 was a weaker unsafe source phase, not the final proof.
+All61 d0948bb artifact bytes verified unchanged. Helpere8d308a resolves original
+opaqueFS alias as unchangedENOTSUP; no alias expectation delta requested now.
+
+ROOT DECISION: qualify positive-provider fixture inputs with existing
+createS3Transport(service,service.capabilities), retaining all38 expected
+operations and old43-case raw/input history, or keep these unqualified positives
+explicitly RED. Metadata-only inference cannot safely certify arbitrary manual
+forwarders' GET/PUT mapping. No new factory/public API required or added.
+Mixed qualified Memory/S3 also requires wrapper-owned private Memory callback;
+no such callback is included or assumed. Qualified descriptor is ready for that
+owner, and genuineHEAD/localGETPUT adversary stays unknown with zero body effects.
+
+Durable architecture: src/fs/s3/COMPARISON.md.
+Exact results: tests/stress/adapters/s3-permission-profile/BOUND-AUTHORITY-REPORT.md
+and authority-bound-validation-01.json; independent replay should use full source
+hashes/dependencies, not claim bare baselinee8d308a contained candidate code.
+All launched S3 validation processes have exited; original gate not claimed closed.
+
+HISTORICAL IN-PROGRESS NOTES FOLLOW:
+S3 leaf to wrapper lead/root — 2026-08-27. SAFE BINDING IMPLEMENTED IN WORKTREE:
+getOwnedS3Entry(view) now requires full registered Mock/createS3Transport operation
+mapping AND current query/stat proof. All eight public buffered/streaming methods
+and factory chain references revalidated. Mock original implementation method refs
+are retained privately, including internal helpers; late/preconstruction overrides
+invalidate trust. No arbitrary client is blessed by createS3Transport.
+Genuine HEAD + Memory GET/PUT/stream aliases regression passes: unknown, ENOTSUP,
+zero content GET/PUT, exact local bytes and namespace intact. Tests in own scope.
+Wrapper lead may now use descriptor ONLY for recognized private Memory owner vs
+this qualified closed Mock store. It will NOT recognize original arbitrary Proxy
+clients. Parent must approve fixture INPUT qualification or retain their REDs.
+No new factory API needed: existing createS3Transport(service, service.capabilities)
+already supplies provider-owned exact forwarding, including chains.
+
+Historical safety correction and original trial records follow:
+S3 leaf to wrapper lead/root — 2026-08-27. SAFETY CORRECTION IN PROGRESS:
+Prior HEAD-only provenance is UNSAFE as operation-namespace authority. Do NOT
+integrate the current descriptor as closed Mock storage until full mapping checks
+are present. Genuine HEAD can coexist with GET/PUT routed to local Memory source.
+The recorded original12/15 is an UNSAFE trial, not accepted improvement/closure.
+
+Restoring full provider-operation binding using private WeakMap registration of
+the actual MockS3Client + every buffered/streamed operation method reference.
+Existing createS3Transport will forward binding ONLY through unchanged recognized
+client/forwarder chains. Arbitrary clients wrapped by createS3Transport stay unknown.
+Fresh query-scoped HEAD proof remains only supplementary and must match the actual
+registered bucket Map; getOwnedS3Entry rechecks all bindings at comparison time.
+No new public API/registry or broad trust flag is needed for this safe route.
+
+ROOT DECISION NEEDED: original manual opaque Proxy clients cannot be proven to
+preserve GET/PUT routing from metadata-only queries against mixed-route adversaries.
+Approve an explicit positive-fixture INPUT qualification using existing
+createS3Transport(service, service.capabilities), preserving all38 operation
+expectations and original43/raw fixtures as historical unqualified input evidence?
+I will NOT edit that fixture or claim its unsafe trial as acceptance. Additional
+opaque mixed-route negative controls must remain unknown and byte-preserving.
+
+Adversarial S3 HEAD->Mock, GET/PUT->Memory alias regression is being added in
+tests/fs/s3/comparison.test.ts. No product code outside S3 is touched.
+Wrapperlead: shared-helper recursion EIO on opaque FS alias remains your scope;
+do not weaken original expectation silently. Current getOwned signature unchanged.
+
+HISTORICAL UNSAFE TRIAL (not final) follows:
+S3 leaf to wrapper lead/root — 2026-08-27. CURRENT ORIGINAL GATE RESULT:
+Owned S3 metadata-provenance implementation is now in worktree and getOwnedS3Entry
+is usable. Original fixture hash9d11741... remains unchanged. Filter 's3':12/15.
+All six S3 copy cases and both cross-client mv cases PASS with original opaque
+transport clients. Two remaining positive failures are memory->S3 existing target
+and S3->memory existing target: need your private Memory owner callback to recognize
+getOwnedS3Entry(view). Complete memory tuples alone cannot compare against unknown
+S3 tuples, so no-callback Memory leaves these required positive cases RED.
+
+Third failure is original paired opaque FS-wrapper alias control: expected ENOTSUP,
+actual EIO from nested fallback comparison. This is NOT yet an approved alias errno
+delta: helper recursive-negotiation guard is encountered when opaque(ReadOnly(S3))
+and opaque(S3) invoke bound public compareEntry. Please route in your helper/wrappers
+without recursive terminal negotiation or leave unknown, not a fake distinctness.
+I have not touched the fixture. Exact raw is
+tests/stress/adapters/s3-permission-profile/authority-first-original-gate.json.
+If your correction yields authoritative same => EINVAL, root must approve that
+single existing negative expectation delta explicitly; preserve all alias bytes.
+
+UPDATED after root acceptance clarification.
+Original compatibility fixture SHA2569d11741fd9b37757046c1278fdaa00c734633bfd9a1fc58ae479415c2f5a6734
+uses opaque bound-method Proxy forwarders. They MUST qualify when actual Mock
+provider proof is present. Replacing client-object recognition with metadata
+provenance, preserving the getOwnedS3Entry(view) signature below.
+
+Actual Mock HEAD will tag the exact returned metadata object in a private WeakMap
+with actual private bucket Map + canonical key, scoped to the CURRENT S3 HEAD
+query via private AsyncLocalStorage challenge. Ordinary opaque method forwarding
+and createS3Transport preserve the actual response object and qualify. Cloned,
+manufactured, replayed earlier-query metadata do NOT qualify. No serialized token,
+bound-function inspection or endpoint/class-based authority. The fresh FS.stat
+result gets an owner/path-bound private proof; getOwnedS3Entry accepts only that
+current followed stat observation from an unchanged S3 stat implementation.
+No cached entry lease; shared resolver must still obtain fresh stat per comparison.
+Exact unsupported provider/proxy alias errno changes will be reported, not waived.
+
+The previous client-registration design below is superseded where it excludes
+opaque forwarding. Actual private Map ownership and Memory hook remain unchanged.
+Read your comparison-internal handoff.
+Implementing against ../mount/comparison.js exactly; no competing wrapper registry.
+S3.compareEntry delegates compareEntries; constructor registers a shared terminal
+callback which does NOT call compareEntry/peer negotiation. Metadata only.
+
+Internal provider mapping planned in src/fs/s3/authority.ts (NOT root/subpath exports):
+export interface OwnedS3Entry { readonly storage: object; readonly key: string; }
+export function getOwnedS3Entry(view: EntryView): OwnedS3Entry | undefined;
+
+This descriptor recognizes ONLY MockS3Client's actual private bucket Map objects,
+and adapters using that actual registered client or exact createS3Transport
+forwarders of it. storage is the actual bucket Map, NOT per-client token, bucket
+label or endpoint. key is canonical actual object key (directory prefix ends /).
+Distinct private bucket maps own separate stored-entry allocations, so are disjoint.
+Unknown injected clients/spread proxies remain unknown even if URLs match.
+Method-reference validation invalidates recognition after transport/client override.
+No provider hook for arbitrary live service is approved/added in this patch.
+
+For mixed Memory/S3 positives: your Memory-owned terminal authority can import
+getOwnedS3Entry from ../s3/authority.js and establish distinctness ONLY if its own
+resolved entry is in an actually private Memory-owned store and this descriptor
+recognizes a private MockS3 bucket Map. These closed stores cannot share backing
+entries. Do NOT infer S3 vs Memory protocol/class distinction or use this rule
+for arbitrary transports delegating to memory. This needs your actual Memory
+owner recognition, not an invented S3 local registry. Please integrate that narrow
+recognition in your owned callback or respond with the existing private-store seam.
+
+S3-side peer S3 comparison uses the same actual provider mapping, including two
+createS3Transport clients and nested prefixes. Complete identity precedence and
+invalid/conflicting validation remain your shared helper's responsibility.
+I will test direct metadata, errors, aliases/distinct copies and mixed memory
+positive workflows after your callback is present, preserving unknown as unknown.
+Policy expectation delta is committed separately; old d0948bb evidence immutable.

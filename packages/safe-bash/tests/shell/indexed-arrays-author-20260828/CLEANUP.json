@@ -1,0 +1,19 @@
+{
+  "date": "2026-08-28",
+  "profile": "private syntax helper only",
+  "validationChildren": 13,
+  "settledValidationChildren": 13,
+  "timeoutFailures": 0,
+  "signalFailures": 0,
+  "expectedMutantStatus1Processes": 4,
+  "removedOwnedAttempts": [
+    "syntax-attempt-chxw5P",
+    "syntax-attempt-RhCNY4",
+    "syntax-attempt-I1OP2E"
+  ],
+  "archiveAndOriginalResultsComparedBeforeRemoval": true,
+  "sourceInventoriesCheckedIncludingNewEntriesBeforeRemoval": true,
+  "developmentNodeModulesLinksVerifiedAndNotFollowed": true,
+  "foreignArtifactsRemoved": false,
+  "qualification": "Owned temporary projections and tool caches only; no universal process census or tool-tree append-proof claim. Evidence capsules are retained."
+}

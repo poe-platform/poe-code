@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>SignatureDoesNotMatch</Code><Message>The request signature we calculated does not match the signature you provided. Check your key and signing method.</Message><Key>author/delete-denied/</Key><BucketName>safe-bash-interop</BucketName><Resource>/safe-bash-interop/author/delete-denied/</Resource><RequestId>18CF970B740A4DB8</RequestId><HostId>64d5ffbbe59de5e01c3ada88667eed9e2f5090a2e30b7c7c80c41108845722b5</HostId></Error>

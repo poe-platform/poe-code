@@ -1,0 +1,42 @@
+{
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "externalReceipt": {
+    "schema": 3,
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "observationCandidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+    "encodedSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "qualification": "Exact readable identities reused only after fresh verification; original observation retains its pre-approval incomplete-binding status. Root separately approved precisely eleven macOS26.4.1/build25E253 references; no full OS or unknown-image attestation."
+  },
+  "usedDeclaredTools": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/usr/bin/otool",
+    "/bin/ps",
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+    "/usr/bin/tar"
+  ],
+  "extraTools": [
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+      "observed": true,
+      "declaredExternalTool": false,
+      "postRunSha256": "d508f0e1901151843804e4af512d4587ad0e422039e43e14abf22792360ad3d4",
+      "bytes": 100528,
+      "mode": 493,
+      "qualification": "Post-run identity only; not asserted to have been hash-admitted before execution. Add explicit launcher prerequisite binding or eliminate shim route in rebound packet."
+    }
+  ],
+  "unresolvedObservedBasenames": [
+    "(otool)",
+    "(sw_vers)",
+    "(ps)",
+    "(git)",
+    "(lsof)",
+    "(otool-classic)",
+    "(node)",
+    "(xcodebuild)",
+    "(bash)",
+    "(sandbox-exec)"
+  ],
+  "qualification": "Process polling is not a full process-image inventory. In particular transient otool-classic has no absolute origin in observed command text; no invented binding or broader OS exception. All workers/phases still used the shipping OS fence."
+}

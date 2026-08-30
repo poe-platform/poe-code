@@ -1,0 +1,25 @@
+{
+  "matrixSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+  "commandWorkloadsAndAssertionsSha256": "2d6700674dbaadd10fba3765def70a647709ed7578c10bbc2f783fe4cbac64bf",
+  "stockFixtureSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+  "configuredFixtureSha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba",
+  "mockSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+  "atomicHelperSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+  "packSha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf",
+  "generatedBuildSha256": "693a50d3ba681bb3afc2f5f8e4ae8edf84091ed4f492935a95f2f54c5bd4a8e0",
+  "sourceManifestSha256": "0bf604ee810f6ac5dd2cdf771934288fe654700f9b3f6875903592df47f314d1",
+  "comparedTo": "222e9e127b5e86fa3e9af85d3bad0ee9fa54395c:tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected/summary.json",
+  "exactBody": true,
+  "exactMatrixExceptImport": true,
+  "reversibleDeclaredConfigOnly": true,
+  "configurationDeltas": [
+    [
+      "export const writableAdapters",
+      "import { atomicMockBinding } from \"./atomic-webdav-profile/atomic-mock.js\";\n\nexport const writableAdapters"
+    ],
+    [
+      "baseUrl: baseUrl.href, timeoutMs:",
+      "atomicEmptyDirectory: atomicMockBinding(dav, baseUrl.href),\n    baseUrl: baseUrl.href, timeoutMs:"
+    ]
+  ]
+}

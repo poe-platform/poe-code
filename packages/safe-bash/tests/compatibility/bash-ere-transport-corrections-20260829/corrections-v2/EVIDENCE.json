@@ -1,0 +1,567 @@
+{
+  "schema": 2,
+  "role": "AUTHOR source/types/pure helper correction; not transport acceptance",
+  "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+  "engineCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "presealSha256": "214d3feba92e3c59baa482255f62265a6c4d7212328a25c11ef7ae6262ba3403",
+  "combined12Sha256": "e785668f13549aba24323a6db568fb58805eca41a190ce18b41c299c28a53a5f",
+  "historical": {
+    "S04": "valid historical finding; amended by ROOT choice1 only",
+    "SC01": "valid SOURCE coverage gap; original39 visits/work0 unchanged, not demonstrated overrun",
+    "oldAuthor": "37 known children /12 pure controls/types not rescored",
+    "independent": "12 author+12 novel controls prior binding remain separate"
+  },
+  "actual": {
+    "controllerExit": 0,
+    "strictSourceExit": 0,
+    "positiveConsumerExit": 0,
+    "negativeConsumerExit": 2,
+    "negativeDiagnostics": [
+      2353,
+      2322,
+      2345,
+      2345,
+      2345
+    ],
+    "pureGroups": 20,
+    "purePassed": 20,
+    "regressionBodies": 12,
+    "newGroups": 8,
+    "actualProductModulesLoaded": 5,
+    "emittedFiles": 24,
+    "emittedBytes": 84299,
+    "sourceModules": 12,
+    "declarationFiles": 12,
+    "controllerChildren": 4,
+    "controllerChildrenClosed": 4,
+    "Workers": 0,
+    "matchingCalls": 0,
+    "ownerImports": 0,
+    "engineEvaluations": 0,
+    "runtimeVariantsUnrun": 60,
+    "controllerElapsedMs": 2211,
+    "controllerCaptureBytes": 5013,
+    "controllerWorkCensusBytes": 27596677
+  },
+  "qualifications": [
+    "PURE composition never imports executeWireRequest, root or owner.",
+    "Only engine errors/limits imported, not matcher/syntax. All5 engine sources strictly compiled against transport7.",
+    "SC16 retains39 existing reply visits, accounts logical47 including explicit loops under conservative210 prepay; no actual Worker trace.",
+    "Parent lifecycle/pre-acquisition ordering and loader closure remain SOURCE-only.",
+    "Native enumeration/clone allocation exception unchanged; no physical memory/RSS/hostile Proxy bound.",
+    "Accounting unit is logical schema visit/pass, not every JavaScript primitive instruction; all identified explicit traversal loops accounted.",
+    "No compiler/pure retry; five negative diagnostics are expected type refusals, not product failures."
+  ],
+  "archive": {
+    "file": "ACTUAL.json.gz.base64.data",
+    "textBytes": 74581,
+    "textSha256": "4195e5c754649d487e57df250dc23b6c3dda9466749df250ed3bd5da00ea0378",
+    "compressedBytes": 55933,
+    "compressedSha256": "238582e29cc1a2667305e29f7c08f394feab1d617ce0b1139ac9dcc6736f2071",
+    "decodedBytes": 270425,
+    "decodedSha256": "c48fb95289f63590d55dc694d89f575082379ee378484aa64fe5c0c19829e70b",
+    "entries": [
+      {
+        "path": "RUN/work/emitted/errors.d.ts",
+        "bytes": 691,
+        "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+      },
+      {
+        "path": "RUN/work/emitted/errors.js",
+        "bytes": 1045,
+        "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+      },
+      {
+        "path": "RUN/work/emitted/limits.d.ts",
+        "bytes": 671,
+        "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+      },
+      {
+        "path": "RUN/work/emitted/limits.js",
+        "bytes": 3265,
+        "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+      },
+      {
+        "path": "RUN/work/emitted/matcher.d.ts",
+        "bytes": 231,
+        "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+      },
+      {
+        "path": "RUN/work/emitted/matcher.js",
+        "bytes": 9747,
+        "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+      },
+      {
+        "path": "RUN/work/emitted/syntax.d.ts",
+        "bytes": 445,
+        "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+      },
+      {
+        "path": "RUN/work/emitted/syntax.js",
+        "bytes": 14270,
+        "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+      },
+      {
+        "path": "RUN/work/emitted/transport/accounting.d.ts",
+        "bytes": 1925,
+        "sha256": "81e8fa768afcbc3df8d813e15eda2517336bf42528cbc9b529e273de0bdea933"
+      },
+      {
+        "path": "RUN/work/emitted/transport/accounting.js",
+        "bytes": 7003,
+        "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+      },
+      {
+        "path": "RUN/work/emitted/transport/owner.d.ts",
+        "bytes": 492,
+        "sha256": "c18c4a6e4251a1de24640a45578a18aac8f0510bf616b6899216fb7a606c76c6"
+      },
+      {
+        "path": "RUN/work/emitted/transport/owner.js",
+        "bytes": 7353,
+        "sha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652"
+      },
+      {
+        "path": "RUN/work/emitted/transport/protocol.d.ts",
+        "bytes": 2658,
+        "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+      },
+      {
+        "path": "RUN/work/emitted/transport/protocol.js",
+        "bytes": 1198,
+        "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+      },
+      {
+        "path": "RUN/work/emitted/transport/root.d.ts",
+        "bytes": 562,
+        "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1"
+      },
+      {
+        "path": "RUN/work/emitted/transport/root.js",
+        "bytes": 12642,
+        "sha256": "44600e8e777a212da0dede616ee22416e092aa27e01ef2c6ac55a5fe494a4d9a"
+      },
+      {
+        "path": "RUN/work/emitted/transport/validation.d.ts",
+        "bytes": 1462,
+        "sha256": "7389ff532f83f8c66b7aa3fe33d1b71e6bf6c19ee0c4aa2f1c69f6cdc628d59c"
+      },
+      {
+        "path": "RUN/work/emitted/transport/validation.js",
+        "bytes": 12831,
+        "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+      },
+      {
+        "path": "RUN/work/emitted/transport/wire-engine.d.ts",
+        "bytes": 164,
+        "sha256": "1eae95d8426401b1bd892fb7becc82b366129e3983fbf069c82f54174add384c"
+      },
+      {
+        "path": "RUN/work/emitted/transport/wire-engine.js",
+        "bytes": 2514,
+        "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+      },
+      {
+        "path": "RUN/work/emitted/transport/worker-entry.d.ts",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "RUN/work/emitted/transport/worker-entry.js",
+        "bytes": 1502,
+        "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+      },
+      {
+        "path": "RUN/work/emitted/types.d.ts",
+        "bytes": 1606,
+        "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+      },
+      {
+        "path": "RUN/work/emitted/types.js",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "RUN/RESULT.json",
+        "bytes": 105571,
+        "sha256": "502b9d9d9d8446e9fc8e2b850fe9d1fc51f9a15792768b2452e6d703cb4baf30"
+      },
+      {
+        "path": "RUN/negative.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/negative.stdout",
+        "bytes": 563,
+        "sha256": "39cccca2c04e4deca62c75a96a3e186f038933c599b631abd60d3ec597acaa75"
+      },
+      {
+        "path": "RUN/owner.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/owner.stdout",
+        "bytes": 4415,
+        "sha256": "146b2c0a5ff4706a8734f59231577b31b6da86cdfc8c0919e6000f036a6c38eb"
+      },
+      {
+        "path": "RUN/positive.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/positive.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/pure.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/pure.stdout",
+        "bytes": 35,
+        "sha256": "aa9b8c1d2aa368b298c4394196156f946690476d268f5601192d53442423dd1b"
+      },
+      {
+        "path": "RUN/source.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/source.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "RUN/work/PURE-LOADS.json",
+        "bytes": 1344,
+        "sha256": "e9beb577252c0f193f125d30f3f69a0d186a1eae9dfc39ee0aadf27a291276c6"
+      },
+      {
+        "path": "RUN/work/PURE-RESULT.json",
+        "bytes": 2537,
+        "sha256": "f23e1b1009c9636c31e39f8829277044d3149ef2dfeab8c092d2a3677c507787"
+      }
+    ]
+  },
+  "knownProcessSnapshot": {
+    "knownStarted": 18,
+    "knownClosed": 18,
+    "existingNodeReplOwner": 1,
+    "peakKnownIncludingOwner": 3,
+    "administration": [
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "status",
+          "--short",
+          "--",
+          "src/commands/regex-execution/ere/transport",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 37596
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "cat-file",
+          "--batch-check=%(objectname) %(objecttype) %(objectsize)"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 39013
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "cat-file",
+          "--batch"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 39014
+      },
+      {
+        "exe": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "code": 0,
+        "signal": null,
+        "pid": 39656
+      },
+      {
+        "exe": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "code": 0,
+        "signal": null,
+        "pid": 42921
+      },
+      {
+        "exe": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "code": 0,
+        "signal": null,
+        "pid": 45045
+      },
+      {
+        "exe": "/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD/apply_patch",
+        "args": [],
+        "code": 0,
+        "signal": null,
+        "pid": 45310
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "diff",
+          "--check",
+          "--",
+          "src/commands/regex-execution/ere/transport/accounting.ts",
+          "src/commands/regex-execution/ere/transport/root.ts",
+          "src/commands/regex-execution/ere/transport/validation.ts",
+          "src/commands/regex-execution/ere/transport/wire-engine.ts",
+          "src/commands/regex-execution/ere/transport/worker-entry.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/run-validation.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/pure-controls.mjs.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/positive.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/negative.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/PINNED-ENGINE.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/README.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/CASES.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/PRESEAL.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45313
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "add",
+          "--",
+          "src/commands/regex-execution/ere/transport/accounting.ts",
+          "src/commands/regex-execution/ere/transport/root.ts",
+          "src/commands/regex-execution/ere/transport/validation.ts",
+          "src/commands/regex-execution/ere/transport/wire-engine.ts",
+          "src/commands/regex-execution/ere/transport/worker-entry.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/run-validation.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/pure-controls.mjs.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/positive.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/negative.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/PINNED-ENGINE.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/README.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/CASES.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/PRESEAL.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45319
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "maintenance.auto=false",
+          "commit",
+          "--only",
+          "-m",
+          "fix private ERE Worker validation work prepayment (S-C01)",
+          "--",
+          "src/commands/regex-execution/ere/transport/accounting.ts",
+          "src/commands/regex-execution/ere/transport/root.ts",
+          "src/commands/regex-execution/ere/transport/validation.ts",
+          "src/commands/regex-execution/ere/transport/wire-engine.ts",
+          "src/commands/regex-execution/ere/transport/worker-entry.ts",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/run-validation.mjs",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/pure-controls.mjs.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/positive.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/negative.mts.data",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/PINNED-ENGINE.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/.gitignore",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/README.md",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/CASES.json",
+          "tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/PRESEAL.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45321
+      },
+      {
+        "exe": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/run-validation.mjs",
+          "214d3feba92e3c59baa482255f62265a6c4d7212328a25c11ef7ae6262ba3403"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45518
+      },
+      {
+        "role": "sealed-validation-child",
+        "name": "source",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/node_modules/@types",
+          "--declaration",
+          "--outDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/emitted",
+          "--rootDir",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/errors.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/limits.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/matcher.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/syntax.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/types.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/accounting.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/owner.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/protocol.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/root.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/validation.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/wire-engine.ts",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/source/transport/worker-entry.ts"
+        ],
+        "pid": 45519,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "sealed-validation-child",
+        "name": "positive",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/consumer.mts"
+        ],
+        "pid": 45532,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "sealed-validation-child",
+        "name": "negative",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/node_modules/typescript/lib/tsc.js",
+          "--target",
+          "ES2023",
+          "--lib",
+          "ES2023",
+          "--module",
+          "NodeNext",
+          "--moduleResolution",
+          "NodeNext",
+          "--strict",
+          "--noUncheckedIndexedAccess",
+          "--exactOptionalPropertyTypes",
+          "--verbatimModuleSyntax",
+          "--skipLibCheck",
+          "--types",
+          "node",
+          "--typeRoots",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/node_modules/@types",
+          "--noEmit",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/negative.mts"
+        ],
+        "pid": 45541,
+        "closed": true,
+        "code": 2,
+        "signal": null
+      },
+      {
+        "role": "sealed-validation-child",
+        "name": "pure",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-corrections-20260829/corrections-v2/RUN/work/pure-controls.mjs",
+          "e9beb577252c0f193f125d30f3f69a0d186a1eae9dfc39ee0aadf27a291276c6"
+        ],
+        "pid": 45554,
+        "closed": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "rev-parse",
+          "46611a5b6^{commit}"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45856
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "ls-tree",
+          "-rz",
+          "46611a5b67ad7af276154421ac7f50dd536ec570",
+          "--",
+          "src/commands/regex-execution/ere/transport"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45857
+      },
+      {
+        "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "args": [
+          "diff",
+          "--stat",
+          "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+          "46611a5b67ad7af276154421ac7f50dd536ec570",
+          "--",
+          "src/commands/regex-execution/ere/transport"
+        ],
+        "code": 0,
+        "signal": null,
+        "pid": 45858
+      }
+    ],
+    "publicationTail": "Additional explicit patch/Git publication children reported separately in final handoff; this snapshot is not a future closure claim."
+  }
+}

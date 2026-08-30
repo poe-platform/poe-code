@@ -1,0 +1,76 @@
+{
+  "name": "negative-controls",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/stress/harness-timing-20260827/negative-controls.ts"
+  ],
+  "code": 0,
+  "signal": null,
+  "failure": null,
+  "durationMs": 1358.3724999999977,
+  "ownedListenersRemaining": 0,
+  "streamsDestroyed": [
+    true,
+    true,
+    true
+  ],
+  "events": [
+    {
+      "event": "launch",
+      "ms": 0.06404099999781465,
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "tests/stress/harness-timing-20260827/negative-controls.ts"
+      ],
+      "timeout": 180000
+    },
+    {
+      "event": "spawn",
+      "ms": 0.552957999992941,
+      "pid": 72967
+    },
+    {
+      "event": "stdin-close",
+      "ms": 0.568249999996624
+    },
+    {
+      "event": "stdout-data",
+      "ms": 1349.9114999999947,
+      "bytes": 101
+    },
+    {
+      "event": "stderr-end",
+      "ms": 1358.054624999997
+    },
+    {
+      "event": "stdout-end",
+      "ms": 1358.0872909999962
+    },
+    {
+      "event": "stdout-close",
+      "ms": 1358.2649579999998
+    },
+    {
+      "event": "stderr-close",
+      "ms": 1358.2862499999974
+    },
+    {
+      "event": "exit",
+      "ms": 1358.3178749999934,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "event": "close",
+      "ms": 1358.3425409999982,
+      "code": 0,
+      "signal": null
+    }
+  ]
+}

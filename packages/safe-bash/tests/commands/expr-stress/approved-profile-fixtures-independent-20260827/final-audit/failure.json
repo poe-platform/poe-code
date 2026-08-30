@@ -1,0 +1,4 @@
+{
+  "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'f2274eb4342d33726e32d79f0b4e93c150db20a023788ecaa7709b711bbb9e97'\n- '01edc95ca8fa6936512c34a212be6ddde06334746db4c1754de7ed429a5f0c70'\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'f2274eb4342d33726e32d79f0b4e93c150db20a023788ecaa7709b711bbb9e97'\n- '01edc95ca8fa6936512c34a212be6ddde06334746db4c1754de7ed429a5f0c70'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/approved-profile-fixtures-independent-20260827/final-audit.mjs:99:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+}

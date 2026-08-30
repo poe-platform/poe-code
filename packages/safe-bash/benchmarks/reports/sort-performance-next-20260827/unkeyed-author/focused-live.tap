@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: unkeyed numeric sort preserves exact decimals, prefix grammar and stable zeros
+ok 1 - unkeyed numeric sort preserves exact decimals, prefix grammar and stable zeros
+  ---
+  duration_ms: 4.293542
+  type: 'test'
+  ...
+# Subtest: public sort -n preserves numeric tie handling
+ok 2 - public sort -n preserves numeric tie handling
+  ---
+  duration_ms: 2.547208
+  type: 'test'
+  ...
+# Subtest: public sort -nr preserves numeric tie handling
+ok 3 - public sort -nr preserves numeric tie handling
+  ---
+  duration_ms: 0.693417
+  type: 'test'
+  ...
+# Subtest: public sort -ns preserves numeric tie handling
+ok 4 - public sort -ns preserves numeric tie handling
+  ---
+  duration_ms: 0.96425
+  type: 'test'
+  ...
+# Subtest: public sort -nrs preserves numeric tie handling
+ok 5 - public sort -nrs preserves numeric tie handling
+  ---
+  duration_ms: 0.501166
+  type: 'test'
+  ...
+# Subtest: public sort -nu preserves numeric tie handling
+ok 6 - public sort -nu preserves numeric tie handling
+  ---
+  duration_ms: 0.399
+  type: 'test'
+  ...
+# Subtest: public sort -nru preserves numeric tie handling
+ok 7 - public sort -nru preserves numeric tie handling
+  ---
+  duration_ms: 0.329125
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -nb
+ok 8 - numeric cache guard preserves -nb
+  ---
+  duration_ms: 0.190583
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -nf
+ok 9 - numeric cache guard preserves -nf
+  ---
+  duration_ms: 0.169042
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -n -k1,1
+ok 10 - numeric cache guard preserves -n -k1,1
+  ---
+  duration_ms: 0.400834
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -n -k1,1n
+ok 11 - numeric cache guard preserves -n -k1,1n
+  ---
+  duration_ms: 0.113792
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -n -k1,1n -k2,2r
+ok 12 - numeric cache guard preserves -n -k1,1n -k2,2r
+  ---
+  duration_ms: 0.081375
+  type: 'test'
+  ...
+# Subtest: explicit key-local flags still replace global numeric mode
+ok 13 - explicit key-local flags still replace global numeric mode
+  ---
+  duration_ms: 0.076375
+  type: 'test'
+  ...
+# Subtest: numeric check mode keeps exact duplicate diagnostic
+ok 14 - numeric check mode keeps exact duplicate diagnostic
+  ---
+  duration_ms: 0.22425
+  type: 'test'
+  ...
+# Subtest: entry saturation includes empty records without changing unique or stable ties
+ok 15 - entry saturation includes empty records without changing unique or stable ties
+  ---
+  duration_ms: 19.264041
+  type: 'test'
+  ...
+# Subtest: character saturation and oversized normalized backing preserve exact fallback
+ok 16 - character saturation and oversized normalized backing preserve exact fallback
+  ---
+  duration_ms: 2.207125
+  type: 'test'
+  ...
+# Subtest: numeric cache owns reused Buffer input, delimiter=10
+ok 17 - numeric cache owns reused Buffer input, delimiter=10
+  ---
+  duration_ms: 1.217375
+  type: 'test'
+  ...
+# Subtest: numeric cache owns reused Buffer input, delimiter=0
+ok 18 - numeric cache owns reused Buffer input, delimiter=0
+  ---
+  duration_ms: 0.573291
+  type: 'test'
+  ...
+# Subtest: numeric sort input failures preserve destination and exact status
+ok 19 - numeric sort input failures preserve destination and exact status
+  ---
+  duration_ms: 0.33725
+  type: 'test'
+  ...
+# Subtest: numeric sort respects cancellation during backpressured output
+ok 20 - numeric sort respects cancellation during backpressured output
+  ---
+  duration_ms: 0.261792
+  type: 'test'
+  ...
+# Subtest: numeric cache has no cross-invocation values
+ok 21 - numeric cache has no cross-invocation values
+  ---
+  duration_ms: 1.215375
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 232.453083

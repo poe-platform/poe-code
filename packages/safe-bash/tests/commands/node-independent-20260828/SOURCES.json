@@ -1,0 +1,261 @@
+{
+  "schema": "node-independent-sources-v1",
+  "date": "2026-08-28",
+  "classification": "STATIC_REVIEW_METADATA_NOT_EXECUTION_CLOSURE",
+  "localArtifactCount": 8,
+  "officialReferenceCount": 10,
+  "localArtifacts": [
+    {
+      "id": "A1",
+      "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+      "path": "tests/commands/node-design-20260828/DESIGN.md",
+      "mode": "100644",
+      "gitBlob": "008fa0b65b5a6fc2d402d6f3dffaced42fa2322e",
+      "bytes": 27683,
+      "sha256": "9bbf453d02d9c880a6a4208192953773398e1fabde00e8c71046663eda111439",
+      "inspection": "Profile read; engine analysis not independently repeated."
+    },
+    {
+      "id": "A2",
+      "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+      "path": "tests/commands/node-design-20260828/CASES.json",
+      "mode": "100644",
+      "gitBlob": "e4f75064c6089314e4ba03d47fd29ccf7c838da1",
+      "bytes": 22046,
+      "sha256": "c4bc4898f4c3935dde7cd31ec1559d76a5fcba82073a87823889de7d3744c583",
+      "inspection": "36 planned identities read as data; no evaluation."
+    },
+    {
+      "id": "A3",
+      "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+      "path": "tests/commands/node-design-20260828/SOURCES.json",
+      "mode": "100644",
+      "gitBlob": "766e96d5105dd1f3b99cbc8dbaa14df68b1fd039",
+      "bytes": 22419,
+      "sha256": "5157ebbf789cc9af2af8c67abb81f60d3d226d9e8560bf97a90fdcb0d2702366",
+      "inspection": "33 source records inspected as metadata; not 33 independently reverified source bodies."
+    },
+    {
+      "id": "A4",
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/REPORT.md",
+      "mode": "100644",
+      "gitBlob": "0e9957767c8b759934880ca92969918a5d0d4022",
+      "bytes": 7689,
+      "sha256": "15ae1a5bdee2431f987d52359d5d353b9a1cbab6a8ed5808ea692ab0af8e7837",
+      "inspection": "Complete source-only report read; conclusion attributed to author, no duplicate call-flow inspection."
+    },
+    {
+      "id": "A5",
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/SOURCES.json",
+      "mode": "100644",
+      "gitBlob": "48bd958dcaefb94f497faef79384cfe29bff31b9",
+      "bytes": 14535,
+      "sha256": "f7e75197fb97ff055612f3ecced0a6f2d441a5b9b0ffd1c438b2ef7841edd2ec",
+      "inspection": "18 metadata bindings; 15 prior matches and three additional files still needing fresh execution-closure binding."
+    },
+    {
+      "id": "A6",
+      "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+      "path": "tests/commands/node-design-20260828/source-feasibility-v1/EXPERIMENTS.json",
+      "mode": "100644",
+      "gitBlob": "5be2819f112020677c574aae83189ccddbf66688",
+      "bytes": 11607,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+      "inspection": "Artifact authenticated; top-level count/authorization only, not a review or execution of the seven experiment bodies."
+    },
+    {
+      "id": "A7",
+      "commit": "f199787165ed3cfba82152cde31c5b794e03fad0",
+      "path": "tests/integration/coherent78-safejs-independent-20260828/execution-checkpoints/c78-safejs-20260828-01/REPORT.md",
+      "mode": "100644",
+      "gitBlob": "0f8e4145ccf4ebcd49c57f5bc272c90202a87250",
+      "bytes": 4040,
+      "sha256": "6e222230b41cfc7d571c2bef381f182c45253660de796efc28ce1f41774ee113",
+      "inspection": "Historical public integration report read; preserve six prior workflows/30 assertions and package-only qualifications, no new Node proof."
+    },
+    {
+      "id": "A8",
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/contracts/command.ts",
+      "mode": "100644",
+      "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "inspection": "Public command contract read; no direct Shell Budget API, no execution or current-HEAD acceptance."
+    }
+  ],
+  "officialReferences": [
+    {
+      "id": "D1",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/cli.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "-e / --eval",
+        "-p / --print",
+        "- / stdin",
+        "-- / option boundary",
+        "--input-type"
+      ],
+      "note": "Print is eval with result printing; NP1 expression-only/primitive rendering is a declared restriction.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D2",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/modules.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "File modules",
+        "Caching",
+        "The module wrapper",
+        "require(id)"
+      ],
+      "note": "Resolution failures use MODULE_NOT_FOUND; cache keys are resolved filenames; relative require uses the calling module directory. N12 already disclaims error-code parity.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D3",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/esm.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "Import attributes",
+        "Built-in modules",
+        "Top-level await"
+      ],
+      "note": "ESM JSON requires type attributes and builtin named/default exports have specified relationships. NP1 explicitly excludes ESM JSON imports.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D4",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/stream.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "Buffering",
+        "writable.write(chunk[, encoding][, callback])"
+      ],
+      "note": "Boolean write returns represent buffering/backpressure, not sink completion. NP1 serial awaited-sink behavior is not this timing contract.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D5",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/process.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "process.argv",
+        "process.exit(code)",
+        "process.exitCode",
+        "A note on process I/O",
+        "Exit codes"
+      ],
+      "note": "exitCode accepts more forms than NP1. Abrupt exit can truncate stdout; unsettled TLA can imply13, overridden by explicit exitCode. These are documentation observations, not new oracle captures.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D6",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/fs.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "Promises API",
+        "fs.readFileSync(path[, options])",
+        "fs.writeFileSync(file, data[, options])",
+        "fs.readdirSync(path[, options])",
+        "File system flags"
+      ],
+      "note": "Node has larger overloads and unsafe concurrent mutation caveats. NP1 must bind exact text options and exclusive-create capability; no transactional guarantee inferred.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D7",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/path.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "path.resolve(...paths)",
+        "path.posix",
+        "path.normalize(path)",
+        "path.relative(from, to)"
+      ],
+      "note": "NP1 is a POSIX virtual-path profile. resolve uses guest cwd under the proposal; normalization does not establish authority.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D8",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/permissions.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "Process-based permissions",
+        "Permission Model constraints",
+        "Limitations and Known Issues"
+      ],
+      "note": "Node documents permissions as protection for trusted code, not malicious-code isolation. No Node permission flag is being proposed as the NP1 interpreter sandbox.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D9",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/buffer.html",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_DOCUMENTATION",
+      "sections": [
+        "Buffers and character encodings"
+      ],
+      "note": "UTF8 decoding of invalid input uses replacement characters. NP1 still needs explicit BOM and boundary-byte behavior.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    },
+    {
+      "id": "D10",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.15.0/lib/internal/modules/cjs/loader.js",
+      "version": "v22.15.0",
+      "consultedDate": "2026-08-28",
+      "kind": "OFFICIAL_PRIMARY_SOURCE",
+      "sections": [
+        "Module._extensions['.json']",
+        "JSONParse(stripBOM(content))"
+      ],
+      "note": "Pinned Node source strips the leading BOM in its JSON-module loader. This is source-only, not native execution or an NP1 implementation.",
+      "rawPageBytesSha256": null,
+      "qualification": "Read with web tool; no claim of raw-page byte capture, latest release, native oracle, package load or runtime result."
+    }
+  ],
+  "authorHistory": {
+    "originalPlannedCases": 36,
+    "originalSourceRecords": 33,
+    "followupSourceRecords": 18,
+    "followupPriorInventoryMatches": 15,
+    "followupAdditionalFiles": 3,
+    "followupUnrunExperiments": 7,
+    "newProductOrProviderExecutions": 0
+  },
+  "boundaries": [
+    "No private checkout or engine bodies inspected for this review.",
+    "A4 report read under the new root instruction; engine-call research remains Locke-owned.",
+    "A5 is authenticated metadata, not independent reconstruction of all18 source bindings or load proof.",
+    "A7 remains historical package-only evidence; no source/moved/type cohort repeated.",
+    "No engine experiment, package install/build/compiler/native oracle authorization."
+  ]
+}

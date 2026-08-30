@@ -1,0 +1,6 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["*.test.ts", "../../../src/commands/regex-execution/*.ts"],
+  "exclude": ["artifacts"]
+}

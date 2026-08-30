@@ -1,0 +1,90 @@
+{
+  "role": "SHIPPING_PACKET_DATA_POSTGUARD_NO_PRODUCT_EXECUTION",
+  "files": [
+    {
+      "path": "launch.py",
+      "unchanged": true
+    },
+    {
+      "path": "run.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "prepare.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "resources.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "worker-policy.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "loader.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "novel.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "unchanged": true
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "unchanged": true
+    },
+    {
+      "path": "SOURCE.json",
+      "unchanged": true
+    },
+    {
+      "path": "PRESEAL.json",
+      "unchanged": true
+    },
+    {
+      "path": "EXECUTOR.json",
+      "unchanged": true
+    },
+    {
+      "path": "INPUT-BINDINGS.json",
+      "unchanged": true
+    },
+    {
+      "path": "CENSUS.json",
+      "unchanged": true
+    },
+    {
+      "path": "COHORTS.json",
+      "unchanged": true
+    },
+    {
+      "path": "CONTROL-COVERAGE-MAP.json",
+      "unchanged": true
+    },
+    {
+      "path": "SOURCE-RECONCILIATION.json",
+      "unchanged": true
+    },
+    {
+      "path": "ADMISSION.md",
+      "unchanged": true
+    },
+    {
+      "path": "HANDOFF.md",
+      "unchanged": true
+    }
+  ],
+  "allUnchanged": true,
+  "actualV2Unused": true,
+  "rootAuthorizationAbsent": true,
+  "knownActiveChildren": 0,
+  "globalCensusClaim": false
+}

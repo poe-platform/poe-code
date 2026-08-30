@@ -1,0 +1,963 @@
+{
+  "provenance": {
+    "executable": "/usr/bin/jq",
+    "version": "jq-1.7.1-apple",
+    "date": "2026-08-26",
+    "shell": false,
+    "timeout": 2000,
+    "maxBuffer": 65536
+  },
+  "cases": [
+    {
+      "id": "empty:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "",
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "",
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "",
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "",
+      "stdout": "",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "empty:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "",
+      "stdout": "",
+      "status": 4,
+      "stderr": ""
+    },
+    {
+      "id": "blank:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "0a",
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blank:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "0a",
+      "stdout": "\"\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blank:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "0a",
+      "stdout": "\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blank:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "0a",
+      "stdout": "\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blank:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "0a",
+      "stdout": "\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blanks:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "0a0a",
+      "stdout": "\"\"\n\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blanks:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "0a0a",
+      "stdout": "\"\\n\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blanks:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "0a0a",
+      "stdout": "\n\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blanks:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "0a0a",
+      "stdout": "\n\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "blanks:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "0a0a",
+      "stdout": "\"\"\n\"\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "lf:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "610a620a",
+      "stdout": "\"a\"\n\"b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "lf:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "610a620a",
+      "stdout": "\"a\\nb\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "lf:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "610a620a",
+      "stdout": "a\nb\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "lf:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "610a620a",
+      "stdout": "a\nb\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "lf:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "610a620a",
+      "stdout": "\"a\"\n\"b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "partial:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "\"a\"\n\"b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "partial:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "\"a\\nb\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "partial:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "a\nb\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "partial:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "a\nb",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "partial:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "\"a\"\n\"b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "crlf:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "610d0a620d630a6c6173740d",
+      "stdout": "\"a\\r\"\n\"b\\rc\"\n\"last\\r\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "crlf:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "610d0a620d630a6c6173740d",
+      "stdout": "\"a\\r\\nb\\rc\\nlast\\r\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "crlf:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "610d0a620d630a6c6173740d",
+      "stdout": "a\r\nb\rc\nlast\r\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "crlf:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "610d0a620d630a6c6173740d",
+      "stdout": "a\r\nb\rc\nlast\r",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "crlf:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "610d0a620d630a6c6173740d",
+      "stdout": "\"a\\r\"\n\"b\\rc\"\n\"last\\r\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "f09f98800a65cc810ae99baa",
+      "stdout": "\"😀\"\n\"é\"\n\"雪\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "f09f98800a65cc810ae99baa",
+      "stdout": "\"😀\\né\\n雪\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "f09f98800a65cc810ae99baa",
+      "stdout": "😀\né\n雪\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "f09f98800a65cc810ae99baa",
+      "stdout": "😀\né\n雪",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "unicode:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "f09f98800a65cc810ae99baa",
+      "stdout": "\"😀\"\n\"é\"\n\"雪\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "bom:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "efbbbf746578740a",
+      "stdout": "\"﻿text\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "bom:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "efbbbf746578740a",
+      "stdout": "\"﻿text\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "bom:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "efbbbf746578740a",
+      "stdout": "﻿text\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "bom:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "efbbbf746578740a",
+      "stdout": "﻿text\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "bom:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "efbbbf746578740a",
+      "stdout": "\"﻿text\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "controls:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "610062090a1b",
+      "stdout": "\"a\\u0000b\\t\"\n\"\\u001b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "controls:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "610062090a1b",
+      "stdout": "\"a\\u0000b\\t\\n\\u001b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "controls:-Rr",
+      "argv": [
+        "-Rr",
+        "."
+      ],
+      "inputHex": "610062090a1b",
+      "stdout": "a\u0000b\t\n\u001b\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "controls:-Rsj",
+      "argv": [
+        "-Rsj",
+        "."
+      ],
+      "inputHex": "610062090a1b",
+      "stdout": "a\u0000b\t\n\u001b",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "controls:-Re",
+      "argv": [
+        "-Re",
+        "."
+      ],
+      "inputHex": "610062090a1b",
+      "stdout": "\"a\\u0000b\\t\"\n\"\\u001b\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "long-options",
+      "argv": [
+        "--raw-input",
+        "--slurp",
+        "--raw-output",
+        "."
+      ],
+      "inputHex": "610d0a62",
+      "stdout": "a\r\nb\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-output-long",
+      "argv": [
+        "--raw-input",
+        "--join-output",
+        "."
+      ],
+      "inputHex": "610a620a",
+      "stdout": "ab",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-nonstrings",
+      "argv": [
+        "-Rcj",
+        ".,null,false,0,[1]"
+      ],
+      "inputHex": "780a",
+      "stdout": "xnullfalse0[1]",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "join-then-raw",
+      "argv": [
+        "-Rjr",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "ab",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "raw-then-join",
+      "argv": [
+        "-Rrj",
+        "."
+      ],
+      "inputHex": "610a62",
+      "stdout": "ab",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "status-false",
+      "argv": [
+        "-Re",
+        "false"
+      ],
+      "inputHex": "780a",
+      "stdout": "false\n",
+      "status": 1,
+      "stderr": ""
+    },
+    {
+      "id": "status-null",
+      "argv": [
+        "-Rej",
+        "null"
+      ],
+      "inputHex": "780a",
+      "stdout": "null",
+      "status": 1,
+      "stderr": ""
+    },
+    {
+      "id": "status-empty",
+      "argv": [
+        "-Re",
+        "empty"
+      ],
+      "inputHex": "780a",
+      "stdout": "",
+      "status": 4,
+      "stderr": ""
+    },
+    {
+      "id": "status-prior",
+      "argv": [
+        "-Re",
+        "select(length > 0)"
+      ],
+      "inputHex": "780a0a",
+      "stdout": "\"x\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "null-slurp",
+      "argv": [
+        "-Rnsce",
+        "."
+      ],
+      "inputHex": "ff",
+      "stdout": "null\n",
+      "status": 1,
+      "stderr": ""
+    },
+    {
+      "id": "null-raw",
+      "argv": [
+        "--raw-input",
+        "--null-input",
+        "--join-output",
+        "."
+      ],
+      "inputHex": "69676e6f726564",
+      "stdout": "null",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "record-error-prefix",
+      "argv": [
+        "-Rc",
+        ".,1/0"
+      ],
+      "inputHex": "780a790a",
+      "policy": "stop-first-runtime-error",
+      "policyStdout": "\"x\"\n",
+      "policyStatus": 5,
+      "stdout": "\"x\"\n\"y\"\n",
+      "status": 5,
+      "stderr": "jq: error (at <stdin>:1): number (1) and number (0) cannot be divided because the divisor is zero\njq: error (at <stdin>:2): number (1) and number (0) cannot be divided because the divisor is zero\n"
+    },
+    {
+      "id": "files:-Rc",
+      "argv": [
+        "-Rc",
+        ".",
+        "first.txt",
+        "empty.txt",
+        "-",
+        "last.txt",
+        "-"
+      ],
+      "inputHex": "737464696e0a7461696c",
+      "files": [
+        {
+          "path": "first.txt",
+          "inputHex": "610d0a7061727469616c"
+        },
+        {
+          "path": "empty.txt",
+          "inputHex": ""
+        },
+        {
+          "path": "last.txt",
+          "inputHex": "620a6c617374"
+        }
+      ],
+      "stdout": "\"a\\r\"\n\"partialstdin\"\n\"tailb\"\n\"last\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "files:-Rsc",
+      "argv": [
+        "-Rsc",
+        ".",
+        "first.txt",
+        "empty.txt",
+        "-",
+        "last.txt",
+        "-"
+      ],
+      "inputHex": "737464696e0a7461696c",
+      "files": [
+        {
+          "path": "first.txt",
+          "inputHex": "610d0a7061727469616c"
+        },
+        {
+          "path": "empty.txt",
+          "inputHex": ""
+        },
+        {
+          "path": "last.txt",
+          "inputHex": "620a6c617374"
+        }
+      ],
+      "stdout": "\"a\\r\\npartialstdin\\ntailb\\nlast\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "files:-Rj",
+      "argv": [
+        "-Rj",
+        ".",
+        "first.txt",
+        "empty.txt",
+        "-",
+        "last.txt",
+        "-"
+      ],
+      "inputHex": "737464696e0a7461696c",
+      "files": [
+        {
+          "path": "first.txt",
+          "inputHex": "610d0a7061727469616c"
+        },
+        {
+          "path": "empty.txt",
+          "inputHex": ""
+        },
+        {
+          "path": "last.txt",
+          "inputHex": "620a6c617374"
+        }
+      ],
+      "stdout": "a\rpartialstdintailblast",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "files:-Rns",
+      "argv": [
+        "-Rns",
+        ".",
+        "first.txt",
+        "empty.txt",
+        "-",
+        "last.txt",
+        "-"
+      ],
+      "inputHex": "737464696e0a7461696c",
+      "files": [
+        {
+          "path": "first.txt",
+          "inputHex": "610d0a7061727469616c"
+        },
+        {
+          "path": "empty.txt",
+          "inputHex": ""
+        },
+        {
+          "path": "last.txt",
+          "inputHex": "620a6c617374"
+        }
+      ],
+      "stdout": "null\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "file-unicode:-Rc",
+      "argv": [
+        "-Rc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": [
+        {
+          "path": "unicode-start",
+          "inputHex": "f09f"
+        }
+      ],
+      "policy": "strict-utf8-per-file",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"���\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "file-unicode:-Rsc",
+      "argv": [
+        "-Rsc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": [
+        {
+          "path": "unicode-start",
+          "inputHex": "f09f"
+        }
+      ],
+      "policy": "strict-utf8-per-file",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"���\\n\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "null-missing-file",
+      "argv": [
+        "-Rns",
+        ".",
+        "missing-file"
+      ],
+      "inputHex": "ff",
+      "stdout": "null\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:0:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0ac0af",
+      "policy": "strict-utf8",
+      "policyStdout": "\"ok\"\n",
+      "policyStatus": 5,
+      "stdout": "\"ok\"\n\"��\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:0:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0ac0af",
+      "policy": "strict-utf8",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"ok\\n��\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:1:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0aeda080",
+      "policy": "strict-utf8",
+      "policyStdout": "\"ok\"\n",
+      "policyStatus": 5,
+      "stdout": "\"ok\"\n\"�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:1:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0aeda080",
+      "policy": "strict-utf8",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"ok\\n�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:2:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0af4908080",
+      "policy": "strict-utf8",
+      "policyStdout": "\"ok\"\n",
+      "policyStatus": 5,
+      "stdout": "\"ok\"\n\"�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:2:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0af4908080",
+      "policy": "strict-utf8",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"ok\\n�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:3:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "policy": "strict-utf8",
+      "policyStdout": "\"ok\"\n",
+      "policyStatus": 5,
+      "stdout": "\"ok\"\n\"�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:3:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "policy": "strict-utf8",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"ok\\n�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:4:-Rc",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0a80",
+      "policy": "strict-utf8",
+      "policyStdout": "\"ok\"\n",
+      "policyStatus": 5,
+      "stdout": "\"ok\"\n\"�\"\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "id": "invalid:4:-Rsc",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0a80",
+      "policy": "strict-utf8",
+      "policyStdout": "",
+      "policyStatus": 5,
+      "stdout": "\"ok\\n�\"\n",
+      "status": 0,
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "verifiedAt": "2026-08-27T15:25:00.125Z",
+  "status": "EVIDENCE_CONSISTENT_BOUNDED_NONPASS",
+  "runtimeAcceptance": false,
+  "original": {
+    "commit": "c8df5cf2819d7ad9d54c2a70800258c7c200665a",
+    "immutableFiles": 14,
+    "appendScope": "Original c8df subtree is authenticated by its exact 14 Git entries; execution-v1 is a separately authorized addition"
+  },
+  "runnerCommit": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+  "rawCounts": {
+    "total": 11,
+    "logicalWorkflows": 6,
+    "executed": 9,
+    "valid": 9,
+    "pass": 8,
+    "failed": 1,
+    "invalid": 1,
+    "unproved": 0,
+    "blocked": 1
+  },
+  "rows": [
+    {
+      "id": "L01-aliases",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L02-budget-positive",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L02-budget-exhausted",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L03-callback-live",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L03-callback-after-lifetime",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L04-explicit-children",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L05-caller-error",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L05-execution-error",
+      "raw": "FAIL",
+      "executed": true,
+      "failedAssertions": [
+        "frozen public result and exact accepted bytes"
+      ]
+    },
+    {
+      "id": "L05-cleanup-error",
+      "raw": "PASS",
+      "executed": true,
+      "failedAssertions": []
+    },
+    {
+      "id": "L06-curl-open",
+      "raw": "INVALID_FIXTURE",
+      "executed": false,
+      "failedAssertions": [
+        "actual engine and supported helper admission",
+        "frozen public result and exact accepted bytes",
+        "streaming transport and independent required effects"
+      ]
+    },
+    {
+      "id": "L06-curl-consumer-closed",
+      "raw": "BLOCKED",
+      "executed": false
+    }
+  ],
+  "qualification": {
+    "passingRows": 8,
+    "failedAssertionPreserved": true,
+    "unprovedSelectedExecutionTarget": "L05-execution-error",
+    "invalidConfiguration": "L06-curl-open",
+    "blockedPositiveDependency": "L06-curl-consumer-closed",
+    "newPrototypeBugEstablished": false
+  },
+  "sourceGuards": {
+    "product": 940,
+    "source": 213,
+    "compiled": 708,
+    "engine": 264,
+    "package": 709,
+    "checks": 22,
+    "importRecords": 2240,
+    "uniqueLoaded": 224,
+    "engineLoaded": 63,
+    "newRegularEntriesChecked": true,
+    "emptyDirectoryAdditionsChecked": false
+  },
+  "privateBeforeAfterUnchanged": true,
+  "sharedBeforeAfterUnchanged": true,
+  "knownChildrenNaturallyClosed": 10,
+  "containment": false,
+  "temporaryRemoved": true,
+  "caveat": "Offline evidence consistency only; no changed assertion, rerun, independent acceptance or promotion"
+}

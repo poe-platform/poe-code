@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-28T03:12:27.452Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "previousSource": "b0ee7234b915ce1ac45aa6db6d087dc3430ea21f",
+  "previousDriverSha256": "4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1",
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "authorRuns": 0,
+  "wholeGateLaunched": false,
+  "files": {
+    "transport.mjs": "c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d",
+    "review-v5/controls.mjs": "5e899bbfcd120dd2254834474fc00da5f529ddf33081ed9a861b6c3f62e39c9b",
+    "review-v5/README.md": "efa68ac7e5b42eb9cc31aa4119f614366d6ec817c0f59fb35fd6d142b137400c"
+  },
+  "unchangedV4ControlsSha256": "713eb57d0b20995a2f6d01e6b25e94a741cee440f873e79963601cf5b76f4da3",
+  "unchangedObserverSha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+  "unchangedBuildPhaseSha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+  "expectedGroups": 5,
+  "profile": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "syntax": "posix",
+    "separator": "/"
+  },
+  "negativeControls": [
+    "NUL",
+    "absolute",
+    "slash traversal",
+    "non-normalized slash",
+    "git member",
+    "duplicate",
+    "symlink ancestor",
+    "escaping symlink targets",
+    "mode/hash/byte mismatch",
+    "foreign platform/architecture/separator before extraction"
+  ],
+  "originalFailureEvidence": "dfcb0069c6d2d87c46109fd028e215e70aaff67d"
+}

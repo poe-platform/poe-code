@@ -1,0 +1,34 @@
+{
+  "oldExecutor": {
+    "bytes": 10720,
+    "sha256": "728c87a0beb06e4e801472a608cbee18ff90de089f23449595002b661e18aa4e"
+  },
+  "newExecutor": {
+    "bytes": 10889,
+    "sha256": "7cdf0d7e4c59ede02f601a942cf613eb9fb5f53c253ebc5aae0bea7c257b3c0e"
+  },
+  "changes": [
+    [
+      "const report = {results: [], children: [], productImports: 0, productCalls: 0, safetyStop: false};",
+      "const report = {owner: {pid: process.pid, enteredAt: Date.now()}, results: [], children: [], productImports: 0, productCalls: 0, safetyStop: false};"
+    ],
+    [
+      "const row = {args, exit: false, close: false, signals: []};",
+      "const row = {args, enteredAt: Date.now(), exit: false, close: false, signals: []};"
+    ],
+    [
+      "owned.on('exit', (status, signal) => { row.exit = true; row.status = status; row.signal = signal; });",
+      "owned.on('exit', (status, signal) => { row.exit = true; row.exitedAt = Date.now(); row.status = status; row.signal = signal; });"
+    ],
+    [
+      "owned.on('close', () => { row.close = true; clearTimeout(timer); resolve(); });",
+      "owned.on('close', () => { row.close = true; row.closedAt = Date.now(); clearTimeout(timer); resolve(); });"
+    ],
+    [
+      "event({terminal: report.status, reasonPresent: report.primaryPresent === true, primary: report.primary});",
+      "report.owner.finalizingAt = Date.now();\n  event({terminal: report.status, reasonPresent: report.primaryPresent === true, primary: report.primary});"
+    ]
+  ],
+  "unchangedControlBodies": true,
+  "qualification": "Only role timestamps; root uses new module directory without semantic/control changes"
+}

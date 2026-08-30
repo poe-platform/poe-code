@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-27",
+  "scope": "additive root-accepted Stage 1 clarification only",
+  "acceptedHelper": {
+    "commit": "fbbe1ef793b7434871403125efbeb46624a8e081",
+    "tree": "840983102d0ba9d0aba5c2a1662518d0f7b649c6",
+    "parent": "d28083dd43c7d1b513ec195b38df2f7fd3e15b48",
+    "rawCommitSha256": "f86d811c54b7910f8efa2d7d60c5936898b55129670460b5324428ab283596de",
+    "path": "src/shell/cancellation.ts",
+    "blob": "a7742b7f7e81bcd8c1c2a6be35092d8b5f41102f",
+    "sha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac"
+  },
+  "acceptedReviewCommits": [
+    {
+      "role": "independent-freeze",
+      "commit": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+      "tree": "9084ba21d4e0dba94038079bdd42b343b0ac2d3b",
+      "rawCommitSha256": "148eea6237a54d847d3714ffffcf86cdc60363d4366a631fa6cbf0577b1d6fc6"
+    },
+    {
+      "role": "independent-evidence",
+      "commit": "61092847acc8d2c54af109a5bbeefe22146488d3",
+      "tree": "befc9d7c7c2806ad4e2015c1fd51e205622133a6",
+      "rawCommitSha256": "5d6aa25277a6b8fb06c5615c919857028557b023183002d692976c0388ee45b8"
+    },
+    {
+      "role": "independent-append-audit",
+      "commit": "200237e95f41ece9c2e639eb4e9c2a51dbb55345",
+      "tree": "62c52cf6ff9d78b14dbacc92cd3eb9a3b6d982e5",
+      "rawCommitSha256": "a88d2c2aabb9f6e8e1f13037f9cb120a4613eedf7a4f850c8c064d0f356b8b80"
+    },
+    {
+      "role": "author-repair-freeze",
+      "commit": "01fbb3880bbe662adb2c7371e52ea3b47c0549f4",
+      "tree": "d5000e5042aeff42015a5273d1e7384db54607e6",
+      "rawCommitSha256": "02b8c1692000305a6e0bf1289551d610258ba2c1cd76c1637b339b1a0b1961d8"
+    },
+    {
+      "role": "author-repair-evidence",
+      "commit": "339da95906bd88d42435970beadcb620b72a7afd",
+      "tree": "a75c9bb2183900cc72a22446ffa501c101bdd26d",
+      "rawCommitSha256": "5a88acd530277b15edd8edbdbc4548377149eeaebefabd0e70144dafdf4d5465"
+    }
+  ],
+  "upstreamDocuments": [
+    {
+      "path": "tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/DOC-CLARIFICATION-v1.md",
+      "blob": "95bc90d6972c6f1d3cee90fc8ed9ce6818a2e1f5",
+      "sha256": "7775bf06a6ea8b590f313ed2ed8102dab99b82f540409894a13f2bb3cd149dcf"
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-20260827/repair-v1/POLICY.md",
+      "blob": "ab379624dba6fc1d82072d54b0589188abcddd0c",
+      "sha256": "89b93b92f1f7b46bf2c958f559680c079ab5e563ecd3993c9de42bc648a4f541"
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-20260827/repair-v1/BASELINE.md",
+      "blob": "da7a586ce3a454aa8a6655eca85283c288022e44",
+      "sha256": "7b5bbb67dea3b23cfe79411488471b1ec296916ba87f54abf5f5b9707b1e2ebf"
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-20260827/repair-v1/evidence-v1/RESULTS.md",
+      "blob": "e01ff5d180d6395041bbf7b2bdc9be13d9c30511",
+      "sha256": "bb0562d16dc0b151ad94dbe83ae093d6a634a100833bd1727ba0aa12f5d38f1f"
+    }
+  ],
+  "historicalResultRetained": "old helper independent 10/12",
+  "productChanges": false,
+  "testsRun": false
+}

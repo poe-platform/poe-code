@@ -1,0 +1,657 @@
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index f21ed950f..393a57353 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -406,6 +406,20 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
+   }
+ }
+ 
++function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined } {
++  signal.throwIfAborted();
++  let indexed = false;
++  let offset = 0;
++  while (args[offset]?.startsWith("-")) {
++    signal.throwIfAborted();
++    const option = args[offset++]!;
++    if (option === "--") break;
++    if (option !== "-a") return { indexed, offset, error: option };
++    indexed = true;
++  }
++  return { indexed, offset, error: undefined };
++}
++
+ function decimalIndex(value: string): number {
+   let position = 0;
+   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
+@@ -3520,6 +3534,20 @@ export class Runtime {
+     }
+     if (command === "export" || command === "local" || command === "readonly") {
+       const declarationArgs = [...args];
++      let indexedLocal = false;
++      if (command === "local") {
++        const options = localDeclarationOptions(declarationArgs, this.signal);
++        if (options.error !== undefined) {
++          await writeText(stderr, `local: ${options.error}: unsupported option\n`);
++          return 2;
++        }
++        indexedLocal = options.indexed;
++        declarationArgs.splice(0, options.offset);
++        if (indexedLocal && declarationArgs.length === 0) {
++          await writeText(stderr, "local: -a requires a variable name\n");
++          return 2;
++        }
++      }
+       if (command === "readonly") {
+         while (declarationArgs[0]?.startsWith("-")) {
+           const option = declarationArgs.shift();
+@@ -3546,6 +3574,47 @@ export class Runtime {
+         if (arrayStore(state)?.get(name) && command === "export") {
+           await this.diagnostic(context, "indexed array: indexed binding cannot be exported"); status = 1; continue;
+         }
++        if (command === "local" && indexedLocal) {
++          if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
++          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
++          const existingLocal = locals!.get(name);
++          const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
++          if (existingLocal && !typedSavedVariables.has(existingLocal)) await this.prepareVariable(state, name, existingLocal, true);
++          if (saved) await this.prepareVariable(state, name, saved);
++          const store = requireArrays(state);
++          const operation = ArrayOwner.create(store.owner.ledger, store.owner);
++          const holding = store.owner.hold();
++          let shadow: IndexedBinding | undefined;
++          try {
++            const watch = await store.watch(name, operation, this.signal);
++            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
++            const prepared = await store.prepareName(name, operation, this.signal);
++            const current = store.get(name);
++            shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);
++            const value = match[2] ?? (!saved && !current && Object.hasOwn(state.variables, name) ? state.variables[name] : undefined);
++            if (value !== undefined) {
++              const token = await textToken(shadow.owner, value, this.signal);
++              try { shadow.insert(0, token); } catch (error) { token.release(); throw error; }
++            }
++            this.signal.throwIfAborted();
++            if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
++            if (!watch.valid()) throw new ArrayFailure("stale binding");
++            let released: Promise<void> | undefined;
++            stateMonitor(state)!.publish(tickets, name, () => {
++              if (saved) locals!.set(name, saved);
++              delete state.variables[name];
++              released = store.publish(name, shadow!, tickets, prepared);
++            });
++            shadow = undefined;
++            watch.close();
++            await released;
++            assignments.delete(name);
++          } catch (error) {
++            if (saved && !locals!.has(name)) await this.discardVariable(saved);
++            throw error;
++          } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
++          continue;
++        }
+         if (command === "local" && !locals!.has(name)) {
+           const saved = assignments.get(name) ?? saveVariable(state, name);
+           if (name === "PIPESTATUS" && arrayStore(state)?.get(name)) {
+
+--- tests/shell/pipestatus-author-20260829/local-a-v1/pure.mjs ---
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const own='/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const seal=JSON.parse(fs.readFileSync(own+'/SEAL.json','utf8'));
+for(const row of [seal.source,seal.base,...seal.files]){const stat=fs.lstatSync(row.path);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size===row.bytes);assert.equal(hash(fs.readFileSync(row.path)),row.sha256);}
+const source=fs.readFileSync(seal.source.path,'utf8'),base=fs.readFileSync(seal.base.path,'utf8');
+const start=source.indexOf('function localDeclarationOptions('),end=source.indexOf('\nfunction decimalIndex(',start);
+assert(start>=0&&end>start);
+const exact=source.slice(start,end);
+const moduleText='export '+exact.replace('args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined }','args, signal)').replace('args[offset++]!','args[offset++]');
+const {localDeclarationOptions:parse}=await import('data:text/javascript;base64,'+Buffer.from(moduleText).toString('base64'));
+const rows=[];async function test(id,body,kind='PURE_EXTRACTED_PARSER'){try{await body();rows.push({id,kind,pass:true});}catch(error){rows.push({id,kind,pass:false,error:String(error)});}}
+const vectors=[ [[],false,0,undefined],[['name'],false,0,undefined],[['-a','name'],true,1,undefined],[['-a','-a','name'],true,2,undefined],[['--','name'],false,1,undefined],[['-a','--','name'],true,2,undefined],[['-A','name'],false,1,'-A'],[['-r','name'],false,1,'-r'],[['-aa','name'],false,1,'-aa'],[['-a'],true,1,undefined],[['name','-a'],false,0,undefined],[['--','-a'],false,1,undefined],[['-a','name=x=y'],true,1,undefined],[[''],false,0,undefined] ];
+for(let index=0;index<vectors.length;index++){const [args,indexed,offset,error]=vectors[index];await test('P'+String(index+1).padStart(2,'0'),()=>assert.deepEqual(parse(args,new AbortController().signal),{indexed,offset,error}));}
+for(const [index,reason] of [false,0,null].entries())await test('P'+(index+15),()=>{const controller=new AbortController();controller.abort(reason);let caught=false;try{parse(['-a','name'],controller.signal);}catch(error){caught=true;assert.equal(error,reason);}assert(caught);});
+const branchStart=source.indexOf('        if (command === "local" && indexedLocal) {'),branchEnd=source.indexOf('        if (command === "local" && !locals!.has(name)) {',branchStart),branch=source.slice(branchStart,branchEnd);
+await test('P18',()=>{assert(branch.indexOf('if (state.readonlyVariables?.has(name))')<branch.indexOf('if (!watch.valid())'));assert(branch.indexOf('await store.prepareName')<branch.indexOf('store.publish'));assert(branch.includes('delete state.variables[name]'));assert(!branch.includes('name === "PIPESTATUS"'));},'SOURCE_ONLY');
+await test('P19',()=>{const marker='        if (command === "local" && !locals!.has(name)) {';assert.equal(source.slice(source.indexOf(marker)),base.slice(base.indexOf(marker)));},'SOURCE_ONLY_PLAIN_AND_FOREIGN_SUFFIX');
+await test('P20',()=>{assert.equal(source.slice(0,start),base.slice(0,base.indexOf('function decimalIndex(')));const middleStart=source.indexOf('function decimalIndex('),middleEnd=source.indexOf('      let indexedLocal = false;');assert.equal(source.slice(middleStart,middleEnd),base.slice(base.indexOf('function decimalIndex('),base.indexOf('      if (command === "readonly") {',base.indexOf('    if (command === "export" || command === "local"'))));},'SOURCE_ONLY_FOREIGN_PREFIX');
+fs.writeFileSync(own+'/PURE-RESULT.json',JSON.stringify({rows,passed:rows.filter(row=>row.pass).length,total:rows.length,parserFragmentSha256:hash(Buffer.from(exact)),testModuleSha256:hash(Buffer.from(moduleText)),qualification:'17 extracted-parser controls plus3 SOURCE checks, not full Runtime/binding execution',ShellExecutions:0,compilerCalls:0},null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({passed:rows.filter(row=>row.pass).length,total:rows.length,failures:rows.filter(row=>!row.pass)}));if(rows.some(row=>!row.pass))process.exitCode=1;
+
+--- tests/shell/pipestatus-author-20260829/local-a-v1/SEAL.json ---
+{
+  "baseCommit": "2e6d59787df9d1949d9e342fbd2769cb76240651",
+  "base": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/runtime-base.data",
+    "bytes": 214992,
+    "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+  },
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+    "bytes": 218626,
+    "sha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/PRESEAL.md",
+      "bytes": 1740,
+      "sha256": "24563d90d8fbc268b78a19e6fe75bea058fd2b7fd0e1bd05ac66d67185e4f86a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/cases.json",
+      "bytes": 1165,
+      "sha256": "44ca411e4ad54241ea23edac489710ecc4f50c51a65a1c375a5f06e29a4abc51"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/prepare.mjs",
+      "bytes": 1840,
+      "sha256": "b5790eeb83f50aa0afdb58e91afbed3f8cbf577af0dcb66d89578ddba8f4ff56"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/local-a-v1/pure.mjs",
+      "bytes": 4184,
+      "sha256": "ee4ea72dfeb7d8e14ebcc306a887d38ab4d234330513d22b844850dd2e2e51d2"
+    }
+  ],
+  "groups": 20,
+  "fullRuntimeExecutions": 0,
+  "compilerCalls": 0
+}
+
+--- tests/shell/pipestatus-author-20260829/local-a-v1/prepare.mjs ---
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
+const repo='/Users/kjopek/Workspace/safe-bash',own=repo+'/tests/shell/pipestatus-author-20260829/local-a-v1';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+function read(filename){const stat=fs.lstatSync(filename);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>1048576)throw Error('SOURCE_BOUND');return fs.readFileSync(filename);}
+const child=spawnSync('/usr/bin/git',['-c','gc.auto=0','-c','maintenance.auto=false','show','2e6d59787df9d1949d9e342fbd2769cb76240651:src/shell/runtime.ts'],{cwd:repo,encoding:null,maxBuffer:1048576,timeout:10000});
+fs.writeFileSync(own+'/BASE.stderr',child.stderr??Buffer.alloc(0),{flag:'wx'});if(child.error||child.signal||child.status!==0)throw Error('BASE_GIT');
+const base=child.stdout,current=read(repo+'/src/shell/runtime.ts');fs.writeFileSync(own+'/runtime-base.data',base,{flag:'wx'});
+const scripts=JSON.parse(read(own+'/cases.json'));
+const previous=JSON.parse(read(repo+'/tests/shell/pipestatus-author-20260829/preexec-v1/SEAL-v2.json'));
+if(scripts[0].script!==previous.cases.find(row=>row.id==='R17').script)throw Error('R17_FIXTURE_DRIFT');
+const names=['PRESEAL.md','cases.json','prepare.mjs','pure.mjs'];
+const files=names.map(name=>{const filename=own+'/'+name,bytes=read(filename);return {path:filename,bytes:bytes.length,sha256:hash(bytes)};});
+const seal={baseCommit:'2e6d59787df9d1949d9e342fbd2769cb76240651',base:{path:own+'/runtime-base.data',bytes:base.length,sha256:hash(base)},source:{path:repo+'/src/shell/runtime.ts',bytes:current.length,sha256:hash(current)},files,groups:20,fullRuntimeExecutions:0,compilerCalls:0};
+fs.writeFileSync(own+'/SEAL.json',JSON.stringify(seal,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify(seal.source));
+src/shell/arrays/state.ts-150-    tickets.release();
+src/shell/arrays/state.ts-151-  }
+src/shell/arrays/state.ts-152-
+src/shell/arrays/state.ts:153:  publish(tickets: Tickets, name: string | undefined, action: () => void): void {
+src/shell/arrays/state.ts-154-    if (this.#publication) throw new Error("Nested indexed-array publication");
+src/shell/arrays/state.ts-155-    this.#publication = true;
+src/shell/arrays/state.ts-156-    try { action(); }
+--
+src/shell/arrays/state.ts-295-    const destination = result.activate();
+src/shell/arrays/state.ts-296-    for (const [name, entry] of store.bindings) {
+src/shell/arrays/state.ts-297-      check();
+src/shell/arrays/state.ts:298:      const prepared = await destination.prepareName(name, owner, signal);
+src/shell/arrays/state.ts-299-      check();
+src/shell/arrays/state.ts-300-      const tickets = owner.reserve({ generation: true, version: true, epoch: true, work: 5 });
+src/shell/arrays/state.ts-301-      entry.binding.retain();
+src/shell/arrays/state.ts:302:      destination.publish(name, entry.binding, tickets, prepared);
+src/shell/arrays/state.ts-303-      await owner.ledger.checkpoint(signal, 5);
+src/shell/arrays/state.ts-304-    }
+src/shell/arrays/state.ts-305-    check();
+--
+src/shell/arrays/bindings.ts-42-  readonly slot: Admission;
+src/shell/arrays/bindings.ts-43-}
+src/shell/arrays/bindings.ts-44-
+src/shell/arrays/bindings.ts:45:export class IndexedBinding {
+src/shell/arrays/bindings.ts-46-  readonly values = new Map<number, Element>();
+src/shell/arrays/bindings.ts-47-  maximum = -1;
+src/shell/arrays/bindings.ts-48-  generation = 0;
+--
+src/shell/arrays/bindings.ts-140-  generation: number;
+src/shell/arrays/bindings.ts-141-  version: number;
+src/shell/arrays/bindings.ts-142-  observers: number;
+src/shell/arrays/bindings.ts:143:  typedVersion: number;
+src/shell/arrays/bindings.ts-144-  readonly admission: Admission;
+src/shell/arrays/bindings.ts-145-  readonly name: OwnedText;
+src/shell/arrays/bindings.ts-146-}
+--
+src/shell/arrays/bindings.ts-149-  #closed = false;
+src/shell/arrays/bindings.ts-150-  readonly generation: number;
+src/shell/arrays/bindings.ts-151-  readonly version: number;
+src/shell/arrays/bindings.ts:152:  readonly typedVersion: number;
+src/shell/arrays/bindings.ts-153-
+src/shell/arrays/bindings.ts-154-  constructor(readonly store: BindingStore, readonly name: string, readonly watch: Watch, readonly admission: Admission) {
+src/shell/arrays/bindings.ts-155-    this.generation = watch.generation;
+src/shell/arrays/bindings.ts-156-    this.version = watch.version;
+src/shell/arrays/bindings.ts:157:    this.typedVersion = watch.typedVersion;
+src/shell/arrays/bindings.ts-158-  }
+src/shell/arrays/bindings.ts-159-
+src/shell/arrays/bindings.ts-160-  valid(): boolean { return this.watch.generation === this.generation && this.watch.version === this.version; }
+--
+src/shell/arrays/bindings.ts-173-  readonly admission: Admission;
+src/shell/arrays/bindings.ts-174-}
+src/shell/arrays/bindings.ts-175-
+src/shell/arrays/bindings.ts:176:export class BindingStore {
+src/shell/arrays/bindings.ts-177-  readonly bindings = new Map<string, NamedBinding>();
+src/shell/arrays/bindings.ts-178-  readonly watches = new Map<string, Watch>();
+src/shell/arrays/bindings.ts-179-  epoch = 0;
+--
+src/shell/arrays/bindings.ts-187-
+src/shell/arrays/bindings.ts-188-  get(name: string): IndexedBinding | undefined { return this.bindings.get(name)?.binding; }
+src/shell/arrays/bindings.ts-189-
+src/shell/arrays/bindings.ts:190:  async watch(name: string, operation: ArrayOwner, signal: AbortSignal): Promise<BindingWatch> {
+src/shell/arrays/bindings.ts-191-    let watch = this.watches.get(name);
+src/shell/arrays/bindings.ts-192-    const observer = operation.reserve({ metadata: 64, work: 5 });
+src/shell/arrays/bindings.ts-193-    if (!watch) {
+--
+src/shell/arrays/bindings.ts-197-      const token = new OwnedText(name, bytes, this.owner.reserve({ metadata: 32, payload: bytes, work: 4 }));
+src/shell/arrays/bindings.ts-198-      try {
+src/shell/arrays/bindings.ts-199-        const admission = this.owner.reserve({ slots: 1, metadata: 96, generation: true, version: true, work: 9 });
+src/shell/arrays/bindings.ts:200:        watch = { generation: admission.generation, version: admission.version, typedVersion: 0, observers: 0, admission, name: token };
+src/shell/arrays/bindings.ts-201-        this.watches.set(name, watch);
+src/shell/arrays/bindings.ts-202-      } catch (error) { token.release(); throw error; }
+src/shell/arrays/bindings.ts-203-    }
+--
+src/shell/arrays/bindings.ts-231-    }
+src/shell/arrays/bindings.ts-232-  }
+src/shell/arrays/bindings.ts-233-
+src/shell/arrays/bindings.ts:234:  async prepareName(name: string, operation: ArrayOwner, signal: AbortSignal): Promise<{ readonly name: OwnedText; readonly admission: Admission } | undefined> {
+src/shell/arrays/bindings.ts-235-    if (this.bindings.has(name)) return undefined;
+src/shell/arrays/bindings.ts-236-    const token = await textToken(operation, name, signal);
+src/shell/arrays/bindings.ts-237-    try {
+--
+src/shell/arrays/bindings.ts-240-    } catch (error) { token.release(); throw error; }
+src/shell/arrays/bindings.ts-241-  }
+src/shell/arrays/bindings.ts-242-
+src/shell/arrays/bindings.ts:243:  publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }, restoring = false): Promise<void> | undefined {
+src/shell/arrays/bindings.ts-244-    const previous = this.bindings.get(name);
+src/shell/arrays/bindings.ts-245-    const displaced = previous?.binding;
+src/shell/arrays/bindings.ts-246-    if (previous) previous.binding = binding;
+--
+src/shell/arrays/bindings.ts-259-    }
+src/shell/arrays/bindings.ts-260-    this.changed(tickets, name);
+src/shell/arrays/bindings.ts-261-    const watch = this.watches.get(name);
+src/shell/arrays/bindings.ts:262:    if (watch) watch.typedVersion = tickets.version;
+src/shell/arrays/bindings.ts-263-    return displaced?.release();
+src/shell/arrays/bindings.ts-264-  }
+src/shell/arrays/bindings.ts-265-
+--
+src/shell/runtime.ts-191-  readonly scalarLegacy: boolean;
+src/shell/runtime.ts-192-}
+src/shell/runtime.ts-193-
+src/shell/runtime.ts:194:const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
+src/shell/runtime.ts-195-
+src/shell/runtime.ts-196-export interface State {
+src/shell/runtime.ts-197-  cwd: string;
+--
+src/shell/runtime.ts-337-      const sourceFrame = state.locals[index]!;
+src/shell/runtime.ts-338-      const copiedFrame = destination.locals[index]!;
+src/shell/runtime.ts-339-      for (const [name, saved] of sourceFrame) {
+src/shell/runtime.ts:340:        const typed = typedSavedVariables.get(saved);
+src/shell/runtime.ts:341:        if (typed) {
+src/shell/runtime.ts-342-          const copied = copiedFrame.get(name);
+src/shell/runtime.ts-343-          if (!copied) throw new ArrayFailure("stale state snapshot");
+src/shell/runtime.ts-344-          const savedOwner = ArrayOwner.create(owner.ledger, owner);
+src/shell/runtime.ts-345-          let binding: IndexedBinding | undefined;
+src/shell/runtime.ts-346-          try {
+src/shell/runtime.ts:347:            const watch = await store.watch(name, savedOwner, signal);
+src/shell/runtime.ts-348-            const tickets = savedOwner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+src/shell/runtime.ts-349-            const token = await textToken(savedOwner, name, signal);
+src/shell/runtime.ts-350-            const admission = savedOwner.reserve({ slots: 1, metadata: 32, work: 5 });
+src/shell/runtime.ts:351:            binding = typed.binding?.retain();
+src/shell/runtime.ts:352:            typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
+src/shell/runtime.ts:353:            tickets.cleanup = () => { typedSavedVariables.delete(copied); };
+src/shell/runtime.ts-354-          } catch (error) { await binding?.release(); await savedOwner.close(); throw error; }
+src/shell/runtime.ts-355-        }
+src/shell/runtime.ts-356-        await owner.ledger.checkpoint(signal);
+--
+src/shell/runtime.ts-367-  return { value: state.variables[name], exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
+src/shell/runtime.ts-368-}
+src/shell/runtime.ts-369-
+src/shell/runtime.ts:370:async function restoreVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+src/shell/runtime.ts:371:  const typed = typedSavedVariables.get(saved);
+src/shell/runtime.ts:372:  if (typed) {
+src/shell/runtime.ts:373:    typedSavedVariables.delete(saved);
+src/shell/runtime.ts-374-    const store = requireArrays(state);
+src/shell/runtime.ts-375-    let released: Promise<void> | undefined;
+src/shell/runtime.ts:376:    stateMonitor(state)!.publish(typed.tickets, name, () => {
+src/shell/runtime.ts:377:      if (typed.binding) {
+src/shell/runtime.ts-378-        delete state.variables[name];
+src/shell/runtime.ts:379:        released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);
+src/shell/runtime.ts-380-      } else {
+src/shell/runtime.ts:381:        released = store.remove(name, typed.tickets);
+src/shell/runtime.ts-382-        if (saved.value === undefined) delete state.variables[name];
+src/shell/runtime.ts-383-        else state.variables[name] = saved.value;
+src/shell/runtime.ts-384-      }
+src/shell/runtime.ts-385-      if (saved.exported) state.exported.add(name);
+src/shell/runtime.ts-386-      else state.exported.delete(name);
+src/shell/runtime.ts:387:      if (!typed.scalarLegacy || name === "OPTIND") {
+src/shell/runtime.ts-388-        if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+src/shell/runtime.ts-389-        else state.readonlyVariables?.delete(name);
+src/shell/runtime.ts-390-      }
+src/shell/runtime.ts-391-      if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;
+src/shell/runtime.ts-392-    });
+src/shell/runtime.ts:393:    typed.watch.close();
+src/shell/runtime.ts-394-    await released;
+src/shell/runtime.ts:395:    await typed.owner.close();
+src/shell/runtime.ts-396-    return;
+src/shell/runtime.ts-397-  }
+src/shell/runtime.ts-398-  if (saved.value === undefined) delete state.variables[name];
+--
+src/shell/runtime.ts-406-  }
+src/shell/runtime.ts-407-}
+src/shell/runtime.ts-408-
+src/shell/runtime.ts:409:function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined } {
+src/shell/runtime.ts-410-  signal.throwIfAborted();
+src/shell/runtime.ts-411-  let indexed = false;
+src/shell/runtime.ts-412-  let offset = 0;
+--
+src/shell/runtime.ts-965-      }
+src/shell/runtime.ts-966-      await textToken(operation, subject, this.signal);
+src/shell/runtime.ts-967-      const name = "BASH_REMATCH";
+src/shell/runtime.ts:968:      const watch = await store.watch(name, operation, this.signal);
+src/shell/runtime.ts-969-      const entry = Runtime.#ereRoots.get(this.budget);
+src/shell/runtime.ts-970-      if (!entry || entry.closed) throw new Error("ERE invocation owner is closed");
+src/shell/runtime.ts-971-      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {
+--
+src/shell/runtime.ts-998-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-999-      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+src/shell/runtime.ts-1000-      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+src/shell/runtime.ts:1001:      const prepared = await store.prepareName(name, operation, this.signal);
+src/shell/runtime.ts-1002-      staged = IndexedBinding.create(store.owner);
+src/shell/runtime.ts-1003-      if (result.matched) for (let index = 0; index < result.spans.length; index++) {
+src/shell/runtime.ts-1004-        const span = result.spans[index]!;
+--
+src/shell/runtime.ts-1014-      if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+src/shell/runtime.ts-1015-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-1016-      let released: Promise<void> | undefined;
+src/shell/runtime.ts:1017:      stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts-1018-        supersede();
+src/shell/runtime.ts-1019-        delete state.variables[name];
+src/shell/runtime.ts:1020:        released = store.publish(name, staged!, tickets, prepared);
+src/shell/runtime.ts-1021-      });
+src/shell/runtime.ts-1022-      staged = undefined;
+src/shell/runtime.ts-1023-      watch.close();
+--
+src/shell/runtime.ts-1239-    const holding = store.owner.hold();
+src/shell/runtime.ts-1240-    let binding: IndexedBinding | undefined;
+src/shell/runtime.ts-1241-    try {
+src/shell/runtime.ts:1242:      const watch = await store.watch(name, owner, this.signal);
+src/shell/runtime.ts-1243-      const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+src/shell/runtime.ts-1244-      const token = await textToken(owner, name, this.signal);
+src/shell/runtime.ts-1245-      const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
+src/shell/runtime.ts-1246-      if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
+src/shell/runtime.ts-1247-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-1248-      binding = scalarLegacy ? undefined : store.get(name)?.retain();
+src/shell/runtime.ts:1249:      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
+src/shell/runtime.ts:1250:      tickets.cleanup = () => { typedSavedVariables.delete(saved); };
+src/shell/runtime.ts-1251-    } catch (error) { await binding?.release(); await owner.close(); throw error; }
+src/shell/runtime.ts-1252-    finally { holding.release(); }
+src/shell/runtime.ts-1253-  }
+--
+src/shell/runtime.ts-1255-  async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
+src/shell/runtime.ts-1256-    owner.reserve({ metadata: 128, work: 6 });
+src/shell/runtime.ts-1257-    for (const frame of state.locals) for (const [name, saved] of frame) {
+src/shell/runtime.ts:1258:      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
+src/shell/runtime.ts-1259-      await owner.ledger.checkpoint(this.signal);
+src/shell/runtime.ts-1260-    }
+src/shell/runtime.ts-1261-    for (const frame of stateMonitor(state)!.overlayFrames()) for (const [name, record] of frame) {
+src/shell/runtime.ts-1262-      const saved = record as SavedVariable;
+src/shell/runtime.ts:1263:      if (!saved.superseded && !typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, true);
+src/shell/runtime.ts-1264-      await owner.ledger.checkpoint(this.signal);
+src/shell/runtime.ts-1265-    }
+src/shell/runtime.ts-1266-  }
+src/shell/runtime.ts-1267-
+src/shell/runtime.ts-1268-  async discardVariable(saved: SavedVariable): Promise<void> {
+src/shell/runtime.ts:1269:    const typed = typedSavedVariables.get(saved);
+src/shell/runtime.ts:1270:    if (!typed) return;
+src/shell/runtime.ts:1271:    typedSavedVariables.delete(saved);
+src/shell/runtime.ts:1272:    typed.watch.close();
+src/shell/runtime.ts:1273:    await typed.binding?.release();
+src/shell/runtime.ts:1274:    await typed.owner.close();
+src/shell/runtime.ts-1275-  }
+src/shell/runtime.ts-1276-
+src/shell/runtime.ts-1277-  async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
+--
+src/shell/runtime.ts-1296-      const controls = operation.reserve({ epoch: true, work: state.exported.size + keys.length + 5 });
+src/shell/runtime.ts-1297-      this.signal.throwIfAborted();
+src/shell/runtime.ts-1298-      if (stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
+src/shell/runtime.ts:1299:      stateMonitor(state)!.publish(controls, undefined, () => {
+src/shell/runtime.ts-1300-        for (const key of state.exported) delete state.variables[key];
+src/shell/runtime.ts-1301-        state.exported = new Set(keys);
+src/shell/runtime.ts-1302-      });
+src/shell/runtime.ts-1303-      for (const key of keys) {
+src/shell/runtime.ts-1304-        const tickets = publications.get(key)!;
+src/shell/runtime.ts:1305:        stateMonitor(state)!.publish(tickets, key, () => {
+src/shell/runtime.ts-1306-          void store.remove(key, tickets);
+src/shell/runtime.ts-1307-          state.variables[key] = env[key]!;
+src/shell/runtime.ts-1308-        });
+--
+src/shell/runtime.ts-1317-    let staged: IndexedBinding | undefined;
+src/shell/runtime.ts-1318-    try {
+src/shell/runtime.ts-1319-      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+src/shell/runtime.ts:1320:      const watch = await store.watch(name, operation, this.signal);
+src/shell/runtime.ts-1321-      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+src/shell/runtime.ts-1322-      const current = store.get(name);
+src/shell/runtime.ts-1323-      if (index !== undefined && current) {
+--
+src/shell/runtime.ts-1335-      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+src/shell/runtime.ts-1336-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-1337-      let released: Promise<void> | undefined;
+src/shell/runtime.ts:1338:      stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts:1339:        if (staged) released = store.publish(name, staged, tickets);
+src/shell/runtime.ts-1340-        else if (index === undefined) {
+src/shell/runtime.ts-1341-          released = store.remove(name, tickets);
+src/shell/runtime.ts-1342-          delete state.variables[name];
+--
+src/shell/runtime.ts-1355-    const holding = store.owner.hold();
+src/shell/runtime.ts-1356-    let staged: IndexedBinding | undefined;
+src/shell/runtime.ts-1357-    try {
+src/shell/runtime.ts:1358:      const watch = await store.watch(name, operation, this.signal);
+src/shell/runtime.ts-1359-      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+src/shell/runtime.ts-1360-      let frozenAttributes: Set<string> | undefined;
+src/shell/runtime.ts-1361-      if (freeze) {
+--
+src/shell/runtime.ts-1377-      if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+src/shell/runtime.ts-1378-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-1379-      let released: Promise<void> | undefined;
+src/shell/runtime.ts:1380:      stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts-1381-        supersede();
+src/shell/runtime.ts:1382:        released = store.publish(name, staged!, tickets);
+src/shell/runtime.ts-1383-        if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
+src/shell/runtime.ts-1384-      });
+src/shell/runtime.ts-1385-      staged = undefined;
+--
+src/shell/runtime.ts-1414-    const holding = store.owner.hold();
+src/shell/runtime.ts-1415-    let staged: IndexedBinding | undefined;
+src/shell/runtime.ts-1416-    try {
+src/shell/runtime.ts:1417:      const watch = await store.watch(name, operation, this.signal);
+src/shell/runtime.ts-1418-      const current = store.get(name);
+src/shell/runtime.ts-1419-      const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+src/shell/runtime.ts-1420-      let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
+--
+src/shell/runtime.ts-1444-      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+src/shell/runtime.ts-1445-      await this.prepareArrayObservers(state, operation);
+src/shell/runtime.ts-1446-      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+src/shell/runtime.ts:1447:      const prepared = await store.prepareName(name, operation, this.signal);
+src/shell/runtime.ts-1448-      const preserve = assignment.kind === "element" || assignment.append;
+src/shell/runtime.ts-1449-      staged = preserve && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);
+src/shell/runtime.ts-1450-      if (preserve && !current && state.variables[name] !== undefined) {
+--
+src/shell/runtime.ts-1478-      if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-1479-      if (!(assignment.kind === "compound" && assignment.append && writes === 0)) {
+src/shell/runtime.ts-1480-        let released: Promise<void> | undefined;
+src/shell/runtime.ts:1481:        stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts-1482-          supersede();
+src/shell/runtime.ts-1483-          delete state.variables[name];
+src/shell/runtime.ts:1484:          released = store.publish(name, staged!, tickets, prepared);
+src/shell/runtime.ts-1485-        });
+src/shell/runtime.ts-1486-        staged = undefined;
+src/shell/runtime.ts-1487-        await released;
+--
+src/shell/runtime.ts-2145-            const changed = arrayStore(redirectState)!.get(name);
+src/shell/runtime.ts-2146-            if (!previous.has(name) && changed && changed !== publication.binding) {
+src/shell/runtime.ts-2147-              let released: Promise<void> | undefined;
+src/shell/runtime.ts:2148:              stateMonitor(state)!.publish(publication.tickets, name, () => { released = parentStore.publish(name, changed.retain(), publication.tickets); });
+src/shell/runtime.ts-2149-              await released;
+src/shell/runtime.ts-2150-            }
+src/shell/runtime.ts-2151-          }
+--
+src/shell/runtime.ts-2236-      const cwd = state.cwd;
+src/shell/runtime.ts-2237-      const directoryStackCwdPublication = state.directoryStackCwdPublication;
+src/shell/runtime.ts-2238-      const environmentKeys = new Set([...Object.keys(initialEnv), ...Object.keys(context.env)]);
+src/shell/runtime.ts:2239:      const typedEnvironment = [...environmentKeys].some(key => arrayStore(state)?.get(key) && initialEnv[key] !== context.env[key]);
+src/shell/runtime.ts-2240-      const cwdRestoration = stateMonitor(state)?.restoration(true);
+src/shell/runtime.ts:2241:      if (typedEnvironment) {
+src/shell/runtime.ts-2242-        const store = requireArrays(state);
+src/shell/runtime.ts-2243-        store.owner.reserve({ metadata: 64 + environmentKeys.size * 64, allocatedSlots: environmentKeys.size * 2, work: environmentKeys.size * 4 + 4 });
+src/shell/runtime.ts-2244-        const publications = new Map<string, Admission>();
+--
+src/shell/runtime.ts-2261-          const cwdPublication = store.tickets();
+src/shell/runtime.ts-2262-          for (const [key, saved] of previous) {
+src/shell/runtime.ts-2263-            if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+src/shell/runtime.ts:2264:            if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-2265-          }
+src/shell/runtime.ts-2266-          this.signal.throwIfAborted();
+src/shell/runtime.ts:2267:          stateMonitor(state)!.publish(cwdPublication, undefined, () => { state.cwd = resolvePath("/", context.cwd); });
+src/shell/runtime.ts-2268-          cwdPublication.release();
+src/shell/runtime.ts-2269-          for (const [key, saved] of previous) {
+src/shell/runtime.ts-2270-            const publication = publications.get(key)!;
+src/shell/runtime.ts:2271:            stateMonitor(state)!.publish(publication, key, () => {
+src/shell/runtime.ts-2272-              void store.remove(key, publication);
+src/shell/runtime.ts-2273-              if (saved.overlay === undefined) { delete state.variables[key]; state.exported.delete(key); }
+src/shell/runtime.ts-2274-              else { state.variables[key] = saved.overlay; state.exported.add(key); }
+src/shell/runtime.ts-2275-              if (key === "OPTIND") this.reconcileGetopts(state, saved.value);
+src/shell/runtime.ts-2276-            });
+src/shell/runtime.ts:2277:            typedSavedVariables.get(saved)!.overlayVersion = publication.version;
+src/shell/runtime.ts-2278-            publication.release();
+src/shell/runtime.ts-2279-          }
+src/shell/runtime.ts-2280-        } catch (error) {
+--
+src/shell/runtime.ts-2325-            };
+src/shell/runtime.ts-2326-            if (frameOwner) {
+src/shell/runtime.ts-2327-              const tickets = frameOwner.reserve({ epoch: true, work: 8 });
+src/shell/runtime.ts:2328:              monitor!.publish(tickets, undefined, entry);
+src/shell/runtime.ts-2329-              tickets.release();
+src/shell/runtime.ts-2330-            } else entry();
+src/shell/runtime.ts-2331-          } catch (error) { getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
+--
+src/shell/runtime.ts-2345-            if (functionRestoration) functionRestoration.apply(restoreControls, false);
+src/shell/runtime.ts-2346-            else restoreControls();
+src/shell/runtime.ts-2347-            for (const [name, previous] of locals) {
+src/shell/runtime.ts:2348:              const typed = typedSavedVariables.has(previous);
+src/shell/runtime.ts-2349-              await restoreVariable(state, name, previous);
+src/shell/runtime.ts:2350:              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);
+src/shell/runtime.ts-2351-            }
+src/shell/runtime.ts-2352-            if (locals.has("OPTIND")) {
+src/shell/runtime.ts-2353-              const restoreGetopts = () => {
+--
+src/shell/runtime.ts-2393-        if (cwdRestoration) cwdRestoration.apply(restoreCwd, false);
+src/shell/runtime.ts-2394-        else restoreCwd();
+src/shell/runtime.ts-2395-        for (const [key, saved] of previous) {
+src/shell/runtime.ts:2396:          const typed = typedSavedVariables.get(saved);
+src/shell/runtime.ts:2397:          if (typed) {
+src/shell/runtime.ts:2398:            const owned = typed.binding ? typed.watch.watch.version === typed.overlayVersion : state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion;
+src/shell/runtime.ts-2399-            if (owned) await restoreVariable(state, key, saved);
+src/shell/runtime.ts-2400-            else await this.discardVariable(saved);
+src/shell/runtime.ts-2401-            continue;
+--
+src/shell/runtime.ts-3032-      };
+src/shell/runtime.ts-3033-      if (owner) {
+src/shell/runtime.ts-3034-        const tickets = owner.reserve({ epoch: true, work: 8 });
+src/shell/runtime.ts:3035:        monitor!.publish(tickets, undefined, entry);
+src/shell/runtime.ts-3036-        tickets.release();
+src/shell/runtime.ts-3037-      } else entry();
+src/shell/runtime.ts-3038-    } catch (error) { restoration?.close(); throw error; }
+--
+src/shell/runtime.ts-3371-        break;
+src/shell/runtime.ts-3372-      }
+src/shell/runtime.ts-3373-      if (command === "dirs") {
+src/shell/runtime.ts:3374:        if (clear) await publish({ entries: [], bytes: 0 });
+src/shell/runtime.ts-3375-        else await display(selected === undefined ? undefined : boundedIndex(selected));
+src/shell/runtime.ts-3376-      } else if (command === "pushd") {
+src/shell/runtime.ts-3377-        if (selected !== undefined) {
+--
+src/shell/runtime.ts-3381-            const at = (fullIndex: number): string => fullIndex === 0 ? cwd : tail.entries[fullIndex - 1]!;
+src/shell/runtime.ts-3382-            const next = await plan(count, index === 0 ? undefined : index - 1, index === 0 ? undefined : cwd, undefined,
+src/shell/runtime.ts-3383-              slot => at((index + slot + 1) % (count + 1)));
+src/shell/runtime.ts:3384:            await publish(next);
+src/shell/runtime.ts-3385-            if (!noCd) {
+src/shell/runtime.ts-3386-              const status = await cd(at(index));
+src/shell/runtime.ts-3387-              if (status !== 0) return status;
+--
+src/shell/runtime.ts-3396-            const status = await cd(target);
+src/shell/runtime.ts-3397-            if (status !== 0) return status;
+src/shell/runtime.ts-3398-          }
+src/shell/runtime.ts:3399:          await publish(next);
+src/shell/runtime.ts-3400-          await display();
+src/shell/runtime.ts-3401-        } else if (!noCd) {
+src/shell/runtime.ts-3402-          if (!count) work.fail("no other directory");
+src/shell/runtime.ts-3403-          const cwd = state.cwd;
+src/shell/runtime.ts-3404-          const next = await plan(count, 0, cwd, undefined, slot => slot === 0 ? cwd : tail.entries[slot]!);
+src/shell/runtime.ts:3405:          await publish(next);
+src/shell/runtime.ts-3406-          const status = await cd(tail.entries[0]!);
+src/shell/runtime.ts-3407-          if (status !== 0) return status;
+src/shell/runtime.ts-3408-          await display();
+--
+src/shell/runtime.ts-3417-          const status = await cd(tail.entries[0]!);
+src/shell/runtime.ts-3418-          if (status !== 0) return status;
+src/shell/runtime.ts-3419-        }
+src/shell/runtime.ts:3420:        await publish(next);
+src/shell/runtime.ts-3421-        await display();
+src/shell/runtime.ts-3422-      }
+src/shell/runtime.ts-3423-      return 0;
+--
+src/shell/runtime.ts-3536-      const declarationArgs = [...args];
+src/shell/runtime.ts-3537-      let indexedLocal = false;
+src/shell/runtime.ts-3538-      if (command === "local") {
+src/shell/runtime.ts:3539:        const options = localDeclarationOptions(declarationArgs, this.signal);
+src/shell/runtime.ts-3540-        if (options.error !== undefined) {
+src/shell/runtime.ts-3541-          await writeText(stderr, `local: ${options.error}: unsupported option\n`);
+src/shell/runtime.ts-3542-          return 2;
+--
+src/shell/runtime.ts-3579-          if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
+src/shell/runtime.ts-3580-          const existingLocal = locals!.get(name);
+src/shell/runtime.ts-3581-          const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
+src/shell/runtime.ts:3582:          if (existingLocal && !typedSavedVariables.has(existingLocal)) await this.prepareVariable(state, name, existingLocal, true);
+src/shell/runtime.ts-3583-          if (saved) await this.prepareVariable(state, name, saved);
+src/shell/runtime.ts-3584-          const store = requireArrays(state);
+src/shell/runtime.ts-3585-          const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+src/shell/runtime.ts-3586-          const holding = store.owner.hold();
+src/shell/runtime.ts-3587-          let shadow: IndexedBinding | undefined;
+src/shell/runtime.ts-3588-          try {
+src/shell/runtime.ts:3589:            const watch = await store.watch(name, operation, this.signal);
+src/shell/runtime.ts-3590-            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+src/shell/runtime.ts:3591:            const prepared = await store.prepareName(name, operation, this.signal);
+src/shell/runtime.ts-3592-            const current = store.get(name);
+src/shell/runtime.ts-3593-            shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);
+src/shell/runtime.ts-3594-            const value = match[2] ?? (!saved && !current && Object.hasOwn(state.variables, name) ? state.variables[name] : undefined);
+--
+src/shell/runtime.ts-3600-            if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+src/shell/runtime.ts-3601-            if (!watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-3602-            let released: Promise<void> | undefined;
+src/shell/runtime.ts:3603:            stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts-3604-              if (saved) locals!.set(name, saved);
+src/shell/runtime.ts-3605-              delete state.variables[name];
+src/shell/runtime.ts:3606:              released = store.publish(name, shadow!, tickets, prepared);
+src/shell/runtime.ts-3607-            });
+src/shell/runtime.ts-3608-            shadow = undefined;
+src/shell/runtime.ts-3609-            watch.close();
+--
+src/shell/runtime.ts-3628-              await textToken(operation, value, this.signal);
+src/shell/runtime.ts-3629-              this.signal.throwIfAborted();
+src/shell/runtime.ts-3630-              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+src/shell/runtime.ts:3631:              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-3632-              let released: Promise<void> | undefined;
+src/shell/runtime.ts:3633:              stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts-3634-                locals!.set(name, saved);
+src/shell/runtime.ts-3635-                released = store.remove(name, tickets);
+src/shell/runtime.ts-3636-                state.variables[name] = value;
+--
+src/shell/runtime.ts-3655-              }
+src/shell/runtime.ts-3656-              this.signal.throwIfAborted();
+src/shell/runtime.ts-3657-              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+src/shell/runtime.ts:3658:              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+src/shell/runtime.ts-3659-              let released: Promise<void> | undefined;
+src/shell/runtime.ts:3660:              stateMonitor(state)!.publish(tickets, name, () => {
+src/shell/runtime.ts-3661-                locals!.set(name, saved);
+src/shell/runtime.ts:3662:                released = store.publish(name, shadow!, tickets);
+src/shell/runtime.ts-3663-              });
+src/shell/runtime.ts-3664-              shadow = undefined;
+src/shell/runtime.ts-3665-              await released;

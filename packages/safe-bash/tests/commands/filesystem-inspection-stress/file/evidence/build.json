@@ -1,0 +1,352 @@
+{
+  "startedAt": "2026-08-27T08:24:56.070Z",
+  "finishedAt": "2026-08-27T08:24:56.750Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeVersion": "v22.22.2",
+  "args": [
+    "node_modules/typescript/bin/tsc",
+    "--target",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--verbatimModuleSyntax",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "--declaration",
+    "--sourceMap",
+    "--noEmitOnError",
+    "--rootDir",
+    "src",
+    "--outDir",
+    "dist",
+    "src/commands/file/index.ts",
+    "src/shell/index.ts"
+  ],
+  "cwd": "/private/tmp/safe-bash-file-run.WeB7Vfsc/candidate",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "files": [
+    {
+      "path": "dist/commands/file/classify.d.ts",
+      "bytes": 261,
+      "sha256": "7cf47a00dba55f22d4bcd723b024d25817716573652384e6999a2defea1dfdff"
+    },
+    {
+      "path": "dist/commands/file/classify.js",
+      "bytes": 7455,
+      "sha256": "eda330eedef089d772802a4df3c93dc7729f8f1ee5af7cdc62aa0a406ca7f9f9"
+    },
+    {
+      "path": "dist/commands/file/classify.js.map",
+      "bytes": 10381,
+      "sha256": "eb523816e6ade93abcc91dd8805dbec93bdf2978649aafac1c45afb96ab69c22"
+    },
+    {
+      "path": "dist/commands/file/index.d.ts",
+      "bytes": 503,
+      "sha256": "b6a55ef63ee5f920a3c30704cc13a6bd4a8d14a4081266b0dbe1c55881de82d7"
+    },
+    {
+      "path": "dist/commands/file/index.js",
+      "bytes": 10212,
+      "sha256": "ffd86a04a466c8cc9072c607099dc9be00e8f49ec5e3c4e97a3a49006b535319"
+    },
+    {
+      "path": "dist/commands/file/index.js.map",
+      "bytes": 10191,
+      "sha256": "6cede701fa5accaf69c308f30e5685ba3cee73b727de80670beeb787159cf06f"
+    },
+    {
+      "path": "dist/commands/file/shared.d.ts",
+      "bytes": 1653,
+      "sha256": "9bd4d9e012739afa0ad343497dacb33cbbf3c4deb5fb875defba4b554210a5fb"
+    },
+    {
+      "path": "dist/commands/file/shared.js",
+      "bytes": 4661,
+      "sha256": "a0896f522ef26b0d43f99881ce12332d114708a3e6c15c21a421d1fb11731ace"
+    },
+    {
+      "path": "dist/commands/file/shared.js.map",
+      "bytes": 5272,
+      "sha256": "38c2d74741d1438f11e3906b1684be0f09f5d9f97e48549245ace580457f5ef1"
+    },
+    {
+      "path": "dist/contracts/command.d.ts",
+      "bytes": 1940,
+      "sha256": "97e8a468131f9606f0d2784aec0ccecda96c1fbd47e7cc5ebd85fa9b97d229dd"
+    },
+    {
+      "path": "dist/contracts/command.js",
+      "bytes": 1353,
+      "sha256": "18d0fe35b82ea6085d39492e61b9c0d1c9d5a2a2e7e13a7e580e94dc551e2a0f"
+    },
+    {
+      "path": "dist/contracts/command.js.map",
+      "bytes": 1476,
+      "sha256": "c2e4779ad2771d1308675374cf2a784f58934393918bd1f72400dbecad0d84b8"
+    },
+    {
+      "path": "dist/contracts/errors.d.ts",
+      "bytes": 2066,
+      "sha256": "156c4f71c1dd8acc26f18b7a2088dad591d134e86dbffb778976fda39124765a"
+    },
+    {
+      "path": "dist/contracts/errors.js",
+      "bytes": 3225,
+      "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+    },
+    {
+      "path": "dist/contracts/errors.js.map",
+      "bytes": 3333,
+      "sha256": "52acb54035e89dbdf5196d00e38e71d2db31250130a9b5dbbb67809c813ffb4f"
+    },
+    {
+      "path": "dist/contracts/filesystem.d.ts",
+      "bytes": 3982,
+      "sha256": "5c96d56ed7b25a62d1699593b39052a01c7fede43696be5f4d54eb9d3c3a5edf"
+    },
+    {
+      "path": "dist/contracts/filesystem.js",
+      "bytes": 121,
+      "sha256": "54708794453284916269d96574ac9bf42c9a652f011d7a779efecfa326cace25"
+    },
+    {
+      "path": "dist/contracts/filesystem.js.map",
+      "bytes": 270,
+      "sha256": "eceb1e51f8da78260a9ea88db0e3b1495d09b83d2af15613a1f53f5ad5ea8db4"
+    },
+    {
+      "path": "dist/contracts/index.d.ts",
+      "bytes": 173,
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    {
+      "path": "dist/contracts/index.js",
+      "bytes": 206,
+      "sha256": "7e494e421356e368da43cab478f595600127d8ee345a887838f40bffe2757d27"
+    },
+    {
+      "path": "dist/contracts/index.js.map",
+      "bytes": 241,
+      "sha256": "2dee239fc263d60d0c4954a777a8ea62154cf20569157d3ab3edc81d5c85ccb7"
+    },
+    {
+      "path": "dist/contracts/io.d.ts",
+      "bytes": 1267,
+      "sha256": "521f3125f4b8416c72ff6295b32b3294073d5907d63059baf33e64cbd468b66f"
+    },
+    {
+      "path": "dist/contracts/io.js",
+      "bytes": 7365,
+      "sha256": "866af6e5a93e9779453d3cc08507a96a94a3f7e82b201048e7ae5fc6203c2c3f"
+    },
+    {
+      "path": "dist/contracts/io.js.map",
+      "bytes": 7646,
+      "sha256": "df6218c98f445e0ca6985a71e6cbd838b0ec9488a957aab24758bb9e90f06088"
+    },
+    {
+      "path": "dist/contracts/path.d.ts",
+      "bytes": 810,
+      "sha256": "6e841b209db3299d61ce4213734f8d4267f4b51a33f2fc8d685f95947a7bd24a"
+    },
+    {
+      "path": "dist/contracts/path.js",
+      "bytes": 1631,
+      "sha256": "31d592f8412ea87ee9afbfbaf092c7fd9c7fa3981a74b3b971dad01d5966ffe7"
+    },
+    {
+      "path": "dist/contracts/path.js.map",
+      "bytes": 1872,
+      "sha256": "9a4c30c4f2558731da2fc0e4e6e28a78ade0b4250d20cac734d5dbeb1b8e0cac"
+    },
+    {
+      "path": "dist/contracts/plugin.d.ts",
+      "bytes": 800,
+      "sha256": "c26fe050fad245841368a0e11ea3bf9082474d83344d009ebae413b908e77e5b"
+    },
+    {
+      "path": "dist/contracts/plugin.js",
+      "bytes": 1878,
+      "sha256": "8226301a46b88d6e655b8201c57c60b1af835df6b2b2193f6fb386b5a6888937"
+    },
+    {
+      "path": "dist/contracts/plugin.js.map",
+      "bytes": 1751,
+      "sha256": "8b44667965f1d9bbdc3f102b6798e6ccc2510b508e0ab09d683ea9a28c380e2c"
+    },
+    {
+      "path": "dist/shell/arithmetic.d.ts",
+      "bytes": 969,
+      "sha256": "28b04e1e294d732e22f090786b6d83475ebf32907adcc70638186813ed4fc8a8"
+    },
+    {
+      "path": "dist/shell/arithmetic.js",
+      "bytes": 10808,
+      "sha256": "6e68b9a19d7fe703c1a4b2840deda5c960f1ec72aa678a38ecff296a79744138"
+    },
+    {
+      "path": "dist/shell/arithmetic.js.map",
+      "bytes": 11677,
+      "sha256": "26a46d0eb2d43c4f98569306cfa54f912f934a66a57fca2850fab7e914abc792"
+    },
+    {
+      "path": "dist/shell/cleanup.d.ts",
+      "bytes": 672,
+      "sha256": "3de1dee15e3c4ff23f8048478b527d363472cc07080b7127129943df7248f768"
+    },
+    {
+      "path": "dist/shell/cleanup.js",
+      "bytes": 2148,
+      "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+    },
+    {
+      "path": "dist/shell/cleanup.js.map",
+      "bytes": 2164,
+      "sha256": "ae61dcd2b3c7dbd89ebda90e0f97e71c9a2eb6fca4a506e68843bdb457017526"
+    },
+    {
+      "path": "dist/shell/display.d.ts",
+      "bytes": 122,
+      "sha256": "5cde59ed5b4cc38db315d5333b5e80e5fa18ade15875559367b27cd85c1af440"
+    },
+    {
+      "path": "dist/shell/display.js",
+      "bytes": 2792,
+      "sha256": "c1e7ade4879fc6f85d39dd718259eaf2bb9371fac463a3e574ec9f8a0490e368"
+    },
+    {
+      "path": "dist/shell/display.js.map",
+      "bytes": 3396,
+      "sha256": "f6b74d9f865778db7940d70a9ce31001163b9d642e097976de5be0772529349d"
+    },
+    {
+      "path": "dist/shell/index.d.ts",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "path": "dist/shell/index.js",
+      "bytes": 175,
+      "sha256": "e4727274e08ff8199102d4826579aaf410b3a72b3a4e0c4dc8864a57bc714afb"
+    },
+    {
+      "path": "dist/shell/index.js.map",
+      "bytes": 244,
+      "sha256": "faabada4d60b1ce7e0f8b2dba3ccb7c0f9f44e7cfecdbd393e3a15f6ca0e603a"
+    },
+    {
+      "path": "dist/shell/input.d.ts",
+      "bytes": 803,
+      "sha256": "aa26c02f9340a7b7c632d9e8f387583db8ce3bd2d2f82cd05c19e94842db248a"
+    },
+    {
+      "path": "dist/shell/input.js",
+      "bytes": 10776,
+      "sha256": "dfae555acaa51838dba66b81da380c0cd235bc3e0b3c784ea63b888404feb331"
+    },
+    {
+      "path": "dist/shell/input.js.map",
+      "bytes": 11276,
+      "sha256": "6ae2ccef6584e181987bba0ae8bc869b2b99edae85d466d6d49fc54ebedf3543"
+    },
+    {
+      "path": "dist/shell/locale.d.ts",
+      "bytes": 90,
+      "sha256": "a87df7b743cd2861b0e16ed770f24696d0509834ae1481c39125172fc8785078"
+    },
+    {
+      "path": "dist/shell/locale.js",
+      "bytes": 202,
+      "sha256": "9f6e1cdac781cd758231bfb7af854dbc87dd6544c0e3a1309dac9362f88f36dc"
+    },
+    {
+      "path": "dist/shell/locale.js.map",
+      "bytes": 286,
+      "sha256": "9822d792c0f45ee3c931840d856aa3c33c18394342e7e7f62c8ec9c395e1bb78"
+    },
+    {
+      "path": "dist/shell/parser.d.ts",
+      "bytes": 3346,
+      "sha256": "78f7aca02f607796a3acc8a4d4ed88f929a258d5af6810053555afbdbaf19f29"
+    },
+    {
+      "path": "dist/shell/parser.js",
+      "bytes": 38936,
+      "sha256": "5e7529b673dbc53503195c551e5a772632467de5e92e06682208b0e54eea90fd"
+    },
+    {
+      "path": "dist/shell/parser.js.map",
+      "bytes": 42286,
+      "sha256": "e791d538aa1c94bfea23586e078c8008f9329d4385da14ccd463b3a5769efc27"
+    },
+    {
+      "path": "dist/shell/pattern.d.ts",
+      "bytes": 340,
+      "sha256": "973ecc443ebb657f76d6c7459b4209476767664fb6fec058ff41e90257a3472b"
+    },
+    {
+      "path": "dist/shell/pattern.js",
+      "bytes": 5344,
+      "sha256": "a4a3a5744281205d6f7f0b9fcf6aea2d6386669d9176bc2d3ca08c130087cc19"
+    },
+    {
+      "path": "dist/shell/pattern.js.map",
+      "bytes": 5625,
+      "sha256": "dcf8ceb8c68eac06f0854d9965f81503e338ccbada8daba639129d6d8763a9de"
+    },
+    {
+      "path": "dist/shell/runtime.d.ts",
+      "bytes": 8199,
+      "sha256": "0558e6e0227f4f970f33c975df949d54a89d926a4a9c0ed2ee5ee27d766475cc"
+    },
+    {
+      "path": "dist/shell/runtime.js",
+      "bytes": 114786,
+      "sha256": "ee3e045a1770cc43591a19936ec153e9a29c959c9de5886d2112427a9d20e97a"
+    },
+    {
+      "path": "dist/shell/runtime.js.map",
+      "bytes": 117385,
+      "sha256": "d1499d5888876b81022d3ab60d5d61b1df1395a3e138bc960fefe0697e1ec7b0"
+    },
+    {
+      "path": "dist/shell/shell.d.ts",
+      "bytes": 888,
+      "sha256": "3733d0f0431df63a285fa74726f1d3330538f572d6c9970e8dbc7f60940f2906"
+    },
+    {
+      "path": "dist/shell/shell.js",
+      "bytes": 9978,
+      "sha256": "46ffa189152f3630fa990b5a63c637c7abfbb92ce0132b4a8e25cf573e5825d5"
+    },
+    {
+      "path": "dist/shell/shell.js.map",
+      "bytes": 10066,
+      "sha256": "5775982a32c7eff599bcff78e50cb6a8ba0362bc3b7ec3396cc41011eeef6fe2"
+    },
+    {
+      "path": "dist/shell/types.d.ts",
+      "bytes": 2426,
+      "sha256": "cf72bc65a771d240885ae7318740fcb04498e845ac9a88babf9c2b3ff1ae6531"
+    },
+    {
+      "path": "dist/shell/types.js",
+      "bytes": 738,
+      "sha256": "8c79d4e7ff6e11e4adc173b19017e2f7c046cdeb6d7d24fb4f5057fd8d67b27c"
+    },
+    {
+      "path": "dist/shell/types.js.map",
+      "bytes": 656,
+      "sha256": "6c201c30db2461b2d18a21d1dd3b52329b2323c2f6a77a58a185f2785d0971fe"
+    }
+  ]
+}

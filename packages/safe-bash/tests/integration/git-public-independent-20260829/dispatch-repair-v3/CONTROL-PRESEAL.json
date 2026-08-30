@@ -1,0 +1,60 @@
+{
+  "role": "PRE_EXECUTION_SIX_CONTROL_FREEZE",
+  "files": [
+    {
+      "path": "dispatch.py",
+      "bytes": 11831,
+      "sha256": "3270b11f5cdbc13b7c4f3ec9175d0938ded7b1f68571aea4e20f06f2d2173c77"
+    },
+    {
+      "path": "CONTROL-FIXTURES.json",
+      "bytes": 1776,
+      "sha256": "9f1ea326819d9bbf0a68addbf50c133fac354a020e02fc3a89139553ba2a9d00"
+    }
+  ],
+  "cases": [
+    "C01-missing-reference",
+    "C02-preauth-throw",
+    "C03-exec-spawn-failure",
+    "C04-falsy-primary-cleanup",
+    "C05-normal-tiny-child",
+    "C06-capture-closure"
+  ],
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "realpath": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "bytes": 34640,
+    "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+    "qualification": "Direct regular interpreter selected through recorded local symlink metadata, then SHA256 bound; version is path metadata, not an executed version probe. Standard-library/native dependency closure is not freshly attested."
+  },
+  "command": [
+    "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "-I",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/dispatch.py",
+    "--controls"
+  ],
+  "outerRawCapture": {
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/controls-cli.stdout.raw",
+    "stderr": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/dispatch-repair-v3/controls-cli.stderr.raw",
+    "beforeInterpreter": true
+  },
+  "planned": {
+    "controlProcesses": 1,
+    "actualTinyChildren": 1,
+    "syntheticExecFailureChildren": 0,
+    "groups": 6,
+    "peakIncludingToolOwner": 3,
+    "maxSeconds": 30,
+    "maxCombinedCapture": 4194304
+  },
+  "conditionalActual": {
+    "mustPassAll6": true,
+    "retirementRequired": true,
+    "sourceCommitRequired": true,
+    "shippingSeal": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+    "sourceChanges": "Only outer closed state/catch/dispatch metadata; original20members untouched.",
+    "oldNamespace": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2",
+    "stillUnused": true
+  },
+  "oldFailures": "7497843 rawexceptiongap and all older failures retained; no rescore."
+}

@@ -1,0 +1,334 @@
+{
+  "classification": "DATA_SOURCE_NOT_RUNTIME_SEMANTIC",
+  "returned": {
+    "count": 194,
+    "roles": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "projections": 132,
+    "jobs": 149,
+    "fullSemantic": 94,
+    "partialSemantic": 17,
+    "missing": 80,
+    "unprepared": 62,
+    "pending": 194,
+    "semanticPasses": 0,
+    "sourceIds": [
+      {
+        "id": "ENC-08",
+        "missingBindings": [
+          {
+            "binding": "freeze-value-query#/cases/23/input",
+            "need": "approved private-boundary yield observation: string containing lone high surrogate"
+          }
+        ]
+      },
+      {
+        "id": "ENC-09",
+        "missingBindings": [
+          {
+            "binding": "freeze-value-query#/cases/24/input",
+            "need": "approved private-boundary yield observation: array whose first member is itself"
+          }
+        ]
+      },
+      {
+        "id": "ENC-10",
+        "missingBindings": [
+          {
+            "binding": "freeze-value-query#/cases/25/input",
+            "need": "approved private-boundary yield observation: undefined or host Date object"
+          }
+        ]
+      },
+      {
+        "id": "QUE-09",
+        "missingBindings": [
+          {
+            "binding": "freeze-value-query#/cases/34/input",
+            "need": "compileOnce('[') fails, then compileOnce('.') and run(null) attempted on that same private session"
+          },
+          {
+            "binding": "freeze-value-query#/cases/34/expect/assertions/0",
+            "need": "Exactly one parse attempt; second compile and run are internal misuse failures, not normal language statuses.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "QUE-10",
+        "missingBindings": [
+          {
+            "binding": "freeze-value-query#/cases/35/input",
+            "need": "compileOnce('.'); start a run; attempt overlapping run; close twice concurrently; attempt another run"
+          },
+          {
+            "binding": "freeze-value-query#/cases/35/expect/assertions/0",
+            "need": "Only one active input; close shuts admission, shares completion and returns active engine generator once; no reset/new Budget.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "QUE-11",
+        "missingBindings": [
+          {
+            "binding": "freeze-value-query#/cases/36/input",
+            "need": "two files, two documents each, identity query; approved observer records Budget/Interpreter/variables identity"
+          },
+          {
+            "binding": "freeze-value-query#/cases/36/expect/assertions/0",
+            "need": "One Budget, one Interpreter, one empty variables map, one AST; file and document order preserved; no slurp array.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-05",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/4/input",
+            "need": "isolated ledger trace, not claimed reachable before maxSteps; include raw BOM/comment/rejected bytes"
+          },
+          {
+            "binding": "freeze-accounting#/cases/4/expect/assertions/0",
+            "need": "Last byte admitted; next received byte fails before retaining/copying/decoding; charge each received byte once, never again via structured readChunks.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-06",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/5/input",
+            "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+          },
+          {
+            "binding": "freeze-accounting#/cases/5/expect/assertions/0",
+            "need": "Inclusive document admission then refusal before owned copy or decoded append; markers assigned exactly once; reset only at legal boundary.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-07",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/6/input",
+            "need": "decoded scalar ledger for a four-byte escape result, not source escape-text length"
+          },
+          {
+            "binding": "freeze-accounting#/cases/6/expect/assertions/0",
+            "need": "Four-byte scalar reaches inclusive cap; next byte fails before retaining fragment; keys follow same cap.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-08",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/7/input",
+            "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+          },
+          {
+            "binding": "freeze-accounting#/cases/7/expect/assertions/0",
+            "need": "Compact JSON value measure includes punctuation and escaped key/string bytes; composition and alias projections precede allocation; yield checking is necessarily post-engine-allocation.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-11",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/10/input",
+            "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+          },
+          {
+            "binding": "freeze-accounting#/cases/10/expect/assertions/0",
+            "need": "One invocation-wide Budget; 1000000 inclusive, next step refuses; no reset across run/file/document/encoder.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-12",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/11/input",
+            "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+          },
+          {
+            "binding": "freeze-accounting#/cases/11/expect/assertions/0",
+            "need": "Each valid yielded graph admitted once after validation and before encode/publication; invalid graph consumes no result admission; no reclaim and no per-document reset.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-13",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/12/input",
+            "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+          },
+          {
+            "binding": "freeze-accounting#/cases/12/expect/assertions/0",
+            "need": "Current collection member 100000 fits; next is refused before input member allocation; this is not a string-code-point limit.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-15",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/14/input",
+            "need": "cross-document ledger: completed target valid; all copy projections independently fit"
+          },
+          {
+            "binding": "freeze-accounting#/cases/14/expect/assertions/0",
+            "need": "Alias 1024 admitted; 1025 refused before deep copy even in a new document; invalid targets do not increment accepted-alias counter.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-16",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/15/input",
+            "need": "alias target is [0], cached count is two nodes; all other limits have slack"
+          },
+          {
+            "binding": "freeze-accounting#/cases/15/expect/assertions/0",
+            "need": "One two-node copy exactly fits; next original node fails before allocation. With 99999 existing nodes, reject entire two-node alias copy before allocating its first node.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-17",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/16/input",
+            "need": "four-byte complete next output operation including any separator/newline; encoder fragments/join/buffer observed"
+          },
+          {
+            "binding": "freeze-accounting#/cases/16/expect/assertions/0",
+            "need": "Stdout stays <=16773120; reserve 4096 remains unavailable to stdout; oversized document submits zero bytes; every retained encoder allocation is preflighted.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-18",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/17/input",
+            "need": "accounting trace only, not fabricated normal 4096-byte diagnostic"
+          },
+          {
+            "binding": "freeze-accounting#/cases/17/expect/assertions/0",
+            "need": "Combined stdout/stderr cap 16777216 is inclusive; admitted operation bytes are not reclaimed after zero/partial/full sink acceptance then failure.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-20",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/19/input",
+            "need": "isolated diagnostic ledger with preferred line too large, then fallback exactly fits, then fallback one byte too large"
+          },
+          {
+            "binding": "freeze-accounting#/cases/19/expect/assertions/0",
+            "need": "Submit exact fallback yq: limit: DIAGNOSTIC_TRUNCATED LF only when it fits; otherwise nothing; retain selected failure status.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-21",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/20/input",
+            "need": "owned payload operations: 1024 bytes once, 1025 once, and 512+512 as two operations"
+          },
+          {
+            "binding": "freeze-accounting#/cases/20/expect/assertions/0",
+            "need": "ceil(bytes/1024) per distinct nonempty operation; splitting is never free; node/code-point/event charges are additional.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-23",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/22/input",
+            "need": "compile identity and bounded large query separately; static inspect tokenizer/AST allocations and retained source"
+          },
+          {
+            "binding": "freeze-accounting#/cases/22/expect/assertions/0",
+            "need": "Compiler is synchronous, source/AST bounded; no fabricated maxSteps charge for argv/regex/token/AST/diagnostic work beyond existing engine charges; disclose retained source/AST.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-24",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/23/input",
+            "need": "retain raw fragments, decoded text, metadata, expanded input M, yield Q, encoder fragments E and suffix s simultaneously"
+          },
+          {
+            "binding": "freeze-accounting#/cases/23/expect/assertions/0",
+            "need": "Report logical inventory and M + Q + max(2E,3E+2s); do not claim an aggregate heap/RSS/CPU/latency bound or that fallback provider allocation is preempted.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      },
+      {
+        "id": "WRK-26",
+        "missingBindings": [
+          {
+            "binding": "freeze-accounting#/cases/25/input",
+            "need": "approved observer presents ownedWork counts -1, 0, 1.5, NaN, Infinity, MAX_SAFE_INTEGER+1; then step() and step(1)"
+          },
+          {
+            "binding": "freeze-accounting#/cases/25/expect/assertions/0",
+            "need": "Count methods accept only nonnegative safe integers; explicit step count must be positive; misuse escapes, no normal wildcard diagnostic; no exposed Budget/reset/decrement/limit replacement.",
+            "scope": "Apply final overlay first; original text retained as lineage, never active override."
+          }
+        ]
+      },
+      {
+        "id": "TYP-08",
+        "missingBindings": [
+          {
+            "binding": "freeze-integration#/cases/26/input",
+            "need": "inspect private signatures against existing Json including Decimal; no public dependency injection"
+          },
+          {
+            "binding": "freeze-integration#/cases/26/expect/assertions/0",
+            "need": "Private session uses existing Json/Ast/Interpreter/Budget/ordered-object/Decimal semantics; signal borrowed, one-read validation; no new public limits bridge.",
+            "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+          }
+        ]
+      }
+    ]
+  },
+  "rejected": null,
+  "activeChildren": []
+}

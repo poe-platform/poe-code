@@ -1,0 +1,146 @@
+[
+  {
+    "path": "tests/commands/table-text-stress/review/PLAN.md",
+    "sha256": "32dc45bc113f48e6568ac7080d69d0fee406fa90be17ec27a8745cd109df717b"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/README.md",
+    "sha256": "aff5552e708bc98a50eebc92b9cac1237fd64baf2bf2fc60785fa482b3e9a438"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/acceptance.json",
+    "sha256": "f43232d748ea1b8318498f58014265fe44cc00af6e315e6d25c75bd11f0e050b"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/author-input-comparison.json",
+    "sha256": "9ee52b6246cea86e678fcefb8de5116b8265c2c1d1c10ae80e191cbd02250e0a"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/closed-author311.log",
+    "sha256": "63ffa18f386fdc662967b26dda06084bfbab0d8fa174d9180ca1f863333c1725"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/closed-build.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/closed-built-replay.log",
+    "sha256": "852efdef15078088b176560d431d226da15748cc87582c7754995a2b95343e5a"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/closed-independent.log",
+    "sha256": "8304423fcdced8d6e9b260ce3865dfd9ac1f891b075fcf7ce5d1028d5ee45e83"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/closed-scoped-types.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-baseline-verified.tap",
+    "sha256": "0474abbb2975399a7be812291ebf5cbb8472d60b239ca57970748259335e8e25"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-baseline.tap",
+    "sha256": "ddd72c0c7e5c4de5b733adbc493828cbed0a784fa5399bb57576bb1895815a29"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-borrowed-buffer-verified.tap",
+    "sha256": "6ade212da9d6bdabff9650b0a65e66cc78fa4fd4c04c80288a0af7f940e51ebb"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-borrowed-buffer.tap",
+    "sha256": "c5b112a98a57e168bd9a4d54c80d5bfad4bce0379e750859c9a3a890ebbeb020"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-byte-fidelity-verified.tap",
+    "sha256": "d46d4ecc027dec2a08cbcd70d9ee1cf0af18258a9e461665b19ed032a857d777"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-byte-fidelity.tap",
+    "sha256": "9173e6bffd22668677d9f12008136824a59a02a7dc40da7f3db121836a029e48"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-byte-order-verified.tap",
+    "sha256": "e98449ba4084b695b55fdac50d736c26a174011758aa09652af54563993e68c0"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-byte-order.tap",
+    "sha256": "6bc421c6ccdea65e8f3b172a0b4b6ba49d78b01d2e2ef067dc9dc7b2cc991493"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-restored-verified.tap",
+    "sha256": "b5d7431c31b928a929c67e8a03712674754712900db1b7ca2ffec5307a4e2314"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-restored.tap",
+    "sha256": "6845035e114ca2fffd0cda9449f3efbb8b788ef06b350f4ff8a606ff5c232de2"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-results-verified.json",
+    "sha256": "c85323ed021c2e36372145ed24a69b8a9a89c635b6a4e58efb01e8074550e6f9"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-results.json",
+    "sha256": "f2d0e278414936f6d386caa810d573b41fbf65679bb2fb6b842ca3a4ecd94576"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-shared-cursor-verified.tap",
+    "sha256": "469bb3e87c05ac336b4beb34ee40826b8df1208a5ea26aae2445855442c772a2"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/mutation-shared-cursor.tap",
+    "sha256": "7e5901ea8c46e39bcaeba504d5d02e3e450401410813e88cdad5195ff7c7f528"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/native-cleanup-audit.json",
+    "sha256": "296ac48c8c2e2c13643f0995b7dcb70188f8c144ea02d324dd36b6824c6ca03f"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/native-cleanup-final.json",
+    "sha256": "239e6231f8ed3d5ae700f59c2be74fa2e05c343c286b7964c449598c071f3ee6"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/oracle-identity-final.json",
+    "sha256": "a9b1ae356fab603fb2b2f1577e34651a6d420a84b89340e1b25a08aa8d71b025"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/oracle-identity.json",
+    "sha256": "db3ee5ae1ffdb470f8b819b06d3e5b9cf8309fd7c05c7e35f69af05919c39fd0"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/owned-runtime-temp-cleanup.json",
+    "sha256": "aeb16cabe8f6cf8ac6c6fd3c6bf16f5570106e9ba2016546f59ba1c8354e411c"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/provenance.json",
+    "sha256": "90fd1fae95a4be987d561d034c3576ccb0ddd669ca882c2fca602ae63a163198"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-acceptance.mjs",
+    "sha256": "30dc0dd279c620472b3448e8d352bbc9830642fe0b4d8ef1681009d39b0118b0"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-author-inputs.mjs",
+    "sha256": "08524500bdd45190fd0c35b3b2538a6cee86cc83a9081bbb42032a637ab7ba77"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-built.mjs",
+    "sha256": "127f9f22e3dbc8c36bd8380220eacea2de3d6f986ce994d570966da40c21ff05"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-cleanup.mjs",
+    "sha256": "fb562ac1a0961c72a0fc13628d37dc8def1de262f963658d75449426e07c43c2"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-mutations.mjs",
+    "sha256": "fb1f517c6446f245e17d15c266201fc51dfe8a5801cea9469162b5d682c13a29"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-oracle.mjs",
+    "sha256": "90e4d2c4ee5c54df55ed968d14da50bb5c5f219d66fd6cd3ccb0ea54988f077d"
+  },
+  {
+    "path": "tests/commands/table-text-stress/review/safe-bash-table-review-tools.mjs",
+    "sha256": "0381ab483523756672b87e7c564e09e99d039f81f198fbbb9c3c7fc369a594d8"
+  }
+]

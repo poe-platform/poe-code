@@ -1,0 +1,188 @@
+{
+  "schema": "conditional-independent-source-adjudication-v1",
+  "role": "SOURCE_DATA_ONLY_NO_PRODUCT_EXECUTION",
+  "date": "2026-08-29",
+  "precodeCommit": "d9e466af6212a35fe190ee7ca8636f0e491df628",
+  "chronology": "Independent novel/type/protocol files committed before reading candidate product bodies; author implementation and handoff already existed. Not a pre-implementation freeze.",
+  "baseline": {
+    "source": "928be5585f05c15867fbbb5f4b5debe153b0734e",
+    "tree": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+    "inputs": 292,
+    "manifestSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2"
+  },
+  "candidate": {
+    "source": "6fde455bcc103117a6424b95156b152721f5735f",
+    "tree": "501ad98748e639c909f717007dac4f1da19c67dc",
+    "srcTree": "b928c4d446c46175646ba99d9b09efa53ff01c1e",
+    "inputs": 293,
+    "bytes": 2685865,
+    "unchanged": 289,
+    "modified": 3,
+    "added": 1,
+    "removed": 0,
+    "manifestSha256": "74c94ab8fb9531f5a704e51d12b6ab713280541758f36cd03de51fe0d630d4da",
+    "changed": [
+      {
+        "path": "src/shell/display.ts",
+        "mode": "100644",
+        "blob": "a949d0b37e54b1874c297030a49895d5c2bbff08",
+        "bytes": 2861,
+        "sha256": "6867adec384daf3b3de9c2c480b2d2a750ffc4359a5a6fefe87568135e68973b"
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "mode": "100644",
+        "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+        "bytes": 42620,
+        "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "mode": "100644",
+        "blob": "1ee224beec343378532681239a737b746d5ab2b9",
+        "bytes": 200102,
+        "sha256": "6f42b2a8b649a0c6c6377be407cf7d3b2e248bf0081a25e8e1d8a89c80cba46b"
+      },
+      {
+        "path": "src/shell/conditional.ts",
+        "mode": "100644",
+        "blob": "7dba3219612dc31c3bd42d9399354d729d043b4d",
+        "bytes": 8952,
+        "sha256": "ff6bb8f28a7162a7936dcb53b1ecb1b022e083e78ce03a11771e780994ef448c"
+      }
+    ],
+    "selectedMapSha256": "affc72e7cf3c70132f2d32bfee65f88e12d4295368760248895d08aea72b380d"
+  },
+  "unchangedContractAndOwnership": [
+    {
+      "path": "src/contracts/command.md",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "bytes": 9253
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "bytes": 2968
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "blob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "bytes": 3897
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "bytes": 15081
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "bytes": 1947
+    },
+    {
+      "path": "src/shell/cancellation.ts",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "bytes": 31986
+    },
+    {
+      "path": "src/shell/input.ts",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "bytes": 9881
+    },
+    {
+      "path": "src/index.ts",
+      "blob": "b817e8162b5b1c29decb74ac9c24bdc19d71b391",
+      "sha256": "02e5cf08f9c97f3abc9a2cf2f28b640e79024381ad17e0518dbf8333a63788f7",
+      "bytes": 1728
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "blob": "6ff991ac21d1357218d6816a6d1cea49416270e6",
+      "sha256": "c0ea26c4dee43a6483d3f32868d0ebb69323803730a5c953eefc7ea4b8c9f585",
+      "bytes": 7201
+    },
+    {
+      "path": "package.json",
+      "blob": "c0cc226556519d6bc8b54ab5e243a7609712e599",
+      "sha256": "431073b5d27f26992c3013d1f30ff223ff33ae35b993bbb178f8dbe8f6e1bfc1",
+      "bytes": 5257
+    }
+  ],
+  "package": {
+    "role": "AUTHOR_BOUND_NOT_INDEPENDENTLY_UNPACKED_OR_EXECUTED",
+    "members": 954,
+    "bytes": 871054,
+    "sha256": "4df8658746a881fd1316e403a234fd941baccfdead7a9518bc39fa7f6df2bb6e"
+  },
+  "authorEvidence": {
+    "commit": "97eba3743f4c00998d5f0f4c05cc2e0bbc04e1cd",
+    "clarificationCommit": "11599f523f1706f54052927ee6806d4726e65c35",
+    "result": {
+      "blob": "7afee89a51e35e5ae89c37495ddce04a6a51d9e2",
+      "sha256": "9bd896f86fcd7f0a037da512bceb617550092e5ac56b8f0d660d0c7cdffe557e",
+      "bytes": 1382000
+    },
+    "fixture": {
+      "blob": "292f832e164117d2f4b9d565abf95d3ece4f7155",
+      "sha256": "29593d551f6e4fe310907036b82d9f3494ac0b76780ae6008ef4b5cb1647af25",
+      "bytes": 8256,
+      "line": 61
+    },
+    "H02": [
+      {
+        "layout": "source-conditional",
+        "case": {
+          "id": "H02",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///private/tmp/conditional-author-fhvyDt/source/__consumer/conditional.mjs:61:499\n    at async record (file:///private/tmp/conditional-author-fhvyDt/source/__consumer/conditional.mjs:11:9)\n    at async file:///private/tmp/conditional-author-fhvyDt/source/__consumer/conditional.mjs:61:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      },
+      {
+        "layout": "installed-conditional",
+        "case": {
+          "id": "H02",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///private/tmp/conditional-author-fhvyDt/installed/conditional.mjs:61:499\n    at async record (file:///private/tmp/conditional-author-fhvyDt/installed/conditional.mjs:11:9)\n    at async file:///private/tmp/conditional-author-fhvyDt/installed/conditional.mjs:61:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      },
+      {
+        "layout": "moved-conditional",
+        "case": {
+          "id": "H02",
+          "role": "RATIFIED_PRODUCT_PROFILE_NOT_NATIVE_GOLDEN",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///private/tmp/conditional-author-fhvyDt/moved%20package/conditional.mjs:61:499\n    at async record (file:///private/tmp/conditional-author-fhvyDt/moved%20package/conditional.mjs:11:9)\n    at async file:///private/tmp/conditional-author-fhvyDt/moved%20package/conditional.mjs:61:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      }
+    ]
+  },
+  "instructionQualification": "Opaque ancestor entry hash only; no AGENTS blob read via metadata or materialized. Nonselected root subtrees are inherited opaque bindings, not a full repository-content audit.",
+  "execution": {
+    "product": 0,
+    "compiler": 0,
+    "build": 0,
+    "install": 0,
+    "workers": 0,
+    "native": 0,
+    "private": 0,
+    "network": 0
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "candidate": "618d8967009117547ab476256bc6eb0a9463309a",
+  "files": {
+    "NATIVE-PROJECTIONS.json": {
+      "kind": "file",
+      "bytes": 8985,
+      "sha256": "41eb371db55b257126f7c8026a2edc1daaab085685c915db830e8fc8c36a9a60",
+      "mode": "100644"
+    },
+    "PRESERVATION.json": {
+      "kind": "file",
+      "bytes": 3899,
+      "sha256": "02f1e3a868833278d8f3698bf312a4d1e901139d021d117a584d484cefb7c564",
+      "mode": "100644"
+    },
+    "PROCESSES.json": {
+      "kind": "file",
+      "bytes": 147243,
+      "sha256": "1b11a27ed479e511459767b98fc7f3c684f378cfbe3d1b912fa163a65dfbe50a",
+      "mode": "100644"
+    },
+    "RAW.json.gz.base64": {
+      "kind": "file",
+      "bytes": 5081309,
+      "sha256": "f8632478457896393ea1ff0b9dbbb12b6e500063d0baf40591ca7f98c5dbae44",
+      "mode": "100644"
+    },
+    "SAFEJS-QUALIFICATION.json": {
+      "kind": "file",
+      "bytes": 14581,
+      "sha256": "35ccba3c0576d437dbd1e1642fcbf25596dd8f725898bb792cad6cb746e82e08",
+      "mode": "100644"
+    },
+    "candidate.commit.data": {
+      "kind": "file",
+      "bytes": 273,
+      "sha256": "7f765b54e62f0b24bf76ce775434432230c14e5a86b3ae38061173c9c732b38b",
+      "mode": "100644"
+    },
+    "candidate.root-tree.data": {
+      "kind": "file",
+      "bytes": 449,
+      "sha256": "59b32662bdac67abf8e744527402d727e1b5c5f4662c2b3cd2102a4039505d00",
+      "mode": "100644"
+    },
+    "candidate.tar.gz": {
+      "kind": "file",
+      "bytes": 21803403,
+      "sha256": "089bebb87e1172a5cd39dc103a7797366950d611d6a4fe17e24e93c618ae8980",
+      "mode": "100644"
+    },
+    "public-package.tgz": {
+      "kind": "file",
+      "bytes": 716116,
+      "sha256": "08667ba7a67c5e9342c062007265279965138afe99c700f756df3e8ec97533f3",
+      "mode": "100644"
+    }
+  },
+  "rawCaptureFiles": 470,
+  "rawBytes": 27278455,
+  "rawSHA256": "44176cdb4f3ab7d4387866f2c94508d5f81604f062debcb1cb6a876c64315114",
+  "compressedSHA256": "f3cb04ccdbf4dcf09d224c6a6a9907c7a8db9e7d8c83416b7a498fec4613784f",
+  "candidateArchiveRawSHA256": "00a1ef503829314de31eace327535c309e3eadbbbdc89d6e825a4ac1396877b6",
+  "classification": "Captured data and immutable committed source/emitted package archives, not canonical TypeScript inputs. No private engine bytes or public tool binaries vendored.",
+  "selfBinding": "Final layered manifest and Git commit bind this manifest."
+}

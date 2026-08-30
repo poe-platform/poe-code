@@ -1,0 +1,38 @@
+{
+  "status": 207,
+  "headers": {
+    "connection": "close",
+    "content-length": "5505",
+    "content-type": "application/xml; charset=utf-8",
+    "date": "Thu, 27 Aug 2026 08:41:23 GMT",
+    "server": "Cheroot/11.1.2"
+  },
+  "text": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/nonempty/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/nonempty/child</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/late-child/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/late-child/child</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-alias-bytes</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-parent-0/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/descendant/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/descendant/child/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-native-race/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-native-race/child</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-auth-missing/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-serialize/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-serialize/child</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-expiry-parent/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-descendant/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-descendant/child</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/lock-target/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-nonempty/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-nonempty/child</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-other-lock/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-refresh/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-binding/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/parent/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-parent-infinity/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/shell-bytes</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-auth-bad-password/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-auth-second-principal/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/control/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response><ns0:response><ns0:href>/dav/ind-unlock/</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery /></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>",
+  "wire": [
+    {
+      "url": "https://127.0.0.1:53597/dav/",
+      "method": "PROPFIND",
+      "requestHeaders": {
+        "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+        "content-length": "75",
+        "content-type": "application/xml",
+        "depth": "infinity"
+      },
+      "uploadedBytes": 75,
+      "downloadedBytes": 5505,
+      "pulls": 2,
+      "drains": 0,
+      "aborted": false,
+      "cancelled": false,
+      "ended": true,
+      "status": 207,
+      "responseHeaders": {
+        "connection": "close",
+        "content-length": "5505",
+        "content-type": "application/xml; charset=utf-8",
+        "date": "Thu, 27 Aug 2026 08:41:23 GMT",
+        "server": "Cheroot/11.1.2"
+      }
+    }
+  ]
+}

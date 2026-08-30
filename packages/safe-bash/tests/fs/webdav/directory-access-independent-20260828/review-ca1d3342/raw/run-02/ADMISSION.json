@@ -1,0 +1,13 @@
+{
+  "kind": "resume-driver-admission-failure-before-child-or-product-execution",
+  "driverCommit": "538086e697546e9fc1a9d12b64da1294afc38be3",
+  "error": {
+    "code": "EEXIST",
+    "syscall": "open",
+    "path": "scratch/user.npmrc",
+    "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/scratch/user.npmrc'"
+  },
+  "captureQualification": "transcription of tool-displayed parent exception before automated child capture; not an automatically captured raw stderr stream",
+  "productCalls": 0,
+  "correction": "run-v3 reuses and asserts both authenticated empty npm config files rather than exclusive-creating them again; type frontend remains unchanged types-v2; original frozen expectations unchanged"
+}

@@ -1,0 +1,300 @@
+{
+  "phase": "types-v2",
+  "started": "2026-08-29T09:59:50.338Z",
+  "pid": 13469,
+  "children": [
+    {
+      "name": "source",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/node_modules/@types",
+        "--declaration",
+        "--outDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted",
+        "--rootDir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/types.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/errors.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/limits.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/syntax.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/matcher.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/accounting.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/owner.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/protocol.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/root.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/validation.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/wire-engine.ts",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/source/transport/worker-entry.ts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work",
+      "started": 1787997590740,
+      "pid": 13488,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 703
+    },
+    {
+      "name": "positive",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/consumer.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work",
+      "started": 1787997591443,
+      "pid": 13489,
+      "closed": true,
+      "code": 0,
+      "signal": null,
+      "elapsedMs": 361
+    },
+    {
+      "name": "negative",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/node_modules/@types",
+        "--noEmit",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/negative.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work",
+      "started": 1787997591804,
+      "pid": 13490,
+      "closed": true,
+      "code": 2,
+      "signal": null,
+      "elapsedMs": 358
+    }
+  ],
+  "runtimeImports": 0,
+  "workers": 0,
+  "native": 0,
+  "admittedFiles": 256,
+  "admittedBytes": 26161025,
+  "sourceTypes": true,
+  "positive": true,
+  "negative": {
+    "code": 2,
+    "diagnostics": [
+      {
+        "line": 2,
+        "column": 108,
+        "code": 2353,
+        "message": "Object literal may only specify known properties, and 'values' does not exist in type 'EreTransportResult'."
+      },
+      {
+        "line": 3,
+        "column": 59,
+        "code": 2322,
+        "message": "Type 'number' is not assignable to type 'boolean'."
+      },
+      {
+        "line": 5,
+        "column": 47,
+        "code": 2345,
+        "message": "Argument of type 'number' is not assignable to parameter of type 'AbortSignal'."
+      }
+    ],
+    "pass": true
+  },
+  "emitted": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/errors.d.ts",
+      "size": 691,
+      "mode": 420,
+      "sha256": "604ca9a0f1eb940f537401248064201714386d7a20a771b7f5389a761277e994"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/errors.js",
+      "size": 1045,
+      "mode": 420,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/limits.d.ts",
+      "size": 671,
+      "mode": 420,
+      "sha256": "f77ecc0c93233bd7442c17da1151fdb12a793df9ccf2ea5eb615caa3b67c1121"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/limits.js",
+      "size": 3265,
+      "mode": 420,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/matcher.d.ts",
+      "size": 231,
+      "mode": 420,
+      "sha256": "ed782187ccd450b01470c620fe7eacec44ffea3f76fe0ac1d9a7264fce499941"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/matcher.js",
+      "size": 8483,
+      "mode": 420,
+      "sha256": "9faff63c6a4e877272a05f389941d54b044e28cb722820f77a7fda5303149deb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/syntax.d.ts",
+      "size": 445,
+      "mode": 420,
+      "sha256": "142cc9b703620cac7c6a9b20fd613b7d2a4cdd1cabe4d6689c780e56d6569005"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/syntax.js",
+      "size": 14270,
+      "mode": 420,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/accounting.d.ts",
+      "size": 1478,
+      "mode": 420,
+      "sha256": "94a51268d00ed3d1f25cd8ead0733a89705fa336df86e5b5f1d1fd835bb7eb5d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/accounting.js",
+      "size": 5662,
+      "mode": 420,
+      "sha256": "036e07e4cf938002971c7b0f13b55fd83498c3636f055a4f277dddb087a31522"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/owner.d.ts",
+      "size": 432,
+      "mode": 420,
+      "sha256": "ee49c3de30d50c3035ce503e6b09ef66dac8d6699877aeb5ee1e85c296a868e3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/owner.js",
+      "size": 5749,
+      "mode": 420,
+      "sha256": "8a9ee6dae518ed56b36e79ad22542fa9f80087051fb4416e6cff8e0bcb9b6a28"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/protocol.d.ts",
+      "size": 2658,
+      "mode": 420,
+      "sha256": "ce61f60671b31c025f0b43e18c11bc3411c4d8933f8c5f671d020f1e731b8f11"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/protocol.js",
+      "size": 1198,
+      "mode": 420,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/root.d.ts",
+      "size": 562,
+      "mode": 420,
+      "sha256": "95d6c0cd45a950cd63caad8add334ad48c036bf4a4a9422e4519ca74ad979ff1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/root.js",
+      "size": 9889,
+      "mode": 420,
+      "sha256": "20022197cbd1fa917094934f3e9128595c9b91d106818192effec86dcef6f824"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/validation.d.ts",
+      "size": 1272,
+      "mode": 420,
+      "sha256": "9d54695f9eb1f5913c2cf77caf283e803afbf0b23ff435b4d4a66aeb87b6868a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/validation.js",
+      "size": 10270,
+      "mode": 420,
+      "sha256": "b79d09af3b580a4dcf8dbf264384d5905005be60e52c2c0bd662a5deb45c31e6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/wire-engine.d.ts",
+      "size": 144,
+      "mode": 420,
+      "sha256": "38103a0d7d0c05b35833b1aff239ee3e6a6dc40c9677250657b3443ff61c3168"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/wire-engine.js",
+      "size": 1795,
+      "mode": 420,
+      "sha256": "38090335f4e5e2b35a6d3eb95a76c8f9b7e9d5e1449e0c86514673098f9d02b6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/worker-entry.d.ts",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/transport/worker-entry.js",
+      "size": 1331,
+      "mode": 420,
+      "sha256": "c157c263dc5d663d4ff895c68e55575b28c5201c0f84f901f0ae6863f3be88f6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/types.d.ts",
+      "size": 1606,
+      "mode": 420,
+      "sha256": "018038b15002c300679cbc18ecff52687f384f1f9b3b39b03aaf645b5d126704"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/TYPE-02/work/emitted/types.js",
+      "size": 11,
+      "mode": 420,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    }
+  ],
+  "captureBytes": 342,
+  "integrity": "original admitted files unchanged; emitted-only addition",
+  "elapsedMs": 1981,
+  "ended": "2026-08-29T09:59:52.319Z",
+  "knownRetired": 3
+}

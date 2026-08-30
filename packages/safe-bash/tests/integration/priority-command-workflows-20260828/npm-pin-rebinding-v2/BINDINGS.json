@@ -1,0 +1,714 @@
+{
+  "schema": "priority-bindings-v1",
+  "date": "2026-08-28",
+  "inspectionRole": "Metadata/schema preparation only; no runtime, native, comparator, compiler, service or tool qualification run",
+  "authoritativePriority": {
+    "commit": "dcaa5ccc54fb31b48d16a207484ea15a3bbedc91",
+    "path": "docs/COMMAND_PRIORITIES.md",
+    "sha256": "713d89f0f03223dcc5c0d5a4f9151754c3b79fc065770f019035cf6774e4e048",
+    "userProvidedCounts": {
+      "sed": 332184,
+      "rg": 147000,
+      "printf": 107073,
+      "nl": 59262,
+      "cat": 57331,
+      "head": 39558,
+      "echo": 30812,
+      "find": 26085,
+      "tail": 25540,
+      "ls": 21585
+    },
+    "qualification": "Counts/shares are user-provided; subcommand frequency is not measured. curl separately requested. git/node/apply_patch remain other-owner gaps."
+  },
+  "selected": {
+    "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "kind": "derived selected Git composition, not necessarily stored object or root HEAD",
+    "acceptedEvidenceCommit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+    "base": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "inputs": 268,
+    "productionTsFiles": 214,
+    "selectedInputTableSha256": "c6efddf8b14d2b15231b95e3a5be975c9c93c7c10f309acf77c80883f9cc074c",
+    "tablePointer": "RAW-v2.source.inputs",
+    "recipe": "PRESEAL reconstruction + MANIFEST selected revision/path/blob rows; raw.source.commits/reachableTrees/reconstructedTrees witnesses. Future full reconstruction still mandatory; current inspection authenticates only the listed selected sections.",
+    "forbiddenOverlays": [
+      "c0ada arrays",
+      "live runtime",
+      "XAN",
+      "YQ",
+      "any unlisted live product input"
+    ]
+  },
+  "archive": {
+    "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+    "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+    "bytes": 5916905,
+    "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+    "gzipSha256": "af8bebfcfd125e6008e3ec2071f030a7a438e48b5b01b3720f9ff637378f1f4c",
+    "decodeBound": 67108864,
+    "packagePointer": "pack.base64",
+    "qualification": "Authenticated encoded archive, bounded JSON decode and package tar metadata/declarations in memory only. No archived source strings decoded/evaluated, no code import, no disk extraction."
+  },
+  "package": {
+    "name": "virtual-bash",
+    "version": "0.0.0",
+    "bytes": 759089,
+    "sha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "regularFiles": 858,
+    "declarations": 214,
+    "installedManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+    "installedManifestPointer": "fullInstalledBefore",
+    "tarInflateBound": 16777216
+  },
+  "receipts": [
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/MANIFEST.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e",
+      "bytes": 95384
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CANDIDATE.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "8cf149983f2c2ee2929f1343c680d61b69da533d704f1dc91682765fbb3bcf11",
+      "bytes": 9091
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/FINAL-SEAL.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "f7428fa9be472082103ccc85e507fb07dcef8e48a415c2317c40180ae418cc23",
+      "bytes": 1944
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/PRESEAL.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "472dc457e162015c0105d2afbbf1a5db79e1bc17893b7ddb5d61f24f399f0cb5",
+      "bytes": 9234
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/EXECUTOR-v2.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "1ef10c1ba857ac6283462343313d7322e2ecbbc4a6b6ff8c95859880eda001db",
+      "bytes": 2328
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/EVIDENCE.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "b227b7f0538d1c6d70d6be110c9515e7603b4335cc78996f24f02162090a5519",
+      "bytes": 171946
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/REVIEW-v2.json",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "b22c58ed079be507f4821c14a40c86f303e71497bd4f28a554728d080a32cc85",
+      "bytes": 111470
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/REPORT.md",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "65e30cbaa931ea5d084d23e3af3ef259c72360cb6107211131b1b21183158f55",
+      "bytes": 4920
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/loader.mjs.data",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "d0969da7329f25d3bd1442661bc62dc2ec77540c143ec7126a6d43736803c66e",
+      "bytes": 1333
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/guard.mjs.data",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "sha256": "2c5ff316a4fda0548869101cf9da58bbaad864c5b7dacb114e647d6ccd0350be",
+      "bytes": 33815
+    }
+  ],
+  "inspectedSelectedInputs": [
+    {
+      "path": "src/commands/search/options.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3fbac16d008279ff195178f4960bc300e859fece",
+      "mode": "100644",
+      "bytes": 8823,
+      "sha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9be29dd04a0c93934805fb27a76dbaee1e185e9a",
+      "mode": "100644",
+      "bytes": 22047,
+      "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "470911e2a7cb9fe051d3b3616a6730e415d9f87c",
+      "mode": "100644",
+      "bytes": 22388,
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "aa66ae5b06c1d5f97e56fda13436bfef757ca771",
+      "mode": "100644",
+      "bytes": 10557,
+      "sha256": "1c38e14b811a46795af958a99b9fae6b02b415b6ff8363e5755ecd15bfdd9d5f",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "2eff6d5d3f142a6f10be7a081c0f4ac4b4a4d9e5",
+      "mode": "100644",
+      "bytes": 4351,
+      "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "97d266abe7aa2a93388dc9b24f989b2fd0865b10",
+      "mode": "100644",
+      "bytes": 3899,
+      "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "cc1854873f02be5a6ede00fa78283f3b80f647ee",
+      "mode": "100644",
+      "bytes": 9193,
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "21384b3a89411e832af7a4214c9869885b055a63",
+      "mode": "100644",
+      "bytes": 17904,
+      "sha256": "22feaa13f6127cb94f3ad9f928a245d6592aff0432ba0ee35fc57804f8692dce",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "394b03e6815015fab408b4a1d39585ee39b6519b",
+      "mode": "100644",
+      "bytes": 3730,
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/fs/readonly/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "c3f291f04374001d2070235de9bc07d99ef8c2a2",
+      "mode": "100644",
+      "bytes": 5961,
+      "sha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "mode": "100644",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "7817a5c570ea8938353883a7253b620d8f06d6e1",
+      "mode": "100644",
+      "bytes": 2690,
+      "sha256": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/stream-format/nl.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b14aa82677d61fdf70b0e9c95cea7a514cc7702a",
+      "mode": "100644",
+      "bytes": 4443,
+      "sha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "1741b55650062b6ae282d410d20969cac283fa8e",
+      "mode": "100644",
+      "bytes": 6665,
+      "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "4180a22e83a6246287b5a2d169cfbf039f6e4b37",
+      "mode": "100644",
+      "bytes": 8605,
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8",
+      "mode": "100644",
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "explicit accepted override",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "mode": "100644",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "mode": "100644",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "mode": "100644",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "mode": "100644",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3ce326f779c9732b1f59b96373c6f0c5f22920e2",
+      "mode": "100644",
+      "bytes": 7380,
+      "sha256": "93d8a8463ac7df91c8ef88368f2ee8524a0abd7e7970badf4d1312587a34c880",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "bb8e231f36ae7ff02089d4c844b742a25cfcfb53",
+      "mode": "100644",
+      "bytes": 8792,
+      "sha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "mode": "100644",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/text-programs/README.md",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "548a18b852918e207708da604bfddcb1186fc9d8",
+      "mode": "100644",
+      "bytes": 15031,
+      "sha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/search/README.md",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "40f5152c6d2ebe7a6e78ac225b88ee89c450ada7",
+      "mode": "100644",
+      "bytes": 17345,
+      "sha256": "21bb3308dc36282f6a8b0c5f7ec8e0684bf71563af0b5b35ea2254595d7a70d7",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/README.md",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b9c19276aa0811cb627a87c5aae8ae90a9a347c3",
+      "mode": "100644",
+      "bytes": 12132,
+      "sha256": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "41d192aaadeb0a727990392cc4df3e05d94aab31",
+      "mode": "100644",
+      "bytes": 1918,
+      "sha256": "be7a2770efdf42e90ca9eb41e37115b28607aeaf99ce95865d44b3625d20aa19",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "dd0c714274531b91c9196ff96d35b9e264e1189b",
+      "mode": "100644",
+      "bytes": 4879,
+      "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3e276efcb2b97a0da8773f58cf08ff25954fdc3d",
+      "mode": "100644",
+      "bytes": 1049,
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "f54199ce30c02eaa15a6956434df3ff0163d17c4",
+      "mode": "100644",
+      "bytes": 1638,
+      "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "package.json",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3",
+      "mode": "100644",
+      "bytes": 4979,
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "mode": "100644",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "mode": "100644",
+      "bytes": 10890,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "mode": "100644",
+      "bytes": 1930,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b13134023b32f79e76df8cc2de3c93c36b7f608f",
+      "mode": "100644",
+      "bytes": 8820,
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "922d148336c9a612f7e604d0aa32b3ce1ba6c8c6",
+      "mode": "100644",
+      "bytes": 3157,
+      "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+      "mode": "100644",
+      "bytes": 154603,
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+      "role": "explicit accepted override",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    },
+    {
+      "path": "src/commands/stream-format/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "cfe925533f0370b601ed45b306e267439f5d1183",
+      "mode": "100644",
+      "bytes": 1230,
+      "sha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+      "role": "public78 unchanged baseline",
+      "inspection": "authenticated bytes; only task-relevant sections inspected, not full semantic closure"
+    }
+  ],
+  "declarations": [
+    {
+      "path": "dist/index.d.ts",
+      "sha256": "de8dde4ceeee70c6b0069473454387ccda60aebe13b2532089698d9dea75bed0",
+      "bytes": 1673,
+      "receiptPointer": "fullInstalledBefore[\"dist/index.d.ts\"]"
+    },
+    {
+      "path": "dist/shell/types.d.ts",
+      "sha256": "ff4c74a63635087b4b239184e1ba691990528bd87619d8569d4f8fd6c9843cde",
+      "bytes": 2508,
+      "receiptPointer": "fullInstalledBefore[\"dist/shell/types.d.ts\"]"
+    },
+    {
+      "path": "dist/shell/shell.d.ts",
+      "sha256": "a5000b8a9d94806a5ae826a393fab48d561c506c9d78943c6b0468aae243b72a",
+      "bytes": 923,
+      "receiptPointer": "fullInstalledBefore[\"dist/shell/shell.d.ts\"]"
+    },
+    {
+      "path": "dist/commands/network/types.d.ts",
+      "sha256": "0efb19fc14905bd67828c3315329c5366818acab3db5d379640e5dcb38069f57",
+      "bytes": 1754,
+      "receiptPointer": "fullInstalledBefore[\"dist/commands/network/types.d.ts\"]"
+    },
+    {
+      "path": "dist/fs/memory/index.d.ts",
+      "sha256": "b0a3f7beb8ec86e489b05331bb481d543d38b6a127c6d68b2c0aec8f89c0581b",
+      "bytes": 2921,
+      "receiptPointer": "fullInstalledBefore[\"dist/fs/memory/index.d.ts\"]"
+    },
+    {
+      "path": "dist/fs/readonly/index.d.ts",
+      "sha256": "71d3a85b7450a04f684f65ed382c71451591f90f20c3360520e9f60ffc642550",
+      "bytes": 2405,
+      "receiptPointer": "fullInstalledBefore[\"dist/fs/readonly/index.d.ts\"]"
+    }
+  ],
+  "toolClosure": {
+    "pointer": "RAW-v2.tools; per-package originalRows/copy inventories plus inherited copiedSha256",
+    "qualification": "Inherited accepted inventory identities only. No new executable hash/version probes or qualification. Physical copies and every dependency must authenticate before GO; do not use a current executable just because its version text matches.",
+    "tools": {
+      "node": {
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+      },
+      "typescript": {
+        "version": "5.9.3",
+        "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+        "inventoryPointer": "tools[\"typescript\"].originalRows",
+        "rows": 132
+      },
+      "npm": {
+        "version": "10.9.7",
+        "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+        "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+        "inventoryPointer": "tools[\"npm\"].originalRows",
+        "rows": 2039
+      },
+      "@types/node": {
+        "version": "22.20.1",
+        "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+        "inventoryPointer": "tools[\"@types/node\"].originalRows",
+        "rows": 74
+      },
+      "undici-types": {
+        "version": "6.21.0",
+        "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+        "inventoryPointer": "tools[\"undici-types\"].originalRows",
+        "rows": 41
+      }
+    }
+  },
+  "existingBreadth": {
+    "legacyIdentities": 23,
+    "workflowIdentities": 10,
+    "rows": [
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/LEGACY-RECIPES.json",
+        "sha256": "0abf11b0d43532bad7038c9d26d65712c9f877dfbda9517537c0235709e29d7f",
+        "bytes": 31425
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/WORKFLOWS.json",
+        "sha256": "4349becef09b9b01487190ed6356dae7083b177771c153b102c72341f8a427d1",
+        "bytes": 12679
+      }
+    ],
+    "legacyIds": [
+      "column-positive",
+      "date-positive",
+      "du-positive",
+      "egrep-positive",
+      "expand-positive",
+      "expr-positive",
+      "fgrep-positive",
+      "file-positive",
+      "fold-positive",
+      "getopts-positive",
+      "html-to-markdown-positive",
+      "nl-positive",
+      "printenv-positive",
+      "rev-positive",
+      "seq-positive",
+      "sleep-positive",
+      "split-positive",
+      "strings-positive",
+      "tac-positive",
+      "timeout-positive",
+      "tree-positive",
+      "unexpand-positive",
+      "which-positive"
+    ],
+    "workflowTitles": [
+      {
+        "id": "W01",
+        "title": "VFS filter, field extraction and deduplicated pipeline report"
+      },
+      {
+        "id": "W02",
+        "title": "Split creates two files, then pipeline reconstructs exact input"
+      },
+      {
+        "id": "W03",
+        "title": "Zero-timeout transparent binary stdin through pipeline and VFS"
+      },
+      {
+        "id": "W04",
+        "title": "getopts state selects a redirection destination"
+      },
+      {
+        "id": "W05",
+        "title": "HTML conversion writes Markdown and filters pipeline output"
+      },
+      {
+        "id": "W06",
+        "title": "Apparent byte totals from two files into report"
+      },
+      {
+        "id": "W07",
+        "title": "Virtual PATH executable lookup persisted without execution"
+      },
+      {
+        "id": "W08",
+        "title": "Checksum manifest generation and verification against VFS"
+      },
+      {
+        "id": "W09",
+        "title": "Copy, move, stream and cleanup with exact final namespace"
+      },
+      {
+        "id": "W10",
+        "title": "Default glob excludes dotfiles before a sorted report"
+      }
+    ],
+    "readAs": "JSON data only; no comparator/legacy executor imports or runs; no copying of recipes into new identities"
+  },
+  "runtimeAdmission": {
+    "inheritedParentModuleCount": 210,
+    "newMeasuredModuleCount": null,
+    "workerGap": "RegexExecutor client.ts:79-83 uses execArgv:[]; parent load log is not worker entry/dependency proof. Future finite worker admission/reaping controls required; do not raise maxWorkers or request/startup caps.",
+    "workerEntry": {
+      "path": "dist/commands/regex-execution/worker.js",
+      "kind": "file",
+      "bytes": 1981,
+      "mode": 420,
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f"
+    },
+    "approvedEntryReuse": "existing loader.mjs.data + guard.mjs.data; run-v2 functions inventory/diskUsage/command/treeEntries/overlay/copyTools/admission/runtime and layout install/move recipe, adapted only after future owner grant",
+    "currentSchemaAcceptedByExistingRunner": false,
+    "proposedAdapterPath": "tests/integration/priority-command-workflows-20260828/future-adapter.mjs.data"
+  },
+  "preparedCounts": {
+    "workflows": 24,
+    "controls": 7,
+    "sedRgCombined": 22,
+    "runtimeExecutions": 0
+  },
+  "preparationChecks": {
+    "selectedInspectedBlobs": 39,
+    "committedReceiptFiles": 11,
+    "archiveEncodedHash": true,
+    "packageWholeHash": true,
+    "tarFileCount": 858,
+    "declarationBindings": 6,
+    "productExecutions": 0,
+    "toolQualificationRuns": 0
+  }
+}

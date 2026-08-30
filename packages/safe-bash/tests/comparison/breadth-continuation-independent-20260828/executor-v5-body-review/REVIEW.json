@@ -1,0 +1,127 @@
+{
+  "role": "different-reviewer",
+  "verdict": "PREEXECUTION_FINDING",
+  "date": "2026-08-28",
+  "scope": "Actual V5 BODY review under original bfff3dfe conceptual expectations; no real engine admission",
+  "recipeSha256": "afb0a451dba689d0337211892c73fcee2d84ffa83567ca8eb1ae1e8e73568986",
+  "recipeCommit": "d6369210fccf5623c786bd9d4c9409a6384d0ad3",
+  "authorEvidenceCommit": "d8559e1f3de0308b96bc2e8e1c2b0e682fc1df25",
+  "presealCommit": "aca546d437b80c5f126f02e4b914860dc65912e8",
+  "presealSha256": "f0fc858b6143ef33f6daf3440cfebe57145240dfa413bf8e00404e11e2b45207",
+  "resultPath": "tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/RESULT.json",
+  "resultSha256": "d1ffc02d241c340a4aab63c0fc937f75a7f79c1dc46111c9b7f9a33b2b417941",
+  "findings": [
+    {
+      "id": "F1",
+      "expected": "Reject wrong worker-to-consumer entry parent before consumer/target evaluation",
+      "actual": "Bound unauthorized-parent.mjs re-exports authentic consumer and target stub evaluates",
+      "code": null,
+      "identity": "target-stub",
+      "evaluations": [
+        "target"
+      ],
+      "source": "tests/comparison/breadth-continuation-20260828/executor-v5/loader.mjs:36",
+      "evidence": "tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/entry-parent-denied.json",
+      "evidenceSha256": "9b8626751ff9bbc2302761c6bf75e630e0bfaeb9430ef84e767403d8b143c1fd",
+      "limit": "Own extra bound synthetic parent, not proof of unbound module load or real-closure exploit",
+      "requiredFollowup": "Repair/bind entry edge, reseal, independent review; no root grant from this finding"
+    }
+  ],
+  "counts": {
+    "original15": {
+      "positivePassed": 4,
+      "negativePassed": 10,
+      "negativeFindings": 1,
+      "passed": 14,
+      "failed": 1,
+      "unrun": 0
+    },
+    "supplementalImports": {
+      "passed": 6,
+      "failed": 0,
+      "unrun": 0
+    },
+    "helperAssertions": {
+      "passed": 14,
+      "failed": 0,
+      "DATA": 3,
+      "SYNTHETIC": 11
+    },
+    "overall": {
+      "DATA": 3,
+      "SYNTHETIC": 32,
+      "passed": 34,
+      "failed": 1,
+      "unrun": 0
+    },
+    "syntaxOnlyOwn": 4,
+    "children": 22,
+    "childrenReaped": 22
+  },
+  "classificationDisclosure": "Presealed dataControls label includes11 in-process synthetic helper tests; no expectations or results changed. Three of14 are truly metadata/identity DATA.",
+  "candidateIdentityStable": true,
+  "sealFileCount": 216,
+  "totalAuthenticatedInputs": 218,
+  "originalIndependentModel": {
+    "presealCommit": "bfff3dfed06d9144c82652246251f654c8bd26e7",
+    "presealSha256": "a1fd3018e3a0a63567ee8709766c1073bb48e6755701cf0a24609df9e6eb6074",
+    "evidenceCommit": "dc5cf2a05a9bd9269f787602466a591a9abe8288",
+    "passed": 15,
+    "failed": 0,
+    "actualCandidateBodiesRead": false,
+    "preAppearance": false
+  },
+  "authorCountsNotRecounted": {
+    "DATA": 4,
+    "SYNTHETIC": 12,
+    "childrenReaped": 12,
+    "syntax": 11
+  },
+  "runtimeAdmissionAuthorized": false,
+  "runtimeAdmissionPerformed": false,
+  "semanticGo": false,
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "actualArchiveStaging": 0,
+  "actualC11": 0,
+  "actualSemanticCalls": 0,
+  "nativeOracles": 0,
+  "networkInstallTiming": 0,
+  "XAN": 0,
+  "grantsGenerated": 0,
+  "W07": {
+    "status": "UNQUALIFIED_UNCREDITED",
+    "dispatch": "UNOBSERVABLE",
+    "nonExecution": "UNQUALIFIED",
+    "semanticCredit": false,
+    "nonExecutionCredit": false,
+    "bytesStatusFilesystemSemanticsChanged": false
+  },
+  "history": {
+    "scores": [
+      "400/402",
+      "391/394",
+      "13/54 versus47/54"
+    ],
+    "V3": "35/44 nine failures",
+    "V4": "29/29 preexecution only",
+    "actualV4": "d40af0d52381a138f2dabb415d343526ad015722 UNSAFE_STOP UNBOUND_MODULE 1/14 launch,0qualified/C11/semantics",
+    "oldGrant": "c1b03b64 consumed"
+  },
+  "remainingDuties": [
+    "F1 entry-parent mechanism",
+    "fresh positive different review and separate explicit root grant",
+    "actual complete pinned closure/projection/archive qualification",
+    "real installed/moved/comparator exports and physically absent old origin",
+    "14 worker admission and two C11 empty setups",
+    "later separately granted99 semantic operations"
+  ],
+  "limitations": [
+    "actual engine/synthetic CLI bodies inspected statically, never executed",
+    "operation helper DATA model does not exercise committed grant authority loading",
+    "post-child EEXIST/adapter full-prefix old evidence retained after source identity check; not rerun",
+    "scope-less selfref/missing diagnostics retain explicit predecessor bypass, not production engine acceptance",
+    "wrapper bytes differ from old77byte example; conceptual expectations unchanged",
+    "Git preserves executable bit only; captured0600 modes explicitly retained in manifests"
+  ]
+}

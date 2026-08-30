@@ -1,0 +1,87 @@
+export function createOwner(io, limits) {
+  const records = new Map();
+  const start = io.now();
+  let failure, failed = false, stopped = false, eventCount = 0, journalBroken = false;
+  function fail(reason) {
+    if (!failed) { failed = true; failure = reason; }
+    for (const record of records.values()) if (!record.closed && record.stopAt === null) record.stopAt = io.now();
+  }
+  function log(kind, data = {}) {
+    if (++eventCount > limits.events) { fail(new Error('event ceiling')); return; }
+    if (journalBroken) return;
+    try { io.journal({ kind, at: io.now() - start, ...data }); }
+    catch (reason) { journalBroken = true; fail(reason); }
+  }
+  function signal(record, value) {
+    if (record.exited || record.closed || !record.handle || !Number.isSafeInteger(record.pid) || record.pid <= 0) return false;
+    if (record.signals.includes(value)) return false;
+    record.signals.push(value); log('signal-request', { id: record.id, pid: record.pid, signal: value });
+    try { io.signal(record.handle, record.pid, value); log('signal-return', { id: record.id, signal: value }); return true; }
+    catch (reason) { fail(reason); return false; }
+  }
+  function event(record, name, args) {
+    log('actual-callback', { id: record.id, name, args: io.describe(args) });
+    if (name === 'spawn') { if (record.spawned || record.exited || record.closed) fail(new Error('duplicate/order spawn')); record.spawned = true; }
+    if (name === 'exit') { if (!record.spawned || record.exited || record.closed) fail(new Error('duplicate/order exit')); record.exited = true; record.code = args[0]; record.signal = args[1]; }
+    if (name === 'close') { if (record.closed || (!record.exited && record.pid !== null)) fail(new Error('duplicate/order close')); record.closed = true; }
+    if (name === 'error') fail(args[0]);
+    try { io.deliver(record.id, name, args); } catch (reason) { fail(reason); }
+  }
+  function acquire(id, kind, spawn) {
+    if (stopped || failed || io.now() - start >= limits.totalMs || records.has(id) || records.size >= limits.processes) throw new Error('closed/duplicate process admission');
+    if (kind !== 'entry' && [...records.values()].some(record => record.kind !== 'entry' && !record.settled)) throw new Error('nonreentrant admission');
+    const record = { id, kind, registered: true, attempted: false, returned: false, pid: null, handle: null, spawned: false, exited: false, closed: false, settled: false, groupAbsent: false, acquisitionUnknown: false, signals: [], code: null, signal: null, bytes: 0, began: io.now(), stopAt: null, released: false };
+    records.set(id, record); log('prospective-admission', { id, kind });
+    if (failed) throw failure;
+    record.attempted = true;
+    try {
+      const child = spawn(); record.handle = child; record.returned = true;
+      record.pid = Number.isSafeInteger(child.pid) && child.pid > 0 ? child.pid : null;
+      child.on('spawn', () => event(record, 'spawn', []));
+      child.on('exit', (code, value) => event(record, 'exit', [code, value]));
+      child.on('close', (code, value) => event(record, 'close', [code, value]));
+      child.on('error', reason => event(record, 'error', [reason]));
+      for (const channel of ['stdout', 'stderr']) {
+        child[channel].on('error', reason => event(record, 'error', [reason]));
+        child[channel].on('data', bytes => {
+          record.bytes += bytes.byteLength;
+          const ceiling = kind === 'entry' ? limits.entryOutput : limits.childOutput;
+          if (record.bytes > ceiling) { fail(new Error('raw output ceiling')); return; }
+          try { io.capture(id, channel, bytes); io.deliver(id, 'data', [channel, bytes]); } catch (reason) { fail(reason); }
+        });
+      }
+      log('acquisition-return', { id, pid: record.pid });
+      return record;
+    } catch (reason) { record.acquisitionUnknown = !record.returned; fail(reason); log('acquisition-throw', { id }); throw reason; }
+  }
+  function group(record) {
+    if (record.pid === null) return record.closed;
+    try { return !io.groupExists(record.handle, record.pid); } catch (reason) { fail(reason); return false; }
+  }
+  function tick() {
+    const now = io.now();
+    if (now - start >= limits.totalMs) fail(new Error('external whole deadline'));
+    for (const record of records.values()) {
+      if (record.settled) continue;
+      if (record.closed && group(record)) {
+        record.groupAbsent = true; record.settled = true;
+        if (!record.released) { record.released = true; try { io.release(record.handle); } catch (reason) { fail(reason); } }
+        log('actual-close-and-absent-group', { id: record.id }); continue;
+      }
+      if (record.stopAt === null && now - record.began >= (record.kind === 'entry' ? limits.entryMs : limits.childMs)) { fail(new Error('external child deadline')); record.stopAt = now; }
+      if (record.stopAt !== null) {
+        signal(record, 'SIGTERM');
+        if (now - record.stopAt >= limits.termGraceMs) signal(record, 'SIGKILL');
+        if (now - record.stopAt >= limits.reapMs) { stopped = true; log('unresolved-owned-acquisition', { id: record.id, pid: record.pid }); }
+      }
+    }
+    return status();
+  }
+  function requestSignal(id, value) {
+    const record = records.get(id);
+    if (!record || record.kind === 'entry' || !['SIGTERM', 'SIGKILL'].includes(value)) throw new Error('unknown signal authority');
+    return signal(record, value);
+  }
+  function status() { return { failed, failure, stopped, eventCount, settled: [...records.values()].every(record => record.settled), records: [...records.values()].map(({ handle, ...record }) => ({ ...record })) }; }
+  return { acquire, fail, tick, status, requestSignal, group, records, log, finish() { for (const record of records.values()) if (!record.released && record.handle) { record.released = true; try { io.release(record.handle); } catch (reason) { fail(reason); } } const result = status(); stopped = true; return result; } };
+}

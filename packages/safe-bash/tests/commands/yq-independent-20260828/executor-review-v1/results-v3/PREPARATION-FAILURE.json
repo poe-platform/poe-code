@@ -1,0 +1,27 @@
+{
+  "classification": "REVIEWER_PRE_EXECUTION_MANIFEST_SCOPE_ERROR",
+  "command": "python3 tests/commands/yq-independent-20260828/executor-review-v1/results-v3/audit.py f4fc508412028309461e317c6d7d0452feecb98f",
+  "toolSession": 62772,
+  "exitStatus": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/audit.py\", line 114, in <module>\n    assert sorted(actual_evidence) == sorted(entry['path'] for entry in evidence_entries)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+  "expectedSealFiles": 533,
+  "filesUnderEvidenceDirectory": 531,
+  "sealedSupplementalFiles": ["HANDOFF.md", "STATIC-CHECKS.json"],
+  "unlistedEvidenceFiles": [],
+  "cause": "Reviewer incorrectly assumed every evidence-seal file lived under evidence/. The sealed manifest also explicitly binds two regular root-level documents.",
+  "sourceOfComparison": "Exact 70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e Git entries and EVIDENCE-SEAL.json; no author outcome inherited.",
+  "controlsExecuted": 0,
+  "runtimeImports": 0,
+  "productImports": 0,
+  "originalAggregate": "FAIL_EXIT_1_RETAINED",
+  "correction": "Before any controls, preseal exact full-scope equality: original 12 source files + all 533 evidence-seal files + EVIDENCE-SEAL.json. No entries dropped, no predicate changes.",
+  "earlierStaticPreparation": {
+    "missingSpecCheckerPathExit": 2,
+    "firstSpecCheckerErrors": 5,
+    "headingCorrectionCommit": "f4fc508412028309461e317c6d7d0452feecb98f",
+    "finalSpecCheckerErrors": 0,
+    "finalSpecCheckerWarnings": 0,
+    "controlsExecutedDuringStaticPreparation": 0
+  }
+}

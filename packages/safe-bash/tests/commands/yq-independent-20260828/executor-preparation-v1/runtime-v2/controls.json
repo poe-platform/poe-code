@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 2,
+  "classification": "PRESEALED_SYNTHETIC_ONLY",
+  "semanticPasses": 0,
+  "grantsGO": false,
+  "roleCounts": {
+    "command-semantic-runtime": 111,
+    "admission-error-boundary": 34,
+    "source-static-counterproof": 23,
+    "lifecycle-cooperative": 11,
+    "materialized-package-infrastructure": 4,
+    "type-consumer": 5,
+    "negative-control": 6
+  },
+  "originalBuiltins": [
+    "node:path",
+    "node:util",
+    "node:buffer",
+    "node:stream",
+    "node:stream/web"
+  ],
+  "deniedImports": [
+    "node:fs",
+    "node:child_process",
+    "node:process",
+    "node:module",
+    "node:net",
+    "node:http",
+    "node:https",
+    "node:timers",
+    "node:crypto",
+    "fs",
+    "timers/promises",
+    "unbound-package",
+    "https://example.invalid/module.mjs",
+    "data:text/javascript,export default 1"
+  ],
+  "obligationCases": [
+    {
+      "id": "obligation-empty",
+      "expected": {
+        "assertions": []
+      },
+      "aggregate": "PASS"
+    },
+    {
+      "id": "obligation-natural-language",
+      "expected": {
+        "assertions": [
+          "Composed query object has null prototype; keys are own data entries."
+        ]
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-null",
+      "expected": {
+        "assertions": null
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-string",
+      "expected": {
+        "assertions": "unknown"
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-object",
+      "expected": {
+        "assertions": {}
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-unknown-field",
+      "expected": {
+        "unboundIndependentField": true
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-private-count",
+      "expected": {
+        "queryRuns": 0
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-legacy-alias",
+      "expected": {
+        "stdout": {
+          "utf8": "\"a\": 1\n"
+        }
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-frozen-missing",
+      "job": {
+        "missingBindings": [
+          {
+            "binding": "synthetic-private",
+            "need": "no adapter"
+          }
+        ]
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-partial",
+      "job": {
+        "fullRecordEligibleAfterProjection": false
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-inactive-documents",
+      "expected": {
+        "documents": [
+          {
+            "a": 1
+          }
+        ]
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-unknown-effect",
+      "expected": {
+        "effectProfile": "unknown"
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-malformed-reads",
+      "expected": {
+        "reads": null
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-malformed-diagnostic",
+      "expected": {
+        "diagnosticCode": ""
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-malformed-bytes",
+      "expected": {
+        "stdoutHex": null
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-missing-status",
+      "job": {
+        "expected": {}
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "obligation-malformed-status",
+      "expected": {
+        "status": null
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "projection-wrong-bytes",
+      "expected": {
+        "stdoutUtf8": "wrong\n"
+      },
+      "aggregate": "FAIL"
+    },
+    {
+      "id": "projection-wrong-status",
+      "expected": {
+        "status": 1
+      },
+      "aggregate": "FAIL"
+    }
+  ],
+  "cases": [
+    {
+      "id": "inventory",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F01-original-reproduced",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F01-corrected-continuation",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-empty",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-natural-language",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-null",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-string",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-object",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-unknown-field",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-private-count",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-legacy-alias",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-frozen-missing",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-partial",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-inactive-documents",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-unknown-effect",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-reads",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-diagnostic",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-bytes",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-missing-status",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-status",
+      "semanticPasses": 0
+    },
+    {
+      "id": "projection-wrong-bytes",
+      "semanticPasses": 0
+    },
+    {
+      "id": "projection-wrong-status",
+      "semanticPasses": 0
+    },
+    {
+      "id": "raw-before-assertion",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F02-identities-v1",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F02-identities-v2",
+      "semanticPasses": 0
+    },
+    {
+      "id": "identity-scope-boundary",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-nonzero",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-signal",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-timeout",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-overflow",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-malformed",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-wrong-job",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-content",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-mode",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-file",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-directory",
+      "semanticPasses": 0
+    },
+    {
+      "id": "reap-proof-stop",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-and-reap-stop",
+      "semanticPasses": 0
+    },
+    {
+      "id": "fence-static-v1",
+      "semanticPasses": 0
+    },
+    {
+      "id": "fence-static-v2",
+      "semanticPasses": 0
+    },
+    {
+      "id": "fence-denials",
+      "semanticPasses": 0
+    },
+    {
+      "id": "actual-child-timers",
+      "semanticPasses": 0
+    },
+    {
+      "id": "actual-child-rejection-cleanup",
+      "semanticPasses": 0
+    },
+    {
+      "id": "authorization-selected-pin",
+      "semanticPasses": 0
+    },
+    {
+      "id": "authorization-missing",
+      "semanticPasses": 0
+    },
+    {
+      "id": "recipe-no-clobber",
+      "semanticPasses": 0
+    },
+    {
+      "id": "recipe-new-entry-refusal",
+      "semanticPasses": 0
+    }
+  ]
+}

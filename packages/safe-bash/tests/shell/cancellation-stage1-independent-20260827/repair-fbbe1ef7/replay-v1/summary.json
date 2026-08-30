@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "candidate": "fbbe1ef793b7434871403125efbeb46624a8e081",
+  "historicalOriginalCandidate": "6747227230cd770379148552d471621717b766d7",
+  "historicalOriginal12": "10 pass / 2 fail (unchanged archive; not rescored or rerun)",
+  "original12": {
+    "isolated": {
+      "pass": [
+        "H01 three generations retain original provenance across rank upgrades",
+        "H02 closed child is stable while open ancestor upgrades",
+        "H03 sibling reports are targeted, exact and non-poisoning for seven reason classes",
+        "H04 fanout records multiple exact failures without skipping later subscribers",
+        "H04b detaching one later subscriber does not skip unrelated admitted subscribers",
+        "H05 borrowed variants allocate no cancellation resources and cannot close parent",
+        "H06 admission prioritizes original ancestors and stable closed failure over getter",
+        "H07 original control delivery survives invoke selection and root has final priority",
+        "H07b admission uses first delivered control rather than configured array order",
+        "H08 capacity and depth denial precede listeners; explicit release restores capacity",
+        "H09 failed initialization rolls back acquired root listeners and child subscription",
+        "H10 reentrant close records in-flight failure and detaches untriggered resources"
+      ],
+      "fail": [],
+      "status": 0
+    },
+    "moved": {
+      "pass": [
+        "H01 three generations retain original provenance across rank upgrades",
+        "H02 closed child is stable while open ancestor upgrades",
+        "H03 sibling reports are targeted, exact and non-poisoning for seven reason classes",
+        "H04 fanout records multiple exact failures without skipping later subscribers",
+        "H04b detaching one later subscriber does not skip unrelated admitted subscribers",
+        "H05 borrowed variants allocate no cancellation resources and cannot close parent",
+        "H06 admission prioritizes original ancestors and stable closed failure over getter",
+        "H07 original control delivery survives invoke selection and root has final priority",
+        "H07b admission uses first delivered control rather than configured array order",
+        "H08 capacity and depth denial precede listeners; explicit release restores capacity",
+        "H09 failed initialization rolls back acquired root listeners and child subscription",
+        "H10 reentrant close records in-flight failure and detaches untriggered resources"
+      ],
+      "fail": [],
+      "status": 0
+    }
+  },
+  "nearby4": {
+    "isolated": {
+      "pass": [
+        "N1 child-close and self-unsubscribe skip only removed forwarders; whole close stops fanout",
+        "N2 borrowed close and parent close preserve original descendant control and cleanup",
+        "N3 observed B-before-A admission stays separate from invoke and root settlement ranks",
+        "N4 pre-observation multiple aborts use configured fallback without historical-order inference"
+      ],
+      "fail": [],
+      "status": 0
+    },
+    "moved": {
+      "pass": [
+        "N1 child-close and self-unsubscribe skip only removed forwarders; whole close stops fanout",
+        "N2 borrowed close and parent close preserve original descendant control and cleanup",
+        "N3 observed B-before-A admission stays separate from invoke and root settlement ranks",
+        "N4 pre-observation multiple aborts use configured fallback without historical-order inference"
+      ],
+      "fail": [],
+      "status": 0
+    }
+  },
+  "types": {
+    "exactPositiveBuildStatus": 0,
+    "exactMovedPositiveStatus": 0,
+    "sixMalformedDiagnostics": [
+      {
+        "line": 2,
+        "code": 2322
+      },
+      {
+        "line": 3,
+        "code": 2740
+      },
+      {
+        "line": 4,
+        "code": 2740
+      },
+      {
+        "line": 5,
+        "code": 2322
+      },
+      {
+        "line": 6,
+        "code": 2739
+      },
+      {
+        "line": 7,
+        "code": 2322
+      }
+    ],
+    "movedSameSix": true
+  },
+  "mutants": {
+    "priorThreeKilled": 3,
+    "repairTwoKilled": 2
+  },
+  "authorSuitesRerun": false,
+  "publicOrRuntimeIntegration": false,
+  "allChildrenNatural": true
+}

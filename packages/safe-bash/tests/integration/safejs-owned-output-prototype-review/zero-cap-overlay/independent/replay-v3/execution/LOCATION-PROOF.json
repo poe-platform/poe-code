@@ -1,0 +1,49 @@
+{
+  "replacements": [
+    {
+      "before": "export const author = \"/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/frozen-author\";",
+      "after": "export const author = \"/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/frozen-author\";",
+      "classification": "Exact regular-copy/read-location/public Git identity binding only"
+    },
+    {
+      "before": "const bindingOwner = \"/Users/kjopek/Workspace/safe-bash/tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2\";",
+      "after": "const bindingOwner = \"/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/status-author\";",
+      "classification": "Exact regular-copy/read-location/public Git identity binding only"
+    },
+    {
+      "before": "const freezePath = relative(repository, join(bindingOwner, \"EXECUTION-FREEZE.json\"));",
+      "after": "const freezePath = \"tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/EXECUTION-FREEZE.json\";",
+      "classification": "Exact regular-copy/read-location/public Git identity binding only"
+    },
+    {
+      "before": "`${commit}:${relative(repository, filename)}`",
+      "after": "`${commit}:tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/status-binding-v2/${entry.path}`",
+      "classification": "Exact regular-copy/read-location/public Git identity binding only"
+    },
+    {
+      "before": "  const preparation = load(join(bindingOwner, \"PREPARATION.json\"));",
+      "after": "  const preparationPath = \"tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v3/execution/PREPARATION.json\";\n  const preparationCommit = git(\"log\", \"-1\", \"--format=%H\", \"--\", preparationPath).toString().trim();\n  assert.match(preparationCommit, /^[a-f0-9]{40}$/u);\n  const preparationBytes = regular(join(repository, preparationPath));\n  assert.deepEqual(preparationBytes, git(\"show\", `${preparationCommit}:${preparationPath}`));\n  const preparation = JSON.parse(preparationBytes);",
+      "classification": "Exact regular-copy/read-location/public Git identity binding only"
+    },
+    {
+      "before": "descriptor.startsWith(join(repository, \"tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author\") + \"/\")",
+      "after": "descriptor.startsWith(join(repository, \"tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/replay-v3/execution\") + \"/\")",
+      "classification": "Exact regular-copy/read-location/public Git identity binding only"
+    }
+  ],
+  "authorRuntimeFiles": 38,
+  "runtimeFilesUnchangedFromAuthor71": 37,
+  "admissionBeforeSha256": "55111892712ab028205fa469788f9692d6f3c47930f7142bb584a0b132bb9e46",
+  "admissionAfterSha256": "a4603b722cad30bbcc6f8bd8bec3d08648534baf2fff8c14547236c5ec4e4629",
+  "ownPreparationGitAuthenticatedBeforeRead": true,
+  "source88SnapshotChanges": 0,
+  "status28SnapshotChanges": 0,
+  "childGuestScorerCaseSignalCleanupBudgetTimerChanges": 0,
+  "assessorUnchangedSha256": "08caf5d33ce427eefc48f05a9d397acb1d3851ac318de1c90da76f1397ca7522",
+  "sourceCandidateCopiedFrom": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/candidate",
+  "packageCopiedFrom": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/consumer/node_modules/virtual-bash",
+  "excludedAuthorEvidence": "All author paths outside exact a61 selected88 and exact71 selected28 are NOT inputs, never enumerated recursively or read/executed. Both snapshots reject every unlisted regular file; runtime38 also exact. No whole-live-author-tree scan or broad ignore rule.",
+  "privateQueries": 0,
+  "actualExecutions": 0,
+  "noPromotion": true
+}

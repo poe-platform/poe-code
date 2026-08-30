@@ -1,0 +1,672 @@
+[
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/api",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/api/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fapi%2F",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/snapshot/api/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/api",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/api/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fapi%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/api/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/api",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/api/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fapi%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/shell",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/shell/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fshell%2F",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/snapshot/shell/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/shell",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/shell/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fshell%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/shell/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/rm-dir",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/rm-dir/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Frm-dir%2F",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/snapshot/rm-dir/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/rm-dir",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/rm-dir/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/rm-dir",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/rm-dir/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Frm-dir%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/rm-dir/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fpipeline%2F",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fpipeline%2Ffile%2F",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fpipeline%2Ffile%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 200
+  },
+  {
+    "method": "PUT",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fpipeline%2Ffile%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/file/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fpipeline%2Ffile%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/pipeline/file",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fpipeline%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/pipeline/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fnonempty%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1000&prefix=snapshot%2Fnonempty%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty/",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty/file",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/nonempty/file/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fnonempty%2Ffile%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/missing",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/missing/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fmissing%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/implicit",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/implicit/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Fimplicit%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fimplicit%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/ambiguous",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/ambiguous/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/race",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/race/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Frace%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/race/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/race",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/race/",
+    "status": 404
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2Frace%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/aba",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/aba/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Faba%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/aba/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/forbidden",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/forbidden/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fforbidden%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/forbidden/",
+    "status": 403
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/abort-list",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/abort-list/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fabort-list%2F",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/abort-delete",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/abort-delete/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Fabort-delete%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/abort-delete/",
+    "status": 204
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=snapshot%2F",
+    "status": 200
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/lost-response",
+    "status": 404
+  },
+  {
+    "method": "HEAD",
+    "path": "/safe-bash-interop/snapshot/lost-response/",
+    "status": 200
+  },
+  {
+    "method": "GET",
+    "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=2&prefix=snapshot%2Flost-response%2F",
+    "status": 200
+  },
+  {
+    "method": "DELETE",
+    "path": "/safe-bash-interop/snapshot/lost-response/",
+    "status": 204
+  }
+]

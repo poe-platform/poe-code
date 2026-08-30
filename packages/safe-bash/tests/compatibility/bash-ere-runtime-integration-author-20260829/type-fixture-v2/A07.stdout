@@ -1,0 +1,123 @@
+{
+  "sourceCommit": "e013f817f",
+  "sealSha256": "8bcc8e9d2d7d6374e709c7343736859718c78a3c64fd30268ffb18ec083930d5",
+  "core": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+  "transport": "02782056c436c9f2a8319f73a9eb8e2b4b5aebd5",
+  "selectedInputs": 305,
+  "sourceOverrides": [
+    {
+      "path": "src/shell/parser.ts",
+      "bytes": 44045,
+      "sha256": "733396745b510a5d76fc83b7c1a6eb51e512e3941585786652a524a28b36686c"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "bytes": 210813,
+      "sha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "bytes": 15121,
+      "sha256": "6af40022b4648756450ce1c9582ab3d0be8de4b128f12a5c36c6dab56fe0eb9b"
+    },
+    {
+      "path": "src/shell/conditional.ts",
+      "bytes": 9130,
+      "sha256": "60de623fc278fb16990c0a9f191ed4ec42c5dc25d3c5d0c096e1142352031f77"
+    }
+  ],
+  "compilerChildren": [
+    {
+      "name": "TYPE-01-build",
+      "pid": 42882,
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/candidate/tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/@types"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01",
+      "started": "2026-08-29T11:44:41.971Z",
+      "retired": true,
+      "code": 0,
+      "signal": null
+    },
+    {
+      "name": "TYPE-02-positive",
+      "pid": 43013,
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--noEmit",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/@types",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/positive.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01",
+      "started": "2026-08-29T11:44:47.932Z",
+      "retired": true,
+      "code": 2,
+      "signal": null
+    },
+    {
+      "name": "TYPE-03-negative",
+      "pid": 43025,
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/typescript/lib/tsc.js",
+        "--target",
+        "ES2023",
+        "--lib",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--strict",
+        "--noUncheckedIndexedAccess",
+        "--exactOptionalPropertyTypes",
+        "--verbatimModuleSyntax",
+        "--skipLibCheck",
+        "--types",
+        "node",
+        "--noEmit",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/node_modules/@types",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01/negative.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/TYPE-01",
+      "started": "2026-08-29T11:44:48.451Z",
+      "retired": true,
+      "code": 2,
+      "signal": null
+    }
+  ],
+  "sourceBuild": "PASS",
+  "negativeTypes": "PASS exact TS2322/TS2353/TS2353 at lines4/5/6",
+  "positiveTypes": "FAIL TS2724 root parseShellAST export assumption",
+  "sourceRuntimeTests": "70 UNRUN",
+  "futureTransportRebind": "MANDATORY: 02782056 known validation-work HOLD",
+  "administrativeCensus": "Recorded events and helper receipts only; complete 64-start compliance NOT certified from retained logs. No invented transitive bound.",
+  "compiledBinding": "7ba181c037d869ce2e541b4fe5edd5f3fd6295d4c305a296574965d2c24a5f41",
+  "runtimeImports": 0,
+  "Workers": 0,
+  "publicationAt": "2026-08-29T11:46:39.679Z"
+}

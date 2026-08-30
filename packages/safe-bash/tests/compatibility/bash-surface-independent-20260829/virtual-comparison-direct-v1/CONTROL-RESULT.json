@@ -1,0 +1,784 @@
+{
+  "profile": "bash-surface-direct-owned-child-functional-v1",
+  "kind": "DATA_AND_HARMLESS_ONLY",
+  "data": [
+    {
+      "id": "D01",
+      "pass": true
+    },
+    {
+      "id": "D02",
+      "pass": true
+    },
+    {
+      "id": "D03",
+      "pass": true
+    },
+    {
+      "id": "D04",
+      "pass": true
+    },
+    {
+      "id": "D05",
+      "pass": true
+    },
+    {
+      "id": "D06",
+      "pass": true
+    }
+  ],
+  "actual": [
+    {
+      "id": "H01",
+      "lifecycle": {
+        "id": "H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466364
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466366
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466366
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466417
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466417
+          },
+          {
+            "name": "exit",
+            "at": 1787997466418
+          },
+          {
+            "name": "close",
+            "at": 1787997466418
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 281,
+            "sha256": "67731e244d2f171a19ddaf5e8096408a86310989e101a558dfaa6cba646f18ef",
+            "base64": "eyJpZCI6IkgwMSIsImRlbmlhbHMiOlt7ImFwaSI6InNwYXduIiwiY29kZSI6IkVSUl9BQ0NFU1NfREVOSUVEIiwicGVybWlzc2lvbiI6IkNoaWxkUHJvY2VzcyJ9XSwiZXh0cmFPd25lZENoaWxkcmVuIjowLCJleHRyYVdvcmtlcnMiOjAsInB1YmxpY1NldHRsZW1lbnQiOnsiZXhlY09ic2VydmVkIjp0cnVlLCJkaXNwb3NlU2V0dGxlZCI6dHJ1ZSwiZGlzcG9zZVJlamVjdGVkIjpmYWxzZX0sInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12476,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466425
+      },
+      "trace": {
+        "bytes": 614,
+        "sha256": "7d5e6b131e9ec2fefb152d488974a5e03cbc67229428456b0a3239f5aa36b3cf",
+        "base64": "eyJldmVudCI6InBlcm1pc3Npb24tYWRtaXR0ZWQiLCJjaGlsZCI6ZmFsc2UsIndvcmtlciI6ZmFsc2UsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDAxIn0KeyJldmVudCI6InN5bmNocm9ub3VzLWhvb2tzLWluc3RhbGxlZCIsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDAxIn0KeyJldmVudCI6Im1vZHVsZS1sb2FkZWQiLCJ1cmwiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1zdXJmYWNlLWluZGVwZW5kZW50LTIwMjYwODI5L3ZpcnR1YWwtY29tcGFyaXNvbi1kaXJlY3QtdjEvZml4dHVyZXMvSDAxLm1qcyIsImJ5dGVzIjoxNzgzLCJzaGEyNTYiOiIxMGQwZDUyOTkzOWZkM2Y5MjkzYTdiZTdmZGZmZDY0ZDVhYmI5ZWRlM2M0NDBmZmFhYjk3YmRmYWIwNWYzOTQ5IiwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSIsInJvbGUiOiJIMDEifQo="
+      },
+      "traceRows": [
+        {
+          "event": "permission-admitted",
+          "child": false,
+          "worker": false,
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H01"
+        },
+        {
+          "event": "synchronous-hooks-installed",
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H01"
+        },
+        {
+          "event": "module-loaded",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/H01.mjs",
+          "bytes": 1783,
+          "sha256": "10d0d529939fd3f9293a7be7fdffd64d5abb9ede3c440ffaab97bdfab05f3949",
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H01"
+        }
+      ],
+      "observation": {
+        "id": "H01",
+        "denials": [
+          {
+            "api": "spawn",
+            "code": "ERR_ACCESS_DENIED",
+            "permission": "ChildProcess"
+          }
+        ],
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      },
+      "pass": true
+    },
+    {
+      "id": "H02",
+      "lifecycle": {
+        "id": "H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466481
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466482
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466482
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466537
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466538
+          },
+          {
+            "name": "exit",
+            "at": 1787997466538
+          },
+          {
+            "name": "close",
+            "at": 1787997466538
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 265,
+            "sha256": "d49620bad51bc4a501bfa95a415e54a9aad76320ec4955eb54f0c3877977bf71",
+            "base64": "eyJpZCI6IkgwMiIsImRlbmlhbCI6eyJjb2RlIjoiRVJSX0FDQ0VTU19ERU5JRUQiLCJwZXJtaXNzaW9uIjoiV29ya2VyVGhyZWFkcyJ9LCJleHRyYU93bmVkQ2hpbGRyZW4iOjAsImV4dHJhV29ya2VycyI6MCwicHVibGljU2V0dGxlbWVudCI6eyJleGVjT2JzZXJ2ZWQiOnRydWUsImRpc3Bvc2VTZXR0bGVkIjp0cnVlLCJkaXNwb3NlUmVqZWN0ZWQiOmZhbHNlfSwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12477,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466542
+      },
+      "trace": {
+        "bytes": 614,
+        "sha256": "49e6022d81dc2f06af093a79c159d7ebd49b26a453797c525d4ef169a9d699ff",
+        "base64": "eyJldmVudCI6InBlcm1pc3Npb24tYWRtaXR0ZWQiLCJjaGlsZCI6ZmFsc2UsIndvcmtlciI6ZmFsc2UsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDAyIn0KeyJldmVudCI6InN5bmNocm9ub3VzLWhvb2tzLWluc3RhbGxlZCIsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDAyIn0KeyJldmVudCI6Im1vZHVsZS1sb2FkZWQiLCJ1cmwiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1zdXJmYWNlLWluZGVwZW5kZW50LTIwMjYwODI5L3ZpcnR1YWwtY29tcGFyaXNvbi1kaXJlY3QtdjEvZml4dHVyZXMvSDAyLm1qcyIsImJ5dGVzIjoxMDgwLCJzaGEyNTYiOiJlMzYyYmVmYzQwN2Q2YjEyZWNlM2JmYzZmNGM1M2ZjYjIwZWIxMGIyMDkwMDgxY2VmYmIyMjRhOGM5YzA2ZDUxIiwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSIsInJvbGUiOiJIMDIifQo="
+      },
+      "traceRows": [
+        {
+          "event": "permission-admitted",
+          "child": false,
+          "worker": false,
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H02"
+        },
+        {
+          "event": "synchronous-hooks-installed",
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H02"
+        },
+        {
+          "event": "module-loaded",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/H02.mjs",
+          "bytes": 1080,
+          "sha256": "e362befc407d6b12ece3bfc6f4c53fcb20eb10b2090081cefbb224a8c9c06d51",
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H02"
+        }
+      ],
+      "observation": {
+        "id": "H02",
+        "denial": {
+          "code": "ERR_ACCESS_DENIED",
+          "permission": "WorkerThreads"
+        },
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      },
+      "pass": true
+    },
+    {
+      "id": "H03",
+      "lifecycle": {
+        "id": "H03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466599
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466599
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466599
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466650
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466651
+          },
+          {
+            "name": "exit",
+            "at": 1787997466651
+          },
+          {
+            "name": "close",
+            "at": 1787997466651
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 238,
+            "sha256": "9ea8e7c28de2943576ebcc29d825b8cad0640290b6529ad2e80bc8a404de3c43",
+            "base64": "eyJpZCI6IkgwMyIsInJlZnVzYWxzIjpbIkFVVEhfSEFTSCIsIkVER0VfUkVGVVNFRCJdLCJleHRyYU93bmVkQ2hpbGRyZW4iOjAsImV4dHJhV29ya2VycyI6MCwicHVibGljU2V0dGxlbWVudCI6eyJleGVjT2JzZXJ2ZWQiOnRydWUsImRpc3Bvc2VTZXR0bGVkIjp0cnVlLCJkaXNwb3NlUmVqZWN0ZWQiOmZhbHNlfSwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12478,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466655
+      },
+      "trace": {
+        "bytes": 949,
+        "sha256": "5c3aed7b315adbef70af5ac74a621fd96429872df90b75070fb961a0c2bab88e",
+        "base64": "eyJldmVudCI6InBlcm1pc3Npb24tYWRtaXR0ZWQiLCJjaGlsZCI6ZmFsc2UsIndvcmtlciI6ZmFsc2UsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDAzIn0KeyJldmVudCI6InN5bmNocm9ub3VzLWhvb2tzLWluc3RhbGxlZCIsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDAzIn0KeyJldmVudCI6Im1vZHVsZS1sb2FkZWQiLCJ1cmwiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1zdXJmYWNlLWluZGVwZW5kZW50LTIwMjYwODI5L3ZpcnR1YWwtY29tcGFyaXNvbi1kaXJlY3QtdjEvZml4dHVyZXMvSDAzLm1qcyIsImJ5dGVzIjo2OTYsInNoYTI1NiI6IjhmODkxYmY2NjVkYjA0OGY2N2I3M2UwMjgxMjVkZTAyYjAyNDgwYjBmZWNkNTJkYTNhNDFhOGRhYzZjNzMzMzIiLCJwcm9maWxlIjoiYmFzaC1zdXJmYWNlLWRpcmVjdC1vd25lZC1jaGlsZC1mdW5jdGlvbmFsLXYxIiwicm9sZSI6IkgwMyJ9CnsiZXZlbnQiOiJtb2R1bGUtbG9hZGVkIiwidXJsIjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXRpYmlsaXR5L2Jhc2gtc3VyZmFjZS1pbmRlcGVuZGVudC0yMDI2MDgyOS92aXJ0dWFsLWNvbXBhcmlzb24tZGlyZWN0LXYxL2ZpeHR1cmVzL2xvYWRlZC5tanMiLCJieXRlcyI6NDcsInNoYTI1NiI6ImUzNjY0NDIyMDljY2IzNDFjNTE5ZTcxYjg4NWNlODJjNzkzODczOGQ3MjQwNWU1ODE3Yjc2ZWYwN2ZlNjhjZjgiLCJwcm9maWxlIjoiYmFzaC1zdXJmYWNlLWRpcmVjdC1vd25lZC1jaGlsZC1mdW5jdGlvbmFsLXYxIiwicm9sZSI6IkgwMyJ9Cg=="
+      },
+      "traceRows": [
+        {
+          "event": "permission-admitted",
+          "child": false,
+          "worker": false,
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H03"
+        },
+        {
+          "event": "synchronous-hooks-installed",
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H03"
+        },
+        {
+          "event": "module-loaded",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/H03.mjs",
+          "bytes": 696,
+          "sha256": "8f891bf665db048f67b73e028125de02b02480b0fecd52da3a41a8dac6c73332",
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H03"
+        },
+        {
+          "event": "module-loaded",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/loaded.mjs",
+          "bytes": 47,
+          "sha256": "e366442209ccb341c519e71b885ce82c7938738d72405e5817b76ef07fe68cf8",
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H03"
+        }
+      ],
+      "observation": {
+        "id": "H03",
+        "refusals": [
+          "AUTH_HASH",
+          "EDGE_REFUSED"
+        ],
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      },
+      "pass": true
+    },
+    {
+      "id": "H04",
+      "lifecycle": {
+        "id": "H04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466715
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466716
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466716
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466766
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466766
+          },
+          {
+            "name": "exit",
+            "at": 1787997466766
+          },
+          {
+            "name": "close",
+            "at": 1787997466766
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 360,
+            "sha256": "20b96c322427fe133a5e42f390e28a368a7732b0e774bdab0ec9fd54cec112bc",
+            "base64": "eyJpZCI6IkgwNCIsImV2ZW50cyI6WyJjbGVhbnVwLXJlZ2lzdGVyZWQiLCJyZXNvdXJjZS1hY3F1aXJlZCIsImNsZWFudXAtc2V0dGxlZCJdLCJyZWFzb24iOjAsImV4dHJhT3duZWRDaGlsZHJlbiI6MCwiZXh0cmFXb3JrZXJzIjowLCJxdWFsaWZpY2F0aW9uIjoiaGFybWxlc3MgZml4dHVyZSBsaWZlY3ljbGUsIG5vdCBwcm9kdWN0IHByaXZhdGUgY2xlYW51cCBjZW5zdXMiLCJwdWJsaWNTZXR0bGVtZW50Ijp7ImV4ZWNPYnNlcnZlZCI6dHJ1ZSwiZGlzcG9zZVNldHRsZWQiOnRydWUsImRpc3Bvc2VSZWplY3RlZCI6ZmFsc2V9LCJwcm9maWxlIjoiYmFzaC1zdXJmYWNlLWRpcmVjdC1vd25lZC1jaGlsZC1mdW5jdGlvbmFsLXYxIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12480,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466770
+      },
+      "trace": {
+        "bytes": 614,
+        "sha256": "c12639b666938546df94797c4a152c05fafe7c3e252145097f2858649d4c3a1f",
+        "base64": "eyJldmVudCI6InBlcm1pc3Npb24tYWRtaXR0ZWQiLCJjaGlsZCI6ZmFsc2UsIndvcmtlciI6ZmFsc2UsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDA0In0KeyJldmVudCI6InN5bmNocm9ub3VzLWhvb2tzLWluc3RhbGxlZCIsImxvYWRlclRocmVhZHMiOjAsInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEiLCJyb2xlIjoiSDA0In0KeyJldmVudCI6Im1vZHVsZS1sb2FkZWQiLCJ1cmwiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhdGliaWxpdHkvYmFzaC1zdXJmYWNlLWluZGVwZW5kZW50LTIwMjYwODI5L3ZpcnR1YWwtY29tcGFyaXNvbi1kaXJlY3QtdjEvZml4dHVyZXMvSDA0Lm1qcyIsImJ5dGVzIjoxMDIzLCJzaGEyNTYiOiJjMDJmZTNlNTQxYThlZDY5NTFhMjA5ODcwYTE2OTk0NzkzOTE5M2NiN2FjYzk0YmU4ZGNjMWM5MWYwZDBjZTRlIiwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSIsInJvbGUiOiJIMDQifQo="
+      },
+      "traceRows": [
+        {
+          "event": "permission-admitted",
+          "child": false,
+          "worker": false,
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H04"
+        },
+        {
+          "event": "synchronous-hooks-installed",
+          "loaderThreads": 0,
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H04"
+        },
+        {
+          "event": "module-loaded",
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/fixtures/H04.mjs",
+          "bytes": 1023,
+          "sha256": "c02fe3e541a8ed6951a209870a169947939193cb7acc94be8dcc1c91f0d0ce4e",
+          "profile": "bash-surface-direct-owned-child-functional-v1",
+          "role": "H04"
+        }
+      ],
+      "observation": {
+        "id": "H04",
+        "events": [
+          "cleanup-registered",
+          "resource-acquired",
+          "cleanup-settled"
+        ],
+        "reason": 0,
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "qualification": "harmless fixture lifecycle, not product private cleanup census",
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      },
+      "pass": true
+    }
+  ],
+  "ledger": {
+    "starts": 4,
+    "maximum": 4,
+    "active": 0,
+    "captureBytes": 3935,
+    "captureMaximum": 8388608,
+    "rows": [
+      {
+        "id": "H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466364
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466366
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466366
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466417
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466417
+          },
+          {
+            "name": "exit",
+            "at": 1787997466418
+          },
+          {
+            "name": "close",
+            "at": 1787997466418
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 281,
+            "sha256": "67731e244d2f171a19ddaf5e8096408a86310989e101a558dfaa6cba646f18ef",
+            "base64": "eyJpZCI6IkgwMSIsImRlbmlhbHMiOlt7ImFwaSI6InNwYXduIiwiY29kZSI6IkVSUl9BQ0NFU1NfREVOSUVEIiwicGVybWlzc2lvbiI6IkNoaWxkUHJvY2VzcyJ9XSwiZXh0cmFPd25lZENoaWxkcmVuIjowLCJleHRyYVdvcmtlcnMiOjAsInB1YmxpY1NldHRsZW1lbnQiOnsiZXhlY09ic2VydmVkIjp0cnVlLCJkaXNwb3NlU2V0dGxlZCI6dHJ1ZSwiZGlzcG9zZVJlamVjdGVkIjpmYWxzZX0sInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12476,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466425
+      },
+      {
+        "id": "H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466481
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466482
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466482
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466537
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466538
+          },
+          {
+            "name": "exit",
+            "at": 1787997466538
+          },
+          {
+            "name": "close",
+            "at": 1787997466538
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 265,
+            "sha256": "d49620bad51bc4a501bfa95a415e54a9aad76320ec4955eb54f0c3877977bf71",
+            "base64": "eyJpZCI6IkgwMiIsImRlbmlhbCI6eyJjb2RlIjoiRVJSX0FDQ0VTU19ERU5JRUQiLCJwZXJtaXNzaW9uIjoiV29ya2VyVGhyZWFkcyJ9LCJleHRyYU93bmVkQ2hpbGRyZW4iOjAsImV4dHJhV29ya2VycyI6MCwicHVibGljU2V0dGxlbWVudCI6eyJleGVjT2JzZXJ2ZWQiOnRydWUsImRpc3Bvc2VTZXR0bGVkIjp0cnVlLCJkaXNwb3NlUmVqZWN0ZWQiOmZhbHNlfSwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12477,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466542
+      },
+      {
+        "id": "H03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466599
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466599
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466599
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466650
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466651
+          },
+          {
+            "name": "exit",
+            "at": 1787997466651
+          },
+          {
+            "name": "close",
+            "at": 1787997466651
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 238,
+            "sha256": "9ea8e7c28de2943576ebcc29d825b8cad0640290b6529ad2e80bc8a404de3c43",
+            "base64": "eyJpZCI6IkgwMyIsInJlZnVzYWxzIjpbIkFVVEhfSEFTSCIsIkVER0VfUkVGVVNFRCJdLCJleHRyYU93bmVkQ2hpbGRyZW4iOjAsImV4dHJhV29ya2VycyI6MCwicHVibGljU2V0dGxlbWVudCI6eyJleGVjT2JzZXJ2ZWQiOnRydWUsImRpc3Bvc2VTZXR0bGVkIjp0cnVlLCJkaXNwb3NlUmVqZWN0ZWQiOmZhbHNlfSwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12478,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466655
+      },
+      {
+        "id": "H04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787997466715
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787997466716
+          },
+          {
+            "name": "spawn",
+            "at": 1787997466716
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787997466766
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787997466766
+          },
+          {
+            "name": "exit",
+            "at": 1787997466766
+          },
+          {
+            "name": "close",
+            "at": 1787997466766
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 360,
+            "sha256": "20b96c322427fe133a5e42f390e28a368a7732b0e774bdab0ec9fd54cec112bc",
+            "base64": "eyJpZCI6IkgwNCIsImV2ZW50cyI6WyJjbGVhbnVwLXJlZ2lzdGVyZWQiLCJyZXNvdXJjZS1hY3F1aXJlZCIsImNsZWFudXAtc2V0dGxlZCJdLCJyZWFzb24iOjAsImV4dHJhT3duZWRDaGlsZHJlbiI6MCwiZXh0cmFXb3JrZXJzIjowLCJxdWFsaWZpY2F0aW9uIjoiaGFybWxlc3MgZml4dHVyZSBsaWZlY3ljbGUsIG5vdCBwcm9kdWN0IHByaXZhdGUgY2xlYW51cCBjZW5zdXMiLCJwdWJsaWNTZXR0bGVtZW50Ijp7ImV4ZWNPYnNlcnZlZCI6dHJ1ZSwiZGlzcG9zZVNldHRsZWQiOnRydWUsImRpc3Bvc2VSZWplY3RlZCI6ZmFsc2V9LCJwcm9maWxlIjoiYmFzaC1zdXJmYWNlLWRpcmVjdC1vd25lZC1jaGlsZC1mdW5jdGlvbmFsLXYxIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 12480,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787997466770
+      }
+    ],
+    "stopped": false
+  },
+  "primaryPresent": false,
+  "productCalls": 0,
+  "loaderThreads": 0,
+  "extraOwnedChildren": 0,
+  "extraWorkers": 0,
+  "unrun": [],
+  "finished": 1787997466774,
+  "qualification": "Harmless controls only. Direct process settlement; no group probes, OS containment, universal descendant/thread census or product cleanup proof."
+}

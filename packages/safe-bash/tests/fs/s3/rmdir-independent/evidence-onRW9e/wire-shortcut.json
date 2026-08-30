@@ -1,0 +1,79 @@
+{
+  "observations": [
+    {
+      "maxKeys": 1,
+      "delimiter": null,
+      "sequence": 58,
+      "keys": [
+        "independent-wire/target/"
+      ],
+      "truncated": "false",
+      "token": null,
+      "classification": "pinned false-completion deviation"
+    },
+    {
+      "maxKeys": 2,
+      "delimiter": null,
+      "sequence": 59,
+      "keys": [
+        "independent-wire/target/",
+        "independent-wire/target/.hidden"
+      ],
+      "truncated": "false",
+      "token": null,
+      "classification": "bounded shortcut bypass"
+    },
+    {
+      "maxKeys": 1000,
+      "delimiter": null,
+      "sequence": 60,
+      "keys": [
+        "independent-wire/target/",
+        "independent-wire/target/.hidden"
+      ],
+      "truncated": "false",
+      "token": null,
+      "classification": "bounded shortcut bypass"
+    },
+    {
+      "maxKeys": 1,
+      "delimiter": "/",
+      "sequence": 61,
+      "keys": [
+        "independent-wire/target/"
+      ],
+      "truncated": "false",
+      "token": null,
+      "classification": "pinned false-completion deviation"
+    },
+    {
+      "maxKeys": 2,
+      "delimiter": "/",
+      "sequence": 62,
+      "keys": [
+        "independent-wire/target/",
+        "independent-wire/target/.hidden"
+      ],
+      "truncated": "false",
+      "token": null,
+      "classification": "bounded shortcut bypass"
+    },
+    {
+      "maxKeys": 1000,
+      "delimiter": "/",
+      "sequence": 63,
+      "keys": [
+        "independent-wire/target/",
+        "independent-wire/target/.hidden"
+      ],
+      "truncated": "false",
+      "token": null,
+      "classification": "bounded shortcut bypass"
+    }
+  ],
+  "markerSequence": 64,
+  "childSequence": 65,
+  "childBase64": "AP+ACg==",
+  "serviceSource": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+  "noNativeDeleteInThisProbe": true
+}

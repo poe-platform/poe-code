@@ -1,0 +1,21 @@
+{
+  "schema": "k08-actual-fresh-root-snapshots-v1",
+  "at": "2026-08-29T15:45:32.328Z",
+  "snapshots": [
+    {
+      "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+      "at": 1788018332327,
+      "bytes": 44113137,
+      "entries": 2951,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/private/tmp/safe-bash-k08-actual-record-v1-9snTQP",
+      "at": 1788018332327,
+      "bytes": 2513,
+      "entries": 4,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    }
+  ],
+  "qualification": "Independent timestamped file-based snapshots before repository publication, not one historical peak or RSS. Subsequent bounded publication artifacts separate."
+}

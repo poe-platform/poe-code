@@ -1,0 +1,95 @@
+TAP version 13
+# Subtest: missing permission capability on an opaque remote remains unsupported beside a known-false sibling
+ok 1 - missing permission capability on an opaque remote remains unsupported beside a known-false sibling
+  ---
+  duration_ms: 8.663583
+  type: 'test'
+  ...
+# {"case":"missing permission capability on an opaque remote remains unsupported beside a known-false sibling","expectedCode":"ENOTSUP","methods":["PROPFIND"],"unchanged":true}
+# Subtest: memory destination execute denial is checked before acquiring an authorized WebDAV source
+ok 2 - memory destination execute denial is checked before acquiring an authorized WebDAV source
+  ---
+  duration_ms: 2.496792
+  type: 'test'
+  ...
+# {"case":"memory destination execute denial is checked before acquiring an authorized WebDAV source","expectedCode":"EACCES","methods":["PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND"],"dataCalls":[],"unchanged":true}
+# Subtest: real destination execute denial is checked before acquiring an authorized WebDAV source
+ok 3 - real destination execute denial is checked before acquiring an authorized WebDAV source
+  ---
+  duration_ms: 7.60625
+  type: 'test'
+  ...
+# {"case":"real destination execute denial is checked before acquiring an authorized WebDAV source","expectedCode":"EACCES","methods":["PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND"],"dataCalls":[],"unchanged":true}
+# Subtest: explicit execute access remains unsupported through an opaque readonly nested remote view
+ok 4 - explicit execute access remains unsupported through an opaque readonly nested remote view
+  ---
+  duration_ms: 3.072458
+  type: 'test'
+  ...
+# {"case":"explicit execute access remains unsupported through an opaque readonly nested remote view","expectedCode":"ENOTSUP","methods":["PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND","PROPFIND"],"unchanged":true}
+# Subtest: real HTTP 401 on the second directory authorization probe prevents source acquisition and publication
+ok 5 - real HTTP 401 on the second directory authorization probe prevents source acquisition and publication
+  ---
+  duration_ms: 16.597875
+  type: 'test'
+  ...
+# {"case":"real HTTP 401 on the second directory authorization probe prevents source acquisition and publication","expectedCode":"EACCES","requests":[{"method":"PROPFIND","path":"/dav","status":207},{"method":"PROPFIND","path":"/dav","status":207},{"method":"PROPFIND","path":"/dav/dir","status":207},{"method":"PROPFIND","path":"/dav/dir","status":401}],"dataCalls":[],"unchanged":true}
+# Subtest: real HTTP 403 on the second directory authorization probe prevents source acquisition and publication
+ok 6 - real HTTP 403 on the second directory authorization probe prevents source acquisition and publication
+  ---
+  duration_ms: 6.351625
+  type: 'test'
+  ...
+# {"case":"real HTTP 403 on the second directory authorization probe prevents source acquisition and publication","expectedCode":"EACCES","requests":[{"method":"PROPFIND","path":"/dav","status":207},{"method":"PROPFIND","path":"/dav","status":207},{"method":"PROPFIND","path":"/dav/dir","status":207},{"method":"PROPFIND","path":"/dav/dir","status":403}],"dataCalls":[],"unchanged":true}
+# Subtest: cancellation during repeated remote authorization retains the exact errno-bearing cause
+ok 7 - cancellation during repeated remote authorization retains the exact errno-bearing cause
+  ---
+  duration_ms: 1.048208
+  type: 'test'
+  ...
+# {"case":"cancellation during repeated remote authorization retains the exact errno-bearing cause","expectedCode":"ECANCELED","exactCause":true,"exactPreabortReason":true,"methods":["PROPFIND","PROPFIND","PROPFIND","PROPFIND"],"unchanged":true}
+# Subtest: opaque permissions-false composite keeps its symlink-copy boundary
+not ok 8 - opaque permissions-false composite keeps its symlink-copy boundary
+  ---
+  duration_ms: 4.474375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-P4v36N/tests/fs/mount/identity-compatibility-review/traversal-authority.test.ts:1:9490'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'ENOTSUP'
+    - 'EACCES'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EACCES'
+  actual: 'ENOTSUP'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-P4v36N/tests/fs/mount/identity-compatibility-review/traversal-authority.test.ts:42:12)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/identity-compatibility-review/.runs/revision-P4v36N/tests/fs/mount/identity-compatibility-review/traversal-authority.test.ts:223:7)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: opaque permissions-false composite keeps its hidden-mount-removal boundary
+ok 9 - opaque permissions-false composite keeps its hidden-mount-removal boundary
+  ---
+  duration_ms: 1.068375
+  type: 'test'
+  ...
+# {"case":"opaque permissions-false composite keeps its hidden-mount-removal boundary","expectedCode":"EBUSY","methods":["PROPFIND"],"unchanged":true}
+1..9
+# tests 9
+# suites 0
+# pass 8
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 191.308083

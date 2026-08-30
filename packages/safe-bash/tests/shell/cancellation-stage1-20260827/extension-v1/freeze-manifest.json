@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "frozenAt": "2026-08-27",
+  "candidateHeadBeforeFreeze": "769678dda195c8f77a91563274accec6e685ec4d",
+  "acceptedHelperSha256": "ee048f6c38086dd40573db57e002e596029174ee2afc5f888e516779e5a718ac",
+  "baselineExit": 1,
+  "baselineRetried": false,
+  "literalCaseCount": 38,
+  "files": {
+    "POLICY.md": "94d2aeb99d7c21985ff76d1e319757e23adb1d34017840997f4ea15f44171726",
+    "cases.json": "982371d194f393df2b0760fdf4b9ba0535723ed0eff51a92c65526d970b15cd8",
+    "cancellation-extension.test.ts": "db49520d9baf10d159572a6edf2d06d8e3988b9d72a0c6b7b7589b1ca311965f",
+    "type-negative.ts": "03a179a2ab8b04ef7fad940d39532675bfbad898ff0c6bb8503384dd2722bdc8",
+    "tsconfig.strict.json": "4f883dbacfb431d43886711711f952ae14a531c5f1e042385188da261bb4dc95",
+    "tsconfig.type-negative.json": "57106affdd52a25a78fb6f806ba90c38c5a6e10c998e4f1fea2e5e6c52a82549",
+    "tsconfig.build.json": "424aca93b1194d7bbf3306f5ef422b3ffd027242bcfbe86f316f88022a1ae87e",
+    "baseline.tap": "a5018cfffb7b5f6f770911fc069aaab048ee55446f9fd2636740325185c0234c",
+    "BASELINE.md": "2e98397ef48e02d132c1d38e8d8e9eec7e121bafe3f4dda0d1d6a9d5eb2d2b98",
+    "identity.json": "a1cb5640f578a7c4298f49c826b95eabbbda0397cce35ec420a8fdb9c46f9521"
+  }
+}
+

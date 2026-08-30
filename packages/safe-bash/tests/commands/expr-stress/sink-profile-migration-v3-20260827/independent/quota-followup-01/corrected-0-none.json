@@ -1,0 +1,2181 @@
+{
+  "constants": {
+    "emergency": "expr: output bytes limit exceeded\n",
+    "syntax": "expr: syntax error: unexpected argument 'x'\n",
+    "emergencyHex": "657870723a206f7574707574206279746573206c696d69742065786365656465640a",
+    "emergencyBytes": 34,
+    "syntaxBytes": 44
+  },
+  "rows": [
+    {
+      "input": {
+        "id": "stdout-rejection-normal-quota",
+        "argv": [
+          "1"
+        ],
+        "cap": 2,
+        "expected": {
+          "status": null,
+          "stdout": "",
+          "stderr": "",
+          "jobs": 0,
+          "rejection": "sink"
+        },
+        "mode": "reject-stdout"
+      },
+      "events": [
+        "register-cleanup",
+        "session-open",
+        "stdout-entered",
+        "session-close",
+        "settled"
+      ],
+      "jobs": [],
+      "attempts": [
+        {
+          "channel": "stdout",
+          "bytes": 2,
+          "hex": "310a",
+          "text": "1\n"
+        }
+      ],
+      "checks": [
+        {
+          "name": "postsettlement cleanup shares promise",
+          "passed": true
+        },
+        {
+          "name": "exact result and rejection identity",
+          "passed": true
+        },
+        {
+          "name": "identical stdout rejection without diagnostic attempt",
+          "passed": true
+        },
+        {
+          "name": "exact worker job count",
+          "passed": true
+        },
+        {
+          "name": "worker count bounded without duplicate acquisition",
+          "passed": true
+        },
+        {
+          "name": "no duplicate termination",
+          "passed": true
+        },
+        {
+          "name": "no owned workers at settlement or cleanup",
+          "passed": true
+        },
+        {
+          "name": "at most one exact constant emergency attempt",
+          "passed": true
+        },
+        {
+          "name": "normal attempted bytes obey normal quota",
+          "passed": true
+        },
+        {
+          "name": "one registration and session close or none when preaborted",
+          "passed": true
+        },
+        {
+          "name": "registration precedes session acquisition",
+          "passed": true
+        },
+        {
+          "name": "at most one stderr attempt",
+          "passed": true
+        }
+      ],
+      "activeAtSettlement": 0,
+      "actual": {
+        "status": null,
+        "stdout": "",
+        "stderr": "",
+        "stdoutHex": "",
+        "stderrHex": "",
+        "rejection": "sink"
+      },
+      "activeAfterCleanup": 0,
+      "passed": true
+    }
+  ],
+  "passed": 1,
+  "total": 1,
+  "imports": [
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/expr/evaluate.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "dist/commands/expr/index.js",
+      "resolved": "dist/commands/expr/syntax.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/command.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/filesystem.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/output.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/path.js"
+    },
+    {
+      "parent": "dist/contracts/index.js",
+      "resolved": "dist/contracts/plugin.js"
+    },
+    {
+      "parent": "dist/commands/regex-execution/client.js",
+      "resolved": "node:worker_threads"
+    },
+    {
+      "parent": "dist/commands/regex-execution/client.js",
+      "resolved": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "dist/commands/expr/evaluate.js",
+      "resolved": "dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "dist/commands/expr/internal.js",
+      "resolved": "dist/commands/regex-execution/protocol.js"
+    },
+    {
+      "parent": "dist/commands/expr/syntax.js",
+      "resolved": "dist/commands/expr/internal.js"
+    },
+    {
+      "parent": "dist/commands/expr/syntax.js",
+      "resolved": "dist/commands/expr/evaluate.js"
+    },
+    {
+      "parent": "dist/contracts/errors.js",
+      "resolved": "node:util"
+    },
+    {
+      "parent": "dist/contracts/io.js",
+      "resolved": "node:stream/web"
+    },
+    {
+      "parent": "dist/contracts/io.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/contracts/output.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/contracts/path.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/contracts/path.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/plugins/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/shell/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/text-programs/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/structured/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/search/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/bytes/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/diff-patch/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/safejs/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/network/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/metadata/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/archive/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/table-text/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/stream-inspection/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/stream-format/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/split/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/time-env/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/tree/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/file/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/grep-aliases/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/commands/column/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/memory/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/real/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/s3/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/s3/http/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/webdav/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/readonly/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/mount/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/fs/overlay/index.js"
+    },
+    {
+      "parent": "dist/index.js",
+      "resolved": "dist/integrations/safejs/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/text-programs/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/structured/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/search/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/bytes/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/diff-patch/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/metadata/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/archive/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/table-text/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/stream-inspection/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/stream-format/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/split/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/time-env/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/tree/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/file/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/grep-aliases/index.js"
+    },
+    {
+      "parent": "dist/plugins/index.js",
+      "resolved": "dist/commands/column/index.js"
+    },
+    {
+      "parent": "dist/shell/index.js",
+      "resolved": "dist/shell/shell.js"
+    },
+    {
+      "parent": "dist/shell/index.js",
+      "resolved": "dist/shell/parser.js"
+    },
+    {
+      "parent": "dist/shell/index.js",
+      "resolved": "dist/shell/types.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/basic.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/filesystem.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/streams.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/text.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/grep.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/predicates.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/execution.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/find.js"
+    },
+    {
+      "parent": "dist/commands/index.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/index.js",
+      "resolved": "dist/commands/text-programs/sed.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/index.js",
+      "resolved": "dist/commands/text-programs/awk.js"
+    },
+    {
+      "parent": "dist/commands/structured/index.js",
+      "resolved": "dist/commands/structured/jq.js"
+    },
+    {
+      "parent": "dist/commands/structured/index.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/search/index.js",
+      "resolved": "dist/commands/search/rg.js"
+    },
+    {
+      "parent": "dist/commands/bytes/index.js",
+      "resolved": "dist/commands/bytes/encoding/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/index.js",
+      "resolved": "dist/commands/bytes/checksums/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/index.js",
+      "resolved": "dist/commands/bytes/compression/index.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/index.js",
+      "resolved": "dist/commands/diff-patch/diff.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/index.js",
+      "resolved": "dist/commands/diff-patch/patch.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/integrations/safejs/index.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/integrations/safejs/values.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/commands/safejs/io.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/commands/safejs/options.js"
+    },
+    {
+      "parent": "dist/commands/safejs/index.js",
+      "resolved": "dist/commands/safejs/types.js"
+    },
+    {
+      "parent": "dist/commands/network/index.js",
+      "resolved": "dist/commands/network/curl.js"
+    },
+    {
+      "parent": "dist/commands/network/index.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/network/index.js",
+      "resolved": "dist/commands/network/transport.js"
+    },
+    {
+      "parent": "dist/commands/metadata/index.js",
+      "resolved": "dist/commands/metadata/chmod.js"
+    },
+    {
+      "parent": "dist/commands/metadata/index.js",
+      "resolved": "dist/commands/metadata/stat.js"
+    },
+    {
+      "parent": "dist/commands/metadata/index.js",
+      "resolved": "dist/commands/metadata/mktemp.js"
+    },
+    {
+      "parent": "dist/commands/metadata/index.js",
+      "resolved": "dist/commands/metadata/internal.js"
+    },
+    {
+      "parent": "dist/commands/archive/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/archive/index.js",
+      "resolved": "dist/commands/archive/create.js"
+    },
+    {
+      "parent": "dist/commands/archive/index.js",
+      "resolved": "dist/commands/archive/extract.js"
+    },
+    {
+      "parent": "dist/commands/archive/index.js",
+      "resolved": "dist/commands/archive/internal.js"
+    },
+    {
+      "parent": "dist/commands/archive/index.js",
+      "resolved": "dist/commands/archive/options.js"
+    },
+    {
+      "parent": "dist/commands/archive/index.js",
+      "resolved": "dist/commands/archive/stream.js"
+    },
+    {
+      "parent": "dist/commands/table-text/index.js",
+      "resolved": "dist/commands/table-text/paste.js"
+    },
+    {
+      "parent": "dist/commands/table-text/index.js",
+      "resolved": "dist/commands/table-text/comm.js"
+    },
+    {
+      "parent": "dist/commands/table-text/index.js",
+      "resolved": "dist/commands/table-text/join.js"
+    },
+    {
+      "parent": "dist/commands/table-text/index.js",
+      "resolved": "dist/commands/table-text/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/index.js",
+      "resolved": "dist/commands/stream-inspection/tac.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/index.js",
+      "resolved": "dist/commands/stream-inspection/expand.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/index.js",
+      "resolved": "dist/commands/stream-inspection/fold.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/index.js",
+      "resolved": "dist/commands/stream-inspection/strings.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/index.js",
+      "resolved": "dist/commands/stream-inspection/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/index.js",
+      "resolved": "dist/commands/stream-format/seq.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/index.js",
+      "resolved": "dist/commands/stream-format/nl.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/index.js",
+      "resolved": "dist/commands/stream-format/rev.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/index.js",
+      "resolved": "dist/commands/stream-format/unexpand.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/index.js",
+      "resolved": "dist/commands/stream-format/shared.js"
+    },
+    {
+      "parent": "dist/commands/split/index.js",
+      "resolved": "dist/commands/split/options.js"
+    },
+    {
+      "parent": "dist/commands/split/index.js",
+      "resolved": "dist/commands/split/split.js"
+    },
+    {
+      "parent": "dist/commands/time-env/index.js",
+      "resolved": "dist/commands/time-env/printenv.js"
+    },
+    {
+      "parent": "dist/commands/time-env/index.js",
+      "resolved": "dist/commands/time-env/date.js"
+    },
+    {
+      "parent": "dist/commands/time-env/index.js",
+      "resolved": "dist/commands/time-env/sleep.js"
+    },
+    {
+      "parent": "dist/commands/time-env/index.js",
+      "resolved": "dist/commands/time-env/shared.js"
+    },
+    {
+      "parent": "dist/commands/tree/index.js",
+      "resolved": "dist/commands/tree/tree.js"
+    },
+    {
+      "parent": "dist/commands/file/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/file/index.js",
+      "resolved": "dist/commands/file/classify.js"
+    },
+    {
+      "parent": "dist/commands/file/index.js",
+      "resolved": "dist/commands/file/shared.js"
+    },
+    {
+      "parent": "dist/commands/grep-aliases/index.js",
+      "resolved": "dist/commands/grep.js"
+    },
+    {
+      "parent": "dist/commands/column/index.js",
+      "resolved": "dist/commands/column/column.js"
+    },
+    {
+      "parent": "dist/fs/memory/index.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/memory/index.js",
+      "resolved": "dist/fs/mount/comparison.js"
+    },
+    {
+      "parent": "dist/fs/memory/index.js",
+      "resolved": "dist/fs/s3/authority.js"
+    },
+    {
+      "parent": "dist/fs/memory/index.js",
+      "resolved": "dist/fs/webdav/resource-id.js"
+    },
+    {
+      "parent": "dist/fs/real/index.js",
+      "resolved": "node:fs"
+    },
+    {
+      "parent": "dist/fs/real/index.js",
+      "resolved": "node:fs/promises"
+    },
+    {
+      "parent": "dist/fs/real/index.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/fs/real/index.js",
+      "resolved": "dist/fs/real/allocation.js"
+    },
+    {
+      "parent": "dist/fs/real/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/fs/s3/index.js",
+      "resolved": "dist/fs/s3/filesystem.js"
+    },
+    {
+      "parent": "dist/fs/s3/index.js",
+      "resolved": "dist/fs/s3/mock.js"
+    },
+    {
+      "parent": "dist/fs/s3/index.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/index.js",
+      "resolved": "dist/fs/s3/http/transport.js"
+    },
+    {
+      "parent": "dist/fs/webdav/index.js",
+      "resolved": "dist/fs/webdav/webdav.js"
+    },
+    {
+      "parent": "dist/fs/readonly/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/fs/readonly/index.js",
+      "resolved": "dist/fs/mount/comparison.js"
+    },
+    {
+      "parent": "dist/fs/mount/index.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/mount/index.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/fs/mount/index.js",
+      "resolved": "dist/contracts/path.js"
+    },
+    {
+      "parent": "dist/fs/mount/index.js",
+      "resolved": "dist/fs/mount/identity.js"
+    },
+    {
+      "parent": "dist/fs/mount/index.js",
+      "resolved": "dist/fs/mount/comparison.js"
+    },
+    {
+      "parent": "dist/fs/overlay/index.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/fs/overlay/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/fs/overlay/index.js",
+      "resolved": "dist/fs/mount/identity.js"
+    },
+    {
+      "parent": "dist/fs/overlay/index.js",
+      "resolved": "dist/fs/mount/comparison.js"
+    },
+    {
+      "parent": "dist/integrations/safejs/index.js",
+      "resolved": "dist/integrations/safejs/filesystem.js"
+    },
+    {
+      "parent": "dist/integrations/safejs/index.js",
+      "resolved": "dist/integrations/safejs/shell.js"
+    },
+    {
+      "parent": "dist/commands/internal.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/shell/parser.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/shell/input.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/shell/locale.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/shell/runtime.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/shell/types.js"
+    },
+    {
+      "parent": "dist/shell/shell.js",
+      "resolved": "dist/shell/cleanup.js"
+    },
+    {
+      "parent": "dist/shell/parser.js",
+      "resolved": "dist/shell/types.js"
+    },
+    {
+      "parent": "dist/shell/parser.js",
+      "resolved": "dist/shell/arithmetic.js"
+    },
+    {
+      "parent": "dist/commands/basic.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/basic.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/filesystem.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/filesystem.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/filesystem.js",
+      "resolved": "dist/commands/copy-identity.js"
+    },
+    {
+      "parent": "dist/commands/filesystem.js",
+      "resolved": "dist/commands/move.js"
+    },
+    {
+      "parent": "dist/commands/streams.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/streams.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/text.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/text.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/grep.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/grep.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/predicates.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/predicates.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/execution.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/execution.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/execution.js",
+      "resolved": "dist/commands/env-split.js"
+    },
+    {
+      "parent": "dist/commands/find.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/find.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/sed.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/sed.js",
+      "resolved": "dist/commands/text-programs/regex.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/sed.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk.js",
+      "resolved": "dist/commands/text-programs/awk-syntax.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk.js",
+      "resolved": "dist/commands/text-programs/awk-runtime.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/structured/jq.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/structured/jq.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/structured/jq.js",
+      "resolved": "dist/commands/structured/input.js"
+    },
+    {
+      "parent": "dist/commands/structured/jq.js",
+      "resolved": "dist/commands/structured/interpreter.js"
+    },
+    {
+      "parent": "dist/commands/structured/jq.js",
+      "resolved": "dist/commands/structured/parser.js"
+    },
+    {
+      "parent": "dist/commands/structured/limits.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/structured/limits.js",
+      "resolved": "dist/commands/structured/numbers.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/commands/search/matcher.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/commands/search/options.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/commands/search/output.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/commands/search/shared.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/commands/search/walk.js"
+    },
+    {
+      "parent": "dist/commands/search/rg.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/index.js",
+      "resolved": "dist/commands/bytes/encoding/base.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/index.js",
+      "resolved": "dist/commands/bytes/encoding/od.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/index.js",
+      "resolved": "dist/commands/bytes/encoding/xxd.js"
+    },
+    {
+      "parent": "dist/commands/bytes/checksums/index.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/commands/bytes/checksums/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/checksums/index.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/index.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/index.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/index.js",
+      "resolved": "dist/commands/bytes/compression/files.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/index.js",
+      "resolved": "dist/commands/bytes/compression/options.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/index.js",
+      "resolved": "dist/commands/bytes/compression/stream.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/diff.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/diff.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/diff.js",
+      "resolved": "dist/commands/diff-patch/diff-format.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/unified.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/patch-path.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/patch-envelope.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/patch-formats.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/patch-gnu-paths.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch.js",
+      "resolved": "dist/commands/diff-patch/patch-gnu-reject.js"
+    },
+    {
+      "parent": "dist/commands/safejs/io.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/safejs/io.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/safejs/io.js",
+      "resolved": "dist/commands/safejs/types.js"
+    },
+    {
+      "parent": "dist/commands/safejs/io.js",
+      "resolved": "dist/commands/safejs/render.js"
+    },
+    {
+      "parent": "dist/commands/safejs/options.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/network/args.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/network/body.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/network/output.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/network/shared.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/network/transport.js"
+    },
+    {
+      "parent": "dist/commands/network/curl.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/network/transport.js",
+      "resolved": "node:http"
+    },
+    {
+      "parent": "dist/commands/network/transport.js",
+      "resolved": "node:https"
+    },
+    {
+      "parent": "dist/commands/network/transport.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/network/transport.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/network/transport.js",
+      "resolved": "dist/commands/network/shared.js"
+    },
+    {
+      "parent": "dist/commands/metadata/chmod.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/metadata/chmod.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/metadata/chmod.js",
+      "resolved": "dist/commands/metadata/internal.js"
+    },
+    {
+      "parent": "dist/commands/metadata/stat.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/metadata/stat.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/metadata/stat.js",
+      "resolved": "dist/commands/metadata/internal.js"
+    },
+    {
+      "parent": "dist/commands/metadata/mktemp.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/commands/metadata/mktemp.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/metadata/mktemp.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/metadata/mktemp.js",
+      "resolved": "dist/commands/metadata/internal.js"
+    },
+    {
+      "parent": "dist/commands/metadata/internal.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/metadata/internal.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/archive/create.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/archive/create.js",
+      "resolved": "dist/commands/archive/format.js"
+    },
+    {
+      "parent": "dist/commands/archive/create.js",
+      "resolved": "dist/commands/archive/internal.js"
+    },
+    {
+      "parent": "dist/commands/archive/create.js",
+      "resolved": "dist/commands/archive/options.js"
+    },
+    {
+      "parent": "dist/commands/archive/extract.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/archive/extract.js",
+      "resolved": "dist/commands/archive/format.js"
+    },
+    {
+      "parent": "dist/commands/archive/extract.js",
+      "resolved": "dist/commands/archive/internal.js"
+    },
+    {
+      "parent": "dist/commands/archive/extract.js",
+      "resolved": "dist/commands/archive/options.js"
+    },
+    {
+      "parent": "dist/commands/archive/extract.js",
+      "resolved": "dist/commands/archive/stream.js"
+    },
+    {
+      "parent": "dist/commands/archive/internal.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/archive/options.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/archive/options.js",
+      "resolved": "dist/commands/archive/internal.js"
+    },
+    {
+      "parent": "dist/commands/archive/stream.js",
+      "resolved": "node:zlib"
+    },
+    {
+      "parent": "dist/commands/archive/stream.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/archive/stream.js",
+      "resolved": "dist/commands/archive/internal.js"
+    },
+    {
+      "parent": "dist/commands/table-text/paste.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/table-text/paste.js",
+      "resolved": "dist/commands/table-text/internal.js"
+    },
+    {
+      "parent": "dist/commands/table-text/comm.js",
+      "resolved": "dist/commands/table-text/internal.js"
+    },
+    {
+      "parent": "dist/commands/table-text/join.js",
+      "resolved": "dist/commands/table-text/internal.js"
+    },
+    {
+      "parent": "dist/commands/table-text/internal.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/table-text/internal.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/tac.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/tac.js",
+      "resolved": "dist/commands/stream-inspection/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/expand.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/expand.js",
+      "resolved": "dist/commands/stream-inspection/numeric-options.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/expand.js",
+      "resolved": "dist/commands/stream-inspection/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/fold.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/fold.js",
+      "resolved": "dist/commands/stream-inspection/numeric-options.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/fold.js",
+      "resolved": "dist/commands/stream-inspection/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/strings.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/strings.js",
+      "resolved": "dist/commands/stream-inspection/numeric-options.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/strings.js",
+      "resolved": "dist/commands/stream-inspection/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/shared.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/seq.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/seq.js",
+      "resolved": "dist/commands/stream-format/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/nl.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/nl.js",
+      "resolved": "dist/commands/text-programs/regex.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/nl.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/nl.js",
+      "resolved": "dist/commands/stream-format/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/rev.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/rev.js",
+      "resolved": "dist/commands/stream-format/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/unexpand.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/unexpand.js",
+      "resolved": "dist/commands/stream-format/shared.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/stream-format/shared.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/split/split.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/split/split.js",
+      "resolved": "dist/commands/split/io.js"
+    },
+    {
+      "parent": "dist/commands/split/split.js",
+      "resolved": "dist/commands/split/names.js"
+    },
+    {
+      "parent": "dist/commands/split/split.js",
+      "resolved": "dist/commands/split/outputs.js"
+    },
+    {
+      "parent": "dist/commands/split/split.js",
+      "resolved": "dist/commands/split/options.js"
+    },
+    {
+      "parent": "dist/commands/time-env/printenv.js",
+      "resolved": "dist/commands/time-env/shared.js"
+    },
+    {
+      "parent": "dist/commands/time-env/date.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/time-env/date.js",
+      "resolved": "dist/commands/time-env/calendar.js"
+    },
+    {
+      "parent": "dist/commands/time-env/date.js",
+      "resolved": "dist/commands/time-env/format.js"
+    },
+    {
+      "parent": "dist/commands/time-env/date.js",
+      "resolved": "dist/commands/time-env/shared.js"
+    },
+    {
+      "parent": "dist/commands/time-env/sleep.js",
+      "resolved": "dist/commands/time-env/shared.js"
+    },
+    {
+      "parent": "dist/commands/time-env/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "resolved": "dist/commands/copy-identity.js"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "resolved": "dist/commands/tree/arguments.js"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "resolved": "dist/commands/tree/io.js"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "resolved": "dist/commands/tree/options.js"
+    },
+    {
+      "parent": "dist/commands/tree/tree.js",
+      "resolved": "dist/commands/tree/pattern.js"
+    },
+    {
+      "parent": "dist/commands/file/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/column/column.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/column/column.js",
+      "resolved": "dist/commands/column/display.js"
+    },
+    {
+      "parent": "dist/commands/column/column.js",
+      "resolved": "dist/commands/column/internal.js"
+    },
+    {
+      "parent": "dist/commands/column/column.js",
+      "resolved": "dist/commands/column/options.js"
+    },
+    {
+      "parent": "dist/commands/column/column.js",
+      "resolved": "dist/commands/column/table.js"
+    },
+    {
+      "parent": "dist/fs/mount/comparison.js",
+      "resolved": "node:async_hooks"
+    },
+    {
+      "parent": "dist/fs/mount/comparison.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/mount/comparison.js",
+      "resolved": "dist/fs/mount/identity.js"
+    },
+    {
+      "parent": "dist/fs/s3/authority.js",
+      "resolved": "node:async_hooks"
+    },
+    {
+      "parent": "dist/fs/s3/authority.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/webdav/resource-id.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/s3/filesystem.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/fs/s3/filesystem.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/s3/filesystem.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/fs/s3/filesystem.js",
+      "resolved": "dist/fs/mount/comparison.js"
+    },
+    {
+      "parent": "dist/fs/s3/filesystem.js",
+      "resolved": "dist/fs/s3/authority.js"
+    },
+    {
+      "parent": "dist/fs/s3/filesystem.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/fs/s3/mock.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/fs/s3/mock.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/fs/s3/mock.js",
+      "resolved": "dist/fs/s3/authority.js"
+    },
+    {
+      "parent": "dist/fs/s3/mock.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/transport.js",
+      "resolved": "node:net"
+    },
+    {
+      "parent": "dist/fs/s3/http/transport.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/transport.js",
+      "resolved": "dist/fs/s3/http/request.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/transport.js",
+      "resolved": "dist/fs/s3/http/signature.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/transport.js",
+      "resolved": "dist/fs/s3/http/xml.js"
+    },
+    {
+      "parent": "dist/fs/webdav/webdav.js",
+      "resolved": "dist/contracts/errors.js"
+    },
+    {
+      "parent": "dist/fs/webdav/webdav.js",
+      "resolved": "dist/contracts/io.js"
+    },
+    {
+      "parent": "dist/fs/webdav/webdav.js",
+      "resolved": "dist/fs/webdav/xml.js"
+    },
+    {
+      "parent": "dist/fs/webdav/webdav.js",
+      "resolved": "dist/fs/mount/comparison.js"
+    },
+    {
+      "parent": "dist/fs/webdav/webdav.js",
+      "resolved": "dist/fs/webdav/resource-id.js"
+    },
+    {
+      "parent": "dist/integrations/safejs/filesystem.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/integrations/safejs/filesystem.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/integrations/safejs/filesystem.js",
+      "resolved": "node:url"
+    },
+    {
+      "parent": "dist/integrations/safejs/filesystem.js",
+      "resolved": "dist/integrations/safejs/stats.js"
+    },
+    {
+      "parent": "dist/integrations/safejs/filesystem.js",
+      "resolved": "dist/integrations/safejs/values.js"
+    },
+    {
+      "parent": "dist/integrations/safejs/shell.js",
+      "resolved": "dist/integrations/safejs/values.js"
+    },
+    {
+      "parent": "dist/shell/input.js",
+      "resolved": "dist/shell/runtime.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/parser.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/types.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/input.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/arithmetic.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/pattern.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/locale.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/display.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/shell/cleanup.js"
+    },
+    {
+      "parent": "dist/shell/runtime.js",
+      "resolved": "dist/commands/execution.js"
+    },
+    {
+      "parent": "dist/shell/arithmetic.js",
+      "resolved": "dist/shell/types.js"
+    },
+    {
+      "parent": "dist/commands/copy-identity.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/move.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/move.js",
+      "resolved": "dist/commands/copy-identity.js"
+    },
+    {
+      "parent": "dist/commands/move.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/env-split.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/regex.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/shared.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/text-programs/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-syntax.js",
+      "resolved": "dist/commands/text-programs/regex.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-syntax.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-syntax.js",
+      "resolved": "dist/commands/text-programs/awk-values.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-runtime.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-runtime.js",
+      "resolved": "dist/commands/text-programs/awk-syntax.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-runtime.js",
+      "resolved": "dist/commands/text-programs/awk-values.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-runtime.js",
+      "resolved": "dist/commands/text-programs/regex.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-runtime.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/structured/input.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/structured/input.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/structured/input.js",
+      "resolved": "dist/commands/structured/numbers.js"
+    },
+    {
+      "parent": "dist/commands/structured/interpreter.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/structured/interpreter.js",
+      "resolved": "dist/commands/structured/numbers.js"
+    },
+    {
+      "parent": "dist/commands/structured/interpreter.js",
+      "resolved": "dist/commands/structured/input.js"
+    },
+    {
+      "parent": "dist/commands/structured/interpreter.js",
+      "resolved": "dist/commands/structured/split.js"
+    },
+    {
+      "parent": "dist/commands/structured/interpreter.js",
+      "resolved": "dist/commands/structured/values.js"
+    },
+    {
+      "parent": "dist/commands/structured/parser.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/structured/parser.js",
+      "resolved": "dist/commands/structured/numbers.js"
+    },
+    {
+      "parent": "dist/commands/search/matcher.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/search/matcher.js",
+      "resolved": "dist/commands/search/options.js"
+    },
+    {
+      "parent": "dist/commands/search/output.js",
+      "resolved": "node:buffer"
+    },
+    {
+      "parent": "dist/commands/search/output.js",
+      "resolved": "dist/commands/search/shared.js"
+    },
+    {
+      "parent": "dist/commands/search/shared.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/search/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/search/shared.js",
+      "resolved": "dist/commands/search/options.js"
+    },
+    {
+      "parent": "dist/commands/search/walk.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/search/walk.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/search/walk.js",
+      "resolved": "dist/commands/search/glob.js"
+    },
+    {
+      "parent": "dist/commands/search/walk.js",
+      "resolved": "dist/commands/search/options.js"
+    },
+    {
+      "parent": "dist/commands/search/walk.js",
+      "resolved": "dist/commands/search/shared.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/base.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/base.js",
+      "resolved": "dist/commands/bytes/encoding/shared.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/od.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/od.js",
+      "resolved": "dist/commands/bytes/encoding/shared.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/xxd.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/xxd.js",
+      "resolved": "dist/commands/bytes/encoding/shared.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/files.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/files.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/files.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/files.js",
+      "resolved": "dist/commands/bytes/compression/stream.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/options.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/stream.js",
+      "resolved": "node:stream"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/stream.js",
+      "resolved": "node:stream/promises"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/stream.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/stream.js",
+      "resolved": "node:zlib"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/stream.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/stream.js",
+      "resolved": "dist/commands/bytes/compression/gunzip.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/shared.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/diff-patch/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/unified.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/unified.js",
+      "resolved": "dist/commands/diff-patch/patch-path.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-path.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-envelope.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-formats.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-formats.js",
+      "resolved": "dist/commands/diff-patch/unified.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-formats.js",
+      "resolved": "dist/commands/diff-patch/patch-path.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-gnu-paths.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-gnu-paths.js",
+      "resolved": "dist/commands/diff-patch/patch-path.js"
+    },
+    {
+      "parent": "dist/commands/diff-patch/patch-gnu-paths.js",
+      "resolved": "dist/commands/diff-patch/shared.js"
+    },
+    {
+      "parent": "dist/commands/safejs/render.js",
+      "resolved": "dist/integrations/safejs/values.js"
+    },
+    {
+      "parent": "dist/commands/safejs/render.js",
+      "resolved": "dist/commands/safejs/types.js"
+    },
+    {
+      "parent": "dist/commands/network/args.js",
+      "resolved": "node:http"
+    },
+    {
+      "parent": "dist/commands/network/args.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "node:path"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "dist/commands/network/shared.js"
+    },
+    {
+      "parent": "dist/commands/network/body.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/network/output.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/network/output.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/network/output.js",
+      "resolved": "dist/commands/network/shared.js"
+    },
+    {
+      "parent": "dist/commands/network/output.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/network/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/network/shared.js",
+      "resolved": "dist/commands/network/types.js"
+    },
+    {
+      "parent": "dist/commands/archive/format.js",
+      "resolved": "dist/commands/archive/internal.js"
+    },
+    {
+      "parent": "dist/commands/stream-inspection/numeric-options.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/split/io.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/split/io.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/split/io.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/split/outputs.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/split/outputs.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/split/outputs.js",
+      "resolved": "dist/commands/split/io.js"
+    },
+    {
+      "parent": "dist/commands/time-env/calendar.js",
+      "resolved": "dist/commands/time-env/shared.js"
+    },
+    {
+      "parent": "dist/commands/time-env/format.js",
+      "resolved": "dist/commands/time-env/shared.js"
+    },
+    {
+      "parent": "dist/commands/time-env/format.js",
+      "resolved": "dist/commands/time-env/calendar.js"
+    },
+    {
+      "parent": "dist/commands/tree/arguments.js",
+      "resolved": "dist/commands/tree/io.js"
+    },
+    {
+      "parent": "dist/commands/tree/arguments.js",
+      "resolved": "dist/commands/tree/pattern.js"
+    },
+    {
+      "parent": "dist/commands/tree/arguments.js",
+      "resolved": "dist/commands/tree/charset.js"
+    },
+    {
+      "parent": "dist/commands/tree/io.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/tree/io.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/tree/pattern.js",
+      "resolved": "dist/commands/tree/io.js"
+    },
+    {
+      "parent": "dist/commands/column/display.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/column/internal.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/column/internal.js",
+      "resolved": "dist/commands/table-text/internal.js"
+    },
+    {
+      "parent": "dist/commands/column/internal.js",
+      "resolved": "dist/commands/column/options.js"
+    },
+    {
+      "parent": "dist/commands/column/options.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/column/options.js",
+      "resolved": "dist/commands/table-text/internal.js"
+    },
+    {
+      "parent": "dist/commands/column/table.js",
+      "resolved": "dist/commands/column/internal.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/request.js",
+      "resolved": "node:events"
+    },
+    {
+      "parent": "dist/fs/s3/http/request.js",
+      "resolved": "node:http"
+    },
+    {
+      "parent": "dist/fs/s3/http/request.js",
+      "resolved": "node:https"
+    },
+    {
+      "parent": "dist/fs/s3/http/request.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/signature.js",
+      "resolved": "node:crypto"
+    },
+    {
+      "parent": "dist/fs/s3/http/signature.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/fs/s3/http/xml.js",
+      "resolved": "dist/fs/s3/transport.js"
+    },
+    {
+      "parent": "dist/commands/text-programs/awk-values.js",
+      "resolved": "dist/commands/text-programs/shared.js"
+    },
+    {
+      "parent": "dist/commands/structured/split.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/structured/values.js",
+      "resolved": "dist/commands/structured/limits.js"
+    },
+    {
+      "parent": "dist/commands/structured/values.js",
+      "resolved": "dist/commands/structured/numbers.js"
+    },
+    {
+      "parent": "dist/commands/structured/values.js",
+      "resolved": "dist/commands/structured/input.js"
+    },
+    {
+      "parent": "dist/commands/search/glob.js",
+      "resolved": "dist/commands/regex-execution/client.js"
+    },
+    {
+      "parent": "dist/commands/search/glob.js",
+      "resolved": "dist/commands/search/options.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/shared.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/shared.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/bytes/encoding/shared.js",
+      "resolved": "dist/commands/internal.js"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/gunzip.js",
+      "resolved": "node:timers/promises"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/gunzip.js",
+      "resolved": "node:zlib"
+    },
+    {
+      "parent": "dist/commands/bytes/compression/gunzip.js",
+      "resolved": "dist/contracts/index.js"
+    },
+    {
+      "parent": "dist/commands/tree/charset.js",
+      "resolved": "dist/commands/tree/io.js"
+    }
+  ],
+  "mainThreadMatcherViolations": [],
+  "unhandledRejections": [],
+  "safetyTerminations": 0,
+  "activeAfterSafety": 0
+}

@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "status": "PRE-EXECUTION ADDENDUM CHECKPOINT",
+  "createdAt": "2026-08-28T00:31:01.303Z",
+  "files": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/ADDENDUM.md",
+      "bytes": 9939,
+      "sha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/inspect.mjs",
+      "bytes": 13203,
+      "sha256": "3e294b4a9d24aa9f3159ed8671e61cd10461b48862283b409074efae041b5515"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+      "bytes": 20548,
+      "sha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/CHECKS.json",
+      "bytes": 1900,
+      "sha256": "1825a868610b89cdaa4d7ed8c2fedec5f686e0470a436c05ac489956196db198"
+    }
+  ],
+  "originalFixtureHashes": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/cases.json",
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+      "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/positive.ts.fixture",
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/negative.ts.fixture",
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/README.md",
+      "sha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/PROTOCOL.md",
+      "sha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/self-check.mjs",
+      "sha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/provenance.json",
+      "sha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/FREEZE-CHECKS.json",
+      "sha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c"
+    }
+  ],
+  "candidate": {
+    "commit": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+    "dates": [
+      "2026-08-27T18:31:58-05:00",
+      "2026-08-27T18:31:58-05:00"
+    ]
+  },
+  "packSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "independentRuntimePasses": 0,
+  "independentTypePasses": 0,
+  "nextAction": "Root reviews addendum before any independent runtime adapter/control freeze or candidate execution; accepted-DU/HTML prerequisites remain HELD",
+  "selfReference": "This manifest excludes its own hash. The explicit-path Git seal authenticates this manifest and every listed file."
+}

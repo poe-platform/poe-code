@@ -1,0 +1,195 @@
+{
+  "schema": "npm-pin-independent-failure-seal-v1",
+  "verdict": "REVIEW_PREPARATION_FAIL",
+  "presealCommit": "a38a588643084ce73264cd27624742127efd8f46",
+  "wallOrigin": "2026-08-28T19:17:50.806Z",
+  "monotonicOriginMs": 137432.198375,
+  "precommitElapsedMs": 222786.09075,
+  "globalCapMs": 600000,
+  "renewals": 0,
+  "retries": 0,
+  "reviewChildren": [
+    {
+      "index": 1,
+      "pid": 44917,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 37.952499999984866,
+      "parentElapsedMs": 53.998082999984035,
+      "stdoutBytes": 22398,
+      "stderrBytes": 0,
+      "stdoutSha256": "5de4bf460a44da381d72bbfd801b23768e91e0ee89d19bee05202ca3ed151bd3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "index": 2,
+      "pid": 44918,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 58.24545799999032,
+      "parentElapsedMs": 126.94941599998856,
+      "stdoutBytes": 311984,
+      "stderrBytes": 0,
+      "stdoutSha256": "4f5605f2f77d813d68b693253e619794f89928c3d13eddf96509e0537e321b6a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "index": 3,
+      "pid": 45803,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "elapsedMs": 447.4334169999929,
+      "parentElapsedMs": 45129.76966599998,
+      "stdoutBytes": 11743089,
+      "stderrBytes": 0,
+      "stdoutSha256": "89fa314561b0303ac43b1cb03fe27d3b7f0aa8682f92213e0ddd0d3b6b1b0903",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "reviewCaptureBytes": 12077471,
+  "administrativePatch": {
+    "role": "exact owned report creation after unsafe review stop; not source review or test",
+    "execToolResult": "ad7923",
+    "exitCode": 0,
+    "completed": true,
+    "stdout": "Success. Updated the following files:\nA tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/REVIEW.md\nA tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/RESULTS.json\n"
+  },
+  "caps": {
+    "children": 12,
+    "peak": 2,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "sourceReviewStopped": true,
+  "laterSourceAdmissions": 0,
+  "productExecutions": 0,
+  "workflowUnrun": 93,
+  "allReviewChildrenKnownReaped": true,
+  "activeReviewChildren": [],
+  "tool": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "kind": "regular",
+    "mode": "755",
+    "size": 7604272,
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+  },
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 3577,
+      "sha256": "0e890f4b96b8936eff0b95d1cd9c0d53d5dd7046cbaf8967b188f1784ed5ff16"
+    },
+    {
+      "path": "PREPARATION-FAILURE.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 1076,
+      "sha256": "3bb04e1e6c8366b024709977bef0abc7230604242ab24dc82c8984ab748c6036"
+    },
+    {
+      "path": "RESULTS.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 1719,
+      "sha256": "6d5e2d096077ecde9d31a698f1f1b25eb08e7808416f56eae6b914236fac0e75"
+    },
+    {
+      "path": "REVIEW-PRESEAL.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 1618,
+      "sha256": "b2606b4e393938c6a8578f597b93e4a32eb05ef52b8593432ec4550cb8404d20"
+    },
+    {
+      "path": "REVIEW-PRESEAL.md",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 5489,
+      "sha256": "f836de12de4a01487fc484abc0cdab65fa4a5a59236df990ace3dd4009f4b35b"
+    },
+    {
+      "path": "REVIEW.md",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 4774,
+      "sha256": "2192b924031376d81b0d996523f8c132bcbb72ef8e970253570f18f67a06a93f"
+    },
+    {
+      "path": "raw/01.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 723,
+      "sha256": "7e11a4cfb8b96f3c3550d5f941af4103157d6ec3a0231857e2d12dc07ae05a4b"
+    },
+    {
+      "path": "raw/01.stderr",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/01.stdout",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 22398,
+      "sha256": "5de4bf460a44da381d72bbfd801b23768e91e0ee89d19bee05202ca3ed151bd3"
+    },
+    {
+      "path": "raw/02.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 599,
+      "sha256": "fb7a305d7027b3a5df9072deb0695ef976c306b6a354080a23483036ec948ea0"
+    },
+    {
+      "path": "raw/02.stderr",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/02.stdout",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 311984,
+      "sha256": "4f5605f2f77d813d68b693253e619794f89928c3d13eddf96509e0537e321b6a"
+    },
+    {
+      "path": "raw/03.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 600,
+      "sha256": "45beffbb0d4d183150c89c19b55284c5a9fc000c4b89fd220892ef3562c625ec"
+    },
+    {
+      "path": "raw/03.stderr",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/03.stdout",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 11743089,
+      "sha256": "89fa314561b0303ac43b1cb03fe27d3b7f0aa8682f92213e0ddd0d3b6b1b0903"
+    },
+    {
+      "path": "raw/ORIGIN.json",
+      "kind": "regular",
+      "mode": "644",
+      "bytes": 129,
+      "sha256": "5562c0171da6934d591658fd5541db8ac296dffd46defb0bddd465db2f7e2d4e"
+    }
+  ],
+  "fileBytesBeforeThisSeal": 12097775,
+  "closure": "Exact list covers all owned files before FINAL.json; FINAL.json raw hash and completed administrative commit/status accounting are in /tmp handoff. No source admission or review recovery during finalization."
+}

@@ -1,0 +1,324 @@
+{
+  "schema": 1,
+  "classification": "IN_MEMORY_STATIC_BYTE_ARITHMETIC_NO_PRODUCT_EXECUTION",
+  "planEvidenceCommit": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+  "acceptedCandidateDataReview": "dffc3047c2e06651cde6356338b3f73ec9cfd7af",
+  "newReadNeed": "Only the new literal edit offsets/postimage/control-map definitions need package bytes beyond accepted prior data. Root raw hash checked before tar parse. Read exactly two regular JS payloads into memory; no extraction/materialization/module parse/import/loader/predicate invocation. No old controls rerun.",
+  "package": {
+    "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+    "rawSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "bytes": 786778,
+    "rootHashCheckedBeforeParse": true,
+    "readPayloads": [
+      {
+        "path": "dist/commands/yq/index.js",
+        "bytes": 26827,
+        "mode": 420,
+        "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+        "regularUnique": true
+      },
+      {
+        "path": "dist/commands/yq/parser.js",
+        "bytes": 50395,
+        "mode": 420,
+        "sha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+        "regularUnique": true
+      }
+    ]
+  },
+  "fullMap": {
+    "files": 870,
+    "baselineFiles": 846,
+    "baselineRawHashMatches": true,
+    "additions": 24,
+    "mapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+    "expectedMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+    "canonicalization": "Recursive sorted keys, compact UTF-8 JSON of {files,directories}; descriptors include hash/bytes/mode."
+  },
+  "transformations": [
+    {
+      "id": "retained-view",
+      "path": "dist/commands/yq/index.js",
+      "preimageSha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+      "preimageBytes": 26827,
+      "preimageMatches": true,
+      "editsSha256": "6e07f218f4e05e35385f89d8b17b10b0bbdba22e9d1a2714a44a9a4f7ff7dd48",
+      "expectedEditsSha256": "e27268c5aff7ed0ea26031ec19aea4d1b17fc17db5e62ea1606cafecce89625b",
+      "edits": [
+        {
+          "beforeSha256": "350743cba5f8bd62ca18a2137fe0dbd6f3d015834dd87e1e99715e352fbeab2d",
+          "afterSha256": "afce131824347d510ca44405f706d954ab479729ba0f1000c38bd808083de139",
+          "occurrences": 1,
+          "utf8ByteOffsetsInCurrentStage": [
+            12959
+          ],
+          "expectedOffsets": [
+            12959
+          ],
+          "declaredByteFactsMatch": true
+        }
+      ],
+      "postimageSha256": "c43e89bcaa51b0d348e2dc5da07f7d96050361ecd40f38757371d2280b1c84c8",
+      "postimageBytes": 26823,
+      "postimageMatches": true,
+      "controlMapSha256": "02465758ecf126a017a5d89803b87016165d17f805fc4dbf15ee9d3d6d37f264",
+      "expectedControlMapSha256": "02465758ecf126a017a5d89803b87016165d17f805fc4dbf15ee9d3d6d37f264",
+      "controlMapMatches": true,
+      "changedPaths": [
+        "dist/commands/yq/index.js"
+      ],
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "readmeUnchanged": true,
+      "rootEnrollment": null,
+      "actualLoaded": false
+    },
+    {
+      "id": "quoted-del",
+      "path": "dist/commands/yq/parser.js",
+      "preimageSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+      "preimageBytes": 50395,
+      "preimageMatches": true,
+      "editsSha256": "2d9d56b9a703cdd2db164580087787e19a580bcce1d84555cb45c16f9c30c1f4",
+      "expectedEditsSha256": "f2822ee915302a1a714faba40c780927500c636735ed3a189e630ad687d067e8",
+      "edits": [
+        {
+          "beforeSha256": "852eebe48941aec8c93da9ba42b14d6d9c2fbb5eff56a2cbce32505ca8eee6b2",
+          "afterSha256": "d28cf08baeaaa433e102ad01ec23592e32cbe2cbd708d9d6a3ae0591aa28ab7f",
+          "occurrences": 2,
+          "utf8ByteOffsetsInCurrentStage": [
+            48572,
+            48955
+          ],
+          "expectedOffsets": [
+            48572,
+            48955
+          ],
+          "declaredByteFactsMatch": true
+        }
+      ],
+      "postimageSha256": "b60320fc7f14e7805e5d5d522357a9aeaa6ebb74d45da15f25cc9423b7716876",
+      "postimageBytes": 50431,
+      "postimageMatches": true,
+      "controlMapSha256": "c87c4e1d83dd968908ed92940b4d1176e58ac0a8d49e37fd02433aefaea82c12",
+      "expectedControlMapSha256": "c87c4e1d83dd968908ed92940b4d1176e58ac0a8d49e37fd02433aefaea82c12",
+      "controlMapMatches": true,
+      "changedPaths": [
+        "dist/commands/yq/parser.js"
+      ],
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "readmeUnchanged": true,
+      "rootEnrollment": null,
+      "actualLoaded": false
+    },
+    {
+      "id": "pending-shadow",
+      "path": "dist/commands/yq/parser.js",
+      "preimageSha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+      "preimageBytes": 50395,
+      "preimageMatches": true,
+      "editsSha256": "a65eee7d0eb0d3bd0157aed7ac75dcc8a39def0ef7f40573fe4a67ce40006e59",
+      "expectedEditsSha256": "ef77ada28beb1029e02e8014a231f0c4463a6866de6461e8288154bd2a3241c3",
+      "edits": [
+        {
+          "beforeSha256": "1d13b80ce05cec481e5a7d9578adcab82927b97bcca587ec50025ec3c26dce3a",
+          "afterSha256": "ddcaee35fb7656095228188b984fd77ea3187a98b45a19ec5ea19c6833d33a86",
+          "occurrences": 1,
+          "utf8ByteOffsetsInCurrentStage": [
+            31335
+          ],
+          "expectedOffsets": [
+            31335
+          ],
+          "declaredByteFactsMatch": true
+        },
+        {
+          "beforeSha256": "e3ee7738f672a9169158c5a365b86e28575db24de23a5037e1c4800771dc5b29",
+          "afterSha256": "92b109fa669b9b912ea92ed3ff19bf1f5df9a89410ece32400e87ed9dd8bfd0d",
+          "occurrences": 1,
+          "utf8ByteOffsetsInCurrentStage": [
+            31616
+          ],
+          "expectedOffsets": [
+            31616
+          ],
+          "declaredByteFactsMatch": true
+        }
+      ],
+      "postimageSha256": "23d566e2234d90f28fd444eca8936ef0bb40192c61dcba1347ed5c294c77ee3c",
+      "postimageBytes": 50550,
+      "postimageMatches": true,
+      "controlMapSha256": "0a3adddf47427121882818c10e0480ea1756aa513d3580b724bf67af8771570d",
+      "expectedControlMapSha256": "0a3adddf47427121882818c10e0480ea1756aa513d3580b724bf67af8771570d",
+      "controlMapMatches": true,
+      "changedPaths": [
+        "dist/commands/yq/parser.js"
+      ],
+      "membershipUnchanged": true,
+      "directoriesUnchanged": true,
+      "readmeUnchanged": true,
+      "rootEnrollment": null,
+      "actualLoaded": false
+    }
+  ],
+  "frozenWitnessFile": {
+    "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+    "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+    "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6",
+    "expectedSha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6"
+  },
+  "witnesses": [
+    {
+      "slot": "MUT-RETAINED-VIEW",
+      "witness": "UTF-22--whole",
+      "pointer": "/jobs/145",
+      "actualFrozenId": "UTF-22--whole",
+      "expectedJobSha256": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e",
+      "actualJobSha256": "0cc48854c76d34dba1e1f6071de47a901f1ce5fbf64bddefbe13f19760f04a95",
+      "expectedFieldsMatch": true,
+      "expected": {
+        "status": 0,
+        "stdoutUtf8": "[1,2]\n",
+        "assertions": [
+          "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+        ]
+      },
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "actualQuoteStyle": null,
+      "fixtureInput": null,
+      "labelOnlyCorrection": false,
+      "state": "UNRUN_NO_FRESH_ROOTGO"
+    },
+    {
+      "slot": "MUT-QUOTED-DEL-DOUBLE",
+      "witness": "UTF-02--single-byte",
+      "pointer": "/jobs/120",
+      "actualFrozenId": "UTF-02--single-byte",
+      "expectedJobSha256": "400ed7ad2fb3e25654b6a1f3856db9771f849c559316e762dc3c9194f54ef716",
+      "actualJobSha256": "5a131b9705ef02f040b156f725199d7a6faca6513f71c074a01a21c9b1be8826",
+      "expectedFieldsMatch": true,
+      "expected": {
+        "status": 0,
+        "documents": [
+          "\u007f\u0080\u009f\ufffe\uffff"
+        ]
+      },
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "actualQuoteStyle": "single",
+      "fixtureInput": null,
+      "labelOnlyCorrection": true,
+      "state": "UNRUN_NO_FRESH_ROOTGO"
+    },
+    {
+      "slot": "MUT-QUOTED-DEL-SINGLE",
+      "witness": "UTF-03--whole",
+      "pointer": "/jobs/121",
+      "actualFrozenId": "UTF-03--whole",
+      "expectedJobSha256": "7e4641b06cf5e451e25a966b06e3bc4d64568b46116a9ee24d85bca6c5601041",
+      "actualJobSha256": "92939aa3acc24026dffdd5d31ff93fc940f6f22a18561bd187833763f29dc3ba",
+      "expectedFieldsMatch": true,
+      "expected": {
+        "status": 0,
+        "documents": [
+          "\u007f\u0080\u009f\ufffe\uffff"
+        ]
+      },
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "actualQuoteStyle": "double",
+      "fixtureInput": null,
+      "labelOnlyCorrection": true,
+      "state": "UNRUN_NO_FRESH_ROOTGO"
+    },
+    {
+      "slot": "MUT-PENDING-SHADOW",
+      "witness": "ALS-04--whole",
+      "pointer": "/jobs/95",
+      "actualFrozenId": "ALS-04--whole",
+      "expectedJobSha256": "760421327aa9dcb1f18aff118df2b82d36cb55a3fe9edfdeb229cc7abb9800c0",
+      "actualJobSha256": "5073a7c694f4b3d5e942eeb188ab8d60da6589af83362f7fa54c55b6ad18a4d5",
+      "expectedFieldsMatch": true,
+      "expected": {
+        "status": 5,
+        "diagnosticCode": "ALIAS_CURRENT_NODE",
+        "stdoutUtf8": ""
+      },
+      "environments": [
+        "source-built-direct",
+        "installed-moved-direct"
+      ],
+      "actualQuoteStyle": null,
+      "fixtureInput": null,
+      "labelOnlyCorrection": false,
+      "state": "UNRUN_NO_FRESH_ROOTGO"
+    }
+  ],
+  "counts": {
+    "transformations": 3,
+    "witnesses": 4,
+    "mutantInvocations": 8,
+    "positiveSlots": 2,
+    "outerSlots": 10
+  },
+  "futureClassifier": {
+    "prerequisites": [
+      "fresh root control-only authority",
+      "enrolled exact postimage and full control map",
+      "actual modified module/dependency load receipt with authenticated parent/path/hash",
+      "actual unchanged frozen witness invocation",
+      "matching prerequisite pristine projection",
+      "raw bytes/status/rejection/events published before assertions",
+      "worker exit0 plus positive integrity and known reap"
+    ],
+    "killed": "Only a bound primitive witness contradiction after all prerequisites; does not green original full record.",
+    "unloaded": "Wrong hash/import refusal/missing load event/no invocation => UNRUN_CONTROL, not killed.",
+    "survived": "All selected witness primitive expectations still match => MUTANT_SURVIVED, sticky control failure.",
+    "nonzero": "Any actual worker/parent nonzero, signal or timeout always aggregate FAIL; no expected-negative worker-exit waiver."
+  },
+  "unrunnableBranches": [
+    {
+      "id": "MUT-BUDGET-RESET",
+      "recordId": "NEG-05",
+      "witnessIds": [
+        "QUE-11",
+        "WRK-11",
+        "WRK-12"
+      ],
+      "reason": "No approved public fixed-P1 counter witness; private DI or smaller limits forbidden."
+    },
+    {
+      "id": "MUT-ALIAS-RESET-OR-DISTINCT",
+      "recordId": "NEG-05",
+      "witnessIds": [
+        "WRK-15",
+        "ALS-11"
+      ],
+      "reason": "Source-counter and exact threshold/counter adapters remain missing."
+    },
+    {
+      "id": "MUT-EPIPE-STATUS",
+      "recordId": "NEG-06",
+      "witnessIds": [
+        "LIF-04"
+      ],
+      "reason": "No approved sink-failure/lifecycle adapter in the149 jobs."
+    }
+  ],
+  "freshBuildPrecondition": "Fresh source-built JS bytes must equal these exact author-artifact preimages. Any difference denies this transformation; do not fuzz offsets, select alternative tokens or silently patch a new output.",
+  "postimagesWritten": 0,
+  "actualModuleLoads": 0,
+  "candidateExecutions": 0,
+  "runtimePasses": 0,
+  "controlPasses": 0,
+  "staticDefinitionsConsistent": false
+}

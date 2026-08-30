@@ -1,0 +1,2695 @@
+{
+  "schema": 1,
+  "time": "2026-08-29T16:16:56.231Z",
+  "records": [
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/BUILD-GRANT.json",
+      "mode": "100644",
+      "oid": "952b71a71195aad02ae509e6dbd733b718b73b1e",
+      "bytes": 605,
+      "sha256": "af4ee3eb5924a124d51aa0260face04ede166bb7dba11bc82fe55f54d9928774"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/DATA-GRANT.json",
+      "mode": "100644",
+      "oid": "2f0d1d81d34f108da89769155c36f5e1686940e0",
+      "bytes": 604,
+      "sha256": "a3ab1f7ab1bcd3c872de20939bcae1d98dc1339f4a3ea5e0696d2f03527f626c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/FINAL-PUBLICATION-PATHS.txt",
+      "mode": "100644",
+      "oid": "909bc62c579bf728a586bfe6a73c3424e39d1255",
+      "bytes": 37091,
+      "sha256": "c39d7cbdf355dc5e54f25fb9b63e1899e676adddf3e1c45442f44dbbb60b308f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/PRESEAL.json",
+      "mode": "100644",
+      "oid": "ff99fd35cf90a23be15af3bfbd8bd00fd7376e74",
+      "bytes": 7738,
+      "sha256": "f4c0bf3bc9b79c1e68d01c846291a3476fc78c4df57832c64937875ebe4a6975"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/PUBLICATION-RECEIPT.json",
+      "mode": "100644",
+      "oid": "7f864225e5b08bc28dbe375f0b19c89e532fede6",
+      "bytes": 12767,
+      "sha256": "eb50eef29cf29c49b9a1cea71f6226e1374f382ccd521f8134604fddf621f951"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/REPORT.md",
+      "mode": "100644",
+      "oid": "a45e7573904f6c98131881ca6adac1f4f8a67b2c",
+      "bytes": 5688,
+      "sha256": "5abd2fdfbf5af22f0ffe606602a2373ef805b88c0e96fa1ac7853045a2834212"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/RETAINED-DATA.json",
+      "mode": "100644",
+      "oid": "320b7ecf6c22c749d5a4b09e39a3956232777816",
+      "bytes": 1245357,
+      "sha256": "3cededcb2abfac11c1c34a10b69d77b0e1180d0dcc4a0b72523af10260690155"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/ROOT-DECISION.txt",
+      "mode": "100644",
+      "oid": "249f7d6ec360db9cd06851046f7f480df09b974a",
+      "bytes": 1373,
+      "sha256": "35fa356cabc45f2fa019329c605e3e70507a35c763c5cc85034c60e3f6d7a1ec"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/TYPE-TOOLS.json",
+      "mode": "100644",
+      "oid": "ec9fd005a9e3729c2a4ddf8f69d2bb4e2fbf491f",
+      "bytes": 52345,
+      "sha256": "3999f2c74779a57e6366b7c52b03f327fd7eac1094e19eb0b67f151ce2733351"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/bindings.mjs",
+      "mode": "100644",
+      "oid": "72e61c732d4ee970f0bbd5407e442ec2567d801f",
+      "bytes": 14183,
+      "sha256": "6820b062ad9cb9bd8df631d407214b532b20eeda7f08e5eeba0fe45a615d9cdc"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/build-outer.log",
+      "mode": "100644",
+      "oid": "293d3aec5a47ab6f752868ba90d11ad0b8f2ef03",
+      "bytes": 122,
+      "sha256": "e7578b42129a52ae75adca42274fcdd783465a041e4b694184e0b0b693a4f549"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/build.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/build.stdout",
+      "mode": "100644",
+      "oid": "40c045bd4068f81594ca5b9c5104fa0597d28f3c",
+      "bytes": 1215,
+      "sha256": "ea12f422209deec614780533ab1e9f48fcbf2ec931173621a17c778785df1d58"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/decode-bind.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/decode-bind.stdout",
+      "mode": "100644",
+      "oid": "d92c50ed76fa2a08568fcc9f3dab2d2418f3794a",
+      "bytes": 1120,
+      "sha256": "1670e90d8cf978f4304dd83bf3dcd95af616f41b0136aac1acf598e182ff13c3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-census.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-census.stdout",
+      "mode": "100644",
+      "oid": "5ba251308f981547c9aa7ab9080ab0956937f590",
+      "bytes": 3528,
+      "sha256": "85f7e0dae52e77b7c54d61818487e8a39366070730fa5e56fcbe5be1f0f42e97"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-preparation.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/final-preparation.stdout",
+      "mode": "100644",
+      "oid": "ed5fb17292d9a2557388f1512a3be3f9d98a636d",
+      "bytes": 400,
+      "sha256": "6253e1eade215b52ff78c810ab5cd7e389e57ab91a74cb86d6ec75032dbc6ff6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/inspect-types.mjs",
+      "mode": "100644",
+      "oid": "01c458eb980b6e6b51586cd0b2a308622e033252",
+      "bytes": 1364,
+      "sha256": "84b22d501a49a26d2153d1cf2a68901bef27885ad5cb2a80e75623ec40a09bac"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/io.mjs",
+      "mode": "100644",
+      "oid": "de68840464e3ba52939684a8ed92baa13a9c0864",
+      "bytes": 7084,
+      "sha256": "0cfc39eff68255695548e415ccd79305de2e5c608f796bf37aef34f829250be1"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/CASES-v4.json",
+      "mode": "100644",
+      "oid": "b0ca4fd87498de4afd926c577322c07a518115b7",
+      "bytes": 45811,
+      "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/COMPILED-INVENTORY.json",
+      "mode": "100644",
+      "oid": "1c7df98f8aa666dfb6889dcdd01362e5f8e7c418",
+      "bytes": 245752,
+      "sha256": "544a068933c5a272d0732ceeea5f0000bb078abc1993f05fa416bd5e1154db14"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/CORE-GUARD-PRESEAL.json",
+      "mode": "100644",
+      "oid": "c80473fa5a037b8cb36a6b80eb3da3da2394f00d",
+      "bytes": 627317,
+      "sha256": "e832b9cf2342c99d09a785f801ae4c73f5905a3d349c9efbc2818e6955c1f66e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/DECODE-RECEIPT.json",
+      "mode": "100644",
+      "oid": "afa200a69e509edce64f8ce318651812700a2bac",
+      "bytes": 461,
+      "sha256": "6a0caf49436ccddce67285044e5b5fee72fb115a9aa9939da729f599d343aa10"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/EMIT-CAUSES.json",
+      "mode": "100644",
+      "oid": "084653cec3a8e6cf4d62c34742ca98994758bcf0",
+      "bytes": 17664,
+      "sha256": "126966347f2884123f29c4907cfa40a6e882ac244af4a57f121c4c19677f34c8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/FINAL-BINDINGS.json",
+      "mode": "100644",
+      "oid": "0962d4df0e43f18a27cb9b15d7899f5dbf9ca176",
+      "bytes": 1791846,
+      "sha256": "470b39c48b72d618189611c95ff1cc8b04efbd69b2aab3533f3052df504f788c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/FROZEN.json",
+      "mode": "100644",
+      "oid": "c980a7fa45da85e9b1ac4fb7f6a0c0e8304b49c2",
+      "bytes": 637,
+      "sha256": "2b8ddefdc7d3fa9e7508fc284399f7b7bff0e5a03c1e5b453c652df3ed27ee40"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/FULL-EMIT-DIFF.json",
+      "mode": "100644",
+      "oid": "916d19ef90ff81bc6f297b3cc01d791301de41f9",
+      "bytes": 566239,
+      "sha256": "21bd8cabd222cf8e24104d247509447af788ea082a207022ad24a8bb422281f8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/PRE-INFLATE-RECEIPT.json",
+      "mode": "100644",
+      "oid": "d935bb298d40f2f2d22b3ec2e1ba85ce43138bf0",
+      "bytes": 821512,
+      "sha256": "52b75de5a8b9af27effc7d5dcf5ffa64eeb8171383413810709143b144fef54d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/SHIPPING.json",
+      "mode": "100644",
+      "oid": "a8ec264aed2eef5898c9a7e835bc81cef44b6a13",
+      "bytes": 202776,
+      "sha256": "4fdfa427baec5495f0f98ae5ffe411b22cd65ae0492ef45f564becfc5eaca9b4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/SOURCE-ADMISSION.json",
+      "mode": "100644",
+      "oid": "57b9ac86341f95041489d1b58c967932c8e3083a",
+      "bytes": 56163,
+      "sha256": "e2a121149bfdd22277475afe80031fc209ba5eb029b88dae5e5bfd6f36c3af55"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/TOOL-ADMISSION.json",
+      "mode": "100644",
+      "oid": "5a8bc5378599661221e134ffbd5879fbaafc8a2f",
+      "bytes": 1160,
+      "sha256": "60d6311b7c615b36ecd5b9b7438cdb70103795405bfe83113923750357924e62"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/TOOL-POSTGUARD.json",
+      "mode": "100644",
+      "oid": "5a8bc5378599661221e134ffbd5879fbaafc8a2f",
+      "bytes": 1160,
+      "sha256": "60d6311b7c615b36ecd5b9b7438cdb70103795405bfe83113923750357924e62"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.json",
+      "mode": "100644",
+      "oid": "42d1486cc858961a44feb578f8bc83e55708802f",
+      "bytes": 1103,
+      "sha256": "8c8ed9befa132c5cbbbd104483576c5017074ebb3c371c57e9e1fd20f8c18afc"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/commit-barrier.stdout",
+      "mode": "100644",
+      "oid": "463f39f59ba04039c05110fec2a6e53db8a1c792",
+      "bytes": 1731505,
+      "sha256": "68ad48533978544c7c58a16621b42653c0528cebc4f363e87117f11d7f59c6f7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/controller/core-guard-v8.mjs",
+      "mode": "100644",
+      "oid": "d73aa535af6a2c0d9046ad0de4835cbbb889e612",
+      "bytes": 2897,
+      "sha256": "189e080d6566cf9884e9d72c13f173e8d48373d1353495c3c9ecb49e1e041957"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/controller/dispatch.mjs",
+      "mode": "100644",
+      "oid": "a0946eeae1bb88d8375c64f284535622c73c14de",
+      "bytes": 8835,
+      "sha256": "3ba39d6c3e0451d56e4faa7b99b7719b0ec076a3f07ac43e7f941fff0f9eefd3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/controller/owner.mjs",
+      "mode": "100644",
+      "oid": "a5d9a831dbe40abdb3deabe4cc37a01941f81c64",
+      "bytes": 4857,
+      "sha256": "0f8bda312772824898738ab3b03a7c73c067b8e380e95cbcfef42ddf6b3b5e51"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/LAYOUT.json",
+      "mode": "100644",
+      "oid": "0e5cbb7527f4567e230aaacd28f77ba2a49d8b71",
+      "bytes": 230995,
+      "sha256": "28cce495ada324c3f321699d5d167314f0c10007922e0ce77b799f5a8b9d69ae"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC01.json",
+      "mode": "100644",
+      "oid": "eeb991e2c5b38ae1437b104fdcac8c80f7129d7a",
+      "bytes": 20664,
+      "sha256": "d30296db7f029fe4d2368478dfb19a4507790a5c34509007910f9ada86208066"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC02.json",
+      "mode": "100644",
+      "oid": "7b7b8c5a8a56345c46f0dd96010702edc700e06b",
+      "bytes": 20666,
+      "sha256": "5a96856c48a98c0ae3fac3bf36b7fef2f0ede27cd3369212fac0c6887b427aca"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC03.json",
+      "mode": "100644",
+      "oid": "b2f3bdacc53ea1484062553a2af2a7aceb47813b",
+      "bytes": 20668,
+      "sha256": "f25329b09a028bdff6ebffca30756b54190e149ffef3d044a8ad7dcd92f9f64f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC04.json",
+      "mode": "100644",
+      "oid": "be9a96f3029e75fcb10439c53f8794b4cfcd3520",
+      "bytes": 20672,
+      "sha256": "a4d57557010ed325a36ed664c07b7923b3acfbd4ea22450927472d3f29f1fa87"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC05.json",
+      "mode": "100644",
+      "oid": "96b8d11865ba97dc4783533afc6d2233689ef14e",
+      "bytes": 20672,
+      "sha256": "751c0a3f06d0eefd9ad665bbe7416662c06cb9f0f5c8d45c644e67a83c9a01f0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC06.json",
+      "mode": "100644",
+      "oid": "531b2a4a635db5c697d3f671d4502b2aad86d297",
+      "bytes": 20672,
+      "sha256": "9324d3fe5331f44dec69ae741ba4d53ac4a79e4c2595851f3279e1bbf44b4f65"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC07.json",
+      "mode": "100644",
+      "oid": "743c7d7b0b5ff17af784f3bf5fa576676ee2b732",
+      "bytes": 20673,
+      "sha256": "718d36c78d4162cf7fc3b0c4ce0064a1f76e9cf766eec3abef778f7cc89ad2ee"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC08.json",
+      "mode": "100644",
+      "oid": "47389d59738580d4dd908b00f272bd3b855886bf",
+      "bytes": 20673,
+      "sha256": "b8e4bcc57b122234946b6c6bb9ce30aa9f7786af255e6ddad219ccd0d4c83b63"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC09.json",
+      "mode": "100644",
+      "oid": "093227bf2e8e8161f5bca61e4094acca3ccd2e3a",
+      "bytes": 20672,
+      "sha256": "6626990c7916e4519f6b96979bf8c3ca2084da6a982c1262388c957ae93316bd"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC10.json",
+      "mode": "100644",
+      "oid": "e5bb2f79134a15fba53bb9fda28d0a32a1c71d10",
+      "bytes": 20672,
+      "sha256": "cd42dadc38c9683c0d032154346d0812d6ebb741e8ddcb72e11aa5f11b62dd4c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC11.json",
+      "mode": "100644",
+      "oid": "9e88cde8830f918b7135221b6acaedf93b5bf36c",
+      "bytes": 20673,
+      "sha256": "6368c9359bbba5f9f8d64f219a273ca2488b7eab6bad97feb2b384c61a0064f8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC12.json",
+      "mode": "100644",
+      "oid": "4889c03a5dc0ebab6b7171b2f633084d5a4d085b",
+      "bytes": 20677,
+      "sha256": "8da784ed24845caee383e3c6a0613a751a8d7d660d3c6762b4b5f08164df8ae6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC13.json",
+      "mode": "100644",
+      "oid": "3ca2f59bfcf98a617dbd94e47581405b4648d2c3",
+      "bytes": 20678,
+      "sha256": "52a2df32d22578e7fbbe6c479a476cb53076f16fa8431b73530cee09a4a24b75"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC14.json",
+      "mode": "100644",
+      "oid": "e7222d2a683cc36cd1afce80d8285b3004914cdd",
+      "bytes": 20669,
+      "sha256": "3e06f62f1c695fd08caf954b5c060e30593f74dc64ee49df7f57444b95bb6465"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC15.json",
+      "mode": "100644",
+      "oid": "6ae197bd8df1648daa044f329d747195f9824c6c",
+      "bytes": 20669,
+      "sha256": "d186a95e3ffc35b835fa18282f9b80d7848d518cf93ba06fd0106ccac75f85c7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC16.json",
+      "mode": "100644",
+      "oid": "866dd0c2c8f198b4bcea561f4b333e5c26d156c0",
+      "bytes": 20666,
+      "sha256": "f7752e97363db3297c50a222ff309558d3e5c88615d0e9b2169f503ab44e821d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC17.json",
+      "mode": "100644",
+      "oid": "d5ae06db7f13183f6be367de98c982cff863a803",
+      "bytes": 20671,
+      "sha256": "d7ac256e560b1184d97bed9a9ed3a0a4cd2ad3a8b72834a1b4468e013e19bcae"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC18.json",
+      "mode": "100644",
+      "oid": "f3bd34e9ecacf8f3013c1ade0b90711ee911bfb9",
+      "bytes": 20671,
+      "sha256": "053bfecd4f14406ad5e8f3f1053ec7884f09e25d5479e3d2b5fa55c82be09b71"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC19.json",
+      "mode": "100644",
+      "oid": "708c5b8a5edde0feef44fc8d244d351ec3f22ea7",
+      "bytes": 20662,
+      "sha256": "d44ddd93aeb1cb9ee971dd14cd8f5e8dcc1ca624e6c8eaab2edacfd7b54e3887"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC20.json",
+      "mode": "100644",
+      "oid": "058f2d8ee9202297a55be39aa0245749a51ae517",
+      "bytes": 20686,
+      "sha256": "e97c437f9bb93d21e0a6e4d1a150545d6858cd9b7586fc313d26adc10b71c1c5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC21.json",
+      "mode": "100644",
+      "oid": "2148aae419394239fbef4347886a50cc17474e81",
+      "bytes": 20696,
+      "sha256": "be80ecd74f0de5f65a79c7d7d2dc39497b7bd11040787108dd40e99a95a97d86"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC22.json",
+      "mode": "100644",
+      "oid": "aa9c581b0229c36a3b55fd9412a080b7b2d8bbcc",
+      "bytes": 20693,
+      "sha256": "22ba4e6a7e66dcb00552e151ce376abbb204e314b0da43c50d87a99824ce9dfc"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC23.json",
+      "mode": "100644",
+      "oid": "4c7449399b6869c987095b7d84d5ac015d80e0e6",
+      "bytes": 20663,
+      "sha256": "b02226308e4e1d7d4c465b49ae02268433fb3f23b7ba6c60b58a13daa5a04bf2"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC24.json",
+      "mode": "100644",
+      "oid": "999df8d100b776207e751d1db0fac344a37c7709",
+      "bytes": 20676,
+      "sha256": "303ae03eb840665fe941797d63894f81e003f0a1a5ff0a9024e47910284178a1"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EC25.json",
+      "mode": "100644",
+      "oid": "9b51063a9d109fe5a5c10fecca75284843be1411",
+      "bytes": 20678,
+      "sha256": "b71940f99afc932438a945ba8e7f394aea98bc8464314a8d133cd7f5ad73377f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH01.json",
+      "mode": "100644",
+      "oid": "6af010d27adf54b81ba67d8ffc04abcc519975a1",
+      "bytes": 20514,
+      "sha256": "d9925ce5cb7fe3d8b9265d8acc061a41c5afb1c7a58fbc146ede16f8296332df"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH02.json",
+      "mode": "100644",
+      "oid": "ae2a9b435c647a9bd8a9bcdaad028398421f6a31",
+      "bytes": 20501,
+      "sha256": "739cb6400a241aaacea582e8a55f398ea718ff54dd1142ea179bac4cf7d0eeed"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH03.json",
+      "mode": "100644",
+      "oid": "aace94cc9eb2cca0eb6f6e5dd9164bd4f0837444",
+      "bytes": 20445,
+      "sha256": "8bfb931add853b2279e5d0892a54532b10c6f8be4029fb818a79ba4fe80c9318"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH04.json",
+      "mode": "100644",
+      "oid": "965a75616b4a59d20e02707e60bc4ec994427f27",
+      "bytes": 20550,
+      "sha256": "f0a9d4f9df15ec0384c0ed64006e1af1d200434183f36cf3f0ed34580b968a5a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/EH05.json",
+      "mode": "100644",
+      "oid": "8e2edc995e0edf24ac08e723e6945c55bfb823ec",
+      "bytes": 20581,
+      "sha256": "959283e113f1c795e8504bed3ff2d8595218a0f4f996bafcb4ff0e6d166d7f7b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H01.json",
+      "mode": "100644",
+      "oid": "fa8d5aac59d61034ff91b4ded9f8d49ece5074b6",
+      "bytes": 20758,
+      "sha256": "6b157da8a1d0e2c9f44ef4e5b00ce82712cc5a560ef77c5bb20fd93632c51340"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H02.json",
+      "mode": "100644",
+      "oid": "292575ac33a6efcf8f91b69dd8f21354b8278ceb",
+      "bytes": 21033,
+      "sha256": "5bfbd76fb74d2ae46b59902511547e5ca2a15733fff770db41a30a298b5cff31"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H03.json",
+      "mode": "100644",
+      "oid": "0c5f484089d7d171c4d6a935618e9b7a4e3313b9",
+      "bytes": 20989,
+      "sha256": "3bf2cec03770877125cb53a6dd572a369bd6f38ed4f9bd920d47dd2c50dec3ac"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H04.json",
+      "mode": "100644",
+      "oid": "a9c366792b2d95fcd9e112e3eb959d3eee99f2db",
+      "bytes": 20894,
+      "sha256": "afb680ee6074108c9fc6920c255eb1ada29548f0eaba95d174a2ddffe776c078"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H05.json",
+      "mode": "100644",
+      "oid": "b61c0eec9e8339458a11195d5cf612bb3289f585",
+      "bytes": 20654,
+      "sha256": "fdcf83d357456b72f471b0ad8be4b46096c05a58f08bd40ba72a94d8f7e17125"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H06.json",
+      "mode": "100644",
+      "oid": "e41169d37cc5673ad269db0739d88d56c60c6393",
+      "bytes": 20789,
+      "sha256": "604cca4fcf665035b6b9d74a5e0bd4a3299daeeb8033e4cb054d21a9dc890154"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H07.json",
+      "mode": "100644",
+      "oid": "d5aec9f5c7e60e86821a4d2074a6308a7efdf26c",
+      "bytes": 23821,
+      "sha256": "7b512553c1142f7baba9d16d2ed085e4489cc6b5b1c140fe60d34ed3ecc7f315"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/H08.json",
+      "mode": "100644",
+      "oid": "b5615fb8546348365c90bb9e3f43c4c74c6db804",
+      "bytes": 20880,
+      "sha256": "e06800ac8bbb31b91c4caff7c274b1fdec6194e423359bf6037f8d3ba5be6dc8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R01.json",
+      "mode": "100644",
+      "oid": "6e92ac2cb35fd0ff8d06361163011481cb2aefec",
+      "bytes": 20723,
+      "sha256": "740b278faab823b544c5f3fc095766bd89d832a3571c6deadd41355b92fff266"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R02.json",
+      "mode": "100644",
+      "oid": "10cc4f68285705d96b162e0678edb2331cb69a54",
+      "bytes": 20655,
+      "sha256": "4df108c9bb6b9669c3bd885059e518cf7f7b56e60d3a62d946e82a42f6b35f19"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R03.json",
+      "mode": "100644",
+      "oid": "c3753b69341ddfa3d37f4f3a02fe032c80e37ca3",
+      "bytes": 20640,
+      "sha256": "3082f6d112603a5116d30f035a86d99aa4c73742302ccac9d0ecf45f1657c14b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R04.json",
+      "mode": "100644",
+      "oid": "df670f667a174d1b45f0bd5e18bdac8eca510382",
+      "bytes": 20642,
+      "sha256": "b924015619522418414835ef72d2c41d4652bce2adfb1880408fcb0fb9447664"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R05.json",
+      "mode": "100644",
+      "oid": "7c61b9834d394d39eb598627d77df21576b18367",
+      "bytes": 20654,
+      "sha256": "aaf652c3362adb319fc5cf49e4a0d3d8268b2f021a5e91240ac85cb437f981d0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R06.json",
+      "mode": "100644",
+      "oid": "c84242200b4e7425b27ddbfe66add49a3eb03c4e",
+      "bytes": 20649,
+      "sha256": "1507352c760e3d6254c243207d253649f2f257279a3d841f003d2959e185549e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R07.json",
+      "mode": "100644",
+      "oid": "b1acc2df2bfe9efa59585b59e061a6d9b9640204",
+      "bytes": 20713,
+      "sha256": "18abb27742fcea53fecc7e89180a5da0516dcc03407602fa10a68be2d3422e30"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R08.json",
+      "mode": "100644",
+      "oid": "fb181da7d1243f49d86821ec3a8b82e151763966",
+      "bytes": 20757,
+      "sha256": "666841e48aacf2aa7ceaa8507417bd00bf25658f4c9041939e7440e20c4aebbc"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R09.json",
+      "mode": "100644",
+      "oid": "ebc14a2dd0c7b87c99dfd934b720bba02d5a1ad7",
+      "bytes": 20654,
+      "sha256": "976f64e1a5ca3e78e1e8ddea709e6de63b12193e3f47e2a684e70b413932bffa"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R10.json",
+      "mode": "100644",
+      "oid": "802c62950ba8396ca86e3073bc874882018da75a",
+      "bytes": 20648,
+      "sha256": "54c4c6a1323f50ff49f1d6c9953ed31399c801b576ec9f0a11b6f02250f9e5f5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R11.json",
+      "mode": "100644",
+      "oid": "222062a069f32294659771653be26c1d84266ba8",
+      "bytes": 20654,
+      "sha256": "75103883e5944dc5cbbed10855a6364c6e7df6985c8e9ee02445b613ade76aec"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R12.json",
+      "mode": "100644",
+      "oid": "5fbb956af0f53634f85f7b2f2498d7b6297d88a3",
+      "bytes": 20663,
+      "sha256": "dd0104f83de8602ba9e7f35d24de6d0e979dc980303b57e64e5b1ffcdcce1c6a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R13.json",
+      "mode": "100644",
+      "oid": "c25b6847825a9d9377ea11d46f2e317501ad699a",
+      "bytes": 20631,
+      "sha256": "86cb16efe06905ebb6a4b667f2ce3333a114502cb5cde5131ccbe16a1f9e8e69"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R14.json",
+      "mode": "100644",
+      "oid": "3f837884591964659a53e7ae784f68a9f8009fdf",
+      "bytes": 20614,
+      "sha256": "9e8847788b1f77e0e18645d81c800e20045cdd1e37d56e988447224c81ec79c3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R15.json",
+      "mode": "100644",
+      "oid": "bb485941cdf9b1d4eabd87ea03190d32b0a47889",
+      "bytes": 20627,
+      "sha256": "ce420c7aeb60e942d32ed3733d3ae59a8b57682df2835a8b54c0df7481275e27"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R16.json",
+      "mode": "100644",
+      "oid": "0527c16434a8dd564e5b781edaf5057bb05d0656",
+      "bytes": 20663,
+      "sha256": "a50fc3e2397e1bea5b4fb10f3fd8c6bffdfa488f282a7ae5b049618da69232d1"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R17.json",
+      "mode": "100644",
+      "oid": "32d838d6b43aaa6f5d9bffc4248aa923b42152d1",
+      "bytes": 20658,
+      "sha256": "7250052eac5cee0d2cd18bd8410aa60344b7e95fe93a73e81cc1938ea02e522e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R18.json",
+      "mode": "100644",
+      "oid": "7f6287bc953663d8b4041bd06ff69630ded6b50f",
+      "bytes": 20775,
+      "sha256": "8e168effbbeca5de71145c103e0760c288c02ee1865c284849599b43eaa63bce"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R19.json",
+      "mode": "100644",
+      "oid": "dda7959df48011bd24744aa332751b93fe81572a",
+      "bytes": 20775,
+      "sha256": "7806a4bda7b3995581fe030a4e57c26b7add0795161111d5de44bb0513b5dc50"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R20.json",
+      "mode": "100644",
+      "oid": "77b2e2d84d44762a1ca303f19de31b5222c5a05c",
+      "bytes": 20673,
+      "sha256": "ca8ce2e2408aba8bed1eb15d5b69578c93695814312c9e582612d34ff2ca4a87"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R21.json",
+      "mode": "100644",
+      "oid": "39183b2f5dc9ea1a60fbba6f999537fc56773747",
+      "bytes": 20759,
+      "sha256": "6435f01cde5ef8d0a4e41ec87a08340c75e98266a0f69c027dac5cac375e8dcd"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R22.json",
+      "mode": "100644",
+      "oid": "758fcdf901cf185224007313e07a0be0a3d28792",
+      "bytes": 20715,
+      "sha256": "6e1067af155a33b67d8467cb9dfd31dda247912f172a8cc43ec802e8a2a1b330"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R23.json",
+      "mode": "100644",
+      "oid": "a4b8d64b72c240e3b3f17e5a6617d1dacd560aef",
+      "bytes": 20667,
+      "sha256": "b32613b16409520d2cc23ef9f98959654c7a653840c770c373a722bb9feafd0f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R24.json",
+      "mode": "100644",
+      "oid": "b02483eb017fa4b752e17146f2c1911a418deae4",
+      "bytes": 20750,
+      "sha256": "e52f449a8b891e7f12b2eec52b1aa41828cdbcccf1c774046a159527058307cb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R25.json",
+      "mode": "100644",
+      "oid": "18fa03bf7ef01ebdefb612d633b300bbdc8a0db6",
+      "bytes": 20806,
+      "sha256": "5a0def99ee9a0f9f96b60def68c38e7b5f8dd8f5850a27edc2c60b6601ebb6c7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R26.json",
+      "mode": "100644",
+      "oid": "ccbe403acfac0a05c899c2535af06953aaa7791b",
+      "bytes": 20785,
+      "sha256": "29e915ce9c11825e04c9e8ee99686c4e9cc0d413db153c939a4daec646c0a05b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R27.json",
+      "mode": "100644",
+      "oid": "989cd02b71676199684a956d2c456e62e8fb6d57",
+      "bytes": 20712,
+      "sha256": "ca982913d3c48c6f7d2e291e19a7b553506e3d63c07f279693b144705d2a97e1"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R28.json",
+      "mode": "100644",
+      "oid": "cae96a62993ff606ad2126ee26960658679e2d44",
+      "bytes": 20745,
+      "sha256": "69a697002fc16e614bbe9908b2cd866eec1a0b103cb12d7692e4c1f91f0a11f0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R29.json",
+      "mode": "100644",
+      "oid": "c303766e0ea4a9862e394dfc1150a93951b3a600",
+      "bytes": 20774,
+      "sha256": "040b37f5b2f7a9c6eef3e0862a825a0c35b736eafcc12ea9226453794f902c5b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R30.json",
+      "mode": "100644",
+      "oid": "fc9cdeb4c556f0aa30ff3154be0e26ab8c6466ab",
+      "bytes": 20713,
+      "sha256": "087bb1560350dec53fe673591743420181ddabbbd1d7c72e9312188bce5c6186"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R31.json",
+      "mode": "100644",
+      "oid": "8028e252b5eed1aa22a1c2c722f8aea2ca1c41d7",
+      "bytes": 20776,
+      "sha256": "088f1a68ef3d5a9ce9dbe1d2336c4dbc0441cdd6f496bf42f7899876ca2c9246"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/cells/R32.json",
+      "mode": "100644",
+      "oid": "fdf903a5f36bdcc8f1f2b8f42f98783bd90ece6f",
+      "bytes": 20679,
+      "sha256": "ee1666ee91341b469c9a7fb7964a993be28cbb4abf34d48d6082f5d68c37f1fe"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/additions.mjs",
+      "mode": "100644",
+      "oid": "69d0d00f0184d7e97df0de5f39c9324f05c3b271",
+      "bytes": 4056,
+      "sha256": "c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/array-observer.mjs",
+      "mode": "100644",
+      "oid": "e9c7fa2e369d25cc0a46e142869a3cffc5b1bb37",
+      "bytes": 3105,
+      "sha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/cell.mjs",
+      "mode": "100644",
+      "oid": "fbddbef4186832d36a9c916f3a1a58df35a148c9",
+      "bytes": 7621,
+      "sha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/event-writer.mjs",
+      "mode": "100644",
+      "oid": "cee15e8bbc8d09a6d5cbf34b52e77d1b13fb84d8",
+      "bytes": 3516,
+      "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/finalize-cell.mjs",
+      "mode": "100644",
+      "oid": "a040de931105b48a5ac47919eddb92b6308d250b",
+      "bytes": 1147,
+      "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/guards.mjs",
+      "mode": "100644",
+      "oid": "402243e6875e7388c7a4a5697b98d010c3390781",
+      "bytes": 3236,
+      "sha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/host-bodies.mjs",
+      "mode": "100644",
+      "oid": "d09115ffd4262d1f9d152c7521153fcbd7f3905a",
+      "bytes": 9359,
+      "sha256": "28bbbca9ebd0a941d186a37c9a6f1fa6b4e4381c5e083fcc638bb64b851150f5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-checkpoint.mjs",
+      "mode": "100644",
+      "oid": "b9b5351f5db99438aff1b2234d2c6bc0a2ee7910",
+      "bytes": 2029,
+      "sha256": "ecd916cebe1fd28e5acdc7103162abec13d7e187caa0b26e43580cd4eccd3219"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-extra-key.mjs",
+      "mode": "100644",
+      "oid": "4853271e10c72b8461bb82ae1e8056af409863a5",
+      "bytes": 2028,
+      "sha256": "ae43679af3aa35400828c5f6c4bfc589fafc1271a60558026f6c5717b7221559"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-fractional-span.mjs",
+      "mode": "100644",
+      "oid": "558ed3cfc82c92200606a4de7eb6b18d506b9124",
+      "bytes": 2034,
+      "sha256": "3615ca9184bd2d42ff0f9d131632dd4373c5acf31cfe4da6351fbaee4cfef78d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-late-reply.mjs",
+      "mode": "100644",
+      "oid": "3e7d937b228cfb988e841d770b3d206fe6d65445",
+      "bytes": 2029,
+      "sha256": "e75bf8fa7ca1733bf9593c2108c10d0414fef582b8123f19b5c0cfe822d17b66"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-observer.mjs",
+      "mode": "100644",
+      "oid": "936df16f7799fa7d6fd7afa8cbd9c0b9ea276219",
+      "bytes": 5913,
+      "sha256": "dce618236a799521be201908a63198c4f542fa674836b3520950f3fc7c0465d6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-out-of-range-span.mjs",
+      "mode": "100644",
+      "oid": "b426e3b65d6719a04836d0d01edede779b23403a",
+      "bytes": 2036,
+      "sha256": "bf47d30f86a77856d0d3a33cedccb664782f8f2c1552bd024285a4b8fc91946e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-positive.mjs",
+      "mode": "100644",
+      "oid": "2275ad5e2fda0f65253281103fcfcce8b1d39983",
+      "bytes": 2027,
+      "sha256": "a7cd298df6fe96c4807adf5bf835ffc8e77bd4c5429186fd3fa1c4c128fd4e26"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-wrong-count.mjs",
+      "mode": "100644",
+      "oid": "262b04e31572714bb92274fd28c07a431bf1da98",
+      "bytes": 2030,
+      "sha256": "6c8c6596aaf1a9fe627ad5ce5c05322550c8e1b3726c4ab3432c6e4c6bd414e2"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-wrong-id.mjs",
+      "mode": "100644",
+      "oid": "1a037e00b16f0db98225ec8cdffdde3cecdae215",
+      "bytes": 2027,
+      "sha256": "11fecf01611aae9152d2cd9e82096549c902da594340ae00cc268ca33b9fc141"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/installed/app/harness/worker-wrong-operation.mjs",
+      "mode": "100644",
+      "oid": "7f9b619a8d902a8b964f9522d8169efdc25e9157",
+      "bytes": 2034,
+      "sha256": "3796f0f66c4a7e92813a9029f34a4aa2420b8f9f2844f2ba6745f476a44c1773"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/LAYOUT.json",
+      "mode": "100644",
+      "oid": "dd515221aee1d39b0026abe2d60c8767b7958abc",
+      "bytes": 230995,
+      "sha256": "9764f04f196914ee1463f22b2d5710aa1895ee3d4c496f8e4383bbb62455e8df"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC01.json",
+      "mode": "100644",
+      "oid": "0ef980c92d97a52484733c85516cb40189b930cb",
+      "bytes": 20456,
+      "sha256": "260d079be4d9034e09a49e00e26ee77cc03a2b92e71ababdd74010a8691e653d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC02.json",
+      "mode": "100644",
+      "oid": "846471e79b77dac120802b03b4226ed2122764f5",
+      "bytes": 20458,
+      "sha256": "aaae133c2eecf65c9b5e92a09f2434311fb0edc528e9ccdb3e9a49f70289aae4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC03.json",
+      "mode": "100644",
+      "oid": "7b64c8240611d597076fb4f09d7c7567c10c9c1c",
+      "bytes": 20460,
+      "sha256": "2becf5ab13dbe4377f5bb2989cb4e1dcb3680e91682b5cb239aea525b5d38a12"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC04.json",
+      "mode": "100644",
+      "oid": "ffd615e55c7bd2cfe9016448efec149be1858677",
+      "bytes": 20464,
+      "sha256": "64e942189009946257d45c9c62ef48db5479d0a7c2dd598b8e24372ca491cadc"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC05.json",
+      "mode": "100644",
+      "oid": "a42d4b2fa197054a098419ebb31a54659c5176f3",
+      "bytes": 20464,
+      "sha256": "a098e6c2ebd9e9437ac87527c7b7daa101b00bb72d3bccaef9505971e8bc42cb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC06.json",
+      "mode": "100644",
+      "oid": "1ee9c5f8a3db01a4b40c55613cbbdfd7312dd5c5",
+      "bytes": 20464,
+      "sha256": "5ec3d616fb0009f49496f4c4fdae1dd03eb76aa4d24ada6bfb29dbb90f03bc84"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC07.json",
+      "mode": "100644",
+      "oid": "1ea8a38ede4820d95d7104178d2df9ec4bf9a306",
+      "bytes": 20465,
+      "sha256": "266420ad026e0bdfdd5798fbeeec16b03e1aa35ab8f3ea5b9ebe47d6e07001bb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC08.json",
+      "mode": "100644",
+      "oid": "07a7ec0a69d2457105eeb3b3717c258501f9eee0",
+      "bytes": 20465,
+      "sha256": "aca488ff2dc6a5327ad35394c00209be89a30ba4f15e9cb5834f54c1c4e4fae3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC09.json",
+      "mode": "100644",
+      "oid": "4a294c4299b050c30dce8cc6a8f6623f6c4cac11",
+      "bytes": 20464,
+      "sha256": "379498d25aca4e14b9eb254ea8eb13d39207287a7782e237107640388c1832c3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC10.json",
+      "mode": "100644",
+      "oid": "33751a4e68643d4516cebc8fb5bbfa2bd7ec77bf",
+      "bytes": 20464,
+      "sha256": "7dfd2d440f7ca0ade454bebbd0224ab277ebca44b1268b35187415b7f8e4ed39"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC11.json",
+      "mode": "100644",
+      "oid": "c0a992695c13922a347253cef0cef8c2753f45f0",
+      "bytes": 20465,
+      "sha256": "be7b3f152e667d304d22326b42759c8861f28e9187447dd123578634ae5e256a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC12.json",
+      "mode": "100644",
+      "oid": "b2582e949da5cdbc7653797ed3dfa9263eed5bb6",
+      "bytes": 20469,
+      "sha256": "3945b810377a7a4a13baf6bf107c2cf4e19efce0a59c4315e6a5630ace25f22a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC13.json",
+      "mode": "100644",
+      "oid": "5bb5476755e0860796805c553f21122520f336d7",
+      "bytes": 20470,
+      "sha256": "56e18c2eb87af6464b8b957fbd650fb7019d60ca6749a56fe9100701d7936b83"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC14.json",
+      "mode": "100644",
+      "oid": "236e854028bd79be2b848b630d9d2e733c3e543b",
+      "bytes": 20461,
+      "sha256": "5e7e6a494b5dffda45e70d63c278dc1fc68f882448701487db28280a8c1c46aa"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC15.json",
+      "mode": "100644",
+      "oid": "487f844e87cf48967ba2ce5323e64c27bb3fbce8",
+      "bytes": 20461,
+      "sha256": "7f677ac4dcc18639d3035b707e37cfc8377a8d632ff0133b6f318839358f5e08"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC16.json",
+      "mode": "100644",
+      "oid": "5d7bcc9e820b3addd97b4ff768a8215368c474ac",
+      "bytes": 20458,
+      "sha256": "b99a640bd9a27e3d00dd967627a816861417fee05f0f1cee34c76bdf7096ece9"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC17.json",
+      "mode": "100644",
+      "oid": "1055f217cec433d4fd33485d602404a14ae4548f",
+      "bytes": 20463,
+      "sha256": "f6685c57d6babe984afed8e4ddeabb8cca99cd3ab2d41e9e3bdfe228b44310ad"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC18.json",
+      "mode": "100644",
+      "oid": "7da464a258b1deb3ba601b77d26c8ed45510c54f",
+      "bytes": 20463,
+      "sha256": "d5e8f82592fc545ee0f89bb15ff3a1eb745eaeb935a9b4dd61fe9d639fb88731"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC19.json",
+      "mode": "100644",
+      "oid": "60f6f2c13f7b9f091b55ce5e0556e3054d698880",
+      "bytes": 20454,
+      "sha256": "af3b1cf3c27e55c9fbd803e20f8b2bc8209b4447f41102fbbc34000a0f27d577"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC20.json",
+      "mode": "100644",
+      "oid": "17998bc44ba1708e0ae690cf76310753ab787cb2",
+      "bytes": 20478,
+      "sha256": "45ccd62e214e0cf4d91e41c4f0a23eb9cf261e422ac7edefc3281c95e167b533"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC21.json",
+      "mode": "100644",
+      "oid": "5ca17ddfb1fb4bfce4614ed076a2db30891de8e1",
+      "bytes": 20488,
+      "sha256": "e71c64d4685bcca66e68414b2e3c900e3aa303b9872f7ca97277297341084c6e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC22.json",
+      "mode": "100644",
+      "oid": "fe8bdfe9d72ae87379624f24bd6b615b4ee84cf0",
+      "bytes": 20485,
+      "sha256": "8198733dea10334902a9841df54366d25ecd55bc6d7ff82b216280d66692c402"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC23.json",
+      "mode": "100644",
+      "oid": "1e2c008776c3bd2ed63abf4a485fa0928fe26ffc",
+      "bytes": 20455,
+      "sha256": "44fd9a8b35a14a57b246d7026882b99fc6295155a4a2062a47ac36a43af0ce76"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC24.json",
+      "mode": "100644",
+      "oid": "91235d2d6348f25da093fcea04d48ff99948aec6",
+      "bytes": 20468,
+      "sha256": "1a4415bd6c7432fb326c0e6e0a328c182f5c070fba596f4d6cb3479cd22ac55a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EC25.json",
+      "mode": "100644",
+      "oid": "fb3e9dc1d6d205f8f62358a08a59d37b9aa3476d",
+      "bytes": 20470,
+      "sha256": "d20866e8f81f957edd22d484915ed562138830a7cb7cc16962007060f9c342ab"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH01.json",
+      "mode": "100644",
+      "oid": "809c1aa502a6a7cc005d0009d05dc421037457fb",
+      "bytes": 20306,
+      "sha256": "9509ab78241b51edfbadddb939578b09656116b8f8e7c943fdfc647505c01e23"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH02.json",
+      "mode": "100644",
+      "oid": "0d07a3449645448b7a1d6216ef160b2cbd3ca70d",
+      "bytes": 20293,
+      "sha256": "8dba34542b6b669b0e625bb003f130193a77ae2601bb140f58ac2c53cd5aa758"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH03.json",
+      "mode": "100644",
+      "oid": "5f9d518d3d2a5ae3218d18884a833265ec783683",
+      "bytes": 20237,
+      "sha256": "9b73d9a1493e55db43eebbb96f9a0d2a5c58bf94f0372ab92f68758bd13aa44e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH04.json",
+      "mode": "100644",
+      "oid": "6cc53ab2eb25705c6540e1a7aeda7904e1ff1f2b",
+      "bytes": 20342,
+      "sha256": "b01891852a9ce3fdcaf176a5ae22f3223f2b42ac37f3d8d81cbcb32940987c53"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/EH05.json",
+      "mode": "100644",
+      "oid": "8a490c69973479fb57fc383b287963acf7ff4aec",
+      "bytes": 20373,
+      "sha256": "7768f1ebe4afaf0145a95ef3822de8b566e453aed18d1aa4ae219688a00ba7b8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H01.json",
+      "mode": "100644",
+      "oid": "4854ede10e210a218ba8f58b122e97da1e8458d0",
+      "bytes": 20550,
+      "sha256": "a808a4aff8ceb9dedf9f406bf84678f44d2119987fa462b814662fda6df34d98"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H02.json",
+      "mode": "100644",
+      "oid": "25459222f0d7ce47f1e61628e0c989412eed3b9b",
+      "bytes": 20821,
+      "sha256": "f0dcfba34d923715d1e62ca94be7700e5e01c43e4b0c62064f7e98498a86152f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H03.json",
+      "mode": "100644",
+      "oid": "f76390b58d0ed77a6d4192af197f64a3372629f8",
+      "bytes": 20781,
+      "sha256": "1f5483cfd6bd5277315bfaa0485bdcd508128bbe85d79efc076bf6502f165409"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H04.json",
+      "mode": "100644",
+      "oid": "3a91ef3fdb82d62d5559f38a5a8b95fdee91a9aa",
+      "bytes": 20686,
+      "sha256": "657516a3d6352a65cb236ad61829a16e6f716151fabbfa3b332ae8703599a8c5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H05.json",
+      "mode": "100644",
+      "oid": "b8e67c323434d741ed1d9b7bafec29d4cee839f8",
+      "bytes": 20446,
+      "sha256": "a48bc4c5073687422dada4b04e7ded603eb52de96ef8f0a76b073f0c12e20786"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H06.json",
+      "mode": "100644",
+      "oid": "85afbfb811f58a97e062dd608e62bec433e5d36b",
+      "bytes": 20581,
+      "sha256": "292dbb092963bde94933ae18759e29814f10a8a8e18fb78a73650c4cbfaa9701"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H07.json",
+      "mode": "100644",
+      "oid": "d5d95e1d4e2b9247531934ddc5ffd62124202c02",
+      "bytes": 23581,
+      "sha256": "fdb2102aaa26b321621ae89020a16ff7c8ca0a06567c8536d0dfabe0dbcc771e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/H08.json",
+      "mode": "100644",
+      "oid": "e10bf8880fb97709695171b348ec8a753c8d7d47",
+      "bytes": 20672,
+      "sha256": "6b3336bc499999286f948fd206651e3117245712e44a223e261f0bf44d83b529"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R01.json",
+      "mode": "100644",
+      "oid": "6ccdc6bafc44b804bed100554995cc59597aeb46",
+      "bytes": 20515,
+      "sha256": "f6d1132cb6b1b058f30d1bfeea85096a21b599833436fda6e4184a342f90b7ec"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R02.json",
+      "mode": "100644",
+      "oid": "c01c5317afe0aabcb7c9fc1135e828d9096284fa",
+      "bytes": 20447,
+      "sha256": "7bfc1f821e93af90e1d99029b794b94d96991669e96253553d7e7cce083a3c2c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R03.json",
+      "mode": "100644",
+      "oid": "a9e17367aea4f004a48f0ee899f82389faf25fce",
+      "bytes": 20432,
+      "sha256": "d4a22f7319c976e75256f0b70a2663ff762d5520929eec41b201a687b1a65522"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R04.json",
+      "mode": "100644",
+      "oid": "cb0561c13847178e977ec1621de93e69daf74d96",
+      "bytes": 20434,
+      "sha256": "27741f291611a228b1ffbdea5441de20bccb911051527d763674e972f6588c6a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R05.json",
+      "mode": "100644",
+      "oid": "22bdd262d75e356aa6babb08729dea3a163b99cb",
+      "bytes": 20446,
+      "sha256": "f40a1b93a000c7c2b633bc3fb0b9b1a110e1c14be461e80b5cc3b598f5b5b1a3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R06.json",
+      "mode": "100644",
+      "oid": "f0269e799779a0a99e563db0812a9673facababb",
+      "bytes": 20441,
+      "sha256": "eb332d8850c36c2a9947551222e5b8225a8699cab467a4dec49ce8ec8e178bec"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R07.json",
+      "mode": "100644",
+      "oid": "1dd80e9d61e494e1a4128f287f73ae54ddd558a8",
+      "bytes": 20505,
+      "sha256": "5b4beaa336f3a09c0fc6a0e1c1b39d51a278c55ebc84487731371f6d2517cc50"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R08.json",
+      "mode": "100644",
+      "oid": "96b6b727f604b3aa8923f1947dafbd65f8d75dae",
+      "bytes": 20549,
+      "sha256": "fe231d75783ef0e48c5339af9f89daf9e2e725ffef960893677b99b35272821a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R09.json",
+      "mode": "100644",
+      "oid": "ece04ca56512a0e6e15aaf9cb377ecb8c5297951",
+      "bytes": 20446,
+      "sha256": "6357f8b6409d9fe8c556b27a7e4589031dc93635af3cc5d95b0b2b7ff5fd7810"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R10.json",
+      "mode": "100644",
+      "oid": "75337d0d061ac7847772a5341920a967a7c0b826",
+      "bytes": 20440,
+      "sha256": "2e0097226758acecf776ecd19f410a23b1bbe697b18fc1ae98a9aa8bf39bfb7b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R11.json",
+      "mode": "100644",
+      "oid": "7bad943634a54bee47cf641f7669a9f8f18aa21f",
+      "bytes": 20446,
+      "sha256": "54836d0c44099fe9ec5729ff61e6fe1b44967bf7a63ff56230f356667a80325f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R12.json",
+      "mode": "100644",
+      "oid": "e180e5d375656a2032d55f5ea9faeb804f08453b",
+      "bytes": 20455,
+      "sha256": "331f718b42cf5ad01b1ffc56917747a5165c6a769226e2bac0b38fb3b136ca0d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R13.json",
+      "mode": "100644",
+      "oid": "e486de8268e5f200998e28e8082e34338b094c7d",
+      "bytes": 20423,
+      "sha256": "754e81d9a85627a58595058c0e557f227f88c0106fc6e6bc4786ebe58ea3390b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R14.json",
+      "mode": "100644",
+      "oid": "3a2884161a7608c244d2b569b9ed467c3ba007de",
+      "bytes": 20406,
+      "sha256": "9dea5f7b420a0a18bf6834a924a7a738d1a3350400d466090b0d5d1e70934dec"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R15.json",
+      "mode": "100644",
+      "oid": "482aa6cff082529c19dd82a94620917260d01abd",
+      "bytes": 20419,
+      "sha256": "c3cfd13cd9542451e5db432d587884ce8a6d2ae572e13a9d4ed788d234126a4f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R16.json",
+      "mode": "100644",
+      "oid": "34466eca5a6a9b483d98a8cefd7144dbb7a5af48",
+      "bytes": 20455,
+      "sha256": "fb730106d798a057665eb0ba18ce3c9f7040d804370095c490cc555773d4c7a2"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R17.json",
+      "mode": "100644",
+      "oid": "7010c5d757813144d4275bfa76a9cf164d15163b",
+      "bytes": 20450,
+      "sha256": "3fda46b3e9d4a67a490e631b866dbf12e058994856e5c6b1a684294875839292"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R18.json",
+      "mode": "100644",
+      "oid": "8bcbf8db0e120058aca935411838768d77cf465e",
+      "bytes": 20567,
+      "sha256": "d6ac9348684f32e6cb8c3085279a47036c25a8500a471dfe1ea07b185cc7d1e6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R19.json",
+      "mode": "100644",
+      "oid": "ad82fdd356e95216a4d512259aefa472cf0da30a",
+      "bytes": 20567,
+      "sha256": "f18b9b4be1663973eb078ece537f4ad680bdb4a29f4894ee01bef8a6bbcae817"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R20.json",
+      "mode": "100644",
+      "oid": "0e72b344c9636bf5da86c41d6c6296d5524ea276",
+      "bytes": 20465,
+      "sha256": "59066fdb080c74e128182674713426564001ee9bd31d7e3ea317c46c1203fdf0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R21.json",
+      "mode": "100644",
+      "oid": "4d6b59314d947c15d8dc5f847c88d3114e9af327",
+      "bytes": 20551,
+      "sha256": "2ac1f2896da47802e44ad77be21ebf478e11d8f4bed5b75c917d95199aef14b0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R22.json",
+      "mode": "100644",
+      "oid": "587cf325a41da0dccec4d6b70b941b9aade805ea",
+      "bytes": 20507,
+      "sha256": "702bbb2a58b54492147826c9c9408c92715a141bc672bf22f101b2a4f0e1f86a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R23.json",
+      "mode": "100644",
+      "oid": "52b07fe4053c46b19e68c6c321822cad4c0406ae",
+      "bytes": 20459,
+      "sha256": "ce599c0176e896b33bef54da003427b453453b16fd2b6f30641335cfaba85248"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R24.json",
+      "mode": "100644",
+      "oid": "5e5728910eed54bc19c57593666e9ca01e6b2324",
+      "bytes": 20542,
+      "sha256": "588ce0fa3957ef89d3fee9a042a5cc548ca9c5f3cd99fb458ee716529e31981f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R25.json",
+      "mode": "100644",
+      "oid": "31be76f5eef36ea751a3435140310ff99e073821",
+      "bytes": 20598,
+      "sha256": "0244d1cfaa4bcd58ecdabe7c97517bfa05408a22c4bf3daac321e888b874fef9"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R26.json",
+      "mode": "100644",
+      "oid": "aa02d1cbf92b46b691a9503da537f5bbbaf2f21f",
+      "bytes": 20577,
+      "sha256": "592ce5f14747b9d08ab6a79626410e8bf583b794bb350d92ef423c4e1a684af8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R27.json",
+      "mode": "100644",
+      "oid": "14af68ededb7e0e04d956e19e0e5edc995820c0b",
+      "bytes": 20504,
+      "sha256": "73ed8b33eafb02b6b6e3d3713bfdf0e17a01a26ef7898cca0b4af24a03e4fd40"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R28.json",
+      "mode": "100644",
+      "oid": "8da6ee4c3a742ef4d7108b1b3c5a9073e13a29da",
+      "bytes": 20537,
+      "sha256": "700d1c7f6626b0450936ffaff251d31c798caf9a98faac172c25d9064f5f206a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R29.json",
+      "mode": "100644",
+      "oid": "e74e0d3e356c5b2036fe46857671a05ab9f2ea15",
+      "bytes": 20566,
+      "sha256": "894202a6ac28de210071e81844e1580f80d8b4eca2f07bdca59ebf9d60e20095"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R30.json",
+      "mode": "100644",
+      "oid": "8b458f999d1b54db1dfd4f2957d52824a8a9d1f5",
+      "bytes": 20505,
+      "sha256": "b027bbd622014d5bccd89c205ad3b8ab073bcf10a71424ba2a82e9b4b6976c30"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R31.json",
+      "mode": "100644",
+      "oid": "4fb07aecebb941506ad6529d88ce54a22475c0eb",
+      "bytes": 20568,
+      "sha256": "6434b5b50c70779ecccd4dff8191a0c5ed8ecf8eb3fd1698b17be08df3e78081"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/cells/R32.json",
+      "mode": "100644",
+      "oid": "e272392f3336ccfe2747492be017f1208f8c6957",
+      "bytes": 20471,
+      "sha256": "920c3f1f2e4ffef7ec79e5b41aaa78c16e04312adb0c3543919692295ad6fe28"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/additions.mjs",
+      "mode": "100644",
+      "oid": "69d0d00f0184d7e97df0de5f39c9324f05c3b271",
+      "bytes": 4056,
+      "sha256": "c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/array-observer.mjs",
+      "mode": "100644",
+      "oid": "e9c7fa2e369d25cc0a46e142869a3cffc5b1bb37",
+      "bytes": 3105,
+      "sha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/cell.mjs",
+      "mode": "100644",
+      "oid": "fbddbef4186832d36a9c916f3a1a58df35a148c9",
+      "bytes": 7621,
+      "sha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/event-writer.mjs",
+      "mode": "100644",
+      "oid": "cee15e8bbc8d09a6d5cbf34b52e77d1b13fb84d8",
+      "bytes": 3516,
+      "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/finalize-cell.mjs",
+      "mode": "100644",
+      "oid": "a040de931105b48a5ac47919eddb92b6308d250b",
+      "bytes": 1147,
+      "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/guards.mjs",
+      "mode": "100644",
+      "oid": "402243e6875e7388c7a4a5697b98d010c3390781",
+      "bytes": 3236,
+      "sha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/host-bodies.mjs",
+      "mode": "100644",
+      "oid": "d09115ffd4262d1f9d152c7521153fcbd7f3905a",
+      "bytes": 9359,
+      "sha256": "28bbbca9ebd0a941d186a37c9a6f1fa6b4e4381c5e083fcc638bb64b851150f5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-checkpoint.mjs",
+      "mode": "100644",
+      "oid": "5d2b201cdd6a23f708f1b0c38addc66380f2edde",
+      "bytes": 2021,
+      "sha256": "297eded735656db9670c089524d659e50dff427186bda5fb1d8356e8f2ea7403"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-extra-key.mjs",
+      "mode": "100644",
+      "oid": "cc7e27acc22a90832af4c6fe5fa0400d34fa5cd1",
+      "bytes": 2020,
+      "sha256": "d9d20fa59f8c949ab847fde065c46f3b33572316b975e16078015ecc9c9b9818"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-fractional-span.mjs",
+      "mode": "100644",
+      "oid": "2e2df2542eb46e15c2e22d35133a2b69740fc839",
+      "bytes": 2026,
+      "sha256": "153c3c5402d95383793df20319a35e1d8f31397a4decee45017ab8110ee184d4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-late-reply.mjs",
+      "mode": "100644",
+      "oid": "ebc5aa1ee360fd036ccd9dc88cdd07724aec1528",
+      "bytes": 2021,
+      "sha256": "e031292ea2180f3d2902d534ae75e94b15f54ee78015985a4a818e849637216f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-observer.mjs",
+      "mode": "100644",
+      "oid": "936df16f7799fa7d6fd7afa8cbd9c0b9ea276219",
+      "bytes": 5913,
+      "sha256": "dce618236a799521be201908a63198c4f542fa674836b3520950f3fc7c0465d6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-out-of-range-span.mjs",
+      "mode": "100644",
+      "oid": "67c7fe1c5ae235ba612c87e164476215cd3a8da7",
+      "bytes": 2028,
+      "sha256": "e00c1398cb825e39798b9e5678ac9180d340908e04964578885ce8f9c1cfa171"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-positive.mjs",
+      "mode": "100644",
+      "oid": "bf378c3dca97cbc4917e5f541757b61517f5b04f",
+      "bytes": 2019,
+      "sha256": "5c70d6f748c748fd27f01f3853f29ff2f24408cb3f48e0a73baf3a0d9d9170ce"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-wrong-count.mjs",
+      "mode": "100644",
+      "oid": "fbe5a24ed4e1edd3f112206f21f918ba91508527",
+      "bytes": 2022,
+      "sha256": "660b57110073aec691b8ffb2e7e58d6763b7dc839b1bbc6bd8efe074071612be"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-wrong-id.mjs",
+      "mode": "100644",
+      "oid": "1b1882953531fdd3d92972708a0bbca9c71a6244",
+      "bytes": 2019,
+      "sha256": "09adffbe9678cad9676c97fe42ea5adb868376497f8de044e2031e0988488574"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/moved/app/harness/worker-wrong-operation.mjs",
+      "mode": "100644",
+      "oid": "475028e93d4105eb3c0238de704e4b28bdc5afbe",
+      "bytes": 2026,
+      "sha256": "994f0677335651f141148c3f0857a03092b18e208295a265e16964df9f24293e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/LAYOUT.json",
+      "mode": "100644",
+      "oid": "548914f142dd8b80a1ef59510c2186768d340353",
+      "bytes": 271895,
+      "sha256": "63ce42604adf68a1047fe7b4b0290c5724a3a8d3a174d920b5c7ca9d2c4d2827"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC01.json",
+      "mode": "100644",
+      "oid": "1410e33466e6b1e9e5bdf64ba98fec7b66a56df2",
+      "bytes": 19884,
+      "sha256": "ea8d667ec9c453b1ba534bae9949c9252282d5481c280ad34d9ab9a2292fa416"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC02.json",
+      "mode": "100644",
+      "oid": "3ef0d4a02d5cdfc0ee70188947623c8b07805b96",
+      "bytes": 19886,
+      "sha256": "1773489275ab21f11efae77d314df8282c4415da646e5da1c3d4718798323c81"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC03.json",
+      "mode": "100644",
+      "oid": "fd75d1dd422ae833fb6933755e08da2bb1900258",
+      "bytes": 19888,
+      "sha256": "e942e4c9b2653c077320ceb1175804cd5b42eef72f9d7282f2b477ad2ffead37"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC04.json",
+      "mode": "100644",
+      "oid": "b436bdbd5f298605a8648b4f10fd2ed13ec4702f",
+      "bytes": 19892,
+      "sha256": "403d4ba45e158d2adc36dc2e23224602d0c6d638312e6ac4a4041399c3cbc73c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC05.json",
+      "mode": "100644",
+      "oid": "15868d8c50de2a2260ee09d34189a5edcd26dbff",
+      "bytes": 19892,
+      "sha256": "4f82ca605a91c3c3f7da1ba758050343ba98278c2e0b21c9335bfc02cb242a65"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC06.json",
+      "mode": "100644",
+      "oid": "1ccca85bf1489573bdc3df8b07949892497fad70",
+      "bytes": 19892,
+      "sha256": "a20f10272f57e2a7fa2df596ea2a2919ad97923bbccffb90a802412f628a5e66"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC07.json",
+      "mode": "100644",
+      "oid": "9ddd3d3c595747f3a6964d1274c36834329889b7",
+      "bytes": 19893,
+      "sha256": "c59e4f176a5da0208b09308848e3d9594040cf5151c98c02c552f71c3ddcd0d5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC08.json",
+      "mode": "100644",
+      "oid": "152cb28e5ecfb96948353899b86b0cb06750b4d0",
+      "bytes": 19893,
+      "sha256": "4b80faf39a7771549ef6dbb99df530135f6ec10fcc150035de5046c36c5bd851"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC09.json",
+      "mode": "100644",
+      "oid": "bcd067f80a4ca128cb1a5a5d184cd2129bb54cab",
+      "bytes": 19892,
+      "sha256": "3c79d51afac428b060bb651bce8cb67853d94d0f885f5caf5217935a26887b63"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC10.json",
+      "mode": "100644",
+      "oid": "2f0b3699dce873e84ece98416e2b37090ac6d3f1",
+      "bytes": 19892,
+      "sha256": "b6f691134d8189d814f9b3907a438a08dda2f127522486e1fe1277b79ac71c3c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC11.json",
+      "mode": "100644",
+      "oid": "c5b06626190a52ae554753029d4adee8bd0364ed",
+      "bytes": 19893,
+      "sha256": "9e166ace603d39cd9495219db9178d49f2bc8886eb7856b37c61374c3e94a9ec"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC12.json",
+      "mode": "100644",
+      "oid": "d9be953a2573bb862ad505367583e0f6dbf1cecd",
+      "bytes": 19897,
+      "sha256": "1af2ccd743a15a8e3a37be6fca3d66814e5372a03d642230559b939589241fb7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC13.json",
+      "mode": "100644",
+      "oid": "61870109b32859158ed1d0f7bceb1b237b3ca64a",
+      "bytes": 19898,
+      "sha256": "df7693b9799ec315d7ed2d469346c5bbe203b0c035889f9003d0d3209f8cf11d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC14.json",
+      "mode": "100644",
+      "oid": "69fd71bac59f8862e1b994998d6035a740878927",
+      "bytes": 19889,
+      "sha256": "deb9a807e2a5ceb1982aaf03fdc84d7a41aec2b6ddc8f426c3901682131a8dd0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC15.json",
+      "mode": "100644",
+      "oid": "ec0298aabc95f0ab7348387ff419fad1e22eaccb",
+      "bytes": 19889,
+      "sha256": "b7b0b595f46000b05d44dedc123c97bc18aeccc7799c9752dd48f55c54fec548"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC16.json",
+      "mode": "100644",
+      "oid": "3df98dc8b6c2447c54f9aaeac46ef738101c1c7f",
+      "bytes": 19886,
+      "sha256": "38d416a96c0b5c4443e230f5ef23b727b6f85698a276acfeb1636e8946375a09"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC17.json",
+      "mode": "100644",
+      "oid": "fed7661c71f9b95a67d6fafa4026fe58652f7489",
+      "bytes": 19891,
+      "sha256": "ce97cb35a6b062d2eef6fa97aa9d33d3062a621637c718101bb14f0030ffbfcb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC18.json",
+      "mode": "100644",
+      "oid": "5bd03908cd0466fdb891d07b378946df292f6e24",
+      "bytes": 19891,
+      "sha256": "add87988d93d0c9e7fb00ed7881561c615ab3d737d115730b9743c3743671de7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC19.json",
+      "mode": "100644",
+      "oid": "1258b3d1b6db9c94df4252d26d1101865f7f1a99",
+      "bytes": 19882,
+      "sha256": "df2559e4e6ab15a221d871aaeec0215ac20edc084e95ad72339880b277cc67f7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC20.json",
+      "mode": "100644",
+      "oid": "9bd506496bcacc45fb04aba642f8cccad8b8b318",
+      "bytes": 19906,
+      "sha256": "bb727144a366b0ef7d8c1e61493c62d46d215109e4a9a5915e3154f31286581e"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC21.json",
+      "mode": "100644",
+      "oid": "308f0038836c897640d84469756f9a707f571fdf",
+      "bytes": 19916,
+      "sha256": "615638c49d5118e1759c0771f690788dfda6cf6c3c94a51a83d4f1b339fae361"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC22.json",
+      "mode": "100644",
+      "oid": "628772624a4b85ec28c3120a4edbfdd315db2193",
+      "bytes": 19913,
+      "sha256": "44c8c4ac7f22bbf613cce5cf0c7563476ca09353af8a60e2a6989e9f6c08e4db"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC23.json",
+      "mode": "100644",
+      "oid": "2546370f8b490f5123f7a94d33be031cce18d779",
+      "bytes": 19883,
+      "sha256": "f863b5dd99199bb48c9149d38509ef0baaf02377d9fc619816ea4b6f1a5bccba"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC24.json",
+      "mode": "100644",
+      "oid": "8d9829ff172661eabf317b166ffd87d3a05e112a",
+      "bytes": 19896,
+      "sha256": "d0a5e8669431f62ed570412cf518a4f1f9654ec4d4f84e9f7e78f1730e8bea6d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EC25.json",
+      "mode": "100644",
+      "oid": "651210e8ff482db0bde33fa46696f5f60b3ebaf9",
+      "bytes": 19898,
+      "sha256": "4ba264d0c55156d1b069696d45d060e9baa280d2556a3ef0a278fa9bffbe9f32"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH01.json",
+      "mode": "100644",
+      "oid": "9b31647628547efa0374553f6501c06386b3ae1c",
+      "bytes": 19734,
+      "sha256": "f21fff20c36761d6f80e5b2a28afdc602f8c408cce9006ba3054382072ae5616"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH02.json",
+      "mode": "100644",
+      "oid": "28cc1f42b19108b226ca7276fdc2b1811f4fd43b",
+      "bytes": 19721,
+      "sha256": "2a95a1aace698a3795fb472da5c189e5061652597d613965968647ec0c7a42af"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH03.json",
+      "mode": "100644",
+      "oid": "466bc6589c354222aa16b75cc09707b0c4e6abc1",
+      "bytes": 19665,
+      "sha256": "f8773dd2cdca15a3e90ba120d61918348250bb01c3b67565c3c471e431fa5327"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH04.json",
+      "mode": "100644",
+      "oid": "dd7db21bde9cf14292385fe06f1ce094c93dbb33",
+      "bytes": 19770,
+      "sha256": "0f022910983f716e65a06217b174dfa6cc5d808d1d4b80b1ad21097bf9e1dd78"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/EH05.json",
+      "mode": "100644",
+      "oid": "fbe764c9d3240d67702dbf5a4352d85c2c3b96d2",
+      "bytes": 19801,
+      "sha256": "038577ffb9dd65b724e41702e00f8f49f81de70b731986cb58ac663eac47f253"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H01.json",
+      "mode": "100644",
+      "oid": "bfeb6c8e68ae1ac451f4c77268d31b995560cc81",
+      "bytes": 19978,
+      "sha256": "466c85610a86a6171fdc589f46443b19f2466d39b4048f5f60685eecc74fb8e7"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H02.json",
+      "mode": "100644",
+      "oid": "ad964d7f5e1776b88f9eb615ba4e334872afe106",
+      "bytes": 20256,
+      "sha256": "b9aae45137f7dabd3f8b7428c6d27edaa1716095fea2d694cb5f2d60bf386c78"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H03.json",
+      "mode": "100644",
+      "oid": "a96af8f513b575dde0c9420217f8fce1fdc8f7e1",
+      "bytes": 20209,
+      "sha256": "0cc55ab8fc91575cef32436fe3489d8a7460eebf5076f4e7a2b9ca381a70d831"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H04.json",
+      "mode": "100644",
+      "oid": "5d37367e7aa24a3d175dfde807adb6494fbb8e05",
+      "bytes": 20114,
+      "sha256": "5d5a9c1867445de1affc90f7a54826a3e7a99cc2e62004da198202ce52639e6d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H05.json",
+      "mode": "100644",
+      "oid": "76b687e291b89b25294b553261bd4d19731d7513",
+      "bytes": 19874,
+      "sha256": "1888d55a780b57e2abf39833d52ff60a43bbd0f18cd03188bafc9284e914afcb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H06.json",
+      "mode": "100644",
+      "oid": "915f0f31c152e64f27ac7a0c083ae0ddff281219",
+      "bytes": 20009,
+      "sha256": "e6ddc258f4c84a079f09e1d95d72fe412ccf70246ffb8953ad7298855507c875"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H07.json",
+      "mode": "100644",
+      "oid": "9743a9e4daace14378a16b97c0d3859618bc9626",
+      "bytes": 23065,
+      "sha256": "21caedb29ca418513cee92bac58aa6f3df86c2c67e21cff4af9f94d42ff66438"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/H08.json",
+      "mode": "100644",
+      "oid": "b06a2aa46154ee554e3086b378fa9865ebfd8edd",
+      "bytes": 20100,
+      "sha256": "1525d67496e9b894e4946c78a1c11de495e9f80a52f9a6ae79351dbf8308b32a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R01.json",
+      "mode": "100644",
+      "oid": "0ac6032df7981e21f7912fffd970e41891a84918",
+      "bytes": 19943,
+      "sha256": "d3dbea7d7d2125439d88f4e076aec7252599ca4da9b9cd4a2686d8021861bb0d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R02.json",
+      "mode": "100644",
+      "oid": "50165aaef00b2a7086d4755fb3dc1dd0ae003160",
+      "bytes": 19875,
+      "sha256": "6b2d0955e1f461ef29dcfd72c0bb3344272a79a9e6086c1986399a049417bea4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R03.json",
+      "mode": "100644",
+      "oid": "5c631bf663c56d134c593840abb932889654ead4",
+      "bytes": 19860,
+      "sha256": "ee6a3b2d2510a6e27b11a19f0c6e8ad1be2aedcc294ce649baff1190b6c632c2"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R04.json",
+      "mode": "100644",
+      "oid": "ecb37724958ebdd1fdbe47142f534916706266c3",
+      "bytes": 19862,
+      "sha256": "3fe3fe858b37658a82182436eebf0ed05378539d37807775e0afd72230626386"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R05.json",
+      "mode": "100644",
+      "oid": "74987ec8b2c901b22bcd762a0a6ca75048313051",
+      "bytes": 19874,
+      "sha256": "0adc7802b9136b52ecca2d9fd5bb8bf2061ba20f229378282b8f24c4d53fad1a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R06.json",
+      "mode": "100644",
+      "oid": "d0f23908bd321f3a1536b407f42afc6edfe34370",
+      "bytes": 19869,
+      "sha256": "b6e6e8b72c03d886e591b236ffe762ab17501899ec480c426f2e8ba13fafff34"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R07.json",
+      "mode": "100644",
+      "oid": "35fbe87afb3ea38cfd202925a55755ce113cecca",
+      "bytes": 19933,
+      "sha256": "4e6fe03b487a86155dc14e264c64aabb377205ea90798ca9adb30169b05c5197"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R08.json",
+      "mode": "100644",
+      "oid": "2cd5c65cf20368d93044ced6d38baf86bb6eab1e",
+      "bytes": 19977,
+      "sha256": "d3ae9c7a3c20d175265a0254b0ce3966f4d53185999e9fd40516968156e726ac"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R09.json",
+      "mode": "100644",
+      "oid": "511f72162d558b79b21bbf3586789fb297ec7853",
+      "bytes": 19874,
+      "sha256": "f8d2005b8e835d5f5c370fecea1884f340f5e77846d30eba55a5fd96094f49e1"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R10.json",
+      "mode": "100644",
+      "oid": "d6827d9e9bf40fa225591243de24669ebcabc693",
+      "bytes": 19868,
+      "sha256": "c30342601e0ca708b3ec2ef705b91c748f9f995dd9b433d3ac4484cb2dc3b9fb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R11.json",
+      "mode": "100644",
+      "oid": "37220d3e99928899fd70e3054ee93c7471643764",
+      "bytes": 19874,
+      "sha256": "eaf7aea307d079b2a8b62737d9f5fdefa5ac9a363f66b69bf9792252417e1560"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R12.json",
+      "mode": "100644",
+      "oid": "a0f19d9ca1eff4d62d7e8c2ce3aad10497e02f0e",
+      "bytes": 19883,
+      "sha256": "f2ce304214748996077db680fc5f386e08fdb5b0f7b32bdf7b9b04878c02610d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R13.json",
+      "mode": "100644",
+      "oid": "4d19a1adbac5f5077aa6b1c05e58bc8ff16f416b",
+      "bytes": 19851,
+      "sha256": "ce033587ef5f327d2b64c519fc370c033cf707446d3a18e04f08bff20999adfa"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R14.json",
+      "mode": "100644",
+      "oid": "da8bd2d921d21b87e87f07daddad195ab3f4a5a4",
+      "bytes": 19834,
+      "sha256": "885165e5cac577aae6bd2a00e7a1dcd54f1755ef45c474269b12d5cbb504e361"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R15.json",
+      "mode": "100644",
+      "oid": "9ef3d39bd34669fba3f8b03cc7b41ed761d8947d",
+      "bytes": 19847,
+      "sha256": "345053e9f5d1de95665c01fa160a7381451e72ab71d324a11f2bd642507fc71c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R16.json",
+      "mode": "100644",
+      "oid": "b3f55ef6b398f1e0a48c3341461183fc15e9a538",
+      "bytes": 19883,
+      "sha256": "aa88832d465d939f64a175aed6b3b3c4f18c375de0c09e17800cd2d02fc7df2d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R17.json",
+      "mode": "100644",
+      "oid": "7a75ce07b6d54570616f209b7e49c7e40fdb5d79",
+      "bytes": 19878,
+      "sha256": "7a19d8bc55195b4a673ebef64f3d1c7895b364a6de681ceec48d4131b2906704"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R18.json",
+      "mode": "100644",
+      "oid": "c622a282ef0def398cecd02c75d619a4fa4a1538",
+      "bytes": 19995,
+      "sha256": "051f770520e146b587c03c3a302e354ca76fccaac9b6dc12d7c8cf4b019b0102"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R19.json",
+      "mode": "100644",
+      "oid": "a3a24db985d13bbe40c20dcf721be807ab7022b4",
+      "bytes": 19995,
+      "sha256": "ee5bfb0e33f4ab2ce63ac78192753c45438dcc266c2b09e5e71ab1705bc884d0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R20.json",
+      "mode": "100644",
+      "oid": "b48291d91c2d3fd2e41cd3a7750a0aa52d57ad44",
+      "bytes": 19893,
+      "sha256": "e43abf95fcb332783530b42f4465cd06e81506f9af54829e4d0921e45a0532a1"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R21.json",
+      "mode": "100644",
+      "oid": "e370e6ef2db27e45464a0a79de6d766accd9b613",
+      "bytes": 19979,
+      "sha256": "644c68cc0f72ee430a350236a9242fcfb490618fa6485237c8ef339bf3f6f996"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R22.json",
+      "mode": "100644",
+      "oid": "f25e01b7a58a087c1d6966240a1498adc3d933bf",
+      "bytes": 19935,
+      "sha256": "dd7a62f410844a6b1946351f5d439236911811ed70643c93749ade88e478ed2b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R23.json",
+      "mode": "100644",
+      "oid": "e969847e8613cd4a080fdcd1602a1ad8b7f8ce4c",
+      "bytes": 19887,
+      "sha256": "1b7f5dca87635d06bb59ea77475c5394b14347690f5c6e5a34d7723114c80481"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R24.json",
+      "mode": "100644",
+      "oid": "d82fb16537e3f5c7274e11209337d9d1eec728fe",
+      "bytes": 19970,
+      "sha256": "b06aaaa40a56abb15464d01b4b496097828615274fd5bcc8dac33f16ea85f370"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R25.json",
+      "mode": "100644",
+      "oid": "e4aa5a2691015ccc8d37ec0009e8c63398a93212",
+      "bytes": 20026,
+      "sha256": "c4dd5a352de8a058b2e8c77ea4537426b2a6a57da108964cc00618d4439706e8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R26.json",
+      "mode": "100644",
+      "oid": "148f19594a31110cbce9c3caf451c2c11f8b409a",
+      "bytes": 20005,
+      "sha256": "ccfc457211d8b0ae0a8f631050d9a47010be370753963e44f6a11e2bd4e92bd3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R27.json",
+      "mode": "100644",
+      "oid": "225fc352c0935c38db1f983f79eceb4f98967ddb",
+      "bytes": 19932,
+      "sha256": "bbcfb7bd9edba0eb55779d44ab2a1e54c950f4a92ae6501a3a52d0ee7abb5536"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R28.json",
+      "mode": "100644",
+      "oid": "232465d171476b95ea05ff70f3bdf92efb080f99",
+      "bytes": 19965,
+      "sha256": "62f3b3bbf83d8b57dc79333e38201863903899fda5f4f83e7a7567900f3a9222"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R29.json",
+      "mode": "100644",
+      "oid": "f691e477f80aa59e696979682d3d5caa5dc8cff0",
+      "bytes": 19994,
+      "sha256": "97482c6406021640454a168eb3f93ac8960444b3f1331d7eb1fe538b7b40c5ff"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R30.json",
+      "mode": "100644",
+      "oid": "a27a4b38ed7f572c2cce92444121a4b9c7a83298",
+      "bytes": 19933,
+      "sha256": "a0657bfd9e49fbdeef8d93ee6a5ad94b3d3ae873d3fac2bb6b20fd78c4504088"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R31.json",
+      "mode": "100644",
+      "oid": "c68c5f69fc79fffa035f622a45ce28b723e13fd4",
+      "bytes": 19996,
+      "sha256": "dc0d3aef3c91aa919027f25bf856221ebbb0f51a7f48a98bffd2d69a3134886f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/cells/R32.json",
+      "mode": "100644",
+      "oid": "ca1e2408018aacc6a27307ebaecf8b7ecedd6d87",
+      "bytes": 19899,
+      "sha256": "1e9c1ce4d64588da733564d0da8128fcd2188ce38913a7dfae3d9a21ffce1bdb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/additions.mjs",
+      "mode": "100644",
+      "oid": "69d0d00f0184d7e97df0de5f39c9324f05c3b271",
+      "bytes": 4056,
+      "sha256": "c26295269b50bbbf42804e5db9149bd1f9de34b117b40e467b7b4b31302644f9"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/array-observer.mjs",
+      "mode": "100644",
+      "oid": "e9c7fa2e369d25cc0a46e142869a3cffc5b1bb37",
+      "bytes": 3105,
+      "sha256": "039d593cfd9e53773d6218a6aa404cdd300a1bffe120a7a33d766e9d097ad4b4"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/cell.mjs",
+      "mode": "100644",
+      "oid": "fbddbef4186832d36a9c916f3a1a58df35a148c9",
+      "bytes": 7621,
+      "sha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/event-writer.mjs",
+      "mode": "100644",
+      "oid": "cee15e8bbc8d09a6d5cbf34b52e77d1b13fb84d8",
+      "bytes": 3516,
+      "sha256": "e5c8437e820144fc5e1caa04f5c818873891aaa26c5bf28969aff4ce9b9b7fdb"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/finalize-cell.mjs",
+      "mode": "100644",
+      "oid": "a040de931105b48a5ac47919eddb92b6308d250b",
+      "bytes": 1147,
+      "sha256": "22c4e707c5ca4309f1ea641a9d3a8fb6016fef654310e6a63214e071da14bf76"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/guards.mjs",
+      "mode": "100644",
+      "oid": "402243e6875e7388c7a4a5697b98d010c3390781",
+      "bytes": 3236,
+      "sha256": "6bc787789a4d09486ce04f5bbd44eef87121441013027b01849d7540f1f0d65b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/host-bodies.mjs",
+      "mode": "100644",
+      "oid": "d09115ffd4262d1f9d152c7521153fcbd7f3905a",
+      "bytes": 9359,
+      "sha256": "28bbbca9ebd0a941d186a37c9a6f1fa6b4e4381c5e083fcc638bb64b851150f5"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-checkpoint.mjs",
+      "mode": "100644",
+      "oid": "6aabc018247eb3e85856a8a07ccf37dfc471b602",
+      "bytes": 1999,
+      "sha256": "d809fe5b185377050a6e5bbb3ed17d6f3e48aafe778d506f8344da98da3cd9d3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-extra-key.mjs",
+      "mode": "100644",
+      "oid": "c7bd9dbb0497a87bd691e407825d9674b087bb96",
+      "bytes": 1998,
+      "sha256": "ff5ca0905ea3e6f257f38954f90bc95e15857b3f6433677c845d428a581180e0"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-fractional-span.mjs",
+      "mode": "100644",
+      "oid": "078ab52dc80e62964c1002bc04a26bffab2eb29d",
+      "bytes": 2004,
+      "sha256": "9b551323183379b4428a0eb5dfd440cdf64e12e8e505f066142adb862b531f9a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-late-reply.mjs",
+      "mode": "100644",
+      "oid": "e2e6626c88d6c6244f7ae6f689ee5230e1698efb",
+      "bytes": 1999,
+      "sha256": "957f06b4824ae46067663731f55ca4941d7f9851bf3740c0e302bcd9f19efc2d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-observer.mjs",
+      "mode": "100644",
+      "oid": "936df16f7799fa7d6fd7afa8cbd9c0b9ea276219",
+      "bytes": 5913,
+      "sha256": "dce618236a799521be201908a63198c4f542fa674836b3520950f3fc7c0465d6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-out-of-range-span.mjs",
+      "mode": "100644",
+      "oid": "21519b494f91bdd646a9c92b0daf9eeaee3bfa67",
+      "bytes": 2006,
+      "sha256": "cf2b4fafc475f19c2f884735e734841077308bed2544fab202cc5e2096d26d2b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-positive.mjs",
+      "mode": "100644",
+      "oid": "065785579e83da8449877f617f1ecd842fb7b5ab",
+      "bytes": 1997,
+      "sha256": "20ea9cd003904cc3d42f7fa4a5c622064b546f87971f08f837b72c2119f5db3a"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-wrong-count.mjs",
+      "mode": "100644",
+      "oid": "dd508440dc0092d0e60b9e39b11b413a205d0ab6",
+      "bytes": 2000,
+      "sha256": "12c8c865cdf3c0811b11274243649d636edc4e7556e2633628e3a2cbe409625f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-wrong-id.mjs",
+      "mode": "100644",
+      "oid": "fbdd4196843ddfefac74c4e9d23df3553b1370c9",
+      "bytes": 1997,
+      "sha256": "4a04c9a56bc6ccefa77bf7d92f432f5b3be6e521a0a83ac73e8c032bf528b8ac"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/layouts/source-built/app/harness/worker-wrong-operation.mjs",
+      "mode": "100644",
+      "oid": "39c8ac37f827b2564bdc0824031bafba38645df9",
+      "bytes": 2004,
+      "sha256": "0cbc423f100a47a401492d2e3725a04fe1fae07043a8abf11272b86cf5f6b5ca"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.json",
+      "mode": "100644",
+      "oid": "fe5fe2edad173718901a891149173af7ceeb7f0a",
+      "bytes": 1741,
+      "sha256": "846fa6703984131646edce54741c4ce1a2eba37afcede24713eccfc4605e9421"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stderr",
+      "mode": "100644",
+      "oid": "abae71632e4d2d341702a82f1569ba9730a2187f",
+      "bytes": 208,
+      "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/offline-pack.stdout",
+      "mode": "100644",
+      "oid": "1ed8485c0895decf4e4887cae3e02827d1f44178",
+      "bytes": 113591,
+      "sha256": "a699777fd24947f9fb74e14755d5a07f26f1a9afc825dc9f5887b494e805619c"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz",
+      "mode": "100644",
+      "oid": "214d1469de8e3fd02e4227610966296f3c167bdb",
+      "bytes": 909885,
+      "sha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.json",
+      "mode": "100644",
+      "oid": "dff80ff910b5d0b4f6b04f32dc0298980e4786a2",
+      "bytes": 1097,
+      "sha256": "f2b8690bc5c38ebb8d58afac9df8f972e6b99382c9c46c9991d8deaa3e904a5f"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/source-blobs.stdout",
+      "mode": "100644",
+      "oid": "aca6e29057ce94e895c207f13ba8745ab20cf13d",
+      "bytes": 2792669,
+      "sha256": "6433039d94543b3aa7a10a16d0d00ad2d5b479f9c8505e878665363ce86c34d8"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.json",
+      "mode": "100644",
+      "oid": "278176ae8e5060560b81fe75cb41aeda41352cef",
+      "bytes": 1568,
+      "sha256": "7263daaaf77631447f5c80686e74ba7cfcec1f2cc302a5683bae88d4bd1d94ff"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/strict-build.stdout",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/preparation.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/preparation.stdout",
+      "mode": "100644",
+      "oid": "1451dbb1c0375c8049374c456ebf9c0043a1bb10",
+      "bytes": 1495,
+      "sha256": "c917535a5d0b33157a045a120eedf3a65860f9fe83e1e146783062666e73b280"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/prepare-version.mjs",
+      "mode": "100644",
+      "oid": "94c59b8ef234ef7267307c481b32af737f595910",
+      "bytes": 8681,
+      "sha256": "98b2dc6e9a7af07b48838a7b4a5682f99ce889b7b5c4e4f2e038a5cfffd6dbc6"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-add.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-add.stdout",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-check.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-check.stdout",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-commit.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-commit.stdout",
+      "mode": "100644",
+      "oid": "f4034909d1a3e8403607716a3ebaaaa26f2cd6b3",
+      "bytes": 5039,
+      "sha256": "3fff32b3d65eac43d8a869ba2c89523c05e34af500f06ab58c8094e40b742ee3"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-after.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-after.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-before.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-index-before.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer-publication.log",
+      "mode": "100644",
+      "oid": "d52b1ea12cebb5b730788d474de2c4f06e140971",
+      "bytes": 67,
+      "sha256": "45d02981d41a61063dec605b811be0eeb041592f437e923e8983e0daecb17d14"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer.mjs",
+      "mode": "100644",
+      "oid": "d6a326a0423a3420afd263f3e5a44159a067ad05",
+      "bytes": 17922,
+      "sha256": "411f6c102ebeb6133792880b067470d94c515a625ad88e815f685adfedabfe46"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/publish-data.mjs",
+      "mode": "100644",
+      "oid": "8e08da675c5ed23a71c760d9cd198c2667b8ba30",
+      "bytes": 9164,
+      "sha256": "49151fde2fc8beb0866ff5891f79cdea4f0ff3dbd3050a3f19e94189c8a726dc"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/seal.stderr",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/seal.stdout",
+      "mode": "100644",
+      "oid": "efee6e08df5aa52c8195aac553a6ff0fcd7dbb30",
+      "bytes": 1776,
+      "sha256": "38c64b99660a7171f5f87356a8bc77959e787cb3131f41c53baa08c7ac58f6df"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/verify-final.mjs",
+      "mode": "100644",
+      "oid": "ff29a65dcec9c7141bd04494239ab7772c805dd2",
+      "bytes": 2207,
+      "sha256": "ff0c1fad5f43605cb86a015bbf5a06f30144841837eabd029a44d3f7f637ca7b"
+    },
+    {
+      "tree": "final-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/version.patch",
+      "mode": "100644",
+      "oid": "b44efb46febbe501706ac8b9eaae1f90dffa6c66",
+      "bytes": 39950,
+      "sha256": "d56fe6a6c15665502f245017a609fc17c6e604637864449cb2b106dd377234cc"
+    },
+    {
+      "tree": "freeze-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/PRE-INFLATE-RECEIPT.json",
+      "mode": "100644",
+      "oid": "d935bb298d40f2f2d22b3ec2e1ba85ce43138bf0",
+      "bytes": 821512,
+      "sha256": "52b75de5a8b9af27effc7d5dcf5ffa64eeb8171383413810709143b144fef54d"
+    },
+    {
+      "tree": "freeze-tree.raw",
+      "name": "tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/output/package/virtual-bash-0.0.0.tgz",
+      "mode": "100644",
+      "oid": "214d1469de8e3fd02e4227610966296f3c167bdb",
+      "bytes": 909885,
+      "sha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d"
+    }
+  ],
+  "archiveDecoded": false
+}

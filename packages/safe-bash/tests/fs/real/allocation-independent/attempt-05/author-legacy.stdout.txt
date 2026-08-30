@@ -1,0 +1,262 @@
+TAP version 13
+# Subtest: FileStat identity scope is optional and opaque, preserving legacy structural compatibility
+ok 1 - FileStat identity scope is optional and opaque, preserving legacy structural compatibility
+  ---
+  duration_ms: 0.2485
+  type: 'test'
+  ...
+# Subtest: stat forwarding preserves object scope by reference without coercion
+ok 2 - stat forwarding preserves object scope by reference without coercion
+  ---
+  duration_ms: 0.058042
+  type: 'test'
+  ...
+# Subtest: symbol descriptions are not identity while the native convention shares a token
+ok 3 - symbol descriptions are not identity while the native convention shares a token
+  ---
+  duration_ms: 0.037208
+  type: 'test'
+  ...
+# Subtest: partial identity metadata remains representable and is not a complete proof
+ok 4 - partial identity metadata remains representable and is not a complete proof
+  ---
+  duration_ms: 0.0275
+  type: 'test'
+  ...
+# Subtest: rmdir is an additive optional signal-only filesystem method
+ok 5 - rmdir is an additive optional signal-only filesystem method
+  ---
+  duration_ms: 0.261125
+  type: 'test'
+  ...
+# Subtest: adding rmdir does not change the required rm contract
+ok 6 - adding rmdir does not change the required rm contract
+  ---
+  duration_ms: 0.036375
+  type: 'test'
+  ...
+# Subtest: snapshot rmdir is an explicit optional readonly boolean disclosure
+ok 7 - snapshot rmdir is an explicit optional readonly boolean disclosure
+  ---
+  duration_ms: 0.0365
+  type: 'test'
+  ...
+# Subtest: snapshot disclosure preserves boolean extensions and optional method compatibility
+ok 8 - snapshot disclosure preserves boolean extensions and optional method compatibility
+  ---
+  duration_ms: 0.032917
+  type: 'test'
+  ...
+# Subtest: cancellation after rm resolution does not start a mutation
+ok 9 - cancellation after rm resolution does not start a mutation
+  ---
+  duration_ms: 6.621208
+  type: 'test'
+  ...
+# Subtest: cancellation after rename source resolution does not start a mutation
+ok 10 - cancellation after rename source resolution does not start a mutation
+  ---
+  duration_ms: 3.16
+  type: 'test'
+  ...
+# Subtest: cancellation after rename destination resolution does not start a mutation
+ok 11 - cancellation after rename destination resolution does not start a mutation
+  ---
+  duration_ms: 3.420125
+  type: 'test'
+  ...
+# Subtest: cancellation after copyFile source resolution does not start a mutation
+ok 12 - cancellation after copyFile source resolution does not start a mutation
+  ---
+  duration_ms: 2.690875
+  type: 'test'
+  ...
+# Subtest: cancellation after copyFile destination resolution does not start a mutation
+ok 13 - cancellation after copyFile destination resolution does not start a mutation
+  ---
+  duration_ms: 3.568917
+  type: 'test'
+  ...
+# Subtest: cancellation after mkdir resolution does not start a mutation
+ok 14 - cancellation after mkdir resolution does not start a mutation
+  ---
+  duration_ms: 2.566542
+  type: 'test'
+  ...
+# Subtest: cancellation after symlink resolution does not start a mutation
+ok 15 - cancellation after symlink resolution does not start a mutation
+  ---
+  duration_ms: 2.529
+  type: 'test'
+  ...
+# Subtest: cancellation after link resolution does not start a mutation
+ok 16 - cancellation after link resolution does not start a mutation
+  ---
+  duration_ms: 2.653667
+  type: 'test'
+  ...
+# Subtest: cancellation after chmod resolution does not start a mutation
+ok 17 - cancellation after chmod resolution does not start a mutation
+  ---
+  duration_ms: 3.039166
+  type: 'test'
+  ...
+# Subtest: cancellation after utimes resolution does not start a mutation
+ok 18 - cancellation after utimes resolution does not start a mutation
+  ---
+  duration_ms: 2.894125
+  type: 'test'
+  ...
+# Subtest: cancellation after truncate resolution does not start a mutation
+ok 19 - cancellation after truncate resolution does not start a mutation
+  ---
+  duration_ms: 2.52075
+  type: 'test'
+  ...
+# Subtest: cancellation after writeFile resolution does not start a mutation
+ok 20 - cancellation after writeFile resolution does not start a mutation
+  ---
+  duration_ms: 2.43275
+  type: 'test'
+  ...
+# Subtest: cancellation after appendFile resolution does not start a mutation
+ok 21 - cancellation after appendFile resolution does not start a mutation
+  ---
+  duration_ms: 2.527625
+  type: 'test'
+  ...
+# Subtest: rm checks cancellation after final root verification
+ok 22 - rm checks cancellation after final root verification
+  ---
+  duration_ms: 3.172666
+  type: 'test'
+  ...
+# Subtest: rename checks cancellation after final root verification
+ok 23 - rename checks cancellation after final root verification
+  ---
+  duration_ms: 2.288833
+  type: 'test'
+  ...
+# Subtest: recursive mkdir checks cancellation after root resolution before creating parents
+ok 24 - recursive mkdir checks cancellation after root resolution before creating parents
+  ---
+  duration_ms: 1.554292
+  type: 'test'
+  ...
+# Subtest: symlink checks cancellation after target traversal before creation
+ok 25 - symlink checks cancellation after target traversal before creation
+  ---
+  duration_ms: 1.627917
+  type: 'test'
+  ...
+# Subtest: cancellation keeps completed stream writes without promising rollback
+ok 26 - cancellation keeps completed stream writes without promising rollback
+  ---
+  duration_ms: 2.006791
+  type: 'test'
+  ...
+# Subtest: exports implement the FileSystem contract with an explicitly existing root
+ok 27 - exports implement the FileSystem contract with an explicitly existing root
+  ---
+  duration_ms: 5.35525
+  type: 'test'
+  ...
+# Subtest: binary data round-trips without text coercion or shared mutable views
+ok 28 - binary data round-trips without text coercion or shared mutable views
+  ---
+  duration_ms: 4.465416
+  type: 'test'
+  ...
+# Subtest: writes replace, append preserves bytes, and exclusive flags never overwrite
+ok 29 - writes replace, append preserves bytes, and exclusive flags never overwrite
+  ---
+  duration_ms: 5.316375
+  type: 'test'
+  ...
+# Subtest: empty writes and truncate shrink, extend with zeroes, and default to zero
+ok 30 - empty writes and truncate shrink, extend with zeroes, and default to zero
+  ---
+  duration_ms: 4.886708
+  type: 'test'
+  ...
+# Subtest: directories support recursive creation, typed entries, and removal
+ok 31 - directories support recursive creation, typed entries, and removal
+  ---
+  duration_ms: 9.631791
+  type: 'test'
+  ...
+# Subtest: stat metadata exposes host identity, mode, size, and millisecond times
+ok 32 - stat metadata exposes host identity, mode, size, and millisecond times
+  ---
+  duration_ms: 2.688666
+  type: 'test'
+  ...
+# Subtest: copy and rename overwrite files and preserve directory trees
+ok 33 - copy and rename overwrite files and preserve directory trees
+  ---
+  duration_ms: 6.174792
+  type: 'test'
+  ...
+# Subtest: relative and absolute symlinks have virtual readlink and realpath semantics
+ok 34 - relative and absolute symlinks have virtual readlink and realpath semantics
+  ---
+  duration_ms: 4.972708
+  type: 'test'
+  ...
+# Subtest: dangling links are inspectable and ordinary writes create their in-root targets
+ok 35 - dangling links are inspectable and ordinary writes create their in-root targets
+  ---
+  duration_ms: 3.755959
+  type: 'test'
+  ...
+# Subtest: copy follows symlinks while exclusive copy and rename operate on destination entries
+ok 36 - copy follows symlinks while exclusive copy and rename operate on destination entries
+  ---
+  duration_ms: 4.182125
+  type: 'test'
+  ...
+# Subtest: hardlinks share inode and data, and removing one preserves the other
+ok 37 - hardlinks share inode and data, and removing one preserves the other
+  ---
+  duration_ms: 3.052083
+  type: 'test'
+  ...
+# Subtest: common type errors use contract FsError with virtual paths and errno
+ok 38 - common type errors use contract FsError with virtual paths and errno
+  ---
+  duration_ms: 2.264291
+  type: 'test'
+  ...
+# Subtest: bounded reads enforce exact byte limits including an empty file
+ok 39 - bounded reads enforce exact byte limits including an empty file
+  ---
+  duration_ms: 2.483333
+  type: 'test'
+  ...
+# Subtest: byte streams honor offsets, chunk size, end-exclusive limits, and early return
+ok 40 - byte streams honor offsets, chunk size, end-exclusive limits, and early return
+  ---
+  duration_ms: 2.645958
+  type: 'test'
+  ...
+# Subtest: stream failure closes files and preserves explicitly documented partial writes
+ok 41 - stream failure closes files and preserves explicitly documented partial writes
+  ---
+  duration_ms: 1.914667
+  type: 'test'
+  ...
+# Subtest: cancellation preserves the abort reason and stops a streaming write
+ok 42 - cancellation preserves the abort reason and stops a streaming write
+  ---
+  duration_ms: 1.885833
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 565.265666

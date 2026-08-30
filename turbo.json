@@ -1,6 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
+    "scripts/guard-package-dist.mjs",
     "package.json",
     "tsconfig.json",
     "tsconfig.build.json",
@@ -23,7 +24,8 @@
         "packages/**/*.test.ts",
         "package.json",
         "tsconfig.json",
-        "vitest.config.ts"
+        "vitest.config.ts",
+        "!packages/safe-bash/**"
       ]
     },
     "lint": {
@@ -38,6 +40,96 @@
     "generate:docs": {
       "outputs": [
         "docs/**"
+      ]
+    },
+    "virtual-bash#build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "integration-boundaries.json",
+        "scripts/integration-inputs.mjs",
+        "scripts/typecheck-integration-inputs.mjs",
+        "tests/commands/regex-execution/cleanup-registration/isolate.mjs",
+        "tests/compatibility/bash-redirection-independent-20260829/continuation-v2/run.mjs",
+        "tests/integration/apply-patch-public-independent-20260829/prepare.mjs",
+        "tests/integration/apply-patch-public-independent-20260829/run.mjs",
+        "tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs",
+        "tests/integration/expr-public-independent-20260827/component-execution-v4/run.mjs",
+        "!src/commands/xan/argv.ts",
+        "!src/commands/xan/budget.ts",
+        "!src/commands/xan/commands.ts",
+        "!src/commands/xan/csv.ts",
+        "!src/commands/xan/index.ts",
+        "!src/commands/xan/io.ts",
+        "!src/commands/xan/options.ts",
+        "!src/commands/xan/selector.ts",
+        "!src/commands/xan/sort.ts",
+        "!src/commands/xan/writer.ts",
+        "!src/commands/xan/DESIGN.md",
+        "!src/commands/xan/README.md",
+        "!tests/commands/xan-author-20260828/**",
+        "!tests/commands/xan-independent-20260828/**",
+        "!tests/commands/xan-module-review-20260828/**",
+        "!tests/commands/xan-oracle-prep-20260828/**",
+        "!tests/commands/regex-execution/cleanup-registration/artifacts/phase-a/**",
+        "!tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__canonical/**",
+        "!tests/integration/apply-patch-public-independent-20260829/PREPARED/fixtures/**",
+        "!tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical/**",
+        "!tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build/**",
+        "!tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build/**",
+        "!src/commands/xan/design-evidence/**"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "virtual-bash#test:unit": {
+      "dependsOn": [
+        "build"
+      ],
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "scripts/**",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "integration-boundaries.json",
+        "integration-type-inputs.json",
+        "!src/commands/xan/argv.ts",
+        "!src/commands/xan/budget.ts",
+        "!src/commands/xan/commands.ts",
+        "!src/commands/xan/csv.ts",
+        "!src/commands/xan/index.ts",
+        "!src/commands/xan/io.ts",
+        "!src/commands/xan/options.ts",
+        "!src/commands/xan/selector.ts",
+        "!src/commands/xan/sort.ts",
+        "!src/commands/xan/writer.ts",
+        "!src/commands/xan/DESIGN.md",
+        "!src/commands/xan/README.md",
+        "!tests/commands/xan-author-20260828/**",
+        "!tests/commands/xan-independent-20260828/**",
+        "!tests/commands/xan-module-review-20260828/**",
+        "!tests/commands/xan-oracle-prep-20260828/**",
+        "!tests/commands/regex-execution/cleanup-registration/artifacts/phase-a/**",
+        "!tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/scratch/source/__canonical/**",
+        "!tests/integration/apply-patch-public-independent-20260829/PREPARED/fixtures/**",
+        "!tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical/**",
+        "!tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build/**",
+        "!tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build/**",
+        "!tests/commands/regex-execution/continuation/artifacts/native/**",
+        "!src/commands/xan/design-evidence/**"
+      ],
+      "outputs": [],
+      "cache": false,
+      "passThroughEnv": [
+        "SAFE_BASH_TEST_RG"
       ]
     }
   }

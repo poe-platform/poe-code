@@ -1,0 +1,68 @@
+{
+  "verdict": "FINITE DATA HOLD — independent semantic audit incomplete",
+  "authorCommit": "1a4c02b9bb72625480b3eac3ed076ed65eee522e",
+  "handoff": "tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/actual-v2/HANDOFF.md",
+  "authenticated": {
+    "gitCommittedMetadata": ["RAW-MANIFEST.json", "RECEIPT.json", "HANDOFF.md"],
+    "manifestSha256": "138b6b2f81551506220d82a46d82210ca09782499ba7faf876e8f2b9512538b3",
+    "authorReceiptSha256": "87845ae146e6c73ae43dcda4bf1b5443320b9387d60177565bfdd1be64df57f8",
+    "regularPayloads": 196,
+    "payloadBytes": 10155453,
+    "allPayloadSizesAndSha256MatchManifest": true
+  },
+  "reviewerFailure": {
+    "phase": "second DATA-helper launch, parse time before any body execution",
+    "error": "SyntaxError: Identifier objects has already been declared",
+    "cause": "Reviewer added a traversal function named objects while the same module already declared the authenticated Git object buffer with that name",
+    "capture": "audit.stderr",
+    "smallestReviewerCorrection": "Rename the traversal function and its references; re-run the semantic interpretation under a fresh bounded grant, not the product cohort",
+    "productDefectInferred": false
+  },
+  "unrun": [
+    "independent 672 result semantics and 24 exact diagnostic comparison",
+    "seven mutant-specific loaded hash/defect/restored baseline pairings",
+    "raw lifecycle event and per-loader role-binding interpretation",
+    "196 separate identity-receipt linkage checks",
+    "packet content, installer/umask derivation, unused bindings and deadline postguards",
+    "four proposed tamper controls"
+  ],
+  "authorReportedNotIndependentlyAccepted": {
+    "retainedPass": 672,
+    "layouts": 3,
+    "types": 6,
+    "exactNegativeDiagnostics": 24,
+    "mutants": 7,
+    "restores": 7,
+    "bindingRefusals": 2,
+    "supervisedChildren": 41,
+    "loaderAdmissions": 34,
+    "loaderRecords": 8025,
+    "childAttemptedAndStoredBytes": 344330,
+    "conservativeRuntimeKnownRoles": 49
+  },
+  "packageScope": {
+    "source": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "inputs": 309,
+    "members": 1014,
+    "archiveSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+    "notFinal1070OrNewLocalA": true
+  },
+  "qualifications": [
+    "No product, compiler, Worker, loader, npm, install, native execution, archive decode, or product retry",
+    "No change to author source/evidence or historical STOPs, including the missed 17:30 admission and corrected author reader error",
+    "Individual loader exits remain UNOBSERVED; author parent-retirement observation is not universal descendant census",
+    "Cache accounting remains best-effort non-atomic native-tool boundary, not a peak quota",
+    "SOURCE reviews and ROOT runtime grant remain author/user bindings, not newly re-reviewed by this partial DATA audit"
+  ],
+  "reviewResources": {
+    "knownOSStartsIncludingPublication": 20,
+    "maximumKnownOSStarts": 20,
+    "conservativePeak": 3,
+    "dataHelperFiles": 1,
+    "helperLaunches": 2,
+    "tamperControlsExecuted": 0,
+    "captureCapBytes": 33554432,
+    "logicalWorkCapBytes": 167772160,
+    "qualification": "Bounded direct capture and regular-file reads; no payload/archive copies beyond in-memory DATA; not OS/RSS/Git-physical quota proof"
+  }
+}

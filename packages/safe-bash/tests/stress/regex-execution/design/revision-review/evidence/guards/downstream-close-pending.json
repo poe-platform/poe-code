@@ -1,0 +1,137 @@
+{
+  "name": "downstream-close-pending",
+  "pid": 66272,
+  "killed": false,
+  "readyAt": 37.34370900000022,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1418,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": []
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ]
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "downstream-close-pending"
+    },
+    {
+      "type": "done",
+      "name": "downstream-close-pending",
+      "observations": [
+        {
+          "label": "return-queued-behind-owned-next",
+          "value": {
+            "closeSettled": false,
+            "source": {
+              "reads": 1,
+              "returns": 0,
+              "outstanding": 1,
+              "maximum": 1
+            }
+          }
+        },
+        {
+          "label": "cleanup-before-outer-finally",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 2,
+              "execCalls": 2,
+              "inputBytes": 2,
+              "responseBytes": 52,
+              "startupMs": 21.665874999999996,
+              "workMs": 0.31354100000000784,
+              "terminationMs": 1.138916000000009,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacity": 0,
+            "thread": -1,
+            "listeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "stdoutListeners": 0,
+            "stderrListeners": 0,
+            "signalListeners": 0
+          }
+        }
+      ],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 2,
+            "execCalls": 2,
+            "inputBytes": 2,
+            "responseBytes": 52,
+            "startupMs": 21.665874999999996,
+            "workMs": 0.31354100000000784,
+            "terminationMs": 1.138916000000009,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacity": 0,
+          "thread": -1,
+          "listeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "stdoutListeners": 0,
+          "stderrListeners": 0,
+          "signalListeners": 0
+        }
+      ],
+      "elapsedMs": 58.13787500000001,
+      "memory": {
+        "rss": 52396032,
+        "heapTotal": 6701056,
+        "heapUsed": 4705672,
+        "external": 1927021,
+        "arrayBuffers": 10750
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

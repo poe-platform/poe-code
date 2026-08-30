@@ -1,0 +1,18 @@
+{
+  "source": {
+    "name": "owner",
+    "commit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+    "originalPath": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/owner.mjs",
+    "blob": "e8313d521a454cf9b2f540a119c168c13de061b1",
+    "bytes": 8991,
+    "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+  },
+  "byteIdentical": true,
+  "implementedB2Deltas": [],
+  "requiredB2Deltas": [
+    "Pass fixed B2 roles instead of four B0 defaults",
+    "Define narrowly declared expected nonzero exits for negative types/mutants/bindings without poisoning valid expected-negative outcomes",
+    "Bind the B2 inclusive clock, work/capture ceilings, phase reserve and per-role ceilings"
+  ],
+  "qualification": "Exact inherited owner retained as DATA; not imported or executed; previous qualification is not a new B2 qualification."
+}

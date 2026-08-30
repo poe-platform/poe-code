@@ -1,0 +1,174 @@
+{
+  "name": "virtual-bash",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*.d.ts",
+      "import": "./dist/contracts/*.js"
+    },
+    "./commands/network": {
+      "types": "./dist/commands/network/index.d.ts",
+      "import": "./dist/commands/network/index.js"
+    },
+    "./commands/node": {
+      "types": "./dist/commands/node/index.d.ts",
+      "import": "./dist/commands/node/index.js"
+    },
+    "./commands/metadata": {
+      "types": "./dist/commands/metadata/index.d.ts",
+      "import": "./dist/commands/metadata/index.js"
+    },
+    "./commands/archive": {
+      "types": "./dist/commands/archive/index.d.ts",
+      "import": "./dist/commands/archive/index.js"
+    },
+    "./commands/table-text": {
+      "types": "./dist/commands/table-text/index.d.ts",
+      "import": "./dist/commands/table-text/index.js"
+    },
+    "./commands/stream-inspection": {
+      "types": "./dist/commands/stream-inspection/index.d.ts",
+      "import": "./dist/commands/stream-inspection/index.js"
+    },
+    "./commands/stream-format": {
+      "types": "./dist/commands/stream-format/index.d.ts",
+      "import": "./dist/commands/stream-format/index.js"
+    },
+    "./commands/split": {
+      "types": "./dist/commands/split/index.d.ts",
+      "import": "./dist/commands/split/index.js"
+    },
+    "./commands/time-env": {
+      "types": "./dist/commands/time-env/index.d.ts",
+      "import": "./dist/commands/time-env/index.js"
+    },
+    "./commands/tree": {
+      "types": "./dist/commands/tree/index.d.ts",
+      "import": "./dist/commands/tree/index.js"
+    },
+    "./commands/file": {
+      "types": "./dist/commands/file/index.d.ts",
+      "import": "./dist/commands/file/index.js"
+    },
+    "./commands/grep-aliases": {
+      "types": "./dist/commands/grep-aliases/index.d.ts",
+      "import": "./dist/commands/grep-aliases/index.js"
+    },
+    "./commands/column": {
+      "types": "./dist/commands/column/index.d.ts",
+      "import": "./dist/commands/column/index.js"
+    },
+    "./commands/html-to-markdown": {
+      "types": "./dist/commands/html-to-markdown/index.d.ts",
+      "import": "./dist/commands/html-to-markdown/index.js"
+    },
+    "./commands/du": {
+      "types": "./dist/commands/du/index.d.ts",
+      "import": "./dist/commands/du/index.js"
+    },
+    "./commands/expr": {
+      "types": "./dist/commands/expr/index.d.ts",
+      "import": "./dist/commands/expr/index.js"
+    },
+    "./commands/timeout": {
+      "types": "./dist/commands/timeout/index.d.ts",
+      "import": "./dist/commands/timeout/index.js"
+    },
+    "./commands/git": {
+      "types": "./dist/commands/git/index.d.ts",
+      "import": "./dist/commands/git/index.js"
+    },
+    "./commands/apply-patch": {
+      "types": "./dist/commands/apply-patch/index.d.ts",
+      "import": "./dist/commands/apply-patch/index.js"
+    },
+    "./commands/which": {
+      "types": "./dist/commands/which/index.d.ts",
+      "import": "./dist/commands/which/index.js"
+    },
+    "./fs/s3": {
+      "types": "./dist/fs/s3/index.d.ts",
+      "import": "./dist/fs/s3/index.js"
+    },
+    "./fs/s3/http": {
+      "types": "./dist/fs/s3/http/index.d.ts",
+      "import": "./dist/fs/s3/http/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/fs/webdav/index.d.ts",
+      "import": "./dist/fs/webdav/index.js"
+    },
+    "./fs/readonly": {
+      "types": "./dist/fs/readonly/index.d.ts",
+      "import": "./dist/fs/readonly/index.js"
+    },
+    "./fs/mount": {
+      "types": "./dist/fs/mount/index.d.ts",
+      "import": "./dist/fs/mount/index.js"
+    },
+    "./fs/overlay": {
+      "types": "./dist/fs/overlay/index.d.ts",
+      "import": "./dist/fs/overlay/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && tsc -p tsconfig.build.json",
+    "typecheck": "node scripts/typecheck.mjs",
+    "typecheck:all": "node scripts/typecheck.mjs --build",
+    "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+    "test": "node scripts/test.mjs",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+    "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+    "verify:release:whole": "node scripts/verify-whole-gate.mjs",
+    "test:runner": "node --test scripts/integration-inputs.test.mjs scripts/provision-test-inputs.test.mjs",
+    "test:unit": "npm run test:runner && node scripts/test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.12",
+    "typescript": "5.9"
+  },
+  "poeCode": {
+    "packageLint": {
+      "sourceExclude": [
+        "src/commands/structured/query-core.ts",
+        "src/commands/xan/argv.ts",
+        "src/commands/xan/budget.ts",
+        "src/commands/xan/commands.ts",
+        "src/commands/xan/csv.ts",
+        "src/commands/xan/index.ts",
+        "src/commands/xan/io.ts",
+        "src/commands/xan/options.ts",
+        "src/commands/xan/selector.ts",
+        "src/commands/xan/sort.ts",
+        "src/commands/xan/writer.ts",
+        "src/commands/yq/accounting.ts",
+        "src/commands/yq/encoder.ts",
+        "src/commands/yq/errors.ts",
+        "src/commands/yq/index.ts",
+        "src/commands/yq/parser.ts"
+      ]
+    }
+  }
+}

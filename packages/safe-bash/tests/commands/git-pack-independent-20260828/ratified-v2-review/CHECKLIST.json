@@ -1,0 +1,318 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "verdict": "IMPLEMENTABLE_ACCEPTED_DESIGN",
+  "scope": "Focused ratified correction review only; no implementation authority or execution GO",
+  "authority": {
+    "commit": "5f02757081bb1c1477365a922442d17804f872e8",
+    "path": "tests/commands/git-pack-independent-20260828/ROOT-DECISIONS.md",
+    "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f524f4f542d4445434953494f4e532e6d64",
+    "gitMode": "100644",
+    "kind": "blob",
+    "gitBlob": "a83f7f95f9650f5579fc6b678bfb4bd5f7ab4a87",
+    "bytes": 11936,
+    "sha256": "b7e6a2410a651403b9ba00ac27911d432de106c20b94067ce14f902b29a0de43"
+  },
+  "reviewedRevisions": [
+    "ea71268b91e4cd6994885062aad6626ccce66b08",
+    "7675f24ca569dea649880118ee55d8b3702822a7"
+  ],
+  "requestedBindingSha256": "53dc6c5272b25e99c8f36df5fb9699ec54c98df4db87b2a9c03bb488c3281d51",
+  "bindingsFile": {
+    "path": "tests/commands/git-pack-independent-20260828/ratified-v2-review/BINDINGS.json",
+    "sha256": "77d8493fe2088a4c0b4dfda1a08b5c5dd07e88804753a995edd5507c50a59a2e"
+  },
+  "rows": [
+    {
+      "id": "C01",
+      "authority": "D1",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 18
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 27
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "line": 27
+        }
+      ],
+      "conclusion": "Eager before any successful output includes every discovered pack/index envelope, CRC, frame, delta and OID; metadata and loose selection are included; lazy alternative explicitly unselected.",
+      "qualification": "Strict bounded profile and W>=4P-52 at P8000014 =>32000004 beyond32000000 before other work; static necessary condition only.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C02",
+      "authority": "D2/R02",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 34
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 46
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 18
+        }
+      ],
+      "conclusion": "Exact regular same-stem .rev/.bitmap/.keep/.mtimes only with complete pair, objects/pack/multi-pack-index and objects/info/{packs,commit-graph}; lstat<=16777216 and entry limits.",
+      "qualification": "Bodies unused/unverified; membership/type/size/available-stat only; no fabricated stats/body mutation/ABA guarantee; promisor/link/unknown/incremental refusals preserved.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C03",
+      "authority": "D3",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 55
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 62
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 69
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 16
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 17
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 19
+        }
+      ],
+      "conclusion": "Pinned owners, no eviction or lease API; actual consumers and cooperative work finish before release. Per-location verification and intrinsic depth survive OID cache/dedup hits.",
+      "qualification": "B10 eviction limb remains unfulfilled/out-of-profile, not passed. Actual ownership/close proof remains future.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C04",
+      "authority": "R01",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 89
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 121
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 131
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 141
+        }
+      ],
+      "conclusion": "24 unchanged literal values agree with original limits and resource dimension table. Cumulative usage, live occupancy, per-value ceilings and intrinsic depth are distinguished.",
+      "qualification": "Actual listings/table admissions charge physical rows; graph scans charge work; first OID census insertion charges one object; no refunds/resets except proven live-owner release.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C05",
+      "authority": "F01",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 147
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 11
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 12
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+          "line": 17
+        }
+      ],
+      "conclusion": "Program length>=4 before variable reading/replay; zero-to-three refuse. The source-only zero-result neighbor and empty direct bodies retain their qualifications.",
+      "qualification": "Selected pinned-reader restriction, not universal zero-result or canonical-varint policy. Patch remains unapplied/unexecuted.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C06",
+      "authority": "F02",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 161
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 14
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 15
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+          "line": 9
+        }
+      ],
+      "conclusion": "S=1072+28N+8L; N0 requires L0; N>0 requires0<=L<=N-1 before unsafe conversion/row allocation.",
+      "qualification": "N1/L1/1108 refuses; P11 N2/L1/1136 remains extent-positive and small indirect offsets are not categorically refused. Component descriptions are not whole-index passes.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C07",
+      "authority": "proof roles",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 176
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 21
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 32
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "line": 39
+        }
+      ],
+      "conclusion": "Exact pinned-reader source hashes inherited; B01-B12 and six original workflows unchanged and UNRUN. Source/data/product/native roles remain distinct.",
+      "qualification": "No new golden, commands/defaults/public/private API or loaded proof. Codec consumption/close and implementation accounting remain future, not automatic design blockers.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    },
+    {
+      "id": "C08",
+      "authority": "additive seals",
+      "result": "SATISFIED_DESIGN_CLAUSE",
+      "sourceReferences": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "line": 7
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "line": 38
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "line": 62
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+          "line": 1
+        }
+      ],
+      "conclusion": "Two exact revision seals and all predecessor commits identified. Original author/reviewer/M1A inventories preserved; only five additive author files introduced.",
+      "qualification": "Metadata-v1 failure/empty binding and corrected-v2 authority preserved. Historical15000ms deadline failure remains failure; no replay/rescore/pass inheritance.",
+      "role": "STATIC_SOURCE_DATA_REVIEW_NOT_RUNTIME_PROOF"
+    }
+  ],
+  "counts": {
+    "designClauses": 8,
+    "satisfiedDesignClauses": 8,
+    "residualDesignBlockers": 0,
+    "numericLimitsUnchanged": 24,
+    "preservedAuthorFiles": 23,
+    "preservedFormatFiles": 12,
+    "preservedResourceFiles": 15,
+    "preservedM1AFilesIdentityOnly": 11,
+    "successorFiles": 5,
+    "bindingMembersPerRevision": 9,
+    "originalFamilies": 12,
+    "workflowMappings": 6,
+    "inheritedPrimarySources": 4
+  },
+  "residualDesignBlockers": [],
+  "futureProof": [
+    "Exact production codec consumed-span/stream-completion/close",
+    "Source implementation of cumulative/live/per-value/intrinsic accounting and ownership",
+    "Bounded failure/abort/mutation/resource observations",
+    "Source/build/installed/moved/public integration and six real workflows",
+    "Native compatibility if separately authorized"
+  ],
+  "preparation": {
+    "role": "METADATA_INSPECTION_ONLY",
+    "failedMetadataLookupPreserved": true,
+    "historicalTimedFailurePreserved": true,
+    "checkerRetry": false,
+    "newDataControlAttempts": 0
+  },
+  "execution": {
+    "authorChecker": 0,
+    "patchApplication": 0,
+    "formatProbes": 0,
+    "syntheticControls": 0,
+    "writeSpecChecker": 0,
+    "product": 0,
+    "nativeGit": 0,
+    "nativeVersion": 0,
+    "compiler": 0,
+    "build": 0,
+    "privateEngine": 0,
+    "yq": 0
+  },
+  "authorization": {
+    "implementation": false,
+    "productExecution": false,
+    "nativeExecution": false,
+    "defaultOrPublicIntegration": false
+  },
+  "activeOwnedBackgroundProcesses": 0
+}

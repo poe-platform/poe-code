@@ -1,0 +1,13 @@
+{
+  "createdAt": "2026-08-28T05:04:10.327Z",
+  "source": "inventory.mjs capture emits kind, not type",
+  "delta": "row.type === 'file' -> row.kind === 'file'",
+  "original": {
+    "report": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v4-bNmF0j/REPORT.json",
+    "sha256": "bd7b6e65b6baf72fdc753bfc897d309af8b20fd000cabd9be59ba6bb73eeaee8",
+    "commands": 0,
+    "result": "0 != 858 before any public consumer"
+  },
+  "productChanged": false,
+  "expectationUnchanged": "Exact count of regular emitted/package files, not relaxed/removed."
+}

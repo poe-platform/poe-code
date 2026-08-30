@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "AUTHOR_STATIC_CHECKS_NOT_INDEPENDENT_ACCEPTANCE",
+  "groups": 11,
+  "checks": [
+    {
+      "id": "PREVALIDATION-SEAL",
+      "status": "STATIC_PASS",
+      "files": 6,
+      "sha256": "5024fb1989532ff9f5051cc7e4cff32efd0918e4a2ea31e2151d9e34c35a99b2"
+    },
+    {
+      "id": "FROZEN-DEFECT-SOURCE-F01-ABI-WITNESS",
+      "status": "STATIC_PASS",
+      "references": 8,
+      "executed": 0
+    },
+    {
+      "id": "EXACT-SOURCE-DELTA",
+      "status": "STATIC_PASS",
+      "sourceFiles": 1,
+      "edits": 5,
+      "parent": {
+        "sha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+        "bytes": 9806,
+        "mode": 420,
+        "kind": "file"
+      },
+      "postimage": {
+        "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+        "bytes": 11554,
+        "mode": 420,
+        "kind": "file"
+      },
+      "allOtherSourceBytesUnchanged": true
+    },
+    {
+      "id": "UNCHANGED-PREDICATES-AND-IMPORTS",
+      "status": "STATIC_PASS",
+      "normalFacts": true,
+      "baselineMatches": true,
+      "changedPrimitive": true,
+      "imports": [
+        "node:path",
+        "./worker-support.mjs"
+      ],
+      "authoredImports": 0
+    },
+    {
+      "id": "STATIC-CONTROL-FLOW-ORDER",
+      "status": "STATIC_PASS",
+      "earlyGapBeforeMaterializationAndCapture": true,
+      "contradictionBeforeIncomplete": true,
+      "method": "Source anchor/order inspection only; no classifier or shadow execution"
+    },
+    {
+      "id": "FROZEN-WITNESS-GAP-MATRIX",
+      "status": "STATIC_PASS",
+      "totalSlots": 10,
+      "knownRoleGaps": 4,
+      "retainedViewEarlyDenials": 2,
+      "otherDynamicSlots": 6,
+      "newMethods": 0,
+      "newStatuses": 0,
+      "wholeRecordAssertionsUnchanged": true
+    },
+    {
+      "id": "UNCHANGED-INPUTS-AND-CW-F01",
+      "status": "STATIC_PASS",
+      "baseInputs": 29,
+      "companionReferences": 2,
+      "disjointTargets": true,
+      "futurePhysicalAdmission": "UNRUN"
+    },
+    {
+      "id": "DEFERRED-BOUNDARIES",
+      "status": "STATIC_PASS",
+      "controls": 22,
+      "exactReviewerData": true,
+      "actualCalls": 0,
+      "shadowPredicateCalls": 0
+    },
+    {
+      "id": "SEPARATE-UNAPPROVED-PROPOSAL",
+      "status": "STATIC_PASS",
+      "implemented": false,
+      "enablingBranch": false,
+      "credit": 0
+    },
+    {
+      "id": "SYNTAX-AND-SPECIFICATION",
+      "status": "STATIC_PASS",
+      "syntaxChecks": 1,
+      "specChecks": 1,
+      "authoredModuleImports": 0,
+      "nodeExecutable": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      }
+    },
+    {
+      "id": "FRESH-PROJECTION-MODES",
+      "status": "STATIC_PASS",
+      "filesBeforeEvidence": 7,
+      "fileMode": 420,
+      "directoryMode": 493,
+      "symlinks": 0
+    }
+  ],
+  "rawCommands": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/loaded-worker.mjs"
+      ],
+      "exit": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "NODE_OPTIONS": "ABSENT",
+      "NODE_PATH": "ABSENT"
+    },
+    {
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/SPECIFICATION.md"
+      ],
+      "exit": 0,
+      "signal": null,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/SPECIFICATION.md (0 warning(s))\n",
+      "stderr": "",
+      "NODE_OPTIONS": "ABSENT",
+      "NODE_PATH": "ABSENT"
+    }
+  ],
+  "sourceInference": "Existing primitive contradictions still select FAIL before gap classification. Matching unbound UTF22 positives are INCOMPLETE; both retained-view branches return UNRUN before materialization/capture. The frozen F01 assertion and whole witness remain unchanged. This is source inference only.",
+  "executionCounts": {
+    "compiler": 0,
+    "classifier": 0,
+    "projection": 0,
+    "shadowPredicate": 0,
+    "worker": 0,
+    "control": 0,
+    "loader": 0,
+    "product": 0,
+    "moduleImports": 0
+  },
+  "deferredControls": 22,
+  "knownAffectedGaps": 4,
+  "remainingDynamicSlots": 6,
+  "rootGO": false,
+  "remaining": "Different review,core integration,new compound binding,freshGO and future dynamic checks; separate observation proposal is unapproved and cannot close four known gaps."
+}

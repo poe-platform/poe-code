@@ -1,0 +1,3958 @@
+{
+  "author": "independent reviewer; not expectation editor93986",
+  "capturedAt": "2026-08-26T23:45:10.323Z",
+  "pins": {
+    "diff": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "stdout": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n",
+      "stderr": "",
+      "signal": null
+    },
+    "patch": {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "realpath": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "stdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+      "stderr": "",
+      "signal": null
+    },
+    "appleDiff": {
+      "path": "/usr/bin/diff",
+      "realpath": "/usr/bin/diff",
+      "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "stdout": "Apple diff (based on FreeBSD diff)\n",
+      "stderr": "",
+      "signal": null
+    },
+    "applePatch": {
+      "path": "/usr/bin/patch",
+      "realpath": "/usr/bin/patch",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "status": 0,
+      "stdout": "patch 2.0-12u11-Apple\n",
+      "stderr": "",
+      "signal": null
+    }
+  },
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc",
+  "exactConflicts": 8,
+  "separateMalformedControls": 1,
+  "diffRegeneration": [
+    {
+      "args": [
+        "-U0",
+        "--label",
+        "first",
+        "--label",
+        "first",
+        "old",
+        "new"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc",
+      "status": 1,
+      "stdout": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n",
+      "stderr": "",
+      "signal": null
+    },
+    {
+      "args": [
+        "-U0",
+        "--label",
+        "\"alias/target\"",
+        "--label",
+        "\"alias/target\"",
+        "old",
+        "new"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc",
+      "status": 1,
+      "stdout": "--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+      "stderr": "",
+      "signal": null
+    }
+  ],
+  "observations": [
+    {
+      "fixture": {
+        "name": "quoted-path security: quoted ancestor symlink",
+        "kind": "quoted",
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "args": [],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680774
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680775
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 6,
+          "dev": 16777232,
+          "ino": 169680776
+        },
+        "/fixture/work/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680786,
+          "target": "dir"
+        },
+        "/fixture/work/dir": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680784
+        },
+        "/fixture/work/dir/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680785,
+          "hex": "6f6c640a"
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680782,
+          "hex": "6f6c640a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680783,
+          "hex": "6f6c640a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680777
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680781,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680778,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680778,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-8JbRUM/fixture/work",
+        "status": 0,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680774
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680775
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 6,
+          "dev": 16777232,
+          "ino": 169680776
+        },
+        "/fixture/work/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680786,
+          "target": "dir"
+        },
+        "/fixture/work/dir": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680784
+        },
+        "/fixture/work/dir/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680785,
+          "hex": "6f6c640a"
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680788,
+          "hex": "6e65770a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680789,
+          "hex": "6e65770a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680777
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680781,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680778,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680778,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [
+          "/fixture/work/first",
+          "/fixture/work/target"
+        ],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/alias",
+            [
+              "/fixture/work/alias"
+            ]
+          ],
+          [
+            "/fixture/work/dir/target",
+            [
+              "/fixture/work/dir/target"
+            ]
+          ],
+          [
+            "/fixture/work/first",
+            [
+              "/fixture/work/first"
+            ]
+          ],
+          [
+            "/fixture/work/target",
+            [
+              "/fixture/work/target"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "quoted-path security: quoted ancestor symlink",
+        "kind": "quoted",
+        "input": "--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n--- \"alias/target\"\n+++ \"alias/target\"\n@@ -1 +1 @@\n-old\n+new\n",
+        "args": [],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680790
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680791
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 6,
+          "dev": 16777232,
+          "ino": 169680792
+        },
+        "/fixture/work/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680802,
+          "target": "dir"
+        },
+        "/fixture/work/dir": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680800
+        },
+        "/fixture/work/dir/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680801,
+          "hex": "6f6c640a"
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680798,
+          "hex": "6f6c640a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680799,
+          "hex": "6f6c640a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680793
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680797,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680794,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680794,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-PgwKw0/fixture/work",
+        "status": 1,
+        "stdout": "patching file first\nFile to patch: \nNo file found--skip this patch? [y] \n1 out of 1 hunks ignored--saving rejects to Oops.rej\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680790
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680791
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 7,
+          "dev": 16777232,
+          "ino": 169680792
+        },
+        "/fixture/work/Oops.rej": {
+          "type": "file",
+          "mode": 384,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680805,
+          "hex": "4040202d312c31202b312c312040400a2d6f6c640a2b6e65770a"
+        },
+        "/fixture/work/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680802,
+          "target": "dir"
+        },
+        "/fixture/work/dir": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680800
+        },
+        "/fixture/work/dir/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680801,
+          "hex": "6f6c640a"
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680803,
+          "hex": "6e65770a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680799,
+          "hex": "6f6c640a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680793
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680797,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680794,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680794,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+        "kind": "backward",
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "args": [],
+        "status": 1
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680807
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680808
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680809
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680815,
+          "hex": "6b6565700a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680816,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680810
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680814,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680811,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680811,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-FhnnZE/fixture/work",
+        "status": 1,
+        "stdout": "patching file first\npatching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680807
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680808
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 6,
+          "dev": 16777232,
+          "ino": 169680809
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680818,
+          "hex": "6368616e6765640a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680819,
+          "hex": "6e65770a6d6964646c650a7461696c0a"
+        },
+        "/fixture/work/target.orig": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680816,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/fixture/work/target.rej": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680820,
+          "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680810
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680814,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680811,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680811,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [
+          "/fixture/work/first",
+          "/fixture/work/target",
+          "/fixture/work/target.orig",
+          "/fixture/work/target.rej"
+        ],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/first",
+            [
+              "/fixture/work/first"
+            ]
+          ],
+          [
+            "/fixture/work/target",
+            [
+              "/fixture/work/target"
+            ]
+          ],
+          [
+            "/fixture/work/target.orig",
+            [
+              "/fixture/work/target.orig"
+            ]
+          ],
+          [
+            "/fixture/work/target.rej",
+            [
+              "/fixture/work/target.rej"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+        "kind": "backward",
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+        "args": [],
+        "status": 1
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680821
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680822
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680823
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680829,
+          "hex": "6b6565700a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680830,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680824
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680828,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680825,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680825,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-iBIwyS/fixture/work",
+        "status": 2,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "patch: **** misordered hunks! output would be garbled\n",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680821
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680822
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680823
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680831,
+          "hex": "6368616e6765640a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680830,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680824
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680828,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680825,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680825,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: normal/-E/apply",
+        "kind": "empty",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "-E",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680836
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680837
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680847
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680848,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680838
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680845,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680844,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680846,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680839
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680843,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680840,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680840,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "-E",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-5eCdq1/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-5eCdq1/fixture/work",
+        "status": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-5eCdq1/fixture/authorized/target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680836
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680837
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680838
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680845,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680844,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680846,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680839
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680843,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680840,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680840,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/new-label",
+            [
+              "/fixture/work/new-label"
+            ]
+          ],
+          [
+            "/fixture/work/old-label",
+            [
+              "/fixture/work/old-label"
+            ]
+          ],
+          [
+            "/fixture/work/sentinel",
+            [
+              "/fixture/work/sentinel"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: normal/-E/apply",
+        "kind": "empty",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "-E",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680851
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680852
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680862
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680863,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680853
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680860,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680859,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680861,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680854
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680858,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680855,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680855,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "-E",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-MB8QfX/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-MB8QfX/fixture/work",
+        "status": 0,
+        "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-MB8QfX/fixture/authorized/target'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680851
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680852
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680862
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680853
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680860,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680859,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680861,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680854
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680858,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680855,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680855,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: normal/--remove-empty-files/apply",
+        "kind": "empty",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680870
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680871
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680881
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680882,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680872
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680879,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680878,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680880,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680873
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680877,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680874,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680874,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "--remove-empty-files",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-fhDoJT/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-fhDoJT/fixture/work",
+        "status": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-fhDoJT/fixture/authorized/target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680870
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680871
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680872
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680879,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680878,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680880,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680873
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680877,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680874,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680874,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/new-label",
+            [
+              "/fixture/work/new-label"
+            ]
+          ],
+          [
+            "/fixture/work/old-label",
+            [
+              "/fixture/work/old-label"
+            ]
+          ],
+          [
+            "/fixture/work/sentinel",
+            [
+              "/fixture/work/sentinel"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: normal/--remove-empty-files/apply",
+        "kind": "empty",
+        "input": "1,2d0\n< alpha\n< beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680886
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680887
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680897
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680898,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680888
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680895,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680894,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680896,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680889
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680893,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680890,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680890,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "--remove-empty-files",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-Au9Uju/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-Au9Uju/fixture/work",
+        "status": 0,
+        "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-Au9Uju/fixture/authorized/target'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680886
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680887
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680897
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680888
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680895,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680894,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680896,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680889
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680893,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680890,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680890,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: context/-E/apply",
+        "kind": "empty",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "-E",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680903
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680904
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680914
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680915,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680905
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680912,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680911,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680913,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680906
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680910,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680907,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680907,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "-E",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-oX3e2e/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-oX3e2e/fixture/work",
+        "status": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-oX3e2e/fixture/authorized/target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680903
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680904
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680905
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680912,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680911,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680913,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680906
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680910,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680907,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680907,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/new-label",
+            [
+              "/fixture/work/new-label"
+            ]
+          ],
+          [
+            "/fixture/work/old-label",
+            [
+              "/fixture/work/old-label"
+            ]
+          ],
+          [
+            "/fixture/work/sentinel",
+            [
+              "/fixture/work/sentinel"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: context/-E/apply",
+        "kind": "empty",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "-E",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680918
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680919
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680929
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680930,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680920
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680927,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680926,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680928,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680921
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680925,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680922,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680922,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "-E",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-PbPmmL/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-PbPmmL/fixture/work",
+        "status": 0,
+        "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-PbPmmL/fixture/authorized/target'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680918
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680919
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680929
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680920
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680927,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680926,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680928,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680921
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680925,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680922,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680922,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: context/--remove-empty-files/apply",
+        "kind": "empty",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "--remove-empty-files",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680935
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680936
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680946
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680947,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680937
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680944,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680943,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680945,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680938
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680942,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680939,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680939,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "--remove-empty-files",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-SaB0Om/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-SaB0Om/fixture/work",
+        "status": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-SaB0Om/fixture/authorized/target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680935
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680936
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680937
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680944,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680943,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680945,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680938
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680942,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680939,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680939,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/new-label",
+            [
+              "/fixture/work/new-label"
+            ]
+          ],
+          [
+            "/fixture/work/old-label",
+            [
+              "/fixture/work/old-label"
+            ]
+          ],
+          [
+            "/fixture/work/sentinel",
+            [
+              "/fixture/work/sentinel"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: context/--remove-empty-files/apply",
+        "kind": "empty",
+        "input": "*** old-label\n--- new-label\n***************\n*** 1,2 ****\n- alpha\n- beta\n--- 0 ----\n",
+        "args": [
+          "--remove-empty-files",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680950
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680951
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680961
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680962,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680952
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680959,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680958,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680960,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680953
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680957,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680954,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680954,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "--remove-empty-files",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-FtGxb0/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-FtGxb0/fixture/work",
+        "status": 0,
+        "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-FtGxb0/fixture/authorized/target'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680950
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680951
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680961
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680952
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680959,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680958,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680960,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680953
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680957,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680954,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680954,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: unified/-E/apply",
+        "kind": "empty",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "-E",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680967
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680968
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680978
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680979,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680969
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680976,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680975,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680977,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680970
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680974,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680971,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680971,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "-E",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-LGoYnO/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-LGoYnO/fixture/work",
+        "status": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-LGoYnO/fixture/authorized/target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680967
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680968
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680969
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680976,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680975,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680977,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680970
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680974,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680971,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680971,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/new-label",
+            [
+              "/fixture/work/new-label"
+            ]
+          ],
+          [
+            "/fixture/work/old-label",
+            [
+              "/fixture/work/old-label"
+            ]
+          ],
+          [
+            "/fixture/work/sentinel",
+            [
+              "/fixture/work/sentinel"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: unified/-E/apply",
+        "kind": "empty",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "-E",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680982
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680983
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169680993
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680994,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680984
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680991,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680990,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680992,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680985
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680989,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680986,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680986,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "-E",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-hKJCmk/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-hKJCmk/fixture/work",
+        "status": 0,
+        "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-hKJCmk/fixture/authorized/target'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680982
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680983
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680993
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680984
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680991,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680990,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680992,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169680985
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169680989,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680986,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169680986,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: unified/--remove-empty-files/apply",
+        "kind": "empty",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680999
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681000
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681010
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681011,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681001
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681008,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681007,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681009,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681002
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681006,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681003,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681003,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "--remove-empty-files",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-69zBuC/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-69zBuC/fixture/work",
+        "status": 0,
+        "stdout": "patching file /Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-69zBuC/fixture/authorized/target\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169680999
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681000
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681001
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681008,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681007,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681009,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681002
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681006,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681003,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681003,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/new-label",
+            [
+              "/fixture/work/new-label"
+            ]
+          ],
+          [
+            "/fixture/work/old-label",
+            [
+              "/fixture/work/old-label"
+            ]
+          ],
+          [
+            "/fixture/work/sentinel",
+            [
+              "/fixture/work/sentinel"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "GNU default: unified/--remove-empty-files/apply",
+        "kind": "empty",
+        "input": "--- old-label\n+++ new-label\n@@ -1,2 +0,0 @@\n-alpha\n-beta\n",
+        "args": [
+          "--remove-empty-files",
+          "/fixture/authorized/target"
+        ],
+        "status": 0
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681014
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681015
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681025
+        },
+        "/fixture/authorized/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681026,
+          "hex": "616c7068610a626574610a"
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681016
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681023,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681022,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681024,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681017
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681021,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681018,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681018,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [
+          "--remove-empty-files",
+          "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-532lEN/fixture/authorized/target"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-532lEN/fixture/work",
+        "status": 0,
+        "stdout": "patching file '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-532lEN/fixture/authorized/target'\n",
+        "stderr": "",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681014
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681015
+        },
+        "/fixture/authorized": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681025
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681016
+        },
+        "/fixture/work/new-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681023,
+          "hex": "6e6577206465636f790a"
+        },
+        "/fixture/work/old-label": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681022,
+          "hex": "6f6c64206465636f790a"
+        },
+        "/fixture/work/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681024,
+          "hex": "646f206e6f7420746f7563680a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681017
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681021,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681018,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681018,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    },
+    {
+      "fixture": {
+        "name": "true truncated syntax (separate control)",
+        "kind": "truncated",
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+        "args": [],
+        "status": 2
+      },
+      "dialect": "gnu",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681031
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681032
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681033
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681039,
+          "hex": "6b6565700a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681040,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681034
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681038,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681035,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681035,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-N1HkfL/fixture/work",
+        "status": 2,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** malformed patch at line 10:  \n\n",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681031
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681032
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681033
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681042,
+          "hex": "6368616e6765640a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681040,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681034
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681038,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681035,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681035,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "proof": {
+        "modified": [
+          "/fixture/work/first"
+        ],
+        "hardlinkRelations": [
+          [
+            "/fixture/work/first",
+            [
+              "/fixture/work/first"
+            ]
+          ],
+          [
+            "/fixture/work/target",
+            [
+              "/fixture/work/target"
+            ]
+          ],
+          [
+            "/outside/alias",
+            [
+              "/outside/alias"
+            ]
+          ],
+          [
+            "/outside/sentinel",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ],
+          [
+            "/outside/twin",
+            [
+              "/outside/sentinel",
+              "/outside/twin"
+            ]
+          ]
+        ],
+        "fullNamespaceVerified": true
+      }
+    },
+    {
+      "fixture": {
+        "name": "true truncated syntax (separate control)",
+        "kind": "truncated",
+        "input": "--- first\t2000-01-01 00:00:00 +0000\n+++ first\t2000-01-02 00:00:00 +0000\n@@ -1,1 +1,1 @@ agent replacement\n-keep\n+changed\n--- target\n+++ target\n@@ -1 +1,2 @@\n-old\n+new\n",
+        "args": [],
+        "status": 2
+      },
+      "dialect": "apple-control",
+      "before": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681044
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681045
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681046
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681052,
+          "hex": "6b6565700a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681053,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681047
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681051,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681048,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681048,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      },
+      "result": {
+        "args": [],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-revised-full-review/.work/native-Ur8lZc/case-gKOsut/fixture/work",
+        "status": 2,
+        "stdout": "patching file first\npatching file target\n",
+        "stderr": "patch: **** malformed patch at line 11:  \n",
+        "signal": null
+      },
+      "after": {
+        "/": {
+          "type": "directory",
+          "mode": 448,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681044
+        },
+        "/fixture": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 3,
+          "dev": 16777232,
+          "ino": 169681045
+        },
+        "/fixture/work": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 4,
+          "dev": 16777232,
+          "ino": 169681046
+        },
+        "/fixture/work/first": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681054,
+          "hex": "6368616e6765640a"
+        },
+        "/fixture/work/target": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681053,
+          "hex": "6f6c640a6d6964646c650a7461696c0a"
+        },
+        "/outside": {
+          "type": "directory",
+          "mode": 493,
+          "nlink": 5,
+          "dev": 16777232,
+          "ino": 169681047
+        },
+        "/outside/alias": {
+          "type": "symlink",
+          "mode": 493,
+          "nlink": 1,
+          "dev": 16777232,
+          "ino": 169681051,
+          "target": "sentinel"
+        },
+        "/outside/sentinel": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681048,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        },
+        "/outside/twin": {
+          "type": "file",
+          "mode": 420,
+          "nlink": 2,
+          "dev": 16777232,
+          "ino": 169681048,
+          "hex": "6f7574736964652073656e74696e656c0a00c3bf"
+        }
+      }
+    }
+  ],
+  "product": [],
+  "full3758Rerun": false,
+  "rootMapping": "Original virtual / maps to /fixture; sibling /outside has sentinel+hardlink+symlink. All entries and raw link counts retained. Native APFS directories count every child; Memory directories count child directories. No cross-platform inode identity equality is claimed."
+}

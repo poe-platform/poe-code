@@ -1,0 +1,84 @@
+{
+  "at": "2026-08-28T09:24:37.796Z",
+  "role": "syntax-only-control-route-before-execution",
+  "checks": [
+    {
+      "file": "mechanisms-v1.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "import-controls-v1.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "regressions-v1.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/adapters.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/child-process.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/driver.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/gaps.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/import-probe.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/integrity.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/let-regressions.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/lifecycle.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/load-hook.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "control-harness-v3/public-cases.mjs",
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,594 @@
+TAP version 13
+# Subtest: mktemp injected collision preserves every competing byte and bounds retries
+ok 1 - mktemp injected collision preserves every competing byte and bounds retries
+  ---
+  duration_ms: 8.23475
+  type: 'test'
+  ...
+# Subtest: mktemp noncollision faults do not retry or create host files
+ok 2 - mktemp noncollision faults do not retry or create host files
+  ---
+  duration_ms: 0.5815
+  type: 'test'
+  ...
+# Subtest: chmod blocked stdout abort preserves bounded effects and late rejection
+ok 3 - chmod blocked stdout abort preserves bounded effects and late rejection
+  ---
+  duration_ms: 4.594458
+  type: 'test'
+  ...
+# Subtest: stat blocked stdout abort preserves bounded effects and late rejection
+ok 4 - stat blocked stdout abort preserves bounded effects and late rejection
+  ---
+  duration_ms: 1.127708
+  type: 'test'
+  ...
+# Subtest: mktemp blocked stdout abort preserves bounded effects and late rejection
+ok 5 - mktemp blocked stdout abort preserves bounded effects and late rejection
+  ---
+  duration_ms: 0.868667
+  type: 'test'
+  ...
+# Subtest: chmod pre-abort performs no effects
+ok 6 - chmod pre-abort performs no effects
+  ---
+  duration_ms: 1.051792
+  type: 'test'
+  ...
+# Subtest: stat pre-abort performs no effects
+ok 7 - stat pre-abort performs no effects
+  ---
+  duration_ms: 0.532416
+  type: 'test'
+  ...
+# Subtest: mktemp pre-abort performs no effects
+ok 8 - mktemp pre-abort performs no effects
+  ---
+  duration_ms: 0.284333
+  type: 'test'
+  ...
+# Subtest: chmod recursive budgets stop effects; hardlink aliases retain shared mode and bytes
+ok 9 - chmod recursive budgets stop effects; hardlink aliases retain shared mode and bytes
+  ---
+  duration_ms: 0.803167
+  type: 'test'
+  ...
+# Subtest: stat and mktemp output limits fail before output/creation; argument budget has no effects
+ok 10 - stat and mktemp output limits fail before output/creation; argument budget has no effects
+  ---
+  duration_ms: 1.339875
+  type: 'test'
+  ...
+# Subtest: chmod substitution detection refuses changed entry before mutation
+ok 11 - chmod substitution detection refuses changed entry before mutation
+  ---
+  duration_ms: 2.76675
+  type: 'test'
+  ...
+# Subtest: metadata actual memory capabilities and shell workflow
+ok 12 - metadata actual memory capabilities and shell workflow
+  ---
+  duration_ms: 14.929958
+  type: 'test'
+  ...
+# Subtest: metadata actual real capabilities and shell workflow
+ok 13 - metadata actual real capabilities and shell workflow
+  ---
+  duration_ms: 24.702875
+  type: 'test'
+  ...
+# Subtest: metadata actual mount capabilities and shell workflow
+ok 14 - metadata actual mount capabilities and shell workflow
+  ---
+  duration_ms: 6.972375
+  type: 'test'
+  ...
+# Subtest: metadata actual overlay capabilities and shell workflow
+ok 15 - metadata actual overlay capabilities and shell workflow
+  ---
+  duration_ms: 11.8065
+  type: 'test'
+  ...
+# Subtest: metadata actual s3 capabilities and shell workflow
+ok 16 - metadata actual s3 capabilities and shell workflow
+  ---
+  duration_ms: 8.763167
+  type: 'test'
+  ...
+# Subtest: metadata actual webdav capabilities and shell workflow
+ok 17 - metadata actual webdav capabilities and shell workflow
+  ---
+  duration_ms: 19.278959
+  type: 'test'
+  ...
+# Subtest: metadata actual readonly capabilities and shell workflow
+ok 18 - metadata actual readonly capabilities and shell workflow
+  ---
+  duration_ms: 1.549375
+  type: 'test'
+  ...
+# Subtest: MemoryFS enforces owner bits but does not implement host identities
+ok 19 - MemoryFS enforces owner bits but does not implement host identities
+  ---
+  duration_ms: 0.94
+  type: 'test'
+  ...
+# Subtest: GNU chmod directory setid controls compare actual host preservation
+ok 20 - GNU chmod directory setid controls compare actual host preservation
+  ---
+  duration_ms: 1334.082208
+  type: 'test'
+  ...
+# Subtest: GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+ok 21 - GNU chmod verbose/changes/reference/error controls preserve bytes and aliases
+  ---
+  duration_ms: 65.994875
+  type: 'test'
+  ...
+# Subtest: chmod root and unsupported traversal controls fail without namespace effects
+ok 22 - chmod root and unsupported traversal controls fail without namespace effects
+  ---
+  duration_ms: 0.566292
+  type: 'test'
+  ...
+# Subtest: GNU stat exact millisecond epoch values do not lose a millisecond in scaling
+ok 23 - GNU stat exact millisecond epoch values do not lose a millisecond in scaling
+  ---
+  duration_ms: 483.063625
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 negative fractions retain runtime rounding for the existing nine timestamp rows
+ok 24 - GNU 9.7 negative fractions retain runtime rounding for the existing nine timestamp rows
+  ---
+  duration_ms: 346.781125
+  type: 'test'
+  ...
+# {"requestedMs":-16016,"mtimeMs":-16015.999,"mtimeNs":"-16015999000","remainderWithinMillisecondNs":"-999000","native":"[-17][-17][-17.0][-16.01][-16.015]","actual":"[-17][-17][-17.0][-16.01][-16.015]"}
+# {"requestedMs":-4004,"mtimeMs":-4003.999,"mtimeNs":"-4003999000","remainderWithinMillisecondNs":"-999000","native":"[-5][-5][-5.0][-5.00][-4.003]","actual":"[-5][-5][-5.0][-5.00][-4.003]"}
+# {"requestedMs":-2002,"mtimeMs":-2001.999,"mtimeNs":"-2001999000","remainderWithinMillisecondNs":"-999000","native":"[-3][-3][-3.0][-3.00][-2.001]","actual":"[-3][-3][-3.0][-3.00][-2.001]"}
+# {"requestedMs":-1005,"mtimeMs":-1004.999,"mtimeNs":"-1004999000","remainderWithinMillisecondNs":"-999000","native":"[-2][-2][-2.0][-2.00][-1.004]","actual":"[-2][-2][-2.0][-2.00][-1.004]"}
+# {"requestedMs":-1001,"mtimeMs":-1000.999,"mtimeNs":"-1000999000","remainderWithinMillisecondNs":"-999000","native":"[-2][-2][-2.0][-2.00][-2.000]","actual":"[-2][-2][-2.0][-2.00][-2.000]"}
+# {"requestedMs":-999,"mtimeMs":-999,"mtimeNs":"-999000000","remainderWithinMillisecondNs":"0","native":"[-1][-1][-0.9][-0.99][-0.999]","actual":"[-1][-1][-0.9][-0.99][-0.999]"}
+# {"requestedMs":-101,"mtimeMs":-101,"mtimeNs":"-101000000","remainderWithinMillisecondNs":"0","native":"[-1][-1][-0.1][-0.10][-0.101]","actual":"[-1][-1][-0.1][-0.10][-0.101]"}
+# {"requestedMs":-11,"mtimeMs":-11,"mtimeNs":"-11000000","remainderWithinMillisecondNs":"0","native":"[-1][-1][-1.0][-0.01][-0.011]","actual":"[-1][-1][-1.0][-0.01][-0.011]"}
+# {"requestedMs":-1,"mtimeMs":-1,"mtimeNs":"-1000000","remainderWithinMillisecondNs":"0","native":"[-1][-1][-1.0][-1.00][-0.001]","actual":"[-1][-1][-1.0][-1.00][-0.001]"}
+# Subtest: GNU 9.7 narrow widths retain trailing bytes for the existing sixteen timestamp rows
+ok 25 - GNU 9.7 narrow widths retain trailing bytes for the existing sixteen timestamp rows
+  ---
+  duration_ms: 377.648
+  type: 'test'
+  ...
+# {"requestedMs":-16016,"mtimeMs":-16015.999,"mtimeNs":"-16015999000","remainderWithinMillisecondNs":"-999000","native":"[-16.015][-16.015][-16.015][-16.015]","actual":"[-16.015][-16.015][-16.015][-16.015]"}
+# {"requestedMs":-4004,"mtimeMs":-4003.999,"mtimeNs":"-4003999000","remainderWithinMillisecondNs":"-999000","native":"[-4.003][-4.003][-4.003][-4.003  ]","actual":"[-4.003][-4.003][-4.003][-4.003  ]"}
+# {"requestedMs":-2002,"mtimeMs":-2001.999,"mtimeNs":"-2001999000","remainderWithinMillisecondNs":"-999000","native":"[-2.001][-2.001][-2.001][-2.001  ]","actual":"[-2.001][-2.001][-2.001][-2.001  ]"}
+# {"requestedMs":-1005,"mtimeMs":-1004.999,"mtimeNs":"-1004999000","remainderWithinMillisecondNs":"-999000","native":"[-1.004][-1.004][-1.004][-1.004  ]","actual":"[-1.004][-1.004][-1.004][-1.004  ]"}
+# {"requestedMs":-1001,"mtimeMs":-1000.999,"mtimeNs":"-1000999000","remainderWithinMillisecondNs":"-999000","native":"[-2.000][-2.000][-2.000][-2.000  ]","actual":"[-2.000][-2.000][-2.000][-2.000  ]"}
+# {"requestedMs":-999,"mtimeMs":-999,"mtimeNs":"-999000000","remainderWithinMillisecondNs":"0","native":"[-0.999][-0.999][-0.999][-0.999  ]","actual":"[-0.999][-0.999][-0.999][-0.999  ]"}
+# {"requestedMs":-101,"mtimeMs":-101,"mtimeNs":"-101000000","remainderWithinMillisecondNs":"0","native":"[-0.101][-0.101][-0.101][-0.101  ]","actual":"[-0.101][-0.101][-0.101][-0.101  ]"}
+# {"requestedMs":-11,"mtimeMs":-11,"mtimeNs":"-11000000","remainderWithinMillisecondNs":"0","native":"[-0.011][-0.011][-0.011][-0.011  ]","actual":"[-0.011][-0.011][-0.011][-0.011  ]"}
+# {"requestedMs":-1,"mtimeMs":-1,"mtimeNs":"-1000000","remainderWithinMillisecondNs":"0","native":"[-0.001][-0.001][-0.001][-0.001  ]","actual":"[-0.001][-0.001][-0.001][-0.001  ]"}
+# {"requestedMs":0,"mtimeMs":0,"mtimeNs":"0","remainderWithinMillisecondNs":"0","native":"[0.000][0.000][0.000  ][0.000 ]","actual":"[0.000][0.000][0.000  ][0.000 ]"}
+# {"requestedMs":1,"mtimeMs":1,"mtimeNs":"1000000","remainderWithinMillisecondNs":"0","native":"[0.001][0.001][0.001  ][0.001 ]","actual":"[0.001][0.001][0.001  ][0.001 ]"}
+# {"requestedMs":11,"mtimeMs":11,"mtimeNs":"11000000","remainderWithinMillisecondNs":"0","native":"[0.011][0.011][0.011  ][0.011 ]","actual":"[0.011][0.011][0.011  ][0.011 ]"}
+# {"requestedMs":999,"mtimeMs":999,"mtimeNs":"999000000","remainderWithinMillisecondNs":"0","native":"[0.999][0.999][0.999  ][0.999 ]","actual":"[0.999][0.999][0.999  ][0.999 ]"}
+# {"requestedMs":1001,"mtimeMs":1000.999,"mtimeNs":"1000999000","remainderWithinMillisecondNs":"999000","native":"[1.000][1.000][1.000  ][1.000 ]","actual":"[1.000][1.000][1.000  ][1.000 ]"}
+# {"requestedMs":1005,"mtimeMs":1004.999,"mtimeNs":"1004999000","remainderWithinMillisecondNs":"999000","native":"[1.004][1.004][1.004  ][1.004 ]","actual":"[1.004][1.004][1.004  ][1.004 ]"}
+# {"requestedMs":16016,"mtimeMs":16015.999,"mtimeNs":"16015999000","remainderWithinMillisecondNs":"999000","native":"[16.015][16.015][16.015][16.015  ]","actual":"[16.015][16.015][16.015][16.015  ]"}
+# Subtest: GNU mktemp template grammar and quiet diagnostics: 24 controls
+ok 26 - GNU mktemp template grammar and quiet diagnostics: 24 controls
+  ---
+  duration_ms: 701.631375
+  type: 'test'
+  ...
+# Subtest: mktemp 64 concurrent creations reserve distinct names with virtual umasks
+ok 27 - mktemp 64 concurrent creations reserve distinct names with virtual umasks
+  ---
+  duration_ms: 4.218917
+  type: 'test'
+  ...
+# Subtest: mktemp crypto provenance remains node randomInt with no native/host filesystem fallback
+ok 28 - mktemp crypto provenance remains node randomInt with no native/host filesystem fallback
+  ---
+  duration_ms: 16.045
+  type: 'test'
+  ...
+# Subtest: mktemp directory collision retries never delete competing entries
+ok 29 - mktemp directory collision retries never delete competing entries
+  ---
+  duration_ms: 0.366834
+  type: 'test'
+  ...
+# Subtest: mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries
+ok 30 - mktemp post-create cancellation leaves one entry, never unsafe cleanup or retries
+  ---
+  duration_ms: 0.272084
+  type: 'test'
+  ...
+# Subtest: mktemp exclusive file creation cannot follow a competing symlink
+ok 31 - mktemp exclusive file creation cannot follow a competing symlink
+  ---
+  duration_ms: 0.210125
+  type: 'test'
+  ...
+# Subtest: mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched
+ok 32 - mktemp byte-length and absent VFS TMPDIR failures leave the namespace untouched
+  ---
+  duration_ms: 0.432208
+  type: 'test'
+  ...
+# Subtest: GNU chmod seeded symbolic/numeric differential: 384 mode transitions
+ok 33 - GNU chmod seeded symbolic/numeric differential: 384 mode transitions
+  ---
+  duration_ms: 4994.285083
+  type: 'test'
+  ...
+# Subtest: GNU stat format matrix compares exact bytes over actual RealFS metadata
+ok 34 - GNU stat format matrix compares exact bytes over actual RealFS metadata
+  ---
+  duration_ms: 113.808917
+  type: 'test'
+  ...
+# Subtest: GNU mktemp option/template controls preserve result shape and private modes
+ok 35 - GNU mktemp option/template controls preserve result shape and private modes
+  ---
+  duration_ms: 106.843167
+  type: 'test'
+  ...
+# Subtest: GNU chmod recursive symlink control: tree
+ok 36 - GNU chmod recursive symlink control: tree
+  ---
+  duration_ms: 23.723667
+  type: 'test'
+  ...
+# Subtest: GNU chmod recursive symlink control: start
+ok 37 - GNU chmod recursive symlink control: start
+  ---
+  duration_ms: 19.697375
+  type: 'test'
+  ...
+# Subtest: GNU chmod recursive symlink control: dangling
+ok 38 - GNU chmod recursive symlink control: dangling
+  ---
+  duration_ms: 15.980084
+  type: 'test'
+  ...
+# Subtest: GNU native source identities are complete SHA256 hashes matching the pinned source
+ok 39 - GNU native source identities are complete SHA256 hashes matching the pinned source
+  ---
+  duration_ms: 5.241584
+  type: 'test'
+  ...
+# Subtest: GNU oracle binaries/archive match the independently captured exact identities
+ok 40 - GNU oracle binaries/archive match the independently captured exact identities
+  ---
+  duration_ms: 130.133792
+  type: 'test'
+  ...
+# Subtest: all seven original author artifacts retain their handoff hashes
+ok 41 - all seven original author artifacts retain their handoff hashes
+  ---
+  duration_ms: 5.35625
+  type: 'test'
+  ...
+# Subtest: s3 stat forwards cancellation into actual remote reads
+ok 42 - s3 stat forwards cancellation into actual remote reads
+  ---
+  duration_ms: 1.951125
+  type: 'test'
+  ...
+# Subtest: s3 mktemp forwards cancellation into actual remote reads
+ok 43 - s3 mktemp forwards cancellation into actual remote reads
+  ---
+  duration_ms: 1.412
+  type: 'test'
+  ...
+# Subtest: webdav stat forwards cancellation into actual remote reads
+ok 44 - webdav stat forwards cancellation into actual remote reads
+  ---
+  duration_ms: 8.512708
+  type: 'test'
+  ...
+# Subtest: webdav mktemp forwards cancellation into actual remote reads
+ok 45 - webdav mktemp forwards cancellation into actual remote reads
+  ---
+  duration_ms: 0.814334
+  type: 'test'
+  ...
+# Subtest: historical SGID archive retains every declared artifact byte
+ok 46 - historical SGID archive retains every declared artifact byte
+  ---
+  duration_ms: 9.710417
+  type: 'test'
+  ...
+# Subtest: historical SGID archive preserves 97 input hashes, six failures and unsafe controls
+ok 47 - historical SGID archive preserves 97 input hashes, six failures and unsafe controls
+  ---
+  duration_ms: 3.812666
+  type: 'test'
+  ...
+# Subtest: GNU stat types/link-follow/aliases compare exact bytes without namespace mutation
+ok 48 - GNU stat types/link-follow/aliases compare exact bytes without namespace mutation
+  ---
+  duration_ms: 412.374458
+  type: 'test'
+  ...
+# Subtest: stat missing/dangling operands preserve later output, typed API errors and all entries
+ok 49 - stat missing/dangling operands preserve later output, typed API errors and all entries
+  ---
+  duration_ms: 116.742917
+  type: 'test'
+  ...
+# Subtest: stat unsigned fields ignore sign flags while epoch fields retain them
+ok 50 - stat unsigned fields ignore sign flags while epoch fields retain them
+  ---
+  duration_ms: 566.92825
+  type: 'test'
+  ...
+# Subtest: GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps
+ok 51 - GNU 9.7 human timestamps: distinct pinned builds, measured native nanoseconds and numeric-capacity gaps
+  ---
+  duration_ms: 695.0555
+  type: 'test'
+  ...
+# {"binaryRecords":[{"label":"metadata-stat","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat","hash":"9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea","version":{"exitCode":0,"stdout":"stat (GNU coreutils) 9.7\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Michael Meskes.\\n","stdoutHex":"737461742028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d69636861656c204d65736b65732e0a","stderr":""},"measuredHash":"9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea"},{"label":"benchmark-stat","path":"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat","hash":"bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860","version":{"exitCode":0,"stdout":"stat (GNU coreutils) 9.7\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Michael Meskes.\\n","stdoutHex":"737461742028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279204d69636861656c204d65736b65732e0a","stderr":""},"measuredHash":"bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"},{"label":"metadata-touch","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch","hash":"47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68","version":{"exitCode":0,"stdout":"touch (GNU coreutils) 9.7\\nCopyright (C) 2025 Free Software Foundation, Inc.\\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\\nThis is free software: you are free to change and redistribute it.\\nThere is NO WARRANTY, to the extent permitted by law.\\n\\nWritten by Paul Rubin, Arnold Robbins, Jim Kingdon,\\nDavid MacKenzie, and Randy Smith.\\n","stdoutHex":"746f7563682028474e5520636f72657574696c732920392e370a436f70797269676874202843292032303235204672656520536f66747761726520466f756e646174696f6e2c20496e632e0a4c6963656e73652047504c76332b3a20474e552047504c2076657273696f6e2033206f72206c61746572203c68747470733a2f2f676e752e6f72672f6c6963656e7365732f67706c2e68746d6c3e2e0a54686973206973206672656520736f6674776172653a20796f7520617265206672656520746f206368616e676520616e64207265646973747269627574652069742e0a5468657265206973204e4f2057415252414e54592c20746f2074686520657874656e74207065726d6974746564206279206c61772e0a0a5772697474656e206279205061756c20527562696e2c2041726e6f6c6420526f6262696e732c204a696d204b696e67646f6e2c0a4461766964204d61634b656e7a69652c20616e642052616e647920536d6974682e0a","stderr":""},"measuredHash":"47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"}],"requestedFixtures":19,"exact":15,"rounded":2,"unavailable":2,"rows":[{"requestedSeconds":"0","requestedNs":"0","measuredNs":"0","exactNativeMilliseconds":"0","measuredMs":0,"measuredAtimeMs":0,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303030202b303030307c313937302d30312d30312030303a30303a30302e303030303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303030202b303030307c313937302d30312d30312030303a30303a30302e303030303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303030202b303030307c313937302d30312d30312030303a30303a30302e303030303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000000 +0000|1970-01-01 00:00:00.000000000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303030202b303030307c313937302d30312d30312030303a30303a30302e303030303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"1","requestedNs":"1000000000","measuredNs":"1000000000","exactNativeMilliseconds":"1000","measuredMs":1000,"measuredAtimeMs":1000,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303030202b303030307c313937302d30312d30312030303a30303a30312e303030303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303030202b303030307c313937302d30312d30312030303a30303a30312e303030303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303030202b303030307c313937302d30312d30312030303a30303a30312e303030303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000000 +0000|1970-01-01 00:00:01.000000000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303030202b303030307c313937302d30312d30312030303a30303a30312e303030303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"-1","requestedNs":"-1000000000","measuredNs":"-1000000000","exactNativeMilliseconds":"-1000","measuredMs":-1000,"measuredAtimeMs":-1000,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303030202b303030307c313936392d31322d33312032333a35393a35392e303030303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303030202b303030307c313936392d31322d33312032333a35393a35392e303030303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303030202b303030307c313936392d31322d33312032333a35393a35392e303030303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000000 +0000|1969-12-31 23:59:59.000000000 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303030202b303030307c313936392d31322d33312032333a35393a35392e303030303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"0.001","requestedNs":"1000000","measuredNs":"1000000","exactNativeMilliseconds":"1","measuredMs":1,"measuredAtimeMs":1,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303031303030303030202b303030307c313937302d30312d30312030303a30303a30302e303031303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303031303030303030202b303030307c313937302d30312d30312030303a30303a30302e303031303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303031303030303030202b303030307c313937302d30312d30312030303a30303a30302e303031303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:00.001000000 +0000|1970-01-01 00:00:00.001000000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303031303030303030202b303030307c313937302d30312d30312030303a30303a30302e303031303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"-0.001","requestedNs":"-1000000","measuredNs":"-1000000","exactNativeMilliseconds":"-1","measuredMs":-1,"measuredAtimeMs":-1,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e393939303030303030202b303030307c313936392d31322d33312032333a35393a35392e393939303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e393939303030303030202b303030307c313936392d31322d33312032333a35393a35392e393939303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e393939303030303030202b303030307c313936392d31322d33312032333a35393a35392e393939303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999000000 +0000|1969-12-31 23:59:59.999000000 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e393939303030303030202b303030307c313936392d31322d33312032333a35393a35392e393939303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"0.000125","requestedNs":"125000","measuredNs":"125000","exactNativeMilliseconds":"0.125","measuredMs":0.125,"measuredAtimeMs":0.125,"subMillisecondRemainderNs":"125000","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303030313235303030202b303030307c313937302d30312d30312030303a30303a30302e303030313235303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303030313235303030202b303030307c313937302d30312d30312030303a30303a30302e303030313235303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303030313235303030202b303030307c313937302d30312d30312030303a30303a30302e303030313235303030202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000125000 +0000|1970-01-01 00:00:00.000125000 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303030313235303030202b303030307c313937302d30312d30312030303a30303a30302e303030313235303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"-0.000125","requestedNs":"-125000","measuredNs":"-125000","exactNativeMilliseconds":"-0.125","measuredMs":-0.125,"measuredAtimeMs":-0.125,"subMillisecondRemainderNs":"-125000","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e393939383735303030202b303030307c313936392d31322d33312032333a35393a35392e393939383735303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e393939383735303030202b303030307c313936392d31322d33312032333a35393a35392e393939383735303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e393939383735303030202b303030307c313936392d31322d33312032333a35393a35392e393939383735303030202b30303030"},"memory":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999875000 +0000|1969-12-31 23:59:59.999875000 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e393939383735303030202b303030307c313936392d31322d33312032333a35393a35392e393939383735303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"0.123456789","requestedNs":"123456789","measuredNs":"123456789","exactNativeMilliseconds":"123.456789","measuredMs":123.456789,"measuredAtimeMs":123.456789,"subMillisecondRemainderNs":"456789","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e313233343536373839202b303030307c313937302d30312d30312030303a30303a30302e313233343536373839202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e313233343536373839202b303030307c313937302d30312d30312030303a30303a30302e313233343536373839202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e313233343536373839202b303030307c313937302d30312d30312030303a30303a30302e313233343536373839202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:00.123456789 +0000|1970-01-01 00:00:00.123456789 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e313233343536373839202b303030307c313937302d30312d30312030303a30303a30302e313233343536373839202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"-0.123456789","requestedNs":"-123456789","measuredNs":"-123456789","exactNativeMilliseconds":"-123.456789","measuredMs":-123.45678899999996,"measuredAtimeMs":-123.45678899999996,"subMillisecondRemainderNs":"-456789","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e383736353433323131202b303030307c313936392d31322d33312032333a35393a35392e383736353433323131202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e383736353433323131202b303030307c313936392d31322d33312032333a35393a35392e383736353433323131202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e383736353433323131202b303030307c313936392d31322d33312032333a35393a35392e383736353433323131202b30303030"},"memory":{"exitCode":0,"stdout":"1969-12-31 23:59:59.876543211 +0000|1969-12-31 23:59:59.876543211 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e383736353433323131202b303030307c313936392d31322d33312032333a35393a35392e383736353433323131202b30303030"},"classification":"numeric milliseconds differ; nearest-nanosecond rendering matches native"},{"requestedSeconds":"0.000000001","requestedNs":"1","measuredNs":"1","exactNativeMilliseconds":"0.000001","measuredMs":0.000001,"measuredAtimeMs":0.000001,"subMillisecondRemainderNs":"1","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303031202b303030307c313937302d30312d30312030303a30303a30302e303030303030303031202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303031202b303030307c313937302d30312d30312030303a30303a30302e303030303030303031202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303031202b303030307c313937302d30312d30312030303a30303a30302e303030303030303031202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:00.000000001 +0000|1970-01-01 00:00:00.000000001 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e303030303030303031202b303030307c313937302d30312d30312030303a30303a30302e303030303030303031202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"-0.000000001","requestedNs":"-1","measuredNs":"-1","exactNativeMilliseconds":"-0.000001","measuredMs":-9.999999974752427e-7,"measuredAtimeMs":-9.999999974752427e-7,"subMillisecondRemainderNs":"-1","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e393939393939393939202b303030307c313936392d31322d33312032333a35393a35392e393939393939393939202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e393939393939393939202b303030307c313936392d31322d33312032333a35393a35392e393939393939393939202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e393939393939393939202b303030307c313936392d31322d33312032333a35393a35392e393939393939393939202b30303030"},"memory":{"exitCode":0,"stdout":"1969-12-31 23:59:59.999999999 +0000|1969-12-31 23:59:59.999999999 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e393939393939393939202b303030307c313936392d31322d33312032333a35393a35392e393939393939393939202b30303030"},"classification":"numeric milliseconds differ; nearest-nanosecond rendering matches native"},{"requestedSeconds":"0.999999999","requestedNs":"999999999","measuredNs":"999999999","exactNativeMilliseconds":"999.999999","measuredMs":999.999999,"measuredAtimeMs":999.999999,"subMillisecondRemainderNs":"999999","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e393939393939393939202b303030307c313937302d30312d30312030303a30303a30302e393939393939393939202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000","stdoutHex":"313937302d30312d30312030303a30303a30302e393939393939393939202b303030307c313937302d30312d30312030303a30303a30302e393939393939393939202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e393939393939393939202b303030307c313937302d30312d30312030303a30303a30302e393939393939393939202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:00.999999999 +0000|1970-01-01 00:00:00.999999999 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30302e393939393939393939202b303030307c313937302d30312d30312030303a30303a30302e393939393939393939202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"-0.999999999","requestedNs":"-999999999","measuredNs":"-999999999","exactNativeMilliseconds":"-999.999999","measuredMs":-999.999999,"measuredAtimeMs":-999.999999,"subMillisecondRemainderNs":"-999999","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303031202b303030307c313936392d31322d33312032333a35393a35392e303030303030303031202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303031202b303030307c313936392d31322d33312032333a35393a35392e303030303030303031202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303031202b303030307c313936392d31322d33312032333a35393a35392e303030303030303031202b30303030"},"memory":{"exitCode":0,"stdout":"1969-12-31 23:59:59.000000001 +0000|1969-12-31 23:59:59.000000001 +0000","stderr":"","stdoutHex":"313936392d31322d33312032333a35393a35392e303030303030303031202b303030307c313936392d31322d33312032333a35393a35392e303030303030303031202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"1.000000001","requestedNs":"1000000001","measuredNs":"1000000001","exactNativeMilliseconds":"1000.000001","measuredMs":1000.000001,"measuredAtimeMs":1000.000001,"subMillisecondRemainderNs":"1","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000001 +0000|1970-01-01 00:00:01.000000001 +0000","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303031202b303030307c313937302d30312d30312030303a30303a30312e303030303030303031202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000001 +0000|1970-01-01 00:00:01.000000001 +0000","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303031202b303030307c313937302d30312d30312030303a30303a30312e303030303030303031202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000001 +0000|1970-01-01 00:00:01.000000001 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303031202b303030307c313937302d30312d30312030303a30303a30312e303030303030303031202b30303030"},"memory":{"exitCode":0,"stdout":"1970-01-01 00:00:01.000000001 +0000|1970-01-01 00:00:01.000000001 +0000","stderr":"","stdoutHex":"313937302d30312d30312030303a30303a30312e303030303030303031202b303030307c313937302d30312d30312030303a30303a30312e303030303030303031202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"1700000000","requestedNs":"1700000000000000000","measuredNs":"1700000000000000000","exactNativeMilliseconds":"1700000000000","measuredMs":1700000000000,"measuredAtimeMs":1700000000000,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e303030303030303030202b303030307c323032332d31312d31342032323a31333a32302e303030303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e303030303030303030202b303030307c323032332d31312d31342032323a31333a32302e303030303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e303030303030303030202b303030307c323032332d31312d31342032323a31333a32302e303030303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"2023-11-14 22:13:20.000000000 +0000|2023-11-14 22:13:20.000000000 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e303030303030303030202b303030307c323032332d31312d31342032323a31333a32302e303030303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"1700000000.123","requestedNs":"1700000000123000000","measuredNs":"1700000000123000000","exactNativeMilliseconds":"1700000000123","measuredMs":1700000000123,"measuredAtimeMs":1700000000123,"subMillisecondRemainderNs":"0","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e313233303030303030202b303030307c323032332d31312d31342032323a31333a32302e313233303030303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e313233303030303030202b303030307c323032332d31312d31342032323a31333a32302e313233303030303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e313233303030303030202b303030307c323032332d31312d31342032323a31333a32302e313233303030303030202b30303030"},"memory":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123000000 +0000|2023-11-14 22:13:20.123000000 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e313233303030303030202b303030307c323032332d31312d31342032323a31333a32302e313233303030303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"1700000000.123456","requestedNs":"1700000000123456000","measuredNs":"1700000000123456000","exactNativeMilliseconds":"1700000000123.456","measuredMs":1700000000123.456,"measuredAtimeMs":1700000000123.456,"subMillisecondRemainderNs":"456000","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536303030202b303030307c323032332d31312d31342032323a31333a32302e313233343536303030202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536303030202b303030307c323032332d31312d31342032323a31333a32302e313233343536303030202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536303030202b303030307c323032332d31312d31342032323a31333a32302e313233343536303030202b30303030"},"memory":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456000 +0000|2023-11-14 22:13:20.123456000 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536303030202b303030307c323032332d31312d31342032323a31333a32302e313233343536303030202b30303030"},"classification":"exact native and VFS numeric value"},{"requestedSeconds":"1700000000.123456789","requestedNs":"1700000000123456789","measuredNs":"1700000000123456789","exactNativeMilliseconds":"1700000000123.456789","measuredMs":1700000000123.4568,"measuredAtimeMs":1700000000123.4568,"subMillisecondRemainderNs":"456789","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456789 +0000|2023-11-14 22:13:20.123456789 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536373839202b303030307c323032332d31312d31342032323a31333a32302e313233343536373839202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456789 +0000|2023-11-14 22:13:20.123456789 +0000","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536373839202b303030307c323032332d31312d31342032323a31333a32302e313233343536373839202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536383030202b303030307c323032332d31312d31342032323a31333a32302e313233343536383030202b30303030"},"memory":{"exitCode":0,"stdout":"2023-11-14 22:13:20.123456800 +0000|2023-11-14 22:13:20.123456800 +0000","stderr":"","stdoutHex":"323032332d31312d31342032323a31333a32302e313233343536383030202b303030307c323032332d31312d31342032323a31333a32302e313233343536383030202b30303030"},"classification":"native nanoseconds unavailable in VFS numeric milliseconds; retained nonexact"},{"requestedSeconds":"-1700000000.123456789","requestedNs":"-1700000000123456789","measuredNs":"-1700000000123456789","exactNativeMilliseconds":"-1700000000123.456789","measuredMs":-1700000000123.4568,"measuredAtimeMs":-1700000000123.4568,"subMillisecondRemainderNs":"-456789","setter":{"exitCode":0,"stdout":"","stdoutHex":"","stderr":""},"native":{"exitCode":0,"stdout":"1916-02-18 01:46:39.876543211 +0000|1916-02-18 01:46:39.876543211 +0000","stdoutHex":"313931362d30322d31382030313a34363a33392e383736353433323131202b303030307c313931362d30322d31382030313a34363a33392e383736353433323131202b30303030","stderr":""},"benchmark":{"exitCode":0,"stdout":"1916-02-18 01:46:39.876543211 +0000|1916-02-18 01:46:39.876543211 +0000","stdoutHex":"313931362d30322d31382030313a34363a33392e383736353433323131202b303030307c313931362d30322d31382030313a34363a33392e383736353433323131202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"1916-02-18 01:46:39.876543200 +0000|1916-02-18 01:46:39.876543200 +0000","stderr":"","stdoutHex":"313931362d30322d31382030313a34363a33392e383736353433323030202b303030307c313931362d30322d31382030313a34363a33392e383736353433323030202b30303030"},"memory":{"exitCode":0,"stdout":"1916-02-18 01:46:39.876543200 +0000|1916-02-18 01:46:39.876543200 +0000","stderr":"","stdoutHex":"313931362d30322d31382030313a34363a33392e383736353433323030202b303030307c313931362d30322d31382030313a34363a33392e383736353433323030202b30303030"},"classification":"native nanoseconds unavailable in VFS numeric milliseconds; retained nonexact"}],"sharedHumanFields":{"format":"[%38x][%-38y][%.23x][%z][%w]","rawFields":{"atimeNs":"-1700000000123456789","mtimeNs":"-1700000000123456789","ctimeNs":"1787797220831869323","birthtimeNs":"0"},"measured":{"type":"file","size":6,"mode":33188,"atimeMs":-1700000000123.4568,"mtimeMs":-1700000000123.4568,"ctimeMs":1787797220831.8694,"birthtimeMs":0,"ino":170394281,"dev":16777232,"nlink":1,"uid":501,"gid":20},"native":{"exitCode":0,"stdout":"[   1916-02-18 01:46:39.876543211 +0000][1916-02-18 01:46:39.876543211 +0000   ][1916-02-18 01:46:39.876][2026-08-27 02:20:20.831869323 +0000][-]","stdoutHex":"5b202020313931362d30322d31382030313a34363a33392e383736353433323131202b303030305d5b313931362d30322d31382030313a34363a33392e383736353433323131202b303030302020205d5b313931362d30322d31382030313a34363a33392e3837365d5b323032362d30382d32372030323a32303a32302e383331383639333233202b303030305d5b2d5d","stderr":""},"actual":{"exitCode":0,"stdout":"[   1916-02-18 01:46:39.876543200 +0000][1916-02-18 01:46:39.876543200 +0000   ][1916-02-18 01:46:39.876][2026-08-27 02:20:20.831869400 +0000][1970-01-01 00:00:00.000000000 +0000]","stderr":""},"note":"native birth is unavailable after these negative-time setters; Node reports zero and virtual renders epoch zero, an existing metadata-availability distinction, not closed here"},"freshHumanFields":{"rawCtimeNs":"1787797220861550288","rawBirthtimeNs":"1787797220861438578","measured":{"type":"file","size":6,"mode":33188,"atimeMs":1787797220868.5608,"mtimeMs":1787797220861.5503,"ctimeMs":1787797220861.5503,"birthtimeMs":1787797220861.4385,"ino":170394317,"dev":16777232,"nlink":1,"uid":501,"gid":20},"native":{"exitCode":0,"stdout":"2026-08-27 02:20:20.861550288 +0000|2026-08-27 02:20:20.861438578 +0000","stdoutHex":"323032362d30382d32372030323a32303a32302e383631353530323838202b303030307c323032362d30382d32372030323a32303a32302e383631343338353738202b30303030","stderr":""},"actual":{"exitCode":0,"stdout":"2026-08-27 02:20:20.861550300 +0000|2026-08-27 02:20:20.861438500 +0000","stderr":""},"note":"raw ctime/birthtime and numeric loss retained, not asserted as exact native parity"},"observedSetterGranularity":"all requested nanoseconds retained, including +/-1ns; no universal filesystem resolution claim","cleanup":"only namespace()'s uniquely-created directory is removed by its after hook"}
+# Subtest: stat human numeric timestamp 0
+ok 52 - stat human numeric timestamp 0
+  ---
+  duration_ms: 6.076959
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -0
+ok 53 - stat human numeric timestamp -0
+  ---
+  duration_ms: 0.608333
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1000
+ok 54 - stat human numeric timestamp 1000
+  ---
+  duration_ms: 0.383333
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1000
+ok 55 - stat human numeric timestamp -1000
+  ---
+  duration_ms: 0.197209
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1
+ok 56 - stat human numeric timestamp 1
+  ---
+  duration_ms: 0.340083
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1
+ok 57 - stat human numeric timestamp -1
+  ---
+  duration_ms: 0.163167
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1001
+ok 58 - stat human numeric timestamp 1001
+  ---
+  duration_ms: 0.197417
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1001
+ok 59 - stat human numeric timestamp -1001
+  ---
+  duration_ms: 1.375208
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 0.125
+ok 60 - stat human numeric timestamp 0.125
+  ---
+  duration_ms: 0.639208
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -0.125
+ok 61 - stat human numeric timestamp -0.125
+  ---
+  duration_ms: 0.55325
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 123.456789
+ok 62 - stat human numeric timestamp 123.456789
+  ---
+  duration_ms: 0.183917
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -123.456789
+ok 63 - stat human numeric timestamp -123.456789
+  ---
+  duration_ms: 0.429458
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 0.000001
+ok 64 - stat human numeric timestamp 0.000001
+  ---
+  duration_ms: 0.179042
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -0.000001
+ok 65 - stat human numeric timestamp -0.000001
+  ---
+  duration_ms: 0.129583
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 4.9e-7
+ok 66 - stat human numeric timestamp 4.9e-7
+  ---
+  duration_ms: 0.133625
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -4.9e-7
+ok 67 - stat human numeric timestamp -4.9e-7
+  ---
+  duration_ms: 0.291833
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 5e-7
+ok 68 - stat human numeric timestamp 5e-7
+  ---
+  duration_ms: 0.152375
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -5e-7
+ok 69 - stat human numeric timestamp -5e-7
+  ---
+  duration_ms: 0.157958
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 5e-324
+ok 70 - stat human numeric timestamp 5e-324
+  ---
+  duration_ms: 0.419209
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -5e-324
+ok 71 - stat human numeric timestamp -5e-324
+  ---
+  duration_ms: 0.194042
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 999.99999949
+ok 72 - stat human numeric timestamp 999.99999949
+  ---
+  duration_ms: 0.128375
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 999.9999995
+ok 73 - stat human numeric timestamp 999.9999995
+  ---
+  duration_ms: 0.12475
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -999.99999949
+ok 74 - stat human numeric timestamp -999.99999949
+  ---
+  duration_ms: 0.112417
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -999.9999995
+ok 75 - stat human numeric timestamp -999.9999995
+  ---
+  duration_ms: 0.112583
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 86399999.9999995
+ok 76 - stat human numeric timestamp 86399999.9999995
+  ---
+  duration_ms: 0.973875
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -86399999.9999995
+ok 77 - stat human numeric timestamp -86399999.9999995
+  ---
+  duration_ms: 0.220459
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 0.30000000000000004
+ok 78 - stat human numeric timestamp 0.30000000000000004
+  ---
+  duration_ms: 0.140417
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 946684800123
+ok 79 - stat human numeric timestamp 946684800123
+  ---
+  duration_ms: 0.109916
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000000
+ok 80 - stat human numeric timestamp 1700000000000
+  ---
+  duration_ms: 0.101375
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000123
+ok 81 - stat human numeric timestamp 1700000000123
+  ---
+  duration_ms: 0.097916
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000123.456
+ok 82 - stat human numeric timestamp 1700000000123.456
+  ---
+  duration_ms: 0.0985
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000123.4568
+ok 83 - stat human numeric timestamp 1700000000123.4568
+  ---
+  duration_ms: 0.096375
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1700000000123.456
+ok 84 - stat human numeric timestamp -1700000000123.456
+  ---
+  duration_ms: 0.108084
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 8640000000000000
+ok 85 - stat human numeric timestamp 8640000000000000
+  ---
+  duration_ms: 0.190375
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -8640000000000000
+ok 86 - stat human numeric timestamp -8640000000000000
+  ---
+  duration_ms: 0.420875
+  type: 'test'
+  ...
+# Subtest: stat routed whole-second %Y:%y and historical author timestamps use GNU nine columns
+ok 87 - stat routed whole-second %Y:%y and historical author timestamps use GNU nine columns
+  ---
+  duration_ms: 0.726334
+  type: 'test'
+  ...
+# Subtest: stat human missing birth remains a dash; missing required time is unsupported
+ok 88 - stat human missing birth remains a dash; missing required time is unsupported
+  ---
+  duration_ms: 0.974666
+  type: 'test'
+  ...
+# Subtest: stat human invalid and out-of-Date-range timestamps fail before operand output
+ok 89 - stat human invalid and out-of-Date-range timestamps fail before operand output
+  ---
+  duration_ms: 2.032917
+  type: 'test'
+  ...
+# Subtest: stat human width, string precision, and exact output byte limits remain bounded
+ok 90 - stat human width, string precision, and exact output byte limits remain bounded
+  ---
+  duration_ms: 0.782708
+  type: 'test'
+  ...
+# Subtest: GNU stat precision and UTF-8 byte width: 45 bounded format comparisons
+ok 91 - GNU stat precision and UTF-8 byte width: 45 bounded format comparisons
+  ---
+  duration_ms: 1271.820625
+  type: 'test'
+  ...
+# Subtest: GNU invalid percent modifiers fail; virtual rendering buffers the current operand
+ok 92 - GNU invalid percent modifiers fail; virtual rendering buffers the current operand
+  ---
+  duration_ms: 29.503417
+  type: 'test'
+  ...
+# Subtest: stat precision allocation is bounded before writing bytes
+ok 93 - stat precision allocation is bounded before writing bytes
+  ---
+  duration_ms: 2.506292
+  type: 'test'
+  ...
+1..93
+# tests 93
+# suites 0
+# pass 93
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5564.566583

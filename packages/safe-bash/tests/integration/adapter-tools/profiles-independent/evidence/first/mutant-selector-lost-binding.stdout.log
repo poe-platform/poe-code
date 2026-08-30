@@ -1,0 +1,113 @@
+TAP version 13
+# Subtest: new verifier: configured selector does not contaminate subsequent stock defaults
+not ok 1 - new verifier: configured selector does not contaminate subsequent stock defaults
+  ---
+  duration_ms: 51.245
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq/outside-consumer/out/tests/integration/adapter-tools/profiles-independent/controls.test.js:18:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq/outside-consumer/out/tests/integration/adapter-tools/profiles-independent/controls.test.js:23:16
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async withFixture (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq/outside-consumer/out/tests/integration/adapter-tools/fixtures.js:166:9)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/profiles-independent/.isolated-VdnRjq/outside-consumer/out/tests/integration/adapter-tools/profiles-independent/controls.test.js:19:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: new verifier: loopback fixture rmdir refuses binding-time late descendant
+ok 2 - new verifier: loopback fixture rmdir refuses binding-time late descendant
+  ---
+  duration_ms: 23.43575
+  type: 'test'
+  ...
+# Subtest: new verifier: loopback fixture rm -d refuses binding-time late descendant
+ok 3 - new verifier: loopback fixture rm -d refuses binding-time late descendant
+  ---
+  duration_ms: 18.789917
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture active lock /work preserves namespace
+ok 4 - new verifier: fixture active lock /work preserves namespace
+  ---
+  duration_ms: 31.652833
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture active lock /work/target preserves namespace
+ok 5 - new verifier: fixture active lock /work/target preserves namespace
+  ---
+  duration_ms: 27.165375
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture active lock /work/target/descendant preserves namespace
+ok 6 - new verifier: fixture active lock /work/target/descendant preserves namespace
+  ---
+  duration_ms: 26.1005
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture mismatched receipt reports completed effect without recursive retry
+ok 7 - new verifier: fixture mismatched receipt reports completed effect without recursive retry
+  ---
+  duration_ms: 14.78375
+  type: 'test'
+  ...
+# Subtest: new verifier: fixture factory rejects mismatched namespace before workload
+ok 8 - new verifier: fixture factory rejects mismatched namespace before workload
+  ---
+  duration_ms: 0.425125
+  type: 'test'
+  ...
+# Subtest: new verifier: configured fixture readonly-mount never hides nonempty descendants
+ok 9 - new verifier: configured fixture readonly-mount never hides nonempty descendants
+  ---
+  duration_ms: 49.154333
+  type: 'test'
+  ...
+# Subtest: new verifier: configured fixture webdav-upper never hides nonempty descendants
+ok 10 - new verifier: configured fixture webdav-upper never hides nonempty descendants
+  ---
+  duration_ms: 42.329875
+  type: 'test'
+  ...
+# Subtest: new verifier: configured fixture webdav-lower never hides nonempty descendants
+ok 11 - new verifier: configured fixture webdav-lower never hides nonempty descendants
+  ---
+  duration_ms: 48.992959
+  type: 'test'
+  ...
+# Subtest: new verifier: S3 snapshot marker late-child disclosure mounted=false
+ok 12 - new verifier: S3 snapshot marker late-child disclosure mounted=false
+  ---
+  duration_ms: 4.405833
+  type: 'test'
+  ...
+# Subtest: new verifier: S3 snapshot marker late-child disclosure mounted=true
+ok 13 - new verifier: S3 snapshot marker late-child disclosure mounted=true
+  ---
+  duration_ms: 4.100583
+  type: 'test'
+  ...
+# Subtest: new verifier: readonly S3 mount refuses deletion without erasing or elevating snapshot authority
+ok 14 - new verifier: readonly S3 mount refuses deletion without erasing or elevating snapshot authority
+  ---
+  duration_ms: 8.283416
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 13
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 484.9835

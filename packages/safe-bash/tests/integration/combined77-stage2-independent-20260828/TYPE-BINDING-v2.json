@@ -1,0 +1,13 @@
+{
+  "sealedAt": "2026-08-28T02:36:32.585Z",
+  "hashes": {
+    "types-v2.mjs": "3a2a55e4626544bc7a182d61db31ac658cc2dac5215d9abc69b2aa5e8b766cf3",
+    "types-v2.mts.fixture": "0b2be298cc7909e9894ff0c0bd13de10805b79a590df164defdbf39c74c79ef3",
+    "types.mts.fixture": "3554df08598ff08023325dc081fc693e6595a9c3fe76dee5935e8424b529884a"
+  },
+  "change": "Exactly one module specifier: ShellInvokeOptions import \"virtual-bash/shell\" -> \"virtual-bash\"",
+  "reason": "Candidate package exports root re-export of shell types; no ./shell subpath. Prior TS2307 is reviewer binding error, not missing product API.",
+  "preserves": "Original positive compile status2 in both layouts and negative4 diagnostics including TS2307; all semantic assertions/directives remain unchanged",
+  "runtimeReruns": 0,
+  "sourceCaptureCompressedSha256": "88fadf81a9ab984e4c25ff26f9f1d13331967549c0dbe08fbce268ee7ed1da12"
+}

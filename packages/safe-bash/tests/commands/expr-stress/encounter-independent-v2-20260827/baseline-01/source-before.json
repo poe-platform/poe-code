@@ -1,0 +1,235 @@
+{
+  "package-lock.json": {
+    "kind": "file",
+    "bytes": 16734,
+    "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+  },
+  "package.json": {
+    "kind": "file",
+    "bytes": 4287,
+    "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+  },
+  "src": {
+    "kind": "directory"
+  },
+  "src/commands": {
+    "kind": "directory"
+  },
+  "src/commands/env-split.ts": {
+    "kind": "file",
+    "bytes": 7492,
+    "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4"
+  },
+  "src/commands/execution.ts": {
+    "kind": "file",
+    "bytes": 9269,
+    "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6"
+  },
+  "src/commands/expr": {
+    "kind": "directory"
+  },
+  "src/commands/expr/bre-worker.ts": {
+    "kind": "file",
+    "bytes": 17704,
+    "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+  },
+  "src/commands/expr/evaluate.ts": {
+    "kind": "file",
+    "bytes": 7825,
+    "sha256": "04ca8f588ccaea97b3801fe30accfa6020636c5f72f156b0d158fa6474f525c9"
+  },
+  "src/commands/expr/index.ts": {
+    "kind": "file",
+    "bytes": 4701,
+    "sha256": "4fd60b3b2fec4126e42e492922004e90e870a08aa319d2f088c085255355841d"
+  },
+  "src/commands/expr/internal.ts": {
+    "kind": "file",
+    "bytes": 6600,
+    "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+  },
+  "src/commands/expr/syntax.ts": {
+    "kind": "file",
+    "bytes": 4046,
+    "sha256": "4e8d05cc672be9f0786ebd74b09f9524028fd1d4f1491319cccd8a74d1ea3df0"
+  },
+  "src/commands/internal.ts": {
+    "kind": "file",
+    "bytes": 8820,
+    "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+  },
+  "src/commands/regex-execution": {
+    "kind": "directory"
+  },
+  "src/commands/regex-execution/client.ts": {
+    "kind": "file",
+    "bytes": 15319,
+    "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+  },
+  "src/commands/regex-execution/matching.ts": {
+    "kind": "file",
+    "bytes": 11796,
+    "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+  },
+  "src/commands/regex-execution/protocol.ts": {
+    "kind": "file",
+    "bytes": 10890,
+    "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+  },
+  "src/commands/regex-execution/worker.ts": {
+    "kind": "file",
+    "bytes": 1930,
+    "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+  },
+  "src/contracts": {
+    "kind": "directory"
+  },
+  "src/contracts/command.ts": {
+    "kind": "file",
+    "bytes": 2923,
+    "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+  },
+  "src/contracts/errors.ts": {
+    "kind": "file",
+    "bytes": 3457,
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+  },
+  "src/contracts/filesystem.ts": {
+    "kind": "file",
+    "bytes": 3897,
+    "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+  },
+  "src/contracts/index.ts": {
+    "kind": "file",
+    "bytes": 202,
+    "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c"
+  },
+  "src/contracts/io.ts": {
+    "kind": "file",
+    "bytes": 7663,
+    "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+  },
+  "src/contracts/output.ts": {
+    "kind": "file",
+    "bytes": 4661,
+    "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+  },
+  "src/contracts/path.ts": {
+    "kind": "file",
+    "bytes": 1675,
+    "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+  },
+  "src/contracts/plugin.ts": {
+    "kind": "file",
+    "bytes": 2359,
+    "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+  },
+  "src/fs": {
+    "kind": "directory"
+  },
+  "src/fs/memory": {
+    "kind": "directory"
+  },
+  "src/fs/memory/index.ts": {
+    "kind": "file",
+    "bytes": 23533,
+    "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+  },
+  "src/fs/mount": {
+    "kind": "directory"
+  },
+  "src/fs/mount/comparison.ts": {
+    "kind": "file",
+    "bytes": 5220,
+    "sha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+  },
+  "src/fs/mount/identity.ts": {
+    "kind": "file",
+    "bytes": 748,
+    "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+  },
+  "src/fs/s3": {
+    "kind": "directory"
+  },
+  "src/fs/s3/authority.ts": {
+    "kind": "file",
+    "bytes": 4938,
+    "sha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344"
+  },
+  "src/fs/s3/transport.ts": {
+    "kind": "file",
+    "bytes": 4996,
+    "sha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c"
+  },
+  "src/fs/webdav": {
+    "kind": "directory"
+  },
+  "src/fs/webdav/resource-id.ts": {
+    "kind": "file",
+    "bytes": 5570,
+    "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2"
+  },
+  "src/shell": {
+    "kind": "directory"
+  },
+  "src/shell/arithmetic.ts": {
+    "kind": "file",
+    "bytes": 9922,
+    "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+  },
+  "src/shell/cleanup.ts": {
+    "kind": "file",
+    "bytes": 1947,
+    "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+  },
+  "src/shell/display.ts": {
+    "kind": "file",
+    "bytes": 2605,
+    "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+  },
+  "src/shell/input.ts": {
+    "kind": "file",
+    "bytes": 9881,
+    "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32"
+  },
+  "src/shell/locale.ts": {
+    "kind": "file",
+    "bytes": 207,
+    "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+  },
+  "src/shell/parser.ts": {
+    "kind": "file",
+    "bytes": 36304,
+    "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+  },
+  "src/shell/pattern.ts": {
+    "kind": "file",
+    "bytes": 4863,
+    "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+  },
+  "src/shell/runtime.ts": {
+    "kind": "file",
+    "bytes": 108731,
+    "sha256": "3e919d8885b86e73c3c245a6d2fcba857fab157c74d2bcde0b6d951c3683982c"
+  },
+  "src/shell/shell.ts": {
+    "kind": "file",
+    "bytes": 10644,
+    "sha256": "136bbf577a0b12c4998e942cc07c1ace52c1db328d093919a10b885b7041cb7a"
+  },
+  "src/shell/types.ts": {
+    "kind": "file",
+    "bytes": 2178,
+    "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+  },
+  "tsconfig.build.json": {
+    "kind": "file",
+    "bytes": 260,
+    "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+  },
+  "tsconfig.json": {
+    "kind": "file",
+    "bytes": 1087,
+    "sha256": "86adf86ecb49df322e08438453c00ef14d922c0785f7d879498b1fc8cb48e5d4"
+  }
+}

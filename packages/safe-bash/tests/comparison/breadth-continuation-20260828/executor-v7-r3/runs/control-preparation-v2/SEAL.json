@@ -1,0 +1,39 @@
+{
+  "schema": "R3_PREPARATION_BUDGET_ADAPTER_PRESEAL",
+  "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "permission": "DATA_PREPARATION_THEN_SAME_EIGHT_STUB_CASES_ONCE",
+  "files": [
+    {
+      "path": "ORIGINAL-PREPARATION-FAILURE.data",
+      "bytes": 1497,
+      "mode": 420,
+      "sha256": "3270e7a10af8bc212549226aee146026f47f31cc41e561609aa3f196cad01af3"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1161,
+      "mode": 420,
+      "sha256": "f128e7e6e4eaea6d4d196cee8daa93c9de79ad14b111348eb51d1180489dd3c3"
+    },
+    {
+      "path": "amend.mjs",
+      "bytes": 1353,
+      "mode": 420,
+      "sha256": "2ceff8011b8f7b80662ad1738c68100efcee07edbf570cf84dcc1e59f8828644"
+    },
+    {
+      "path": "prepare-controls.mjs",
+      "bytes": 1847,
+      "mode": 420,
+      "sha256": "b0695444a6782fd4d3e5c18ce4f24478004a579726feeeb7a0e684f37b204620"
+    },
+    {
+      "path": "test.mjs",
+      "bytes": 12162,
+      "mode": 420,
+      "sha256": "7988c8777042afdb42bb95ba068f118872952754ec08c340638be720706b69fa"
+    }
+  ],
+  "originalFailure": "SHARED_EVIDENCE_BUDGET_REQUIRED, zero workers",
+  "productionCodeUnchanged": true
+}

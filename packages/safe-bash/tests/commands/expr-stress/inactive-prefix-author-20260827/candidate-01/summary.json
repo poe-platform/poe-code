@@ -1,0 +1,226 @@
+{
+  "mode": "--candidate",
+  "typecheckStatus": 0,
+  "regressionStatus": 0,
+  "regressionCounts": [
+    "# tests 217",
+    "# pass 217",
+    "# fail 0",
+    "# cancelled 0",
+    "# skipped 0",
+    "# todo 0"
+  ],
+  "product": {
+    "pass": 42,
+    "total": 61,
+    "failed": [
+      {
+        "id": "root-counterexample",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "modulo-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "noninteger-trailing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-operator-missing",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-next-same-precedence",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "left-error-before-skipped-syntax",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-missing-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "group-runtime-before-wrong-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "nested-runtime-before-close",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-first-argument-before-missing-second",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "prefix-second-before-missing-third",
+        "failures": [
+          "stderr"
+        ]
+      },
+      {
+        "id": "regex-error-before-trailing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-close",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-error-before-later-missing",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-prefix-error-before-outer-arity",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-trailing",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-missing-close",
+        "failures": [
+          "submission count"
+        ]
+      },
+      {
+        "id": "regex-success-before-runtime",
+        "failures": [
+          "stderr",
+          "submission count"
+        ]
+      },
+      {
+        "id": "first-regex-before-second-syntax",
+        "failures": [
+          "submission count"
+        ]
+      }
+    ]
+  },
+  "inactiveControls": [
+    {
+      "id": "skip-no-prefix-locale-evaluation",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "1"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    },
+    {
+      "id": "skip-no-substr-number-evaluation",
+      "mode": "direct",
+      "observed": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "expected": {
+        "exitCode": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "jobs": [],
+      "encodes": [
+        "1"
+      ],
+      "budgetCount": 1,
+      "budgetIncreases": 0,
+      "events": [
+        {
+          "kind": "cleanup-registered"
+        },
+        {
+          "kind": "session-close-start"
+        },
+        {
+          "kind": "session-close-end"
+        },
+        {
+          "kind": "execute-settled",
+          "activeWorkers": 0
+        }
+      ],
+      "failures": [],
+      "passed": true
+    }
+  ],
+  "shell": {
+    "pass": 3,
+    "total": 5
+  },
+  "oldCapPassed": false,
+  "activeWorkers": 0,
+  "integrity": {
+    "frozenInputs": true,
+    "independentEvidence": true,
+    "appendAwareSourceTests": true,
+    "compiledDistAppendProof": false
+  }
+}

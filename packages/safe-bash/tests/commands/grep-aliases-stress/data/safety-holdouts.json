@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "classification": "independent-safety-test-specification-data-not-typescript",
+  "candidateExecution": "blocked-until-author-frozen-handoff",
+  "safetyCaseCount": 12,
+  "bounds": {
+    "perCaseWatchdogMs": 5000,
+    "maxInputBytesPerInvocation": 65536,
+    "maxCollectedBytesPerStream": 65536,
+    "maxConcurrentInvocations": 3,
+    "regexMaxWorkers": 1,
+    "synchronization": "Use explicit deferred gates and event ordering, not sleep-derived success. Watchdog failures are failures, not passes. No unbounded stress loops."
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "purpose": "Standalone registration, hostile shadow and literal dispatch",
+      "setup": "Use public root Shell and exactly the packed alias plugin, without registering grep. Repeat in a fresh Shell with a grep definition that increments a counter then throws. Direct contexts also supply an invoke hook that counts and throws.",
+      "input": { "utf8": "$(touch sentinel)\nkeep\n" },
+      "argv": { "egrep": ["^keep$"], "fgrep": ["$(touch sentinel)"] },
+      "expected": ["Both aliases work with no registered grep", "Shadow grep and context.invoke counters remain zero", "Literal fgrep prints $(touch sentinel) followed by newline and creates no sentinel", "Registration adds egrep and fgrep, not grep; existing registry entries are unchanged", "A collision on the second alias cannot partially register the first; explicit replace affects only the two aliases"],
+      "provenance": "Provided proposal; literal CommandContext contract"
+    },
+    {
+      "id": "S02",
+      "purpose": "Owned fragments for reused Buffer input across chunks and EOF",
+      "setup": "For each alias, yield the same Buffer repeatedly; overwrite it only when the producer is advanced, and overwrite again in finally. Run whole 8-byte records, then four-byte split fragments. Also use this source as a VFS readFile result. Do not mutate concurrently during an outstanding awaited transient write.",
+      "records": ["keep:01\n", "drop:xx\n", "keep:02\n"],
+      "argv": { "egrep": ["^keep:"], "fgrep": ["keep:"] },
+      "expectedFixture": "reuse-expected",
+      "expected": ["Status zero; exact owned output bytes match the fixture; stderr is empty", "Direct byte sink, internal pipe-to-file bytes and terminal buffered bytes are recorded separately", "A shared runtime-owned-output defect is reported to root without editing shared code"],
+      "provenance": "AGENTS producer-reuse ownership contract; independently chosen bytes"
+    },
+    {
+      "id": "S03",
+      "purpose": "Cumulative shell budgets without resetting at alias boundaries",
+      "setup": "Prepare an 8192-byte input by repeating keep:01 newline 1024 times. Each of two sequential alias invocations selects exactly 4096 bytes using max-count 512; use a single enclosing Shell execution with a 6144-byte output budget through its documented public limit API after handoff. Repeat nested invocation and a pipeline where applicable; do not conflate output accounting with regex queue budgets.",
+      "expected": ["Individually permitted output does not create a fresh shared shell budget for the second alias", "No successful unbounded 8192-byte collected result", "Preserve selected budget failure and drain invocation-owned cleanup before public settlement", "If the public API cannot express this budget, record unavailable with exact evidence rather than inventing a setting"],
+      "provenance": "Shared command contract; family limits are not one shared shell budget"
+    },
+    {
+      "id": "S04",
+      "purpose": "Family worker concurrency, queue bounds and sibling ownership",
+      "setup": "Reuse one createGrepAliasCommands family in two public Shell registries, with maxWorkers 1, maxQueuedRequests 1 and maxQueuedBytes 4096. At most three invocations, mixed egrep and fgrep, with held input/output gates. Observe worker lifecycle through a supported external Node mechanism, not private module exports. Use a third bounded request to exercise queue admission. Separately created standalone factories are a control with distinct executors, not a violation.",
+      "expected": ["Aliases from one family share the configured executor limit", "Queue overflow has an observable bounded error and is not silently accepted", "Cancellation/cleanup of one invocation does not cancel a sibling or another Shell's lease", "Record lifecycle events and output bytes; inability to force queued work is unmeasured, not a pass"],
+      "provenance": "Provided family-sharing proposal and RegexExecutionOptions contract"
+    },
+    {
+      "id": "S05",
+      "purpose": "Cancellation before work and during cooperative acquisition",
+      "setup": "Use each alias with a pre-aborted signal, then abort while an owned file read or worker request is pending. Use an object reason and an errno-shaped object reason. Keep gates bounded and release them in teardown.",
+      "expected": ["Pre-aborted execution causes no VFS reads, stdin advance or worker admission", "Caller reason identity wins at public settlement", "Supplied signal reaches VFS operations", "Public settlement waits for registered cooperative cleanup, not arbitrary uncooperative reads", "No new owned acquisition after cleanup closes admission"],
+      "provenance": "Shared cooperative invocation cleanup and signal contracts"
+    },
+    {
+      "id": "S06",
+      "purpose": "Synchronous cleanup registration before any acquisition",
+      "setup": "Direct command contexts record registerCleanup, first stdin next, VFS reads and observable worker creation. A registration hook first throws a sentinel before acquisition; a second hook calls the supplied cleanup synchronously. Then capture cleanup and invoke it concurrently with finally and repeated cleanup calls.",
+      "expected": ["Registration precedes input, file and worker acquisition", "Throwing registration prevents acquisition and preserves the selected error", "Cleanup requested during registration prevents later admission", "Overlapping cleanup shares completion and does not retire resources twice", "A context without registerCleanup still performs finally cleanup"],
+      "provenance": "Shared cooperative invocation cleanup contract; no author implementation assumed"
+    },
+    {
+      "id": "S07",
+      "purpose": "Iterator return failure and cooperative cleanup failure precedence",
+      "setup": "Quiet matching causes early source closure. The source return method either throws synchronously or rejects asynchronously with a sentinel. Separately register a cooperative cleanup that rejects, and combine it with an exact caller-abort reason. Repeat both aliases without endlessly pending work.",
+      "expected": ["Return is attempted on early closure and not called twice by one iterator owner", "An otherwise successful operation cannot silently hide the return failure; retain exact raw rejection or explicit nonzero diagnostic outcome for contract classification", "A registered cleanup-only failure rejects public exec unchanged; nonzero command status does not hide it", "Caller abort still wins by reason identity; all secondary failures are observed"],
+      "provenance": "Shared ByteSource readBytes contract and public cleanup precedence"
+    },
+    {
+      "id": "S08",
+      "purpose": "Backpressure and sink rejection",
+      "setup": "For both aliases, supply two selected lines in separate chunks, and a sink whose first write is held by a deferred gate. Copy bytes inside the sink before resolving. Repeat with rejection of that gate and a stderr sink that rejects during an invalid-expression diagnostic.",
+      "expected": ["At most one sink write is in flight; command cannot report completion while its awaited write is held", "No second output write before the first settles", "Sink rejection is not success and does not orphan cooperative cleanup", "Do not assert zero speculative input reads beyond a public guarantee"],
+      "provenance": "Awaited ByteSink writes and bounded streaming contract"
+    },
+    {
+      "id": "S09",
+      "purpose": "Late errors after caller abort",
+      "setup": "Hold stdin next, a VFS read, and a sink write in separate bounded subcases. Abort with an exact sentinel, then explicitly reject the held operation. Record unhandledRejection/rejectionHandled events in an isolated verifier process and remove listeners in finally.",
+      "expected": ["The caller reason remains the public outcome", "Every late host rejection is observed", "No late output publication or new owned work after closed admission", "Do not require public exec to wait for an opaque host promise before it is explicitly released"],
+      "provenance": "Shared cancellation and late-rejection contract"
+    },
+    {
+      "id": "S10",
+      "purpose": "Complex Shell pipelines, redirects and byte readback",
+      "scripts": [
+        "printf 'aa:1\\nbb:2\\naa:3\\n' | egrep '^aa:' | fgrep -v ':9' > selected.txt; fgrep 'aa:' selected.txt",
+        "set -o pipefail; printf 'aa:1\\nbb:2\\naa:3\\n' | egrep '^aa:' | fgrep absent"
+      ],
+      "expected": ["First script status zero, selected.txt exact pipeline-expected fixture, stdout same bytes, empty stderr", "Second script status one with empty stdout and stderr", "Register only documented public command providers needed by these scripts; malicious grep remains unused", "No public alias subpath assumption"],
+      "provenance": "Independent shell algebra and hand-chosen fixture bytes"
+    },
+    {
+      "id": "S11",
+      "purpose": "Early pipeline close with owned cleanup and concurrent sibling",
+      "script": "egrep '^keep:' stream.txt | fgrep 'keep:' | head -n 1",
+      "setup": "A VFS stream supplies at most 65536 bytes of keep:01 newline records; head selects one line. Run a sibling alias invocation in the same family and dispose the first Shell concurrently with its completion. Use recorded cooperative lifecycle gates.",
+      "expected": ["Successful pipeline stdout is exactly keep:01 newline", "Internal downstream close is not misreported as caller abort", "exec and repeated/concurrent dispose await registered cleanup owed by that Shell", "Sibling-owned worker use remains valid", "No global worker-zero requirement while sibling still owns work"],
+      "provenance": "Shared internal-pipe and cooperative cleanup contract"
+    },
+    {
+      "id": "S12",
+      "purpose": "Substitution, grouped pipelines and alias error attribution",
+      "scripts": [
+        "count=$(printf 'aa:1\\nbb:2\\naa:3\\n' | egrep '^aa:' | fgrep -c 'aa:'); printf '%s\\n' \"$count\"",
+        "{ printf 'aa:1\\n'; printf 'bb:2\\n'; printf 'aa:3\\n'; } | egrep '^aa:' | fgrep ':3'"
+      ],
+      "expected": ["First script status zero, stdout count-expected fixture and empty stderr", "Second script status zero, stdout aa:3 newline and empty stderr", "Direct invalid-option/missing-file diagnostics name the invoked alias, not shadow grep", "Nested execution retains shared signal and budgets; no shell-string dispatch inside the alias"],
+      "provenance": "Independent shell algebra, supplied proposal and shared invocation contract"
+    }
+  ]
+}

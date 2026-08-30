@@ -1,0 +1,50 @@
+{
+  "schema": "HARMLESS_REGEX_FULL55_V4_ACTIVATION",
+  "campaignEnabled": true,
+  "started": "2026-08-29T09:48:14.919Z",
+  "deadline": "2026-08-29T10:18:14.919Z",
+  "rootOverallDeadline": "2026-08-29T10:33:14.919Z",
+  "limits": {
+    "osProcesses": 112,
+    "peakOs": 3,
+    "captureBytes": 125698048,
+    "rootAggregateCaptureBytes": 134217728,
+    "outerCaptureReserveBytes": 131072,
+    "administrationCaptureReserveBytes": 8388608,
+    "workingBytes": 536870912,
+    "harmlessWorkers": 48,
+    "plannedWorkers": 41,
+    "activeWorkers": 1,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "recordBytes": 262144,
+    "childMilliseconds": 30000,
+    "termMilliseconds": 2000,
+    "killMilliseconds": 1000
+  },
+  "roles": {
+    "caseChildren": 51,
+    "supervisor": 1,
+    "captureOwner": 1,
+    "runtimeKnownPlanned": 53,
+    "administrationCeiling": 59,
+    "peakRuntime": 3,
+    "workersNotCountedAsOS": true
+  },
+  "controls": {
+    "groups": 12,
+    "total": 55,
+    "inProcessDATA": 4,
+    "attempts": 1
+  },
+  "sourceCommit": "131a898c3edb25edc34e2d26dfdcd28b74e7c015",
+  "evidenceCommit": "723d809e61e86e055940d79b464282c5b69baa5f",
+  "reviewCommit": "a013fb25cf874ff53f6c4e74f6b11e5acf6f8512",
+  "reviewSha256": "740aab288b1d186991fa1c7bc2333c27e5a425b0687bbd00ffe1f26f22f8a511",
+  "actualTargetImports": 0,
+  "actualComparatorImports": 0,
+  "C11": 0,
+  "semanticCalls": 0,
+  "noRetry": true,
+  "rootTimeQualification": "Unchanged owner maximum30min; overall45min includes publication. Deadline is conservative from preparation start."
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "NEWLY_EXERCISED_SEMANTIC_BRANCH_REVIEW_V1",
+  "sourceOnly": true,
+  "actualExecutions": 0,
+  "branches": [
+    {
+      "path": "executor-v7-r3/body.mjs",
+      "branch": "mode !== 'admission'",
+      "newWork": [
+        "authenticate acceptedAdmission result and STAGED multipart",
+        "iterate99 frozen schedule rows",
+        "fresh case authority/config/claim for each",
+        "count99semantic+66setup",
+        "cohort assessment and tail publication"
+      ],
+      "retainedStageReuse": true
+    },
+    {
+      "path": "executor-v7-r3/worker.mjs",
+      "branch": "config.kind === 'case'",
+      "newWork": [
+        "same real authority/bootstrap/guards/loader as accepted admission",
+        "observe adapter semantic body",
+        "write raw result stdout/stderr",
+        "resources/revocation/close/post-view/final"
+      ],
+      "noPriorCaseCoverageClaim": true
+    },
+    {
+      "path": "executor-v4/adapter.mjs",
+      "branch": "observe semantic execution",
+      "newWork": [
+        "fixture creation and full census",
+        "target empty publicAdmission plus noninterference",
+        "stdin adapter and shell.exec",
+        "bytes/FS/which telemetry",
+        "settle/dispose"
+      ]
+    },
+    {
+      "path": "executor-v4/predicates.mjs",
+      "branch": "qualify case report",
+      "newWork": [
+        "safe child/loads/capture/cleanup prereqs",
+        "legacy operational intent or W semantics",
+        "W03 qualified shared semantics, partialtelemetry",
+        "W07 baseline passnull/uncredited"
+      ]
+    },
+    {
+      "path": "executor-v7-r2/contracts.mjs",
+      "branch": "grant.phase === 'cohort'",
+      "newWork": [
+        "14fieldgrant including acceptedAdmission exactpath/hash",
+        "same two-reference AUTH envelope",
+        "99 childledger entries"
+      ]
+    },
+    {
+      "path": "executor-v7-r2/report.mjs",
+      "branch": "cohort publisher vs admission-only assessor",
+      "newWork": [
+        "publish can emit COHORT_COMPLETED",
+        "collector currently rejects all cohort mode/status and non-admission result schema"
+      ],
+      "blocked": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "S01",
+      "status": "CONFIRMED_SOURCE_BLOCKER_NOT_RUNTIME_BUG",
+      "path": "executor-v7-r3/launch.mjs",
+      "needle": "requireThat(phase === 'admission'",
+      "cause": "cohort rejected as LAUNCH_ARGUMENTS before authentication/coordinator; owner phase/runID replacement cannot fix this",
+      "needed": "Explicit root authorization for versioned launcher mode route plus independent source/control review; no direct coordinator fallback"
+    },
+    {
+      "id": "S02",
+      "status": "CONFIRMED_SOURCE_BLOCKER_NOT_RUNTIME_BUG",
+      "path": "executor-v7-r2/report.mjs",
+      "needles": [
+        "row.mode !== 'admission'",
+        "row.status !== 'ADMISSION_ACCEPTED'",
+        "artifact.productCohortCalls !== 0",
+        "))).admission"
+      ],
+      "cause": "assessTerminal restricts mode/status/exact artifact schema/operation table to admission; cannot qualify99cohort even if launcher gate changed",
+      "needed": "Separately reviewed exact cohort schema, final counts and operation/authority reconciliation; preserve admission assessor unchanged versionwise. Do not treat nonzero/capability refusal as PASS."
+    },
+    {
+      "id": "S03",
+      "status": "SOURCE_INTERFACE_SCOPE_GAP",
+      "path": "executor-v7-r3/INTERFACE.json",
+      "cause": "published grantRequired/lifecycle describe admission13fields/14workers, while contracts already accept cohort14fields/99workers",
+      "needed": "Root-reviewed additive semantic interface mapping, retain original interface hash; not an unauthorized rewrite."
+    },
+    {
+      "id": "S04",
+      "status": "BUDGET_ROOT_DECISION",
+      "cause": "302 runtime+20admin=322 planned exceeds former128 all-process cap; legacy per-child allowance maxima total580.5MiBraw exceed aggregate257MiB even before serialization",
+      "needed": "Choose prospective process cap>=322 and keep257MiB fail-closed incomplete-tail risk or explicitly route a separately reviewed alternative. No silent cap increase."
+    }
+  ],
+  "noRuntimeCaptureLogicChanged": true,
+  "noProductionOrEngineImports": true
+}

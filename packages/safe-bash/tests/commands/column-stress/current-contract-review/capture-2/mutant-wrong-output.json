@@ -1,0 +1,34 @@
+{
+  "candidate": "/private/tmp/safe-bash-column-current-Fe3eCP/candidate",
+  "mode": "source",
+  "mutant": "wrong-output",
+  "node": "v22.22.2",
+  "cases": [
+    {
+      "id": "C12",
+      "name": "public Shell internal column exact bytes and VFS effects",
+      "status": "fail",
+      "effects": {
+        "inputHex": "6120620a6320640a",
+        "outputHex": "00"
+      },
+      "outcome": {
+        "kind": "result",
+        "exitCode": 0,
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "failure": {
+        "message": "AssertionError [ERR_ASSERTION]: exact output detector\n+ actual - expected\n\n+ '00'\n- '612020620a632020640a'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: exact output detector\n+ actual - expected\n\n+ '00'\n- '612020620a632020640a'\n\n    at definitions (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:206:14)\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:32:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/column-stress/current-contract-review/probe.mjs:211:96"
+      }
+    }
+  ],
+  "counts": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1
+  },
+  "unhandledRejections": [],
+  "allCasesAndGatesFinished": true
+}

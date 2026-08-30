@@ -1,0 +1,52 @@
+{
+  "sourceSha256": "bff86fcfc7f59b4f0a42a304edf72b9b69027b508c532b1401bea0628d201d2b",
+  "baseSha256": "d09c19a2f27d66deea9da57ae62cb1d3148db6e434b13dec5b65d5164b1ae670",
+  "branchSha256": "47865a2cc0cb7f63e98754a8576f67bb337faf434f3b8dd01acf6035d708b1ee",
+  "helperSha256": "bb77ae99283638a6278da6d7a5d2192db37dbe79b2cf6387db7fb3a1aa02a81e",
+  "foreignPrefixSuffixEqual": true,
+  "replacements": [
+    [
+      "let operation: ArrayOwner | undefined;",
+      "let operation;"
+    ],
+    [
+      "let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;",
+      "let holding;"
+    ],
+    [
+      "let shadow: IndexedBinding | undefined;",
+      "let shadow;"
+    ],
+    [
+      "let primary: unknown;",
+      "let primary;"
+    ],
+    [
+      "let released: Promise<void> | undefined;",
+      "let released;"
+    ],
+    [
+      "(action: () => void | Promise<void>): Promise<void>",
+      "(action)"
+    ],
+    [
+      "locals!",
+      "locals"
+    ],
+    [
+      "shadow!",
+      "shadow"
+    ],
+    [
+      "stateMonitor(state)!",
+      "stateMonitor(state)"
+    ]
+  ],
+  "fragment": "          const existingLocal = locals!.get(name);\n          const saved = existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);\n          let operation: ArrayOwner | undefined;\n          let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;\n          let shadow: IndexedBinding | undefined;\n          let preparedExisting = false;\n          let preparedSaved = false;\n          let published = false;\n          let primaryPresent = false;\n          let primary: unknown;\n          try {\n            if (existingLocal && !typedSavedVariables.has(existingLocal)) {\n              preparedExisting = true;\n              await this.prepareVariable(state, name, existingLocal, true);\n            }\n            if (saved && !typedSavedVariables.has(saved)) {\n              preparedSaved = true;\n              await this.prepareVariable(state, name, saved);\n            }\n            const store = requireArrays(state);\n            operation = ArrayOwner.create(store.owner.ledger, store.owner);\n            holding = store.owner.hold();\n            const watch = await store.watch(name, operation, this.signal);\n            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n            const prepared = await store.prepareName(name, operation, this.signal);\n            const current = store.get(name);\n            shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner);\n            const value = match[2] ?? (!saved && !current && Object.hasOwn(state.variables, name) ? state.variables[name] : undefined);\n            if (value !== undefined) {\n              const token = await textToken(shadow.owner, value, this.signal);\n              try { shadow.insert(0, token); } catch (error) { token.release(); throw error; }\n            }\n            this.signal.throwIfAborted();\n            if (state.readonlyVariables?.has(name)) throw new ArrayFailure(\"readonly binding\");\n            if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n            let released: Promise<void> | undefined;\n            stateMonitor(state)!.publish(tickets, name, () => {\n              if (saved) locals!.set(name, saved);\n              delete state.variables[name];\n              released = store.publish(name, shadow!, tickets, prepared);\n            });\n            shadow = undefined;\n            published = true;\n            watch.close();\n            await released;\n            assignments.delete(name);\n          } catch (error) {\n            primaryPresent = true;\n            primary = error;\n          } finally {\n            const cleanup = async (action: () => void | Promise<void>): Promise<void> => {\n              try { await action(); }\n              catch (error) {\n                if (primaryPresent) context[invocationScope].failures.push(error);\n                else { primaryPresent = true; primary = error; }\n              }\n            };\n            if (preparedSaved && saved && !locals!.has(name)) await cleanup(() => this.discardVariable(saved));\n            if (preparedExisting && existingLocal && !published) await cleanup(() => this.discardVariable(existingLocal));\n            await cleanup(() => shadow?.release());\n            await cleanup(() => operation?.close());\n            await cleanup(() => holding?.release());\n          }\n          if (primaryPresent) throw primary;\n",
+  "productImports": 0,
+  "git": {
+    "pid": 89646,
+    "status": 0,
+    "signal": null
+  }
+}

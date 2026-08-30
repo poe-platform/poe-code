@@ -1,0 +1,2558 @@
+{
+  "classification": "INDEPENDENT_STATIC_GIT_DATA_AUTHENTICATION_NOT_RUNTIME",
+  "criteriaCommit": "5ae13b4601066eb51225a25681e8c271fd110440",
+  "sourceCommit": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+  "evidenceCommit": "009c20f812926e4dc7c175b379f85753ff632691",
+  "sourceSealSha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891",
+  "finalSealSha256": "b29006dedd2d2be64165d6688ed4f451ccb369967a2cac5af97365546128b656",
+  "sourceDiff": {
+    "argv": [
+      "diff",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--full-index",
+      "5b121e0c5e136a40bc4b277cab686ab0413af527^",
+      "5b121e0c5e136a40bc4b277cab686ab0413af527",
+      "--",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/BINDINGS-PENDING.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CANDIDATE-ADMISSION.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CONTROLS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/HISTORICAL-OBSERVATIONS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INPUTS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INTEGRATION-DELTA.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LEDGER-194.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LOADED-CONTROLS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/OBLIGATIONS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PREPARATION-LOG.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/PRESEAL.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/README.md",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/REQUEST-ROUTING.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-PROOFS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-SEAL.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TOOLS-LOADER-GUARDS.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/TYPES.json",
+      "tests/commands/yq-independent-20260828/successor-review-preseal-v1/validate-data.mjs"
+    ],
+    "bytes": 1182774,
+    "sha256": "586b0c7299585bb2911bf3e522ea5d33c0dfd1dc03a4afe5abd75e232a75a2bd",
+    "addedPaths": 20,
+    "foreignChanges": 0
+  },
+  "sourceFiles": 20,
+  "finalFiles": 22,
+  "sourceUnchangedInEvidence": true,
+  "evidenceAddsOnly": [
+    "FINAL-SEAL.json",
+    "STATIC-CHECKS.json"
+  ],
+  "files": [
+    {
+      "path": "BINDINGS-PENDING.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "44b3b78fd801935410557d5bd8f85991b7b22818",
+      "bytes": 2573,
+      "sha256": "ca9147bbe3fab847474c617c4c9abd763a58ae520067c7c722a8a794e689405b"
+    },
+    {
+      "path": "CANDIDATE-ADMISSION.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "559a74903d7ee272b951f9ca56dd94a4c1380c18",
+      "bytes": 9138,
+      "sha256": "17cbe2634b85b0d70067261882a60bbd485df802a52b6b35a97a3bcbd18bf448"
+    },
+    {
+      "path": "CONTROLS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "e2ec858d126bf47ecd80a88f5c655d4e0732a3c6",
+      "bytes": 9247,
+      "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f"
+    },
+    {
+      "path": "FINAL-SEAL.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "ecb7c6a6b4ac9b001b696a189f2a1eaa9057594d",
+      "bytes": 4905,
+      "sha256": "b29006dedd2d2be64165d6688ed4f451ccb369967a2cac5af97365546128b656"
+    },
+    {
+      "path": "HISTORICAL-OBSERVATIONS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "116a8440a09f7113f36d7c5838f287768d18dd7d",
+      "bytes": 67770,
+      "sha256": "f59dc21a586d9ebc62d47c83abd5bacc6578c9074f64095502ffc0874a08ba99"
+    },
+    {
+      "path": "INPUTS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "41c60ec55070cedb1b3d343bc84af89c898f7c4d",
+      "bytes": 100600,
+      "sha256": "6a4dad232a7aacf1e2eb926f1806b8a32ae17602a608bd23784d6a8e4e2f988d"
+    },
+    {
+      "path": "INTEGRATION-DELTA.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "cb3a65ce83eff624e4a1ed8efd8d130c627c004a",
+      "bytes": 6141,
+      "sha256": "133091278d985b5c39b0aedf56aadde0d19946cd03dc3bf847d3668b91979ba7"
+    },
+    {
+      "path": "JOBS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "6d77e22bbc2103c80e86b9ea5118c2bc38c6c757",
+      "bytes": 292256,
+      "sha256": "ae2969c22e1c3d5d955bf9edf460c9d59db006dd5134bd3b9e50c82a4b741e8f"
+    },
+    {
+      "path": "LEDGER-194.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "c4226a73115a1fe1d96fbaa23d4e88dc015e65a1",
+      "bytes": 268342,
+      "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8"
+    },
+    {
+      "path": "LOADED-CONTROLS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "84884a858b3cd28386d7bd7b0e378365d63f8457",
+      "bytes": 4983,
+      "sha256": "b581d27baa9d0eb996e0afdd5d80bfcf302b91757d18f2a88bd15ca620ecc269"
+    },
+    {
+      "path": "OBLIGATIONS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "ad3e9a5e3f743e8e1492515432866a0f8f867615",
+      "bytes": 290553,
+      "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3"
+    },
+    {
+      "path": "PREPARATION-LOG.md",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "43b705fd0fec1cf22ae9f41b78742468a8ffe3f4",
+      "bytes": 2151,
+      "sha256": "a39a87c1bfa56bf369cc7c1ac41cb1c61e895bd83d54e93f4b554659265bb36d"
+    },
+    {
+      "path": "PRESEAL.md",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "ce86202f9bd79b4d886a61ff276ceafac0fda607",
+      "bytes": 16657,
+      "sha256": "843e94a3eac98cc820166413857912d8c2f1834866f6addaf0f39b7c63bbe693"
+    },
+    {
+      "path": "README.md",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "7d4bc573b2fea5cd3aab67b36a4b69e1a8b99177",
+      "bytes": 1883,
+      "sha256": "fc74eb5dfeea593836ef93fd701b440fadb9b73b34e9d0b62ebd776e5350e933"
+    },
+    {
+      "path": "REQUEST-ROUTING.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "94e6064f16aa179ac470a62776750cd6852ff3cc",
+      "bytes": 6008,
+      "sha256": "aa33b1e1f8789d9b0067017d82d8a967ab36e02b1da9924316a3dd4aedb7de5e"
+    },
+    {
+      "path": "SCHEDULE.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "3dcdf0ecc213429afd7e30fc8ba1639374bab29b",
+      "bytes": 23015,
+      "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc"
+    },
+    {
+      "path": "SOURCE-PROOFS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "a004e611f39e2038f298ba78645e232cea1dbf66",
+      "bytes": 13072,
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83"
+    },
+    {
+      "path": "SOURCE-SEAL.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "c8b01bf8845fc84ce7c3d3950fcdd380416ba09a",
+      "bytes": 4760,
+      "sha256": "1f2a8f4670ddcfebf6a36d0c2d55ccf0666609d932de38145dbefc7798e8e891"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "6f5505f1750a4f8d4f2230038de71cc43c210c59",
+      "bytes": 8479,
+      "sha256": "b95ba077dfddeb67060a55ca40e5905c4f2a2579a08c0ad7ad79d9b4d0c506da"
+    },
+    {
+      "path": "TOOLS-LOADER-GUARDS.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "fd570febf7f8e7318c41ec7d561f2873e141f794",
+      "bytes": 9881,
+      "sha256": "60ce4d385c98996773ae783b98310561491fe8d05ed4d95695262e6d9be83786"
+    },
+    {
+      "path": "TYPES.json",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "c9714d5acb50c9921c4333c15c26b585c0947ebd",
+      "bytes": 8088,
+      "sha256": "a3cd4c87b33622bc9511d28c74bf212929df66623dbc83735c3c1c5bd4289728"
+    },
+    {
+      "path": "validate-data.mjs",
+      "gitMode": "100644",
+      "kind": "blob",
+      "blob": "ff1e2ea037844f22acf1dad44c2c802143480f7c",
+      "bytes": 9190,
+      "sha256": "38750102aa95bb4f2a76a9bdd95269acbb12fc2eb3fc074f19c22af9aef0cb34"
+    }
+  ],
+  "referenceCount": 258,
+  "references": [
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/COUNTS.json",
+      "sha256": "1bf9795bc8403b22fdddd766f5f01b09f8dd4a4cfae3fcdb501d48e77b262016",
+      "bytes": 2332,
+      "role": "HISTORICAL_COUNTS",
+      "gitMode": "100644",
+      "blob": "88f32552418d3269fbfb4492dfeaf5997bdc8283"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+      "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6",
+      "bytes": 1058682,
+      "role": "UNCHANGED_FIXTURE_JOB_DATA",
+      "gitMode": "100644",
+      "blob": "8432caf66dbba607cd62117fdc31bb31d82c94cb"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/OBSERVATIONS.json",
+      "sha256": "6f6d77a0b16ff4407c67d24fadb116fe0ce38ec87c20bdae615d5eb652d85cbc",
+      "bytes": 211658,
+      "role": "HISTORICAL_OBLIGATIONS",
+      "gitMode": "100644",
+      "blob": "4c926292e5bef046a049f85704e9965dd1a9e612"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/RUN-PROCESS.json",
+      "sha256": "aac94d5529e004dd9ff925acf54c387fbfc6ac2e0ff3f7ce1628dac0166fc269",
+      "bytes": 502,
+      "role": "OBSERVED_PARENT_CLOCK",
+      "gitMode": "100644",
+      "blob": "1d627a025da2e6c15af2f17cac21235a462150bb"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-STATIC.json",
+      "sha256": "5d4e49810aeac4fd4125f6c39317a868db8a6c3fc045910726b4dbcba43094cf",
+      "bytes": 13407,
+      "role": "HISTORICAL_SOURCE_PROOF",
+      "gitMode": "100644",
+      "blob": "cf0bc6da329b579784bd2c56a3b45be9900724fc"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/SOURCE-EXCERPTS.json",
+      "sha256": "56d08caa0d0e282c2263eaa1e6d43f8dc71c01b6c3c43b08b728dcb38a005b82",
+      "bytes": 81150,
+      "role": "OLD_SOURCE_LINES_ONLY",
+      "gitMode": "100644",
+      "blob": "a149ed101abfa2e55ea99e1a26ae040959695648"
+    },
+    {
+      "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/inventory.json",
+      "sha256": "21e650910cf1025e20684e9ba434c66d736a376644d988199c588427d5ac355a",
+      "bytes": 192322,
+      "role": "FROZEN_194_ROLES",
+      "gitMode": "100644",
+      "blob": "6f53ef71631736bdcbd42d734118f6c9b6265e01"
+    },
+    {
+      "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/source-bindings.json",
+      "sha256": "4acd5904bcf78688a2c7a8329d37ffcbd84a03319099bbb32d8242957d5994bc",
+      "bytes": 8421,
+      "role": "FROZEN_SOURCE_REFERENCES",
+      "gitMode": "100644",
+      "blob": "5f7851ed5ada500c53ff0330724ccb782e61367d"
+    },
+    {
+      "revision": "83035d641c415019ac62a0d0114cf2836ba77e45",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/RECIPE.json",
+      "sha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158",
+      "bytes": 48754,
+      "role": "OLD_RECIPE_DATA",
+      "gitMode": "100644",
+      "blob": "30d27a0379a9e421ec5845baa36e0ef6fa13ade0"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/JOBS.json",
+      "sha256": "45af683507cdc1fc68a82d852f1d8f12a01eb419aedddff09452a80adcde7542",
+      "bytes": 3563,
+      "role": "DECLARED_TYPE_FIXTURES",
+      "gitMode": "100644",
+      "blob": "5937b1aca45510ded8bfb33c5ce0b0d5cdf13ea5"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/SELECTED.json",
+      "sha256": "ddc5af63c9e8876329f90cce96f5124198fa22cfa61b32572cd2984e4bf301a0",
+      "bytes": 6433,
+      "role": "HISTORICAL_TOOL_PROFILE_NOT_AUTHORITY",
+      "gitMode": "100644",
+      "blob": "37d1ae8c55a3f901f04df73affc1de7490971f70"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-BUILD-RECEIPT.json",
+      "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+      "bytes": 4718,
+      "role": "OLD_BUILD_PROOF_NOT_INHERITED",
+      "gitMode": "100644",
+      "blob": "ba9ac0d96c44f44b6dfc18268fde3a437a26d845"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/COMPILER-PROCESS.json",
+      "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+      "bytes": 2012,
+      "role": "OBSERVED_COMPILER_CLOCK",
+      "gitMode": "100644",
+      "blob": "3aa056b0f4050a141efbc523d0195379f7d1f090"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/REVIEW.md",
+      "sha256": "0dd5f571003333214326e8dc58f72b569ffd9ff0ea0622fd2a513cd5ab1b83d7",
+      "bytes": 10311,
+      "role": "CONSUMED_REVIEW",
+      "gitMode": "100644",
+      "blob": "c9a0e91294503286c6d1cb3f298ede4fcb695e88"
+    },
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/MANIFEST.json",
+      "sha256": "98871d5f7f98e9a9b666310d7189c176bab895d84dd313b3da2cc017ed2fd26d",
+      "bytes": 22271,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "4ab33422958b01d9ef0d9d17a01427827d05af17"
+    },
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/SOURCES.json",
+      "sha256": "11eba6977e60c33340374ecb51b002f330d2ca97a3c59384991eeff24134b5c6",
+      "bytes": 14928,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "d37a5821797647a08b442d2725c1de09d4428216"
+    },
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/CONTRACT.md",
+      "sha256": "1e31a9883fdaf3e8fbb890c736a4082246b58d6dafd7479ebbec194dd8531401",
+      "bytes": 18630,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "885a54dd028e86ad164c5d58d27d41228f06cf78"
+    },
+    {
+      "revision": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/RESOURCE-TRACES.json",
+      "sha256": "c316344722cb4b4720978b1406f4d7e614bb362f1aa441d3966e14832b6cfacd",
+      "bytes": 10911,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "e98027cd8f2045aa371854b944abf8397b57fa8a"
+    },
+    {
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "bytes": 37274,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81"
+    },
+    {
+      "revision": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/cases.json",
+      "sha256": "cb1c52cc7c5d50b2e6e31cc0229f1a16cc526ab242c01bc04df16e581bf50279",
+      "bytes": 10246,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "29a584ae5513f43e03c86ff0bd9c2e307404db4f"
+    },
+    {
+      "revision": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/crosswalk.json",
+      "sha256": "c19081327f7e3d2602e0383078dd1acc05fbf2f70e6e60e4a7d9f895f4c34f4f",
+      "bytes": 12336,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "19727506747a63f02ccc90cc8e63a098a8d28317"
+    },
+    {
+      "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "sha256": "96a7ae5aa36cec464a28d9ba09cfcd9791cb0dd09e80a51a6fc203cdd87b7ac6",
+      "bytes": 17271,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "69d60070d289e422164ebe45cf34f6bc2919a37c"
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/recipes.mjs",
+      "sha256": "fb750252e49c92d5e5bfc91980e6bf042cc2ca3825cc85e97dd8329f458dc146",
+      "bytes": 1382,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "5ab08743922bde7be44ae78f9711a72950b2a91d"
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f",
+      "bytes": 10728,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "2818796d706eb48e452d769d36c0644754ceefbd"
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443",
+      "bytes": 12730,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "15386e9f5336d8244ead725f0c5402b4e5a1183d"
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c",
+      "bytes": 4211,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "d191c59bd40fd9413d4b73d7e8ac57acd4c197c2"
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf",
+      "bytes": 10897,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "122721e4bef71663f098456e94990b8055b84b87"
+    },
+    {
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30",
+      "bytes": 12184,
+      "role": "IMMUTABLE_POLICY_OR_FIXTURE_NO_EXECUTION",
+      "gitMode": "100644",
+      "blob": "889e6db198ca7521e175501e39864a42ffc71e24"
+    },
+    {
+      "revision": "83035d641c415019ac62a0d0114cf2836ba77e45",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/run.mjs",
+      "sha256": "46f5a026659e99bd3c54c3d9bcc189622d141adba035fb0b79e9ed9e72ec5346",
+      "bytes": 9665,
+      "role": "OLD_IMPLEMENTATION_GAP",
+      "gitMode": "100644",
+      "blob": "8bc36889ac9aebba2546bae80c70d87df8188e1c"
+    },
+    {
+      "revision": "83035d641c415019ac62a0d0114cf2836ba77e45",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/worker.mjs",
+      "sha256": "a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1",
+      "bytes": 4556,
+      "role": "OLD_IMPLEMENTATION_GAP",
+      "gitMode": "100644",
+      "blob": "c3099b61dd6bfa33a72654c6924acce9e63def12"
+    },
+    {
+      "revision": "83035d641c415019ac62a0d0114cf2836ba77e45",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/binding.mjs",
+      "sha256": "e9850cafbb4d2cca31cca098408f5ce65ad7cac1d1d700d85855032f9fbef542",
+      "bytes": 8443,
+      "role": "OLD_IMPLEMENTATION_GAP",
+      "gitMode": "100644",
+      "blob": "e21d049b0e64d498d182dc1df051a79815ebb5f9"
+    },
+    {
+      "revision": "83035d641c415019ac62a0d0114cf2836ba77e45",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs",
+      "sha256": "61188fffbd45445e4ad199f80e531637a0b16d50e97a1e5e0703bad10981b8f6",
+      "bytes": 6681,
+      "role": "OLD_IMPLEMENTATION_GAP",
+      "gitMode": "100644",
+      "blob": "1bc62bafef4154b754356474a1bdb7d5e42d0b5e"
+    },
+    {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs",
+      "sha256": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a",
+      "bytes": 24545,
+      "role": "OLD_HELPER_NOT_SUCCESSOR_AUTHORITY",
+      "gitMode": "100644",
+      "blob": "ba1f682d39fa4606cea02ebe5005eb9eecfda06a"
+    },
+    {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs",
+      "sha256": "5570bd8a754880a7aef0da8f2c48b6524869b46d08f28478f89be296aa53152f",
+      "bytes": 9932,
+      "role": "OLD_HELPER_NOT_SUCCESSOR_AUTHORITY",
+      "gitMode": "100644",
+      "blob": "73a7701f6119f64a558cf6a6a5527840bb8ceb9a"
+    },
+    {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/SOURCE-AUTHORITY.json",
+      "sha256": "718253db9c04fdcd459283362d00d80766c9b5ad3264b931ac127cb9aaa5db5d",
+      "bytes": 3682,
+      "role": "OLD_HELPER_NOT_SUCCESSOR_AUTHORITY",
+      "gitMode": "100644",
+      "blob": "b495766f357fdea0d35073a8acf7a220187343a0"
+    },
+    {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/RECIPE-SEAL.json",
+      "sha256": "69dfaf2aa833590312d80515a62d1dcc544952e55f9844aea73a3a8c2d90330b",
+      "bytes": 4376,
+      "role": "OLD_HELPER_NOT_SUCCESSOR_AUTHORITY",
+      "gitMode": "100644",
+      "blob": "01f2b3b2cd8e0dea11b226eaf7976fb9a08602c3"
+    },
+    {
+      "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/host.mjs",
+      "sha256": "fa7c2b3293604fac9d671bd4ff98f48297ce2c56299dc5db61b58502cc16ba76",
+      "bytes": 7365,
+      "role": "OLD_CLOCK_AND_ASSERTION_IMPLEMENTATION",
+      "gitMode": "100644",
+      "blob": "5c28d4d314ce24567b96839db02c199ef9ca366a"
+    },
+    {
+      "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/authorization.mjs",
+      "sha256": "a05fb4234c8127fc0438bd86c4175f7ec488d4f3d27c654df17458472cf83987",
+      "bytes": 6475,
+      "role": "OLD_CLOCK_AND_ASSERTION_IMPLEMENTATION",
+      "gitMode": "100644",
+      "blob": "d4758e154f116854af1d2b2c4b10c2f8cb0aabca"
+    },
+    {
+      "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/context.mjs",
+      "sha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23",
+      "bytes": 4497,
+      "role": "OLD_CLOCK_AND_ASSERTION_IMPLEMENTATION",
+      "gitMode": "100644",
+      "blob": "d3b77a5ff2d548702d7a749fd106a0b3f225db96"
+    },
+    {
+      "revision": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/assert-capture.mjs",
+      "sha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88",
+      "bytes": 3726,
+      "role": "OLD_CLOCK_AND_ASSERTION_IMPLEMENTATION",
+      "gitMode": "100644",
+      "blob": "eaa065137ae8bbf89d0ba93720a422d4980e09bf"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/positive.mts.data",
+      "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "bytes": 1036,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "6dbe8d4be085a1944541005dec116c8c3b061116"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-command-extra.mts.data",
+      "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "bytes": 63,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "166ccebdd38b036dceec6267e72c8427fa3a5b79"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-array-extra.mts.data",
+      "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "bytes": 80,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "047de0a79ed118f87b19b4eaf57dd9e101079c9d"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/unknown-limits.mts.data",
+      "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "bytes": 78,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "d2874e640c578d205310a633690494d9550bcca4"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-string.mts.data",
+      "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "bytes": 69,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "31941e3748b27b7699226616e4bf0e7fad6a53d3"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-undefined.mts.data",
+      "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "bytes": 73,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "4ae9150b4e5c0c55dbb2ab159eac2d17eaddd581"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-limits.mts.data",
+      "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "bytes": 76,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "681eee2ea7eee1f1b5d9076404d4d4ff732d57f4"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-defaults.mts.data",
+      "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "bytes": 86,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "2d15987981ed2d7d5529739dcb81e7621f80ba98"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-session.mts.data",
+      "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "bytes": 88,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "0c27bf75b03782ad2ce9a8ff339bbc469f752428"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-factory.mts.data",
+      "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "bytes": 96,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "79adefaf3798fde24d20874b40fb5d4e5772234c"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-parser.mts.data",
+      "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "bytes": 68,
+      "role": "TS_FIXTURE_DATA_ONLY",
+      "gitMode": "100644",
+      "blob": "efc39e2f9bbab3abc8ced07776b24065c58abc47"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-18-46.634Z-f00f1a4b-b9c6-4fe9-9b66-4896a79eaf36/source-admission/child.json",
+      "sha256": "e665b853724b21e4d2f7d803f493d767978554f881c510503e98a075dc167ef2",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c8b4e0362909265fc03676569cec9b9fcb3597f4"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-03.653Z-ca7e09ae-40ca-47c0-a70b-6c3da221b7e9/CMD-01--whole/child.json",
+      "sha256": "1304d3ee9e2acd8e82c8224f639f30cfa708be0084e79e167fd9da2b02375630",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "36ac337972bea406e5cafa8fd5345a29c37294c7"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-04.974Z-fece9aab-2b40-49ba-b12c-af75f59482a3/CMD-02--whole/child.json",
+      "sha256": "c0bb951e7b94eb0aa4485abf5630daa3b0a1cfb1746d605ee68cd0d575d9104c",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "7d598d99b90208a9c8c47feeabc41bc6bd4aab4e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-06.357Z-e473762d-2566-41e8-9140-068051719c22/CMD-03--whole/child.json",
+      "sha256": "eb92a859123d930afde09635e43d022f999dc76cf8c5be3fd5e32f2a7fffe47a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4dad46de38da7488c9755ad1cb11562eff3e2588"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-07.595Z-2650a388-4f4e-40f6-8853-b4358427135b/CMD-04--whole/child.json",
+      "sha256": "c0fee8608107083b5b335c7a4f61087893530a51f6628cbff8d857f3c5bfb121",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "933e0e85c3b0b9038fd2c15aaba2713efb556bc7"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-08.854Z-a37929ee-4d30-48ef-ae81-8bac807715b9/CMD-05--whole/child.json",
+      "sha256": "e677938d138e0c50cd447147cc7a90130dd7ba0a4d11fa4c69b09f0e9bbb77c7",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "127316214c83a7ff0ac98360ffe8e1fd3c7a892b"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-10.028Z-44734b67-aa54-43a8-b912-5e0f65ba7aae/CMD-06--whole/child.json",
+      "sha256": "a1d10af744d0b97ff4c187c5c20016990d460f8c8fc74634b7ee1278bdc67b63",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "62fec2c4525fac84dc39330587445ea64910da4a"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-11.199Z-5365e0ca-250a-4347-99a7-d942a76a1906/CMD-07--whole/child.json",
+      "sha256": "10717559872758b4416457f61a63893f5ceaaae48836b2b8c8995cee87c9c4d4",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "9a37a1126949d78ca199be7af0f2deff054548b2"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-12.396Z-5f9ddf55-d29b-4833-b552-9af60d9b3603/CMD-08--whole/child.json",
+      "sha256": "2062add78baff3eb42505a694f9753a0fa2bed3a7c44aca9bc40471f912a6c54",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4b374b56f18690f35e8692ed48f94aed1a45c045"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-13.607Z-1055111e-ef45-4f9c-8c36-1cf132081844/CMD-09--whole/child.json",
+      "sha256": "29a2806ccbc64d9242e8a266a43ab96f7b3b9d0958473ed9a6a0d4bdd9e6b2fb",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4c8e380ca4f798fcb1367c7c85720828a01434cf"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-14.810Z-268697d2-b476-4d34-b57d-925f712c509f/CMD-10--whole/child.json",
+      "sha256": "6b3b36b0a1ec8701f4900f8609106b20a1608b3292b8d736fdae8bc58d2789c9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "bd98859ae93364d09de018699d1341d486eb9afd"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-15.984Z-e8e96ff7-3665-4967-b470-6f44165311bd/CMD-11--whole/child.json",
+      "sha256": "95a2c74b2feedca4e3c458f0843d5c5407b6f37fd30ab6939674b4f9c6d8d280",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "cbec52ba99e8e0ceb24561dc2c73684fd8786859"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-17.166Z-d3fd4290-9d0b-4fee-b281-153624a928bf/CMD-12--whole/child.json",
+      "sha256": "1327ea2be57984c432f1231436ae74f840d6968724e1462b7e06fc2ff930f705",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "1f9217e8a584798d6a12450140c06cbeafb39783"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-18.376Z-9dd12804-c96e-43e1-87b9-c47e21634e09/CMD-13--whole/child.json",
+      "sha256": "22f3b031c836a6da2a19822bc884ea7e7e219f34110c5f0f4f441ad1e1ddce68",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "49bba11153f137c6a08b35ffc31c830354a762e4"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-19.575Z-f7c577cd-bb6e-490c-84e2-fdfdd37a3fea/CMD-14--whole/child.json",
+      "sha256": "4f654e25242114f5fd3e6320e748301d74bbc0018f5eb04fc98f12d1f60f8b14",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "2f1c113a2a04f7625b466c52c741b601c567063d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-20.833Z-e9d5a22a-0b0c-4b8d-a2fb-a75dfd328fc2/CMD-15--whole/child.json",
+      "sha256": "754b953087e3e4ea24c0507d314f49c9c3dbdf593a27598b309b20245fc7b95e",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "bd3e602c8e83283341103165c2b7cbd12b7edf9c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-22.051Z-44940a82-2326-4ed3-a5b4-09486240334e/CMD-16--whole/child.json",
+      "sha256": "01df27fda2d094daea9767e943fa1d4b137981e9f0e88ecc567c53bbda47a3c3",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6d4490de713212f2590ded0fd82bdd10e3969c23"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-23.235Z-3b083db7-f8e2-4071-99cd-28fd50de1888/CMD-17--whole/child.json",
+      "sha256": "8821d7e14d86525070c89b0cb3782b00060cb31804a5c969b35ea425d545df9b",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6d8d96d86e302960a604af51ca260f5a9c80920f"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-24.430Z-1ac3882b-4b81-485a-a6bb-f56f1f448435/CMD-18--whole/child.json",
+      "sha256": "7e2e367139afa71791614bd891bc8e8d9d909b2d9dacaa81cf1a3246e01161dc",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c1f1f3c7f5958b0e79c34271900581f4da7ae88c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-25.593Z-9d764279-ade7-4ad7-9c52-7ada1fd44203/CMD-19--whole/child.json",
+      "sha256": "aa030bf850b4ca3dad69131cca92714250a6981d282e9975e64c108f26172edd",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "3dbac7c70d04f9589a3fac44a8506cf69c7c099e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-26.867Z-2f2a3930-2032-446d-b646-bc574e0ba821/CMD-20--whole/child.json",
+      "sha256": "3ab82dcd49522842803b7e90b3d19a36f0ca9ea32bd1d5eb6aff41b5fb3b7098",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "07e74fe3a408cfe5cfce690b73c1c1e9e671ce99"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-28.333Z-f6dd99aa-96b1-4ab1-8b06-9a5c97d9f030/CMD-21--whole/child.json",
+      "sha256": "ae5eeb63ae273ddd1edc526d0f1ddd560b6314c63d27441bd36663d6756ff56f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "dcff1bfcdcc5c9c6783ebcac9de57fb257e03454"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/child.json",
+      "sha256": "bd9ffce27698066d2d971f675dad30a6476955015feb3ebb68a1c447b6fec269",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b814cf5677e7cdb7dbe966345ac9b44b1e5ec008"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-30.801Z-7ec060d2-f57a-44cc-8c07-7661bd608daa/CMD-23--whole/child.json",
+      "sha256": "70f68f198e5169164e739d2e6c8a395e2e447eca25cae4f95d2b876473049b63",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "578d934b5f3dfa6711f7e6b24292ce7d79134d4d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-31.960Z-de7f884e-4562-4263-9b77-7a3b3559374d/CMD-24--whole/child.json",
+      "sha256": "cfa16d1feae2aec4f7698572e19e97ae285afe1e66bc54dd4ba4dbbf22905ba2",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b8b5eeb949f8d8061925181540c7306cbbd2ac09"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-33.201Z-862a6791-a854-4923-90a4-f32bfa6db8c2/PAR-01--whole/child.json",
+      "sha256": "65af4b06e84f6c39c02e0474180cc9595627b57668959ee1b4106450bd4fc63a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6ad04fbb064d83ec253eacb81fe0ec54dcaa2904"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-34.401Z-d78c39ed-d3d7-47d7-85c6-b2e3eef4b5c9/PAR-02--whole/child.json",
+      "sha256": "c16ebdd5f04986b8812ec1b26c24cdf1f0532631653808a3a221f55fcbbf19a9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "69b887162dd30fbadc86aff699227dd8dfad7e5e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-35.544Z-3ca0bd50-c722-4265-9424-35bb27d742fa/PAR-03--whole/child.json",
+      "sha256": "8faaab720955e9378bf2bad65c9b5ba230407823b41899ee75dd20f6e099dc06",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "11d6dd1e84930d585a560376b7c57e909b8b0675"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-36.791Z-7fc5cb95-4cea-4300-8838-969c6e47991c/PAR-04--whole/child.json",
+      "sha256": "d4cf25de8689f08aee96d40fec1586ca321ff65cd5c981e446a4aebe10540d70",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ded3bd418731267d27c8a24c4f3206f13914810f"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-37.956Z-5fb39ff0-dcbe-49f3-8d7f-4c4f14cc0da2/PAR-05--whole/child.json",
+      "sha256": "daebb5a950f0edff4bac5c98e36c372f7872bc9b26fdc6cf81ae64c82c84cd16",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "393ef82254928e5e203f89e4911c854242231796"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-39.131Z-0ae20a20-b74f-4a45-b3b9-2c00d9b7df6a/PAR-06--whole/child.json",
+      "sha256": "a4d65c1ad594b0be4c67aa7289b2203c22ae11b5ddc337235a7ab355c03c8b91",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6c087d4e106e49459bdd3ff4c71d8646c8becd56"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-40.326Z-85eb4778-ea28-45b3-b4a8-597b532b7763/PAR-07--whole/child.json",
+      "sha256": "662e4020cf83f7c91e84daf96eeaa0fc0b6710231daf171611cf3ab6d036791c",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c00bc844b8886f968aaab7c4219aab0ee3b5fb2d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-41.635Z-c2cda14b-51c8-49fc-860a-613dd783d25c/PAR-08--whole/child.json",
+      "sha256": "da226f29e9648bb95c5ac74df2a8e20d40164fa650a2d2dffa8ab9cb3192ae24",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "5dd4ab5fdf6618bab78e85d9f6b4cd2666f2afed"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-42.812Z-99243e8c-3eb8-4120-bd07-ea9edef49c46/PAR-09--whole/child.json",
+      "sha256": "6dfdaa25b8f4d5b3d2de50ad32c55327a3f596baea81753afc2cc631b983f497",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "33b13d37f16ed9d4288f7bdd0d63743abfb3678e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-43.999Z-e96f0523-08a6-49e5-ba59-2faa12dbf1d1/PAR-10--whole/child.json",
+      "sha256": "dafa52b744e504a62a6c6f282f6ae5d80b5e153fc72bbb049296ddf8a26390d5",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "87f861e5284eb58ad11245d5a0e97de21a6921ef"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-45.164Z-13d4e332-d78d-41c2-8592-bc0f520d3fdf/PAR-11--whole/child.json",
+      "sha256": "96f792fc2772b3ee407127f90a0df8153249c7484805c6e78762db8912d3c938",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "08a7a5e6cd6eb3311bc5054f3bfb5fc0c27886b8"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-46.365Z-ff9ffda6-7232-4697-9016-23ab6f6c32cf/PAR-12--whole/child.json",
+      "sha256": "74841c2f825a417246e08958081cfa87e89359b765046d61dd3cc9c61ca5c951",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "7b5a4e4112496fb90d93f47591e8f3449a576bf4"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-47.690Z-072c0a1f-b7e8-4ab7-ad8b-e65acc88fd72/PAR-13--whole/child.json",
+      "sha256": "79c7c663c2a1a218f75f0d9764ecedc40d02a917c47c3501a229b1ae877244aa",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "76ba76d0c578489a646e3afed0f958c8a315044e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-49.139Z-63c9ca1d-50cb-48ae-bbd4-8f3a0564babf/PAR-14--whole/child.json",
+      "sha256": "db42cabe1328c5cc1399893f553b5e26b28635a61dc5781646bad10351b30ee7",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "e7a682be3aa30c492a6b2c476f6f19383ebde089"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-50.506Z-8e7e87b7-5255-4894-9428-23de894be050/PAR-15--whole/child.json",
+      "sha256": "bf31f70319bc439909e5aa7d59dffed5fc347e85657f02ac758dddf6d5a595f9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "8d800814fd71585b7ff210e7c4cf701a0c47bbc3"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-51.901Z-1a7a1406-3ed9-4fef-bafa-cd633ba6fc7a/PAR-16--whole/child.json",
+      "sha256": "72e380a124cea09b3142b946fb1ac16845eb839589b3e1a61a796f7620860f84",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c7806023524eb1eaef8657b260da7a26a760d889"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-53.304Z-549229c8-1edb-47fb-a264-0b4bbc50c9ba/PAR-17--whole/child.json",
+      "sha256": "8bf19cf9a10cf3918bd814cffb8eccab0997b5cced8b8045df646207f49d6553",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "07ac24839794627c4bb50924dbf255efb1ef17ef"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-54.688Z-aba71f4f-2563-4e03-a93e-b2d7c1a1ac38/PAR-18--whole/child.json",
+      "sha256": "f1c771cca43b1e2574dd4dc2a49f3f43fec3c4df60e8cd986f34653b17c0583b",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "2dcb0ed70c5a9d9d716570fa4196525da12b2ab0"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-56.107Z-051e28bb-4790-4aa5-80ba-e0512bf65fba/PAR-19--whole/child.json",
+      "sha256": "897a42e1a28dfb56d22dd878bc5be59127e8372a99ab61e2aa5e7a9c5e4d9715",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "492db06252b9c874b13149ac5a1de686ff625782"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-57.413Z-482f99cc-ad97-4699-a532-540f2a2e4c61/PAR-20--whole/child.json",
+      "sha256": "6f6ee345f2c63ef19d3594bcbda459d4021279ed7e9d829783156980330d6a70",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "89824a26ac6cf1bea628bd633891b17e66f368ea"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-58.631Z-faf68d57-dd6c-48c5-9bf5-48459a1cab2e/PAR-21--whole/child.json",
+      "sha256": "1260f7f323dad0c1c2a5dc7d41ad8c74987eba859e4f4e24ee617441d464f1e8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "81de7f911d1f2111f3a74d141c3e892fefa4b472"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-59.817Z-fe177081-f3ab-40b9-b540-4da8b2973759/PAR-22--whole/child.json",
+      "sha256": "5be1bfaea7ee852e736a4d2ca872bf1d58f3ed4f3e3f7c3eb2ccaf3697e1cb1a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "04b38d5814c68ff3d4e018691a65277ce6bfa2a9"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-01.001Z-96dce685-2c90-4df2-a30f-e7f27e87b0ba/PAR-23--whole/child.json",
+      "sha256": "6212437a5ce9c1f0bd6ea1cecf7dccd9745950aa2402fe61723f370dea387f00",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "27c6986563d90abf6a52c84518e4d84b319bff2a"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-02.185Z-fc0e454a-9ace-4480-b504-afa6150a462c/PAR-24--whole/child.json",
+      "sha256": "ed271ef65ae75489b2220b203643f4ca728bf22dc26809362ecdc5a7592c55f7",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "10eee709f4eee5ec1dc643aa6f42013644c7019d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-03.613Z-ef912a85-a131-41d4-b4ae-d6f9ca027483/PAR-25--whole/child.json",
+      "sha256": "c95ab022d0ea7d4011e63159695513ae747f18ee00acf2ee79321fca0fbf5408",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "a0b1cfaeea58261f96a71fe01a4aa96de0298d20"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-04.810Z-0d92828b-4edd-4225-9a9b-757866c1ce81/PAR-26--whole/child.json",
+      "sha256": "bb28fe853160164ac4c81269cb6368caeeb115736161acd1e0b8442ffaf7960e",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "2c1e9620c49f9b9d7c8de07aaa8a1f90751f934c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-05.986Z-2879480b-c78f-496d-8517-791ed553c1ad/PAR-27--whole/child.json",
+      "sha256": "cbf6583be4d9b333d1d1b53f8a3d541af6af26ab9712fe32e3abe68fc85b0488",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "13f060793aba5c54c6e6f07db8d3b5787a4bb02c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-07.268Z-0986e964-1ff3-474b-aa30-c34e95b4df9d/PAR-28--whole/child.json",
+      "sha256": "7ab0cd4bb0e15a334b7904489ed63686b361258e5b1bd3b3d27a63bd8755ebb2",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "1c819e6cfdf31b4d648c9bc5fd59b7fe984d6c7c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-08.470Z-6c3c6149-c882-4d39-a481-20b40d770b23/PAR-29--whole/child.json",
+      "sha256": "fe50432070d0649d2d78d08d23c93198c205c158e439bc49cd61720eb7c271a1",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "cb507bdc39be92f94c1c1dbf62a414d7ccf2662e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-09.654Z-f7ca94d7-30ee-4d94-974c-f2090b3782a3/PAR-30--whole/child.json",
+      "sha256": "fc3c33914da3623c23b4ad6e53b9b384fe8bcced1100a161016576861ead8f1f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "a72eb1e7d5ccfc6a5d3e3d6be0ce6bbd68c0b5b2"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-10.869Z-a6080e3d-7c58-46ee-a168-d89fdb89cb08/PAR-31--whole/child.json",
+      "sha256": "8068eceaa2961275b72987f0dbf8468286df9eb3289f031f2cb88db3b2d93bdb",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "aa6caa3fa46b284472e7822459c50d6dbc2a8aed"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-12.045Z-0a863c10-aa49-49f8-bb15-1b7f8aa37667/PAR-32--whole/child.json",
+      "sha256": "eb8170e2aae46e4df86f13146e2021f5cd860446a95c080d5deceb6942e7b343",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "83baa58c2d9444a91bf5284dd721c3196657ba9e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-13.197Z-d6bc863c-2b06-4160-a1ad-fbab7f421b38/PAR-33--whole/child.json",
+      "sha256": "54ea3f62b795493e7a6bc8e6d594b3f6a1750ecd719d5010ee885b3a5e2ad100",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "8ac42396b98cc209032f9faa11cb046717c0eccc"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-14.388Z-796a0a70-ce1c-497f-afd9-67b8075f454b/PAR-34--whole/child.json",
+      "sha256": "35271b34989a90cd8b9b30e07df84c748d25bd1f7647a87405e6637ebc0ed31f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "9928b5ae729226f857492d782cddf2eb2e4fcf7c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-15.591Z-3e159c23-6ad7-4785-8a77-633d53d3d6cd/PAR-35--whole/child.json",
+      "sha256": "6f9200247efbc7cab5b2fba12afba30093bd7437ea5556764b99a4e9b8287e04",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "63b6bf63d50fdd8ba5a887ca0f740355f518cb68"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-16.775Z-9c96a1c2-dc8c-434d-a752-6f91b4f363b9/PAR-36--whole/child.json",
+      "sha256": "726774b4ac32cb2103c5e9a980b373ece98406f275e3cfc66540dc4112338ee4",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "f1d382d9c4303bce80217da7766b17d4b2f933d7"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-18.001Z-61bafd26-d777-4e54-82ec-697560130dd5/NUM-01--whole/child.json",
+      "sha256": "2d6794a1a17e7df0cea44fb629646750be2e3c096127e0356a81a80d7df08e60",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4090e52ad28ef95a586cf56c5899386d00fd67c9"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-19.160Z-e584fd53-0b3c-49a8-a755-e6785b1aab63/NUM-02--whole/child.json",
+      "sha256": "7b0e82f48c450fed05edd56bd7fc72c365205d0795388f24129c327eec81efe5",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "5e5238ce8f266484a9a0606373937edb9b20c17b"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-20.334Z-f6972457-b310-4f6b-bd45-332d79fec83d/NUM-03--whole/child.json",
+      "sha256": "df9835793ddc7ec1dabe852ada37a9dd03503ef2b67d1dd7f9238b5410125491",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "0b021f5165f5cc5f0a47fa3eb4f4cc43f5240512"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-21.506Z-cf1591b5-f24b-49c4-9bfe-05a0f0a22325/NUM-04--whole/child.json",
+      "sha256": "61bb83d15fa47cb2d79f0752610366c733a8773b891708bd1460f64b4b1c1de6",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "270a27caf4ed8d9edcc472a46d91c2e8a54a17b0"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-22.681Z-14386570-0412-4f70-aaa1-c3d38e234a76/NUM-05--whole/child.json",
+      "sha256": "a1689c0d41a1febdf62438b3a41196813c13cb6b5316654cc907fad96ac27df4",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "2c6440b44054ddb25c33bd1cb88d89d6145b3468"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-23.847Z-c0cf6a19-7c3f-4d49-b291-42df5e565486/NUM-06--whole/child.json",
+      "sha256": "9c6639f4965dd14ac7fc29d41701341474b59ba40eb96e75e8717a90531d4bda",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "9f11b6cf45ba8a66b47a776cacb94e0d053477d1"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-25.011Z-dfbfbff0-b068-4a08-8950-f76ef38fc262/NUM-07--whole/child.json",
+      "sha256": "a51b9751c36461ef58ef0e474031214f061c8c0a0573fd4817e2fa2f4d743fae",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "dfe7da3c989ad24316de0e1e8f4e41b5fbdf55fb"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-26.178Z-53ba0a58-eb86-47ae-9e34-77d911e2fcdf/NUM-08--whole/child.json",
+      "sha256": "7278c06acb21c6ab47f0d3c960bf90175540c5c57ad6fbac7b174768c25495d9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c43910128d6003742df2a36888a18e4ba70acc5c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-27.397Z-faeb3219-4ffa-4f74-a1a9-f82541377ca9/NUM-09--whole/child.json",
+      "sha256": "dc5a2957ad9fadeece37fc3c924cd231e847cad571edaecc3d92497c39b17530",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "797c3a837d881f35e3d8489151bb2c1250ac9093"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-28.559Z-fe93f8f9-1de1-41e1-a194-5ff8dd852318/NUM-10--whole/child.json",
+      "sha256": "1cdfb5f5ece8da62348a673364155a2087924f0063f10541268ba9f81752983d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "d4c3c7b97e603ce7aca1628af0319c390fca9262"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-29.716Z-bee41416-aae7-44ce-b443-d355fdf98b81/NUM-11--whole/child.json",
+      "sha256": "d71d9dbc207dc5d4af3d75243e9ec2fe53fbea74354b61662c177c6dbe207210",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "1df15e116d1520589f275a64a8a155675a8ca027"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-30.882Z-9ddcb1be-7400-4863-9ff3-893ea905d16f/NUM-12--whole/child.json",
+      "sha256": "b6371c750033fb8095bffc3d1e5b9ebe63765ff3eb31fb11b005840e2878b816",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "f0dfc2fe9a6d56a612e1fbab2e53e14aefde549e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-32.101Z-e2375b07-c25f-481a-9eaa-3fba0abceed1/NUM-13--whole/child.json",
+      "sha256": "e1db06bc05b7c2c22b9b5765bec873c00ae1b6e3a2b9249a4059d2dce05a887a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "bf8bcadd514dd57af7a3fa1343f0c6dde71a7024"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-33.247Z-0e34f9fc-d1e6-440e-9458-b654455db4de/NUM-14--whole/child.json",
+      "sha256": "6b15690bccae99daf8bd85c61d1ab7c3bac5b1080b27fcf166af03c8a25dfcb1",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6427b24d9029d42b954472758714c1d51fd18123"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-34.424Z-80a12e55-2e10-432b-9942-303b8556e1c1/NUM-15--whole/child.json",
+      "sha256": "d6229ac7b9d47acaf5bb9f7daf9f93cf3e70d423e62c620145fec38ee0f7ce64",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "af595eae6171ce2f29fb8e6a6e35fc6a44b4bd1b"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-35.610Z-44c99188-a1f8-4225-80d7-645c9dcfba7b/NUM-16--whole/child.json",
+      "sha256": "9b69063324a109688215fbe576a67e4bdc4568a4e07cbbfcea56873713c024c9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "bc044972f572bed7697b04e46c3bb50b3abd7a10"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-36.806Z-dc0e2f72-2201-4b06-8dcf-adf27e102c89/ENC-01--whole/child.json",
+      "sha256": "04734bdbfd46269be1a1a9894033a05070f3f5a8a4454a00da8ba935d2dd34bd",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ca778a9132cafc553fe960d31b4e963c2fb89e51"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-38.002Z-01aea115-1c28-4fd2-a52a-edb1021039b0/ENC-02--whole/child.json",
+      "sha256": "ba4f2bb7b6102f736c4ebc954c8ecc642cc3a93ae87e2a5daf4300f4ffcf6b4e",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "9938f32a12897b953d6c9343740d1933a5610406"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-39.175Z-b4d9cabe-4e2b-46fd-915d-925ecd5e4fea/ENC-03--whole/child.json",
+      "sha256": "f9676a3d4404374c4970f08f61b1b5f27091b187399dce2e060d04d16fb9fba9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6782005a4e9d255b3b741f3dae5675f7542adef9"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-40.350Z-ae979bc8-836e-431e-b02f-6b99a53de39c/ENC-04--whole/child.json",
+      "sha256": "60758eb9c2d0c93c79ec2e39c920383108d266d5417c145378e6fbb58aae8bb1",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "40eadc93851cebe4e4477986299f815143736f20"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-41.572Z-62be9507-eecd-4d6e-8ead-b1577bfba2c5/ENC-05--whole/child.json",
+      "sha256": "ffa77c1b51041b3d5d13342f24e3c877d631de202180ce91d58e5df2be7ad2a8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "733458d4d3e4a2f720048140d9c597fe0f51b299"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-42.766Z-40dfc009-a21a-43d0-8c7f-ef50a9740949/ENC-06--whole/child.json",
+      "sha256": "63ac1beffe107eb27c26d5b5804ad1cd6520e8bc767fae95b417ccdd4b7b889e",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ca93ede328f0ec7eaddf71e5d1fbd605c94176d2"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-44.181Z-cab0a69b-d16f-4a56-b688-a46f8c6b52a1/ENC-07--whole/child.json",
+      "sha256": "9d34b911a5c277f05dd3b4eae4ac44c661890a26773e6dd4c86fcd5925c184b9",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b193fbc55fa1b4cb0d0692f73c06c7b8fcd008cc"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-45.404Z-6e50cf4b-8eb4-4c8c-adb9-bcdeff30f562/QUE-01--whole/child.json",
+      "sha256": "dd19c02f232bae2f43958dcdc9ca9bfe3d236fa4827b5bd94156d73d5473dc2f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "43781562bd2fcd50fdb0b425ea32d5538aec7b53"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-46.599Z-e87dc363-c5aa-49d0-8bd5-10aac0dac758/QUE-02--whole/child.json",
+      "sha256": "0e9af58521711e4c7fab0da6555616bd43e90cf81864c4c0696df559435e7d68",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "7376bb3b798758ecac72d80efbac2e7a60471b81"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-47.800Z-35e6e2a9-0322-411e-ad0d-d446a4b6f674/QUE-03--whole/child.json",
+      "sha256": "d8659c944ba03067612fae67df5ffd07685a5aa2072d7a576bf20b9294f23b4d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "e07456a51145c95f7a2f16dd2661a8a0d18184c1"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-48.982Z-ba5986d8-8f06-4959-b093-7f89a08e0d37/QUE-04--whole/child.json",
+      "sha256": "6d8afa388b0c1ce3e054814536bcd30076de4f315e9876e35a89e7354add6dc3",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "fbe7ab23e83f24d032deb2a62ced5bb5b28d8c04"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-50.156Z-9a510c75-c824-4e03-9590-d0737b3f32cd/QUE-05--whole/child.json",
+      "sha256": "58f9492e13948026a6e5c7b48441a9a97c5f90b9c2725987cc87b2242171cf67",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "5c1dea9794a81182832fdef9891ad38a29030769"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-51.341Z-d4e08d69-777f-433e-a78d-acc686e97b9b/QUE-06--whole/child.json",
+      "sha256": "a465cbd5369739e6b6218aecbd0209197a82fcb9b5a4eb5c0c4639a15023964d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "5fc2b0d642a0d5b53bdf7d9c23b375859ad2f248"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-52.552Z-251bfc25-fdaf-4f12-9dfc-78ddeb5b1aa2/QUE-07--whole/child.json",
+      "sha256": "90906383ae1ba881a102aaca2f12785fa21ee616bac9519b2f20c1046def2fcd",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "be0b96505f1ef1cc91e2004383d65ff97b20b84c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-53.767Z-38a12e4e-09a9-46b9-8529-3f55ce5f8056/QUE-08--whole/child.json",
+      "sha256": "3d02ca28802509b311fb8afab4902bfaba416138277f9c79b2d966767a599a76",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6e8780d83890b63f841bb45a0ddf28bed72d92e1"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-54.942Z-9068b3fd-8b97-4bc8-afa3-fe2d85605e5b/QUE-12--whole/child.json",
+      "sha256": "4c7489c827a5aa5b432381b6046d12651efa61dbf5b2d0dc4ccb5fa794c25ec8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "2a6b703a527c5831c5aaad000ec8bfacf2b628ed"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-56.195Z-4ed8a111-e236-4dfd-bde7-eab1a4a86a8c/ALS-01--whole/child.json",
+      "sha256": "7e48f9bb5d061576e712d8fe6366d9e39286785a29ac5e1e4a549e1daa5ac57a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "01798d4ef00cbab07d8bad6d5d971c7c3fc822d0"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-57.427Z-8f773622-2aa0-4b21-8b5f-904c3562237a/ALS-02--whole/child.json",
+      "sha256": "08f61835016b846089f9b944aaa52a92a846fb53168a0e7c7cfcd758e83e5aee",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b939fe280304429a4d1f0a3ebc6f7dc493327d8e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-58.600Z-5d9f8b62-ac1c-43a6-b1b2-2ddf97a20fa0/ALS-03--whole/child.json",
+      "sha256": "854bef177829ce9f8133086573c87a793ed9b6a44393eb0a26fd05d0d0838e37",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "bb8d50d4c53848fc1bffa6e795991198310e500e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-20-59.777Z-521bef0e-ee7a-4eb6-94c0-938c05fe2bf0/ALS-04--whole/child.json",
+      "sha256": "22670639d4374bf3785648b524dd2cb2f0a6a875346a2b63d21d3e59229b4e60",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "1ebdd6a22842f82a61122cc998434d8b583e4cb6"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-00.946Z-2a232d58-610b-4c62-96c7-75eeb2cfb24e/ALS-05--whole/child.json",
+      "sha256": "5cb503339d89e76f46eef54a7044fb9a2e7405c43a9a5599878b07a24a9f4c61",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4cfc749636abc497b055ebc89a02ceccfa53f1ac"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-02.193Z-d8b3defd-d8bc-4589-ab83-130db57d7d4f/ALS-06--whole/child.json",
+      "sha256": "5544597cb1b833f4695dd596ead40163b58b06f840ab5393e232c60b46e0976a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "54cf7bf1ba1fbd8322b2f6bf3140c21d0dae177d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-03.404Z-4b3042e4-b79c-45f9-bc81-95b370358db3/ALS-07--whole/child.json",
+      "sha256": "421151fd2532c795f03ff74a1f0489a4b3bf5059ed0a721146cafb862d52279b",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "344ff5bbe64d5797a97fbdbb91245cca5c1ece4e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-04.615Z-2d3d31fe-3d63-4103-8cdf-28530826cde9/ALS-08--whole/child.json",
+      "sha256": "b279138838635c70795abfe2974041bbfb7a9a6a18860aa9bd1be8750237d8e2",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "d3eb53b74480409452bf19469f5fdc576774cfa1"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-05.822Z-d6930708-681f-4f82-b378-a718afe4895b/ALS-09--whole/child.json",
+      "sha256": "29abf11e373e2adae19a90cdbe192b27ee8587338700c9c67f5e3eda6c3615c6",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "1c8033543d1af25d6c0746720504a82981622a75"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-07.017Z-40d0da1e-746a-4f14-af8d-cfdf710fef74/ALS-10--whole/child.json",
+      "sha256": "0312f55b9c7e27d4c28844c45303433eb37a44d5c1de48bb90849451574e2122",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "46810e7f5af2de6f0068c2881dd7813e38e32741"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-08.235Z-a5ee966f-648b-439c-b507-cae62ebc4a05/ALS-11--whole/child.json",
+      "sha256": "a3b2377650f039142fe7cd186889f59cac5b2875040ebed6eaf7766281062b00",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4056a46563e0a9d5d83aaa167ce990a807c1a59e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-09.452Z-5d7df1ee-9f2b-4a58-aedc-2d9bc0210fde/ALS-12--whole/child.json",
+      "sha256": "052ccc429c128a61cad9758ee2a0307e0e772b4d70e48643a5ac38a939f0c431",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "82da47205602a86a17cd486ee7c4b03b459cbf8b"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-10.677Z-deb289d1-d9e0-42ad-8318-d23de5e9344d/ALS-13--whole/child.json",
+      "sha256": "1e13d843aa7fff79700efa4c8b932eb90fe62aeb2b9bf846d6e0fcddc0698835",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "5b89b6a8d2c96e8d98460d62e83622649345b1c5"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-11.876Z-5b61ea99-fd24-48a6-9a90-2abc2d423091/ALS-14--whole/child.json",
+      "sha256": "1501eb23d2064ab9db5e8c3b8a28dd518577f3ba85fa5c5d24907c42f70ea3d7",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "d6d4a309023cc9fed77756c3faa1472457fb0cee"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-13.134Z-4bf938a7-4b1e-4fc1-954d-31d984dce318/ALS-15--whole/child.json",
+      "sha256": "8d212af5ba4f87ac99010a206f73f08dfb55fac6f86cd2f76aa5b26c95cd07b8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "1beceb27167d30ef4fc5e2ba3589e96608e5fc30"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-14.369Z-b0bef5b9-c469-49b7-b18b-2ec49344a72c/UTF-01--single-byte/child.json",
+      "sha256": "6f77936849160f63149a1cae8f72c617a2acdc731598be1dc6ddf2b0f5a74471",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "3ddfe27c715ed831eba84030e96c93ff2c46564c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-15.606Z-258b22cd-3fa3-4f70-94cc-c0507e18b215/UTF-01--whole/child.json",
+      "sha256": "f6bb7168a5d4970a6be48695c0c76b079ddaac1018f6583abadf289b4480857c",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "08321f1a022c6fbd1344cfd5d37112bb15204adc"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-16.766Z-900d2e32-5455-4e5f-8d74-494d0273963b/UTF-01--cut-1/child.json",
+      "sha256": "9b2fcd0ff9d3c9426ef04cc10c7fb576958c10b72763ec43d8e535d03692689d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "38800d99e10fc86129892f2990ca0f920e0ddc12"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-17.959Z-a3796d0d-2bf1-4c92-b473-9ab30ac2d925/UTF-01--cut-2/child.json",
+      "sha256": "80a870d89d92d3e4949d58bb60a4d21938fb3d67f85673a88f96c59d49a54c53",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "e952db50aad92188532499eedf47757e6d3b314f"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-19.147Z-c1f4f82e-1755-4a39-8a44-38bde9d59a83/UTF-01--cut-3/child.json",
+      "sha256": "cfc769e8c505a991ab857893ea69c847b5e79e02fa9bb7bd6b7fb70b82b90e9d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "22ac7f4621b28baae770b95eb8ad8c64e475a5eb"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-20.379Z-f96da648-b37c-4801-a315-55d60d08ba3f/UTF-01--cut-4/child.json",
+      "sha256": "fac8a13efaa5e88021e57da3b5d37a8f5d4ab36842beec57082308fbf3d24dc5",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "7a18119b1dcb16ef6788cd3c481b51de393d3c34"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-21.589Z-ea3cca2b-28be-4150-ae65-8ad1a48d68a9/UTF-01--cut-5/child.json",
+      "sha256": "9c17946407a7be554c203c0959fc0cad522948a328a7c805d5ccc26fa694342b",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "dad756bd866fe8b7525b7d42c670a4c0c184a31d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-22.756Z-1dc450bb-5426-4214-bf16-a165570334c9/UTF-01--cut-6/child.json",
+      "sha256": "aab7319f3261a075cf53ac32d119ca910f0639dd4416be1e5764731d93b54620",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "42bbb82c10256449ee9a9d7c30c08ba3a15c2322"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-23.942Z-ad48e0bb-b826-4a0f-bcfd-f6ac95805005/UTF-01--cut-7/child.json",
+      "sha256": "487e975eee3d70c3242643308932d0d2361af313d43c4264ab4e5acbb9a73d78",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ec6ce740d13fed1e2bf19c36df931670a29ca6e6"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-25.131Z-fbfaa14c-9a46-466a-9250-a8b7cd997867/UTF-01--cut-8/child.json",
+      "sha256": "192fcfa72d9e98a9be51e7c64a65bb4df55e49eaa362a3fe2de6fbf8005e7d9f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c5c68ec6234c6ab4d8c861ecb1f495ac9d6ee4e0"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-26.333Z-1ce85d9b-fc2d-4d35-9038-effbffb91acc/UTF-01--cut-9/child.json",
+      "sha256": "b4cffd4e49f08bb9aba806e115ab5a5723c12093fd3bb27a17bbd656e2c112c3",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "a56153c095f9475409c4e7ce7cd59f7ec5cfe7bd"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-27.524Z-600600ce-08f3-4d64-a0b9-ff8848057ca4/UTF-01--cut-10/child.json",
+      "sha256": "7ca319d9f8a92ce8ff43fea0a64b8b6f107fdaaf5f05fcea4249ff27474bb35e",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "d84bd43490fd3a308139c7cce22a3bdfd02c37aa"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-28.831Z-84643738-6feb-4c78-8272-81be1d2ac4fd/UTF-01--cut-11/child.json",
+      "sha256": "f6beb05d7ee3895457a551ba8ecf1c18527d72fe9aa8d5bcbee9382d6a6f0bb8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b60c95c8f211e53016a7fd7d6305d9a33ff08ebc"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-30.140Z-93a3a5ee-cf51-417d-916e-3ece1d224058/UTF-02--single-byte/child.json",
+      "sha256": "a9bc9d9a81cb9670380b0a198faa45e2fd5fb48619359783d7180baabc51d8b8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "96a255a019ace4e3e21241a6a91595cdea4be9ba"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-31.331Z-8718854a-3048-4255-9f06-fd8bafeb2df0/UTF-03--whole/child.json",
+      "sha256": "7db5136794e380a1e4f5fa8d1ffeb7e81f80c47ddfe0c230872a38e153bd5a96",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "07a7f2d1979d161b0b51e896f0459e2c44d485a7"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-32.510Z-e1e3144b-41ac-4057-94b7-67befb1dcdf1/UTF-04--whole/child.json",
+      "sha256": "8d44e5744a35cc26e460ce20a16f901395f73afd2baaa491f9ae26191d803612",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "6e49f45f1343b21bdedd2945cd5387b607bdef42"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-33.690Z-bdec4fec-59ec-4ef1-a8fa-9156449c57a8/UTF-05--whole/child.json",
+      "sha256": "f35a4a1fe1e76eacf817d1a27ec38bb648bbe24b3b220d10f36b1ec6f09b087b",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ddcb756c0a26cbc2ea6f14379ad92c01da0d0d26"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-34.839Z-c9c55033-d4e1-4f23-baed-bd6a0a1f7861/UTF-06--whole/child.json",
+      "sha256": "91ee5fbd7dc0ff06c8db79e68d06dfcaf276db16c9fd99a2367e487ae2d91296",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "26fb2234c055afdf80896275a4ad98da168281fa"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-36.044Z-227f3f33-fc50-4129-87bb-a214177e7eee/UTF-07--whole/child.json",
+      "sha256": "d6803f4befb713f5e6489f38bf46a96c894b58c1be3ce7fa7d68c8fab72ea10f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ff669ca552208c94bc972f64cc90febc2eee3bf0"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-37.222Z-e0b417d3-3c48-4b47-872a-4aec05123c5c/UTF-08--whole/child.json",
+      "sha256": "90c231dc98694efe813fd6983bcb32a34a5f1971b2b288f8e915a858c7890389",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "318465cc67a768d506a41a2a251287c4372be45d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-38.425Z-07ee017b-bf20-4f62-a43e-edde4c750983/UTF-09--whole/child.json",
+      "sha256": "3dce05e8f83e9b8f84f0b5a939a77e3ee76029fbbd0af9e0dee1c4f0f5f0a8a5",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "44d196fe29cbb2a13c1369da0a42b06ae252e1e6"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-39.618Z-8fe4b534-27b9-4250-abdc-32c2123cdd9f/UTF-10--whole/child.json",
+      "sha256": "d969d7576e834f3e69c726a6a4ac7121aad0ed98cb4aa679899809f0039f2420",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c1756afd2c8ece556603d5042782bd4f4c7b0ec9"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-40.798Z-b627bbc1-5836-4cef-ad8f-497a47af0cc6/UTF-11--whole/child.json",
+      "sha256": "987273a52e1f96ec63357be7c6afe168fad9b2176d3a29745f2a6161845a18ae",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "e78e3e187862fc958687be97faffd84a641a695d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-41.959Z-37f358e6-6d01-4e5e-bec9-f78dd1a70e6e/UTF-12--whole/child.json",
+      "sha256": "4720136fa91cdd721f718848dad3c0d5889178551b4a4ac2ed7ed3488286a53f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c62125c23d2e66f3090c8dc0d2fb096228c085bb"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-43.149Z-7a8844b9-8928-484b-bdf5-6ec5105937b9/UTF-13--single-byte/child.json",
+      "sha256": "3e48fae0d874d72f1ec058176273554722c05699a3fb816c0c196b665e2505c2",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b2277f3a0288c6bf9373486468ed9d27b5e9a705"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-44.386Z-ce716e4e-d086-460d-a9da-4f46f37360e1/UTF-13--whole/child.json",
+      "sha256": "074bc48354b799f9d4468a6b4bde95a3e27f22600a482bdd34d7936f8d8490f7",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "2b2f69d1763285d1377141a6524ae8badb94d967"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-45.610Z-8ac53880-689e-41fe-946b-bd42cf028f42/UTF-13--cut-1/child.json",
+      "sha256": "962b7cc4394e104024e101748604973dae5641485a959705f5b6a4d9e67ba1c0",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "f86972764c858df9f038ca32ee080cc65f2baf11"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-46.822Z-1ebe64a9-1d3f-4e9e-93fe-d3601aa12285/UTF-13--cut-2/child.json",
+      "sha256": "7c5ca8fbcf5ee914fa4ea0dee9f339b530850b2e77d58aeccf388eae106bf531",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "f42a8553d5bcf54b74f830497e6c9395160984a6"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-48.136Z-f119dacf-b256-4722-b219-5193f77b00de/UTF-13--cut-3/child.json",
+      "sha256": "05bee054aa370d4a8d194da8eb76073f084ba95ab856141ddf1c456334003760",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b0a4af2ba5b458365789d20a5a8843e3ac9036d0"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-49.328Z-e6bf628d-e045-4a99-b184-568f48ad9b97/UTF-13--cut-4/child.json",
+      "sha256": "7c1d2236ea96b38e10a075e1592fbb10c9d17af85dfede1a897bc508d1ba5068",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ce0ba8b4b4b76ab9ba9127e5389afb1f867edccc"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-50.502Z-50be9ae9-33d7-4956-88dd-4c7524a48ba4/UTF-14--single-byte/child.json",
+      "sha256": "d794fda3a0c24ab3a77707cf2b108118e59f0633073765e0940b7e64954d0397",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "59ee8b648848903126b7da82eb59dbf37d392023"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-51.662Z-03f040b5-f8fa-4b46-8ad0-649d29130cd1/UTF-15--whole/child.json",
+      "sha256": "e303693fc90568677f2ecafc291ba8f2f57618e49aa3864dde263a5c3617448f",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "eae7829c877ce9a23c39fc93ac4948db3e64fb45"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-52.865Z-45ae064f-60bd-4f14-91d2-5902ff41d66f/UTF-16--whole/child.json",
+      "sha256": "7f18dc5b1eb11275a793c635faca00c731c949203ccf56d9caa5e35c2101b4bc",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "0826f9c9916af527d0033e896ea751b621684a8a"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-54.121Z-f3bfc93a-6769-4a3a-bcb9-5e2f7e7df85d/UTF-17--whole/child.json",
+      "sha256": "5ba8222062d63bc195ca1425693b8b56f06d63c5de88085debe0c65dbc2d2d86",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "3159f3314fd598e719c7fc57fc3a6f6a31956919"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-55.409Z-debe7672-a130-46b3-9ff8-e4979357b84b/UTF-18--single-byte/child.json",
+      "sha256": "9b629aca7df63fe83a92567c2efbbdd0e25da5746f704ae8bcf0c8569cda8a3d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "3061400a17138662f6a0221941ead97165c66ade"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-56.637Z-21b66f97-e2cd-4a29-9a99-91d11ef6b62d/UTF-19--whole/child.json",
+      "sha256": "207ff83efb04dec1d649d1b7b43aab8a1e0b4f0ca5bf21d6d2b3b8fc2d0935a7",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "edd6ec84d0f3997c29c4a9f536aba6a0390c6d4a"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-57.971Z-8840ccc2-ec44-40e0-bc8d-4306d756ee65/UTF-20--single-byte/child.json",
+      "sha256": "063c688eb32cbe0396350b161a9f96e752532004e3f7e0db07bc9f4ce65aa987",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "ea6e0175f3164641a4c68b9d9afeb2dc0c9734bf"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-21-59.114Z-20c3529b-0955-478f-8658-b12bca6f9338/UTF-21--single-byte/child.json",
+      "sha256": "7966e22e5ec417f0b216e059236e1f889b50c4508646099d6bb871b298524a22",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "97b8bc366fc76e7601f5d39f777b90d376c72727"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-00.284Z-fccf9342-573d-4e20-8416-0d4fcf664d82/UTF-22--whole/child.json",
+      "sha256": "aa0433e18e47189695adebd91121e3e570276fe56e298bfb5532c961deff439a",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b6dd314e90895ae6efdba67ea8048bbb354cbc9c"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-01.462Z-e096d758-5d0b-45e2-badb-76768c601a2d/WRK-14--whole/child.json",
+      "sha256": "d883a76f997a0384bd335c899ede0503814081220f24cc87bedb27d323419a5d",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "8668388ccf1ad4a73498c11afc301e54f1bd3043"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-02.690Z-25d47b7d-fdfe-473e-81a0-d0111ead254a/FS-01--whole/child.json",
+      "sha256": "a88486a4a7994023606d684cbd88533264062895c8c3a295dc765c1666bbe049",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "d75396992f0f2ac91837075d66b15496c18cb9c6"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-03.879Z-e11933d3-f115-43a8-803c-2449a3820e8f/FS-05--whole/child.json",
+      "sha256": "93ec459cff4db4ff35726145615c8404b9e74ee67bd90e4edc7b535024be0742",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c7c7565301c088ce22901c6c361610b922a6923f"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-05.073Z-737aed76-f411-4b12-a719-2348b01aa180/CMD-01--whole/child.json",
+      "sha256": "c22eccfaf3e7db713c19743af1cc7220989fa4b78ff5444deb43ae7a0993c56f",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "738e0b68d26203850c6e524ff4178494568a73ff"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-22.929Z-7a38b647-8469-4c91-a503-50cce321f8bd/CMD-02--whole/child.json",
+      "sha256": "b74ea936455c823d3cdb5e6df6abfb1e45c1ab226db48873ceabb384bec31cea",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "f1416c0ea298a28831a4421435b9a9de2c1caf5d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-42.319Z-17ea1a1f-3194-443a-8d28-a50f6f258675/CMD-03--whole/child.json",
+      "sha256": "dd65f7696107742f05d2de3e4c50225319f962fb2dbb57cd792a352fe1493845",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "d2e6864a720ca365c76fca0f3ee0f67ccdd1325b"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-23-00.660Z-5b585ee1-fcf9-47f5-9cee-94cc54dd953e/CMD-04--whole/child.json",
+      "sha256": "f31b991f13fa81573f76cf918d4ed34bbb7ec6858855dc236bf601b55a07f063",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "11c1214521b76b114f5659878cc55688726d648d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-23-19.919Z-0846ce2d-6ac8-41c3-8a57-07c00d444d04/CMD-05--whole/child.json",
+      "sha256": "0c63d8dfb5dcd884374545b2a999d62f39801746a769cac631f9f5046c4ae758",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "3b777379b4ca58799ae275506dea664737346d9e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-23-42.994Z-50bbd8e3-c071-45d8-b57f-0b33f69b9db4/CMD-06--whole/child.json",
+      "sha256": "df9669e3a33757a4a63095925b83abeaa22a01689a315ffc9860e2796263402d",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "57691c309869c17d412a0ffa6eab7988b89fde40"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-24-03.206Z-c01547fb-77ea-44a6-85a0-0e96805454f1/CMD-07--whole/child.json",
+      "sha256": "4c3f276d867f5895441b7956b4a51c48fae45b4340343720345de953921811df",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "4d043873640d5a219bbca388515ef946e5b4f9ad"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-24-23.706Z-f0f87c58-b065-4a03-bd7d-ae12b237fe6b/CMD-08--whole/child.json",
+      "sha256": "20c785f144e5f039df32cdfb8fc23aa89fe7465c77bc7669deabb45f2b447005",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "c3a1113909cbb15bffb8c0ec49a7daa087832db4"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-24-45.757Z-441b35de-0e7c-4e8e-9459-af746e73ead6/CMD-09--whole/child.json",
+      "sha256": "d7cb43f8b9e1d1f961e8142097e946f779781cdb4fe444d6cecd30b85ee8f81c",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "17020c2a41433054d66de152ee7ca36672d956ab"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-25-10.261Z-e115e85c-5315-44c0-b549-a74821d09cbe/CMD-10--whole/child.json",
+      "sha256": "ccced86c00120ae0523fc842af02ab66a3f99a9113bc57a823b5c24f05db37e2",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b6f78a35c962431431344cfb86d3afdc9838490d"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-25-36.431Z-792f5a6f-805d-4a7b-ad09-37b25c115c7a/CMD-11--whole/child.json",
+      "sha256": "b220b0968ca223fc0375276b50975078c5820c290dae94beb84e26d6261be79c",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "b9566b37b47bad88bba9959b7fc2167cf826ea4b"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-26-03.297Z-b70f17da-f663-45d3-b50e-2b11a6d1494f/CMD-12--whole/child.json",
+      "sha256": "1c3b103b731dacb5057667f9a53701551a32faf8af2385a98efe0f351f75aca8",
+      "bytes": 207,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "51a53b34079b7853dc4671b3c30a11f1f605af5f"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-26-34.389Z-2af168f0-570c-463a-85b2-ef962cb19995/CMD-13--whole/child.json",
+      "sha256": "a123b810b1229752b86d298ea440787b06b64dd2a48089c05cfd00a121a9f3cf",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "214b33c8b2ee0854fa9509029e88638022603fee"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-27-05.961Z-40ea91ef-87aa-4c85-ade7-984b2045e8cd/CMD-14--whole/child.json",
+      "sha256": "317fa1ed2104b15e9f5ab00fedcf80d233d3f0edab32fb48808d2ae44dad5070",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "0c8f3127fc7409bab0076da9082874ce80995b61"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-27-36.740Z-03d26f30-682d-4d94-8d5f-5bcac13f543b/CMD-15--whole/child.json",
+      "sha256": "8a6534089dc3341e17b94c5e9a3e703c3e1ea28a230fa8a6d05aa606592b7b2f",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "33553778c6b3af5431abbee375d7cad3735f587e"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-28-07.214Z-f39bc1fc-2554-4ec1-903b-258cedecb86c/CMD-16--whole/child.json",
+      "sha256": "379f36aaaf7d51b408f1018541dd7c4b888032b6c1306effd19c195f632c4c2a",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "e07a590c99c0478e3098732a31951aff2f6ef761"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-28-36.885Z-a2c5d9d5-ca7d-4175-9923-66aabab72d4b/CMD-17--whole/child.json",
+      "sha256": "7a43a9065e858fd1d322e6c6fc01798ab912b6f4113d2a82bb86644b63c6ce60",
+      "bytes": 209,
+      "role": "RAW_CHILD_TIMING_NOT_PHASE_CLOCK",
+      "gitMode": "100644",
+      "blob": "0aede9edc6c1cb06d99350fe8edc39cba3a567d9"
+    },
+    {
+      "revision": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json",
+      "sha256": "589af6e344c3599726aaae217e975b04f4dddb656b316ed0837834eabe13a30a",
+      "bytes": 7248,
+      "role": "DECLARED_CONTROL_DATA_NOT_EXECUTED",
+      "gitMode": "100644",
+      "blob": "56997cb26655545963e707b2985dd2dfffceff65"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/NEGATIVE-CASES.json",
+      "sha256": "37511f0e2cd6c168deea24b3f477dee8e52d7249136618c78366175495007018",
+      "bytes": 5327,
+      "role": "DECLARED_GUARD_CONTROLS_NOT_EXECUTED",
+      "gitMode": "100644",
+      "blob": "a10f12b55af1add2d558a1b5d332e1d6136d8129"
+    },
+    {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/CONTROLS.json",
+      "sha256": "2146780878299d22d2328a70820f242046099cdd098c5d2012dd53bdac06b52c",
+      "bytes": 2837,
+      "role": "DECLARED_SOURCE_CONTROLS_NOT_EXECUTED",
+      "gitMode": "100644",
+      "blob": "a5e654b82e76a6c2785afd61e6624626a044bc82"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/SOURCE-PRESEAL.json",
+      "sha256": "f6d4c3fb6d307d9b51d605d4fdae38eb7691b958e2c3a2ad2b604de82115de88",
+      "bytes": 4082,
+      "role": "sealed CMD22 additive source preseal",
+      "gitMode": "100644",
+      "blob": "b3f2eb99102e55a17a7bf341a81a0ada513114f6"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/ADAPTATION.json",
+      "sha256": "5390e1a8efe69786af65b9825331cc22e6698f77d0ca4fde0681dd8c94ba943d",
+      "bytes": 3702,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "77a1cae7c3dec31cb81c2c81249edfccd9743545"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CMD22-BINDING.json",
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "bytes": 2321,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "57e7dd4c2c00da4a361cd0a6a123b95871c1aa8c"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CMD22-DELTA.diff",
+      "sha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c",
+      "bytes": 14856,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "358e72022204b316c3aefd5323a0166906fd2581"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CONTROL-BASES.json",
+      "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "bytes": 8697,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "72f319a82f1b1021f367f9dc55c4a5c81c687431"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/DEFERRED-CONTROLS.json",
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "bytes": 6480,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "9892f02e8564ab46301616583daf7c93fb88b92e"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/HANDOFF.md",
+      "sha256": "cd328b68a904e5becd186c91b1a99dae7a3d85161d74da656db69f2bbab5e433",
+      "bytes": 5735,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "e97080b62f57970c56116e02485d48ca4115fe5e"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/HISTORICAL-BINDINGS.json",
+      "sha256": "b3c863e244f67b84962f643a1f7672ff357460e69cc684b86c9e5f56cf66652f",
+      "bytes": 14315,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "91e79862ac5a6d5b95d50f6e0c654f9eedcf40b6"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/PATH-ASSERTION-AUDIT.json",
+      "sha256": "5df808c0dd897d658fb4570729f67fc26a8bdb48989ee3cf65095cccaa39270d",
+      "bytes": 3912,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "52a8e7f00a4b494e28a8c9761a0e6d67239498a6"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/PROTOCOL.md",
+      "sha256": "072f6896ae2f4bb7612de298fa0e535d0499dfa862a2844c502d909e8e0bed6e",
+      "bytes": 9307,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "3cdfa412aeaa476197be8d10241eed850ad6dbf1"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/STATIC-CHECKS.json",
+      "sha256": "ab9742abb12553c26e1b36ec64bdaa5a339f9efa01991ea584f0d075b66657ef",
+      "bytes": 3000,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "66007d4ad340fe34020561e845f1ade3e62010e6"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/STATIC-PREPARATION.md",
+      "sha256": "9c02a44c8e21fca37e86cf15ccc852c11a045ae8b00356ef56c3b54cf72d7762",
+      "bytes": 1422,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "e5dadafc34f886ce0f4147dc540b11b592f7fbce"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/adapter.mjs",
+      "sha256": "4c32d0f793079986d2fd2882b4db4bb8d9883349f8858b238fedc44dcfb42cea",
+      "bytes": 1846,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "de7c0c9a6898345a7667cfe4dea15748844b19fc"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/deferred-fixtures.mjs",
+      "sha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+      "bytes": 4442,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "25f0f889ea9eb05d09954249f6137caf09db6a17"
+    },
+    {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/read-path-binding.mjs",
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "bytes": 2499,
+      "role": "sealed CMD22 static composition input",
+      "gitMode": "100644",
+      "blob": "dfb2344e27527f7000eb8e88d86a9d34ceb7003f"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/FINAL-SEAL.json",
+      "sha256": "06869ce7eb6f673795004443b098fdcbeba20d03c67f4f9f210bd639bf3fa23f",
+      "bytes": 4824,
+      "role": "sealed different-reviewer artifact index",
+      "gitMode": "100644",
+      "blob": "4c959dd21ae52ca94ffc28e5cb95de7c53d3802c"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/FINDINGS-PLAN.json",
+      "sha256": "f48c5111cec657c75148f77ec0c74dcd89ad8029887629b325472afabe4dac93",
+      "bytes": 5260,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "8aea641d7298eaa01793348ccbeaba5313f642fa"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/PREPARATION-HISTORY.md",
+      "sha256": "7d2a618643bcf206ed33dcfe2f14b6cd81f09bfc820183b7a671e3685f410f35",
+      "bytes": 852,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "b53487933718c6870825261a93368f84d9ff1a4a"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/PRESEAL.md",
+      "sha256": "472b2577c7902c8b5123d7c84e790ee4bfa7e6ecd171022886badd98d4302520",
+      "bytes": 3936,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "e73ec56a0d467c2e898b57305c99f085da1c2ac8"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/README.md",
+      "sha256": "26260425ce2471de947d84f120945555bd89729ec504fa55d0198f0583c46a16",
+      "bytes": 7164,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "ab8ec02ccfdffe3377e2a7b4cc74fa28c0f1ce55"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/ACTUAL-JOBS.json",
+      "sha256": "ef66626b3cf33ee84b982898c4ea42100f6fac36cf13851318ba731dec1833ad",
+      "bytes": 557171,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "5da7f743f343be0288401c84ffc05d8d3f74a84d"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/EXTRACTION-RESULT.json",
+      "sha256": "3b859e33eea77aa568ccc3649d1bc35685ad04ea2e1ca8aa0f29b350767e4c99",
+      "bytes": 2056,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "eecd5ee858ec0ca1608789b74148da6238383600"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/ID-MAP-194.json",
+      "sha256": "6d016853a326d83ae1ed545fba4201a4b1e4c6f70c8047493973f11eca7c10f0",
+      "bytes": 118381,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "c167ad6c2df55171afdc640c3d147980860270db"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/INDEX.json",
+      "sha256": "8ff8fd648037871238ec1a46df9bdd36559a578d840562fa82eef409a4c59af1",
+      "bytes": 286707,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "2279eba3c2fc4567003f4433ba5cf0df6e9e05fc"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/PLANNED-STATUS.json",
+      "sha256": "0bb474829d3c5ae16fc94385b901adab774cafdc2172103fe7a973472d308297",
+      "bytes": 60028,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "a6ebbbf94e6adcc2c60e8fad3490da84abdc6c68"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/PROVENANCE.json",
+      "sha256": "af918144678d41f092d1abeee46556f47b35666a713b7e183456c33edd4c0ed6",
+      "bytes": 10448,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "c1862d59048d9bf6af9202177dad5f9ad2c87809"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/REPAIR-FINDINGS.json",
+      "sha256": "4e666227a417204ad88caf1e802f001c9a564c56df1f9855d53b2afc0c158ecf",
+      "bytes": 32211,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "82dc3f7add265ce10b9a7b771d6299c1358ec2d4"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/RUN-SUMMARY.json",
+      "sha256": "e2f9d32bc8604a3625f6ff42e5d3f48860ccfe48a94e632ce190e0fb68f0a979",
+      "bytes": 6292,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "552c716402fed097724683ccfb0cf84cc0c793ac"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/SOURCE-COVERAGE.json",
+      "sha256": "17f6b1365c2ea7bfbd6906452316aed03b4c0210c091683dd4baab1f5a89c2d0",
+      "bytes": 15950,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "4ce93350f89d6bd6ee6f24c556f518454f96d57d"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/VALIDATION.json",
+      "sha256": "e279e27bc9afda1ca26d8d696a7a7c7ef73550a12aaec54f81a03507b0843d98",
+      "bytes": 1985,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "f819dc20a1b193e63d221cfe7ce2d7beb3a499f2"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.mjs",
+      "sha256": "561a63533dfab0f3deaf982d3012be993e2e74b3f450a9f09847d4fb167cd21a",
+      "bytes": 31158,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "f9fe85370460bd0786aad15cdce27d66ffeffe4a"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.stdout.bin",
+      "sha256": "dba7866075d7ddb4c671aa31ed899382989447ab8a1f49a50946aae3406442c9",
+      "bytes": 164,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "2c18048ccae406890d3c0540e073f506848d0b3f"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/seal.mjs",
+      "sha256": "4d0681b57e15107b0fe0b41c5e8aa387689ff19be375eed94258e9957ed45fac",
+      "bytes": 2582,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "08330e21f5508d8a1f4a7a7f20d2667e7f5351fb"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/validate.mjs",
+      "sha256": "0e18287536a49cd0994aef75286d3d2babd858439f58ac4c3859ab121daac172",
+      "bytes": 9923,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "89262ac502a43ddb0a970d5a5a7d86c39eac720e"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/validate.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/validate.stdout.bin",
+      "sha256": "bfe6ae68420bb6dc196d360d3cd186e477fc0b490536fb535df785c778bbaa06",
+      "bytes": 157,
+      "role": "sealed actual-artifact handoff input, not new execution",
+      "gitMode": "100644",
+      "blob": "5d13d76485b0b16166c5b4551177932d1d8cbfa2"
+    }
+  ],
+  "modeLimit": "Git regular-file/executable-mode authentication only. Git does not encode host directory permissions or full POSIX file modes. No materialization occurred.",
+  "bodyExecution": 0,
+  "productImports": 0,
+  "dynamicControlPasses": 0
+}

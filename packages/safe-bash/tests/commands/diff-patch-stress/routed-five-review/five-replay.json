@@ -1,0 +1,1507 @@
+{
+  "at": "2026-08-27T02:26:44.904Z",
+  "snapshotHead": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+  "liveHead": "b9db51671338d8759af8980758ea5f53bdae0112",
+  "sourceRoot": "/tmp/safe-bash-five-final-review/snapshot",
+  "historicalHarnessRevision": "0294afb6e690433aed994868e5ed437ecf58ae48",
+  "frozenProductRevision": "bd2cacb3a20403302fd0a49441932d5522793e56",
+  "harnessBefore": {
+    "capture.mjs": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+    "common.mjs": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+    "engine.mjs": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+    "harness.test.mjs": "ba9f6b9588ba7f554443b78a0356e29a03e8027d55b5dd5925f41d34ca8a8b8e",
+    "inventory.mjs": "2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd",
+    "native-controls.test.mjs": "02428c59d4af4e04ddac2a44dcfb460a226a549dd8bf67f851b8114627c9a3f6",
+    "native.mjs": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+    "recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+    "release.mjs": "d599a4bb33a08eaf54224ca671cb842b39a696d048205d1308e3b909beadbc14",
+    "run.mjs": "18f1e4264922e367c46535dcc332195ccaec875b8be6da27ff17d966a200d077",
+    "server.mjs": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd",
+    "session.mjs": "3a22a973b57abcb82d706de4b070b36562e4c900bc6fde0a0de5a68ebf5542c5",
+    "transport.mjs": "f81d10edbc4f91cc815a1a20e2b35eea79f5bea30241f72189ccdacc25889ae2"
+  },
+  "harnessAfter": {
+    "capture.mjs": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+    "common.mjs": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+    "engine.mjs": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+    "harness.test.mjs": "ba9f6b9588ba7f554443b78a0356e29a03e8027d55b5dd5925f41d34ca8a8b8e",
+    "inventory.mjs": "2c939cd53c1688247950900f56534882435861cd40bab713bd264cca512100bd",
+    "native-controls.test.mjs": "02428c59d4af4e04ddac2a44dcfb460a226a549dd8bf67f851b8114627c9a3f6",
+    "native.mjs": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+    "recipes.mjs": "0dc4535976308a3b44da7216507ffc26d1e44f4e52c53834652e756f27c2ca94",
+    "release.mjs": "d599a4bb33a08eaf54224ca671cb842b39a696d048205d1308e3b909beadbc14",
+    "run.mjs": "18f1e4264922e367c46535dcc332195ccaec875b8be6da27ff17d966a200d077",
+    "server.mjs": "a7c9aec8f8eee31ab5c3cf642a87a205032c7f477db689da8ec0f03b0f8892dd",
+    "session.mjs": "3a22a973b57abcb82d706de4b070b36562e4c900bc6fde0a0de5a68ebf5542c5",
+    "transport.mjs": "f81d10edbc4f91cc815a1a20e2b35eea79f5bea30241f72189ccdacc25889ae2"
+  },
+  "harnessDiffs": {
+    "capture.mjs": {
+      "historicalSha256": "77648449a4f8726ad1dff27f535dfd900750bf4c341a96d310916941a79ca2be",
+      "currentSha256": "1940d23247d945166562768abbd97d50c127dd3c026323de8ab157559f7cc1f5",
+      "historical": "import assert from \"node:assert/strict\";\nimport { mkdir, readFile, writeFile } from \"node:fs/promises\";\nimport { resolve } from \"node:path\";\nimport { recipes, performanceRecipes } from \"./recipes.mjs\";\nimport { prepareNative, observeNative } from \"./native.mjs\";\nimport { localServer } from \"./server.mjs\";\nimport { hash } from \"./common.mjs\";\n\nconst output = resolve(process.argv[2] ?? \"benchmarks/reports/expanded-20260827/native-first\");\nawait mkdir(output, { recursive: false });\nconst profile = await prepareNative(process.cwd());\nconst server = await localServer();\ntry {\n  const corpus = recipes(), performance = performanceRecipes(), observations = [];\n  for (const specimen of [...corpus, ...performance]) observations.push({ id: specimen.id, recipeHash: hash(JSON.stringify(specimen)), ...await observeNative(profile, specimen, server.baseUrl) });\n  const invalid = observations.filter(observation => !observation.oracleValid);\n  const report = { createdAt: new Date().toISOString(), primaryProfile: \"GNU Bash5.3 and coreutils9.7, LC_ALL=C, TZ=UTC; other executable profiles individually recorded\",\n    toolIdentities: profile.tools, recipeCount: corpus.length, performanceCount: performance.length,\n    recipes: corpus, performanceRecipes: performance, observations, invalidCount: invalid.length,\n    projections: [\"native temporary fixture root to /fixture\", \"native role-bin root to /usr/bin\", \"loopback origin to {{BASE}}\"],\n    sourceHashes: Object.fromEntries(await Promise.all([\"recipes.mjs\", \"native.mjs\", \"common.mjs\", \"server.mjs\", \"capture.mjs\"].map(async path => [path, hash(await readFile(new URL(path, import.meta.url)))]))) };\n  await writeFile(resolve(output, \"native.json\"), JSON.stringify(report, null, 2) + \"\\n\", { flag: \"wx\" });\n  console.log(JSON.stringify({ output, total: observations.length, invalid: invalid.map(({ id, exitCode, reason, stderr }) => ({ id, exitCode, reason, stderr: Buffer.from(stderr, \"base64\").toString() })) }, null, 2));\n  assert.equal(invalid.length, 0, \"Invalid oracle recipes remain explicit and must be investigated before engine scoring\");\n} finally { await server.close(); await profile.close(); }\n",
+      "current": "import assert from \"node:assert/strict\";\nimport { mkdir, readFile, writeFile } from \"node:fs/promises\";\nimport { resolve } from \"node:path\";\nimport { recipes, performanceRecipes } from \"./recipes.mjs\";\nimport { prepareNative, observeNative } from \"./native.mjs\";\nimport { localServer } from \"./server.mjs\";\nimport { hash } from \"./common.mjs\";\n\nconst output = resolve(process.argv[2] ?? \"benchmarks/reports/expanded-20260827/native-first\");\nawait mkdir(output, { recursive: false });\nconst profile = await prepareNative(process.cwd());\nconst server = await localServer();\ntry {\n  const corpus = recipes(), performance = performanceRecipes(), observations = [];\n  for (const specimen of [...corpus, ...performance]) observations.push({ id: specimen.id, recipeHash: hash(JSON.stringify(specimen)), ...await observeNative(profile, specimen, server.baseUrl) });\n  const invalid = observations.filter(observation => !observation.oracleValid);\n  const report = { createdAt: new Date().toISOString(), primaryProfile: \"GNU Bash5.3 and coreutils9.7, LC_ALL=C, TZ=UTC; other executable profiles individually recorded\",\n    toolIdentities: profile.tools, recipeCount: corpus.length, performanceCount: performance.length,\n    recipes: corpus, performanceRecipes: performance, observations, invalidCount: invalid.length,\n    projections: [\"native temporary fixture root to /fixture\", \"preexisting external native scratch to /tmp; TMPDIR=/tmp in both virtual engines\", \"native role-bin root to /usr/bin\", \"loopback origin to {{BASE}}\"],\n    sourceHashes: Object.fromEntries(await Promise.all([\"recipes.mjs\", \"native.mjs\", \"common.mjs\", \"server.mjs\", \"capture.mjs\"].map(async path => [path, hash(await readFile(new URL(path, import.meta.url)))]))) };\n  await writeFile(resolve(output, \"native.json\"), JSON.stringify(report, null, 2) + \"\\n\", { flag: \"wx\" });\n  console.log(JSON.stringify({ output, total: observations.length, invalid: invalid.map(({ id, exitCode, reason, stderr }) => ({ id, exitCode, reason, stderr: Buffer.from(stderr, \"base64\").toString() })) }, null, 2));\n  assert.equal(invalid.length, 0, \"Invalid oracle recipes remain explicit and must be investigated before engine scoring\");\n} finally { await server.close(); await profile.close(); }\n"
+    },
+    "common.mjs": {
+      "historicalSha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061",
+      "currentSha256": "c07b1f7f3eec500591cab8dda06ed247be040aeeee1e085533371fea28c3d9fe",
+      "historical": "import { createHash } from \"node:crypto\";\nimport { posix } from \"node:path\";\n\nexport const fixtureRoot = \"/fixture\";\nexport const maximumBytes = 4 * 1024 * 1024;\nexport const fixedTime = 1_700_000_000_000;\nexport const environment = { PATH: \"/usr/bin:/bin\", HOME: fixtureRoot, LANG: \"C\", LC_ALL: \"C\", TZ: \"UTC\" };\nexport const hash = value => createHash(\"sha256\").update(value).digest(\"hex\");\nexport const encode = bytes => Buffer.from(bytes).toString(\"base64\");\nexport const decode = bytes => Buffer.from(bytes, \"base64\");\n\nexport function projectBytes(bytes, replacements = []) {\n  let result = Buffer.from(bytes);\n  for (const [needle, replacement] of replacements) {\n    const search = Buffer.from(needle), parts = []; let offset = 0, found;\n    while ((found = result.indexOf(search, offset)) >= 0) { parts.push(result.subarray(offset, found), Buffer.from(replacement)); offset = found + search.length; }\n    parts.push(result.subarray(offset)); result = Buffer.concat(parts);\n  }\n  return result;\n}\n\nexport function relativePath(path) {\n  if (!path || posix.isAbsolute(path) || path.split(\"/\").some(part => part === \"..\" || !part)) throw new Error(`Unsafe fixture path: ${path}`);\n  return path;\n}\n\nexport async function snapshot(fs, specimen, root = fixtureRoot, replacements = []) {\n  const result = {}; let count = 0, totalBytes = 0;\n  const visit = async (directory, relative, depth) => {\n    if (depth > 32) throw new Error(\"Snapshot depth limit\");\n    for (const name of (await fs.list(directory)).sort()) {\n      if (++count > 4096 || !name || name.includes(\"/\") || name === \".\" || name === \"..\") throw new Error(\"Snapshot entry limit or invalid name\");\n      const path = posix.join(directory, name), key = relative ? `${relative}/${name}` : name;\n      const stat = await fs.stat(path);\n      const value = { type: stat.type, ...(specimen.modes ? { mode: stat.mode & 0o7777 } : {}) };\n      if (stat.type === \"file\") {\n        const bytes = await fs.read(path); totalBytes += bytes.length;\n        if (bytes.length > maximumBytes || totalBytes > maximumBytes * 8) throw new Error(\"Snapshot byte limit\");\n        value.bytes = encode(projectBytes(bytes, replacements));\n      } else if (stat.type === \"symlink\") value.target = projectBytes(Buffer.from(await fs.link(path)), replacements).toString();\n      else if (stat.type !== \"directory\") throw new Error(`Unsupported snapshot entry ${stat.type}`);\n      result[key] = value;\n      if (stat.type === \"directory\") await visit(path, key, depth + 1);\n    }\n  };\n  await visit(root, \"\", 0);\n  return result;\n}\n\nexport function compare(expected, observed) {\n  const fields = [\"stdout\", \"stderr\", \"exitCode\", \"entries\"];\n  const assertions = fields.map(field => ({ field, pass: JSON.stringify(expected[field]) === JSON.stringify(observed[field]) }));\n  return { pass: assertions.every(assertion => assertion.pass), assertions };\n}\n\nexport function bytesEvidence(base64) { const bytes = decode(base64); return { length: bytes.length, sha256: hash(bytes), prefixBase64: encode(bytes.subarray(0, 256)), truncated: bytes.length > 256 }; }\n\nexport function compact(observation) {\n  return { ...observation, stdout: bytesEvidence(observation.stdout), stderr: bytesEvidence(observation.stderr),\n    entries: Object.fromEntries(Object.entries(observation.entries).map(([path, entry]) => [path, entry.bytes === undefined ? entry : { ...entry, bytes: bytesEvidence(entry.bytes) }])) };\n}\n",
+      "current": "import { createHash } from \"node:crypto\";\nimport { posix } from \"node:path\";\n\nexport const fixtureRoot = \"/fixture\";\nexport const maximumBytes = 4 * 1024 * 1024;\nexport const fixedTime = 1_700_000_000_000;\nexport const environment = { PATH: \"/usr/bin:/bin\", HOME: fixtureRoot, TMPDIR: \"/tmp\", LANG: \"C\", LC_ALL: \"C\", TZ: \"UTC\" };\nexport const hash = value => createHash(\"sha256\").update(value).digest(\"hex\");\nexport const encode = bytes => Buffer.from(bytes).toString(\"base64\");\nexport const decode = bytes => Buffer.from(bytes, \"base64\");\n\nexport function projectBytes(bytes, replacements = []) {\n  let result = Buffer.from(bytes);\n  for (const [needle, replacement] of replacements) {\n    const search = Buffer.from(needle), parts = []; let offset = 0, found;\n    while ((found = result.indexOf(search, offset)) >= 0) { parts.push(result.subarray(offset, found), Buffer.from(replacement)); offset = found + search.length; }\n    parts.push(result.subarray(offset)); result = Buffer.concat(parts);\n  }\n  return result;\n}\n\nexport function relativePath(path) {\n  if (!path || posix.isAbsolute(path) || path.split(\"/\").some(part => part === \"..\" || !part)) throw new Error(`Unsafe fixture path: ${path}`);\n  return path;\n}\n\nexport async function snapshot(fs, specimen, root = fixtureRoot, replacements = []) {\n  const result = {}; let count = 0, totalBytes = 0;\n  const visit = async (directory, relative, depth) => {\n    if (depth > 32) throw new Error(\"Snapshot depth limit\");\n    for (const name of (await fs.list(directory)).sort()) {\n      if (++count > 4096 || !name || name.includes(\"/\") || name === \".\" || name === \"..\") throw new Error(\"Snapshot entry limit or invalid name\");\n      const path = posix.join(directory, name), key = relative ? `${relative}/${name}` : name;\n      const stat = await fs.stat(path);\n      const value = { type: stat.type, ...(specimen.modes ? { mode: stat.mode & 0o7777 } : {}) };\n      if (stat.type === \"file\") {\n        const bytes = await fs.read(path); totalBytes += bytes.length;\n        if (bytes.length > maximumBytes || totalBytes > maximumBytes * 8) throw new Error(\"Snapshot byte limit\");\n        value.bytes = encode(projectBytes(bytes, replacements));\n      } else if (stat.type === \"symlink\") value.target = projectBytes(Buffer.from(await fs.link(path)), replacements).toString();\n      else if (stat.type !== \"directory\") throw new Error(`Unsupported snapshot entry ${stat.type}`);\n      result[key] = value;\n      if (stat.type === \"directory\") await visit(path, key, depth + 1);\n    }\n  };\n  await visit(root, \"\", 0);\n  return result;\n}\n\nexport function compare(expected, observed) {\n  const fields = [\"stdout\", \"stderr\", \"exitCode\", \"entries\"];\n  const assertions = fields.map(field => ({ field, pass: JSON.stringify(expected[field]) === JSON.stringify(observed[field]) }));\n  return { pass: assertions.every(assertion => assertion.pass), assertions };\n}\n\nexport function bytesEvidence(base64) { const bytes = decode(base64); return { length: bytes.length, sha256: hash(bytes), prefixBase64: encode(bytes.subarray(0, 256)), truncated: bytes.length > 256 }; }\n\nexport function compact(observation) {\n  return { ...observation, stdout: bytesEvidence(observation.stdout), stderr: bytesEvidence(observation.stderr),\n    entries: Object.fromEntries(Object.entries(observation.entries).map(([path, entry]) => [path, entry.bytes === undefined ? entry : { ...entry, bytes: bytesEvidence(entry.bytes) }])) };\n}\n"
+    },
+    "engine.mjs": {
+      "historicalSha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+      "currentSha256": "c6744398ee47d8ba6e975deae2b694e4e9c641d400166ac639cf797b0b623323",
+      "historical": "import assert from \"node:assert/strict\";\nimport { readFile } from \"node:fs/promises\";\nimport { posix, join } from \"node:path\";\nimport { pathToFileURL } from \"node:url\";\nimport { decode, encode, environment, fixedTime, fixtureRoot, maximumBytes, projectBytes, relativePath, snapshot } from \"./common.mjs\";\n\nconst engine = process.env.EXPANDED_ENGINE;\nconst sourceRoot = process.env.EXPANDED_SOURCE_ROOT;\nconst baselineRoot = process.env.EXPANDED_BASELINE_ROOT;\nlet library;\ntry {\n  if (engine === \"virtual-bash\") library = await import(pathToFileURL(join(sourceRoot, \"src/index.ts\")).href);\n  else {\n    const pkg = JSON.parse(await readFile(join(baselineRoot, \"package.json\"), \"utf8\"));\n    assert.equal(pkg.version, \"3.4.2\");\n    library = await import(pathToFileURL(join(baselineRoot, \"dist/bundle/index.js\")).href);\n  }\n  process.send?.({ ready: true });\n} catch (error) { process.send?.({ ready: false, error: String(error.stack ?? error) }); }\n\nasync function observe(specimen, baseUrl, instrument, warmup = 0) {\n  const fs = engine === \"virtual-bash\" ? library.createMemoryFileSystem() : new library.InMemoryFs();\n  await fs.mkdir(fixtureRoot, { recursive: true });\n  await fs.chmod(fixtureRoot, 0o755);\n  for (const path of specimen.directories) { const target = `${fixtureRoot}/${relativePath(path)}`; await fs.mkdir(target, { recursive: true }); await fs.chmod(target, 0o755); }\n  for (const [path, bytes] of Object.entries(specimen.files)) {\n    const target = `${fixtureRoot}/${relativePath(path)}`, parent = posix.dirname(target);\n    await fs.mkdir(parent, { recursive: true });\n    let directory = parent;\n    while (directory !== fixtureRoot && directory !== \"/\") { await fs.chmod(directory, 0o755); directory = posix.dirname(directory); }\n    await fs.writeFile(target, decode(bytes)); await fs.chmod(target, specimen.fileModes[path] ?? 0o644);\n    const time = specimen.fileTimes?.[path] ?? fixedTime;\n    await fs.utimes(target, engine === \"virtual-bash\" ? time : new Date(time), engine === \"virtual-bash\" ? time : new Date(time));\n  }\n  const events = [], registryEvents = [];\n  let shell, execute, dispose;\n  if (engine === \"virtual-bash\") {\n    const commands = new library.CommandRegistry();\n    shell = new library.Shell({ fs, commands, cwd: fixtureRoot, env: environment,\n      limits: { maxOutputBytes: maximumBytes, maxCommands: 10000, maxLoopIterations: 10000, pipeHighWaterMark: 4096 } }).use(library.agentCommands());\n    if (specimen.network) shell.use(library.networkCommands({ authorize({ url }) { const parsed = new URL(url); return parsed.origin === baseUrl && parsed.hostname === \"127.0.0.1\"; } }));\n    if (instrument) shell.use(async (context, next) => { events.push({ name: context.command, args: [...context.args] }); return next(); });\n    await shell.exec(\"\");\n    if (instrument) for (const definition of commands.list()) commands.register({ ...definition, execute(context) {\n      registryEvents.push({ name: definition.name, args: [...context.args] }); return definition.execute(context);\n    } }, { replace: true });\n    execute = async () => {\n      const result = await shell.exec(specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\"), { stdin: decode(specimen.stdin), signal: AbortSignal.timeout(5000) });\n      return { stdout: Buffer.from(result.stdoutBytes), stderr: Buffer.from(result.stderrBytes), exitCode: result.exitCode };\n    };\n    dispose = () => shell.dispose();\n  } else {\n    shell = new library.Bash({ fs, cwd: fixtureRoot, env: environment,\n      executionLimits: { maxOutputSize: maximumBytes, maxCommandCount: 10000, maxLoopIterations: 10000, maxExecutionTimeMs: 5000 },\n      ...(specimen.network ? { network: { allowedUrlPrefixes: [baseUrl], allowedMethods: [\"GET\", \"HEAD\", \"POST\", \"PUT\"], denyPrivateRanges: false, maxResponseSize: maximumBytes, timeoutMs: 4000 } } : {}) });\n    if (instrument) for (const [name, definition] of shell.commands) shell.commands.set(name, { ...definition, execute(...args) {\n      registryEvents.push({ name, args: [...args[0]] }); return definition.execute(...args);\n    } });\n    execute = async () => {\n      const result = await shell.exec(specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\"), {\n        stdin: decode(specimen.stdin).toString(\"latin1\"), stdinKind: \"bytes\", rawScript: true,\n        replaceEnv: true, env: environment, signal: AbortSignal.timeout(5000),\n      });\n      return { stdout: Buffer.from(library.latin1FromBytes(library.stdoutAsBytes(result)), \"latin1\"), stderr: Buffer.from(result.stderr, \"utf8\"), exitCode: result.exitCode };\n    };\n    dispose = async () => {};\n  }\n  try {\n    for (let count = 0; count < warmup; count++) await execute();\n    global.gc?.();\n    const before = process.memoryUsage();\n    const sampledPeak = { rss: before.rss, heapUsed: before.heapUsed, external: before.external };\n    const sample = () => { const usage = process.memoryUsage(); for (const key of Object.keys(sampledPeak)) sampledPeak[key] = Math.max(sampledPeak[key], usage[key]); };\n    const timer = setInterval(sample, 2);\n    let result, executeMs;\n    try { const start = performance.now(); result = await execute(); executeMs = performance.now() - start; sample(); }\n    finally { clearInterval(timer); }\n    const after = process.memoryUsage();\n    const replacements = baseUrl ? [[baseUrl, \"{{BASE}}\"]] : [];\n    const entries = await snapshot(engine === \"virtual-bash\" ? {\n      list: async path => (await fs.readdir(path)).map(entry => entry.name), stat: path => fs.lstat(path), read: path => fs.readFile(path), link: path => fs.readlink(path),\n    } : { list: path => fs.readdir(path), read: path => fs.readFileBuffer(path), link: path => fs.readlink(path), stat: async path => {\n      const info = await fs.lstat(path); return { type: info.isSymbolicLink ? \"symlink\" : info.isDirectory ? \"directory\" : info.isFile ? \"file\" : \"other\", mode: info.mode };\n    } }, specimen, fixtureRoot, replacements);\n    return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode, entries,\n      events, registryEvents, executeMs, memory: { before, after, sampledPeak, processMaxRssKiB: process.resourceUsage().maxRSS, sampleIntervalMs: 2 },\n      capture: engine === \"virtual-bash\" ? \"native Uint8Array stdout/stderr\" : \"public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text\" };\n  } finally { await dispose(); }\n}\n\nprocess.on(\"message\", async message => {\n  try { const observation = await observe(message.specimen, message.baseUrl, message.instrument ?? true, message.warmup ?? 0); process.send?.({ id: message.id, observation }, () => {}); }\n  catch (error) { process.send?.({ id: message.id, error: String(error.stack ?? error) }, () => {}); }\n});\n",
+      "current": "import assert from \"node:assert/strict\";\nimport { readFile } from \"node:fs/promises\";\nimport { posix, join } from \"node:path\";\nimport { pathToFileURL } from \"node:url\";\nimport { decode, encode, environment, fixedTime, fixtureRoot, maximumBytes, projectBytes, relativePath, snapshot } from \"./common.mjs\";\n\nconst engine = process.env.EXPANDED_ENGINE;\nconst sourceRoot = process.env.EXPANDED_SOURCE_ROOT;\nconst baselineRoot = process.env.EXPANDED_BASELINE_ROOT;\nlet library;\ntry {\n  if (engine === \"virtual-bash\") library = await import(pathToFileURL(join(sourceRoot, \"src/index.ts\")).href);\n  else {\n    const pkg = JSON.parse(await readFile(join(baselineRoot, \"package.json\"), \"utf8\"));\n    assert.equal(pkg.version, \"3.4.2\");\n    library = await import(pathToFileURL(join(baselineRoot, \"dist/bundle/index.js\")).href);\n  }\n  process.send?.({ ready: true });\n} catch (error) { process.send?.({ ready: false, error: String(error.stack ?? error) }); }\n\nasync function observe(specimen, baseUrl, instrument, warmup = 0) {\n  const fs = engine === \"virtual-bash\" ? library.createMemoryFileSystem() : new library.InMemoryFs();\n  await fs.mkdir(\"/tmp\", { recursive: true });\n  await fs.mkdir(fixtureRoot, { recursive: true });\n  await fs.chmod(fixtureRoot, 0o755);\n  for (const path of specimen.directories) { const target = `${fixtureRoot}/${relativePath(path)}`; await fs.mkdir(target, { recursive: true }); await fs.chmod(target, 0o755); }\n  for (const [path, bytes] of Object.entries(specimen.files)) {\n    const target = `${fixtureRoot}/${relativePath(path)}`, parent = posix.dirname(target);\n    await fs.mkdir(parent, { recursive: true });\n    let directory = parent;\n    while (directory !== fixtureRoot && directory !== \"/\") { await fs.chmod(directory, 0o755); directory = posix.dirname(directory); }\n    await fs.writeFile(target, decode(bytes)); await fs.chmod(target, specimen.fileModes[path] ?? 0o644);\n    const time = specimen.fileTimes?.[path] ?? fixedTime;\n    await fs.utimes(target, engine === \"virtual-bash\" ? time : new Date(time), engine === \"virtual-bash\" ? time : new Date(time));\n  }\n  const events = [], registryEvents = [];\n  let shell, execute, dispose;\n  if (engine === \"virtual-bash\") {\n    const commands = new library.CommandRegistry();\n    shell = new library.Shell({ fs, commands, cwd: fixtureRoot, env: environment,\n      limits: { maxOutputBytes: maximumBytes, maxCommands: 10000, maxLoopIterations: 10000, pipeHighWaterMark: 4096 } }).use(library.agentCommands());\n    if (specimen.network) shell.use(library.networkCommands({ authorize({ url }) { const parsed = new URL(url); return parsed.origin === baseUrl && parsed.hostname === \"127.0.0.1\"; } }));\n    if (instrument) shell.use(async (context, next) => { events.push({ name: context.command, args: [...context.args] }); return next(); });\n    await shell.exec(\"\");\n    if (instrument) for (const definition of commands.list()) commands.register({ ...definition, execute(context) {\n      registryEvents.push({ name: definition.name, args: [...context.args] }); return definition.execute(context);\n    } }, { replace: true });\n    execute = async () => {\n      const result = await shell.exec(specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\"), { stdin: decode(specimen.stdin), signal: AbortSignal.timeout(5000) });\n      return { stdout: Buffer.from(result.stdoutBytes), stderr: Buffer.from(result.stderrBytes), exitCode: result.exitCode };\n    };\n    dispose = () => shell.dispose();\n  } else {\n    shell = new library.Bash({ fs, cwd: fixtureRoot, env: environment,\n      executionLimits: { maxOutputSize: maximumBytes, maxCommandCount: 10000, maxLoopIterations: 10000, maxExecutionTimeMs: 5000 },\n      ...(specimen.network ? { network: { allowedUrlPrefixes: [baseUrl], allowedMethods: [\"GET\", \"HEAD\", \"POST\", \"PUT\"], denyPrivateRanges: false, maxResponseSize: maximumBytes, timeoutMs: 4000 } } : {}) });\n    if (instrument) for (const [name, definition] of shell.commands) shell.commands.set(name, { ...definition, execute(...args) {\n      registryEvents.push({ name, args: [...args[0]] }); return definition.execute(...args);\n    } });\n    execute = async () => {\n      const result = await shell.exec(specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\"), {\n        stdin: decode(specimen.stdin).toString(\"latin1\"), stdinKind: \"bytes\", rawScript: true,\n        replaceEnv: true, env: environment, signal: AbortSignal.timeout(5000),\n      });\n      return { stdout: Buffer.from(library.latin1FromBytes(library.stdoutAsBytes(result)), \"latin1\"), stderr: Buffer.from(result.stderr, \"utf8\"), exitCode: result.exitCode };\n    };\n    dispose = async () => {};\n  }\n  try {\n    for (let count = 0; count < warmup; count++) await execute();\n    global.gc?.();\n    const before = process.memoryUsage();\n    const sampledPeak = { rss: before.rss, heapUsed: before.heapUsed, external: before.external };\n    const sample = () => { const usage = process.memoryUsage(); for (const key of Object.keys(sampledPeak)) sampledPeak[key] = Math.max(sampledPeak[key], usage[key]); };\n    const timer = setInterval(sample, 2);\n    let result, executeMs;\n    try { const start = performance.now(); result = await execute(); executeMs = performance.now() - start; sample(); }\n    finally { clearInterval(timer); }\n    const after = process.memoryUsage();\n    const replacements = baseUrl ? [[baseUrl, \"{{BASE}}\"]] : [];\n    const entries = await snapshot(engine === \"virtual-bash\" ? {\n      list: async path => (await fs.readdir(path)).map(entry => entry.name), stat: path => fs.lstat(path), read: path => fs.readFile(path), link: path => fs.readlink(path),\n    } : { list: path => fs.readdir(path), read: path => fs.readFileBuffer(path), link: path => fs.readlink(path), stat: async path => {\n      const info = await fs.lstat(path); return { type: info.isSymbolicLink ? \"symlink\" : info.isDirectory ? \"directory\" : info.isFile ? \"file\" : \"other\", mode: info.mode };\n    } }, specimen, fixtureRoot, replacements);\n    return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode, entries,\n      events, registryEvents, executeMs, memory: { before, after, sampledPeak, processMaxRssKiB: process.resourceUsage().maxRSS, sampleIntervalMs: 2 },\n      capture: engine === \"virtual-bash\" ? \"native Uint8Array stdout/stderr\" : \"public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text\" };\n  } finally { await dispose(); }\n}\n\nprocess.on(\"message\", async message => {\n  try { const observation = await observe(message.specimen, message.baseUrl, message.instrument ?? true, message.warmup ?? 0); process.send?.({ id: message.id, observation }, () => {}); }\n  catch (error) { process.send?.({ id: message.id, error: String(error.stack ?? error) }, () => {}); }\n});\n"
+    },
+    "harness.test.mjs": {
+      "historicalSha256": "ba9f6b9588ba7f554443b78a0356e29a03e8027d55b5dd5925f41d34ca8a8b8e",
+      "currentSha256": "f4ef537104e44be311fc792ed458fd17dadcda9b2addd26422bc308bcbdc6e80",
+      "historical": "import assert from \"node:assert/strict\";\nimport test from \"node:test\";\nimport { readFile } from \"node:fs/promises\";\nimport { recipes, defaultNames, performanceRecipes } from \"./recipes.mjs\";\nimport { compare, encode, hash, projectBytes, relativePath, snapshot } from \"./common.mjs\";\n\ntest(\"fixed corpus covers every authoritative default name three times\", () => {\n  const corpus = recipes();\n  assert.equal(corpus.length, 224); assert.equal(new Set(corpus.map(row => row.id)).size, 224);\n  assert.equal(defaultNames.length, 56);\n  for (const name of defaultNames) assert.equal(corpus.filter(row => row.group === \"command\" && row.command === name).length, 3, name);\n  assert.equal(corpus.filter(row => row.group === \"network\").length, 8);\n  assert.equal(performanceRecipes().length, 4);\n});\n\ntest(\"native-first observations preserve recipe hashes and intentional error exits\", async () => {\n  const gold = JSON.parse(await readFile(new URL(\"../reports/expanded-20260827/native-first/native.json\", import.meta.url), \"utf8\"));\n  assert.equal(gold.invalidCount, 0); assert.equal(gold.observations.length, 228);\n  for (const row of [...recipes(), ...performanceRecipes()]) {\n    const captured = gold.observations.find(observation => observation.id === row.id);\n    assert.equal(captured.recipeHash, hash(JSON.stringify(row)), row.id);\n    assert.equal(captured.exitCode, row.nativeExit, row.id);\n  }\n  assert.equal(hash(await readFile(new URL(\"recipes.mjs\", import.meta.url))), gold.sourceHashes[\"recipes.mjs\"]);\n});\n\ntest(\"corrected native capture changes no recipe and matches capture sources\", async () => {\n  const gold = JSON.parse(await readFile(new URL(\"../reports/expanded-20260827/native-corrected/native.json\", import.meta.url), \"utf8\"));\n  assert.equal(gold.invalidCount, 0);\n  for (const row of [...recipes(), ...performanceRecipes()]) assert.equal(gold.observations.find(observation => observation.id === row.id).recipeHash, hash(JSON.stringify(row)), row.id);\n  for (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);\n});\n\ntest(\"path projection leaves non-text bytes untouched\", () => {\n  const input = Buffer.concat([Buffer.from([0, 128, 255]), Buffer.from(\"/tmp/test/a\"), Buffer.from([255])]);\n  assert.deepEqual(projectBytes(input, [[\"/tmp/test\", \"/fixture\"]]), Buffer.concat([Buffer.from([0, 128, 255]), Buffer.from(\"/fixture/a\"), Buffer.from([255])]));\n});\n\ntest(\"comparison detects each byte, status and filesystem field independently\", () => {\n  const expected = { stdout: encode([128, 255]), stderr: \"\", exitCode: 0, entries: { file: { type: \"file\", bytes: \"eA==\", mode: 384 } } };\n  assert.equal(compare(expected, structuredClone(expected)).pass, true);\n  for (const field of [\"stdout\", \"stderr\", \"exitCode\", \"entries\"]) {\n    const mutated = { ...expected, [field]: field === \"exitCode\" ? 1 : field === \"entries\" ? {} : \"AA==\" };\n    assert.equal(compare(expected, mutated).pass, false, field);\n  }\n});\n\ntest(\"snapshot includes empty directories and symlinks without following them\", async () => {\n  const entries = await snapshot({\n    list: async path => path === \"/fixture\" ? [\"link\", \"empty\", \"file\"] : [],\n    stat: async path => ({ type: path.endsWith(\"link\") ? \"symlink\" : path.endsWith(\"empty\") ? \"directory\" : \"file\", mode: 0o600 }),\n    link: async () => \"missing\", read: async () => Buffer.from([0, 255]),\n  }, { modes: true });\n  assert.deepEqual(entries, { empty: { type: \"directory\", mode: 384 }, file: { type: \"file\", mode: 384, bytes: \"AP8=\" }, link: { type: \"symlink\", mode: 384, target: \"missing\" } });\n});\n\ntest(\"fixture path guard rejects absolute and traversing inputs\", () => {\n  for (const path of [\"\", \"/absolute\", \"../outside\", \"a/../b\", \"a//b\"]) assert.throws(() => relativePath(path));\n  assert.equal(relativePath(\"nested/file\"), \"nested/file\");\n});\n",
+      "current": "import assert from \"node:assert/strict\";\nimport test from \"node:test\";\nimport { readFile } from \"node:fs/promises\";\nimport { recipes, defaultNames, performanceRecipes } from \"./recipes.mjs\";\nimport { compare, encode, hash, projectBytes, relativePath, snapshot } from \"./common.mjs\";\n\ntest(\"fixed corpus covers every authoritative default name three times\", () => {\n  const corpus = recipes();\n  assert.equal(corpus.length, 224); assert.equal(new Set(corpus.map(row => row.id)).size, 224);\n  assert.equal(defaultNames.length, 56);\n  for (const name of defaultNames) assert.equal(corpus.filter(row => row.group === \"command\" && row.command === name).length, 3, name);\n  assert.equal(corpus.filter(row => row.group === \"network\").length, 8);\n  assert.equal(performanceRecipes().length, 4);\n});\n\ntest(\"native-first observations preserve recipe hashes and intentional error exits\", async () => {\n  const gold = JSON.parse(await readFile(new URL(\"../reports/expanded-20260827/native-first/native.json\", import.meta.url), \"utf8\"));\n  assert.equal(gold.invalidCount, 0); assert.equal(gold.observations.length, 228);\n  for (const row of [...recipes(), ...performanceRecipes()]) {\n    const captured = gold.observations.find(observation => observation.id === row.id);\n    assert.equal(captured.recipeHash, hash(JSON.stringify(row)), row.id);\n    assert.equal(captured.exitCode, row.nativeExit, row.id);\n  }\n  assert.equal(hash(await readFile(new URL(\"recipes.mjs\", import.meta.url))), gold.sourceHashes[\"recipes.mjs\"]);\n});\n\ntest(\"historical corrected native capture changes no recipe\", async () => {\n  const gold = JSON.parse(await readFile(new URL(\"../reports/expanded-20260827/native-corrected/native.json\", import.meta.url), \"utf8\"));\n  assert.equal(gold.invalidCount, 0);\n  for (const row of [...recipes(), ...performanceRecipes()]) assert.equal(gold.observations.find(observation => observation.id === row.id).recipeHash, hash(JSON.stringify(row)), row.id);\n});\n\ntest(\"aligned scratch profile preserves all recipes and changes exactly one native effect\", async () => {\n  const current = JSON.parse(await readFile(new URL(\"../reports/expanded-20260827/native-scratch-aligned/native.json\", import.meta.url), \"utf8\"));\n  const previous = JSON.parse(await readFile(new URL(\"../reports/expanded-20260827/native-corrected/native.json\", import.meta.url), \"utf8\"));\n  assert.equal(current.invalidCount, 0); assert.deepEqual(current.recipes, previous.recipes); assert.deepEqual(current.performanceRecipes, previous.performanceRecipes);\n  for (const [path, digest] of Object.entries(current.sourceHashes)) assert.equal(hash(await readFile(new URL(path, import.meta.url))), digest, path);\n  const changed = [];\n  for (const row of current.observations) {\n    const old = previous.observations.find(observation => observation.id === row.id);\n    for (const field of [\"recipeHash\", \"stdout\", \"stderr\", \"exitCode\"]) assert.deepEqual(row[field], old[field], `${row.id}/${field}`);\n    if (JSON.stringify(row.entries) !== JSON.stringify(old.entries)) changed.push(row.id);\n  }\n  assert.deepEqual(changed, [\"command/patch/dry-run\"]);\n  const latest = current.observations.find(row => row.id === \"command/patch/dry-run\"), old = previous.observations.find(row => row.id === latest.id);\n  const { tmp, ...entries } = old.entries;\n  assert.deepEqual(tmp, { type: \"directory\" }); assert.deepEqual(latest.entries, entries);\n});\n\ntest(\"path projection leaves non-text bytes untouched\", () => {\n  const input = Buffer.concat([Buffer.from([0, 128, 255]), Buffer.from(\"/tmp/test/a\"), Buffer.from([255])]);\n  assert.deepEqual(projectBytes(input, [[\"/tmp/test\", \"/fixture\"]]), Buffer.concat([Buffer.from([0, 128, 255]), Buffer.from(\"/fixture/a\"), Buffer.from([255])]));\n});\n\ntest(\"comparison detects each byte, status and filesystem field independently\", () => {\n  const expected = { stdout: encode([128, 255]), stderr: \"\", exitCode: 0, entries: { file: { type: \"file\", bytes: \"eA==\", mode: 384 } } };\n  assert.equal(compare(expected, structuredClone(expected)).pass, true);\n  for (const field of [\"stdout\", \"stderr\", \"exitCode\", \"entries\"]) {\n    const mutated = { ...expected, [field]: field === \"exitCode\" ? 1 : field === \"entries\" ? {} : \"AA==\" };\n    assert.equal(compare(expected, mutated).pass, false, field);\n  }\n});\n\ntest(\"snapshot includes empty directories and symlinks without following them\", async () => {\n  const entries = await snapshot({\n    list: async path => path === \"/fixture\" ? [\"link\", \"empty\", \"file\"] : [],\n    stat: async path => ({ type: path.endsWith(\"link\") ? \"symlink\" : path.endsWith(\"empty\") ? \"directory\" : \"file\", mode: 0o600 }),\n    link: async () => \"missing\", read: async () => Buffer.from([0, 255]),\n  }, { modes: true });\n  assert.deepEqual(entries, { empty: { type: \"directory\", mode: 384 }, file: { type: \"file\", mode: 384, bytes: \"AP8=\" }, link: { type: \"symlink\", mode: 384, target: \"missing\" } });\n});\n\ntest(\"fixture path guard rejects absolute and traversing inputs\", () => {\n  for (const path of [\"\", \"/absolute\", \"../outside\", \"a/../b\", \"a//b\"]) assert.throws(() => relativePath(path));\n  assert.equal(relativePath(\"nested/file\"), \"nested/file\");\n});\n"
+    },
+    "native.mjs": {
+      "historicalSha256": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7",
+      "currentSha256": "14d0ac24733a6f4b84965c1dbb68e4108904bb3a52768ee03281e847fb490055",
+      "historical": "import assert from \"node:assert/strict\";\nimport { access, chmod, lstat, mkdir, mkdtemp, readFile, readdir, readlink, realpath, rm, symlink, utimes, writeFile } from \"node:fs/promises\";\nimport { spawn } from \"node:child_process\";\nimport { dirname, join } from \"node:path\";\nimport { tmpdir } from \"node:os\";\nimport { decode, encode, environment, fixedTime, fixtureRoot, hash, maximumBytes, projectBytes, relativePath, snapshot } from \"./common.mjs\";\nimport { defaultNames } from \"./recipes.mjs\";\n\nexport function executeNative(executable, args, options) {\n  return new Promise(resolve => {\n    const child = spawn(executable, args, { cwd: options.cwd, env: options.env, argv0: options.argv0, stdio: [\"pipe\", \"pipe\", \"pipe\"] });\n    const stdout = [], stderr = []; let size = 0, reason;\n    const collect = target => chunk => { size += chunk.length; if (size > maximumBytes) { reason = \"native output limit\"; child.kill(\"SIGKILL\"); } else target.push(chunk); };\n    child.stdout.on(\"data\", collect(stdout)); child.stderr.on(\"data\", collect(stderr));\n    child.stdin.on(\"error\", () => {}); child.stdin.end(options.stdin ?? Buffer.alloc(0));\n    const timer = setTimeout(() => { reason = \"native deadline\"; child.kill(\"SIGKILL\"); }, 8000);\n    child.once(\"error\", error => { reason = error.message; });\n    child.once(\"close\", (code, signal) => { clearTimeout(timer); resolve({ stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr), exitCode: code, signal, reason }); });\n  });\n}\n\nexport async function prepareNative(repo) {\n  const workspace = await mkdtemp(join(tmpdir(), \"safe-bash-expanded-native-\")), bin = join(workspace, \"bin\");\n  await mkdir(bin);\n  const core = process.env.EXPANDED_COREUTILS ?? \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src\";\n  const gzip = process.env.EXPANDED_GZIP ?? \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip\";\n  const bash = process.env.EXPANDED_BASH ?? \"/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\";\n  const overrides = {\n    bash, sh: bash, sed: process.env.EXPANDED_SED ?? \"/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed\",\n    awk: \"/usr/bin/awk\", grep: \"/usr/bin/grep\", find: \"/usr/bin/find\", xargs: \"/usr/bin/xargs\",\n    jq: \"/usr/bin/jq\", xxd: \"/usr/bin/xxd\", curl: \"/usr/bin/curl\",\n    rg: process.env.EXPANDED_RG ?? \"/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg\",\n    gzip, gunzip: join(dirname(gzip), \"gunzip\"), zcat: join(dirname(gzip), \"zcat\"),\n    tar: process.env.EXPANDED_TAR ?? join(repo, \"tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar\"),\n    diff: process.env.EXPANDED_DIFF ?? \"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff\",\n    patch: process.env.EXPANDED_PATCH ?? \"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch\",\n  };\n  const tools = {};\n  try {\n    for (const name of [...new Set([...defaultNames, \"bash\", \"sh\", \"curl\"])]) {\n      const executable = overrides[name] ?? join(core, name);\n      await access(executable);\n      await symlink(executable, join(bin, name));\n      const args = name === \"xxd\" ? [\"-v\"] : [\"--version\"];\n      const version = await executeNative(executable, args, { cwd: workspace, env: { PATH: bin, LC_ALL: \"C\", TZ: \"UTC\" }, argv0: name });\n      tools[name] = { executable: await realpath(executable), sha256: hash(await readFile(executable)), versionExit: version.exitCode,\n        versionStdout: version.stdout.toString().slice(0, 512), versionStderr: version.stderr.toString().slice(0, 512) };\n    }\n    assert.match(tools.bash.versionStdout, /version 5\\.3\\./u);\n    assert.match(tools.stat.versionStdout, /GNU coreutils\\) 9\\.7/u);\n    assert.match(tools.sed.versionStdout, /GNU sed\\) 4\\.9/u);\n    return { workspace, bin, bash, tools, async close() { await rm(workspace, { recursive: true, force: true }); } };\n  } catch (error) { await rm(workspace, { recursive: true, force: true }); throw error; }\n}\n\nexport async function observeNative(profile, specimen, baseUrl) {\n  const cwd = await mkdtemp(join(profile.workspace, \"case-\"));\n  const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: join(cwd, \"tmp\") };\n  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(profile.bin), \"/usr/bin\"], [profile.bin, \"/usr/bin\"], ...(baseUrl ? [[baseUrl, \"{{BASE}}\"]] : [])];\n  try {\n    await chmod(cwd, 0o755);\n    for (const path of specimen.directories) await mkdir(join(cwd, relativePath(path)), { recursive: true, mode: 0o755 });\n    for (const [path, bytes] of Object.entries(specimen.files)) {\n      const target = join(cwd, relativePath(path)); await mkdir(dirname(target), { recursive: true, mode: 0o755 });\n      await writeFile(target, decode(bytes), { mode: specimen.fileModes[path] ?? 0o644 });\n      const time = specimen.fileTimes?.[path] ?? fixedTime;\n      await utimes(target, new Date(time), new Date(time));\n    }\n    const script = specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\");\n    const result = await executeNative(profile.bash, [\"--noprofile\", \"--norc\", \"-c\", `umask 022\\n${script}`, \"benchmark\"], { cwd, env, stdin: decode(specimen.stdin), argv0: \"bash\" });\n    const entries = await snapshot({ list: readdir, read: readFile, link: readlink,\n      stat: async path => { const info = await lstat(path); return { type: info.isSymbolicLink() ? \"symlink\" : info.isDirectory() ? \"directory\" : info.isFile() ? \"file\" : \"other\", mode: info.mode }; } }, specimen, cwd, replacements);\n    return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode,\n      entries, oracleValid: !result.reason && result.exitCode === specimen.nativeExit, reason: result.reason ?? null, signal: result.signal };\n  } finally { await rm(cwd, { recursive: true, force: true }); }\n}\n",
+      "current": "import assert from \"node:assert/strict\";\nimport { access, chmod, lstat, mkdir, mkdtemp, readFile, readdir, readlink, realpath, rm, symlink, utimes, writeFile } from \"node:fs/promises\";\nimport { spawn } from \"node:child_process\";\nimport { dirname, join } from \"node:path\";\nimport { tmpdir } from \"node:os\";\nimport { decode, encode, environment, fixedTime, fixtureRoot, hash, maximumBytes, projectBytes, relativePath, snapshot } from \"./common.mjs\";\nimport { defaultNames } from \"./recipes.mjs\";\n\nexport function executeNative(executable, args, options) {\n  return new Promise(resolve => {\n    const child = spawn(executable, args, { cwd: options.cwd, env: options.env, argv0: options.argv0, stdio: [\"pipe\", \"pipe\", \"pipe\"] });\n    const stdout = [], stderr = []; let size = 0, reason;\n    const collect = target => chunk => { size += chunk.length; if (size > maximumBytes) { reason = \"native output limit\"; child.kill(\"SIGKILL\"); } else target.push(chunk); };\n    child.stdout.on(\"data\", collect(stdout)); child.stderr.on(\"data\", collect(stderr));\n    child.stdin.on(\"error\", () => {}); child.stdin.end(options.stdin ?? Buffer.alloc(0));\n    const timer = setTimeout(() => { reason = \"native deadline\"; child.kill(\"SIGKILL\"); }, 8000);\n    child.once(\"error\", error => { reason = error.message; });\n    child.once(\"close\", (code, signal) => { clearTimeout(timer); resolve({ stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr), exitCode: code, signal, reason }); });\n  });\n}\n\nexport async function prepareNative(repo) {\n  const workspace = await mkdtemp(join(tmpdir(), \"safe-bash-expanded-native-\")), bin = join(workspace, \"bin\");\n  await mkdir(bin);\n  const core = process.env.EXPANDED_COREUTILS ?? \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src\";\n  const gzip = process.env.EXPANDED_GZIP ?? \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip\";\n  const bash = process.env.EXPANDED_BASH ?? \"/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash\";\n  const overrides = {\n    bash, sh: bash, sed: process.env.EXPANDED_SED ?? \"/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed\",\n    awk: \"/usr/bin/awk\", grep: \"/usr/bin/grep\", find: \"/usr/bin/find\", xargs: \"/usr/bin/xargs\",\n    jq: \"/usr/bin/jq\", xxd: \"/usr/bin/xxd\", curl: \"/usr/bin/curl\",\n    rg: process.env.EXPANDED_RG ?? \"/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg\",\n    gzip, gunzip: join(dirname(gzip), \"gunzip\"), zcat: join(dirname(gzip), \"zcat\"),\n    tar: process.env.EXPANDED_TAR ?? join(repo, \"tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar\"),\n    diff: process.env.EXPANDED_DIFF ?? \"/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff\",\n    patch: process.env.EXPANDED_PATCH ?? \"/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch\",\n  };\n  const tools = {};\n  try {\n    for (const name of [...new Set([...defaultNames, \"bash\", \"sh\", \"curl\"])]) {\n      const executable = overrides[name] ?? join(core, name);\n      await access(executable);\n      await symlink(executable, join(bin, name));\n      const args = name === \"xxd\" ? [\"-v\"] : [\"--version\"];\n      const version = await executeNative(executable, args, { cwd: workspace, env: { PATH: bin, LC_ALL: \"C\", TZ: \"UTC\" }, argv0: name });\n      tools[name] = { executable: await realpath(executable), sha256: hash(await readFile(executable)), versionExit: version.exitCode,\n        versionStdout: version.stdout.toString().slice(0, 512), versionStderr: version.stderr.toString().slice(0, 512) };\n    }\n    assert.match(tools.bash.versionStdout, /version 5\\.3\\./u);\n    assert.match(tools.stat.versionStdout, /GNU coreutils\\) 9\\.7/u);\n    assert.match(tools.sed.versionStdout, /GNU sed\\) 4\\.9/u);\n    return { workspace, bin, bash, tools, async close() { await rm(workspace, { recursive: true, force: true }); } };\n  } catch (error) { await rm(workspace, { recursive: true, force: true }); throw error; }\n}\n\nexport async function observeNative(profile, specimen, baseUrl) {\n  const cwd = await mkdtemp(join(profile.workspace, \"case-\"));\n  const scratch = await mkdtemp(join(profile.workspace, \"scratch-\"));\n  const env = { ...environment, PATH: profile.bin, HOME: cwd, TMPDIR: scratch };\n  const replacements = [[await realpath(cwd), fixtureRoot], [cwd, fixtureRoot], [await realpath(scratch), \"/tmp\"], [scratch, \"/tmp\"], [await realpath(profile.bin), \"/usr/bin\"], [profile.bin, \"/usr/bin\"], ...(baseUrl ? [[baseUrl, \"{{BASE}}\"]] : [])];\n  try {\n    await chmod(cwd, 0o755);\n    for (const path of specimen.directories) await mkdir(join(cwd, relativePath(path)), { recursive: true, mode: 0o755 });\n    for (const [path, bytes] of Object.entries(specimen.files)) {\n      const target = join(cwd, relativePath(path)); await mkdir(dirname(target), { recursive: true, mode: 0o755 });\n      await writeFile(target, decode(bytes), { mode: specimen.fileModes[path] ?? 0o644 });\n      const time = specimen.fileTimes?.[path] ?? fixedTime;\n      await utimes(target, new Date(time), new Date(time));\n    }\n    const script = specimen.script.replaceAll(\"{{BASE}}\", baseUrl ?? \"network-unavailable\");\n    const result = await executeNative(profile.bash, [\"--noprofile\", \"--norc\", \"-c\", `umask 022\\n${script}`, \"benchmark\"], { cwd, env, stdin: decode(specimen.stdin), argv0: \"bash\" });\n    const entries = await snapshot({ list: readdir, read: readFile, link: readlink,\n      stat: async path => { const info = await lstat(path); return { type: info.isSymbolicLink() ? \"symlink\" : info.isDirectory() ? \"directory\" : info.isFile() ? \"file\" : \"other\", mode: info.mode }; } }, specimen, cwd, replacements);\n    return { stdout: encode(projectBytes(result.stdout, replacements)), stderr: encode(projectBytes(result.stderr, replacements)), exitCode: result.exitCode,\n      entries, oracleValid: !result.reason && result.exitCode === specimen.nativeExit, reason: result.reason ?? null, signal: result.signal };\n  } finally { await rm(cwd, { recursive: true, force: true }); await rm(scratch, { recursive: true, force: true }); }\n}\n"
+    },
+    "run.mjs": {
+      "historicalSha256": "18f1e4264922e367c46535dcc332195ccaec875b8be6da27ff17d966a200d077",
+      "currentSha256": "71fd5fcae65b0bff5ac7f5967c997cba4d5628c4a7c6b283ab60b22ac90d7fc6",
+      "historical": "import assert from \"node:assert/strict\";\nimport { execFileSync } from \"node:child_process\";\nimport { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from \"node:fs/promises\";\nimport { cpus, loadavg, platform, release, tmpdir, totalmem } from \"node:os\";\nimport { dirname, join, resolve } from \"node:path\";\nimport { fileURLToPath } from \"node:url\";\nimport { compare, hash } from \"./common.mjs\";\nimport { recipes, performanceRecipes } from \"./recipes.mjs\";\nimport { inventory } from \"./inventory.mjs\";\nimport { localServer } from \"./server.mjs\";\nimport { session } from \"./session.mjs\";\nimport { transportControls } from \"./transport.mjs\";\n\nconst repo = process.cwd(), output = resolve(process.argv[2]);\nconst git = (...args) => execFileSync(\"git\", args, { cwd: repo, encoding: \"utf8\" }).trim();\nconst revision = git(\"rev-parse\", process.argv[3] ?? \"HEAD\");\nconst harnessRevision = git(\"rev-parse\", process.argv[4] ?? \"HEAD\");\nconst harnessRoot = dirname(fileURLToPath(import.meta.url));\nconst trackedHarness = git(\"ls-tree\", \"--name-only\", harnessRevision, \"benchmarks/expanded\");\nassert.ok(trackedHarness, \"Commit the corpus and harness before scoring product outcomes\");\nconst goldPath = resolve(process.argv[5] ?? \"benchmarks/reports/expanded-20260827/native-corrected/native.json\");\nconst goldBytes = await readFile(goldPath), gold = JSON.parse(goldBytes);\nconst corpus = recipes(), performanceCorpus = performanceRecipes();\nfor (const specimen of [...corpus, ...performanceCorpus]) assert.equal(gold.observations.find(row => row.id === specimen.id)?.recipeHash, hash(JSON.stringify(specimen)), `Native-first recipe changed: ${specimen.id}`);\nfor (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(hash(await readFile(join(harnessRoot, path))), digest, `Native capture source changed: ${path}`);\nconst harnessHashes = {};\nfor (const name of (await readdir(harnessRoot)).filter(name => name.endsWith(\".mjs\")).sort()) {\n  const bytes = await readFile(join(harnessRoot, name));\n  assert.equal(hash(bytes), hash(execFileSync(\"git\", [\"show\", `${harnessRevision}:benchmarks/expanded/${name}`], { cwd: repo })), `Uncommitted harness: ${name}`);\n  harnessHashes[name] = hash(bytes);\n}\nawait mkdir(output, { recursive: false });\nconst scratch = await mkdtemp(join(tmpdir(), \"safe-bash-expanded-frozen-\"));\nconst sourceRoot = join(scratch, \"source\"), baselineRoot = resolve(\"benchmarks/node_modules/just-bash\");\nawait mkdir(sourceRoot);\nexecFileSync(\"git\", [\"archive\", \"-o\", join(scratch, \"source.tar\"), revision, \"src\", \"package.json\", \"package-lock.json\", \"tsconfig.json\", \"tsconfig.build.json\"], { cwd: repo });\nexecFileSync(\"tar\", [\"-xf\", join(scratch, \"source.tar\"), \"-C\", sourceRoot]);\nawait symlink(join(repo, \"node_modules\"), join(sourceRoot, \"node_modules\"), \"dir\");\nconst sourceHashes = {};\nasync function hashTree(directory, relative = \"src\") {\n  for (const entry of (await readdir(directory, { withFileTypes: true })).sort((left, right) => left.name.localeCompare(right.name))) {\n    const path = join(directory, entry.name), key = `${relative}/${entry.name}`;\n    if (entry.isDirectory()) await hashTree(path, key); else sourceHashes[key] = hash(await readFile(path));\n  }\n}\nawait hashTree(join(sourceRoot, \"src\"));\nfor (const name of [\"package.json\", \"package-lock.json\", \"tsconfig.json\", \"tsconfig.build.json\"]) sourceHashes[name] = hash(await readFile(join(sourceRoot, name)));\nconst server = await localServer(), sessions = new Map();\nconst engines = [\"virtual-bash\", \"just-bash\"];\nconst startedAt = new Date().toISOString(), startLoad = loadavg();\nconst write = (name, value) => writeFile(join(output, name), JSON.stringify(value, null, 2) + \"\\n\", { flag: \"wx\" });\nconst expectedFor = specimen => gold.observations.find(row => row.id === specimen.id);\nasync function run(engine, specimen, instrument = true, fresh = false, warmup = 0) {\n  let worker;\n  try {\n    worker = !fresh && sessions.get(engine);\n    if (!worker) { worker = await session(engine, sourceRoot, baselineRoot); if (!fresh) sessions.set(engine, worker); }\n    const response = await worker.run(specimen, server.baseUrl, instrument, warmup);\n    if (response.error) { await worker.close(); sessions.delete(engine); }\n    const expected = expectedFor(specimen);\n    return { ...response, status: !expected.oracleValid ? \"invalid-oracle\" : response.timeout ? \"timeout\" : response.error ? \"harness-or-engine-error\" : compare(expected, response.observation).pass ? \"pass\" : \"fail\",\n      comparison: response.observation ? compare(expected, response.observation) : null };\n  } catch (error) { return { status: \"harness-or-engine-error\", error: String(error.stack ?? error), comparison: null }; }\n  finally { if (fresh && worker) await worker.close(); }\n}\nfunction totals(rows, key) {\n  const result = { total: rows.length, pass: 0, fail: 0, timeout: 0, \"harness-or-engine-error\": 0, \"invalid-oracle\": 0, skipped: 0, pending: 0 };\n  for (const row of rows) result[row[key].status]++;\n  return result;\n}\nfunction distribution(values) {\n  const sorted = [...values].sort((left, right) => left - right);\n  return { count: sorted.length, median: sorted[Math.floor(sorted.length / 2)], p95: sorted[Math.ceil(sorted.length * .95) - 1], min: sorted[0], max: sorted.at(-1) };\n}\ntry {\n  const names = await inventory(sourceRoot, baselineRoot), transport = await transportControls(baselineRoot);\n  await write(\"transport-controls.json\", transport);\n  const results = [];\n  for (const [index, specimen] of corpus.entries()) {\n    const row = { id: specimen.id, group: specimen.group, command: specimen.command, optionFamily: specimen.optionFamily, expected: expectedFor(specimen), order: index % 2 ? [...engines].reverse() : engines };\n    for (const engine of row.order) row[engine] = await run(engine, specimen);\n    results.push(row);\n    if ((index + 1) % 28 === 0) console.log(JSON.stringify({ completed: index + 1, virtual: totals(results, engines[0]), baseline: totals(results, engines[1]) }));\n  }\n  await write(\"functional.json\", results);\n  const neutrality = [];\n  const controlIds = [\"command/cat/binary-stdin\", \"command/echo/multiple\", \"command/chmod/numeric\", \"command/stat/fields\", \"command/patch/apply\", \"command/mktemp/file\"];\n  const controls = [...corpus.filter(specimen => controlIds.includes(specimen.id)), ...corpus.filter(specimen => [\"tar\", \"jq\", \"join\", \"sed\"].includes(specimen.command)).filter((specimen, index, array) => array.findIndex(other => other.command === specimen.command) === index), ...corpus.filter(specimen => specimen.group === \"network\").slice(0, 2)];\n  for (const specimen of controls) for (const engine of engines) {\n    const plain = await run(engine, specimen, false, true), traced = results.find(row => row.id === specimen.id)[engine];\n    neutrality.push({ id: specimen.id, engine, plain, pass: !!plain.observation && !!traced.observation && compare(plain.observation, traced.observation).pass });\n  }\n  await write(\"instrumentation-controls.json\", neutrality);\n  for (const worker of sessions.values()) await worker.close(); sessions.clear();\n  const performanceRows = [];\n  for (const specimen of performanceCorpus) {\n    const eligibility = {};\n    for (const engine of engines) eligibility[engine] = await run(engine, specimen, false, true);\n    const eligible = engines.every(engine => eligibility[engine].status === \"pass\");\n    const trials = [];\n    if (eligible) for (let repeat = 0; repeat < 5; repeat++) {\n      const order = repeat % 2 ? [...engines].reverse() : engines;\n      for (const engine of order) trials.push({ repeat, order, engine, loadBefore: loadavg(), ...await run(engine, specimen, false, true, 1), loadAfter: loadavg() });\n    }\n    performanceRows.push({ id: specimen.id, eligible, eligibility, trials, summary: Object.fromEntries(engines.map(engine => {\n      const rows = trials.filter(row => row.engine === engine && row.status === \"pass\");\n      return [engine, rows.length ? { executeMs: distribution(rows.map(row => row.observation.executeMs)), sampledPeakRssBytes: distribution(rows.map(row => row.observation.memory.sampledPeak.rss)), processMaxRssKiB: distribution(rows.map(row => row.observation.memory.processMaxRssKiB)) } : null];\n    })) });\n  }\n  await write(\"performance.json\", performanceRows);\n  const hits = engine => [...new Set(results.flatMap(row => row[engine].observation?.registryEvents.map(event => event.name) ?? []))].sort();\n  const reached = { virtual: hits(engines[0]), baseline: hits(engines[1]) };\n  const report = { startedAt, finishedAt: new Date().toISOString(), revision, harnessRevision, movingHeadAtEnd: git(\"rev-parse\", \"HEAD\"), dirtyAtEnd: git(\"status\", \"--short\"),\n    sourceSnapshot: \"git archive at exact revision; no dirty production copied; cached development node_modules linked; source hashes recorded\", sourceHashes, harnessHashes,\n    nativeGolden: { path: goldPath, sha256: hash(goldBytes), profile: gold.primaryProfile, sourceHashes: gold.sourceHashes, toolIdentities: gold.toolIdentities },\n    baseline: { version: JSON.parse(await readFile(join(baselineRoot, \"package.json\"), \"utf8\")).version, manifestSha256: hash(await readFile(join(baselineRoot, \"package.json\"))), bundleSha256: hash(await readFile(join(baselineRoot, \"dist/bundle/index.js\"))), lockSha256: hash(await readFile(\"benchmarks/package-lock.json\")) },\n    runtime: { node: process.version, versions: process.versions, platform: platform(), release: release(), arch: process.arch, cpus: cpus().map(cpu => cpu.model), totalMemoryBytes: totalmem(), startLoad, endLoad: loadavg() },\n    totals: Object.fromEntries(engines.map(engine => [engine, totals(results, engine)])),\n    intersections: { bothPass: results.filter(row => engines.every(engine => row[engine].status === \"pass\")).length, bothNonPass: results.filter(row => engines.every(engine => row[engine].status !== \"pass\")).map(row => row.id), virtualOnlyPass: results.filter(row => row[engines[0]].status === \"pass\" && row[engines[1]].status !== \"pass\").map(row => row.id), baselineOnlyPass: results.filter(row => row[engines[1]].status === \"pass\" && row[engines[0]].status !== \"pass\").map(row => row.id) },\n    groups: Object.fromEntries([...new Set(results.map(row => row.group))].map(group => [group, Object.fromEntries(engines.map(engine => [engine, totals(results.filter(row => row.group === group), engine)]))])),\n    inventory: names, reachedRegistry: reached,\n    uncoveredRegistry: { virtual: names.virtual.unshadowedRegistry.filter(name => !reached.virtual.includes(name)), baseline: names.baseline.registered.filter(name => !reached.baseline.includes(name)) },\n    commandCoverage: Object.fromEntries(names.virtual.registered.map(name => [name, { declaredRecipes: results.filter(row => row.group === \"command\" && row.command === name).map(row => row.id), actualRecipes: results.filter(row => row[engines[0]].observation?.registryEvents.some(event => event.name === name)).map(row => row.id), totals: Object.fromEntries(engines.map(engine => [engine, totals(results.filter(row => row.group === \"command\" && row.command === name), engine)])) }])),\n    instrumentation: { total: neutrality.length, pass: neutrality.filter(row => row.pass).length, fail: neutrality.filter(row => !row.pass).length },\n    performance: { total: performanceRows.length, eligible: performanceRows.filter(row => row.eligible).length, trials: performanceRows.flatMap(row => row.trials).length, failedTrials: performanceRows.flatMap(row => row.trials).filter(row => row.status !== \"pass\").length },\n    limitations: [\"224 additional recipes, not full Bash or utility coverage; three declared option families per default command do not establish complete support.\", \"Primary Bash5.3/coreutils9.7 plus individually hashed mixed native tool profiles, not uniformly GNU. Historical118 and prior19-unshadowed-plugin cohort unchanged.\", \"Exact stdout/stderr/status and /fixture tree bytes/types/links; selected mode assertions. No full timestamp, ownership, outside-root, backend protocol, concurrency or network-confinement proof.\", \"Public stdout byte-boundary differences retained; transport controls distinguish internal pipes/files from returned API encoding. No encoding heuristic or silent unsupported skip.\", \"Five performance repeats, one warmup per fresh child, alternating order, no instrumentation. Execution time excludes import/setup/snapshot; maxRSS is process-lifetime including setup/warmup. Sampled peaks can miss synchronous spikes; shared-host load and unequal implementation/lazy-load costs prevent general superiority claims.\", \"Baseline-only tools/kernel names are inventory gaps, not denominator-free passes; optional Python/JS/SafeJS and remote backends are unmeasured here.\", \"Different-agent fairness review pending. Product/72-hour/much-better requirement remains unproven.\"],\n  };\n  await write(\"report.json\", report);\n  await write(\"network-requests.json\", server.requests);\n  const lines = [\"# Expanded comparison — frozen evidence\", \"\", `Source revision: \\`${revision}\\`; just-bash \\`${report.baseline.version}\\`.`, \"\", \"| Engine | Pass | Fail | Timeout | Harness/engine error | Total |\", \"|---|---:|---:|---:|---:|---:|\"];\n  for (const engine of engines) { const count = report.totals[engine]; lines.push(`| ${engine} | ${count.pass} | ${count.fail} | ${count.timeout} | ${count[\"harness-or-engine-error\"]} | ${count.total} |`); }\n  lines.push(\"\", `Both pass: ${report.intersections.bothPass}; both non-pass: ${report.intersections.bothNonPass.length}. No skips/pending are passes.`, `Actual registry execution: virtual ${reached.virtual.filter(name => names.virtual.unshadowedRegistry.includes(name)).length}/${names.virtual.unshadowedRegistry.length} unshadowed default plugins; baseline ${reached.baseline.filter(name => names.baseline.registered.includes(name)).length}/${names.baseline.registered.length} registered names.`, `Instrumentation controls: ${report.instrumentation.pass}/${report.instrumentation.total}. Performance eligible: ${report.performance.eligible}/${report.performance.total}; failed measured trials: ${report.performance.failedTrials}.`, \"\", \"## Failures (unchanged native expectation)\", \"\", \"| Recipe | virtual-bash | just-bash |\", \"|---|---|---|\");\n  for (const row of results.filter(row => engines.some(engine => row[engine].status !== \"pass\"))) lines.push(`| ${row.id.replaceAll(\"|\", \"\\\\|\")} | ${engines.map(engine => row[engine].status === \"pass\" ? \"pass\" : `${row[engine].status}: ${row[engine].comparison?.assertions.filter(assertion => !assertion.pass).map(assertion => assertion.field).join(\", \") ?? \"see raw error\"}`).join(\" | \")} |`);\n  lines.push(\"\", \"## Limits\", \"\", ...report.limitations.map(limit => `- ${limit}`), \"\", \"Raw observations: functional.json; timings/memory: performance.json; byte API controls: transport-controls.json; exact inventory/source/oracle/runtime identities: report.json.\", \"\");\n  await writeFile(join(output, \"REPORT.md\"), lines.join(\"\\n\"), { flag: \"wx\" });\n  console.log(JSON.stringify({ output, revision, totals: report.totals, instrumentation: report.instrumentation, performance: report.performance }, null, 2));\n} finally {\n  for (const worker of sessions.values()) await worker.close();\n  await server.close();\n  await rm(scratch, { recursive: true, force: true });\n}\n",
+      "current": "import assert from \"node:assert/strict\";\nimport { execFileSync } from \"node:child_process\";\nimport { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from \"node:fs/promises\";\nimport { cpus, loadavg, platform, release, tmpdir, totalmem } from \"node:os\";\nimport { dirname, join, resolve } from \"node:path\";\nimport { fileURLToPath } from \"node:url\";\nimport { compare, hash } from \"./common.mjs\";\nimport { recipes, performanceRecipes } from \"./recipes.mjs\";\nimport { inventory } from \"./inventory.mjs\";\nimport { localServer } from \"./server.mjs\";\nimport { session } from \"./session.mjs\";\nimport { transportControls } from \"./transport.mjs\";\n\nconst repo = process.cwd(), output = resolve(process.argv[2]);\nconst git = (...args) => execFileSync(\"git\", args, { cwd: repo, encoding: \"utf8\" }).trim();\nconst revision = git(\"rev-parse\", process.argv[3] ?? \"HEAD\");\nconst harnessRevision = git(\"rev-parse\", process.argv[4] ?? \"HEAD\");\nconst harnessRoot = dirname(fileURLToPath(import.meta.url));\nconst trackedHarness = git(\"ls-tree\", \"--name-only\", harnessRevision, \"benchmarks/expanded\");\nassert.ok(trackedHarness, \"Commit the corpus and harness before scoring product outcomes\");\nconst goldPath = resolve(process.argv[5] ?? \"benchmarks/reports/expanded-20260827/native-scratch-aligned/native.json\");\nconst goldBytes = await readFile(goldPath), gold = JSON.parse(goldBytes);\nconst corpus = recipes(), performanceCorpus = performanceRecipes();\nfor (const specimen of [...corpus, ...performanceCorpus]) assert.equal(gold.observations.find(row => row.id === specimen.id)?.recipeHash, hash(JSON.stringify(specimen)), `Native-first recipe changed: ${specimen.id}`);\nfor (const [path, digest] of Object.entries(gold.sourceHashes)) assert.equal(hash(await readFile(join(harnessRoot, path))), digest, `Native capture source changed: ${path}`);\nconst harnessHashes = {};\nfor (const name of (await readdir(harnessRoot)).filter(name => name.endsWith(\".mjs\")).sort()) {\n  const bytes = await readFile(join(harnessRoot, name));\n  assert.equal(hash(bytes), hash(execFileSync(\"git\", [\"show\", `${harnessRevision}:benchmarks/expanded/${name}`], { cwd: repo })), `Uncommitted harness: ${name}`);\n  harnessHashes[name] = hash(bytes);\n}\nawait mkdir(output, { recursive: false });\nconst scratch = await mkdtemp(join(tmpdir(), \"safe-bash-expanded-frozen-\"));\nconst sourceRoot = join(scratch, \"source\"), baselineRoot = resolve(\"benchmarks/node_modules/just-bash\");\nawait mkdir(sourceRoot);\nexecFileSync(\"git\", [\"archive\", \"-o\", join(scratch, \"source.tar\"), revision, \"src\", \"package.json\", \"package-lock.json\", \"tsconfig.json\", \"tsconfig.build.json\"], { cwd: repo });\nexecFileSync(\"tar\", [\"-xf\", join(scratch, \"source.tar\"), \"-C\", sourceRoot]);\nawait symlink(join(repo, \"node_modules\"), join(sourceRoot, \"node_modules\"), \"dir\");\nconst sourceHashes = {};\nasync function hashTree(directory, relative = \"src\") {\n  for (const entry of (await readdir(directory, { withFileTypes: true })).sort((left, right) => left.name.localeCompare(right.name))) {\n    const path = join(directory, entry.name), key = `${relative}/${entry.name}`;\n    if (entry.isDirectory()) await hashTree(path, key); else sourceHashes[key] = hash(await readFile(path));\n  }\n}\nawait hashTree(join(sourceRoot, \"src\"));\nfor (const name of [\"package.json\", \"package-lock.json\", \"tsconfig.json\", \"tsconfig.build.json\"]) sourceHashes[name] = hash(await readFile(join(sourceRoot, name)));\nconst server = await localServer(), sessions = new Map();\nconst engines = [\"virtual-bash\", \"just-bash\"];\nconst startedAt = new Date().toISOString(), startLoad = loadavg();\nconst write = (name, value) => writeFile(join(output, name), JSON.stringify(value, null, 2) + \"\\n\", { flag: \"wx\" });\nconst expectedFor = specimen => gold.observations.find(row => row.id === specimen.id);\nasync function run(engine, specimen, instrument = true, fresh = false, warmup = 0) {\n  let worker;\n  try {\n    worker = !fresh && sessions.get(engine);\n    if (!worker) { worker = await session(engine, sourceRoot, baselineRoot); if (!fresh) sessions.set(engine, worker); }\n    const response = await worker.run(specimen, server.baseUrl, instrument, warmup);\n    if (response.error) { await worker.close(); sessions.delete(engine); }\n    const expected = expectedFor(specimen);\n    return { ...response, status: !expected.oracleValid ? \"invalid-oracle\" : response.timeout ? \"timeout\" : response.error ? \"harness-or-engine-error\" : compare(expected, response.observation).pass ? \"pass\" : \"fail\",\n      comparison: response.observation ? compare(expected, response.observation) : null };\n  } catch (error) { return { status: \"harness-or-engine-error\", error: String(error.stack ?? error), comparison: null }; }\n  finally { if (fresh && worker) await worker.close(); }\n}\nfunction totals(rows, key) {\n  const result = { total: rows.length, pass: 0, fail: 0, timeout: 0, \"harness-or-engine-error\": 0, \"invalid-oracle\": 0, skipped: 0, pending: 0 };\n  for (const row of rows) result[row[key].status]++;\n  return result;\n}\nfunction distribution(values) {\n  const sorted = [...values].sort((left, right) => left - right);\n  return { count: sorted.length, median: sorted[Math.floor(sorted.length / 2)], p95: sorted[Math.ceil(sorted.length * .95) - 1], min: sorted[0], max: sorted.at(-1) };\n}\ntry {\n  const names = await inventory(sourceRoot, baselineRoot), transport = await transportControls(baselineRoot);\n  await write(\"transport-controls.json\", transport);\n  const results = [];\n  for (const [index, specimen] of corpus.entries()) {\n    const row = { id: specimen.id, group: specimen.group, command: specimen.command, optionFamily: specimen.optionFamily, expected: expectedFor(specimen), order: index % 2 ? [...engines].reverse() : engines };\n    for (const engine of row.order) row[engine] = await run(engine, specimen);\n    results.push(row);\n    if ((index + 1) % 28 === 0) console.log(JSON.stringify({ completed: index + 1, virtual: totals(results, engines[0]), baseline: totals(results, engines[1]) }));\n  }\n  await write(\"functional.json\", results);\n  const neutrality = [];\n  const controlIds = [\"command/cat/binary-stdin\", \"command/echo/multiple\", \"command/chmod/numeric\", \"command/stat/fields\", \"command/patch/apply\", \"command/mktemp/file\"];\n  const controls = [...corpus.filter(specimen => controlIds.includes(specimen.id)), ...corpus.filter(specimen => [\"tar\", \"jq\", \"join\", \"sed\"].includes(specimen.command)).filter((specimen, index, array) => array.findIndex(other => other.command === specimen.command) === index), ...corpus.filter(specimen => specimen.group === \"network\").slice(0, 2)];\n  for (const specimen of controls) for (const engine of engines) {\n    const plain = await run(engine, specimen, false, true), traced = results.find(row => row.id === specimen.id)[engine];\n    neutrality.push({ id: specimen.id, engine, plain, pass: !!plain.observation && !!traced.observation && compare(plain.observation, traced.observation).pass });\n  }\n  await write(\"instrumentation-controls.json\", neutrality);\n  for (const worker of sessions.values()) await worker.close(); sessions.clear();\n  const performanceRows = [];\n  for (const specimen of performanceCorpus) {\n    const eligibility = {};\n    for (const engine of engines) eligibility[engine] = await run(engine, specimen, false, true);\n    const eligible = engines.every(engine => eligibility[engine].status === \"pass\");\n    const trials = [];\n    if (eligible) for (let repeat = 0; repeat < 5; repeat++) {\n      const order = repeat % 2 ? [...engines].reverse() : engines;\n      for (const engine of order) trials.push({ repeat, order, engine, loadBefore: loadavg(), ...await run(engine, specimen, false, true, 1), loadAfter: loadavg() });\n    }\n    performanceRows.push({ id: specimen.id, eligible, eligibility, trials, summary: Object.fromEntries(engines.map(engine => {\n      const rows = trials.filter(row => row.engine === engine && row.status === \"pass\");\n      return [engine, rows.length ? { executeMs: distribution(rows.map(row => row.observation.executeMs)), sampledPeakRssBytes: distribution(rows.map(row => row.observation.memory.sampledPeak.rss)), processMaxRssKiB: distribution(rows.map(row => row.observation.memory.processMaxRssKiB)) } : null];\n    })) });\n  }\n  await write(\"performance.json\", performanceRows);\n  const hits = engine => [...new Set(results.flatMap(row => row[engine].observation?.registryEvents.map(event => event.name) ?? []))].sort();\n  const reached = { virtual: hits(engines[0]), baseline: hits(engines[1]) };\n  const report = { startedAt, finishedAt: new Date().toISOString(), revision, harnessRevision, movingHeadAtEnd: git(\"rev-parse\", \"HEAD\"), dirtyAtEnd: git(\"status\", \"--short\"),\n    sourceSnapshot: \"git archive at exact revision; no dirty production copied; cached development node_modules linked; source hashes recorded\", sourceHashes, harnessHashes,\n    nativeGolden: { path: goldPath, sha256: hash(goldBytes), profile: gold.primaryProfile, sourceHashes: gold.sourceHashes, toolIdentities: gold.toolIdentities },\n    baseline: { version: JSON.parse(await readFile(join(baselineRoot, \"package.json\"), \"utf8\")).version, manifestSha256: hash(await readFile(join(baselineRoot, \"package.json\"))), bundleSha256: hash(await readFile(join(baselineRoot, \"dist/bundle/index.js\"))), lockSha256: hash(await readFile(\"benchmarks/package-lock.json\")) },\n    runtime: { node: process.version, versions: process.versions, platform: platform(), release: release(), arch: process.arch, cpus: cpus().map(cpu => cpu.model), totalMemoryBytes: totalmem(), startLoad, endLoad: loadavg() },\n    totals: Object.fromEntries(engines.map(engine => [engine, totals(results, engine)])),\n    intersections: { bothPass: results.filter(row => engines.every(engine => row[engine].status === \"pass\")).length, bothNonPass: results.filter(row => engines.every(engine => row[engine].status !== \"pass\")).map(row => row.id), virtualOnlyPass: results.filter(row => row[engines[0]].status === \"pass\" && row[engines[1]].status !== \"pass\").map(row => row.id), baselineOnlyPass: results.filter(row => row[engines[1]].status === \"pass\" && row[engines[0]].status !== \"pass\").map(row => row.id) },\n    groups: Object.fromEntries([...new Set(results.map(row => row.group))].map(group => [group, Object.fromEntries(engines.map(engine => [engine, totals(results.filter(row => row.group === group), engine)]))])),\n    inventory: names, reachedRegistry: reached,\n    uncoveredRegistry: { virtual: names.virtual.unshadowedRegistry.filter(name => !reached.virtual.includes(name)), baseline: names.baseline.registered.filter(name => !reached.baseline.includes(name)) },\n    commandCoverage: Object.fromEntries(names.virtual.registered.map(name => [name, { declaredRecipes: results.filter(row => row.group === \"command\" && row.command === name).map(row => row.id), actualRecipes: results.filter(row => row[engines[0]].observation?.registryEvents.some(event => event.name === name)).map(row => row.id), totals: Object.fromEntries(engines.map(engine => [engine, totals(results.filter(row => row.group === \"command\" && row.command === name), engine)])) }])),\n    instrumentation: { total: neutrality.length, pass: neutrality.filter(row => row.pass).length, fail: neutrality.filter(row => !row.pass).length },\n    performance: { total: performanceRows.length, eligible: performanceRows.filter(row => row.eligible).length, trials: performanceRows.flatMap(row => row.trials).length, failedTrials: performanceRows.flatMap(row => row.trials).filter(row => row.status !== \"pass\").length },\n    limitations: [\"224 additional recipes, not full Bash or utility coverage; three declared option families per default command do not establish complete support.\", \"Primary Bash5.3/coreutils9.7 plus individually hashed mixed native tool profiles, not uniformly GNU. Historical118 and prior19-unshadowed-plugin cohort unchanged.\", \"Exact stdout/stderr/status and /fixture tree bytes/types/links; selected mode assertions. No full timestamp, ownership, outside-root, backend protocol, concurrency or network-confinement proof.\", \"Public stdout byte-boundary differences retained; transport controls distinguish internal pipes/files from returned API encoding. No encoding heuristic or silent unsupported skip.\", \"Five performance repeats, one warmup per fresh child, alternating order, no instrumentation. Execution time excludes import/setup/snapshot; maxRSS is process-lifetime including setup/warmup. Sampled peaks can miss synchronous spikes; shared-host load and unequal implementation/lazy-load costs prevent general superiority claims.\", \"Baseline-only tools/kernel names are inventory gaps, not denominator-free passes; optional Python/JS/SafeJS and remote backends are unmeasured here.\", \"Different-agent fairness review pending. Product/72-hour/much-better requirement remains unproven.\"],\n  };\n  await write(\"report.json\", report);\n  await write(\"network-requests.json\", server.requests);\n  const lines = [\"# Expanded comparison — frozen evidence\", \"\", `Source revision: \\`${revision}\\`; just-bash \\`${report.baseline.version}\\`.`, \"\", \"| Engine | Pass | Fail | Timeout | Harness/engine error | Total |\", \"|---|---:|---:|---:|---:|---:|\"];\n  for (const engine of engines) { const count = report.totals[engine]; lines.push(`| ${engine} | ${count.pass} | ${count.fail} | ${count.timeout} | ${count[\"harness-or-engine-error\"]} | ${count.total} |`); }\n  lines.push(\"\", `Both pass: ${report.intersections.bothPass}; both non-pass: ${report.intersections.bothNonPass.length}. No skips/pending are passes.`, `Actual registry execution: virtual ${reached.virtual.filter(name => names.virtual.unshadowedRegistry.includes(name)).length}/${names.virtual.unshadowedRegistry.length} unshadowed default plugins; baseline ${reached.baseline.filter(name => names.baseline.registered.includes(name)).length}/${names.baseline.registered.length} registered names.`, `Instrumentation controls: ${report.instrumentation.pass}/${report.instrumentation.total}. Performance eligible: ${report.performance.eligible}/${report.performance.total}; failed measured trials: ${report.performance.failedTrials}.`, \"\", \"## Failures (unchanged native expectation)\", \"\", \"| Recipe | virtual-bash | just-bash |\", \"|---|---|---|\");\n  for (const row of results.filter(row => engines.some(engine => row[engine].status !== \"pass\"))) lines.push(`| ${row.id.replaceAll(\"|\", \"\\\\|\")} | ${engines.map(engine => row[engine].status === \"pass\" ? \"pass\" : `${row[engine].status}: ${row[engine].comparison?.assertions.filter(assertion => !assertion.pass).map(assertion => assertion.field).join(\", \") ?? \"see raw error\"}`).join(\" | \")} |`);\n  lines.push(\"\", \"## Limits\", \"\", ...report.limitations.map(limit => `- ${limit}`), \"\", \"Raw observations: functional.json; timings/memory: performance.json; byte API controls: transport-controls.json; exact inventory/source/oracle/runtime identities: report.json.\", \"\");\n  await writeFile(join(output, \"REPORT.md\"), lines.join(\"\\n\"), { flag: \"wx\" });\n  console.log(JSON.stringify({ output, revision, totals: report.totals, instrumentation: report.instrumentation, performance: report.performance }, null, 2));\n} finally {\n  for (const worker of sessions.values()) await worker.close();\n  await server.close();\n  await rm(scratch, { recursive: true, force: true });\n}\n"
+    }
+  },
+  "evidenceBefore": {
+    "benchmarks/reports/expanded-20260827/native-corrected/native.json": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801",
+    "benchmarks/reports/expanded-20260827/corrected-bd2cacb/report.json": "1f1c5474cc6d0b8dd5ed899d9a59a28d0f6469da2476a0f268ea777835e4f835",
+    "benchmarks/reports/expanded-20260827/corrected-bd2cacb/functional.json": "7e2b4bdfbbe64917ff88d94c9b97438aa6a1a709cff83b2a3c860d788b522b2e",
+    "benchmarks/reports/expanded-20260827/ANALYSIS.md": "87659d10b514f99402095c582322f9a8958967d14101f66514e359b72ee43e9a",
+    "benchmarks/package.json": "acd6d0930859b5fb4bd6d4d34a066bbde720d8629e10778989214a7bf61a6dc4",
+    "benchmarks/package-lock.json": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+  },
+  "evidenceAfter": {
+    "benchmarks/reports/expanded-20260827/native-corrected/native.json": "976601e3aeb465fcb5eb11e53e9e61e48978d148e8615a9ee37c2261743df801",
+    "benchmarks/reports/expanded-20260827/corrected-bd2cacb/report.json": "1f1c5474cc6d0b8dd5ed899d9a59a28d0f6469da2476a0f268ea777835e4f835",
+    "benchmarks/reports/expanded-20260827/corrected-bd2cacb/functional.json": "7e2b4bdfbbe64917ff88d94c9b97438aa6a1a709cff83b2a3c860d788b522b2e",
+    "benchmarks/reports/expanded-20260827/ANALYSIS.md": "87659d10b514f99402095c582322f9a8958967d14101f66514e359b72ee43e9a",
+    "benchmarks/package.json": "acd6d0930859b5fb4bd6d4d34a066bbde720d8629e10778989214a7bf61a6dc4",
+    "benchmarks/package-lock.json": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+  },
+  "archiveChecks": [
+    {
+      "source": "/tmp/safe-bash-routed-five-inputs.json",
+      "archive": "inputs.json",
+      "bytes": 70510,
+      "sha256": "f7104b13aa6bf328f0b75a57408d953ae81338e875320e33e8d0880450ef18bc",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-results.json",
+      "archive": "results.json",
+      "bytes": 74650,
+      "sha256": "0fae47fcec1ebf4671871c60807a4e2ff3f019bf1d40d23237d33d2ec9ab861b",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-before.json",
+      "archive": "before.json",
+      "bytes": 26355,
+      "sha256": "d1e713b81fd827512f13f92011d7ecf9701176718fc0aecb4c8a88e675b02908",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-after.json",
+      "archive": "after.json",
+      "bytes": 26355,
+      "sha256": "df8b605d250f75e159a8f74fdd0f3034ceb2867d53d19a5ee80b858cff1d76f5",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-final-state.json",
+      "archive": "final-state.json",
+      "bytes": 31651,
+      "sha256": "755d36e57b53b53faaa2c7dd723fa40bf3ae19b7213d8f46247d47ff8c15d507",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-probe.mjs",
+      "archive": "probe.mjs",
+      "bytes": 7538,
+      "sha256": "0cbede9d9ad9ef128d2fd47a5f26e13082f6d8cbccf42b3ee1fc86f0aa900e9d",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-finalize.mjs",
+      "archive": "finalize.mjs",
+      "bytes": 3360,
+      "sha256": "18e01a35fb6957b954169920254fa332990d5149046990a7f5fbd41eeacbe4a6",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-report.txt",
+      "archive": "report.txt",
+      "bytes": 13728,
+      "sha256": "530de1e0686313a697bb4318ab8ab85c44657f87f8b2329b8dcf4e9e69248b84",
+      "verified": true
+    },
+    {
+      "source": "/tmp/safe-bash-routed-five-status.txt",
+      "archive": "status.txt",
+      "bytes": 1715,
+      "sha256": "3ac0e9ea976f54809a03c55eb63ec9a2273624172aa1a3c1ed0929bf1ba70609",
+      "verified": true
+    },
+    {
+      "source": "/tmp/root/safe-bash-routed-five.txt",
+      "archive": "root-notification.txt",
+      "bytes": 1267,
+      "sha256": "363dfb2def91c89aa81da2e6ce337b8d34138abf3dd8853940e4aafbcaae93cf",
+      "verified": true
+    }
+  ],
+  "historicalFailureCount": 18,
+  "tools": {
+    "bash": {
+      "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "versionExit": 0,
+      "versionStdout": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n\nThis is free software; you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n",
+      "versionStderr": "",
+      "verified": true
+    },
+    "patch": {
+      "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "versionExit": 0,
+      "versionStdout": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+      "versionStderr": "",
+      "verified": true
+    },
+    "stat": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "versionExit": 0,
+      "versionStdout": "stat (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Michael Meskes.\n",
+      "versionStderr": "",
+      "verified": true
+    },
+    "sha256sum": {
+      "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "versionExit": 0,
+      "versionStdout": "sha256sum (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Ulrich Drepper, Scott Miller, and David Madore.\n",
+      "versionStderr": "",
+      "verified": true
+    },
+    "diff": {
+      "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "versionExit": 0,
+      "versionStdout": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n",
+      "versionStderr": "",
+      "verified": true
+    }
+  },
+  "results": [
+    {
+      "id": "command/patch/apply",
+      "recipe": {
+        "id": "command/patch/apply",
+        "group": "command",
+        "command": "patch",
+        "optionFamily": "apply",
+        "script": "patch -s -p0 < change",
+        "files": {
+          "input": "b2xkCg==",
+          "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "recipeSha256": "1170f3340052e6a7aac2e4074f1f286f6dfc93f34722e290767c9c7118c46c83",
+      "frozenNative": {
+        "id": "command/patch/apply",
+        "recipeHash": "1170f3340052e6a7aac2e4074f1f286f6dfc93f34722e290767c9c7118c46c83",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "bmV3Cg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozenProduct": {
+        "id": 145,
+        "observation": {
+          "stdout": "",
+          "stderr": "cGF0Y2g6IHVuc3VwcG9ydGVkIG9wdGlvbjogLXMK",
+          "exitCode": 2,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "b2xkCg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            }
+          ],
+          "executeMs": 0.6649999999999636,
+          "memory": {
+            "before": {
+              "rss": 126025728,
+              "heapTotal": 54149120,
+              "heapUsed": 17290472,
+              "external": 4081071,
+              "arrayBuffers": 87306
+            },
+            "after": {
+              "rss": 126042112,
+              "heapTotal": 54149120,
+              "heapUsed": 17464624,
+              "external": 4080465,
+              "arrayBuffers": 87332
+            },
+            "sampledPeak": {
+              "rss": 126042112,
+              "heapUsed": 17463888,
+              "external": 4081071
+            },
+            "processMaxRssKiB": 123088,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        },
+        "status": "fail",
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": false
+            },
+            {
+              "field": "exitCode",
+              "pass": false
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "bmV3Cg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "current": {
+        "id": 1,
+        "observation": {
+          "stdout": "",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "bmV3Cg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            }
+          ],
+          "executeMs": 3.7156249999999886,
+          "memory": {
+            "before": {
+              "rss": 121929728,
+              "heapTotal": 32538624,
+              "heapUsed": 13767752,
+              "external": 4094974,
+              "arrayBuffers": 87269
+            },
+            "after": {
+              "rss": 122208256,
+              "heapTotal": 32538624,
+              "heapUsed": 14466000,
+              "external": 4067614,
+              "arrayBuffers": 87451
+            },
+            "sampledPeak": {
+              "rss": 122208256,
+              "heapUsed": 14464648,
+              "external": 4094974
+            },
+            "processMaxRssKiB": 119344,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "nativeMatchesFrozen": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "streamsAndStatus": true,
+      "namespaceDifferences": []
+    },
+    {
+      "id": "command/patch/dry-run",
+      "recipe": {
+        "id": "command/patch/dry-run",
+        "group": "command",
+        "command": "patch",
+        "optionFamily": "dry-run",
+        "script": "patch -s --dry-run -p0 < change",
+        "files": {
+          "input": "b2xkCg==",
+          "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "frozenNative": {
+        "id": "command/patch/dry-run",
+        "recipeHash": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          },
+          "tmp": {
+            "type": "directory"
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozenProduct": {
+        "id": 146,
+        "observation": {
+          "stdout": "",
+          "stderr": "cGF0Y2g6IHVuc3VwcG9ydGVkIG9wdGlvbjogLXMK",
+          "exitCode": 2,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "b2xkCg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "--dry-run",
+                "-p0"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "--dry-run",
+                "-p0"
+              ]
+            }
+          ],
+          "executeMs": 0.37716699999987213,
+          "memory": {
+            "before": {
+              "rss": 126042112,
+              "heapTotal": 53886976,
+              "heapUsed": 17302464,
+              "external": 4081096,
+              "arrayBuffers": 87320
+            },
+            "after": {
+              "rss": 126042112,
+              "heapTotal": 53886976,
+              "heapUsed": 17466944,
+              "external": 4080479,
+              "arrayBuffers": 87346
+            },
+            "sampledPeak": {
+              "rss": 126042112,
+              "heapUsed": 17466208,
+              "external": 4081096
+            },
+            "processMaxRssKiB": 123088,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        },
+        "status": "fail",
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": false
+            },
+            {
+              "field": "exitCode",
+              "pass": false
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          },
+          "tmp": {
+            "type": "directory"
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "current": {
+        "id": 2,
+        "observation": {
+          "stdout": "",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "b2xkCg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "--dry-run",
+                "-p0"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "--dry-run",
+                "-p0"
+              ]
+            }
+          ],
+          "executeMs": 0.8440420000000017,
+          "memory": {
+            "before": {
+              "rss": 122306560,
+              "heapTotal": 32800768,
+              "heapUsed": 14103904,
+              "external": 4068208,
+              "arrayBuffers": 87283
+            },
+            "after": {
+              "rss": 122404864,
+              "heapTotal": 32800768,
+              "heapUsed": 14460008,
+              "external": 4067559,
+              "arrayBuffers": 87396
+            },
+            "sampledPeak": {
+              "rss": 122404864,
+              "heapUsed": 14459288,
+              "external": 4068208
+            },
+            "processMaxRssKiB": 119536,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "comparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": false
+          }
+        ]
+      },
+      "nativeMatchesFrozen": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "streamsAndStatus": true,
+      "namespaceDifferences": [
+        {
+          "path": "tmp",
+          "native": {
+            "type": "directory"
+          },
+          "current": null
+        }
+      ]
+    },
+    {
+      "id": "command/patch/reverse",
+      "recipe": {
+        "id": "command/patch/reverse",
+        "group": "command",
+        "command": "patch",
+        "optionFamily": "reverse",
+        "script": "patch -s -R -p0 < change",
+        "files": {
+          "input": "bmV3Cg==",
+          "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "recipeSha256": "07d16d0b8fa9688bce554afab356d760b3bf081e62d244e7c13c60fd6f74aba8",
+      "frozenNative": {
+        "id": "command/patch/reverse",
+        "recipeHash": "07d16d0b8fa9688bce554afab356d760b3bf081e62d244e7c13c60fd6f74aba8",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozenProduct": {
+        "id": 147,
+        "observation": {
+          "stdout": "",
+          "stderr": "cGF0Y2g6IHVuc3VwcG9ydGVkIG9wdGlvbjogLXMK",
+          "exitCode": 2,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "bmV3Cg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-R",
+                "-p0"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-R",
+                "-p0"
+              ]
+            }
+          ],
+          "executeMs": 0.44066700000007586,
+          "memory": {
+            "before": {
+              "rss": 126042112,
+              "heapTotal": 54149120,
+              "heapUsed": 17306040,
+              "external": 4081103,
+              "arrayBuffers": 87313
+            },
+            "after": {
+              "rss": 126042112,
+              "heapTotal": 54149120,
+              "heapUsed": 17467520,
+              "external": 4080472,
+              "arrayBuffers": 87339
+            },
+            "sampledPeak": {
+              "rss": 126042112,
+              "heapUsed": 17466784,
+              "external": 4081103
+            },
+            "processMaxRssKiB": 123088,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        },
+        "status": "fail",
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": true
+            },
+            {
+              "field": "stderr",
+              "pass": false
+            },
+            {
+              "field": "exitCode",
+              "pass": false
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        }
+      },
+      "native": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "b2xkCg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "current": {
+        "id": 3,
+        "observation": {
+          "stdout": "",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "b2xkCg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-R",
+                "-p0"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-R",
+                "-p0"
+              ]
+            }
+          ],
+          "executeMs": 0.9427919999999972,
+          "memory": {
+            "before": {
+              "rss": 122519552,
+              "heapTotal": 33325056,
+              "heapUsed": 14182536,
+              "external": 4068146,
+              "arrayBuffers": 87276
+            },
+            "after": {
+              "rss": 122634240,
+              "heapTotal": 33325056,
+              "heapUsed": 14632608,
+              "external": 4067621,
+              "arrayBuffers": 87458
+            },
+            "sampledPeak": {
+              "rss": 122634240,
+              "heapUsed": 14631664,
+              "external": 4068146
+            },
+            "processMaxRssKiB": 119776,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "nativeMatchesFrozen": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "streamsAndStatus": true,
+      "namespaceDifferences": []
+    },
+    {
+      "id": "composition/patch-hash/patch-hash",
+      "recipe": {
+        "id": "composition/patch-hash/patch-hash",
+        "group": "composition",
+        "command": "patch-hash",
+        "optionFamily": "patch-hash",
+        "script": "patch -s -p0 < change; sha256sum input",
+        "files": {
+          "input": "b2xkCg==",
+          "change": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "recipeSha256": "2322fa4b7c9fbc8e80b9fc3ccfe7dfced22416ceb136dcd6124d391b41ea994a",
+      "frozenNative": {
+        "id": "composition/patch-hash/patch-hash",
+        "recipeHash": "2322fa4b7c9fbc8e80b9fc3ccfe7dfced22416ceb136dcd6124d391b41ea994a",
+        "stdout": "N2FhN2E1MzU5MTczZDA1YjYzY2ZkNjgyZTNjMzg0ODdmM2NiNGY3ZjFkNjA2NTlmZTU5ZmFiMTUwNTk3N2Q0YyAgaW5wdXQK",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "bmV3Cg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozenProduct": {
+        "id": 210,
+        "observation": {
+          "stdout": "MDFkMDlkMTljMjEzOWE0NmFlYmZiNTc3NzgwZDEyM2Q3Mzk2ZTk3MjAxYmM3ZWFkMjEwYTJlYmZmODIzOWRlZSAgaW5wdXQK",
+          "stderr": "cGF0Y2g6IHVuc3VwcG9ydGVkIG9wdGlvbjogLXMK",
+          "exitCode": 0,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "b2xkCg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            },
+            {
+              "name": "sha256sum",
+              "args": [
+                "input"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            },
+            {
+              "name": "sha256sum",
+              "args": [
+                "input"
+              ]
+            }
+          ],
+          "executeMs": 0.4074169999998958,
+          "memory": {
+            "before": {
+              "rss": 128237568,
+              "heapTotal": 55721984,
+              "heapUsed": 18506488,
+              "external": 4109984,
+              "arrayBuffers": 87351
+            },
+            "after": {
+              "rss": 128237568,
+              "heapTotal": 55721984,
+              "heapUsed": 18717328,
+              "external": 4080747,
+              "arrayBuffers": 87614
+            },
+            "sampledPeak": {
+              "rss": 128237568,
+              "heapUsed": 18716592,
+              "external": 4109984
+            },
+            "processMaxRssKiB": 125232,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        },
+        "status": "fail",
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": false
+            },
+            {
+              "field": "stderr",
+              "pass": false
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": false
+            }
+          ]
+        }
+      },
+      "native": {
+        "stdout": "N2FhN2E1MzU5MTczZDA1YjYzY2ZkNjgyZTNjMzg0ODdmM2NiNGY3ZjFkNjA2NTlmZTU5ZmFiMTUwNTk3N2Q0YyAgaW5wdXQK",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "change": {
+            "type": "file",
+            "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+          },
+          "input": {
+            "type": "file",
+            "bytes": "bmV3Cg=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "current": {
+        "id": 4,
+        "observation": {
+          "stdout": "N2FhN2E1MzU5MTczZDA1YjYzY2ZkNjgyZTNjMzg0ODdmM2NiNGY3ZjFkNjA2NTlmZTU5ZmFiMTUwNTk3N2Q0YyAgaW5wdXQK",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "change": {
+              "type": "file",
+              "bytes": "LS0tIGlucHV0CisrKyBpbnB1dApAQCAtMSArMSBAQAotb2xkCituZXcK"
+            },
+            "input": {
+              "type": "file",
+              "bytes": "bmV3Cg=="
+            }
+          },
+          "events": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            },
+            {
+              "name": "sha256sum",
+              "args": [
+                "input"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "patch",
+              "args": [
+                "-s",
+                "-p0"
+              ]
+            },
+            {
+              "name": "sha256sum",
+              "args": [
+                "input"
+              ]
+            }
+          ],
+          "executeMs": 1.1998340000000098,
+          "memory": {
+            "before": {
+              "rss": 122798080,
+              "heapTotal": 33587200,
+              "heapUsed": 14319920,
+              "external": 4068246,
+              "arrayBuffers": 87314
+            },
+            "after": {
+              "rss": 122880000,
+              "heapTotal": 33587200,
+              "heapUsed": 14820752,
+              "external": 4067896,
+              "arrayBuffers": 87733
+            },
+            "sampledPeak": {
+              "rss": 122880000,
+              "heapUsed": 14817392,
+              "external": 4068246
+            },
+            "processMaxRssKiB": 120016,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "nativeMatchesFrozen": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "streamsAndStatus": true,
+      "namespaceDifferences": []
+    },
+    {
+      "id": "command/stat/timestamp",
+      "recipe": {
+        "id": "command/stat/timestamp",
+        "group": "command",
+        "command": "stat",
+        "optionFamily": "timestamp",
+        "script": "stat -c '%Y:%y' input",
+        "files": {
+          "input": "dGltZQ=="
+        },
+        "stdin": "",
+        "nativeExit": 0,
+        "modes": false,
+        "directories": [],
+        "fileModes": {},
+        "fileTimes": {},
+        "network": false,
+        "stderrPolicy": "exact-after-root-path-projection"
+      },
+      "recipeSha256": "f42833ba53f826a572450b6fdfc1e9b362200dbe824501cd98e25c578b5ed75f",
+      "frozenNative": {
+        "id": "command/stat/timestamp",
+        "recipeHash": "f42833ba53f826a572450b6fdfc1e9b362200dbe824501cd98e25c578b5ed75f",
+        "stdout": "MTcwMDAwMDAwMDoyMDIzLTExLTE0IDIyOjEzOjIwLjAwMDAwMDAwMCArMDAwMAo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "bytes": "dGltZQ=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "frozenProduct": {
+        "id": 153,
+        "observation": {
+          "stdout": "MTcwMDAwMDAwMDoyMDIzLTExLTE0IDIyOjEzOjIwLjAwMCArMDAwMAo=",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "input": {
+              "type": "file",
+              "bytes": "dGltZQ=="
+            }
+          },
+          "events": [
+            {
+              "name": "stat",
+              "args": [
+                "-c",
+                "%Y:%y",
+                "input"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "stat",
+              "args": [
+                "-c",
+                "%Y:%y",
+                "input"
+              ]
+            }
+          ],
+          "executeMs": 1.852916999999934,
+          "memory": {
+            "before": {
+              "rss": 126107648,
+              "heapTotal": 54149120,
+              "heapUsed": 17363728,
+              "external": 4080955,
+              "arrayBuffers": 87244
+            },
+            "after": {
+              "rss": 126763008,
+              "heapTotal": 54149120,
+              "heapUsed": 17506104,
+              "external": 4080390,
+              "arrayBuffers": 87257
+            },
+            "sampledPeak": {
+              "rss": 126763008,
+              "heapUsed": 17505368,
+              "external": 4080955
+            },
+            "processMaxRssKiB": 123792,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        },
+        "status": "fail",
+        "comparison": {
+          "pass": false,
+          "assertions": [
+            {
+              "field": "stdout",
+              "pass": false
+            },
+            {
+              "field": "stderr",
+              "pass": true
+            },
+            {
+              "field": "exitCode",
+              "pass": true
+            },
+            {
+              "field": "entries",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "native": {
+        "stdout": "MTcwMDAwMDAwMDoyMDIzLTExLTE0IDIyOjEzOjIwLjAwMDAwMDAwMCArMDAwMAo=",
+        "stderr": "",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "bytes": "dGltZQ=="
+          }
+        },
+        "oracleValid": true,
+        "reason": null,
+        "signal": null
+      },
+      "current": {
+        "id": 5,
+        "observation": {
+          "stdout": "MTcwMDAwMDAwMDoyMDIzLTExLTE0IDIyOjEzOjIwLjAwMDAwMDAwMCArMDAwMAo=",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {
+            "input": {
+              "type": "file",
+              "bytes": "dGltZQ=="
+            }
+          },
+          "events": [
+            {
+              "name": "stat",
+              "args": [
+                "-c",
+                "%Y:%y",
+                "input"
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "stat",
+              "args": [
+                "-c",
+                "%Y:%y",
+                "input"
+              ]
+            }
+          ],
+          "executeMs": 1.858542,
+          "memory": {
+            "before": {
+              "rss": 123011072,
+              "heapTotal": 33325056,
+              "heapUsed": 14435664,
+              "external": 4068368,
+              "arrayBuffers": 87207
+            },
+            "after": {
+              "rss": 123797504,
+              "heapTotal": 33587200,
+              "heapUsed": 14680328,
+              "external": 4067383,
+              "arrayBuffers": 87220
+            },
+            "sampledPeak": {
+              "rss": 123797504,
+              "heapUsed": 14679432,
+              "external": 4068368
+            },
+            "processMaxRssKiB": 120912,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "comparison": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "nativeMatchesFrozen": {
+        "pass": true,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": true
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "streamsAndStatus": true,
+      "namespaceDifferences": []
+    }
+  ],
+  "processExit": {
+    "code": 0,
+    "signal": null
+  },
+  "logs": "",
+  "snapshotDrift": [],
+  "liveDrift": [],
+  "nativeCleanup": {
+    "verified": true,
+    "removed": "/tmp/safe-bash-five-final-review/native-five"
+  },
+  "counts": {
+    "rows": 5,
+    "exact": 4,
+    "streamsAndStatus": 5,
+    "nativeFrozenExact": 5
+  },
+  "inputHashReference": "snapshot-inputs.json",
+  "beforeDigest": "8c860e67d658a8e62c9fea49d0373ad0dd1c633b2555816f0b011846b5ae7570",
+  "afterDigest": "8c860e67d658a8e62c9fea49d0373ad0dd1c633b2555816f0b011846b5ae7570"
+}

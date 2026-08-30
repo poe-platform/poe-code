@@ -1,0 +1,169 @@
+TRIM BINDING verified 267 hashes; codeCommit=7d7dce7ced596b24e60e1ab3fea5bcd50c070755; exact unchanged original20; historical baseline remains 17/20
+{
+  "cohortCount": 56,
+  "timedOutputs": 672,
+  "started": "2026-08-27T10:24:55.846Z",
+  "finished": "2026-08-27T10:24:56.564Z",
+  "ragged": [
+    {
+      "command": "head",
+      "control": "immutableBuffer",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "tail",
+      "control": "immutableBuffer",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "head",
+      "control": "immutableUint8Array",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "tail",
+      "control": "immutableUint8Array",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "head",
+      "control": "reusedBuffer",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "tail",
+      "control": "reusedBuffer",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "head",
+      "control": "reusedUint8Array",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    },
+    {
+      "command": "tail",
+      "control": "reusedUint8Array",
+      "allocation": {
+        "previous": {
+          "constructorBytes": 65792,
+          "sliceBytes": 16744320,
+          "allocations": 513,
+          "maxQueueBacking": 65536,
+          "maxQueueSlots": 257
+        },
+        "corrected": {
+          "constructorBytes": 65792,
+          "sliceBytes": 0,
+          "allocations": 257,
+          "maxQueueBacking": 65792,
+          "maxQueueSlots": 257
+        }
+      }
+    }
+  ]
+}

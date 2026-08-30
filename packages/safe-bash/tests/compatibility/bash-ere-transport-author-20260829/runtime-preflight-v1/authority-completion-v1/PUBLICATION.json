@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "status": "AUTHORITY_DATA_COMPLETE_ACTIVATION_HOLD_WINDOW_SCHEMA",
+  "started": "2026-08-29T14:09:01.613Z",
+  "snapshotAt": "2026-08-29T14:14:47.743Z",
+  "elapsedMilliseconds": 346130,
+  "snapshot": {
+    "files": 34,
+    "bytes": 74461,
+    "captureBytes": 22184,
+    "rows": [
+      {
+        "path": ".gitignore",
+        "size": 14,
+        "sha256": "615cb2842d5ebe8505fd2e92be38dede5e9c6e9db3748076497719e8dba12ce1"
+      },
+      {
+        "path": "AUTHORITY-CLOSURE.json",
+        "size": 4876,
+        "sha256": "1ebcca468acfbc46c2db16f53a020bde04d417e6aee31a8e20fe15e23373d08f"
+      },
+      {
+        "path": "HANDOFF.md",
+        "size": 4805,
+        "sha256": "a50dada882f47c794d43d4fe1ef90a1d54ff24c9b665d866cff83e85b04364cb"
+      },
+      {
+        "path": "PRESEAL.json",
+        "size": 1698,
+        "sha256": "470c4097f1829abda5c6d822a3f4722de7cf35a713aaee661957706c5863d1dc"
+      },
+      {
+        "path": "PUBLICATION-PRESEAL.json",
+        "size": 1663,
+        "sha256": "b880a86d2162957cfeed02c6149734bd8f7ecd05b0ca4ba2a56c5bab552d0629"
+      },
+      {
+        "path": "README.md",
+        "size": 1485,
+        "sha256": "df653611d2cdc7fc01124b1e42cf8b148597f2855d878aabf6a16e48ae497e52"
+      },
+      {
+        "path": "RESULT.json",
+        "size": 723,
+        "sha256": "f4c265d7064139d32fb28606c7ca6f52c775699b264ba987b4eb048bd3d53507"
+      },
+      {
+        "path": "SLOT.json",
+        "size": 3575,
+        "sha256": "d42b31a9e03a53ecd9f201a8ad54cf12f7ea2c0b9c8c1c1805f24a3020887ee5"
+      },
+      {
+        "path": "capture/add-preseal.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/add-preseal.stdout",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/add-publication.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/add-publication.stdout",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/closure.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/closure.stdout",
+        "size": 519,
+        "sha256": "4e9acbbbc6ae6be40b6ba9c8b7d68a56253fcc37c442250a38b16682abde9edc"
+      },
+      {
+        "path": "capture/commit-preseal.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/commit-preseal.stdout",
+        "size": 2393,
+        "sha256": "eb460e83f6c357d67b8386e64ab1b7573823e89c85c332ed4f0de65abb290692"
+      },
+      {
+        "path": "capture/commit-publication.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/commit-publication.stdout",
+        "size": 1853,
+        "sha256": "d95e0e69c71640d285949f32e9b960e3d83007a3ea70d314de7d25828e5920a9"
+      },
+      {
+        "path": "capture/patch-publication.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/patch-publication.stdout",
+        "size": 396,
+        "sha256": "fa16cc90b39a25eb810911d203b78f48c1e03a0a3b40a1250140122cdae17256"
+      },
+      {
+        "path": "capture/patch.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/patch.stdout",
+        "size": 735,
+        "sha256": "a947cd856db3cfe05072f825669f47ef8affdb617d0422cb05969f996ee37f7f"
+      },
+      {
+        "path": "capture/preparation.jsonl",
+        "size": 548,
+        "sha256": "db6a1430846f688a1e31d6a3e104719be716bab5cdefd1a8e63dee2c152963d3"
+      },
+      {
+        "path": "capture/publication.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/publication.stdout",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/review-receipt.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/review-receipt.stdout",
+        "size": 6259,
+        "sha256": "04ef22c058ba46eca71c93ceab787fdebf474cbd55296d5573035bf3eee41743"
+      },
+      {
+        "path": "capture/source-authentication.json",
+        "size": 9377,
+        "sha256": "fb6b96681b4405285b62184e4c518956b0b0c0c8b79b9ba501fb2e9b316d78a5"
+      },
+      {
+        "path": "capture/status-initial.stderr",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "capture/status-initial.stdout",
+        "size": 104,
+        "sha256": "8347261174811f9a478e901de533d4cd749a3793cfaadd9693049768c3498e7f"
+      },
+      {
+        "path": "closure-check.mjs",
+        "size": 4504,
+        "sha256": "4d6a4b5ed6ccd4a0ea0de17a167dcad1d2a4ead34e1f124c5bcead0cc86e390b"
+      },
+      {
+        "path": "implementation.patch.data",
+        "size": 17310,
+        "sha256": "5f2704e2c5d6c9602aee40c906ba1ba5305ac086ddf8f15268a4fcd0185b029c"
+      },
+      {
+        "path": "publication.mjs",
+        "size": 2314,
+        "sha256": "758a054364b4ce68095b215c77d367eb8be7f7557dbd60cbd96ba9360c32a2a1"
+      },
+      {
+        "path": "publication.patch.data",
+        "size": 9310,
+        "sha256": "6b526a562e44bc9af0fea23188de0c29b903949f1b9fc651bd3d2e138d3f5758"
+      }
+    ]
+  },
+  "execution": {
+    "pureHelpersIncludingThis": 2,
+    "closureControls": 6,
+    "controlsPassed": 6,
+    "Workers": 0,
+    "productImports": 0,
+    "compiler": 0
+  },
+  "limits": {
+    "knownOS": 32,
+    "peak": 3,
+    "captureBytes": 50331648,
+    "workBytes": 201326592
+  },
+  "resourceQualification": "Invocation-local file snapshot before this receipt/final publication, not RSS or universal child census. Final Git publication captures are separate trailing bytes.",
+  "all60": "UNRUN",
+  "grantCreated": false,
+  "sourceChanged": false
+}

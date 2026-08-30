@@ -1,0 +1,360 @@
+{
+  "schema": "REGEX_INSTRUMENTED_V2_UNSAFE_STOP",
+  "presealCommit": "73345acb732b6d1a5404f95ed94445a496730dd3",
+  "sealSha256": "47e2fe68c72b20afba8b9772d0c896773e44c4a415a6bacbf283708f03cb272a",
+  "authSha256": "fa20611fb705843fea2667e768e0b8c0bcc0ff1262e9544ca245e64fe23955e0",
+  "status": "UNSAFE_STOP",
+  "retry": false,
+  "rawOutcomes": {
+    "qualified": 18,
+    "ordinaryFailed": 4,
+    "unsafeStop": 1,
+    "unrun": 32,
+    "total": 55
+  },
+  "completedChildControls": 23,
+  "plannedChildControls": 51,
+  "inProcessDataExecuted": 0,
+  "plannedInProcessData": 4,
+  "plannedWorkers": 41,
+  "createdWorkers": 0,
+  "constructorAttemptCounter": 0,
+  "actualTargetImports": 0,
+  "comparatorImports": 0,
+  "semanticCalls": 0,
+  "C11": 0,
+  "stoppedAt": "G05.1",
+  "findings": [
+    {
+      "id": "F1",
+      "scope": "owned harness witness publisher",
+      "observed": "OFFLINE_DENIED:fs.openSync.write",
+      "location": "common.mjs:65",
+      "cause": "createPrivate uses the previously captured writeFileSync function; retained guard event identifies guarded fs.openSync.write for the owned worker-1.jsonl pathname. Capturing writeFileSync alone did not keep this tool-owned write independent of the installed guard.",
+      "noWorkerAcquired": true
+    },
+    {
+      "id": "F2",
+      "scope": "owned supervisor fixture postguard",
+      "observed": "FILE_BOUND_METADATA",
+      "location": "supervisor.mjs:90",
+      "cause": "after-admission-drift postguard expects changed fixture unconditionally; the beforeNative mutation was never reached after the earlier publication refusal. Standalone inspection binds the still-original 682-byte fixture.",
+      "preserveStop": true
+    },
+    {
+      "id": "F3",
+      "scope": "qualification limitation",
+      "observed": "Negative constructor controls assert refusal/qualification=false, not every exact error code. Raw 18 qualifiers are preserved; no independent full-boundary acceptance is claimed."
+    }
+  ],
+  "capture": {
+    "children": {
+      "observed": [
+        5819,
+        4669
+      ],
+      "retained": [
+        5819,
+        4669
+      ]
+    },
+    "outer": {
+      "observed": [
+        109,
+        0
+      ],
+      "retained": [
+        109,
+        0
+      ],
+      "qualified": true
+    },
+    "capturedControlStreamBytes": 10597,
+    "loss": 0,
+    "runnerConservativeCaptureAndCaseBytes": 298146,
+    "allCaptureDescriptorsClosed": true
+  },
+  "closure": {
+    "caseChildren": 23,
+    "caseChildrenClosed": 23,
+    "supervisorClosed": true,
+    "outerClosed": true,
+    "knownWorkersCreated": 0,
+    "unknownWorkers": 0,
+    "pendingInheritedOperations": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "openInheritedDescriptors": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "sourcePostflight": {
+    "scope": "standalone after-stop DATA, not rerun/override of failing fixture postguard",
+    "bindings": [
+      {
+        "role": "successor-source",
+        "path": "AUTH-INACTIVE.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "INSTRUMENTATION.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "PLAN.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "PRIOR-DRAFT.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "README.md",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "ROOT-AUTHORITY.txt",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "capture.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "case.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "common.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "controls.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "fixtures.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "guarded-operation.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "observer.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "package.json",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "policy.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "preload.mjs",
+        "pass": true
+      },
+      {
+        "role": "successor-source",
+        "path": "supervisor.mjs",
+        "pass": true
+      },
+      {
+        "role": "inherited-guard",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+        "pass": true
+      },
+      {
+        "role": "inherited-guard",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+        "pass": true
+      },
+      {
+        "role": "inherited-guard",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "AUTH-INACTIVE.json",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "INSTRUMENTATION.json",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "PLAN.json",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "README.md",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "case.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "common.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "controls.json",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "fixtures.json",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "guarded-operation.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "observer.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "package.json",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "policy.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "preload.mjs",
+        "pass": true
+      },
+      {
+        "role": "prior-draft",
+        "path": "supervisor.mjs",
+        "pass": true
+      }
+    ],
+    "tools": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "pass": true
+      },
+      {
+        "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "pass": true
+      }
+    ]
+  },
+  "witnessEvidence": {
+    "schemaCounterexamples": 11,
+    "actualValidatorInvocationsRejected": 253,
+    "qualifiedChildChannelInstalls": 0,
+    "restoredPreexistingKeyObservedIn23Results": true,
+    "restorationAfterConstructionUnproved": true,
+    "crossWorkerIsolationUnrun": true,
+    "reentrantSlotControlUnrun": true,
+    "actualNestedLoads": 0
+  },
+  "instrumentation": {
+    "approvedKey": "safe-bash-breadth-regex-sticky-v1",
+    "shape": "own token plus native SAB(4)",
+    "requestedExecArgv": [],
+    "effectiveExecArgv": "--import authenticated preload URL",
+    "otherOptionsChanged": false,
+    "additionalDeviationUsed": false
+  },
+  "priorDraft": {
+    "byteUnchanged": true,
+    "controlsRun": 0,
+    "workers": 0,
+    "checkpointElapsedMilliseconds": 1566256
+  },
+  "budgets": {
+    "start": "2026-08-29T08:33:40.007Z",
+    "deadline": "2026-08-29T09:03:40.007Z",
+    "at": "2026-08-29T08:45:22.908Z",
+    "elapsedMilliseconds": 702901,
+    "knownOwnedOsLaunchedSoFar": 33,
+    "chargedIncludingToolServiceReservation": 34,
+    "osCap": 64,
+    "ownedRuntimePeakTopology": 3,
+    "captureCap": 134217728,
+    "workCap": 536870912,
+    "observedOwnedWorkBytesSoFar": 440807,
+    "noRssClaim": true,
+    "publicationPending": true
+  },
+  "history": "Prior losses, DU two FAILs, W03/W07 caveats and all old cohorts immutable. This is not actual target/comparator/semantic approval."
+}

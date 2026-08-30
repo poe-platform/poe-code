@@ -1,0 +1,318 @@
+{
+  "classification": "HISTORICAL_CAPTURE_DATA_NOT_NEW_EXECUTION_OR_AUTHORIZATION",
+  "historicalCommit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+  "cmd22": {
+    "job": {
+      "id": "CMD-22--whole",
+      "recordId": "CMD-22",
+      "role": "command-semantic-runtime",
+      "argv": [
+        "--output-format=json",
+        "--compact-output",
+        "--",
+        ".",
+        "-name"
+      ],
+      "stdinChunksHex": [
+        ""
+      ],
+      "stdinIsDefault": true,
+      "producerReuse": false,
+      "files": [
+        {
+          "path": "-name",
+          "hex": "66616c73650a"
+        }
+      ],
+      "expected": {
+        "status": 0,
+        "stdoutUtf8": "false\n",
+        "reads": [
+          "-name"
+        ]
+      },
+      "fullRecordEligibleAfterProjection": true,
+      "sourceReference": {
+        "source": "freeze-command-parser",
+        "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/21",
+        "recordSha256": "2b02982553c2e253a6caea3eeeb65ee91dd0dd1170e890644691648249ddac8f",
+        "inputSha256": "745189fc77fe0a3f0bdc11a460db36f6d2629f9fe16d261942cdd289728d9d8e",
+        "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
+      },
+      "overlayReference": null,
+      "missingBindings": []
+    },
+    "receipt": {
+      "schemaVersion": 1,
+      "jobId": "CMD-22--whole",
+      "outcome": "CAPTURED",
+      "proofRole": "direct-compiled-factory-handler-not-public-package",
+      "binding": {
+        "authorizationSha256": "3d9feb48d8c9b408a998ff3c4e5ede37164f7635a07bb1555411dbde86fe66ce",
+        "sealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+        "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+        "sourceTreeSha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+        "compiledEntrySha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+        "jobsSha256": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27"
+      },
+      "capture": {
+        "stdoutHex": "66616c73650a",
+        "stderrHex": "",
+        "effects": {
+          "before": [
+            {
+              "path": "/v/-name",
+              "hex": "66616c73650a"
+            }
+          ],
+          "after": [
+            {
+              "path": "/v/-name",
+              "hex": "66616c73650a"
+            }
+          ]
+        },
+        "events": [
+          {
+            "index": 0,
+            "kind": "command-call"
+          },
+          {
+            "index": 1,
+            "kind": "register-cleanup"
+          },
+          {
+            "index": 2,
+            "kind": "fs-read",
+            "operation": "readStream",
+            "path": "/v/-name",
+            "signalIsContext": true
+          },
+          {
+            "index": 3,
+            "kind": "iterator-acquire",
+            "name": "/v/-name"
+          },
+          {
+            "index": 4,
+            "kind": "iterator-next",
+            "name": "/v/-name",
+            "offset": 0
+          },
+          {
+            "index": 5,
+            "kind": "iterator-next",
+            "name": "/v/-name",
+            "offset": 1
+          },
+          {
+            "index": 6,
+            "kind": "sink-write",
+            "name": "stdout",
+            "bytes": 6
+          },
+          {
+            "index": 7,
+            "kind": "command-return",
+            "status": 0
+          }
+        ],
+        "status": 0,
+        "rejected": false,
+        "rejection": null,
+        "cleanupErrors": []
+      }
+    }
+  },
+  "fs05": {
+    "job": {
+      "id": "FS-05--whole",
+      "recordId": "FS-05",
+      "role": "command-semantic-runtime",
+      "argv": [
+        "-o",
+        "json",
+        "-c",
+        ".",
+        "/v/a",
+        "/v/b",
+        "/v/c"
+      ],
+      "stdinChunksHex": [
+        ""
+      ],
+      "stdinIsDefault": true,
+      "producerReuse": false,
+      "files": [
+        {
+          "path": "/v/a",
+          "hex": "310a"
+        },
+        {
+          "path": "/v/b",
+          "hex": "5b0a"
+        },
+        {
+          "path": "/v/c",
+          "hex": "330a"
+        }
+      ],
+      "expected": {
+        "status": 5,
+        "diagnosticCode": "INPUT_YAML_SYNTAX",
+        "stdoutUtf8": "1\n",
+        "reads": [
+          "/v/a",
+          "/v/b"
+        ],
+        "assertions": [
+          "Do not acquire /v/c; completed stdout remains, files and namespace unchanged."
+        ]
+      },
+      "fullRecordEligibleAfterProjection": true,
+      "sourceReference": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/14",
+        "recordSha256": "b67bdbb750ee7bbd6ff077e565179883046abf69e8e3dfb3506d448493067816",
+        "inputSha256": "f8fa44c452ab9e47859d4ce5e8b0f19c1be3f8a4f5de07806dc129d754e1fc3d",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "overlayReference": null,
+      "missingBindings": []
+    },
+    "receipt": {
+      "schemaVersion": 1,
+      "jobId": "FS-05--whole",
+      "outcome": "CAPTURED",
+      "proofRole": "direct-compiled-factory-handler-not-public-package",
+      "binding": {
+        "authorizationSha256": "3d9feb48d8c9b408a998ff3c4e5ede37164f7635a07bb1555411dbde86fe66ce",
+        "sealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+        "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+        "sourceTreeSha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+        "compiledEntrySha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+        "jobsSha256": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27"
+      },
+      "capture": {
+        "stdoutHex": "310a",
+        "stderrHex": "79713a20696e7075743a20494e5055545f59414d4c5f53594e54415820617420222f762f62223a313a310a",
+        "effects": {
+          "before": [
+            {
+              "path": "/v/a",
+              "hex": "310a"
+            },
+            {
+              "path": "/v/b",
+              "hex": "5b0a"
+            },
+            {
+              "path": "/v/c",
+              "hex": "330a"
+            }
+          ],
+          "after": [
+            {
+              "path": "/v/a",
+              "hex": "310a"
+            },
+            {
+              "path": "/v/b",
+              "hex": "5b0a"
+            },
+            {
+              "path": "/v/c",
+              "hex": "330a"
+            }
+          ]
+        },
+        "events": [
+          {
+            "index": 0,
+            "kind": "command-call"
+          },
+          {
+            "index": 1,
+            "kind": "register-cleanup"
+          },
+          {
+            "index": 2,
+            "kind": "fs-read",
+            "operation": "readStream",
+            "path": "/v/a",
+            "signalIsContext": true
+          },
+          {
+            "index": 3,
+            "kind": "iterator-acquire",
+            "name": "/v/a"
+          },
+          {
+            "index": 4,
+            "kind": "iterator-next",
+            "name": "/v/a",
+            "offset": 0
+          },
+          {
+            "index": 5,
+            "kind": "iterator-next",
+            "name": "/v/a",
+            "offset": 1
+          },
+          {
+            "index": 6,
+            "kind": "sink-write",
+            "name": "stdout",
+            "bytes": 2
+          },
+          {
+            "index": 7,
+            "kind": "fs-read",
+            "operation": "readStream",
+            "path": "/v/b",
+            "signalIsContext": true
+          },
+          {
+            "index": 8,
+            "kind": "iterator-acquire",
+            "name": "/v/b"
+          },
+          {
+            "index": 9,
+            "kind": "iterator-next",
+            "name": "/v/b",
+            "offset": 0
+          },
+          {
+            "index": 10,
+            "kind": "iterator-next",
+            "name": "/v/b",
+            "offset": 1
+          },
+          {
+            "index": 11,
+            "kind": "sink-write",
+            "name": "stderr",
+            "bytes": 43
+          },
+          {
+            "index": 12,
+            "kind": "command-return",
+            "status": 5
+          }
+        ],
+        "status": 5,
+        "rejected": false,
+        "rejection": null,
+        "cleanupErrors": []
+      }
+    }
+  },
+  "executed": false,
+  "syntheticPasses": 0,
+  "semanticPasses": 0
+}

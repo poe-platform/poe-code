@@ -1,0 +1,198 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createMemoryFileSystem, FsError, WebDavFileSystem } from "virtual-bash";
+import type { FileSystem } from "virtual-bash";
+import { withBackingDav } from "./provider.mjs";
+
+const namespace = "urn:virtual-bash:metadata";
+const payload = new Uint8Array([0, 255, 128, 13, 10, 65]);
+const escape = (text: string) => text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const decode = (text: string) => text.replaceAll("&quot;", '"').replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
+type Metadata = { version: number; type: string; etag: string; atimeMs: number; mtimeMs: number };
+type Mutation = "none" | "omit-readback" | "nonpersisting" | "mask-eagain";
+const document = (value: Metadata) => `<propertyupdate xmlns="DAV:" xmlns:m="${namespace}"><set><prop><m:timestamps>${escape(JSON.stringify(value))}</m:timestamps></prop></set></propertyupdate>`;
+
+async function fixture(name: string, operation: (context: Awaited<ReturnType<typeof contextFor>>) => Promise<void>, mutation: Mutation = "none", backingMode = "normal") {
+  const backing = createMemoryFileSystem();
+  await backing.writeFile("/file", payload);
+  await backing.utimes("/file", 1000, 2000);
+  await backing.mkdir("/directory");
+  await backing.utimes("/directory", 1000, 2000);
+  const supplied = backingMode === "normal" ? backing : new Proxy(backing, {
+    get(target, property) {
+      if (property === "utimes") return backingMode === "absent" ? undefined : async () => {};
+      const value: unknown = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  }) as FileSystem;
+  await withBackingDav(supplied, async baseUrl => {
+    const context = await contextFor(backing, baseUrl, mutation);
+    try { await operation(context); }
+    finally { console.log(`INDEPENDENT_WITNESS ${JSON.stringify({ name, mutation, state: await context.state(), wire: context.wire })}`); }
+  });
+}
+
+async function contextFor(backing: FileSystem, baseUrl: string, mutation: Mutation) {
+  const wire: unknown[] = [];
+  const transport = async (url: string, options: RequestInit): Promise<Response> => {
+    let response: Response;
+    if (mutation === "nonpersisting" && options.method === "PROPPATCH") {
+      response = new Response(`<d:multistatus xmlns:d="DAV:"><d:response><d:href>/dav/file</d:href><d:propstat><d:prop><m:timestamps xmlns:m="${namespace}"/></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>`, { status: 207 });
+    } else {
+      response = await fetch(url, options);
+      if ((mutation === "omit-readback" || mutation === "mask-eagain") && options.method === "PROPFIND") {
+        const text = (await response.text()).replace(/<v:timestamps\s+xmlns:v="urn:virtual-bash:metadata">[^<]*<\/v:timestamps>/gu, "");
+        response = new Response(text, { status: response.status, headers: { "Content-Type": "application/xml" } });
+      }
+    }
+    wire.push({ method: options.method, path: new URL(url).pathname, request: options.body,
+      headers: Object.fromEntries(new Headers(options.headers)), status: response.status, response: await response.clone().text() });
+    return response;
+  };
+  const remote = new WebDavFileSystem({ baseUrl, fetch: transport });
+  const raw = async (method: string, path = "/file", body = "", headers: Record<string, string> = {}) => {
+    const response = await transport(`${baseUrl}${path.slice(1)}`, { method, ...(method === "GET" ? {} : { body }), headers });
+    return { status: response.status, body: await response.text(), etag: response.headers.get("etag") };
+  };
+  const properties = async (path = "/file") => {
+    const result = await raw("PROPFIND", path, `<d:propfind xmlns:d="DAV:" xmlns:m="${namespace}"><d:prop><d:getetag/><m:timestamps/></d:prop></d:propfind>`, { Depth: "0" });
+    assert.equal(result.status, 207);
+    const etag = result.body.match(/<d:getetag>([^<]*)<\/d:getetag>/u)?.[1];
+    assert.ok(etag);
+    const stored = result.body.match(/<v:timestamps xmlns:v="urn:virtual-bash:metadata">([^<]*)<\/v:timestamps>/u)?.[1];
+    return { etag: decode(etag), value: stored === undefined ? undefined : JSON.parse(decode(stored)) as Metadata, xml: result.body };
+  };
+  const state = async () => {
+    const content = await backing.readFile("/file");
+    const stat = await backing.stat("/file");
+    return { bytes: [...content], atimeMs: stat.atimeMs, mtimeMs: stat.mtimeMs, size: stat.size, ino: stat.ino };
+  };
+  const value = async (): Promise<Metadata> => ({ version: 1, type: "file", etag: (await properties()).etag, atimeMs: -12345.625, mtimeMs: 98765.125 });
+  const patch = (metadata: Metadata, body = document(metadata), condition = metadata.etag) => raw("PROPPATCH", "/file", body, { "If-Match": condition, "Content-Type": "application/xml" });
+  const update = async () => {
+    try { await remote.utimes("/file", -12345.625, 98765.125); }
+    catch (error) { if (mutation !== "mask-eagain" || !(error instanceof FsError) || error.code !== "EAGAIN") throw error; }
+  };
+  return { backing, remote, raw, properties, state, value, patch, wire, update };
+}
+
+type Context = Awaited<ReturnType<typeof contextFor>>;
+async function persistenceProbe(context: Context) {
+  const metadata = await context.value();
+  const before = await context.state();
+  assert.equal((await context.patch(metadata)).status, 207);
+  const after = await context.properties();
+  assert.deepEqual(after.value, metadata, "successful update must persist the correctly namespaced raw property");
+  assert.equal(after.etag, metadata.etag, "this helper models timestamp-only updates without representation replacement");
+  assert.deepEqual(await context.state(), { ...before, atimeMs: metadata.atimeMs, mtimeMs: metadata.mtimeMs });
+  const observed = await context.remote.stat("/file");
+  assert.equal(observed.atimeMs, metadata.atimeMs);
+  assert.equal(observed.mtimeMs, metadata.mtimeMs);
+  assert.deepEqual(await context.backing.readFile("/file"), payload);
+}
+
+test("independent raw namespace, exact fractional times, content and validator", () => fixture("raw-exact", persistenceProbe));
+
+test("namespace aliases and numeric entity decode preserve raw values", () => fixture("aliases", async context => {
+  const metadata = await context.value();
+  const body = document(metadata).replaceAll("m:timestamps", "timestamp:timestamps").replace(`xmlns:m="${namespace}"`, `xmlns:timestamp="urn:virtual-bash:metadat&#97;"`).replaceAll("&quot;", "&#34;");
+  assert.equal((await context.patch(metadata, body)).status, 207);
+  assert.deepEqual((await context.properties()).value, metadata);
+}));
+
+test("directory trailing slash and parent listing share exact metadata", () => fixture("directory", async context => {
+  await context.remote.utimes("/directory", -0.5, 0.125);
+  assert.deepEqual(await context.properties("/directory/"), await context.properties("/directory"));
+  const listing = await context.raw("PROPFIND", "/", "", { Depth: "1" });
+  assert.match(listing.body, /&quot;atimeMs&quot;:-0.5,&quot;mtimeMs&quot;:0.125/u);
+  assert.equal((await context.backing.stat("/directory")).mtimeMs, 0.125);
+}));
+
+const rejected: Record<string, (value: Metadata) => string> = {
+  "wrong outer namespace": value => document(value).replace('xmlns="DAV:"', 'xmlns="urn:wrong"'),
+  "wrong property local name": value => document(value).replaceAll("m:timestamps", "m:timestamp"),
+  "nested namespace shadow": value => document(value).replace("<m:timestamps>", '<m:timestamps xmlns:m="DAV:">'),
+  "unknown property alongside timestamp": value => document(value).replace("</prop>", "<m:other/></prop>"),
+  "duplicate timestamp": value => document(value).replace("</prop>", `<m:timestamps>${escape(JSON.stringify(value))}</m:timestamps></prop>`),
+  "unsupported remove operation": value => document(value).replaceAll("<set>", "<remove>").replaceAll("</set>", "</remove>"),
+  "invalid numeric XML character": value => document(value).replace("&quot;version", "&#0;&quot;version"),
+  "malformed JSON": value => document(value).replace("&quot;version&quot;:1", "&quot;version&quot;:"),
+  "nonfinite JSON exponent": value => document(value).replace(`&quot;mtimeMs&quot;:${value.mtimeMs}`, "&quot;mtimeMs&quot;:1e999"),
+};
+for (const [name, makeBody] of Object.entries(rejected)) {
+  test(`${name} rejects without changing retained metadata or bytes`, () => fixture(name, async context => {
+    await context.update();
+    const before = await context.state();
+    const properties = await context.properties();
+    const metadata = { ...await context.value(), atimeMs: 123, mtimeMs: 456 };
+    assert.equal((await context.patch(metadata, makeBody(metadata))).status, 400);
+    assert.deepEqual(await context.state(), before);
+    assert.deepEqual(await context.properties(), properties);
+  }));
+}
+
+test("same-size backing content change with changed mtime invalidates metadata", () => fixture("same-size-change", async context => {
+  await context.update();
+  const before = await context.properties();
+  const changed = new Uint8Array([1, 2, 3, 4, 5, 6]);
+  await context.backing.writeFile("/file", changed);
+  await context.backing.utimes!("/file", 1500, 2500);
+  const after = await context.properties();
+  assert.notEqual(after.etag, before.etag);
+  assert.equal(after.value, undefined);
+  assert.deepEqual(await context.backing.readFile("/file"), changed);
+  const state = await context.state();
+  assert.equal((await context.patch(before.value!)).status, 412);
+  assert.deepEqual(await context.state(), state);
+}));
+
+test("PUT invalidates even same bytes and DELETE/recreate cannot revive metadata", () => fixture("http-content", async context => {
+  await context.update();
+  const before = await context.properties();
+  assert.equal((await context.raw("PUT", "/file", "ABCDEF")).status, 204);
+  assert.equal((await context.properties()).value, undefined);
+  await context.update();
+  const previous = await context.properties();
+  assert.equal((await context.raw("PUT", "/file", "ABCDEF")).status, 204);
+  assert.notEqual((await context.properties()).etag, previous.etag);
+  await context.update();
+  assert.equal((await context.raw("DELETE")).status, 204);
+  assert.equal((await context.raw("PUT", "/file", "ABCDEF")).status, 201);
+  const recreated = await context.properties();
+  assert.notEqual(recreated.etag, before.etag);
+  assert.equal(recreated.value, undefined);
+}));
+
+test("body validator and HTTP condition are independently checked", () => fixture("stale", async context => {
+  await context.update();
+  const metadata = await context.value();
+  const before = await context.state();
+  const properties = await context.properties();
+  assert.equal((await context.patch({ ...metadata, etag: '"stale"' }, document({ ...metadata, etag: '"stale"' }), metadata.etag)).status, 412);
+  assert.equal((await context.patch(metadata, document(metadata), '"stale"')).status, 412);
+  assert.deepEqual(await context.state(), before);
+  assert.deepEqual(await context.properties(), properties);
+}));
+
+for (const [mode, code] of [["absent", "ENOTSUP"], ["ignored", "EINVAL"]] as const) {
+  test(`${mode} backing utimes cannot advertise timestamp success`, () => fixture(mode, async context => {
+    const before = await context.state();
+    await assert.rejects(context.update(), error => error instanceof FsError && error.code === code);
+    assert.deepEqual(await context.state(), before);
+    assert.equal((await context.properties()).value, undefined);
+  }, "none", mode));
+}
+
+test("omitted readback property retains public EAGAIN", () => fixture("required-readback", async context => {
+  await assert.rejects(context.update(), error => error instanceof FsError && error.code === "EAGAIN");
+}, "omit-readback"));
+
+for (const mutation of ["omit-readback", "nonpersisting", "mask-eagain"] as const) {
+  test(`test-only mutant ${mutation} is killed by its unchanged probe`, () => fixture(`mutant:${mutation}`, async context => {
+    const probe = mutation === "mask-eagain"
+      ? () => assert.rejects(context.update(), error => error instanceof FsError && error.code === "EAGAIN")
+      : () => persistenceProbe(context);
+    await assert.rejects(probe(), error => error instanceof assert.AssertionError);
+    console.log(`MUTANT_KILLED ${mutation}`);
+  }, mutation));
+}

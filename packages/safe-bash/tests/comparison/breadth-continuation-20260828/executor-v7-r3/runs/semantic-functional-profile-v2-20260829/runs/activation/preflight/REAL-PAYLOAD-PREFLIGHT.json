@@ -1,0 +1,191 @@
+{
+  "schema": "FUNCTIONAL_V2_REAL_PAYLOAD_PREFLIGHT",
+  "status": "PASS",
+  "phase": "DATA_ONLY",
+  "date": "2026-08-29",
+  "completedAt": "2026-08-29T07:14:34.260Z",
+  "review": {
+    "commit": "37026b85275a2fa4b015cc18b04d75d90fa6dc3c",
+    "path": "tests/comparison/v7-r3-independent-20260829/functional-profile-v2-review/REVIEW.json",
+    "sha256": "f4a16fa6346397219c2c779fd30bb249759467d7da3295e5f5e7e26ab6e1e8f6"
+  },
+  "requirementsSha256": "18846b6776b4cac4d07280001481d22bb0bcb0733feb100addb02081c4a1910f",
+  "sourceSealSha256": "fb820b8b7d08ed2cd61af7d75c286ed133daa7a5457937061ffafd8e6982dce1",
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/ROOT-GRANT.json",
+    "bytes": 1325,
+    "mode": 420,
+    "sha256": "d9b4f0c5e91f2b1b7b0c4c0db6110afa7c165f51ab5892182bffc53e04fccef2"
+  },
+  "grantCommit": "1979eca53f1a878619e0442dc6184f84bec030b0",
+  "auth": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/AUTH.json",
+    "bytes": 572,
+    "mode": 420,
+    "sha256": "3f12d2e88ad29d6754cef3c0da1dbe127f47c354ad1e66b0017f539a4cff2452"
+  },
+  "sourceBinding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/preflight/SOURCE-BINDINGS.json",
+    "bytes": 166188,
+    "mode": 420,
+    "sha256": "b732ff75a1ef82fcf8b2d2441fda1d48d3d9e9408781dd7fb8abbe12fdcde585"
+  },
+  "archives": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "bytes": 749907,
+      "mode": 420,
+      "uid": 501,
+      "gid": 20,
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "metadataOnly": false
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "mode": 292,
+      "uid": 501,
+      "gid": 0,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+      "metadataOnly": false
+    }
+  ],
+  "targetArchiveMembersAuthenticated": 858,
+  "comparatorClosure": {
+    "files": 3843,
+    "omittedMetadataOnly": 1,
+    "entries": 4275,
+    "complete": true
+  },
+  "instructionPolicy": "One sealed comparator AGENTS.md is metadata-only, not read or staged. No instruction plaintext copied.",
+  "acceptedAdmission": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/RESULT.json",
+    "sha256": "22d9624cb1cfd3154b6070a3cde96d0958a202f2042ef80df37b012430bd7de0"
+  },
+  "stagedSha256": "3426043bbc0edff6008eac3cb7aeb897c12e36d7bc77235e74be8ddf9f7fedf1",
+  "retainedPhysicalStages": [
+    {
+      "name": "target-installed",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed",
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "engine": "virtual-bash",
+      "census": {
+        "files": 860,
+        "omittedMetadataOnly": 0,
+        "entries": 906,
+        "complete": true
+      },
+      "oldOrigin": null,
+      "oldOriginAbsent": null,
+      "viewSha256": "13e785a7d0887fee22a94ad8a7a546ca867097f3f6b070fa874bdc146d1e5a1d"
+    },
+    {
+      "name": "target-moved",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved",
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "engine": "virtual-bash",
+      "census": {
+        "files": 860,
+        "omittedMetadataOnly": 0,
+        "entries": 906,
+        "complete": true
+      },
+      "oldOrigin": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/move-origin",
+      "oldOriginAbsent": true,
+      "viewSha256": "4e74487ad57f6bc9ab091942df819b0d6b7d5761ac6b5afd6c7a205ba72e7898"
+    },
+    {
+      "name": "baseline-installed",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed",
+      "consumerPath": "benchmarks/consumer-v5/consumer.mjs",
+      "engine": "just-bash",
+      "census": {
+        "files": 3845,
+        "omittedMetadataOnly": 0,
+        "entries": 4277,
+        "complete": true
+      },
+      "oldOrigin": null,
+      "oldOriginAbsent": null,
+      "viewSha256": "b2daf7727363c23367f09cff580caec4370f2eef5b835440932c9052f815e026"
+    }
+  ],
+  "physicalStageQualification": "Existing accepted installed/moved views reauthenticated; not a new stage or load proof. Actual worker load and consumer edges remain required.",
+  "ownership": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation",
+      "uid": 501,
+      "gid": 20,
+      "mode": 493,
+      "realpathExact": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/admin-capture",
+      "uid": 501,
+      "gid": 20,
+      "mode": 448,
+      "realpathExact": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed",
+      "uid": 501,
+      "gid": 20,
+      "mode": 493,
+      "realpathExact": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved",
+      "uid": 501,
+      "gid": 20,
+      "mode": 493,
+      "realpathExact": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed",
+      "uid": 501,
+      "gid": 20,
+      "mode": 493,
+      "realpathExact": true
+    }
+  ],
+  "processPlan": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/PROCESS-PLAN.json",
+    "bytes": 68662,
+    "mode": 420,
+    "sha256": "73618b581c34909e1b54824699b4c729237729b9b3659da7bc58f6cd2f34bd6b"
+  },
+  "callPlan": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/activation/CALL-PLAN.json",
+    "bytes": 26551,
+    "mode": 420,
+    "sha256": "6532eaa893650ff70cc5083114f974fef3f957640b561a8e31a631760a240852"
+  },
+  "unused": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-20260829-v2-01-supervision",
+      "absent": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/runs/outer-capture",
+      "absent": true
+    }
+  ],
+  "newEngineImports": 0,
+  "newWorkers": 0,
+  "newPrograms": 0,
+  "noFallback": true,
+  "sourceHelperQualification": "Reviewed harness DATA helpers tarMembers/inspectTree/readDocument/viewProjection used after source authentication. No product/engine module imported.",
+  "localPrepErrors": [
+    {
+      "code": "READ_BOUND",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json",
+      "defaultCap": 262144,
+      "actualBytes": 812576,
+      "correction": "Used declared32MiB document reader after metadata check; no engine execution or permission change."
+    }
+  ]
+}

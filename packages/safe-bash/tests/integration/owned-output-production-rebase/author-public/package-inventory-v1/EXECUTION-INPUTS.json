@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "qualification": "AUTHOR_DECLARED_PACKAGE_EXPORT_INVENTORY_ONLY",
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "publicBindingCommit": "7204b9e01752c700dd791afd332e7f1b5fd8ba73",
+  "files": [
+    {
+      "path": "probe.mjs",
+      "bytes": 2384,
+      "sha256": "2029d0e825e67244c732ed3f47395280a9d2bf89f5a66130ecbb24d002e82167"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 3499,
+      "sha256": "a0593f5c7b5e24812d2138fecbc82e86ef020947db2e4e102c25b8c400c95c95"
+    }
+  ]
+}

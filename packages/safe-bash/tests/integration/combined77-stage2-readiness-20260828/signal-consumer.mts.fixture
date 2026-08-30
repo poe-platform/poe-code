@@ -1,0 +1,11 @@
+import { agentCommands, type CommandInvokeOptions, type CommandInvoker } from "virtual-bash";
+import { type CommandInvokeOptions as ContractOptions } from "virtual-bash/contracts";
+
+const omitted: CommandInvokeOptions = {};
+const explicitUndefined: CommandInvokeOptions = { signal: undefined };
+const local: ContractOptions = { signal: new AbortController().signal };
+const same: CommandInvokeOptions = local;
+declare const invoke: CommandInvoker;
+const completion: Promise<{ readonly exitCode: number }> = invoke("echo", ["literal"], explicitUndefined);
+agentCommands({ which: { limits: { maxProbes: 3 } }, replace: true });
+void omitted; void same; void completion;

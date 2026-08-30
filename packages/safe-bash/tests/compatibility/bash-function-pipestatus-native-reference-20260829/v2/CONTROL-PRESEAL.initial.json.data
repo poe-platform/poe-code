@@ -1,0 +1,53 @@
+{
+  "schema": "function-pipestatus-controls-v2",
+  "files": [
+    {
+      "path": "controller.mjs",
+      "bytes": 25030,
+      "mode": 420,
+      "sha256": "c2b2ce79c68731d9ad38ac11afc79254d2d9aae88c6f651d7ca064fb23f9580a"
+    },
+    {
+      "path": "observation.mjs.source",
+      "bytes": 2170,
+      "mode": 420,
+      "sha256": "5e5c568fe1a630bfc55017a48833efc96c2dbc179025d2be233523f5e76131a0"
+    },
+    {
+      "path": "cohort.fragment.data",
+      "bytes": 1422,
+      "mode": 420,
+      "sha256": "cbb47c9c7b6d796266b44b9ea86b19e26cb76e903e9793f45e7deefc2df15cf2"
+    },
+    {
+      "path": "PREEXEC-PLAN.md",
+      "bytes": 2311,
+      "mode": 420,
+      "sha256": "f1496ef4438156ee3fa44f15b072d339ae8cb59c7fee8bc8f72c77620b189b8e"
+    },
+    {
+      "path": "materialized/PRESEAL.json",
+      "bytes": 6772,
+      "mode": 384,
+      "sha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901"
+    },
+    {
+      "path": "APPROVAL-PROPOSAL.template.json",
+      "bytes": 2902,
+      "mode": 384,
+      "sha256": "a6d8728e5f8c9db7e79c1c2eb1e403e2411edb72d88c02a3bf8b1a8cbf4670e7"
+    },
+    {
+      "path": "GO.template.json",
+      "bytes": 1840,
+      "mode": 384,
+      "sha256": "b7ce233660f978f704e1f933d2a7421aef3b6e957c89b51fb3b2233e041dc001"
+    },
+    {
+      "path": "REVIEW-ACCEPTANCE.template.json",
+      "bytes": 367,
+      "mode": 384,
+      "sha256": "734e653c116bff6c0b682ac904879b61527c2cc260d46112b395acfe87a39649"
+    }
+  ]
+}

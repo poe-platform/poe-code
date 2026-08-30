@@ -1,0 +1,157 @@
+{
+  "completedAt": "2026-08-27T12:28:33.755Z",
+  "caveat": "Evaluator applies PRE-RUN effect/status requirements; it does not retrospectively freeze native observations or classify unavailable nested baseline returns as equality. No product PIPESTATUS vector API is available.",
+  "curl": [
+    {
+      "id": "C01",
+      "publicStatus": 0,
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "nativeStatusAndPipeStatuses": "0\n0 0\n",
+      "candidateNestedStatus": 0,
+      "baselineNestedReturnAvailable": true,
+      "candidateWriteAttempts": 1,
+      "originalIndependentEffectsPresent": true,
+      "candidateIndependentEffectsPresent": true,
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C02",
+      "publicStatus": 0,
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "nativeStatusAndPipeStatuses": "0\n0 0\n",
+      "candidateNestedStatus": 141,
+      "baselineNestedReturnAvailable": false,
+      "candidateWriteAttempts": 0,
+      "originalIndependentEffectsPresent": false,
+      "candidateIndependentEffectsPresent": true,
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C03",
+      "publicStatus": 141,
+      "originalStatus": 141,
+      "currentStatus": 141,
+      "nativeStatusAndPipeStatuses": "0\n0 0\n",
+      "candidateNestedStatus": 141,
+      "baselineNestedReturnAvailable": false,
+      "candidateWriteAttempts": 0,
+      "originalIndependentEffectsPresent": false,
+      "candidateIndependentEffectsPresent": true,
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C04",
+      "publicStatus": 0,
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "nativeStatusAndPipeStatuses": "0\n23 0\n",
+      "candidateNestedStatus": 141,
+      "baselineNestedReturnAvailable": false,
+      "candidateWriteAttempts": 0,
+      "originalIndependentEffectsPresent": false,
+      "candidateIndependentEffectsPresent": true,
+      "nativeBodyErrorCode": "ENOENT",
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C05",
+      "publicStatus": 141,
+      "originalStatus": 141,
+      "currentStatus": 141,
+      "nativeStatusAndPipeStatuses": "23\n23 0\n",
+      "candidateNestedStatus": 141,
+      "baselineNestedReturnAvailable": false,
+      "candidateWriteAttempts": 0,
+      "originalIndependentEffectsPresent": false,
+      "candidateIndependentEffectsPresent": true,
+      "nativeBodyErrorCode": "ENOENT",
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C06",
+      "publicStatus": 0,
+      "originalStatus": 0,
+      "currentStatus": 0,
+      "nativeStatusAndPipeStatuses": "0\n0 0\n",
+      "candidateNestedStatus": 0,
+      "baselineNestedReturnAvailable": true,
+      "candidateWriteAttempts": 0,
+      "originalIndependentEffectsPresent": true,
+      "candidateIndependentEffectsPresent": true,
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C07",
+      "publicStatus": 23,
+      "originalStatus": 23,
+      "currentStatus": 23,
+      "nativeStatusAndPipeStatuses": "0\n0 0\n",
+      "candidateNestedStatus": 23,
+      "baselineNestedReturnAvailable": true,
+      "candidateWriteAttempts": 1,
+      "originalIndependentEffectsPresent": true,
+      "candidateIndependentEffectsPresent": true,
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    },
+    {
+      "id": "C08",
+      "publicStatus": 23,
+      "originalStatus": 23,
+      "currentStatus": 23,
+      "nativeStatusAndPipeStatuses": "23\n23 0\n",
+      "candidateNestedStatus": 23,
+      "baselineNestedReturnAvailable": true,
+      "candidateWriteAttempts": 1,
+      "originalIndependentEffectsPresent": true,
+      "candidateIndependentEffectsPresent": true,
+      "nativeBodyErrorCode": "EISDIR",
+      "errors": [],
+      "passedScopedPublicAndEffects": true
+    }
+  ],
+  "curlScopedPublicAndEffects": "8/8",
+  "originalAndCurrentCohortsEach": 8,
+  "nativeObservations": 8,
+  "originalPrecedenceStrict": "9/12",
+  "supplementarySelectedBinding": "3/3 same parameters; not an unchanged12/12",
+  "auxiliary": [
+    {
+      "id": "Q03",
+      "passed": true,
+      "events": [
+        "first-cleanup",
+        "second-start",
+        "second-end"
+      ],
+      "sharedClose": true,
+      "parentAborted": false,
+      "siblingAborted": false,
+      "admissionRefused": true
+    },
+    {
+      "id": "Q04",
+      "passed": true,
+      "reads": 1,
+      "returnsAfterOwnerFinalization": 1,
+      "operationState": {
+        "aborted": true,
+        "borrowedReturnsBeforeOwnerFinalization": 0
+      },
+      "stageLive": true,
+      "effects": [
+        "sibling-live"
+      ],
+      "independentHex": "696e646570656e64656e742d66696c650a"
+    }
+  ],
+  "sourceChanges": 0
+}

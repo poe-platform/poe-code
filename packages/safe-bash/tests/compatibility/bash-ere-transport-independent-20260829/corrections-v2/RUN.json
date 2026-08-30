@@ -1,0 +1,19 @@
+{
+  "pid": 64713,
+  "exited": {
+    "code": 0,
+    "signal": null
+  },
+  "closed": {
+    "code": 0,
+    "signal": null
+  },
+  "observedBytes": 76,
+  "failurePresent": false,
+  "postguards": 24,
+  "pureChildStarts": 1,
+  "pureChildCloses": 1,
+  "parentChildPeak": 2,
+  "workerStarts": 0,
+  "engineEvaluations": 0
+}

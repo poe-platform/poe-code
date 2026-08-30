@@ -1,0 +1,114 @@
+{
+  "requests": 36,
+  "totalRead": 1357969,
+  "files": {
+    "tests/compatibility/bash-arithmetic-parameters-independent-20260829/pinned-arithmetic-parameters.ts": {
+      "bytes": 5221,
+      "sha256": "cedcbab5ece5b8b109b37a6a2d61945f79168d679040e67feb519d23219f516a"
+    },
+    "tests/compatibility/bash-arithmetic-parameters-independent-20260829/source.diff": {
+      "bytes": 2726,
+      "sha256": "25e3d92969d1cd1327d371b060613488054403cda4dd7a2e14ea0d2f183e554a"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/SEAL.json": {
+      "bytes": 196558,
+      "sha256": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/target-owner.mjs": {
+      "bytes": 12710,
+      "sha256": "b81d857a2514f9d5d1a7f2c4ec3df666f34d8b40bc4f151c5ebdd104e80ff1e0"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/collector.mjs": {
+      "bytes": 2335,
+      "sha256": "2d36af1cb5bfcd5faa44523b091b5a5975ab6f7a07f0689dd75d1f198e79403f"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/collector-core.mjs": {
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/direct-child.mjs": {
+      "bytes": 5589,
+      "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/launch.sh": {
+      "bytes": 702,
+      "sha256": "456743d299177a91f994e5182cfe7bdf80ede39aef1320776b0c9afbbbf0e796"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/activation.mjs": {
+      "bytes": 2129,
+      "sha256": "88bf2420227a5695fdf76c58fbb0f90a2a402111e055c7835ce4f4f553120525"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/GO.template.json": {
+      "bytes": 954,
+      "sha256": "8d2c1256d2acff91991a7e93d66f024f329978f714fbfee7f5476f2195eead28"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/REVIEW.template.json": {
+      "bytes": 174,
+      "sha256": "b20c395cf587227242f6c24c8e548f0a3c526371a140e336663dc8c8702af920"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/CASES.json": {
+      "bytes": 10895,
+      "sha256": "a6018734d7e717a2efaed63125da154466b317f18796f6687e3e90efa4031bc5"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/case-driver.mjs": {
+      "bytes": 2625,
+      "sha256": "b79e1d478be4b5744591ec39d1711ccac28e714878314cc110f9dd95c018204e"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/case-adapter.mjs": {
+      "bytes": 4474,
+      "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/future/helper-driver.mjs": {
+      "bytes": 3013,
+      "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package-admission.mjs": {
+      "bytes": 3896,
+      "sha256": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/finalization.mjs": {
+      "bytes": 850,
+      "sha256": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/profile.mjs": {
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/guard.mjs": {
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/SOURCE-DISJOINTNESS.json": {
+      "bytes": 905,
+      "sha256": "1fe91b467dd02e3101ed044b472d49253663b305c16dfec5d5c90b8c9c6636bc"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/canonical.mjs": {
+      "bytes": 867,
+      "sha256": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/BUILD-SEAL.json": {
+      "bytes": 85429,
+      "sha256": "30100c3b0694685825207cb6d9beb2802ba7eee450a45f0a9d63ea711c107470"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/BUILD-RESULT.json": {
+      "bytes": 250698,
+      "sha256": "13cef2056add37b0653526e40930eb94b14fbb4edbeb4edef9a835b9bfbbdf59"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/preexec-v4/package.mjs": {
+      "bytes": 3509,
+      "sha256": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/BUILD-EVIDENCE.json": {
+      "bytes": 3735,
+      "sha256": "f0fa4650289c783eea2307fe0f4a9e2978673d67538656f2c06579256ac190e3"
+    },
+    "tests/compatibility/bash-function-keyword-author-20260829/k08-repair-v1/evidence/SOURCE-BINDING.json": {
+      "bytes": 47625,
+      "sha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17"
+    }
+  }
+}

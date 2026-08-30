@@ -1,0 +1,49 @@
+{
+  "authorizationDate": "2026-08-28",
+  "counts": {
+    "boundaryOutcomes": 16,
+    "correctedR21Groups": 4,
+    "validDispatchControls": 8,
+    "sourceFallbackControls": 4,
+    "validatorControls": 52,
+    "controls": 64,
+    "children": 28,
+    "forced": 0,
+    "workers": 0
+  },
+  "runtimes": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "version": "v22.22.2",
+      "permissionFlag": "--permission"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "version": "v24.11.1",
+      "permissionFlag": "--permission"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "bytes": 7604272,
+      "mode": 493,
+      "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  ],
+  "bindingsSha256": "f63ce48f9d3414a704fe5186877512d7b75df532d59a5d339977b92951e3dc1c"
+}

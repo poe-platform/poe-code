@@ -1,0 +1,31 @@
+{
+  "created": "2026-08-29T11:32:32.601Z",
+  "sourceCommit": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "dispatchCommit": "a99b12bf4c00a9999d16e037150db9f5d12288eb",
+  "preseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "groupsPassed": 16,
+  "oldAdmissionAssertions": 6,
+  "oldReviewPredicatesCovered": 9,
+  "controllerPid": 18338,
+  "controllerExitCloseGroupAbsent": true,
+  "controllerSignals": 0,
+  "syntheticFDAndSignalFaultsOnly": true,
+  "nativeFaultInjection": 0,
+  "productCalls": 0,
+  "productInstall": 0,
+  "regexWorkers": 0,
+  "guestEngineCalls": 0,
+  "sourcePostguards": true,
+  "knownExplicitStartsIncludingPublication": 37,
+  "conservativeEditingWrapperAllowance": 40,
+  "knownPeak": 3,
+  "fullTransitiveCensus": false,
+  "elapsedToPrepublicationSeconds": 632.5394543457031,
+  "captureBytes": 28665,
+  "ownedWorkBytes": 118450,
+  "originalIndependentResult": "3/9 retained unchanged",
+  "runtimeAuthorization": false
+}

@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: stat human numeric timestamp 0
+ok 1 - stat human numeric timestamp 0
+  ---
+  duration_ms: 2.865667
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -0
+ok 2 - stat human numeric timestamp -0
+  ---
+  duration_ms: 0.330125
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1000
+ok 3 - stat human numeric timestamp 1000
+  ---
+  duration_ms: 0.248917
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1000
+ok 4 - stat human numeric timestamp -1000
+  ---
+  duration_ms: 0.11125
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1
+ok 5 - stat human numeric timestamp 1
+  ---
+  duration_ms: 0.211
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1
+ok 6 - stat human numeric timestamp -1
+  ---
+  duration_ms: 0.100083
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1001
+ok 7 - stat human numeric timestamp 1001
+  ---
+  duration_ms: 0.129792
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1001
+ok 8 - stat human numeric timestamp -1001
+  ---
+  duration_ms: 0.4255
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 0.125
+ok 9 - stat human numeric timestamp 0.125
+  ---
+  duration_ms: 0.381875
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -0.125
+ok 10 - stat human numeric timestamp -0.125
+  ---
+  duration_ms: 0.319917
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 123.456789
+ok 11 - stat human numeric timestamp 123.456789
+  ---
+  duration_ms: 0.090041
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -123.456789
+ok 12 - stat human numeric timestamp -123.456789
+  ---
+  duration_ms: 0.074125
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 0.000001
+ok 13 - stat human numeric timestamp 0.000001
+  ---
+  duration_ms: 0.066084
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -0.000001
+ok 14 - stat human numeric timestamp -0.000001
+  ---
+  duration_ms: 0.060667
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 4.9e-7
+ok 15 - stat human numeric timestamp 4.9e-7
+  ---
+  duration_ms: 0.06225
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -4.9e-7
+ok 16 - stat human numeric timestamp -4.9e-7
+  ---
+  duration_ms: 0.060083
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 5e-7
+ok 17 - stat human numeric timestamp 5e-7
+  ---
+  duration_ms: 0.059916
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -5e-7
+ok 18 - stat human numeric timestamp -5e-7
+  ---
+  duration_ms: 0.074166
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 5e-324
+ok 19 - stat human numeric timestamp 5e-324
+  ---
+  duration_ms: 0.143458
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -5e-324
+ok 20 - stat human numeric timestamp -5e-324
+  ---
+  duration_ms: 0.084208
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 999.99999949
+ok 21 - stat human numeric timestamp 999.99999949
+  ---
+  duration_ms: 0.058625
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 999.9999995
+ok 22 - stat human numeric timestamp 999.9999995
+  ---
+  duration_ms: 0.06225
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -999.99999949
+ok 23 - stat human numeric timestamp -999.99999949
+  ---
+  duration_ms: 0.061417
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -999.9999995
+ok 24 - stat human numeric timestamp -999.9999995
+  ---
+  duration_ms: 0.063417
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 86399999.9999995
+ok 25 - stat human numeric timestamp 86399999.9999995
+  ---
+  duration_ms: 0.0735
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -86399999.9999995
+ok 26 - stat human numeric timestamp -86399999.9999995
+  ---
+  duration_ms: 0.392125
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 0.30000000000000004
+ok 27 - stat human numeric timestamp 0.30000000000000004
+  ---
+  duration_ms: 0.058958
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 946684800123
+ok 28 - stat human numeric timestamp 946684800123
+  ---
+  duration_ms: 0.05775
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000000
+ok 29 - stat human numeric timestamp 1700000000000
+  ---
+  duration_ms: 0.06025
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000123
+ok 30 - stat human numeric timestamp 1700000000123
+  ---
+  duration_ms: 0.060625
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000123.456
+ok 31 - stat human numeric timestamp 1700000000123.456
+  ---
+  duration_ms: 0.06375
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 1700000000123.4568
+ok 32 - stat human numeric timestamp 1700000000123.4568
+  ---
+  duration_ms: 0.057625
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -1700000000123.456
+ok 33 - stat human numeric timestamp -1700000000123.456
+  ---
+  duration_ms: 0.062875
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp 8640000000000000
+ok 34 - stat human numeric timestamp 8640000000000000
+  ---
+  duration_ms: 0.073459
+  type: 'test'
+  ...
+# Subtest: stat human numeric timestamp -8640000000000000
+ok 35 - stat human numeric timestamp -8640000000000000
+  ---
+  duration_ms: 0.05875
+  type: 'test'
+  ...
+# Subtest: stat routed whole-second %Y:%y and historical author timestamps use GNU nine columns
+ok 36 - stat routed whole-second %Y:%y and historical author timestamps use GNU nine columns
+  ---
+  duration_ms: 0.287417
+  type: 'test'
+  ...
+# Subtest: stat human missing birth remains a dash; missing required time is unsupported
+ok 37 - stat human missing birth remains a dash; missing required time is unsupported
+  ---
+  duration_ms: 0.370458
+  type: 'test'
+  ...
+# Subtest: stat human invalid and out-of-Date-range timestamps fail before operand output
+ok 38 - stat human invalid and out-of-Date-range timestamps fail before operand output
+  ---
+  duration_ms: 1.1855
+  type: 'test'
+  ...
+# Subtest: stat human width, string precision, and exact output byte limits remain bounded
+ok 39 - stat human width, string precision, and exact output byte limits remain bounded
+  ---
+  duration_ms: 0.337875
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 143.857708

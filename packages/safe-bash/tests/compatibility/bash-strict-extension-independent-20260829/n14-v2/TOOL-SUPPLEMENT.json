@@ -1,0 +1,14 @@
+{
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+    "hashing": "64KiB streaming"
+  },
+  "executorFiles": 126,
+  "matched": true,
+  "namespaceUnused": true,
+  "sourcePreseal": "e79fd0cc27d9dc3504b87efb50d1c3e3f5f72b2f",
+  "seal": "1fb07fc2b9c0c04a482b1ffec020b7394a76425a5cd411fa622c4b4b90ecfa3b",
+  "knownPreparationConservativeCeiling": 40,
+  "actualRuns": 0
+}

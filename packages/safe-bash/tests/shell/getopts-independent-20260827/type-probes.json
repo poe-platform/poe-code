@@ -1,0 +1,39 @@
+{
+  "format": "independent-getopts-type-probes-v1",
+  "classification": "Opt-in TypeScript probe data, not canonical TypeScript files or test discovery inputs; materialize unchanged only after freeze authorization.",
+  "compilerOptions": ["--noEmit", "--target", "ES2023", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--strict", "--noUncheckedIndexedAccess", "--exactOptionalPropertyTypes", "--verbatimModuleSyntax", "--types", "node"],
+  "prelude": "import { createGetoptsState, cloneGetoptsState, withGetoptsIndex, scanGetopts } from './candidate/getopts.js';\nconst state = createGetoptsState();\nconst work = { maxArguments: 16, maxBytes: 1024, maxSteps: 8192, yieldEvery: 8, checkpoint: async (steps: number): Promise<void> => { void steps; } };\nconst options = { reportErrors: true, work };\n",
+  "positive": [
+    { "id": "T01", "code": "const args: readonly string[] = ['-pq', 'value'];\nconst result = await scanGetopts(withGetoptsIndex(cloneGetoptsState(state), 1), 'pq:', args, options);\nconst status: 0 | 1 = result.status;\nconst kind: 'option' | 'unknown-option' | 'missing-argument' | 'end' = result.kind;\nconst option: string = result.option;\nconst index: number = result.optind;\nif (result.argument.kind === 'set') { const value: string = result.argument.value; void value; }\nif (result.diagnostic !== null) { const diagnosticOption: string = result.diagnostic.option; void diagnosticOption; }\ncloneGetoptsState(result.state);\nvoid [status, kind, option, index];\n" },
+    { "id": "T02", "code": "await scanGetopts(state, '', [], { reportErrors: false, work: { ...work, signal: new AbortController().signal, checkpoint: (steps: number): void => { void steps; } } });\n" }
+  ],
+  "negative": [
+    { "id": "T03", "code": "scanGetopts(state, 'p', ['-p']);", "reason": "options are required" },
+    { "id": "T04", "code": "scanGetopts(state, 'p', ['-p'], undefined);", "reason": "undefined options" },
+    { "id": "T05", "code": "scanGetopts(state, 'p', ['-p'], null);", "reason": "null options" },
+    { "id": "T06", "code": "scanGetopts(state, 'p', ['-p'], { work });", "reason": "missing reportErrors" },
+    { "id": "T07", "code": "scanGetopts(state, 'p', ['-p'], { reportErrors: '0', work });", "reason": "reportErrors is not an OPTERR string coercion seam" },
+    { "id": "T08", "code": "scanGetopts(state, 'p', ['-p'], { reportErrors: 0, work });", "reason": "reportErrors requires boolean" },
+    { "id": "T09", "code": "scanGetopts(state, 'p', ['-p'], { reportErrors: true });", "reason": "missing work" },
+    { "id": "T10", "code": "scanGetopts(state, 'p', ['-p'], { reportErrors: true, work: null });", "reason": "null work" },
+    { "id": "T11", "code": "scanGetopts(state, 'p', ['-p'], { reportErrors: true, work: {} });", "reason": "empty malformed work" },
+    { "id": "T12", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, maxArguments: '16' } });", "reason": "string argument cap" },
+    { "id": "T13", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, maxBytes: 1024n } });", "reason": "bigint byte cap" },
+    { "id": "T14", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, maxSteps: null } });", "reason": "null step cap" },
+    { "id": "T15", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, yieldEvery: '8' } });", "reason": "string yield interval" },
+    { "id": "T16", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { maxArguments: 1, maxBytes: 3, maxSteps: 8, yieldEvery: 1 } });", "reason": "missing checkpoint" },
+    { "id": "T17", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, checkpoint: 1 } });", "reason": "noncallable checkpoint" },
+    { "id": "T18", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, checkpoint: (steps: string): void => { void steps; } } });", "reason": "wrong callback argument type" },
+    { "id": "T19", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, checkpoint: async () => 7 } });", "reason": "wrong callback promise result type" },
+    { "id": "T20", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, signal: { aborted: false } } });", "reason": "malformed signal object" },
+    { "id": "T21", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, maxBytes: undefined } });", "reason": "undefined mandatory cap" },
+    { "id": "T22", "code": "scanGetopts(state, 'p', [1], options);", "reason": "nonstring argv entry" },
+    { "id": "T23", "code": "scanGetopts(state, 1, ['-p'], options);", "reason": "nonstring optstring" },
+    { "id": "T24", "code": "withGetoptsIndex(state, '1');", "reason": "no arithmetic/string coercion in primitive" },
+    { "id": "T25", "code": "cloneGetoptsState({ index: '1' });", "reason": "malformed state index" },
+    { "id": "T26", "code": "const synchronousResult: { optind: number } = scanGetopts(state, 'p', ['-p'], options); void synchronousResult;", "reason": "scanner is asynchronous" },
+    { "id": "T27", "code": "scanGetopts(state, 'p', ['-p'], { ...options, work: { ...work, checkpoint: undefined } });", "reason": "undefined checkpoint" },
+    { "id": "T28", "code": "scanGetopts(state, 'p', ['-p'], { reportErrors: undefined, work });", "reason": "undefined mandatory report policy" }
+  ],
+  "acceptance": "Run T01/T02 together first with no casts or ts-ignore. Compile each negative in its own unchanged prelude plus single probe, both against committed-source types and relocated emitted declarations. Require compiler rejection located in the probe with the intended incompatibility; missing module, compiler failure, invalid lib setup, or prelude errors are infrastructure failures, not negative-probe passes. Keep raw diagnostic output and exit status per probe. Numeric finiteness, safe-integer and nonnegative rules remain runtime controls, not claims about TypeScript number."
+}

@@ -1,0 +1,190 @@
+{
+  "schema": "coherent78-safejs-preparation-manifest-v1",
+  "phase": "PREPARATION_ONLY",
+  "executionAuthorized": false,
+  "runnerRevision": null,
+  "runnerReadiness": "New supervisor/loader/child and exact minimal npm closure still require a separate seal and ROOT GO.",
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "classification": "hash/metadata preparation receipt; no private source bytes",
+      "bytes": 33576,
+      "mode": 420,
+      "sha256": "a782ffd74ca9d2c8b85024c9db0bef6da6a7554b6359e6f609f1d4a1150ed608"
+    },
+    {
+      "path": "CASES.json",
+      "classification": "exact UTF-8 guest inputs, shell scripts and planned assertions",
+      "bytes": 5149,
+      "mode": 420,
+      "sha256": "4638f024e19ab1c8c643ce8694ecf4bbcbcd5c24ba6d6a37793ef12d7082ef2e"
+    },
+    {
+      "path": "README.md",
+      "classification": "bounded preparation handoff",
+      "bytes": 4680,
+      "mode": 420,
+      "sha256": "cf6e546887b01b095322695b8038ed6605ad642cef3f109e34026f303139bdd6"
+    },
+    {
+      "path": "RECIPE.json",
+      "classification": "planned protocol, not execution evidence",
+      "bytes": 14404,
+      "mode": 420,
+      "sha256": "61c8c66d45aa8e6066888a3b89562eb92991f544c185ae5d38f34f2b9fad8e50"
+    },
+    {
+      "path": "g01.mjs.data",
+      "classification": "inert guest source, syntax-only, not executable discovery or canonical TypeScript",
+      "bytes": 516,
+      "mode": 420,
+      "sha256": "a05e073a1cb5b9b8eb3b72b6b9252d3901b71440d903d1bf6d3f7fb774c862c0"
+    },
+    {
+      "path": "g02.mjs.data",
+      "classification": "inert guest source, syntax-only, not executable discovery or canonical TypeScript",
+      "bytes": 206,
+      "mode": 420,
+      "sha256": "04aba13ceefa6091c208f2032e4f725d548a2ae471cf36e3e2f2f8ddaca13eef"
+    },
+    {
+      "path": "g03.mjs.data",
+      "classification": "inert guest source, syntax-only, not executable discovery or canonical TypeScript",
+      "bytes": 745,
+      "mode": 420,
+      "sha256": "4381acb991133c13f839474c114c27c93dd82342fd3dda20fc879c1062c24154"
+    }
+  ],
+  "guestInputs": [
+    {
+      "id": "G01",
+      "guestFile": "g01.mjs.data",
+      "guestSha256": "a05e073a1cb5b9b8eb3b72b6b9252d3901b71440d903d1bf6d3f7fb774c862c0",
+      "outer": {
+        "encoding": "utf8",
+        "bytes": 207,
+        "sha256": "6a5b05ace25bf09848a301e07eb5c20951482fe0c66656427015ac1a6af0d90b"
+      },
+      "stdin": {
+        "encoding": "utf8",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "expectedStdout": {
+        "encoding": "utf8",
+        "bytes": 136,
+        "sha256": "ba6eb3783777941ef4036075e98d45c614cc90adb117c950386b521f06940192"
+      },
+      "expectedStderr": {
+        "encoding": "utf8",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "expectedStatus": 0
+    },
+    {
+      "id": "G02",
+      "guestFile": "g02.mjs.data",
+      "guestSha256": "04aba13ceefa6091c208f2032e4f725d548a2ae471cf36e3e2f2f8ddaca13eef",
+      "outer": {
+        "encoding": "utf8",
+        "bytes": 34,
+        "sha256": "d1574bcc61f0885bb398fcea36d2d74ede2b3a3a56804824607f56e9c7aadb87"
+      },
+      "stdin": {
+        "encoding": "utf8",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "expectedStdout": {
+        "encoding": "utf8",
+        "bytes": 10,
+        "sha256": "728f1e76c54440f4023756ea16fec1ce02113e16789b01c615bcc9072b6e20aa"
+      },
+      "expectedStderr": {
+        "encoding": "utf8",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "expectedStatus": 124
+    },
+    {
+      "id": "G03",
+      "guestFile": "g03.mjs.data",
+      "guestSha256": "4381acb991133c13f839474c114c27c93dd82342fd3dda20fc879c1062c24154",
+      "outer": {
+        "encoding": "utf8",
+        "bytes": 121,
+        "sha256": "50be604806b8466c4fac4c663b591351e74594d718c45a6dad69ab2997ae8e4e"
+      },
+      "stdin": {
+        "encoding": "utf8",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "expectedStdout": {
+        "encoding": "utf8",
+        "bytes": 63,
+        "sha256": "5542f58bf262df7ca316b98a3d1c841e1476f52d218f55f4410f859ded1f93be"
+      },
+      "expectedStderr": {
+        "encoding": "utf8",
+        "bytes": 26,
+        "sha256": "5bb0138c08e815f8b201f4aa77464a71462b1b004b248a79f87bf1a18c9a52de"
+      },
+      "expectedStatus": 1
+    }
+  ],
+  "vfsInputs": [
+    {
+      "path": "/search/project/.hidden",
+      "encoding": "utf8",
+      "bytes": 7,
+      "sha256": "e084a3683ef795d1cdbf5e9b253f2ca1f783ae0d0d6e47e419acbbc4fc80bbfa"
+    },
+    {
+      "path": "/search/project/visible",
+      "encoding": "utf8",
+      "bytes": 8,
+      "sha256": "b70f8f776f6bd11b9a0049b533e2a9efe061c704cc93ceb3988541524fba5e48"
+    },
+    {
+      "path": "/work/locked",
+      "encoding": "utf8",
+      "bytes": 5,
+      "sha256": "4a6689419b00b11700c9b6246bcfa8936c8f5e1e824db3a7e57030e2d1c1a684"
+    },
+    {
+      "path": "/work/opts",
+      "encoding": "utf8",
+      "bytes": 53,
+      "sha256": "cf4ede924ba4ec4d958154c84449c45ea05d841f2cf359409e0d10bf6d61914c"
+    },
+    {
+      "path": "/work/flow.sh",
+      "encoding": "utf8",
+      "bytes": 345,
+      "sha256": "4125949b72dc014aceda348cc2be292300f816c528394546d467f82423fc8393"
+    }
+  ],
+  "checks": {
+    "jsonDataFilesParsed": 3,
+    "syntaxOnlyGuestFiles": 3,
+    "syntaxAcceptance": "Node ECMAScript syntax only, not SafeJS dialect or guest evaluation.",
+    "inMemoryTarMembersAuthenticated": 858,
+    "selectedEngineCurrentBlobMatches": 63,
+    "archivedSelectedSourceByteHashes": 268,
+    "archivedSourcePathMemberships": 43,
+    "missingDescendantTrees": 35,
+    "referenceArtifactsAuthenticated": 16,
+    "productEvaluations": 0,
+    "engineEvaluations": 0,
+    "guestEvaluations": 0,
+    "nativeOracleEvaluations": 0,
+    "privateCopies": 0,
+    "builds": 0,
+    "installs": 0,
+    "privateBeforeAfterGuardCertifications": 0
+  },
+  "sealPolicy": "Manifest authenticates all other owned files, not itself. Commit ID and externally reported SHA256 authenticate this manifest; no executable files enter canonical test discovery. Historical references and original source are readonly."
+}

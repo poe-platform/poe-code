@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-27T23:59:28.415Z",
+  "candidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "tree": "f2b9afdbaafee930e188fa4d216e6779a2fbed75",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "fixtureSourceCommit": "925bbd9c172866e580c7d4ff6ac2891664deef98",
+  "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+  "changes": [
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "beforeSha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705",
+      "afterSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+      "beforeBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c",
+      "replacements": [
+        [
+          "contains 73 including",
+          "contains 76 including"
+        ],
+        [
+          "createAgentCommands().length, 73",
+          "createAgentCommands().length, 76"
+        ],
+        [
+          "shell.commands.list().length, 73",
+          "shell.commands.list().length, 76"
+        ]
+      ],
+      "afterBlob": "88fff30270f01d7eab63279e5777cb88db1cbb8e"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "beforeSha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1",
+      "afterSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+      "beforeBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040",
+      "replacements": [
+        [
+          "contains73 and standalone",
+          "contains76 and standalone"
+        ],
+        [
+          "createAgentCommands().length, 73",
+          "createAgentCommands().length, 76"
+        ],
+        [
+          "instance.commands.list().length, 73",
+          "instance.commands.list().length, 76"
+        ]
+      ],
+      "afterBlob": "23a999dfd948993e45976276225645f861af3db1"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "beforeSha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0",
+      "afterSha256": "4bd52b777b4f371c4ce930fd829d8ed934de6c3543ee5011a88c7d8799741917",
+      "beforeBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+      "replacements": [
+        [
+          "target.commands.list().length, 74",
+          "target.commands.list().length, 77",
+          2
+        ]
+      ],
+      "afterBlob": "3e1910a0cc190733c7380995be37808ad48a157f"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "beforeSha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6",
+      "afterSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+      "beforeBlob": "96375d606df3f9f480d13d20d00f3a779ee330fe",
+      "replacements": [
+        [
+          "names.length, 70",
+          "names.length, 76"
+        ],
+        [
+          "new Set(names).size, 70",
+          "new Set(names).size, 76"
+        ],
+        [
+          "commands.list().length, 70",
+          "commands.list().length, 76"
+        ]
+      ],
+      "afterBlob": "4434cfa99fec9c9d8559718d45edf8c71f9c13bc"
+    }
+  ],
+  "rawCommitBase64": "dHJlZSBmMmI5YWZkYmFhZmVlOTMwZTE4OGZhNGQyMTZlNjc3OWEyZmJlZDc1CnBhcmVudCA0NGYwMGJmODQyNzhlMzM2MWI1MjEwNjQ3OGQ1OWM3MDdhYjdiMmJjCmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg3NTE2OCAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4NzUxNjggLTA1MDAKClVuaWZ5NzYgZml4dHVyZS1vbmx5IGNhbmRpZGF0ZSBmcm9tNDRmIGFuZCBleGFjdGx5IGZvdXIgYXBwcm92ZWQgcmVnaXN0cnkgZGVsdGFzCg==",
+  "rawCommitSha256": "49d2f205832bf9e2ee374c4c50b7813cdded24aa6f1c9e90545087ecdcdc570f",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "release": "HOLD_PUBLIC_AND_DRIVER_REVIEW",
+  "wholeGateLaunched": false
+}

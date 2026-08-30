@@ -1,0 +1,20 @@
+{
+  "priorAfter": {
+    "archiveSha256": "dfa06095b546379bbd11054a95ceabf60884e3738b84e2b2de0a87cd8e0118bf",
+    "packageSha256": "62228b67ca6793544f0f4374ca00fbbb6e627f514f184d5880fd7723ccf179c6",
+    "inputTsSha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+    "loadedInputJsSha256": "f8b984b6fc338ff3d1ca60e10283ab100d8e62a697f4b7f8e691819c28ea7c4a",
+    "runtimeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "sourceInventorySha256": "aeea33ba8f91f214581716b7a57a99b10b9e0ac85980c1b5580ae3cfc0556d07",
+    "consumerInventorySha256": "cf4ce0235ee87851461f03b697bc5a0b1f15f18df4e9e9d18234e57458190adc",
+    "sourceEntryCount": 1317,
+    "consumerEntryCount": 787
+  },
+  "consumerInventorySha256": "df2aaab66700d9c1c40429f13e84cbfbf7f4dafd6969639cd20185c5ce8cbaf4",
+  "consumerEntryCount": 786,
+  "fullEntryInventoryEqual": true,
+  "appendProof": true,
+  "checks": "Complete before/after directory/file type, mode, size and byte inventory equality, detecting new entries; original full inventories bound by committed prior authentication",
+  "fixtureFilesUnchanged": true,
+  "activeOwnedChildren": 0
+}

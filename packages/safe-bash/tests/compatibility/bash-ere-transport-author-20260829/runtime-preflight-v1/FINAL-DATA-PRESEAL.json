@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "role": "fourth and final DATA helper: syntax TEXT, manifest/closure snapshots, archive-before-cleanup; no product imports",
+  "inputs": [
+    {
+      "name": "bridge-state.mjs.data",
+      "size": 763,
+      "sha256": "a77be6b40d41175011cbaf4bfc1d55291a39cba247254413fde4beb9e5425b44"
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "size": 2291,
+      "sha256": "44b7b27866b8d3dac8669a457d70e44213db35ceb39413f56364ea0070bdbacf"
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "size": 287,
+      "sha256": "6d17eb806c3adccec39841e36a912692810ecfd09c3b010d3a586f4325cb6280"
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "size": 2033,
+      "sha256": "133080e5c3872651169848cbd269af7adb531884a63ce15359a7bf3a1b628971"
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "size": 12620,
+      "sha256": "2f25a171d6d3cb8902521b4a2680a8e8c60a2d440030cb0f599692a67b5a4d5e"
+    },
+    {
+      "name": "FAULT-ASSETS.json",
+      "size": 19335,
+      "sha256": "cf197e48813f738ff8e7f5474c5c795bb1b1c274305241054603b0dcac88324e"
+    },
+    {
+      "name": "CASE-MAPPING.json",
+      "size": 51200,
+      "sha256": "c00fe8f106afb134b0c99ce416b5105b9a4b8dfa9c336d96e86da5f80ffec7bd"
+    },
+    {
+      "name": "PRODUCER.json",
+      "size": 5127,
+      "sha256": "471ac9f789315b23b67642cc0340acd00fe60460d4cd095fd64b8851b31c8e02"
+    },
+    {
+      "name": "LAYOUTS.json",
+      "size": 16116,
+      "sha256": "226055aa22d4d73883fa42e655b999430be73e02767b2b6927fd7987b43a7f5a"
+    },
+    {
+      "name": "final-data.mjs",
+      "size": 4972,
+      "sha256": "0307ea30226330efced5ff59f3501657fb8a534702aab2bd93978c4f19b1b448"
+    }
+  ],
+  "scripts": [
+    "bridge-state.mjs.data",
+    "worker-bridge.mjs.data",
+    "validation-observer.mjs.data",
+    "child-bootstrap.mjs.data",
+    "case-runner.mjs.data"
+  ],
+  "typescript": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/BUILD/work/node_modules/typescript/lib/typescript.js",
+    "size": 9112572,
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "limits": {
+    "processes": 1,
+    "seconds": 30,
+    "Worker": 0,
+    "productImports": 0,
+    "archiveDecodedBytes": 2097152,
+    "captureBytes": 4194304,
+    "workBytes": 335544320
+  }
+}

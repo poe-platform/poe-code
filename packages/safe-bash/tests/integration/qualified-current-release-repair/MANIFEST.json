@@ -1,0 +1,316 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e27a21f016b5976a0722baf9dd2306393c1e533b51711ad96ce39783a824a17a"
+    },
+    {
+      "path": "coverage.test.ts",
+      "sha256": "695f9c5be8bfb694a87ca0d31fd3e756c499a87587a63791eb888e51eefee0c9"
+    },
+    {
+      "path": "evidence/canonical-regressions/archive.json",
+      "sha256": "16ac0f120ee1b0e99d3df7d65cb188325ae88299acaaf5ae5d28a77185c53d00"
+    },
+    {
+      "path": "evidence/canonical-regressions/canonical-discovery.json",
+      "sha256": "71b08da52f1e3c4cee7f9d7ea6e26ff05382767c1b1a338d2e9668f202748954"
+    },
+    {
+      "path": "evidence/canonical-regressions/canonical-regressions.json",
+      "sha256": "0bc5c43095004e612bca7c540b61179926acaf18f5626aa4f09e0c18c5e81b76"
+    },
+    {
+      "path": "evidence/canonical-regressions/extract.json",
+      "sha256": "dbed01b9da6a8196601521a851eab0d033ff3f4d779ee62310d1974f714fe8ed"
+    },
+    {
+      "path": "evidence/canonical-regressions/report.json",
+      "sha256": "56acb2b37e67544911841c989756abb61eb5251ead2943768d18b55b81b583ad"
+    },
+    {
+      "path": "evidence/canonical-regressions/strict-types.json",
+      "sha256": "f08ba04ed6da1f6cb130035ae4bd838a1a7bf79061e945e79683e8e6e86577ad"
+    },
+    {
+      "path": "evidence/cleanup.json",
+      "sha256": "f5e5f887203b8bfdab9873af3d629981f44552815c0cf49f935e63b1c7cf30c8"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-continuation-package-consumer.mjs.json",
+      "sha256": "99ba2f42b4a65f38600a24a9004b6fe85c8a1f2b37ba9e5c3707c2a39528f9dd"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-continuation-resolution.json",
+      "sha256": "8f47cf3abf4c1d39c98370b69371496725b7d11cbdd89b8a7847ef4057b0d5b0"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-continuation-types.json",
+      "sha256": "cf40627c9322695ed71f3e798014d3277410de5803d3009f4c52837cb4f48b06"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-followup-product-consumer.mjs.json",
+      "sha256": "c34772a12b53b069ea73398fe630eb1ada74e99edd37b974b8358805ca46d42d"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-followup-resolution.json",
+      "sha256": "537ac0ebbfcd84101b9b2bf7cd2675c7e53ac0a51e6593570bf1769d463cd877"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-followup-types.json",
+      "sha256": "72f2d92d09bd7eca1f9b6837fbfa76db2ae22caf4040c9f23fc00c2a568671a5"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-package-consumer.mjs.json",
+      "sha256": "20fa7a638958583e6715c0df09502436d1e3e4ec1dc48dddde3087e30e168231"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-production-continuation-package-consumer.mjs.json",
+      "sha256": "3dd292d1c371f181c034f76eb50e85451429eae4054e46003d750005687e9b61"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-production-continuation-resolution.json",
+      "sha256": "50aa16a697e0e296007980d321a41eac2a62a8591f2c1f5c685512234afb5310"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-production-continuation-types.json",
+      "sha256": "578772d6fbf0912c7a8835663b7c3c8457e630b255c24ae3bedf983079298e5b"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-production-package-consumer.mjs.json",
+      "sha256": "1a47fa5cc09e2be752852c9e1df2855c3145abe7604ac391308ba675db2c6ccf"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-production-resolution.json",
+      "sha256": "39b930f4ef035c607a231beb16184e06cee9f9721ea09f745de8074e6689738c"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-production-types.json",
+      "sha256": "41f98f402df0dc054bd9edbb1e6c5a96e77a0b83f0b1cbecd76d9c1ba398431c"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-resolution.json",
+      "sha256": "9bf40e087a2b8d8b8d666bc32c22b44e15493119ca7abc76c41abf0937c3ccf6"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-regex-types.json",
+      "sha256": "c931e5812e64df002e587d18fc99f1c8e3ba0ccd3aa8f86867b66a1752902799"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-constructor-consumer.mjs.json",
+      "sha256": "a08458b6e57d8be397ce99e6c478c585c758739022b840748fda8a9bdf5c1881"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-constructor-resolution.json",
+      "sha256": "8a4c8319180bc4109eeee7ca1023c8afca609c8100b92783a36e819ee7be2d62"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-constructor-types.json",
+      "sha256": "a4d9709c0b1ed132e2865dabfc2869963bf04b391680ac05ab8e33b19d0cf6e2"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-http-author-public-consumer.mjs.json",
+      "sha256": "b977206f112bf58a1302df9e21ddc87f76defd50d0dd6bafdf36b19b92c8fd15"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-http-author-resolution.json",
+      "sha256": "05674502760157031d6fb73a34282c3aba5fcf9e772fb1335670d88e24076319"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-http-author-types.json",
+      "sha256": "2e2a74f4495770d8ee8766ad20cc2e538a9cb39d272e60fb21f04e879dcc2305"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-http-independent-public-workflow.mjs.json",
+      "sha256": "3b3dc947afbc9a09460bc8e75239b7f37e36c806b5560685826284d2f387d709"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-http-independent-resolution.json",
+      "sha256": "cf9b672894421d79462087246035b8ee75998a80ebe17790d64b00ce14216cdb"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-http-independent-types.json",
+      "sha256": "a25c924c41a6ee465770992cf0f08ea72f4e78ee7bbb02099c32604206c1647c"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-rmdir-public-consumer.mjs.json",
+      "sha256": "15f082e1b668392f02d33826ffa56482704cca78244e70b7bee47e51a30085ae"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-rmdir-resolution.json",
+      "sha256": "6e56a05dda9097a8885d54d2b798f25541852ed06c799ba6ca6f0875f9d9c0bd"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-s3-rmdir-types.json",
+      "sha256": "48e5fc92c1109e2c1f0634be4347fca12ee56ff875481a03d29016500edc23f8"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-stream-five-public-options.mjs.json",
+      "sha256": "b806639937d46a394a1e96b33668b83e726e286294208e8920ce4f42bdec5baa"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-stream-five-resolution.json",
+      "sha256": "7136040656382f4ce0566ece0ef8a27de9a24fc72ab9d2b8daf491f421a693bb"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-stream-five-types.json",
+      "sha256": "6ffebb39f5cf8cb647f013756a2087ceb9897ed1575c38148727f367fb3a82df"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-stream-inspection-consumer.mjs.json",
+      "sha256": "12939a6cc50c57d5bfffc4bb44fd605fdee1571629b5bdf17c95c41865f14738"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-stream-inspection-resolution.json",
+      "sha256": "581d956246d4cd1eafcab94bb8ab5aef78fa1f2dca2fddb0134e1bc07341574e"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-stream-inspection-types.json",
+      "sha256": "40e0c15c694c8bda1469ec2793339c2cdff40c43f9ad69e271c1dfacc3166817"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-leaf-leaf-positive.mjs.json",
+      "sha256": "44f7dfd7a17c8c6f80c1afc2ba4e16564312d244aeb30c8e31f2ada1c6c7e3d5"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-leaf-negative.json",
+      "sha256": "bf21ad9a14ac58b469980dc177833462975e28b0c7403b427ea001daff7f3c9a"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-leaf-resolution.json",
+      "sha256": "ceffb56fa6e08fc88e1d9ae0040e3cac07766bae301b810d9984d57d5b1b957f"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-leaf-types.json",
+      "sha256": "d53f21083137f37f8916e74fad81a8012604c850313cc0e55159579642307ccb"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-public-negative.json",
+      "sha256": "7bc25103d69e1667fe3b5afd1359a30205dfa84020cbe62581e9153ed8c879af"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-public-public-positive.mjs.json",
+      "sha256": "7eae16555445541c910240c5cdd6a431f82f31065a601b7bc2e58e1c842be2c7"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-public-resolution.json",
+      "sha256": "a2594e2c73245bb680c1c32802f78b6226322d63fdebbe90c03b7b2ca317e236"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-time-env-public-types.json",
+      "sha256": "b9d1f7ba564063b5c9c79f2d4263ccfd3c143ed48c7d26ba1213ceb5a102cff5"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-atomic-independent-consumer.mjs.json",
+      "sha256": "bc732f38c3362e6d398ede2cb6ad0058f0ea04099ac6d0304658fd314d6aae2f"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-atomic-independent-resolution.json",
+      "sha256": "029b0444537d71c84d2be719dea03220ee555439cc5d81c4c71f58bf9fe047ef"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-atomic-independent-types.json",
+      "sha256": "dc8981f23846ce66dd903ebab0f4721009d954398c3c7927c75af7f04f9a8d7c"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-atomic-resolution.json",
+      "sha256": "fc3a147d6b6611eeaf5f37f1fd9fb0659df918c7a2c8afed93e590e23330d5ae"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-atomic-types.json",
+      "sha256": "9ba73b6aba84987c063557d254282f44c8a6e2eaa2dfbb78346f2fe10b581d8d"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-loopback-consumer.test.mjs.json",
+      "sha256": "7eaa3961abd7f27b173e5d2e09bbd12ed93606437854a0a3d7a79e33f2868e98"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-loopback-resolution.json",
+      "sha256": "2b5d4a86ea2bb4caf228a66402c76bebd3022bd36fbccb2251642a50594815cc"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-loopback-types.json",
+      "sha256": "09d696ab807c639dc55a2ebb05477bfc75100b138d43ab1e583b4b1af7aca83f"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-services-resolution.json",
+      "sha256": "8f46a206275c05bfdac8e2f053bdd375a81e4fa1def43ddd4cd641917b8910ce"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-services-types.json",
+      "sha256": "1dd65af1b6bef44386a70a868064b03699866624ab3bb76aaab5fd74f0059278"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-timestamp-independent-independent.test.mjs.json",
+      "sha256": "2a10fd93cdc2bdd07a33e54a3f68ae75283ceae30b52ca3777de8456370f9055"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-timestamp-independent-resolution.json",
+      "sha256": "1e26d85eb482ec66f3887c8b1ee89747807a13368727e49f8cc72bd0e8f30f32"
+    },
+    {
+      "path": "evidence/current-consumers/consumer-webdav-timestamp-independent-types.json",
+      "sha256": "0c6a08d4cb8b7ea6d3327843ca202e948c03cd3cb8edf5c01e0984ae264372d2"
+    },
+    {
+      "path": "evidence/current-consumers/current-consumer-source-denied.json",
+      "sha256": "938ccfe34aec5280eba7b998ee13a2c9cc7f0c609c925556f4916ea7cbcd2113"
+    },
+    {
+      "path": "evidence/current-consumers/current-consumers-build.json",
+      "sha256": "29553f9aba9d74a044459b16a5ad66a206d776dcc2d9bf01f9044b83a3356642"
+    },
+    {
+      "path": "evidence/current-consumers/current-consumers.json",
+      "sha256": "ab982e100455a0d9b2523485b24b9a4af05deafff97707ab440c91a1385dfa33"
+    },
+    {
+      "path": "evidence/current-consumers/historical-build-first-types.json",
+      "sha256": "b16e61879a55d9dd1d84fded68d5cedebcb0a5b6cf88912abf7b2e3959a9e7f6"
+    },
+    {
+      "path": "evidence/current-consumers/result.json",
+      "sha256": "a9c87fb33914ab95525a30bfcb7111061bab86019daa7c75c5f3de216e0aa597"
+    },
+    {
+      "path": "evidence/current-consumers/snapshot.json",
+      "sha256": "a89b49dcbb972bde06bf7436f2d23a753e2fb6c7c679488649903a96ac518c2f"
+    },
+    {
+      "path": "evidence/runtime-controls/declared-sentinel.json",
+      "sha256": "06e69e2253be5a5f6c7d9ef176a6990078a698314830db9e056939de0ef0da99"
+    },
+    {
+      "path": "evidence/runtime-controls/missing-result.json",
+      "sha256": "24c6e28cf57d7402186e6f391a759ef3e9cfd7d860b909326f0f2d8f0544b954"
+    },
+    {
+      "path": "evidence/runtime-controls/omitted-sentinel.json",
+      "sha256": "00068201c8e85a4f5dfc08c190f64372bf7e283ca1beb0d7ae909fdf4c28a571"
+    },
+    {
+      "path": "evidence/runtime-controls/remove-after-guard.json",
+      "sha256": "d6b0563762e86d9ac8b17fb90921e64553ea61153439e716728e20f290d9fef1"
+    },
+    {
+      "path": "evidence/runtime-controls/remove-before-guard.json",
+      "sha256": "8a599eaf6595ef1d65cbb7b547d3fd76c011975b51e8112e1a2d951bed0630a3"
+    },
+    {
+      "path": "evidence/runtime-controls/report.json",
+      "sha256": "d46adcdab255914ce293f80b4f1a8d42610333bcfdfac9c0b49b8b09c02e114a"
+    },
+    {
+      "path": "evidence/source-binding.json",
+      "sha256": "0788d2f50c5eb7bf53e76a8c6f935cc48c3b45f2d1ea81ecbbcc725ef0e3843c"
+    },
+    {
+      "path": "runtime-controls.mjs",
+      "sha256": "0cd0d1c481569dd4b4b598b099776f536ec5900e146040c71d4203bd5cc7c0e7"
+    },
+    {
+      "path": "verify-regressions.mjs",
+      "sha256": "c596fb7d4f41887a6a1d6c21c82863d59a3c4efe03fee5ffb02298def1b3e0ea"
+    }
+  ]
+}

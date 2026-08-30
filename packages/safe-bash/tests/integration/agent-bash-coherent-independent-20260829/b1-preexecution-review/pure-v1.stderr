@@ -1,0 +1,21 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: /tests/integration/agent-bash-coherent-author-20260829/stage-b1-r2/consumer.mjs
+
+0 !== 1
+
+    at rowAt (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review/review.mjs:30:10)
+    at bodyAt (file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review/review.mjs:34:15)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-independent-20260829/b1-preexecution-review/review.mjs:78:104
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 0,
+  expected: 1,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

@@ -1,0 +1,835 @@
+{
+  "kind": "LET harness-only preparation controls; no candidate",
+  "capturedAt": "2026-08-28T07:38:43.768Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": {
+    "protocol.mjs": "6db00c0a67430fa777c498b40508de77f6b0a2ef16d924bfe7fe1fb9c2fcb516",
+    "protocol-fixture.mjs": "008919e979c436dac141b662aac7e7c5e91ee08245f1b5ebe45814ad7779086a",
+    "selftest.mjs": "7f8e60db1d248a94bc98ea7dcf7cc394cc49e6f4063d10f6d81a173221f88593",
+    "run-review.mjs": "d830b108addd01389b833186b4cf6dc07c99adda794edad4eddeaa5be38e2aed"
+  },
+  "actualReceiptChildren": 10,
+  "records": [
+    {
+      "mode": "pass",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "pass"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.064Z",
+        "finished": "2026-08-28T07:38:43.104Z",
+        "pid": 86817,
+        "code": 0,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "",
+        "bytes": 146
+      },
+      "result": {
+        "coherent": true,
+        "accepted": true,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "ordinary-failure",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "ordinary-failure"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.104Z",
+        "finished": "2026-08-28T07:38:43.145Z",
+        "pid": 86818,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":false,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":0,\"failed\":[\"F1\"]}}\n",
+        "stderr": "",
+        "bytes": 151
+      },
+      "result": {
+        "coherent": true,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 0,
+        "failed": [
+          "F1"
+        ],
+        "errors": [],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": false,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 0,
+          "failed": [
+            "F1"
+          ]
+        }
+      }
+    },
+    {
+      "mode": "late-exit",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "late-exit"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.146Z",
+        "finished": "2026-08-28T07:38:43.187Z",
+        "pid": 86819,
+        "code": 7,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "",
+        "bytes": 146
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [
+          "exit status contradicts body outcomes"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "late-throw",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "late-throw"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.187Z",
+        "finished": "2026-08-28T07:38:43.227Z",
+        "pid": 86820,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs:18\nif (mode === 'late-throw') queueMicrotask(() => { throw new Error('after all PASS receipts'); });\n                                                        ^\n\nError: after all PASS receipts\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs:18:57\n    at node:internal/process/task_queues:149:7\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at AsyncResource.runMicrotask (node:internal/process/task_queues:146:8)\n\nNode.js v22.22.2\n",
+        "bytes": 788
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [
+          "exit status contradicts body outcomes"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "missing",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "missing"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.227Z",
+        "finished": "2026-08-28T07:38:43.264Z",
+        "pid": 86821,
+        "code": 0,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":2,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "",
+        "bytes": 146
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 2,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [
+          "missing/duplicate/unexpected observation"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 2,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "duplicate",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "duplicate"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.264Z",
+        "finished": "2026-08-28T07:38:43.300Z",
+        "pid": 86822,
+        "code": 0,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "",
+        "bytes": 247
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 2,
+        "passed": 2,
+        "failed": [],
+        "errors": [
+          "missing/duplicate/unexpected observation",
+          "summary does not reconcile"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          },
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "wrong-summary",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "wrong-summary"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.301Z",
+        "finished": "2026-08-28T07:38:43.340Z",
+        "pid": 86823,
+        "code": 0,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":null}}\n",
+        "stderr": "",
+        "bytes": 148
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [
+          "summary does not reconcile"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": null
+        }
+      }
+    },
+    {
+      "mode": "split-utf8",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "split-utf8"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.341Z",
+        "finished": "2026-08-28T07:38:43.385Z",
+        "pid": 86824,
+        "code": 0,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "",
+        "bytes": 146
+      },
+      "result": {
+        "coherent": true,
+        "accepted": true,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "hang",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "hang"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.385Z",
+        "finished": "2026-08-28T07:38:43.690Z",
+        "pid": 86825,
+        "code": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "failure": "deadline",
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"observation\":{\"id\":\"F1\",\"pass\":true,\"settled\":true,\"disposed\":true,\"result\":{\"stdout\":\"雪😀\"}}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+        "stderr": "",
+        "bytes": 146
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [
+          "child not naturally reaped",
+          "exit status contradicts body outcomes"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      }
+    },
+    {
+      "mode": "cap",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/protocol-fixture.mjs",
+          "cap"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+        "started": "2026-08-28T07:38:43.691Z",
+        "finished": "2026-08-28T07:38:43.725Z",
+        "pid": 86826,
+        "code": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "failure": "output-ceiling",
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "",
+        "bytes": 8192
+      },
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 0,
+        "passed": 0,
+        "failed": [],
+        "errors": [
+          "child not naturally reaped",
+          "missing/duplicate/unexpected observation",
+          "missing/duplicate summary",
+          "exit status contradicts body outcomes"
+        ],
+        "observations": [],
+        "loads": [],
+        "activations": []
+      }
+    }
+  ],
+  "comparatorControls": [
+    {
+      "mode": "complete-model",
+      "result": {
+        "coherent": true,
+        "accepted": false,
+        "mutantKilled": true,
+        "expected": 1,
+        "observed": 1,
+        "passed": 0,
+        "failed": [
+          "F1"
+        ],
+        "errors": [],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": false,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [
+          {
+            "path": "/fixture/actual-loaded-runtime.js",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "activations": [
+          {
+            "id": "M-test",
+            "hits": 1
+          }
+        ],
+        "summary": {
+          "cases": 1,
+          "pass": 0,
+          "failed": [
+            "F1"
+          ]
+        }
+      },
+      "qualification": "receipt-classifier model only; not product/module execution or a real LET mutant"
+    },
+    {
+      "mode": "missing-load",
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 0,
+        "failed": [
+          "F1"
+        ],
+        "errors": [
+          "required actual runtime load missing"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": false,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [
+          {
+            "id": "M-test",
+            "hits": 1
+          }
+        ],
+        "summary": {
+          "cases": 1,
+          "pass": 0,
+          "failed": [
+            "F1"
+          ]
+        }
+      },
+      "qualification": "receipt-classifier model only; not product/module execution or a real LET mutant"
+    },
+    {
+      "mode": "wrong-load-hash",
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 0,
+        "failed": [
+          "F1"
+        ],
+        "errors": [
+          "required actual runtime load missing"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": false,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [
+          {
+            "path": "/fixture/actual-loaded-runtime.js",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        ],
+        "activations": [
+          {
+            "id": "M-test",
+            "hits": 1
+          }
+        ],
+        "summary": {
+          "cases": 1,
+          "pass": 0,
+          "failed": [
+            "F1"
+          ]
+        }
+      },
+      "qualification": "receipt-classifier model only; not product/module execution or a real LET mutant"
+    },
+    {
+      "mode": "missing-activation",
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 0,
+        "failed": [
+          "F1"
+        ],
+        "errors": [
+          "mutant mechanism not activated"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": false,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [
+          {
+            "path": "/fixture/actual-loaded-runtime.js",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 0,
+          "failed": [
+            "F1"
+          ]
+        }
+      },
+      "qualification": "receipt-classifier model only; not product/module execution or a real LET mutant"
+    },
+    {
+      "mode": "no-designated-failure",
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 0,
+        "failed": [
+          "F1"
+        ],
+        "errors": [
+          "designated mutant predicate not rejected"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": false,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [
+          {
+            "path": "/fixture/actual-loaded-runtime.js",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        ],
+        "activations": [
+          {
+            "id": "M-test",
+            "hits": 1
+          }
+        ],
+        "summary": {
+          "cases": 1,
+          "pass": 0,
+          "failed": [
+            "F1"
+          ]
+        }
+      },
+      "qualification": "receipt-classifier model only; not product/module execution or a real LET mutant"
+    },
+    {
+      "mode": "late-nonzero-all-pass",
+      "result": {
+        "coherent": false,
+        "accepted": false,
+        "mutantKilled": false,
+        "expected": 1,
+        "observed": 1,
+        "passed": 1,
+        "failed": [],
+        "errors": [
+          "exit status contradicts body outcomes",
+          "required actual runtime load missing",
+          "mutant mechanism not activated",
+          "designated mutant predicate not rejected"
+        ],
+        "observations": [
+          {
+            "id": "F1",
+            "pass": true,
+            "settled": true,
+            "disposed": true,
+            "result": {
+              "stdout": "雪😀"
+            }
+          }
+        ],
+        "loads": [],
+        "activations": [],
+        "summary": {
+          "cases": 1,
+          "pass": 1,
+          "failed": []
+        }
+      },
+      "qualification": "receipt-classifier model only; not product/module execution or a real LET mutant"
+    }
+  ],
+  "admissionRefusal": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/run-review.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1",
+    "started": "2026-08-28T07:38:43.725Z",
+    "finished": "2026-08-28T07:38:43.768Z",
+    "pid": 86827,
+    "code": 78,
+    "signal": null,
+    "spawnError": null,
+    "failure": null,
+    "groupAbsent": true,
+    "closeObserved": true,
+    "stdout": "",
+    "stderr": "REFUSED78: explicit root-authorized --candidate=SHA --runtime-sha256=SHA256 --preseal=SHA --label=NAME required; no product execution\n",
+    "bytes": 134
+  },
+  "productExecutions": 0,
+  "builds": 0,
+  "nativeReruns": 0,
+  "allOwnedChildrenReaped": true
+}

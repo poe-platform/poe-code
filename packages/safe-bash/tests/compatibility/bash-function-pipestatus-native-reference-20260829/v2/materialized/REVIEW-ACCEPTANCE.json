@@ -1,0 +1,9 @@
+{
+  "schema": "function-pipestatus-independent-acceptance-v2",
+  "decision": "ACCEPT",
+  "profile": "function-pipestatus-reference-v2",
+  "presealSha256": "b082c051f1e1599af1a5789786c20a6d89d882dda67b6d2430062c84779bf901",
+  "requestsSha256": "c0d895342b497fb711521ab701a6513fbeebbd54af3a9973df7b7c069244473a",
+  "reviewer": "ROOT ratification of independent review 83f99567f72e04b7b2355751305ed95e9541940e",
+  "reviewCommit": "83f99567f72e04b7b2355751305ed95e9541940e"
+}

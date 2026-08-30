@@ -1,0 +1,190 @@
+{
+  "at": "2026-08-29T14:31:18.328Z",
+  "phaseDeadline": 1788014344559.4192,
+  "completed": 6,
+  "halted": false,
+  "rawBytes": 25569,
+  "ledger": {
+    "max": 7,
+    "peak": 2,
+    "starts": 7,
+    "active": 1,
+    "peakCharged": 2,
+    "confirmedStarts": 7,
+    "activeConfirmed": 1,
+    "peakConfirmed": 2,
+    "confirmedRoles": {
+      "owner": 1,
+      "case": 6
+    },
+    "roles": {
+      "owner": 1,
+      "case": 6
+    },
+    "sourceForkReservations": 4
+  },
+  "observations": [
+    {
+      "id": "P19",
+      "status": 1,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P19/stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P19/stderr",
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo=",
+            "text": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n"
+          }
+        ]
+      }
+    },
+    {
+      "id": "P20",
+      "status": 1,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P20/stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P20/stderr",
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo=",
+            "text": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n"
+          }
+        ]
+      }
+    },
+    {
+      "id": "P21",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P21/stdout",
+            "bytes": 35,
+            "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+            "base64": "ZGVjbGFyZSAtYXIgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=",
+            "text": "declare -ar PIPESTATUS='([0]=\"0\")'\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P21/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "P22",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P22/stdout",
+            "bytes": 59,
+            "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=",
+            "text": "declare -- PIPESTATUS=\"\"\ndeclare -a PIPESTATUS='([0]=\"0\")'\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P22/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "P23",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P23/stdout",
+            "bytes": 76,
+            "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+            "base64": "ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg==",
+            "text": "declare -a PIPESTATUS='([0]=\"1\" [1]=\"0\")'\ndeclare -a PIPESTATUS='([0]=\"0\")'\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P23/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": "P24",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P24/stdout",
+            "bytes": 29,
+            "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSJzZWVkIgo=",
+            "text": "declare -- PIPESTATUS=\"seed\"\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P24/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
+}

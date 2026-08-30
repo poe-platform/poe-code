@@ -1,0 +1,628 @@
+{
+  "source": "e8acecc3a843642ca83127d43d8c65ea46c2c0e4",
+  "author": "1c745c3a633c32a8e9d87dacfdf33fcadc00caf2",
+  "sourceSha256": "8c280010a9de5f915ebb72be504d79f2a149e95064752c3a4b4a07cd425efd54",
+  "startedAt": "2026-08-27T06:25:38.877Z",
+  "finishedAt": "2026-08-27T06:26:30.695Z",
+  "wholeProviderAcceptance": false,
+  "sourceAcceptance": {
+    "4143efd": "accepted timestamp postcondition, original directory positive remains failed",
+    "93c009d": "accepted scoped direct authority handling",
+    "0e69b39": "legacy absence compatibility verified; mixed known scopes still incorrectly accepted"
+  },
+  "providers": {
+    "apache": {
+      "matrix": {
+        "provider": "apache",
+        "raw": {
+          "positive": {
+            "pass": 9,
+            "fail": 0
+          },
+          "guard": {
+            "pass": 7,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        },
+        "consumer": {
+          "positive": {
+            "pass": 16,
+            "fail": 1
+          },
+          "guard": {
+            "pass": 14,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 2,
+            "fail": 0
+          }
+        },
+        "phase2": {
+          "positive": {
+            "pass": 2,
+            "fail": 0
+          },
+          "guard": {
+            "pass": 15,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        }
+      },
+      "originalRowsUnchanged": true,
+      "originalFailures": {
+        "raw": [],
+        "consumer": [
+          {
+            "name": "directory timestamps provider-specific support",
+            "kind": "positive",
+            "error": {
+              "name": "FsError",
+              "message": "EAGAIN: server did not retain requested timestamps for the current representation, utimes '/directory-times'",
+              "stack": "FsError: EAGAIN: server did not retain requested timestamps for the current representation, utimes '/directory-times'\n    at fail (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:15:11)\n    at WebDavFileSystem.utimes (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:1049:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/consumer.mjs:159:13\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/consumer.mjs:46:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/consumer.mjs:147:1",
+              "code": "EAGAIN",
+              "syscall": "utimes",
+              "path": "/directory-times",
+              "cause": "undefined"
+            }
+          }
+        ],
+        "phase2-consumer": []
+      },
+      "independent": {
+        "total": 31,
+        "pass": 28,
+        "fail": 3,
+        "skip": 0,
+        "failures": [
+          {
+            "name": "malformed real LOCK: contradictory shared and exclusive scope",
+            "error": {
+              "name": "AssertionError",
+              "message": "malformed grant must reject at the typed product boundary",
+              "stack": "AssertionError [ERR_ASSERTION]: malformed grant must reject at the typed product boundary\n    at file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:173:20\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:131:5"
+            },
+            "witnesses": {
+              "/ind-12-source": {
+                "dev": 16777232,
+                "ino": 171427183,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              },
+              "/ind-12-target": {
+                "dev": 16777232,
+                "ino": 171427185,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              }
+            }
+          },
+          {
+            "name": "malformed real LOCK: contradictory shared before exclusive scope",
+            "error": {
+              "name": "AssertionError",
+              "message": "malformed grant must reject at the typed product boundary",
+              "stack": "AssertionError [ERR_ASSERTION]: malformed grant must reject at the typed product boundary\n    at file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:173:20\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:131:5"
+            },
+            "witnesses": {
+              "/ind-14-source": {
+                "dev": 16777232,
+                "ino": 171427189,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              },
+              "/ind-14-target": {
+                "dev": 16777232,
+                "ino": 171427191,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              }
+            }
+          },
+          {
+            "name": "malformed real LOCK: contradictory scope on MOVE",
+            "error": {
+              "name": "AssertionError",
+              "message": "malformed grant must reject at the typed product boundary",
+              "stack": "AssertionError [ERR_ASSERTION]: malformed grant must reject at the typed product boundary\n    at file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:173:20\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx/consumer/out/independent.mjs:131:5"
+            },
+            "witnesses": {
+              "/ind-15-source": {
+                "error": "ENOENT"
+              },
+              "/ind-15-target": {
+                "dev": 16777232,
+                "ino": 171427192,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              }
+            }
+          }
+        ]
+      },
+      "tarballSha256": "cf6f97a2ac982f1a50de504f71cf1cce58df19badadc3e2cd755a8256c405bc4",
+      "archiveSha256": "75f6de8b5048ca67796fba38ff8416a72c6ec6fb276e03997b148123b43e4dda",
+      "cleanup": {
+        "workspace": "/private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-5DGfRx",
+        "startedAt": "2026-08-27T06:25:39.649Z",
+        "endedAt": "2026-08-27T06:26:19.310Z",
+        "serverPid": 28902,
+        "serverExitCode": 0,
+        "serverSignalCode": null,
+        "serviceDurationMs": 36126,
+        "removed": true
+      }
+    },
+    "wsgidav": {
+      "matrix": {
+        "provider": "wsgidav",
+        "raw": {
+          "positive": {
+            "pass": 3,
+            "fail": 6
+          },
+          "guard": {
+            "pass": 3,
+            "fail": 4
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        },
+        "consumer": {
+          "positive": {
+            "pass": 10,
+            "fail": 5
+          },
+          "guard": {
+            "pass": 13,
+            "fail": 0
+          },
+          "refusal": {
+            "pass": 4,
+            "fail": 0
+          }
+        },
+        "phase2": {
+          "positive": {
+            "pass": 0,
+            "fail": 2
+          },
+          "guard": {
+            "pass": 13,
+            "fail": 2
+          },
+          "refusal": {
+            "pass": 0,
+            "fail": 0
+          }
+        }
+      },
+      "originalRowsUnchanged": true,
+      "originalFailures": {
+        "raw": [
+          {
+            "name": "COPY source If-Match with distinct destination ETag",
+            "kind": "positive",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n"
+          },
+          {
+            "name": "COPY Overwrite F and stale destination tagged If",
+            "kind": "guard",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n204 !== 412\n"
+          },
+          {
+            "name": "COPY wrong destination lock token preserves bytes",
+            "kind": "guard",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n423 !== 412\n"
+          },
+          {
+            "name": "COPY destination LOCK token and unlock after overwrite",
+            "kind": "positive",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n409 !== 204\n"
+          },
+          {
+            "name": "MOVE source If-Match with distinct destination ETag",
+            "kind": "positive",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n412 !== 204\n"
+          },
+          {
+            "name": "MOVE Overwrite F and stale destination tagged If",
+            "kind": "guard",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n204 !== 412\n"
+          },
+          {
+            "name": "MOVE wrong destination lock token preserves bytes",
+            "kind": "guard",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n423 !== 412\n"
+          },
+          {
+            "name": "MOVE destination LOCK token and unlock after overwrite",
+            "kind": "positive",
+            "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n409 !== 204\n"
+          },
+          {
+            "name": "PROPFIND getetag is an HTTP entity-tag",
+            "kind": "positive",
+            "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^\"[^\\\"]*\"$/. Input:\n\n'171431778-1787811986-5'\n"
+          },
+          {
+            "name": "LOCK header is RFC coded-URL",
+            "kind": "positive",
+            "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /^<[^<>]+>$/. Input:\n\n'opaquelocktoken:0xf0eab93144b427273b536d318452e4ab1441e218a24761207f4cdf0be5a408d4'\n"
+          }
+        ],
+        "consumer": [
+          {
+            "name": "lock native copyFile existing target using provider validators",
+            "kind": "positive",
+            "error": {
+              "name": "FsError",
+              "message": "EIO: WebDAV transport or response failure, LOCK '/lock-copyFile-target'",
+              "stack": "FsError: EIO: WebDAV transport or response failure, LOCK '/lock-copyFile-target'\n    at WebDavFileSystem.requestStream (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:313:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.request (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:229:26)\n    at async WebDavFileSystem.withDestinationLock (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:933:13)\n    at async WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:913:9)\n    at async WebDavFileSystem.copyFile (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:982:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:113:13\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:46:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:107:9",
+              "code": "EIO",
+              "syscall": "LOCK",
+              "path": "/lock-copyFile-target",
+              "cause": "Error: invalid LOCK token"
+            }
+          },
+          {
+            "name": "lock native rename existing target using provider validators",
+            "kind": "positive",
+            "error": {
+              "name": "FsError",
+              "message": "EIO: WebDAV transport or response failure, LOCK '/lock-rename-target'",
+              "stack": "FsError: EIO: WebDAV transport or response failure, LOCK '/lock-rename-target'\n    at WebDavFileSystem.requestStream (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:313:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.request (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:229:26)\n    at async WebDavFileSystem.withDestinationLock (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:933:13)\n    at async WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:913:9)\n    at async WebDavFileSystem.rename (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:979:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:113:13\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:46:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:107:9",
+              "code": "EIO",
+              "syscall": "LOCK",
+              "path": "/lock-rename-target",
+              "cause": "Error: invalid LOCK token"
+            }
+          },
+          {
+            "name": "etag native copyFile existing target using provider validators",
+            "kind": "positive",
+            "error": {
+              "name": "FsError",
+              "message": "ENOTSUP: operation requires a strong entity tag, webdav '/etag-copyFile-target'",
+              "stack": "FsError: ENOTSUP: operation requires a strong entity tag, webdav '/etag-copyFile-target'\n    at fail (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:15:11)\n    at strongEtag (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:25:9)\n    at WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:910:51)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.copyFile (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:982:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:113:13\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:46:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:107:9",
+              "code": "ENOTSUP",
+              "syscall": "webdav",
+              "path": "/etag-copyFile-target",
+              "cause": "undefined"
+            }
+          },
+          {
+            "name": "etag native rename existing target using provider validators",
+            "kind": "positive",
+            "error": {
+              "name": "FsError",
+              "message": "ENOTSUP: operation requires a strong entity tag, webdav '/etag-rename-target'",
+              "stack": "FsError: ENOTSUP: operation requires a strong entity tag, webdav '/etag-rename-target'\n    at fail (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:15:11)\n    at strongEtag (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:25:9)\n    at WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:910:51)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.rename (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:979:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:113:13\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:46:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:107:9",
+              "code": "ENOTSUP",
+              "syscall": "webdav",
+              "path": "/etag-rename-target",
+              "cause": "undefined"
+            }
+          },
+          {
+            "name": "file PROPPATCH persists virtual timestamps not native times",
+            "kind": "positive",
+            "error": {
+              "name": "FsError",
+              "message": "ENOTSUP: operation requires a strong entity tag, webdav '/metadata'",
+              "stack": "FsError: ENOTSUP: operation requires a strong entity tag, webdav '/metadata'\n    at fail (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:15:11)\n    at strongEtag (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:25:9)\n    at WebDavFileSystem.utimes (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:1014:22)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:140:5\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:46:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/consumer.mjs:136:1",
+              "code": "ENOTSUP",
+              "syscall": "webdav",
+              "path": "/metadata",
+              "cause": "undefined"
+            }
+          }
+        ],
+        "phase2-consumer": [
+          {
+            "name": "default direct copyFile distinct entries with truthful callback",
+            "kind": "positive",
+            "error": {
+              "message": "FsError: EIO: WebDAV transport or response failure, LOCK '/phase2-distinct-copyFile-target'",
+              "code": "EIO",
+              "path": "/phase2-distinct-copyFile-target"
+            }
+          },
+          {
+            "name": "default direct rename distinct entries with truthful callback",
+            "kind": "positive",
+            "error": {
+              "message": "FsError: EIO: WebDAV transport or response failure, LOCK '/phase2-distinct-rename-target'",
+              "code": "EIO",
+              "path": "/phase2-distinct-rename-target"
+            }
+          },
+          {
+            "name": "raw destination lock rejects an alias URL write",
+            "kind": "guard",
+            "error": {
+              "message": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n204 !== 423\n"
+            }
+          },
+          {
+            "name": "late real LOCK cancellation cleans its grant without transfer",
+            "kind": "guard",
+            "error": {
+              "message": "AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /<(?:[\\w-]+:)?activelock[ >]/. Input:\n\n'<?xml version=\"1.0\" encoding=\"utf-8\" ?>\\n' +\n  '<ns0:multistatus xmlns:ns0=\"DAV:\"><ns0:response><ns0:href>/dav/phase2-late-lock-target</ns0:href><ns0:propstat><ns0:prop><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x29d5d6d591d3b12a596a4eb6748e7dde3e13adda6185594a3d8f186a592a3095</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/phase2-late-lock-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop><ns0:status>HTTP/1.1 200 OK</ns0:status></ns0:propstat></ns0:response></ns0:multistatus>'\n"
+            }
+          }
+        ]
+      },
+      "independent": {
+        "total": 31,
+        "pass": 29,
+        "fail": 2,
+        "skip": 0,
+        "failures": [
+          {
+            "name": "default copyFile preserves binary output using actual backing authority",
+            "error": {
+              "name": "FsError",
+              "message": "EIO: WebDAV transport or response failure, LOCK '/ind-1-target'",
+              "stack": "FsError: EIO: WebDAV transport or response failure, LOCK '/ind-1-target'\n    at WebDavFileSystem.requestStream (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:313:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.request (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:229:26)\n    at async WebDavFileSystem.withDestinationLock (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:933:13)\n    at async WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:913:9)\n    at async WebDavFileSystem.copyFile (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:982:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/independent.mjs:85:9\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/independent.mjs:83:5"
+            },
+            "witnesses": {
+              "/ind-1-source": {
+                "dev": 16777232,
+                "ino": 171431839,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              },
+              "/ind-1-target": {
+                "dev": 16777232,
+                "ino": 171431840,
+                "nlink": 1,
+                "bytes": [
+                  79,
+                  76,
+                  68
+                ],
+                "size": 3,
+                "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+              }
+            }
+          },
+          {
+            "name": "default rename preserves binary output using actual backing authority",
+            "error": {
+              "name": "FsError",
+              "message": "EIO: WebDAV transport or response failure, LOCK '/ind-6-target'",
+              "stack": "FsError: EIO: WebDAV transport or response failure, LOCK '/ind-6-target'\n    at WebDavFileSystem.requestStream (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:313:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.request (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:229:26)\n    at async WebDavFileSystem.withDestinationLock (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:933:13)\n    at async WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:913:9)\n    at async WebDavFileSystem.rename (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:979:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/independent.mjs:85:9\n    at async row (file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2/consumer/out/independent.mjs:83:5"
+            },
+            "witnesses": {
+              "/ind-6-source": {
+                "dev": 16777232,
+                "ino": 171431849,
+                "nlink": 1,
+                "bytes": [
+                  0,
+                  255,
+                  128,
+                  195,
+                  169,
+                  13,
+                  10,
+                  0,
+                  65
+                ],
+                "size": 9,
+                "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+              },
+              "/ind-6-target": {
+                "dev": 16777232,
+                "ino": 171431850,
+                "nlink": 1,
+                "bytes": [
+                  79,
+                  76,
+                  68
+                ],
+                "size": 3,
+                "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+              }
+            }
+          }
+        ]
+      },
+      "tarballSha256": "cf6f97a2ac982f1a50de504f71cf1cce58df19badadc3e2cd755a8256c405bc4",
+      "archiveSha256": "75f6de8b5048ca67796fba38ff8416a72c6ec6fb276e03997b148123b43e4dda",
+      "cleanup": {
+        "workspace": "/private/tmp/safe-bash-webdav-review-2SqWXP/fixtures/.work-3zasQ2",
+        "startedAt": "2026-08-27T06:26:20.277Z",
+        "endedAt": "2026-08-27T06:26:29.450Z",
+        "serverPid": 30123,
+        "serverExitCode": null,
+        "serverSignalCode": "SIGTERM",
+        "serviceDurationMs": 3371,
+        "removed": true
+      }
+    }
+  },
+  "validation": [
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/legacy-lock.test.ts"
+      ],
+      "counts": "# tests 23\n# suites 0\n# pass 23\n# fail 0"
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/timestamp-postcondition.test.ts"
+      ],
+      "counts": "# tests 5\n# suites 0\n# pass 5\n# fail 0"
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/real-service/direct-comparison.test.ts"
+      ],
+      "counts": "# tests 23\n# suites 0\n# pass 23\n# fail 0"
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/append.test.ts",
+        "tests/fs/webdav/binding-violations.test.ts",
+        "tests/fs/webdav/body-integrity.test.ts",
+        "tests/fs/webdav/constructor-comparison.test.ts",
+        "tests/fs/webdav/fetch-cancellation.test.ts",
+        "tests/fs/webdav/listing-budget.test.ts",
+        "tests/fs/webdav/lock-cancellation.test.ts",
+        "tests/fs/webdav/lock-multistatus.test.ts",
+        "tests/fs/webdav/operation-authority.test.ts",
+        "tests/fs/webdav/replacement.test.ts",
+        "tests/fs/webdav/resource-id.test.ts",
+        "tests/fs/webdav/review-regressions.test.ts",
+        "tests/fs/webdav/rmdir.test.ts",
+        "tests/fs/webdav/stream-http.test.ts",
+        "tests/fs/webdav/streams.test.ts",
+        "tests/fs/webdav/timestamps.test.ts",
+        "tests/fs/webdav/trusted-binding.test.ts",
+        "tests/fs/webdav/uploads.test.ts",
+        "tests/fs/webdav/webdav.test.ts",
+        "tests/fs/webdav/xml.test.ts"
+      ],
+      "counts": "# tests 564\n# suites 0\n# pass 564\n# fail 0"
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/webdav/constructor-comparison.test.ts"
+      ],
+      "counts": "# tests 14\n# suites 0\n# pass 14\n# fail 0"
+    },
+    {
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts"
+      ],
+      "counts": "# tests 49\n# suites 0\n# pass 49\n# fail 0"
+    }
+  ],
+  "harness": [
+    {
+      "file": "run.mjs",
+      "sha256": "d4507c73ad3efe5df1c283a998549823ab40daa7968d58379297d5005201a495"
+    },
+    {
+      "file": "primary.mjs",
+      "sha256": "4103bbe720acbefcffed81fb9d11fc1781314fa31fc3e3111e9b61af8633c330"
+    },
+    {
+      "file": "independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923"
+    },
+    {
+      "file": "public-guard.mjs",
+      "sha256": "1ea17afd3264589c748ceba5293b559c395c1fc452180cf3ea9d612d210aa6c4"
+    }
+  ]
+}

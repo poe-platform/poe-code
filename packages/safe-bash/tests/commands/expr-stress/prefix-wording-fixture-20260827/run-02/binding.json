@@ -1,0 +1,55 @@
+{
+  "classification": "NEW author fixture-only overlay cohort, not a rescore of the independent immutable 4f review",
+  "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "fixtureCommit": "efb1a25aa3e2544cf71aba10f2aaa54b256091ff",
+  "acceptedCommit": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "namedCommit": "246aa440c988d6c09464480956c4eff69009f7e4",
+  "sourceGitTree": "6bff81f1a33d830d3c537c0d84868350a5d231a7",
+  "sourceTreeSha256": "f08b5fdb469741e44b1878b2fc561da2fb0c49b2de96c166ca632e504a8949e3",
+  "archivePaths": [
+    "src",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "tests/commands/expr/inactive-prefix.test.ts",
+    "tests/commands/expr/helpers.ts",
+    "tests/commands/expr/contracts.test.ts"
+  ],
+  "archiveSha256": "5d0d9a5a76360f4d788c27529915440dea197257ca9c0b405936167701f20123",
+  "archiveFileCount": 252,
+  "sourceFileCount": 246,
+  "overlays": [
+    {
+      "path": "tests/commands/expr/inactive-prefix.test.ts",
+      "before": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70",
+      "after": "52e079b8bc89f1b8e4f2b256baab11f8388a5f54d23c174d64d8a4de9c194c3e"
+    }
+  ],
+  "liveHeadAtCapture": "cea13e21b26e3bf85c60e56e7a846e28b6f68720",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "tooling": [
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "packageJsonSha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    },
+    {
+      "name": "tsx",
+      "version": "4.23.12",
+      "packageJsonSha256": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "packageJsonSha256": "1e6d3bbbc5082745123d236b38dce0eacdab987d4ac9e57e299e55f780c170de"
+    }
+  ],
+  "compilerSha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983",
+  "dependenciesInstalled": false,
+  "nativeOracleInvoked": false,
+  "repeatWorkerOverlay": false,
+  "globalBuild": false,
+  "prerequisites": "Existing local TS/tsx/@types/node tooling via symlink; regex worker-only strict compilation from immutable 4f source into isolated dist. No live product files or built artifacts copied."
+}

@@ -1,0 +1,2 @@
+import { createTimeoutCommand, createTimeoutCommands } from './node_modules/virtual-bash/dist/commands/timeout/index.js';
+createTimeoutCommands().push(createTimeoutCommand());

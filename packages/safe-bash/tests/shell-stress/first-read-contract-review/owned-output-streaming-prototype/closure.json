@@ -1,0 +1,18 @@
+{
+  "sealedAt": "2026-08-27T11:18:08.591Z",
+  "authorLifecycle": "still executing final evidence commit; root must observe actual CLOSED after final response",
+  "allSupervisedRunsClosed": true,
+  "supervisedRuns": 27,
+  "supervisorSignals": [],
+  "normalNonzeroOriginalProbeRun": "historical-r0-original-five-and-head-zero exits1; preserved expected historical failures, not a passing gate",
+  "loopback": "S2 normal server.close and zero socket count asserted; adapted fixtures observe remote closure; all child groups absent on close",
+  "readonlyCandidates": [
+    "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate",
+    "/tmp/safe-bash-owned-output-streaming-prototype-restore-BTiVwM/candidate",
+    "/tmp/safe-bash-owned-output-streaming-prototype-auth-xlHOAP/candidate"
+  ],
+  "readonlyOwnedRegularFiles": true,
+  "devToolSymlink": "existing node_modules external symlink deliberately not chmodded; exact tool hashes recorded",
+  "noPollerOrStoppedWorker": true,
+  "originalEvidenceDirectoriesUnmodified": true
+}

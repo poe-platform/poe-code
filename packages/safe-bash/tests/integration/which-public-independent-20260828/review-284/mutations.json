@@ -1,0 +1,12 @@
+[
+  { "id": "N01", "file": "dist/index.js", "before": "export * from \"./commands/which/index.js\";", "after": "", "pattern": "^R01 " },
+  { "id": "N02", "file": "package.json", "deleteExport": "./commands/which", "pattern": "^R01 " },
+  { "id": "N03", "file": "dist/plugins/index.js", "before": "...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits })", "after": "...[]", "pattern": "^R03 " },
+  { "id": "N04", "file": "dist/commands/which/which.js", "before": "return new Invocation(context, limits).execute();", "after": "return { exitCode: 0 };", "pattern": "^R02 " },
+  { "id": "N05", "file": "dist/plugins/index.js", "before": "const whichLimits = options.which?.limits;", "after": "const whichLimits = undefined;", "pattern": "^R08 " },
+  { "id": "N06", "file": "dist/plugins/index.js", "replacements": [
+    { "before": "if (!options.replace)", "after": "if (!(options.which?.replace ?? options.replace))" },
+    { "before": "replace: options.replace ?? false", "after": "replace: options.which?.replace ?? options.replace ?? false" }
+  ], "pattern": "^R07 " },
+  { "id": "N07", "file": "dist/plugins/index.d.ts", "before": "readonly which?: Omit<WhichCommandsOptions, \"replace\">;", "after": "readonly which?: WhichCommandsOptions;", "type": "T02" }
+]

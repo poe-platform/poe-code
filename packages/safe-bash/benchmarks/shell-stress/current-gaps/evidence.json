@@ -1,0 +1,1062 @@
+{
+  "before": {
+    "time": "2026-08-26T20:45:32.132Z",
+    "revision": "e432c52147a4f355fbae9083cfe1d94a3f78f86d",
+    "node": "v22.22.2",
+    "platform": "darwin/arm64",
+    "aggregate": "137489fb10bb61d8c2c9239d729730522181520f85cbd5d8e6536976e9292889",
+    "hashes": {
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/compression/files.ts": "d4bc351c1ce066e2486bd13d42b4acd66957a9b16eaceeb86cf3e56f081be89b",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/README.md": "9c953325738de6a2625a5a6b7000357fd447fa03fd58e025437daa5b2dbe1d7c",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/base.ts": "b10192b265536946c9d7ba765b56e97b320fad0655f6bf0eb98fc9a4ad7ad4b7",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/README.md": "6487f4f6236567778c708ebcb2b37b099a787be194a043d7571260c7c7bec3e4",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/bytes/README.md": "6a9b47adb94a075ad827a43472341dc4590723cf7c8e363c2bd806c5205809d5",
+      "src/commands/diff-patch/diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+      "src/commands/diff-patch/diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "9cae8b9b8e51b133e933dc96b9c8cf8c0dcfbc620f861a330e6711828579aad1",
+      "src/commands/diff-patch/patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+      "src/commands/diff-patch/patch-path.ts": "f4a115ab2dbd3bba8e6ac383ca6dcea46a6cc6fa6ed9a14fc206ab763a6bf35b",
+      "src/commands/diff-patch/patch.ts": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+      "src/commands/diff-patch/README.md": "fb8fae7bf7d4a3fd6bee81a277ac6e3aa42482f8bac29d0aa226d7c81356356d",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "de9e5a5acd1e94cf2ea63bcdc2e457b851326ab7ea79c87537e07cd9ebae664f",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/README.md": "cfa0381b6fe1e7f260880d22ae477ce35801b5555f013ee07a1bf4f35012a99e",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829",
+      "src/commands/structured/interpreter.ts": "18a6ec16d29f434244c78c2f842ed1c1e716e5c03d9b65c605a38a2ea02b2b93",
+      "src/commands/structured/jq.ts": "b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4",
+      "src/commands/structured/limits.ts": "f55d8f084b980633247a193802226e54c92164434cabfd7e7ae8b460999d4bb0",
+      "src/commands/structured/parser.ts": "e5778a10fc6fefb211c3c4aa39edd937fb372803a0c92e4f0c3557fc184adbfd",
+      "src/commands/structured/README.md": "f8a6fede9dad1f469cebd3af7ac221d1a487b5c6faca5c71df486a33240f0542",
+      "src/commands/structured/values.ts": "d4816d016c7e889b4944703410bdbdbb3a05445d9f6bdba14b9bde2c1651830d",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd",
+      "src/fs/mount/index.ts": "01e92070cd083c434bda19911c6cf311d0d7b06b802ad3623c8b4864f64bc3b5",
+      "src/fs/mount/README.md": "0aafb3631fd0876ea05d00a0ec702bf221e6097cd5e2db2fb93cf52e3b01c5f7",
+      "src/fs/overlay/index.ts": "6c76d113e1c29ef2bcc413292bdef5bca3dce528c1e71c8732dcd3bd2f6d12a9",
+      "src/fs/overlay/README.md": "994726aacc41b3ff55f423f72c657331622fd5f7552e0e40426b7c9ea4e87ce9",
+      "src/fs/readonly/index.ts": "c0425be5847b1f4c82be44d3857cb4d8663c5b8a24ebd42363eda7a8d5172673",
+      "src/fs/readonly/README.md": "968b054f2e8332e8dddb3caccef92006c48dd2d2c10f4b180a6423b905dbc857",
+      "src/fs/real/index.ts": "4977b7780b067cdd16bd8c128982758cd3401d2f72864f786981d2c315b74f82",
+      "src/fs/s3/filesystem.ts": "8496bbd287f7d68bd60951d520cee4cea9a493f842a21762370eb867a930d83b",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "1362646b4daf18da430a7f83e1ff90e6eaf0bff4d05cb8f69f1ddd4585d9cc83",
+      "src/fs/s3/README.md": "42dbb6ac9212be77eecd3ff3b1222d879d874e1c4e34991583da9d24aabe21c7",
+      "src/fs/s3/transport.ts": "c34aa9e92c5bc0146259a9657b490c807bb77f95b6661a216d014c2106971aa8",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/README.md": "13e2d372f9aa3c2c01d2688480cf12a7302a5eb732f4e2b63e002f3911a93cce",
+      "src/fs/webdav/webdav.ts": "b04971cc7aefbc17189fe79aefef30eaebcae23c96b5540612cfa38fa291394d",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "1bbe79a75e94c67c794f80316e7d6632a98b017be0ea4ff35cb8fba5a7a41e4c",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "675b297afd45bf4257cb891486d6db615aaebc0b8fbda61358de573322aa3f36",
+      "src/shell/arithmetic.ts": "3b844e46532de2ebb7e8ee8f7e4a278de044a29bfd9c0023170832b039f6bb71",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "792824bc75b41ec1afcadb810fcf033df4d2d50db6dada116a89d14ceea815b4",
+      "src/shell/parser.ts": "aec0160b3d92755b22be0f95c3e6b0e5c6a41545a7fbb3d0c6cbe07e3b2714f5",
+      "src/shell/pattern.ts": "c468d0e671872a2a0eada8811bf621fb69ac436a0a78a01c8933143a3815af9d",
+      "src/shell/runtime.ts": "7bf6c95b1458575aa75b318ea7c252066b62622314e0f953f0718be2663284c9",
+      "src/shell/shell.ts": "be5e2727b68396c346d7f374975edfdd2aa0048bd1cabea45c108a03007d86a1",
+      "src/shell/types.ts": "b4ffd34a796dc8d211b0355f11b704a2a7d44627623d3abbffcf3610154c4fc6",
+      "package.json": "fcd844888bf09a475b3b50b65ef429132abb0fb80ac082f46588588266dcd443",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+      "tests/fixtures/shell-cases.json": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c"
+    }
+  },
+  "after": {
+    "time": "2026-08-26T20:45:48.816Z",
+    "revision": "e432c52147a4f355fbae9083cfe1d94a3f78f86d",
+    "node": "v22.22.2",
+    "platform": "darwin/arm64",
+    "aggregate": "fd5fda600f3da522b3291d873651d99722de54a8fb4801b974b1204942b4dd5f",
+    "hashes": {
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+      "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+      "src/commands/bytes/compression/files.ts": "d4bc351c1ce066e2486bd13d42b4acd66957a9b16eaceeb86cf3e56f081be89b",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/README.md": "9d31f74aced788c5875b2baa1acb5941cff7a9f219bd30675546c53d6b3a5314",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/base.ts": "b10192b265536946c9d7ba765b56e97b320fad0655f6bf0eb98fc9a4ad7ad4b7",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/README.md": "6487f4f6236567778c708ebcb2b37b099a787be194a043d7571260c7c7bec3e4",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/bytes/README.md": "6a9b47adb94a075ad827a43472341dc4590723cf7c8e363c2bd806c5205809d5",
+      "src/commands/diff-patch/diff-format.ts": "3d6e0dd8e3b588963b3487f5e42ab8d7ea673fe2404df1ff26cce47912352912",
+      "src/commands/diff-patch/diff.ts": "769af5df58d829ed3733ad1a24d1fbcbb02af6397cd7f4ffbce5c0f08c517599",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "9cae8b9b8e51b133e933dc96b9c8cf8c0dcfbc620f861a330e6711828579aad1",
+      "src/commands/diff-patch/patch-formats.ts": "ef67097df66662e6b0ed74d707e2c75332b434464e7aafb9bd0164be40c37c6c",
+      "src/commands/diff-patch/patch-path.ts": "f4a115ab2dbd3bba8e6ac383ca6dcea46a6cc6fa6ed9a14fc206ab763a6bf35b",
+      "src/commands/diff-patch/patch.ts": "a4149cf2c27c4edaab9e79a8a703353a15853a0615983296a1ca26c260e1b7ee",
+      "src/commands/diff-patch/README.md": "fb8fae7bf7d4a3fd6bee81a277ac6e3aa42482f8bac29d0aa226d7c81356356d",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "d2d9db844bebb1a2f142854b050978b488d36552b2c496e52fbdf84cf6c0e9e8",
+      "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "src/commands/filesystem.ts": "de9e5a5acd1e94cf2ea63bcdc2e457b851326ab7ea79c87537e07cd9ebae664f",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/README.md": "cfa0381b6fe1e7f260880d22ae477ce35801b5555f013ee07a1bf4f35012a99e",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "c68b78e64b99690614314e33b9fcdf458ec3589de01192da9655104101d1e829",
+      "src/commands/structured/interpreter.ts": "18a6ec16d29f434244c78c2f842ed1c1e716e5c03d9b65c605a38a2ea02b2b93",
+      "src/commands/structured/jq.ts": "b30ccbdf9ae59b41cb8deec1e5245e5c3ddcc6688e1624e2526f742fb00063b4",
+      "src/commands/structured/limits.ts": "f55d8f084b980633247a193802226e54c92164434cabfd7e7ae8b460999d4bb0",
+      "src/commands/structured/parser.ts": "e5778a10fc6fefb211c3c4aa39edd937fb372803a0c92e4f0c3557fc184adbfd",
+      "src/commands/structured/README.md": "f8a6fede9dad1f469cebd3af7ac221d1a487b5c6faca5c71df486a33240f0542",
+      "src/commands/structured/values.ts": "d4816d016c7e889b4944703410bdbdbb3a05445d9f6bdba14b9bde2c1651830d",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c63db5052a28014ac185f86e6b97d2c3ef00ce61b80638baa850a6933f57457",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "21d4a366e3840d0d3c9e67b8a433cc0be341f7350b075fd6668aa4ad9a32d3fd",
+      "src/fs/mount/index.ts": "01e92070cd083c434bda19911c6cf311d0d7b06b802ad3623c8b4864f64bc3b5",
+      "src/fs/mount/README.md": "0aafb3631fd0876ea05d00a0ec702bf221e6097cd5e2db2fb93cf52e3b01c5f7",
+      "src/fs/overlay/index.ts": "6c76d113e1c29ef2bcc413292bdef5bca3dce528c1e71c8732dcd3bd2f6d12a9",
+      "src/fs/overlay/README.md": "994726aacc41b3ff55f423f72c657331622fd5f7552e0e40426b7c9ea4e87ce9",
+      "src/fs/readonly/index.ts": "c0425be5847b1f4c82be44d3857cb4d8663c5b8a24ebd42363eda7a8d5172673",
+      "src/fs/readonly/README.md": "968b054f2e8332e8dddb3caccef92006c48dd2d2c10f4b180a6423b905dbc857",
+      "src/fs/real/index.ts": "4977b7780b067cdd16bd8c128982758cd3401d2f72864f786981d2c315b74f82",
+      "src/fs/s3/filesystem.ts": "8496bbd287f7d68bd60951d520cee4cea9a493f842a21762370eb867a930d83b",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "1362646b4daf18da430a7f83e1ff90e6eaf0bff4d05cb8f69f1ddd4585d9cc83",
+      "src/fs/s3/README.md": "42dbb6ac9212be77eecd3ff3b1222d879d874e1c4e34991583da9d24aabe21c7",
+      "src/fs/s3/transport.ts": "c34aa9e92c5bc0146259a9657b490c807bb77f95b6661a216d014c2106971aa8",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/README.md": "13e2d372f9aa3c2c01d2688480cf12a7302a5eb732f4e2b63e002f3911a93cce",
+      "src/fs/webdav/webdav.ts": "b04971cc7aefbc17189fe79aefef30eaebcae23c96b5540612cfa38fa291394d",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "1bbe79a75e94c67c794f80316e7d6632a98b017be0ea4ff35cb8fba5a7a41e4c",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "675b297afd45bf4257cb891486d6db615aaebc0b8fbda61358de573322aa3f36",
+      "src/shell/arithmetic.ts": "3b844e46532de2ebb7e8ee8f7e4a278de044a29bfd9c0023170832b039f6bb71",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7a3bcb684599988e52656f6bbe0de96472bc35a7ff5ab15f475bd48d90d32ec",
+      "src/shell/parser.ts": "aec0160b3d92755b22be0f95c3e6b0e5c6a41545a7fbb3d0c6cbe07e3b2714f5",
+      "src/shell/pattern.ts": "c468d0e671872a2a0eada8811bf621fb69ac436a0a78a01c8933143a3815af9d",
+      "src/shell/runtime.ts": "af03c4fcce9f20a2f766de5516235f5b1c13a22921e0adabbd6945088d38aa3a",
+      "src/shell/shell.ts": "be5e2727b68396c346d7f374975edfdd2aa0048bd1cabea45c108a03007d86a1",
+      "src/shell/types.ts": "b4ffd34a796dc8d211b0355f11b704a2a7d44627623d3abbffcf3610154c4fc6",
+      "package.json": "fcd844888bf09a475b3b50b65ef429132abb0fb80ac082f46588588266dcd443",
+      "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+      "tests/fixtures/shell-cases.json": "cc1df2a29865b60a830afddca63869a84ea9782b1f5871e664f842654d7f4d3c"
+    }
+  },
+  "reference": {
+    "executable": "/bin/bash",
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+    "stderr": "",
+    "node": "v22.22.2",
+    "platform": "darwin/arm64"
+  },
+  "harnessHashes": {
+    "tests/shell-stress/cases.ts": "650a40d9ae11c771d4924a8b0dba96cc3e2cb0aea5f0cc9f599cd60b9610676a",
+    "tests/shell-stress/differential.test.ts": "985d6e578841af649bbf4469fa69c48634070077baa9ecb85b60429da085e118",
+    "tests/shell-stress/helpers.ts": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6",
+    "tests/shell-stress/lifecycle.test.ts": "585c6ce08f24eb6de8c0799aeb73f7895b33b1eb830a7d3c6704d3cc8c524a22",
+    "tests/shell-stress/model.ts": "9e863c4238200abb67e089669b3cea30dcd8a98073f163ee9147c5db56c626c9",
+    "tests/shell-stress/probes.ts": "f6cb394028c1e013cf1d86672debff64b651a1dda9cf07267cc58d06e7b66bbd",
+    "tests/shell-stress/process.test.ts": "de547daf75526ccc94fe723a920459040dda59306562befe9f942f2322dc83d0",
+    "tests/shell-stress/process.ts": "00ca4d13b077a2c21bd8af2d0f9770ff8f97ea85217a141b9fca9e3bfe4ef700",
+    "tests/shell-stress/virtual-child.ts": "4f3942a8c55445abaef5f3d71a478bcb6d34b5a434914988716c59155d1a852e",
+    "tests/shell-stress/current-gaps/cases.ts": "57c7f254d216fdad18ef2f37ac60657ce65aeec9abff6423c9f72cc85888024d",
+    "tests/shell-stress/current-gaps/pattern-child.ts": "1d6073b2bf397e86a2827e342833d13406d2d916a74fb5993138d21de488f0fd",
+    "tests/shell-stress/current-gaps/pattern.test.ts": "aa5ffea1b243fed54b1b5432b8f14772db51682f3289a71e7d3400d8061ddec2",
+    "tests/shell-stress/current-gaps/reference.ts": "4dd6ad46229a0eb3d4bd3424edcd556ed91ff1acb094518c09550ace079cdd63",
+    "benchmarks/shell-stress/current-gaps/capture.ts": "7753217c41b578b748c4033c92b828609962d08aa274ccc19ed23b1f9ecfd065"
+  },
+  "changedSources": [
+    "src/commands/bytes/compression/README.md",
+    "src/shell/input.ts",
+    "src/shell/runtime.ts"
+  ],
+  "safety": {
+    "shell": false,
+    "detached": true,
+    "deadlineMs": 1500,
+    "maxCombinedOutputBytes": 65536,
+    "abortRequestMs": 10,
+    "repetitionsPerLengthAndMode": 1,
+    "cleanup": "existing isolatedSpawn process-group SIGKILL on timeout, exit, and close; sanitized per-reference temporary directory removed in finally"
+  },
+  "cases": [
+    {
+      "fixture": {
+        "name": "descriptor-move-closes-original-after-copy",
+        "script": "{ printf moved >&4; } 3>saved 4>&3-"
+      },
+      "started": "2026-08-26T20:45:32.166Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "",
+        "stdoutBase64": "",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        },
+        "stdoutBase64": "",
+        "stderrBase64": ""
+      },
+      "outcome": "pass"
+    },
+    {
+      "fixture": {
+        "name": "read-n-consumes-exactly-two-characters",
+        "script": "IFS= read -r -n 2 value; printf \"[%s]\" \"$value\"; cat",
+        "stdin": "abcdef\n"
+      },
+      "started": "2026-08-26T20:45:32.398Z",
+      "expected": {
+        "stdout": "[ab]cdef\n",
+        "stderr": "",
+        "stdoutBase64": "W2FiXWNkZWYK",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "[]abcdef\n",
+        "stderr": "read: invalid variable name or unsupported option\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "W11hYmNkZWYK",
+        "stderrBase64": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgo="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "read-d-consumes-through-delimiter-only",
+        "script": "IFS= read -r -d : value; printf \"[%s]\" \"$value\"; cat",
+        "stdin": "ab:cd:ef\n"
+      },
+      "started": "2026-08-26T20:45:32.615Z",
+      "expected": {
+        "stdout": "[ab]cd:ef\n",
+        "stderr": "",
+        "stdoutBase64": "W2FiXWNkOmVmCg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "[]ab:cd:ef\n",
+        "stderr": "read: invalid variable name or unsupported option\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "W11hYjpjZDplZgo=",
+        "stderrBase64": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgo="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "command-substitution-file-shortcut-reads-and-trims",
+        "script": "printf \"<%s>\" \"$(<input)\"",
+        "initialFiles": {
+          "input": "one\ntwo\n\n"
+        }
+      },
+      "started": "2026-08-26T20:45:32.871Z",
+      "expected": {
+        "stdout": "<one\ntwo>",
+        "stderr": "",
+        "stdoutBase64": "PG9uZQp0d28+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "b25lCnR3bwoK"
+          }
+        }
+      },
+      "actual": {
+        "stdout": "<>",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "b25lCnR3bwoK"
+          }
+        },
+        "stdoutBase64": "PD4=",
+        "stderrBase64": ""
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "ansi-c-quoted-word-decodes-escape-before-argument-passing",
+        "script": "printf '<%s>' $'one\\ntwo\\tthree'"
+      },
+      "started": "2026-08-26T20:45:33.119Z",
+      "expected": {
+        "stdout": "<one\ntwo\tthree>",
+        "stderr": "",
+        "stdoutBase64": "PG9uZQp0d28JdGhyZWU+",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: Unsupported shell quoting or special parameter at offset 15\n",
+        "exitCode": 2,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDE1Cg=="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+        "script": "printf touched >marker; printf '%s' \"$(true |)\""
+      },
+      "started": "2026-08-26T20:45:33.342Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "exitCode": 0,
+        "files": {
+          "marker": {
+            "type": "file",
+            "base64": "dG91Y2hlZA=="
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: Expected command at offset 6\n",
+        "exitCode": 2,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "fatal-parameter-expansion-prevents-following-file-effect",
+        "script": ": \"${missing:?stop}\"; : >after"
+      },
+      "started": "2026-08-26T20:45:33.573Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: missing: stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "exitCode": 127,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: missing: stop\n",
+        "exitCode": 1,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+        "script": ": \"$((1/0))\"; : >after"
+      },
+      "started": "2026-08-26T20:45:33.801Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: 1/0: division by 0 (error token is \"0\")\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "exitCode": 1,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: Arithmetic division by zero\n",
+        "exitCode": 1,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IEFyaXRobWV0aWMgZGl2aXNpb24gYnkgemVybwo="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "fatal-expansion-in-substitution-stops-substitution-only",
+        "script": "value=$(printf \"%s\" \"${missing:?stop}\"; printf wrong); printf \"<%s>:%s\\n\" \"$value\" \"$?\""
+      },
+      "started": "2026-08-26T20:45:34.030Z",
+      "expected": {
+        "stdout": "<>:1\n",
+        "stderr": "shell-stress: missing: stop\n",
+        "stdoutBase64": "PD46MQo=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "<>:1\n",
+        "stderr": "shell: missing: stop\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PD46MQo=",
+        "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "glob-posix-bracket-digit-class",
+        "script": "printf '<%s>\\n' [[:digit:]].txt",
+        "initialFiles": {
+          "1.txt": "",
+          "a.txt": ""
+        }
+      },
+      "started": "2026-08-26T20:45:34.246Z",
+      "expected": {
+        "stdout": "<1.txt>\n",
+        "stderr": "",
+        "stdoutBase64": "PDEudHh0Pgo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "1.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "a.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "actual": {
+        "stdout": "<[[:digit:]].txt>\n",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "1.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "a.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        },
+        "stdoutBase64": "PFtbOmRpZ2l0Ol1dLnR4dD4K",
+        "stderrBase64": ""
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "move-output-really-closes-source",
+        "script": "{ printf moved >&4; printf lost >&3; printf 'status=%s' \"$?\"; } 3>saved 4>&3-"
+      },
+      "started": "2026-08-26T20:45:34.461Z",
+      "expected": {
+        "stdout": "status=1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "c3RhdHVzPTE=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        }
+      },
+      "actual": {
+        "stdout": "status=1",
+        "stderr": "shell: 3: Bad file descriptor\n",
+        "exitCode": 0,
+        "files": {
+          "saved": {
+            "type": "file",
+            "base64": "bW92ZWQ="
+          }
+        },
+        "stdoutBase64": "c3RhdHVzPTE=",
+        "stderrBase64": "c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "move-input-really-closes-source",
+        "script": "{ IFS= read -r value <&4; printf '<%s>' \"$value\"; IFS= read -r missing <&3; printf 'status=%s' \"$?\"; } 3<input 4<&3-",
+        "initialFiles": {
+          "input": "first\nsecond\n"
+        }
+      },
+      "started": "2026-08-26T20:45:34.681Z",
+      "expected": {
+        "stdout": "<first>status=1",
+        "stderr": "shell-stress: 3: Bad file descriptor\n",
+        "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiAzOiBCYWQgZmlsZSBkZXNjcmlwdG9yCg==",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        }
+      },
+      "actual": {
+        "stdout": "<first>status=1",
+        "stderr": "shell: 3: Bad file descriptor\n",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "Zmlyc3QKc2Vjb25kCg=="
+          }
+        },
+        "stdoutBase64": "PGZpcnN0PnN0YXR1cz0x",
+        "stderrBase64": "c2hlbGw6IDM6IEJhZCBmaWxlIGRlc2NyaXB0b3IK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "read-n-stops-at-newline-before-count",
+        "script": "IFS= read -r -n 4 value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "a\nrest\n"
+      },
+      "started": "2026-08-26T20:45:34.903Z",
+      "expected": {
+        "stdout": "<a>:0:rest\n",
+        "stderr": "",
+        "stdoutBase64": "PGE+OjA6cmVzdAo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "<>:2:a\nrest\n",
+        "stderr": "read: invalid variable name or unsupported option\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PD46MjphCnJlc3QK",
+        "stderrBase64": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgo="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "read-d-empty-selects-nul",
+        "script": "IFS= read -r -d \"\" value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "a\nb\u0000tail\n"
+      },
+      "started": "2026-08-26T20:45:35.128Z",
+      "expected": {
+        "stdout": "<a\nb>:0:tail\n",
+        "stderr": "",
+        "stdoutBase64": "PGEKYj46MDp0YWlsCg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "<>:2:a\nb\u0000tail\n",
+        "stderr": "read: invalid variable name or unsupported option\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PD46MjphCmIAdGFpbAo=",
+        "stderrBase64": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgo="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "read-d-missing-delimiter-retains-data-with-failure",
+        "script": "IFS= read -r -d : value; status=$?; printf \"<%s>:%s:\" \"$value\" \"$status\"; cat",
+        "stdin": "tail"
+      },
+      "started": "2026-08-26T20:45:35.360Z",
+      "expected": {
+        "stdout": "<tail>:1:",
+        "stderr": "",
+        "stdoutBase64": "PHRhaWw+OjE6",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "<>:2:tail",
+        "stderr": "read: invalid variable name or unsupported option\n",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "PD46Mjp0YWls",
+        "stderrBase64": "cmVhZDogaW52YWxpZCB2YXJpYWJsZSBuYW1lIG9yIHVuc3VwcG9ydGVkIG9wdGlvbgo="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "file-shortcut-does-not-consume-inherited-stdin",
+        "script": "printf \"<%s>\" \"$(<input)\"; cat",
+        "stdin": "host\n",
+        "initialFiles": {
+          "input": "file\n\n"
+        }
+      },
+      "started": "2026-08-26T20:45:35.608Z",
+      "expected": {
+        "stdout": "<file>host\n",
+        "stderr": "",
+        "stdoutBase64": "PGZpbGU+aG9zdAo=",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "ZmlsZQoK"
+          }
+        }
+      },
+      "actual": {
+        "stdout": "<>host\n",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "input": {
+            "type": "file",
+            "base64": "ZmlsZQoK"
+          }
+        },
+        "stdoutBase64": "PD5ob3N0Cg==",
+        "stderrBase64": ""
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "ansi-c-word-is-quoted-not-split-or-globbed",
+        "script": "printf '<%s>' prefix$'a b\\t*'suffix",
+        "initialFiles": {
+          "match": ""
+        }
+      },
+      "started": "2026-08-26T20:45:35.880Z",
+      "expected": {
+        "stdout": "<prefixa b\t*suffix>",
+        "stderr": "",
+        "stdoutBase64": "PHByZWZpeGEgYgkqc3VmZml4Pg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "match": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: Unsupported shell quoting or special parameter at offset 21\n",
+        "exitCode": 2,
+        "files": {
+          "match": {
+            "type": "file",
+            "base64": ""
+          }
+        },
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IFVuc3VwcG9ydGVkIHNoZWxsIHF1b3Rpbmcgb3Igc3BlY2lhbCBwYXJhbWV0ZXIgYXQgb2Zmc2V0IDIxCg=="
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "pathname-classes-c-locale-alpha-negation",
+        "script": "printf '<%s>' [[:alpha:]].txt [![:digit:]].txt",
+        "initialFiles": {
+          "7.txt": "",
+          "A.txt": "",
+          "b.txt": ""
+        }
+      },
+      "started": "2026-08-26T20:45:36.156Z",
+      "expected": {
+        "stdout": "<A.txt><b.txt><A.txt><b.txt>",
+        "stderr": "",
+        "stdoutBase64": "PEEudHh0PjxiLnR4dD48QS50eHQ+PGIudHh0Pg==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {
+          "7.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "A.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "b.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        }
+      },
+      "actual": {
+        "stdout": "<[[:alpha:]].txt><[![:digit:]].txt>",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {
+          "7.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "A.txt": {
+            "type": "file",
+            "base64": ""
+          },
+          "b.txt": {
+            "type": "file",
+            "base64": ""
+          }
+        },
+        "stdoutBase64": "PFtbOmFscGhhOl1dLnR4dD48WyFbOmRpZ2l0Ol1dLnR4dD4=",
+        "stderrBase64": ""
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "prevalidation-prior-output-and-file",
+        "script": "printf before; printf marker >marker; printf \"%s\" \"$(true |)\"; printf after"
+      },
+      "started": "2026-08-26T20:45:36.438Z",
+      "expected": {
+        "stdout": "beforeafter",
+        "stderr": "shell-stress: command substitution: line 1: syntax error: unexpected end of file\n",
+        "stdoutBase64": "YmVmb3JlYWZ0ZXI=",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBjb21tYW5kIHN1YnN0aXR1dGlvbjogbGluZSAxOiBzeW50YXggZXJyb3I6IHVuZXhwZWN0ZWQgZW5kIG9mIGZpbGUK",
+        "exitCode": 0,
+        "files": {
+          "marker": {
+            "type": "file",
+            "base64": "bWFya2Vy"
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: Expected command at offset 6\n",
+        "exitCode": 2,
+        "files": {},
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IEV4cGVjdGVkIGNvbW1hbmQgYXQgb2Zmc2V0IDYK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "fatal-parameter-preserves-only-earlier-effects",
+        "script": "printf before >before; : \"${missing:?stop}\"; printf after >after"
+      },
+      "started": "2026-08-26T20:45:36.702Z",
+      "expected": {
+        "stdout": "",
+        "stderr": "shell-stress: missing: stop\n",
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGwtc3RyZXNzOiBtaXNzaW5nOiBzdG9wCg==",
+        "exitCode": 127,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "shell: missing: stop\n",
+        "exitCode": 1,
+        "files": {
+          "before": {
+            "type": "file",
+            "base64": "YmVmb3Jl"
+          }
+        },
+        "stdoutBase64": "",
+        "stderrBase64": "c2hlbGw6IG1pc3Npbmc6IHN0b3AK"
+      },
+      "outcome": "fail"
+    },
+    {
+      "fixture": {
+        "name": "unmatched-case-bracket-literal-control",
+        "script": "case \"[\" in [) printf literal;; *) printf wrong;; esac"
+      },
+      "started": "2026-08-26T20:45:37.046Z",
+      "expected": {
+        "stdout": "literal",
+        "stderr": "",
+        "stdoutBase64": "bGl0ZXJhbA==",
+        "stderrBase64": "",
+        "exitCode": 0,
+        "files": {}
+      },
+      "actual": {
+        "stdout": "literal",
+        "stderr": "",
+        "exitCode": 0,
+        "files": {},
+        "stdoutBase64": "bGl0ZXJhbA==",
+        "stderrBase64": ""
+      },
+      "outcome": "pass"
+    }
+  ],
+  "patterns": [
+    {
+      "mode": "matcher",
+      "length": 2048,
+      "wallMs": 211.58941700000014,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"length\":2048,\"mode\":\"matcher\",\"elapsedMs\":23.811667,\"aborted\":false,\"outcome\":false}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "matcher",
+      "length": 8192,
+      "wallMs": 478.0222910000002,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"length\":8192,\"mode\":\"matcher\",\"elapsedMs\":320.47420800000003,\"aborted\":false,\"outcome\":false}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "matcher",
+      "length": 32768,
+      "wallMs": 1506.1973749999997,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": null,
+      "signal": "SIGKILL",
+      "error": "Child exceeded 1500 ms hard deadline",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "mode": "matcher",
+      "length": 65536,
+      "wallMs": 1507.1460830000005,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": null,
+      "signal": "SIGKILL",
+      "error": "Child exceeded 1500 ms hard deadline",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "mode": "shell",
+      "length": 2048,
+      "wallMs": 184.72416599999997,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"length\":2048,\"mode\":\"shell\",\"elapsedMs\":27.081582999999995,\"aborted\":false,\"outcome\":{\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":0},\"files\":[]}}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "shell",
+      "length": 8192,
+      "wallMs": 501.00883299999987,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"length\":8192,\"mode\":\"shell\",\"elapsedMs\":331.30879100000004,\"aborted\":false,\"outcome\":{\"result\":{\"stdout\":\"\",\"stderr\":\"\",\"stdoutBytes\":{},\"stderrBytes\":{},\"exitCode\":0},\"files\":[]}}\n",
+      "stderr": ""
+    },
+    {
+      "mode": "shell",
+      "length": 32768,
+      "wallMs": 1508.5697500000006,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "changedSources": [],
+      "status": null,
+      "signal": "SIGKILL",
+      "error": "Child exceeded 1500 ms hard deadline",
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "mode": "shell",
+      "length": 65536,
+      "wallMs": 1507.0210829999996,
+      "before": "f2352303239b34fec7aec33fedb3adcd83910172ff30018198252e06803ab8f8",
+      "after": "fd5fda600f3da522b3291d873651d99722de54a8fb4801b974b1204942b4dd5f",
+      "changedSources": [
+        "src/commands/bytes/compression/README.md"
+      ],
+      "status": null,
+      "signal": "SIGKILL",
+      "error": "Child exceeded 1500 ms hard deadline",
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "bashPattern": {
+    "stdout": "nomatch",
+    "stderr": "",
+    "stdoutBase64": "bm9tYXRjaA==",
+    "stderrBase64": "",
+    "exitCode": 0,
+    "files": {}
+  },
+  "regression": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--unhandled-rejections=strict",
+      "--import",
+      "tsx",
+      "--test",
+      "--test-concurrency=1",
+      "tests/shell-stress/current-gaps/pattern.test.ts"
+    ],
+    "status": 1,
+    "signal": null,
+    "stdout": "TAP version 13\n# Subtest: unmatched bracket matcher completes or cancels within external deadline\nnot ok 1 - unmatched bracket matcher completes or cancels within external deadline\n  ---\n  duration_ms: 1609.346167\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-gaps/pattern.test.ts:1:230'\n  failureType: 'testCodeFailure'\n  error: |-\n    unmatched-bracket tokenization must not defeat the external cancellation deadline\n    + actual - expected\n    \n    + Error: Child exceeded 1500 ms hard deadline\n    +     at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/process.ts:47:55)\n    +     at listOnTimeout (node:internal/timers:585:17)\n    +     at process.processTimers (node:internal/timers:521:7) {\n    +   code: 'ETIMEDOUT'\n    + }\n    - undefined\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  actual:\n  error: 'Child exceeded 1500 ms hard deadline'\n  stack: |-\n    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/process.ts:47:55)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-gaps/pattern.test.ts:17:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# {\"before\":\"fd5fda600f3da522b3291d873651d99722de54a8fb4801b974b1204942b4dd5f\",\"after\":\"fd5fda600f3da522b3291d873651d99722de54a8fb4801b974b1204942b4dd5f\",\"status\":null,\"signal\":\"SIGKILL\",\"error\":\"Child exceeded 1500 ms hard deadline\",\"stdout\":\"\",\"stderr\":\"\"}\n# Subtest: unmatched bracket shell completes or cancels within external deadline\nnot ok 2 - unmatched bracket shell completes or cancels within external deadline\n  ---\n  duration_ms: 1584.532125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-gaps/pattern.test.ts:1:230'\n  failureType: 'testCodeFailure'\n  error: |-\n    unmatched-bracket tokenization must not defeat the external cancellation deadline\n    + actual - expected\n    \n    + Error: Child exceeded 1500 ms hard deadline\n    +     at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/process.ts:47:55)\n    +     at listOnTimeout (node:internal/timers:585:17)\n    +     at process.processTimers (node:internal/timers:521:7) {\n    +   code: 'ETIMEDOUT'\n    + }\n    - undefined\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  actual:\n  error: 'Child exceeded 1500 ms hard deadline'\n  stack: |-\n    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/process.ts:47:55)\n    listOnTimeout (node:internal/timers:585:17)\n    process.processTimers (node:internal/timers:521:7)\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/current-gaps/pattern.test.ts:17:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"before\":\"fd5fda600f3da522b3291d873651d99722de54a8fb4801b974b1204942b4dd5f\",\"after\":\"fd5fda600f3da522b3291d873651d99722de54a8fb4801b974b1204942b4dd5f\",\"status\":null,\"signal\":\"SIGKILL\",\"error\":\"Child exceeded 1500 ms hard deadline\",\"stdout\":\"\",\"stderr\":\"\"}\n1..2\n# tests 2\n# suites 0\n# pass 0\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3342.31125\n",
+    "stderr": ""
+  },
+  "totals": {
+    "cases": 21,
+    "pass": 2,
+    "fail": 19,
+    "invalid": 0,
+    "oldGaps": 10,
+    "oldGapFailures": 9
+  }
+}

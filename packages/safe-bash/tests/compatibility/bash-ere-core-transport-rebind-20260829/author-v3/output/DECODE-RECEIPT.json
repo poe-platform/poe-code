@@ -1,0 +1,12 @@
+{
+  "at": "2026-08-29T16:07:05.032Z",
+  "committedProducer": "b8e181757058ff51c32e00387abc730cd1acc29c",
+  "frozenReceiptSha": "52b75de5a8b9af27effc7d5dcf5ffa64eeb8171383413810709143b144fef54d",
+  "archiveSha256": "fc559bb3a1bd7db72e959461ce2b733871cde0867095c61fd065021fb498606d",
+  "sameAuthenticatedBufferDecoded": true,
+  "compressedBytes": 909885,
+  "decodedBytes": 5792256,
+  "regularMembers": 1002,
+  "memberBytes": 5029786,
+  "productImported": false
+}

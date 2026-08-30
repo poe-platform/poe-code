@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: F22 default captured Node clock returns early child status through direct cleanup and actual Shell
+ok 1 - F22 default captured Node clock returns early child status through direct cleanup and actual Shell
+  ---
+  duration_ms: 6.388041
+  type: 'test'
+  ...
+# Subtest: custom receiver snapshot, one-handle chunks, cancellation, and cleanup remain unchanged
+ok 2 - custom receiver snapshot, one-handle chunks, cancellation, and cleanup remain unchanged
+  ---
+  duration_ms: 2.078042
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 498.543792

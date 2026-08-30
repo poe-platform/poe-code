@@ -1,0 +1,757 @@
+TAP version 13
+# {"review":"01","value":{"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"02","value":{"result":{"stdout":"","stderr":"","stdoutBytes":{},"stderrBytes":{},"exitCode":0},"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# Subtest: 01 faithful opaque S3 readonly source executes shell cp over existing target
+ok 1 - 01 faithful opaque S3 readonly source executes shell cp over existing target
+  ---
+  duration_ms: 12.968708
+  type: 'test'
+  ...
+# Subtest: 02 faithful opaque DAV instances execute existing-target cp and preserve aliases
+ok 2 - 02 faithful opaque DAV instances execute existing-target cp and preserve aliases
+  ---
+  duration_ms: 27.116959
+  type: 'test'
+  ...
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/alias","syscall":"copyFile"}}
+# {"review":"03","value":{"alias":[0,255,19,65,10,128],"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}
+# {"review":"04","value":{"backend":"S3FileSystem","left":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"right":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"04","value":{"backend":"WebDavFileSystem","left":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"right":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# Subtest: 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias
+ok 3 - 03 distinct Real instances share actual backing, permit distinct copy and reject hardlink alias
+  ---
+  duration_ms: 11.278208
+  type: 'test'
+  ...
+# Subtest: 04 actual distinct maps override identical URL bucket key and client hints
+ok 4 - 04 actual distinct maps override identical URL bucket key and client hints
+  ---
+  duration_ms: 10.0335
+  type: 'test'
+  ...
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"05 safe-refusal limitation, not positive overwrite credit","value":{"requests":["PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source"],"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"05 existing FileSystem method, not future constructor option","value":{"requests":["PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /source","PROPFIND /source","PROPFIND /source","PROPFIND /","PROPFIND /","PROPFIND /target","PROPFIND /target","PROPFIND /target","PROPFIND /target","PUT /target"],"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[0,255,19,65,10,128]}}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"06","value":{"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"replay":"unknown; restored fresh observation accepted"}}
+# {"review":"error","value":{"code":"ENOTSUP","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"07","value":{"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"clone":"no provider-owned cross-protocol authority"}}
+# {"review":"error","value":{"code":"EACCES","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"08","value":{"stage":"metadata","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EACCES","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"08","value":{"stage":"body","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"ECANCELED","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# Subtest: 05 legitimate Real DAV overlap refuses unknown, then truthful existing comparison permits distinct copy
+ok 5 - 05 legitimate Real DAV overlap refuses unknown, then truthful existing comparison permits distinct copy
+  ---
+  duration_ms: 13.158166
+  type: 'test'
+  ...
+# Subtest: 06 fresh S3 HEAD authority rejects cached response and FS path stat replay
+ok 6 - 06 fresh S3 HEAD authority rejects cached response and FS path stat replay
+  ---
+  duration_ms: 1.367042
+  type: 'test'
+  ...
+# Subtest: 07 DAV response authority binds exact FS path stat and does not follow response clones
+ok 7 - 07 DAV response authority binds exact FS path stat and does not follow response clones
+  ---
+  duration_ms: 2.636541
+  type: 'test'
+  ...
+# Subtest: 08 late metadata denial and buffered body failure propagate EACCES without target effects
+ok 8 - 08 late metadata denial and buffered body failure propagate EACCES without target effects
+  ---
+  duration_ms: 2.100041
+  type: 'test'
+  ...
+# {"review":"09","value":{"error":"ECANCELED","callerReasonCode":"ENOENT","source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# Subtest: 09 pending metadata cancellation preserves files and handles late rejection
+ok 9 - 09 pending metadata cancellation preserves files and handles late rejection
+  ---
+  duration_ms: 2.430667
+  type: 'test'
+  ...
+# {"review":"10 nontransactional destination effect","value":{"error":"body cancelled","returned":1,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[]}}}
+# {"review":"error","value":{"code":"EIO","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"EIO","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"error","value":{"code":"EINVAL","path":"/left/source","dest":"/right/source","syscall":"copyFile"}}
+# {"review":"11","value":{"queries":["same","distinct"],"reads":0,"files":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EROFS","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"12","value":{"backend":"S3FileSystem","reads":0,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# {"review":"error","value":{"code":"EROFS","path":"/left/source","dest":"/right/target","syscall":"copyFile"}}
+# {"review":"12","value":{"backend":"WebDavFileSystem","reads":0,"source":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]},"target":{"keep":[75,69,69,80],"source":[0,255,19,65,10,128],"target":[79,76,68,0]}}}
+# Subtest: 10 pending streamed body cancellation preserves source but permits already-truncated destination
+ok 10 - 10 pending streamed body cancellation preserves source but permits already-truncated destination
+  ---
+  duration_ms: 1.560083
+  type: 'test'
+  ...
+# Subtest: 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate
+ok 11 - 11 conflicting or invalid authorities fail EIO before content, known aliases still dominate
+  ---
+  duration_ms: 0.428542
+  type: 'test'
+  ...
+# Subtest: 12 readonly S3 and DAV destinations reject overwrite before body acquisition
+ok 12 - 12 readonly S3 and DAV destinations reject overwrite before body acquisition
+  ---
+  duration_ms: 2.331417
+  type: 'test'
+  ...
+# Subtest: current core cp -P: unscoped source symlink across two aliases is never unlinked
+ok 13 - current core cp -P: unscoped source symlink across two aliases is never unlinked
+  ---
+  duration_ms: 2.271792
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+ok 14 - current core EXDEV mv: a known hardlink alias returns GNU status1 without copy or unlink
+  ---
+  duration_ms: 0.415208
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct success: remove follows completed copy only
+ok 15 - current core EXDEV mv known-distinct success: remove follows completed copy only
+  ---
+  duration_ms: 0.621334
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+ok 16 - current core EXDEV mv known-distinct partial-failure: remove follows completed copy only
+  ---
+  duration_ms: 0.175334
+  type: 'test'
+  ...
+# Subtest: current core EXDEV mv known-distinct unknown: remove follows completed copy only
+ok 17 - current core EXDEV mv known-distinct unknown: remove follows completed copy only
+  ---
+  duration_ms: 0.248167
+  type: 'test'
+  ...
+# Subtest: public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+ok 18 - public wrapper comparison over memory: independent stores are distinct, aliases follow backing entries
+  ---
+  duration_ms: 0.935375
+  type: 'test'
+  ...
+# Subtest: public wrapper comparison over real: different roots and clients preserve shared native identity
+ok 19 - public wrapper comparison over real: different roots and clients preserve shared native identity
+  ---
+  duration_ms: 6.501375
+  type: 'test'
+  ...
+# Subtest: public comparison resolves BOTH operands through nested mounts and readonly wrappers
+ok 20 - public comparison resolves BOTH operands through nested mounts and readonly wrappers
+  ---
+  duration_ms: 1.844459
+  type: 'test'
+  ...
+# Subtest: overlay public comparison follows current selection without copy-up; new selection is re-observed
+ok 21 - overlay public comparison follows current selection without copy-up; new selection is re-observed
+  ---
+  duration_ms: 1.711709
+  type: 'test'
+  ...
+# Subtest: unknown custom views remain unknown and public comparison acquires no content or mutation
+ok 22 - unknown custom views remain unknown and public comparison acquires no content or mutation
+  ---
+  duration_ms: 0.533208
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source ENOENT, never unknown
+ok 23 - public comparison propagates source ENOENT, never unknown
+  ---
+  duration_ms: 0.143458
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EACCES, never unknown
+ok 24 - public comparison propagates source EACCES, never unknown
+  ---
+  duration_ms: 0.097208
+  type: 'test'
+  ...
+# Subtest: public comparison propagates source EIO, never unknown
+ok 25 - public comparison propagates source EIO, never unknown
+  ---
+  duration_ms: 0.125792
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer ENOENT, never unknown
+ok 26 - public comparison propagates peer ENOENT, never unknown
+  ---
+  duration_ms: 0.183667
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EACCES, never unknown
+ok 27 - public comparison propagates peer EACCES, never unknown
+  ---
+  duration_ms: 0.143333
+  type: 'test'
+  ...
+# Subtest: public comparison propagates peer EIO, never unknown
+ok 28 - public comparison propagates peer EIO, never unknown
+  ---
+  duration_ms: 0.055292
+  type: 'test'
+  ...
+# Subtest: complete known aliases override incompatible callback answers without querying either callback
+ok 29 - complete known aliases override incompatible callback answers without querying either callback
+  ---
+  duration_ms: 0.32475
+  type: 'test'
+  ...
+# Subtest: public comparison rejects same/distinct before effects and queries each terminal at most once
+ok 30 - public comparison rejects same/distinct before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.282542
+  type: 'test'
+  ...
+# Subtest: public comparison rejects unknown/invalid before effects and queries each terminal at most once
+ok 31 - public comparison rejects unknown/invalid before effects and queries each terminal at most once
+  ---
+  duration_ms: 0.230417
+  type: 'test'
+  ...
+# Subtest: one backend exposed twice negotiates once, not recursively through wrappers
+ok 32 - one backend exposed twice negotiates once, not recursively through wrappers
+  ---
+  duration_ms: 0.199791
+  type: 'test'
+  ...
+# Subtest: opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+ok 33 - opaque forwarders of negotiating product methods return unknown without recursive metadata or duplicate calls
+  ---
+  duration_ms: 0.504291
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (return)
+ok 34 - ENOENT-shaped cancellation between terminal queries stops peer (return)
+  ---
+  duration_ms: 0.508875
+  type: 'test'
+  ...
+# Subtest: ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+ok 35 - ENOENT-shaped cancellation between terminal queries stops peer (rejection)
+  ---
+  duration_ms: 0.281833
+  type: 'test'
+  ...
+# Subtest: exclusive insertion race preserves source and newly arrived target bytes
+ok 36 - exclusive insertion race preserves source and newly arrived target bytes
+  ---
+  duration_ms: 0.417167
+  type: 'test'
+  ...
+# Subtest: overlay future upper writer alias cannot be authorized by distinct selected lower read views
+ok 37 - overlay future upper writer alias cannot be authorized by distinct selected lower read views
+  ---
+  duration_ms: 0.494958
+  type: 'test'
+  ...
+# Subtest: positive overwrite: independent-memory, distinct backing files
+ok 38 - positive overwrite: independent-memory, distinct backing files
+  ---
+  duration_ms: 6.40675
+  type: 'test'
+  ...
+# {"case":"positive overwrite: independent-memory, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: shared-memory, distinct backing files
+ok 39 - positive overwrite: shared-memory, distinct backing files
+  ---
+  duration_ms: 0.442083
+  type: 'test'
+  ...
+# {"case":"positive overwrite: shared-memory, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: readonly, distinct backing files
+ok 40 - positive overwrite: readonly, distinct backing files
+  ---
+  duration_ms: 0.866875
+  type: 'test'
+  ...
+# {"case":"positive overwrite: readonly, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: overlay, distinct backing files
+ok 41 - positive overwrite: overlay, distinct backing files
+  ---
+  duration_ms: 1.138292
+  type: 'test'
+  ...
+# {"case":"positive overwrite: overlay, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: opaque, distinct backing files
+ok 42 - positive overwrite: opaque, distinct backing files
+  ---
+  duration_ms: 0.434333
+  type: 'test'
+  ...
+# {"case":"positive overwrite: opaque, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: positive overwrite: real-shared-root, distinct backing files
+ok 43 - positive overwrite: real-shared-root, distinct backing files
+  ---
+  duration_ms: 13.174875
+  type: 'test'
+  ...
+# {"case":"positive overwrite: real-shared-root, distinct backing files","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: paired alias control: opaque does not manufacture disjoint scopes
+ok 44 - paired alias control: opaque does not manufacture disjoint scopes
+  ---
+  duration_ms: 0.577708
+  type: 'test'
+  ...
+# {"case":"paired alias control: opaque does not manufacture disjoint scopes","expectedCode":"EINVAL","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]}}
+# Subtest: paired alias control: real-shared-root does not manufacture disjoint scopes
+ok 45 - paired alias control: real-shared-root does not manufacture disjoint scopes
+  ---
+  duration_ms: 4.000208
+  type: 'test'
+  ...
+# {"case":"paired alias control: real-shared-root does not manufacture disjoint scopes","expectedCode":"EINVAL","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]}}
+# Subtest: positive same-mount memory rename replaces a distinct file
+ok 46 - positive same-mount memory rename replaces a distinct file
+  ---
+  duration_ms: 0.415375
+  type: 'test'
+  ...
+# {"case":"positive same-mount memory rename replaces a distinct file","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: REQUIRED shared memory backend mounted twice: distinct-file mv overwrite
+ok 47 - REQUIRED shared memory backend mounted twice: distinct-file mv overwrite
+  ---
+  duration_ms: 3.748375
+  type: 'test'
+  ...
+# {"case":"REQUIRED shared memory backend mounted twice: distinct-file mv overwrite","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: REQUIRED cross-mount memory mv, target missing
+ok 48 - REQUIRED cross-mount memory mv, target missing
+  ---
+  duration_ms: 0.861375
+  type: 'test'
+  ...
+# {"case":"REQUIRED cross-mount memory mv, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: REQUIRED cross-mount memory mv, target existing
+ok 49 - REQUIRED cross-mount memory mv, target existing
+  ---
+  duration_ms: 0.549
+  type: 'test'
+  ...
+# {"case":"REQUIRED cross-mount memory mv, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[]}
+# Subtest: REQUIRED s3 direct copy, target missing
+ok 50 - REQUIRED s3 direct copy, target missing
+  ---
+  duration_ms: 4.322292
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 direct copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 direct copy, target existing
+ok 51 - REQUIRED s3 direct copy, target existing
+  ---
+  duration_ms: 1.828625
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 direct copy, target existing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 one-mount copy, target missing
+ok 52 - REQUIRED s3 one-mount copy, target missing
+  ---
+  duration_ms: 1.94275
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 one-mount copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 one-mount copy, target existing
+ok 53 - REQUIRED s3 one-mount copy, target existing
+  ---
+  duration_ms: 2.948375
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 one-mount copy, target existing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED s3 separate-clients copy, target missing
+ok 54 - REQUIRED s3 separate-clients copy, target missing
+  ---
+  duration_ms: 1.918
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 separate-clients copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED s3 separate-clients copy, target existing
+ok 55 - REQUIRED s3 separate-clients copy, target existing
+  ---
+  duration_ms: 2.09525
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 separate-clients copy, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"}]}
+# Subtest: positive s3 direct existing-target rename (non-atomic opt-in)
+ok 56 - positive s3 direct existing-target rename (non-atomic opt-in)
+  ---
+  duration_ms: 1.497917
+  type: 'test'
+  ...
+# {"case":"positive s3 direct existing-target rename (non-atomic opt-in)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"},{"operation":"deleteObject","key":"same-prefix/source"}]}
+# Subtest: positive s3 one-mount existing-target rename (non-atomic opt-in)
+ok 57 - positive s3 one-mount existing-target rename (non-atomic opt-in)
+  ---
+  duration_ms: 3.619667
+  type: 'test'
+  ...
+# {"case":"positive s3 one-mount existing-target rename (non-atomic opt-in)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"},{"operation":"deleteObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED s3 separate-clients cross-mount mv, target missing
+ok 58 - REQUIRED s3 separate-clients cross-mount mv, target missing
+  ---
+  duration_ms: 2.892834
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 separate-clients cross-mount mv, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"deleteObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED s3 separate-clients cross-mount mv, target existing
+ok 59 - REQUIRED s3 separate-clients cross-mount mv, target existing
+  ---
+  duration_ms: 4.661042
+  type: 'test'
+  ...
+# {"case":"REQUIRED s3 separate-clients cross-mount mv, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"copyObject","key":"same-prefix/target"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"deleteObject","key":"same-prefix/source"}]}
+# Subtest: paired s3 opaque separate-client alias stays unchanged (traversal may reject first)
+ok 60 - paired s3 opaque separate-client alias stays unchanged (traversal may reject first)
+  ---
+  duration_ms: 1.43225
+  type: 'test'
+  ...
+# {"case":"paired s3 opaque separate-client alias stays unchanged (traversal may reject first)","expectedCode":"ENOTSUP","cause":"ENOTSUP: operation not supported","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""}]}
+# Subtest: REQUIRED memory to-remote s3 copy, target missing
+ok 61 - REQUIRED memory to-remote s3 copy, target missing
+  ---
+  duration_ms: 0.716083
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory to-remote s3 copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED memory to-remote s3 copy, target existing
+ok 62 - REQUIRED memory to-remote s3 copy, target existing
+  ---
+  duration_ms: 0.972542
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory to-remote s3 copy, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/target"},{"operation":"headObject","key":"same-prefix/target/"},{"operation":"listObjectsV2","key":""},{"operation":"putObject","key":"same-prefix/target"}]}
+# Subtest: REQUIRED memory from-remote s3 copy, target missing
+ok 63 - REQUIRED memory from-remote s3 copy, target missing
+  ---
+  duration_ms: 0.713292
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory from-remote s3 copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED memory from-remote s3 copy, target existing
+ok 64 - REQUIRED memory from-remote s3 copy, target existing
+  ---
+  duration_ms: 0.758875
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory from-remote s3 copy, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"listObjectsV2","key":""},{"operation":"headObject","key":"same-prefix/source"},{"operation":"headObject","key":"same-prefix/source/"},{"operation":"listObjectsV2","key":""},{"operation":"getObject","key":"same-prefix/source"}]}
+# Subtest: REQUIRED webdav direct copy, target missing
+ok 65 - REQUIRED webdav direct copy, target missing
+  ---
+  duration_ms: 19.148792
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav direct copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav direct copy, target existing
+ok 66 - REQUIRED webdav direct copy, target existing
+  ---
+  duration_ms: 6.886291
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav direct copy, target existing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav one-mount copy, target missing
+ok 67 - REQUIRED webdav one-mount copy, target missing
+  ---
+  duration_ms: 3.997792
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target missing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav one-mount copy, target existing
+ok 68 - REQUIRED webdav one-mount copy, target existing
+  ---
+  duration_ms: 5.931709
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav one-mount copy, target existing","outcome":{"status":"success"},"source":"/source","target":"/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"COPY","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target missing
+ok 69 - REQUIRED webdav separate-clients copy, target missing
+  ---
+  duration_ms: 4.353916
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav separate-clients copy, target existing
+ok 70 - REQUIRED webdav separate-clients copy, target existing
+  ---
+  duration_ms: 4.9095
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav separate-clients copy, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"}]}
+# Subtest: positive webdav direct existing-target rename (default lock policy)
+ok 71 - positive webdav direct existing-target rename (default lock policy)
+  ---
+  duration_ms: 2.779625
+  type: 'test'
+  ...
+# {"case":"positive webdav direct existing-target rename (default lock policy)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"MOVE","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: positive webdav one-mount existing-target rename (default lock policy)
+ok 72 - positive webdav one-mount existing-target rename (default lock policy)
+  ---
+  duration_ms: 4.643708
+  type: 'test'
+  ...
+# {"case":"positive webdav one-mount existing-target rename (default lock policy)","outcome":{"status":"success"},"source":"/source","target":"/target","action":"rename","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"LOCK","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"MOVE","key":"/dav/source"},{"operation":"UNLOCK","key":"/dav/target"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target missing
+ok 73 - REQUIRED webdav separate-clients cross-mount mv, target missing
+  ---
+  duration_ms: 6.242208
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPPATCH","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"DELETE","key":"/dav/source"}]}
+# Subtest: REQUIRED webdav separate-clients cross-mount mv, target existing
+ok 74 - REQUIRED webdav separate-clients cross-mount mv, target existing
+  ---
+  duration_ms: 7.438166
+  type: 'test'
+  ...
+# {"case":"REQUIRED webdav separate-clients cross-mount mv, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"mv","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPPATCH","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"DELETE","key":"/dav/source"}]}
+# Subtest: paired webdav opaque separate-client alias stays unchanged (traversal may reject first)
+ok 75 - paired webdav opaque separate-client alias stays unchanged (traversal may reject first)
+  ---
+  duration_ms: 2.309875
+  type: 'test'
+  ...
+# {"case":"paired webdav opaque separate-client alias stays unchanged (traversal may reject first)","expectedCode":"ENOTSUP","cause":"ENOTSUP: operation not supported","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target missing
+ok 76 - REQUIRED memory to-remote webdav copy, target missing
+  ---
+  duration_ms: 1.914666
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"}]}
+# Subtest: REQUIRED memory to-remote webdav copy, target existing
+ok 77 - REQUIRED memory to-remote webdav copy, target existing
+  ---
+  duration_ms: 1.653792
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory to-remote webdav copy, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PROPFIND","key":"/dav/target"},{"operation":"PUT","key":"/dav/target"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target missing
+ok 78 - REQUIRED memory from-remote webdav copy, target missing
+  ---
+  duration_ms: 1.366
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target missing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"}]}
+# Subtest: REQUIRED memory from-remote webdav copy, target existing
+ok 79 - REQUIRED memory from-remote webdav copy, target existing
+  ---
+  duration_ms: 1.412166
+  type: 'test'
+  ...
+# {"case":"REQUIRED memory from-remote webdav copy, target existing","outcome":{"status":"success"},"source":"/left/source","target":"/right/target","action":"copy","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"target","type":"file","bytes":[0,255,128,13,10,65,66,67,0]}]},"operations":[{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"PROPFIND","key":"/dav/source"},{"operation":"GET","key":"/dav/source"}]}
+# Subtest: declared S3 default rename limit remains typed ENOTSUP and effect-free
+ok 80 - declared S3 default rename limit remains typed ENOTSUP and effect-free
+  ---
+  duration_ms: 1.054375
+  type: 'test'
+  ...
+# {"case":"declared S3 default rename limit remains typed ENOTSUP and effect-free","expectedCode":"ENOTSUP","before":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"after":{"left":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}],"right":[{"name":"keep","type":"file","bytes":[75,69,69,80]},{"name":"source","type":"file","bytes":[0,255,128,13,10,65,66,67,0]},{"name":"target","type":"file","bytes":[79,76,68,255]}]},"operations":[]}
+# Subtest: constructor authority enables serialized SDK cp over an existing distinct entry
+ok 81 - constructor authority enables serialized SDK cp over an existing distinct entry
+  ---
+  duration_ms: 14.798708
+  type: 'test'
+  ...
+# Subtest: constructor authority enables serialized SDK mv over an existing distinct entry
+ok 82 - constructor authority enables serialized SDK mv over an existing distinct entry
+  ---
+  duration_ms: 8.021709
+  type: 'test'
+  ...
+# Subtest: serialized SDK alias and existing target with present authority
+ok 83 - serialized SDK alias and existing target with present authority
+  ---
+  duration_ms: 1.472833
+  type: 'test'
+  ...
+# Subtest: serialized SDK alias and existing target with absent authority
+ok 84 - serialized SDK alias and existing target with absent authority
+  ---
+  duration_ms: 2.312167
+  type: 'test'
+  ...
+# Subtest: serialized SDK alias and existing target with unknown authority
+ok 85 - serialized SDK alias and existing target with unknown authority
+  ---
+  duration_ms: 2.286709
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor same without hiding errors or overwriting aliases
+ok 86 - built-in same composes with constructor same without hiding errors or overwriting aliases
+  ---
+  duration_ms: 0.834417
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor distinct without hiding errors or overwriting aliases
+ok 87 - built-in same composes with constructor distinct without hiding errors or overwriting aliases
+  ---
+  duration_ms: 1.021958
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor unknown without hiding errors or overwriting aliases
+ok 88 - built-in same composes with constructor unknown without hiding errors or overwriting aliases
+  ---
+  duration_ms: 2.918375
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor denied without hiding errors or overwriting aliases
+ok 89 - built-in same composes with constructor denied without hiding errors or overwriting aliases
+  ---
+  duration_ms: 0.820125
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor invalid without hiding errors or overwriting aliases
+ok 90 - built-in same composes with constructor invalid without hiding errors or overwriting aliases
+  ---
+  duration_ms: 0.930916
+  type: 'test'
+  ...
+# Subtest: built-in same composes with constructor abort without hiding errors or overwriting aliases
+ok 91 - built-in same composes with constructor abort without hiding errors or overwriting aliases
+  ---
+  duration_ms: 0.736875
+  type: 'test'
+  ...
+# Subtest: explicit unknown does not revive built-in distinctness
+ok 92 - explicit unknown does not revive built-in distinctness
+  ---
+  duration_ms: 1.505791
+  type: 'test'
+  ...
+# Subtest: late explicit denial replaces configured callback without bypassing known alias protection
+ok 93 - late explicit denial replaces configured callback without bypassing known alias protection
+  ---
+  duration_ms: 1.04875
+  type: 'test'
+  ...
+# Subtest: constructor operand conflicts are EIO and cancellation stops the next callback
+ok 94 - constructor operand conflicts are EIO and cancellation stops the next callback
+  ---
+  duration_ms: 1.364375
+  type: 'test'
+  ...
+# Subtest: constructor authority cannot bypass readonly, exclusive creation or metadata denial
+ok 95 - constructor authority cannot bypass readonly, exclusive creation or metadata denial
+  ---
+  duration_ms: 1.264875
+  type: 'test'
+  ...
+# Subtest: invalid constructor callback fails EINVAL before provider requests
+ok 96 - invalid constructor callback fails EINVAL before provider requests
+  ---
+  duration_ms: 0.060833
+  type: 'test'
+  ...
+# Subtest: constructor callback leaves public negotiation intact and runs once for one operand
+ok 97 - constructor callback leaves public negotiation intact and runs once for one operand
+  ---
+  duration_ms: 0.341375
+  type: 'test'
+  ...
+# Subtest: recursive constructor forwarding stays unknown rather than negotiating again
+ok 98 - recursive constructor forwarding stays unknown rather than negotiating again
+  ---
+  duration_ms: 0.280084
+  type: 'test'
+  ...
+# Subtest: constructor callback receives backend receiver, followed paths, actual peer and signal once
+ok 99 - constructor callback receives backend receiver, followed paths, actual peer and signal once
+  ---
+  duration_ms: 14.147417
+  type: 'test'
+  ...
+# Subtest: constructor same remains authoritative over built-in protocol distinctness
+ok 100 - constructor same remains authoritative over built-in protocol distinctness
+  ---
+  duration_ms: 2.766667
+  type: 'test'
+  ...
+# Subtest: constructor unknown does not fall back to built-in protocol distinctness
+ok 101 - constructor unknown does not fall back to built-in protocol distinctness
+  ---
+  duration_ms: 4.344084
+  type: 'test'
+  ...
+# Subtest: built-in protocol alias with constructor same cannot authorize effects
+ok 102 - built-in protocol alias with constructor same cannot authorize effects
+  ---
+  duration_ms: 1.039583
+  type: 'test'
+  ...
+# Subtest: built-in protocol alias with constructor unknown cannot authorize effects
+ok 103 - built-in protocol alias with constructor unknown cannot authorize effects
+  ---
+  duration_ms: 1.596833
+  type: 'test'
+  ...
+# Subtest: built-in protocol alias with constructor distinct cannot authorize effects
+ok 104 - built-in protocol alias with constructor distinct cannot authorize effects
+  ---
+  duration_ms: 0.876709
+  type: 'test'
+  ...
+# Subtest: constructor EACCES remains observable even for a built-in alias
+ok 105 - constructor EACCES remains observable even for a built-in alias
+  ---
+  duration_ms: 0.8215
+  type: 'test'
+  ...
+# Subtest: constructor abort remains observable even for a built-in alias
+ok 106 - constructor abort remains observable even for a built-in alias
+  ---
+  duration_ms: 0.632917
+  type: 'test'
+  ...
+# Subtest: constructor invalid remains observable even for a built-in alias
+ok 107 - constructor invalid remains observable even for a built-in alias
+  ---
+  duration_ms: 0.710375
+  type: 'test'
+  ...
+# Subtest: a late public override replaces rather than double-invokes the constructor callback
+ok 108 - a late public override replaces rather than double-invokes the constructor callback
+  ---
+  duration_ms: 0.562709
+  type: 'test'
+  ...
+# Subtest: two constructor authorities are each queried once and conflicts fail EIO
+ok 109 - two constructor authorities are each queried once and conflicts fail EIO
+  ---
+  duration_ms: 1.000959
+  type: 'test'
+  ...
+# Subtest: a truthful late same override retains alias protection and replaces its constructor
+ok 110 - a truthful late same override retains alias protection and replaces its constructor
+  ---
+  duration_ms: 0.859875
+  type: 'test'
+  ...
+# Subtest: missing or denied metadata and pre-abort precede callback invocation
+ok 111 - missing or denied metadata and pre-abort precede callback invocation
+  ---
+  duration_ms: 0.387958
+  type: 'test'
+  ...
+# Subtest: callback type remains compatible with FileSystem.compareEntry and invalid option fails EINVAL
+ok 112 - callback type remains compatible with FileSystem.compareEntry and invalid option fails EINVAL
+  ---
+  duration_ms: 0.070833
+  type: 'test'
+  ...
+1..112
+# tests 112
+# suites 0
+# pass 112
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 986.448375

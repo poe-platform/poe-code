@@ -1,0 +1,757 @@
+{
+  "at": "2026-08-28T00:27:29.096Z",
+  "archive": {
+    "sha256": "04fc9fd4c710507299f66b12f1fb9b886ee9cc1eaeb3eabe1889fd3eebd2f7cf",
+    "blob": "aa0df3385cab379b7cfea6736c91164f811e8158",
+    "bytes": 2226016,
+    "mode": "100644"
+  },
+  "rawTarBytes": 8747520,
+  "regularFiles": 62,
+  "directories": 5,
+  "paxHeaders": [
+    {
+      "name": "PaxHeader/currentdir",
+      "bytes": 136,
+      "sha256": "0fe718774940ca24a5d04d96b104b76c64e0be5f84feba5773cba96f35858409",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/admission.stdout.data",
+      "bytes": 135,
+      "sha256": "a99df3a173611fe8bc7747dc1e38bd3d400764f88010e15b5faa75fee4f8c00e",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/VERIFIED.json",
+      "bytes": 136,
+      "sha256": "5cb2e7fa6ecc099756ee4513beb0b9bdab20c2f30afde4e7463c93f4bb36a192",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/extras.RAW.json",
+      "bytes": 136,
+      "sha256": "34c42ee0976b3210f56cf5e63cc663efbd01468b5e776ae8f65ec3f9a5729996",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/SUPERVISOR-PRE.json",
+      "bytes": 136,
+      "sha256": "b10066ccdd56b60955df1c54937583660bb10106836d10ff07ff7c8fe26ce486",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/admission.RAW.json",
+      "bytes": 136,
+      "sha256": "9976aac412e59965212c080bce5cc7ca9a47c60956c61ccb65c8751a4b58fefe",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/trace",
+      "bytes": 136,
+      "sha256": "f47f1ee7c8db45a62cd78c610dfd593500819987ea43bf7169f7cbe8de2e2f48",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/reconstruction.PRE.json",
+      "bytes": 136,
+      "sha256": "f7abd1ed0cd228335bfdfdd4b150356cf35ded7b20ad87df372f4756b5687f06",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/SUPERVISOR.json",
+      "bytes": 135,
+      "sha256": "dfad37f5f6faf2e5dbf547c32b12b9be5ec1ec2aa35bc2fc42dd8eec6a5b7c0f",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/WORKTREE-FINAL-INVENTORY.json",
+      "bytes": 136,
+      "sha256": "378468401ab375aac2cb7358e895d20a031cbc1f3b6be71ec9852f2735afb8d6",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/admission",
+      "bytes": 136,
+      "sha256": "eb268ccb72d143583ccaa6c287e2ac8a176f70f6fc5b151563ce40a20e18b87b",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/admission.stderr.data",
+      "bytes": 136,
+      "sha256": "52a751ff89916bed4b3a5d93436b4c99c2f55e57a013bf3e916a500871da9997",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/MODE-BLOB-NAME-POST.json",
+      "bytes": 136,
+      "sha256": "2261b435640e2e143a74068dc26bebf116a7a909fa81e45ad6155a2097ee557b",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/reconstruction.stderr.data",
+      "bytes": 136,
+      "sha256": "dcaf61781a180e5aa0cdd528b9eba0ad19e5e492274d42c6571f8a219b0a77ce",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/AUTH-POST.json",
+      "bytes": 135,
+      "sha256": "38b1eeca3c5c8200b534511bdd8a8b5e40e0686a646b9e55efac2c248c03a714",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/extras.stdout.data",
+      "bytes": 136,
+      "sha256": "88c7532e09e8ccdd7231ee37d5c6f5bc4998882a6cb3ade6a722256a57f181b6",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/AUTH-PRE.json",
+      "bytes": 135,
+      "sha256": "be2b01ef5b9a368419ff764978b4592bc62a0d335a64ad0f1ef09230fae50f82",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/admission.PRE.json",
+      "bytes": 136,
+      "sha256": "b51810c059b822b32dda15ae2ca68943a1ad90f5111dbf40e9ec53f811c6dce9",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/extras.PRE.json",
+      "bytes": 136,
+      "sha256": "37379a7ffd073573eb1070e5859e21ca2bdd31b7930c4923d2c45a2b645dfe27",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/reconstruction.RAW.json",
+      "bytes": 136,
+      "sha256": "bcd44dd7309c9f2cf901434a664589ffd63327f0076b832c51c9e0fe3fd39e15",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/reconstruction",
+      "bytes": 136,
+      "sha256": "b85b03417323a01765c6ee218322a9b0b9148229aae48c8a8f06298a048aa948",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/extras.stderr.data",
+      "bytes": 136,
+      "sha256": "c459f315f4b0c2fa44722ca0702ee80775a6c89c020b58db1e41fbb236bca4c9",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/reconstruction.stdout.data",
+      "bytes": 136,
+      "sha256": "5508cd6b7ce1a3eec36cd505396b45d9898c3fd0302434958563049aac4d081b",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./PaxHeader/extras",
+      "bytes": 136,
+      "sha256": "5b5528f8307315742beed994dc29119ac014cc5afc37e9d082074e0f3d90f1b7",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./extras/PaxHeader/SUMMARY.json",
+      "bytes": 136,
+      "sha256": "47f6eec4d72bb36117038497eba68d25ee3bf7403e1dea65b5abc7b9cacae771",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./extras/PaxHeader/actual-materialize-content-hash.json",
+      "bytes": 136,
+      "sha256": "a98b6ede364e33a58ad679732d83d1ad22399c3094101a04488c9a284e57b59a",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./extras/PaxHeader/raw-commit-corruption-before-object-import.json",
+      "bytes": 136,
+      "sha256": "3b80c1f7ec054a96d3fe811a7fedd0da018c92f211cfa6a9435ee89aa19f66aa",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./extras/PaxHeader/actual-materialize-mode-before-acquisition.json",
+      "bytes": 136,
+      "sha256": "58c831f64c958f51398127704375ef4da9aa2090d3095875a126741cd80ae429",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./extras/PaxHeader/PRE.json",
+      "bytes": 136,
+      "sha256": "4eac469763be68995e6acae5028b484b157e8a302d91c1914b0fea19615ca121",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./extras/PaxHeader/actual-materialize-unknown-link-before-acquisition.json",
+      "bytes": 136,
+      "sha256": "4e4d95c5cc847f317d4974a627c25b76b9b201c59f57db6dd3f4d4adc59bcfc8",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./reconstruction/PaxHeader/RESULT.json",
+      "bytes": 136,
+      "sha256": "94eb0f2fb4a41e701aee1db4d04f690fde008c84bc07c33c3dbf5db324be44d5",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./reconstruction/PaxHeader/RECONSTRUCTION.json",
+      "bytes": 136,
+      "sha256": "70bc14e85e50d9bc42ff43381108552ecab4e58445bc55a9d90480e12291c27e",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./reconstruction/PaxHeader/REACHABLE-INPUTS.json",
+      "bytes": 136,
+      "sha256": "2324910a94bcc2ea4ce377781b1aac59d12d6c55cebeab6d70e247e098a2e33d",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./reconstruction/PaxHeader/PRE.json",
+      "bytes": 136,
+      "sha256": "06f39813e464f4c553e75e9fa9e2c221e200d299d7bc38485a6b0d3aa6a7fcda",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/PACK.json",
+      "bytes": 136,
+      "sha256": "de17242c9bfb613b226378dd90c5008b89f72823f5eff7289ac3a26aa703dd91",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/archive-before.PRE.json",
+      "bytes": 136,
+      "sha256": "25dfeed0dc9a166304e25f0f9e59c59d349fb28ebc8a34bb33287c821ac2962c",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/005-pack-paths.RAW.json",
+      "bytes": 136,
+      "sha256": "fff6bb28d23847d83dbe4df0c84f31bd0aa5c5122a148c517f278ec99479b8ec",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/001-compiler-config.RAW.json",
+      "bytes": 135,
+      "sha256": "c62f5070be55ab0a6b73c8e94e6fc913457730b2efe2d32b2725f391f1aef3ed",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/BUILD-VIEW-PRE.json",
+      "bytes": 136,
+      "sha256": "4b486d1eddac9e6f9811da844669f54ac2b8d663b63912c79cf19914bf6855ae",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/007-pack-extract.PRE.json",
+      "bytes": 136,
+      "sha256": "82a251b6d81b8f635eff40007f8b5e471347ad45c7a49c5695e638f90f2cf5f5",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/002-compiler-inputs.PRE.json",
+      "bytes": 136,
+      "sha256": "18ab3979bb1bdadab4542e0a283bf43069538e0d43feb112db26e1889658e757",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/REPORT.json",
+      "bytes": 136,
+      "sha256": "fc21addff81a095f4d7dad820d17ece78526960ae0edf0738bb464e47f877485",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/006-pack-kinds.PRE.json",
+      "bytes": 136,
+      "sha256": "1702923f85fb0f837cfe9913ab212febcd464bbcdd3bf7702e78619febb9cca8",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/archive-after.PRE.json",
+      "bytes": 136,
+      "sha256": "2b0f1ad1abc75709266c59c47aab14591c0c4b4732275a0e873875f254710f30",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/COMPILER-INPUTS.json",
+      "bytes": 136,
+      "sha256": "d9a6af81e193f4303248592c4d548e94d706099f567118a1ded9699da8226c74",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/003-build.RAW.json",
+      "bytes": 136,
+      "sha256": "05b2a1fb50e348f7de1d0d3167f81f8da0c6f9c659a63e0bc0bbbd1150eeb95d",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/RECONSTRUCTION.json",
+      "bytes": 136,
+      "sha256": "4f34ef8e912ced5ca41ae32ad3a27ab3149ec036737361db67a24c214097b604",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/004-npm-pack.RAW.json",
+      "bytes": 135,
+      "sha256": "fbee0d616d39cbef3dec4128a86bb3a4a69b371cec2400bb3b70f9b694823342",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/001-compiler-config.PRE.json",
+      "bytes": 136,
+      "sha256": "adc0cd8aaafb9c96b13982910142efa0ddf44e850c507bca09c9da33bbbc5fcd",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/007-pack-extract.RAW.json",
+      "bytes": 136,
+      "sha256": "88e7ffe6e3b901c5c8fb06959d6430243d0c537708912494ae40ff8074b7885b",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/002-compiler-inputs.RAW.json",
+      "bytes": 136,
+      "sha256": "60e52d98cfcbb0b7a4f3e610209fec1b1100041b0e28ac01d1127792c56aa33e",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/005-pack-paths.PRE.json",
+      "bytes": 136,
+      "sha256": "ac53f383a1e0bcbe61ff74a37c6a9fb26223d3172f9228ab0eef7769df73a6f4",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/archive-before.RAW.json",
+      "bytes": 136,
+      "sha256": "b7ddbc61c247b96ce6a8e8ea12813bcc11a289a149a683df960a6e580cf484b9",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/INPUTS.json",
+      "bytes": 136,
+      "sha256": "4da2b6cc672be51c6fbfa5eebbad37770d237ae54c3ac5841706391782c08399",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/006-pack-kinds.RAW.json",
+      "bytes": 136,
+      "sha256": "8626a815b0bcf39acf7b4bb55452db90f7a75d3bc4b26f85794973eed7d4f165",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/PRE.json",
+      "bytes": 136,
+      "sha256": "1c719fbf4d0ca1ba170fad95dac3375b5f086b3d2d23a67ae2da5207d36a79af",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/004-npm-pack.PRE.json",
+      "bytes": 136,
+      "sha256": "98f1f4e36ae69aad8679d40b68e484f4efcfcf0a06674cd7383fac1cf43b51ed",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/package.tgz.base64",
+      "bytes": 136,
+      "sha256": "dfda531c2e71f8f735818011235b88d5f1d3d663a2e50a5739c5120d3eedfe19",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/archive-after.RAW.json",
+      "bytes": 136,
+      "sha256": "5fd9e2df1a26adc87683b15d4310129d63c4a003648cffd6dba48f791a2ab6f3",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./admission/PaxHeader/003-build.PRE.json",
+      "bytes": 135,
+      "sha256": "fc5dbb63cf96388fe6a2911fa1ef04549b2448b2db7f9131bb9525be28e07d89",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/npm-pack-24310.data",
+      "bytes": 136,
+      "sha256": "9d779c33dbd10df40ee9a34dacd200688c208bc6d36aac73df5dab9c3db4aba4",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/extras-11950.data",
+      "bytes": 136,
+      "sha256": "849cd2bed837349e23bbf214ce8022c40aeca37e2cb5816f9244e55930b146ed",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/reconstruction-25467.data",
+      "bytes": 136,
+      "sha256": "1480471f0761fb2e28a00f760760277e6002c8184dfe9f4943020707c6d0f6fc",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/build-23764.data",
+      "bytes": 136,
+      "sha256": "00d1166298bf3ac6e3c2e44ae9410d0da2461703ff3396a092738f5048879d61",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/admission-15130.data",
+      "bytes": 136,
+      "sha256": "bdc302cea869a43f4274d32c52ab34ba367f69ab5b600440db4794347454ac7f",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/compiler-inputs-23658.data",
+      "bytes": 136,
+      "sha256": "cef3685db3a12df2e8d22e4e5c1ac349f893a76e165b04e71cef57e0bea5612c",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    },
+    {
+      "name": "./trace/PaxHeader/compiler-config-23622.data",
+      "bytes": 136,
+      "sha256": "1277b71cea79b6cd15790c55979469a031cf41a3bd9031a4f7f25545e7b10fde",
+      "keys": [
+        "mtime",
+        "LIBARCHIVE.xattr.com.apple.provenance",
+        "SCHILY.xattr.com.apple.provenance"
+      ],
+      "applied": false
+    }
+  ],
+  "allRawMemberNamesBytesHashesMatched": true,
+  "extractedFiles": 0,
+  "inputArchiveReplayed": false,
+  "newCases": 0,
+  "postOnlyAttempt": 2,
+  "priorPostParserFailure": "COMPACT-CHECK-ATTEMPT-1.json"
+}

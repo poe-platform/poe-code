@@ -1,0 +1,44 @@
+{
+  "role": "implementation leaf author candidate; immutable; later results go elsewhere",
+  "sealedAt": "2026-08-27T16:27:33.143Z",
+  "candidate": "bb7f5972dd54df3ae9c05e745bfab1f1c38a0e29",
+  "parent": "219790c55c0214e6d46524bbdced63c18c360f62",
+  "sourceTree": "2cdf194035e4833341b3cd66e2b6a945d50b7499",
+  "diffPaths": [
+    "src/commands/network/README.md",
+    "src/commands/network/shared.ts",
+    "tests/commands/network/zero-caps.test.ts"
+  ],
+  "sha256": {
+    "src/commands/network/README.md": "71d0f549abd8d3b08dbfdc3455a554149231fe26b1827da9b721ca5d2bde222e",
+    "src/commands/network/shared.ts": "c397734b34fe7447f71e86f2911b96b9dcea9fdde92c3186ff0d9a688a670760",
+    "tests/commands/network/zero-caps.test.ts": "f7416504487b917ba65edfd0722fd27d47f538b3a6c5fcfb414fb5c2b29269cc"
+  },
+  "API": "createCurlCommand({authorize,transport,limits:{maxRedirects:0,maxRetries:0}}); new Shell({fs}).use(networkCommands(options)); root virtual-bash and virtual-bash/commands/network",
+  "ranges": "Only exact maxRedirects/maxRetries: inclusive 0..9007199254740991 including -0; defaults 10/5. All other limits positive safe integers; maxTimeMs ceiling 2147483647.",
+  "setup": "Node v22.22.2, TypeScript 5.9.3; zero runtime dependencies. Fresh MemoryFileSystem and injected transport per author fixture. No native curl recapture. Existing safety regressions use controlled loopback HTTP; policy late-rejection tests spawn/reap Node children.",
+  "commands": [
+    "node --import tsx --test tests/commands/network/zero-caps.test.ts",
+    "node --import tsx --test tests/commands/network/{safety,byte-ownership,exports}.test.ts tests/commands/network-policy-stress/{authorization,url-policy,late-policy}.test.ts",
+    "npm run build",
+    "node_modules/.bin/tsc --noEmit --target ES2023 --lib ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --forceConsistentCasingInFileNames --skipLibCheck --types node tests/commands/network/zero-caps.test.ts tests/commands/network/{safety,byte-ownership,exports}.test.ts tests/commands/network-policy-stress/{authorization,url-policy,late-policy}.test.ts"
+  ],
+  "knownResults": {
+    "author": {
+      "tests": 138,
+      "pass": 138,
+      "fail": 0,
+      "skipped": 0
+    },
+    "regressions": {
+      "tests": 63,
+      "pass": 63,
+      "fail": 0,
+      "skipped": 0
+    },
+    "build": 0,
+    "scopedStrict": 0
+  },
+  "initialAuthorCorrection": "Initial 125/128: three expectations wrongly required Shell stdin iterator acquisition=0; corrected to one acquisition and zero next()/producer reads. No sharedinput edit; original observation retained in separate author evidence.",
+  "limits": "Author tests are not independent. Packed author replay not yet run at sealing. No full gate, superiority rescore, native parity or deployed service claim. Foreign untracked work preserved; no frozen S1/old receipts modified."
+}

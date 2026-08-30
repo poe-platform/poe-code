@@ -1,0 +1,116 @@
+{
+  "sourceCommit": "4f01c1593486c1abff3b007f9a3b16923b88559f",
+  "fixtureCommit": "efb1a25aa3e2544cf71aba10f2aaa54b256091ff",
+  "fixtureParent": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "fixture": "tests/commands/expr/inactive-prefix.test.ts",
+  "originalSha256": "50a1748f93ce4781b7a765227e07e4e7ad7e35c6f8ae46cf36ea93631d575c70",
+  "overlaySha256": "52e079b8bc89f1b8e4f2b256baab11f8388a5f54d23c174d64d8a4de9c194c3e",
+  "oldMessage": "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n",
+  "newMessage": "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n",
+  "commitChangedFiles": 1,
+  "changedLiteralCount": 1,
+  "expandedAssertions": 4,
+  "changedInputs": 0,
+  "exactWholeFileReplacement": true,
+  "unchanged": [
+    "argv",
+    "options",
+    "LC_ALL",
+    "status 2",
+    "empty stdout",
+    "jobs",
+    "encoding",
+    "cancellation",
+    "all other bytes"
+  ],
+  "rows": [
+    {
+      "args": [
+        "length",
+        "inactive-length"
+      ],
+      "options": {},
+      "env": {
+        "LC_ALL": "unsupported-inactive-profile"
+      },
+      "before": [
+        2,
+        "",
+        "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+      ],
+      "after": [
+        2,
+        "",
+        "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+      ],
+      "jobs": []
+    },
+    {
+      "args": [
+        "index",
+        "inactive-index",
+        "z"
+      ],
+      "options": {},
+      "env": {
+        "LC_ALL": "unsupported-inactive-profile"
+      },
+      "before": [
+        2,
+        "",
+        "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+      ],
+      "after": [
+        2,
+        "",
+        "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+      ],
+      "jobs": []
+    },
+    {
+      "args": [
+        "substr",
+        "inactive-substr",
+        "999",
+        "888"
+      ],
+      "options": {},
+      "env": {
+        "LC_ALL": "unsupported-inactive-profile"
+      },
+      "before": [
+        2,
+        "",
+        "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+      ],
+      "after": [
+        2,
+        "",
+        "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+      ],
+      "jobs": []
+    },
+    {
+      "args": [
+        "match",
+        "inactive-match",
+        "["
+      ],
+      "options": {},
+      "env": {
+        "LC_ALL": "unsupported-inactive-profile"
+      },
+      "before": [
+        2,
+        "",
+        "expr: character operations require C/POSIX or C.UTF-8/C.utf8 locale\n"
+      ],
+      "after": [
+        2,
+        "",
+        "expr: character operations require C/POSIX, C.UTF-8/C.utf8, or qualified en_US.UTF-8 encoding\n"
+      ],
+      "jobs": []
+    }
+  ]
+}

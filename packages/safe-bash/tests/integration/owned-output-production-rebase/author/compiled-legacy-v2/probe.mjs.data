@@ -1,0 +1,19 @@
+import { Worker } from "node:worker_threads";
+const workerUrl = "file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js";
+const bootstrap = "import { parentPort } from \"node:worker_threads\";\nawait import(\"file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js\");\nparentPort.postMessage({ authorPrerequisite: \"import-complete\", workerUrl: \"file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js\" });\nparentPort.close();\n";
+const worker = new Worker(bootstrap, { eval: true });
+const messages = [];
+let workerError = null;
+worker.on("message", message => { messages.push(message); });
+worker.on("error", error => {
+  workerError = { name: error.name, message: error.message };
+  console.error(error);
+});
+worker.on("exit", workerExitCode => {
+  const readyObserved = messages.length === 2 && messages[0]?.ready === true;
+  const importCompleted = messages[1]?.authorPrerequisite === "import-complete" && messages[1]?.workerUrl === workerUrl;
+  const observedNaturalWorkerExit = workerExitCode === 0 && workerError === null;
+  const passed = readyObserved && importCompleted && observedNaturalWorkerExit;
+  console.log(JSON.stringify({ workerUrl, messages, workerError, workerExitCode, observedNaturalWorkerExit, readyObserved, importCompleted, passed }));
+  if (!passed) process.exitCode = 1;
+});

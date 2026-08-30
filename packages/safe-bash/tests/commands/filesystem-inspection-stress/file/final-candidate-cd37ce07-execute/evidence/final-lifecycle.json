@@ -1,0 +1,127 @@
+[
+  {
+    "id": "F33",
+    "fresh": true,
+    "nextCount": 1,
+    "returnCount": 1,
+    "exactCallerReasonVerified": true,
+    "fsSignalAbortedExactReasonVerified": true,
+    "lateReadInjections": 1,
+    "lateReturnInjections": 0,
+    "observationWindow": {
+      "at": "2026-08-27T09:28:23.420Z",
+      "kind": "holdout-late-error-window-verified",
+      "unhandledCount": 0,
+      "readInjected": true,
+      "returnInjected": false,
+      "eventLoopTurns": 2
+    },
+    "cleanupGatesReleased": true,
+    "exactEvents": [
+      {
+        "at": "2026-08-27T09:28:23.419Z",
+        "kind": "holdout-source-next"
+      },
+      {
+        "at": "2026-08-27T09:28:23.419Z",
+        "kind": "holdout-source-return",
+        "returned": 1,
+        "pendingCleanup": false
+      },
+      {
+        "at": "2026-08-27T09:28:23.419Z",
+        "kind": "holdout-exact-caller-reason-verified"
+      },
+      {
+        "at": "2026-08-27T09:28:23.419Z",
+        "kind": "holdout-fs-abort-propagation-verified",
+        "aborted": true,
+        "exactReason": true
+      },
+      {
+        "at": "2026-08-27T09:28:23.420Z",
+        "kind": "holdout-late-read-rejection-injected",
+        "message": "sealed late read error"
+      },
+      {
+        "at": "2026-08-27T09:28:23.420Z",
+        "kind": "holdout-late-error-window-verified",
+        "unhandledCount": 0,
+        "readInjected": true,
+        "returnInjected": false,
+        "eventLoopTurns": 2
+      },
+      {
+        "at": "2026-08-27T09:28:23.420Z",
+        "kind": "holdout-cleanup-gates-released",
+        "returned": 1
+      }
+    ],
+    "qualification": "Genuine injected late rejection observed by unchanged assertions over two turns; not a proof of absence after arbitrary future host work. Invocation watchdog2000ms, child watchdog60000ms."
+  },
+  {
+    "id": "F34",
+    "fresh": true,
+    "nextCount": 1,
+    "returnCount": 1,
+    "exactCallerReasonVerified": true,
+    "fsSignalAbortedExactReasonVerified": true,
+    "lateReadInjections": 1,
+    "lateReturnInjections": 1,
+    "observationWindow": {
+      "at": "2026-08-27T09:28:23.484Z",
+      "kind": "holdout-late-error-window-verified",
+      "unhandledCount": 0,
+      "readInjected": true,
+      "returnInjected": true,
+      "eventLoopTurns": 2
+    },
+    "cleanupGatesReleased": true,
+    "exactEvents": [
+      {
+        "at": "2026-08-27T09:28:23.483Z",
+        "kind": "holdout-source-next"
+      },
+      {
+        "at": "2026-08-27T09:28:23.484Z",
+        "kind": "holdout-source-return",
+        "returned": 1,
+        "pendingCleanup": true
+      },
+      {
+        "at": "2026-08-27T09:28:23.484Z",
+        "kind": "holdout-exact-caller-reason-verified"
+      },
+      {
+        "at": "2026-08-27T09:28:23.484Z",
+        "kind": "holdout-fs-abort-propagation-verified",
+        "aborted": true,
+        "exactReason": true
+      },
+      {
+        "at": "2026-08-27T09:28:23.484Z",
+        "kind": "holdout-late-read-rejection-injected",
+        "message": "sealed late read error"
+      },
+      {
+        "at": "2026-08-27T09:28:23.484Z",
+        "kind": "holdout-late-return-rejection-injected",
+        "message": "sealed late iterator return error"
+      },
+      {
+        "at": "2026-08-27T09:28:23.484Z",
+        "kind": "holdout-late-error-window-verified",
+        "unhandledCount": 0,
+        "readInjected": true,
+        "returnInjected": true,
+        "eventLoopTurns": 2
+      },
+      {
+        "at": "2026-08-27T09:28:23.485Z",
+        "kind": "holdout-cleanup-gates-released",
+        "returned": 1
+      }
+    ],
+    "qualification": "Genuine injected late rejection observed by unchanged assertions over two turns; not a proof of absence after arbitrary future host work. Invocation watchdog2000ms, child watchdog60000ms."
+  }
+]

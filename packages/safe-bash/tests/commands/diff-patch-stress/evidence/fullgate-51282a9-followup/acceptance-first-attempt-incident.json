@@ -1,0 +1,11 @@
+{
+  "stage": "partial first acceptance attempt",
+  "status": 1,
+  "preservedCohorts": { "absolute-target": { "tests": 3, "passed": 2, "failed": 1 }, "compatibility": { "tests": 110, "passed": 110 }, "editflows": { "tests": 31, "passed": 31 }, "emptyfile-delta": { "tests": 89, "passed": 89 } },
+  "absoluteTargetFailure": "Missing snapshot benchmarks/session.js import; the benchmark worker helpers were omitted by the new copier. Follow-up direct TAP diagnosis confirms ERR_MODULE_NOT_FOUND; not a product assertion failure.",
+  "saveFailure": "formats completed but save passed its large JSON patch as one argv argument; spawnSync returned status null. The unsaved formats output was lost, is not counted, and will be rerun.",
+  "corrections": ["Copy unchanged benchmark inputs from the same frozen inventory with SHA-256 verification", "Send generated evidence patches through stdin, avoiding argv length limits", "Capture both TAP and original JSON reporter streams for all subsequent cohorts"],
+  "sourceChanges": 0,
+  "testInputOrAssertionChanges": 0,
+  "fullAcceptanceClaim": false
+}

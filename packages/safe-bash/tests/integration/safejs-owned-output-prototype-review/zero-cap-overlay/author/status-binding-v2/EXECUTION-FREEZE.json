@@ -1,0 +1,166 @@
+{
+  "version": 2,
+  "at": "2026-08-27T18:37:30.324863+00:00",
+  "status": "AUTHOR_PREPARATION_ONLY_RUNTIME_PENDING",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "sourceAdmissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "sourceAdmissionPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json",
+  "previousRefusalCommit": "06426bb62b6cc79f0be04dbf208efd17cfb84082",
+  "expectedPrivateStatusProfileSha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7",
+  "files": [
+    {
+      "path": "GUARD-COVERAGE.json",
+      "bytes": 6516,
+      "sha256": "2eb75974beb8183fb76c9f4f8a8d093c0460a790271a2a8ab90e28d3a2fb7d1c"
+    },
+    {
+      "path": "IMPORTS.json",
+      "bytes": 8671,
+      "sha256": "20b9f3ee13154bbd0dbfa777f823d6ee255df66c280827c2d616c8767bfd279d"
+    },
+    {
+      "path": "PREPARATION-INPUTS.json",
+      "bytes": 671049,
+      "sha256": "117c3ceb33dd80641a123353c21eea2ac039232f503285a34c47769dbd76baf3"
+    },
+    {
+      "path": "PREPARATION-SHARED.json",
+      "bytes": 2932830,
+      "sha256": "07eaf2a06aa23fe7f6de4cb07d1506f41b2b0789b0ccfedd8b7eb42edc35d889"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 68317,
+      "sha256": "1ca2f5a81a8a70eba8d96aa71f71fb06161075a7d7cbfd01916f351e55b95297"
+    },
+    {
+      "path": "PRIVATE-STATUS.json",
+      "bytes": 2003,
+      "sha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7"
+    },
+    {
+      "path": "PROVENANCE.json",
+      "bytes": 37889,
+      "sha256": "b32a01e4266e0c388b8276f2240cb52118fea65f03c66adfc20dfa9352163766"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5042,
+      "sha256": "7b956cc3c11657b855900515cab9b2afedce06781411e2dcb671b56052f833b9"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6764,
+      "sha256": "9ac9b1b9bd32bdbf518679002f4f58d550fbdb7c16e336f39d81a1d39cb1fd22"
+    },
+    {
+      "path": "ROOT-RELEASE.pending.json",
+      "bytes": 1375,
+      "sha256": "86f8e98a36ef1bca5b263cf186c34720438da4bb8c3c9767bc4f9619baf7c92f"
+    },
+    {
+      "path": "SOURCE-ADMISSION.json.data",
+      "bytes": 1432,
+      "sha256": "eb18baa7c27950b687c148da31ce1de7006861492aae61a0d94be1ac55eb8f03"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "bytes": 2183,
+      "sha256": "8a5e9b6706c14cf17e9dca64f53ba9081e8e0fc851321760561e2eeb9f46a693"
+    },
+    {
+      "path": "assess.py",
+      "bytes": 13629,
+      "sha256": "9f364aafda091214b216e8563d52a95da7616607a7763049368bbed78f214027"
+    },
+    {
+      "path": "binding.py",
+      "bytes": 4434,
+      "sha256": "e27d69da7eb1127bb7fb3666d0af0953f18e3300ce58b0abd7916a261192aa8f"
+    },
+    {
+      "path": "diffs/admission.mjs.patch-data",
+      "bytes": 6157,
+      "sha256": "5f5131ca9c004f2f0b7648a1620dcc208eb6db586ba1484686b1867c9ce916ba"
+    },
+    {
+      "path": "diffs/controls/run.mjs.patch-data",
+      "bytes": 1443,
+      "sha256": "41016de5744aeea4f2a02d7f2b08ad9424f1cade5b6d86436d5947e0ee5a8a1e"
+    },
+    {
+      "path": "diffs/lifecycle/run.mjs.patch-data",
+      "bytes": 1446,
+      "sha256": "f022f79107f9f04739e1352677891dd46e184f6b79ba1817cfcb3fd279e4d2c2"
+    },
+    {
+      "path": "diffs/private-expected.json.patch-data",
+      "bytes": 858,
+      "sha256": "d5a00a42b7d5abc247927638b6a6f4029262ffb63f1b1e8a66c339d3aea43790"
+    },
+    {
+      "path": "diffs/run.py.patch-data",
+      "bytes": 4790,
+      "sha256": "b7dce0b02557ac563d9b3a274d4588d7cc0bf8c56bd979d8ba5313596e2144d1"
+    },
+    {
+      "path": "driver-copies/admission.mjs.data",
+      "bytes": 12205,
+      "sha256": "55111892712ab028205fa469788f9692d6f3c47930f7142bb584a0b132bb9e46"
+    },
+    {
+      "path": "driver-copies/controls/run.mjs.data",
+      "bytes": 16984,
+      "sha256": "e72a6f3dc0b617370a71a059f62264e3edad4de920b8ced1010eff0197903a72"
+    },
+    {
+      "path": "driver-copies/lifecycle/run.mjs.data",
+      "bytes": 16853,
+      "sha256": "e9d8ff3d8354f0362f115125e9137fe52a33d8a4a9e4e523f3e069f437c0bacd"
+    },
+    {
+      "path": "expected-private.json.data",
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "parent-binding.mjs.data",
+      "bytes": 4833,
+      "sha256": "88fca81584f4d16a3d68da53bd3123c4684dee38680910440eb1afd040e38a15"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 21672,
+      "sha256": "9fbf1c9924de3b0d268b753bc2e70273a26b233dc999339567fd85723dd76644"
+    },
+    {
+      "path": "run.py",
+      "bytes": 9564,
+      "sha256": "76e4565d545648a97bb185bf68a32e3164d451f125e430a5480c6aff7bc4bd3c"
+    },
+    {
+      "path": "shared.py",
+      "bytes": 5945,
+      "sha256": "18aee4e4836487ab0857998b772c786197428bdf6b4fdaed9decceb3e606bba0"
+    }
+  ],
+  "fileManifestSha256": "f8f5b239ebb99b25a171f285f0344def7bdf32b12638a5c23f5185ab0ffc6f59",
+  "candidateIdentities": {
+    "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+    "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+    "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+    "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010"
+  },
+  "scheduledProfiles": {
+    "surface": 8,
+    "lifecycle": 11,
+    "controls": 6
+  },
+  "newActualAttempts": 0,
+  "privateQueries": 0,
+  "nodeExecutions": 0,
+  "differentBindingReviewPending": true,
+  "rootRuntimeReleasePending": true,
+  "originalGuest0All25BlockedUnchanged": true,
+  "noPromotion": true
+}

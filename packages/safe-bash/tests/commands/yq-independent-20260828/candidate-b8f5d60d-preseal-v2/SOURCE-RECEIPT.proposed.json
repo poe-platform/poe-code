@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "sourceBase": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "candidateCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceAdditions": {
+    "src/commands/structured/query-core.ts": {
+      "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+      "bytes": 22399,
+      "mode": 420
+    },
+    "src/commands/yq/README.md": {
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "bytes": 1153,
+      "mode": 420
+    },
+    "src/commands/yq/accounting.ts": {
+      "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+      "bytes": 9767,
+      "mode": 420
+    },
+    "src/commands/yq/encoder.ts": {
+      "sha256": "9e013ee8aadc590ea8aca8e94fb03079eb820b00a76fd05b9fd85ebb4223303f",
+      "bytes": 8394,
+      "mode": 420
+    },
+    "src/commands/yq/errors.ts": {
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "bytes": 2728,
+      "mode": 420
+    },
+    "src/commands/yq/index.ts": {
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "bytes": 24198,
+      "mode": 420
+    },
+    "src/commands/yq/parser.ts": {
+      "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+      "bytes": 45581,
+      "mode": 420
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "binary": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/expr-stress/extension-review/after-abort-fix/replay/review.mjs",
+    "capture-native",
+    "native-27a77935"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "timeoutMs": 120000,
+  "status": 0,
+  "signal": null,
+  "failure": null,
+  "stdout": "{\n  \"destination\": \"tests/commands/expr-stress/extension-review/after-abort-fix/replay/native-27a77935/native-replay.json\",\n  \"qualification\": \"PASS NATIVE REPLAY ONLY\",\n  \"cohorts\": [\n    {\n      \"id\": \"original95\",\n      \"profiles\": [\n        {\n          \"id\": \"gnu-9.7-darwin-C\",\n          \"denominator\": 95,\n          \"strictMatches\": 95\n        },\n        {\n          \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n          \"denominator\": 9,\n          \"strictMatches\": 9\n        },\n        {\n          \"id\": \"apple-darwin-C\",\n          \"denominator\": 95,\n          \"strictMatches\": 95\n        },\n        {\n          \"id\": \"apple-darwin-en_US.UTF-8\",\n          \"denominator\": 9,\n          \"strictMatches\": 9\n        }\n      ]\n    },\n    {\n      \"id\": \"extension-original20\",\n      \"profiles\": [\n        {\n          \"id\": \"gnu-9.7-darwin-C\",\n          \"denominator\": 20,\n          \"strictMatches\": 20\n        },\n        {\n          \"id\": \"gnu-9.7-darwin-en_US.UTF-8\",\n          \"denominator\": 3,\n          \"strictMatches\": 3\n        },\n        {\n          \"id\": \"apple-darwin-C\",\n          \"denominator\": 20,\n          \"strictMatches\": 20\n        },\n        {\n          \"id\": \"apple-darwin-en_US.UTF-8\",\n          \"denominator\": 3,\n          \"strictMatches\": 3\n        }\n      ]\n    },\n    {\n      \"id\": \"extension-correction1\",\n      \"profiles\": [\n        {\n          \"id\": \"gnu-9.7-darwin-C\",\n          \"denominator\": 1,\n          \"strictMatches\": 1\n        },\n        {\n          \"id\": \"apple-darwin-C\",\n          \"denominator\": 1,\n          \"strictMatches\": 1\n        }\n      ]\n    }\n  ],\n  \"cleanup\": {\n    \"childrenRemaining\": 0,\n    \"scratchRemoved\": true,\n    \"fixture\": \"/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-final-native-y6p9yv\"\n  }\n}\n\n",
+  "stderr": ""
+}

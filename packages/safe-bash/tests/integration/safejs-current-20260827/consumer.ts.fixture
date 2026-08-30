@@ -1,0 +1,13 @@
+import { run } from "./packages/safejs/src/run.js";
+import { Budget } from "./packages/safejs/src/interp/budget.js";
+import { makeFsModule } from "./packages/safejs/src/modules/fs.js";
+import { declareHostOperation } from "./packages/safejs/src/interp/host-bridge.js";
+import { safeJsCommands, type SafeJsRuntime } from "virtual-bash";
+
+const runtime: SafeJsRuntime<Budget> = {
+  run,
+  createBudget: options => new Budget(options),
+  makeFsModule,
+  declareHostOperation,
+};
+void safeJsCommands({ runtime });

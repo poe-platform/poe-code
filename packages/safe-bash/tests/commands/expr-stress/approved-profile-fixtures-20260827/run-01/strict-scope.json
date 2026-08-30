@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": false
+  },
+  "include": [
+    "tests/commands/expr/contracts.test.ts",
+    "tests/commands/expr/grammar.test.ts",
+    "tests/commands/expr/diagnostics-regression.test.ts",
+    "tests/commands/expr/named-profile.test.ts",
+    "tests/commands/expr/inactive-prefix.test.ts"
+  ],
+  "exclude": []
+}

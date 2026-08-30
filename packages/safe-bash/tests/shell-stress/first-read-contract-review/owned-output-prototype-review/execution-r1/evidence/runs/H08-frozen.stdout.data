@@ -1,0 +1,1 @@
+{"id":"H08","verdict":"PASS","records":[{"events":["registered","registered","other.admitted","stdout.admitted"],"returnedOut":1,"returnedOther":1,"result":{"stdout":"","stderr":"independent\n","stdoutBytes":{},"stderrBytes":{"0":105,"1":110,"2":100,"3":101,"4":112,"5":101,"6":110,"7":100,"8":101,"9":110,"10":116,"11":10},"exitCode":0}}]}

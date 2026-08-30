@@ -1,0 +1,10 @@
+{
+  "status": "Proposed expectation version; not applied to old control files, not used to rescore 46/47",
+  "oldControl": "tests/commands/expr-stress/output-emergency-review-20260827/cases.mjs:stdout-rejection-normal-quota",
+  "unchangedInput": { "argv": ["1"], "cap": 2, "mode": "reject-stdout" },
+  "oldExpected": { "status": 3, "stdout": "", "stderr": "expr: output bytes limit exceeded\n", "jobs": 0 },
+  "proposedExpected": { "status": null, "stdout": "", "stderr": "", "rejection": "sink", "jobs": 0 },
+  "reason": "The caller explicitly requires original sink rejection identity and forbids recasting sink/caller rejection as quota failure. Output admission succeeded for the two-byte stdout attempt; the sink then rejected. Emitting an emergency/status3 would violate that requirement, not fix a quota failure.",
+  "otherConflict": "tests/commands/expr/contracts.test.ts:138 expects a stdout rejection to become status3 plus an output-failure diagnostic. It remains unchanged and failing for the same reason.",
+  "separateVersionedCoverage": "New output-quota.test.ts covers stdout, normal-stderr and emergency-stderr rejection identity for Error, quota-shaped ExprError, undefined, null, false, 0 and empty string, with no fallback diagnostic. These are author V2 controls, not altered historical assertions."
+}

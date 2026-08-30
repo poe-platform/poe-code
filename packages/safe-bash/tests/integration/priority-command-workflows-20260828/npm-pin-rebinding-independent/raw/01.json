@@ -1,0 +1,30 @@
+{
+  "index": 1,
+  "argv": [
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgSign=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.pager=cat",
+    "ls-tree",
+    "-r",
+    "-z",
+    "d6d6ce89c2b87cd92c417c256fde16bf986c91d9",
+    "--",
+    "tests/integration/priority-command-workflows-20260828/"
+  ],
+  "pid": 44917,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 37.952499999984866,
+  "parentElapsedMs": 53.998082999984035,
+  "stdoutBytes": 22398,
+  "stderrBytes": 0,
+  "stdoutSha256": "5de4bf460a44da381d72bbfd801b23768e91e0ee89d19bee05202ca3ed151bd3",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,33 @@
+{
+  "id": "A24",
+  "status": "characterized-not-pass",
+  "rawPredicate": {
+    "id": "A24",
+    "status": "characterized-not-pass",
+    "evidence": {
+      "characterization": 0,
+      "stdout": "finite\n`-- child\n    `-- grandchild\n        `-- leaf-marker.txt\n\n3 directories, 1 file\n"
+    }
+  },
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "elapsedMs": 193,
+  "pid": 327,
+  "productInvocations": 1,
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--import",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+      "/tmp/safe-bash-tree-hidden-prep-vyzfHc/run.mjs",
+      "--execute",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/bridge.mjs",
+      "/private/tmp/safe-bash-tree-initial-run-NN3E3X/profile.json",
+      "A24"
+    ],
+    "cwd": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate"
+  },
+  "observationAvailable": true
+}

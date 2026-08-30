@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "reviewDateUtc": "2026-08-27",
+  "scope": "Closing release-wording audit only; no benchmark, product, dependency, fixture, harness, source or private-runtime work.",
+  "historicalClaims": [
+    {
+      "file": "docs/PROJECT_LEDGER.md",
+      "locations": [
+        { "commit": "8e09db96b51248137648cd5fd6093e4bc08f2b59", "line": 1222 },
+        { "commit": "d484f98745494099e57740c8c0ad673b65e0a2aa", "line": 1222 }
+      ],
+      "exactFirstLine": "- Primary npm registry queried2026-08-27T01:21:05Z reports latest just-bash3.4.2,",
+      "followingClaim": "published2026-08-22T03:28:27Z, matching the official package manifest and the installed isolated baseline.",
+      "assessment": "Historical latest claim exists, but its exact 01:21:05 query time is not independently corroborated by the retained 01:39:51 release capture. No separate 01:21 capture appears in the inspected single-file release.json history. Later/current agreement cannot prove an earlier response."
+    },
+    {
+      "file": "docs/PROJECT_LEDGER.md",
+      "locations": [
+        { "commit": "8e09db96b51248137648cd5fd6093e4bc08f2b59", "line": 1255 },
+        { "commit": "d484f98745494099e57740c8c0ad673b65e0a2aa", "line": 1253 }
+      ],
+      "exactFirstLine": "- Registry recheck2026-08-27T01:39:51Z still reports latest just-bash3.4.2, matching",
+      "followingClaim": "the installed isolated baseline; release.json records exact provenance.",
+      "assessment": "Supported at the stated query time by retained release.json summary: queriedAt 01:39:51.037Z, tags.latest/latest/installed all3.4.2. This is not a timeless latest-release guarantee."
+    }
+  ],
+  "claimAttribution": "Both reviewed revisions contain the dated latest claims in the ledger. They are inherited text, not newly introduced latest claims in the inspected 8e09db9 report additions or d484f98 documentation diff. The inspected ANALYSIS.md/corrected REPORT.md and README comparison wording use the version number rather than an unqualified latest claim.",
+  "historicalDocumentSha256": {
+    "8e09db9:docs/PROJECT_LEDGER.md": "3439ea344c2d2e89a61777cfcf5f495cf88b462139d869e56de0d61dd4a44312",
+    "d484f98:docs/PROJECT_LEDGER.md": "d8f0a3aad8f6c6a744be967954f35f9d5b5717af06de2755bd5d04ac6c32114d"
+  },
+  "retainedPrimaryReleaseCapture": {
+    "path": "benchmarks/reports/expanded-20260827/release.json",
+    "readFromCommit": "8e09db96b51248137648cd5fd6093e4bc08f2b59",
+    "introducedAtCommit": "3462e3e1716278237aff43605fdef68e0c86824f",
+    "gitBlobAtBothReviewedRevisions": "3ce9b8a8d91b00ab3ef71430b96f6d0ab6c49189",
+    "artifactSha256": "3ff84ba8f2698d5133308d1bf9250fadcc93aa3720f8a9530a65cca995a2ab02",
+    "queriedAt": "2026-08-27T01:39:51.037Z",
+    "url": "https://registry.npmjs.org/just-bash",
+    "recordedOriginalResponseSha256": "0237c0e44b0499d3523f146e8be82c18999f1bf7400a1c19f8ac9397eb74b90d",
+    "tags": { "executor": "2.15.1-executor.0", "latest": "3.4.2" },
+    "latest": "3.4.2",
+    "published": "2026-08-22T03:28:27.717Z",
+    "installed": "3.4.2",
+    "limit": "The retained file is a timestamped primary-response summary with an original-response digest, not the full historical registry response. That original digest cannot be recomputed from the retained summary alone; this review does not authenticate a historical HTTP exchange."
+  },
+  "currentOfficialDistTagsObservation": {
+    "url": "https://registry.npmjs.org/-/package/just-bash/dist-tags",
+    "requestedAt": "2026-08-27T05:03:24.056Z",
+    "receivedAt": "2026-08-27T05:03:24.354Z",
+    "status": 200,
+    "responseSha256": "11c14dbe82620f7402a4a668a543737fd55c025b981b468e34c0b62988c48077",
+    "responseBytes": 49,
+    "bodyUtf8": "{\"executor\":\"2.15.1-executor.0\",\"latest\":\"3.4.2\"}",
+    "latest": "3.4.2",
+    "assessment": "At this specific fresh observation time the official latest tag still resolves to3.4.2. It is separate evidence, not a substitute for the historical capture or a claim about later times."
+  },
+  "limits": [
+    "Pinned manifest/integrity review alone did not answer whether historical authors said latest; this addendum closes that wording-review gap explicitly.",
+    "No old provenance, release capture, comparison report or benchmark result is replaced.",
+    "No tarball downloaded or SRI reverified; uncached published-tarball authenticity remains unverified.",
+    "No dependency or runtime change, benchmark execution, staging or commit.",
+    "Baseline-only table remains separate;136 case-engine outcomes are not136 recipes.",
+    "Current-score/lifecycle qualification remains pending the required different-leaf review; this addendum certifies no score or lifecycle gate."
+  ]
+}

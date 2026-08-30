@@ -1,0 +1,3037 @@
+{
+  "profile": "Known-role-only functional review; no OS containment, universal census or group-absence claim",
+  "preparationGrant": {
+    "seconds": 1500,
+    "knownOsStarts": 56,
+    "peakKnownOs": 3,
+    "rawCaptureBytes": 100663296,
+    "workIncludingPublicationBytes": 536870912,
+    "nodeHelperProcesses": 4
+  },
+  "prospectiveRuntime": {
+    "selectedSemanticCalls": 672,
+    "excludedAcceptedB0": 39,
+    "excludedSeparateB1": 15,
+    "exactOverallPlan": 726,
+    "consumerAndControlRoles": 40,
+    "offlineInstallRoles": 1,
+    "knownChildRolesBeforeAdministration": 41,
+    "internalLoaderAdmissionAttempts": 34,
+    "internalLoaderBirths": "UNRUN",
+    "regexWorkerCap": "PENDING_CASE_DERIVATION",
+    "regexLoaderCap": "PENDING_CASE_DERIVATION",
+    "guestEngines": 0,
+    "proposedAbsoluteSeconds": 1800,
+    "proposedReserveSeconds": 180,
+    "proposedRawCaptureBytes": 100663296,
+    "proposedWorkBytes": 536870912,
+    "totalOsCap": "PENDING_OUTER_AND_PUBLICATION_ROLE_CLOSURE",
+    "peakOsCap": 3,
+    "authorized": false
+  },
+  "roles": [
+    {
+      "role": "retained-source-built-redirections-v3",
+      "kind": "retained",
+      "layout": "source-built",
+      "cases": 48,
+      "expectedIds": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "script": "harness/redirections.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-source-built-strict",
+      "kind": "retained",
+      "layout": "source-built",
+      "cases": 50,
+      "expectedIds": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "script": "harness/strict.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-source-built-conditional",
+      "kind": "retained",
+      "layout": "source-built",
+      "cases": 67,
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A27",
+        "A28",
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40",
+        "H01",
+        "H02-v4",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "S01-registered",
+        "S02-at",
+        "S03-star",
+        "S04-skipped",
+        "S05-ENOENT",
+        "S06-ENOTDIR",
+        "S07-EACCES",
+        "S08-EPERM",
+        "S09-ENOTSUP",
+        "S10-EOPNOTSUPP",
+        "S11-ENOSYS",
+        "S12-untyped",
+        "S13-untyped",
+        "S14-untyped",
+        "S15-unclassified",
+        "S16-code-getter",
+        "S17-limit-caller"
+      ],
+      "script": "harness/conditional.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-source-built-extension",
+      "kind": "retained",
+      "layout": "source-built",
+      "cases": 35,
+      "expectedIds": [
+        "U06",
+        "U07",
+        "U17",
+        "U28",
+        "U31",
+        "U32",
+        "U33",
+        "U34",
+        "U35",
+        "U36",
+        "S-U06-PARTIAL-v1",
+        "S-U07-LIST-STATUS-v1",
+        "S-ARITH-SUBSHELL-v1",
+        "S-ARITH-SUBSTITUTION-v1",
+        "E19-plus-tail",
+        "E20-subset-listing",
+        "E21-write-only-chain",
+        "E22-function-fatal",
+        "H24-preabort",
+        "H25-falsy-sink",
+        "H26-read-budget",
+        "H27-registered-cleanup",
+        "H28-caller-during-diagnostic",
+        "X01-sh-policy",
+        "X02-positional-listing",
+        "X03-errexit",
+        "X04-lazy-fixed64",
+        "X05-optind-substring",
+        "X06-existing-refusals",
+        "X07-parameter-falsy-sink",
+        "X08-parameter-limit",
+        "X09-parameter-cleanup",
+        "X10a-parameter-isolated-status-v2",
+        "X10b-parameter-isolated-null-v2",
+        "X10c-parameter-caller-cleanup-v2"
+      ],
+      "script": "harness/extension.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-source-built-arrays",
+      "kind": "retained",
+      "layout": "source-built",
+      "cases": 12,
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "script": "harness/arrays.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-source-built-n14",
+      "kind": "retained",
+      "layout": "source-built",
+      "cases": 12,
+      "expectedIds": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "script": "harness/n14.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-installed-redirections-v3",
+      "kind": "retained",
+      "layout": "installed",
+      "cases": 48,
+      "expectedIds": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "script": "harness/redirections.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-installed-strict",
+      "kind": "retained",
+      "layout": "installed",
+      "cases": 50,
+      "expectedIds": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "script": "harness/strict.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-installed-conditional",
+      "kind": "retained",
+      "layout": "installed",
+      "cases": 67,
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A27",
+        "A28",
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40",
+        "H01",
+        "H02-v4",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "S01-registered",
+        "S02-at",
+        "S03-star",
+        "S04-skipped",
+        "S05-ENOENT",
+        "S06-ENOTDIR",
+        "S07-EACCES",
+        "S08-EPERM",
+        "S09-ENOTSUP",
+        "S10-EOPNOTSUPP",
+        "S11-ENOSYS",
+        "S12-untyped",
+        "S13-untyped",
+        "S14-untyped",
+        "S15-unclassified",
+        "S16-code-getter",
+        "S17-limit-caller"
+      ],
+      "script": "harness/conditional.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-installed-extension",
+      "kind": "retained",
+      "layout": "installed",
+      "cases": 35,
+      "expectedIds": [
+        "U06",
+        "U07",
+        "U17",
+        "U28",
+        "U31",
+        "U32",
+        "U33",
+        "U34",
+        "U35",
+        "U36",
+        "S-U06-PARTIAL-v1",
+        "S-U07-LIST-STATUS-v1",
+        "S-ARITH-SUBSHELL-v1",
+        "S-ARITH-SUBSTITUTION-v1",
+        "E19-plus-tail",
+        "E20-subset-listing",
+        "E21-write-only-chain",
+        "E22-function-fatal",
+        "H24-preabort",
+        "H25-falsy-sink",
+        "H26-read-budget",
+        "H27-registered-cleanup",
+        "H28-caller-during-diagnostic",
+        "X01-sh-policy",
+        "X02-positional-listing",
+        "X03-errexit",
+        "X04-lazy-fixed64",
+        "X05-optind-substring",
+        "X06-existing-refusals",
+        "X07-parameter-falsy-sink",
+        "X08-parameter-limit",
+        "X09-parameter-cleanup",
+        "X10a-parameter-isolated-status-v2",
+        "X10b-parameter-isolated-null-v2",
+        "X10c-parameter-caller-cleanup-v2"
+      ],
+      "script": "harness/extension.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-installed-arrays",
+      "kind": "retained",
+      "layout": "installed",
+      "cases": 12,
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "script": "harness/arrays.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-installed-n14",
+      "kind": "retained",
+      "layout": "installed",
+      "cases": 12,
+      "expectedIds": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "script": "harness/n14.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-physically-moved-redirections-v3",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "cases": 48,
+      "expectedIds": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "script": "harness/redirections.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-physically-moved-strict",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "cases": 50,
+      "expectedIds": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "script": "harness/strict.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-physically-moved-conditional",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "cases": 67,
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A27",
+        "A28",
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40",
+        "H01",
+        "H02-v4",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "S01-registered",
+        "S02-at",
+        "S03-star",
+        "S04-skipped",
+        "S05-ENOENT",
+        "S06-ENOTDIR",
+        "S07-EACCES",
+        "S08-EPERM",
+        "S09-ENOTSUP",
+        "S10-EOPNOTSUPP",
+        "S11-ENOSYS",
+        "S12-untyped",
+        "S13-untyped",
+        "S14-untyped",
+        "S15-unclassified",
+        "S16-code-getter",
+        "S17-limit-caller"
+      ],
+      "script": "harness/conditional.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-physically-moved-extension",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "cases": 35,
+      "expectedIds": [
+        "U06",
+        "U07",
+        "U17",
+        "U28",
+        "U31",
+        "U32",
+        "U33",
+        "U34",
+        "U35",
+        "U36",
+        "S-U06-PARTIAL-v1",
+        "S-U07-LIST-STATUS-v1",
+        "S-ARITH-SUBSHELL-v1",
+        "S-ARITH-SUBSTITUTION-v1",
+        "E19-plus-tail",
+        "E20-subset-listing",
+        "E21-write-only-chain",
+        "E22-function-fatal",
+        "H24-preabort",
+        "H25-falsy-sink",
+        "H26-read-budget",
+        "H27-registered-cleanup",
+        "H28-caller-during-diagnostic",
+        "X01-sh-policy",
+        "X02-positional-listing",
+        "X03-errexit",
+        "X04-lazy-fixed64",
+        "X05-optind-substring",
+        "X06-existing-refusals",
+        "X07-parameter-falsy-sink",
+        "X08-parameter-limit",
+        "X09-parameter-cleanup",
+        "X10a-parameter-isolated-status-v2",
+        "X10b-parameter-isolated-null-v2",
+        "X10c-parameter-caller-cleanup-v2"
+      ],
+      "script": "harness/extension.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-physically-moved-arrays",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "cases": 12,
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "script": "harness/arrays.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "retained-physically-moved-n14",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "cases": 12,
+      "expectedIds": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "script": "harness/n14.mjs",
+      "expectedExitCodes": [
+        0
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 420,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-n14-drop-provenance",
+      "kind": "mutant",
+      "script": "harness/n14.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "N10"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "N14_CASE": "N10"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-n14-drop-provenance",
+      "kind": "restore",
+      "script": "harness/n14.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "N10"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "N14_CASE": "N10"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-missing-read-zero",
+      "kind": "mutant",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "U31"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "EXT_CASE": "U31"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-missing-read-zero",
+      "kind": "restore",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "U31"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "EXT_CASE": "U31"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-read-assignment-lhs",
+      "kind": "mutant",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "U32"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "EXT_CASE": "U32"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-read-assignment-lhs",
+      "kind": "restore",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "U32"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "EXT_CASE": "U32"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-let-recast",
+      "kind": "mutant",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "U34"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "EXT_CASE": "U34"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-let-recast",
+      "kind": "restore",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "U34"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "EXT_CASE": "U34"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-rollback-prefix",
+      "kind": "mutant",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "S-U06-PARTIAL-v1"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "EXT_CASE": "S-U06-PARTIAL-v1"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-rollback-prefix",
+      "kind": "restore",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "S-U06-PARTIAL-v1"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "EXT_CASE": "S-U06-PARTIAL-v1"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-swallow-parameter-sink",
+      "kind": "mutant",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "X07-parameter-falsy-sink"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "EXT_CASE": "X07-parameter-falsy-sink"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-swallow-parameter-sink",
+      "kind": "restore",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "X07-parameter-falsy-sink"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "EXT_CASE": "X07-parameter-falsy-sink"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "mutant-false-option-state",
+      "kind": "mutant",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "S-U07-LIST-STATUS-v1"
+      ],
+      "expectedExitCodes": [
+        1
+      ],
+      "environment": {
+        "EXT_CASE": "S-U07-LIST-STATUS-v1"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "restore-false-option-state",
+      "kind": "restore",
+      "script": "harness/extension.mjs",
+      "layout": "mutant-copy",
+      "expectedIds": [
+        "S-U07-LIST-STATUS-v1"
+      ],
+      "expectedExitCodes": [
+        0
+      ],
+      "environment": {
+        "EXT_CASE": "S-U07-LIST-STATUS-v1"
+      },
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "types-source-built-positive",
+      "kind": "type-consumer",
+      "layout": "source-built",
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedDiagnostics": 0,
+      "args": [
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/typescript/bin/tsc",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--noEmit",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--pretty",
+        "false",
+        "--listFiles",
+        "--typeRoots",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/@types",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/consumer-positive.mts"
+      ],
+      "internalLoaderAdmissions": 0,
+      "seconds": 120,
+      "status": "UNRUN"
+    },
+    {
+      "role": "types-source-built-negative",
+      "kind": "type-consumer",
+      "layout": "source-built",
+      "expectedExitCodes": [
+        2
+      ],
+      "expectedDiagnostics": 8,
+      "args": [
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/typescript/bin/tsc",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--noEmit",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--pretty",
+        "false",
+        "--listFiles",
+        "--typeRoots",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/@types",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/consumer-negative.mts"
+      ],
+      "internalLoaderAdmissions": 0,
+      "seconds": 120,
+      "status": "UNRUN"
+    },
+    {
+      "role": "types-installed-positive",
+      "kind": "type-consumer",
+      "layout": "installed",
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedDiagnostics": 0,
+      "args": [
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/typescript/bin/tsc",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--noEmit",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--pretty",
+        "false",
+        "--listFiles",
+        "--typeRoots",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/@types",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/consumer-positive.mts"
+      ],
+      "internalLoaderAdmissions": 0,
+      "seconds": 120,
+      "status": "UNRUN"
+    },
+    {
+      "role": "types-installed-negative",
+      "kind": "type-consumer",
+      "layout": "installed",
+      "expectedExitCodes": [
+        2
+      ],
+      "expectedDiagnostics": 8,
+      "args": [
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/typescript/bin/tsc",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--noEmit",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--pretty",
+        "false",
+        "--listFiles",
+        "--typeRoots",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/@types",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/consumer-negative.mts"
+      ],
+      "internalLoaderAdmissions": 0,
+      "seconds": 120,
+      "status": "UNRUN"
+    },
+    {
+      "role": "types-physically-moved-positive",
+      "kind": "type-consumer",
+      "layout": "physically-moved",
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedDiagnostics": 0,
+      "args": [
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/typescript/bin/tsc",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--noEmit",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--pretty",
+        "false",
+        "--listFiles",
+        "--typeRoots",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/@types",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/consumer-positive.mts"
+      ],
+      "internalLoaderAdmissions": 0,
+      "seconds": 120,
+      "status": "UNRUN"
+    },
+    {
+      "role": "types-physically-moved-negative",
+      "kind": "type-consumer",
+      "layout": "physically-moved",
+      "expectedExitCodes": [
+        2
+      ],
+      "expectedDiagnostics": 8,
+      "args": [
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/typescript/bin/tsc",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--noEmit",
+        "--target",
+        "ES2022",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--skipLibCheck",
+        "--pretty",
+        "false",
+        "--listFiles",
+        "--typeRoots",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tools/@types",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/consumer-negative.mts"
+      ],
+      "internalLoaderAdmissions": 0,
+      "seconds": 120,
+      "status": "UNRUN"
+    },
+    {
+      "role": "binding-missing",
+      "alteration": {
+        "removeInputPath": "index.js"
+      },
+      "expectedDiagnostic": "package binding missing member",
+      "kind": "binding-negative",
+      "layout": "physically-moved",
+      "script": "harness/strict.mjs",
+      "expectedExitCodes": [
+        1
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    },
+    {
+      "role": "binding-changed",
+      "alteration": {
+        "inputPath": "shell/parser.js",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expectedDiagnostic": "package hash mismatch",
+      "kind": "binding-negative",
+      "layout": "physically-moved",
+      "script": "harness/strict.mjs",
+      "expectedExitCodes": [
+        1
+      ],
+      "internalLoaderAdmissions": 1,
+      "seconds": 60,
+      "status": "UNRUN"
+    }
+  ],
+  "dispatch": [
+    {
+      "role": "retained-source-built-redirections-v3",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/redirections.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-source-built-redirections-v3.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-source-built-strict",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/strict.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-source-built-strict.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-source-built-conditional",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/conditional.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-source-built-conditional.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A27",
+        "A28",
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40",
+        "H01",
+        "H02-v4",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "S01-registered",
+        "S02-at",
+        "S03-star",
+        "S04-skipped",
+        "S05-ENOENT",
+        "S06-ENOTDIR",
+        "S07-EACCES",
+        "S08-EPERM",
+        "S09-ENOTSUP",
+        "S10-EOPNOTSUPP",
+        "S11-ENOSYS",
+        "S12-untyped",
+        "S13-untyped",
+        "S14-untyped",
+        "S15-unclassified",
+        "S16-code-getter",
+        "S17-limit-caller"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-source-built-extension",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-source-built-extension.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U06",
+        "U07",
+        "U17",
+        "U28",
+        "U31",
+        "U32",
+        "U33",
+        "U34",
+        "U35",
+        "U36",
+        "S-U06-PARTIAL-v1",
+        "S-U07-LIST-STATUS-v1",
+        "S-ARITH-SUBSHELL-v1",
+        "S-ARITH-SUBSTITUTION-v1",
+        "E19-plus-tail",
+        "E20-subset-listing",
+        "E21-write-only-chain",
+        "E22-function-fatal",
+        "H24-preabort",
+        "H25-falsy-sink",
+        "H26-read-budget",
+        "H27-registered-cleanup",
+        "H28-caller-during-diagnostic",
+        "X01-sh-policy",
+        "X02-positional-listing",
+        "X03-errexit",
+        "X04-lazy-fixed64",
+        "X05-optind-substring",
+        "X06-existing-refusals",
+        "X07-parameter-falsy-sink",
+        "X08-parameter-limit",
+        "X09-parameter-cleanup",
+        "X10a-parameter-isolated-status-v2",
+        "X10b-parameter-isolated-null-v2",
+        "X10c-parameter-caller-cleanup-v2"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-source-built-arrays",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/arrays.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-source-built-arrays.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-source-built-n14",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built/__consumer/n14.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-source-built-n14.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/source-built"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-installed-redirections-v3",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/redirections.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-installed-redirections-v3.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-installed-strict",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/strict.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-installed-strict.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-installed-conditional",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/conditional.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-installed-conditional.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A27",
+        "A28",
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40",
+        "H01",
+        "H02-v4",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "S01-registered",
+        "S02-at",
+        "S03-star",
+        "S04-skipped",
+        "S05-ENOENT",
+        "S06-ENOTDIR",
+        "S07-EACCES",
+        "S08-EPERM",
+        "S09-ENOTSUP",
+        "S10-EOPNOTSUPP",
+        "S11-ENOSYS",
+        "S12-untyped",
+        "S13-untyped",
+        "S14-untyped",
+        "S15-unclassified",
+        "S16-code-getter",
+        "S17-limit-caller"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-installed-extension",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-installed-extension.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U06",
+        "U07",
+        "U17",
+        "U28",
+        "U31",
+        "U32",
+        "U33",
+        "U34",
+        "U35",
+        "U36",
+        "S-U06-PARTIAL-v1",
+        "S-U07-LIST-STATUS-v1",
+        "S-ARITH-SUBSHELL-v1",
+        "S-ARITH-SUBSTITUTION-v1",
+        "E19-plus-tail",
+        "E20-subset-listing",
+        "E21-write-only-chain",
+        "E22-function-fatal",
+        "H24-preabort",
+        "H25-falsy-sink",
+        "H26-read-budget",
+        "H27-registered-cleanup",
+        "H28-caller-during-diagnostic",
+        "X01-sh-policy",
+        "X02-positional-listing",
+        "X03-errexit",
+        "X04-lazy-fixed64",
+        "X05-optind-substring",
+        "X06-existing-refusals",
+        "X07-parameter-falsy-sink",
+        "X08-parameter-limit",
+        "X09-parameter-cleanup",
+        "X10a-parameter-isolated-status-v2",
+        "X10b-parameter-isolated-null-v2",
+        "X10c-parameter-caller-cleanup-v2"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-installed-arrays",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/arrays.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-installed-arrays.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-installed-n14",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed/__consumer/n14.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-installed-n14.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/installed"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-physically-moved-redirections-v3",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/redirections.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-physically-moved-redirections-v3.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26",
+        "R27",
+        "R28",
+        "R29",
+        "R30",
+        "R31",
+        "R32",
+        "R33",
+        "R34",
+        "R35",
+        "R36",
+        "C01-default80-display",
+        "C02-versioned-conditional-support",
+        "C03-single-open-and-raw-bytes",
+        "C04-before-open-caller-identity",
+        "C05-blocked-write-caller-identity",
+        "C06-backpressure",
+        "C07-sink-fault-profile-preserved",
+        "C08-required-file-after-downstream-close",
+        "C09-open-failure-and-prior-effect",
+        "C10-output-limit-and-cleanup",
+        "C11-closed-descriptor-error",
+        "C12-owned-real-file"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-physically-moved-strict",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/strict.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-physically-moved-strict.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U01",
+        "U02",
+        "U03",
+        "U04",
+        "U05",
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U12",
+        "U13",
+        "U14",
+        "U15",
+        "U16",
+        "U18",
+        "U19",
+        "U20",
+        "U21",
+        "U22",
+        "U23",
+        "U24",
+        "U25",
+        "U26",
+        "U29",
+        "U30",
+        "U37",
+        "U38",
+        "U39",
+        "U40",
+        "U41",
+        "U42",
+        "U43",
+        "U44",
+        "U45",
+        "U46",
+        "U47",
+        "U48",
+        "U49",
+        "U50",
+        "E01-active-file-stderr",
+        "E02-here-string",
+        "E03-ordered-redirect-effects",
+        "E04-lazy-array-zero",
+        "E05-function-option-state",
+        "E06-if-not-errexit",
+        "E07-here-document",
+        "E08-nested-sink-rejection",
+        "E09-invoke-sink-boundary",
+        "E10-primary-sink-cleanup",
+        "E11-substitution-errexit"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-physically-moved-conditional",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/conditional.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-physically-moved-conditional.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14",
+        "A15",
+        "A16",
+        "A17",
+        "A18",
+        "A19",
+        "A20",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A27",
+        "A28",
+        "A29",
+        "A30",
+        "A31",
+        "A32",
+        "A33",
+        "A34",
+        "A35",
+        "A36",
+        "A37",
+        "A38",
+        "A39",
+        "A40",
+        "H01",
+        "H02-v4",
+        "H03",
+        "H04",
+        "H05",
+        "H06",
+        "H07",
+        "H08",
+        "H09",
+        "H10",
+        "S01-registered",
+        "S02-at",
+        "S03-star",
+        "S04-skipped",
+        "S05-ENOENT",
+        "S06-ENOTDIR",
+        "S07-EACCES",
+        "S08-EPERM",
+        "S09-ENOTSUP",
+        "S10-EOPNOTSUPP",
+        "S11-ENOSYS",
+        "S12-untyped",
+        "S13-untyped",
+        "S14-untyped",
+        "S15-unclassified",
+        "S16-code-getter",
+        "S17-limit-caller"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-physically-moved-extension",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-physically-moved-extension.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U06",
+        "U07",
+        "U17",
+        "U28",
+        "U31",
+        "U32",
+        "U33",
+        "U34",
+        "U35",
+        "U36",
+        "S-U06-PARTIAL-v1",
+        "S-U07-LIST-STATUS-v1",
+        "S-ARITH-SUBSHELL-v1",
+        "S-ARITH-SUBSTITUTION-v1",
+        "E19-plus-tail",
+        "E20-subset-listing",
+        "E21-write-only-chain",
+        "E22-function-fatal",
+        "H24-preabort",
+        "H25-falsy-sink",
+        "H26-read-budget",
+        "H27-registered-cleanup",
+        "H28-caller-during-diagnostic",
+        "X01-sh-policy",
+        "X02-positional-listing",
+        "X03-errexit",
+        "X04-lazy-fixed64",
+        "X05-optind-substring",
+        "X06-existing-refusals",
+        "X07-parameter-falsy-sink",
+        "X08-parameter-limit",
+        "X09-parameter-cleanup",
+        "X10a-parameter-isolated-status-v2",
+        "X10b-parameter-isolated-null-v2",
+        "X10c-parameter-caller-cleanup-v2"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-physically-moved-arrays",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/arrays.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-physically-moved-arrays.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "retained-physically-moved-n14",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/n14.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/retained-physically-moved-n14.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-n14-drop-provenance",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/n14.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-n14-drop-provenance.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "N14_CASE": "N10"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "N10"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-n14-drop-provenance",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/n14.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-n14-drop-provenance.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "N14_CASE": "N10"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "N10"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-missing-read-zero",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-missing-read-zero.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "U31"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "U31"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-missing-read-zero",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-missing-read-zero.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "U31"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U31"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-read-assignment-lhs",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-read-assignment-lhs.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "U32"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "U32"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-read-assignment-lhs",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-read-assignment-lhs.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "U32"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U32"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-let-recast",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-let-recast.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "U34"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "U34"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-let-recast",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-let-recast.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "U34"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "U34"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-rollback-prefix",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-rollback-prefix.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "S-U06-PARTIAL-v1"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "S-U06-PARTIAL-v1"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-rollback-prefix",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-rollback-prefix.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "S-U06-PARTIAL-v1"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "S-U06-PARTIAL-v1"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-swallow-parameter-sink",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-swallow-parameter-sink.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "X07-parameter-falsy-sink"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "X07-parameter-falsy-sink"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-swallow-parameter-sink",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-swallow-parameter-sink.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "X07-parameter-falsy-sink"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "X07-parameter-falsy-sink"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "mutant-false-option-state",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/mutant-false-option-state.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "S-U07-LIST-STATUS-v1"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [
+        "S-U07-LIST-STATUS-v1"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "restore-false-option-state",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy/__consumer/extension.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/restore-false-option-state.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/mutant-copy",
+        "EXT_CASE": "S-U07-LIST-STATUS-v1"
+      },
+      "expectedExitCodes": [
+        0
+      ],
+      "expectedIds": [
+        "S-U07-LIST-STATUS-v1"
+      ],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "binding-missing",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/strict.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/binding-missing.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    },
+    {
+      "role": "binding-changed",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--loader",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/harness/loader.mjs",
+        "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved/__consumer/strict.mjs"
+      ],
+      "cwd": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved",
+      "environment": {
+        "HOME": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/home",
+        "TMPDIR": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "TEMP": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/tmp",
+        "NODE_OPTIONS": "",
+        "NODE_PATH": "",
+        "PUBLIC_BINDING": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/bindings/binding-changed.json",
+        "PRODUCT_ROOT": "/private/tmp/safe-bash-b2-runtime-PENDING-ROOT-GO/physically-moved"
+      },
+      "expectedExitCodes": [
+        1
+      ],
+      "expectedIds": [],
+      "status": "PROSPECTIVE_NOT_AUTHORIZED"
+    }
+  ],
+  "install": {
+    "status": "PENDING_EXACT_OFFLINE_COMMAND_AND_TOOL_CLOSURE",
+    "scripts": "disabled",
+    "network": "not authorized",
+    "physicallyMoved": "Actual same-filesystem rename with before/after inode/member bindings; never an alias or second extract"
+  }
+}

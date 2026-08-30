@@ -1,0 +1,90 @@
+{
+  "kind": "Read/hash/decode/source-premise verification; zero product imports/children",
+  "scriptSha256": "67c4975c4d5762670f2fcc78fa4be5f904302713310aebbc218164b87b48b1d5",
+  "proofMapSha256": "2748ace5e735d7ad59ab53895c4263d35cdd8687cd5c6f33db8dcfc0a1d407a6",
+  "authenticatedBundles": [
+    {
+      "id": "original-v5",
+      "commit": "14179c5eae195757ed5e83fe31a51971597700b6",
+      "archive": "s06-successor-v1/preparation-v5/release-ARRAY-S06-20260828-02/RECORDS.jsonl.gz",
+      "sha256": "3dbb6dc3708156e0c895b04aacf78f508322b6b08336acff78a6aa53cd707a0c",
+      "archiveBlob": "dd36833ede265113a28011608982731e8a1fd314",
+      "indexBlob": "8a4041b01a2bf2efcd46f7450d83ac75174d84de",
+      "auditBlob": "78f4a6ac41c97081f1997c4da69cf2fdfda605b1",
+      "verifiedRecords": 437,
+      "verifiedRawBytes": 116980358
+    },
+    {
+      "id": "versioned-tail",
+      "commit": "5fafd41c95594c107be9704b5a2346567d77e265",
+      "archive": "s06-successor-v1/continuation-v1/release-ARRAY-TAIL-20260828-01/RECORDS.jsonl.gz",
+      "sha256": "53507c36482a956ef793c6fda2c718a3dc01aad64bf03c3db59a918ae331cc16",
+      "archiveBlob": "a9be6e538fbe8055d9e10a739acea0ebad7802c1",
+      "indexBlob": "3027529f7356b80c1adc19a8e7f07caf18f5c1af",
+      "auditBlob": "66c98f8c6414c44c3df5a450283baa0ffdb301d3",
+      "verifiedRecords": 103,
+      "verifiedRawBytes": 17733842
+    }
+  ],
+  "totalAuthenticatedRecords": 540,
+  "totalAuthenticatedRawBytes": 134714200,
+  "selectedInputsRechecked": 269,
+  "sourcePremisesChecked": 19,
+  "newCandidateExecutions": 0,
+  "newCompilerExecutions": 0,
+  "newNativeExecutions": 0,
+  "removedFiles": 0,
+  "counts": {
+    "semanticFamilies": 33,
+    "mechanicalFamilies": 22,
+    "sourceOnly": [
+      "M21"
+    ],
+    "mixed": [
+      "M03",
+      "M07",
+      "M14",
+      "M15",
+      "M20"
+    ],
+    "holdouts": 16,
+    "operationFamilies": 10,
+    "astInputs": 4,
+    "typeCasesPerLayout": 10,
+    "layouts": [
+      "source-build",
+      "installed",
+      "moved"
+    ],
+    "uniqueOriginalKilledFamilies": [
+      "U01",
+      "U02",
+      "U03",
+      "U04",
+      "U05",
+      "U06",
+      "U07",
+      "U10"
+    ],
+    "newlyQualifiedU01ThroughU12": [
+      "U08",
+      "U09",
+      "U11",
+      "U12"
+    ],
+    "separateS06Reversion": "U13-S06",
+    "uniqueKilledFamiliesIncludingReversion": 13,
+    "originalLoadedActivatedKilledRetained": [
+      10,
+      9,
+      8
+    ],
+    "tailLoadedActivatedKilled": [
+      5,
+      5,
+      5
+    ],
+    "obligationLayoutReferences": 285,
+    "qualification": "Counts span behavior, helper, source argument, AST and compiler controls; not285 behavior passes. No old coordinator status is changed."
+  }
+}

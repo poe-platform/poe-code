@@ -1,0 +1,18 @@
+{
+  "schema": "FUNCTIONAL_V2_EVIDENCE_COMMIT_RECEIPT",
+  "commit": "fae32e768651adbb54cb31abf2848aa7a42e2ad2",
+  "child": {
+    "pid": 65227,
+    "closed": true,
+    "exit": 0,
+    "signal": null
+  },
+  "stdoutBytes": 14867,
+  "stderrBytes": 0,
+  "stdoutSha256": "be3fba12d3ee253586d727cdaa3423496f1dea9dc8df576b6666e5a37b3c0452",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "observedRetainedEqual": true,
+  "knownClosedThroughThisCommit": 49,
+  "mainManifestSha256": "3f0303334992f2f242825c512d02391a7ec8109733b8ff23ea8e8e2b88e2b981",
+  "noActualRetry": true
+}

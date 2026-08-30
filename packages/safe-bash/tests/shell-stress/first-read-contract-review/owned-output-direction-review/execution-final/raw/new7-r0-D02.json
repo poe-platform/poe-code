@@ -1,0 +1,17 @@
+{
+  "label": "new7-r0-D02",
+  "status": 1,
+  "signal": null,
+  "stdout": {
+    "utf8": "{\"id\":\"D02\",\"passed\":false,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"opaque.pending\",\"operationDone\":true,\"active\":1,\"next\":1},{\"event\":\"opaque.effects\",\"record\":\"late-owned-read\\n\",\"sibling\":\"sibling-tail\\n\",\"owner\":\"owner-tail\\n\",\"state\":{\"next\":3,\"returns\":3,\"cancel\":0,\"close\":0,\"active\":0,\"maxActive\":1,\"delivered\":[0,1,2]}}],\"failures\":[{\"label\":\"borrowed return/cancel/close\",\"actual\":[3,0,0],\"expected\":[0,0,0]}],\"unhandled\":[]}\n",
+    "bytes": 496,
+    "base64": "eyJpZCI6IkQwMiIsInBhc3NlZCI6ZmFsc2UsInJlY29yZHMiOlt7ImV2ZW50Ijoic3Rkb3V0LmNsb3NlZCIsInN0YWdlQWJvcnRlZCI6ZmFsc2UsImNhbGxlckFib3J0ZWQiOmZhbHNlLCJ3cml0ZXMiOjB9LHsiZXZlbnQiOiJvcGFxdWUucGVuZGluZyIsIm9wZXJhdGlvbkRvbmUiOnRydWUsImFjdGl2ZSI6MSwibmV4dCI6MX0seyJldmVudCI6Im9wYXF1ZS5lZmZlY3RzIiwicmVjb3JkIjoibGF0ZS1vd25lZC1yZWFkXG4iLCJzaWJsaW5nIjoic2libGluZy10YWlsXG4iLCJvd25lciI6Im93bmVyLXRhaWxcbiIsInN0YXRlIjp7Im5leHQiOjMsInJldHVybnMiOjMsImNhbmNlbCI6MCwiY2xvc2UiOjAsImFjdGl2ZSI6MCwibWF4QWN0aXZlIjoxLCJkZWxpdmVyZWQiOlswLDEsMl19fV0sImZhaWx1cmVzIjpbeyJsYWJlbCI6ImJvcnJvd2VkIHJldHVybi9jYW5jZWwvY2xvc2UiLCJhY3R1YWwiOlszLDAsMF0sImV4cGVjdGVkIjpbMCwwLDBdfV0sInVuaGFuZGxlZCI6W119Cg==",
+    "sha256": "8bbb4037fd5c867851dfc17026c5a92ac61af88c5bad1b9031ec18f6502a1f78"
+  },
+  "stderr": {
+    "utf8": "",
+    "bytes": 0,
+    "base64": "",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

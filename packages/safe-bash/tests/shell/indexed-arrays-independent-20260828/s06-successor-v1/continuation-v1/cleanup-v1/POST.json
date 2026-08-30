@@ -1,0 +1,16 @@
+{
+  "kind": "approved-duplicate-only-cleanup",
+  "manifestSha256": "97f0b183d1b2cdc9caa7b54e0f4d8d9306c937c765badf67dc5d64b8987eca58",
+  "removedFiles": 437,
+  "removedBytes": 116980358,
+  "recordsDirectoryRetained": true,
+  "remainingRecordNames": [],
+  "otherCensusesUnchanged": 6,
+  "retainedOtherBytes": 75310015,
+  "archiveHash": "3dbb6dc3708156e0c895b04aacf78f508322b6b08336acff78a6aa53cd707a0c",
+  "indexHash": "f7976df7cef3c0e747f0e998f1ee2b6dbaac7f2342f954fb6ab21f7364a8485e",
+  "archiveAndIndexUnchanged": true,
+  "elapsedMs": 5221.448042,
+  "productExecutions": 0,
+  "recursiveDeletes": 0
+}

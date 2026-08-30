@@ -1,0 +1,76 @@
+{
+  "pid": 34639,
+  "ppid": 34638,
+  "status": 1,
+  "signal": null,
+  "uncaught": {
+    "event": "uncaughtExceptionMonitor",
+    "pid": 34639,
+    "ppid": 34638,
+    "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+    "origin": "unhandledRejection",
+    "error": {
+      "name": "Error",
+      "code": "EPIPE",
+      "message": "write EPIPE",
+      "stack": "Error: write EPIPE\n    at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19)",
+      "process": null,
+      "syscall": "write",
+      "errno": -32
+    },
+    "stdoutErrorMonitorObserved": true,
+    "stdoutErrorSameObject": true,
+    "stdoutErroredSameObjectAtUncaught": false,
+    "stdoutDestroyed": false,
+    "stdoutFd": 1,
+    "caller": {
+      "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+      "control": "consumer-failure",
+      "consumerPid": 34638,
+      "producerPid": 34639,
+      "chunks": 16,
+      "code": "V3_CONSUMER_FAILURE",
+      "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+    },
+    "callerReadError": null
+  },
+  "memory": {
+    "baseline": {
+      "rss": 45203456,
+      "heapTotal": 5652480,
+      "heapUsed": 4871352,
+      "external": 1962447,
+      "arrayBuffers": 16655
+    },
+    "fieldwisePeaks": {
+      "rss": 47169536,
+      "heapTotal": 6701056,
+      "heapUsed": 4952064,
+      "external": 2028023,
+      "arrayBuffers": 82191
+    },
+    "latest": {
+      "rss": 47169536,
+      "heapTotal": 6701056,
+      "heapUsed": 4671488,
+      "external": 2028023,
+      "arrayBuffers": 82191
+    },
+    "samples": 3,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "writes": 18,
+    "acceptedBytes": 1179648,
+    "maxChunkBytes": 65536,
+    "falseWrites": 14,
+    "drains": 13,
+    "pendingDrains": 1,
+    "maxPendingDrains": 1,
+    "maxWritableLength": 65536,
+    "writableHighWaterMark": 65536,
+    "writableLength": 0
+  },
+  "scope": "producer only; accepted writes are not a claim of delivered bytes"
+}

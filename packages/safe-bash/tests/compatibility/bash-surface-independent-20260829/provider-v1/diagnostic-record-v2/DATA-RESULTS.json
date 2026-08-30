@@ -1,0 +1,339 @@
+{
+  "role": "SIXTEEN_FROZEN_DATA_CONTROLS_NOT_NATIVE_OR_ACQUISITION",
+  "presealSha256": "c9eecd88403171a13c6e36e234b971ad1a4bac7cbe588f69c91ccd661f2e15b5",
+  "results": [
+    {
+      "id": "missing-pid",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": false,
+          "pidInteger": false,
+          "pidMatches": false,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [
+          "pidPresent",
+          "pidInteger",
+          "pidMatches"
+        ]
+      }
+    },
+    {
+      "id": "wrong-pid",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": false,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [
+          "pidMatches"
+        ]
+      }
+    },
+    {
+      "id": "within-authorized-window-after-one-second",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979997000,
+        "imageClass": "NODE",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "outside-authorized-window",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": false
+        },
+        "failedPredicates": [
+          "eventWithinAuthorizedWindow"
+        ]
+      }
+    },
+    {
+      "id": "node-image-discovered-not-gated",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979997000,
+        "imageClass": "NODE",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "sandbox-image-discovered-not-gated",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979997000,
+        "imageClass": "SANDBOX_EXEC",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "other-image-not-predicted",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979997000,
+        "imageClass": "OTHER_IMAGE",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "missing-event-timestamp",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": false,
+          "eventTimestampUnambiguous": false,
+          "eventWithinAuthorizedWindow": false
+        },
+        "failedPredicates": [
+          "eventTimestampPresent",
+          "eventTimestampUnambiguous",
+          "eventWithinAuthorizedWindow"
+        ]
+      }
+    },
+    {
+      "id": "timezone-ambiguous-no-fallback",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": false,
+          "eventWithinAuthorizedWindow": false
+        },
+        "failedPredicates": [
+          "eventTimestampUnambiguous",
+          "eventWithinAuthorizedWindow"
+        ]
+      }
+    },
+    {
+      "id": "launch-parent-do-not-gate-event",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979997000,
+        "imageClass": "NODE",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "unrelated-values-not-returned",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": false,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [
+          "pidMatches"
+        ]
+      }
+    },
+    {
+      "id": "missing-image-explicit-not-presumed",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979997000,
+        "imageClass": "MISSING_IMAGE",
+        "imageNamePresent": false,
+        "imagePathPresent": false
+      }
+    },
+    {
+      "id": "lower-window-boundary",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787979864416,
+        "imageClass": "NODE",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "upper-window-boundary",
+      "pass": true,
+      "actual": {
+        "matched": true,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [],
+        "eventTimestampField": "captureTime",
+        "eventTimestampMs": 1787980104461,
+        "imageClass": "NODE",
+        "imageNamePresent": true,
+        "imagePathPresent": true
+      }
+    },
+    {
+      "id": "fraction-beyond-upper-boundary",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": true,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": false
+        },
+        "failedPredicates": [
+          "eventWithinAuthorizedWindow"
+        ]
+      }
+    },
+    {
+      "id": "wrong-schema-no-guess",
+      "pass": true,
+      "actual": {
+        "matched": false,
+        "predicates": {
+          "crashSchema309": false,
+          "pidPresent": true,
+          "pidInteger": true,
+          "pidMatches": true,
+          "eventTimestampPresent": true,
+          "eventTimestampUnambiguous": true,
+          "eventWithinAuthorizedWindow": true
+        },
+        "failedPredicates": [
+          "crashSchema309"
+        ]
+      }
+    }
+  ]
+}

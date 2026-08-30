@@ -1,0 +1,109 @@
+{
+  "kind": "V6_AUTHENTICATED_PRELAUNCH",
+  "at": "2026-08-28T12:57:28.784Z",
+  "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+  "recipeCommit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "nodeVersion": "v22.22.2",
+  "interfaces": {
+    "finalHandoff": {
+      "commit": "fb9afcc3cf484171769985d9f570318117f09f34",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/FINAL-HANDOFF.json",
+      "sha256": "a871711e29840f4bbe82d61f2015ea663f1ec9bc268634a8d5bb57799d6ec809"
+    },
+    "independent": {
+      "commit": "fb4ccfd95af9c3d3573d86c97826bed77605e370",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/ADMISSION-INTERFACE.json",
+      "sha256": "f8ea38d98bb0efa8cc34932fca25c69726b3331677797dbd14964489ea298634"
+    },
+    "author": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/ADMISSION-INTERFACE.json",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+      "sha256": "6f1cea302f4b371e94bf0143b333356acc44c9aeb37bbc3f10afa398f8e018e1"
+    }
+  },
+  "review": {
+    "commit": "fb4ccfd95af9c3d3573d86c97826bed77605e370",
+    "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/REVIEW.json",
+    "sha256": "c86d2fd9e7cbfe2dbc0cf173cca1a4e2d453699ea4464144a6d4fa7011b049c5"
+  },
+  "inventory": {
+    "commit": "fb4ccfd95af9c3d3573d86c97826bed77605e370",
+    "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/BEFORE.json",
+    "sha256": "d8bd04946aa041f77306ea62248af2f57ce6f007afc4cad0cce2a62704329cbe",
+    "entries": 266,
+    "distinctPaths": 262
+  },
+  "namespaces": {
+    "": {
+      "entries": 18,
+      "sha256": "324330fd04d936b6599b9897908c2268224850e00471c85e4d80434031d79bfb",
+      "unchanged": true,
+      "excludedDescendants": "runs"
+    },
+    "../executor-preparation-v1": {
+      "entries": 21,
+      "sha256": "6f2bee10b495bf120dd3cefef58e1e0f31f277ebda7a61e0193ba09f7cea6200",
+      "unchanged": true,
+      "excludedDescendants": "runs"
+    },
+    "../executor-overlay-v2": {
+      "entries": 16,
+      "sha256": "8583712587da7b5764cebe6b4f36bffc43ffbf6348a4bc8c8dd4397b56ade574",
+      "unchanged": true,
+      "excludedDescendants": "runs"
+    },
+    "../executor-v3": {
+      "entries": 30,
+      "sha256": "4bf86cdbbf4a494653be370d28370e999ac79a02f40ad07b6eccda03421faf83",
+      "unchanged": true,
+      "excludedDescendants": "runs"
+    },
+    "../executor-v4": {
+      "entries": 24,
+      "sha256": "cf0d71332ae623ff93d9b5e117667929c472e39ee0321491d4daf3a29cd8dca5",
+      "unchanged": true,
+      "excludedDescendants": "runs"
+    },
+    "../executor-v5": {
+      "entries": 26,
+      "sha256": "a9303974257cf023680500ff82fef4c66dad4ea0b7f9b20aedc6187dee934b2a",
+      "unchanged": true,
+      "excludedDescendants": "runs"
+    }
+  },
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "rawPlanSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+  "rawCoordinatorSha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4",
+  "launchWrapperSha256": "1faf0e0083b6552fb0d39baea8bdefe8192495dca12bc7eddf8e525bdcdd5982",
+  "grantSha256": "d933f560b089abd29dbf5aa7af5253fb2de257f6306fe45100425cc8c1afef40",
+  "commandArgvTemplate": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs",
+    "admission",
+    "admission-v6-01",
+    "<PINNED_AUTH_JSON>"
+  ],
+  "admissionLaunched": false,
+  "realEngineImports": 0,
+  "metadataGitChildren": 272,
+  "metadataGitChildrenReaped": true,
+  "negativeControlQualification": "Frozen intentional control children retain actual nonzero/signal outcomes separately; no nonzero positive probe or engine result is accepted"
+}

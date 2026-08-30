@@ -1,0 +1,9 @@
+{
+  "reviewer": "V9-Final-Independent-20260827",
+  "startedAt": "2026-08-27T20:55:12.264Z",
+  "freeze": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "candidate": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "resultDirectory": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once",
+  "supervisorSha256": "f322101cfaa23612287cd728f52f50c672a19325eda00b69d8280827d83cfa5d",
+  "preSha256": "57f4f3dcd4f226c9247893f1638cc747adec0d82487c1d1d397e63c09fbae89c"
+}

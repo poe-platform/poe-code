@@ -1,0 +1,38 @@
+{
+  "id": "L04",
+  "classifiedAs": "CAPTURE_LIMIT_CONTAINED_AND_CLOSED",
+  "observation": {
+    "primary": {
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "CHILD_CONTAINMENT_OR_SPAWN"
+    },
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "output-bound"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+      "stdoutBytes": 96,
+      "stderrBytes": 0,
+      "containment": "STDOUT_BOUND",
+      "naturallyReaped": false,
+      "pid": 87335,
+      "status": null,
+      "signal": "SIGTERM",
+      "closeObserved": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "activeAfterSettlement": false
+  },
+  "safeToContinue": true
+}

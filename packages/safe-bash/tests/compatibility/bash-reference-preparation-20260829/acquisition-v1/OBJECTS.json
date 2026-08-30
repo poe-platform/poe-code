@@ -1,0 +1,789 @@
+{
+  "role": "ACQUISITION_IDENTITIES_NOT_CRYPTOGRAPHIC_VERIFICATION",
+  "target": "GNU_BASH_5_3_PATCH_001_THROUGH_015_OPAQUE_ACQUISITION",
+  "archiveSha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+  "objects": [
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz",
+      "name": "bash-5.3.tar.gz",
+      "maxBytes": 16777216,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:39.162Z",
+      "bytes": 11355854,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:38 GMT",
+        "last-modified": "Wed, 30 Jul 2025 14:07:20 GMT",
+        "etag": "\"ad46ce-63b260b149c00\"",
+        "content-length": "11355854",
+        "content-type": "application/x-gzip",
+        "location": null
+      },
+      "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+      "path": "downloads/bash-5.3.tar.gz.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.206Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz.sig",
+      "name": "bash-5.3.tar.gz.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.207Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+        "last-modified": "Wed, 30 Jul 2025 14:07:21 GMT",
+        "etag": "\"5f-63b260b178a00\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad",
+      "path": "downloads/bash-5.3.tar.gz.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.326Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-001",
+      "name": "bash53-001",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:40.327Z",
+      "bytes": 1531,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+        "last-modified": "Wed, 23 Jul 2025 15:23:37 GMT",
+        "etag": "\"5fb-63a9a4af9fe00\"",
+        "content-length": "1531",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "1f608434364af86b9b45c8b0ea3fb3b165fb830d27697e6cdfc7ac17dee3287f",
+      "path": "downloads/bash53-001.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.378Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-001.sig",
+      "name": "bash53-001.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.379Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+        "last-modified": "Wed, 23 Jul 2025 15:23:37 GMT",
+        "etag": "\"5f-63a9a4afcfba0\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "47a678b49a5b5c63f56cf119a65be650d37b922e49ef4263654fc7842bc7f4c6",
+      "path": "downloads/bash53-001.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.426Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-002",
+      "name": "bash53-002",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:40.427Z",
+      "bytes": 2635,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+        "last-modified": "Wed, 23 Jul 2025 15:23:46 GMT",
+        "etag": "\"a4b-63a9a4b8a18a0\"",
+        "content-length": "2635",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "e385548a00130765ec7938a56fbdca52447ab41fabc95a25f19ade527e282001",
+      "path": "downloads/bash53-002.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.476Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-002.sig",
+      "name": "bash53-002.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.476Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+        "last-modified": "Wed, 23 Jul 2025 15:23:47 GMT",
+        "etag": "\"5f-63a9a4b8cb880\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "693d6b30c3cbcbcb30ad262b1b870fd33ee6f56113146b0f3586577af57d3f3f",
+      "path": "downloads/bash53-002.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.527Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-003",
+      "name": "bash53-003",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:40.527Z",
+      "bytes": 2683,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:39 GMT",
+        "last-modified": "Wed, 23 Jul 2025 15:23:58 GMT",
+        "etag": "\"a7b-63a9a4c3d99c0\"",
+        "content-length": "2683",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "f245d9c7dc3f5a20d84b53d249334747940936f09dc97e1dcb89fc3ab37d60ed",
+      "path": "downloads/bash53-003.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.610Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-003.sig",
+      "name": "bash53-003.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.611Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 23 Jul 2025 15:23:58 GMT",
+        "etag": "\"5f-63a9a4c406880\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "975ea7c4d40ec435ed8d453b2802f4d61916db1fa2d56f760db5b13a8b918500",
+      "path": "downloads/bash53-003.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.665Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-004",
+      "name": "bash53-004",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:40.665Z",
+      "bytes": 1266,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:37:34 GMT",
+        "etag": "\"4f2-64482da0759c0\"",
+        "content-length": "1266",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "9591d245045529f32f0812f94180b9d9ce9023f5a765c039b852e5dfc99747d0",
+      "path": "downloads/bash53-004.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.718Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-004.sig",
+      "name": "bash53-004.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.719Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:37:34 GMT",
+        "etag": "\"5f-64482da099be0\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "8014107113756b307b9e79b9d17a99806e7e529694d3e90c906bc2ef8cf8ca2e",
+      "path": "downloads/bash53-004.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.807Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-005",
+      "name": "bash53-005",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:40.807Z",
+      "bytes": 1072,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:37:46 GMT",
+        "etag": "\"430-64482dab50e80\"",
+        "content-length": "1072",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "cca1ef52dbbf433bc98e33269b64b2c814028efe2538be1e2c9a377da90bc99d",
+      "path": "downloads/bash53-005.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.858Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-005.sig",
+      "name": "bash53-005.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.858Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:37:46 GMT",
+        "etag": "\"5f-64482dab71220\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "cb47825ff8ed52574bc15550aa4175d8e989955644f8e94a4d25047f8f1c8654",
+      "path": "downloads/bash53-005.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.913Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-006",
+      "name": "bash53-006",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:40.914Z",
+      "bytes": 1346,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:37:57 GMT",
+        "etag": "\"542-64482db6a83a0\"",
+        "content-length": "1346",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "29119addefed8eff91ae37fd51822c31780ee30d4a28376e96002706c995ff10",
+      "path": "downloads/bash53-006.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:40.960Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-006.sig",
+      "name": "bash53-006.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:40.960Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:37:58 GMT",
+        "etag": "\"5f-64482db6c77a0\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "0039bdd8d88c9150358bbfb3155a97019b9b88cd9a8c6d4ad5d7a19de65c51e7",
+      "path": "downloads/bash53-006.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.013Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-007",
+      "name": "bash53-007",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.014Z",
+      "bytes": 1437,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:38:08 GMT",
+        "etag": "\"59d-64482dc10d5c0\"",
+        "content-length": "1437",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "c0976bbfffa1453c7cfdd62058f206a318568ff2d690f5d4fa048793fa3eb299",
+      "path": "downloads/bash53-007.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.061Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-007.sig",
+      "name": "bash53-007.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.061Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:38:08 GMT",
+        "etag": "\"5f-64482dc12ba20\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "66ef5f0e535594c9836810aba5b9e4a0cd23a2fb258a01f5e34a950618e4faea",
+      "path": "downloads/bash53-007.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.174Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-008",
+      "name": "bash53-008",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.174Z",
+      "bytes": 5717,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:38:18 GMT",
+        "etag": "\"1655-64482dca31340\"",
+        "content-length": "5717",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "097cd723cbfb8907674ac32214063a3fd85282657ec5b4e544d2c0f719653fb4",
+      "path": "downloads/bash53-008.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.233Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-008.sig",
+      "name": "bash53-008.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.234Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 26 Nov 2025 17:38:18 GMT",
+        "etag": "\"5f-64482dca72a20\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "09e80b5a51d848da582b61aa99e2a18e4f5c7102348c8e16f735dd9dd8b3405f",
+      "path": "downloads/bash53-008.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.328Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-009",
+      "name": "bash53-009",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.328Z",
+      "bytes": 2468,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 10 Dec 2025 16:17:27 GMT",
+        "etag": "\"9a4-6459b5d412dc0\"",
+        "content-length": "2468",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "eee30fe78a4b0cb2fe20e010e00308899cfc613e0774ebb3c8557a1552f24f8c",
+      "path": "downloads/bash53-009.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.379Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-009.sig",
+      "name": "bash53-009.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.379Z",
+      "bytes": 95,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Wed, 10 Dec 2025 16:17:27 GMT",
+        "etag": "\"5f-6459b5d4350a0\"",
+        "content-length": "95",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "153a8b129f2a4d97e75ccedda7cda032283d3976196b831a191f391a62a8120c",
+      "path": "downloads/bash53-009.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.429Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-010",
+      "name": "bash53-010",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.430Z",
+      "bytes": 1457,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Tue, 02 Jun 2026 20:14:42 GMT",
+        "etag": "\"5b1-6534af622c8c0\"",
+        "content-length": "1457",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "cf76f1cce2ea300c18bff9f002d21f280cc931acd17c28518110b93fe6e72569",
+      "path": "downloads/bash53-010.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.482Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-010.sig",
+      "name": "bash53-010.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.483Z",
+      "bytes": 123,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Tue, 02 Jun 2026 20:14:43 GMT",
+        "etag": "\"7b-6534af6322a40\"",
+        "content-length": "123",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "fbf008c39eaf01401df6ade2a9b8ac38a173cce2025523c6b0919c54d8bea69d",
+      "path": "downloads/bash53-010.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.536Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-011",
+      "name": "bash53-011",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.537Z",
+      "bytes": 2251,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:40 GMT",
+        "last-modified": "Tue, 02 Jun 2026 20:14:59 GMT",
+        "etag": "\"8cb-6534af7215ca0\"",
+        "content-length": "2251",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "0298df8f5ea2a31d3be43ed7d269c5b3c7c342dd5b570bea7f64d66dcbbe7531",
+      "path": "downloads/bash53-011.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.586Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-011.sig",
+      "name": "bash53-011.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.587Z",
+      "bytes": 123,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 02 Jun 2026 20:14:59 GMT",
+        "etag": "\"7b-6534af723cda0\"",
+        "content-length": "123",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "97a2fefb3ac297635b54662c201b80edd7f54276a0eabb54494fe5d17443fb0f",
+      "path": "downloads/bash53-011.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.706Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-012",
+      "name": "bash53-012",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.707Z",
+      "bytes": 2378,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 02 Jun 2026 20:15:08 GMT",
+        "etag": "\"94a-6534af7b6e5e0\"",
+        "content-length": "2378",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "d71379b39bebaedaf123414414e77fb458a0a43b9ad3116594c6df7ca6754573",
+      "path": "downloads/bash53-012.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.755Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-012.sig",
+      "name": "bash53-012.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.755Z",
+      "bytes": 123,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 02 Jun 2026 20:15:09 GMT",
+        "etag": "\"7b-6534af7b96680\"",
+        "content-length": "123",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "536ccbaff4fd28c95fb0394bea230b125d607821d12fee3f231f44682aa2c8af",
+      "path": "downloads/bash53-012.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.854Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-013",
+      "name": "bash53-013",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.855Z",
+      "bytes": 1467,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 09 Jun 2026 14:49:58 GMT",
+        "etag": "\"5bb-653d33daa3e20\"",
+        "content-length": "1467",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "042f9cda967e24bf4211944697441e93d06ff42b4b998629a98a1b249279f200",
+      "path": "downloads/bash53-013.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.906Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-013.sig",
+      "name": "bash53-013.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:41.906Z",
+      "bytes": 123,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 09 Jun 2026 14:49:58 GMT",
+        "etag": "\"7b-653d33dac5160\"",
+        "content-length": "123",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "c1ed27f2231f982e494e3bb73f53c9310f8853ee46354b993114cc8c1030eb22",
+      "path": "downloads/bash53-013.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:41.956Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-014",
+      "name": "bash53-014",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:41.956Z",
+      "bytes": 2229,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 09 Jun 2026 14:50:09 GMT",
+        "etag": "\"8b5-653d33e5a3500\"",
+        "content-length": "2229",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "bd4360b401d38507e358783dcad8536a99c6789f0d3a5bd0cfb8c4a34144696c",
+      "path": "downloads/bash53-014.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:42.011Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-014.sig",
+      "name": "bash53-014.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:42.012Z",
+      "bytes": 123,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 09 Jun 2026 14:50:09 GMT",
+        "etag": "\"7b-653d33e5c38a0\"",
+        "content-length": "123",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "fa7746cd7c02a03a752d41c5dea8343a8ef4ffd9d0fe88b1e3247f9d0678e80b",
+      "path": "downloads/bash53-014.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:42.065Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-015",
+      "name": "bash53-015",
+      "maxBytes": 65536,
+      "role": "OPAQUE_SOURCE",
+      "startedAt": "2026-08-29T04:42:42.066Z",
+      "bytes": 2151,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 09 Jun 2026 14:50:23 GMT",
+        "etag": "\"867-653d33f31b8e0\"",
+        "content-length": "2151",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "55b79ceee2fc27f6767eed697e939a7eb2fe2a28c01556bd75f18d581014f46e",
+      "path": "downloads/bash53-015.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:42.183Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-015.sig",
+      "name": "bash53-015.sig",
+      "maxBytes": 4096,
+      "role": "OPAQUE_DETACHED_SIGNATURE",
+      "startedAt": "2026-08-29T04:42:42.183Z",
+      "bytes": 123,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Tue, 09 Jun 2026 14:50:23 GMT",
+        "etag": "\"7b-653d33f341a40\"",
+        "content-length": "123",
+        "content-type": "application/pgp-signature",
+        "location": null
+      },
+      "sha256": "8a432fbe5bd1f0d4f5ecbcb7a462009fe7f780a8c5cf0e71b423692aaf22bfc5",
+      "path": "downloads/bash53-015.sig.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:42.240Z"
+    },
+    {
+      "url": "https://ftp.gnu.org/gnu/gnu-keyring.gpg",
+      "name": "gnu-keyring.gpg",
+      "maxBytes": 4194304,
+      "role": "OFFICIAL_GLOBAL_KEYRING_NOT_YET_VERIFIED",
+      "startedAt": "2026-08-29T04:42:42.241Z",
+      "bytes": 3687794,
+      "status": 200,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+        "last-modified": "Sat, 29 Aug 2026 04:22:35 GMT",
+        "etag": "\"384572-65a27eb215ac0\"",
+        "content-length": "3687794",
+        "content-type": null,
+        "location": null
+      },
+      "sha256": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608",
+      "path": "downloads/gnu-keyring.gpg.data",
+      "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+      "endedAt": "2026-08-29T04:42:42.447Z"
+    },
+    {
+      "url": "https://savannah.gnu.org/project/release-gpgkeys.php?group=bash",
+      "name": "bash-release-key-page.html",
+      "maxBytes": 131072,
+      "role": "PUBLISHER_GROUP_RELEASE_KEY_AUTHORITY",
+      "startedAt": "2026-08-29T04:42:42.451Z",
+      "bytes": 0,
+      "status": 404,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:42 GMT",
+        "last-modified": null,
+        "etag": null,
+        "content-length": null,
+        "content-type": "text/html; charset=utf-8",
+        "location": null
+      },
+      "disposition": "HTTP_UNAVAILABLE_NOT_AUTHENTICATED",
+      "endedAt": "2026-08-29T04:42:42.915Z"
+    },
+    {
+      "url": "https://savannah.gnu.org/project/release-gpgkeys.php?group=bash&download=1",
+      "name": "bash-release-keys.asc",
+      "maxBytes": 4194304,
+      "role": "PUBLISHER_GROUP_RELEASE_KEYS",
+      "startedAt": "2026-08-29T04:42:42.916Z",
+      "bytes": 0,
+      "status": 404,
+      "headers": {
+        "date": "Sat, 29 Aug 2026 04:42:42 GMT",
+        "last-modified": null,
+        "etag": null,
+        "content-length": null,
+        "content-type": "text/html; charset=utf-8",
+        "location": null
+      },
+      "disposition": "HTTP_UNAVAILABLE_NOT_AUTHENTICATED",
+      "endedAt": "2026-08-29T04:42:42.973Z"
+    },
+    {
+      "url": "https://www.gnu.org/software/security/",
+      "name": "gnu-security.html",
+      "maxBytes": 131072,
+      "role": "PUBLISHER_VERIFICATION_GUIDANCE",
+      "startedAt": "2026-08-29T04:42:42.974Z",
+      "bytes": 0,
+      "error": {
+        "name": "TypeError",
+        "message": "fetch failed",
+        "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+      },
+      "disposition": "REQUEST_FAILED",
+      "endedAt": "2026-08-29T04:42:53.475Z"
+    },
+    {
+      "url": "https://www.gnu.org/software/bash/",
+      "name": "bash-license-authority.html",
+      "maxBytes": 131072,
+      "role": "BASH_LICENSE_AUTHORITY",
+      "startedAt": "2026-08-29T04:42:53.476Z",
+      "bytes": 0,
+      "error": {
+        "name": "TypeError",
+        "message": "fetch failed",
+        "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+      },
+      "disposition": "REQUEST_FAILED",
+      "endedAt": "2026-08-29T04:43:03.982Z"
+    },
+    {
+      "url": "https://www.gnu.org/licenses/gpl-3.0.txt",
+      "name": "gpl-3.0.txt",
+      "maxBytes": 65536,
+      "role": "PUBLIC_GPL_LICENSE_TEXT",
+      "startedAt": "2026-08-29T04:43:03.982Z",
+      "bytes": 0,
+      "error": {
+        "name": "TypeError",
+        "message": "fetch failed",
+        "causeCode": "UND_ERR_CONNECT_TIMEOUT"
+      },
+      "disposition": "REQUEST_FAILED",
+      "endedAt": "2026-08-29T04:43:14.491Z"
+    }
+  ],
+  "sourcePayloads": 16,
+  "signatures": 16,
+  "publisherKeyrings": 1,
+  "failedEndpoints": 5,
+  "signatureVerifications": 0,
+  "authorizedSignerFingerprints": null
+}

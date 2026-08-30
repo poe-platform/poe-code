@@ -1,0 +1,10 @@
+
+> virtual-bash@0.0.0 typecheck
+> tsc --noEmit
+
+tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/alpha.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-bFUsLx/beta.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/ab.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-uhGVu3/🙂.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/a.ts(1,1): error TS2304: Cannot find name 'hit'.
+tests/commands/regex-execution/continuation/artifacts/native/dialect-xj7h8F/d.ts(1,1): error TS2304: Cannot find name 'hit'.

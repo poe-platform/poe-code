@@ -1,0 +1,1575 @@
+{
+  "recordedAt": "2026-08-27T01:02:14.552Z",
+  "executable": "/usr/bin/jq",
+  "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+  "version": {
+    "status": 0,
+    "stdoutHex": "6a712d312e372e312d6170706c650a",
+    "stderrHex": ""
+  },
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "NO_COLOR": "1",
+    "PATH": "/usr/bin:/bin"
+  },
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "rawFixtureSha256": "3f582f83c3015317bd53c27ef42290e60c1808ce968e588d8e25edaf3069ff96",
+  "note": "Independent native freeze before public product import; exact original argv/bytes, no policy substitution. Bounded expansion only of the actual 22 composite legacy assertions plus four reported gaps and one already-frozen reviewer failure. Counts overlap original review, never add to 790.",
+  "invocations": 95,
+  "probes": [
+    {
+      "id": "strict-raw-lone-continuation",
+      "assertion": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-lone-continuation",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0a8061667465720a",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd6166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "strict-raw-truncated",
+      "assertion": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-truncated",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rj",
+        "--",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6f6befbfbd",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "strict-raw-bad-continuation",
+      "assertion": "strict UTF-8 rejection remains chunk invariant (not native parity): raw-bad-continuation",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "--",
+        "."
+      ],
+      "inputHex": "e282410a",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd41220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "strict-json-bad-string",
+      "assertion": "strict UTF-8 rejection remains chunk invariant (not native parity): json-bad-string",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-c",
+        "--",
+        "."
+      ],
+      "inputHex": "226f6b220a2280220a226166746572220a",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a226166746572220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "record-error-prefix",
+      "assertion": "raw native: record-error-prefix",
+      "group": "explicit-stop-first-retirement",
+      "argv": [
+        "-Rc",
+        ".,1/0"
+      ],
+      "inputHex": "780a790a",
+      "files": {},
+      "policy": "stop-first-runtime-error",
+      "historicalExpected": {
+        "status": 5,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      },
+      "expected": {
+        "status": 5,
+        "stdoutHex": "2278220a2279220a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a6a713a206572726f7220286174203c737464696e3e3a32293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "id": "file-unicode:-Rc",
+      "assertion": "raw native: file-unicode:-Rc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": {
+        "unicode-start": "f09f"
+      },
+      "policy": "strict-utf8-per-file",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "file-unicode:-Rsc",
+      "assertion": "raw native: file-unicode:-Rsc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rsc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": {
+        "unicode-start": "f09f"
+      },
+      "policy": "strict-utf8-per-file",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:0:-Rc",
+      "assertion": "raw native: invalid:0:-Rc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0ac0af",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbdefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:0:-Rsc",
+      "assertion": "raw native: invalid:0:-Rsc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0ac0af",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbdefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:1:-Rc",
+      "assertion": "raw native: invalid:1:-Rc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0aeda080",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:1:-Rsc",
+      "assertion": "raw native: invalid:1:-Rsc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0aeda080",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:2:-Rc",
+      "assertion": "raw native: invalid:2:-Rc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0af4908080",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:2:-Rsc",
+      "assertion": "raw native: invalid:2:-Rsc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0af4908080",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:3:-Rc",
+      "assertion": "raw native: invalid:3:-Rc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:3:-Rsc",
+      "assertion": "raw native: invalid:3:-Rsc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0af09f",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:4:-Rc",
+      "assertion": "raw native: invalid:4:-Rc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rc",
+        "."
+      ],
+      "inputHex": "6f6b0a80",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b220a22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "invalid:4:-Rsc",
+      "assertion": "raw native: invalid:4:-Rsc",
+      "group": "explicit-strict-utf8-retirement",
+      "argv": [
+        "-Rsc",
+        "."
+      ],
+      "inputHex": "6f6b0a80",
+      "files": {},
+      "policy": "strict-utf8",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "226f6b5c6eefbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "malformed-14",
+      "assertion": "strict malformed JSON 14 across chunk boundaries",
+      "group": "non-native-low-surrogate-rejection",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c754443303022",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "malformed-16",
+      "assertion": "strict malformed JSON 16 across chunk boundaries",
+      "group": "non-native-terminal-nul-rejection",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "6e756c6c00",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "outside-string-0",
+      "assertion": "invalid UTF-8 never becomes replacement text",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0ac0af",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "outside-string-1",
+      "assertion": "invalid UTF-8 never becomes replacement text",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0aeda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      }
+    },
+    {
+      "id": "outside-string-2",
+      "assertion": "invalid UTF-8 never becomes replacement text",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "outside-string-3",
+      "assertion": "invalid UTF-8 never becomes replacement text",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af09f",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "outside-string-4",
+      "assertion": "invalid UTF-8 never becomes replacement text",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0a80",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-0-0--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0aff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-0-0--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0aff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-1-0--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-1-0--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-2-0--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      }
+    },
+    {
+      "id": "prefix-2-0--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465ff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      }
+    },
+    {
+      "id": "prefix-0-1--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0ac3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-0-1--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0ac3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-1-1--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-1-1--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "prefix-2-1--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      }
+    },
+    {
+      "id": "prefix-2-1--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031320a"
+      }
+    },
+    {
+      "id": "prefix-0-2--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0ac328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "prefix-0-2--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0ac328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "prefix-1-2--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "prefix-1-2--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310ac328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "prefix-2-2--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      }
+    },
+    {
+      "id": "prefix-2-2--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465c328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031330a"
+      }
+    },
+    {
+      "id": "prefix-0-3--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0aeda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      }
+    },
+    {
+      "id": "prefix-0-3--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0aeda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20330a"
+      }
+    },
+    {
+      "id": "prefix-1-3--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aeda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      }
+    },
+    {
+      "id": "prefix-1-3--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310aeda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20330a"
+      }
+    },
+    {
+      "id": "prefix-2-3--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      }
+    },
+    {
+      "id": "prefix-2-3--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465eda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031340a"
+      }
+    },
+    {
+      "id": "prefix-0-4--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af0808080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-0-4--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0af0808080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-1-4--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af0808080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-1-4--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af0808080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-2-4--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      }
+    },
+    {
+      "id": "prefix-2-4--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f0808080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      }
+    },
+    {
+      "id": "prefix-0-5--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b7d0af4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-0-5--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b7d0af4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520322c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-1-5--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "22f09f9880220a310a",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-1-5--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "22f09f9880220a310af4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520332c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "prefix-2-5--c",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "7b2261223a5b315d7d0a",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      }
+    },
+    {
+      "id": "prefix-2-5--sc",
+      "assertion": "malformed UTF-8 preserves completed JSON prefix across every chunk split",
+      "group": "old-utf8-diagnostic-regex",
+      "argv": [
+        "-sc",
+        "."
+      ],
+      "inputHex": "7b2261223a5b315d7d0a22696e636f6d706c657465f4908080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e66696e697368656420737472696e6720617420454f46206174206c696e6520322c20636f6c756d6e2031350a"
+      }
+    },
+    {
+      "id": "resource-json-0",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "4e614e",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "6e756c6c0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-json-1",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "496e66696e697479",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-json-2",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "2d496e66696e697479",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "2d312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-json-3",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c754438303022",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964205c75585858585c755858585820737572726f67617465207061697220657363617065206174206c696e6520312c20636f6c756d6e20380a"
+      }
+    },
+    {
+      "id": "resource-json-4",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c754443303022",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbd220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-json-5",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b7d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "resource-json-6",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a7d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e20360a"
+      }
+    },
+    {
+      "id": "resource-json-7",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "3031",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-json-8",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "312e",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "310a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-json-9",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "3165",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "resource-json-10",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7472756566616c7365",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20390a"
+      }
+    },
+    {
+      "id": "resource-json-11",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "226261640a737472696e6722",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c696420737472696e673a20636f6e74726f6c20636861726163746572732066726f6d20552b30303030207468726f75676820552b30303146206d7573742062652065736361706564206174206c696e6520322c20636f6c756d6e20370a"
+      }
+    },
+    {
+      "id": "resource-json-12",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b312c5d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f7468657220617272617920656c656d656e74206174206c696e6520312c20636f6c756d6e20340a"
+      }
+    },
+    {
+      "id": "resource-json-13",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a302c7d",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20457870656374656420616e6f74686572206b65792d76616c75652070616972206174206c696e6520312c20636f6c756d6e20380a"
+      }
+    },
+    {
+      "id": "resource-json-14",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "efbbbf30",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-utf8-0",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "ff",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "resource-utf8-1",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "c3",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20310a"
+      }
+    },
+    {
+      "id": "resource-utf8-2",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "c328",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20320a"
+      }
+    },
+    {
+      "id": "resource-utf8-3",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "eda080",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a207061727365206572726f723a20496e76616c6964206e756d65726963206c69746572616c20617420454f46206174206c696e6520312c20636f6c756d6e20330a"
+      }
+    },
+    {
+      "id": "resource-filter-0",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-nc",
+        "1/0"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "id": "resource-filter-1",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-nc",
+        "0/0"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028302920616e64206e756d626572202830292063616e6e6f7420626520646976696465642062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "id": "resource-filter-2",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-nc",
+        "1%0"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c756e6b6e6f776e3e293a206e756d6265722028312920616e64206e756d626572202830292063616e6e6f742062652064697669646564202872656d61696e646572292062656361757365207468652064697669736f72206973207a65726f0a"
+      }
+    },
+    {
+      "id": "resource-filter-3",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-nc",
+        "1e308*1e308"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "312e37393736393331333438363233313537652b3330380a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-filter-4",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-nc",
+        "\"1e9999\"|tonumber"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-filter-5",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-nc",
+        "\"[1e9999]\"|fromjson"
+      ],
+      "inputHex": "",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-large-0",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "316539393939",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "31452b393939390a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-large-1",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "5b3165393939395d",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b31452b393939395d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-large-2",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "7b2261223a3165393939397d",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "7b2261223a31452b393939397d0a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "resource-large-3",
+      "assertion": "valid large decimals survive while malformed JSON and division by zero fail",
+      "group": "resource-composite-control",
+      "argv": [
+        "-c",
+        "."
+      ],
+      "inputHex": "225c75443833445c754445303022",
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22f09f9880220a",
+        "stderrHex": ""
+      }
+    },
+    {
+      "id": "join-zero-arity",
+      "assertion": "four-author-reported-gaps",
+      "group": "supplementary-diagnostic-gap",
+      "argv": [
+        "-c",
+        "--",
+        "join"
+      ],
+      "inputHex": "5b5d",
+      "historicalExpected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f30206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e0a6a713a203120636f6d70696c65206572726f720a"
+      }
+    },
+    {
+      "id": "join-two-arity",
+      "assertion": "four-author-reported-gaps",
+      "group": "supplementary-diagnostic-gap",
+      "argv": [
+        "-c",
+        "--",
+        "join(\"-\";\":\")"
+      ],
+      "inputHex": "5b5d",
+      "historicalExpected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+      },
+      "expected": {
+        "status": 3,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f723a206a6f696e2f32206973206e6f7420646566696e6564206174203c746f702d6c6576656c3e2c206c696e6520313a0a6a6f696e28222d223b223a22290a6a713a203120636f6d70696c65206572726f720a"
+      }
+    },
+    {
+      "id": "generator-error-after-output",
+      "assertion": "four-author-reported-gaps",
+      "group": "supplementary-diagnostic-gap",
+      "argv": [
+        "-c",
+        "split((\",\", .missing))"
+      ],
+      "inputHex": "22612c62220a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "5b2261222c2262225d0a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e64657820737472696e67207769746820737472696e6720226d697373696e67220a"
+      }
+    },
+    {
+      "id": "generator-error-before-typecheck",
+      "assertion": "four-author-reported-gaps",
+      "group": "supplementary-diagnostic-gap",
+      "argv": [
+        "-c",
+        "split(.missing)"
+      ],
+      "inputHex": "310a",
+      "expected": {
+        "status": 5,
+        "stdoutHex": "",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a31293a2043616e6e6f7420696e646578206e756d626572207769746820737472696e6720226d697373696e67220a"
+      }
+    },
+    {
+      "id": "review-fromjson-two-error-records",
+      "assertion": "reviewer-diagnostic-failure",
+      "group": "reviewer-diagnostic-failure",
+      "argv": [
+        "-c",
+        "fromjson"
+      ],
+      "inputHex": "225b345d220a225b220a227b5c22615c223a7d220a2266616c7365220a",
+      "historicalExpected": {
+        "status": 0,
+        "stdoutHex": "5b345d0a66616c73650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520312c20636f6c756d6e203120287768696c652070617273696e6720275b27290a6a713a206572726f7220286174203c737464696e3e3a33293a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e203620287768696c652070617273696e6720277b2261223a7d27290a"
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "5b345d0a66616c73650a",
+        "stderrHex": "6a713a206572726f7220286174203c737464696e3e3a32293a20556e66696e6973686564204a534f4e207465726d20617420454f46206174206c696e6520312c20636f6c756d6e203120287768696c652070617273696e6720275b27290a6a713a206572726f7220286174203c737464696e3e3a33293a20556e6d61746368656420277d27206174206c696e6520312c20636f6c756d6e203620287768696c652070617273696e6720277b2261223a7d27290a"
+      }
+    }
+  ]
+}

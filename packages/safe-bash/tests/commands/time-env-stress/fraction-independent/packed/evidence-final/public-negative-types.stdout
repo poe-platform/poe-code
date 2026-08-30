@@ -1,0 +1,3 @@
+public-negative.mts(2,41): error TS2353: Object literal may only specify known properties, and 'clock' does not exist in type 'ShellOptions'.
+public-negative.mts(3,20): error TS2322: Type '() => string' is not assignable to type 'CommandHandler'.
+  Type 'string' is not assignable to type 'CommandResult | Promise<CommandResult>'.

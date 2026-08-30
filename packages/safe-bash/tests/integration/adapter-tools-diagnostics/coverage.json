@@ -1,0 +1,47 @@
+{
+  "recordedAt": "2026-08-26T21:46:59.771Z",
+  "verdict": "NOT PASS: actual append-open typed-boundary gap",
+  "sourceRevision": "19149d3d9c5dc6f309b61f215a140df18adaf6e4",
+  "matrixRevision": "df5bc453de004a8eb483696cf4ae1986a012cca1",
+  "mutation": "Only in-memory readonly writeFile with flag a throws Error carrying code EROFS and correct path, not FsError. All other operations unchanged; no filesystem effects.",
+  "loaderSha256": "30e359042eeb39190754bb2c511d1117bb28896500f215751aec06b774647964",
+  "nativeCalls": 0,
+  "runs": [
+    {
+      "label": "revised-matrix",
+      "argv": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/integration/adapter-tools-diagnostics/register.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^readonly: rejects mutation: printf 'changed' >> target\\.txt$",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "exitCode": 0,
+      "stdout": "TAP version 13\n# Subtest: readonly: rejects mutation: printf 'changed' >> target.txt\nok 1 - readonly: rejects mutation: printf 'changed' >> target.txt\n  ---\n  duration_ms: 8.138334\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3179.199167\n",
+      "stderr": ""
+    },
+    {
+      "label": "independent-acceptance",
+      "argv": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--import",
+        "./tests/integration/adapter-tools-diagnostics/register.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^readonly:append:EROFS$",
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+      ],
+      "exitCode": 1,
+      "stdout": "TAP version 13\n# Subtest: readonly:append:EROFS\nnot ok 1 - readonly:append:EROFS\n  ---\n  duration_ms: 13.514084\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:1:2015'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n    + [\n    +   'corresponding rejecting operation: AssertionError [ERR_ASSERTION]: actual adapter rejection must retain FsError identity',\n    +   'typed boundary writeFile(empty,a): AssertionError [ERR_ASSERTION]: actual adapter rejection must retain FsError identity'\n    + ]\n    - []\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  actual:\n    0: 'corresponding rejecting operation: AssertionError [ERR_ASSERTION]: actual adapter rejection must retain FsError identity'\n    1: 'typed boundary writeFile(empty,a): AssertionError [ERR_ASSERTION]: actual adapter rejection must retain FsError identity'\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools-diagnostics/eight-cases.test.ts:152:12)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# EVIDENCE eyJpZCI6InJlYWRvbmx5OmFwcGVuZDpFUk9GUyIsInNvdXJjZSI6InByaW50ZiAnY2hhbmdlZCcgPj4gdGFyZ2V0LnR4dCIsInJldmlzaW9uIjoiMTkxNDlkM2Q5YzVkYzZmMzA5YjYxZjIxNWExNDBkZjE4YWRhZjZlNCIsIm5hdGl2ZUNhbGxzIjowLCJkaXJlY3QiOlt7Im9wZXJhdGlvbiI6ImFwcGVuZEZpbGUoY2hhbmdlZCkiLCJ0eXBlIjoiRnNFcnJvciIsImNvZGUiOiJFUk9GUyIsInBhdGgiOiIvd29yay90YXJnZXQudHh0Iiwic3lzY2FsbCI6ImFwcGVuZEZpbGUifV0sImJlZm9yZVNoYTI1NiI6ImNjMDkwYmQyZmJiNDIyZDhlNzZmZTMxOTc5ZjMxYmM3MmY2MjVjYzM3Yzg4MDVkMjNjNDk1MDk3OGYwOTU0NjEiLCJuYW1lc3BhY2UiOlsiLyIsIi93b3JrIiwiL3dvcmsvY2hhbmdlLmRpZmYiLCIvd29yay9jb25maWcuanNvbiIsIi93b3JrL2VtcHR5LnR4dCIsIi93b3JrL25ldy50eHQiLCIvd29yay9vbGQudHh0IiwiL3dvcmsvcGF5bG9hZC5iaW4iLCIvd29yay9zcmMiLCIvd29yay9zcmMvdGFza3MudHh0IiwiL3dvcmsvdGFyZ2V0LnR4dCJdLCJyZXN1bHQiOnsic3RhdHVzIjoxLCJzdGRvdXRIZXgiOiIiLCJzdGRlcnJIZXgiOiI3MzY4NjU2YzZjM2EyMDZjNjk2ZTY1MjAzMTNhMjA3NDYxNzI2NzY1NzQyZTc0Nzg3NDNhMjA1MjY1NjE2NDJkNmY2ZTZjNzkyMDY2Njk2YzY1MjA3Mzc5NzM3NDY1NmQwYSJ9LCJvYnNlcnZlZCI6W3sib3BlcmF0aW9uIjoid3JpdGVGaWxlIiwidGFyZ2V0IjoiL3dvcmsvdGFyZ2V0LnR4dCIsImJ5dGVzSGV4IjoiIiwiZmxhZyI6ImEifV0sImFmdGVyU2hhMjU2IjoiY2MwOTBiZDJmYmI0MjJkOGU3NmZlMzE5NzlmMzFiYzcyZjYyNWNjMzdjODgwNWQyM2M0OTUwOTc4ZjA5NTQ2MSIsImJlZm9yZVJlZGlyZWN0U2hhMjU2IjoiY2MwOTBiZDJmYmI0MjJkOGU3NmZlMzE5NzlmMzFiYzcyZjYyNWNjMzdjODgwNWQyM2M0OTUwOTc4ZjA5NTQ2MSIsInRhcmdldEhleCI6IjYxNmM3MDY4NjEwYTYyNjU3NDYxMGEiLCJtaXNzaW5nQWJzZW50Ijp0cnVlLCJmYWlsdXJlcyI6WyJjb3JyZXNwb25kaW5nIHJlamVjdGluZyBvcGVyYXRpb246IEFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogYWN0dWFsIGFkYXB0ZXIgcmVqZWN0aW9uIG11c3QgcmV0YWluIEZzRXJyb3IgaWRlbnRpdHkiLCJ0eXBlZCBib3VuZGFyeSB3cml0ZUZpbGUoZW1wdHksYSk6IEFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogYWN0dWFsIGFkYXB0ZXIgcmVqZWN0aW9uIG11c3QgcmV0YWluIEZzRXJyb3IgaWRlbnRpdHkiXSwic3RhdHVzIjoiRkFJTCJ9\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3157.4565\n",
+      "stderr": ""
+    }
+  ]
+}

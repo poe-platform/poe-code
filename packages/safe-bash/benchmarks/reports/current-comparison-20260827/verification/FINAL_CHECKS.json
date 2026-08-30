@@ -1,0 +1,306 @@
+{
+  "schema": "safe-bash.independent-final-preparation-review.v1",
+  "date": "2026-08-27",
+  "scope": "Requested preparation corrections only; no executor or execution approval",
+  "originalIssuesClosed": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "verdict": "HOLD_UNQUALIFIED_HISTORICAL_RAW_BYTE_WORDING",
+  "remainingHold": {
+    "path": "benchmarks/reports/current-comparison-20260827/runner/PROTOCOL.md",
+    "line": 23,
+    "reason": "Original four fields are described as exact stdout/stderr bytes, but historical baseline stderr is UTF8 public text re-encoded into bytes; distinguish captured-representation equality from original raw-byte fidelity."
+  },
+  "rawDirectory": "/tmp/safe-bash-final-preparation-review.ORQb7U",
+  "reviewedRevisionIdentities": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/runner/REVISION2.json",
+      "bytes": 12061,
+      "sha256": "78dd122e308d034f51ac31c25c1d2e20492ffff2f790f7a9a32717ee643fd388"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/REQUEST2_REVISION.json",
+      "bytes": 8451,
+      "sha256": "7c4cc91ea5beb42527ec0025bb4126a50dcaf4c70b324b11a4b3420fefdd7e82"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/provenance/PHASE_APPLICABILITY.json",
+      "bytes": 21456,
+      "sha256": "3d579bc1965a74476ac463e979da7bdbe7b83a199360b9a3e244c304655b6de6"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/amendment-v2.json",
+      "bytes": 3708,
+      "sha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/AMENDMENT_V2_SEAL.json",
+      "bytes": 741,
+      "sha256": "839d12181a024a6dcab928a5f1483ac3a9e10af8d04ab4bb9454dae02427e186"
+    }
+  ],
+  "preservedInitialReview": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/REVIEW.md",
+      "bytes": 7648,
+      "sha256": "dcbdda0399bf8f52c71f902604bd9268227a354b241200cfa329ad6e2d054a28"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/CHECKS.json",
+      "bytes": 2260,
+      "sha256": "41a43b7c9cfa33eab1ce56329927b7c5a50454e31b5389b3b06a3808b14e567f"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/verification/static-check.mjs",
+      "bytes": 9749,
+      "sha256": "3ebec725a5343f3da29061ec813d89b4de61e3dec5c92022e5b73e763c2570a8"
+    }
+  ],
+  "checker": {
+    "path": "benchmarks/reports/current-comparison-20260827/verification/final-static-check.mjs",
+    "bytes": 6923,
+    "sha256": "19ceb07053323517254d0254d2d26cb9fcd2d8628602facb8687c1a58b824af8"
+  },
+  "checks": {
+    "syntaxChecks": 7,
+    "static": {
+      "status": "PASS_BOUNDED_REVISION_CHECKS",
+      "inputBytes": 5632909,
+      "inputReceipts": 56,
+      "caps": {
+        "perFileBytes": 8388608,
+        "totalBytes": 12582912,
+        "gitBlobBytes": 262144,
+        "gitTimeoutMs": 10000
+      },
+      "gitHistoricalBlobReads": 3
+    },
+    "mocks": {
+      "checks": 83,
+      "passed": 83,
+      "failed": 0
+    },
+    "amendment": {
+      "status": "PASS-static-amendment-only",
+      "inputBytes": 9919291,
+      "originalPayloadHashesVerified": 10,
+      "negativeControls": 6
+    },
+    "cli": [
+      {
+        "path": "prepare.json",
+        "exit": 2,
+        "status": "WAITING_ROOT",
+        "sha256": "fe51ceeedec6a4f040f87cd9148b8fccbd41a0b2b3a519e39a213576926012b7"
+      },
+      {
+        "path": "preflight-missing.json",
+        "exit": 2,
+        "status": "WAITING_ROOT",
+        "sha256": "0d98aef800ff64e9744db1abc24418f114b43c2ae367e858aabdc79e5b37c9f4"
+      },
+      {
+        "path": "execute-rejected.json",
+        "exit": 1,
+        "status": "FAIL_PREFLIGHT",
+        "sha256": "498c51c53d4049054107505d7fd25fd46e23273c9a119ee100f63dbe30b57799"
+      }
+    ]
+  },
+  "rawReceipts": [
+    {
+      "path": "static-attempt-001.json",
+      "bytes": 19355,
+      "sha256": "fe8f8b850c7181ebf89238f147f6621ef74f9f648a53c08991a055aec53480d0"
+    },
+    {
+      "path": "mocks-attempt-001.json",
+      "bytes": 13374,
+      "sha256": "a41059778edf9da2ea0822f7d00c4a701a3942a264979d713160b431360aa96c"
+    },
+    {
+      "path": "amendment-attempt-001.json",
+      "bytes": 1639,
+      "sha256": "faeaddf2d341f83d5ca310ba4dbaed72148aeb6bebc6e056c41d1e404b29d082"
+    }
+  ],
+  "changedHashBindings": {
+    "runner": [
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/INTERFACES.md",
+        "bytes": 12550,
+        "sha256": "d326e98ee86b4dc24ea185aa3edfd3df581b22f5a06b6156687e4c9e1c6842b2",
+        "priorSha256": "7e52a4e454200d01516374c37789fc2d41735181f3e8b47e16e8e3569b3dcb02",
+        "reviewedPriorSha256": null,
+        "changed": true,
+        "classification": "preparation-documentation"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/PROTOCOL.md",
+        "bytes": 22379,
+        "sha256": "2d54869251b3d12ffcaea01ffa11a25cf319be733bc4be016b5a216fdd36754e",
+        "priorSha256": "ee77d427e64d2be36d1b729ec665ac7fe7cb7118b3531617fb77d1c12e93a0a9",
+        "reviewedPriorSha256": null,
+        "changed": true,
+        "classification": "preparation-documentation"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/README.md",
+        "bytes": 7163,
+        "sha256": "3bb18116873ecf0175831904124df2498310c19536cca8b1c45638d24b87175f",
+        "priorSha256": "3b01c1c1c1216d0919472727e674aee9cbd868d29f114a8dc570ab72855c968a",
+        "reviewedPriorSha256": null,
+        "changed": true,
+        "classification": "preparation-documentation"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/REVISIONS.md",
+        "bytes": 5736,
+        "sha256": "7e4924676e9b452f686287b83547a7d21c84e8dbbd54d81d9496ec4139a07f86",
+        "priorSha256": null,
+        "reviewedPriorSha256": null,
+        "changed": true,
+        "classification": "preparation-documentation"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/VALIDATION.md",
+        "bytes": 5121,
+        "sha256": "69c8efce5b75f57f7763eeb60b3a1dc3ea5ca7382b1437ac78cd4a7fa8b4e72f",
+        "priorSha256": "048d9e3a5a85581cce0e78ec0d3942fb83fb113eff868206cbd61553730111c6",
+        "reviewedPriorSha256": null,
+        "changed": true,
+        "classification": "preparation-documentation"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/gate.mjs",
+        "bytes": 13552,
+        "sha256": "1c152441dffadaa58b627abfc338a7fdf100d29e19907e407ff99945e8ededc7",
+        "priorSha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129",
+        "reviewedPriorSha256": "d631e6c66f0d3711c45d4f921b7bc8f667179c2578187702067716741cd2d129",
+        "changed": true,
+        "classification": "preparation-code"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/lifecycle-model.mjs",
+        "bytes": 4738,
+        "sha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+        "priorSha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+        "reviewedPriorSha256": "ac1bb054e3c0a04679371ed44f010105379ed856ce08c306fc60ea4911af15bb",
+        "changed": false,
+        "classification": "preparation-code"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/mock-not-an-engine.mjs.data",
+        "bytes": 67,
+        "sha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8",
+        "priorSha256": "be7e2d0a602ac99f6a3bd5d189f787921c3b55958f513e9a4ebf9a6688bdf8d8",
+        "reviewedPriorSha256": null,
+        "changed": false,
+        "classification": "opaque-mock-data"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/prepare.mjs",
+        "bytes": 1951,
+        "sha256": "12aa46950be6a8d50e6e78d2836b6259bc32359b7d4aa3351eb58a1382bb17b0",
+        "priorSha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31",
+        "reviewedPriorSha256": "2722fb536e1dae749ad5d7e2a60e69d56000815680f836267692cc20940cdf31",
+        "changed": true,
+        "classification": "preparation-code"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/reader.mjs",
+        "bytes": 3050,
+        "sha256": "807ad329ec3542a3aa947b560e7b956832d4b077682a6bd9edca768c05070d57",
+        "priorSha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc",
+        "reviewedPriorSha256": "4ecdc85d9d0d0d44e655fc67a2aecccfb07bc20da8007e700a17c4f73f5ceffc",
+        "changed": true,
+        "classification": "preparation-code"
+      },
+      {
+        "path": "benchmarks/reports/current-comparison-20260827/runner/selfcheck.mjs",
+        "bytes": 24012,
+        "sha256": "b3682ef72f80072c60eaae402302feb1b84c60157cb9ac3ba2f060ad184cb805",
+        "priorSha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b",
+        "reviewedPriorSha256": "a4706f48e3ac792ac906a32e6b7e9ce34c5b6fcf9fd5a4b57ec1dc8aab9aa91b",
+        "changed": true,
+        "classification": "preparation-code"
+      }
+    ],
+    "provenance": [
+      {
+        "change": "MODIFIED",
+        "path": "benchmarks/reports/current-comparison-20260827/provenance/PROVENANCE_PLAN.md",
+        "beforeSha256": "3bda6590cba23b545b56a9fbfcbd83ff0524afe64fdcfdbf6619ac9889d59c08",
+        "bytes": 24486,
+        "sha256": "af6a38138c80cf743eb1c1ea6e01a033507ce0ac492e1b83f6969dea9438b46d"
+      },
+      {
+        "change": "ADDED",
+        "path": "benchmarks/reports/current-comparison-20260827/provenance/PHASE_APPLICABILITY.json",
+        "bytes": 21456,
+        "sha256": "3d579bc1965a74476ac463e979da7bdbe7b83a199360b9a3e244c304655b6de6"
+      },
+      {
+        "change": "ADDED_BYTE_EXACT_ARCHIVE",
+        "path": "benchmarks/reports/current-comparison-20260827/provenance/history/request2/PROVENANCE_PLAN.v1.md",
+        "bytes": 19528,
+        "sha256": "3bda6590cba23b545b56a9fbfcbd83ff0524afe64fdcfdbf6619ac9889d59c08"
+      }
+    ],
+    "cohortAmendment": [
+      {
+        "path": "amendment-v2.json",
+        "bytes": 3708,
+        "sha256": "b437a1b265ef9ae7866f4b9e16eeaef78c0485d3dda184edb0cd1dada845ff50"
+      },
+      {
+        "path": "AMENDMENT_V2.md",
+        "bytes": 3979,
+        "sha256": "e6bbe9e132cb8503deeab72d8948dfadf0de04b6076f953d672b236e7101598c"
+      },
+      {
+        "path": "verify-amendment-v2.mjs",
+        "bytes": 9057,
+        "sha256": "7ab2a4b2cd79f053912fc1a5b9b40b246b7f5ab580a5edfdf7912f955beaeb63"
+      }
+    ]
+  },
+  "historicalCaptureSourceIdentities": [
+    {
+      "path": "8e09db96b51248137648cd5fd6093e4bc08f2b59:benchmarks/expanded/engine.mjs",
+      "bytes": 6809,
+      "sha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39"
+    },
+    {
+      "path": "8e09db96b51248137648cd5fd6093e4bc08f2b59:benchmarks/expanded/common.mjs",
+      "bytes": 3439,
+      "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    },
+    {
+      "path": "8e09db96b51248137648cd5fd6093e4bc08f2b59:benchmarks/expanded/native.mjs",
+      "bytes": 5958,
+      "sha256": "5acf494ad37655fce1dea5b43ca5d905cc75ef99a99a6eda32c0d9f833aebce7"
+    }
+  ],
+  "captureQualification": {
+    "historicalBaselineStderr": "UTF8_PUBLIC_TEXT_NOT_ORIGINAL_RAW_BYTES",
+    "historicalPredicate": "Unchanged four-field JSON comparison of captured projected representations",
+    "syntheticInvalidByteHex": "ff",
+    "syntheticTextRoundTripHex": "efbfbd",
+    "actualHistoricalCaseCorruptionClaimed": false
+  },
+  "noUnderlying488MbRehash": true,
+  "engineImports": 0,
+  "engineCalls": 0,
+  "nativeWorkloads": 0,
+  "timingRuns": 0,
+  "servers": 0,
+  "installs": 0,
+  "privateReads": 0,
+  "stagedOrCommitted": false,
+  "reviewerOwnedBackgroundProcessesRemaining": 0,
+  "processBoundary": "All foreground checks completed. No reviewer-owned engine/native/background work launched; not a host-wide census."
+}

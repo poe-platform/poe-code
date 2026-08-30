@@ -1,0 +1,11 @@
+{"atMs":0.367,"kind":"group-admitted","pid":58827,"pgid":58827,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-3bLn2Q","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-3bLn2Q","TMPDIR":"/private/tmp/safe-bash-execution-author-3bLn2Q","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":44.174,"id":"synthetic/path-escape","nonce":"c9c28513-5e58-4eee-9972-104557f56dad","kind":"engine-spawn","pid":58828,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":105.221,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"symlink component forbidden\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":105.246,"id":"synthetic/path-escape","nonce":"c9c28513-5e58-4eee-9972-104557f56dad","kind":"failure","error":{"name":"AssertionError","message":"symlink component forbidden","code":"ERR_ASSERTION"}}
+{"atMs":107.707,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":107.71,"id":"synthetic/path-escape","nonce":"c9c28513-5e58-4eee-9972-104557f56dad","kind":"engine-exit","code":1,"signal":null}
+{"atMs":107.782,"id":"synthetic/path-escape","nonce":"c9c28513-5e58-4eee-9972-104557f56dad","kind":"engine-close","code":1,"signal":null}
+{"atMs":107.935,"id":"synthetic/path-escape","nonce":"c9c28513-5e58-4eee-9972-104557f56dad","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":108.004,"id":"synthetic/path-escape","nonce":"c9c28513-5e58-4eee-9972-104557f56dad","kind":"session-complete"}
+{"atMs":110.295,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":110.298,"kind":"coordinator-close","code":0,"signal":null}

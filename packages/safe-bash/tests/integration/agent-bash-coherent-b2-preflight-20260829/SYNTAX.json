@@ -1,0 +1,62 @@
+[
+  {
+    "file": "runtime/harness/redirections.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/close-observer.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/strict.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/conditional.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/extension.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/arrays.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/n14.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/resources.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/loader.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/harness/names.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/stage-b0-r3/owner.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  },
+  {
+    "file": "runtime/stage-a-r2/common.mjs",
+    "parser": "Node22 vm.SourceTextModule parse-only",
+    "status": "SYNTAX_OK_NOT_EXECUTED"
+  }
+]

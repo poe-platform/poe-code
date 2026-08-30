@@ -1,0 +1,218 @@
+{
+  "sourceCommit": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+  "base": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "designIdentities": [
+    {
+      "id": "U06",
+      "program": "set -uz; printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U07",
+      "program": "set -u; set -o; printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U17",
+      "program": "set -u; printf '%s\\n' \"${missing:?required}\"; printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U27",
+      "program": "set -u; printf '%s\\n' \"${#a[@]}\"",
+      "role": "OPEN_UNEXECUTED",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U28",
+      "program": "set -u; a=(); printf '%s|%s\\n' \"${#a[@]}\" \"${#a[*]}\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U31",
+      "program": "set -u; printf '%s\\n' \"$((missing+1))\"; printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U32",
+      "program": "set -u; ((missing=2)); printf '%s\\n' \"$missing\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U33",
+      "program": "set -u; ((missing+=2)); printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U34",
+      "program": "set -u; let 'missing++'; printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U35",
+      "program": "set -u; empty=; printf '%s\\n' \"$((empty+1))\"; printf '%s\\n' \"$((1 || missing))\"; printf '%s\\n' \"$((0 ? missing : 4))\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "U36",
+      "program": "set -u; value=missing; let 'value+1'; printf '%s\\n' after",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-U06-PARTIAL-v1",
+      "program": "set -uz; printf \"set-status:%s\\n\" \"$?\"; printf \"%s\\n\" \"$missing\"; printf \"after\\n\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-U07-LIST-STATUS-v1",
+      "program": "set -u; set -o; printf \"list-status:%s\\n\" \"$?\"; printf \"after\\n\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-U27-INPUT-UNIT-v1",
+      "program": "set -u; printf \"%s\\n\" \"${#a[@]}\"; printf \"same-unit\\n\"\nprintf \"next-unit:%s\\n\" \"$?\"\n",
+      "role": "OPEN_UNEXECUTED",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-U28-PRESENCE-v1",
+      "program": "set -u; a=(); printf \"len:%s|guard:%s\\n\" \"${#a[@]}\" \"${a[@]+present}\"",
+      "role": "OPEN_UNEXECUTED",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-ARITH-SUBSHELL-v1",
+      "program": "(set -u; let \"missing++\"; printf \"child-after\\n\")\nprintf \"parent:%s\\n\" \"$?\"\n",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-ARITH-SUBSTITUTION-v1",
+      "program": "set -u; result=$(let \"missing++\"); printf \"status:%s|result:%s\\n\" \"$?\" \"$result\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "S-U31-STDIN-v1",
+      "program": "set -u; printf '%s\\n' \"$((missing+1))\"; printf '%s\\n' after",
+      "role": "OPEN_UNEXECUTED",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "E19-plus-tail",
+      "program": "set -u; set +uz; printf \"set:%s|flags:%s\\n\" \"$?\" \"$-\"; printf \"%s\\n\" \"$missing\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "E20-subset-listing",
+      "program": "set -- one two; set -u; set +o; printf \"count:%s|first:%s\\n\" \"$#\" \"$1\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "E21-write-only-chain",
+      "program": "set -u; ((outer=(inner=2))); printf \"%s|%s\\n\" \"$outer\" \"$inner\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "E22-function-fatal",
+      "program": "set -u; f() { let \"missing++\"; printf \"function-after\\n\"; }; f; printf \"caller-after\\n\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "E23-source-discard",
+      "program": "set -u; . ./missing-length.sh; printf \"caller-after\\n\"\nprintf \"next:%s\\n\" \"$?\"\n",
+      "role": "OPEN_UNEXECUTED",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "H24-preabort",
+      "program": "set -u; let \"missing++\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "H25-falsy-sink",
+      "program": "set -u; let \"missing++\"",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "H26-read-budget",
+      "program": "set -u; let value",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "H27-registered-cleanup",
+      "program": "f() { set -u; let \"missing++\"; }; guard",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    },
+    {
+      "id": "H28-caller-during-diagnostic",
+      "program": "f() { set -u; let \"missing++\"; }; guard",
+      "role": "ACTIVATED_RATIFIED_PRODUCT_PROFILE",
+      "native": "UNRUN",
+      "nativeGolden": null
+    }
+  ],
+  "activated": 23,
+  "open": 5,
+  "addedProtocols": [
+    "X01-sh-policy",
+    "X02-positional-listing",
+    "X03-errexit",
+    "X04-lazy-fixed64",
+    "X05-optind-substring",
+    "X06-existing-refusals",
+    "X07-parameter-falsy-sink",
+    "X08-parameter-limit",
+    "X09-parameter-cleanup",
+    "X10-parameter-isolation-caller"
+  ],
+  "executionsAtPreseal": 0
+}
+

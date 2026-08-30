@@ -1,0 +1,280 @@
+{
+  "schema": "m1b-isolated-mutant-data-v1",
+  "entries": [
+    {
+      "id": "L-S01",
+      "status": "UNRUN_DATA_ONLY",
+      "sourcePath": "src/commands/git/pack.ts",
+      "outputPath": "dist/commands/git/pack.js",
+      "mode": 420,
+      "sourcePreimage": {
+        "bytes": 12685,
+        "sha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce"
+      },
+      "sourcePostimage": {
+        "bytes": 12637,
+        "sha256": "a6672ae30157f06ca7312e7cd05675804702213d804cb53bb03f658672219b82"
+      },
+      "emittedPreimage": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "emittedPostimage": {
+        "bytes": 14274,
+        "sha256": "70215ca9b5ce757cfac1e86dd6fba9ac8c76b7ad4c681554ecb37c3222bc3232"
+      },
+      "spans": [
+        {
+          "kind": "source",
+          "offsetBytes": 5563,
+          "line": 118,
+          "before": "    let buckets: Buffer | undefined;\n    try {\n      buckets = session.allocate(1024);\n      const rows: Row[] = [];",
+          "after": "    const buckets = session.allocate(1024);\n    const rows: Row[] = [];\n    try {",
+          "beforeSha256": "01127fa754e4641aed07acf31463b47e0f7b7587735d2a63eeeeb6db4d92ddb6",
+          "afterSha256": "0d7597f86b18f544741f4e310da67d13d6512f3e32dc3226846de23b1cee6ccb"
+        },
+        {
+          "kind": "emitted",
+          "offsetBytes": 5773,
+          "line": 110,
+          "before": "        let buckets;\n        try {\n            buckets = session.allocate(1024);\n            const rows = [];",
+          "after": "        const buckets = session.allocate(1024);\n        const rows = [];\n        try {",
+          "beforeSha256": "2b221a49816b63e9c45cb614ebc1830e2eb12c24deb0467178adb159afc12805",
+          "afterSha256": "1c51ba1d896fd2abea9c3c54206177fac92e9f2e144f30f3530805137efa166c"
+        },
+        {
+          "kind": "source",
+          "offsetBytes": 7288,
+          "line": 150,
+          "before": "} finally { session.release(slots); if (buckets) session.release(buckets); }",
+          "after": "} finally { session.release(slots); session.release(buckets); }",
+          "beforeSha256": "8799b1bab4dbb3b8e36f89485082ca396d46cd06aaaa075b4df8791c4517bfd6",
+          "afterSha256": "6af5c6b76fcb9410e64977d53609832af5380e189a4e2836c530c6e5d313fa8c"
+        },
+        {
+          "kind": "emitted",
+          "offsetBytes": 7834,
+          "line": 148,
+          "before": "            if (buckets)\n                session.release(buckets);",
+          "after": "            session.release(buckets);",
+          "beforeSha256": "c63b3eb891cc6ca65015ea28ed95070f92a884398a5471249dd955542856cc2c",
+          "afterSha256": "e25d68695fc164d807bb1cb3c7e86276c0b70c3add4849b6dfada33d267a1478"
+        }
+      ],
+      "fullMapSha256": "4a72500c3a061a141dd9b9cc69202cdb80e25ce3f3c83dce43ee3b0de69ced6e",
+      "members": 910,
+      "unchangedMembers": 909,
+      "restore": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "sourceMapPolicy": "Maps/declarations unchanged. Source transform proves correspondence; JS transform only for isolated diagnostic load, not newly compiled/map-valid output."
+    },
+    {
+      "id": "L-COUNTER",
+      "status": "UNRUN_DATA_ONLY",
+      "sourcePath": "src/commands/git/io.ts",
+      "outputPath": "dist/commands/git/io.js",
+      "mode": 420,
+      "sourcePreimage": {
+        "bytes": 16097,
+        "sha256": "4eda6c4b334b4344370feca84859744afbb9974b5b8fd4d641657c0941dcff45"
+      },
+      "sourcePostimage": {
+        "bytes": 16086,
+        "sha256": "0e533bb8b5f564ba1cc59ea5b0d39b1aedf84a9f2e2192c3ccaabe43dabc5ea5"
+      },
+      "emittedPreimage": {
+        "bytes": 17198,
+        "sha256": "d84c0bb8d259d5720d33f0321e1db42cc7f1393cbe21228957a1017b61816f52"
+      },
+      "emittedPostimage": {
+        "bytes": 17187,
+        "sha256": "c86f90d70d88794e7ec5b80b021134a352e7275f748e368b2471b50c3ccc7667"
+      },
+      "spans": [
+        {
+          "kind": "source",
+          "offsetBytes": 2520,
+          "line": 71,
+          "before": "if (amount !== undefined) { this.unreserve(amount); this.owned.delete(bytes); }",
+          "after": "if (amount !== undefined) { void amount; this.owned.delete(bytes); }",
+          "beforeSha256": "9d8177c213547c2ee31f1560f63b227660322c8ba5af0eb0a965f0143046d5ed",
+          "afterSha256": "98d2aa1e3561b0749342177cb726e5bc9397692f19a545cf8b250db368d0fdf1"
+        },
+        {
+          "kind": "emitted",
+          "offsetBytes": 2338,
+          "line": 69,
+          "before": "            this.unreserve(amount);\n            this.owned.delete(bytes);",
+          "after": "            void amount;\n            this.owned.delete(bytes);",
+          "beforeSha256": "6a38851bc393d4c08b177237c2ad1be100b9143ddcd937e536dbf763c6317d53",
+          "afterSha256": "6f22f0476ef175e1d74f50821e73c0d4126461e3156c23e2c43b6064065364f6"
+        }
+      ],
+      "fullMapSha256": "30adbfbdfa4b1cdd80178e945b8cd054d9a6fe126096e0226b966cb976d381fb",
+      "members": 910,
+      "unchangedMembers": 909,
+      "restore": {
+        "bytes": 17198,
+        "sha256": "d84c0bb8d259d5720d33f0321e1db42cc7f1393cbe21228957a1017b61816f52"
+      },
+      "sourceMapPolicy": "Maps/declarations unchanged. Source transform proves correspondence; JS transform only for isolated diagnostic load, not newly compiled/map-valid output."
+    },
+    {
+      "id": "L-CRC",
+      "status": "UNRUN_DATA_ONLY",
+      "sourcePath": "src/commands/git/pack.ts",
+      "outputPath": "dist/commands/git/pack.js",
+      "mode": 420,
+      "sourcePreimage": {
+        "bytes": 12685,
+        "sha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce"
+      },
+      "sourcePostimage": {
+        "bytes": 12693,
+        "sha256": "32b939ca688be01310a1f42cb149694d6d165603c70f036ff804d42c6b242622"
+      },
+      "emittedPreimage": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "emittedPostimage": {
+        "bytes": 14334,
+        "sha256": "b2cf7dee2a9304cf39dbabc90ad69d2baa51141657617266611a8d826b681485"
+      },
+      "spans": [
+        {
+          "kind": "source",
+          "offsetBytes": 9135,
+          "line": 183,
+          "before": "demand(await crc32(session, pack.subarray(row.offset, row.end)) === row.crc, \"Git pack entry CRC mismatch\");",
+          "after": "demand(await crc32(session, pack.subarray(row.offset, row.end)) === row.crc || true, \"Git pack entry CRC mismatch\");",
+          "beforeSha256": "10880034ab08a90709598eeb2ed689636f3e1d3fa9c7689d56ee549271718034",
+          "afterSha256": "f54cfbb6d85ff25f4e48aa594f1595cf5433d0efb62bb3f3b5491c086b1130bf"
+        },
+        {
+          "kind": "emitted",
+          "offsetBytes": 9810,
+          "line": 186,
+          "before": "demand(await crc32(session, pack.subarray(row.offset, row.end)) === row.crc, \"Git pack entry CRC mismatch\");",
+          "after": "demand(await crc32(session, pack.subarray(row.offset, row.end)) === row.crc || true, \"Git pack entry CRC mismatch\");",
+          "beforeSha256": "10880034ab08a90709598eeb2ed689636f3e1d3fa9c7689d56ee549271718034",
+          "afterSha256": "f54cfbb6d85ff25f4e48aa594f1595cf5433d0efb62bb3f3b5491c086b1130bf"
+        }
+      ],
+      "fullMapSha256": "79f2fba446db0a65ca740c13c52f1bcc2a30dbc1079908fbff167d621570078a",
+      "members": 910,
+      "unchangedMembers": 909,
+      "restore": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "sourceMapPolicy": "Maps/declarations unchanged. Source transform proves correspondence; JS transform only for isolated diagnostic load, not newly compiled/map-valid output."
+    },
+    {
+      "id": "L-OID",
+      "status": "UNRUN_DATA_ONLY",
+      "sourcePath": "src/commands/git/pack.ts",
+      "outputPath": "dist/commands/git/pack.js",
+      "mode": 420,
+      "sourcePreimage": {
+        "bytes": 12685,
+        "sha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce"
+      },
+      "sourcePostimage": {
+        "bytes": 12693,
+        "sha256": "18fa7446b9d2502f7ecb1019c6d7919cfc8323aa68fcbf7883ebb609351cb141"
+      },
+      "emittedPreimage": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "emittedPostimage": {
+        "bytes": 14334,
+        "sha256": "4699db2bccd9dc0e17c1a482ab96cfe17df1e4fd7ad8fe65f33ebd8c8645dcba"
+      },
+      "spans": [
+        {
+          "kind": "source",
+          "offsetBytes": 11982,
+          "line": 236,
+          "before": "demand(await session.hash(inflated, type) === row.oid, \"Git packed object hash mismatch\");",
+          "after": "demand(await session.hash(inflated, type) === row.oid || true, \"Git packed object hash mismatch\");",
+          "beforeSha256": "5e265e2aece902a0785be8a393de118ff845d0c658117294f471945823cebab3",
+          "afterSha256": "c8a6bfed9630b4eed70d7a1ca80e004810d57160881de51a8aa639042c9d1a8f"
+        },
+        {
+          "kind": "emitted",
+          "offsetBytes": 13309,
+          "line": 248,
+          "before": "demand(await session.hash(inflated, type) === row.oid, \"Git packed object hash mismatch\");",
+          "after": "demand(await session.hash(inflated, type) === row.oid || true, \"Git packed object hash mismatch\");",
+          "beforeSha256": "5e265e2aece902a0785be8a393de118ff845d0c658117294f471945823cebab3",
+          "afterSha256": "c8a6bfed9630b4eed70d7a1ca80e004810d57160881de51a8aa639042c9d1a8f"
+        }
+      ],
+      "fullMapSha256": "f7247a0bb6b3cd965d1d0e88e1787dc95f3d12b1d61bef5160725b93df7ba4e9",
+      "members": 910,
+      "unchangedMembers": 909,
+      "restore": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "sourceMapPolicy": "Maps/declarations unchanged. Source transform proves correspondence; JS transform only for isolated diagnostic load, not newly compiled/map-valid output."
+    },
+    {
+      "id": "L-DEPTH",
+      "status": "UNRUN_DATA_ONLY",
+      "sourcePath": "src/commands/git/pack.ts",
+      "outputPath": "dist/commands/git/pack.js",
+      "mode": 420,
+      "sourcePreimage": {
+        "bytes": 12685,
+        "sha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce"
+      },
+      "sourcePostimage": {
+        "bytes": 12705,
+        "sha256": "284c825bfa5e0544c6415e9dd01c4b2dffac3dbd4e3f0407a2dec1852433179e"
+      },
+      "emittedPreimage": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "emittedPostimage": {
+        "bytes": 14346,
+        "sha256": "a30d13d17a63867a9f3ae7eccf4bc908d78c04ff64a0be4897510ccc7b53e871"
+      },
+      "spans": [
+        {
+          "kind": "source",
+          "offsetBytes": 11354,
+          "line": 226,
+          "before": "demand(row.depth <= GIT_LIMITS.maxDeltaDepth, \"Git delta intrinsic depth exceeded\");",
+          "after": "demand(row.depth <= GIT_LIMITS.maxDeltaDepth || row.depth === 33, \"Git delta intrinsic depth exceeded\");",
+          "beforeSha256": "0b1d811ca7d7b4add43b73b5d0c165ac231ee942d33e74c9d208ed9f17fa6373",
+          "afterSha256": "33d05412a9f79647ba4eb8c5a26db8765cf1f40b4f4d0442b230b71086732af3"
+        },
+        {
+          "kind": "emitted",
+          "offsetBytes": 12572,
+          "line": 237,
+          "before": "demand(row.depth <= GIT_LIMITS.maxDeltaDepth, \"Git delta intrinsic depth exceeded\");",
+          "after": "demand(row.depth <= GIT_LIMITS.maxDeltaDepth || row.depth === 33, \"Git delta intrinsic depth exceeded\");",
+          "beforeSha256": "0b1d811ca7d7b4add43b73b5d0c165ac231ee942d33e74c9d208ed9f17fa6373",
+          "afterSha256": "33d05412a9f79647ba4eb8c5a26db8765cf1f40b4f4d0442b230b71086732af3"
+        }
+      ],
+      "fullMapSha256": "0124f569450103b3a27f9a53d9ccafec5fcb125c98013f09dce072136e52f753",
+      "members": 910,
+      "unchangedMembers": 909,
+      "restore": {
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      },
+      "sourceMapPolicy": "Maps/declarations unchanged. Source transform proves correspondence; JS transform only for isolated diagnostic load, not newly compiled/map-valid output."
+    }
+  ],
+  "execution": 0,
+  "admission": "Fresh910 full map and actual resolved import proof per projection/restoration; no mutation performed."
+}

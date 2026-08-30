@@ -1,0 +1,751 @@
+{
+  "initial": {
+    "head": "dba5df8693f6d9d15feb0aa039985d91e2ea7b3a",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "expanded-author",
+        "status": 0,
+        "counts": {
+          "tests": 58,
+          "pass": 58,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "afterDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "e8c61eb96c76999b0ac61a956312fce7d2e6077f1b2c55fcd9c15d4d50b40123",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "stdoutSha256": "96356c64a82ba3c4e22b1e7b060f816f69be0f862442449ca2e1e12cc0a2077f"
+      },
+      {
+        "name": "env-author",
+        "status": 0,
+        "counts": {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "afterDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "e8c61eb96c76999b0ac61a956312fce7d2e6077f1b2c55fcd9c15d4d50b40123",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "stdoutSha256": "d30418a74a247cad928c51a38aaa0d7a5fdc36fb8661286582e5c2e7a21dec28"
+      },
+      {
+        "name": "current-shell43",
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "afterDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "stdoutSha256": "1aeabfc91924f6de6dcc6bd91d062214c8c9619ef1a58ada4eb00481a32efd46"
+      },
+      {
+        "name": "previous86",
+        "status": 0,
+        "counts": {
+          "tests": 86,
+          "pass": 86,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "afterDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "e8c61eb96c76999b0ac61a956312fce7d2e6077f1b2c55fcd9c15d4d50b40123",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "stdoutSha256": "37a19c9268966d99963ef8be13ab40fe5b2a351df2a0b5e72517c9082eb3a51b"
+      },
+      {
+        "name": "legacy415",
+        "status": 1,
+        "counts": {
+          "tests": 415,
+          "pass": 414,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "afterDigest": "6c63e1b1a5f025ebd6bf7ddaeae901dd9a9e43c1a668151e27e6fb265e52765b",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "e8c61eb96c76999b0ac61a956312fce7d2e6077f1b2c55fcd9c15d4d50b40123",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "failure": [
+          "not ok 54 - invocation differential: path-headerless-policy\n  ---\n  duration_ms: 113.547291\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/holdout.test.ts:1:1075'\n  failureType: 'testCodeFailure'\n  error: |-\n    gnu-5.3: deliberate contained policy, not native parity\n    \n    0 !== 126\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 126\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/holdout.test.ts:42:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"id\":\"path-headerless-policy\",\"child\":{\"argv\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--unhandled-rejections=strict\",\"--import\",\"tsx\",\"--import\",\"./tests/shell-stress/invocation-modes/trace.mjs\",\"tests/shell-stress/invocation-modes/virtual-child.ts\",\"path-headerless-policy\"],\"argv0\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"cwd\":\"/Users/kjopek/Workspace/safe-bash\",\"env\":{\"PATH\":\"base\",\"HOME\":\"/nonexistent\",\"LC_ALL\":\"C\",\"LANG\":\"C\",\"TZ\":\"UTC\"},\"pid\":66173,\"code\":0,\"signal\":null,\"timedOut\":false,\"overflow\":false,\"stdoutHex\":\"7b226964223a22706174682d6865616465726c6573732d706f6c696379222c2265786974436f6465223a302c227374646f7574486578223a223665363137343639373636353264363636313663366336323631363336623061222c22737464657272486578223a22222c227374646f7574223a226e61746976652d66616c6c6261636b5c6e222c22737464657272223a22222c2265666665637473223a7b7d2c2272656e64657265644669787475726573223a5b7b2270617468223a222f776f726b2f746f6f6c732f696e76746f6f6c222c22686578223a22373037323639366537343636323032373665363137343639373636353264363636313663366336323631363336623563366532373061222c226d6f6465223a3439337d5d7d0a\",\"stderrHex\":\"\",\"stdout\":\"{\\\\\"id\\\\\":\\\\\"path-headerless-policy\\\\\",\\\\\"exitCode\\\\\":0,\\\\\"stdoutHex\\\\\":\\\\\"6e61746976652d66616c6c6261636b0a\\\\\",\\\\\"stderrHex\\\\\":\\\\\"\\\\\",\\\\\"stdout\\\\\":\\\\\"native-fallback\\\\\\\\n\\\\\",\\\\\"stderr\\\\\":\\\\\"\\\\\",\\\\\"effects\\\\\":{},\\\\\"renderedFixtures\\\\\":[{\\\\\"path\\\\\":\\\\\"/work/tools/invtool\\\\\",\\\\\"hex\\\\\":\\\\\"7072696e746620276e61746976652d66616c6c6261636b5c6e270a\\\\\",\\\\\"mode\\\\\":493}]}\\\\n\",\"stderr\":\"\",\"elapsedMs\":112.66729099999975}}"
+        ],
+        "stderr": "",
+        "stdoutSha256": "97dd04617e2441d200c572d1a00ae553c893bc9a05635cc03905f60cd8fdaca4"
+      },
+      {
+        "name": "global",
+        "status": 2,
+        "counts": {},
+        "beforeDigest": "2a16bfd90c3ae9135c77eb9ee4a398917c75bfcbd7a7cdc5e26996eb1bccfe36",
+        "afterDigest": "2a16bfd90c3ae9135c77eb9ee4a398917c75bfcbd7a7cdc5e26996eb1bccfe36",
+        "guardedFiles": 1170,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 1055,
+        "compilerPathsDigest": "d374d6ca502db4ec3995fca073397d8b63e7463b337bd93e0cea14b450474314",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "failure": "src/shell/runtime.ts(1120,45): error TS2412: Type '\"bash\" | \"sh\" | undefined' is not assignable to type '\"bash\" | \"sh\"' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type '\"bash\" | \"sh\"'.\n",
+        "stderr": "",
+        "stdoutSha256": "0d269be1999bd09ce27c5214aba2221790815f039306374aea30840944db9f92"
+      },
+      {
+        "name": "build",
+        "status": 2,
+        "counts": {},
+        "beforeDigest": "e25f2b725800886647a35f2c62400b0a490297fe368459fa793724a9cd475ab8",
+        "afterDigest": "e25f2b725800886647a35f2c62400b0a490297fe368459fa793724a9cd475ab8",
+        "guardedFiles": 512,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 296,
+        "compilerPathsDigest": "3f814a603113a9d26c5893a2c9fceb0ccdec2393d238a81aa9385ad2d313a64e",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "failure": "src/shell/runtime.ts(1120,45): error TS2412: Type '\"bash\" | \"sh\" | undefined' is not assignable to type '\"bash\" | \"sh\"' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type '\"bash\" | \"sh\"'.\n",
+        "stderr": "",
+        "stdoutSha256": "42f10780440e5d546c5d2c9552efb94a53c60543c8b5f366a451940ceb610740"
+      },
+      {
+        "name": "benchmark",
+        "status": 2,
+        "counts": {},
+        "beforeDigest": "d729a056ebee58f2cfb0f72b70abd2b9d66f3c9f4ad6122f84c42c3ce6128bc0",
+        "afterDigest": "d729a056ebee58f2cfb0f72b70abd2b9d66f3c9f4ad6122f84c42c3ce6128bc0",
+        "guardedFiles": 627,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 411,
+        "compilerPathsDigest": "9568aa1153b2dfbf124137380c32e9522217d596f8ffbdb9cad40c175514265d",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "failure": "src/shell/runtime.ts(1120,45): error TS2412: Type '\"bash\" | \"sh\" | undefined' is not assignable to type '\"bash\" | \"sh\"' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the type of the target.\n  Type 'undefined' is not assignable to type '\"bash\" | \"sh\"'.\n",
+        "stderr": "",
+        "stdoutSha256": "804e9974661255761d5df5fa3be2d496761d264e6e6257724add21881bcd0934"
+      }
+    ]
+  },
+  "final": {
+    "head": "280815c7b7106abf9bdca8b9294c811eb80b1846",
+    "node": "v22.22.2",
+    "runs": [
+      {
+        "name": "expanded-author",
+        "status": 0,
+        "counts": {
+          "tests": 58,
+          "pass": 58,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "afterDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "stdoutSha256": "7520e122c1ab58ef4efe073485c69cd9cf30d73aaf6c37f4c731392a1d9d079d"
+      },
+      {
+        "name": "env-author",
+        "status": 0,
+        "counts": {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "afterDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "stdoutSha256": "946bee24fdc166f033f737ae192229460ac72cec2110ba39d199db25115a921c"
+      },
+      {
+        "name": "current-shell43",
+        "status": 0,
+        "counts": {
+          "tests": 44,
+          "pass": 44,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "afterDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "stdoutSha256": "01ca1d62af290e04e0aaed61c0015d6e3f35568ff745aec0f62deee777d42e8f"
+      },
+      {
+        "name": "previous86",
+        "status": 0,
+        "counts": {
+          "tests": 86,
+          "pass": 86,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "afterDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "stdoutSha256": "17d23bf32b2f12879ddd4c65904f1e4857337deec92e8fdcc1f4b17c657551d3"
+      },
+      {
+        "name": "legacy415",
+        "status": 1,
+        "counts": {
+          "tests": 415,
+          "pass": 414,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "beforeDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "afterDigest": "7aa8af164978e179fc7a417df7c031106065eec3608889e32dc61fa006bf6524",
+        "guardedFiles": 346,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 0,
+        "compilerPathsDigest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+            "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+            "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+            "hash": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+            "hash": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+            "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+            "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+            "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+            "hash": "fc8b4fc043068c2b8ad5efbb0a7100720424e307f54c8574bdf901a99aecd29f",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+            "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+            "format": "module"
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+            "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+            "format": "module"
+          }
+        ],
+        "failure": [
+          "not ok 54 - invocation differential: path-headerless-policy\n  ---\n  duration_ms: 113.645\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/holdout.test.ts:1:1075'\n  failureType: 'testCodeFailure'\n  error: |-\n    gnu-5.3: deliberate contained policy, not native parity\n    \n    0 !== 126\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 126\n  actual: 0\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-modes/holdout.test.ts:42:14)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# {\"id\":\"path-headerless-policy\",\"child\":{\"argv\":[\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"--unhandled-rejections=strict\",\"--import\",\"tsx\",\"--import\",\"./tests/shell-stress/invocation-modes/trace.mjs\",\"tests/shell-stress/invocation-modes/virtual-child.ts\",\"path-headerless-policy\"],\"argv0\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"cwd\":\"/Users/kjopek/Workspace/safe-bash\",\"env\":{\"PATH\":\"base\",\"HOME\":\"/nonexistent\",\"LC_ALL\":\"C\",\"LANG\":\"C\",\"TZ\":\"UTC\"},\"pid\":68034,\"code\":0,\"signal\":null,\"timedOut\":false,\"overflow\":false,\"stdoutHex\":\"7b226964223a22706174682d6865616465726c6573732d706f6c696379222c2265786974436f6465223a302c227374646f7574486578223a223665363137343639373636353264363636313663366336323631363336623061222c22737464657272486578223a22222c227374646f7574223a226e61746976652d66616c6c6261636b5c6e222c22737464657272223a22222c2265666665637473223a7b7d2c2272656e64657265644669787475726573223a5b7b2270617468223a222f776f726b2f746f6f6c732f696e76746f6f6c222c22686578223a22373037323639366537343636323032373665363137343639373636353264363636313663366336323631363336623563366532373061222c226d6f6465223a3439337d5d7d0a\",\"stderrHex\":\"\",\"stdout\":\"{\\\\\"id\\\\\":\\\\\"path-headerless-policy\\\\\",\\\\\"exitCode\\\\\":0,\\\\\"stdoutHex\\\\\":\\\\\"6e61746976652d66616c6c6261636b0a\\\\\",\\\\\"stderrHex\\\\\":\\\\\"\\\\\",\\\\\"stdout\\\\\":\\\\\"native-fallback\\\\\\\\n\\\\\",\\\\\"stderr\\\\\":\\\\\"\\\\\",\\\\\"effects\\\\\":{},\\\\\"renderedFixtures\\\\\":[{\\\\\"path\\\\\":\\\\\"/work/tools/invtool\\\\\",\\\\\"hex\\\\\":\\\\\"7072696e746620276e61746976652d66616c6c6261636b5c6e270a\\\\\",\\\\\"mode\\\\\":493}]}\\\\n\",\"stderr\":\"\",\"elapsedMs\":112.71687500000007}}"
+        ],
+        "stderr": "",
+        "stdoutSha256": "a08b00f16bc858c8fa218bd5227b2586012fe98b11958c0d5da9f9969045f2a2"
+      },
+      {
+        "name": "global",
+        "status": 0,
+        "counts": {},
+        "beforeDigest": "0c7a4b5697e429ed5bf529758ae5e96efcc15d78416713fdecec4d0ab2d08332",
+        "afterDigest": "0c7a4b5697e429ed5bf529758ae5e96efcc15d78416713fdecec4d0ab2d08332",
+        "guardedFiles": 1170,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 1055,
+        "compilerPathsDigest": "d374d6ca502db4ec3995fca073397d8b63e7463b337bd93e0cea14b450474314",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "stdoutSha256": "5571896fa62d81f16116f2783c275ce33cc974aa6a757439e96db4c17ce26cf4"
+      },
+      {
+        "name": "build",
+        "status": 0,
+        "counts": {},
+        "beforeDigest": "d674671acda226d0713f6c3c4b2fe7083c42cf02d7e252610ade4431e8738c44",
+        "afterDigest": "d674671acda226d0713f6c3c4b2fe7083c42cf02d7e252610ade4431e8738c44",
+        "guardedFiles": 512,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 296,
+        "compilerPathsDigest": "3f814a603113a9d26c5893a2c9fceb0ccdec2393d238a81aa9385ad2d313a64e",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "stdoutSha256": "1235da59361f8a2b38e6f64d04f61f4329d168c0192e3fbffc840e952412520b"
+      },
+      {
+        "name": "benchmark",
+        "status": 0,
+        "counts": {},
+        "beforeDigest": "65a6e389302b98546b6d34cac772eb15d64f1e770a2d87b70ed307071bb9e616",
+        "afterDigest": "65a6e389302b98546b6d34cac772eb15d64f1e770a2d87b70ed307071bb9e616",
+        "guardedFiles": 627,
+        "changed": [],
+        "importedMismatch": [],
+        "compilerInputs": 411,
+        "compilerPathsDigest": "9568aa1153b2dfbf124137380c32e9522217d596f8ffbdb9cad40c175514265d",
+        "unguardedCompilerPaths": [],
+        "actualShellImports": [],
+        "stdoutSha256": "d2cc98788066aca8e98818325750886c857c76c9fe39780501030e00e21b8f1a"
+      }
+    ]
+  },
+  "rawRed": {
+    "fallbackRed": "TAP version 13\n# Subtest: frozen-headerless\nnot ok 1 - frozen-headerless\n  ---\n  duration_ms: 5.49275\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'cmFuOmFyZ3VtZW50'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'cmFuOmFyZ3VtZW50'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: argv-empty\nnot ok 2 - argv-empty\n  ---\n  duration_ms: 1.239875\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PC4vc2NyaXB0Pgo8Mz4KPD4KPGEgYj4KPCRsaXRlcmFsPgo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PC4vc2NyaXB0Pgo8Mz4KPD4KPGEgYj4KPCRsaXRlcmFsPgo='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: shift\nnot ok 3 - shift\n  ---\n  duration_ms: 0.517291\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PDI+Cjw+Cjx0aHJlZT4K'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PDI+Cjw+Cjx0aHJlZT4K'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: exit\nnot ok 4 - exit\n  ---\n  duration_ms: 1.451625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: 'MTI2Cg=='\n    -   stderr: '',\n    -   stdout: 'Nwo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'Nwo='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: 'MTI2Cg=='\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: private-and-functions\nnot ok 5 - private-and-functions\n  ---\n  duration_ms: 1.474625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 127,\n    -   stderr: 'Li9zY3JpcHQ6IGxpbmUgMTogaGlkZGVuOiBjb21tYW5kIG5vdCBmb3VuZAo=',\n    -   stdout: 'OnB1YmxpYwo='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'OnB1YmxpYwo='\n    stderr: 'Li9zY3JpcHQ6IGxpbmUgMTogaGlkZGVuOiBjb21tYW5kIG5vdCBmb3VuZAo='\n    status: 127\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: parent-isolation\nnot ok 6 - parent-isolation\n  ---\n  duration_ms: 1.5205\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    -   stderr: '',\n        stdout: 'cGFyZW50OnBhcmVudDpwYXJlbnQKL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leHBhbmRlZC1nYXBzLXVCWTRNaS93b3JrCg=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'cGFyZW50OnBhcmVudDpwYXJlbnQKL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leHBhbmRlZC1nYXBzLXVCWTRNaS93b3JrCg=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: 'cGFyZW50OnBhcmVudDpwYXJlbnQKL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1leHBhbmRlZC1nYXBzLXVCWTRNaS93b3JrCg=='\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: path\nnot ok 7 - path\n  ---\n  duration_ms: 0.586875\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'Li9zY3JpcHQ6YXJndW1lbnQ='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'Li9zY3JpcHQ6YXJndW1lbnQ='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: prefix-env\nnot ok 8 - prefix-env\n  ---\n  duration_ms: 0.447542\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'dmFsdWU6'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'dmFsdWU6'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: empty\nnot ok 9 - empty\n  ---\n  duration_ms: 0.938708\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    -   status: 0,\n    -   stderr: '',\n        stdout: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: comments\nnot ok 10 - comments\n  ---\n  duration_ms: 0.544416\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'b2s='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'b2s='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: stdin\nnot ok 11 - stdin\n  ---\n  duration_ms: 0.506333\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'cGF5bG9hZA=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'cGF5bG9hZA=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: subshell\nnot ok 12 - subshell\n  ---\n  duration_ms: 0.506417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: 'cGFyZW50'\n    -   stderr: '',\n    -   stdout: 'Y2hpbGRwYXJlbnQ='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'Y2hpbGRwYXJlbnQ='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: 'cGFyZW50'\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: pipeline\nnot ok 13 - pipeline\n  ---\n  duration_ms: 2.469417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   stderr: '',\n    -   stdout: 'Ynl0ZXM='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'Ynl0ZXM='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: nested\nnot ok 14 - nested\n  ---\n  duration_ms: 0.327667\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'JGFyZw=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'JGFyZw=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: options-reset\nnot ok 15 - options-reset\n  ---\n  duration_ms: 0.713708\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:1:493'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'MA=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'MA=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg=='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-fallback.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..15\n# tests 15\n# suites 0\n# pass 0\n# fail 15\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 192.1695\n",
+    "envAndParameterRed": "TAP version 13\n# Subtest: frozen-env\nnot ok 1 - frozen-env\n  ---\n  duration_ms: 5.361417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'ZW52OmFyZ3VtZW50'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'ZW52OmFyZ3VtZW50'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: env-sh\nnot ok 2 - env-sh\n  ---\n  duration_ms: 0.912292\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgc2gK',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'Li9zY3JpcHQ6YXJndW1lbnQ='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'Li9zY3JpcHQ6YXJndW1lbnQ='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgc2gK'\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-empty-argv\nnot ok 3 - env-empty-argv\n  ---\n  duration_ms: 0.579625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PDM+Cjw+CjxhIGI+CjwkbGl0ZXJhbD4K'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PDM+Cjw+CjxhIGI+CjwkbGl0ZXJhbD4K'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-private-isolation\nnot ok 4 - env-private-isolation\n  ---\n  duration_ms: 1.044167\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PD46cHVibGlj'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PD46cHVibGlj'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-exit\nnot ok 5 - env-exit\n  ---\n  duration_ms: 1.311458\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: 'MTI2'\n    -   stderr: '',\n    -   stdout: 'OQ=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'OQ=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: 'MTI2'\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-sh-special\nnot ok 6 - env-sh-special\n  ---\n  duration_ms: 0.901584\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgc2gK',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'bmV3'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'bmV3'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgc2gK'\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-bash-special\nnot ok 7 - env-bash-special\n  ---\n  duration_ms: 0.496834\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'b2xk'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'b2xk'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-whitespace\nnot ok 8 - env-whitespace\n  ---\n  duration_ms: 0.401833\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYJYmFzaAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'b2s='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'b2s='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYJYmFzaAo='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-pipeline\nnot ok 9 - env-pipeline\n  ---\n  duration_ms: 3.24775\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: ''\n    -   stderr: '',\n    -   stdout: 'Ynl0ZXM='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'Ynl0ZXM='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: env-stdin\nnot ok 10 - env-stdin\n  ---\n  duration_ms: 0.605667\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:1:488'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 126,\n    +   stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'cGF5bG9hZA=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'cGF5bG9hZA=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo='\n    status: 126\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-env.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: frozen-parameter\nnot ok 11 - frozen-parameter\n  ---\n  duration_ms: 4.085625\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA3MAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YWJjOmFiYzpYYmNYYmM='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YWJjOmFiYzpYYmNYYmM='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA3MAo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)\n  ...\n# Subtest: first\nnot ok 12 - first\n  ---\n  duration_ms: 0.495209\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WGJjYWJj'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WGJjYWJj'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNAo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: delete\nnot ok 13 - delete\n  ---\n  duration_ms: 0.382458\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNgo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YmFiYTpiYg=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YmFiYTpiYg=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNgo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: anchors\nnot ok 14 - anchors\n  ---\n  duration_ms: 0.449791\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNgo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WGJhYmE6YWJhYlg='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WGJhYmE6YWJhYlg='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNgo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: longest\nnot ok 15 - longest\n  ---\n  duration_ms: 0.362417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNwo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WDpY'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WDpY'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNwo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: glob-any\nnot ok 16 - glob-any\n  ---\n  duration_ms: 0.293166\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WGNYYw=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WGNYYw=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNAo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: class\nnot ok 17 - class\n  ---\n  duration_ms: 0.436916\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMgo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YVhiWA=='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YVhiWA=='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMgo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: quoted-pattern\nnot ok 18 - quoted-pattern\n  ---\n  duration_ms: 0.243791\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YVhiWGM='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YVhiWGM='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: slash-escape\nnot ok 19 - slash-escape\n  ---\n  duration_ms: 0.73025\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMwo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YTpiOmM='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YTpiOmM='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMwo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: replacement-variable\nnot ok 20 - replacement-variable\n  ---\n  duration_ms: 0.442291\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA0NQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PHggeWJ4IHk+'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PHggeWJ4IHk+'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA0NQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: nested-default\nnot ok 21 - nested-default\n  ---\n  duration_ms: 0.202333\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WmJa'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WmJa'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: empty\nnot ok 22 - empty\n  ---\n  duration_ms: 0.149167\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNQo=',\n    -   status: 0,\n    -   stderr: '',\n        stdout: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: empty-pattern\nnot ok 23 - empty-pattern\n  ---\n  duration_ms: 0.160125\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMwo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PGFiYz4='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PGFiYz4='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMwo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: removal-short-long\nok 24 - removal-short-long\n  ---\n  duration_ms: 2.559542\n  type: 'test'\n  ...\n# Subtest: newline\nnot ok 25 - newline\n  ---\n  duration_ms: 0.215375\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'PFhYWD4='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'PFhYWD4='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unicode\nnot ok 26 - unicode\n  ---\n  duration_ms: 0.225875\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNAo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WOeMq1g654yrw6k='\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WOeMq1g654yrw6k='\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzNAo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: quoted-replacement-ampersand\nnot ok 27 - quoted-replacement-ampersand\n  ---\n  duration_ms: 0.151833\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'JmIm'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'JmIm'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: unquoted-replacement-ampersand\nnot ok 28 - unquoted-replacement-ampersand\n  ---\n  duration_ms: 0.204958\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YWJh'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YWJh'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: literal-pattern-variable\nnot ok 29 - literal-pattern-variable\n  ---\n  duration_ms: 0.147417\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA0Mgo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'YVhi'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'YVhi'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA0Mgo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: substitution-word\nnot ok 30 - substitution-word\n  ---\n  duration_ms: 0.143\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n    +   status: 2,\n    +   stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo=',\n    +   stdout: ''\n    -   status: 0,\n    -   stderr: '',\n    -   stdout: 'WmJa'\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: 'WmJa'\n    stderr: ''\n    status: 0\n  actual:\n    stdout: ''\n    stderr: 'c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCAzMQo='\n    status: 2\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n1..30\n# tests 30\n# suites 0\n# pass 1\n# fail 29\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 203.8585\n",
+    "parameterInitial": "TAP version 13\n# Subtest: frozen-parameter\nok 1 - frozen-parameter\n  ---\n  duration_ms: 5.457042\n  type: 'test'\n  ...\n# Subtest: first\nok 2 - first\n  ---\n  duration_ms: 0.574459\n  type: 'test'\n  ...\n# Subtest: delete\nok 3 - delete\n  ---\n  duration_ms: 0.71975\n  type: 'test'\n  ...\n# Subtest: anchors\nok 4 - anchors\n  ---\n  duration_ms: 0.858125\n  type: 'test'\n  ...\n# Subtest: longest\nok 5 - longest\n  ---\n  duration_ms: 0.947584\n  type: 'test'\n  ...\n# Subtest: glob-any\nok 6 - glob-any\n  ---\n  duration_ms: 0.69225\n  type: 'test'\n  ...\n# Subtest: class\nok 7 - class\n  ---\n  duration_ms: 0.435583\n  type: 'test'\n  ...\n# Subtest: quoted-pattern\nok 8 - quoted-pattern\n  ---\n  duration_ms: 0.477625\n  type: 'test'\n  ...\n# Subtest: slash-escape\nok 9 - slash-escape\n  ---\n  duration_ms: 0.769458\n  type: 'test'\n  ...\n# Subtest: replacement-variable\nok 10 - replacement-variable\n  ---\n  duration_ms: 0.50525\n  type: 'test'\n  ...\n# Subtest: nested-default\nok 11 - nested-default\n  ---\n  duration_ms: 0.327584\n  type: 'test'\n  ...\n# Subtest: empty\nnot ok 12 - empty\n  ---\n  duration_ms: 1.109\n  type: 'test'\n  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:1:494'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      {\n        status: 0,\n        stderr: '',\n    +   stdout: 'PD46PD4='\n    -   stdout: ''\n      }\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n    stdout: ''\n    stderr: ''\n    status: 0\n  actual:\n    stdout: 'PD46PD4='\n    stderr: ''\n    status: 0\n  operator: 'deepStrictEqual'\n  stack: |-\n    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/expanded-gaps-parameter.test.ts:9:10)\n    async Test.run (node:internal/test_runner/test:1054:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n  ...\n# Subtest: empty-pattern\nok 13 - empty-pattern\n  ---\n  duration_ms: 0.259667\n  type: 'test'\n  ...\n# Subtest: removal-short-long\nok 14 - removal-short-long\n  ---\n  duration_ms: 0.373292\n  type: 'test'\n  ...\n# Subtest: newline\nok 15 - newline\n  ---\n  duration_ms: 0.230375\n  type: 'test'\n  ...\n# Subtest: unicode\nok 16 - unicode\n  ---\n  duration_ms: 0.511042\n  type: 'test'\n  ...\n# Subtest: quoted-replacement-ampersand\nok 17 - quoted-replacement-ampersand\n  ---\n  duration_ms: 0.239458\n  type: 'test'\n  ...\n# Subtest: unquoted-replacement-ampersand\nok 18 - unquoted-replacement-ampersand\n  ---\n  duration_ms: 0.224333\n  type: 'test'\n  ...\n# Subtest: literal-pattern-variable\nok 19 - literal-pattern-variable\n  ---\n  duration_ms: 0.203667\n  type: 'test'\n  ...\n# Subtest: substitution-word\nok 20 - substitution-word\n  ---\n  duration_ms: 0.410916\n  type: 'test'\n  ...\n1..20\n# tests 20\n# suites 0\n# pass 19\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 251.79225\n"
+  }
+}

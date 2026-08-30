@@ -1,0 +1,23 @@
+{
+  "id": "repair-inventory",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+    "--",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/"
+  ],
+  "pid": 57772,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 4774,
+  "stdoutSha256": "415496b5c8205162dacfe7f30a4319c772f431bbab0bdf2e1fe6f4e4187d031e",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

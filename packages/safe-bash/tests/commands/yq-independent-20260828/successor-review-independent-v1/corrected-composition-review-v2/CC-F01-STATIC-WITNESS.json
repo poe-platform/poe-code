@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "id": "CC-F01",
+  "classification": "CODE_COORDINATOR_CAPTURE_ERROR_NOT_STICKY_IN_FINAL_AGGREGATION",
+  "status": "STATIC_SOURCE_CONTRADICTION_NO_EXECUTION",
+  "originalFindingsRescored": false,
+  "sourceCommit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+  "excerpts": [
+    {
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+      "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+      "bytes": 7803,
+      "excerpts": [
+        {
+          "firstLine": 83,
+          "lastLine": 105,
+          "text": "  const finish = reaped => {\n    if (settled) return;\n    settled = true;\n    clearInterval(timer);\n    for (const stream of Object.values(output)) {\n      try { fsyncSync(stream.descriptor); } catch (error) { spawnError ??= describeError(error); }\n      try { closeSync(stream.descriptor); } catch (error) { spawnError ??= describeError(error); }\n    }\n    const receipt = { role: options.role, pid: child.pid ?? null, group: child.pid ?? null, registeredBeforeSpawnNs: reservation.registeredBeforeSpawnNs, code: exitCode, signal: exitSignal, timedOut, overflow, spawnError, closeObserved, reaped, termSentNs: termAt?.toString() ?? null, killSentNs: killAt?.toString() ?? null, closedNs: closedAt?.toString() ?? null, workDeadlineNs: options.workDeadline.toString(), hardDeadlineNs: options.hardDeadline.toString(), endedNs: now().toString() };\n    for (const [name, stream] of Object.entries(output)) { receipt[`${name}Path`] = stream.path; receipt[`${name}Bytes`] = stream.bytes; receipt[`${name}Sha256`] = stream.digest.digest('hex'); }\n    try {\n      const publication = publishReservedJson(metadataReservation, join(options.directory, `${options.name}.process.json`), receipt);\n      receipt.metadataArtifact = publication.artifact;\n      receipt.metadataComplete = publication.complete;\n      if (!publication.complete) receipt.overflow = true;\n    } catch (error) {\n      receipt.metadataComplete = false;\n      receipt.metadataError = describeError(error);\n      receipt.spawnError ??= receipt.metadataError;\n    } finally {\n      releaseProcessReceipt(metadataReservation);\n      if (reaped) active.delete(reservation);\n      resolveDone(receipt);"
+        }
+      ]
+    },
+    {
+      "commit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+      "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "bytes": 27596,
+      "excerpts": [
+        {
+          "firstLine": 53,
+          "lastLine": 69,
+          "text": "  const guard = () => {\n    requireFact(now() < globalDeadline, 'GLOBAL_GUARD_BUDGET');\n    guardAdmission(admission);\n    assertIdentity(home, homeIdentity);\n    assertIdentity(temporary, temporaryIdentity);\n    assertIdentity(jobsRoot, jobsIdentity);\n    assertIdentity(worksRoot, worksIdentity);\n    requireFact(readdirSync(home).length === 0 && readdirSync(temporary).length === 0, 'AMBIENT_HOME_TMP_EFFECT');\n    for (const item of retained) { assertIdentity(item.root, item.identity); assertTree(item.root, item.manifest); if (item.movement) requireFact(!existsSync(item.movement.staging), 'MOVE_ORIGIN_RECREATED'); }\n    for (const item of closedJobs) assertTree(item.root, item.manifest, evidenceLimits);\n    for (const item of closedWorks) { assertIdentity(item.root, item.identity); assertTree(item.root, item.manifest, workLimits); }\n    requireFact(canonical(readdirSync(worksRoot).sort()) === canonical(closedWorks.map(item => item.name).concat(currentContext ? [currentContext.name] : []).sort()), 'WORK_PARENT_ADDED_MEMBERSHIP');\n    requireFact(canonical(readdirSync(jobsRoot).sort()) === canonical(closedJobs.map(item => item.name).concat(currentContext ? [currentContext.name] : []).sort()), 'JOB_PARENT_ADDED_MEMBERSHIP');\n    requireFact(canonical(readdirSync(root).sort()) === canonical([...rootNames].sort()), 'EVIDENCE_ROOT_ADDED_MEMBERSHIP');\n    requireFact(fileDigest(bootArtifact.path).sha256 === bootArtifact.sha256, 'COORDINATOR_BOOT_CHANGED');\n    requireFact(now() < globalDeadline, 'GLOBAL_GUARD_BUDGET');\n    return { integrity: true };"
+        },
+        {
+          "firstLine": 268,
+          "lastLine": 279,
+          "text": "  const parent = await coordinator.done;\n  rootNames.add('coordinator.process.json');\n  const finalReap = await stopAll(globalDeadline);\n  let finalIntegrity = false;\n  try { guard(); finalIntegrity = true; } catch {}\n  const recordedRowsBeforeTerminalFill = rows.length;\n  const knownIds = new Set(rows.map(row => row.jobId));\n  for (const job of data.jobs) if (!knownIds.has(job.id)) rows.push({ jobId: job.id, status: 'UNRUN', reason: 'PARENT_OR_ADMISSION_ABORT_NO_COMPLETE_RECEIPT', aggregateFailure: true, unsafe: true, integrity: false, reaped: finalReap });\n  const final = { schema: 1, candidate: CANDIDATE, rootGoSha256: admission.rootHash, recipeSha256: admission.recipeHash, status: now() >= globalDeadline || parent.code !== 0 || parent.signal || parent.timedOut || parent.overflow || !finalReap || !finalIntegrity || unsafeStop || !coordinatorFinal || rows.length !== 336 || rows.some(row => row.aggregateFailure) ? 'FAIL' : 'PASS_ROLE_PROJECTIONS_ONLY', parent, counters, finalReap, finalIntegrity, unsafeStop, recordedRowsBeforeTerminalFill, admittedOrUnrunRows: rows.length, activeChildren: activeChildren(), originNs: origin.toString(), absoluteGlobalDeadlineNs: globalDeadline.toString(), endedNs: now().toString(), noFull194Acceptance: true };\n  if (now() < globalDeadline) atomicJson(join(root, 'coverage-194.json'), summarizeCoverage(data.ledger, data.jobs, rows));\n  atomicJson(join(root, 'supervisor-final.json'), final);\n  return final;"
+        }
+      ]
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/classification.mjs",
+      "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "bytes": 1107,
+      "excerpts": [
+        {
+          "firstLine": 3,
+          "lastLine": 5,
+          "text": "export function classifyProcess(receipt, integrity) {\n  const aggregateFailure = receipt.code !== 0 || receipt.signal !== null || receipt.timedOut === true || receipt.overflow === true || receipt.spawnError !== null;\n  return { aggregateFailure, mayContinue: integrity === true && receipt.reaped === true, unsafe: integrity !== true || receipt.reaped !== true };"
+        }
+      ]
+    }
+  ],
+  "staticTrace": [
+    "The shared startOwned path is used for coordinator at supervisor:74 as well as outer/tool.",
+    "After normal coordinator close, finish(true) catches stdout/stderr fsync/close failure at owned-process:88-89 and stores it as spawnError without changing code/signal/timedOut/overflow/reaped. This catch-and-resolve path is added by the overlay.",
+    "The metadata publication can succeed, adding the expected coordinator.process.json. finish resolves with code0, signalnull, timedOutfalse, overflowfalse, reapedtrue and a nonnull spawnError.",
+    "Supervisor awaits coordinator.done at268, reaps and runs guard. Guard checks root membership and boot hash, not coordinator stream errors; a recorded fsync failure need not change namespace or file bytes.",
+    "Final status at276 tests parent code/signal/timedOut/overflow but not parent.spawnError, metadataComplete or classifyProcess(parent,...). Thus this new coordinator capture-error cause does not force final aggregate failure.",
+    "The unchanged classifyProcess would reject nonnull spawnError, but is applied only to outer job receipts at194, not the coordinator final receipt."
+  ],
+  "benignDeferredCondition": {
+    "parentReceiptAfterCapturedFsyncFailure": {
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "reaped": true,
+      "spawnError": {
+        "code": "EIO",
+        "message": "coordinator stdout fsync failed",
+        "unsafe": true
+      },
+      "metadataComplete": true
+    },
+    "constructionAndExecution": "NOT_PERFORMED",
+    "otherFinalFailureConditions": "held separate for source-expression analysis, not asserted reachable all-green current cohort"
+  },
+  "scopeQualification": "The frozen current cohort already contains explicit UNRUN/gap failures. No claim that this exact cohort currently returns PASS, that any product failed, or that a real fsync failure occurred. The defect is missing independent sticky aggregation of a newly captured coordinator error, not a request to waive gaps.",
+  "requiredCorrection": "Owner must make final coordinator capture/metadata failures aggregate FAIL using actual parent fields/classification, preserving raw reason/provenance and original exit/signal/reap. Reseal any changed target and fresh composition; reviewer must not patch.",
+  "authoredImports": 0,
+  "candidateExecutions": 0,
+  "controlExecutions": 0,
+  "controlPasses": 0,
+  "rootGO": false
+}

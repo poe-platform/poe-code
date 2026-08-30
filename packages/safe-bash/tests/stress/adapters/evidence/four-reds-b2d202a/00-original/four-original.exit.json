@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-name-pattern=^(s3: optional metadata capabilities are exercised or fail closed|s3: optional truncate preserves exact bytes or rejects without mutation|webdav: optional metadata capabilities are exercised or fail closed|s3: default rename explicitly fails closed without opt-in)$",
+    "tests/stress/adapters/core.test.ts",
+    "tests/stress/adapters/s3.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-adapter-corrections-0yDYsZ/00-original/archive",
+  "start": "2026-08-26T23:30:45.453Z",
+  "end": "2026-08-26T23:30:45.526Z",
+  "status": 1,
+  "signal": null
+}

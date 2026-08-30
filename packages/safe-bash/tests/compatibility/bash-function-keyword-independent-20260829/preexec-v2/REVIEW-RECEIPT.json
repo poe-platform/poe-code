@@ -1,0 +1,435 @@
+{
+  "schema": "b35-independent-preexec-review-v2",
+  "date": "2026-08-29",
+  "verdict": "HOLD",
+  "candidate": "52b6711e888361015acc38017be2a6b08509d8a7",
+  "harness": "7cec73724b80a7c8a30cc02207aa9b2457a86708",
+  "authorEvidence": "2304858221ae6a1f7784e2c9fb155a8f8e9a501d",
+  "authorSealSha256": "3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d",
+  "independentSealSha256": "72f231e146c8298c8e96103d356d85e860551550174a51f60bb696d497cab4e6",
+  "composition": "1f4c5f4e25e0302146cf2735e4164ee09eb73a390a98d56ac33b94e6e57c16fd",
+  "shippingPackage": {
+    "files": 1002,
+    "bytes": 978812,
+    "sha256": "275a6c1006a5986d9d878a2344b95158fc320187a07a1d7f25584c10d7e7959d",
+    "qualification": "Previously bound archive; no inflation/import/install/build during this review. Future source-built output requires its own binding."
+  },
+  "actual": {
+    "authorPure": [
+      {
+        "id": "D01",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D02",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D03",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D04",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D05",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D06",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D07",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D08",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D09",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D10",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D11",
+        "kind": "PURE",
+        "pass": true
+      },
+      {
+        "id": "D12",
+        "kind": "PURE",
+        "pass": true
+      }
+    ],
+    "novel": [
+      {
+        "id": "N01",
+        "pass": true
+      },
+      {
+        "id": "N02",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+      },
+      {
+        "id": "N03",
+        "pass": false,
+        "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n"
+      },
+      {
+        "id": "N04",
+        "pass": true
+      },
+      {
+        "id": "N05",
+        "pass": true
+      },
+      {
+        "id": "N06",
+        "pass": true
+      },
+      {
+        "id": "N07",
+        "pass": true
+      },
+      {
+        "id": "N08",
+        "pass": true
+      }
+    ],
+    "readiness": [
+      {
+        "id": "H01",
+        "pid": 72868,
+        "status": 0,
+        "qualified": true,
+        "exit": true,
+        "close": true,
+        "knownOutstanding": 0,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 20,
+            "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+            "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "trace": {
+          "bytes": 837,
+          "sha256": "6705924651a74622ad8a13907b4a6816e6c435b57de7c2c75d1f1737c3079c0a",
+          "events": [
+            {
+              "event": "permission-admitted",
+              "child": false,
+              "worker": false,
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            },
+            {
+              "event": "synchronous-hooks-installed",
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/source/entry.js",
+              "bytes": 74,
+              "sha256": "b6e048e739011692d84bdba30374cb5416b54dad84b614393ac2ba1f0e8b5c75",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/source/payload.js",
+              "bytes": 44,
+              "sha256": "8cd15a337717904a422fcf190c6d5dbf5a10c692b186ce42451b6ecc494b5d6b",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H01"
+            }
+          ]
+        }
+      },
+      {
+        "id": "H02",
+        "pid": 72871,
+        "status": 0,
+        "qualified": true,
+        "exit": true,
+        "close": true,
+        "knownOutstanding": 0,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 20,
+            "sha256": "04133ef94f99d29c67c3a7d4b3b52cc080ccd0af287954e417b97e6a05bad398",
+            "base64": "QjM1X0NBTk9OSUNBTF9SRUFEWQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "trace": {
+          "bytes": 872,
+          "sha256": "513e2ae25e2a600f5c9973d22e63a0e67fe7cdbba9c83e182fa6a84a8fc30fd4",
+          "events": [
+            {
+              "event": "permission-admitted",
+              "child": false,
+              "worker": false,
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            },
+            {
+              "event": "synchronous-hooks-installed",
+              "loaderThreads": 0,
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/installed/entry.js",
+              "bytes": 74,
+              "sha256": "f45043bce075c6b1c1af5233db65a26c257232ac5caacff4589ac89240348d70",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            },
+            {
+              "event": "module-loaded",
+              "url": "file:///private/tmp/safe-bash-b35-independent-v2-bYDxTO/qualification/installed/node_modules/virtual-bash/dist/index.js",
+              "bytes": 44,
+              "sha256": "8cd15a337717904a422fcf190c6d5dbf5a10c692b186ce42451b6ecc494b5d6b",
+              "profile": "bash-surface-direct-owned-child-functional-v1",
+              "role": "H02"
+            }
+          ]
+        }
+      }
+    ],
+    "controller": [
+      {
+        "pid": 72861,
+        "phase": "run",
+        "started": 1788008474690
+      },
+      {
+        "child": 72864,
+        "exited": {
+          "code": 1,
+          "signal": null
+        },
+        "closed": {
+          "code": 1,
+          "signal": null
+        },
+        "stopped": false,
+        "total": 85,
+        "postguards": 28
+      },
+      {
+        "archiveBytes": 48822,
+        "files": 21,
+        "ownedWorkRemoved": true
+      }
+    ],
+    "productImports": 0,
+    "parserImports": 0,
+    "engineImports": 0,
+    "workers": 0,
+    "compilers": 0,
+    "functionalCases": 0
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "severity": "BLOCKER",
+      "source": "outer.mjs activation predicate",
+      "expected": "Refuse missing or nonnumeric latestStartEpochMs/expiresEpochMs before supervisor import",
+      "actual": "The extracted exact predicate accepts absent fields and nonnumeric strings: comparisons involving NaN are false.",
+      "evidence": "N02/N03, literal independent assertion outcomes in RESULT.json when present; extracted predicate is not an actual owner/admission execution.",
+      "consequence": "An authenticated malformed grant can pass the activation condition and propagate a NaN deadline into supervisor. This is a schema/fail-closed source defect, not evidence of product execution.",
+      "minimalRepair": "Validate exact own-data grant/review schemas and finite safe-integer time bounds before arithmetic; reject missing, coercible and nonnumeric fields. Rebind repaired source/preseal and independently repeat affected pure counterexamples."
+    },
+    {
+      "id": "F02",
+      "severity": "SOURCE_PREEXEC_CAPTURE_GAP",
+      "source": "outer.mjs capture-open and PREAUTH_STOP fallback; COMMAND.template.txt",
+      "expected": "Bind a working raw startup stdout/stderr capture route before fallible owner admission, retaining false/0 primary and secondary values.",
+      "actual": "Opening owner.stdout/owner.stderr does not redirect process stdout/stderr. PREAUTH_STOP writes only to process.stderr; the frozen command contains no raw redirection/collector. Its fallback serializes kind/message but not primitive value, unlike wire().",
+      "qualification": "SOURCE-only: no owner or failing-auth route was executed. No new lost bytes are asserted. Successful harmless child capture does not qualify this outer route.",
+      "minimalRepair": "Preseal the exact outer raw-capture route/owner accounting and use presence-preserving primitive serialization on preauth failure; retain existing postauth helper behavior."
+    }
+  ],
+  "future": {
+    "status": "NOT_AUTHORIZED",
+    "commandTemplate": "exec /usr/bin/env -i HOME=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/home TMPDIR=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/tmp PATH=/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future/empty-path LC_ALL=C LANG=C TZ=UTC B35_PRESEAL_SHA256=3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d B35_GRANT_SHA256=ROOT_APPROVED_GRANT_SHA256 B35_REVIEW_SHA256=INDEPENDENT_REVIEW_SHA256 /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v2/outer.mjs\n",
+    "authorityFiles": {
+      "GO": {
+        "decision": "PENDING",
+        "preseal": "3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d",
+        "work": "/private/tmp/safe-bash-b35-preexec-v2-GpST8Q/future",
+        "calls": 54,
+        "latestStartEpochMs": null,
+        "expiresEpochMs": null,
+        "limits": {
+          "durationMs": 1500000,
+          "finalizationTailMs": 60000,
+          "captureBytes": 100663296,
+          "workBytes": 536870912,
+          "streamBytes": 65536,
+          "ownerCaptureReservation": 65536,
+          "caseMs": 30000,
+          "buildMs": 120000
+        },
+        "roles": {
+          "owner": 1,
+          "build": 1,
+          "strictTypes": 3,
+          "primaryCases": 54,
+          "mutants": 3,
+          "bindingRefusals": 2,
+          "totalRuntimeKnownStarts": 64,
+          "extraSyntaxMetadataPublication": 8,
+          "maximumAllKnownStarts": 72,
+          "peakMaximum": 3,
+          "sourceDerivedInternalChildForks": 0,
+          "caseChildProcessPermission": 0,
+          "caseWorkerPermission": 0,
+          "asyncLoaders": 0
+        }
+      },
+      "REVIEW": {
+        "decision": "PENDING",
+        "preseal": "3099f59a5518757a4fa80f203758536b5101fb8ad8e600c792b338bd5d83539d",
+        "scope": "harness-only-canonical-path-and-finalization",
+        "independentCommit": null
+      }
+    },
+    "caseIds": [
+      "K01",
+      "K02",
+      "K03",
+      "K04",
+      "K05",
+      "K06",
+      "K07",
+      "K08",
+      "K09",
+      "K10",
+      "K11",
+      "K12",
+      "K13",
+      "K14",
+      "R01",
+      "R02",
+      "R03",
+      "R04"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "primaryChildren": 54,
+    "primaryChildShape": "one selected case per child; its optional legacy comparison runs in that same child, not a separate child",
+    "legacyPerLayout": 8,
+    "legacyCalls": 24,
+    "primaryAndLegacyShellExecCalls": 78,
+    "additionalMutantShellExecCalls": 5,
+    "roles": {
+      "owner": 1,
+      "build": 1,
+      "strictTypes": 3,
+      "primaryCases": 54,
+      "mutants": 3,
+      "bindingRefusals": 2,
+      "totalRuntimeKnownStarts": 64,
+      "extraSyntaxMetadataPublication": 8,
+      "maximumAllKnownStarts": 72,
+      "peakMaximum": 3,
+      "sourceDerivedInternalChildForks": 0,
+      "caseChildProcessPermission": 0,
+      "caseWorkerPermission": 0,
+      "asyncLoaders": 0
+    },
+    "roleGraph": "exec-replaced shell -> env -> Node owner; owner serially spawns 1 build +3 types +54 cases +3 mutants +2 binding-refusal Node children. No async loader thread; case subprocess and Worker permissions denied. Eight additional syntax/metadata/publication slots are outside the64 runtime known starts.",
+    "limits": {
+      "durationMs": 1500000,
+      "finalizationTailMs": 60000,
+      "captureBytes": 100663296,
+      "workBytes": 536870912,
+      "streamBytes": 65536,
+      "ownerCaptureReservation": 65536,
+      "caseMs": 30000,
+      "buildMs": 120000
+    },
+    "mutants": [
+      "M01/K01 disable function branch",
+      "M02/K03 force optional-parentheses branch",
+      "M03/K12 disable identifier validation"
+    ],
+    "bindings": [
+      "N01 AUTH_HASH",
+      "N02 EDGE_REFUSED"
+    ],
+    "types": "one strict consumer child per source-built/installed/physically-moved layout",
+    "qualifications": [
+      "72 proposed maximum known OS starts including8 administration; peak3, not kernel/global process census",
+      "54 primary children plus24 legacy comparisons and5 mutant Shell.exec calls if all stages reached; no batching of primary IDs across children",
+      "Build120s, type checks120s in source, cases30s; owner25min including60s finalization tail",
+      "96MiB capture,512MiB sampled logical working files,64KiB per stdout/stderr stream;64KiB owner reservation does not itself establish raw outer-capture routing",
+      "Static guard/source closure is not an actual nested load trace",
+      "Core e013 remains pending Sagan SOURCE review; no full ERE acceptance inferred"
+    ]
+  },
+  "history": [
+    "Original author a5d81016 startupSTOP and0/54 remain unchanged",
+    "Author first11 administrative launches were REPL-based, not retroactively file-based",
+    "Author32 known retired/12PURE+2readiness are separate from this review",
+    "Independent unexecuted relocation-metadata draft preserved; role digest propagation corrected before committed preseal or child launch"
+  ],
+  "postguards": 28,
+  "knownRoleAccounting": {
+    "ceiling": 32,
+    "peakCeiling": 3,
+    "method": "Direct invocation ledger plus explicit child receipts; exec replacements not additional PIDs. Preparation/source Git roles included; publication has3 direct Git children. No universal process/group census.",
+    "pureChildren": 1,
+    "readinessChildrenObserved": 2
+  },
+  "scope": "No actual campaign GO; no author/production edits."
+}

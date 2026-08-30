@@ -1,0 +1,21 @@
+{
+  "method": "GET",
+  "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/",
+  "startedAt": "2026-08-29T04:34:05.443Z",
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:34:04 GMT",
+    "last-modified": null,
+    "etag": null,
+    "content-type": "text/html;charset=UTF-8",
+    "content-length": "6950",
+    "location": null
+  },
+  "body": {
+    "path": "2.body.data",
+    "bytes": 6950,
+    "sha256": "e33744fd95ad3ba7cd1112f780074a0be3fa7406b8b0905ba94c1c9a9c48d4fa"
+  },
+  "disposition": "HTTP_METADATA_ONLY",
+  "endedAt": "2026-08-29T04:34:05.493Z"
+}

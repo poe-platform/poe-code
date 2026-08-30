@@ -1,0 +1,12 @@
+{
+  "id": "F14",
+  "expected": "Stdout publication failure after real child closure retains exact reason, stderr fallback and refusal.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.560Z",
+  "finished": "2026-08-28T15:01:02.618Z",
+  "detail": {
+    "stderrFallback": true,
+    "publicationPrimaryIdentity": true,
+    "childReaped": true
+  }
+}

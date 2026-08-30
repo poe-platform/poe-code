@@ -1,0 +1,76 @@
+{
+  "returned": [
+    {
+      "specifier": "node:fs",
+      "error": {
+        "name": "Error",
+        "message": "Unbound candidate builtin: node:fs",
+        "code": null,
+        "stack": "Error: Unbound candidate builtin: node:fs\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:14:48)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:97\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:9"
+      },
+      "calls": 0
+    },
+    {
+      "specifier": "node:timers",
+      "error": {
+        "name": "Error",
+        "message": "Unbound candidate builtin: node:timers",
+        "code": null,
+        "stack": "Error: Unbound candidate builtin: node:timers\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:14:48)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:97\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:3"
+      },
+      "calls": 0
+    },
+    {
+      "specifier": "node:http",
+      "error": {
+        "name": "Error",
+        "message": "Unbound candidate builtin: node:http",
+        "code": null,
+        "stack": "Error: Unbound candidate builtin: node:http\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:14:48)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:97\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:3"
+      },
+      "calls": 0
+    },
+    {
+      "specifier": "https://example.invalid/test.mjs",
+      "error": {
+        "name": "Error",
+        "message": "Package/network import not bound: https://example.invalid/test.mjs",
+        "code": null,
+        "stack": "Error: Package/network import not bound: https://example.invalid/test.mjs\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:17:105)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:97\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:3"
+      },
+      "calls": 0
+    },
+    {
+      "specifier": "unbound-package",
+      "error": {
+        "name": "Error",
+        "message": "Package/network import not bound: unbound-package",
+        "code": null,
+        "stack": "Error: Package/network import not bound: unbound-package\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:17:105)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:97\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:3"
+      },
+      "calls": 0
+    },
+    {
+      "specifier": "../outside.mjs",
+      "error": {
+        "name": "Error",
+        "message": "Candidate import escaped authenticated compiled tree",
+        "code": null,
+        "stack": "Error: Candidate import escaped authenticated compiled tree\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:22:124)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:85\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:3"
+      },
+      "calls": 1
+    },
+    {
+      "specifier": "./escape.mjs",
+      "error": {
+        "name": "Error",
+        "message": "Candidate import escaped authenticated compiled tree",
+        "code": null,
+        "stack": "Error: Candidate import escaped authenticated compiled tree\n    at Module.resolve (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/import-fence.mjs:22:124)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:173:85\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:170:3"
+      },
+      "calls": 1
+    }
+  ],
+  "rejected": null,
+  "activeChildren": []
+}

@@ -1,0 +1,165 @@
+{
+  "name": "batch-byte-cap",
+  "pid": 66288,
+  "killed": false,
+  "readyAt": 40.54291599999988,
+  "code": 0,
+  "signal": null,
+  "ipcBytes": 1751,
+  "streamBytes": 0,
+  "stderr": "",
+  "events": [
+    {
+      "event": "disconnect",
+      "values": []
+    },
+    {
+      "event": "stdout-close"
+    },
+    {
+      "event": "stderr-close"
+    },
+    {
+      "event": "exit",
+      "values": [
+        0,
+        null
+      ]
+    },
+    {
+      "event": "close",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "name": "batch-byte-cap"
+    },
+    {
+      "type": "done",
+      "name": "batch-byte-cap",
+      "observations": [
+        {
+          "label": "bounded-batches",
+          "value": {
+            "batches": [
+              1,
+              1,
+              1
+            ],
+            "client": {
+              "metrics": {
+                "created": 1,
+                "terminated": 1,
+                "requests": 4,
+                "execCalls": 3,
+                "inputBytes": 262150,
+                "responseBytes": 12,
+                "startupMs": 21.686625,
+                "workMs": 0.39612399999998615,
+                "terminationMs": 0.9287909999999968,
+                "peakInflight": 1,
+                "listenersAfter": 0,
+                "exitCode": 1
+              },
+              "pending": false,
+              "busy": false,
+              "releaseHeld": false,
+              "capacity": 0,
+              "thread": -1,
+              "listeners": {
+                "message": 0,
+                "error": 0,
+                "exit": 0,
+                "messageerror": 0
+              },
+              "stdoutListeners": 0,
+              "stderrListeners": 0,
+              "signalListeners": 0
+            }
+          }
+        },
+        {
+          "label": "cleanup-before-outer-finally",
+          "value": {
+            "metrics": {
+              "created": 1,
+              "terminated": 1,
+              "requests": 4,
+              "execCalls": 3,
+              "inputBytes": 262150,
+              "responseBytes": 12,
+              "startupMs": 21.686625,
+              "workMs": 0.39612399999998615,
+              "terminationMs": 0.9287909999999968,
+              "peakInflight": 1,
+              "listenersAfter": 0,
+              "exitCode": 1
+            },
+            "pending": false,
+            "busy": false,
+            "releaseHeld": false,
+            "capacity": 0,
+            "thread": -1,
+            "listeners": {
+              "message": 0,
+              "error": 0,
+              "exit": 0,
+              "messageerror": 0
+            },
+            "stdoutListeners": 0,
+            "stderrListeners": 0,
+            "signalListeners": 0
+          }
+        }
+      ],
+      "cleanup": [
+        {
+          "metrics": {
+            "created": 1,
+            "terminated": 1,
+            "requests": 4,
+            "execCalls": 3,
+            "inputBytes": 262150,
+            "responseBytes": 12,
+            "startupMs": 21.686625,
+            "workMs": 0.39612399999998615,
+            "terminationMs": 0.9287909999999968,
+            "peakInflight": 1,
+            "listenersAfter": 0,
+            "exitCode": 1
+          },
+          "pending": false,
+          "busy": false,
+          "releaseHeld": false,
+          "capacity": 0,
+          "thread": -1,
+          "listeners": {
+            "message": 0,
+            "error": 0,
+            "exit": 0,
+            "messageerror": 0
+          },
+          "stdoutListeners": 0,
+          "stderrListeners": 0,
+          "signalListeners": 0
+        }
+      ],
+      "elapsedMs": 23.553084,
+      "memory": {
+        "rss": 52445184,
+        "heapTotal": 6701056,
+        "heapUsed": 4870360,
+        "external": 1926981,
+        "arrayBuffers": 10710
+      },
+      "flags": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "--stack-size=2048"
+      ]
+    }
+  ]
+}

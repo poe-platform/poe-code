@@ -1,0 +1,218 @@
+{
+  "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+  "argv": [
+    "--no-options",
+    "--homedir",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/gnupg",
+    "--batch",
+    "--no-autostart",
+    "--no-default-keyring",
+    "--no-keyring",
+    "--no-auto-check-trustdb",
+    "--no-auto-key-locate",
+    "--no-auto-key-retrieve",
+    "--no-auto-key-import",
+    "--with-colons",
+    "--with-fingerprint",
+    "--with-subkey-fingerprint",
+    "--show-keys",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data"
+  ],
+  "env": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/home",
+    "GNUPGHOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/gnupg",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/empty",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "DYLD_PRINT_LIBRARIES": "1"
+  },
+  "identities": [
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "bytes": 538432,
+      "mode": "555",
+      "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "bytes": 1074432,
+      "mode": "555",
+      "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac"
+    },
+    {
+      "path": "/opt/homebrew/opt/gettext/lib/libintl.8.dylib",
+      "resolved": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+      "bytes": 228800,
+      "mode": "444",
+      "sha256": "0c6d618e75fea85cc3d631e164a71766fba9341d19ce1f723300c52e63037c51"
+    },
+    {
+      "path": "/opt/homebrew/opt/libgcrypt/lib/libgcrypt.20.dylib",
+      "resolved": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+      "bytes": 974496,
+      "mode": "444",
+      "sha256": "0c69b9bb708895ce5f5f966aefa3db58b3faad7bb7d98c8fde7839c8ce13c644"
+    },
+    {
+      "path": "/opt/homebrew/opt/libassuan/lib/libassuan.9.dylib",
+      "resolved": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+      "bytes": 98896,
+      "mode": "444",
+      "sha256": "95756ea58650c98c22e238599c4cae84319d45062ab143f14ddd498a6f86b658"
+    },
+    {
+      "path": "/opt/homebrew/opt/npth/lib/libnpth.0.dylib",
+      "resolved": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+      "bytes": 54848,
+      "mode": "444",
+      "sha256": "af7db20f7445a08cfca04680e110e414faad8919e4993d7d73d0cc5b9a663e62"
+    },
+    {
+      "path": "/opt/homebrew/opt/libgpg-error/lib/libgpg-error.0.dylib",
+      "resolved": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+      "bytes": 181920,
+      "mode": "444",
+      "sha256": "bff87750b336d72fd4ba3db1f174979e662043b56f1e659c6f2c2a9b5500fa85"
+    },
+    {
+      "path": "/opt/homebrew/opt/readline/lib/libreadline.8.dylib",
+      "resolved": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+      "bytes": 314272,
+      "mode": "444",
+      "sha256": "7d74566dcbd3f64a5ec6266c8285e48f0214a9d2f36ad5f158b4282a3f10b9a9"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e",
+      "bytes": 573440,
+      "mode": "755",
+      "regular": true,
+      "sha256": "23f83bb30ccedb95598b24850ac875df4031b84fa76da68cb6b1abff2537ef75"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01",
+      "bytes": 1702723584,
+      "mode": "755",
+      "regular": true,
+      "sha256": "ce476f10e3ea73246d7afd68d451feabab2cf490879e198964016c733faa1d15"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata",
+      "bytes": 233996288,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e6ceb585882a12a180584cb39654f01cce6f4712ebc806232af230582bb0f7b8"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly",
+      "bytes": 126664704,
+      "mode": "755",
+      "regular": true,
+      "sha256": "c6d9f2c9837e101d8bf63f36a9ef48acb6b0f8cfe940d6ddcd41c4c3f452eef8"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit",
+      "bytes": 601358336,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e950f0ef3f3aab696926dd725a1ce3792be0b699975881ca6a990a4ad633049e"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05",
+      "bytes": 1825177600,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e5d615efc54391e8f46bc0c47102b22771d1ea9fcee39c3523ff60900ed03b10"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata",
+      "bytes": 237207552,
+      "mode": "755",
+      "regular": true,
+      "sha256": "723faa7ae72f3643d7b2cd5ee04838e34878086611a8dc06f3d39beb18c36dba"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly",
+      "bytes": 7290880,
+      "mode": "755",
+      "regular": true,
+      "sha256": "5b1b963becd703c424e98cc30e17f0732a0bdc275681957580b8352f3057c6fc"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit",
+      "bytes": 616185856,
+      "mode": "755",
+      "regular": true,
+      "sha256": "be37939c10b4f7a76a43c44c8556343e4219bd24a49509075ead2a942c146431"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09",
+      "bytes": 165773312,
+      "mode": "755",
+      "regular": true,
+      "sha256": "568bc08127a319958eb58cc97cb6dbe6037d0bc389d6d796eb3a61bc83dc719d"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata",
+      "bytes": 21872640,
+      "mode": "755",
+      "regular": true,
+      "sha256": "6e7fb49ae747ee5de1eb601863bb3323fe978ce934537fdbc9f524c0c3746578"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11",
+      "bytes": 32768,
+      "mode": "755",
+      "regular": true,
+      "sha256": "65e7fbc5db98baca30cb60db2ec12c607bc2832f8cc2b43d734290779e127e1b"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit",
+      "bytes": 249774080,
+      "mode": "755",
+      "regular": true,
+      "sha256": "468c2658c38eb2ddc41bbaeba5e539f403c3afd6fade16704f3216807d5d0f93"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.atlas",
+      "bytes": 2368216,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e0599b7cbba24b52fb4910cda6e9a494e895127de74551699e6e7dd838e61ee6"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.map",
+      "bytes": 1335703,
+      "mode": "755",
+      "regular": true,
+      "sha256": "22fb14ddcf854e3d828696b9b34b11f247b74ae456468bfc700b8cc20b14365b"
+    },
+    {
+      "path": "/usr/lib/dyld",
+      "resolved": "/usr/lib/dyld",
+      "role": "BINARY",
+      "bytes": 2357376,
+      "mode": "755",
+      "sha256": "a572fe3d9d46fc2c6461745a13940ec63de8c9ab333fcba5ef1e112783e521a7"
+    },
+    {
+      "path": "/System/Library/CoreServices/SystemVersion.plist",
+      "resolved": "/System/Library/CoreServices/SystemVersion.plist",
+      "role": "TEXT",
+      "bytes": 604,
+      "mode": "444",
+      "sha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "capture": "SystemVersion.plist.data"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data",
+      "bytes": 2200,
+      "mode": "600",
+      "sha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8"
+    }
+  ],
+  "platformQualification": "STATIC_CACHE_HASHES_PLUS_ACTUAL_DYLD_DIAGNOSTICS_NOT_OS_FENCE"
+}

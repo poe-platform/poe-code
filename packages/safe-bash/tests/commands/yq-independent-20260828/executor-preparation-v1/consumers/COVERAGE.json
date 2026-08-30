@@ -1,0 +1,224 @@
+{
+  "schema": 1,
+  "frameworkRecordCount": 194,
+  "overlayProofRoles": 8,
+  "countsAreNotSemanticPasses": true,
+  "cases": [
+    {
+      "id": "MOV-01",
+      "category": "MOVED",
+      "input": {
+        "scenario": "future candidate constructed from exact 5137 baseline plus separately accepted 74361026 length prerequisite plus new yq files/private query-core adapter only"
+      },
+      "expect": {
+        "assertions": [
+          "Authenticate entire scoped diff and baseline blobs; no broad jq move/refactor, source copy, hidden extra fixes or live overlays; type-only/public export changes require integration owner acceptance."
+        ]
+      },
+      "authority": [
+        "final#/privateAdapter/scope",
+        "baseline:parser",
+        "length:74361026502d76b8c2b696f9c60e410ac9b78d95"
+      ],
+      "replay": [
+        "R-CANDIDATE-AUTHENTICATION"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "SOURCE_ADMISSION"
+    },
+    {
+      "id": "MOV-02",
+      "category": "MOVED",
+      "input": {
+        "scenario": "later authorized build moved public consumer to an isolated directory outside package source; public imports only"
+      },
+      "expect": {
+        "assertions": [
+          "Factories come from inspected built declarations/export map only after integration; no tsconfig path trick, private deep import, source loader or invented API."
+        ]
+      },
+      "authority": [
+        "final#/publicApi"
+      ],
+      "replay": [
+        "R-PUBLIC-CONSUMER"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "PUBLIC_PACKAGE_ADMISSION_PENDING"
+    },
+    {
+      "id": "MOV-03",
+      "category": "MOVED",
+      "input": {
+        "scenario": "independent review of baseline jq parser/interpreter/numbers/ordered-object blobs plus narrow prerequisite delta"
+      },
+      "expect": {
+        "assertions": [
+          "Existing jq regressions remain required; case inventory and baseline blob agreement are not all-input or current full-gate proof."
+        ]
+      },
+      "authority": [
+        "final#/fixedSourceReferences",
+        "final#/qualification"
+      ],
+      "replay": [
+        "R-CANDIDATE-AUTHENTICATION"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "SOURCE_IDENTITY_PLUS_SEPARATE_JQ_REGRESSIONS"
+    },
+    {
+      "id": "TYP-01",
+      "category": "TYPE",
+      "input": {
+        "typescript": "createYqCommand(); createYqCommands(); yqCommands(); yqCommands({replace:true});"
+      },
+      "expect": {
+        "typecheck": "accept after authorized public integration",
+        "assertions": [
+          "One CommandDefinition, readonly definition array, and VirtualShellPlugin respectively."
+        ]
+      },
+      "authority": [
+        "final#/publicApi"
+      ],
+      "replay": [
+        "R-PUBLIC-CONSUMER"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "STRICT_DECLARATION_CONSUMER"
+    },
+    {
+      "id": "TYP-02",
+      "category": "TYPE",
+      "input": {
+        "typescript": "createYqCommand({}); createYqCommands({replace:true});"
+      },
+      "expect": {
+        "typecheck": "reject: factories have no options"
+      },
+      "authority": [
+        "final#/publicApi"
+      ],
+      "replay": [
+        "R-PUBLIC-CONSUMER"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "STRICT_DECLARATION_CONSUMER"
+    },
+    {
+      "id": "TYP-03",
+      "category": "TYPE",
+      "input": {
+        "typescript": "yqCommands({limits:{maxSteps:1}}); yqCommands({replace:'yes'});"
+      },
+      "expect": {
+        "typecheck": "reject: replace-only and boolean"
+      },
+      "authority": [
+        "final#/publicApi"
+      ],
+      "replay": [
+        "R-PUBLIC-CONSUMER"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "STRICT_DECLARATION_CONSUMER"
+    },
+    {
+      "id": "TYP-04",
+      "category": "TYPE",
+      "input": {
+        "scenario": "attempt package exports YqLimits, defaultYqLimits, YqQuerySession, createYqQuerySession or parser"
+      },
+      "expect": {
+        "typecheck": "reject: no such public exports"
+      },
+      "authority": [
+        "final#/publicApi",
+        "final#/privateAdapter"
+      ],
+      "replay": [
+        "R-PUBLIC-CONSUMER"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "STRICT_DECLARATION_CONSUMER"
+    },
+    {
+      "id": "TYP-05",
+      "category": "TYPE",
+      "input": {
+        "scenario": "runtime plugin option getter counts reads; invalid replace value; unknown own enumerable key; null options"
+      },
+      "expect": {
+        "assertions": [
+          "replace read exactly once and validated before definitions/host effects; only undefined/boolean permitted; invalid options throw before registration."
+        ]
+      },
+      "authority": [
+        "final#/publicApi"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "RUNTIME_WORKER"
+    },
+    {
+      "id": "TYP-06",
+      "category": "TYPE",
+      "input": {
+        "scenario": "register yq twice, first replace omitted then replacement explicitly true; snapshot registry before collision"
+      },
+      "expect": {
+        "assertions": [
+          "Full one-command collision preflight; no partial registration on refusal; explicit replace permits intentional replacement; no default curl/SafeJS or extra family registration."
+        ]
+      },
+      "authority": [
+        "final#/publicApi",
+        "adoption#/approvedShape"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "RUNTIME_WORKER"
+    },
+    {
+      "id": "TYP-07",
+      "category": "TYPE",
+      "input": {
+        "scenario": "strict consumer passes yqCommands({replace:undefined}) with exactOptionalPropertyTypes"
+      },
+      "expect": {
+        "typecheck": "reject under exactOptionalPropertyTypes for the sealed replace?: boolean signature",
+        "assertions": [
+          "Runtime accepts undefined; type rejection is recorded separately, not silently repaired by adding | undefined. Any signature amendment requires later authority."
+        ]
+      },
+      "authority": [
+        "final#/publicApi"
+      ],
+      "replay": [
+        "R-PUBLIC-CONSUMER"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "STRICT_DECLARATION_CONSUMER"
+    },
+    {
+      "id": "TYP-08",
+      "category": "TYPE",
+      "input": {
+        "scenario": "inspect private signatures against existing Json including Decimal; no public dependency injection"
+      },
+      "expect": {
+        "assertions": [
+          "Private session uses existing Json/Ast/Interpreter/Budget/ordered-object/Decimal semantics; signal borrowed, one-read validation; no new public limits bridge."
+        ]
+      },
+      "authority": [
+        "final#/privateAdapter",
+        "final#/defaultBudgetMapping"
+      ],
+      "replay": [
+        "R-INTERNAL-OBSERVATION"
+      ],
+      "execution": "PENDING_ACTUAL_CANDIDATE",
+      "proofRole": "PRIVATE_SOURCE_REVIEW_NO_PUBLIC_DI"
+    }
+  ]
+}

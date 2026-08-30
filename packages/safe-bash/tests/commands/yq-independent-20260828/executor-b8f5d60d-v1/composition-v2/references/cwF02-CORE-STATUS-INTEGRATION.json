@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "status": "EXPLICIT_ROOT_ROUTING_REQUIREMENT_NOT_APPLIED_CORE_PATCH",
+  "abi": {
+    "revision": "9d582d791336fd66d865f6592b830c39a359d344",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+    "blob": "822163b35046c81bddda3d92a540292101153af7",
+    "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "bytes": 8164,
+    "gitMode": "100644",
+    "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+  },
+  "newMethods": [],
+  "newTopLevelStatuses": [],
+  "existingStatuses": [
+    "PASS",
+    "FAIL",
+    "UNRUN",
+    "INCOMPLETE"
+  ],
+  "frozenWitnessId": "UTF-22--whole",
+  "unchangedExpected": {
+    "status": 0,
+    "stdoutUtf8": "[1,2]\n",
+    "assertions": [
+      "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies."
+    ]
+  },
+  "affectedSlots": [
+    {
+      "id": "source-built-direct/LOAD-POSITIVE",
+      "variantId": null,
+      "environment": "source-built-direct",
+      "statusWhenKnownFactsMatch": "INCOMPLETE",
+      "classification": "PRISTINE_OBSERVATION_BINDING_GAP",
+      "positiveCredit": false,
+      "killCredit": false,
+      "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+      "mustDenyBeforeMaterializationAndImport": false
+    },
+    {
+      "id": "source-built-direct/MUT-RETAINED-VIEW",
+      "variantId": "retained-view",
+      "environment": "source-built-direct",
+      "statusWhenKnownFactsMatch": "UNRUN",
+      "classification": "UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP",
+      "positiveCredit": false,
+      "killCredit": false,
+      "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+      "mustDenyBeforeMaterializationAndImport": true
+    },
+    {
+      "id": "installed-moved-direct/LOAD-POSITIVE",
+      "variantId": null,
+      "environment": "installed-moved-direct",
+      "statusWhenKnownFactsMatch": "INCOMPLETE",
+      "classification": "PRISTINE_OBSERVATION_BINDING_GAP",
+      "positiveCredit": false,
+      "killCredit": false,
+      "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+      "mustDenyBeforeMaterializationAndImport": false
+    },
+    {
+      "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+      "variantId": "retained-view",
+      "environment": "installed-moved-direct",
+      "statusWhenKnownFactsMatch": "UNRUN",
+      "classification": "UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP",
+      "positiveCredit": false,
+      "killCredit": false,
+      "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+      "mustDenyBeforeMaterializationAndImport": true
+    }
+  ],
+  "unaffectedSlots": [
+    {
+      "id": "source-built-direct/MUT-QUOTED-DEL-DOUBLE",
+      "runtimeJobId": "UTF-02--single-byte",
+      "variantId": "quoted-del",
+      "environment": "source-built-direct",
+      "execution": "UNRUN",
+      "requirements": "Actually loaded modified entry/dependency and frozen witness; same-environment earlier149 pristine projection genuinely BOUND and known primitive facts correct; existing kill predicate, integrity and actual parent exit/reap unchanged."
+    },
+    {
+      "id": "source-built-direct/MUT-QUOTED-DEL-SINGLE",
+      "runtimeJobId": "UTF-03--whole",
+      "variantId": "quoted-del",
+      "environment": "source-built-direct",
+      "execution": "UNRUN",
+      "requirements": "Actually loaded modified entry/dependency and frozen witness; same-environment earlier149 pristine projection genuinely BOUND and known primitive facts correct; existing kill predicate, integrity and actual parent exit/reap unchanged."
+    },
+    {
+      "id": "source-built-direct/MUT-PENDING-SHADOW",
+      "runtimeJobId": "ALS-04--whole",
+      "variantId": "pending-shadow",
+      "environment": "source-built-direct",
+      "execution": "UNRUN",
+      "requirements": "Actually loaded modified entry/dependency and frozen witness; same-environment earlier149 pristine projection genuinely BOUND and known primitive facts correct; existing kill predicate, integrity and actual parent exit/reap unchanged."
+    },
+    {
+      "id": "installed-moved-direct/MUT-QUOTED-DEL-DOUBLE",
+      "runtimeJobId": "UTF-02--single-byte",
+      "variantId": "quoted-del",
+      "environment": "installed-moved-direct",
+      "execution": "UNRUN",
+      "requirements": "Actually loaded modified entry/dependency and frozen witness; same-environment earlier149 pristine projection genuinely BOUND and known primitive facts correct; existing kill predicate, integrity and actual parent exit/reap unchanged."
+    },
+    {
+      "id": "installed-moved-direct/MUT-QUOTED-DEL-SINGLE",
+      "runtimeJobId": "UTF-03--whole",
+      "variantId": "quoted-del",
+      "environment": "installed-moved-direct",
+      "execution": "UNRUN",
+      "requirements": "Actually loaded modified entry/dependency and frozen witness; same-environment earlier149 pristine projection genuinely BOUND and known primitive facts correct; existing kill predicate, integrity and actual parent exit/reap unchanged."
+    },
+    {
+      "id": "installed-moved-direct/MUT-PENDING-SHADOW",
+      "runtimeJobId": "ALS-04--whole",
+      "variantId": "pending-shadow",
+      "environment": "installed-moved-direct",
+      "execution": "UNRUN",
+      "requirements": "Actually loaded modified entry/dependency and frozen witness; same-environment earlier149 pristine projection genuinely BOUND and known primitive facts correct; existing kill predicate, integrity and actual parent exit/reap unchanged."
+    }
+  ],
+  "coreGateOrder": [
+    "Authenticate same-candidate/same-environment/same-GO earlier149 pristine capture before any mutant copy/materialization/import.",
+    "Known contradictory status/stdout/stderr or genuine pristine assertion failure remains FAIL and sticky; no gap result may clear it.",
+    "Absent prerequisite or an unbound natural-language observation remains UNRUN_CONTROL/INCOMPLETE, never product failure or kill credit.",
+    "For the two retained-view slots, the fixed UTF22 assertion makes the prerequisite unavailable in this cohort: deny before materialization/import. Leaf has the same early guard using immutable expected data.",
+    "Never return BOUND merely to satisfy the leaf. Frozen UTF22 assertions and F01 remain unchanged.",
+    "For all other mutants, require actual prior pristine success before admission. If unavailable evidence is only detected after materialization, that is a core admission-contract failure requiring the existing unsafe-stop treatment; a leaf UNRUN cannot retroactively authorize it."
+  ],
+  "leafRoleRules": {
+    "knownContradiction": "FAIL, even if projection is INCOMPLETE",
+    "knownUnboundPositive": "INCOMPLETE, no positive/fullrecord credit; a BOUND label alone cannot override the preserved assertion",
+    "retainedViewGap": "UNRUN, zero materialization/import/witness requests",
+    "lateOtherPrerequisiteIncomplete": "UNRUN_CONTROL with raw baseline/projection evidence; core must enforce the earlier gate and unsafe handling for violations",
+    "unknownProjectionStatus": "Unsafe refusal; not gap or pass"
+  },
+  "compositionRules": [
+    "Retain all10 slot reservations:4 known role gaps and6 future dynamic mutant checks. No workload rerouting, retries, profile expansion or semantic denominator changes.",
+    "INCOMPLETE/UNRUN are explicit proof gaps, never allPASS waivers. Any actual worker/parent nonzero,signal,timeout,overflow or failed integrity/reap remains aggregate failure.",
+    "Current core may still bind c035. Root routes this overlay and separately reviewed CW-F01 only after natural core stop and different review."
+  ],
+  "rootGO": false,
+  "coreChanged": false
+}

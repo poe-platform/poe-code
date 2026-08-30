@@ -1,0 +1,11 @@
+--- previous/private-expected.json
++++ status-binding-v2/private-expected.json
+@@ -1,7 +1,7 @@
+ {
+   "head": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+   "tree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+-  "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
++  "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? docs/plans/safejs-24h-audit-2026-08-27.md\n?? docs/plans/safejs-audit-data-pipelines-review-2026-08-27.md\n?? docs/plans/safejs-audit-streaming-sketches-2026-08-27.md\n?? out/\n?? packages/terminal-pilot/assets/\n",
+   "staged": "",
+   "index": {
+     "bytes": 431585,

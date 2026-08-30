@@ -1,0 +1,18 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/CASES.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/SOURCE.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/TOOL-CENSUS.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/close-observer.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/hash-regular-file.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/internal-loader-arguments.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/launch.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/loader.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/prepare.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/redirections-v2.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/resources.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/tool-closure.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/worker-policy.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/novel.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/run.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/PRESEAL.json
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-redirection-independent-20260829/n11-v3/REUSE.json

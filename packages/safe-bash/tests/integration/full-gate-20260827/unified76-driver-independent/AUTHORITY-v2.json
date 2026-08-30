@@ -1,0 +1,92 @@
+{
+  "schema": "unified76-independent-authority/v2",
+  "status": "HOLD_FINAL_PACKET_AND_DRIVER_REVIEW",
+  "frozenDriverControls": "A01-A22 NOT_EXECUTED; Phase A unchanged",
+  "chronology": {
+    "resumedUtc": "2026-08-28T00:47:55Z",
+    "firstSuccessorBodyReadUtc": "2026-08-28T00:48:41Z",
+    "authorization": "Resumed user/root instruction explicitly permits pinned86 driver body inspection and approves additive add4 MTS authority.",
+    "boundary": "Original preinspection freezes7f98f745/148d77b2 remain intact. Bodies read now, never retroactively called blind or pre-authoring. Only pinned Git bodies, no live driver modules or execution."
+  },
+  "revisions": {
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "driver": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+    "supersededPacket": "07047e8f7bd577f60350246b1380732712305f58",
+    "authority": "add4e9db6d8c9b946cf1c854562c4d6b56241890",
+    "checkerPolicyIntroduction": "02704bd1291b83763d7360b97bc5c6d50403ad10",
+    "timestampHelperChange": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+    "phaseA": "7f98f745ffbf14da484ca3867ebf09cfa18841a2",
+    "phaseB": "148d77b2f2a30d7e24a29e977dc9104cd02d1113",
+    "finalCandidate": null,
+    "finalDriver": null
+  },
+  "sources": [
+    {"id":"authority","revision":"authority","path":"tests/integration/full-gate-20260827/unified76-driver/MTS-AUTHORITY.json","sha256":"83421bd317c6e2f7aaa5dd81f8f1a8a103b597973a66e0cf3929d6ffe63c017f"},
+    {"id":"authorEvidence","revision":"authority","path":"tests/integration/full-gate-20260827/unified76-driver/AUTHOR-EVIDENCE.json","sha256":"bbd2daba7b6ae86341e6206394c9ee28911c96d0ba8b792c05a421fa5b27066a"},
+    {"id":"driverSeal","revision":"driver","path":"tests/integration/full-gate-20260827/unified76-driver/DRIVER.json","sha256":"b53d5726f5e8a824aaa48075e6332f39a80892996c04fef78e7d356e4a6aad97"},
+    {"id":"inventory","revision":"base","path":"tests/plugins/qualified-current-release/inventory.json","sha256":"725b0c12e7965bc3e400f25cae1a31a1d2f3e456b232f1bcc3a8bb561cc0a6f7"},
+    {"id":"checker","revision":"base","path":"tests/plugins/qualified-current-release/inventory-check.mjs","sha256":"1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3"},
+    {"id":"routes","revision":"base","path":"tests/plugins/qualified-current-release/consumers.mjs","sha256":"dd907b3f09da229685d5275be73160d0fd5f93eb6b9bc499793349a32e21e9d6"},
+    {"id":"dispatch","revision":"base","path":"scripts/verify-current-consumers.mjs","sha256":"09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c"},
+    {"id":"supervisor","revision":"base","path":"tests/integration/full-gate-20260827/supervise.mjs","sha256":"e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9"},
+    {"id":"fixtureProof","revision":"driver","path":"tests/integration/full-gate-20260827/unified76-driver/fixture-proof.mjs","sha256":"88a482875ef94778769dd45a97d95224e0bd38333a6d4eeb8402f13180360361"},
+    {"id":"reconstructionRecipe","revision":"driver","path":"tests/integration/full-gate-20260827/unified76-driver/reconstruct.mjs","sha256":"0e8e68dead9ac65450c9686f5d491a8ed974208a582842e477947f1980c75f16"}
+  ],
+  "f01": {
+    "resolution": "VERSIONED_BASE_METADATA_AUTHORITY; not final candidate or runtime acceptance",
+    "originalExit": 1,
+    "originalFinding": "The two SHA values genuinely differ. Old validator imposed inventory SHA equality on CURRENT; selected checker already enforces that field only for NONCURRENT. Keep old failure and both hashes, not a new hash waiver.",
+    "current": {
+      "path": "tests/fs/webdav/consumer/provider.mts",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "inventorySha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+      "gitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+      "actualSha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+      "bytes": 10948
+    },
+    "route": {
+      "group": "webdav-loopback",
+      "directory": "tests/fs/webdav/consumer",
+      "files": ["tests/fs/webdav/consumer/consumer.test.mts","tests/fs/webdav/consumer/example.mts","tests/fs/webdav/consumer/provider.mts","tests/fs/webdav/consumer/types.mts"],
+      "runtime": ["consumer.test.mjs"],
+      "requiredTests": 13,
+      "companionGroup": "webdav-timestamp-independent",
+      "companionRequiredTests": 23,
+      "qualification": "Static route/dispatch evidence only. Existing loopback thirteen and companion20 controls+3 mutant kills are not new executed passes or deployed-provider acceptance."
+    },
+    "noncurrentControl": {
+      "path": "tests/commands/column-stress/current-contract-review/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "inventorySha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",
+      "gitBlob": "3f5d9271336329a15ed75a6c208cea46de2f947c",
+      "actualSha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d"
+    },
+    "predicate": "Retain classification and recorded inventory identity. CURRENT requires exact reviewed group/path/runtime route plus actual BASE44 revision/blob/byte digest; recorded SHA does not replace actual selected bytes. NONCURRENT must still match inventory hash plus selected-base identity; reclassification cannot bypass checks. This bounded predicate is not author admission and does not authenticate all CURRENT runtime routes."
+  },
+  "staticControls": [
+    {"id":"P01","fixture":"current","mutation":"none","expected":"ACCEPT_BASE_METADATA"},
+    {"id":"P02","fixture":"current","mutation":"wrong-current-group","expected":"REJECT_CURRENT_ROUTE"},
+    {"id":"P03","fixture":"current","mutation":"omit-provider-from-route","expected":"REJECT_CURRENT_ROUTE"},
+    {"id":"P04","fixture":"current","mutation":"wrong-selected-git-blob","expected":"REJECT_SELECTED_BLOB"},
+    {"id":"P05","fixture":"current","mutation":"use-old-inventory-sha-as-actual-bytes","expected":"REJECT_SELECTED_DIGEST"},
+    {"id":"P06","fixture":"current","mutation":"use-superseded-candidate-as-present-base","expected":"REJECT_SELECTED_REVISION"},
+    {"id":"P07","fixture":"noncurrent","mutation":"none","expected":"ACCEPT_BASE_METADATA"},
+    {"id":"P08","fixture":"noncurrent","mutation":"wrong-noncurrent-byte-hash","expected":"REJECT_NONCURRENT_HASH"},
+    {"id":"P09","fixture":"noncurrent","mutation":"rewrite-noncurrent-recorded-hash","expected":"REJECT_INVENTORY_RECORD"},
+    {"id":"P10","fixture":"noncurrent","mutation":"reclassify-as-current","expected":"REJECT_CLASSIFICATION"}
+  ],
+  "packetBoundary": {
+    "driverSealCanonicalJsonSha256": "436e11579c0f4096d4f11ea83272c3af2f276ee94bbd972eccfd8eabbdd51553",
+    "profileEncodedSha256": "adea62d151c64794bb591ce0c414c182ba80acf324438ac4628011144777bec0",
+    "profilePayloadSha256Reported": "86699f558c53df7e6416819f86acd192cb438a1ec5e77063a212dcb6eb743ee1",
+    "rawEncodedSha256": "64308da952f0aa3ce8bcea3ccfb1762725241b3d176340febb0d1f15f6d08dc6",
+    "cleanupEnvelopeSha256Reported": "0fb7b9fc30e76b58d76e5ef8912c886ec0df766136523cc0a7417e5dbb2fd3ef",
+    "packageSha256Reported": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "authorOnlyResults": "54/0 controls,13/0 inventory,7/0 package controls; earlier6/7 package control failure retained. Fixture original58/10 and revised67/1, initial FAIL. These are AUTHOR claims, not independent passes.",
+    "runtimeClosure": "Profile receipt declares conservative FULL37397 committed entries/2382440287 logical bytes plus ancestor Git objects, streamed at execution; NOT compact4579 typing selection. Host npm/dependencies/support origins remain a separate open closure question.",
+    "rootAddendum": "Root permits one additional73->76 assertion hunk at stream-inspection public.test.ts:31 WITHIN THE SAME FOUR PATHS. Exact final patch/candidate/driver forthcoming; old67/1 outcome retained. This does not silently authorize a fifth file or arbitrary expected-name edits.",
+    "notDecodedOrExecuted": "Encoded profile/raw digests are streamed and checked without decoding the6.3MB raw payload or profile, extracting archives, reading tarball bytes, invoking admission, reconstructing or running anything from the author. Inner raw artifacts/outcomes and final cleanup envelope are not independently requalified."
+  }
+}

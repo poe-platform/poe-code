@@ -1,0 +1,135 @@
+{
+  "verdict": "Recommend scoped combined77 + Stage2 composition acceptance; not full77 gate",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "semanticFreeze": "1445dd79",
+  "executableFreeze": "b076eba4",
+  "typeBindingAmendment": "3c8a93d5",
+  "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+  "archiveSha256": "2d26d6798a877dc731268cc4a31c7757938e04002302ae128e92b69634c62c1b",
+  "selectedInputs": 271,
+  "packageFiles": 846,
+  "emittedFiles": 844,
+  "layouts": [
+    {
+      "layout": "installed",
+      "runtimeFamilies": 10,
+      "passed": 10,
+      "productModules": 207,
+      "typeFamilies": 4,
+      "correctedTypeCompileStatus": 0,
+      "exactNegativeTypeDiagnostics": 3
+    },
+    {
+      "layout": "moved",
+      "runtimeFamilies": 10,
+      "passed": 10,
+      "productModules": 207,
+      "typeFamilies": 4,
+      "correctedTypeCompileStatus": 0,
+      "exactNegativeTypeDiagnostics": 3
+    }
+  ],
+  "behavioralMutationsRejected": 3,
+  "admissionControls": 3,
+  "supervisedMainChildren": 12,
+  "typeOnlyChildren": 4,
+  "knownTemporaryRootsRemoved": 2,
+  "initialTypeBindingFailureRetained": true,
+  "newProductDefectsDemonstrated": 0,
+  "newExecutionsByDataVerifier": 0,
+  "qualifications": [
+    "Post-candidate pre-inspection semantic freeze",
+    "M01 requires bounded test watchdog; no forced process kill",
+    "No source/API changes",
+    "No component26/18/SafeJS25 rerun",
+    "Node22 Darwin only",
+    "Not a whole76/77 gate or private-engine proof"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "BINDING.md",
+      "bytes": 2467,
+      "sha256": "091db2167133a2e83942970e51263183c804a0aa2bc0503cbdab8085277ae7c7"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 5185,
+      "sha256": "f0bf59f94d1fd977b2f7dd2980080e6b843f621fc682e10cc2cb4d5f1cc2c366"
+    },
+    {
+      "path": "EXECUTION-FREEZE.json",
+      "bytes": 1162,
+      "sha256": "1472c8a30d8a79c5ad1fe994be97773e51e4449495bb67accda028a1843ee045"
+    },
+    {
+      "path": "FREEZE.json",
+      "bytes": 475,
+      "sha256": "91bc290c69065ed2df62c22c0b49282575054ed4eb8fb9a0635521c3cf234f34"
+    },
+    {
+      "path": "FREEZE.md",
+      "bytes": 1697,
+      "sha256": "437f6e5c7f8506724e9185628eb259d0da32669fde8e863b654d9974ccb3c86a"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 9610,
+      "sha256": "7a5b2ed8779a5e3b25f5eb4e3fdc4510e1752c311394f304b97fcac6af891893"
+    },
+    {
+      "path": "TYPE-BINDING-v2.json",
+      "bytes": 900,
+      "sha256": "9a722cb067c3499ec59be8b55ba83525fa4c1b45cd440385c4be976033c005a2"
+    },
+    {
+      "path": "actual-01.json.gz.base64",
+      "bytes": 2203165,
+      "sha256": "583f870007f3fe4cd2f9d1b8e979e715b0d8bd975e486a88d2716d705063d0e6"
+    },
+    {
+      "path": "guard.mjs",
+      "bytes": 873,
+      "sha256": "4a832aef8caf484e5e4b58663ae88b490bd5647295781eb683203d38827e2d6b"
+    },
+    {
+      "path": "mutations.json",
+      "bytes": 847,
+      "sha256": "8e9903844597888fe670c2f9382c5b86d9d7eb9a193ea856b884b0be047d5c2f"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 15603,
+      "sha256": "44bcf1ebceac7c176ed729d7322c26693fff4d5806f20367ecc118569312f49a"
+    },
+    {
+      "path": "runtime.mjs",
+      "bytes": 12741,
+      "sha256": "ac99bf4a69dcf8f5d00567c6e60604511710d3989bf16c8f6d3b18ea2f1ca30b"
+    },
+    {
+      "path": "type-observations-v2.json.gz.base64",
+      "bytes": 5493,
+      "sha256": "d8fc3ecf1df8b7f8ff0a8c2ac875e3d1792ac9aa81f88c1be9e333a3f516639a"
+    },
+    {
+      "path": "types-v2.mjs",
+      "bytes": 6425,
+      "sha256": "3a2a55e4626544bc7a182d61db31ac658cc2dac5215d9abc69b2aa5e8b766cf3"
+    },
+    {
+      "path": "types-v2.mts.fixture",
+      "bytes": 1815,
+      "sha256": "0b2be298cc7909e9894ff0c0bd13de10805b79a590df164defdbf39c74c79ef3"
+    },
+    {
+      "path": "types.mts.fixture",
+      "bytes": 1821,
+      "sha256": "3554df08598ff08023325dc081fc693e6595a9c3fe76dee5935e8424b529884a"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 6881,
+      "sha256": "0702465cec5ce610c88f2cd41682ae39cf36414ee994a13724f510adb59d420d"
+    }
+  ]
+}

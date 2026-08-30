@@ -1,0 +1,40 @@
+{
+  "schema": "remaining-harness-v5-draft-source-HOLD",
+  "date": "2026-08-28",
+  "classification": "Preserved unqualified source after preseal-authoring assertion failure; NOT an executable preseal or GO",
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "authoringInvocations": 1,
+  "authoringExit": 1,
+  "failedSource": "author.mjs:72",
+  "failure": "Compared backend fields real/mock-s3 to scoped job IDs real-scoped/mock-s3-scoped",
+  "correctionOrRetry": false,
+  "discoveryLaunched": false,
+  "ownerLaunched": false,
+  "controlsCompleted": 0,
+  "controlsDenominator": 6,
+  "fixtureDataChecksRun": 0,
+  "unknownPlatformValueRemainsUnknown": true,
+  "generatedArtifactsAbsent": [
+    "FIXTURES-v5.json",
+    "REMAINING-v5.json",
+    "INPUTS-v5.json",
+    "DISCOVERY-PRESEAL.json",
+    "attempt-01"
+  ],
+  "files": {
+    "CALLGRAPH.md": { "bytes": 3354, "mode": 420, "sha256": "6acb8cb791dbf163c43ace22ecedc57ee4a74da19556cc4d4d9fc0c9fbe4f1a5" },
+    "PLAN.md": { "bytes": 8298, "mode": 420, "sha256": "5694c26217ab339a3e38091b413f4bcefbea4d6f89741518661e14d5bafd5d2d" },
+    "author.mjs": { "bytes": 14261, "mode": 420, "sha256": "f0493da9cc46f916bba85b030485adada22adc8d8d79d2989578ef23752ead1d" },
+    "child.mjs": { "bytes": 1988, "mode": 420, "sha256": "26df3bfb5a139942e9dd464891848cd5e9a1628e5971219868df1ec4e7e8c91b" },
+    "data-controls.mjs": { "bytes": 7923, "mode": 420, "sha256": "4a16a11018e3935c60af883a44ade4ec1e59f86bf2cb1ca860c26e47e80e194f" },
+    "evidence-author.mjs": { "bytes": 11013, "mode": 420, "sha256": "4ea002e586ff9027f50828c047fd2045ae438bf5c7fe2b08a631973603e40afa" },
+    "fixture-data.mjs": { "bytes": 1450, "mode": 420, "sha256": "e00dce91b409d334987c7811bf1277b8a47f640845dc05550a7cdff012b92964" },
+    "owner.mjs": { "bytes": 21004, "mode": 420, "sha256": "6c4c6cf5098d89cce7501c5dd2dcefc8c76a5c7b37dafe227cc5e17ab8bfcbfe" },
+    "primitives.mjs": { "bytes": 2593, "mode": 420, "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65" }
+  },
+  "toolsObservedAfterFailureNotPrequalification": {
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node": { "bytes": 112989184, "mode": 493, "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011" },
+    "/Library/Developer/CommandLineTools/usr/bin/git": { "bytes": 7604272, "mode": 493, "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae" }
+  },
+  "admission": "NONE. Preserve failed assertion; explicit later root authority required before any correction or launch."
+}

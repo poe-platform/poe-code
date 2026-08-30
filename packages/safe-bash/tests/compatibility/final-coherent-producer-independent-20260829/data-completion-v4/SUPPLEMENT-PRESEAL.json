@@ -1,0 +1,23 @@
+{
+  "oldCommit": "41ec33405ba30df2435b4c0615ade7249f07d60a",
+  "oldRelative": "tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v3/review.mjs",
+  "originalSourceSha256": "92fe8cdec85450393d8eb9efa532c8c38bedee8c305af9678e1ead037e266297",
+  "transformedSourceSha256": "390401da24c51f186291b6608b1987b88f9088d8a40479559a74c64800b951be",
+  "helperSha256": "c76ba855a1296fee0cea94e69f926d68ea337db4a6ea49f4b3b7aa1415cf0762",
+  "classification": "Exactly2 util in dist/commands/internal.d.ts and1 path in dist/contracts/path.d.ts; literal dynamic module typing edges only. isBuiltin checked. Author builtin:false retained as metadata qualification.",
+  "sourceMaps": "Resolve typed sourceRoot/sources relative to map origin into exact frozen SOURCE-INPUTS, not shipping; reject unknown/escape/duplicate normalized origins.",
+  "controls": [
+    "B01",
+    "B02",
+    "B03"
+  ],
+  "runtime": 0,
+  "roles": {
+    "helper": 1,
+    "gitMetadata": 3,
+    "syntaxOnly": 1,
+    "ceilingKnownOS": 14,
+    "peak": 3
+  },
+  "historical": "v3 exit1/3controls preserved; no product/build/pack/smoke rerun"
+}

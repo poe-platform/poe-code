@@ -1,0 +1,656 @@
+*** Begin Patch
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/workflows.mjs
++import assert from 'node:assert/strict';
++import { createHash } from 'node:crypto';
++
++export const defaultNames = Object.freeze(['[','apply_patch','awk','base32','base64','basename','cat','chmod','cksum','column','comm','cp','cut','date','diff','dirname','du','echo','egrep','env','expand','expr','false','fgrep','file','find','fold','git','grep','gunzip','gzip','head','html-to-markdown','join','jq','ln','ls','md5sum','mkdir','mktemp','mv','nl','od','paste','patch','printenv','printf','pwd','readlink','realpath','rev','rg','rm','rmdir','sed','seq','sha1sum','sha256sum','sleep','sort','split','stat','strings','tac','tail','tar','tee','test','timeout','touch','tr','tree','true','unexpand','uniq','wc','which','xargs','xxd','zcat']);
++export const workflowIds = Object.freeze(Array.from({ length: 18 }, (_, index) => 'C' + String(index + 1).padStart(2, '0')));
++export const engineIds = Object.freeze(['C10','C11','C15','C16','C18']);
++export const engineFreeIds = Object.freeze(workflowIds.filter(id => !engineIds.includes(id)));
++const encode = value => new TextEncoder().encode(value);
++const text = value => new TextDecoder().decode(value);
++const outcome = promise => promise.then(value => ({ kind: 'return', value }), reason => ({ kind: 'throw', reason }));
++const turn = () => new Promise(resolve => setImmediate(resolve));
++function deferred() { let resolve; const promise = new Promise(accept => { resolve = accept; }); return { promise, resolve }; }
++function quote(value) { return "'" + value.replaceAll("'", "'\\''") + "'"; }
++const gitBlob = value => { const body = Buffer.from(value); return createHash('sha1').update('blob ' + body.length + '\0').update(body).digest('hex'); };
++const expectedDiff = replacement => 'diff --git a/README.md b/README.md\nindex ' + gitBlob('hello staged\n').slice(0, 7) + '..' + gitBlob(replacement + '\n').slice(0, 7) + ' 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello staged\n+' + replacement + '\n';
++
++export async function runWorkflow(id, context) {
++  assert.ok(workflowIds.includes(id));
++  const { api, nodeApi, fixture } = context;
++  if (engineIds.includes(id)) assert.equal(context.engine?.role, 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE');
++  const shells = [], releases = new Set(), events = [], memory = new api.MemoryFileSystem();
++  let prepares = 0, failure, failed = false;
++  const facts = { id, role: engineIds.includes(id) ? 'PUBLIC_ENGINE_REQUIRED' : 'ENGINE_FREE_PRODUCT_PROFILE', status: 'UNRUN', events };
++  const inert = { profile: nodeApi.NODE_PROFILE, identity: 'coherent-never-started-provider', prepare() { prepares++; throw new Error('unexpected provider preparation'); } };
++  const make = (filesystem = memory, cwd = '/') => { const shell = new api.Shell({ fs: filesystem, cwd, env: {} }); shell.use(api.agentCommands()); shells.push(shell); return shell; };
++  const addNode = (shell, grants = {}, provider = inert, replace = false) => shell.use(nodeApi.nodeCommands({ provider, grants, replace }));
++  const realProvider = () => {
++    const provider = context.engine.createProvider();
++    return { profile: provider.profile, identity: provider.identity, prepare(request, services) { prepares++; facts.requests ??= []; facts.requests.push({ argv: [...request.argv], cwd: request.cwd, filename: request.filename, selector: request.selector }); return provider.prepare(request, services); } };
++  };
++  const expect = async (shell, script, stdout, status = 0) => { const result = await shell.exec(script); assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout); assert.equal(result.stderr, ''); return result; };
++  const fixtureSetup = async () => {
++    assert.equal(fixture.virtualRoot, '/repo'); assert.equal(fixture.oids.headCommit, '1cec77171d8321d533b3aa50b7a1a9df02b10816');
++    for (const entry of fixture.files) {
++      const filename = '/repo/' + entry.path; assert.ok(!entry.path.split('/').includes('..') && !entry.path.startsWith('/'));
++      await memory.mkdir(filename.slice(0, filename.lastIndexOf('/')), { recursive: true });
++      if (Object.hasOwn(entry, 'symlink')) await memory.symlink(entry.symlink, filename);
++      else await memory.writeFile(filename, Object.hasOwn(entry, 'base64') ? new Uint8Array(Buffer.from(entry.base64, 'base64')) : encode(entry.text), { mode: entry.mode });
++    }
++  };
++  const gitSnapshot = async () => Promise.all(fixture.files.filter(entry => entry.path.startsWith('.git/')).map(async entry => [entry.path, Buffer.from(await memory.readFile('/repo/' + entry.path)).toString('base64')]));
++  const curl = (shell, redirect = false) => {
++    const authorized = [], requests = [], disposals = [];
++    shell.use(api.networkCommands({ authorize(request) { authorized.push(request.url); return ['https://one.invalid/start','https://two.invalid/end'].includes(request.url); }, async transport(request) {
++      requests.push({ url: request.url, headers: request.headers.map(pair => [...pair]) });
++      const isRedirect = redirect && request.url === 'https://one.invalid/start';
++      return { status: isRedirect ? 302 : 200, statusText: isRedirect ? 'Found' : 'OK', headers: isRedirect ? [['location','https://two.invalid/end']] : [], body: (async function* () { if (!isRedirect) yield encode('{"text":"hello changed\\n"}\n'); })(), async dispose() { disposals.push(request.url); } };
++    } }));
++    return { authorized, requests, disposals };
++  };
++  try {
++    if (id === 'C01') {
++      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
++      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
++      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
++      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
++      assert.throws(() => nodeApi.nodeCommands({}));
++    } else if (id === 'C02') await expect(make(), 'set -eu -o pipefail; value=\'a b\'; [[ "$value" == \'a b\' && ( x == x || $missing == z ) ]]; printf \'%s\\n\' "$value" | cat', 'a b\n');
++    else if (id === 'C03') await expect(make(), "[[ abc == a* ]]; printf '%s\\n' \"$?\"; [[ abc == 'a*' ]]; printf '%s\\n' \"$?\"", '0\n1\n');
++    else if (id === 'C04') await expect(make(), 'set -u; a=(zero one); f(){ printf \'%s\\n\' "${a[1]}"; }; f', 'one\n');
++    else if (id === 'C05') await expect(make(), 'set -o pipefail; false | cat; printf \'%s\\n\' "$?"', '1\n');
++    else if (id === 'C06') { await expect(make(), 'f(){ printf out; printf err >&2; }; f 2>/audit |& cat', 'outerr'); assert.equal(text(await memory.readFile('/audit')), ''); }
++    else if (id === 'C07') {
++      await expect(make(), 'f(){ printf out; printf err >&2; }; f &>/both 1>/out', '');
++      assert.equal(text(await memory.readFile('/both')), 'err'); assert.equal(text(await memory.readFile('/out')), 'out');
++      facts.writerQualification = 'Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.';
++    } else if (id === 'C08') { await memory.writeFile('/source.sh', encode("let 'n+=3'")); await expect(make(), 'n=2; . /source.sh; printf \'%s\\n\' "$n"', '5\n'); }
++    else if (id === 'C09') {
++      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \'%s\' "$missing"; node -p \'1\'');
++      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing/); assert.equal(prepares, 0);
++      facts.diagnostic = 'name/presence only; exact GNU status/bytes unqualified';
++    } else if (id === 'C10') {
++      await memory.writeFile('/entry.cjs', encode('console.log(process.argv[2]);'));
++      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
++      await expect(shell, "node /entry.cjs 'a b' '*' ''", 'a b\n'); assert.deepEqual(facts.requests[0].argv.slice(-3), ['a b','*','']);
++    } else if (id === 'C11') {
++      await fixtureSetup(); const before = await gitSnapshot(), shell = make(); const network = curl(shell);
++      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
++      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require("fs");const data=JSON.parse(fs.readFileSync("/payload.json","utf8"));fs.writeFileSync("/repo/README.md",data.text);')}`, '');
++      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello changed\n');
++      await expect(make(new api.ReadOnlyFileSystem(memory), '/repo'), 'git diff -- README.md', expectedDiff('hello changed'));
++      assert.deepEqual(await gitSnapshot(), before); assert.deepEqual(network.authorized, ['https://one.invalid/start']);
++    } else if (id === 'C12') {
++      const shell = make(), network = curl(shell, true);
++      await expect(shell, "curl -sS -L -H 'Authorization: Bearer synthetic' -o /payload.json https://one.invalid/start", '');
++      assert.deepEqual(network.authorized, ['https://one.invalid/start','https://two.invalid/end']); assert.equal(network.requests.length, 2);
++      assert.equal(network.requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'), false);
++      assert.equal(text(await memory.readFile('/payload.json')), '{"text":"hello changed\\n"}\n'); assert.equal(network.disposals.length, 2);
++    } else if (id === 'C13') {
++      await fixtureSetup(); const before = await gitSnapshot(), shell = make(new api.ReadOnlyFileSystem(memory), '/repo');
++      await expect(shell, 'git status --short', 'M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n');
++      await expect(shell, 'git rev-parse HEAD', fixture.oids.headCommit + '\n'); await expect(shell, 'git ls-files', 'README.md\nsrc/app.txt\n');
++      assert.deepEqual(await gitSnapshot(), before);
++    } else if (id === 'C14') {
++      await fixtureSetup(); const before = await gitSnapshot(), shell = make(memory, '/repo');
++      const patch = '*** Begin Patch\n*** Update File: /repo/README.md\n@@\n-hello staged\n+hello patched\n*** End Patch\n';
++      await expect(shell, `printf '%s' ${quote(patch)} | apply_patch >/patch.audit; git diff -- README.md`, expectedDiff('hello patched'));
++      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello patched\n'); assert.deepEqual(await gitSnapshot(), before);
++      facts.patchStdout = 'redirected; not an exact diagnostic-format oracle';
++    } else if (id === 'C15') {
++      await memory.writeFile('/keep', encode('original')); const shell = make(new api.ReadOnlyFileSystem(memory));
++      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
++      const result = await shell.exec(`node -e ${quote('require("fs").writeFileSync("/keep","changed");')}`);
++      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /EROFS/); assert.equal(text(await memory.readFile('/keep')), 'original');
++    } else if (id === 'C16') {
++      const entered = deferred(), release = deferred(), controller = new AbortController(); const original = memory.readFile.bind(memory);
++      const releaseOwned = () => { events.push('release'); release.resolve(); }; releases.add(releaseOwned);
++      memory.readFile = async (filename, options) => { if (filename !== '/held') return original(filename, options); events.push('read-enter'); entered.resolve(); await release.promise; events.push('read-finalized'); throw options.signal.reason; };
++      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
++      shell.commands.register({ name: 'guard', execute(command) { command.registerCleanup(async () => { events.push('cleanup-enter'); await release.promise; events.push('cleanup-finished'); }); return command.invoke('node', ['-e','require("fs").readFileSync("/held","utf8");']); } });
++      const pending = outcome(shell.exec('guard', { signal: controller.signal })).then(result => { events.push('settled'); return result; });
++      try { await entered.promise; controller.abort(false); events.push('abort'); } finally { releaseOwned(); releases.delete(releaseOwned); }
++      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, false);
++      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled')); assert.ok(events.includes('read-finalized'));
++      facts.providerFinalization = 'controlled release only; no opaque preemption';
++    } else if (id === 'C17') {
++      const entered = deferred(), gate = deferred(), shell = make(); addNode(shell); let writes = 0, settled = false;
++      const release = () => { events.push('release'); gate.resolve(); }; releases.add(release);
++      shell.commands.register({ name: 'guard', execute(command) {
++        command.registerCleanup(async () => { events.push('cleanup-enter'); entered.resolve(); await gate.promise; events.push('cleanup-finished'); throw false; });
++        events.push('registered'); return command.invoke('f', []);
++      } });
++      const pending = outcome(shell.exec('f(){ printf "%s" "${absent:?required}"; }; guard; node -p \'1\'', { stderr: { async write() { writes++; events.push('diagnostic'); throw 0; } } })).then(result => { settled = true; events.push('settled'); return result; });
++      try { await entered.promise; await turn(); assert.equal(settled, false); } finally { release(); releases.delete(release); }
++      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, 0); assert.equal(writes, 1); assert.equal(prepares, 0);
++      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled'));
++    } else if (id === 'C18') {
++      facts.phase = 'collision-register';
++      const collided = make(); const original = { name: 'node', execute() { return { exitCode: 99 }; } }; collided.commands.register(original);
++      const registered = collided.commands.get('node'); assert.notEqual(registered, original); assert.equal(registered.execute, original.execute);
++      let setupFailure, setupFailurePresent = false, setupFailures = 0;
++      const collisionPlugin = nodeApi.nodeCommands({ provider: inert, grants: {} });
++      collided.use({ name: collisionPlugin.name, setup(host) { try { return collisionPlugin.setup(host); } catch (reason) { setupFailurePresent = true; setupFailures++; setupFailure = reason; events.push('collision-setup-rejected'); throw reason; } } });
++      facts.phase = 'collision-exec';
++      const result = await outcome(collided.exec('true')); assert.equal(result.kind, 'throw'); assert.equal(setupFailurePresent, true); assert.equal(setupFailures, 1); assert.equal(result.reason, setupFailure); assert.equal(result.reason.message, 'Command already registered: node');
++      facts.phase = 'registered-identity'; assert.equal(collided.commands.get('node'), registered); assert.equal(prepares, 0);
++      facts.phase = 'collision-dispose'; const disposed = await outcome(collided.dispose()); assert.equal(disposed.kind, 'return'); assert.equal(setupFailures, 1); events.push('collision-disposed');
++      const ownerIndex = shells.indexOf(collided); shells.splice(ownerIndex, 1);
++      facts.phase = 'replacement-register';
++      const shell = make(), options = { provider: realProvider(), grants: { stdoutWrite: true, stderrWrite: true }, replace: true };
++      shell.commands.register(original); const plugin = nodeApi.nodeCommands(options); options.replace = false; options.provider = null; options.grants.stdoutWrite = false;
++      shell.use(plugin); facts.phase = 'replacement-exec'; await expect(shell, "node -p '8'", '8\n'); assert.equal(prepares, 1); facts.phase = 'complete';
++    }
++    facts.status = 'PASS';
++  } catch (reason) { failed = true; failure = reason; facts.status = 'FAIL'; }
++  finally {
++    for (const release of releases) release();
++    const cleanup = await Promise.allSettled(shells.map(shell => shell.dispose()));
++    facts.shells = shells.length; facts.cleanup = cleanup.map(result => result.status); facts.prepares = prepares;
++    const rejected = cleanup.filter(result => result.status === 'rejected');
++    if (rejected.length) { facts.cleanupFailure = true; if (!failed) { failed = true; failure = rejected[0].reason; } }
++  }
++  if (failed) { facts.status = 'FAIL'; throw Object.assign(new Error('workflow ' + id + ' failed', { cause: failure }), { facts }); }
++  return facts;
++}
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/consumer.mjs
++import fs from 'node:fs';
++import { captureFailure } from './failure.mjs';
++import path from 'node:path';
++import assert from 'node:assert/strict';
++import { pathToFileURL } from 'node:url';
++import { admitFile } from './admission.mjs';
++import { runWorkflow, engineIds } from './workflows.mjs';
++
++export async function main(args) {
++  assert.equal(args.length, 4); assert.equal(args[0], '--run');
++  const request = JSON.parse(admitFile(args[1], { bytes: Number(args[3]), sha256: args[2] }, 1048576));
++  assert.equal(request.action, 'ROOT_RUN_COHERENT_B1_PUBLIC15');
++  assert.equal(request.sourceTree, '3adc676a0ab638c9788ef007e465931d65d2c6fe');
++  assert.equal(request.packageSha256, '2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca');
++  assert.deepEqual(request.ids, engineIds);
++  const packageRoot = fs.realpathSync(request.packageRoot); assert.equal(packageRoot, request.packageRoot);
++  const members = JSON.parse(admitFile(request.membership.path, request.membership, 1048576));
++  assert.equal(members.length, 1014);
++  const expected = new Map(members.map(entry => [entry.path, entry]));
++  const verify = () => {
++    const observed = [];
++    const walk = (directory, prefix = '') => {
++      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
++        assert.ok(!entry.isSymbolicLink() && entry.name !== 'AGENTS.md');
++        const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
++        if (entry.isDirectory()) walk(path.join(directory, entry.name), relative);
++        else { assert.ok(entry.isFile() && expected.has(relative)); admitFile(path.join(packageRoot, relative), expected.get(relative), 16777216); observed.push(relative); }
++      }
++    };
++    walk(packageRoot); assert.deepEqual(observed.sort(), [...expected.keys()].sort());
++  };
++  verify();
++  const rootURL = import.meta.resolve('virtual-bash'), nodeURL = import.meta.resolve('virtual-bash/commands/node');
++  assert.equal(rootURL, pathToFileURL(path.join(packageRoot, 'dist/index.js')).href);
++  assert.equal(nodeURL, pathToFileURL(path.join(packageRoot, 'dist/commands/node/index.js')).href);
++  await assert.rejects(import('virtual-bash/commands/node/host'));
++  const receipt = JSON.parse(admitFile(request.engineReceipt.path, request.engineReceipt, 131072));
++  assert.equal(request.engineReceipt.sha256, 'a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de');
++  for (const entry of receipt.engine) admitFile(path.join(request.engineRoot, entry.stagedRelativePath), entry, 262144);
++  admitFile(request.adapter.path, request.adapter, 16384);
++  const api = await import(rootURL), nodeApi = await import(nodeURL);
++  const fixture = JSON.parse(admitFile(request.fixture.path, request.fixture, 1048576));
++  const observations = [], rows = [];
++  const engine = {
++    role: 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE',
++    createProvider() {
++      return nodeApi.createNodeWorkerProvider({ entry: pathToFileURL(request.adapter.path).href, identity: 'author-public-bb23-node-adapter-v1', observe(event) { assert.ok(observations.length < 512); observations.push(event); } });
++    },
++  };
++  for (const id of engineIds) {
++    const deadline = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
++    try { rows.push(await runWorkflow(id, { api, nodeApi, fixture, engine })); }
++    catch (reason) {
++      if (reason?.facts?.cleanupFailure) throw reason;
++      rows.push({ id, status: 'FAIL', ...captureFailure(reason, reason?.facts?.phase), facts: reason?.facts });
++    } finally { clearTimeout(deadline); }
++  }
++  verify();
++  console.log(JSON.stringify({ schema: 'coherent-b1-public15-result-v1', layout: request.layout, rows, observations, passed: rows.filter(row => row.status === 'PASS').length, failed: rows.filter(row => row.status !== 'PASS').length }));
++}
++if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) await main(process.argv.slice(2));
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/run.mjs
++import fs from 'node:fs';
++import { createLayoutHarness } from '../stage-b1-r3/layout.mjs';
++import path from 'node:path';
++import assert from 'node:assert/strict';
++import { pathToFileURL } from 'node:url';
++import { gunzipSync } from 'node:zlib';
++import { read, sha, streamed, inventory, json, supervisor, safe, reasonRecord } from '../stage-b0-r3/owner.mjs';
++
++const root = '/Users/kjopek/Workspace/safe-bash';
++const base = path.dirname(import.meta.dirname);
++const node = '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node';
++function closure(directory, members) {
++  assert.deepEqual(inventory(directory), members.slice().sort((left, right) => Buffer.compare(Buffer.from(left.path), Buffer.from(right.path))));
++  const directories = new Set(['']);
++  for (const entry of members) { let name = path.posix.dirname(entry.path); while (name !== '.') { directories.add(name); name = path.posix.dirname(name); } }
++  const walk = (relative = '') => { for (const item of fs.readdirSync(path.join(directory, relative), { withFileTypes: true })) if (item.isDirectory()) { const child = relative ? `${relative}/${item.name}` : item.name; assert.ok(directories.has(child)); walk(child); } };
++  walk();
++}
++function decodeArchive(body, compressed, inflated) {
++  const gzip = Buffer.from(body.toString('ascii').trim(), 'base64');
++  assert.ok(gzip.length <= compressed);
++  const output = gunzipSync(gzip, { maxOutputLength: inflated, info: true });
++  assert.equal(output.engine.bytesWritten, gzip.length);
++  assert.ok(body.length + gzip.length + output.buffer.length <= 33554432);
++  return JSON.parse(output.buffer);
++}
++export async function main(seal, started) {
++  assert.equal(process.env.B1_ROOT_GO, 'ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION');
++  const b0 = JSON.parse(read(path.join(root, seal.b0.path), 1048576, seal.b0));
++  const inputs = JSON.parse(read(path.join(root, seal.authenticatedInputs.path), 1048576, seal.authenticatedInputs));
++  await streamed(node, b0.node);
++  for (const entry of seal.files) read(path.join(root, entry.path), 4194304, entry);
++  const producer = '/private/tmp/safe-bash-coherent-stage-a-20260829-r2', work = seal.workRoot;
++  assert.equal(fs.existsSync(work), false); fs.mkdirSync(work); assert.equal(fs.realpathSync(work), work);
++  for (const name of ['capture', 'home', 'cache', 'input', 'source-built']) fs.mkdirSync(path.join(work, name));
++  const manager = supervisor(path.join(work, 'capture'), 1620, 67108864, { started });
++  try {
++    const stage = JSON.parse(read(path.join(base, 'stage-b0-r2/stageAProducerPreseal.json'), 65536, b0.stageAProducerPreseal));
++    const get = name => { const entry = b0.producerRecords.find(row => row.path === name); assert.ok(entry); return JSON.parse(read(path.join(base, 'stage-a-r2/evidence', name), 2097152, entry)); };
++    const members = get('PACKAGE-MEMBERS.json'), emits = get('EMITTED.json'), tools = get('TOOLS-BEFORE.json');
++    const source = JSON.parse(read(stage.source.path, 262144, stage.source));
++    assert.equal(source.inputs.length, 309); assert.equal(members.length, 1014); assert.equal(emits.length, 1012);
++    const links = Object.fromEntries(stage.links.map(entry => [entry.package + '/' + entry.path, entry.target]));
++    const verifyRetained = () => {
++      for (const entry of source.inputs) read(path.join(producer, 'source', safe(entry.path)), 33554432, entry);
++      for (const entry of emits) read(path.join(producer, 'source/dist', safe(entry.path)), 33554432, entry);
++      assert.deepEqual(inventory(path.join(producer, 'tools'), links), tools);
++    };
++    verifyRetained();
++    const archiveOrigin = path.join(base, 'stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz');
++    const raw = read(archiveOrigin, 1048576, b0.package);
++    const archive = path.join(work, 'input/product.tgz'); fs.writeFileSync(archive, raw, { flag: 'wx' });
++    const sourcePackage = path.join(work, 'source-built/node_modules/virtual-bash'); fs.mkdirSync(sourcePackage, { recursive: true });
++    for (const entry of members) {
++      const body = read(path.join(producer, 'source', safe(entry.path)), 16777216, entry), target = path.join(sourcePackage, safe(entry.path));
++      fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, body, { mode: entry.mode, flag: 'wx' });
++    }
++    closure(sourcePackage, members);
++    const metadata = JSON.parse(read(path.join(sourcePackage, 'package.json'), 1048576, members.find(entry => entry.path === 'package.json')));
++    assert.deepEqual(metadata.dependencies ?? {}, {});
++    for (const key of ['preinstall', 'install', 'postinstall', 'prepare']) assert.equal(metadata.scripts?.[key], undefined);
++    const admitted = new Map(inputs.inputs.map(entry => [path.basename(entry.path), entry]));
++    const engineEntry = admitted.get('INPUTS-v1.json.gz.base64'), receiptEntry = admitted.get('PUBLIC-ENGINE-RECEIPT.json');
++    const engine = decodeArchive(read(engineEntry.absolute, 2097152, engineEntry), 2097152, 16777216);
++    const receiptBody = read(receiptEntry.absolute, 131072, receiptEntry), receipt = JSON.parse(receiptBody);
++    assert.equal(engine.engine.length, 96); assert.equal(receipt.engine.length, 96);
++    const engineBodies = engine.engine.map(entry => {
++      const relative = safe(entry.target.slice('compiled/'.length));
++      assert.ok(entry.target.startsWith('compiled/engine/') || entry.target === 'compiled/support/errors.js');
++      const expected = receipt.engine.find(row => row.archiveTarget === entry.target); assert.ok(expected);
++      const body = Buffer.from(entry.body, 'base64'); assert.equal(body.length, expected.bytes); assert.equal(sha(body), expected.sha256);
++      return { relative, body, bytes: expected.bytes, sha256: expected.sha256 };
++    });
++    fs.writeFileSync(path.join(work, 'home/user.npmrc'), ''); fs.writeFileSync(path.join(work, 'home/global.npmrc'), '');
++    const env = { PATH: path.dirname(node), HOME: path.join(work, 'home'), TMPDIR: work, TMP: work, TEMP: work, LANG: 'C', LC_ALL: 'C', TZ: 'UTC', NODE_OPTIONS: '', NPM_CONFIG_USERCONFIG: path.join(work, 'home/user.npmrc'), NPM_CONFIG_GLOBALCONFIG: path.join(work, 'home/global.npmrc'), NPM_CONFIG_OFFLINE: 'true', NPM_CONFIG_AUDIT: 'false', NPM_CONFIG_FUND: 'false', NPM_CONFIG_UPDATE_NOTIFIER: 'false' };
++    const install = path.join(work, 'installed'); fs.mkdirSync(install); fs.writeFileSync(path.join(install, 'package.json'), '{"private":true,"type":"module"}\n');
++    const npm = path.join(producer, 'tools/npm/bin/npm-cli.js');
++    await manager.run('offline-install', node, ['--experimental-permission', '--allow-fs-read=' + work, '--allow-fs-read=' + path.join(producer, 'tools'), '--allow-fs-read=' + node, '--allow-fs-write=' + install, '--allow-fs-write=' + path.join(work, 'cache'), '--allow-fs-write=' + path.join(work, 'home'), npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', '--cache', path.join(work, 'cache'), '--prefix', install, archive], { cwd: install, env, seconds: 120 });
++    closure(path.join(install, 'node_modules/virtual-bash'), members);
++    const aggregate = [];
++    for (const layout of ['source-built', 'installed', 'physically-moved']) {
++      manager.remaining(); const consumer = path.join(work, layout); if (layout === 'physically-moved') fs.renameSync(install, consumer);
++      const packageRoot = path.join(consumer, 'node_modules/virtual-bash'); closure(packageRoot, members);
++      const { harness, scripts } = createLayoutHarness(consumer, layout);
++      for (const entry of seal.stageFiles) { const body = read(path.join(root, entry.source), 4194304, entry); fs.writeFileSync(path.join(scripts, entry.target), body); }
++      for (const entry of engineBodies) { const target = path.join(scripts, entry.relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, entry.body); }
++      const engineBefore = inventory(scripts);
++      const moduleFiles = [];
++      for (const directory of [path.join(packageRoot, 'dist'), scripts]) for (const entry of inventory(directory)) if (/\.(?:js|mjs)$/.test(entry.path)) {
++        const filename = path.join(directory, entry.path), body = read(filename, 262144, entry).toString();
++        const builtins = [...new Set([...body.matchAll(/(?:from\s*|import\s*)["'](node:[^"']+)["']/gu)].map(match => match[1]))].sort();
++        moduleFiles.push({ ...entry, path: filename, builtins });
++      }
++      json(path.join(harness, 'load-manifest.json'), { files: moduleFiles, aliases: { 'virtual-bash': path.join(packageRoot, 'dist/index.js'), 'virtual-bash/commands/node': path.join(packageRoot, 'dist/commands/node/index.js') } });
++      const log = path.join(consumer, layout + '-workers.jsonl'); fs.writeFileSync(log, '');
++      const adapter = admitted.get('engine-adapter-v1.mjs');
++      json(path.join(harness, 'node-policy.json'), { log, maximum: 5, workerEntry: path.join(packageRoot, 'dist/commands/node/worker-main.js'), adapters: [pathToFileURL(path.join(scripts, 'engine-adapter-v1.mjs')).href] });
++      const membership = path.join(consumer, layout + '-members.json'), fixture = path.join(scripts, 'neutral.json'), receiptPath = path.join(consumer, layout + '-engine-receipt.json');
++      json(membership, members); fs.writeFileSync(receiptPath, receiptBody);
++      const descriptor = filename => { const body = read(filename, 2097152); return { path: filename, bytes: body.length, sha256: sha(body) }; };
++      const request = { action: 'ROOT_RUN_COHERENT_B1_PUBLIC15', sourceTree: seal.sourceTree, packageSha256: b0.package.sha256, layout, ids: seal.ids, packageRoot, engineRoot: scripts, membership: descriptor(membership), fixture: descriptor(fixture), engineReceipt: descriptor(receiptPath), adapter: { ...adapter, path: path.join(scripts, 'engine-adapter-v1.mjs') } };
++      const requestPath = path.join(consumer, layout + '-request.json'); json(requestPath, request); const requestIdentity = descriptor(requestPath);
++      const setupInputs = [path.join(harness, 'node-policy.json'), path.join(harness, 'load-manifest.json'), membership, receiptPath, requestPath].map(descriptor);
++      const output = await manager.run('workflow-' + layout, node, ['--experimental-permission', '--allow-fs-read=' + consumer, '--allow-fs-read=' + node, '--allow-fs-write=' + consumer, '--allow-worker', '--import', path.join(scripts, 'node-policy.mjs'), '--import', path.join(scripts, 'node-load-guard.mjs'), path.join(scripts, 'consumer.mjs'), '--run', requestPath, requestIdentity.sha256, String(requestIdentity.bytes)], { cwd: consumer, env, seconds: 300 });
++      const report = JSON.parse(read(output.stdout, 8388608)); assert.equal(report.schema, 'coherent-b1-public15-result-v1'); assert.equal(report.layout, layout); assert.deepEqual(report.rows.map(row => row.id), seal.ids);
++      const events = read(log, 1048576).toString().trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
++      const created = events.filter(event => event.kind === 'node-worker-create'), exited = events.filter(event => event.kind === 'node-worker-exit');
++      assert.ok(created.length <= 5); assert.deepEqual(created.map(event => event.id).sort(), exited.map(event => event.id).sort());
++      let live = 0, peak = 0;
++      for (const event of events) { if (event.kind === 'node-worker-create') { live++; peak = Math.max(peak, live); } else if (event.kind === 'node-worker-exit') live--; assert.ok(live >= 0); }
++      assert.equal(live, 0); closure(packageRoot, members); assert.deepEqual(inventory(scripts), engineBefore);
++      for (const entry of setupInputs) read(entry.path, 2097152, entry);
++      aggregate.push({ layout, report, guestWorkerCreates: created.length, guestWorkerExits: exited.length, guestWorkerPeak: peak, regexWorkers: 0, internalLoaderThreads: 0, events, pid: output.pid });
++    }
++    verifyRetained(); read(archive, 1048576, b0.package);
++    for (const entry of seal.files) read(path.join(root, entry.path), 4194304, entry);
++    const workBytes = inventory(work).reduce((sum, entry) => sum + entry.bytes, 0); assert.ok(workBytes <= 805306368);
++    const retirement = manager.finish();
++    manager.publish(path.join(work, 'RESULT.json'), { status: aggregate.some(entry => entry.report.failed) ? 'ASSERTION_FAILURE' : 'PASS', sourceTree: seal.sourceTree, package: b0.package, aggregate, retirement, workBytes, B2: 'UNRUN', coherentAcceptance: false });
++    process.exitCode = aggregate.some(entry => entry.report.failed) ? 1 : 0;
++  } catch (reason) {
++    const retirement = manager.abort(reason);
++    try { manager.publish(path.join(work, 'STOP.json'), { primaryPresent: true, primary: reasonRecord(reason), retirement, automaticRetry: false }); }
++    catch (publication) { console.error(JSON.stringify({ terminalPersistence: false, primary: reasonRecord(reason), publication: reasonRecord(publication) })); }
++    process.exitCode = 78; throw reason;
++  }
++}
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/bootstrap.mjs
++import fs from 'node:fs';
++import path from 'node:path';
++import crypto from 'node:crypto';
++import assert from 'node:assert/strict';
++import { pathToFileURL } from 'node:url';
++const started = performance.now();
++const root = '/Users/kjopek/Workspace/safe-bash';
++export function admit(filename, expected, maximum) {
++  const stat = fs.lstatSync(filename);
++  assert.ok(stat.isFile() && !stat.isSymbolicLink());
++  assert.equal(stat.size, expected.bytes); assert.ok(stat.size <= maximum);
++  const body = fs.readFileSync(filename);
++  assert.equal(body.length, expected.bytes);
++  assert.equal(crypto.createHash('sha256').update(body).digest('hex'), expected.sha256);
++  return body;
++}
++export async function main(args) {
++  assert.equal(args.length, 4); assert.equal(args[0], '--run');
++  assert.equal(process.env.B1_ROOT_GO, 'ROOT_B1_PUBLIC15_EXPLICIT_FRESH_AUTHORIZATION');
++  const seal = JSON.parse(admit(args[1], { bytes: Number(args[3]), sha256: args[2] }, 1048576));
++  assert.equal(seal.schema, 'coherent-b1-public15-preseal-v1');
++  for (const entry of seal.files) admit(path.join(root, entry.path), entry, 4194304);
++  assert.ok(performance.now() - started < 60000);
++  const runner = await import('./run.mjs');
++  await runner.main(seal, started);
++}
++if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) await main(process.argv.slice(2));
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/launch.sh
++set -euC
++cd /Users/kjopek/Workspace/safe-bash
++exec > /private/tmp/coherent-b1-public15-20260829-r4.launch.stdout 2> /private/tmp/coherent-b1-public15-20260829-r4.launch.stderr
++: "${B1_ROOT_GO:?fresh explicit ROOT authorization required}"
++exec /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/bootstrap.mjs --run "$1" "$2" "$3"
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/publish.mjs
++import fs from 'node:fs';
++import path from 'node:path';
++import crypto from 'node:crypto';
++import { spawn } from 'node:child_process';
++import { Ledger, completeWrite, failures, resultProfile, relativeName, inventoryEqual, deadline } from './policy.mjs';
++
++const scope = 'tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4';
++const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
++const streamHash = async file => { const digest = crypto.createHash('sha256'); for await (const chunk of fs.createReadStream(file)) digest.update(chunk); return digest.digest('hex'); };
++function admit(file, size, digest, maximum) {
++  const stat = fs.lstatSync(file);
++  if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== size || size > maximum) throw Error(`Typed size admission ${file}`);
++  const bytes = fs.readFileSync(file);
++  if (bytes.length !== size || hash(bytes) !== digest) throw Error(`Hash admission ${file}`);
++  return bytes;
++}
++async function inventory(root, maximum, onEntry = () => {}) {
++  const entries = [];
++  let total = 0;
++  async function visit(directory, prefix = '') {
++    for (const name of fs.readdirSync(directory).sort()) {
++      const relative = relativeName(prefix ? `${prefix}/${name}` : name);
++      const file = path.join(directory, name);
++      const stat = fs.lstatSync(file);
++      if (entries.length >= 20000) throw Error('Inventory entry cap');
++      if (stat.isSymbolicLink()) entries.push({ path: relative, type: 'link', target: fs.readlinkSync(file) });
++      else if (stat.isDirectory()) { entries.push({ path: relative, type: 'directory' }); await visit(file, relative); }
++      else if (stat.isFile()) {
++        total += stat.size;
++        if (total > maximum) throw Error('Inventory byte cap');
++        const entry = { path: relative, type: 'file', bytes: stat.size, sha256: await streamHash(file) };
++        entries.push(entry); onEntry(entry);
++      } else throw Error('Unrecognized owned file type');
++    }
++  }
++  const rootStat = fs.lstatSync(root);
++  if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw Error('Owned root type');
++  await visit(root);
++  return { total, entries };
++}
++const state = failures();
++let ledger;
++let binding;
++let auth;
++let terminal = { schema: 'b1-publication-terminal-v2', outcome: 'UNKNOWN', result: { kind: 'UNREAD', reportedRows: null }, children: [], knownRetirement: 'UNKNOWN', coherentAcceptance: false };
++let evidence;
++let output;
++let allowedEnd;
++let gitAttempts = 0;
++let unknownChild = false;
++const check = () => { if (Date.now() >= allowedEnd) throw Error('Inclusive publication deadline'); };
++function write(file, value, capture = true) {
++  check();
++  const bytes = Buffer.isBuffer(value) ? value : Buffer.from(JSON.stringify(value, null, 2) + '\n');
++  ledger.charge(bytes.length, capture);
++  const descriptor = fs.openSync(file, 'wx');
++  try { completeWrite((buffer, offset, length) => fs.writeSync(descriptor, buffer, offset, length), bytes); }
++  finally { fs.closeSync(descriptor); }
++}
++async function git(role, args) {
++  check();
++  if (++gitAttempts > 3) throw Error('Metadata role cap');
++  const stdout = fs.openSync(path.join(output, `${role}.stdout`), 'wx');
++  let stderr;
++  try { stderr = fs.openSync(path.join(output, `${role}.stderr`), 'wx'); }
++  catch (error) { fs.closeSync(stdout); throw error; }
++  let child;
++  let watchdog;
++  let killTimer;
++  let drainTimer;
++  let localBytes = 0;
++  const faults = failures();
++  const record = { role, startedUTC: new Date().toISOString(), pid: null, exitObserved: false, closeObserved: false, signals: [], status: null, signal: null };
++  const text = [];
++  try {
++    await new Promise((resolve, reject) => {
++      const stop = reason => {
++        faults.add(reason);
++        if (child && !record.closeObserved && !killTimer) {
++          record.signals.push({ signal: 'SIGTERM', sent: child.kill('SIGTERM') });
++          killTimer = setTimeout(() => { if (!record.closeObserved) record.signals.push({ signal: 'SIGKILL', sent: child.kill('SIGKILL') }); }, 1000);
++          drainTimer = setTimeout(() => { if (!record.closeObserved) { unknownChild = true; reject(Error('Known metadata child retirement UNKNOWN')); } }, 5000);
++        }
++      };
++      child = spawn('/usr/bin/git', args, { cwd: binding.repo, env: { PATH: '/usr/bin:/bin', HOME: auth.metadataHome, GIT_OPTIONAL_LOCKS: '0' }, stdio: ['ignore', 'pipe', 'pipe'] });
++      record.pid = child.pid ?? null;
++      watchdog = setTimeout(() => stop(Error('Metadata deadline')), Math.min(15000, Math.max(1, allowedEnd - Date.now() - 5000)));
++      const capture = (descriptor, chunk, collect) => {
++        try {
++          localBytes += chunk.length;
++          if (localBytes > 131072) throw Error('Metadata output cap');
++          ledger.charge(chunk.length);
++          completeWrite((buffer, offset, length) => fs.writeSync(descriptor, buffer, offset, length), chunk);
++          if (collect) text.push(Buffer.from(chunk));
++        } catch (error) { stop(error); }
++      };
++      child.stdout.on('data', chunk => capture(stdout, chunk, true));
++      child.stderr.on('data', chunk => capture(stderr, chunk, false));
++      child.on('error', stop);
++      child.on('exit', (status, signal) => { record.exitObserved = true; record.status = status; record.signal = signal; });
++      child.on('close', () => { record.closeObserved = true; resolve(); });
++    });
++    if (faults.primaryPresent || !record.exitObserved || !record.closeObserved || record.status !== 0 || record.signal !== null) throw Error(`Metadata ${role} failed; raw child record retained`);
++    return Buffer.concat(text).toString().trim();
++  } finally {
++    clearTimeout(watchdog); clearTimeout(killTimer); clearTimeout(drainTimer);
++    fs.closeSync(stdout); fs.closeSync(stderr);
++    terminal.children.push({ ...record, faults: { primaryPresent: faults.primaryPresent, primary: faults.primary, secondary: faults.secondary }, finishedUTC: new Date().toISOString() });
++  }
++}
++try {
++  const [mode, bindingFile, bindingHash, bindingSize, authorityFile, authorityHash, authoritySize] = process.argv.slice(2);
++  if (mode !== '--publish' || process.argv.length !== 9) throw Error('Explicit publication arguments required');
++  binding = JSON.parse(admit(bindingFile, Number(bindingSize), bindingHash, 131072));
++  auth = JSON.parse(admit(authorityFile, Number(authoritySize), authorityHash, 32768));
++  if (auth.action !== 'ROOT_B1_PUBLIC15_ACTUAL' || auth.bindingSha256 !== bindingHash || !auth.authorization || !Number.isSafeInteger(auth.knownStartsBeforePublication) || auth.knownStartsBeforePublication < 7 || auth.knownStartsBeforePublication > 27) throw Error('Fresh root/count authority');
++  allowedEnd = deadline(auth, Date.now());
++  for (const entry of binding.files) admit(entry.path, entry.bytes, entry.sha256, 131072);
++  evidence = binding.outputs.evidence;
++  output = binding.outputs.publication;
++  if (fs.existsSync(evidence) || fs.existsSync(output)) throw Error('Publication outputs must be absent');
++  let runtimeCapture = 0;
++  const before = await inventory(binding.outputs.work, 805306368, entry => {
++    if (/(?:stdout|stderr|events|capture|supervisor|retirement|RESULT|STOP|\.jsonl?$)/i.test(entry.path) && !entry.path.includes('/node_modules/') && !entry.path.includes('/dist/') && !entry.path.includes('/engine/')) runtimeCapture += entry.bytes;
++  });
++  const closedCaptures = [];
++  for (const file of binding.outputs.launchCaptures) {
++    const stat = fs.lstatSync(file);
++    if (!stat.isFile() || stat.isSymbolicLink()) throw Error('Launch capture type');
++    closedCaptures.push({ path: file, bytes: stat.size, sha256: await streamHash(file) });
++  }
++  const outerBytes = closedCaptures.reduce((sum, item) => sum + item.bytes, 0);
++  let startupBytes = 0;
++  for (const file of binding.outputs.startupCaptures) {
++    const stat = fs.lstatSync(file);
++    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4096) throw Error('Startup capture admission');
++    startupBytes += stat.size;
++  }
++  ledger = new Ledger({ capture: runtimeCapture + outerBytes + Number(authoritySize) + startupBytes, work: before.total + outerBytes + Number(authoritySize) + startupBytes });
++  ledger.charge(8192 - startupBytes);
++  fs.mkdirSync(evidence); fs.mkdirSync(output);
++  terminal.accountingRoots = binding.outputs;
++  try {
++    const runtimeSeal = JSON.parse(admit(binding.runtimePreseal.path, binding.runtimePreseal.bytes, binding.runtimePreseal.sha256, 32768));
++    for (const entry of runtimeSeal.files) admit(entry.path, entry.bytes, entry.sha256, 8388608);
++    const packageStat = fs.lstatSync(binding.package.path);
++    if (!packageStat.isFile() || packageStat.size !== binding.package.bytes || await streamHash(binding.package.path) !== binding.package.sha256) throw Error('Package changed');
++    write(path.join(evidence, 'WORK-INVENTORY.json'), before);
++    const result = before.entries.find(entry => entry.path === 'RESULT.json' && entry.type === 'file');
++    if (!result) terminal.result = resultProfile(undefined, false);
++    else if (result.bytes > 2097152) terminal.result = { kind: 'OVERSIZE_RAW_RETAINED', complete: false, reportedRows: null };
++    else terminal.result = resultProfile(admit(path.join(binding.outputs.work, result.path), result.bytes, result.sha256, 2097152));
++    for (const entry of before.entries) {
++      if (entry.type !== 'file' || entry.path.includes('/node_modules/') || entry.path.includes('/dist/') || entry.path.includes('/engine/')) continue;
++      if (!/(?:stdout|stderr|events|capture|supervisor|retirement|RESULT|STOP)/i.test(entry.path)) continue;
++      ledger.charge(entry.bytes);
++      const destination = path.join(evidence, 'raw', relativeName(entry.path));
++      fs.mkdirSync(path.dirname(destination), { recursive: true });
++      fs.copyFileSync(path.join(binding.outputs.work, entry.path), destination, fs.constants.COPYFILE_EXCL);
++      if (await streamHash(destination) !== entry.sha256) throw Error('Raw copy mismatch');
++    }
++    for (const entry of closedCaptures) {
++      ledger.charge(entry.bytes);
++      fs.copyFileSync(entry.path, path.join(evidence, path.basename(entry.path)), fs.constants.COPYFILE_EXCL);
++    }
++    inventoryEqual(before, await inventory(binding.outputs.work, 805306368));
++    terminal.outcome = terminal.result.complete ? 'COMPLETE_REPORTED_MATRIX_NOT_ACCEPTANCE' : 'FAILURE_OR_UNKNOWN_INCOMPLETE_RESULT';
++  } catch (error) { state.add(error); terminal.outcome = 'PUBLICATION_FAILURE_OR_UNKNOWN'; }
++} catch (error) { state.add(error); }
++
++if (ledger && evidence && output) {
++  ledger.beginTail();
++  try {
++    terminal.faults = { primaryPresent: state.primaryPresent, primary: state.primary, secondary: state.secondary };
++    terminal.accountingBeforeTail = ledger.snapshot();
++    terminal.afterCensusReservation = { capture: 2097152, work: 8388608, purpose: 'terminal, three Git captures, final receipt and bounded metadata tail; not zero post-census writes' };
++    write(path.join(evidence, 'TERMINAL.json'), terminal);
++    const existingEvidence = await inventory(evidence, 805306368);
++    const gitLogicalAllowance = existingEvidence.total * 2 + 1048576;
++    ledger.charge(gitLogicalAllowance, false);
++    terminal.gitStorageQualification = { chargedLogicalBytes: gitLogicalAllowance, sharedGitDatabaseExcluded: true, actualNewGitObjectPhysicalBytes: 'UNOBSERVED; not a physical-storage bound' };
++    const relativeEvidence = path.relative(binding.repo, evidence);
++    relativeName(relativeEvidence);
++    await git('git-add', ['add', '--', relativeEvidence]);
++    await git('git-commit', ['-c', 'core.hooksPath=/dev/null', 'commit', '--only', '-m', 'Record bounded B1 PUBLIC15 outcome including incomplete failures', '--', relativeEvidence]);
++    terminal.commit = await git('git-receipt', ['rev-parse', 'HEAD']);
++  } catch (error) { state.add(error); }
++  try {
++    const startup = binding.outputs.startupCaptures.map(file => {
++      const stat = fs.lstatSync(file);
++      if (!stat.isFile() || stat.size > 4096) throw Error('Startup reserved tail exceeded');
++      return { path: file, bytes: stat.size, prechargedCeiling: 4096, liveAfterCensus: true };
++    });
++    const measured = { evidence: await inventory(evidence, 805306368), publication: await inventory(output, 805306368), startup };
++    const value = { schema: 'b1-publication-final-v2', atUTC: new Date().toISOString(), terminal, faults: { primaryPresent: state.primaryPresent, primary: state.primary, secondary: state.secondary }, knownStartsThroughReceipt: auth.knownStartsBeforePublication + 2 + gitAttempts, knownChildRetirement: unknownChild ? 'UNKNOWN' : terminal.children.every(child => child.exitObserved && child.closeObserved) ? 'OBSERVED_FOR_RECORDED_CHILDREN_ONLY' : 'UNKNOWN', accounting: ledger.snapshot(), measuredBeforeFinalWrite: measured, reservedAfterCensusBytes: 1048576, noFullCensus: true, noGuaranteedDurableCapture: true, commitMayBeAbsent: true };
++    const bytes = Buffer.from(JSON.stringify(value, null, 2) + '\n');
++    if (bytes.length > 1048576) throw Error('Final receipt tail cap');
++    write(path.join(output, 'FINAL.json'), bytes);
++  } catch (error) { state.add(error); }
++}
++process.exitCode = state.primaryPresent || !terminal.result.complete || unknownChild ? 78 : terminal.result.reportedStatus === 'PASS' ? 0 : 1;
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs
++export const limits = Object.freeze({ capture: 67108864, work: 805306368, tailCapture: 2097152, tailWork: 8388608 });
++export class Ledger {
++  constructor(initial = { capture: 0, work: 0 }) {
++    this.used = { ...initial };
++    this.reserved = { capture: limits.tailCapture, work: limits.tailWork };
++    this.tail = false;
++    this.check();
++  }
++  check() {
++    for (const key of ['capture', 'work']) if (!Number.isSafeInteger(this.used[key]) || this.used[key] < 0 || this.used[key] + this.reserved[key] > limits[key]) throw Error(`Aggregate ${key} admission`);
++  }
++  charge(bytes, capture = true) {
++    if (!Number.isSafeInteger(bytes) || bytes < 0) throw Error('Invalid write admission');
++    const next = { capture: this.used.capture + (capture ? bytes : 0), work: this.used.work + bytes };
++    for (const key of ['capture', 'work']) if (next[key] + this.reserved[key] > limits[key]) throw Error(`Prewrite ${key} refusal`);
++    this.used = next;
++  }
++  beginTail() { this.tail = true; this.reserved = { capture: 0, work: 0 }; }
++  snapshot() { return { used: { ...this.used }, reserved: { ...this.reserved }, tail: this.tail, units: 'logical file/write bytes, not RSS or filesystem blocks' }; }
++}
++export function completeWrite(write, bytes) {
++  let offset = 0;
++  while (offset < bytes.length) {
++    const count = write(bytes, offset, bytes.length - offset);
++    if (!Number.isSafeInteger(count) || count <= 0 || count > bytes.length - offset) throw Error('Short/zero write');
++    offset += count;
++  }
++}
++export function fault(value) {
++  if (value === undefined) return { type: 'undefined' };
++  if (value === null) return { type: 'null', value: null };
++  if (typeof value === 'number' && !Number.isFinite(value)) return { type: 'number', value: String(value) };
++  if (['string', 'boolean', 'number'].includes(typeof value)) return { type: typeof value, value };
++  if (typeof value === 'bigint') return { type: 'bigint', value: value.toString() };
++  return { type: value instanceof Error ? 'Error' : typeof value, message: value instanceof Error ? value.message.slice(0, 2048) : 'opaque value; identity not serialized' };
++}
++export function failures() {
++  return { primaryPresent: false, primary: undefined, secondary: [], add(value) { if (!this.primaryPresent) { this.primaryPresent = true; this.primary = fault(value); } else this.secondary.push(fault(value)); } };
++}
++export function resultProfile(raw, present = true) {
++  if (!present) return { kind: 'MISSING', complete: false, reportedRows: null, knownRetirement: 'UNKNOWN' };
++  let value;
++  try { value = JSON.parse(raw.toString()); } catch (error) { return { kind: 'MALFORMED', complete: false, reportedRows: null, knownRetirement: 'UNKNOWN', parseFailure: fault(error) }; }
++  const observed = [];
++  if (value && typeof value === 'object' && Array.isArray(value.aggregate)) {
++    for (const entry of value.aggregate) {
++      if (entry && entry.report && Array.isArray(entry.report.rows)) for (const row of entry.report.rows) observed.push({ layout: entry.layout ?? null, row });
++    }
++  }
++  const layouts = ['source-built', 'installed', 'physically-moved'];
++  const ids = ['C10', 'C11', 'C15', 'C16', 'C18'];
++  const complete = observed.length === 15 && layouts.every(layout => JSON.stringify(observed.filter(row => row.layout === layout).map(row => row.row?.id).sort()) === JSON.stringify(ids));
++  return { kind: complete ? 'COMPLETE_REPORTED_MATRIX' : 'PARTIAL_OR_SCHEMA_UNKNOWN', complete, reportedRows: Array.isArray(value?.aggregate) ? observed : null, reportedStatus: Object.hasOwn(value ?? {}, 'status') ? value.status : null, knownRetirement: 'UNKNOWN_UNLESS_RAW_OWNER_RECORD_ESTABLISHES_IT', rawResult: value };
++}
++export function relativeName(value) {
++  if (typeof value !== 'string' || value.startsWith('/') || value.split('/').some(part => !part || part === '.' || part === '..' || part.toLowerCase() === 'agents.md')) throw Error('Path admission');
++  return value;
++}
++export function inventoryEqual(before, after) { if (JSON.stringify(before) !== JSON.stringify(after)) throw Error('Changed/added/missing owned entry'); }
++export function deadline(auth, now) {
++  const start = Date.parse(auth.startedUTC);
++  const expires = Date.parse(auth.expiresUTC);
++  const latest = Date.parse(auth.latestStartUTC);
++  if (!Number.isFinite(start) || !Number.isFinite(expires) || !Number.isFinite(latest) || start > latest || expires - latest < 1800000 || now < start || now >= Math.min(start + 1800000, expires)) throw Error('Fresh inclusive window required');
++  return Math.min(start + 1800000, expires);
++}
+*** Add File: tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/publication.sh
++#!/bin/zsh
++set -euC
++exec > /private/tmp/coherent-b1-publication-r4-20260829.startup.stdout 2> /private/tmp/coherent-b1-publication-r4-20260829.startup.stderr
++exec /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/publish.mjs "$@"
+*** End Patch

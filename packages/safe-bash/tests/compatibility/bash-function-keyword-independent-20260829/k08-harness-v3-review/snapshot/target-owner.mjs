@@ -1,0 +1,71 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const packet="/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v3";
+function pinned(filename,pin,maximum=16777216){const stat=fs.lstatSync(filename);if(!stat.isFile()||stat.isSymbolicLink()||stat.size!==pin.bytes||stat.size>maximum)throw Error('TARGET_PREAUTH_SIZE');const bytes=fs.readFileSync(filename);if(bytes.length!==pin.bytes||hash(bytes)!==pin.sha256)throw Error('TARGET_PREAUTH_HASH');return bytes;}
+const seal=JSON.parse(pinned(packet+'/SEAL.json',{bytes:Number(process.env.K08_SEAL_BYTES),sha256:process.env.K08_SEAL_SHA256},1048576));
+const ownerStarted=Date.now();const started=Number(process.env.K08_OUTER_STARTED);for(const [name,pin]of Object.entries(seal.helperPins))pinned(path.join(seal.helperRoot,name),pin);for(const [name,pin]of Object.entries(seal.files))pinned(path.join(packet,name),pin);
+const {readPinned,pinExecutable,publish,errorRecord}=await import(pathToFileURL(path.join(seal.helperRoot,'auth.mjs')));
+const {runDirect}=await import('./direct-child.mjs');
+const {write,inventory,sample,extract}=await import(pathToFileURL(path.join(seal.helperRoot,'package.mjs')));
+const {admitOwnerArchive,archiveFailureRecord}=await import('./owner-archive.mjs');
+const {finalize}=await import(pathToFileURL(path.join(seal.helperRoot,'finalization.mjs')));
+const {caseArguments,completion,PROFILE}=await import(pathToFileURL(path.join(seal.helperRoot,'profile.mjs')));
+const {validateCanonicalRole}=await import(pathToFileURL(path.join(seal.helperRoot,'canonical.mjs')));
+const {validateActivation}=await import('./activation.mjs');
+const {selectChild,inheritWindow,admitCase,requireRetired,loadedHelper,m01Detected}=await import('./qualification.mjs');
+const grant=JSON.parse(pinned(packet+'/GO.json',{bytes:fs.lstatSync(packet+'/GO.json').size,sha256:process.env.K08_GRANT_SHA256},65536));
+const review=JSON.parse(pinned(packet+'/REVIEW.json',{bytes:fs.lstatSync(packet+'/REVIEW.json').size,sha256:process.env.K08_REVIEW_SHA256},65536));
+const window=validateActivation(grant,review,{preseal:process.env.K08_SEAL_SHA256,work:seal.work,limits:seal.limits,roles:seal.roles,started,now:Date.now()});
+const inherited=inheritWindow(started,Number(process.env.K08_OUTER_DEADLINE),grant,seal.limits,Date.now());if(inherited.finalDeadline!==window.finalDeadline)throw Error('OUTER_WINDOW_MISMATCH');
+const finalDeadline=inherited.finalDeadline,bodyDeadline=inherited.bodyDeadline,publicationDeadline=inherited.ownerPublicationDeadline,capture=path.join(seal.work,'future-v3-capture');
+const ownerController=new AbortController();const stopOwner=()=>{if(!ownerController.signal.aborted)ownerController.abort(Error('OWNER_TERMINATION'));};process.once('SIGTERM',stopOwner);const bodyTimer=setTimeout(stopOwner,Math.max(1,bodyDeadline-Date.now()));
+const ledger={starts:1,maximum:78,active:0,stopped:false,captureBytes:196608,captureMaximum:seal.limits.captureBytes,rows:[]};
+const result={schema:'k08-target-result-v1',sourceCommit:seal.sourceCommit,started,ownerStarted,observations:[],helpers:[],mutants:[],refusals:[],ledger};let primaryPresent=false,primary;const ownerSecondary=[];let resultPublication;
+const record=(name,value)=>{const bytes=Buffer.from(JSON.stringify(value,null,2)+'\n');if(ledger.captureBytes+bytes.length>ledger.captureMaximum)throw Error('TARGET_CAPTURE_CAP');ledger.captureBytes+=bytes.length;return publish(path.join(capture,name+'.json'),bytes,publicationDeadline);};
+const check=()=>{if(ownerController.signal.aborted)throw ownerController.signal.reason;if(Date.now()>=bodyDeadline||ledger.stopped)throw Error('TARGET_ADMISSION_STOP');sample(seal.work,seal.limits.workBytes);};
+try{
+ pinExecutable(seal.node);if(fs.realpathSync(seal.work)!==seal.work)throw Error('TARGET_WORK_IDENTITY');
+ const data=JSON.parse(readPinned(path.join(packet,'CASES.json'),seal.files['CASES.json']));
+ const m01Expected=JSON.parse(readPinned(path.join(packet,'M01-DISCRIMINATOR.json'),seal.files['M01-DISCRIMINATOR.json']));
+ const edgeData=JSON.parse(readPinned(path.join(packet,'PRODUCT-EDGES.json'),seal.files['PRODUCT-EDGES.json']));
+ for(const pin of seal.shipping)readPinned(path.join(seal.sourceApp,pin.path),pin);
+ const admittedArchive=await admitOwnerArchive(seal);const tarBuffer=admittedArchive.tarBuffer;result.archive=admittedArchive.admission;result.archiveEvents=admittedArchive.events;result.archiveLedger=admittedArchive.ledger;
+ const installed=path.join(seal.work,'target-v3-installed'),moved=path.join(seal.work,'target-v3-moved');extract(tarBuffer,path.join(installed,'node_modules/virtual-bash'));write(path.join(installed,'package.json'),Buffer.from('{"type":"module","private":true}\n'));
+ const prepare=(app,packageRoot)=>{
+  for(const name of ['auth.mjs','profile.mjs','guard.mjs'])if(!fs.existsSync(path.join(app,name)))write(path.join(app,name),readPinned(path.join(seal.helperRoot,name),seal.helperPins[name]));
+  for(const name of ['case-driver.mjs','helper-driver.mjs','case-adapter.mjs','CASES.json']){if(!fs.existsSync(path.join(app,name)))write(path.join(app,name),readPinned(path.join(packet,name),seal.files[name]));else readPinned(path.join(app,name),seal.files[name]);}
+  const files={},edges={};for(const pin of inventory(packageRoot).rows.filter(row=>row.path.startsWith('dist/')&&row.path.endsWith('.js'))){files[path.join(packageRoot,pin.path)]=pin;edges[path.join(packageRoot,pin.path)]=edgeData.edges[pin.path];if(!edges[path.join(packageRoot,pin.path)])throw Error('STATIC_EDGE_BINDING');}
+  for(const name of ['auth.mjs','profile.mjs','guard.mjs'])files[path.join(app,name)]=seal.helperPins[name];
+  for(const name of ['case-driver.mjs','helper-driver.mjs','case-adapter.mjs','CASES.json'])files[path.join(app,name)]=seal.files[name];
+  const entry=path.join(app,'case-driver.mjs'),productEntry=path.join(packageRoot,'dist/index.js'),helperEntry=path.join(packageRoot,'dist/shell/arithmetic-parameters.js'),arithmeticEntry=path.join(packageRoot,'dist/shell/arithmetic.js'),ledgerEntry=path.join(packageRoot,'dist/shell/arrays/ledger.js');
+  edges[path.join(app,'auth.mjs')]=['node:fs','node:crypto'];edges[path.join(app,'profile.mjs')]=['node:path'];edges[path.join(app,'guard.mjs')]=['node:fs','node:module','node:url','./auth.mjs','./profile.mjs'];edges[path.join(app,'case-adapter.mjs')]=['node:crypto','node:path'];
+  edges[path.join(app,'helper-driver.mjs')]=['node:url',... [helperEntry,arithmeticEntry,ledgerEntry].map(filename=>pathToFileURL(filename).href)];
+  edges[entry]=['node:fs','node:url','./profile.mjs','./case-adapter.mjs','./helper-driver.mjs','virtual-bash',pathToFileURL(productEntry).href];
+  return {files,edges,entry,productEntry,helperEntry,arithmeticEntry,ledgerEntry};
+ };
+ const launch=async(layout,app,packageRoot,id,caseId,refusal)=>{
+  check();admitCase(inherited,Date.now());const prepared=prepare(app,packageRoot),trace=path.join(capture,id+'.trace'),rolePath=path.join(capture,id+'.role.json');write(trace,Buffer.alloc(0));
+  if(refusal==='AUTH_HASH')prepared.files[prepared.productEntry]={...prepared.files[prepared.productEntry],sha256:'0'.repeat(64)};
+  if(refusal==='EDGE_REFUSED')prepared.edges[prepared.entry]=prepared.edges[prepared.entry].filter(edge=>edge!=='virtual-bash'&&edge!==pathToFileURL(prepared.productEntry).href);
+  const role={outerStarted:started,finalDeadline,bodyDeadline,profile:PROFILE,kind:'product-case',id,caseId,layout,app,...prepared,guard:path.join(app,'guard.mjs'),trace,rolePath,readFiles:[rolePath,trace],builtins:seal.builtins,childProcessPermission:0,workerPermission:0,loaderThreads:0,loaderMode:'synchronous-registerHooks',nodePath:seal.node.path,cases:path.join(app,'CASES.json')};
+  const env={HOME:path.join(seal.work,'home'),TMPDIR:path.join(seal.work,'tmp'),PATH:path.join(seal.work,'empty-path'),LC_ALL:'C',LANG:'C',TZ:'UTC'};validateCanonicalRole(seal.work,role,env);
+  const roleBytes=Buffer.from(JSON.stringify(role)+'\n');if(ledger.captureBytes+roleBytes.length>ledger.captureMaximum)throw Error('ROLE_CAPTURE_CAP');ledger.captureBytes+=roleBytes.length;write(rolePath,roleBytes);
+  const childWindow=admitCase(inherited,Date.now());const child=await runDirect({id,node:seal.node,args:caseArguments(role),cwd:app,env:{...env,SURFACE_ROLE:rolePath,SURFACE_ROLE_BYTES:String(roleBytes.length),SURFACE_ROLE_SHA256:hash(roleBytes)},capture:path.join(capture,id),signal:ownerController.signal,timeoutMs:30000,bodyDeadline:childWindow.bodyDeadline,finalDeadline},ledger);const selected=selectChild(child,row=>record(id+'-lifecycle',row));ownerSecondary.push(...selected.secondary.map(entry=>({phase:id+'-lifecycle',present:true,reason:errorRecord(entry.reason)})));if(selected.present)throw selected.reason;
+  const stat=fs.lstatSync(trace);if(!stat.isFile()||stat.size>524288)throw Error('TRACE_CAP');const traceBytes=fs.readFileSync(trace);ledger.captureBytes+=traceBytes.length;if(ledger.captureBytes>ledger.captureMaximum)throw Error('TARGET_CAPTURE_CAP');const traceRows=traceBytes.toString().trim().split('\n').filter(Boolean).map(line=>JSON.parse(line));if(traceRows.filter(row=>row.event==='permission-admitted').length!==1||traceRows.filter(row=>row.event==='synchronous-hooks-installed').length!==1)throw Error('DENIAL_WITNESS');
+  const stdout=child.row.captures.find(row=>row.kind==='stdout'),stderr=child.row.captures.find(row=>row.kind==='stderr');
+  if(refusal){const receipt={id,refusal,observed:child.row.status!==0&&stdout.bytes===0&&Buffer.from(stderr.base64,'base64').toString().includes(refusal)};record(id,receipt);return receipt;}
+  if(child.row.status!==0)throw Error('TARGET_DRIVER_FAILURE');const receipt=JSON.parse(Buffer.from(stdout.base64,'base64'));
+  if(receipt.caseId!==caseId||receipt.layout!==layout)throw Error('TARGET_MEMBERSHIP');
+  if(caseId==='HELPERS'){if(!receipt.helperSettlement?.completed||!receipt.helperSettlement.ownedClosed)throw Error('HELPER_SETTLEMENT');}else if(!completion(receipt,child.row))throw Error('PUBLIC_SETTLEMENT');
+  const helperLoad=loadedHelper(traceRows,role);const observed={id,helperLoad,rolePin:{bytes:roleBytes.length,sha256:hash(roleBytes)},trace:{bytes:traceBytes.length,sha256:hash(traceBytes)},receipt};record(id,observed);return observed;
+ };
+ for(const layout of ['source-built','installed','physically-moved']){if(layout==='physically-moved'){fs.renameSync(installed,moved);if(fs.existsSync(installed))throw Error('MOVE_REMAINS');}const app=layout==='source-built'?seal.sourceApp:layout==='installed'?installed:moved,root=layout==='source-built'?app:path.join(app,'node_modules/virtual-bash');for(const row of data.rows)result.observations.push(await launch(layout,app,root,'case-'+layout+'-'+row.id,row.id));result.helpers.push(await launch(layout,app,root,'helpers-'+layout,'HELPERS'));}
+ for(const mutation of seal.mutations){const app=path.join(seal.work,'target-v3-mutant-'+mutation.id),root=path.join(app,'node_modules/virtual-bash');extract(tarBuffer,root);write(path.join(app,'package.json'),Buffer.from('{"type":"module","private":true}\n'));const filename=path.join(root,'dist/shell/arithmetic-parameters.js'),original=fs.readFileSync(filename,'utf8');if(hash(Buffer.from(original))!==seal.compiledHelperSha256||original.split(mutation.from).length!==2)throw Error('MUTATION_BINDING');const changed=original.replace(mutation.from,mutation.to);fs.writeFileSync(filename,changed);const observed=await launch('installed',app,root,mutation.id,mutation.caseId);const baseline=mutation.caseId==='HELPERS'?result.helpers.find(row=>row.receipt.layout==='installed'):result.observations.find(row=>row.receipt.layout==='installed'&&row.receipt.caseId===mutation.caseId);let detected=baseline?.receipt.pass===true&&!observed.receipt.pass;if(mutation.id==='M01')detected=m01Detected(baseline,observed,m01Expected);if(mutation.id==='M02')detected=detected&&observed.receipt.observation.stdout.base64==='OTo5';if(mutation.id==='M03')detected=detected&&observed.receipt.results.some(row=>row.id==='H04'&&row.pass===false&&!row.hasPrimary);result.mutants.push({mutation,baselinePassed:baseline?.receipt.pass===true,detected,observed});}
+ result.refusals.push(await launch('physically-moved',moved,path.join(moved,'node_modules/virtual-bash'),'N01',data.rows[0].id,'AUTH_HASH'));result.refusals.push(await launch('physically-moved',moved,path.join(moved,'node_modules/virtual-bash'),'N02',data.rows[0].id,'EDGE_REFUSED'));
+}catch(reason){primaryPresent=true;primary=reason;const detail=archiveFailureRecord(reason);if(detail)result.archiveFailure=detail;}
+clearTimeout(bodyTimer);process.removeListener('SIGTERM',stopOwner);
+const final=finalize({primaryPresent,primary,census:()=>{requireRetired(ledger);return sample(seal.work,seal.limits.workBytes);},publish(state){result.primaryPresent=state.primaryPresent;if(state.primaryPresent)result.primary=errorRecord(state.primary);result.secondary=ownerSecondary.concat(state.secondary.map(row=>({phase:row.phase,present:row.present,reason:errorRecord(row.reason)})));result.sampledWorkPresent=state.sampledWorkPresent;result.sampledWork=state.sampledWork;result.finished=Date.now();result.semanticFailures=result.observations.filter(row=>!row.receipt.pass).length;result.controlFailures=result.helpers.filter(row=>!row.receipt.pass).length+result.mutants.filter(row=>!row.detected).length+result.refusals.filter(row=>!row.observed).length;result.status=state.primaryPresent?'STOP':result.semanticFailures+result.controlFailures?'COMPLETED_WITH_ASSERTION_FAILURES':'COMPLETED';resultPublication=record('TARGET-RESULT',result);}});
+process.stdout.write(JSON.stringify({status:final.primaryPresent?'STOP':'OWNER_COMPLETED',primaryPresent:final.primaryPresent,publicationSucceeded:final.publicationSucceeded,resultStatus:result.status,resultPublication,knownOwnedRetired:ledger.active===0&&ledger.rows.every(row=>row.knownOutstanding===0)})+'\n');if(final.primaryPresent||!final.publicationSucceeded)process.exitCode=1;else if(result.status==='COMPLETED_WITH_ASSERTION_FAILURES')process.exitCode=2;

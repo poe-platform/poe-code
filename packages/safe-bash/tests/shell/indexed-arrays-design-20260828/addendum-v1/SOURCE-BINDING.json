@@ -1,0 +1,73 @@
+{
+  "schema": "indexed-array-narrow-addendum-source-binding-v1",
+  "date": "2026-08-28",
+  "resultType": "source-grounded-proposal/not-ratified/not-executed",
+  "execution": { "authorization": "NOT_AUTHORIZED", "nativeCalls": 0, "productCalls": 0, "tests": 0, "parserCalls": 0, "arithmeticCalls": 0, "productImports": 0 },
+  "ownership": "Only new addendum-v1 and native-preseal-v1 docs/data beneath tests/shell/indexed-arrays-design-20260828, plus task-owned /tmp final receipt; no runtime/public/hold-module edits",
+  "originalCommit": "2cb939883a91b495bed7dadb8973cd1939b16e6a",
+  "headAtSourceRead": "ce4c8c68a0f2a9e90f51853e3f379abc5ed2d547",
+  "preservedOriginals": [
+    { "path": "tests/shell/indexed-arrays-design-20260828/PROFILE.md", "bytes": 15448, "sha256": "9607903a7d0c5dec46364b1b3f5db5e42cdfd187c4281121094c955e5e044eb2" },
+    { "path": "tests/shell/indexed-arrays-design-20260828/REPORT.md", "bytes": 4157, "sha256": "7350cc8d646eb0851d3b7fdd6fa93fc19466e0a4709b58e42442713b25376175" },
+    { "path": "tests/shell/indexed-arrays-design-20260828/SOURCE-BINDING.json", "bytes": 3861, "sha256": "6cda9ea07116d58cf5a47e5add7c56d4bf8b6ca1b52bfa552a2e478f427c6a72" }
+  ],
+  "acceptedComposition": {
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "cd": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "cdReview": "2585f78dcd5cfd2ea454977462c57b23f7044a12",
+    "cdFinalAudit": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+    "providerBlobsRevision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+    "let": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+    "letReview": "08b0553148afdfdb95edd722a2cdd7f63935d470",
+    "selectedInputs": 265,
+    "publishedFull846PackageSha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+    "qualification": "Carried from immutable original binding and matching LET receipts; not a new whole-archive, selected-input or package audit"
+  },
+  "pendingExcluded": {
+    "stackCommit": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+    "paths": [
+      { "path": "src/shell/runtime.ts", "liveSha256AtRead": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419", "difference": "directory-stack names/state/helper/dispatch/publication changes relative to accepted LET runtime" },
+      { "path": "src/shell/shell.ts", "liveSha256AtRead": "59e5f9dfac10ada26bc4d836ea78aabd998c8f269e467dd17ffe316ffc047018", "difference": "directoryStack initialization relative to accepted base" }
+    ],
+    "qualification": "Live hashes match original design's pending snapshot, not accepted runtime. Runtime reserved STACK review then DOTGLOB; no assumed later window. Other source rows matched live at hash read. This is not an inventory of all concurrent checkout changes."
+  },
+  "sources": [
+    { "path": "src/shell/runtime.ts", "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624", "bytes": 139761, "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193" },
+    { "path": "src/shell/parser.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 36304, "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e" },
+    { "path": "src/shell/arithmetic.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 9922, "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd" },
+    { "path": "src/shell/shell.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 15002, "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24" },
+    { "path": "src/shell/input.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 9881, "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32" },
+    { "path": "src/shell/types.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 2223, "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990" },
+    { "path": "src/contracts/command.md", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 9253, "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6" },
+    { "path": "src/shell/locale.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 207, "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2" },
+    { "path": "src/shell/display.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 2605, "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069" },
+    { "path": "src/shell/cleanup.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 1947, "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385" },
+    { "path": "src/commands/execution.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 9269, "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6" },
+    { "path": "src/commands/expr/internal.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 6600, "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840" },
+    { "path": "src/commands/table-text/internal.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 8443, "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9" },
+    { "path": "src/commands/stream-format/rev.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 2772, "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753" },
+    { "path": "src/commands/streams.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 17782, "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d" },
+    { "path": "src/commands/metadata/mktemp.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "bytes": 5683, "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4" }
+  ],
+  "hashMethod": "git show immutable revision:path bytes piped to builtin node:crypto; source not imported/executed",
+  "provenance": [
+    { "path": "tests/shell/let-design-20260828/BINDINGS.json", "bytes": 4868, "sha256": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5" },
+    { "path": "tests/shell/let-independent-20260828/BINDINGS.json", "bytes": 84176, "sha256": "d18b2eea4819cdf65d7d10a171faae9e87a63e83670b86a66ea92646ac3e1cb8" },
+    { "path": "tests/shell/let-independent-20260828/candidate-review-v1/BINDINGS.json", "bytes": 691, "sha256": "e39468831869a38b51135a66e2e5381f463fed7d4bdba29ba2b78ed41fd8e2ea" },
+    { "path": "tests/shell/let-independent-20260828/final-review/HANDOFF.md", "bytes": 8813, "sha256": "59060e7fcd3fbe3b7213f7ef510b68850acfcc44ee90bfd422d9c4c49a8e83df" }
+  ],
+  "nativeIdentityReadOnly": {
+    "binary": { "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash", "regularFile": true, "bytes": 1395864, "mode": 493, "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c", "matchesPublished": true },
+    "manual": { "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi", "regularFile": true, "bytes": 415804, "mode": 420, "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5", "matchesPublished": true },
+    "qualification": "Read/hash only, no --version or native invocation. Manual identity verified, no new manual semantic claims. Published LET identity is not a fresh native platform qualification."
+  },
+  "metadataIncident": "Initial source-hash loop used zsh's special path variable, disrupting command lookup inside that invocation; git/node commands were not found. No source or product executed. Corrected metadata-only loop used file_path and completed. This was a local shell metadata typo, not a blocked authorization check or reroute.",
+  "remainingRootChoices": [
+    "Ratify export/control/local restrictions, scalar-prefix refusal and listing refusal",
+    "Ratify prior-target visibility and readonly/stale-target diagnostic precedence",
+    "Ratify private caps, cleanup work credits, exhaustion diagnostic and cross-exec/host boundary",
+    "Select future accepted source window after reserved work; separately authorize any native capture"
+  ],
+  "publicContractChangesClaimed": [],
+  "limitations": "No semantic execution, native result, compatibility acceptance, resource stress or complete-source inventory proof. Original selected composition retained; foreign changes untouched."
+}

@@ -1,0 +1,9 @@
+{
+  "phase": "offline downloader environment preflight",
+  "outcome": "failed before network or product execution",
+  "error": "Strict environment allowlist assertion found macOS-added __CF_USER_TEXT_ENCODING despite env -i.",
+  "metadataRequests": 0,
+  "tarballRequests": 0,
+  "productCalls": 0,
+  "resolution": "Explicitly remove only platform-added __CF_USER_TEXT_ENCODING before asserting the original complete environment allowlist; no proxy, credentials or TLS environment is accepted. Preserve the first failure and reuse its owned scratch."
+}

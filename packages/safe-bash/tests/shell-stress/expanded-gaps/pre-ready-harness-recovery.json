@@ -1,0 +1,2272 @@
+{
+  "started": "2026-08-27T03:14:42.833Z",
+  "finished": "2026-08-27T03:14:53.140Z",
+  "head": "280815c7b7106abf9bdca8b9294c811eb80b1846",
+  "casesHash": "11a4928d6cf4c64de20752e2b918bafa511789fabf048221dc841ed2638f52fd",
+  "frozenHash": "9afb51e0eed4f9fe1a61c52a146066edf11a6cc53408dd0b442186bbcd25a302",
+  "manifests": {
+    "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c": {
+      "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+      "src/commands/archive/format.ts": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0",
+      "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "src/commands/bytes/checksums/index.ts": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+      "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "src/commands/diff-patch/patch.ts": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "src/commands/execution.ts": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+      "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "src/commands/metadata/stat.ts": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+      "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "src/commands/streams.ts": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+      "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "src/commands/structured/interpreter.ts": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "src/commands/structured/parser.ts": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "src/commands/structured/values.ts": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "src/commands/table-text/comm.ts": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+      "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "src/commands/table-text/internal.ts": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "src/commands/text.ts": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+      "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+      "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+      "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "src/fs/s3/authority.ts": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "src/fs/s3/filesystem.ts": "af2ee439cbabdc3babe008da2601ccc1a031555edc5e082f8711f4512db01411",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/resource-id.ts": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "src/fs/webdav/webdav.ts": "36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+      "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "28492059750ba7f11fad563dfc03dba049f232b3f2212186cf3553e4559ae905",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "e8c61eb96c76999b0ac61a956312fce7d2e6077f1b2c55fcd9c15d4d50b40123",
+      "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+      "src/shell/types.ts": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    }
+  },
+  "rows": [
+    {
+      "id": "header-argv",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66675,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJQQzR2YzJOeWFYQjBQZ284TXo0S1BHRWdZajRLUEQ0S1BEdDBiM1ZqYUNCdFlYSnJaWEkrQ2c9PSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJjSEpwYm5SbUlDSThKWE0rWEc0aUlDSWtNQ0lnSWlRaklpQWlKREVpSUNJa01pSWdJaVF6SWdvPSIsIm1vZGUiOjQ5M30sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbIi4vc2NyaXB0IiwicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "PC4vc2NyaXB0Pgo8Mz4KPGEgYj4KPD4KPDt0b3VjaCBtYXJrZXI+Cg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmICI8JXM+XG4iICIkMCIgIiQjIiAiJDEiICIkMiIgIiQzIgo=",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-path",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66676,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJMMlpwZUhSMWNtVXZZbWx1TDNSdmIydzZkbUZzZFdVPSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJiaW4vdG9vbCI6eyJieXRlcyI6ImNISnBiblJtSUNJbGN6b2xjeUlnSWlRd0lpQWlKREVpQ2c9PSIsIm1vZGUiOjQ5M30sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbInRvb2wiLCJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "L2ZpeHR1cmUvYmluL3Rvb2w6dmFsdWU=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "bin/tool": {
+            "bytes": "cHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-cwd",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66677,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJMMlpwZUhSMWNtVUtMMlpwZUhSMWNtVXZkMjl5YXdvdlptbDRkSFZ5WlFvPSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJjSGRrT3lCalpDQjNiM0pyT3lCd2QyUUsiLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCIsInB3ZCIsImNkIiwicHdkIiwicHdkIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "L2ZpeHR1cmUKL2ZpeHR1cmUvd29yawovZml4dHVyZQo=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHdkOyBjZCB3b3JrOyBwd2QK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-env",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66678,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJjSFZpYkdsak9qcHdjbVZtYVhnNmRXNXpaWFE9Iiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsInNjcmlwdCI6eyJieXRlcyI6ImNISnBiblJtSUNJbGN6b2xjem9sY3lJZ0lpUlFWVUpNU1VNaUlDSWtVMFZEVWtWVUlpQWlKRkJTUlVaSldDSUsiLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyJleHBvcnQiLCIuL3NjcmlwdCIsInByaW50ZiIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "cHVibGljOjpwcmVmaXg6dW5zZXQ=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmICIlczolczolcyIgIiRQVUJMSUMiICIkU0VDUkVUIiAiJFBSRUZJWCIK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-functions",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66679,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZMmhwYkdScGJtaGxjbWwwWldRPSIsInN0ZGVyciI6IkxpOXpZM0pwY0hRNklHeHBibVVnTVRvZ2FXNW9aWEpwZEdWa09pQmpiMjF0WVc1a0lHNXZkQ0JtYjNWdVpBbz0iLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwic2NyaXB0Ijp7ImJ5dGVzIjoiYVc1b1pYSnBkR1ZrT3lCamFHbHNaQ2dwZXlCd2NtbHVkR1lnWTJocGJHUTdJSDA3SUdOb2FXeGtDZz09IiwibW9kZSI6NDkzfSwid29yay8iOm51bGx9fSwiY2FsbHMiOlsiLi9zY3JpcHQiLCJpbmhlcml0ZWQiLCJjaGlsZCIsInByaW50ZiIsImluaGVyaXRlZCIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "Y2hpbGRpbmhlcml0ZWQ=",
+        "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogaW5oZXJpdGVkOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "aW5oZXJpdGVkOyBjaGlsZCgpeyBwcmludGYgY2hpbGQ7IH07IGNoaWxkCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-state",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66686,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJOenB3WVhKbGJuUTZkVzV6WlhRNkwyWnBlSFIxY21VSyIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJWa0ZNVlVVOVkyaHBiR1E3SUdWNGNHOXlkQ0JPUlZjOWJtVjNPeUJqWkNCM2IzSnJPeUJsZUdsMElEY0siLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCIsImV4cG9ydCIsImNkIiwiZXhpdCIsInByaW50ZiIsInB3ZCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "NzpwYXJlbnQ6dW5zZXQ6L2ZpeHR1cmUK",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "VkFMVUU9Y2hpbGQ7IGV4cG9ydCBORVc9bmV3OyBjZCB3b3JrOyBleGl0IDcK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-empty",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66689,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJjM1JoZEhWek9qQT0iLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwic2NyaXB0Ijp7ImJ5dGVzIjoiIiwibW9kZSI6NDkzfSwid29yay8iOm51bGx9fSwiY2FsbHMiOlsiLi9zY3JpcHQiLCJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "c3RhdHVzOjA=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-exit",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66691,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZbVZtYjNKbE9qSXpPbUZtZEdWeSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJjSEpwYm5SbUlHSmxabTl5WlRzZ1pYaHBkQ0F5TXpzZ2NISnBiblJtSUdadmNtSnBaR1JsYmdvPSIsIm1vZGUiOjQ5M30sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbIi4vc2NyaXB0IiwicHJpbnRmIiwiZXhpdCIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YmVmb3JlOjIzOmFmdGVy",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGJlZm9yZTsgZXhpdCAyMzsgcHJpbnRmIGZvcmJpZGRlbgo=",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-symlink",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66692,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJMaTloYkdsaGN6cDJZV3gxWlE9PSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJhbGlhcyI6eyJsaW5rIjoic2NyaXB0In0sImJpbi8iOm51bGwsInNjcmlwdCI6eyJieXRlcyI6ImNISnBiblJtSUNJbGN6b2xjeUlnSWlRd0lpQWlKREVpQ2c9PSIsIm1vZGUiOjQ5M30sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbIi4vYWxpYXMiLCJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "Li9hbGlhczp2YWx1ZQ==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "alias": {
+            "link": "script"
+          },
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-noexecute",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66693,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklHeHBibVVnTVRvZ0xpOXpZM0pwY0hRNklGQmxjbTFwYzNOcGIyNGdaR1Z1YVdWa0NnPT0iLCJzdGF0dXMiOjEyNiwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJjSEpwYm5SbUlHWnZjbUpwWkdSbGJpQStJRzFoY210bGNnbz0iLCJtb2RlIjo0MjB9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+            "mode": 420
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-readonly-bash",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66694,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJjbVZoWkdGaWJHVT0iLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwic2NyaXB0Ijp7ImJ5dGVzIjoiY0hKcGJuUm1JSEpsWVdSaFlteGxDZz09IiwibW9kZSI6NDIwfSwid29yay8iOm51bGx9fSwiY2FsbHMiOlsiYmFzaCIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "cmVhZGFibGU=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIHJlYWRhYmxlCg==",
+            "mode": 420
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-execute-no-read",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66695,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklHeHBibVVnTVRvZ0xpOXpZM0pwY0hRNklGQmxjbTFwYzNOcGIyNGdaR1Z1YVdWa0NnPT0iLCJzdGF0dXMiOjEyNiwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJjSEpwYm5SbUlHWnZjbUpwWkdSbGJpQStJRzFoY210bGNnbz0iLCJtb2RlIjo3M30sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbIi4vc2NyaXB0Il0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbiA+IG1hcmtlcgo=",
+            "mode": 73
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "header-path-search-denied",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66709,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJjMlZzWldOMFpXUT0iLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwiYmluL3Rvb2wiOnsiYnl0ZXMiOiJjSEpwYm5SbUlITmxiR1ZqZEdWa0NnPT0iLCJtb2RlIjo0OTN9LCJkZW5pZWQvIjpudWxsLCJkZW5pZWQvdG9vbCI6eyJieXRlcyI6ImNISnBiblJtSUdadmNtSnBaR1JsYmdvPSIsIm1vZGUiOjQyMH0sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbInRvb2wiLCJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "c2VsZWN0ZWQ=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "bin/tool": {
+            "bytes": "cHJpbnRmIHNlbGVjdGVkCg==",
+            "mode": 493
+          },
+          "denied/": null,
+          "denied/tool": {
+            "bytes": "cHJpbnRmIGZvcmJpZGRlbgo=",
+            "mode": 420
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-argv",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66711,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJQQzR2YzJOeWFYQjBQZ284TWo0S1BHRWdZajRLUER0MGIzVmphQ0J0WVhKclpYSStDZz09Iiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsInNjcmlwdCI6eyJieXRlcyI6Ikl5RXZkWE55TDJKcGJpOWxibllnWW1GemFBcHdjbWx1ZEdZZ0lqd2xjejVjYmlJZ0lpUXdJaUFpSkNNaUlDSWtNU0lnSWlReUlnbz0iLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "PC4vc2NyaXB0Pgo8Mj4KPGEgYj4KPDt0b3VjaCBtYXJrZXI+Cg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIjwlcz5cbiIgIiQwIiAiJCMiICIkMSIgIiQyIgo=",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-tabs",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66712,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJkMmhwZEdWemNHRmpaUT09Iiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsInNjcmlwdCI6eyJieXRlcyI6Ikl5RUpMM1Z6Y2k5aWFXNHZaVzUyQ1dKaGMyZ0tjSEpwYm5SbUlIZG9hWFJsYzNCaFkyVUsiLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "d2hpdGVzcGFjZQ==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEJL3Vzci9iaW4vZW52CWJhc2gKcHJpbnRmIHdoaXRlc3BhY2UK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-single-kernel-argument",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66713,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklHeHBibVVnTVRvZ0xpOXpZM0pwY0hRNklIVnVjM1Z3Y0c5eWRHVmtJR2x1ZEdWeWNISmxkR1Z5T2lBdmRYTnlMMkpwYmk5bGJuWWdZbUZ6YUNBdFpRbz0iLCJzdGF0dXMiOjEyNiwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJJeUV2ZFhOeUwySnBiaTlsYm5ZZ1ltRnphQ0F0WlFwd2NtbHVkR1lnYzJodmRXeGtMVzV2ZEMxeWRXNGdQaUJ0WVhKclpYSUsiLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaCAtZQo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaCAtZQpwcmludGYgc2hvdWxkLW5vdC1ydW4gPiBtYXJrZXIK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-injection-text",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66714,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklHeHBibVVnTVRvZ0xpOXpZM0pwY0hRNklIVnVjM1Z3Y0c5eWRHVmtJR2x1ZEdWeWNISmxkR1Z5T2lBdmRYTnlMMkpwYmk5bGJuWWdZbUZ6YUR0MGIzVmphQ0J0WVhKclpYSUsiLCJzdGF0dXMiOjEyNiwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJJeUV2ZFhOeUwySnBiaTlsYm5ZZ1ltRnphRHQwYjNWamFDQnRZWEpyWlhJS2NISnBiblJtSUhOb2IzVnNaQzF1YjNRdGNuVnVJRDRnYldGeWEyVnlDZz09IiwibW9kZSI6NDkzfSwid29yay8iOm51bGx9fSwiY2FsbHMiOlsiLi9zY3JpcHQiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIK",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaDt0b3VjaCBtYXJrZXIKcHJpbnRmIHNob3VsZC1ub3QtcnVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-missing-target",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66715,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklHeHBibVVnTVRvZ0xpOXpZM0pwY0hRNklIVnVjM1Z3Y0c5eWRHVmtJR2x1ZEdWeWNISmxkR1Z5T2lBdmRYTnlMMkpwYmk5bGJuWWdkbVZ5YVdacFpYSXRibTh0YzNWamFDMXBiblJsY25CeVpYUmxjZ289Iiwic3RhdHVzIjoxMjYsImVudHJpZXMiOnsiYmluLyI6bnVsbCwic2NyaXB0Ijp7ImJ5dGVzIjoiSXlFdmRYTnlMMkpwYmk5bGJuWWdkbVZ5YVdacFpYSXRibTh0YzNWamFDMXBiblJsY25CeVpYUmxjZ3B3Y21sdWRHWWdabTl5WW1sa1pHVnVJRDRnYldGeWEyVnlDZz09IiwibW9kZSI6NDkzfSwid29yay8iOm51bGx9fSwiY2FsbHMiOlsiLi9zY3JpcHQiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgdmVyaWZpZXItbm8tc3VjaC1pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-sh",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66717,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJMaTl6WTNKcGNIUTZkbUZzZFdVPSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJJeUV2ZFhOeUwySnBiaTlsYm5ZZ2MyZ0tjSEpwYm5SbUlDSWxjem9sY3lJZ0lpUXdJaUFpSkRFaUNnPT0iLCJtb2RlIjo0OTN9LCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyIuL3NjcmlwdCIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "Li9zY3JpcHQ6dmFsdWU=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgc2gKcHJpbnRmICIlczolcyIgIiQwIiAiJDEiCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-child-isolation",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66724,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJjSFZpYkdsak9uVnVjMlYwT25CMVlteHBZem92Wm1sNGRIVnlaUW89Iiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsInNjcmlwdCI6eyJieXRlcyI6Ikl5RXZkWE55TDJKcGJpOWxibllnWW1GemFBcHdjbWx1ZEdZZ0lpVnpPaVZ6T2lJZ0lpUlFWVUpNU1VNaUlDSWtlMU5GUTFKRlZDMTFibk5sZEgwaU95QlFWVUpNU1VNOVkyaHBiR1E3SUdOa0lIZHZjbXNLIiwibW9kZSI6NDkzfSwid29yay8iOm51bGx9fSwiY2FsbHMiOlsiZXhwb3J0IiwiLi9zY3JpcHQiLCJwcmludGYiLCJjZCIsInByaW50ZiIsInB3ZCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "cHVibGljOnVuc2V0OnB1YmxpYzovZml4dHVyZQo=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgIiVzOiVzOiIgIiRQVUJMSUMiICIke1NFQ1JFVC11bnNldH0iOyBQVUJMSUM9Y2hpbGQ7IGNkIHdvcmsK",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "env-unsupported-interpreter",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66725,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklHeHBibVVnTVRvZ0xpOXpZM0pwY0hRNklIVnVjM1Z3Y0c5eWRHVmtJR2x1ZEdWeWNISmxkR1Z5T2lBdmRtVnlhV1pwWlhJdGJXbHpjMmx1Wnk5cGJuUmxjbkJ5WlhSbGNnbz0iLCJzdGF0dXMiOjEyNiwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJzY3JpcHQiOnsiYnl0ZXMiOiJJeUV2ZG1WeWFXWnBaWEl0YldsemMybHVaeTlwYm5SbGNuQnlaWFJsY2dwd2NtbHVkR1lnWm05eVltbGtaR1Z1SUQ0Z2JXRnlhMlZ5Q2c9PSIsIm1vZGUiOjQ5M30sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbIi4vc2NyaXB0Il0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgo=",
+        "status": 126,
+        "entries": {
+          "bin/": null,
+          "script": {
+            "bytes": "IyEvdmVyaWZpZXItbWlzc2luZy9pbnRlcnByZXRlcgpwcmludGYgZm9yYmlkZGVuID4gbWFya2VyCg==",
+            "mode": 493
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-combined-nearby",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66727,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZV0pqWVdKak9tRmlZMkZpWXpwWVltTllZbU5ZWW1NPSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YWJjYWJjOmFiY2FiYzpYYmNYYmNYYmM=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-short-long-prefix",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66728,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZaTlqT21NPSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "Yi9jOmM=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-short-long-suffix",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66750,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZUzlpT21FPSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YS9iOmE=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-replace-first-global",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66751,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJXR0poWVdKaE9saGlXRmhpV0E9PSIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "WGJhYWJhOlhiWFhiWA==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-anchored-replace",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66752,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJXR0ZpWXpwaFltTlkiLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwid29yay8iOm51bGx9fSwiY2FsbHMiOlsicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "WGFiYzphYmNY",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-delete",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66753,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZbUZpWVRwaVlnPT0iLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwid29yay8iOm51bGx9fSwiY2FsbHMiOlsicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YmFiYTpiYg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-quoted-pattern",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66754,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZaXBqT21FcVlnPT0iLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwid29yay8iOm51bGx9fSwiY2FsbHMiOlsicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YipjOmEqYg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-escaped-pattern",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66756,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZaXBqT21GWVlsaGoiLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwid29yay8iOm51bGx9fSwiY2FsbHMiOlsicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YipjOmFYYlhj",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-unset-empty",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66758,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJQRDQ4UGp3K1BEND0iLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwid29yay8iOm51bGx9fSwiY2FsbHMiOlsidW5zZXQiLCJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "PD48Pjw+PD4=",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-pattern-variable",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66759,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZbU5oWW1NNiIsInN0ZGVyciI6IiIsInN0YXR1cyI6MCwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6WyJwcmludGYiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YmNhYmM6",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-replacement-variable",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66760,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJQSGdnZVdKNElIaysiLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjAsImVudHJpZXMiOnsiYmluLyI6bnVsbCwid29yay8iOm51bGx9fSwiY2FsbHMiOlsicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "PHggeWJ4IHk+",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-nested-default",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66768,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJZV0pqIiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsIndvcmsvIjpudWxsfX0sImNhbGxzIjpbInVuc2V0IiwicHJpbnRmIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "YWJj",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-substitution-order",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66769,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJXR0pZIiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsIm1hcmtlciI6eyJieXRlcyI6ImNHRjBkR1Z5Ym5KbGNHeGhZMlZ0Wlc1MCIsIm1vZGUiOjQzOH0sIndvcmsvIjpudWxsfX0sImNhbGxzIjpbInByaW50ZiIsInByaW50ZiIsInByaW50ZiIsInByaW50ZiIsInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "WGJY",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "marker": {
+            "bytes": "cGF0dGVybnJlcGxhY2VtZW50",
+            "mode": 438
+          },
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-quoted-fields",
+      "cohort": "native",
+      "passed": true,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": true
+        },
+        {
+          "role": "historical",
+          "passed": true
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66770,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiJQQ0JpSUQ0OFlpQmhQZz09Iiwic3RkZXJyIjoiIiwic3RhdHVzIjowLCJlbnRyaWVzIjp7ImJpbi8iOm51bGwsIndvcmsvIjpudWxsfX0sImNhbGxzIjpbInByaW50ZiJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "PCBiID48YiBhPg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "parameter-existing-controls",
+      "cohort": "native",
+      "passed": false,
+      "valid": true,
+      "profiles": [
+        {
+          "role": "primary",
+          "passed": false
+        },
+        {
+          "role": "historical",
+          "passed": false
+        }
+      ],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66771,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJjMmhsYkd3NklGVnVkR1Z5YldsdVlYUmxaQ0J2Y2lCMWJuTjFjSEJ2Y25SbFpDQndZWEpoYldWMFpYSWdaWGh3WVc1emFXOXVJR0YwSUc5bVpuTmxkQ0ExTlFvPSIsInN0YXR1cyI6MiwiZW50cmllcyI6eyJiaW4vIjpudWxsLCJ3b3JrLyI6bnVsbH19LCJjYWxscyI6W10sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA1NQo=",
+        "status": 2,
+        "entries": {
+          "bin/": null,
+          "work/": null
+        }
+      }
+    },
+    {
+      "id": "host-vfs-only",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66772,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOltdLCJjYWxscyI6WyIuL3NjcmlwdCIsIi91c3IvYmluL3VuYW1lIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W10sInJlc3VsdCI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiJMaTl6WTNKcGNIUTZJR3hwYm1VZ01Ub2dMM1Z6Y2k5aWFXNHZkVzVoYldVNklFNXZJSE4xWTJnZ1ptbHNaU0J2Y2lCa2FYSmxZM1J2Y25rSyIsInN0YXR1cyI6MTI3fX0sImNhbGxzIjpbIi4vc2NyaXB0IiwiL3Vzci9iaW4vdW5hbWUiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [],
+        "calls": [
+          "./script",
+          "/usr/bin/uname"
+        ],
+        "forbiddenHostCalls": [],
+        "result": {
+          "stdout": "",
+          "stderr": "Li9zY3JpcHQ6IGxpbmUgMTogL3Vzci9iaW4vdW5hbWU6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK",
+          "status": 127
+        }
+      }
+    },
+    {
+      "id": "host-command-budget",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66774,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfSx7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfV0sImNhbGxzIjpbIi4vc2NyaXB0IiwidGljayIsInRpY2siXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXSwiZXJyb3IiOnsibmFtZSI6IlNoZWxsTGltaXRFcnJvciIsImxpbWl0IjoibWF4Q29tbWFuZHMiLCJtZXNzYWdlIjoiU2hlbGwgbGltaXQgZXhjZWVkZWQ6IG1heENvbW1hbmRzIn19LCJjYWxscyI6WyIuL3NjcmlwdCIsInRpY2siLCJ0aWNrIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          },
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          }
+        ],
+        "calls": [
+          "./script",
+          "tick",
+          "tick"
+        ],
+        "forbiddenHostCalls": [],
+        "error": {
+          "name": "ShellLimitError",
+          "limit": "maxCommands",
+          "message": "Shell limit exceeded: maxCommands"
+        }
+      }
+    },
+    {
+      "id": "host-source-budget",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66775,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfV0sImNhbGxzIjpbIi4vc2NyaXB0IiwidGljayIsIi4vc2NyaXB0Il0sImZvcmJpZGRlbkhvc3RDYWxscyI6W10sImVycm9yIjp7Im5hbWUiOiJTaGVsbExpbWl0RXJyb3IiLCJsaW1pdCI6Im1heFNvdXJjZUJ5dGVzIiwibWVzc2FnZSI6IlNoZWxsIGxpbWl0IGV4Y2VlZGVkOiBtYXhTb3VyY2VCeXRlcyJ9fSwiY2FsbHMiOlsiLi9zY3JpcHQiLCJ0aWNrIiwiLi9zY3JpcHQiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          }
+        ],
+        "calls": [
+          "./script",
+          "tick",
+          "./script"
+        ],
+        "forbiddenHostCalls": [],
+        "error": {
+          "name": "ShellLimitError",
+          "limit": "maxSourceBytes",
+          "message": "Shell limit exceeded: maxSourceBytes"
+        }
+      }
+    },
+    {
+      "id": "host-depth-budget",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66776,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfSx7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfV0sImNhbGxzIjpbIi4vc2NyaXB0IiwidGljayIsIi4vc2NyaXB0IiwidGljayIsIi4vc2NyaXB0Il0sImZvcmJpZGRlbkhvc3RDYWxscyI6W10sImVycm9yIjp7Im5hbWUiOiJTaGVsbExpbWl0RXJyb3IiLCJsaW1pdCI6Im1heFN1YnN0aXR1dGlvbkRlcHRoIiwibWVzc2FnZSI6IlNoZWxsIGxpbWl0IGV4Y2VlZGVkOiBtYXhTdWJzdGl0dXRpb25EZXB0aCJ9fSwiY2FsbHMiOlsiLi9zY3JpcHQiLCJ0aWNrIiwiLi9zY3JpcHQiLCJ0aWNrIiwiLi9zY3JpcHQiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          },
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          }
+        ],
+        "calls": [
+          "./script",
+          "tick",
+          "./script",
+          "tick",
+          "./script"
+        ],
+        "forbiddenHostCalls": [],
+        "error": {
+          "name": "ShellLimitError",
+          "limit": "maxSubstitutionDepth",
+          "message": "Shell limit exceeded: maxSubstitutionDepth"
+        }
+      }
+    },
+    {
+      "id": "host-output-shared-noreset",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66777,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfSx7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfSx7ImFyZ3MiOltdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUifSwib3JpZ2luIjp0cnVlfV0sImNhbGxzIjpbIi4vc2NyaXB0IiwidGljayIsInRpY2siLCJ0aWNrIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W10sImVycm9yIjp7Im5hbWUiOiJTaGVsbExpbWl0RXJyb3IiLCJsaW1pdCI6Im1heE91dHB1dEJ5dGVzIiwibWVzc2FnZSI6IlNoZWxsIGxpbWl0IGV4Y2VlZGVkOiBtYXhPdXRwdXRCeXRlcyJ9fSwiY2FsbHMiOlsiLi9zY3JpcHQiLCJ0aWNrIiwidGljayIsInRpY2siXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          },
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          },
+          {
+            "args": [],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture"
+            },
+            "origin": true
+          }
+        ],
+        "calls": [
+          "./script",
+          "tick",
+          "tick",
+          "tick"
+        ],
+        "forbiddenHostCalls": [],
+        "error": {
+          "name": "ShellLimitError",
+          "limit": "maxOutputBytes",
+          "message": "Shell limit exceeded: maxOutputBytes"
+        }
+      }
+    },
+    {
+      "id": "host-read-cancellation",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66778,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOltdLCJjYWxscyI6WyIuL3NjcmlwdCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdLCJyZXF1ZXN0ZWQiOnRydWUsInNhbWVSZWFzb24iOnRydWV9LCJjYWxscyI6WyIuL3NjcmlwdCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdfQo=",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [],
+        "calls": [
+          "./script"
+        ],
+        "forbiddenHostCalls": [],
+        "requested": true,
+        "sameReason": true
+      }
+    },
+    {
+      "id": "host-input-cursor",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66780,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7Im9yaWdpbiI6ZmFsc2UsImhleCI6IjAwZmYifSx7Im9yaWdpbiI6ZmFsc2UsImhleCI6IjQxIn1dLCJjYWxscyI6WyIuL3NjcmlwdCIsInRha2UiLCJ0YWtlIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W10sIm1vZGVzIjpbeyJtb2RlIjoiYmluYXJ5IiwicmVzdWx0Ijp7InN0ZG91dCI6IiIsInN0ZGVyciI6IiIsInN0YXR1cyI6MH0sInNlZW4iOlt7Im9yaWdpbiI6ZmFsc2UsImhleCI6IjAwZmYifSx7Im9yaWdpbiI6ZmFsc2UsImhleCI6IjQxIn1dfV19LCJjYWxscyI6WyIuL3NjcmlwdCIsInRha2UiLCJ0YWtlIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "origin": false,
+            "hex": "00ff"
+          },
+          {
+            "origin": false,
+            "hex": "41"
+          }
+        ],
+        "calls": [
+          "./script",
+          "take",
+          "take"
+        ],
+        "forbiddenHostCalls": [],
+        "modes": [
+          {
+            "mode": "binary",
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "status": 0
+            },
+            "seen": [
+              {
+                "origin": false,
+                "hex": "00ff"
+              },
+              {
+                "origin": false,
+                "hex": "41"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "host-empty-input-origin",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66781,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7Im9yaWdpbiI6ZmFsc2UsImhleCI6IiJ9LHsib3JpZ2luIjpmYWxzZSwiaGV4IjoiIn1dLCJjYWxscyI6WyIuL3NjcmlwdCIsInRha2UiLCJ0YWtlIiwiLi9zY3JpcHQiLCJ0YWtlIiwidGFrZSJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdLCJtb2RlcyI6W3sibW9kZSI6ImRlZmF1bHQiLCJyZXN1bHQiOnsic3Rkb3V0IjoiIiwic3RkZXJyIjoiIiwic3RhdHVzIjowfSwic2VlbiI6W3sib3JpZ2luIjp0cnVlLCJoZXgiOiIifSx7Im9yaWdpbiI6dHJ1ZSwiaGV4IjoiIn1dfSx7Im1vZGUiOiJlbXB0eSIsInJlc3VsdCI6eyJzdGRvdXQiOiIiLCJzdGRlcnIiOiIiLCJzdGF0dXMiOjB9LCJzZWVuIjpbeyJvcmlnaW4iOmZhbHNlLCJoZXgiOiIifSx7Im9yaWdpbiI6ZmFsc2UsImhleCI6IiJ9XX1dfSwiY2FsbHMiOlsiLi9zY3JpcHQiLCJ0YWtlIiwidGFrZSIsIi4vc2NyaXB0IiwidGFrZSIsInRha2UiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "origin": false,
+            "hex": ""
+          },
+          {
+            "origin": false,
+            "hex": ""
+          }
+        ],
+        "calls": [
+          "./script",
+          "take",
+          "take",
+          "./script",
+          "take",
+          "take"
+        ],
+        "forbiddenHostCalls": [],
+        "modes": [
+          {
+            "mode": "default",
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "status": 0
+            },
+            "seen": [
+              {
+                "origin": true,
+                "hex": ""
+              },
+              {
+                "origin": true,
+                "hex": ""
+              }
+            ]
+          },
+          {
+            "mode": "empty",
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "status": 0
+            },
+            "seen": [
+              {
+                "origin": false,
+                "hex": ""
+              },
+              {
+                "origin": false,
+                "hex": ""
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "host-child-state-literal",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66783,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOlt7ImFyZ3MiOlsiOyB0aWNrIGluamVjdGVkIiwicHVibGljIiwidW5zZXQiXSwiY3dkIjoiL2ZpeHR1cmUiLCJlbnYiOnsiUEFUSCI6Ii9maXh0dXJlL2JpbjovZml4dHVyZS8ucm9sZXMiLCJIT01FIjoiL2ZpeHR1cmUiLCJMQU5HIjoiQyIsIkxDX0FMTCI6IkMiLCJUWiI6IlVUQyIsIlBXRCI6Ii9maXh0dXJlIiwiUFVCTElDIjoicHVibGljIn0sIm9yaWdpbiI6dHJ1ZX0seyJhcmdzIjpbInB1YmxpYyIsInNlY3JldCJdLCJjd2QiOiIvZml4dHVyZSIsImVudiI6eyJQQVRIIjoiL2ZpeHR1cmUvYmluOi9maXh0dXJlLy5yb2xlcyIsIkhPTUUiOiIvZml4dHVyZSIsIkxBTkciOiJDIiwiTENfQUxMIjoiQyIsIlRaIjoiVVRDIiwiUFdEIjoiL2ZpeHR1cmUiLCJQVUJMSUMiOiJwdWJsaWMifSwib3JpZ2luIjp0cnVlfV0sImNhbGxzIjpbImV4cG9ydCIsIi4vc2NyaXB0IiwidGljayIsImNkIiwiZXhpdCIsInRpY2siXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXSwicmVzdWx0Ijp7InN0ZG91dCI6IiIsInN0ZGVyciI6IiIsInN0YXR1cyI6MH19LCJjYWxscyI6WyJleHBvcnQiLCIuL3NjcmlwdCIsInRpY2siLCJjZCIsImV4aXQiLCJ0aWNrIl0sImZvcmJpZGRlbkhvc3RDYWxscyI6W119Cg==",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [
+          {
+            "args": [
+              "; tick injected",
+              "public",
+              "unset"
+            ],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture",
+              "PUBLIC": "public"
+            },
+            "origin": true
+          },
+          {
+            "args": [
+              "public",
+              "secret"
+            ],
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/fixture/bin:/fixture/.roles",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "PWD": "/fixture",
+              "PUBLIC": "public"
+            },
+            "origin": true
+          }
+        ],
+        "calls": [
+          "export",
+          "./script",
+          "tick",
+          "cd",
+          "exit",
+          "tick"
+        ],
+        "forbiddenHostCalls": [],
+        "result": {
+          "stdout": "",
+          "stderr": "",
+          "status": 0
+        }
+      }
+    },
+    {
+      "id": "host-permission-before-effects",
+      "cohort": "host",
+      "passed": true,
+      "valid": true,
+      "profiles": [],
+      "before": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "after": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "loaded": "11796b4c4d2cb52b2562df6af065d3fd522a8b77708a2f95c54ea76b271d710c",
+      "drift": [],
+      "mismatch": [],
+      "run": {
+        "pid": 66785,
+        "status": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "groupAlive": false,
+        "stdout": "eyJvYnNlcnZhdGlvbiI6eyJwYXNzZWQiOnRydWUsInNlZW4iOltdLCJjYWxscyI6WyIuL3NjcmlwdCJdLCJmb3JiaWRkZW5Ib3N0Q2FsbHMiOltdLCJyZXN1bHQiOnsic3Rkb3V0IjoiIiwic3RkZXJyIjoiYzJobGJHdzZJR3hwYm1VZ01Ub2dMaTl6WTNKcGNIUTZJRkJsY20xcGMzTnBiMjRnWkdWdWFXVmtDZz09Iiwic3RhdHVzIjoxMjZ9fSwiY2FsbHMiOlsiLi9zY3JpcHQiXSwiZm9yYmlkZGVuSG9zdENhbGxzIjpbXX0K",
+        "stderr": ""
+      },
+      "actual": {
+        "passed": true,
+        "seen": [],
+        "calls": [
+          "./script"
+        ],
+        "forbiddenHostCalls": [],
+        "result": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IFBlcm1pc3Npb24gZGVuaWVkCg==",
+          "status": 126
+        }
+      }
+    }
+  ],
+  "summary": {
+    "native": {
+      "total": 36,
+      "passed": 29,
+      "invalid": 0
+    },
+    "host": {
+      "total": 10,
+      "passed": 10,
+      "invalid": 0
+    }
+  }
+}

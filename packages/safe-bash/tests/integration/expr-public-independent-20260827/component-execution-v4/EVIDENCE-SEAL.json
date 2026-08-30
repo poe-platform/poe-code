@@ -1,0 +1,248 @@
+{
+  "schema": "expr-v4-final-evidence/1",
+  "authorizationDate": "2026-08-28",
+  "finishedAt": "2026-08-28T01:59:34.512Z",
+  "recipeCommit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+  "recipeManifestSha256": "71ec5ec3a8b27cdcb0e3c6bfa27eec9b4d12396022f76d950c5b38ee9a2e1179",
+  "scope": "EXPRPUBLICCOMPONENT",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "source": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+  "verdict": "HELD",
+  "outer": {
+    "schema": "expr-v4-outer-receipt/1",
+    "commit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "startedAt": "2026-08-28T01:58:57.394Z",
+    "finishedAt": "2026-08-28T01:59:34.459Z",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "pid": 14544,
+    "childStatus": 1,
+    "signal": null,
+    "closed": true,
+    "supervision": null,
+    "outputBytes": 5057,
+    "aggregateExitCode": 1,
+    "exitCode": 1,
+    "rawFlushedBeforeExit": true
+  },
+  "aggregate": {
+    "schema": "expr-v4-required-phase-verdict/1",
+    "commit": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "status": "HELD",
+    "exitCode": 1,
+    "reasons": [
+      "child-closure",
+      "integrity-hold",
+      "reported-failures",
+      "context-count",
+      "installed-node22:types",
+      "installed-node22:runtime",
+      "installed-node24:package-controls",
+      "installed-node24:types",
+      "installed-node24:runtime",
+      "moved-node22:package-controls",
+      "moved-node22:types",
+      "moved-node22:runtime",
+      "moved-node24:package-controls",
+      "moved-node24:types",
+      "moved-node24:runtime"
+    ],
+    "errors": [],
+    "beforeProcessExit": true
+  },
+  "reader": {
+    "status": "qualified",
+    "controls": {
+      "status": "qualified-evidence-reused",
+      "priorPass": 16,
+      "priorPlanned": 16,
+      "newReaderControls": 0,
+      "evidenceCommit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+      "readerSha256": "5248d0c33f0a0282d80931c1ee7505bd379b802e377c4f2a7341a3e16df7932b",
+      "manifestSha256": "f2344a8bac78bf32599ba78b73eafa98e8102cf53976e5628b3d9bbf1b2af5c3",
+      "rawEntriesAuthenticated": 8,
+      "noReplayClaim": true
+    },
+    "selected": {
+      "count": 357,
+      "inventorySha256": "500351d1a3518eee8c44ff42288e9ec586f4f6a7d1357373e4066f084717ab2e",
+      "exactTree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+      "authenticatedEveryBlob": true
+    },
+    "finalReaderChildren": 2668
+  },
+  "repair": {
+    "status": "qualified",
+    "pass": 28,
+    "planned": 28
+  },
+  "P01": {
+    "status": "pass",
+    "buildExecuted": true,
+    "buildStatus": 0,
+    "independentInputs": 357,
+    "exactPackRequired": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packExecuted": true,
+    "packStatus": 0,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526
+  },
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 9,
+    "controlsPass": 9,
+    "typeInvocations": 1,
+    "typePass": 0
+  },
+  "failures": [
+    {
+      "name": "installed-node22-type-positive",
+      "error": "Expected values to be strictly equal:\n\nfalse !== true\n"
+    },
+    {
+      "name": "installed-node22-type-negative",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-N01",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-N02",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-N03",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-N04",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-N05",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-N06",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-combined",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "installed-node22-type-broken-declaration",
+      "error": "integrity failure holds type admission\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n"
+    },
+    {
+      "name": "runner",
+      "error": "AssertionError [ERR_ASSERTION]: earlier integrity/lifecycle failure holds dependents\n+ actual - expected\n\n+ 'installed-node22-type-positive: nonnatural or unclosed process'\n- undefined\n\n    at context (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/run.mjs:102:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/run.mjs:268:48\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    }
+  ],
+  "runtimeArtifact": "independently rebuilt exact fullpack",
+  "allProcessChildrenClosed": true,
+  "finalization": {
+    "status": "pass",
+    "finishedAt": "2026-08-28T01:59:34.436Z",
+    "allReaderChildrenClosed": true,
+    "readerChildCount": 2668,
+    "recipeNewEntriesChecked": true,
+    "toolsNewEntriesChecked": true,
+    "originalNineUnchanged": true,
+    "admissionFiveUnchanged": true,
+    "v1AndV2Unchanged": true,
+    "productPasses": 0
+  },
+  "holds": [
+    "Accepted-DU and original gate HELD/unrescored",
+    "HTML accepted separately; not rerun",
+    "No whole76/fullgate/engine acceptance"
+  ],
+  "artifacts": [
+    {
+      "path": "RECIPE-SEAL.json",
+      "bytes": 5629,
+      "mode": 420,
+      "sha256": "71ec5ec3a8b27cdcb0e3c6bfa27eec9b4d12396022f76d950c5b38ee9a2e1179"
+    },
+    {
+      "path": "PINS.json",
+      "bytes": 33881,
+      "mode": 420,
+      "sha256": "de02308e2c25fb05a40705bb74f379d66f4cdb028ac26c16e58e340169a2a9e1"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 7302,
+      "mode": 420,
+      "sha256": "8171e1d0d331efd82d751a744193b090f8e961c05b7daedac699dc8b05c187a3"
+    },
+    {
+      "path": "EXECUTION.raw.txt",
+      "bytes": 5057,
+      "mode": 420,
+      "sha256": "4af56f307e3ccc084ee3cb36520819e2dc93904e75e567d94546b9a8dd625117"
+    },
+    {
+      "path": "ADMISSION.json",
+      "bytes": 20501,
+      "mode": 420,
+      "sha256": "ecb346d13fba8cfc091a8509fe48400da5a4e7ad0cb1e9453968207348e0b41e"
+    },
+    {
+      "path": "ADMISSION.raw.jsonl",
+      "bytes": 1585935,
+      "mode": 420,
+      "sha256": "0e52ffd03aec6772ce3f77b701aed58d4dc96bd2824cf80b753f34cbf53485f8"
+    },
+    {
+      "path": "REPAIR-CONTROLS.json",
+      "bytes": 485252,
+      "mode": 420,
+      "sha256": "acbcb4b2a9ffe7f17ee749a5d5af93dd332ae8ba0ee93139a4db0143b851a752"
+    },
+    {
+      "path": "REPORT.json",
+      "bytes": 542632,
+      "mode": 420,
+      "sha256": "d17c78beadbaba297a353843cd6da7634a816d0dff2dc4c6a51180b91e07df8f"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 19117,
+      "mode": 420,
+      "sha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4"
+    },
+    {
+      "path": "RAW.json.gz.base64",
+      "bytes": 2525257,
+      "mode": 420,
+      "sha256": "adb61830273c511e346ae03d2270e406faf21aec91a71a41a67cba53bb048510"
+    },
+    {
+      "path": "FINALIZATION.json",
+      "bytes": 316,
+      "mode": 420,
+      "sha256": "6b57c984ebf24cc573640a4763d9db0e4b39dfd34140980f9b248fcca220ac32"
+    },
+    {
+      "path": "VERDICT.json",
+      "bytes": 644,
+      "mode": 420,
+      "sha256": "98666d5bfa9c1cb8ddbb233e6eaf6fa9037d0c6eb170089c464c3485f312eac6"
+    },
+    {
+      "path": "OUTER.json",
+      "bytes": 538,
+      "mode": 420,
+      "sha256": "a7891206b68d217aa9618dcda2562bdd2f57ed59936bf166139b815b08ce96cb"
+    }
+  ]
+}

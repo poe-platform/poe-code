@@ -1,0 +1,267 @@
+c4b94af78915e734e5cae7ac62d9be08aed9d80a blob 850
+export function finalize({primaryPresent, primary, census, publish}) {
+  const state = {primaryPresent, primary, secondaryPresent: false, secondary: [], sampledWorkPresent: false, sampledWork: undefined, publicationAttempted: false, publicationSucceeded: false};
+  const retain = (phase, reason) => {
+    if (state.primaryPresent) {
+      state.secondaryPresent = true;
+      state.secondary.push({phase, present: true, reason});
+    } else {
+      state.primaryPresent = true;
+      state.primary = reason;
+    }
+  };
+  try {
+    state.sampledWork = census();
+    state.sampledWorkPresent = true;
+  } catch (reason) {
+    retain('final-census', reason);
+  }
+  state.publicationAttempted = true;
+  try {
+    publish(state);
+    state.publicationSucceeded = true;
+  } catch (reason) {
+    retain('terminal-publication', reason);
+  }
+  return state;
+}
+
+2704a52995acfe0dfe87b892dbcf23a1f22b18b2 blob 5229
+# Explicit locator fix and two harmless loader observations
+
+2026-08-29. Source/preseal commit
+`4c764d70148d7c3aacbc743fff7fc09fb4436924`. Preseal SHA256
+`1424fa6bd60b13f7455c11e86a0feca3898090bd3822ef73dff20bc8a1e4e801`
+(2,854 bytes). Original24971010/b8e4e24b locator STOP and producer
+f89cfd7a/0cd47070 remain immutable. Source3adc/309 is unchanged.
+
+## Exact repair and DATA controls
+
+`descriptor.mjs` constructs explicit sourcePath/relativePath/type/bytes/sha256
+fields. No manifest spread can overwrite sourcePath. RelativePath must equal
+the specifically expected member; injected sourcePath and relative identities
+are rejected. Runtime package admission uses readDescriptor on the absolute
+identity, not display metadata or cwd fallback. The previously unused compiler
+entry descriptor is corrected and authenticated too.
+
+Package identity remains `/tmp/safe-bash-coherent-stage-a-20260829-r1/tools/typescript/package.json`,
+3,620 bytes, SHA256 `822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6`.
+The unchanged267-byte compiler shim SHA is
+`2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983`;
+it was admitted as DATA, never imported or run.
+
+Five fresh DATA controls passed: exact bytes; foreign relative member refusal;
+sourcePath injection refusal; nonabsolute identity refusal; wrong size before
+open. The latter's onOpen counter remains0, versus1 for the positive. These
+are not semantic/compiler outcomes or reruns of earlier DATA cohorts.
+
+## Exactly two actual harmless fixture observations
+
+Same authored main40 bytes SHA
+`9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05`
+and local payload420 bytes SHA
+`92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319`.
+Both are byte-identical to the original proposal. Exact TypeScript package.json
+was copied without alteration; no new package scope/type boundary was invented.
+
+| ID | Bound path profile | Actual observation |
+| --- | --- | --- |
+| L01 | Alias `/tmp/...-r2` for entry and permissions | exit1/close1; stdout0; FileSystemRead `/tmp`; no entry receipt |
+| L02 | Same inode via `/private/tmp/...-r2` consistently | exit0/close0; one417-byte nonce/hash/main/cwd readiness receipt; stderr0 |
+
+L01's646-byte stderr SHA
+`e38ccfcf39da649342eddd082b24c14e3d8187d1a77dfe2171e267bb17330def`
+is identical to the original Stage A loader denial. It is an expected refusal,
+not a successful compiler or entry. L02's output SHA is
+`03878cc99aa1c44ba2f790ae2fef43f67229f756c2e9514be709319ae8dcb08f`.
+Dispatch receipts were written after exact input admission and BEFORE spawning.
+Both case postguards passed. PID18357 and18358 had exit+close, no signal, and
+observed owned-group absence. No TERM/KILL or rescue was required. No universal
+process-tree/kernel-drain guarantee is inferred. Probe time10:02:55.847Z–
+10:02:56.058Z; total raw fixture capture1,063 bytes.
+
+## Source-qualified diagnosis and scope
+
+The accepted pinned Node22.22.2 fs.js:2815 source identifies the original denied
+operation as a stat of the `/tmp` symlink component during main realpath, before
+the compiler loads. These two cases now corroborate that route distinction for
+the fixed CJS main/relative-payload/package-boundary topology. They do not prove
+TypeScript compile-cache/dependencies, npm, every package lookup or real producer
+completion. The installed Node binary remains the exact pinned22.22.2 identity.
+
+No product/source309/tool2274/link12 edits occurred. Prior complete source/tool
+postguard evidence remains separately bound; this run freshly admits Node and
+the exact package/shim plus fixture files, not a new whole2274 replay claim.
+Retained harmless capsule: `/private/tmp/safe-bash-stage-a-loader-20260829-r2`.
+Zero TypeScript/compiler/npm/pack/product/engine/Workers/oracle execution.
+
+## Ready command delta for a FUTURE producer preseal
+
+No shipping producer file was changed. A future authorized successor should
+create a NEW owned root, verify alias/physical paths identify the same dev/inode,
+then use its canonical physical root `P` for EVERY executable source path,
+cwd, HOME, TMPDIR, empty PATH directory, npm configuration/cache/pack paths,
+read/write permission root and receipt/postguard location. Keep pinned Node `N`
+unchanged. No `/tmp`, `/private`, ancestor-recursive allowance or symlink flags.
+
+Strict build, cwd `P/source`:
+
+```text
+N --experimental-permission --allow-fs-read=P --allow-fs-read=N --allow-fs-write=P P/tools/typescript/lib/tsc.js -p tsconfig.build.json
+```
+
+Offline pack, same cwd and finite sanitized environment:
+
+```text
+N --experimental-permission --allow-fs-read=P --allow-fs-read=N --allow-fs-write=P P/tools/npm/bin/npm-cli.js pack --json --offline --ignore-scripts --pack-destination P/pack --cache P/cache
+```
+
+Rebind exact source/tool copies, absent lifecycle hooks, complete producer
+supervisor, bounds and receipt-before-inflate protocol in that NEW preseal.
+These commands were NOT run here. Further permission surprises remain possible
+and must stop rather than trigger broad allowances. Real producer and Stage B
+both still require fresh ROOT authorization. PUBLIC95 closure is not needed or
+consumed by this loader proof. All historical STOPs remain unrescored.
+
+ddd2509ac0734a625a3ec2fe9fb46cc796261011 blob 9396
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { readDescriptor } from './descriptor.mjs';
+const scope='/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/v2';
+const sha=body=>crypto.createHash('sha256').update(body).digest('hex');
+const read=(filename,maximum,expected)=>{const before=fs.lstatSync(filename);assert.ok(before.isFile()&&!before.isSymbolicLink()&&before.size<=maximum);if(expected)assert.equal(before.size,expected.bytes);const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const opened=fs.fstatSync(descriptor);assert.equal(opened.ino,before.ino);assert.equal(opened.dev,before.dev);const body=Buffer.alloc(before.size);let position=0;while(position<body.length){const count=fs.readSync(descriptor,body,position,body.length-position,position);assert.ok(count>0);position+=count;}assert.equal(fs.fstatSync(descriptor).mtimeMs,before.mtimeMs);if(expected)assert.equal(sha(body),expected.sha256);return body;}finally{fs.closeSync(descriptor);}};
+const put=(name,value)=>fs.writeFileSync(path.join(scope,name),JSON.stringify(value,null,2)+'\n',{flag:'wx'});
+const started=new Date().toISOString(),start=performance.now();let captureBytes=0,spawnCount=0;const results=[];
+const events=fs.openSync(path.join(scope,'capture','probe.events.jsonl'),'wx');const note=value=>fs.writeSync(events,JSON.stringify({time:new Date().toISOString(),...value})+'\n');
+function remaining(){assert.ok(performance.now()-start<300000,'inclusive probe deadline');}
+async function childRun(test,node,args,cwd,env){
+ remaining();assert.ok(spawnCount<2);spawnCount++;
+ const prefix=path.join(scope,'capture',test.id),out=fs.openSync(prefix+'.stdout','wx'),err=fs.openSync(prefix+'.stderr','wx');
+ let child,closed=false,exited=false,primary,timer,killTimer,retirementTimer,exitStatus,exitSignal,closeStatus,closeSignal;const signals=[];
+ try{
+  await new Promise((resolve,reject)=>{
+   const fail=error=>{primary??=error;if(child?.pid&&!closed){try{process.kill(-child.pid,'SIGTERM');signals.push('SIGTERM');}catch(killError){if(killError.code!=='ESRCH')note({id:test.id,killError:String(killError)});}killTimer??=setTimeout(()=>{if(!closed){try{process.kill(-child.pid,'SIGKILL');signals.push('SIGKILL');}catch(killError){note({id:test.id,killError:String(killError)});}}},2000);retirementTimer??=setTimeout(()=>{note({id:test.id,retirement:'UNKNOWN'});child.stdout.destroy();child.stderr.destroy();child.unref();reject(new Error('unknown retirement'));},5000);}};
+   try{child=spawn(node,args,{cwd,env,detached:true,stdio:['ignore','pipe','pipe']});}catch(error){reject(error);return;}
+   note({id:test.id,event:'spawn',pid:child.pid,node,args,cwd,env});
+   for(const [stream,descriptor]of [[child.stdout,out],[child.stderr,err]]){stream.on('data',chunk=>{try{captureBytes+=chunk.length;assert.ok(captureBytes<=1048576,'capture cap');fs.writeSync(descriptor,chunk);}catch(error){fail(error);}});stream.on('error',fail);}
+   child.on('error',fail);child.on('exit',(status,signal)=>{exited=true;exitStatus=status;exitSignal=signal;note({id:test.id,event:'exit',status,signal});});
+   child.on('close',(status,signal)=>{closed=true;closeStatus=status;closeSignal=signal;clearTimeout(timer);clearTimeout(killTimer);clearTimeout(retirementTimer);note({id:test.id,event:'close',status,signal});resolve();});
+   timer=setTimeout(()=>fail(new Error('fixture deadline')),Math.min(20000,300000-(performance.now()-start)));
+  });
+  assert.ok(exited&&closed);let absent=false;try{process.kill(-child.pid,0);}catch(error){if(error.code==='ESRCH')absent=true;else throw error;}note({id:test.id,groupAbsent:absent,signals});assert.ok(absent,'group remains');remaining();if(primary)throw primary;
+  return{pid:child.pid,exitStatus,exitSignal,closeStatus,closeSignal,groupAbsent:absent,signals,stdout:prefix+'.stdout',stderr:prefix+'.stderr'};
+ }finally{clearTimeout(timer);if(closed){clearTimeout(killTimer);clearTimeout(retirementTimer);}fs.closeSync(out);fs.closeSync(err);}
+}
+try{
+ const activation=JSON.parse(read(path.join(scope,'ACTIVATION.json'),65536));
+ const presealBytes=read(path.join(scope,'PRESEAL.json'),1048576,{bytes:activation.presealBytes,sha256:activation.presealSha256}),preseal=JSON.parse(presealBytes);
+ assert.equal(activation.scope,'TWO_HARMLESS_LOADER_FIXTURES');
+ for(const item of preseal.inputs)read(path.join(scope,item.path),1048576,item);
+ const nodeStat=fs.lstatSync(preseal.node.path);assert.ok(nodeStat.isFile()&&!nodeStat.isSymbolicLink());assert.equal(nodeStat.size,preseal.node.bytes);const hash=crypto.createHash('sha256');let nodeBytes=0;for await(const chunk of fs.createReadStream(preseal.node.path)){nodeBytes+=chunk.length;assert.ok(nodeBytes<=preseal.node.bytes);hash.update(chunk);}assert.equal(hash.digest('hex'),preseal.node.sha256);assert.equal(nodeBytes,preseal.node.bytes);assert.equal(process.execPath,preseal.node.path);
+ assert.ok(!fs.existsSync(preseal.capsule));fs.mkdirSync(preseal.capsule,{mode:448});const physical=fs.realpathSync(preseal.capsule);assert.ok(physical.startsWith('/private/tmp/'));const rootStat=fs.statSync(preseal.capsule),physicalStat=fs.statSync(physical);assert.equal(rootStat.dev,physicalStat.dev);assert.equal(rootStat.ino,physicalStat.ino);
+ for(const directory of ['source','tools/typescript/lib','home','tmp','empty-bin'])fs.mkdirSync(path.join(physical,directory),{recursive:true,mode:448});
+ const fixture=read(path.join(scope,'fixture/entry.js.fixture'),16384,preseal.inputs.find(row=>row.path==='fixture/entry.js.fixture'));
+ const payload=read(path.join(scope,'fixture/payload.js.fixture'),16384,preseal.inputs.find(row=>row.path==='fixture/payload.js.fixture'));
+ const pkg=readDescriptor(preseal.typescriptPackage,65536);
+ const entries=[['tools/typescript/package.json',pkg],['tools/typescript/lib/tsc.js',fixture],['tools/typescript/lib/_fixture.js',payload]];
+ const copied=[];for(const [name,bytes]of entries){const filename=path.join(physical,name);fs.writeFileSync(filename,bytes,{flag:'wx',mode:420});read(filename,65536,{bytes:bytes.length,sha256:sha(bytes)});const stat=fs.lstatSync(filename);copied.push({path:name,bytes:bytes.length,sha256:sha(bytes),device:String(stat.dev),inode:String(stat.ino)});}
+ put('CAPSULE.json',{alias:preseal.capsule,physical,rootDevice:String(rootStat.dev),rootInode:String(rootStat.ino),copied,noSyntheticPackageBoundary:true});
+ for(const test of preseal.cases){remaining();const root=test.route==='alias'?preseal.capsule:physical;const entry=path.join(root,'tools/typescript/lib/tsc.js');const cwd=path.join(root,'source');const nonce='sealed-'+test.id+'-'+sha(presealBytes).slice(0,16);const env={PATH:path.join(root,'empty-bin'),HOME:path.join(root,'home'),TMPDIR:path.join(root,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC',LOADER_FIXTURE_NONCE:nonce};
+  const args=['--experimental-permission',`--allow-fs-read=${root}`,`--allow-fs-read=${preseal.node.path}`,`--allow-fs-write=${root}`,entry];
+  for(const row of copied)read(path.join(physical,row.path),65536,row);
+  put(test.id+'-DISPATCH.json',{id:test.id,presealSha256:sha(presealBytes),node:preseal.node,args,cwd,env,sourceAdmissionComplete:true,files:copied,createdBeforeSpawn:new Date().toISOString()});
+  const observed=await childRun(test,preseal.node.path,args,cwd,env);assert.equal(observed.exitStatus,test.expectedStatus);assert.equal(observed.closeStatus,test.expectedStatus);assert.equal(observed.exitSignal,null);assert.equal(observed.closeSignal,null);
+  const stdout=read(observed.stdout,65536),stderr=read(observed.stderr,65536);let receipt=null;
+  if(test.expectedEntry){receipt=JSON.parse(stdout);assert.equal(receipt.role,'HARMLESS_ENTRY_RECEIPT');assert.equal(receipt.nonce,nonce);assert.equal(receipt.main,path.join(physical,'tools/typescript/lib/tsc.js'));assert.equal(receipt.payload,path.join(physical,'tools/typescript/lib/_fixture.js'));assert.equal(receipt.mainSha256,sha(fixture));assert.equal(receipt.cwd,path.join(physical,'source'));assert.equal(receipt.node,'v22.22.2');assert.ok(!stderr.toString().includes('ERR_ACCESS_DENIED'));}
+  else{assert.equal(stdout.length,0);assert.ok(stderr.toString().includes("code: 'ERR_ACCESS_DENIED'"));assert.ok(stderr.toString().includes("permission: 'FileSystemRead'"));assert.ok(stderr.toString().includes("resource: '/tmp'"));assert.ok(stderr.toString().includes('realpathSync'));}
+  for(const row of copied)read(path.join(physical,row.path),65536,row);
+  results.push({id:test.id,...observed,stdoutBytes:stdout.length,stdoutSha256:sha(stdout),stderrBytes:stderr.length,stderrSha256:sha(stderr),receipt,postguard:true});
+ }
+ const result={role:'HARMLESS_LOADER_ONLY_NOT_PRODUCER_RETRY',started,finished:new Date().toISOString(),presealSha256:sha(presealBytes),spawnCount,captureBytes,results,retainedCapsule:physical,productImports:0,compilerImports:0,builds:0,pack:0,stageB:'UNRUN',limits:'No compiler/npm/dependency/complete producer acceptance'};put('RESULT.json',result);console.log(JSON.stringify(result));
+}catch(error){put('STOP.json',{started,finished:new Date().toISOString(),error:String(error?.stack??error),spawnCount,captureBytes,completed:results,automaticRetry:false});process.exitCode=78;throw error;}finally{fs.closeSync(events);}
+
+f473c7939fe3d6b866e308e8b5672943bc0c6a71 blob 1763
+# Descriptor correction and exactly two harmless loader cases
+
+Same accepted source attribution and original L01/L02 identities; new r2
+capsule only. Versioned preseal retains original fixture bytes, package metadata,
+Node identity, case statuses, capture/retirement rules and exact input limits.
+
+Descriptors expose authenticated absolute sourcePath separately from relativePath.
+No object spread imports manifest keys into identity. Source paths must be
+absolute/canonical lexical names; relative display path must equal the expected
+manifest member. Foreign path/sourcePath injection refuses. Actual content is
+opened only after regular-file/exact-size admission, then exact SHA verification.
+Five DATA controls cover positive bytes, foreign relative display, identity
+injection, relative identity, and wrong-size-before-open. No expected size/hash
+is copied from an unrelated observed file.
+
+L01 uses the same alias-path shape that formerly denied /tmp; expected status1
+and no entry. L02 uses that SAME capsule's verified physical pathname consistently
+for entry/cwd/HOME/TMPDIR/permission roots; expected one owned entry receipt.
+Literal .js main/relative payload and exact TypeScript package.json remain the
+same; no synthetic package boundary, TypeScript/compiler/npm import or product.
+Only two fixed harmless Node children are allowed. No producer or Stage B GO.
+
+20s/case,300s probe,1MiB fixture capture,16MiB work subset of root's inclusive
+15min/32 known processes/peak3/32MiB capture/128MiB work publication grant.
+Unknown integrity/authority/capture/deadline/retirement stops without retry.
+No broadened parent read, preserve-symlinks flag, dynamic locator fallback,
+private source, native oracle, Worker, engine, compiler/build/pack or semantics.
+
+11d6670718c5a5dab665b65781604a1bde553286 blob 1822
+{
+  "id": "L02",
+  "presealSha256": "1424fa6bd60b13f7455c11e86a0feca3898090bd3822ef73dff20bc8a1e4e801",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "args": [
+    "--experimental-permission",
+    "--allow-fs-read=/private/tmp/safe-bash-stage-a-loader-20260829-r2",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--allow-fs-write=/private/tmp/safe-bash-stage-a-loader-20260829-r2",
+    "/private/tmp/safe-bash-stage-a-loader-20260829-r2/tools/typescript/lib/tsc.js"
+  ],
+  "cwd": "/private/tmp/safe-bash-stage-a-loader-20260829-r2/source",
+  "env": {
+    "PATH": "/private/tmp/safe-bash-stage-a-loader-20260829-r2/empty-bin",
+    "HOME": "/private/tmp/safe-bash-stage-a-loader-20260829-r2/home",
+    "TMPDIR": "/private/tmp/safe-bash-stage-a-loader-20260829-r2/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "LOADER_FIXTURE_NONCE": "sealed-L02-1424fa6bd60b13f7"
+  },
+  "sourceAdmissionComplete": true,
+  "files": [
+    {
+      "path": "tools/typescript/package.json",
+      "bytes": 3620,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+      "device": "16777232",
+      "inode": "187069424"
+    },
+    {
+      "path": "tools/typescript/lib/tsc.js",
+      "bytes": 40,
+      "sha256": "9dd5b814df959368c401fb5b5382314eddc3dcdc612017be3266becbf4676c05",
+      "device": "16777232",
+      "inode": "187069425"
+    },
+    {
+      "path": "tools/typescript/lib/_fixture.js",
+      "bytes": 420,
+      "sha256": "92fac4ccd3232f185b23dcb20ef363c019aeaa71678e36d27eb9cc8974065319",
+      "device": "16777232",
+      "inode": "187069426"
+    }
+  ],
+  "createdBeforeSpawn": "2026-08-29T10:02:56.013Z"
+}
+

@@ -1,0 +1,23 @@
+{
+  "mode": "current",
+  "revision": "026e20cf38ddbb695d82de3f30cf7a1a7c88f088",
+  "historicalHarness": null,
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "archiveSha256": "91879df38cae0c8744d9215705f3858b2b9b4d1ba8fbf745f1641a8f9bf70c06",
+  "sourceInputSha256": "cefa5da1a3860b0a78746286ac6b86a129677ff7b03006e512aa7345cad5588c",
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "counts": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "runnerSha256": "5bddec036e4961f22f7aab96381d7687e90c86e417a25efdaf050706c6293a30",
+  "expectedManifestSha256": "3ef750986d1ef287b2cf90f33bd6ac0417ed502c48f7a93044c8078cc3df9a52"
+}

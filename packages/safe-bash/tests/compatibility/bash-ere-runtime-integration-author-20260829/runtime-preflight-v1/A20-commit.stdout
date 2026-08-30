@@ -1,0 +1,5 @@
+[main b0f0d28328bb0749d905762dd451a8081fda6181] test: seal CORE70 owner source and canonical controller bindings
+ 5 files changed, 236 insertions(+), 2 deletions(-)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/CONTROLLER-ADDENDUM.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/PREPARATION-SEAL-v2.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/owner.mjs

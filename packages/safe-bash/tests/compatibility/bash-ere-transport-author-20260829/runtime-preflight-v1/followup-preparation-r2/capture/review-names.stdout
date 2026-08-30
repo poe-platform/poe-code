@@ -1,0 +1,24 @@
+commit 49555c990a06fb25b5e7d8f7c736db37d6c3d455
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Sat Aug 29 11:03:10 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Sat Aug 29 11:03:10 2026 -0500
+
+    review: independent L02 follow-up preexec hold
+
+tests/compatibility/bash-ere-l02-followup-independent-20260829/AUTHOR-REPLAY.json
+tests/compatibility/bash-ere-l02-followup-independent-20260829/CANDIDATE-COMMAND.txt
+tests/compatibility/bash-ere-l02-followup-independent-20260829/RECEIPT.json
+tests/compatibility/bash-ere-l02-followup-independent-20260829/REVIEW.md
+tests/compatibility/bash-ere-l02-followup-independent-20260829/admissions.json
+tests/compatibility/bash-ere-l02-followup-independent-20260829/capture/J09-natural-owned.stderr
+tests/compatibility/bash-ere-l02-followup-independent-20260829/capture/J09-natural-owned.stdout
+tests/compatibility/bash-ere-l02-followup-independent-20260829/capture/J10-nonzero-owned.stderr
+tests/compatibility/bash-ere-l02-followup-independent-20260829/capture/J10-nonzero-owned.stdout
+tests/compatibility/bash-ere-l02-followup-independent-20260829/controls.stderr.txt
+tests/compatibility/bash-ere-l02-followup-independent-20260829/controls.stdout.txt
+tests/compatibility/bash-ere-l02-followup-independent-20260829/inspect.mjs
+tests/compatibility/bash-ere-l02-followup-independent-20260829/inspection.stderr.txt
+tests/compatibility/bash-ere-l02-followup-independent-20260829/inspection.stdout.txt
+tests/compatibility/bash-ere-l02-followup-independent-20260829/packet-tree.txt
+tests/compatibility/bash-ere-l02-followup-independent-20260829/review-controls.mjs

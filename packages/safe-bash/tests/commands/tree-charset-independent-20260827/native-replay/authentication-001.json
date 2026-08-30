@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-27T17:43:54.243Z",
+  "chronology": "native freeze was committed after candidate source commit; replay occurred after freeze commit and source inspection; no pre-source independent freeze exists",
+  "freeze": {
+    "commit": "55bd112804564605e397d3ee9948226d89efd457",
+    "artifactChecks": [
+      {
+        "path": "README.md",
+        "expectedSha256": "0486deae2fb1aef06938c3e1c92fe8f79791a9443e9d0a59fcd7c41590422d8d",
+        "observedSha256": "0486deae2fb1aef06938c3e1c92fe8f79791a9443e9d0a59fcd7c41590422d8d",
+        "pass": true
+      },
+      {
+        "path": "capture-native.mjs",
+        "expectedSha256": "d16fe5369dc42e5a1f92833141c8c5b59bb8e6d5988b4dfc9ea49b2fc50ea38a",
+        "observedSha256": "d16fe5369dc42e5a1f92833141c8c5b59bb8e6d5988b4dfc9ea49b2fc50ea38a",
+        "pass": true
+      },
+      {
+        "path": "freeze-metadata.json",
+        "expectedSha256": "ea301d331f9f40f22da66682cc76a66ad75dd9f852affa12d364e32fd360d1d1",
+        "observedSha256": "ea301d331f9f40f22da66682cc76a66ad75dd9f852affa12d364e32fd360d1d1",
+        "pass": true
+      },
+      {
+        "path": "native-capture.json",
+        "expectedSha256": "18036bce5b0a7cfcf6ae1d744a1cdb39b24a905f50d9cbb7e51f8d059b7bb4ce",
+        "observedSha256": "18036bce5b0a7cfcf6ae1d744a1cdb39b24a905f50d9cbb7e51f8d059b7bb4ce",
+        "pass": true
+      },
+      {
+        "path": "preflight-failure-v1.txt",
+        "expectedSha256": "60b2c83b8cb0f913ce35c9ed223211afb62f428602f5750f62bbabff36c0d6c8",
+        "observedSha256": "60b2c83b8cb0f913ce35c9ed223211afb62f428602f5750f62bbabff36c0d6c8",
+        "pass": true
+      },
+      {
+        "path": "fixture/alpha.txt",
+        "expectedSha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060",
+        "observedSha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060",
+        "pass": true
+      },
+      {
+        "path": "fixture/nest/beta.txt",
+        "expectedSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad",
+        "observedSha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad",
+        "pass": true
+      },
+      {
+        "path": "fixture/nest/deep/gamma.txt",
+        "expectedSha256": "ae9a6306a205417afddd14316cc1d0d5e04a98f1be10865dce643925ee070ce2",
+        "observedSha256": "ae9a6306a205417afddd14316cc1d0d5e04a98f1be10865dce643925ee070ce2",
+        "pass": true
+      },
+      {
+        "path": "raw/stdout-ascii.txt",
+        "expectedSha256": "da63c74ffd4d15d623975e36a3671fa3ad6b3a7c202cac6b11f8a57e553bcb6d",
+        "observedSha256": "da63c74ffd4d15d623975e36a3671fa3ad6b3a7c202cac6b11f8a57e553bcb6d",
+        "pass": true
+      },
+      {
+        "path": "raw/stdout-utf8.txt",
+        "expectedSha256": "83174713a2bb5adec7ff99e530b8691a37e7c89217058015ddfbcf622efa4426",
+        "observedSha256": "83174713a2bb5adec7ff99e530b8691a37e7c89217058015ddfbcf622efa4426",
+        "pass": true
+      },
+      {
+        "path": "raw/stderr-empty.txt",
+        "expectedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "observedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "pass": true
+      }
+    ],
+    "allArtifactsAuthenticated": true,
+    "captureSha256": "18036bce5b0a7cfcf6ae1d744a1cdb39b24a905f50d9cbb7e51f8d059b7bb4ce"
+  },
+  "candidate": {
+    "commit": "f1a90436c45208ca248e058a039893233c608daa",
+    "tree": "c5cdfff66e64bb4d68926c4f93a7620eb89e7dcd",
+    "parent": "643439ad70b0ada46eef2c073aceeba3246866ad",
+    "freshGitArchive": {
+      "sha256": "fe133818ee69dcbdac7e2330e97fefa1dd07037ba73c6135ccf106b770e7f325",
+      "bytes": 1785651200,
+      "closeEventObserved": true,
+      "close": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    "copiedGitArchive": {
+      "sha256": "fe133818ee69dcbdac7e2330e97fefa1dd07037ba73c6135ccf106b770e7f325",
+      "bytes": 1785651200
+    },
+    "expectedArchiveSha256": "fe133818ee69dcbdac7e2330e97fefa1dd07037ba73c6135ccf106b770e7f325",
+    "archiveAuthenticated": true,
+    "selectedSourceBuildInputs": {
+      "count": 232,
+      "mismatches": [],
+      "allMatch": true
+    },
+    "independentBuildInvocation": "node node_modules/typescript/bin/tsc -p tsconfig.build.json",
+    "independentBuildExitCode": 0,
+    "packageJson": {
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "bytes": 3997
+    },
+    "rootEntry": {
+      "sha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+      "bytes": 1268
+    },
+    "treeEntry": {
+      "sha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a",
+      "bytes": 772
+    }
+  },
+  "authorHandoff": {
+    "commit": "0d8623634995549d8e717d310c28db83a02a9532",
+    "path": "benchmarks/reports/tree-charset-20260827/README.md",
+    "gitBlob": "6c3d64ad1e81f86b804ddfeb6bcb025acb192529",
+    "sha256": "7b85aae45862afb43a66a65f1fa90fff822ef4b97d00d77f7977652f555499f7",
+    "line134": "## Independent review request"
+  },
+  "package": {
+    "pack": {
+      "path": "/private/tmp/safe-bash-tree-native-replay.kffYq0/pack/virtual-bash-0.0.0.tgz",
+      "sha256": "2713175a12912952999c6e0e8d81cef2638692b573081bc281ba0e785d099bab",
+      "bytes": 658023,
+      "expectedSha256": "2713175a12912952999c6e0e8d81cef2638692b573081bc281ba0e785d099bab",
+      "pass": true
+    },
+    "installedRoot": "/private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/node_modules/virtual-bash",
+    "packedFileCount": 762,
+    "installedFileCount": 762,
+    "packedManifestSha256": "22f77ba697bb87c03d2082c0300c36b605346feeb973c6e9b587960fcba8bd3b",
+    "installedManifestSha256": "22f77ba697bb87c03d2082c0300c36b605346feeb973c6e9b587960fcba8bd3b",
+    "packAndInstalledExactMatch": true,
+    "packageJson": {
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "bytes": 3997
+    },
+    "rootEntry": {
+      "sha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+      "bytes": 1268
+    },
+    "treeEntry": {
+      "sha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a",
+      "bytes": 772
+    },
+    "expected": {
+      "packageSha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245",
+      "rootEntrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+      "treeEntrySha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+    }
+  },
+  "installedConsumer": {
+    "committedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/installed-consumer-v2.mjs",
+    "runtimePath": "/private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/replay-consumer-v2.mjs",
+    "committedSha256": "412d5b3c85c7b5fe79047c004463e62b9746280aef50b099b420f083df0403db",
+    "runtimeSha256": "412d5b3c85c7b5fe79047c004463e62b9746280aef50b099b420f083df0403db",
+    "hashesMatch": true,
+    "literalBareRootImportPresent": true,
+    "noSourceImportPresent": true
+  },
+  "replay": {
+    "resultsPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/native-replay/attempt-004/replay-results.json",
+    "totals": {
+      "children": 40,
+      "closeEventsObserved": 40,
+      "cleanChildExits": 40,
+      "deadlineExceeded": 0,
+      "capExceeded": 0,
+      "literalAssertions": 22,
+      "literalPasses": 22,
+      "observationalRuns": 18,
+      "observationalNativeMatches": 12,
+      "observationalNativeDivergences": 6,
+      "contractOutcomesObserved": 18
+    },
+    "boundaries": {
+      "source-build": {
+        "cases": 20,
+        "allRegistryCount70": true,
+        "allRegistryHasTree": true,
+        "registryNamesSha256": "8474668b6e9abe5450d7096b0b0a5efafc464f50c98d7ede411e6ae0604aec2c",
+        "allRegistryNamesIdentical": true,
+        "loaded": {
+          "entryPath": "/private/tmp/safe-bash-tree-native-replay.kffYq0/candidate/dist/index.js",
+          "entrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+          "treePath": "/private/tmp/safe-bash-tree-native-replay.kffYq0/candidate/dist/commands/tree/index.js",
+          "treeSha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+        },
+        "allLoadedIdentitiesIdentical": true
+      },
+      "installed-package": {
+        "cases": 20,
+        "allRegistryCount70": true,
+        "allRegistryHasTree": true,
+        "registryNamesSha256": "8474668b6e9abe5450d7096b0b0a5efafc464f50c98d7ede411e6ae0604aec2c",
+        "allRegistryNamesIdentical": true,
+        "loaded": {
+          "entryPath": "/private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/node_modules/virtual-bash/dist/index.js",
+          "entrySha256": "77b771a6066aa32f82b903f7a80c578132388d6d9cec9fbde15485915859df5d",
+          "treePath": "/private/tmp/safe-bash-tree-native-replay.kffYq0/install-moved/node_modules/virtual-bash/dist/commands/tree/index.js",
+          "treeSha256": "702a5d511ede375a30473275f8428b84f7b4c44b7caa706ba3796d5e9b94140a"
+        },
+        "allLoadedIdentitiesIdentical": true
+      }
+    },
+    "allLoadedPathsWithinExpectedBoundary": true,
+    "installedLoadedNoSourcePaths": true
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  }
+}

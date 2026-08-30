@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T03:53:16.876Z",
+  "node": "v24.11.1",
+  "buildRequested": false,
+  "consumersOnly": false,
+  "builds": 0,
+  "phases": [],
+  "runtimeExecutions": 0,
+  "status": "build-prerequisite-required",
+  "error": "Built-package prerequisite missing (46 files). Run npm run typecheck:all to build once and check source plus current consumers, or npm run build before npm run typecheck. No consumer compilation was attempted.",
+  "cleaned": true,
+  "finishedAt": "2026-08-28T03:53:16.878Z"
+}

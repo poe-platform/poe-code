@@ -1,0 +1,144 @@
+6277:   v = get_string_value (name);
+6278:   if (name[0] == 'L' && name[1] == 'A')	/* LANG */
+6279:     r = set_lang (name, v);
+6280:   else
+6281:     r = set_locale_var (name, v);		/* LC_*, TEXTDOMAIN* */
+6282: 
+6283: #if 1
+6284:   if (r == 0 && posixly_correct)
+6285:     set_exit_status (EXECUTION_FAILURE);
+6286: #endif
+6287: }
+6288: 
+6289: #if defined (ARRAY_VARS)
+6290: void
+6291: set_pipestatus_array (int *ps, int nproc)
+6292: {
+6293:   SHELL_VAR *v;
+6294:   ARRAY *a;
+6295:   ARRAY_ELEMENT *ae;
+6296:   register int i;
+6297:   char *t, tbuf[INT_STRLEN_BOUND(int) + 1];
+6298: 
+6299:   v = find_variable ("PIPESTATUS");
+6300:   if (v == 0)
+6301:     v = make_new_array_variable ("PIPESTATUS");
+6302:   if (array_p (v) == 0)
+6303:     return;		/* Do nothing if not an array variable. */
+6304:   a = array_cell (v);
+6305: 
+6306:   if (a == 0 || array_num_elements (a) == 0)
+6307:     {
+6308:       for (i = 0; i < nproc; i++)	/* was ps[i] != -1, not i < nproc */
+6309: 	{
+6310: 	  t = inttostr (ps[i], tbuf, sizeof (tbuf));
+6311: 	  array_insert (a, i, t);
+6312: 	}
+6313:       return;
+6314:     }
+6315: 
+6316:   /* Fast case */
+6317:   if (array_num_elements (a) == nproc && nproc == 1)
+6318:     {
+6319: #ifndef ALT_ARRAY_IMPLEMENTATION
+6320:       ae = element_forw (a->head);
+6321: #else
+6322:       ae = a->elements[0];
+6323: #endif
+6324:       ARRAY_ELEMENT_REPLACE (ae, itos (ps[0]));
+6325:     }
+6326:   else if (array_num_elements (a) <= nproc)
+6327:     {
+6328:       /* modify in array_num_elements members in place, then add */
+6329: #ifndef ALT_ARRAY_IMPLEMENTATION
+6330:       ae = a->head;
+6331: #endif
+6332:       for (i = 0; i < array_num_elements (a); i++)
+6333: 	{
+6334: #ifndef ALT_ARRAY_IMPLEMENTATION
+6335: 	  ae = element_forw (ae);
+6336: #else
+6371:       /* bookkeeping usually taken care of by array_insert */
+6372:       set_max_index (a, nproc - 1);
+6373:       set_first_index (a, 0);
+6374:       set_num_elements (a, nproc);
+6375: #endif /* ALT_ARRAY_IMPLEMENTATION */
+6376:     }
+6377: }
+6378: 
+6379: ARRAY *
+6380: save_pipestatus_array (void)
+6381: {
+6382:   SHELL_VAR *v;
+6383:   ARRAY *a;
+6384: 
+6385:   v = find_variable ("PIPESTATUS");
+6386:   if (v == 0 || array_p (v) == 0 || array_cell (v) == 0)
+6387:     return ((ARRAY *)NULL);
+6388:     
+6389:   a = array_copy (array_cell (v));
+6390: 
+6391:   return a;
+6392: }
+6393: 
+6394: void
+6395: restore_pipestatus_array (ARRAY *a)
+6396: {
+6397:   SHELL_VAR *v;
+6398:   ARRAY *a2;
+6399: 
+6400:   v = find_variable ("PIPESTATUS");
+6401:   /* XXX - should we still assign even if existing value is NULL? */
+6402:   if (v == 0 || array_p (v) == 0 || array_cell (v) == 0)
+6403:     return;
+6404: 
+6405:   a2 = array_cell (v);
+6406:   var_setarray (v, a); 
+6407: 
+6408:   array_dispose (a2);
+6409: }
+6410: #endif
+6411: 
+6412: void
+6413: set_pipestatus_from_exit (int s)
+6414: {
+6415: #if defined (ARRAY_VARS)
+6416:   static int v[2] = { 0, -1 };
+6417: 
+6418:   v[0] = s;
+6419:   set_pipestatus_array (v, 1);
+6420: #endif
+6421: }
+6422: 
+6423: void
+6424: sv_xtracefd (const char *name)
+6425: {
+6426:   SHELL_VAR *v;
+6427:   char *t, *e;
+6428:   int fd;
+6429:   FILE *fp;
+6430: 
+6431:   v = find_variable (name);
+6432:   if (v == 0)
+6433:     {
+6434:       xtrace_reset ();
+6435:       return;
+6436:     }
+6437: 
+6438:   t = value_cell (v);
+6439:   if (t == 0 || *t == 0)
+6440:     xtrace_reset ();
+6441:   else
+6442:     {
+6443:       fd = (int)strtol (t, &e, 10);
+6444:       if (e != t && *e == '\0' && sh_validfd (fd))
+6445: 	{
+6446: 	  fp = fdopen (fd, "w");
+6447: 	  if (fp == 0)
+6448: 	    internal_error (_("%s: %s: cannot open as FILE"), name, value_cell (v));
+6449: 	  else
+6450: 	    xtrace_set (fd, fp);
+6451: 	}
+6452:       else
+6453: 	internal_error (_("%s: %s: invalid value for trace file descriptor"), name, value_cell (v));
+6454:     }

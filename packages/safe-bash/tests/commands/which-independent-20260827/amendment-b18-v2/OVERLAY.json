@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "classification": "Root-authorized exact two-token B18 identifier overlay; sealed before amended execution",
+  "sealedAt": "2026-08-28T00:34:56.729Z",
+  "baseFreeze": "c5cf2abb49cf7fc0e7ac990ea913617a501cf3ba",
+  "review": "ea7e6cf31636779226455c89b09a617e7b5459a0",
+  "candidate": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "baseSha256": "1d1e2adcb9504b7d26426c8d98ad4021a1f30920b9f5846d72c48883856c3fc9",
+  "effectiveSha256": "d433d826a5f8314ea8947e4a3dcc5cbf8a74c0470f24c0df60a881501898e313",
+  "replacement": {
+    "occurrences": 1,
+    "before": "    result = await shell.exec(\"function-only() { true; }; which true registered-only function-only tool\");",
+    "after": "    result = await shell.exec(\"function_only() { true; }; which true registered-only function_only tool\");"
+  },
+  "changedLines": [
+    180
+  ],
+  "changedTokens": 2,
+  "preserved": [
+    "expected exitCode 1",
+    "expected stdout /a/tool plus LF",
+    "empty expected stderr",
+    "registry, PATH, prefix, redirect, invocation and pipeline assertions",
+    "B10 literal hyphenated command-name input",
+    "all other frozen case bytes",
+    "original source/moved25of26 artifacts"
+  ],
+  "executionScope": "Only amended B18 source and moved internal; no all26 rescore",
+  "amendedExecutionsAtSeal": 0
+}

@@ -1,0 +1,35 @@
+{
+  "name": "required-preflight-matrix79",
+  "sourceStability": {
+    "revision": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+    "beforeSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "afterSha256": "ddc369b8b7cc9ec8323a62c99afbf2762503887df9397b1ecafde935129d3cef",
+    "stable": true
+  },
+  "command": [
+    "node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-reporter=tap",
+    "tests/integration/adapter-tools/matrix.test.ts"
+  ],
+  "environment": {},
+  "startedAt": "2026-08-27T01:50:42.527Z",
+  "finishedAt": "2026-08-27T01:50:43.742Z",
+  "code": 1,
+  "signal": null,
+  "timedOut": false,
+  "residualGroup": false,
+  "counts": {
+    "tests": 79,
+    "pass": 77,
+    "fail": 2,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdoutSha256": "51f3c5b72e972e86071b1a60c8f97e449c021f3040e9f709900b7f6bea0f70c6",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,153 @@
+{
+  "checks": [
+    {
+      "name": "normal/-E/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "normal/-E/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "normal/-E/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "normal/--remove-empty-files/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "context/-E/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "context/-E/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "context/-E/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "context/--remove-empty-files/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "unified/-E/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "unified/-E/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "unified/-E/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "unified/--remove-empty-files/apply: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "quoted ancestor symlink: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "quoted ancestor symlink: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "quoted ancestor symlink: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "selected ancestor control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "selected ancestor control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "selected ancestor control: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk second matching line control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk second matching line control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk second matching line control: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "incomplete repeated hunk control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "incomplete repeated hunk control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "incomplete repeated hunk control: complete virtual outcome",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk later matching line control: frozen input binding",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk later matching line control: both native profiles remain exact",
+      "passed": true
+    },
+    {
+      "name": "repeated hunk later matching line control: complete virtual outcome",
+      "passed": false,
+      "message": "Expected values to be strictly equal:\n\n0 !== 1\n"
+    }
+  ],
+  "assertionCount": 36,
+  "passed": 35,
+  "failed": 1,
+  "coverage": "Eight original cases, four bounded controls; assertions are not additional cases"
+}

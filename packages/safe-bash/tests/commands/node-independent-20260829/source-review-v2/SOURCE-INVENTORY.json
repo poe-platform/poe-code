@@ -1,0 +1,87 @@
+{
+  "source": "c10d338331d56e1f293970010c7015fa602b6a8d",
+  "rawCapture": "INVENTORY-v2-CAPTURE.json",
+  "records": [
+    {
+      "path": "src/commands/node/README.md",
+      "mode": "100644",
+      "oid": "f0699874752420545c973d5075a638b8a82d6392"
+    },
+    {
+      "path": "src/commands/node/admission.ts",
+      "mode": "100644",
+      "oid": "4bf32489d6367538af1c2427d4b8da24f500991f"
+    },
+    {
+      "path": "src/commands/node/channel.ts",
+      "mode": "100644",
+      "oid": "48bf256cf0f6da57f2c31ccaeb80d59c7a2e8cc4"
+    },
+    {
+      "path": "src/commands/node/cli.ts",
+      "mode": "100644",
+      "oid": "5f13fd04b6dcbcf658c370c34b440fd864ed6001"
+    },
+    {
+      "path": "src/commands/node/diagnostics.ts",
+      "mode": "100644",
+      "oid": "455f946434ca7adb39e5bebac630854e138eb6a0"
+    },
+    {
+      "path": "src/commands/node/host.ts",
+      "mode": "100644",
+      "oid": "0de6f7fe1de0d6953a1de13d5c155cd1fdfc1589"
+    },
+    {
+      "path": "src/commands/node/index.ts",
+      "mode": "100644",
+      "oid": "102dddceb0c997a2cd9b0f15018c724749a8a1f6"
+    },
+    {
+      "path": "src/commands/node/lifecycle.ts",
+      "mode": "100644",
+      "oid": "f1e3f12a556e371e07fec714518a7573f5c36f14"
+    },
+    {
+      "path": "src/commands/node/lower.ts",
+      "mode": "100644",
+      "oid": "9790bcda552a84806e1b44c7fe9de87c7eb02a1a"
+    },
+    {
+      "path": "src/commands/node/program.ts",
+      "mode": "100644",
+      "oid": "c21ad0637acaaee25e5cb9c019ec4b75b76de353"
+    },
+    {
+      "path": "src/commands/node/rules.ts",
+      "mode": "100644",
+      "oid": "9b4f37f72420bae2df60f4866677a0bc5fac7d3b"
+    },
+    {
+      "path": "src/commands/node/types.ts",
+      "mode": "100644",
+      "oid": "ed236673232fb52a69051772a2f112554b94f50a"
+    },
+    {
+      "path": "src/commands/node/values.ts",
+      "mode": "100644",
+      "oid": "70653a8e5622ab16b4bbaf2c73f0dc4dcf7a7761"
+    },
+    {
+      "path": "src/commands/node/worker-main.ts",
+      "mode": "100644",
+      "oid": "428847a00026b903c9eeb41442860a3e9dd6dac1"
+    },
+    {
+      "path": "src/commands/node/worker-provider.ts",
+      "mode": "100644",
+      "oid": "a27a5c1bec3acd0b9da76e0ed005602d412a0cff"
+    },
+    {
+      "path": "src/commands/node/worker-types.ts",
+      "mode": "100644",
+      "oid": "005b64d8c40ed8e1652d02961c18ca22e04d98a5"
+    }
+  ],
+  "status": "16/16 fresh metadata bindings; old v1 failure retained"
+}

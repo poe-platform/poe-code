@@ -1,0 +1,166 @@
+{
+  "createdAt": "2026-08-27T06:32:55.645Z",
+  "revision": 3,
+  "status": "CORRECTED CANDIDATE SEALED; NOT INDEPENDENTLY ACCEPTED OR APPROVED; NO REPRESENTATIVE EXECUTION",
+  "files": [
+    {
+      "path": "supervise-representative.mjs",
+      "bytes": 7145,
+      "sha256": "33ab65aa4a08e4d25cd5fcf23e82b5c7385f47f14615efe845485e6cc90ff311"
+    },
+    {
+      "path": "representative.mjs",
+      "bytes": 12488,
+      "sha256": "521c2a5ccc8818093c16641fa9b4f13b6323fda9df13a906b56beb320d1a86e5"
+    },
+    {
+      "path": "launch-seal.mjs",
+      "bytes": 6115,
+      "sha256": "00bd30ae42cbdebdb28a1f3c7a258dfcb1fc906897c33037b934f6a8dddcec2b"
+    },
+    {
+      "path": "driver-lifecycle.mjs",
+      "bytes": 6362,
+      "sha256": "0de8d75a0492f6bbc633301eb93a8b9a06abd79d7bfa961242d1224f255301b6"
+    },
+    {
+      "path": "observe-process.mjs",
+      "bytes": 1017,
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c"
+    },
+    {
+      "path": "observe-load.mjs",
+      "bytes": 1523,
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d"
+    },
+    {
+      "path": "representative-plan-v3.json",
+      "bytes": 14791,
+      "sha256": "6fa2285192516a5969821645daed2f4bb2f1d48b1bd96f70108dd7a60e2193dc"
+    },
+    {
+      "path": "execution-closure.json",
+      "bytes": 1083717,
+      "sha256": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821"
+    },
+    {
+      "path": "download.json",
+      "bytes": 9220,
+      "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0"
+    },
+    {
+      "path": "package-comparison.json",
+      "bytes": 562114,
+      "sha256": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e"
+    },
+    {
+      "path": "driver-helper-check.mjs",
+      "bytes": 7412,
+      "sha256": "0e5c1ce74c692b9bc9e6fafcea975b95383ae2a6e33a4511cb09544c4e41125a"
+    },
+    {
+      "path": "DRIVER-FIX.md",
+      "bytes": 7435,
+      "sha256": "41a59fd345eba37505d9b8f0755d7dea476357c74d5dffd32371e482b90dd22a"
+    },
+    {
+      "path": "driver-fix-checks-attempt-1-publication-error.json",
+      "bytes": 805,
+      "sha256": "696d7868302c561f0c7caa73c72ed8766c521d12981fa0877331774b71000bdb"
+    },
+    {
+      "path": "driver-fix-checks-attempt-2.json",
+      "bytes": 3733,
+      "sha256": "07f7989a5b6947bc8d1a3aa4aa83b9b2dc5fa4c9210185cd3168bf37decbedcc"
+    },
+    {
+      "path": "driver-fix-checks-attempt-3.json",
+      "bytes": 748,
+      "sha256": "ccabd8f0f15c740507793c664268e8fc1c5a6268912bbad19f04dd6aa9a35ba1"
+    },
+    {
+      "path": "driver-fix-validation.json",
+      "bytes": 8907,
+      "sha256": "bbe58d130f6b559e89fe3508e288e64637bdb2ac6694d07ffe7ecf837ac3c3a5"
+    },
+    {
+      "path": "approval-template-v3.json",
+      "bytes": 1451,
+      "sha256": "1a63b7c1f393d4cbd1c0a792ceff2275c0762a5219b7470f1c5a6f116a59a49e"
+    },
+    {
+      "path": "prior-candidate-v2/preservation.json",
+      "bytes": 2716,
+      "sha256": "f7c3e2ec96547a18c2e6da19223722da055c71c16bd80c4c7ecd18954eb0eb6b"
+    }
+  ],
+  "approvalInputs": {
+    "supervise-representative.mjs": "33ab65aa4a08e4d25cd5fcf23e82b5c7385f47f14615efe845485e6cc90ff311",
+    "representative.mjs": "521c2a5ccc8818093c16641fa9b4f13b6323fda9df13a906b56beb320d1a86e5",
+    "launch-seal.mjs": "00bd30ae42cbdebdb28a1f3c7a258dfcb1fc906897c33037b934f6a8dddcec2b",
+    "driver-lifecycle.mjs": "0de8d75a0492f6bbc633301eb93a8b9a06abd79d7bfa961242d1224f255301b6",
+    "observe-process.mjs": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+    "observe-load.mjs": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+    "representative-plan-v3.json": "6fa2285192516a5969821645daed2f4bb2f1d48b1bd96f70108dd7a60e2193dc",
+    "execution-closure.json": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821",
+    "download.json": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0",
+    "package-comparison.json": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e"
+  },
+  "textPlan": {
+    "path": "/tmp/safe-bash-baseline-auth-plan.txt",
+    "sha256": "e219c827254eaa68fed589e1766b658500a1a067f74932eb481f36baff9b3ce9"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "priorCandidate": {
+    "driverSha256": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce",
+    "planSha256": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99",
+    "handoffSha256": "17776da9868967eddcce038984ef5dcf5a8418f0901045d97ccba33d6d4dfc65",
+    "preservation": "prior-candidate-v2/preservation.json",
+    "copies": 9
+  },
+  "constraints": {
+    "observations": 8,
+    "distinctIds": 7,
+    "sequentialEngineChildren": 8,
+    "coordinatorProcesses": 1,
+    "supervisorProcesses": 1,
+    "maxConcurrentOsProcesses": 3,
+    "totalPlannedNodeProcesses": 10,
+    "productCallsExecutedByAuthor": 0,
+    "supervisorOrCoordinatorExecuted": false,
+    "noStagingOrCommit": true
+  },
+  "findings": [
+    {
+      "id": "B1",
+      "authorDisposition": "Corrected candidate; root hashes all ten inputs plus text, Node bytes, copied observers and exact closure additions",
+      "files": [
+        "launch-seal.mjs",
+        "representative-plan-v3.json",
+        "approval-template-v3.json"
+      ]
+    },
+    {
+      "id": "B2",
+      "authorDisposition": "Corrected candidate; external supervisor stays through independent bounded finalization; escalation remains failure",
+      "files": [
+        "supervise-representative.mjs",
+        "representative.mjs",
+        "driver-lifecycle.mjs"
+      ]
+    },
+    {
+      "id": "B3",
+      "authorDisposition": "Corrected candidate; terminal fencing, raw partial evidence and event-derived counts",
+      "files": [
+        "driver-lifecycle.mjs",
+        "representative.mjs",
+        "supervise-representative.mjs"
+      ]
+    }
+  ],
+  "independentReviewerOwnership": "verification/** excluded; no acceptance claimed"
+}

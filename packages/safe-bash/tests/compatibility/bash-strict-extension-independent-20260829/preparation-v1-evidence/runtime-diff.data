@@ -1,0 +1,178 @@
+commit 9bb91c370a0672687399c0a9da4ce1b161f79615
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Sat Aug 29 01:38:50 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Sat Aug 29 01:38:50 2026 -0500
+
+    fix: preserve evaluated arithmetic nounset and finite set option semantics
+
+diff --git a/src/shell/runtime.ts b/src/shell/runtime.ts
+index 1ee224be..180e6c8f 100644
+--- a/src/shell/runtime.ts
++++ b/src/shell/runtime.ts
+@@ -1015,7 +1015,7 @@ export class Runtime {
+     if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+     if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
+       try { value = String(evaluateArithmetic(prepareArithmetic(value || "0"), this.arithmeticVariables(state))); }
+-      catch (error) { throw new ExpansionFailure(message(error)); }
++      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error)); }
+     }
+     state.variables[name] = value;
+     if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
+@@ -1041,11 +1041,19 @@ export class Runtime {
+     if (name === "OPTIND" && !internal) this.syncGetopts(state);
+   }
+ 
+-  arithmeticVariables(state: State): Record<string, string> {
++  private rethrowArithmeticControl(error: unknown): void {
++    this.signal.throwIfAborted();
++    if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
++  }
++
++  arithmeticVariables(state: State, line?: number): Record<string, string> {
+     return new Proxy(state.variables, {
+       get: (target, key) => {
++        this.signal.throwIfAborted();
+         if (arrayStore(state)?.get(String(key))) throw new ArrayFailure("indexed arithmetic is unsupported");
+-        return Reflect.get(target, key);
++        const value = Reflect.get(target, key);
++        if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
++        return value;
+       },
+       set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, "arithmetic"); return true; },
+     });
+@@ -1546,8 +1554,8 @@ export class Runtime {
+         }
+       }
+       if (command.kind === "arithmetic") {
+-        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state)) === 0n); }
+-        catch (error) { throw new Error(`((: ${message(error)}`); }
++        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }
++        catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }
+       }
+       if (command.kind === "subshell") {
+         const child = await cloneState(state, this.signal);
+@@ -1624,15 +1632,16 @@ export class Runtime {
+       }
+       if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
+       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
+-      if (error instanceof NounsetFailure) {
+-        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${message(error)}\n`); }
++      if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {
++        const detail = error instanceof ParameterExpansionFailure ? diagnostic ?? message(error) : message(error);
++        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`); }
+         catch (reason) {
+           this.signal.throwIfAborted();
+           if (reason instanceof ShellLimitError) throw reason;
+           diagnosticFailure = new NounsetDiagnosticFailure(reason);
+           throw diagnosticFailure;
+         }
+-        throw new Flow("exit", 1);
++        throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+       }
+       if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+       else {
+@@ -2894,6 +2903,46 @@ export class Runtime {
+     finally { await input?.close(); }
+   }
+ 
++  private async setOptions(context: CommandContext, state: State): Promise<number> {
++    const { args, stdout, stderr } = context;
++    let index = 0;
++    let positionals = false;
++    while (index < args.length) {
++      this.signal.throwIfAborted();
++      const option = args[index]!;
++      if (option === "--") { index++; positionals = true; break; }
++      if (option === "-") { index++; positionals = index < args.length; break; }
++      if (option[0] !== "-" && option[0] !== "+") { positionals = true; break; }
++      const enabled = option[0] === "-";
++      let valid = option.length > 1;
++      for (let position = 1; valid && position < option.length; position++) {
++        const flag = option[position];
++        if (flag === "e") state.errexit = enabled;
++        else if (flag === "u") state.nounset = enabled;
++        else if (flag === "o" && position === option.length - 1) {
++          const name = args[index + 1];
++          if (name === undefined) {
++            const options = [["errexit", !!state.errexit], ["nounset", !!state.nounset], ["pipefail", state.pipefail]] as const;
++            for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
++          } else {
++            if (name === "errexit") state.errexit = enabled;
++            else if (name === "nounset") state.nounset = enabled;
++            else if (name === "pipefail") state.pipefail = enabled;
++            else { valid = false; break; }
++            index++;
++          }
++        } else valid = false;
++      }
++      if (!valid) {
++        await writeText(stderr, "set: unsupported shell option; supported forms are +/- e/u clusters, -- arguments and terminal o with pipefail, errexit or nounset\n");
++        return 1;
++      }
++      index++;
++    }
++    if (positionals) { state.positional = args.slice(index); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
++    return 0;
++  }
++
+   private async letBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+     this.signal.throwIfAborted();
+     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
+@@ -2918,7 +2967,7 @@ export class Runtime {
+     if (args[0] === "--help") throw new CommandFailure("let: --help: unsupported option", 2);
+     const offset = args[0] === "--" ? 1 : 0;
+     if (args.length === offset) throw new CommandFailure("let: expression expected", 1);
+-    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {
++    const variables = new Proxy(this.arithmeticVariables(state, context.diagnosticLine), { get: (target, key) => {
+       this.signal.throwIfAborted();
+       const value: unknown = Reflect.get(target, key);
+       if (typeof value === "string" && (value.length > bytes || Buffer.byteLength(value) > bytes)) this.budget.fail("maxExpansionBytes");
+@@ -2929,8 +2978,7 @@ export class Runtime {
+       this.signal.throwIfAborted();
+       try { value = evaluateArithmetic(prepareArithmetic(args[index]!), variables); }
+       catch (error) {
+-        this.signal.throwIfAborted();
+-        if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
++        this.rethrowArithmeticControl(error);
+         throw new Error(`let: ${message(error)}`);
+       }
+       if ((index - offset + 1) % 128 === 0) await checkpoint();
+@@ -3245,6 +3293,7 @@ export class Runtime {
+     }
+     if (command === "cd") return this.changeDirectory(context, state, args, diagnose);
+     if (command === "set") {
++      if (state.profile === "bash" && args.length) return this.setOptions(context, state);
+       let index = 0;
+       let positionals = false;
+       while (index < args.length) {
+@@ -3515,8 +3564,8 @@ export class Runtime {
+       return "";
+     }
+     if (part.kind === "arithmetic") {
+-      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state))); }
+-      catch (error) { throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
++      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }
++      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }
+     }
+     if (part.kind === "substitution") {
+       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+@@ -3609,7 +3658,7 @@ export class Runtime {
+     if (value === undefined) return "";
+     const limit = this.budget.limits.maxExpansionBytes;
+     if (Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+-    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {
++    const variables = new Proxy(this.arithmeticVariables(state, line), { get: (target, key) => {
+       this.signal.throwIfAborted();
+       const value: unknown = Reflect.get(target, key);
+       if (typeof value === "string" && Buffer.byteLength(value) > limit) this.budget.fail("maxExpansionBytes");
+@@ -3629,8 +3678,7 @@ export class Runtime {
+       this.signal.throwIfAborted();
+       try { return { value: evaluateArithmetic(prepareArithmetic(source), variables), source }; }
+       catch (error) {
+-        this.signal.throwIfAborted();
+-        if (error instanceof ShellLimitError) throw error;
++        this.rethrowArithmeticControl(error);
+         throw new ExpansionFailure(`${part.name}: ${message(error)}`, line);
+       }
+     };

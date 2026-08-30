@@ -1,0 +1,10 @@
+{
+  "preparedAt": "2026-08-27T08:05:40.688Z",
+  "caseCount": 40,
+  "fixtureCount": 20,
+  "fixtureBytes": 1394,
+  "nativeObservations": 109,
+  "nativeExecutionErrors": [],
+  "referenceManifestSha256": "4d4cf47ece60ab01128b67694b633331fbb1e61a183808e8bde7d0db36641173",
+  "candidateRuns": 0
+}

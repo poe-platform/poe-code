@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T06:02:58.432Z",
+  "finishedAt": "2026-08-28T06:03:22.926Z",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "{\"classification\":\"admission-or-executor-failure-not-product-pass\",\"code\":\"ERR_ASSERTION\",\"message\":\"all unchanged86 rows or explicit stopped result\\n+ actual - expected\\n... Skipped lines\\n\\n  [\\n    'B01',\\n    'B02',\\n    'B03',\\n    'B04',\\n...\\n    'L07',\\n-   'L08',\\n-   'L09',\\n-   'L10',\\n-   'L11',\\n-   'L12',\\n-   'L13',\\n-   'L14',\\n-   'L15',\\n-   'L16',\\n-   'L17',\\n-   'L18',\\n-   'L19',\\n-   'L20',\\n-   'L21',\\n-   'L22',\\n-   'L23',\\n-   'L24',\\n-   'L25',\\n-   'L26',\\n-   'L27',\\n-   'D01',\\n-   'D02',\\n-   'D03',\\n-   'D04'\\n  ]\\n\"}\n",
+  "bytes": 557,
+  "survivingGroup": false,
+  "groupStillPresent": false,
+  "naturalSettlement": true,
+  "cleanupClean": true
+}

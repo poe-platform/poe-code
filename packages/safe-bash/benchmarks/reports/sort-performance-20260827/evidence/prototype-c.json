@@ -1,0 +1,5604 @@
+{
+  "events": [
+    {
+      "variant": "candidate",
+      "pid": 11771,
+      "beganAt": "2026-08-27T08:34:50.145Z",
+      "logs": "",
+      "forkToReadyMs": 93.5495,
+      "ready": {
+        "ready": true,
+        "variant": "candidate",
+        "pid": 11771,
+        "node": "v22.22.2",
+        "setupMs": 2.8572499999999934,
+        "importAndSetupMs": 53.025458
+      },
+      "close": {
+        "id": 91,
+        "closed": true,
+        "imports": [
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/plugins/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/safejs/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/metadata/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/table-text/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-format/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/split/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/memory/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/real/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/http/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/webdav/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/readonly/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/mount/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/overlay/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/integrations/safejs/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/command.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/errors.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/io.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/path.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/contracts/plugin.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/shell.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/parser.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/types.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/basic.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/streams.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/grep.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/predicates.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/execution.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/find.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/sed.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/awk.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/jq.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/limits.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/rg.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/encoding/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/checksums/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/compression/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/diff.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/patch.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/integrations/safejs/values.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/safejs/io.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/safejs/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/safejs/types.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/curl.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/types.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/transport.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/metadata/chmod.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/metadata/stat.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/metadata/mktemp.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/metadata/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/create.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/extract.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/stream.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/table-text/paste.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/table-text/comm.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/table-text/join.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/table-text/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/tac.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/expand.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/fold.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/strings.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-format/seq.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-format/nl.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-format/rev.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-format/unexpand.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-format/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/split/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/split/split.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/mount/comparison.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/authority.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/webdav/resource-id.js",
+          "node:fs",
+          "node:fs/promises",
+          "node:path",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/mock.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/transport.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/http/transport.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/webdav/webdav.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/mount/identity.js",
+          "node:crypto",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/integrations/safejs/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/integrations/safejs/shell.js",
+          "node:util",
+          "node:stream/web",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/input.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/locale.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/runtime.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/cleanup.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/arithmetic.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/copy-identity.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/move.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/regex-execution/client.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/regex.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/awk-syntax.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/awk-runtime.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/input.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/interpreter.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/parser.js",
+          "node:timers/promises",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/numbers.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/matcher.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/output.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/walk.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/encoding/base.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/encoding/od.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/encoding/xxd.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/compression/files.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/compression/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/compression/stream.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/diff-format.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/unified.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/patch-path.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/patch-envelope.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/patch-formats.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/patch-gnu-paths.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/diff-patch/patch-gnu-reject.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/safejs/render.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/args.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/body.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/output.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/network/shared.js",
+          "node:http",
+          "node:https",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/archive/format.js",
+          "node:zlib",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/stream-inspection/numeric-options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/split/io.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/split/names.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/split/outputs.js",
+          "node:async_hooks",
+          "node:net",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/http/request.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/http/signature.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/s3/http/xml.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/fs/webdav/xml.js",
+          "node:url",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/integrations/safejs/stats.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/pattern.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/shell/display.js",
+          "node:worker_threads",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/regex-execution/protocol.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/text-programs/awk-values.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/split.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/structured/values.js",
+          "node:buffer",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/search/glob.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/encoding/shared.js",
+          "node:stream",
+          "node:stream/promises",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/candidate/dist/commands/bytes/compression/gunzip.js",
+          "node:events"
+        ]
+      },
+      "code": 0,
+      "signal": null,
+      "exited": true
+    },
+    {
+      "variant": "base",
+      "pid": 11772,
+      "beganAt": "2026-08-27T08:34:50.238Z",
+      "logs": "",
+      "forkToReadyMs": 125.39691699999999,
+      "ready": {
+        "ready": true,
+        "variant": "base",
+        "pid": 11772,
+        "node": "v22.22.2",
+        "setupMs": 3.1428750000000036,
+        "importAndSetupMs": 86.204417
+      },
+      "close": {
+        "id": 91,
+        "closed": true,
+        "imports": [
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/plugins/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/safejs/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/metadata/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/table-text/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-format/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/split/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/memory/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/real/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/http/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/webdav/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/readonly/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/mount/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/overlay/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/integrations/safejs/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/command.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/errors.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/io.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/path.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/contracts/plugin.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/shell.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/parser.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/types.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/basic.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/streams.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/grep.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/predicates.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/execution.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/find.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/sed.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/awk.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/jq.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/limits.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/rg.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/encoding/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/checksums/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/compression/index.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/diff.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/patch.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/integrations/safejs/values.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/safejs/io.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/safejs/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/safejs/types.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/curl.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/types.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/transport.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/metadata/chmod.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/metadata/stat.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/metadata/mktemp.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/metadata/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/create.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/extract.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/stream.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/table-text/paste.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/table-text/comm.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/table-text/join.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/table-text/internal.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/tac.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/expand.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/fold.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/strings.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-format/seq.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-format/nl.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-format/rev.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-format/unexpand.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-format/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/split/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/split/split.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/mount/comparison.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/authority.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/webdav/resource-id.js",
+          "node:fs",
+          "node:fs/promises",
+          "node:path",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/mock.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/transport.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/http/transport.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/webdav/webdav.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/mount/identity.js",
+          "node:crypto",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/integrations/safejs/filesystem.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/integrations/safejs/shell.js",
+          "node:util",
+          "node:stream/web",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/input.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/locale.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/runtime.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/cleanup.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/arithmetic.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/copy-identity.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/move.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/regex-execution/client.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/regex.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/awk-syntax.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/awk-runtime.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/input.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/interpreter.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/parser.js",
+          "node:timers/promises",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/numbers.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/matcher.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/output.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/walk.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/encoding/base.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/encoding/od.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/encoding/xxd.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/compression/files.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/compression/options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/compression/stream.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/shared.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/diff-format.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/unified.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/patch-path.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/patch-envelope.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/patch-formats.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/patch-gnu-paths.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/diff-patch/patch-gnu-reject.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/safejs/render.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/args.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/body.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/output.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/network/shared.js",
+          "node:http",
+          "node:https",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/archive/format.js",
+          "node:zlib",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/stream-inspection/numeric-options.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/split/io.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/split/names.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/split/outputs.js",
+          "node:async_hooks",
+          "node:net",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/http/request.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/http/signature.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/s3/http/xml.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/fs/webdav/xml.js",
+          "node:url",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/integrations/safejs/stats.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/pattern.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/shell/display.js",
+          "node:worker_threads",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/regex-execution/protocol.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/text-programs/awk-values.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/split.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/structured/values.js",
+          "node:buffer",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/search/glob.js",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/encoding/shared.js",
+          "node:stream",
+          "node:stream/promises",
+          "file:///private/tmp/safe-bash-sort-performance-VrG9w3/base/dist/commands/bytes/compression/gunzip.js",
+          "node:events"
+        ]
+      },
+      "code": 0,
+      "signal": null,
+      "exited": true
+    }
+  ],
+  "rows": [
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 7.356042000000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139444224,
+        "heapTotal": 59523072,
+        "heapUsed": 15176544,
+        "external": 3888989,
+        "arrayBuffers": 136088
+      },
+      "memoryAfter": {
+        "rss": 139493376,
+        "heapTotal": 59523072,
+        "heapUsed": 22945776,
+        "external": 4251067,
+        "arrayBuffers": 498166
+      },
+      "processLifetimeMaxRssKiB": 136224,
+      "cpu": {
+        "user": 19985,
+        "system": 398
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 5.99066700000003,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137838592,
+        "heapTotal": 60047360,
+        "heapUsed": 15185776,
+        "external": 3888989,
+        "arrayBuffers": 136088
+      },
+      "memoryAfter": {
+        "rss": 137904128,
+        "heapTotal": 60047360,
+        "heapUsed": 18482656,
+        "external": 4097265,
+        "arrayBuffers": 344364
+      },
+      "processLifetimeMaxRssKiB": 134672,
+      "cpu": {
+        "user": 15540,
+        "system": 186
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.6937919999999735,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137904128,
+        "heapTotal": 60047360,
+        "heapUsed": 18541400,
+        "external": 4156628,
+        "arrayBuffers": 403727
+      },
+      "memoryAfter": {
+        "rss": 137904128,
+        "heapTotal": 60047360,
+        "heapUsed": 22995760,
+        "external": 4200340,
+        "arrayBuffers": 447439
+      },
+      "processLifetimeMaxRssKiB": 134672,
+      "cpu": {
+        "user": 7074,
+        "system": 79
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 5.4327089999999885,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 23039288,
+        "external": 4169428,
+        "arrayBuffers": 416527
+      },
+      "memoryAfter": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 31861680,
+        "external": 4225892,
+        "arrayBuffers": 472991
+      },
+      "processLifetimeMaxRssKiB": 136240,
+      "cpu": {
+        "user": 6196,
+        "system": 217
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.865083000000027,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 17896656,
+        "external": 4285255,
+        "arrayBuffers": 374618
+      },
+      "memoryAfter": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 25764312,
+        "external": 4298397,
+        "arrayBuffers": 545496
+      },
+      "processLifetimeMaxRssKiB": 136240,
+      "cpu": {
+        "user": 5473,
+        "system": 74
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.531292000000008,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137936896,
+        "heapTotal": 60047360,
+        "heapUsed": 23075400,
+        "external": 4259703,
+        "arrayBuffers": 506802
+      },
+      "memoryAfter": {
+        "rss": 137936896,
+        "heapTotal": 60047360,
+        "heapUsed": 27529120,
+        "external": 4303552,
+        "arrayBuffers": 550651
+      },
+      "processLifetimeMaxRssKiB": 134704,
+      "cpu": {
+        "user": 5296,
+        "system": 227
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.282500000000027,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137936896,
+        "heapTotal": 60047360,
+        "heapUsed": 27588696,
+        "external": 4362915,
+        "arrayBuffers": 610014
+      },
+      "memoryAfter": {
+        "rss": 137936896,
+        "heapTotal": 60047360,
+        "heapUsed": 32073648,
+        "external": 4406808,
+        "arrayBuffers": 653907
+      },
+      "processLifetimeMaxRssKiB": 134704,
+      "cpu": {
+        "user": 4919,
+        "system": 92
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 5.184000000000026,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 25816280,
+        "external": 4357760,
+        "arrayBuffers": 604859
+      },
+      "memoryAfter": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 34629072,
+        "external": 4414188,
+        "arrayBuffers": 661287
+      },
+      "processLifetimeMaxRssKiB": 136240,
+      "cpu": {
+        "user": 5671,
+        "system": 116
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.99229200000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 20432040,
+        "external": 4473551,
+        "arrayBuffers": 549640
+      },
+      "memoryAfter": {
+        "rss": 139509760,
+        "heapTotal": 59523072,
+        "heapUsed": 28294016,
+        "external": 4486095,
+        "arrayBuffers": 733194
+      },
+      "processLifetimeMaxRssKiB": 136240,
+      "cpu": {
+        "user": 6619,
+        "system": 97
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.4661669999999845,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137953280,
+        "heapTotal": 60047360,
+        "heapUsed": 32134896,
+        "external": 4466171,
+        "arrayBuffers": 713270
+      },
+      "memoryAfter": {
+        "rss": 137953280,
+        "heapTotal": 60047360,
+        "heapUsed": 36603888,
+        "external": 4510163,
+        "arrayBuffers": 757262
+      },
+      "processLifetimeMaxRssKiB": 134720,
+      "cpu": {
+        "user": 7161,
+        "system": 101
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.46466700000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137953280,
+        "heapTotal": 60047360,
+        "heapUsed": 21739752,
+        "external": 4569526,
+        "arrayBuffers": 638146
+      },
+      "memoryAfter": {
+        "rss": 137969664,
+        "heapTotal": 60047360,
+        "heapUsed": 25061768,
+        "external": 4566955,
+        "arrayBuffers": 814054
+      },
+      "processLifetimeMaxRssKiB": 134736,
+      "cpu": {
+        "user": 5998,
+        "system": 173
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 5.099207999999976,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139526144,
+        "heapTotal": 59523072,
+        "heapUsed": 28369688,
+        "external": 4545458,
+        "arrayBuffers": 792557
+      },
+      "memoryAfter": {
+        "rss": 139558912,
+        "heapTotal": 59523072,
+        "heapUsed": 36966672,
+        "external": 4601823,
+        "arrayBuffers": 848922
+      },
+      "processLifetimeMaxRssKiB": 136288,
+      "cpu": {
+        "user": 5613,
+        "system": 222
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.770125000000007,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139640832,
+        "heapTotal": 59523072,
+        "heapUsed": 23060144,
+        "external": 4661186,
+        "arrayBuffers": 746143
+      },
+      "memoryAfter": {
+        "rss": 139640832,
+        "heapTotal": 59523072,
+        "heapUsed": 30790960,
+        "external": 4673685,
+        "arrayBuffers": 920784
+      },
+      "processLifetimeMaxRssKiB": 136368,
+      "cpu": {
+        "user": 5339,
+        "system": 149
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 4.6532080000000065,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 137969664,
+        "heapTotal": 60047360,
+        "heapUsed": 25130752,
+        "external": 4626318,
+        "arrayBuffers": 873417
+      },
+      "memoryAfter": {
+        "rss": 138002432,
+        "heapTotal": 60047360,
+        "heapUsed": 29444928,
+        "external": 4669774,
+        "arrayBuffers": 916873
+      },
+      "processLifetimeMaxRssKiB": 134768,
+      "cpu": {
+        "user": 5280,
+        "system": 227
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 9.688625000000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 138018816,
+        "heapTotal": 60047360,
+        "heapUsed": 29510472,
+        "external": 4729137,
+        "arrayBuffers": 976236
+      },
+      "memoryAfter": {
+        "rss": 138641408,
+        "heapTotal": 62144512,
+        "heapUsed": 33831480,
+        "external": 4772721,
+        "arrayBuffers": 1019820
+      },
+      "processLifetimeMaxRssKiB": 135392,
+      "cpu": {
+        "user": 15227,
+        "system": 302
+      }
+    },
+    {
+      "variant": "base",
+      "id": "historical-sort-uniq-5000",
+      "milliseconds": 6.921582999999998,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 9860,
+        "sha256": "07c55ee7001039318f51fa66e0530c67fbda29776432a2d573ef5c86a3888a9a"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 139640832,
+        "heapTotal": 58212352,
+        "heapUsed": 15157024,
+        "external": 3888989,
+        "arrayBuffers": 136088
+      },
+      "memoryAfter": {
+        "rss": 139689984,
+        "heapTotal": 58212352,
+        "heapUsed": 22756128,
+        "external": 4109701,
+        "arrayBuffers": 356800
+      },
+      "processLifetimeMaxRssKiB": 136416,
+      "cpu": {
+        "user": 18306,
+        "system": 310
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 3.4156659999999874,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 15130416,
+        "external": 3888975,
+        "arrayBuffers": 136074
+      },
+      "memoryAfter": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 22414208,
+        "external": 4196746,
+        "arrayBuffers": 443845
+      },
+      "processLifetimeMaxRssKiB": 141152,
+      "cpu": {
+        "user": 4341,
+        "system": 94
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 2.559082999999987,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 15138496,
+        "external": 6851638,
+        "arrayBuffers": 937912
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 17987152,
+        "external": 4196746,
+        "arrayBuffers": 443845
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 5619,
+        "system": 40
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.7482499999999845,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 18258544,
+        "external": 4295682,
+        "arrayBuffers": 542781
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 21090040,
+        "external": 4603453,
+        "arrayBuffers": 850552
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 3814,
+        "system": 12
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.367916999999977,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 22657984,
+        "external": 4295682,
+        "arrayBuffers": 542781
+      },
+      "memoryAfter": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 29911480,
+        "external": 4603453,
+        "arrayBuffers": 850552
+      },
+      "processLifetimeMaxRssKiB": 141152,
+      "cpu": {
+        "user": 2327,
+        "system": 48
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.2095829999999523,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 17178328,
+        "external": 4175657,
+        "arrayBuffers": 422756
+      },
+      "memoryAfter": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 24450648,
+        "external": 4483428,
+        "arrayBuffers": 730527
+      },
+      "processLifetimeMaxRssKiB": 141152,
+      "cpu": {
+        "user": 2184,
+        "system": 30
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.725999999999999,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 21375696,
+        "external": 4702389,
+        "arrayBuffers": 949488
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 24198808,
+        "external": 5010160,
+        "arrayBuffers": 1257259
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 1713,
+        "system": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.6771250000000464,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 24471056,
+        "external": 5109096,
+        "arrayBuffers": 1356195
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 27294600,
+        "external": 5416867,
+        "arrayBuffers": 1663966
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 1669,
+        "system": 10
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.845916999999986,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144539648,
+        "heapTotal": 59785216,
+        "heapUsed": 24722896,
+        "external": 4582364,
+        "arrayBuffers": 829463
+      },
+      "memoryAfter": {
+        "rss": 144556032,
+        "heapTotal": 59785216,
+        "heapUsed": 19478600,
+        "external": 4577318,
+        "arrayBuffers": 824417
+      },
+      "processLifetimeMaxRssKiB": 141168,
+      "cpu": {
+        "user": 3739,
+        "system": 112
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.39483400000006,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144556032,
+        "heapTotal": 59785216,
+        "heapUsed": 19689200,
+        "external": 4676254,
+        "arrayBuffers": 923353
+      },
+      "memoryAfter": {
+        "rss": 144556032,
+        "heapTotal": 59785216,
+        "heapUsed": 26962592,
+        "external": 4984025,
+        "arrayBuffers": 1231124
+      },
+      "processLifetimeMaxRssKiB": 141168,
+      "cpu": {
+        "user": 2385,
+        "system": 16
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.720124999999939,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 27567096,
+        "external": 5515803,
+        "arrayBuffers": 1762902
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 30390480,
+        "external": 5823574,
+        "arrayBuffers": 2070673
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 1711,
+        "system": 15
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.6745409999999765,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 20189448,
+        "external": 5922510,
+        "arrayBuffers": 852779
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 22981520,
+        "external": 4913451,
+        "arrayBuffers": 1160550
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 1673,
+        "system": 4
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.761292000000026,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144556032,
+        "heapTotal": 59785216,
+        "heapUsed": 27235088,
+        "external": 5082961,
+        "arrayBuffers": 1330060
+      },
+      "memoryAfter": {
+        "rss": 144572416,
+        "heapTotal": 59785216,
+        "heapUsed": 22233944,
+        "external": 4864000,
+        "arrayBuffers": 1111099
+      },
+      "processLifetimeMaxRssKiB": 141184,
+      "cpu": {
+        "user": 3648,
+        "system": 160
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.1417920000000095,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144572416,
+        "heapTotal": 59785216,
+        "heapUsed": 22444488,
+        "external": 4962936,
+        "arrayBuffers": 1210035
+      },
+      "memoryAfter": {
+        "rss": 144572416,
+        "heapTotal": 59785216,
+        "heapUsed": 29717848,
+        "external": 5270707,
+        "arrayBuffers": 1517806
+      },
+      "processLifetimeMaxRssKiB": 141184,
+      "cpu": {
+        "user": 2139,
+        "system": 5
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.663000000000011,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 23256720,
+        "external": 5012387,
+        "arrayBuffers": 1259486
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 26048752,
+        "external": 5320158,
+        "arrayBuffers": 1567257
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 1660,
+        "system": 7
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "plain-5000",
+      "milliseconds": 1.6709999999999354,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 26292816,
+        "external": 5419094,
+        "arrayBuffers": 1666193
+      },
+      "memoryAfter": {
+        "rss": 145981440,
+        "heapTotal": 58474496,
+        "heapUsed": 29116344,
+        "external": 5726865,
+        "arrayBuffers": 1973964
+      },
+      "processLifetimeMaxRssKiB": 142560,
+      "cpu": {
+        "user": 1669,
+        "system": 4
+      }
+    },
+    {
+      "variant": "base",
+      "id": "plain-5000",
+      "milliseconds": 2.766542000000072,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 144572416,
+        "heapTotal": 59785216,
+        "heapUsed": 29996592,
+        "external": 5369643,
+        "arrayBuffers": 1616742
+      },
+      "memoryAfter": {
+        "rss": 144572416,
+        "heapTotal": 59785216,
+        "heapUsed": 24746752,
+        "external": 5200129,
+        "arrayBuffers": 1447228
+      },
+      "processLifetimeMaxRssKiB": 141184,
+      "cpu": {
+        "user": 3783,
+        "system": 168
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 14.434708999999884,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 168476672,
+        "heapTotal": 61095936,
+        "heapUsed": 13731832,
+        "external": 4368103,
+        "arrayBuffers": 622094
+      },
+      "memoryAfter": {
+        "rss": 169394176,
+        "heapTotal": 62013440,
+        "heapUsed": 30104312,
+        "external": 7615218,
+        "arrayBuffers": 3869209
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 19366,
+        "system": 608
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 9.262583000000177,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175095808,
+        "heapTotal": 69681152,
+        "heapUsed": 24675224,
+        "external": 16182629,
+        "arrayBuffers": 12436620
+      },
+      "memoryAfter": {
+        "rss": 176013312,
+        "heapTotal": 70598656,
+        "heapUsed": 36229344,
+        "external": 19429748,
+        "arrayBuffers": 15683739
+      },
+      "processLifetimeMaxRssKiB": 174512,
+      "cpu": {
+        "user": 9103,
+        "system": 168
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 10.294499999999971,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178716672,
+        "heapTotal": 72761344,
+        "heapUsed": 38383568,
+        "external": 20500716,
+        "arrayBuffers": 16754707
+      },
+      "memoryAfter": {
+        "rss": 174948352,
+        "heapTotal": 68632576,
+        "heapUsed": 34053920,
+        "external": 19956370,
+        "arrayBuffers": 16210361
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 10815,
+        "system": 459
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 13.139165999999932,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 168673280,
+        "heapTotal": 61292544,
+        "heapUsed": 17732168,
+        "external": 5954480,
+        "arrayBuffers": 2208471
+      },
+      "memoryAfter": {
+        "rss": 169410560,
+        "heapTotal": 62029824,
+        "heapUsed": 22253712,
+        "external": 8272920,
+        "arrayBuffers": 4526911
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 14619,
+        "system": 581
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 22.53766699999983,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 171573248,
+        "heapTotal": 64192512,
+        "heapUsed": 24407960,
+        "external": 9343888,
+        "arrayBuffers": 5597879
+      },
+      "memoryAfter": {
+        "rss": 170147840,
+        "heapTotal": 66699264,
+        "heapUsed": 27069704,
+        "external": 10930257,
+        "arrayBuffers": 7184248
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 28996,
+        "system": 821
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 11.711874999999964,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177848320,
+        "heapTotal": 70795264,
+        "heapUsed": 36208064,
+        "external": 21027338,
+        "arrayBuffers": 17281329
+      },
+      "memoryAfter": {
+        "rss": 175882240,
+        "heapTotal": 68829184,
+        "heapUsed": 37879656,
+        "external": 21542747,
+        "arrayBuffers": 17796738
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 13742,
+        "system": 645
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 12.429208000000017,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178225152,
+        "heapTotal": 70991872,
+        "heapUsed": 40034000,
+        "external": 22613715,
+        "arrayBuffers": 18867706
+      },
+      "memoryAfter": {
+        "rss": 175489024,
+        "heapTotal": 57556992,
+        "heapUsed": 24153680,
+        "external": 7615222,
+        "arrayBuffers": 3869213
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 26130,
+        "system": 771
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 12.485500000000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 169934848,
+        "heapTotal": 61243392,
+        "heapUsed": 19016856,
+        "external": 7757511,
+        "arrayBuffers": 4011502
+      },
+      "memoryAfter": {
+        "rss": 170852352,
+        "heapTotal": 62160896,
+        "heapUsed": 35235328,
+        "external": 11004626,
+        "arrayBuffers": 7258617
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 13150,
+        "system": 403
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 13.420749999999998,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 170131456,
+        "heapTotal": 61440000,
+        "heapUsed": 22921992,
+        "external": 9343888,
+        "arrayBuffers": 5597879
+      },
+      "memoryAfter": {
+        "rss": 170868736,
+        "heapTotal": 62177280,
+        "heapUsed": 27417104,
+        "external": 11596792,
+        "arrayBuffers": 7850783
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 15015,
+        "system": 375
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 11.304832999999917,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177651712,
+        "heapTotal": 59719680,
+        "heapUsed": 26335424,
+        "external": 8686190,
+        "arrayBuffers": 4940181
+      },
+      "memoryAfter": {
+        "rss": 176046080,
+        "heapTotal": 58114048,
+        "heapUsed": 25148504,
+        "external": 10075951,
+        "arrayBuffers": 6329942
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 12832,
+        "system": 942
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 10.694707999999991,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178208768,
+        "heapTotal": 60276736,
+        "heapUsed": 27302792,
+        "external": 11146919,
+        "arrayBuffers": 7400910
+      },
+      "memoryAfter": {
+        "rss": 176242688,
+        "heapTotal": 59621376,
+        "heapUsed": 29693152,
+        "external": 11793400,
+        "arrayBuffers": 8047391
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 13062,
+        "system": 712
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 15.60529100000008,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 168476672,
+        "heapTotal": 55328768,
+        "heapUsed": 13678376,
+        "external": 4368103,
+        "arrayBuffers": 622094
+      },
+      "memoryAfter": {
+        "rss": 169394176,
+        "heapTotal": 56246272,
+        "heapUsed": 30082152,
+        "external": 7615218,
+        "arrayBuffers": 3869209
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 23708,
+        "system": 332
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 13.734959000000117,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 168673280,
+        "heapTotal": 55525376,
+        "heapUsed": 17661056,
+        "external": 5954480,
+        "arrayBuffers": 2208471
+      },
+      "memoryAfter": {
+        "rss": 169590784,
+        "heapTotal": 56442880,
+        "heapUsed": 34970672,
+        "external": 9201595,
+        "arrayBuffers": 5455586
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 14689,
+        "system": 423
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 12.138749999999845,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 174571520,
+        "heapTotal": 55328768,
+        "heapUsed": 13682288,
+        "external": 4368103,
+        "arrayBuffers": 622094
+      },
+      "memoryAfter": {
+        "rss": 175489024,
+        "heapTotal": 56246272,
+        "heapUsed": 25253440,
+        "external": 7615222,
+        "arrayBuffers": 3869213
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 19459,
+        "system": 259
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unique-paths-20000",
+      "milliseconds": 10.949791999999889,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177651712,
+        "heapTotal": 58408960,
+        "heapUsed": 27409896,
+        "external": 8686190,
+        "arrayBuffers": 4940181
+      },
+      "memoryAfter": {
+        "rss": 175685632,
+        "heapTotal": 56442880,
+        "heapUsed": 27000704,
+        "external": 9201595,
+        "arrayBuffers": 5455586
+      },
+      "processLifetimeMaxRssKiB": 174880,
+      "cpu": {
+        "user": 12563,
+        "system": 525
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unique-paths-20000",
+      "milliseconds": 16.912124999999833,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 535459,
+        "sha256": "5e2e80868be991d15fe4ed25331dde4c4e37e97f1f541f206ab44edcf7e7579c"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 168476672,
+        "heapTotal": 54804480,
+        "heapUsed": 13669832,
+        "external": 4368103,
+        "arrayBuffers": 622094
+      },
+      "memoryAfter": {
+        "rss": 169394176,
+        "heapTotal": 55721984,
+        "heapUsed": 30031712,
+        "external": 7615218,
+        "arrayBuffers": 3869209
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 31191,
+        "system": 340
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 7.594625000000178,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 172523520,
+        "heapTotal": 69091328,
+        "heapUsed": 32597688,
+        "external": 14533353,
+        "arrayBuffers": 10787344
+      },
+      "memoryAfter": {
+        "rss": 171048960,
+        "heapTotal": 67616768,
+        "heapUsed": 36168920,
+        "external": 14878015,
+        "arrayBuffers": 11132006
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 8598,
+        "system": 300
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 5.3940000000000055,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 176816128,
+        "heapTotal": 67403776,
+        "heapUsed": 20544416,
+        "external": 12060663,
+        "arrayBuffers": 8314654
+      },
+      "memoryAfter": {
+        "rss": 177192960,
+        "heapTotal": 67780608,
+        "heapUsed": 27685968,
+        "external": 14225229,
+        "arrayBuffers": 10479220
+      },
+      "processLifetimeMaxRssKiB": 176144,
+      "cpu": {
+        "user": 5271,
+        "system": 88
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 4.762917000000016,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178667520,
+        "heapTotal": 69255168,
+        "heapUsed": 29124872,
+        "external": 14938619,
+        "arrayBuffers": 11192610
+      },
+      "memoryAfter": {
+        "rss": 179077120,
+        "heapTotal": 69632000,
+        "heapUsed": 36173464,
+        "external": 17103185,
+        "arrayBuffers": 13357176
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 4717,
+        "system": 48
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 8.507291000000123,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 170295296,
+        "heapTotal": 52969472,
+        "heapUsed": 13709256,
+        "external": 4189314,
+        "arrayBuffers": 443305
+      },
+      "memoryAfter": {
+        "rss": 170672128,
+        "heapTotal": 53346304,
+        "heapUsed": 17917768,
+        "external": 5997206,
+        "arrayBuffers": 2251197
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 11224,
+        "system": 171
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 6.975417000000107,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 172146688,
+        "heapTotal": 54820864,
+        "heapUsed": 19359128,
+        "external": 6710596,
+        "arrayBuffers": 2964587
+      },
+      "memoryAfter": {
+        "rss": 170672128,
+        "heapTotal": 53346304,
+        "heapUsed": 23807352,
+        "external": 7411886,
+        "arrayBuffers": 3665877
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 11865,
+        "system": 266
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 4.938792000000149,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175374336,
+        "heapTotal": 65929216,
+        "heapUsed": 22268576,
+        "external": 13492329,
+        "arrayBuffers": 9746320
+      },
+      "memoryAfter": {
+        "rss": 175783936,
+        "heapTotal": 66306048,
+        "heapUsed": 29357960,
+        "external": 15656895,
+        "arrayBuffers": 11910886
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 4876,
+        "system": 71
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 6.009291000000076,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177258496,
+        "heapTotal": 67780608,
+        "heapUsed": 30796808,
+        "external": 16370285,
+        "arrayBuffers": 12624276
+      },
+      "memoryAfter": {
+        "rss": 175783936,
+        "heapTotal": 66568192,
+        "heapUsed": 29889192,
+        "external": 16358231,
+        "arrayBuffers": 12612222
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 8185,
+        "system": 358
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 7.956875000000082,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 172146688,
+        "heapTotal": 54820864,
+        "heapUsed": 25246304,
+        "external": 8125276,
+        "arrayBuffers": 4379267
+      },
+      "memoryAfter": {
+        "rss": 170672128,
+        "heapTotal": 53608448,
+        "heapUsed": 28992072,
+        "external": 8469896,
+        "arrayBuffers": 4723887
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 9543,
+        "system": 329
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 12.71983299999988,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 172146688,
+        "heapTotal": 55083008,
+        "heapUsed": 30431224,
+        "external": 9183286,
+        "arrayBuffers": 5437277
+      },
+      "memoryAfter": {
+        "rss": 170672128,
+        "heapTotal": 55967744,
+        "heapUsed": 34106192,
+        "external": 9527906,
+        "arrayBuffers": 5781897
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 18422,
+        "system": 517
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 6.292250000000195,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175030272,
+        "heapTotal": 54018048,
+        "heapUsed": 13745128,
+        "external": 4189314,
+        "arrayBuffers": 443305
+      },
+      "memoryAfter": {
+        "rss": 175407104,
+        "heapTotal": 54394880,
+        "heapUsed": 20968704,
+        "external": 6353880,
+        "arrayBuffers": 2607871
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 8691,
+        "system": 118
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 4.813209000000143,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 176881664,
+        "heapTotal": 55869440,
+        "heapUsed": 22426168,
+        "external": 7067270,
+        "arrayBuffers": 3321261
+      },
+      "memoryAfter": {
+        "rss": 177258496,
+        "heapTotal": 56246272,
+        "heapUsed": 29470320,
+        "external": 9231836,
+        "arrayBuffers": 5485827
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 4751,
+        "system": 67
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 7.09091699999999,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 171163648,
+        "heapTotal": 65372160,
+        "heapUsed": 23444344,
+        "external": 7067266,
+        "arrayBuffers": 3321257
+      },
+      "memoryAfter": {
+        "rss": 171540480,
+        "heapTotal": 65748992,
+        "heapUsed": 27600144,
+        "external": 8809622,
+        "arrayBuffers": 5063613
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 7350,
+        "system": 238
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 6.795583000000079,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 173015040,
+        "heapTotal": 67223552,
+        "heapUsed": 29039240,
+        "external": 9523012,
+        "arrayBuffers": 5777003
+      },
+      "memoryAfter": {
+        "rss": 171540480,
+        "heapTotal": 66011136,
+        "heapUsed": 33446384,
+        "external": 10289838,
+        "arrayBuffers": 6543829
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 7976,
+        "system": 251
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 6.23395800000003,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178733056,
+        "heapTotal": 57720832,
+        "heapUsed": 30909304,
+        "external": 9945226,
+        "arrayBuffers": 6199217
+      },
+      "memoryAfter": {
+        "rss": 175407104,
+        "heapTotal": 54394880,
+        "heapUsed": 24488864,
+        "external": 8469896,
+        "arrayBuffers": 4723887
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 7145,
+        "system": 356
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "reverse-logs-12000",
+      "milliseconds": 5.813583999999992,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 176881664,
+        "heapTotal": 55869440,
+        "heapUsed": 25927816,
+        "external": 9183286,
+        "arrayBuffers": 5437277
+      },
+      "memoryAfter": {
+        "rss": 175489024,
+        "heapTotal": 56229888,
+        "heapUsed": 24198144,
+        "external": 9040164,
+        "arrayBuffers": 5294155
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 8049,
+        "system": 439
+      }
+    },
+    {
+      "variant": "base",
+      "id": "reverse-logs-12000",
+      "milliseconds": 7.799291000000039,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 356670,
+        "sha256": "52725e16f9b9bf2943c05730d9956884a7aeac8f5f11564938fddfec127460f6"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 173015040,
+        "heapTotal": 67485696,
+        "heapUsed": 34885336,
+        "external": 11003228,
+        "arrayBuffers": 7257219
+      },
+      "memoryAfter": {
+        "rss": 171540480,
+        "heapTotal": 66011136,
+        "heapUsed": 38682280,
+        "external": 11347848,
+        "arrayBuffers": 7601839
+      },
+      "processLifetimeMaxRssKiB": 170880,
+      "cpu": {
+        "user": 9491,
+        "system": 284
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 5.401749999999993,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 70008832,
+        "heapUsed": 29673824,
+        "external": 6109291,
+        "arrayBuffers": 2363282
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 70008832,
+        "heapUsed": 28970880,
+        "external": 6101283,
+        "arrayBuffers": 2355274
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 7179,
+        "system": 193
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 4.433125000000018,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 13692328,
+        "external": 3898866,
+        "arrayBuffers": 152857
+      },
+      "memoryAfter": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 18161896,
+        "external": 4353078,
+        "arrayBuffers": 607069
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 5303,
+        "system": 30
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.257624999999962,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 18494808,
+        "external": 4485578,
+        "arrayBuffers": 739569
+      },
+      "memoryAfter": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 22902816,
+        "external": 4939790,
+        "arrayBuffers": 1193781
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 7623,
+        "system": 10
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 4.137875000000122,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 70008832,
+        "heapUsed": 29301912,
+        "external": 6233783,
+        "arrayBuffers": 2487774
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 70008832,
+        "heapUsed": 40829424,
+        "external": 6687995,
+        "arrayBuffers": 2941986
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 4136,
+        "system": 10
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 3.976707999999917,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 70008832,
+        "heapUsed": 28892416,
+        "external": 6094671,
+        "arrayBuffers": 2348662
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 70008832,
+        "heapUsed": 40355208,
+        "external": 6548883,
+        "arrayBuffers": 2802874
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 3972,
+        "system": 10
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.4027920000000904,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 23333904,
+        "external": 5072290,
+        "arrayBuffers": 1326281
+      },
+      "memoryAfter": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 27746144,
+        "external": 5526502,
+        "arrayBuffers": 1780493
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 3398,
+        "system": 13
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.089958000000024,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 18482568,
+        "external": 4470918,
+        "arrayBuffers": 724909
+      },
+      "memoryAfter": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 22873696,
+        "external": 4925130,
+        "arrayBuffers": 1179121
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 3085,
+        "system": 9
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 5.435874999999896,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 13694504,
+        "external": 3898866,
+        "arrayBuffers": 152857
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 25267376,
+        "external": 4353078,
+        "arrayBuffers": 607069
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 6385,
+        "system": 40
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 4.70054099999993,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 25638952,
+        "external": 4485578,
+        "arrayBuffers": 739569
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 22976656,
+        "external": 4543758,
+        "arrayBuffers": 797749
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 10169,
+        "system": 78
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.267958000000135,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 23169696,
+        "external": 5057630,
+        "arrayBuffers": 1311621
+      },
+      "memoryAfter": {
+        "rss": 175718400,
+        "heapTotal": 55853056,
+        "heapUsed": 27549744,
+        "external": 5511842,
+        "arrayBuffers": 1765833
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 3506,
+        "system": 22
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.172625000000153,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175767552,
+        "heapTotal": 55853056,
+        "heapUsed": 21629352,
+        "external": 5644342,
+        "arrayBuffers": 1304273
+      },
+      "memoryAfter": {
+        "rss": 175767552,
+        "heapTotal": 55853056,
+        "heapUsed": 26028936,
+        "external": 5306498,
+        "arrayBuffers": 1560489
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 3205,
+        "system": 52
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 4.810416000000032,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 23349240,
+        "external": 4676258,
+        "arrayBuffers": 930249
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 22684648,
+        "external": 4734442,
+        "arrayBuffers": 988433
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 5813,
+        "system": 213
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 4.36654099999987,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 23057088,
+        "external": 4866942,
+        "arrayBuffers": 1120933
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 22037960,
+        "external": 4925126,
+        "arrayBuffers": 1179117
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 5453,
+        "system": 256
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.1351250000000164,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175767552,
+        "heapTotal": 55853056,
+        "heapUsed": 26347224,
+        "external": 5438998,
+        "arrayBuffers": 1692989
+      },
+      "memoryAfter": {
+        "rss": 175767552,
+        "heapTotal": 55853056,
+        "heapUsed": 30727432,
+        "external": 5893210,
+        "arrayBuffers": 2147201
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 3429,
+        "system": 20
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "unicode-8000",
+      "milliseconds": 3.911250000000109,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 175767552,
+        "heapTotal": 55853056,
+        "heapUsed": 31160904,
+        "external": 6025710,
+        "arrayBuffers": 2279701
+      },
+      "memoryAfter": {
+        "rss": 175767552,
+        "heapTotal": 57425920,
+        "heapUsed": 26861464,
+        "external": 5621634,
+        "arrayBuffers": 1875625
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 5494,
+        "system": 267
+      }
+    },
+    {
+      "variant": "base",
+      "id": "unicode-8000",
+      "milliseconds": 4.572374999999965,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 66228,
+        "sha256": "914aa0d2e97a215165d2d2b8c2b8843e21b686de2ace81a3a63c8c10631dd460"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 22394360,
+        "external": 5057626,
+        "arrayBuffers": 1311617
+      },
+      "memoryAfter": {
+        "rss": 185270272,
+        "heapTotal": 56639488,
+        "heapUsed": 33904856,
+        "external": 5511838,
+        "arrayBuffers": 1765829
+      },
+      "processLifetimeMaxRssKiB": 181056,
+      "cpu": {
+        "user": 6539,
+        "system": 98
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 30.307958000000326,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186302464,
+        "heapTotal": 66486272,
+        "heapUsed": 16514144,
+        "external": 6686909,
+        "arrayBuffers": 2940900
+      },
+      "memoryAfter": {
+        "rss": 186728448,
+        "heapTotal": 66633728,
+        "heapUsed": 19565888,
+        "external": 7428293,
+        "arrayBuffers": 3682284
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 31709,
+        "system": 741
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 30.3620420000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 176652288,
+        "heapTotal": 59260928,
+        "heapUsed": 13754912,
+        "external": 3970840,
+        "arrayBuffers": 224831
+      },
+      "memoryAfter": {
+        "rss": 176799744,
+        "heapTotal": 59408384,
+        "heapUsed": 26662448,
+        "external": 5064480,
+        "arrayBuffers": 1318471
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 39414,
+        "system": 325
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 30.470166999999947,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177389568,
+        "heapTotal": 59998208,
+        "heapUsed": 27229840,
+        "external": 5340921,
+        "arrayBuffers": 1594912
+      },
+      "memoryAfter": {
+        "rss": 176963584,
+        "heapTotal": 59555840,
+        "heapUsed": 22859312,
+        "external": 5550890,
+        "arrayBuffers": 1804881
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 40711,
+        "system": 591
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 29.089500000000044,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187318272,
+        "heapTotal": 67223552,
+        "heapUsed": 20131136,
+        "external": 7704734,
+        "arrayBuffers": 3958725
+      },
+      "memoryAfter": {
+        "rss": 186875904,
+        "heapTotal": 66781184,
+        "heapUsed": 22645640,
+        "external": 8135887,
+        "arrayBuffers": 4389878
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 30271,
+        "system": 558
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 28.925458000000162,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187465728,
+        "heapTotal": 67371008,
+        "heapUsed": 23210984,
+        "external": 8412328,
+        "arrayBuffers": 4666319
+      },
+      "memoryAfter": {
+        "rss": 187023360,
+        "heapTotal": 67190784,
+        "heapUsed": 25624520,
+        "external": 8859865,
+        "arrayBuffers": 5113856
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 30191,
+        "system": 427
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 28.708208000000013,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177553408,
+        "heapTotal": 60145664,
+        "heapUsed": 23441008,
+        "external": 5827331,
+        "arrayBuffers": 2081322
+      },
+      "memoryAfter": {
+        "rss": 177111040,
+        "heapTotal": 59703296,
+        "heapUsed": 35264976,
+        "external": 6577972,
+        "arrayBuffers": 2831963
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 29504,
+        "system": 390
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 43.771584000000075,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177111040,
+        "heapTotal": 59703296,
+        "heapUsed": 20276200,
+        "external": 6028086,
+        "arrayBuffers": 2282077
+      },
+      "memoryAfter": {
+        "rss": 177258496,
+        "heapTotal": 61947904,
+        "heapUsed": 32623352,
+        "external": 7097150,
+        "arrayBuffers": 3351141
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 50020,
+        "system": 800
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 31.774832999999944,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186433536,
+        "heapTotal": 54804480,
+        "heapUsed": 13776936,
+        "external": 3970840,
+        "arrayBuffers": 224831
+      },
+      "memoryAfter": {
+        "rss": 186580992,
+        "heapTotal": 54951936,
+        "heapUsed": 17225560,
+        "external": 4728608,
+        "arrayBuffers": 982599
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 37077,
+        "system": 491
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 29.80279100000007,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187170816,
+        "heapTotal": 55541760,
+        "heapUsed": 17793152,
+        "external": 5005049,
+        "arrayBuffers": 1259040
+      },
+      "memoryAfter": {
+        "rss": 186728448,
+        "heapTotal": 55099392,
+        "heapUsed": 20315376,
+        "external": 5452586,
+        "arrayBuffers": 1706577
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 33582,
+        "system": 500
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 28.57070900000008,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177012736,
+        "heapTotal": 57507840,
+        "heapUsed": 17419424,
+        "external": 5316345,
+        "arrayBuffers": 1570336
+      },
+      "memoryAfter": {
+        "rss": 177422336,
+        "heapTotal": 57655296,
+        "heapUsed": 29778592,
+        "external": 6385409,
+        "arrayBuffers": 2639400
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 30227,
+        "system": 406
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 27.94591700000001,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178012160,
+        "heapTotal": 58245120,
+        "heapUsed": 30343728,
+        "external": 6661850,
+        "arrayBuffers": 2915841
+      },
+      "memoryAfter": {
+        "rss": 177569792,
+        "heapTotal": 57802752,
+        "heapUsed": 25718544,
+        "external": 6871819,
+        "arrayBuffers": 3125810
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 29263,
+        "system": 406
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 29.147334000000228,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187318272,
+        "heapTotal": 55689216,
+        "heapUsed": 20880568,
+        "external": 5729027,
+        "arrayBuffers": 1983018
+      },
+      "memoryAfter": {
+        "rss": 186875904,
+        "heapTotal": 56033280,
+        "heapUsed": 23445448,
+        "external": 6176564,
+        "arrayBuffers": 2430555
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 30567,
+        "system": 351
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 45.46662500000002,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187465728,
+        "heapTotal": 56623104,
+        "heapUsed": 24010848,
+        "external": 6453005,
+        "arrayBuffers": 2706996
+      },
+      "memoryAfter": {
+        "rss": 187023360,
+        "heapTotal": 58802176,
+        "heapUsed": 26458792,
+        "external": 6892350,
+        "arrayBuffers": 3146341
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 51387,
+        "system": 1219
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 27.61741600000005,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178159616,
+        "heapTotal": 58392576,
+        "heapUsed": 26283896,
+        "external": 7148260,
+        "arrayBuffers": 3402251
+      },
+      "memoryAfter": {
+        "rss": 177717248,
+        "heapTotal": 59785216,
+        "heapUsed": 38192600,
+        "external": 7898901,
+        "arrayBuffers": 4152892
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 28810,
+        "system": 366
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-stable-8000",
+      "milliseconds": 42.16633300000012,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177717248,
+        "heapTotal": 59785216,
+        "heapUsed": 23780704,
+        "external": 7373591,
+        "arrayBuffers": 3627582
+      },
+      "memoryAfter": {
+        "rss": 177864704,
+        "heapTotal": 62816256,
+        "heapUsed": 36236264,
+        "external": 8442655,
+        "arrayBuffers": 4696646
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 47930,
+        "system": 797
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-stable-8000",
+      "milliseconds": 29.701792000000296,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 138195,
+        "sha256": "786f97f4743adeeace2b7ebf28cbac0ca6a9d855a725e5f3d54045c3978bb5c1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186777600,
+        "heapTotal": 56721408,
+        "heapUsed": 16609224,
+        "external": 5111545,
+        "arrayBuffers": 1365536
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 56868864,
+        "heapUsed": 19578424,
+        "external": 5861121,
+        "arrayBuffers": 2115112
+      },
+      "processLifetimeMaxRssKiB": 183600,
+      "cpu": {
+        "user": 31147,
+        "system": 782
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 35.88995799999975,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186466304,
+        "heapTotal": 59523072,
+        "heapUsed": 13796424,
+        "external": 3997312,
+        "arrayBuffers": 251303
+      },
+      "memoryAfter": {
+        "rss": 186646528,
+        "heapTotal": 59703296,
+        "heapUsed": 24678888,
+        "external": 4926516,
+        "arrayBuffers": 1180507
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 41953,
+        "system": 496
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 34.85004200000003,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 176963584,
+        "heapTotal": 59523072,
+        "heapUsed": 13791360,
+        "external": 3997312,
+        "arrayBuffers": 251303
+      },
+      "memoryAfter": {
+        "rss": 177143808,
+        "heapTotal": 59965440,
+        "heapUsed": 17631992,
+        "external": 4860980,
+        "arrayBuffers": 1114971
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 40217,
+        "system": 844
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 33.36899999999969,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177831936,
+        "heapTotal": 60653568,
+        "heapUsed": 18305568,
+        "external": 5190368,
+        "arrayBuffers": 1444359
+      },
+      "memoryAfter": {
+        "rss": 177324032,
+        "heapTotal": 60145664,
+        "heapUsed": 21035120,
+        "external": 5684562,
+        "arrayBuffers": 1938553
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 40349,
+        "system": 740
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 35.11570800000027,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187334656,
+        "heapTotal": 60391424,
+        "heapUsed": 25381672,
+        "external": 5255904,
+        "arrayBuffers": 1509895
+      },
+      "memoryAfter": {
+        "rss": 186826752,
+        "heapTotal": 59883520,
+        "heapUsed": 18910512,
+        "external": 5668178,
+        "arrayBuffers": 1922169
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 35602,
+        "system": 745
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 37.372292000000016,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187547648,
+        "heapTotal": 60571648,
+        "heapUsed": 19581736,
+        "external": 5997566,
+        "arrayBuffers": 2251557
+      },
+      "memoryAfter": {
+        "rss": 187039744,
+        "heapTotal": 60063744,
+        "heapUsed": 29474528,
+        "external": 6557296,
+        "arrayBuffers": 2811287
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 36742,
+        "system": 994
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 34.42504199999985,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178012160,
+        "heapTotal": 60833792,
+        "heapUsed": 21706288,
+        "external": 6013950,
+        "arrayBuffers": 2267941
+      },
+      "memoryAfter": {
+        "rss": 177504256,
+        "heapTotal": 60325888,
+        "heapUsed": 24410560,
+        "external": 6516336,
+        "arrayBuffers": 2770327
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 34718,
+        "system": 553
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 57.23370799999975,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178192384,
+        "heapTotal": 61014016,
+        "heapUsed": 25081928,
+        "external": 6845724,
+        "arrayBuffers": 3099715
+      },
+      "memoryAfter": {
+        "rss": 177143808,
+        "heapTotal": 57344000,
+        "heapUsed": 20391080,
+        "external": 4901940,
+        "arrayBuffers": 1155931
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 65807,
+        "system": 1437
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 38.29504200000065,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186499072,
+        "heapTotal": 53755904,
+        "heapUsed": 13765248,
+        "external": 3997312,
+        "arrayBuffers": 251303
+      },
+      "memoryAfter": {
+        "rss": 186679296,
+        "heapTotal": 54198272,
+        "heapUsed": 24781280,
+        "external": 4926516,
+        "arrayBuffers": 1180507
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 42727,
+        "system": 779
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 37.570458000000144,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187367424,
+        "heapTotal": 54886400,
+        "heapUsed": 25454712,
+        "external": 5255904,
+        "arrayBuffers": 1509895
+      },
+      "memoryAfter": {
+        "rss": 186859520,
+        "heapTotal": 54640640,
+        "heapUsed": 19091136,
+        "external": 5668178,
+        "arrayBuffers": 1922169
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 38382,
+        "system": 850
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 37.80583300000035,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177831936,
+        "heapTotal": 58032128,
+        "heapUsed": 21082640,
+        "external": 5231328,
+        "arrayBuffers": 1485319
+      },
+      "memoryAfter": {
+        "rss": 177324032,
+        "heapTotal": 57524224,
+        "heapUsed": 23818920,
+        "external": 5725522,
+        "arrayBuffers": 1979513
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 37029,
+        "system": 1062
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 36.55425000000014,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178012160,
+        "heapTotal": 58212352,
+        "heapUsed": 24490232,
+        "external": 6054910,
+        "arrayBuffers": 2308901
+      },
+      "memoryAfter": {
+        "rss": 177504256,
+        "heapTotal": 57704448,
+        "heapUsed": 27164856,
+        "external": 6549104,
+        "arrayBuffers": 2803095
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 36590,
+        "system": 936
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 36.950166999999965,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187547648,
+        "heapTotal": 55328768,
+        "heapUsed": 19765072,
+        "external": 5997566,
+        "arrayBuffers": 2251557
+      },
+      "memoryAfter": {
+        "rss": 187039744,
+        "heapTotal": 55869440,
+        "heapUsed": 29683080,
+        "external": 6565488,
+        "arrayBuffers": 2819479
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 36897,
+        "system": 929
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 59.9722499999998,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187727872,
+        "heapTotal": 56557568,
+        "heapUsed": 30354304,
+        "external": 6894876,
+        "arrayBuffers": 3148867
+      },
+      "memoryAfter": {
+        "rss": 186843136,
+        "heapTotal": 57081856,
+        "heapUsed": 17444816,
+        "external": 4860980,
+        "arrayBuffers": 1114971
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 70368,
+        "system": 2029
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 32.82891699999982,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178192384,
+        "heapTotal": 58392576,
+        "heapUsed": 27836024,
+        "external": 6878492,
+        "arrayBuffers": 3132483
+      },
+      "memoryAfter": {
+        "rss": 177684480,
+        "heapTotal": 58408960,
+        "heapUsed": 30573936,
+        "external": 7380878,
+        "arrayBuffers": 3634869
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 34078,
+        "system": 638
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "numeric-key-8000",
+      "milliseconds": 55.698875000000044,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 178372608,
+        "heapTotal": 59097088,
+        "heapUsed": 31245304,
+        "external": 7710266,
+        "arrayBuffers": 3964257
+      },
+      "memoryAfter": {
+        "rss": 177143808,
+        "heapTotal": 57081856,
+        "heapUsed": 19273352,
+        "external": 4934708,
+        "arrayBuffers": 1188699
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 65513,
+        "system": 1537
+      }
+    },
+    {
+      "variant": "base",
+      "id": "numeric-key-8000",
+      "milliseconds": 33.175792,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 164670,
+        "sha256": "e87799e4aa7cd7df51c928dcd5989d0e542acba162986544eed5865d4b901cfb"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187711488,
+        "heapTotal": 57769984,
+        "heapUsed": 18149432,
+        "external": 5190368,
+        "arrayBuffers": 1444359
+      },
+      "memoryAfter": {
+        "rss": 187203584,
+        "heapTotal": 57262080,
+        "heapUsed": 28206664,
+        "external": 5750098,
+        "arrayBuffers": 2004089
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 34632,
+        "system": 511
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 3.7941249999994398,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 186875904,
+        "heapTotal": 57950208,
+        "heapUsed": 13920400,
+        "external": 3980998,
+        "arrayBuffers": 234989
+      },
+      "memoryAfter": {
+        "rss": 186875904,
+        "heapTotal": 57950208,
+        "heapUsed": 21263656,
+        "external": 4387690,
+        "arrayBuffers": 641681
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 4794,
+        "system": 48
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 3.893500000000131,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 177176576,
+        "heapTotal": 56115200,
+        "heapUsed": 13909584,
+        "external": 7513963,
+        "arrayBuffers": 310207
+      },
+      "memoryAfter": {
+        "rss": 177176576,
+        "heapTotal": 56115200,
+        "heapUsed": 16834272,
+        "external": 4387690,
+        "arrayBuffers": 641681
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 5225,
+        "system": 209
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 2.1856669999997393,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 177471488,
+        "heapTotal": 56410112,
+        "heapUsed": 17255000,
+        "external": 4733891,
+        "arrayBuffers": 987882
+      },
+      "memoryAfter": {
+        "rss": 177487872,
+        "heapTotal": 56410112,
+        "heapUsed": 20145568,
+        "external": 5140583,
+        "arrayBuffers": 1394574
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 7265,
+        "system": 70
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 2.636083999999755,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 187203584,
+        "heapTotal": 58245120,
+        "heapUsed": 21739992,
+        "external": 4733891,
+        "arrayBuffers": 987882
+      },
+      "memoryAfter": {
+        "rss": 187203584,
+        "heapTotal": 58245120,
+        "heapUsed": 29046184,
+        "external": 5140583,
+        "arrayBuffers": 1394574
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 2612,
+        "system": 34
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 2.7259159999994154,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 186908672,
+        "heapTotal": 57950208,
+        "heapUsed": 16067208,
+        "external": 4218233,
+        "arrayBuffers": 472224
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 57950208,
+        "heapUsed": 23388744,
+        "external": 4624925,
+        "arrayBuffers": 878916
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 2648,
+        "system": 85
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 2.005417000000307,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 177782784,
+        "heapTotal": 56705024,
+        "heapUsed": 20580408,
+        "external": 5486784,
+        "arrayBuffers": 1740775
+      },
+      "memoryAfter": {
+        "rss": 177799168,
+        "heapTotal": 56705024,
+        "heapUsed": 23470160,
+        "external": 5893476,
+        "arrayBuffers": 2147467
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 1961,
+        "system": 50
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 1.9517919999998412,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 178094080,
+        "heapTotal": 56999936,
+        "heapUsed": 23897288,
+        "external": 6239677,
+        "arrayBuffers": 2493668
+      },
+      "memoryAfter": {
+        "rss": 178094080,
+        "heapTotal": 56999936,
+        "heapUsed": 26752432,
+        "external": 6646369,
+        "arrayBuffers": 2900360
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 1917,
+        "system": 41
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 3.0767079999995985,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 23822848,
+        "external": 4971126,
+        "arrayBuffers": 1225117
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 57950208,
+        "heapUsed": 18516544,
+        "external": 4520991,
+        "arrayBuffers": 774982
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 4382,
+        "system": 149
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 2.429917000000387,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 18935144,
+        "external": 4867192,
+        "arrayBuffers": 1121183
+      },
+      "memoryAfter": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 26226576,
+        "external": 5273884,
+        "arrayBuffers": 1527875
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 2428,
+        "system": 8
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 1.907165999999961,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 178388992,
+        "heapTotal": 57294848,
+        "heapUsed": 27192112,
+        "external": 6992570,
+        "arrayBuffers": 3246561
+      },
+      "memoryAfter": {
+        "rss": 178388992,
+        "heapTotal": 57294848,
+        "heapUsed": 30060720,
+        "external": 7399262,
+        "arrayBuffers": 3653253
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 1895,
+        "system": 18
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 1.9016249999995125,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 18997560,
+        "external": 4499915,
+        "arrayBuffers": 753906
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 21852304,
+        "external": 4906607,
+        "arrayBuffers": 1160598
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 1896,
+        "system": 12
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 3.0120000000006257,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 187514880,
+        "heapTotal": 58540032,
+        "heapUsed": 26669552,
+        "external": 5620085,
+        "arrayBuffers": 1874076
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 57950208,
+        "heapUsed": 21129424,
+        "external": 4807682,
+        "arrayBuffers": 1061673
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 4030,
+        "system": 113
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 2.5107920000000377,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 21548024,
+        "external": 5153883,
+        "arrayBuffers": 1407874
+      },
+      "memoryAfter": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 28871208,
+        "external": 5560575,
+        "arrayBuffers": 1814566
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 2507,
+        "system": 8
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 1.8845420000006925,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 177504256,
+        "heapTotal": 56410112,
+        "heapUsed": 22283248,
+        "external": 5252808,
+        "arrayBuffers": 1506799
+      },
+      "memoryAfter": {
+        "rss": 177504256,
+        "heapTotal": 56410112,
+        "heapUsed": 25151648,
+        "external": 5659500,
+        "arrayBuffers": 1913491
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 1881,
+        "system": 11
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "in-place-5000",
+      "milliseconds": 1.8412080000007336,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 177799168,
+        "heapTotal": 56705024,
+        "heapUsed": 25570072,
+        "external": 6005701,
+        "arrayBuffers": 2259692
+      },
+      "memoryAfter": {
+        "rss": 177799168,
+        "heapTotal": 56705024,
+        "heapUsed": 28453576,
+        "external": 6412393,
+        "arrayBuffers": 2666384
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 1830,
+        "system": 15
+      }
+    },
+    {
+      "variant": "base",
+      "id": "in-place-5000",
+      "milliseconds": 3.1272500000004584,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 49447,
+        "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {
+        "input": {
+          "bytes": 49447,
+          "sha256": "8439e67c5642c95c840cac23cb025566f8592d0ed893b0c553c2ff868478be37"
+        }
+      },
+      "memoryBefore": {
+        "rss": 187514880,
+        "heapTotal": 58540032,
+        "heapUsed": 29289632,
+        "external": 5906776,
+        "arrayBuffers": 2160767
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 57950208,
+        "heapUsed": 23646576,
+        "external": 4995470,
+        "arrayBuffers": 1249461
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 4218,
+        "system": 139
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.0894590000007156,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 26531552,
+        "external": 6236365,
+        "arrayBuffers": 2490356
+      },
+      "memoryAfter": {
+        "rss": 187219968,
+        "heapTotal": 58245120,
+        "heapUsed": 26682408,
+        "external": 6302594,
+        "arrayBuffers": 2556585
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 89,
+        "system": 2
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.10266700000011042,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 23975000,
+        "external": 5676291,
+        "arrayBuffers": 1930282
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24098296,
+        "external": 5742520,
+        "arrayBuffers": 1996511
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 103,
+        "system": 3
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.441541999999572,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24110944,
+        "external": 5750751,
+        "arrayBuffers": 2004742
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24234272,
+        "external": 5816980,
+        "arrayBuffers": 2070971
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 411,
+        "system": 27
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.3476249999994252,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 13916472,
+        "external": 6310825,
+        "arrayBuffers": 2490043
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14105368,
+        "external": 6377054,
+        "arrayBuffers": 673593
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 1537,
+        "system": 14
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.12608300000010786,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14120080,
+        "external": 6377093,
+        "arrayBuffers": 656885
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14272456,
+        "external": 6443322,
+        "arrayBuffers": 697505
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 126,
+        "system": 6
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.11904099999992468,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24246552,
+        "external": 5817019,
+        "arrayBuffers": 2071010
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24369848,
+        "external": 5883248,
+        "arrayBuffers": 2137239
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 119,
+        "system": 3
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.07824999999957072,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24387080,
+        "external": 5883287,
+        "arrayBuffers": 2137278
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24509840,
+        "external": 5949516,
+        "arrayBuffers": 2203507
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 78,
+        "system": 2
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.11033399999996618,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14286192,
+        "external": 6443361,
+        "arrayBuffers": 452839
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14438552,
+        "external": 6509590,
+        "arrayBuffers": 495917
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 111,
+        "system": 2
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.13683300000047893,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14450832,
+        "external": 6509629,
+        "arrayBuffers": 482130
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14607304,
+        "external": 6575858,
+        "arrayBuffers": 470204
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 924,
+        "system": 6
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.08812499999930878,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24522120,
+        "external": 5949555,
+        "arrayBuffers": 2203546
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24644840,
+        "external": 6015784,
+        "arrayBuffers": 2269775
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 85,
+        "system": 5
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.07333299999936571,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24657264,
+        "external": 6015823,
+        "arrayBuffers": 2269814
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24780056,
+        "external": 6082052,
+        "arrayBuffers": 2336043
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 71,
+        "system": 4
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.09183300000040617,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14619728,
+        "external": 4105897,
+        "arrayBuffers": 359888
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14772080,
+        "external": 4172126,
+        "arrayBuffers": 426117
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 92,
+        "system": 2
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.10008300000026793,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14784360,
+        "external": 4172165,
+        "arrayBuffers": 426156
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14936712,
+        "external": 4238394,
+        "arrayBuffers": 492385
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 100,
+        "system": 2
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.11416600000029575,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24792336,
+        "external": 6082091,
+        "arrayBuffers": 2336082
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24915056,
+        "external": 6148320,
+        "arrayBuffers": 2402311
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 115,
+        "system": 2
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "tiny-32",
+      "milliseconds": 0.08470800000031886,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 24927480,
+        "external": 6148359,
+        "arrayBuffers": 2402350
+      },
+      "memoryAfter": {
+        "rss": 177209344,
+        "heapTotal": 56115200,
+        "heapUsed": 25050200,
+        "external": 6214588,
+        "arrayBuffers": 2468579
+      },
+      "processLifetimeMaxRssKiB": 176320,
+      "cpu": {
+        "user": 85,
+        "system": 1
+      }
+    },
+    {
+      "variant": "base",
+      "id": "tiny-32",
+      "milliseconds": 0.10708299999987503,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 145,
+        "sha256": "3e08f821aafa24fc7b2852e7594f7979ff91e0405337128b9b56feed193781e1"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 14949136,
+        "external": 4238433,
+        "arrayBuffers": 492424
+      },
+      "memoryAfter": {
+        "rss": 186925056,
+        "heapTotal": 55328768,
+        "heapUsed": 15101520,
+        "external": 4304662,
+        "arrayBuffers": 558653
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 108,
+        "system": 2
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 5.781958000000486,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 13922792,
+        "external": 3880644,
+        "arrayBuffers": 134635
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 25440648,
+        "external": 4178180,
+        "arrayBuffers": 432171
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 7346,
+        "system": 119
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.7814169999992373,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 18924016,
+        "external": 7397855,
+        "arrayBuffers": 1761894
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 23325864,
+        "external": 5733272,
+        "arrayBuffers": 1987263
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 4881,
+        "system": 26
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.6303339999994932,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 23556384,
+        "external": 5829322,
+        "arrayBuffers": 2083313
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 27968504,
+        "external": 6126858,
+        "arrayBuffers": 2380849
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 2560,
+        "system": 77
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 5.104624999999942,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 25710872,
+        "external": 4274230,
+        "arrayBuffers": 528221
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 23151184,
+        "external": 4314176,
+        "arrayBuffers": 568167
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 6275,
+        "system": 482
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 4.342665999999554,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 23393208,
+        "external": 4410226,
+        "arrayBuffers": 664217
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 22754760,
+        "external": 4450176,
+        "arrayBuffers": 704167
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 5946,
+        "system": 484
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.614958000000115,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 28199120,
+        "external": 6222908,
+        "arrayBuffers": 2476899
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 32611144,
+        "external": 6520444,
+        "arrayBuffers": 2774435
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 2541,
+        "system": 85
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.3783749999993233,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 23716128,
+        "external": 5843736,
+        "arrayBuffers": 2097727
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 28091392,
+        "external": 6141272,
+        "arrayBuffers": 2395263
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 2376,
+        "system": 8
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 4.046707999999853,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 22985344,
+        "external": 4546226,
+        "arrayBuffers": 800217
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 21954992,
+        "external": 4586176,
+        "arrayBuffers": 840167
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 5431,
+        "system": 282
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 3.440708000000086,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 22197016,
+        "external": 4682226,
+        "arrayBuffers": 936217
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 33696752,
+        "external": 4979762,
+        "arrayBuffers": 1233753
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 3442,
+        "system": 5
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.445499999999811,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 28333632,
+        "external": 6237322,
+        "arrayBuffers": 2491313
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 32670792,
+        "external": 6534858,
+        "arrayBuffers": 2788849
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 2433,
+        "system": 14
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.3654169999999795,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 26768176,
+        "external": 6630908,
+        "arrayBuffers": 2369727
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 31138544,
+        "external": 6413272,
+        "arrayBuffers": 2667263
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 2362,
+        "system": 10
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 3.657375000000684,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 21841864,
+        "external": 4560644,
+        "arrayBuffers": 814635
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 33281096,
+        "external": 4858180,
+        "arrayBuffers": 1112171
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 3658,
+        "system": 9
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 3.585416000000805,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 33523008,
+        "external": 4954230,
+        "arrayBuffers": 1208221
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 58474496,
+        "heapUsed": 32188000,
+        "external": 4994176,
+        "arrayBuffers": 1248167
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 4562,
+        "system": 122
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 2.7644170000003214,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 31369160,
+        "external": 6509322,
+        "arrayBuffers": 2763313
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 35781184,
+        "external": 6806858,
+        "arrayBuffers": 3060849
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 2694,
+        "system": 37
+      }
+    },
+    {
+      "variant": "candidate",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 3.0465000000003783,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 36011656,
+        "external": 6902908,
+        "arrayBuffers": 3156899
+      },
+      "memoryAfter": {
+        "rss": 185991168,
+        "heapTotal": 65290240,
+        "heapUsed": 31736072,
+        "external": 7200444,
+        "arrayBuffers": 2891259
+      },
+      "processLifetimeMaxRssKiB": 181632,
+      "cpu": {
+        "user": 5134,
+        "system": 65
+      }
+    },
+    {
+      "variant": "base",
+      "id": "invalid-bytes-8000",
+      "milliseconds": 4.907207999999628,
+      "equivalent": true,
+      "stdout": {
+        "bytes": 48000,
+        "sha256": "fcd5a24d7a7ffda8c6f5953e3219228fc16866b8e547d50d687a721093e6cb55"
+      },
+      "stderr": "",
+      "status": 0,
+      "files": {},
+      "memoryBefore": {
+        "rss": 187596800,
+        "heapTotal": 56115200,
+        "heapUsed": 13881008,
+        "external": 3880644,
+        "arrayBuffers": 134635
+      },
+      "memoryAfter": {
+        "rss": 187596800,
+        "heapTotal": 56115200,
+        "heapUsed": 25404944,
+        "external": 4178180,
+        "arrayBuffers": 432171
+      },
+      "processLifetimeMaxRssKiB": 184480,
+      "cpu": {
+        "user": 5947,
+        "system": 31
+      }
+    }
+  ]
+}

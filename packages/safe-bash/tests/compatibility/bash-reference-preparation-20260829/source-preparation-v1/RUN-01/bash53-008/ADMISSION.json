@@ -1,0 +1,32 @@
+{
+  "tool": {
+    "path": "/usr/bin/patch",
+    "resolved": "/usr/bin/patch",
+    "bytes": 220608,
+    "mode": "755",
+    "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84"
+  },
+  "argv": [
+    "-s",
+    "-f",
+    "-F",
+    "0",
+    "-p0",
+    "--posix",
+    "-d",
+    "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "-i",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.data"
+  ],
+  "cwd": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+  "env": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/bash53-008/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/bash53-008/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/RUN-01/bash53-008/empty-bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "deadlineMs": 10000,
+  "streamCap": 1048576
+}

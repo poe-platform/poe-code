@@ -1,0 +1,225 @@
+{
+  "recordedDate": "2026-08-26",
+  "primaryURLs": {
+    "patchAnnouncement": "https://lists.gnu.org/archive/html/info-gnu/2025-03/msg00014.html",
+    "diffutilsAnnouncement": "https://lists.gnu.org/archive/html/info-gnu/2025-04/msg00005.html",
+    "patchSource": "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz",
+    "diffutilsSource": "https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz",
+    "patchSignature": "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz.sig",
+    "diffutilsSignature": "https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz.sig",
+    "keyring": "https://ftp.gnu.org/gnu/gnu-keyring.gpg",
+    "manual": "https://www.gnu.org/software/diffutils/manual/diffutils.html"
+  },
+  "authenticityLimits": [
+    "SHA256 matches the official HTTPS release announcements, not only a locally calculated hash.",
+    "Both detached signatures produced VALIDSIG for the release-announcement fingerprint.",
+    "patch: official keyring public-key record is expired; GPG emits EXPKEYSIG/KEYEXPIRED even though the signature is mathematically valid.",
+    "diffutils: GOODSIG and VALIDSIG, but TRUST_UNDEFINED; this isolated keyring has no independent web-of-trust certification.",
+    "Archives, release announcements, and keyring share GNU HTTPS infrastructure; no independent out-of-band trust anchor was established."
+  ],
+  "host": {
+    "os": "macOS 26.4.1",
+    "build": "25E253",
+    "architecture": "arm64",
+    "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+    "compilerPath": "/usr/bin/cc",
+    "node": "v22.22.2",
+    "gpg": "/opt/homebrew/bin/gpg"
+  },
+  "build": {
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/home",
+      "TMPDIR": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "CC": "/usr/bin/cc"
+    },
+    "evidence": [
+      {
+        "name": "patch",
+        "version": "2.8",
+        "sha256": "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3",
+        "binary": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "archive": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8.tar.xz",
+        "binarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+        "versionOutput": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n"
+      },
+      {
+        "name": "diffutils",
+        "version": "3.12",
+        "sha256": "7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd",
+        "binary": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "archive": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12.tar.xz",
+        "binarySha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+        "versionOutput": "diff (GNU diffutils) 3.12\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Paul Eggert, Mike Haertel, David Hayes,\nRichard Stallman, and Len Tower.\n"
+      }
+    ]
+  },
+  "buildCommands": [
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8.tar.xz",
+        "-C",
+        "/private/tmp/safe-bash-gnu-oracle.Yg2F0W"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 199
+    },
+    {
+      "command": "/bin/sh",
+      "args": [
+        "./configure",
+        "--disable-nls",
+        "--prefix=/private/tmp/safe-bash-gnu-oracle.Yg2F0W/unused-install-prefix"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 60515
+    },
+    {
+      "command": "/usr/bin/make",
+      "args": [
+        "-j2"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 5103
+    },
+    {
+      "command": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 165
+    },
+    {
+      "command": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12.tar.xz",
+        "-C",
+        "/private/tmp/safe-bash-gnu-oracle.Yg2F0W"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 486
+    },
+    {
+      "command": "/bin/sh",
+      "args": [
+        "./configure",
+        "--disable-nls",
+        "--prefix=/private/tmp/safe-bash-gnu-oracle.Yg2F0W/unused-install-prefix"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 84746
+    },
+    {
+      "command": "/usr/bin/make",
+      "args": [
+        "-j2"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 12701
+    },
+    {
+      "command": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 184
+    }
+  ],
+  "signatures": [
+    {
+      "command": "/opt/homebrew/bin/gpg",
+      "args": [
+        "--batch",
+        "--homedir",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/gnupg",
+        "--no-default-keyring",
+        "--keyring",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/gnu-keyring.gpg",
+        "--status-fd",
+        "1",
+        "--verify",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8.tar.xz.sig",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8.tar.xz"
+      ],
+      "status": 0,
+      "stdout": "[GNUPG:] NEWSIG\n[GNUPG:] KEYEXPIRED 1539272868\n[GNUPG:] KEY_CONSIDERED 259B3792B3D6D319212CC4DCD5BF9FEB0313653A 0\n[GNUPG:] KEYEXPIRED 1539272868\n[GNUPG:] SIG_ID 31ypIbWC6oyt01EF+Xu7gZE9qms 2025-03-29 1743267116\n[GNUPG:] EXPKEYSIG D5BF9FEB0313653A Andreas Gruenbacher <agruen@gnu.org>\n[GNUPG:] VALIDSIG 259B3792B3D6D319212CC4DCD5BF9FEB0313653A 2025-03-29 1743267116 0 4 0 1 8 00 259B3792B3D6D319212CC4DCD5BF9FEB0313653A\n",
+      "stderr": "gpg: Signature made Sat Mar 29 16:51:56 2025 UTC\ngpg:                using RSA key 259B3792B3D6D319212CC4DCD5BF9FEB0313653A\ngpg: Good signature from \"Andreas Gruenbacher <agruen@gnu.org>\" [expired]\ngpg:                 aka \"Andreas Gruenbacher <agruen@kernel.org>\" [expired]\ngpg:                 aka \"Andreas Gruenbacher <agruenba@redhat.com>\" [expired]\ngpg:                 aka \"Andreas Gruenbacher <andreas.gruenbacher@gmail.com>\" [expired]\ngpg: Note: This key has expired!\n      259B3792B3D6D319212CC4DCD5BF9FEB0313653A\n"
+    },
+    {
+      "command": "/opt/homebrew/bin/gpg",
+      "args": [
+        "--batch",
+        "--homedir",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/gnupg",
+        "--no-default-keyring",
+        "--keyring",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/gnu-keyring.gpg",
+        "--status-fd",
+        "1",
+        "--verify",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12.tar.xz.sig",
+        "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12.tar.xz"
+      ],
+      "status": 0,
+      "stdout": "[GNUPG:] NEWSIG\n[GNUPG:] KEY_CONSIDERED 155D3FC500C834486D1EEA677FD9FCCB000BEEEE 0\n[GNUPG:] SIG_ID e2z6DbJfAv0DrWuTDkRWRnZKawc 2025-04-09 1744167217\n[GNUPG:] GOODSIG 7FD9FCCB000BEEEE Jim Meyering <jim@meyering.net>\n[GNUPG:] VALIDSIG 155D3FC500C834486D1EEA677FD9FCCB000BEEEE 2025-04-09 1744167217 0 4 0 1 10 00 155D3FC500C834486D1EEA677FD9FCCB000BEEEE\n[GNUPG:] TRUST_UNDEFINED 0 pgp\n",
+      "stderr": "gpg: Signature made Wed Apr  9 02:53:37 2025 UTC\ngpg:                using RSA key 155D3FC500C834486D1EEA677FD9FCCB000BEEEE\ngpg: Good signature from \"Jim Meyering <jim@meyering.net>\" [unknown]\ngpg:                 aka \"Jim Meyering <meyering@redhat.com>\" [unknown]\ngpg:                 aka \"Jim Meyering <meyering@gnu.org>\" [unknown]\ngpg: WARNING: This key is not certified with a trusted signature!\ngpg:          There is no indication that the signature belongs to the owner.\n      155D3FC500C834486D1EEA677FD9FCCB000BEEEE\n"
+    }
+  ],
+  "downloadedEvidenceSha256": {
+    "patch-announcement.html": "308c2de2a63011a2efab4d0d273aa9bb046cf1defccd28762172f1186fbeca09",
+    "diffutils-announcement.html": "435694c1227145e0a2922ebe72fdaf0aa622e0046d5aa704775c0be3b384efa6",
+    "gnu-keyring.gpg": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608",
+    "patch-2.8.tar.xz.sig": "127652869a83b9fd0e32d54adac26c2bbb19fabcc553dfc72547fd509080b622",
+    "diffutils-3.12.tar.xz.sig": "ad05b321b2f23441275af68072123a5907b05ad989335a9f1f6e3781cb0846a6",
+    "patch-2.8/patch.man": "f2a475f289f9b57715341813fe85e82c52380ae4b88279eba5ced9023ea0baca"
+  },
+  "repeat": {
+    "startedAt": "2026-08-26T20:35:47.399Z",
+    "finishedAt": "2026-08-26T20:35:48.725Z",
+    "head": "3bc67d723906a85b4212700b403bb7904d32992b",
+    "stableSources": true,
+    "sameRecords": true,
+    "sameDiffPatchSourceHashes": true,
+    "captureExitCode": 1,
+    "finalCaptureSha256": "e109d19ed70721b45679c5558431bd600afe13dd5627a6eaaf591c585cffc92c",
+    "repeatCaptureSha256": "ed0f623953b4cbf4dbbbac8145db0e0d51eb4d5169705c8694637272bc5ee678"
+  },
+  "limits": [
+    "No upstream make check was run.",
+    "No make install, package manager, new dependency, product edit, existing-test edit, or global installation was performed.",
+    "Built references and full logs remain under the isolated temporary root for root verification; paths are host-local and not portable.",
+    "Native output bounded to 1 MiB and 3 seconds per case. Product cancellation is cooperative, not a CPU-isolation guarantee."
+  ]
+}

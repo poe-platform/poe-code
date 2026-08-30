@@ -1,0 +1,6 @@
+{
+  "deferredMarker": "stdout INDEPENDENT_IMPORT_SIDE_EFFECT would be emitted by fake module if reached",
+  "authorization": {
+    "badHash": true
+  }
+}

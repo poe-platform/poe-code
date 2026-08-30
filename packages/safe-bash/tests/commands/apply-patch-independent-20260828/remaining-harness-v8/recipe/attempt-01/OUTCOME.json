@@ -1,0 +1,129 @@
+{
+  "schema": "remaining-harness-v8-source-data-outcome",
+  "sourceCommit": "c4aa6e6e3e195c8b39b77db435fc8f6cc032b311",
+  "presealSha256": "89dda7ee6a84e37953c5736db6dedfce55df9f423db672c456743d4327c665ad",
+  "mainPresealSha256": "506160aba3ce4ae196bb77e24a6118b1879039f5e4bc6f03e96b0910fd6b8822",
+  "startedAt": "2026-08-28T21:50:57.474Z",
+  "elapsedMs": 474.596458,
+  "ownerPid": 52157,
+  "ownerPpid": 79787,
+  "stopped": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at child (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/owner.mjs:229:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/owner.mjs:310:20"
+  },
+  "discoveryQualified": true,
+  "startupRefusalQualified": false,
+  "results": [],
+  "dataResults": [],
+  "unrunControls": [
+    "R01",
+    "R02",
+    "R03",
+    "B01",
+    "G01",
+    "P01"
+  ],
+  "actualChildren": 2,
+  "spawnAttempts": 2,
+  "peakAllOwnedProcesses": 2,
+  "peakQualification": "finite inspected routes, direct handles and Node PID/PPID handshakes; not global process census",
+  "rawBytes": 1575,
+  "persistedBytesBeforeOutcome": 26347,
+  "scratchWrittenBytes": 79,
+  "receipts": [
+    {
+      "sequence": 1,
+      "id": "D00",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+        "discovery"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+      "registeredAtMs": 111.903625,
+      "pid": 52158,
+      "closeObserved": true,
+      "absent": true,
+      "code": 0,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "01-D00.stdout.raw",
+        "bytes": 118,
+        "sha256": "14146c22e0f7551e8fd726557af25ce518e47bef2dcd1714d1a98995b71474cb"
+      },
+      "stderr": {
+        "file": "01-D00.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "closedAtMs": 159.330166
+    },
+    {
+      "sequence": 2,
+      "id": "START-POSITIVE",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/data-controls.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/primitives.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/fixture-data.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/INPUTS-v6.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/FIXTURES-v6.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs",
+        "positive",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01/MAIN-PRESEAL.json"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/attempt-01",
+      "registeredAtMs": 259.428291,
+      "pid": 52160,
+      "closeObserved": true,
+      "absent": true,
+      "code": 1,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "02-START-POSITIVE.stdout.raw",
+        "bytes": 849,
+        "sha256": "a157c6b6bfbbaf20694261639593cabee5176a9dab9fb9227604af23d7c88a4c"
+      },
+      "stderr": {
+        "file": "02-START-POSITIVE.stderr.raw",
+        "bytes": 608,
+        "sha256": "ce3c55aecc36ded0ea710af863ff94e1c5cc7dc3f3374f442d22b8c2d4a10541"
+      },
+      "closedAtMs": 358.223416
+    }
+  ],
+  "cleanup": {
+    "removed": true,
+    "bytes": 586,
+    "entries": 20,
+    "inventorySha256": "85b89e95f5cbbfb4f8f2408838c913b11d973cc26f245f13f9cfb72fea1c8dda",
+    "identityChecked": true
+  },
+  "sourcePostguards": "own source append-aware plus named historical bindings/tools; foreign new entries not censused",
+  "productExecutions": 0,
+  "candidateImports": 0,
+  "remaining43JobsExecuted": 0,
+  "productFixtureTailExecuted": 0,
+  "admission": "NONE; different review and root GO required"
+}

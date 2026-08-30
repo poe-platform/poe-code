@@ -1,0 +1,23 @@
+{
+  "schema": "timeout-independent-repaired-pre-execution-validation/1",
+  "recipeManifestSha256": "af30a8a18b9c3f85148d4feee9f0553e1afce30e22c7d34de577452ae0dc908e",
+  "beforeRecipeCommitAndProductExecution": true,
+  "allRecipeModulesSyntaxChecked": true,
+  "allRecipeFileHashesChecked": true,
+  "unchangedOriginalTypePayloads": 8,
+  "unchangedAcceptedReconciliationModules": 4,
+  "full32Plus2OrderRetained": true,
+  "full70Numeric14DiagnosticRequirementsRetained": true,
+  "originalF22ResourceAndResolverAssertionsRetained": true,
+  "protectedInputs": 206,
+  "sourceInspectionBeforeSeal": true,
+  "sourceAndPackAuthentication": "complete pinned Git inventory plus exact declared archives, not live-source fallback",
+  "postRunActualLoadRequirements": [
+    "source and moved timeout index, duration and repaired scheduler must appear in authenticated actual-module-load traces",
+    "M01 and M02 actual loaded index hashes must equal their original designated mutant hashes",
+    "M03 actual loaded scheduler hash must equal the exact reverted original scheduler hash, not merely a disk identity"
+  ],
+  "focusedControlsExecuted": 0,
+  "productExecutions": 0,
+  "gitDiffCheck": "PASS"
+}

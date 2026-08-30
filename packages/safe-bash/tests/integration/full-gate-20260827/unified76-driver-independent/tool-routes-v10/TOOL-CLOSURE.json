@@ -1,0 +1,436 @@
+{
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "externalReceipt": {
+    "schema": 3,
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "observationCandidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+    "encodedSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "qualification": "Exact readable identities reused only after fresh verification; original observation retains its pre-approval incomplete-binding status. Root separately approved precisely eleven macOS26.4.1/build25E253 references; no full OS or unknown-image attestation."
+  },
+  "toolRoutesSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+  "inspector": {
+    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+    "bytes": 472320,
+    "mode": 493,
+    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+  },
+  "preImportToolRecords": 62,
+  "selectedTools": [
+    {
+      "observed": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "alias": null
+    },
+    {
+      "observed": "/bin/ps",
+      "physical": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c",
+      "alias": null
+    },
+    {
+      "observed": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "alias": null
+    }
+  ],
+  "unboundTools": [],
+  "gitCore": {
+    "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+    "entries": 197,
+    "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+  },
+  "aliases": [
+    {
+      "name": "node",
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    {
+      "name": "git",
+      "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "name": "sh",
+      "origin": "/bin/sh",
+      "physical": "/bin/sh",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    },
+    {
+      "name": "tar",
+      "origin": "/usr/bin/tar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "name": "ps",
+      "origin": "/bin/ps",
+      "physical": "/bin/ps",
+      "bytes": 170816,
+      "mode": 493,
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    {
+      "name": "lsof",
+      "origin": "/usr/sbin/lsof",
+      "physical": "/usr/sbin/lsof",
+      "bytes": 307600,
+      "mode": 493,
+      "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456"
+    },
+    {
+      "name": "sw_vers",
+      "origin": "/usr/bin/sw_vers",
+      "physical": "/usr/bin/sw_vers",
+      "bytes": 135536,
+      "mode": 493,
+      "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+    },
+    {
+      "name": "bsdtar",
+      "origin": "/usr/bin/bsdtar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "name": "gzip",
+      "origin": "/usr/bin/gzip",
+      "physical": "/usr/bin/gzip",
+      "bytes": 171712,
+      "mode": 493,
+      "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3"
+    },
+    {
+      "name": "gunzip",
+      "origin": "/usr/bin/gunzip",
+      "physical": "/usr/bin/gunzip",
+      "bytes": 197504,
+      "mode": 493,
+      "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73"
+    },
+    {
+      "name": "bash",
+      "origin": "/bin/bash",
+      "physical": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    {
+      "name": "sed",
+      "origin": "/usr/bin/sed",
+      "physical": "/usr/bin/sed",
+      "bytes": 170336,
+      "mode": 493,
+      "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+    },
+    {
+      "name": "awk",
+      "origin": "/usr/bin/awk",
+      "physical": "/usr/bin/awk",
+      "bytes": 302368,
+      "mode": 493,
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+    },
+    {
+      "name": "jq",
+      "origin": "/usr/bin/jq",
+      "physical": "/usr/bin/jq",
+      "bytes": 1492208,
+      "mode": 493,
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+    },
+    {
+      "name": "curl",
+      "origin": "/usr/bin/curl",
+      "physical": "/usr/bin/curl",
+      "bytes": 552624,
+      "mode": 493,
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+    },
+    {
+      "name": "rev",
+      "origin": "/usr/bin/rev",
+      "physical": "/usr/bin/rev",
+      "bytes": 101328,
+      "mode": 493,
+      "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247"
+    },
+    {
+      "name": "expand",
+      "origin": "/usr/bin/expand",
+      "physical": "/usr/bin/expand",
+      "bytes": 101616,
+      "mode": 493,
+      "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78"
+    },
+    {
+      "name": "fold",
+      "origin": "/usr/bin/fold",
+      "physical": "/usr/bin/fold",
+      "bytes": 101808,
+      "mode": 493,
+      "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+    }
+  ],
+  "processBasenames": [
+    "(sw_vers)",
+    "(otool-classic)",
+    "(ps)",
+    "(git)",
+    "(lsof)",
+    "(node)"
+  ],
+  "inspection": [
+    {
+      "stdout": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node:\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 3038.1.255)\n\t/System/Library/Frameworks/Security.framework/Versions/A/Security (compatibility version 1.0.0, current version 61439.1.1)\n\t/usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 1800.101.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)\n",
+      "stderr": "",
+      "status": 0,
+      "pid": 28127,
+      "signal": null,
+      "invocation": {
+        "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "args": [
+          "-L",
+          "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+        ],
+        "env": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "receipt": {
+          "binary": {
+            "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "bytes": 472320,
+            "mode": 493,
+            "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+          },
+          "references": [
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libc++.1.dylib",
+              "error": "ENOENT"
+            },
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libSystem.B.dylib",
+              "error": "ENOENT"
+            }
+          ],
+          "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+          "environment": {
+            "PATH": "/dev/null",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+          "target": {
+            "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "bytes": 117591472,
+            "mode": 493,
+            "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+          },
+          "admittedAt": "2026-08-28T08:39:44.109Z",
+          "admittedBeforeExecution": true
+        }
+      }
+    },
+    {
+      "stdout": "/Applications/Xcode.app/Contents/Developer/usr/bin/git:\n\t/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices (compatibility version 1.0.0, current version 1226.0.0)\n\t/usr/lib/libz.1.dylib (compatibility version 1.0.0, current version 1.2.12)\n\t/usr/lib/libiconv.2.dylib (compatibility version 7.0.0, current version 7.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n\t/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation (compatibility version 150.0.0, current version 4419.0.0)\n",
+      "stderr": "",
+      "status": 0,
+      "pid": 28139,
+      "signal": null,
+      "invocation": {
+        "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "args": [
+          "-L",
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/git"
+        ],
+        "env": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "receipt": {
+          "binary": {
+            "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "bytes": 472320,
+            "mode": 493,
+            "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+          },
+          "references": [
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libc++.1.dylib",
+              "error": "ENOENT"
+            },
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libSystem.B.dylib",
+              "error": "ENOENT"
+            }
+          ],
+          "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+          "environment": {
+            "PATH": "/dev/null",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+          "target": {
+            "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "bytes": 3704880,
+            "mode": 493,
+            "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+          },
+          "admittedAt": "2026-08-28T08:39:44.163Z",
+          "admittedBeforeExecution": true
+        }
+      }
+    },
+    {
+      "stdout": "/usr/bin/tar:\n\t/usr/lib/libarchive.2.dylib (compatibility version 9.0.0, current version 9.2.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+      "stderr": "",
+      "status": 0,
+      "pid": 28146,
+      "signal": null,
+      "invocation": {
+        "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "args": [
+          "-L",
+          "/usr/bin/tar"
+        ],
+        "env": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "receipt": {
+          "binary": {
+            "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "bytes": 472320,
+            "mode": 493,
+            "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+          },
+          "references": [
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libc++.1.dylib",
+              "error": "ENOENT"
+            },
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libSystem.B.dylib",
+              "error": "ENOENT"
+            }
+          ],
+          "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+          "environment": {
+            "PATH": "/dev/null",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+          "target": {
+            "origin": "/usr/bin/tar",
+            "physical": "/usr/bin/bsdtar",
+            "bytes": 275344,
+            "mode": 493,
+            "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+          },
+          "admittedAt": "2026-08-28T08:39:44.209Z",
+          "admittedBeforeExecution": true
+        }
+      }
+    },
+    {
+      "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+      "stderr": "",
+      "status": 0,
+      "pid": 28159,
+      "signal": null,
+      "invocation": {
+        "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "args": [
+          "-L",
+          "/usr/bin/sandbox-exec"
+        ],
+        "env": {
+          "PATH": "/dev/null",
+          "LANG": "C",
+          "LC_ALL": "C",
+          "TZ": "UTC"
+        },
+        "receipt": {
+          "binary": {
+            "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "bytes": 472320,
+            "mode": 493,
+            "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+          },
+          "references": [
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libc++.1.dylib",
+              "error": "ENOENT"
+            },
+            {
+              "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+              "path": "/usr/lib/libSystem.B.dylib",
+              "error": "ENOENT"
+            }
+          ],
+          "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+          "environment": {
+            "PATH": "/dev/null",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          },
+          "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+          "target": {
+            "path": "/usr/bin/sandbox-exec",
+            "bytes": 102560,
+            "mode": 493,
+            "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+            "origin": "/usr/bin/sandbox-exec",
+            "physical": "/usr/bin/sandbox-exec"
+          },
+          "admittedAt": "2026-08-28T08:39:44.252Z",
+          "admittedBeforeExecution": true
+        }
+      }
+    }
+  ],
+  "qualification": "Actual inspector PID/argv/environment/output receipts and pre-execution identities, finite alias/core binding; observed commands are polling evidence, not a complete dynamic process-image inventory. Only original11+sandbox2+approved inspector2 OS metadata reference pairs. No unbound xcodebuild allowance."
+}

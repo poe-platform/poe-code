@@ -1,0 +1,93 @@
+{
+  "commit": "d808acf7f67551807654e4089b366789190be07d",
+  "rows": [
+    {
+      "mode": "100644",
+      "blob": "0074cc4929cc1dd00dba8dd11e407c4721ebc250",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/GO.json",
+      "bytes": 1290,
+      "sha256": "2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6",
+      "capture": "0.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "87a09850b813a83ef97e0423c3f9e791f6887ee5",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/REVIEW-ACCEPTANCE.json",
+      "bytes": 493,
+      "sha256": "0071e1161c134dff21e90e8dbd21abca418558d65561d6988f458dddd46ed99b",
+      "capture": "1.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "147613bfac63c7e392f2733b000f09ba6b249465",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/APPROVAL-REQUEST.resolved.json",
+      "bytes": 3290,
+      "sha256": "0cb976c7c314b3405f957f5feac0214fbe9e63086b5e0f89505e15f4f8e9bb14",
+      "capture": "2.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "ec329f5bd10818bde4b76ce308c872a97e26a0d4",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/BINDING-CHECKS.jsonl",
+      "bytes": 10078,
+      "sha256": "a23cac65ff851d4eff8c2113d8b5604ffa4eda0debcbc8f47d047074b37b80c6",
+      "capture": "3.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "76debaa7fb7ff6ce3d584c136dfdd911216ec047",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/COMMAND.txt",
+      "bytes": 810,
+      "sha256": "da8e58441eb3bc844d27bd06165294acbae68048dda14d82cd92b54c1fda9cbd",
+      "capture": "4.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "22b7ef1c057fffdffc8965c058bd65887cfd9c8b",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/HANDOFF.md",
+      "bytes": 3072,
+      "sha256": "81bc7455449e638b710fe17df960f9652d6fe318f069ebaabe45cde5d89efdc5",
+      "capture": "5.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "bf6952c54772c417f33a99296c605f0f9a454e35",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/MANIFEST.json",
+      "bytes": 3061,
+      "sha256": "7d42a127eab2bec59ce75bccc5fa695603b1e49c24b5630ba11faa07464c7f95",
+      "capture": "6.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "839cfe50d7d49cfd7473b8f704382c0d1315ab9a",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/PREFLIGHT.json",
+      "bytes": 4816,
+      "sha256": "b8337ebb6577c33fe9905aaecb77ccf2fedf69a9aeba4ae3e5eb73e6fcc2669f",
+      "capture": "7.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "dd41be5fbb2523a4c3c318b06248ec6a2e07d0a1",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/PREPARATION-CAPTURE.json.gz.base64",
+      "bytes": 32617,
+      "sha256": "9cbdb4a8cca9ba226f73a9f92f9be64ea158f44a3a8850915deb8316ff446d17",
+      "capture": "8.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "9c1d7e5a2fc5d4d7b6a2f94298a47c9888aaf912",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/PUBLICATION.md",
+      "bytes": 1873,
+      "sha256": "a6f027f90e59a5514a469f84b2a35a70e77b33a280fc8139bce87b5081de4f7b",
+      "capture": "9.data"
+    },
+    {
+      "mode": "100644",
+      "blob": "f12f49e7286cb017ac18f6c3ae2bdd26b1aac67a",
+      "path": "tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/activation-v1/ROOT-AUTHORIZATION.md",
+      "bytes": 4496,
+      "sha256": "5145e708a8df0a7175281326e1dd2e6465611738c84b1f5a7fd4fbf7210f7ca5",
+      "capture": "10.data"
+    }
+  ]
+}

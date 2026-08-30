@@ -1,0 +1,344 @@
+{
+  "schema": "coherent78-executable-preparation-control-v1",
+  "date": "2026-08-28",
+  "phase": "EXECUTABLE_PREPARATION_ONLY",
+  "executionAuthorized": false,
+  "originalPreparation": "7600d9cbebe2114594377186774017ab85d9cf4c",
+  "priorManifestSha256": "3d3cc0ec61f63659d0886d4a93b546654da77896f34b3cde22a2a93f1981bc2d",
+  "acceptedEvidence": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+  "compositionTree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+  "installedManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "toolsSha256": "808f95497540375aed43c83d305482359e216773bae5d02ccf7f68539dff605f",
+  "engineClosureSha256": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+  "npmRowsSha256": "7fabc717dbbfe8744486c7384a9617205805a27e5583118fa8a80ba42c2daef2",
+  "sourceQualification": "ROOT accepts package-only execution. Inherit633f6c82 source qualification; new archive path proof remains43/268 with35 missing descendant trees. No new full source reconstruction, object insertion, mutable HEAD substitution or package build. Missing required actual input stops for ROOT.",
+  "corrections": [
+    {
+      "prior": "fd1dc7ed138 unresolved in7600d9cb",
+      "resolution": "ROOT clarified two separate historical references",
+      "sourceCommit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "actualSafeJsEvidenceCommit": "dc7ed138fe3d81295340a1420df0518373023b5f",
+      "path": "tests/shell/cancellation-stage2-independent-20260827/safejs-fd1/REPORT.md",
+      "bytes": 8787,
+      "sha256": "0ac3e63f89056b7b11f7d845d633f478d01ef56510494b8e8800c198c36088ef",
+      "role": "Optional historical reference only; neither a new execution authority nor a rescore/replay of25/24 counts."
+    }
+  ],
+  "rootPreparationDecisions": [
+    "Explicit guest shell.exec bridge approved through existing virtual context.invoke and shared shell budget, not new root Shell/Budget/native exec.",
+    "G02 deadline-only accepted; caller-priority collisions excluded.",
+    "Exactly G01/G02/G03 installed and physically moved; six future actual guest evaluations.",
+    "Executable preparation authorized, activation/copy/install/build/import/evaluation NOT authorized."
+  ],
+  "cases": [
+    "G01",
+    "G02",
+    "G03"
+  ],
+  "layouts": [
+    "installed",
+    "moved"
+  ],
+  "guestEvaluations": 6,
+  "publicExecs": 6,
+  "shells": 6,
+  "maximumSpawnedChildren": 11,
+  "maximumGitChildren": 4,
+  "maximumProcessesIncludingSupervisor": 12,
+  "inheritedMaximumProcesses": 20,
+  "maximumConcurrentChildren": 1,
+  "allowedCommands": [
+    {
+      "role": "activation",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module"
+      ],
+      "stdin": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/supervisor.mjs.data",
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "tokenFormat": "C78-SAFEJS-GO:<commit40>:<manifestSHA256>:G01,G02,G03:installed,moved:6:<run-id>",
+      "runId": "[a-z0-9][a-z0-9-]{0,47}; absent owned runs/run-id required; token is provided only by a separate ROOT GO"
+    },
+    {
+      "role": "git-read",
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "fixedPrefix": [
+        "--no-replace-objects",
+        "-C",
+        "<pinned-root>"
+      ],
+      "variants": [
+        [
+          "show",
+          "<GO-commit>:tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/MANIFEST.json"
+        ],
+        [
+          "rev-parse",
+          "HEAD"
+        ],
+        [
+          "cat-file",
+          "commit",
+          "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e"
+        ],
+        [
+          "ls-tree",
+          "-r",
+          "-z",
+          "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+          "--",
+          "<exact63 ENGINE.json packages/safejs paths>"
+        ]
+      ],
+      "qualification": "Only manifest show uses public root. Other three commands use private root. All use GIT_OPTIONAL_LOCKS=0, GIT_NO_LAZY_FETCH=1, no replace objects and scrubbed environment; no status/index refresh/fetch/script."
+    },
+    {
+      "role": "offline-install",
+      "executable": "<scratch>/tools/node",
+      "nodeArgs": [
+        "--permission",
+        "--allow-fs-read=<scratch>",
+        "--allow-fs-write=<scratch>/consumer",
+        "--allow-fs-write=<scratch>/cache",
+        "--allow-fs-write=<scratch>/home",
+        "--allow-fs-write=<scratch>/tmp",
+        "--allow-fs-write=<scratch>/logs",
+        "--import",
+        "<scratch>/tools/loader.mjs"
+      ],
+      "entry": "<scratch>/tools/npm/bin/npm-cli.js",
+      "args": [
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        "--no-save",
+        "--bin-links=false",
+        "--update-notifier=false",
+        "--prefix=<consumer>",
+        "--userconfig=<scratch>/user.npmrc",
+        "--globalconfig=<scratch>/global.npmrc",
+        "--cache=<scratch>/cache",
+        "<scratch>/package.tgz"
+      ],
+      "count": 1
+    },
+    {
+      "role": "workflow",
+      "executable": "<scratch>/tools/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=<scratch>",
+        "--allow-fs-write=<scratch>/logs/<layout>-<id>",
+        "--import",
+        "<scratch>/tools/loader.mjs",
+        "<consumer>/harness/child.mjs"
+      ],
+      "count": 6
+    }
+  ],
+  "generated": {
+    "consumerPackage": "{\"private\":true,\"type\":\"module\"}\n",
+    "consumerPackageBytes": 33,
+    "consumerPackageSha256": "a90fc33418afa2b9cbf4768524b021135b965ecdf993457505bfae3ac44a8428",
+    "enginePackage": "{\"type\":\"module\",\"private\":true}\n",
+    "enginePackageBytes": 33,
+    "enginePackageSha256": "89c47db7851f89caec72da4f215ebc21cf1e294aeef3b45d2583562d846ab035",
+    "userNpmrc": "",
+    "globalNpmrc": "",
+    "emptyFileSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "bridge": {
+    "code": "child.mjs.data: runtime.run -> makeSafeJsShellModule executor",
+    "literalCommand": "bash",
+    "literalArgs": [
+      "-c",
+      "<exact frozen bridge source>",
+      "c78-guest"
+    ],
+    "stdin": "Explicit replacement text -> stdinIsDefault:false; omitted -> explicit empty default with stdinIsDefault:true",
+    "environment": "Only supplied env uses replaceEnv:true; absent env preserves existing merge/inheritance policy",
+    "cwd": "Only forward explicit request cwd",
+    "signal": "Borrow host request.signal from bound makeSafeJsShellModule; never expose signal as guest API or infer cross-realm reason identity",
+    "capture": "Await writes; retain Uint8Array.from owned chunks; bound each capture by shared-shell maxOutputBytes; concatenate once and return actual stdout/stderr/status",
+    "admission": "Synchronous registered idempotent cleanup before admitting engine and bridge work; enroll deferred promises before invoking actual run/context.invoke; recheck closed admission/signal; finally invokes same cleanup",
+    "newShellsPerCase": 1,
+    "newRootBudgetsInBridge": 0,
+    "guestBudget": "Only actual SafeJS createBudget hook constructs its engine Budget; shell shared budget comes from context.invoke",
+    "sources": [
+      {
+        "id": "G01",
+        "sha256": "4125949b72dc014aceda348cc2be292300f816c528394546d467f82423fc8393"
+      },
+      {
+        "id": "G02",
+        "sha256": "15a148ee5765f0ad79912cfc7709306e91f01521bf1c2c203742ffcf2329a9ab"
+      },
+      {
+        "id": "G03",
+        "sha256": "4a9737e4ffcc6655835a9026cf963ec1afa4f98ce925446109c606974ebd41d7"
+      }
+    ],
+    "receipts": [
+      "wrapperEntered",
+      "wrapperSettled",
+      "actualRunInvoked",
+      "actualRunSettled",
+      "guestEntries",
+      "bridgeEntered",
+      "literalInvokes",
+      "bridgeSettled"
+    ],
+    "proof": "Actual guest entry requires source-authenticated real engine call and63 actual module loads, stdio entry callback and subsequent guest-dependent host work. Wrapper provenance and host abortion alone do not prove entry or retirement."
+  },
+  "loadClosure": {
+    "productInventory": 858,
+    "productActualExpected": 210,
+    "productExpectedPointer": "accepted RAW-v2 layouts[0].loads",
+    "productExpectedSha256": "daebab1637e5e19b215d21e8e94d5eb091bbcbb10d0c23a8fa1d585e4e49cc94",
+    "engineCopies": 63,
+    "engineActualExpected": 63,
+    "compilerCopies": 2,
+    "compilerActualExpected": 1,
+    "npmCopies": 808,
+    "npmActual": "Record actual subset; no dynamic-minimality claim. Unknown paths/builtins refuse without expansion.",
+    "typescriptTransform": {
+      "version": "5.9.3",
+      "target": "ES2023",
+      "module": "ESNext",
+      "verbatimModuleSyntax": true,
+      "scope": "Only allowlisted engine .ts; .js->.ts resolution only copied engine parent after ERR_MODULE_NOT_FOUND; hash every emitted source.",
+      "expectedEmissions": "All63 outputs must match ENGINE.json emittedSha256 from source-authenticated historical trace; observed new outputs are still logged. No private emitted source is copied or committed."
+    }
+  },
+  "privateMetadataFiles": [
+    "packages/safejs/package.json",
+    "packages/safejs/tsconfig.json",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    ".git/HEAD",
+    ".git/index",
+    ".git/config",
+    ".git/packed-refs"
+  ],
+  "originalGuardScope": "Read-only private packages/safejs/src and .git/refs inventories include path/type/mode/size/mtime/ctime and hashes, root-directory metadata, additions/removals; exact metadata files listed separately. Selected external tool files and public sealed references are guarded. Excludes other private packages, dist, node_modules, caches, logs/reflogs, object-store membership and atime; selected-tool sibling additions are not checked. No clean-state assumption, no whole-private unchanged or transactional/ABA guarantee; preexisting dirtiness remains untouched. Guards run before every child/copy stage and after children/final cleanup only on later GO, never as preparation proof.",
+  "bounds": {
+    "workflowFamilies": 3,
+    "layouts": 2,
+    "guestEvaluations": 6,
+    "shellsCreatedAndDisposed": 6,
+    "publicExecs": 6,
+    "bridgeInvocations": 6,
+    "concurrentChildren": 1,
+    "executionChildren": 8,
+    "executionChildRoles": "one supervisor process, one installer child, six workflow children; four additional read-only Git children",
+    "readOnlyGitChildren": 4,
+    "totalChildrenMaximum": 12,
+    "gitChildTimeoutMs": 5000,
+    "installerTimeoutMs": 60000,
+    "workflowContainmentMs": 15000,
+    "overallContainmentMs": 180000,
+    "containmentGraceMs": 1000,
+    "containmentMeaning": "Deadlines are safety bounds, not measured latency or correctness oracle. On containment record failure, await direct child exit/close and reap before cleanup; no hard-preemption or universal descendant guarantee.",
+    "eventsPerChild": 512,
+    "stdoutBytesPerChild": 65536,
+    "stderrBytesPerChild": 65536,
+    "receiptBytesPerChild": 262144,
+    "loadTraceBytesPerChild": 2097152,
+    "totalEvidenceBytes": 33554432,
+    "scratchBytes": 536870912,
+    "scratchFiles": 4096,
+    "diskEnforcement": "Check before/after each admission, install, child and move; not continuous quota or RSS measurement. Exceedance stops, never loosens bounds.",
+    "microtaskCheckpointTurns": 8,
+    "shell": {
+      "maxCommands": 128,
+      "maxLoopIterations": 128,
+      "maxSubstitutionDepth": 16,
+      "maxSourceBytes": 16384,
+      "maxOutputBytes": 32768,
+      "maxExpansionFields": 256,
+      "maxExpansionBytes": 32768,
+      "pipeHighWaterMark": 4096
+    },
+    "safejs": {
+      "maxSteps": 10000,
+      "maxCallDepth": 32,
+      "maxSourceBytes": 8192,
+      "maxInputBytes": 4096,
+      "maxOutputBytes": 16384,
+      "timeoutMs": 5000,
+      "stringLength": 16384,
+      "arrayLength": 256,
+      "dataSize": 262144
+    },
+    "curl": {
+      "maxUploadBytes": 1024,
+      "maxDownloadBytes": 1024,
+      "maxBufferBytes": 1024,
+      "maxHeaderBytes": 4096,
+      "maxRedirects": 0,
+      "maxRetries": 0,
+      "maxUrls": 1,
+      "maxTimeMs": 5000
+    },
+    "finalZeros": [
+      "pendingActualEnginePromises",
+      "pendingBridgePromises",
+      "pendingBodyNext",
+      "outstandingIteratorReturn",
+      "outstandingResponseDisposal",
+      "outstandingRegisteredCleanup",
+      "liveControlledClockHandles",
+      "ownedTimers",
+      "ownedSignalListeners",
+      "unhandledRejections",
+      "unreapedDirectChildren"
+    ],
+    "retryCount": 0,
+    "gateManifestBytes": 262144,
+    "admissionBytes": 2097152,
+    "loadEventsPerChild": 4096,
+    "vfsEntries": 256,
+    "vfsSnapshotBytes": 1048576,
+    "vfsReadBytes": 65536,
+    "archiveDecodeBytes": 67108864,
+    "privateSourceEntries": 1024,
+    "privateSourceBytes": 67108864,
+    "privateMetadataEntries": 2048,
+    "privateMetadataBytes": 16777216,
+    "deadlineQualification": "Child watchdogs and sampled overall bounds are containment, not latency tests, hard preemption or a guarantee against blocked synchronous host IO."
+  },
+  "stopConditions": [
+    "Missing/mismatched pinned input, symlink, reused run ID, unauthorized token or wrong commit/manifest; no materialization before admission.",
+    "Unexpected actual module path/builtin, source fallback, network/native child capability, private guard or immutable copy change: stop, preserve evidence/scratch and ask ROOT.",
+    "Child spawn error, signal, containment, nonzero unexpected status, missing/malformed/oversize receipt or loader trace, leak or admission/counter mismatch: stop.",
+    "Ordinary frozen expectation failure may continue only with clean resources, natural child settlement, complete load closure and intact before/after guards; aggregate remains failure.",
+    "All six PASS plus complete actual entry/retirement counts and successful archive/cleanup/original guards required. No automatic retry, revised expectation, closure broadening or continuation."
+  ],
+  "preservedHistory": "Bind, never replay/rescore: accepted633f6c82, composition8437e4ed, 28 positive identities/85 executions including H07 repeat +3 refusals;36 types/86 reached of214 declarations;210 modules/layout;6 controls with one actual mutant;136 direct children/95 Shells; original822a1528 stop/4024f790 continuation/author16of18. STACK136/C06 partial/S13 unsupported/DOTGLOB composed and nonblind qualifications persist. Raman original25/24 counts and W05 zero-guest correction remain historical, not authorpasses or new proof. No arrays/YQ/XAN/native/network/global gate/superiority claim.",
+  "preparation": {
+    "subjectExecutions": 0,
+    "productImports": 0,
+    "engineImports": 0,
+    "guestEvaluations": 0,
+    "privateCopies": 0,
+    "builds": 0,
+    "installs": 0,
+    "guardCertifications": 0,
+    "toolModuleImports": 0,
+    "method": "Read-only metadata/source-text hashing and builtin module-path resolution; no dependency module was imported. New runner syntax-only checks, not execution/type/runtime acceptance.",
+    "emissionMetadata": "Read/hash/parse of the existing sealed W01 load trace only; no source transformation, compiler import or guest evaluation."
+  },
+  "extraGuardedReferences": [
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/RAW.json.gz",
+      "bytes": 694093,
+      "sha256": "2eaa34833a024ab02ff75940033cff1e84304f1b14cd2824e51c9504a8b720c8"
+    }
+  ]
+}

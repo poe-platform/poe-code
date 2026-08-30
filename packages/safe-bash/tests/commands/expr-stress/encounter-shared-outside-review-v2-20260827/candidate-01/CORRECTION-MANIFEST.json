@@ -1,0 +1,85 @@
+{
+  "frozenAt": "2026-08-27T21:17:00.270Z",
+  "candidate": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "originalCommit": "beba7b00d5ba277d2ac6770968d8e4b15c846171",
+  "originalArchiveSha256": "c29675ec05c0697b3d56b13a0fad075bd148df6b0c3a91e597f628a21cee0fa7",
+  "originalCommandSha256": "798944d8dac4c4c433f53e222f2eb0cbaa68e2b530574618e5056af80c348e3e",
+  "sourceInventorySha256": "173384b05b94028d79e0d760448c733c34d714aa944392b15dd4f09eb7d1f012",
+  "harnessSha256": "aad11fda60c21fa4f04b08eaafbd9ef548ff3273111c9317293c869e42350a96",
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--import",
+      "tsx",
+      "--test",
+      "--test-reporter=spec",
+      "tests/commands/regex-execution/executor.test.ts",
+      "tests/commands/regex-execution/commands.test.ts",
+      "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+      "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+      "tests/commands/regex-execution/continuation/glob.test.ts",
+      "tests/commands/regex-execution/continuation/public.test.ts",
+      "tests/commands/grep-aliases/aliases.test.ts",
+      "tests/commands/grep-aliases/safety.test.ts",
+      "tests/commands/search/rg.test.ts",
+      "tests/commands/search/safety.test.ts"
+    ],
+    "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/source",
+    "timeout": 120000,
+    "maxBuffer": 33554432,
+    "killSignal": "SIGTERM",
+    "concurrency": "unchanged Node default; no concurrency argv",
+    "stdin": "empty pipe, matching spawnSync default"
+  },
+  "originalCwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/source",
+  "originalTemporary": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/temporary",
+  "scratch": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW",
+  "tmpdirRealpath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+  "changes": [
+    "Fresh physical TMPDIR outside every Git ancestor",
+    "Isolated source/build cwd relocated into the same freshly owned OS-temp directory"
+  ],
+  "preserved": {
+    "TSX_DISABLE_CACHE": "1 (already set by original driver)",
+    "GIT_CEILING_DIRECTORIES": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/temporary",
+    "otherEnvironment": "spread process.env exactly as original driver; no additional injected flags",
+    "timeouts": "original 120000ms command / 3000ms native / 30000ms public-child unchanged",
+    "nativeProfile": "same rg binary hash; no flags/assertions/fixtures changed",
+    "assertions": "all 349 candidate files and all eleven argv test paths authenticated",
+    "noOtherCohorts": "61/21/moved19 and other old review cohorts not run"
+  },
+  "environment": {
+    "GIT_PAGER": "cat",
+    "HOME": "/Users/kjopek",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "LC_CTYPE": "C.UTF-8",
+    "LC_TERMINAL": "iTerm2",
+    "LC_TERMINAL_VERSION": "3.6.11",
+    "NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S": "091a81603ff202a16ed56557709bf42d97caf8f0dd2e07ae9e26d7c014d71035",
+    "NODE_REPL_TRUSTED_CODE_PATHS": "/Users/kjopek/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules",
+    "NO_COLOR": "1",
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.bun/bin:/opt/homebrew/bin:/Users/kjopek/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Users/kjopek/.codex/tmp/arg0/codex-arg0yhLJpu:/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/kjopek/.codex/tmp/arg0/codex-arg0wITElD:/Users/kjopek/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.2.0-2026-06-09-92a1605b2/bin:/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/Users/kjopek/.local/bin:/Users/kjopek/.bun/bin:/Users/kjopek/bin:/Users/kjopek/.cargo/bin:/Applications/iTerm.app/Contents/Resources/utilities",
+    "TMPDIR": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-expr-shared-v2-hAyApW/temporary",
+    "TSX_DISABLE_CACHE": "1",
+    "GIT_CEILING_DIRECTORIES": "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/encounter-final-review-v2-20260827/node_modules/candidate-01/temporary"
+  },
+  "ambientEnvironmentDigest": "099adc401c8ca4557a2b4d8fed4ce8827db61025bf7f6d4eaa3ecca88ceedba4",
+  "limitation": "Original inherited ambient environment was not captured. Current inheritance and explicit overrides are recorded; historical ambient equality cannot be proven. GIT_CEILING_DIRECTORIES retains the original ineffective value and is not relied upon.",
+  "observation": "Read-only parent filesystem/process sampling; no test preload, interception, native wrapper or source overlay",
+  "expected": {
+    "tests": 276,
+    "pass": 276,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "originalOutcome": {
+    "tests": 276,
+    "pass": 275,
+    "fail": 1
+  },
+  "cleanup": "Only exact mkdtemp-owned directory, after children exit; no SIGSTOP"
+}

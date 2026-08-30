@@ -1,0 +1,168 @@
+{
+  "schema": "priority-benign-stub-protocol-v2",
+  "role": "SEALED_PREPARATION_ONLY_NO_PRODUCT_GO",
+  "date": "2026-08-28",
+  "command": [
+    "node",
+    "--experimental-vm-modules",
+    "tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+    "--out",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2"
+  ],
+  "bounds": {
+    "children": 10,
+    "metadataGitChildren": 1,
+    "stubNodeChildren": 8,
+    "noGoNodeChildren": 1,
+    "concurrentChildren": 1,
+    "workerStarts": 11,
+    "concurrentWorkers": 2,
+    "startsPerChild": 4,
+    "childWallMs": 5000,
+    "gitWallMs": 20000,
+    "windowMs": 120000,
+    "captureBytesPerStubChild": 1048576,
+    "gitDataBufferBytes": 33554432,
+    "workerLogBytes": 131072,
+    "storageBytes": 16777216
+  },
+  "stubModes": [
+    "natural",
+    "product-forced",
+    "emergency",
+    "error",
+    "loader-drift",
+    "late-acquisition",
+    "concurrent-bound",
+    "cumulative-bound"
+  ],
+  "forbidden": [
+    "accepted-product-import",
+    "accepted-worker-dispatch",
+    "build",
+    "pack",
+    "install",
+    "native-oracle",
+    "comparator",
+    "private-service",
+    "network-service",
+    "XAN",
+    "YQ",
+    "arrays"
+  ],
+  "cleanup": "Each actual Worker exit and terminate settlement observed; emergencies expected only in the explicit benign control. Every OS child reaped; timeout/error/unreaped STOP. Synthetic unreaped rows create no actual leaked resource.",
+  "files": [
+    {
+      "path": "admission.mjs",
+      "bytes": 5994,
+      "sha256": "883ba844911c0c42eacdaae4adcca2d1f3aeaff248e576e5d2d42f1aac1a0457"
+    },
+    {
+      "path": "source-auth.mjs",
+      "bytes": 6787,
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9"
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "bytes": 21106,
+      "sha256": "9e31ac2202f044d9496939a4773781c9c024950de60fc0791dc116a58f88e58d"
+    },
+    {
+      "path": "future-adapter.mjs",
+      "bytes": 20154,
+      "sha256": "4a4101e5c6fa86200f31b83b3845c091f5a779cd684139d4c39f95bebee2a5be"
+    },
+    {
+      "path": "runtime-entry.mjs",
+      "bytes": 2845,
+      "sha256": "731048495498bb32c7024e8c2cbfdd62b79c171ff15d9ef0e8662663bfe9196f"
+    },
+    {
+      "path": "worker-observer.mjs",
+      "bytes": 5258,
+      "sha256": "66ed96596ab37e548a1682fbf5a3ceda6ff54d829066427f7fed68a511f521ca"
+    },
+    {
+      "path": "worker-preload.mjs",
+      "bytes": 1650,
+      "sha256": "afa63d1e4621946322aefc1ad0bd5b1b2d36fe3e49c0f18d9c2ca86a5ccf0dfa"
+    },
+    {
+      "path": "stub-controls.mjs",
+      "bytes": 10816,
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21"
+    },
+    {
+      "path": "stub-child.mjs",
+      "bytes": 4148,
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e"
+    },
+    {
+      "path": "stub-entry.mjs",
+      "bytes": 558,
+      "sha256": "168c0f26fff5cec0761ae0b5f68fc65499b672538bd10c10de0ad4afdfb665b9"
+    },
+    {
+      "path": "stub-dependency.mjs",
+      "bytes": 53,
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84"
+    },
+    {
+      "path": "stub-guard.mjs",
+      "bytes": 622,
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8822,
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 47429,
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da"
+    },
+    {
+      "path": "FIXTURES.json",
+      "bytes": 15139,
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 30714,
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1542,
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4"
+    },
+    {
+      "path": "SCHEMA.json",
+      "bytes": 3969,
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298"
+    },
+    {
+      "path": "EXECUTION-RECIPE.md",
+      "bytes": 11958,
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d"
+    },
+    {
+      "path": "READY.md",
+      "bytes": 11419,
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7"
+    }
+  ],
+  "prior": {
+    "sourceCommit": "812a72b5",
+    "evidenceCommit": "69985907",
+    "result": "41 checks +8 original malformed data; 10 OS children,11 Workers; all reaped; no failures/product runs",
+    "preserved": true
+  },
+  "reason": "Narrow static hardening: actual cursor/promise pending counters, observed opaque rejection identity, sticky worker admission-failure evidence and constructor attempts; explicit retained-storage check. Same benign subjects, no new product/native observations.",
+  "cumulativePreparationCeiling": {
+    "osChildrenAcrossV1V2": 20,
+    "benignWorkerStartsAcrossV1V2": 22,
+    "wholeWindowMsAcrossV1V2": 240000
+  }
+}

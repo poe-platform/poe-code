@@ -1,0 +1,33 @@
+{
+  "recordedAt": "2026-08-27T08:27:01.123Z",
+  "candidate": "d168d18b118592e04a6eec9b00eb50cc2b1e5058",
+  "originalSealRoot": "8b4a48a3c4f189b1d98707354a2eb469af3527250cca7e6bc36f02ed86e04297",
+  "originalRunnerSha256": "2366aad25fd2afa3654a250d5aba87eb0bcd54a6a83c31bee27c3b0b1906b8d3",
+  "instrumentedRunnerSha256": "5116aaf53899715e2497140528e5a2338664673e2d284eb688e009dd6e2a2fb5",
+  "mechanicalChanges": [
+    [
+      "  const record = async (id, operation) => {",
+      "  const record = async (id, operation) => {\n    if (id !== adapter.caseId) return;\n    adapter.caseStarted(id);"
+    ],
+    [
+      "  assert.equal(reports.length, cases.length);",
+      "  assert.equal(reports.length, 1, \"One selected frozen case per isolated child\");"
+    ]
+  ],
+  "predicateChanges": [],
+  "fixtureChanges": [],
+  "expectedChanges": [],
+  "execution": "Forty sequential one-case children, once each; unchanged 80 content-view checks; 60s child / 600s global watchdog. Original sealed runner preserved; derived selection/count instrumentation only.",
+  "options": {
+    "limits": {
+      "maxSniffBytes": 65536,
+      "maxReadFileBytes": 65536
+    }
+  },
+  "profileQualification": "Explicit strict bounded-read profile; maxReadFileBytes lowered from documented default 1MiB to 64KiB to match frozen fallback probe cap. All other file limits are defaults; not a claim about all default limits.",
+  "unsupportedFormats": [],
+  "unsupportedQualification": "All twenty fixture formats fall within documented content/common-subset support or documented strict text/data fallback. Native legacy text distinctions are profile comparisons, not fabricated unsupported passes.",
+  "observedPotentialHarnessOverconstraints": [
+    "Some sealed signal assertions demand signal object identity. Candidate composes signals. Composition is contract-valid if cancellation propagates; retain failures unchanged and adjudicate without rewriting assertions."
+  ]
+}

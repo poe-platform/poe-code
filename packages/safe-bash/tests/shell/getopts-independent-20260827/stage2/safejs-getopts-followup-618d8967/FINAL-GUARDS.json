@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-08-27T22:25:35.645Z",
+  "privateHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "privateTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+  "privateIndexSHA256": "2dc2ac516c19864f952c493eb39374db1a2946f359d31dfb6fd02a5fccfb6bc2",
+  "privateSnapshotSHA256": "7fe0a52991ff9b30289a4d5e8f535cbbfe0c9f4b6b6f0217ef94739c618c951f",
+  "privateEligibleEntries": 264,
+  "privateMetadataRecords": 6,
+  "privateAddedEligiblePathsAndEmptyDirectoriesChecked": true,
+  "oldBoundary": {
+    "accepted": "2dcefd4f26588f6dc662148e3713e41b09537333",
+    "files": 257,
+    "entries": 265,
+    "inventorySHA256": "4b64ab392f8065837b8fb1756cd377557ac094dd0d7805da9995e7ca0fd79f79",
+    "onlyAuthorizedExclusion": "stage2/safejs-getopts-followup-618d8967",
+    "additionsChecked": true
+  },
+  "protection": {
+    "protectedPaths": 243,
+    "sourcePaths": 2,
+    "currentLiveHashInventorySHA256": "971ea8a042611fa9bcae2a01a87cb07cbb6d020b9cf13ac84841bea4306e05a7",
+    "candidateProtectedHashesMatchBaseline": true,
+    "wholeLiveTreeClaim": false
+  },
+  "originalImmutableSHA256": "ef538266b81737d6ec19f8d37b54d9753390da00807e9bef42dfe667cfe6dbf9",
+  "correctedImmutableSHA256": "6d4a7dc6c05adfbd3d48274a1c807c6859dec2b7dbb138129502ec77e32643e6",
+  "foreignStagingBeforeEvidenceCommit": "",
+  "allThreeRecordedChildrenClosedNaturally": true,
+  "engineExecutionsDuringFinalGuard": 0
+}

@@ -1,0 +1,13 @@
+{"id":"C01","status":"PASS","assertions":16,"elapsedMs":2,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C02","status":"PASS","assertions":5,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C03","status":"PASS","assertions":36,"elapsedMs":9,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C04","status":"PASS","assertions":7,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C05","status":"PASS","assertions":16,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C06","status":"PASS","assertions":8,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C07","status":"FAIL","assertions":7,"elapsedMs":1,"error":{"name":"AssertionError","message":"Missing expected exception."}}
+{"id":"C08","status":"PASS","assertions":19,"elapsedMs":0,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C09","status":"PASS","assertions":11,"elapsedMs":0,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C10","status":"PASS","assertions":9,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C11","status":"PASS","assertions":13,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"id":"C12","status":"PASS","assertions":8,"elapsedMs":2,"role":"DATA_NO_NATIVE_OBSERVATION"}
+{"schema":"ere-preflight-controls-v1","started":1787995640750,"finished":1787995640802,"controlSealSha256":"89bea43a9445b940dae42147cf798a79196745f1bdcc4c5b22cbcaef4c83c06f","results":[{"id":"C01","status":"PASS","assertions":16,"elapsedMs":2,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C02","status":"PASS","assertions":5,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C03","status":"PASS","assertions":36,"elapsedMs":9,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C04","status":"PASS","assertions":7,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C05","status":"PASS","assertions":16,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C06","status":"PASS","assertions":8,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C07","status":"FAIL","assertions":7,"elapsedMs":1,"error":{"name":"AssertionError","message":"Missing expected exception."}},{"id":"C08","status":"PASS","assertions":19,"elapsedMs":0,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C09","status":"PASS","assertions":11,"elapsedMs":0,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C10","status":"PASS","assertions":9,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C11","status":"PASS","assertions":13,"elapsedMs":1,"role":"DATA_NO_NATIVE_OBSERVATION"},{"id":"C12","status":"PASS","assertions":8,"elapsedMs":2,"role":"DATA_NO_NATIVE_OBSERVATION"}],"passed":11,"failed":1,"assertions":155,"fixtureChildren":0,"targetChildren":0,"nativeObservations":0,"entryImported":false,"allDescriptorsClosed":true,"scratchRemoved":true,"finalIntegrity":true,"actualNativeStatus":"12_UNRUN"}

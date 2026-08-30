@@ -1,0 +1,249 @@
+{
+  "schema": "m1b-mechanical-component-handoff-v1",
+  "date": "2026-08-28",
+  "status": "PREPARED_COMPONENT_WITH_EXPLICIT_GAPS_NOT_FULL_REVIEW_READY",
+  "sourceCommit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+  "sourcePreseal": {
+    "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/SOURCE-PRESEAL.json",
+    "mode": 420,
+    "bytes": 6838,
+    "sha256": "1df976f486d9c66388b79dffba48e1a1bb1ce467f0c55605ce1fa275f1e9f532"
+  },
+  "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "evidence": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+  "derivedOnlyTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+  "whole910ArtifactSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+  "runnerABI": "de95161c9de136852884d054612dad1b8ec716e5",
+  "API": {
+    "export": "async runCase(api, caseId)",
+    "used": [
+      "caseId",
+      "layout",
+      "caseRoot",
+      "signal",
+      "load",
+      "capture",
+      "captureBytes",
+      "check",
+      "registerCleanup",
+      "compile"
+    ],
+    "manifest": {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/CASES.json",
+      "mode": 420,
+      "bytes": 10465,
+      "sha256": "6d5978dfa645398511dcf37e147398d77a43fa3ab1e8d8bf4ee9978190cda2de"
+    },
+    "assembly": "Preserve mechanical/*.mjs relative imports and mechanical/types/*.mts.data. No import-time target load. Static ABI type fields require exact caseRoot/id.mts."
+  },
+  "inputs": [
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/INPUTS.json",
+      "mode": 420,
+      "bytes": 2464,
+      "sha256": "1a3451a74f0d8afd25ab7369613b4147b1bf07ce912d5f6e109596cf032d8f5d"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/SOURCE-BINDINGS.json",
+      "mode": 420,
+      "bytes": 102003,
+      "sha256": "2e7643690c3a43c810b79e047630112d63e26550b91a68086d41b13a9a326fdd"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/SOURCE-SITES.json",
+      "mode": 420,
+      "bytes": 5573,
+      "sha256": "a2b9224e305a8ec5ef0a7d00f1e7289a1919840f794e4068b5c179494d22784a"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/PACKAGE-MAP.json",
+      "mode": 420,
+      "bytes": 170204,
+      "sha256": "9c9db3bde063d81687d89b339874093154aa59b312c4c8e791abcf3acbd82f22"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/PACKAGE-DELTA.json",
+      "mode": 420,
+      "bytes": 1832,
+      "sha256": "9b7e409f6c69e85ae139fedf05f777dd9b6d925d2107e4cd99688c888fb87933"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/CLOSURE.json",
+      "mode": 420,
+      "bytes": 10118,
+      "sha256": "5cb5c784522f97a4b32b766d4fb13c8fdb93c6a22d81c7e451b70cda1bd8a308"
+    }
+  ],
+  "implemented": {
+    "privateActors": [
+      "S01-reserve-error",
+      "S01-reserve-null",
+      "S01-reserve-undefined",
+      "S01-allocate-error",
+      "S01-allocate-null",
+      "S01-allocate-undefined",
+      "S01-first-reserve",
+      "S01-late-step",
+      "S01-success",
+      "CHECK-CRC",
+      "CHECK-HASH",
+      "CHECK-REPLAY",
+      "INHERIT-blob",
+      "INHERIT-tree",
+      "INHERIT-commit",
+      "INHERIT-tag"
+    ],
+    "loadedActors": [
+      "S01-pristine",
+      "S01-reverted",
+      "S01-restored",
+      "COUNTER-pristine",
+      "COUNTER-mutant",
+      "COUNTER-restored"
+    ],
+    "typeFixtureIds": [
+      "T01",
+      "T02",
+      "T03",
+      "T04",
+      "T05"
+    ],
+    "types": {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/TYPES.json",
+      "mode": 420,
+      "bytes": 4577,
+      "sha256": "39b7f5558944cf8e8e0027efb1d90f15fb8d4aa9898f963885055ac1a7f22f57"
+    },
+    "exactFixture": {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/FIXTURE-DATA.json",
+      "mode": 420,
+      "bytes": 2404,
+      "sha256": "07648780a389a9e29803e315097a05b3d5f1a6fb839ced65295fa4d90b711637"
+    },
+    "mutants": {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/MUTANT-PROJECTIONS.json",
+      "mode": 420,
+      "bytes": 12658,
+      "sha256": "73bf7fc8e653a204ac036d3667da5ddca9e0e2143250c1224b53da3586ba812e"
+    },
+    "counts": {
+      "sourceResourceRows": 32,
+      "resourceVariants": 108,
+      "dispositions": {
+        "SOURCE_ONLY_NOT_PUBLIC_BOUNDARY_SUCCESS": 12,
+        "SEMANTIC_PEER_DEPENDENCY": 69,
+        "IMPLEMENTED_PRIVATE_MECHANICAL_PARTIAL": 12,
+        "UNQUALIFIED_ADAPTER_OR_SEMANTIC_DEPENDENCY": 15
+      },
+      "distinctActorCaseIds": 22,
+      "typeFixtureCaseIds": 5,
+      "allCaseIds": 27,
+      "expandedCalls": 48,
+      "privateActorLinkedResourceVariants": 12,
+      "mutantTransforms": 5,
+      "loadedWitnessesImplementedForTransforms": 2,
+      "remainingTransformWitnesses": 3
+    }
+  },
+  "costs": {
+    "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/COSTS.json",
+    "mode": 420,
+    "bytes": 6436,
+    "sha256": "5b6af7cd0bfea587e784939ad70bf986e3c38f644f964088e1f70f129607d84b"
+  },
+  "boundedAllocation": {
+    "outerWorkers": 18,
+    "nestedCompilerStarts": 10,
+    "totalOwnedChildStarts": 28,
+    "peakIncludingCoordinator": 3,
+    "sharedWindowSumMs": 540000,
+    "captureReservationBytes": 93061120,
+    "componentWorkPlusCaptureBytes": 187432960,
+    "requiresGlobalReconciliation": true,
+    "rootCeilingsUnchanged": true
+  },
+  "proofRoles": {
+    "source": "282 selected inputs authenticated by origins/Git mode/blob/bytes/hash and exact selected derived-tree paths; 47 tree bodies checked.",
+    "package": "910 regular0644 DATA entries; exactly907 unchanged vs090; only pack.js and two maps changed; README preserved. BOUND_AUTHOR_BUILD, not independent compilation.",
+    "ownership": "Actual private emitted method/Session wrappers only after combined preseal; no public invocation, cap lowering, counter injection, native allocation failure/OOM/RSS proof.",
+    "counter": "Exact isolated release-accounting omission; private delegated unreserve observation; requires loaded-byte proof and fresh pristine/restoration, never hash-denial credit.",
+    "types": "Strict direct-module declaration consumption only; absent root Git export remains PUBLIC_EXPORT_GAP.",
+    "timing": "Source body inspection occurred during preparation before complete executor preseal. Prior normative/source review predates this packet; no independent pre-code behavior holdout claim."
+  },
+  "remainingDependencies": [
+    {
+      "id": "ADAPTER-M1B",
+      "scope": "ADAPTER-CRITERIA.json",
+      "status": "UNQUALIFIED",
+      "need": "Actual M1B native codec writer/iterator/close and OutputOperation per-invocation/no-hook/Shell qualification; abstract19+5 not inherited."
+    },
+    {
+      "id": "S02",
+      "status": "SOURCE_CONCERN_UNRUN",
+      "need": "Writer rejection vs read-side error and actual command boundary reason observation; source-linked join is not direct written handle."
+    },
+    {
+      "id": "L-CRC",
+      "status": "DATA_ONLY_NO_RUNNABLE_WITNESS",
+      "need": "Committed semantic crc-inner fixture and exact stock/mutant/restoration actor binding."
+    },
+    {
+      "id": "L-OID",
+      "status": "DATA_ONLY_NO_RUNNABLE_WITNESS",
+      "need": "Committed semantic oid-inner fixture and exact stock/mutant/restoration actor binding."
+    },
+    {
+      "id": "L-DEPTH",
+      "status": "DATA_ONLY_NO_RUNNABLE_WITNESS",
+      "need": "Committed semantic depth33 fixture proving intrinsic gate rather than pending-stack mask, then exact loaded actor."
+    },
+    {
+      "id": "RESOURCE-PEER",
+      "status": "UNRUN",
+      "need": "Remaining per-variant semantic/adapter/source-only dispositions in RESOURCE-MAP; data mapping is not runtime coverage."
+    },
+    {
+      "id": "RUNNER",
+      "status": "COMPOSITION_PENDING",
+      "need": "Root total168 all-nesting accounting, fulltool/source/materialization/build/loader/capture/admission/cleanup guards and exact recipe before ONE scoped review."
+    },
+    {
+      "id": "TYPE-EXIT-POLICY",
+      "status": "EXACT_ABI_LIMIT_NOT_PRODUCT_BUG",
+      "need": "Four negative fixtures per layout require expected exit2; ABI retains aggregateFAIL for every nonzero child. No waiver added."
+    }
+  ],
+  "staticChecks": {
+    "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/STATIC-CHECKS.json",
+    "mode": 420,
+    "bytes": 2051,
+    "sha256": "79f24850b831de2be121cf58036171aa553aaba873a4eb67b90b4831bf0bdbfd"
+  },
+  "actualExecutionCounts": {
+    "target": 0,
+    "compiler": 0,
+    "controls": 0,
+    "mutants": 0,
+    "adapter": 0,
+    "loader": 0,
+    "authoredModuleImports": 0,
+    "nativeGitOracle": 0
+  },
+  "preparationFailures": [
+    "PREPARATION-FAILURES.json#PREP01",
+    "PREPARATION-FAILURE-02.json#PREP02",
+    "PREPARATION-FAILURE-03.json#PREP03"
+  ],
+  "historicalPreservation": "Original090S01,663/12,699,744 and author45/6types/4controls/reversion8fail/restored15pass stay AUTHOR or historical data, not independent passes. YQ/XAN paused scopes unmodified.",
+  "cleanup": {
+    "targetScratchCreated": 0,
+    "productMaterializations": 0,
+    "targetChildren": 0,
+    "staticCheckChildren": 8,
+    "staticCheckChildrenKnownReaped": 8,
+    "foreignProcessSignals": 0,
+    "toolsOrDependenciesCopied": 0,
+    "cleanupPending": false
+  },
+  "admission": "NO TARGET GO CREATED. Different independent review and root combined routing remain required."
+}

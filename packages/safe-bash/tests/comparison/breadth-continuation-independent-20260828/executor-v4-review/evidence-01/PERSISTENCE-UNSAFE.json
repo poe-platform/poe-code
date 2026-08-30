@@ -1,0 +1,128 @@
+{
+  "result": {
+    "rows": [
+      {
+        "id": "persistence",
+        "status": "UNSAFE_STOP",
+        "error": {
+          "name": "Error",
+          "code": "LAUNCH_UNSAFE",
+          "message": "LAUNCH_UNSAFE:persist",
+          "stack": "Error: LAUNCH_UNSAFE:persist\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:79:25)\n    at async launchFixture (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:219:12)\n    at async result (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:267:5)\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)\n    at async Object.action (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:265:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:292:11",
+          "original": {
+            "name": "Error",
+            "code": "EEXIST",
+            "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/evidence-01/collision.json'",
+            "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/evidence-01/collision.json'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:24:6)\n    at persist (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:234:14)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:73:30)\n    at async launchFixture (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:219:12)\n    at async result (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:267:5)\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)\n    at async Object.action (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:265:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:292:11",
+            "original": null
+          }
+        },
+        "result": null
+      },
+      {
+        "id": "tail",
+        "status": "UNRUN_UNSAFE_TAIL"
+      }
+    ],
+    "unsafe": true
+  },
+  "ledger": [
+    {
+      "ordinal": 1,
+      "kind": "independent-static-fixture",
+      "state": "UNSAFE_STOP",
+      "launchAttempted": true,
+      "pid": 90081,
+      "group": -90081,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": false,
+      "errors": [
+        {
+          "phase": "persist",
+          "error": {
+            "name": "Error",
+            "code": "EEXIST",
+            "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/evidence-01/collision.json'",
+            "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/evidence-01/collision.json'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:24:6)\n    at persist (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:234:14)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:73:30)\n    at async launchFixture (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:219:12)\n    at async result (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:267:5)\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)\n    at async Object.action (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:265:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/review.mjs:292:11",
+            "original": null
+          }
+        }
+      ],
+      "configSha": "f93549e005deae6136dc310e682b52a2441f3b9a53bf26764a675960d98453b7",
+      "natural": true,
+      "failures": [],
+      "signals": [],
+      "emergencyReceipt": {
+        "pid": 90081,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "failures": [],
+        "signals": [],
+        "records": [
+          {
+            "sequence": 0,
+            "kind": "nextLoad",
+            "path": "outcomes.mjs",
+            "format": "module",
+            "bytes": 737,
+            "sha256": "d67539215f0023d4227274cf7204fa0dd2ae5a4acbe60d8e6cec0fe2620c42d7",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          },
+          {
+            "sequence": 1,
+            "kind": "final",
+            "report": {
+              "evaluated": true,
+              "entrySha256": "d67539215f0023d4227274cf7204fa0dd2ae5a4acbe60d8e6cec0fe2620c42d7",
+              "observation": {
+                "exitCode": 0,
+                "stdoutBase64": "",
+                "stderrBase64": "",
+                "files": {}
+              },
+              "execArgv": [
+                "--unhandled-rejections=strict",
+                "--max-old-space-size=64"
+              ],
+              "observationSha256": "810622899106c65c03eedd3f5b0125d85631ade463f44a9683855c3118711a9f"
+            }
+          }
+        ],
+        "captureBytes": {
+          "stdout": 0,
+          "stderr": 0,
+          "records": 593
+        },
+        "stdout": "",
+        "stderr": "",
+        "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6Im5leHRMb2FkIiwicGF0aCI6Im91dGNvbWVzLm1qcyIsImZvcm1hdCI6Im1vZHVsZSIsImJ5dGVzIjo3MzcsInNoYTI1NiI6ImQ2NzUzOTIxNWYwMDIzZDQyMjcyNzRjZjcyMDRmYTBkZDJhZTVhNGFjYmU2MGQ4ZTZjZWMwZmUyNjIwYzQyZDciLCJldmFsdWF0aW9uUHJvdmVuIjpmYWxzZSwib3JpZ2luIjoiYWN0dWFsLW5leHRMb2FkLXNvdXJjZSJ9Cnsic2VxdWVuY2UiOjEsImtpbmQiOiJmaW5hbCIsInJlcG9ydCI6eyJldmFsdWF0ZWQiOnRydWUsImVudHJ5U2hhMjU2IjoiZDY3NTM5MjE1ZjAwMjNkNDIyNzI3NGNmNzIwNGZhMGRkMmFlNWE0YWNiZTYwZDhlNmNlYzBmZTI2MjBjNDJkNyIsIm9ic2VydmF0aW9uIjp7ImV4aXRDb2RlIjowLCJzdGRvdXRCYXNlNjQiOiIiLCJzdGRlcnJCYXNlNjQiOiIiLCJmaWxlcyI6e319LCJleGVjQXJndiI6WyItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tbWF4LW9sZC1zcGFjZS1zaXplPTY0Il0sIm9ic2VydmF0aW9uU2hhMjU2IjoiODEwNjIyODk5MTA2YzY1YzAzZWVkZDNmNWIwMTI1ZDg1NjMxYWRlNDYzZjQ0YTk2ODM4NTVjMzExODcxMWE5ZiJ9fQo=",
+        "natural": true
+      }
+    }
+  ],
+  "accounting": {
+    "enrolled": 1,
+    "attempted": 1,
+    "launched": 1,
+    "closed": 1,
+    "unknownAcquisitions": 0,
+    "allChildrenReaped": true,
+    "unsafe": true
+  }
+}

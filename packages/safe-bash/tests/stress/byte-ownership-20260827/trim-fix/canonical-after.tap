@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: collect owns offset Buffer windows across next reads and finalization
+ok 1 - collect owns offset Buffer windows across next reads and finalization
+  ---
+  duration_ms: 0.834792
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Buffer fragments without losing empty or final records
+ok 2 - lines owns unfinished Buffer fragments without losing empty or final records
+  ---
+  duration_ms: 0.259167
+  type: 'test'
+  ...
+# Subtest: lines retains Buffer fragments with a custom NUL separator
+ok 3 - lines retains Buffer fragments with a custom NUL separator
+  ---
+  duration_ms: 0.166458
+  type: 'test'
+  ...
+# Subtest: collect owns offset Uint8Array windows across next reads and finalization
+ok 4 - collect owns offset Uint8Array windows across next reads and finalization
+  ---
+  duration_ms: 0.292167
+  type: 'test'
+  ...
+# Subtest: lines owns unfinished Uint8Array fragments without losing empty or final records
+ok 5 - lines owns unfinished Uint8Array fragments without losing empty or final records
+  ---
+  duration_ms: 0.107709
+  type: 'test'
+  ...
+# Subtest: lines retains Uint8Array fragments with a custom NUL separator
+ok 6 - lines retains Uint8Array fragments with a custom NUL separator
+  ---
+  duration_ms: 0.057583
+  type: 'test'
+  ...
+# Subtest: collect preserves its exact limit error and finalizes without mutating input
+ok 7 - collect preserves its exact limit error and finalizes without mutating input
+  ---
+  duration_ms: 0.389833
+  type: 'test'
+  ...
+# Subtest: collect preserves cancellation identity and source finalization
+ok 8 - collect preserves cancellation identity and source finalization
+  ---
+  duration_ms: 0.115417
+  type: 'test'
+  ...
+# Subtest: collect and lines propagate source failure without changing the error
+ok 9 - collect and lines propagate source failure without changing the error
+  ---
+  duration_ms: 0.193542
+  type: 'test'
+  ...
+# Subtest: lines preserves the existing byte limit at the exact boundary and overflow
+ok 10 - lines preserves the existing byte limit at the exact boundary and overflow
+  ---
+  duration_ms: 295.7
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for immutable Buffer
+ok 11 - head byte trimming has linear copies for immutable Buffer
+  ---
+  duration_ms: 2040.884542
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for reused Buffer
+ok 12 - head byte trimming has linear copies for reused Buffer
+  ---
+  duration_ms: 2326.509583
+  type: 'test'
+  ...
+# Subtest: head byte queue releases oversized and consumed Buffer backing with zero/empty controls
+ok 13 - head byte queue releases oversized and consumed Buffer backing with zero/empty controls
+  ---
+  duration_ms: 54.024875
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for immutable Uint8Array
+ok 14 - head byte trimming has linear copies for immutable Uint8Array
+  ---
+  duration_ms: 2188.597042
+  type: 'test'
+  ...
+# Subtest: head byte trimming has linear copies for reused Uint8Array
+ok 15 - head byte trimming has linear copies for reused Uint8Array
+  ---
+  duration_ms: 1922.690583
+  type: 'test'
+  ...
+# Subtest: head byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+ok 16 - head byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+  ---
+  duration_ms: 47.018167
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for immutable Buffer
+ok 17 - tail byte trimming has linear copies for immutable Buffer
+  ---
+  duration_ms: 1904.087417
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for reused Buffer
+ok 18 - tail byte trimming has linear copies for reused Buffer
+  ---
+  duration_ms: 2149.066125
+  type: 'test'
+  ...
+# Subtest: tail byte queue releases oversized and consumed Buffer backing with zero/empty controls
+ok 19 - tail byte queue releases oversized and consumed Buffer backing with zero/empty controls
+  ---
+  duration_ms: 58.880667
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for immutable Uint8Array
+ok 20 - tail byte trimming has linear copies for immutable Uint8Array
+  ---
+  duration_ms: 2041.820375
+  type: 'test'
+  ...
+# Subtest: tail byte trimming has linear copies for reused Uint8Array
+ok 21 - tail byte trimming has linear copies for reused Uint8Array
+  ---
+  duration_ms: 2118.356
+  type: 'test'
+  ...
+# Subtest: tail byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+ok 22 - tail byte queue releases oversized and consumed Uint8Array backing with zero/empty controls
+  ---
+  duration_ms: 37.261833
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Buffer readStream windows
+ok 23 - tail -c 4 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 1.585292
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Buffer readStream windows
+ok 24 - tail -n 1 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.209958
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Buffer readStream windows
+ok 25 - head -c -2 owns borrowed Buffer readStream windows
+  ---
+  duration_ms: 0.242
+  type: 'test'
+  ...
+# Subtest: tail -c 4 owns borrowed Uint8Array readStream windows
+ok 26 - tail -c 4 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.122166
+  type: 'test'
+  ...
+# Subtest: tail -n 1 owns borrowed Uint8Array readStream windows
+ok 27 - tail -n 1 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.191541
+  type: 'test'
+  ...
+# Subtest: head -c -2 owns borrowed Uint8Array readStream windows
+ok 28 - head -c -2 owns borrowed Uint8Array readStream windows
+  ---
+  duration_ms: 0.146042
+  type: 'test'
+  ...
+# Subtest: tail preserves its retained byte limit and finalizes the source
+ok 29 - tail preserves its retained byte limit and finalizes the source
+  ---
+  duration_ms: 150.577875
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink accept before another borrowed read
+ok 30 - head byte omission awaits sink accept before another borrowed read
+  ---
+  duration_ms: 5.313459
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink cancel before another borrowed read
+ok 31 - head byte omission awaits sink cancel before another borrowed read
+  ---
+  duration_ms: 1.469209
+  type: 'test'
+  ...
+# Subtest: head byte omission awaits sink reject before another borrowed read
+ok 32 - head byte omission awaits sink reject before another borrowed read
+  ---
+  duration_ms: 0.738625
+  type: 'test'
+  ...
+# Subtest: cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+ok 33 - cat copies binary chunks, preserves missing final newlines and consumes stdin only once
+  ---
+  duration_ms: 1.182958
+  type: 'test'
+  ...
+# Subtest: cat numbering, blank squeezing and visible bytes survive chunk boundaries
+ok 34 - cat numbering, blank squeezing and visible bytes survive chunk boundaries
+  ---
+  duration_ms: 0.878458
+  type: 'test'
+  ...
+# Subtest: head and tail support byte/line counts, origin counts, omission and unterminated lines
+ok 35 - head and tail support byte/line counts, origin counts, omission and unterminated lines
+  ---
+  duration_ms: 1.385375
+  type: 'test'
+  ...
+# Subtest: head stops reading when satisfied and multiple input headers are controllable
+ok 36 - head stops reading when satisfied and multiple input headers are controllable
+  ---
+  duration_ms: 0.388958
+  type: 'test'
+  ...
+# Subtest: wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+ok 37 - wc tracks words across chunks and distinguishes bytes, UTF-8 characters and newlines
+  ---
+  duration_ms: 1.052708
+  type: 'test'
+  ...
+# Subtest: tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+ok 38 - tee streams to stdout and multiple virtual files, supports append, and continues after file errors
+  ---
+  duration_ms: 0.485625
+  type: 'test'
+  ...
+# Subtest: tr translates, deletes, squeezes and complements byte sets across chunks
+ok 39 - tr translates, deletes, squeezes and complements byte sets across chunks
+  ---
+  duration_ms: 2.245416
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17812.721375

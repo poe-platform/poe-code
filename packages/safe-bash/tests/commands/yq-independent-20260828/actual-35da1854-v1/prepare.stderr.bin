@@ -1,0 +1,38 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/F01-corrected-continuation-raw.json
++ actual - expected
+
+  {
+    bytes: 1572,
++   mode: 384,
+-   mode: 420,
+    sha256: '6f7419305da6ede6725b26a1603b1ce393c7eaf1e9a72c3fc2bb1dd0067f7d0b'
+  }
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:64:22
+    at Array.map (<anonymous>)
+    at authenticate (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/auth.mjs:55:18)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/actual-35da1854-v1/prepare.mjs:23:54
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: {
+    sha256: '6f7419305da6ede6725b26a1603b1ce393c7eaf1e9a72c3fc2bb1dd0067f7d0b',
+    bytes: 1572,
+    mode: 384
+  },
+  expected: {
+    sha256: '6f7419305da6ede6725b26a1603b1ce393c7eaf1e9a72c3fc2bb1dd0067f7d0b',
+    bytes: 1572,
+    mode: 420
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

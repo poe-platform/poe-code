@@ -1,0 +1,42 @@
+2026-08-27 author development observations; preserved, not independent verification.
+
+Initial scoped typecheck before author fixtures:
+src/commands/split/split.ts(69,34): error TS2339: Property 'next' does not exist on type 'ByteSource'.
+Cause: declared async generator as AsyncIterable instead of AsyncGenerator where next() is used. Corrected return annotation, not runtime behavior.
+
+Initial integration typecheck:
+tests/commands/split/integration.test.ts(82,57): error TS2353: Object literal may only specify known properties, and 'client' does not exist in type 'S3FileSystemOptions'.
+
+Initial integration/native-errors run: 9 tests, pass8, fail1.
+# Subtest: configured S3 mock supports streamed split and known-distinct overwrite
+not ok 7 - configured S3 mock supports streamed split and known-distinct overwrite
+failureType: 'testCodeFailure'
+error: 'EINVAL: an explicit six-operation S3 transport is required; no default credentials or network client are created'
+code: 'EINVAL'
+name: 'FsError'
+stack:
+new S3FileSystem (/Users/kjopek/Workspace/safe-bash/src/fs/s3/filesystem.ts:108:13)
+TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/split/integration.test.ts:82:14)
+
+Cause: author fixture mistakenly passed {client} rather than actual documented {transport}. Inspected S3FileSystemOptions and corrected fixture to {transport: client}; no provider or product source change. This is a disclosed fixture correction, not an unchanged-input product fix.
+
+Native edge controls (edge-initial.json) revealed two independent product causes:
+1. Unit parser overaccepted lower-case g/t/p and signed/space-prefixed bare units. Pinned GNU9.7 rejects these; retain exact spelling controls, restrict to GNU's accepted unit alphabet and require unsigned/unspaced bare units. Safe-integer limits remain explicit.
+2. Eager output-directory preflight rejected empty input even though native creates no output and succeeds. Correction follows separately, without changing alias preflight requirements or deleting partial outputs.
+
+Cancellation late-pull control (late-pull-initial.tap): an uncooperative writer held
+the supplied output generator until after cancellation; its first next() still
+yielded the already-prefetched bytes because output budget admission did not check
+the combined signal. Added that signal check before offering any payload. The
+host operation itself still cannot be forcibly stopped; no completed-effect
+rollback is claimed. Exact original abort reason remains observable.
+
+Initial compiled-consumer harness failure is retained in compiled-consumer-initial.tap.
+It mixed compiled split/contracts with TS-source MemoryFS/Shell/contracts, loading
+two different FsError class identities. Therefore compiled isFsError correctly
+did not recognize the source-runtime ENOENT as its own typed FsError, and a new
+output path was rejected. The harness now compiles its owned compiled-host.ts
+entry and all imported host/plugin dependencies together into the owned .build
+directory, so the test uses one coherent runtime artifact. No product source
+was changed for this fixture correction. This is not an unchanged-fixture pass
+or a claim that arbitrary duplicate package instances share class identity.

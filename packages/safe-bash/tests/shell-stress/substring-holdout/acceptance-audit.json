@@ -1,0 +1,867 @@
+{
+  "at": "2026-08-27T05:01:30.589Z",
+  "sourceCommit": "f1bb98b4ec8fd9cc198959e85f96e38880e72243",
+  "summary": [
+    {
+      "profile": "primary-C",
+      "denominator": 24,
+      "rawExact": 20,
+      "accepted": 20,
+      "invalid": 0
+    },
+    {
+      "profile": "primary-en_US.UTF-8",
+      "denominator": 24,
+      "rawExact": 23,
+      "accepted": 23,
+      "invalid": 0
+    },
+    {
+      "profile": "historical-C",
+      "denominator": 24,
+      "rawExact": 15,
+      "accepted": 15,
+      "invalid": 0
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "denominator": 24,
+      "rawExact": 18,
+      "accepted": 18,
+      "invalid": 0
+    },
+    {
+      "profile": "host",
+      "denominator": 2,
+      "rawExact": 2,
+      "accepted": 2,
+      "invalid": 0
+    }
+  ],
+  "productExecutions": 98,
+  "nativeReferencesReused": 96,
+  "nativeRecaptures": 0,
+  "productRetries": 0,
+  "integrityTests": {
+    "pass": 3,
+    "fail": 0
+  },
+  "syntaxChecks": [
+    "acceptance.mjs",
+    "acceptance-product.mjs"
+  ],
+  "postprocessingError": {
+    "stage": "first ad-hoc audit generation",
+    "error": "SyntaxError: Unexpected token + from an accidentally retained patch marker",
+    "effects": "Parsing failed before file writes or product execution. Removed marker; no acceptance rerun or artifact alteration."
+  },
+  "allRowsValid": true,
+  "sourceFileCount": 172,
+  "fixedSnapshotCount": 187,
+  "actualSourceImportsPerRow": [
+    135
+  ],
+  "loadedSourceUnion": [
+    "src/index.ts",
+    "src/contracts/index.ts",
+    "src/plugins/index.ts",
+    "src/shell/index.ts",
+    "src/commands/index.ts",
+    "src/commands/text-programs/index.ts",
+    "src/commands/structured/index.ts",
+    "src/commands/search/index.ts",
+    "src/commands/bytes/index.ts",
+    "src/commands/diff-patch/index.ts",
+    "src/commands/safejs/index.ts",
+    "src/commands/network/index.ts",
+    "src/commands/metadata/index.ts",
+    "src/commands/archive/index.ts",
+    "src/commands/table-text/index.ts",
+    "src/fs/memory/index.ts",
+    "src/fs/real/index.ts",
+    "src/fs/s3/index.ts",
+    "src/fs/s3/http/index.ts",
+    "src/fs/webdav/index.ts",
+    "src/fs/readonly/index.ts",
+    "src/fs/mount/index.ts",
+    "src/fs/overlay/index.ts",
+    "src/integrations/safejs/index.ts",
+    "src/contracts/command.ts",
+    "src/contracts/errors.ts",
+    "src/contracts/filesystem.ts",
+    "src/contracts/io.ts",
+    "src/contracts/path.ts",
+    "src/contracts/plugin.ts",
+    "src/commands/internal.ts",
+    "src/shell/shell.ts",
+    "src/shell/parser.ts",
+    "src/shell/types.ts",
+    "src/commands/basic.ts",
+    "src/commands/filesystem.ts",
+    "src/commands/streams.ts",
+    "src/commands/text.ts",
+    "src/commands/grep.ts",
+    "src/commands/predicates.ts",
+    "src/commands/execution.ts",
+    "src/commands/find.ts",
+    "src/commands/text-programs/sed.ts",
+    "src/commands/text-programs/awk.ts",
+    "src/commands/structured/jq.ts",
+    "src/commands/structured/limits.ts",
+    "src/commands/search/rg.ts",
+    "src/commands/bytes/encoding/index.ts",
+    "src/commands/bytes/checksums/index.ts",
+    "src/commands/bytes/compression/index.ts",
+    "src/commands/diff-patch/diff.ts",
+    "src/commands/diff-patch/patch.ts",
+    "src/integrations/safejs/values.ts",
+    "src/commands/safejs/io.ts",
+    "src/commands/safejs/options.ts",
+    "src/commands/safejs/types.ts",
+    "src/commands/network/curl.ts",
+    "src/commands/network/types.ts",
+    "src/commands/network/transport.ts",
+    "src/commands/metadata/chmod.ts",
+    "src/commands/metadata/stat.ts",
+    "src/commands/metadata/mktemp.ts",
+    "src/commands/metadata/internal.ts",
+    "src/commands/archive/create.ts",
+    "src/commands/archive/extract.ts",
+    "src/commands/archive/internal.ts",
+    "src/commands/archive/options.ts",
+    "src/commands/archive/stream.ts",
+    "src/commands/table-text/paste.ts",
+    "src/commands/table-text/comm.ts",
+    "src/commands/table-text/join.ts",
+    "src/commands/table-text/internal.ts",
+    "src/fs/mount/comparison.ts",
+    "src/fs/s3/authority.ts",
+    "src/fs/webdav/resource-id.ts",
+    "src/fs/s3/filesystem.ts",
+    "src/fs/s3/mock.ts",
+    "src/fs/s3/transport.ts",
+    "src/fs/s3/http/transport.ts",
+    "src/fs/webdav/webdav.ts",
+    "src/fs/mount/identity.ts",
+    "src/integrations/safejs/filesystem.ts",
+    "src/integrations/safejs/shell.ts",
+    "src/shell/input.ts",
+    "src/shell/locale.ts",
+    "src/shell/runtime.ts",
+    "src/shell/arithmetic.ts",
+    "src/commands/copy-identity.ts",
+    "src/commands/move.ts",
+    "src/commands/text-programs/regex.ts",
+    "src/commands/text-programs/shared.ts",
+    "src/commands/text-programs/awk-syntax.ts",
+    "src/commands/text-programs/awk-runtime.ts",
+    "src/commands/structured/input.ts",
+    "src/commands/structured/interpreter.ts",
+    "src/commands/structured/parser.ts",
+    "src/commands/structured/numbers.ts",
+    "src/commands/network/output.ts",
+    "src/commands/network/shared.ts",
+    "src/commands/search/matcher.ts",
+    "src/commands/search/options.ts",
+    "src/commands/search/output.ts",
+    "src/commands/search/shared.ts",
+    "src/commands/search/walk.ts",
+    "src/commands/bytes/encoding/base.ts",
+    "src/commands/bytes/encoding/od.ts",
+    "src/commands/bytes/encoding/xxd.ts",
+    "src/commands/bytes/compression/files.ts",
+    "src/commands/bytes/compression/options.ts",
+    "src/commands/bytes/compression/stream.ts",
+    "src/commands/diff-patch/shared.ts",
+    "src/commands/diff-patch/diff-format.ts",
+    "src/commands/diff-patch/unified.ts",
+    "src/commands/diff-patch/patch-path.ts",
+    "src/commands/diff-patch/patch-envelope.ts",
+    "src/commands/diff-patch/patch-formats.ts",
+    "src/commands/diff-patch/patch-gnu-paths.ts",
+    "src/commands/diff-patch/patch-gnu-reject.ts",
+    "src/commands/safejs/render.ts",
+    "src/commands/network/args.ts",
+    "src/commands/network/body.ts",
+    "src/commands/archive/format.ts",
+    "src/fs/s3/http/request.ts",
+    "src/fs/s3/http/signature.ts",
+    "src/fs/s3/http/xml.ts",
+    "src/fs/webdav/xml.ts",
+    "src/integrations/safejs/stats.ts",
+    "src/shell/pattern.ts",
+    "src/shell/display.ts",
+    "src/commands/text-programs/awk-values.ts",
+    "src/commands/structured/split.ts",
+    "src/commands/structured/values.ts",
+    "src/commands/search/glob.ts",
+    "src/commands/bytes/encoding/shared.ts",
+    "src/commands/bytes/compression/gunzip.ts"
+  ],
+  "sourceVsCommit": [
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "sha256": "1490e733ae1691da397d9f5efdefe90a904cf89ac585481960343b9bdff49abd",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "sha256": "481bc77d34ce1db7410e6e2c9fd5f49a0e287b025b8e9253d884dadb4ae3298c",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "sha256": "45a2cbc6fbad9ee8f25a4d04cf57be2a907e46cbe30084daf27a0c9ac0b208a2",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "sha256": "7d18b9e91d8c447e1103cdf48fe7efd7af766655c05e059f2c59270daa3ede51",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+      "committedSha256": null,
+      "actuallyLoaded": false
+    }
+  ],
+  "loadedSourceAllEqualCommit": true,
+  "frozenFiles": [
+    {
+      "path": "tests/shell-stress/substring-holdout/README.md",
+      "sha256": "d0a379f8ea660c58ad2c174785f8fd758419d9bd15eb2cec37310a87dabf134c",
+      "endpointSha256": "d0a379f8ea660c58ad2c174785f8fd758419d9bd15eb2cec37310a87dabf134c"
+    },
+    {
+      "path": "tests/shell-stress/substring-holdout/cases.mjs",
+      "sha256": "84a43ac0f979092690fcf8d2c682f4f867d9a76b64bc66fe2eaa0aeeea65509f",
+      "endpointSha256": "84a43ac0f979092690fcf8d2c682f4f867d9a76b64bc66fe2eaa0aeeea65509f"
+    },
+    {
+      "path": "tests/shell-stress/substring-holdout/freeze.json",
+      "sha256": "ed86b14feaba7fa7241dd36c57a1ae90532bad080d798897e47f783ef3c02088",
+      "endpointSha256": "ed86b14feaba7fa7241dd36c57a1ae90532bad080d798897e47f783ef3c02088"
+    },
+    {
+      "path": "tests/shell-stress/substring-holdout/host.mjs",
+      "sha256": "b8d3df32429715e0c31c3689fe4c237bff76d2a0e156c8497d2c31f96625d36c",
+      "endpointSha256": "b8d3df32429715e0c31c3689fe4c237bff76d2a0e156c8497d2c31f96625d36c"
+    },
+    {
+      "path": "tests/shell-stress/substring-holdout/integrity.test.mjs",
+      "sha256": "71a3c82d10fac43df2fd9e5e767648de700c555bb9a8f6da057ae79c85ce2f70",
+      "endpointSha256": "71a3c82d10fac43df2fd9e5e767648de700c555bb9a8f6da057ae79c85ce2f70"
+    },
+    {
+      "path": "tests/shell-stress/substring-holdout/native-frozen.json",
+      "sha256": "abd6d9d6199f17bc3a30d757f8dadd665c0b10d6918140827dd7d537cdb5843e",
+      "endpointSha256": "abd6d9d6199f17bc3a30d757f8dadd665c0b10d6918140827dd7d537cdb5843e"
+    },
+    {
+      "path": "tests/shell-stress/substring-holdout/native.mjs",
+      "sha256": "2d35b5dabb4067598b3591304c968b7c024ba8fcf5e6dd2257f995c76e6fb3ee",
+      "endpointSha256": "2d35b5dabb4067598b3591304c968b7c024ba8fcf5e6dd2257f995c76e6fb3ee"
+    }
+  ],
+  "arithmeticBaselineSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+  "arithmeticCurrentSha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+  "sourceAudit": {
+    "substring": "src/shell/runtime.ts substring() passes arithmetic operands through prepareArithmetic/evaluateArithmetic and wraps messages with the parameter name.",
+    "integer": "src/shell/arithmetic.ts integer() rejects 08 as Invalid octal constant.",
+    "parse": "parseArithmetic() catches the numeric error and replaces it with Invalid arithmetic operand.",
+    "format": "evaluateArithmetic() converts that reason to operand expected and renders adjusted token8; helper bytes predate this feature."
+  },
+  "effectsExact": {
+    "pass": 96,
+    "denominator": 96
+  },
+  "classifications": [
+    {
+      "profile": "primary-C",
+      "id": "invalid-octal-offset",
+      "classification": "newly observed pre-existing arithmetic error classification/token diagnostic gap",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiB2YWx1ZSB0b28gZ3JlYXQgZm9yIGJhc2UgKGVycm9yIHRva2VuIGlzICIwOCIpCg==",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIjgiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "primary-C",
+      "id": "unicode-single-boundaries",
+      "classification": "declared C raw-byte/invalid-UTF8 native gap; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "PMM+fDznPg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+        "status": 1,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "primary-C",
+      "id": "unicode-negative-and-tail",
+      "classification": "declared C raw-byte/invalid-UTF8 native gap; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "PII+fDyp54yr8J+Zglo+",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+        "status": 1,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "primary-C",
+      "id": "combining-codepoints-not-graphemes",
+      "classification": "declared C raw-byte/invalid-UTF8 native gap; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "NHw8zD58PMyBPg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+        "status": 1,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "primary-en_US.UTF-8",
+      "id": "invalid-octal-offset",
+      "classification": "newly observed pre-existing arithmetic error classification/token diagnostic gap",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiB2YWx1ZSB0b28gZ3JlYXQgZm9yIGJhc2UgKGVycm9yIHRva2VuIGlzICIwOCIpCg==",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIjgiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "negative-length-endpoint",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "YmVmb3JlfA==",
+        "stderr": "c2hlbGw6IC0yOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+        "status": 1,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "YmVmb3JlfDxjZGVmZ2g+fGFmdGVy",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "negative-length-inverted",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC00OiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLTQ6IHN1YnN0cmluZyBleHByZXNzaW9uIDwgMAo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "nested-default-arithmetic-words",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6ICR7U1RBUlQ6IGJhZCBzdWJzdGl0dXRpb24K",
+        "status": 1,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "PGNkZT4=",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "division-error-before-after-effects",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "late-malformed-expansion-same-line",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+        "status": 2,
+        "entries": {
+          "phase": {
+            "bytes": "c2VlZA==",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+        "status": 2,
+        "entries": {
+          "phase": {
+            "bytes": "c2VlZA==",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "invalid-octal-offset",
+      "classification": "newly observed pre-existing arithmetic error classification/token diagnostic gap",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFZBTFVFOiAwODogdmFsdWUgdG9vIGdyZWF0IGZvciBiYXNlIChlcnJvciB0b2tlbiBpcyAiMDgiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIjgiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "unicode-single-boundaries",
+      "classification": "declared C raw-byte/invalid-UTF8 native gap; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "PMM+fDznPg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+        "status": 1,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "unicode-negative-and-tail",
+      "classification": "declared C raw-byte/invalid-UTF8 native gap; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "PII+fDyp54yr8J+Zglo+",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+        "status": 1,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-C",
+      "id": "combining-codepoints-not-graphemes",
+      "classification": "declared C raw-byte/invalid-UTF8 native gap; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "NHw8zD58PMyBPg==",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogc3Vic3RyaW5nIGV4cGFuc2lvbiBzcGxpdHMgYSBVVEYtOCBjaGFyYWN0ZXIgaW4gYSBieXRlIGxvY2FsZQo=",
+        "status": 1,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "id": "negative-length-endpoint",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "YmVmb3JlfA==",
+        "stderr": "c2hlbGw6IC0yOiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+        "status": 1,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "YmVmb3JlfDxjZGVmZ2g+fGFmdGVy",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "id": "negative-length-inverted",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC00OiBzdWJzdHJpbmcgZXhwcmVzc2lvbiA8IDAK",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogLTQ6IHN1YnN0cmluZyBleHByZXNzaW9uIDwgMAo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "id": "nested-default-arithmetic-words",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stdout",
+        "stderr",
+        "status"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6ICR7U1RBUlQ6IGJhZCBzdWJzdGl0dXRpb24K",
+        "status": 1,
+        "entries": {}
+      },
+      "actual": {
+        "stdout": "PGNkZT4=",
+        "stderr": "",
+        "status": 0,
+        "entries": {}
+      }
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "id": "division-error-before-after-effects",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFZBTFVFOiAxLzA6IGRpdmlzaW9uIGJ5IDAgKGVycm9yIHRva2VuIGlzICIwIikK",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDEvMDogZGl2aXNpb24gYnkgMCAoZXJyb3IgdG9rZW4gaXMgIjAiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "id": "late-malformed-expansion-same-line",
+      "classification": "historical negative-length/nested-operand/diagnostic dialect difference; retained FAIL",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDA6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwpzaGVsbDogLWM6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+        "status": 2,
+        "entries": {
+          "phase": {
+            "bytes": "c2VlZA==",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IC1jOiBsaW5lIDE6IHVuZXhwZWN0ZWQgRU9GIHdoaWxlIGxvb2tpbmcgZm9yIG1hdGNoaW5nIGAiJwo=",
+        "status": 2,
+        "entries": {
+          "phase": {
+            "bytes": "c2VlZA==",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "profile": "historical-en_US.UTF-8",
+      "id": "invalid-octal-offset",
+      "classification": "newly observed pre-existing arithmetic error classification/token diagnostic gap",
+      "fields": [
+        "stderr"
+      ],
+      "expected": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IFZBTFVFOiAwODogdmFsdWUgdG9vIGdyZWF0IGZvciBiYXNlIChlcnJvciB0b2tlbiBpcyAiMDgiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      },
+      "actual": {
+        "stdout": "",
+        "stderr": "c2hlbGw6IGxpbmUgMTogVkFMVUU6IDA4OiBhcml0aG1ldGljIHN5bnRheCBlcnJvcjogb3BlcmFuZCBleHBlY3RlZCAoZXJyb3IgdG9rZW4gaXMgIjgiKQo=",
+        "status": 1,
+        "entries": {
+          "phase": {
+            "bytes": "YmVmb3Jl",
+            "mode": 420
+          }
+        }
+      }
+    }
+  ],
+  "hostObservations": [
+    {
+      "id": "substring-expansion-budget",
+      "valid": true,
+      "actual": {
+        "id": "substring-expansion-budget",
+        "error": {
+          "name": "ShellLimitError",
+          "message": "Shell limit exceeded: maxExpansionBytes",
+          "limit": "maxExpansionBytes"
+        },
+        "sameReason": false,
+        "offsetEntered": false,
+        "lateDelivered": false,
+        "stdout": "",
+        "marks": [],
+        "unhandled": [],
+        "pass": true
+      }
+    },
+    {
+      "id": "cancel-offset-host-late-rejection",
+      "valid": true,
+      "actual": {
+        "id": "cancel-offset-host-late-rejection",
+        "error": {
+          "name": "Error",
+          "message": "substring-offset-caller-cancel",
+          "limit": null
+        },
+        "sameReason": true,
+        "offsetEntered": true,
+        "lateDelivered": true,
+        "stdout": "",
+        "marks": [],
+        "unhandled": [],
+        "pass": true
+      }
+    }
+  ],
+  "cleanup": {
+    "directoryRemoved": true,
+    "allGroupsAbsent": true
+  },
+  "scope": "No original36/72, accepted accounting/core/FS/old9/custom5 runs; no source/test expectation changes. Uniform -c source/name wrapper. No product acceptance beyond recorded exact rows.",
+  "evidenceSha256": {
+    "acceptance.mjs": "fac3107bbb02104d520657fe5c40937b95e17de913dc4530f25a2f298d204f57",
+    "acceptance-product.mjs": "84f6e8f11ddef39a540a483afa55d9e66a673e0b6b1c011a6e884857def465b8",
+    "acceptance-f1bb98b.json": "828f9c639c7a177a2aafbba4275f37eaea610853b769f00b56320d8e094c54ea"
+  }
+}

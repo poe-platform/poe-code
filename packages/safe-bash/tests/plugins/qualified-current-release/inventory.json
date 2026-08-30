@@ -1,0 +1,2350 @@
+{
+  "schema": 1,
+  "inventoriedCommit": "1ff82cb748c60145740dba354610ac7ed7a7f15f",
+  "scope": "Explicit census of all tracked .mts paths, with no prefix exclusion. Current consumers compile/run by explicit route; negative types use exact diagnostics; frozen inputs authenticate source/package evidence. New paths fail closed. Root typecheck still does not discover .mts. Typecheck workflow also consumes these existing routes without executing runtimes; two env-split declaration fixtures are explicitly added, preserving the historical177 census.",
+  "historicalColdReview": "aac345a0: canonical470/470 and485/485; standalone omissions11/30 at respective frozen commits, not current denominator.",
+  "counts": {
+    "frozen-evidence": 153,
+    "current": 36,
+    "declaration": 7,
+    "frozen-oracle": 1,
+    "negative-types": 3
+  },
+  "entries": [
+    {
+      "path": "tests/commands/column-stress/current-contract-review/consumer.mts",
+      "sha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",
+      "classification": "frozen-evidence",
+      "reason": "Sealed pre-public current-contract sidecar for exact3af source; internal installed-file import and deliberately unawaited type-only call. Preserve capture, do not silently rewrite into public runtime acceptance. Current-column separately awaits these capabilities.",
+      "existingCoverage": "tests/commands/column-stress/current-contract-review/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "3af3f62890c528bd40da56514e4b08f44b2e6cf0",
+        "packageSha256": "27ea798e910a97ddaf9b066e6d869967ed5475eaaa98f0151016c4aaf88cf268",
+        "evidence": [
+          {
+            "path": "tests/commands/column-stress/current-contract-review/REPORT.md",
+            "sha256": "7981ff7ad7a374e79089c4a776c7b7cf0787855760c13027da4ace8f0814efb3"
+          },
+          {
+            "path": "tests/commands/column-stress/current-contract-review/capture-2/PACK.json",
+            "sha256": "7e76a88380ed2050c723382d99ca93d478232963899528f86aa18aa66d2e937e"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+      "sha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "classification": "frozen-evidence",
+      "reason": "Sealed38cb internal module type capture alongside historical HOLD; unused invoke function is not executed runtime evidence. Current-column preserves meaningful option/type and execution checks.",
+      "existingCoverage": "tests/commands/column-stress/handoff-20260827/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "38cb670acf0826467e928ea30cdcb0524436d144",
+        "packageSha256": "b8b17b6d9dedbf91fa63e89782335c324cda5b8f985a13328b991a4f170baa84",
+        "evidence": [
+          {
+            "path": "tests/commands/column-stress/handoff-20260827/REPORT.md",
+            "sha256": "0016caffa85278af703e930edf2e36c0566502ed46707316fed77c9624e6c12c"
+          },
+          {
+            "path": "tests/commands/column-stress/handoff-20260827/MANIFEST.json",
+            "sha256": "f880ebacd7f239acad879df2a5beb92e43853e508d4d5151ef8a6448ab3df37d"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+      "sha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "classification": "frozen-evidence",
+      "reason": "Distinct authenticated a809 padding cohort; duplicate text does not merge historical package identities. Same current-column replacement route, no old HOLD waiver.",
+      "existingCoverage": "tests/commands/column-stress/padding-evolution/execution-20260827/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "a809635432f18a235b8fb622a05367bedc54b315",
+        "packageSha256": "529496a1e75423c0de50415afca2098b421c11617447ba155799e2afdbd4a684",
+        "evidence": [
+          {
+            "path": "tests/commands/column-stress/padding-evolution/execution-20260827/REPORT.md",
+            "sha256": "b44b609b458ece3cb667707c26d315a8b2f73b53aedbd5d3e2bd1416a8fe3b91"
+          },
+          {
+            "path": "tests/commands/column-stress/padding-evolution/execution-20260827/MANIFEST.json",
+            "sha256": "de1b2f91f0031100f739c5d27c32afefa698cdac3087b277bb697265ba64e61e"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+      "sha256": "ca8c863323effd4e3765177a8bec4df224921ef5f2f6c389ea91db0c0a8c0f25",
+      "classification": "frozen-evidence",
+      "reason": "Original frozen04644 holdout/capture driver requires task output/worker hooks, retains75/77 plus5/5 historical result; separate settlement-v2 corrected only two expectations. Not a reusable current default test; immutable originals and failures retained.",
+      "existingCoverage": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+        "packageSha256": "3757f9f11c9894d94cec8bbd7cdd45380633757f6894a252bdd977e12a5052bb",
+        "evidence": [
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+            "sha256": "6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/summary.json",
+            "sha256": "b43f7cd8e70539b26a7a511ceffb01c37951bf4c35e79d3a2d1e28269e2ead9e"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/summary.json",
+            "sha256": "89d92f738e48a916a866a852df32725b918602e24fd26d8a188e4cab9fc26f33"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+      "sha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+      "classification": "frozen-evidence",
+      "reason": "Original frozen04644 holdout/capture driver requires task output/worker hooks, retains75/77 plus5/5 historical result; separate settlement-v2 corrected only two expectations. Not a reusable current default test; immutable originals and failures retained.",
+      "existingCoverage": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+        "packageSha256": "3757f9f11c9894d94cec8bbd7cdd45380633757f6894a252bdd977e12a5052bb",
+        "evidence": [
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+            "sha256": "6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/summary.json",
+            "sha256": "b43f7cd8e70539b26a7a511ceffb01c37951bf4c35e79d3a2d1e28269e2ead9e"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/summary.json",
+            "sha256": "89d92f738e48a916a866a852df32725b918602e24fd26d8a188e4cab9fc26f33"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+      "sha256": "7a9b9b87209490941c88f3896f92c40d3f6bda215887f245c1a3e5aca8671b94",
+      "classification": "frozen-evidence",
+      "reason": "Sealed internal installed-module type-only capture, no runtime invocation; maintained original alias public consumer now routes through approved exports.",
+      "existingCoverage": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+      "qualifiedCoverage": "Authenticated historical input only; new column-public/grep-aliases-public current groups retain meaningful API/runtime coverage; no old failure rescoring",
+      "freeze": {
+        "sourceCommit": "04644bc2c15d67155f5f4b170a66fc9bef3f6e3d",
+        "packageSha256": "3757f9f11c9894d94cec8bbd7cdd45380633757f6894a252bdd977e12a5052bb",
+        "evidence": [
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/REPORT.md",
+            "sha256": "6911758ed7bdbffbc2338fb5c4dc00d94416df24a530e712058419b71aa68e47"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/summary.json",
+            "sha256": "b43f7cd8e70539b26a7a511ceffb01c37951bf4c35e79d3a2d1e28269e2ead9e"
+          },
+          {
+            "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/summary.json",
+            "sha256": "89d92f738e48a916a866a852df32725b918602e24fd26d8a188e4cab9fc26f33"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/grep-aliases/consumer.mts",
+      "sha256": "4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac",
+      "classification": "current",
+      "group": "grep-aliases-public",
+      "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
+      "existingCoverage": "grep-aliases-public",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime grep-aliases-public"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/consumer.mts",
+      "sha256": "6e7cf339e0414a58c68cb46e95bcc4a59a349c94d346c8389f9b5445c75a87a1",
+      "classification": "current",
+      "group": "network-zero-caps-public",
+      "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
+      "existingCoverage": "network-zero-caps-public",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime network-zero-caps-public"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/mutations.d.mts",
+      "sha256": "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f",
+      "classification": "declaration",
+      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
+      "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/offline.d.mts",
+      "sha256": "1d6020b8dd8f6ba0d5f1a4b73615832499bbd3ec3e147aa469e6f78ffbfb3836",
+      "classification": "declaration",
+      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
+      "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/runtime.d.mts",
+      "sha256": "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc",
+      "classification": "declaration",
+      "reason": "Imported support declarations for adjacent .mjs review helpers, not standalone executable or negative API test; exact bytes retained.",
+      "existingCoverage": "tests/commands/network-zero-caps-review/holdout.test.ts under root typecheck; paired .mjs helpers run by review harness",
+      "qualifiedCoverage": "Root typecheck through imports; hash-authenticated declaration inventory, not a standalone runtime pass"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/package-consumer.mts",
+      "sha256": "7e27be9c20ee8fd7413e60c4424221520a1856ddfe2b8b80d19d1c1443eea4b3",
+      "classification": "current",
+      "group": "regex-continuation",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/commands/regex-execution/continuation/package.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-continuation; runtime package-consumer.mjs"
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/product-consumer.mts",
+      "sha256": "98002da21b35415d69181b33fed9a2011a8dea758fd63407d0e17a8d488bb36d",
+      "classification": "current",
+      "group": "regex-followup",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/commands/regex-execution/followup/package.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-followup; runtime product-consumer.mjs"
+    },
+    {
+      "path": "tests/commands/regex-execution/package-consumer.mts",
+      "sha256": "a3d27cd3208a139758543299cfb1646ce27786d978f0cb7afa515f86b237f1f2",
+      "classification": "current",
+      "group": "regex",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/commands/regex-execution/package.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex; runtime package-consumer.mjs"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/cases.d.mts",
+      "sha256": "a7bd523bd9c7f3cc5b915b06d03478a5d8c3d5e6fe5d444c7409b1c0fa23a8b4",
+      "classification": "declaration",
+      "reason": "Imported .mjs support declaration, not standalone executable; Dirac distinguishes four imported declarations from standalone omissions.",
+      "existingCoverage": "npm run typecheck through importing .ts tests; not a standalone runtime case",
+      "qualifiedCoverage": "inventoried only; this scoped job does not replace root typecheck"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/common.d.mts",
+      "sha256": "cd6923f50a115a2348d5e9878c42e13bf808640a37eabd19c313974501c9db53",
+      "classification": "declaration",
+      "reason": "Imported .mjs support declaration, not standalone executable; Dirac distinguishes four imported declarations from standalone omissions.",
+      "existingCoverage": "npm run typecheck through importing .ts tests; not a standalone runtime case",
+      "qualifiedCoverage": "inventoried only; this scoped job does not replace root typecheck"
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/evidence.d.mts",
+      "sha256": "c47ee3003c5b361e4402c7145e2815b96e71f317915905a8e453c767b5a140f7",
+      "classification": "declaration",
+      "reason": "Imported .mjs support declaration, not standalone executable; Dirac distinguishes four imported declarations from standalone omissions.",
+      "existingCoverage": "npm run typecheck through importing .ts tests; not a standalone runtime case",
+      "qualifiedCoverage": "inventoried only; this scoped job does not replace root typecheck"
+    },
+    {
+      "path": "tests/commands/time-env-stress/consumer.mts",
+      "sha256": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+      "classification": "frozen-oracle",
+      "reason": "Independent native-oracle consumer, not public package consumer: run.mjs pins d904ca986fa945df8aef6e11b4165e2c2a63f814 and assembles relative ./dist compiled-leaf imports. README explicitly disclaims moving-current/public-leaf-export proof and preserves eight product failures plus one Apple profile disagreement. No current-source runtime pass inferred.",
+      "existingCoverage": "tests/commands/time-env-stress/run.mjs lines8,76-79; README Exact freeze and counts/Reproduction; committed75d4e0c",
+      "qualifiedCoverage": "hash-authenticated historical inventory only; unchanged frozen oracle must not be silently run against current exports or rescored"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+      "sha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Sealed before/after native holdout includes literal65 defaults, absent public export assertions and raw native format mismatches. Not a maintained current test. Current public integration separately executed.",
+      "existingCoverage": "tests/commands/time-env-stress/fix-review/packed.mjs",
+      "freeze": {
+        "sourceCommit": "94bb4c974b17cd01477eff1c92e41619e0ebf465",
+        "packageSha256": "841faa4e09e4ffaa973b69f54d1a2f8165a04e944dddec2b4b5c051d86ff944b",
+        "evidence": [
+          {
+            "path": "tests/commands/time-env-stress/fix-review/README.md",
+            "sha256": "e5c80d3eb3b901b3115269db2b5f4edbf86d9fb543441fec4bd5c9f865b04cfb"
+          },
+          {
+            "path": "tests/commands/time-env-stress/fix-review/evidence/packed-compiled-after/manifest.json",
+            "sha256": "0d4478b472be1bab7caeda6ed678e9286ca6043397cdc7dd54a029913c86d1e4"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+      "sha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Frozen65-default/private-leaf capture includes absence-of-export assertions. Retain original gap profile; current public integration separately executed.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "freeze": {
+        "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+        "packageSha256": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a",
+        "evidence": [
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json",
+            "sha256": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba"
+          },
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/results.json",
+            "sha256": "6741ae8b0971d8260210841d838a405cece56e5f35c6f8c874259012e874422a"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+      "sha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0",
+      "classification": "negative-types",
+      "group": "time-env-leaf-negative",
+      "reason": "Intentional invalid API uses. Positive paired consumer must compile/run first; exact diagnostic text/line/column/count checked against original capture. Never a source compilation pass.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: time-env-leaf-negative, 5 exact diagnostics"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+      "sha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac",
+      "classification": "current",
+      "group": "time-env-leaf",
+      "reason": "maintained internal packed leaf types and factory construction; not export-map acceptance",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict time-env-leaf; emitted runtime leaf-positive.mjs"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+      "sha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af",
+      "classification": "negative-types",
+      "group": "time-env-public-negative",
+      "reason": "Intentional invalid API uses. Positive paired consumer must compile/run first; exact diagnostic text/line/column/count checked against original capture. Never a source compilation pass.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: time-env-public-negative, 2 exact diagnostics"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+      "sha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4",
+      "classification": "current",
+      "group": "time-env-public",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict time-env-public; emitted runtime public-positive.mjs"
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+      "sha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Historical missing-export negative probe expects TS2724/TS2305 before integration. Current root legitimately exports APIs. Retain sealed gap evidence, not current negative or pass.",
+      "existingCoverage": "tests/commands/time-env-stress/fraction-independent/packed/verify.mjs",
+      "freeze": {
+        "sourceCommit": "c7823633ee99f711f1319ace59d4cf2b7f622ecc",
+        "packageSha256": "b42892cdcd2f765e4d99e857b68d43fe14dbcdff1c704e8b2dc4b9db6d2e756a",
+        "evidence": [
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/manifest.json",
+            "sha256": "ef475733f400f3dd2cf695784c2d523f735d941ccbec18004b003334c3e16bba"
+          },
+          {
+            "path": "tests/commands/time-env-stress/fraction-independent/packed/evidence-final/results.json",
+            "sha256": "6741ae8b0971d8260210841d838a405cece56e5f35c6f8c874259012e874422a"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/s3/constructor-comparison/consumer.mts",
+      "sha256": "1c3a43c9c582380f179e0e4c888bcd238076f37beb33810a95accc40442a2383",
+      "classification": "current",
+      "group": "s3-constructor",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/fs/s3/constructor-comparison/build-consumer.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict s3-constructor; runtime consumer.mjs"
+    },
+    {
+      "path": "tests/fs/s3/http-independent/public-workflow.mts",
+      "sha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf",
+      "classification": "current",
+      "group": "s3-http-independent",
+      "reason": "strict public types and module import only; exported workflow requires explicit real S3 service/credentials; no service execution claimed",
+      "existingCoverage": "tests/fs/s3/http-independent/validate.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict s3-http-independent; runtime public-workflow.mjs"
+    },
+    {
+      "path": "tests/fs/s3/http/author/public-consumer.mts",
+      "sha256": "190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd",
+      "classification": "current",
+      "group": "s3-http-author",
+      "reason": "strict public types and module import only; exported workflow requires explicit real S3 service/credentials; no service execution claimed",
+      "existingCoverage": "tests/fs/s3/http/author/build-public-consumer.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict s3-http-author; runtime public-consumer.mjs"
+    },
+    {
+      "path": "tests/fs/s3/rmdir-independent/public-consumer.mts",
+      "sha256": "d409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea",
+      "classification": "current",
+      "group": "s3-rmdir",
+      "reason": "strict public types and constructor smoke only; not independent rmdir or MinIO acceptance",
+      "existingCoverage": "tests/fs/s3/rmdir-independent/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict s3-rmdir; runtime public-consumer.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+      "sha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+      "classification": "current",
+      "group": "webdav-atomic-independent",
+      "reason": "self-contained injected-fetch consumer; requires no service or certificate; strict current declarations and emitted execution with its own package identity",
+      "existingCoverage": "tests/fs/webdav/atomic-extension-independent/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic-independent and emitted consumer.mjs; configured removal plus stock refusal, not deployed-provider proof"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+            "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+            "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+            "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+            "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/baseline.json",
+            "sha256": "6d1bf9b457b27f3d7340ce01cd1dbe8ca184b30e3c072075c9841ca961973f0a"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/run.json",
+            "sha256": "97cb08e8663d3aba28bd08771ca69547aeb1302178f1531f0d8ea565cf939542"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+            "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+            "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+            "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "sha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+            "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+            "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+            "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/baseline.json",
+            "sha256": "32a27b31d4e635a008c39c6a4edde1c8cc06de39e7177603ce7533ad6b6c9c81"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/fixture-hashes.json",
+            "sha256": "8480d37d6af7e8adc56357c7cefde06c5a495b440840f3ad74df56a245744ce9"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/run.json",
+            "sha256": "3cc5d14d8b03059202a87637ca13ec41785163e190e0c98df0ddbeb5156bf0c3"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "sha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+            "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+            "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+            "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+            "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "qualifiedCoverage": "hash-authenticated frozen input/source/package evidence only; not current runtime pass",
+      "reason": "Captured provider input, not maintained executable. First retains TS7006 failures; second/final retain configured-service results. Current counterparts strictly compiled separately. No expected output rewritten.",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "freeze": {
+        "sourceCommit": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+        "archiveSha256": "e705552cb347ccb7b7e11a4c582591126e75ecd1b0f51d2397efc51843bc114a",
+        "packageIntegrity": "sha512-4uRMBhfvWeaTrHf0KEaLCeDL4A7EZ35EeDgsJagoiUe3uLMh6H5TsWbFh8q7qIQxcjdx+CCURr2gxEn1W2EE3w==",
+        "evidence": [
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/baseline.json",
+            "sha256": "85a5b51ee0d8b203a99144f543b3395e4bff99ace98bbc6a4f6f6c4aeaaa6323"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/package.json",
+            "sha256": "ecd30da5ccdd0cb4c9e448e0606845b9f5cfe45e21a97f0f1ecd4a0484ab1833"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/fixture-hashes.json",
+            "sha256": "17abcb361c8222e6153de37fd11bb583cc22b89a401df4052b342b5fa08034e5"
+          },
+          {
+            "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/run.json",
+            "sha256": "a0d0eeeb689e5700ada5c97c0f965dacefff1f9b14917f100f83271b0c18cca6"
+          }
+        ]
+      }
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/example.mts",
+      "sha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "reason": "strict current public declarations only; runtime requires explicit TLS service and backing authority; no deployed-provider pass",
+      "existingCoverage": "tests/fs/webdav/atomic-extension/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-atomic; compile-only; explicit TLS/service/backing prerequisites, not a provider pass"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/consumer.test.mts",
+      "sha256": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "reason": "strict public types including type assertions; unchanged thirteen serialized loopback runtime tests; not deployed-provider proof",
+      "existingCoverage": "tests/fs/webdav/consumer/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-loopback; runtime consumer.test.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/example.mts",
+      "sha256": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "reason": "strict public types including type assertions; unchanged thirteen serialized loopback runtime tests; not deployed-provider proof",
+      "existingCoverage": "tests/fs/webdav/consumer/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-loopback; runtime consumer.test.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/provider.mts",
+      "sha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "reason": "strict public types including type assertions; unchanged thirteen serialized loopback runtime tests; not deployed-provider proof",
+      "existingCoverage": "tests/fs/webdav/consumer/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-loopback; runtime consumer.test.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/consumer/types.mts",
+      "sha256": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "reason": "strict public types including type assertions; unchanged thirteen serialized loopback runtime tests; not deployed-provider proof",
+      "existingCoverage": "tests/fs/webdav/consumer/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-loopback; runtime consumer.test.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts",
+      "sha256": "06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/evidence/attempt1; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts",
+      "sha256": "d1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/evidence/attempt2; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts",
+      "sha256": "a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/evidence/attempt3; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts",
+      "sha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts",
+      "sha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service-independent/README.md and tests/fs/webdav/real-service-independent/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+      "sha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/consumer.mts",
+      "sha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/consumer.mts",
+      "sha256": "6d5191014fa83b3a9d62bb7c9ec6d7bc61f690a377a45f2579385dc516ca6224",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/https.mts",
+      "sha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/phase2-consumer.mts",
+      "sha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/phase2-consumer.mts",
+      "sha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/phase2-consumer.mts",
+      "sha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/independent.mts",
+      "sha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-final/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/consumer.mts",
+      "sha256": "55d83eb7dca8c1a364f7312a7e015163a6f6653c516b68bc6d9e631b38930ebb",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/https.mts",
+      "sha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/consumer.mts",
+      "sha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/https.mts",
+      "sha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/real-service/README.md and tests/fs/webdav/real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/fs/webdav/real-service/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/fs/webdav/release-timestamp-independent/independent.test.mts",
+      "sha256": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+      "classification": "current",
+      "group": "webdav-timestamp-independent",
+      "reason": "current loopback runtime:20 controls plus3 mutant kills, not23 provider successes",
+      "existingCoverage": "tests/fs/webdav/release-timestamp-independent/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-timestamp-independent; emitted runtime independent.test.mjs"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/feasibility.mts",
+      "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/feasibility.mts",
+      "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/feasibility.mts",
+      "sha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/consumer.mts",
+      "sha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/example.mts",
+      "sha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/feasibility.mts",
+      "sha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/https.mts",
+      "sha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/phase2-consumer.mts",
+      "sha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "classification": "frozen-evidence",
+      "reason": "Preserved provider execution input under tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs; includes original first failures and corrected/migration snapshots, not the maintained current file. Never rewrite or treat this input as a current runtime pass.",
+      "existingCoverage": "tests/fs/webdav/rmdir-real-service/README.md and tests/fs/webdav/rmdir-real-service/run.mjs capture these historical service inputs; original result/report remains adjacent to the input directory",
+      "qualifiedCoverage": "hash-authenticated inventory only; maintained counterparts explicitly compiled separately"
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/feasibility.mts",
+      "sha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "classification": "current",
+      "group": "webdav-services",
+      "reason": "strict compile of current provider/research programs with unchanged shared example/https companions, assembled as existing runners do; runtime requires explicit provisioned Apache/WsgiDAV TLS/backing authority; not executed or counted as provider passes; feasibility is research, not product rmdir support",
+      "existingCoverage": "tests/fs/webdav/real-service/run.mjs; tests/fs/webdav/real-service/scope-replay.mjs; tests/fs/webdav/real-service-independent/run.mjs; tests/fs/webdav/rmdir-real-service/run.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict webdav-services; runtime not executed (explicit service prerequisites)"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/consumer.mts",
+      "sha256": "02227d955901b365ea76818f12616ce59a3b81bc3eb9379ccb704bb99cde4713",
+      "classification": "current",
+      "group": "stream-inspection",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/integration/stream-inspection-public-author/verify.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict stream-inspection; runtime consumer.mjs"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/current-column.mts",
+      "sha256": "c74ed7b2dd94ca0bbd236db5f7a2f843f082313aa673fa69abf4ca99a8c13f3a",
+      "classification": "current",
+      "group": "column-public",
+      "reason": "Maintained actual public consumer; strict same-package declarations and emitted runtime, not historical exclusion.",
+      "existingCoverage": "column-public",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict and runtime column-public"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/du-leaf.mts",
+      "sha256": "c141a7c1877d033b6e38b4251eab67e807c56307d16cd665b015f6e73d12ea0f",
+      "classification": "current",
+      "group": "du-leaf",
+      "reason": "maintained internal DU leaf declarations, VFS execution and limits; not a public export/default acceptance",
+      "existingCoverage": "tests/integration/du-overlay-independent-20260827/HOLDOUT_CONTRACT.md",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict du-leaf; runtime du-leaf.mjs"
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
+      "sha256": "08ed67a1861bf424c2354e5a0dc3a12727245d90d7b34c898f853211e1ea58eb",
+      "classification": "current",
+      "group": "stream-five",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/plugins/stream-five-fixture-migration/capture.mjs final",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict stream-five; runtime public-options.mjs"
+    },
+    {
+      "path": "tests/shell-stress/env-split-validity/invalid-binding.mts",
+      "sha256": "1148c543c99b9177923fa30ac5248a090a9782b5151f9d91f2541bc97e4fcd1c",
+      "classification": "negative-types",
+      "reason": "Intentional Uint8Array versus AsyncIterable stdin rejection; exact single TS2741, not a global compilation unit.",
+      "existingCoverage": "tests/shell-stress/env-split-validity/run-v2.mjs: invalid-byte-binding-type-negative",
+      "qualifiedCoverage": "env-split-invalid-binding: exact tests/plugins/qualified-current-release/negative-env-split.stdout"
+    },
+    {
+      "path": "tests/shell-stress/env-split-validity/public-types.mts",
+      "sha256": "1e3363f9dd73614f3b5b3b31eac4341f7d72a6f203da82c0700256e62b3793dc",
+      "classification": "current",
+      "group": "env-split-public-types",
+      "reason": "Maintained current declaration-only proof; run-v2 invokes tsc, not this fixture as runtime. No runtime acceptance inferred.",
+      "existingCoverage": "tests/shell-stress/env-split-validity/run-v2.mjs: moved-installed-public-types",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs and scripts/typecheck.mjs: strict existing-route declarations only"
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/support.d.mts",
+      "sha256": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869",
+      "classification": "declaration",
+      "reason": "Imported .mjs support declaration, not standalone executable; Dirac distinguishes four imported declarations from standalone omissions.",
+      "existingCoverage": "npm run typecheck through importing .ts tests; not a standalone runtime case",
+      "qualifiedCoverage": "inventoried only; this scoped job does not replace root typecheck"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/package-consumer.mts",
+      "sha256": "f885b55a6a280729b109084ae36885167135f3e753052f98aa01b4f206dd39cc",
+      "classification": "current",
+      "group": "regex-production-continuation",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/stress/regex-execution/production-continuation-review/package.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-production-continuation; runtime package-consumer.mjs"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/package-consumer.mts",
+      "sha256": "b2d369407771c8f6760adff58fa2eff193879f1932c545870831a7d19fd84675",
+      "classification": "current",
+      "group": "regex-production",
+      "reason": "unchanged public consumer; strict declarations and emitted runtime",
+      "existingCoverage": "tests/stress/regex-execution/production-review/package.mjs",
+      "qualifiedCoverage": "scripts/verify-current-consumers.mjs: strict regex-production; runtime package-consumer.mjs"
+    },
+    {
+      "path": "tests/commands/timeout-author-20260828/repair-f22-v1/capture-prepatch.mts",
+      "classification": "frozen-evidence",
+      "reason": "Historical prepatch capture labels rejected source9ed9 and records its timer-receiver defect. Never execute as current acceptance; original bytes and results remain.",
+      "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/PREPATCH-RUNS.json",
+      "freeze": {
+        "sourceCommit": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+        "packageSha256": "32e2bef5eafbb00e9b6704e2765f55e36514eda0da0fe84ea78367813c756630",
+        "evidence": [
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/FREEZE.json",
+            "sha256": "d1de70cb9bcc22d903d6bbf358bb386e0076e68cfce5c6859bd50dfc141baa26"
+          },
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/PREPATCH-RUNS.json",
+            "sha256": "255c8a4df3389ed60ae40ff055f0e77ccdbfc82058bf534309b4566add88b19d"
+          }
+        ]
+      },
+      "sha256": "3f19611d43e245e320c0c4dde8925e9a519a4017e9c75b8908ef5f5c805a4613",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/timeout-author-20260828/repair-f22-v1/types-positive.mts",
+      "classification": "frozen-evidence",
+      "reason": "Exact source-local F22 repair input selected by the fixed-revision repair runner. Its options assertions are preserved as current-timeout-options.mts with only the public import specifier changed; original input is not rewritten or discarded.",
+      "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/validate-repair.mjs",
+      "freeze": {
+        "sourceCommit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+        "packageSha256": "e6f42dbb063044c0a0d9eaa3029ee9ef0b9ed26aabafd42c9346b18e1901c80c",
+        "evidence": [
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/AUTHENTICATION.json",
+            "sha256": "677fe3f5acf608197ff825db15c47cd36625467f9b0315eb9e039302ea7a8485"
+          },
+          {
+            "path": "tests/commands/timeout-author-20260828/repair-f22-v1/evidence-v1/TEST-HARNESS.json",
+            "sha256": "2366a5e3aa998297be3341030f1f24c83b1b089b8174c165411c2100337d7091"
+          }
+        ]
+      },
+      "sha256": "bc6c56eeddea310f574ed461da2dc147297291e1d2538db1fd796dea2535c671",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/compiler-control.mts",
+      "classification": "frozen-evidence",
+      "reason": "Synthetic compiler infrastructure witness in the sealed XAN review, not product declaration/runtime acceptance. Preserve exact original/continuation seal; no new execution.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/controls.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/DELIVERY-SEAL.json",
+            "sha256": "b1a46e6f132faadeda17ff16538e6c5300937598f2653af0da7b04d2623a9c7c"
+          }
+        ]
+      },
+      "sha256": "d770e058971599d75a30688d360c8ae0c953e139b0f447fc7a3bb4fa6b04c9fc",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/compiler-fixtures/nested/value.mts",
+      "classification": "frozen-evidence",
+      "reason": "Synthetic compiler infrastructure witness in the sealed XAN review, not product declaration/runtime acceptance. Preserve exact original/continuation seal; no new execution.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/repair-controls.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-PRE.json",
+            "sha256": "92338f77b6d83e426741d44eacb2c532b7f4817b4302f22cfd421fe0be15b912"
+          }
+        ]
+      },
+      "sha256": "9e17aac7470817195ad75bd9806cd28845b214ea142e158409ee711e85e5f0c7",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/consumer-negative.mts",
+      "classification": "frozen-evidence",
+      "reason": "Fixed XAN private-leaf build-local consumer in the sealed review; not a current public consumer. Preserve positive/seven-diagnostic history without rerun or default route. XAN remains execution-held/unaccepted.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/runner.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/DELIVERY-SEAL.json",
+            "sha256": "b1a46e6f132faadeda17ff16538e6c5300937598f2653af0da7b04d2623a9c7c"
+          }
+        ]
+      },
+      "sha256": "1ffe85cfff741bf4f0d107476508873d3a42fea62c5ecdc894a8da50020adf1b",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/consumer-positive.mts",
+      "classification": "frozen-evidence",
+      "reason": "Fixed XAN private-leaf build-local consumer in the sealed review; not a current public consumer. Preserve positive/seven-diagnostic history without rerun or default route. XAN remains execution-held/unaccepted.",
+      "existingCoverage": "tests/commands/xan-module-review-20260828/actual-review-v2/runner.mjs",
+      "freeze": {
+        "sourceCommit": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+        "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+        "evidence": [
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PRE-SEAL.json",
+            "sha256": "788160ad07652b3c6f71915348a91ad01d1a6ef042b2572e71b3d51819d648c1"
+          },
+          {
+            "path": "tests/commands/xan-module-review-20260828/actual-review-v2/DELIVERY-SEAL.json",
+            "sha256": "b1a46e6f132faadeda17ff16538e6c5300937598f2653af0da7b04d2623a9c7c"
+          }
+        ]
+      },
+      "sha256": "fd316c69eb75b7b1f0a60f05fcbf663993784a917463377a1f0dac32704c8add",
+      "qualifiedCoverage": "exact hash-bound sealed input/source/package metadata; no new execution or acceptance"
+    },
+    {
+      "path": "tests/fs/webdav/directory-access-author-20260828/public-types.mts",
+      "classification": "current",
+      "reason": "Reusable current public root/subpath declarations with four expected-error directives. Keep body unchanged and register explicit strict type-only route; its top-level access promises are not a runtime probe.",
+      "existingCoverage": "tests/fs/webdav/directory-access-author-20260828/validate.mjs",
+      "sha256": "eff02e930b327d55ae4cb28d45396ec07c88a0067b40670d7a74a7cb20268b05",
+      "qualifiedCoverage": "strict current installed-candidate declarations; no runtime execution"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/current-timeout-options.mts",
+      "classification": "current",
+      "reason": "Maintained public counterpart of the source-local F22 scheduler/options consumer. Only original import specifier changes; no timer is invoked. Strict installed-candidate declaration route, not runtime acceptance.",
+      "existingCoverage": "tests/commands/timeout-author-20260828/repair-f22-v1/validate-repair.mjs",
+      "sha256": "7cc6c8830b7585db2291b549e743d613d8a3f9a10de7c2071deed4b894320200",
+      "qualifiedCoverage": "strict current installed-candidate declarations; no runtime execution"
+    }
+  ],
+  "inventoryFollowup": {
+    "0": "O",
+    "1": "r",
+    "2": "i",
+    "3": "g",
+    "4": "i",
+    "5": "n",
+    "6": "a",
+    "7": "l",
+    "8": "2",
+    "9": "0",
+    "10": " ",
+    "11": "a",
+    "12": "t",
+    "13": "6",
+    "14": "f",
+    "15": "f",
+    "16": "e",
+    "17": "4",
+    "18": "f",
+    "19": "4",
+    "20": ":",
+    "21": "6",
+    "22": " ",
+    "23": "c",
+    "24": "u",
+    "25": "r",
+    "26": "r",
+    "27": "e",
+    "28": "n",
+    "29": "t",
+    "30": ",",
+    "31": "2",
+    "32": " ",
+    "33": "n",
+    "34": "e",
+    "35": "g",
+    "36": "a",
+    "37": "t",
+    "38": "i",
+    "39": "v",
+    "40": "e",
+    "41": "-",
+    "42": "t",
+    "43": "y",
+    "44": "p",
+    "45": "e",
+    "46": "s",
+    "47": ",",
+    "48": "1",
+    "49": "2",
+    "50": " ",
+    "51": "f",
+    "52": "r",
+    "53": "o",
+    "54": "z",
+    "55": "e",
+    "56": "n",
+    "57": " ",
+    "58": "e",
+    "59": "v",
+    "60": "i",
+    "61": "d",
+    "62": "e",
+    "63": "n",
+    "64": "c",
+    "65": "e",
+    "66": ".",
+    "67": " ",
+    "68": "L",
+    "69": "a",
+    "70": "t",
+    "71": "e",
+    "72": "r",
+    "73": " ",
+    "74": "W",
+    "75": "e",
+    "76": "b",
+    "77": "D",
+    "78": "A",
+    "79": "V",
+    "80": " ",
+    "81": "i",
+    "82": "n",
+    "83": "d",
+    "84": "e",
+    "85": "p",
+    "86": "e",
+    "87": "n",
+    "88": "d",
+    "89": "e",
+    "90": "n",
+    "91": "t",
+    "92": ".",
+    "93": "t",
+    "94": "e",
+    "95": "s",
+    "96": "t",
+    "97": ".",
+    "98": "m",
+    "99": "t",
+    "100": "s",
+    "101": " ",
+    "102": "g",
+    "103": "e",
+    "104": "t",
+    "105": "s",
+    "106": " ",
+    "107": "c",
+    "108": "u",
+    "109": "r",
+    "110": "r",
+    "111": "e",
+    "112": "n",
+    "113": "t",
+    "114": "2",
+    "115": "3",
+    "116": "-",
+    "117": "t",
+    "118": "e",
+    "119": "s",
+    "120": "t",
+    "121": " ",
+    "122": "r",
+    "123": "u",
+    "124": "n",
+    "125": "t",
+    "126": "i",
+    "127": "m",
+    "128": "e",
+    "129": " ",
+    "130": "r",
+    "131": "o",
+    "132": "u",
+    "133": "t",
+    "134": "e",
+    "135": " ",
+    "136": "(",
+    "137": "2",
+    "138": "0",
+    "139": " ",
+    "140": "c",
+    "141": "o",
+    "142": "n",
+    "143": "t",
+    "144": "r",
+    "145": "o",
+    "146": "l",
+    "147": "s",
+    "148": "+",
+    "149": "3",
+    "150": "m",
+    "151": "u",
+    "152": "t",
+    "153": "a",
+    "154": "n",
+    "155": "t",
+    "156": " ",
+    "157": "k",
+    "158": "i",
+    "159": "l",
+    "160": "l",
+    "161": "s",
+    "162": ")",
+    "163": ",",
+    "164": " ",
+    "165": "n",
+    "166": "o",
+    "167": "t",
+    "168": " ",
+    "169": "r",
+    "170": "a",
+    "171": "w",
+    "172": " ",
+    "173": "d",
+    "174": "a",
+    "175": "t",
+    "176": "a",
+    "177": ".",
+    "178": " ",
+    "179": "E",
+    "180": "a",
+    "181": "r",
+    "182": "l",
+    "183": "i",
+    "184": "e",
+    "185": "r",
+    "186": "1",
+    "187": "1",
+    "188": "/",
+    "189": "3",
+    "190": "0",
+    "191": " ",
+    "192": "o",
+    "193": "m",
+    "194": "i",
+    "195": "s",
+    "196": "s",
+    "197": "i",
+    "198": "o",
+    "199": "n",
+    "200": "s",
+    "201": " ",
+    "202": "r",
+    "203": "e",
+    "204": "m",
+    "205": "a",
+    "206": "i",
+    "207": "n",
+    "208": " ",
+    "209": "s",
+    "210": "e",
+    "211": "p",
+    "212": "a",
+    "213": "r",
+    "214": "a",
+    "215": "t",
+    "216": "e",
+    "217": " ",
+    "218": "h",
+    "219": "i",
+    "220": "s",
+    "221": "t",
+    "222": "o",
+    "223": "r",
+    "224": "i",
+    "225": "c",
+    "226": "a",
+    "227": "l",
+    "228": " ",
+    "229": "e",
+    "230": "v",
+    "231": "i",
+    "232": "d",
+    "233": "e",
+    "234": "n",
+    "235": "c",
+    "236": "e",
+    "237": ".",
+    "registry73": {
+      "observedCommit": "c355751f36ca3fdbab8f888eaab30203c1bcd343",
+      "originalUnknown": 11,
+      "newMaintained": 1,
+      "additions": [
+        "tests/commands/column-stress/current-contract-review/consumer.mts",
+        "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+        "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+        "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+        "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+        "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+        "tests/commands/network-zero-caps-review/mutations.d.mts",
+        "tests/commands/network-zero-caps-review/offline.d.mts",
+        "tests/commands/network-zero-caps-review/runtime.d.mts",
+        "tests/commands/grep-aliases/consumer.mts",
+        "tests/commands/network-zero-caps-review/consumer.mts",
+        "tests/plugins/qualified-current-release/current-column.mts"
+      ],
+      "evidence": "tests/integration/full-gate-20260827/consumer-inventory-73/README.md",
+      "qualification": "No source approval or runtime execution implied by classification"
+    }
+  },
+  "maintenance20260828": {
+    "previousInventorySha256": "725b0c12e7965bc3e400f25cae1a31a1d2f3e456b232f1bcc3a8bb561cc0a6f7",
+    "originalUnknown": 7,
+    "addedMaintainedCounterparts": 1,
+    "previousEntries": 192,
+    "currentEntries": 200,
+    "proof": "tests/plugins/qualified-current-release/inventory-maintenance-20260828/REPORT.md",
+    "qualification": "Metadata-only admission repair; no build, consumer compile, product run, XAN retry or fixed76 inventory change."
+  }
+}

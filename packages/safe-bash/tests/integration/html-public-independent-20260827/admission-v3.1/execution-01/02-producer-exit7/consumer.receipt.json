@@ -1,0 +1,66 @@
+{
+  "control": "producer-exit7",
+  "pid": 34624,
+  "ppid": 34501,
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "execArgv": [
+    "--max-old-space-size=96"
+  ],
+  "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+  "assertionState": "not evaluated; persisted before coordinator assertions",
+  "proposedExitCode": 17,
+  "failure": {
+    "name": "Error",
+    "code": "STREAM_PROCESS",
+    "message": "BOUNDARY:STREAM_PROCESS {\"status\":7,\"signal\":null,\"stderr\":\"{\\\"emitted\\\":1073872896,\\\"drains\\\":16358}\\n\",\"timedOut\":false,\"stderrOverflow\":false}",
+    "stack": "Error: BOUNDARY:STREAM_PROCESS {\"status\":7,\"signal\":null,\"stderr\":\"{\\\"emitted\\\":1073872896,\\\"drains\\\":16358}\\n\",\"timedOut\":false,\"stderrOverflow\":false}\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/core.mjs:20:39)\n    at hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/core.mjs:199:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/worker.mjs:34:12",
+    "process": null
+  },
+  "result": null,
+  "memory": {
+    "baseline": {
+      "rss": 46415872,
+      "heapTotal": 5914624,
+      "heapUsed": 5235912,
+      "external": 2109762,
+      "arrayBuffers": 22168
+    },
+    "fieldwisePeaks": {
+      "rss": 99516416,
+      "heapTotal": 10371072,
+      "heapUsed": 6562808,
+      "external": 26346648,
+      "arrayBuffers": 24199615
+    },
+    "latest": {
+      "rss": 99516416,
+      "heapTotal": 10371072,
+      "heapUsed": 5347352,
+      "external": 8258714,
+      "arrayBuffers": 6111681
+    },
+    "samples": 67,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "flow": {
+    "chunks": 16386,
+    "bytes": 1073872896,
+    "maxChunkBytes": 65536,
+    "pending": 0,
+    "maxPending": 1,
+    "pendingBytes": 0,
+    "maxPendingBytes": 65536
+  },
+  "consumerObservation": null,
+  "observedSha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+  "mutation": {
+    "steps": 0,
+    "retainedBytes": 0,
+    "touchedByte": null
+  },
+  "retainedAllocations": 0,
+  "thresholdBytes": 268435456,
+  "operator": "<",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+}

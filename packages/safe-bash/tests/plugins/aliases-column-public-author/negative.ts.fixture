@@ -1,0 +1,7 @@
+import { agentCommands, grepAliasCommands, columnCommands, createColumnCommand, createGrepAliasCommands } from "virtual-bash";
+agentCommands({ column: { replace: true } });
+agentCommands({ regex: { maxWorkers: "1" } });
+grepAliasCommands({ regex: { unbounded: true } });
+columnCommands({ limits: { maxRows: "2" } });
+createColumnCommand({ maxRows: 2 });
+createGrepAliasCommands({ regex: { requestTimeoutMs: null } });

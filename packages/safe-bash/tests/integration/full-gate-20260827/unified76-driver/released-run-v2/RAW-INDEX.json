@@ -1,0 +1,77 @@
+{
+  "capturedAt": "2026-08-28T11:05:31.034Z",
+  "files": [
+    {
+      "source": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2/ADMISSION.json",
+      "capture": "raw-v1/inner-ADMISSION.json.gz",
+      "sourceBytes": 46554,
+      "sourceSha256": "3f67f58fbbd6dde4396d5699beb83b0c3823e4d72f71c457cdc375ad4a897013",
+      "compressedBytes": 6908,
+      "compressedSha256": "698e716151c697b59107eb510726084dd7fca9c9b725a06c97d0c712ac94e5e8",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2/REPORT.json",
+      "capture": "raw-v1/inner-REPORT.json.gz",
+      "sourceBytes": 18882746,
+      "sourceSha256": "5cd864aea5ac8d192670ba50763549c578f7b1a87b202a1a6b4db7d75a6b202f",
+      "compressedBytes": 3489694,
+      "compressedSha256": "8bb0febd3454b19f1803c07aa20f72d8a6d2fb6c9e76a26599d497702fc22b5c",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/OS-FENCE-RESULT.json",
+      "capture": "raw-v1/outer-OS-FENCE-RESULT.json.gz",
+      "sourceBytes": 33521,
+      "sourceSha256": "a19eea2a7e405db52cf8d6d6c17fc57533ac2c4138dfb3439ab007b5f32043b4",
+      "compressedBytes": 3662,
+      "compressedSha256": "06e90a906e2e317865d454d8133bbdd7131a45d63680b0cc0c74f022ff913f98",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/OS-FENCE.json",
+      "capture": "raw-v1/outer-OS-FENCE.json.gz",
+      "sourceBytes": 4043,
+      "sourceSha256": "9865a0e94e32590f20896b874aa0828f330e7e0f8c8ac54ad4ab17426b344b12",
+      "compressedBytes": 1344,
+      "compressedSha256": "9bf074bf054524d006026dc490c076ca7de0aca3ebf5a00efb0bfb0db7361658",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/REPORT.json",
+      "capture": "raw-v1/outer-REPORT.json.gz",
+      "sourceBytes": 59989,
+      "sourceSha256": "83db343675254fdf7c7e7db19276977a8cafc47e796b62804c69dc4fd1c513a4",
+      "compressedBytes": 4921,
+      "compressedSha256": "83700aa02508fa6204cab09a6965b1c0e7e7c6117c89e9bf6368439f9aadf49a",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/stdout",
+      "capture": "raw-v1/outer-stdout.gz",
+      "sourceBytes": 27760,
+      "sourceSha256": "ba32071dd60304926f3110211a1428da4bedf64674f4ba79e3f66456e7d6c237",
+      "compressedBytes": 5272,
+      "compressedSha256": "c98e951022234c2d937dc7d9a6f7b0f3ad68dd60a46bb4b7b868dcbf6547d0f0",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/stderr",
+      "capture": "raw-v1/outer-stderr.gz",
+      "sourceBytes": 0,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e",
+      "roundtripVerified": true
+    },
+    {
+      "source": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-fixture-authority.json",
+      "capture": "raw-v1/native-fixture-authority.json.gz",
+      "sourceBytes": 6659,
+      "sourceSha256": "9f018b4e8bae9f4ce0df48d65c25ecd4693b3b0929687a02f40c3b441ee21cb9",
+      "compressedBytes": 895,
+      "compressedSha256": "bb9902f69536f9dfd1b8fe69247fbc3c146536cd40a15bf1af2950017bde8600",
+      "roundtripVerified": true
+    }
+  ]
+}

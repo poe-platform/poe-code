@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { mkdirSync, writeFileSync, readFileSync, copyFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+const root = '/Users/kjopek/Workspace/safe-bash';
+const task = '/tmp/safe-bash-owned-output-qualified-prototype-C5XVrA';
+const candidate = resolve(task, 'candidate');
+const historical = resolve(root, 'tests/shell-stress/first-read-contract-review/owned-output-streaming-prototype');
+const env = { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C', TZ: 'UTC', HOME: task, TMPDIR: task, TMP: task, TEMP: task, TSX_DISABLE_CACHE: '1', TSX_CACHE_DIR: resolve(task, 'tsx-cache-disabled') };
+const records = []; mkdirSync(resolve(task, 'history'), { recursive: true });
+const capture = async (label, args, cwd = candidate) => {
+  const child = spawn(process.execPath, args, { cwd, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  const stdout = []; const stderr = []; let size = 0; let killed = false;
+  const kill = () => { if (!killed) { killed = true; try { process.kill(-child.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; } } };
+  for (const [stream, chunks] of [[child.stdout, stdout], [child.stderr, stderr]]) stream.on('data', chunk => { size += chunk.length; if (size > 4 * 1024 * 1024) kill(); else chunks.push(Buffer.from(chunk)); });
+  const timer = setTimeout(kill, 25000);
+  const result = await new Promise((resolve, reject) => { child.on('error', reject); child.on('close', (status, signal) => resolve({ status, signal })); }).finally(() => clearTimeout(timer));
+  assert.throws(() => process.kill(child.pid, 0), { code: 'ESRCH' }); assert.throws(() => process.kill(-child.pid, 0), { code: 'ESRCH' });
+  const record = { label, args, cwd, env, pid: child.pid, ...result, killed, reaped: true, groupAbsent: true, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
+  records.push(record); writeFileSync(resolve(task, 'history', label + '.json'), JSON.stringify(record, null, 2) + '\n');
+  console.log(JSON.stringify({ label, status: result.status, killed, tests: record.stdout.match(/# (?:tests|pass|fail|skipped) \d+/g) }));
+  assert.equal(killed, false); assert.equal(result.signal, null);
+  return record;
+};
+const oldControl = resolve(historical, 'controls.mjs.data');
+copyFileSync(oldControl, resolve(task, 'historical-controls.mjs'));
+const args = ['--unhandled-rejections=strict', '--import', 'tsx', '--test', '--test-concurrency=1'];
+await capture('unchanged-S1-author6', [...args, 'tests/shell/owned-output-streaming-author.test.ts']);
+await capture('legacy57-remote19', [...args, '--test-name-pattern=pipeline close: (?!first-read-)', 'tests/shell/remote-close.test.ts']);
+await capture('legacy57-byteio28', [...args, 'tests/contracts/io.test.ts', 'tests/contracts/io.stress.test.ts']);
+await capture('legacy57-shared5', [...args, '--test-name-pattern=hard-timeout lifecycle regression: shared-', 'tests/shell/lifecycle.test.ts']);
+await capture('legacy57-streaming4', [...args, '--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches', 'tests/shell/streaming.test.ts']);
+for (const scenario of ['first-read-head-zero', 'first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers']) {
+  await capture('original-' + scenario, ['--unhandled-rejections=strict', '--import', 'tsx', 'tests/shell/first-read-probe.ts', scenario]);
+}
+for (const scenario of ['first-read-local', 'first-read-s3', 'first-read-webdav', 'first-read-curl-body', 'first-read-curl-headers']) {
+  await capture('optin-' + scenario, ['--unhandled-rejections=strict', '--import', 'tsx', 'tests/shell/adapted-first-read-probe.ts', scenario]);
+}
+for (const scenario of ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9']) {
+  await capture('legacy9-' + scenario, ['--unhandled-rejections=strict', resolve(task, 'historical-controls.mjs'), scenario], task);
+}
+const compiler = resolve(root, 'node_modules/typescript/bin/tsc');
+await capture('new-consumer-typecheck', [compiler, '--noEmit', '--listFiles', '--strict', '--target', 'ES2023', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--types', 'node', '--typeRoots', resolve(root, 'node_modules/@types'), resolve(task, 'consumer.mts')], task);
+await capture('new-consumer-runtime', ['--unhandled-rejections=strict', '--import', resolve(root, 'node_modules/tsx/dist/loader.mjs'), resolve(task, 'consumer.mts')], task);
+writeFileSync(resolve(task, 'history-summary.json'), JSON.stringify({ completedAt: new Date().toISOString(), environment: env, unchangedHistoricalControlSha256: createHash('sha256').update(readFileSync(oldControl)).digest('hex'), records: records.map(({ stdout, stderr, ...record }) => record) }, null, 2) + '\n');

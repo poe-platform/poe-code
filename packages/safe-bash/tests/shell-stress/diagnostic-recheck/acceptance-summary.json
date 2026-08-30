@@ -1,0 +1,1506 @@
+{
+  "revision": "c116d637aa82e4b075460fc07088a5703a10e7b4",
+  "sourceCommits": [
+    "22ca649492275aed151193986d6956a95ff7f3f7",
+    "c116d637aa82e4b075460fc07088a5703a10e7b4"
+  ],
+  "times": [
+    "2026-08-27T04:12:48.289Z",
+    "2026-08-27T04:15:06.647Z"
+  ],
+  "nul": {
+    "beforePrimary": 3,
+    "afterPrimary": 16,
+    "historical": 0,
+    "total": 16,
+    "rows": [
+      {
+        "fixture": "original-dollar-blanklines",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              6
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "original-backtick-control",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": true,
+            "warningLines": [
+              4
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-no-blank",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": true,
+            "warningLines": [
+              4
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-one-blank",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              5
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "shell: line 5: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-three-blanks",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              7
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "shell: line 7: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNzogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-prefix-lines",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              8
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "nested-multiple-nuls-one-warning",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              6
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "<abc>",
+          "stderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiYz4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "<abc>",
+          "stderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiYz4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "two-substitutions-two-warnings",
+        "name": "shell",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": true,
+            "warningLines": [
+              1,
+              2
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "<ab><cd>",
+          "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\nshell: line 2: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiPjxjZD4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0CnNoZWxsOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "after": {
+          "stdout": "<ab><cd>",
+          "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\nshell: line 2: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiPjxjZD4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0CnNoZWxsOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [],
+        "guarded": true
+      },
+      {
+        "fixture": "original-dollar-blanklines",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              6
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "diagnostic-nul-script: line 6: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDY6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "original-backtick-control",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              4
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "diagnostic-nul-script: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDQ6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-no-blank",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              4
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNDogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "diagnostic-nul-script: line 4: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDQ6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-one-blank",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              5
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 6: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgNjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "diagnostic-nul-script: line 5: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDU6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-three-blanks",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              7
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "diagnostic-nul-script: line 7: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDc6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "dollar-prefix-lines",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              8
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "",
+          "stderr": "shell: line 10: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTA6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "after": {
+          "stdout": "",
+          "stderr": "diagnostic-nul-script: line 8: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDg6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "nested-multiple-nuls-one-warning",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              6
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "<abc>",
+          "stderr": "shell: line 8: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiYz4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgODogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "after": {
+          "stdout": "<abc>",
+          "stderr": "diagnostic-nul-script: line 6: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiYz4=",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDY6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      },
+      {
+        "fixture": "two-substitutions-two-warnings",
+        "name": "diagnostic-nul-script",
+        "prior": [
+          {
+            "profile": "primary-5.3",
+            "exact": false,
+            "warningLines": [
+              1,
+              2
+            ]
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false,
+            "warningLines": []
+          }
+        ],
+        "current": [
+          {
+            "profile": "primary-5.3",
+            "exact": true
+          },
+          {
+            "profile": "historical-3.2",
+            "exact": false
+          }
+        ],
+        "before": {
+          "stdout": "<ab><cd>",
+          "stderr": "shell: line 1: warning: command substitution: ignored null byte in input\nshell: line 2: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiPjxjZD4=",
+          "stderrBase64": "c2hlbGw6IGxpbmUgMTogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0CnNoZWxsOiBsaW5lIDI6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dAo="
+        },
+        "after": {
+          "stdout": "<ab><cd>",
+          "stderr": "diagnostic-nul-script: line 1: warning: command substitution: ignored null byte in input\ndiagnostic-nul-script: line 2: warning: command substitution: ignored null byte in input\n",
+          "exitCode": 0,
+          "files": {},
+          "stdoutBase64": "PGFiPjxjZD4=",
+          "stderrBase64": "ZGlhZ25vc3RpYy1udWwtc2NyaXB0OiBsaW5lIDE6IHdhcm5pbmc6IGNvbW1hbmQgc3Vic3RpdHV0aW9uOiBpZ25vcmVkIG51bGwgYnl0ZSBpbiBpbnB1dApkaWFnbm9zdGljLW51bC1zY3JpcHQ6IGxpbmUgMjogd2FybmluZzogY29tbWFuZCBzdWJzdGl0dXRpb246IGlnbm9yZWQgbnVsbCBieXRlIGluIGlucHV0Cg=="
+        },
+        "changed": [
+          "stderrBase64"
+        ],
+        "guarded": true
+      }
+    ]
+  },
+  "originalCohorts": [
+    {
+      "label": "original-historical",
+      "oldTap": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "newTap": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rawExact": 74,
+      "total": 88,
+      "unchangedActual": 88,
+      "nativeFrozenEqual": 88,
+      "oldNine": [
+        {
+          "name": "move-output-really-closes-source",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "move-input-really-closes-source",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "prevalidation-prior-output-and-file",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-preserves-only-earlier-effects",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-expansion-prevents-following-file-effect",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-expansion-in-substitution-stops-substitution-only",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "command-substitution-removes-nul-bytes",
+          "exact": false,
+          "unchangedActual": true
+        }
+      ],
+      "guarded": true
+    },
+    {
+      "label": "original-primary",
+      "oldTap": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "newTap": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rawExact": 74,
+      "total": 88,
+      "unchangedActual": 88,
+      "nativeFrozenEqual": 88,
+      "oldNine": [
+        {
+          "name": "move-output-really-closes-source",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "move-input-really-closes-source",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "prevalidation-prior-output-and-file",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-preserves-only-earlier-effects",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-expansion-prevents-following-file-effect",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-expansion-in-substitution-stops-substitution-only",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "command-substitution-removes-nul-bytes",
+          "exact": false,
+          "unchangedActual": true
+        }
+      ],
+      "guarded": true
+    },
+    {
+      "label": "profile-primary",
+      "oldTap": {
+        "tests": 90,
+        "pass": 89,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "newTap": {
+        "tests": 89,
+        "pass": 89,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rawExact": 88,
+      "total": 88,
+      "unchangedActual": 88,
+      "nativeFrozenEqual": 88,
+      "oldNine": [
+        {
+          "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-expansion-prevents-following-file-effect",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-expansion-in-substitution-stops-substitution-only",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "command-substitution-removes-nul-bytes",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "move-output-really-closes-source",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "move-input-really-closes-source",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "prevalidation-prior-output-and-file",
+          "exact": true,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-preserves-only-earlier-effects",
+          "exact": true,
+          "unchangedActual": true
+        }
+      ],
+      "guarded": true
+    },
+    {
+      "label": "profile-historical",
+      "oldTap": {
+        "tests": 89,
+        "pass": 75,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "newTap": {
+        "tests": 89,
+        "pass": 75,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "rawExact": 74,
+      "total": 88,
+      "unchangedActual": 88,
+      "nativeFrozenEqual": 88,
+      "oldNine": [
+        {
+          "name": "nested-substitution-syntax-error-does-not-prevent-earlier-effects",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-expansion-prevents-following-file-effect",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-arithmetic-expansion-prevents-following-file-effect",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-expansion-in-substitution-stops-substitution-only",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "command-substitution-removes-nul-bytes",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "move-output-really-closes-source",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "move-input-really-closes-source",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "prevalidation-prior-output-and-file",
+          "exact": false,
+          "unchangedActual": true
+        },
+        {
+          "name": "fatal-parameter-preserves-only-earlier-effects",
+          "exact": false,
+          "unchangedActual": true
+        }
+      ],
+      "guarded": true
+    }
+  ],
+  "author25": [
+    {
+      "name": "GNU-5.3",
+      "total": 25,
+      "mismatches": []
+    },
+    {
+      "name": "historical-3.2",
+      "total": 25,
+      "mismatches": [
+        "blank-separator",
+        "comments",
+        "leading-blank",
+        "semicolon-newlines",
+        "and-continuation",
+        "or-continuation",
+        "pipe-continuation",
+        "quoted-newlines",
+        "first-word-newline",
+        "escaped-newline",
+        "three-level",
+        "named-dollar",
+        "named-backtick",
+        "two-warnings",
+        "file-context",
+        "dot-context",
+        "source-context",
+        "eval-context",
+        "function-context",
+        "source-function-context",
+        "backtick-blank-control",
+        "named-line-context",
+        "source-line-context",
+        "eval-line-context"
+      ]
+    }
+  ],
+  "phases": [
+    {
+      "label": "nul-shell-original-dollar-blanklines",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-original-backtick-control",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-dollar-no-blank",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-dollar-one-blank",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-dollar-three-blanks",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-dollar-prefix-lines",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-nested-multiple-nuls-one-warning",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-shell-two-substitutions-two-warnings",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-original-dollar-blanklines",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-original-backtick-control",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-dollar-no-blank",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-dollar-one-blank",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-dollar-three-blanks",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-dollar-prefix-lines",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-nested-multiple-nuls-one-warning",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "nul-diagnostic-nul-script-two-substitutions-two-warnings",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 137,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "original-historical",
+      "status": 1,
+      "counts": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 144,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "original-primary",
+      "status": 1,
+      "counts": {
+        "tests": 89,
+        "pass": 80,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 144,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "profile-primary",
+      "status": 0,
+      "counts": {
+        "tests": 89,
+        "pass": 89,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 143,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "profile-historical",
+      "status": 1,
+      "counts": {
+        "tests": 89,
+        "pass": 75,
+        "fail": 14,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 143,
+      "sourceImports": 135,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "author25-both-profiles",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 40,
+      "sourceImports": 34,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "author26",
+      "status": 0,
+      "counts": {
+        "tests": 26,
+        "pass": 26,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 43,
+      "sourceImports": 34,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": [
+        "tests/shell/diagnostic-context-bounds.ts"
+      ]
+    },
+    {
+      "label": "diagnostic-parser171",
+      "status": 0,
+      "counts": {
+        "tests": 171,
+        "pass": 171,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 45,
+      "sourceImports": 34,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "source-eval134",
+      "status": 0,
+      "counts": {
+        "tests": 134,
+        "pass": 134,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 48,
+      "sourceImports": 34,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "current-shell43",
+      "status": 0,
+      "counts": {
+        "tests": 44,
+        "pass": 44,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "guarded": true,
+      "actualInputs": 39,
+      "sourceImports": 34,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "global",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 1080,
+      "sourceImports": 0,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": [
+        "tests/shell/diagnostic-context-bounds.ts"
+      ]
+    },
+    {
+      "label": "build",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 302,
+      "sourceImports": 0,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    },
+    {
+      "label": "benchmark",
+      "status": 0,
+      "counts": {},
+      "guarded": true,
+      "actualInputs": 417,
+      "sourceImports": 0,
+      "sourceDrift": [],
+      "changed": [],
+      "boundsEngine": []
+    }
+  ],
+  "reviewHashes": {
+    "src/shell/parser.ts": "f8a76103ccc3e0f981bdb8cf391f48a8864dbf895c39e459d5f5da7b6ec77b0c",
+    "src/shell/runtime.ts": "f307642e52c3bfeb5df64057fb26af6645135bb5bdc307f399de6ce1541c0ddb",
+    "src/contracts/command.ts": "1ec2f2907eb123ea366623bda293249a62bad6886a63bebb957930df0d414ffa",
+    "src/contracts/command.md": "8201518b283448f6cc038b8a4c7239b28fd495738493179d6f4708cd848e3e2e",
+    "tests/shell/diagnostic-context-cases.ts": "2b01e6cb1fe97f4b105fe3398a3bfb5100550e0e7845e7d5959a1e39d470bc32",
+    "tests/shell/diagnostic-context-native.json": "217f074f3d21a91419dc7148adb323fb9d599e50b610412cfffc7414f82c8ce4",
+    "tests/shell/diagnostic-context-report.md": "4d4b0b2652c78ec84e38768088e17d1f22b02d3f92f332217ca556e6ebb3a49c",
+    "tests/shell-stress/diagnostic-recheck/acceptance.mjs": "4fdf625ef99cf48567ea30fa4a5587c2b7fd047104eece0917118c8cedd2bcbe",
+    "tests/shell-stress/diagnostic-recheck/trace.mjs": "93b4160a31b54b8a2f3a1d75db5287389ca4229f2da80eccc7a3fe03ff66813a",
+    "tests/shell-stress/diagnostic-recheck/SOURCE_REVIEW.md": "8b3ee9a5b1b9e729b72b3b4fb671393dd19316c22f32e0172bef43cb59a10649"
+  },
+  "sourceDiff": "diff --git a/src/shell/parser.ts b/src/shell/parser.ts\nindex 5694ffe..7007d12 100644\n--- a/src/shell/parser.ts\n+++ b/src/shell/parser.ts\n@@ -14,6 +14,7 @@ export interface Word {\n   readonly offset: number;\n   readonly plain?: string;\n   readonly spelling?: string;\n+  readonly printedNewlines?: number;\n }\n \n interface Token {\n@@ -65,7 +66,7 @@ export type Command = (\n   | { kind: \"for\"; name: string; words?: Word[]; body: Script }\n   | { kind: \"function\"; name: string; body: Command }\n   | { kind: \"arithmetic\"; expression: ArithmeticProgram; source: string }\n-) & { redirects: Redirect[]; line?: number };\n+) & { redirects: Redirect[]; line?: number; sourceName?: string };\n \n export interface Pipeline {\n   readonly commands: Command[];\n@@ -81,12 +82,32 @@ export interface Script {\n   readonly lists: AndOr[];\n   readonly warnings?: readonly string[];\n   readonly line?: number;\n+  readonly printedLines?: ReadonlyMap<Command, number>;\n+  readonly printedNewlines?: number;\n+}\n+\n+function printedSimpleLines(lists: readonly AndOr[], separators: readonly boolean[]): Pick<Script, \"printedLines\" | \"printedNewlines\"> {\n+  const printedLines = new Map<Command, number>();\n+  let line = 1;\n+  for (let index = 0; index < lists.length; index++) {\n+    for (const pipeline of lists[index]!.pipelines) for (const command of pipeline.commands) {\n+      if (command.kind !== \"simple\" || !command.words.length || command.redirects.some(redirect => redirect.document)) return {};\n+      const words = [...command.words, ...command.redirects.map(redirect => redirect.target)];\n+      if (words.some(word => word.printedNewlines === undefined)) return {};\n+      printedLines.set(command, line + command.words[0]!.printedNewlines!);\n+      for (const word of words) line += word.printedNewlines!;\n+    }\n+    if (index < lists.length - 1 && separators[index]) line++;\n+  }\n+  return { printedLines, printedNewlines: line - 1 };\n }\n \n class IncompleteShellInput extends Error {}\n \n class Lexer {\n   position = 0;\n+  printedNewlineReduction = 0;\n+  unprintedWords = 0;\n   delimiterOperator: string | undefined;\n   readonly documents: HereDocument[] = [];\n \n@@ -252,6 +273,8 @@ class Lexer {\n \n   word(terminator?: string, enclosingQuoted = false, literal = false): Word {\n     const offset = this.position;\n+    const reduction = this.printedNewlineReduction;\n+    const unprinted = this.unprintedWords;\n     const parts: WordPart[] = [];\n     let plain = true;\n     const text = (value: string, quoted: boolean) => {\n@@ -264,6 +287,7 @@ class Lexer {\n       if (terminator ? terminator.includes(current) : /[ \\t\\n;|&()<>]/u.test(current)) break;\n       if (current === \"$\" && this.source[this.position + 1] === \"'\" && !enclosingQuoted && !literal) {\n         plain = false;\n+        this.unprintedWords++;\n         text(this.ansiWord(), true);\n       } else if (current === \"'\" && !enclosingQuoted) {\n         plain = false;\n@@ -282,6 +306,7 @@ class Lexer {\n           else if (inner === \"\\\\\" && /[$`\"\\\\\\n]/u.test(this.source[this.position + 1] ?? \"\")) {\n             const escaped = this.source[this.position + 1]!;\n             if (escaped !== \"\\n\") text(escaped, true);\n+            else this.printedNewlineReduction++;\n             this.position += 2;\n           } else {\n             text(inner, true);\n@@ -295,6 +320,7 @@ class Lexer {\n         this.position++;\n         if (this.position === this.source.length) this.error(\"Trailing escape\");\n         if (this.source[this.position] !== \"\\n\") text(this.source[this.position]!, true);\n+        else this.printedNewlineReduction++;\n         this.position++;\n       } else if (current === \"$\" || current === \"`\") {\n         plain = false;\n@@ -308,7 +334,8 @@ class Lexer {\n         this.position++;\n       }\n     }\n-    return { parts, offset, ...(plain ? { plain: parts.map((part) => part.kind === \"text\" ? part.value : \"\").join(\"\") } : {}) };\n+    const printedNewlines = this.source.slice(offset, this.position).split(\"\\n\").length - 1 - (this.printedNewlineReduction - reduction);\n+    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === \"text\" ? part.value : \"\").join(\"\") } : {}) };\n   }\n \n   ansiWord(): string {\n@@ -399,6 +426,8 @@ class Lexer {\n       }\n       if (nested.lexer.documents.length) this.error(\"Here-document requires a newline before closing command substitution\");\n       this.position += nested.current.end + 1;\n+      if (script.printedNewlines === undefined) this.unprintedWords++;\n+      else this.printedNewlineReduction += this.source.slice(start, this.position - 1).split(\"\\n\").length - 1 - script.printedNewlines;\n       parts.push({ kind: \"substitution\", script, line, sourceLine: script.line ?? line, quoted });\n     } else if (this.source[this.position] === \"{\") {\n       this.position++;\n@@ -475,6 +504,7 @@ class Parser {\n \n   script(stops = new Set<string>(), inputUnit = false): Script {\n     const lists: AndOr[] = [];\n+    const separators: boolean[] = [];\n     this.newlines();\n     const line = this.lexer.lineAt(this.current.offset);\n     while (this.current.kind !== \"end\" && !stops.has(this.current.value)) {\n@@ -486,6 +516,7 @@ class Parser {\n         pipelines.push(this.pipeline());\n       }\n       lists.push({ pipelines, operators });\n+      separators.push(this.is(\"\\n\"));\n       if (inputUnit && this.is(\"\\n\")) break;\n       if (this.is(\";\") || this.is(\"\\n\")) {\n         this.advance();\n@@ -493,7 +524,8 @@ class Parser {\n         this.newlines();\n       } else if (!this.isEnd() && !this.is(\")\") && !(stops.has(this.current.value) && [\";;\", \";&\", \";;&\"].includes(this.current.value))) this.error(\"Expected command separator\");\n     }\n-    return { lists, line };\n+    const printed = printedSimpleLines(lists, separators);\n+    return { lists, line, ...printed };\n   }\n \n   pipeline(): Pipeline {\ndiff --git a/src/shell/runtime.ts b/src/shell/runtime.ts\nindex b2bead3..edb3679 100644\n--- a/src/shell/runtime.ts\n+++ b/src/shell/runtime.ts\n@@ -161,6 +161,8 @@ interface IO {\n   readonly stderr: ByteSink;\n   readonly diagnosticLine?: number;\n   readonly diagnosticOffset?: number;\n+  readonly substitutionDiagnosticLine?: number;\n+  readonly substitutionDiagnosticLines?: ReadonlyMap<Command, number>;\n   readonly scriptName?: string;\n   descriptors?: ReadonlyMap<number, Descriptor>;\n }\n@@ -387,7 +389,8 @@ export class Runtime {\n       [0, { input: originalIO.stdin, ...(originalIO.stdinIsDefault === undefined ? {} : { stdinIsDefault: originalIO.stdinIsDefault }) }],\n       [1, { output: originalIO.stdout }], [2, { output: originalIO.stderr }],\n     ]);\n-    originalIO = { ...originalIO, diagnosticLine: (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0) };\n+    const diagnosticLine = (command.line ?? 1) + (originalIO.diagnosticOffset ?? 0);\n+    originalIO = { ...originalIO, diagnosticLine, substitutionDiagnosticLine: originalIO.substitutionDiagnosticLines?.get(command) ?? diagnosticLine };\n     if (command.kind === \"subshell\") originalIO = isolateIO(originalIO);\n     this.budget.tick();\n     if (this.budget.commands % 128 === 0) await interruptible(new Promise<void>((resolve) => setImmediate(resolve)), this.signal);\n@@ -401,7 +404,7 @@ export class Runtime {\n           await this.diagnostic(io, `\\`${command.name}': is a special builtin`);\n           throw new Flow(\"exit\", 2);\n         }\n-        state.functions.set(command.name, command.body);\n+        state.functions.set(command.name, { ...command.body, sourceName: io.scriptName ?? \"shell\" });\n         return 0;\n       }\n       if (command.kind === \"simple\") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);\n@@ -547,6 +550,8 @@ export class Runtime {\n         ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }),\n         ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }),\n         ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }),\n+        ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }),\n+        ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }),\n         stdin: descriptor?.input ?? closedSource,\n         ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }),\n         stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink,\n@@ -791,7 +796,7 @@ export class Runtime {\n           state.depth++;\n           const locals = new Map<string, { value: string | undefined; exported: boolean; readOnly?: boolean }>();\n           state.locals.push(locals);\n-          try { return { exitCode: await this.command(body, state, context) }; }\n+          try { return { exitCode: await this.command(body, state, { ...context, scriptName: body.sourceName ?? io.scriptName ?? \"shell\" }) }; }\n           catch (error) {\n             if (error instanceof Flow && error.kind === \"return\") return { exitCode: error.status };\n             throw error;\n@@ -1530,11 +1535,15 @@ export class Runtime {\n       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;\n       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;\n       const fileShortcut = command?.kind === \"simple\" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === \"<\";\n-      const captureIO = { ...isolateIO(io), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };\n+      const warningLine = io.substitutionDiagnosticLine ?? io.diagnosticLine ?? part.line;\n+      const substitutionDiagnosticLines = new Map<Command, number>();\n+      for (const [command, line] of part.script.printedLines ?? []) substitutionDiagnosticLines.set(command,\n+        part.sourceLine === undefined ? warningLine + (command.line ?? part.line) - part.line : warningLine + line - 1);\n+      const captureIO = { ...isolateIO(io), substitutionDiagnosticLines, diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), stdout: this.budget.sink(capture, this.signal) };\n       state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO);\n       state.status = state.substitutionStatus;\n       const bytes = capture.bytes();\n-      if (bytes.includes(0)) await writeText(io.stderr, `shell: line ${io.diagnosticLine ?? part.line}: warning: command substitution: ignored null byte in input\\n`);\n+      if (bytes.includes(0)) await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${warningLine}: warning: command substitution: ignored null byte in input\\n`);\n       return new TextDecoder().decode(bytes.includes(0) ? bytes.filter((byte) => byte !== 0) : bytes).replace(/\\n+$/u, \"\");\n     }\n     let value = part.name === \"?\" ? String(state.status)\n",
+  "sourceDiffHash": "90fe690c59f1e2899ba1b8d887bd830c268e103ce8c77d3f56ce7e1067df32ac",
+  "addedLoadedDependencies": [
+    "src/fs/s3/http/index.ts",
+    "src/fs/s3/http/request.ts",
+    "src/fs/s3/http/signature.ts",
+    "src/fs/s3/http/transport.ts",
+    "src/fs/s3/http/xml.ts"
+  ],
+  "freshNativeNul": 32,
+  "oldNativeNulIdentical": true,
+  "checkedPids": 905,
+  "recheckedPids": 905,
+  "alive": [],
+  "gitHead": "8317097af7c4d4a6f9a4a068c40e988086a2854a",
+  "gitStatus": " M src/commands/archive/README.md\n M src/commands/archive/extract.ts\n M src/commands/archive/format.ts\n M tests/commands/archive/options.test.ts\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/\n?? tests/commands/archive-stress/pax-deletion-evidence/\n?? tests/commands/archive-stress/pax-deletion-independent/\n?? tests/commands/archive/pax-deletion.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell-stress/diagnostic-recheck/SOURCE_REVIEW.md\n?? tests/shell-stress/diagnostic-recheck/acceptance-c116d637.json\n?? tests/shell-stress/diagnostic-recheck/acceptance.mjs\n?? tests/stress/regex-execution/matrix-continuation/claims/\n?? tests/stress/regex-execution/matrix-continuation/evidence/\n",
+  "foreignStaging": "",
+  "acceptedBudgetStatus": "ROOT reports Plato1f2aa30 accepted all frozen f700 eight budget failures with nine controls preserved: accounting17/18 (Appleenv ordering raw loss),100/100,6/6,10/10,111/111,guards8/8,mutants7/7,author29/29. Not rerun or newly claimed by this diagnostic verifier; baseline pending wording remains historical."
+}

@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {readPinned,pinExecutable,hash} from './reuse/auth.mjs';
+import {runDirect} from './reuse/direct-child.mjs';
+import {timeWindow} from './admission.mjs';
+const seal=JSON.parse(readPinned(process.env.PIPE_SEAL,{bytes:Number(process.env.PIPE_SEAL_BYTES),sha256:process.env.PIPE_SEAL_SHA256},2097152));
+const grant=JSON.parse(readPinned(process.env.PIPE_GRANT,{bytes:Number(process.env.PIPE_GRANT_BYTES),sha256:process.env.PIPE_GRANT_SHA256},65536));
+timeWindow(grant.started,grant.deadline);pinExecutable(seal.node);for(const row of seal.files)readPinned(row.path,row);
+const root=seal.actualRoot+'-outer';if(fs.existsSync(root))throw Error('OUTER_USED');fs.mkdirSync(root);
+const ledger={starts:0,maximum:1,active:0,stopped:false,captureBytes:0,captureMaximum:131072,rows:[]};
+const child=await runDirect({id:'owner',node:seal.node,args:[seal.owner],cwd:root,env:{PATH:'/usr/bin:/bin',HOME:root,TMPDIR:root,LANG:'C',LC_ALL:'C',PIPE_SEAL:process.env.PIPE_SEAL,PIPE_SEAL_BYTES:process.env.PIPE_SEAL_BYTES,PIPE_SEAL_SHA256:process.env.PIPE_SEAL_SHA256,PIPE_GRANT:process.env.PIPE_GRANT,PIPE_GRANT_BYTES:process.env.PIPE_GRANT_BYTES,PIPE_GRANT_SHA256:process.env.PIPE_GRANT_SHA256},capture:path.join(root,'owner'),bodyDeadline:grant.deadline-5000,finalDeadline:grant.deadline,timeoutMs:Math.max(1,grant.deadline-5000-Date.now()),ownerGrace:true},ledger);
+const receipt=Buffer.from(JSON.stringify({ledger,qualified:child.row.qualified,finished:Date.now()})+'\n');fs.writeFileSync(path.join(root,'OUTER.json'),receipt,{flag:'wx'});
+if(Date.now()>=grant.deadline)throw Error('OUTER_PUBLICATION_DEADLINE');process.stdout.write(JSON.stringify({qualified:child.row.qualified,status:child.row.status,receiptSha256:hash(receipt)})+'\n');process.exitCode=child.row.qualified?child.row.status:1;

@@ -1,0 +1,46 @@
+{
+  "schema": "K08-INDEPENDENT-AUDIT-RESULT-1",
+  "finished": "2026-08-29T16:34:25.583Z",
+  "inputCount": 64,
+  "rawFiles": 469,
+  "rawBytes": 15816908,
+  "packageMembers": 1006,
+  "primary": 69,
+  "helpers": [
+    {
+      "id": "helpers-source-built",
+      "rows": 16
+    },
+    {
+      "id": "helpers-installed",
+      "rows": 16
+    },
+    {
+      "id": "helpers-physically-moved",
+      "rows": 16
+    }
+  ],
+  "mutants": 3,
+  "bindings": 2,
+  "tamperControls": [
+    "raw-byte",
+    "missing-primary",
+    "duplicate-primary",
+    "diagnostic",
+    "mutant-hash",
+    "missing-close"
+  ],
+  "knownDirectRows": 77,
+  "ownerRetired": true,
+  "collectorTerminal": "COLLECTOR_COMPLETED",
+  "administrativeRoles": 7,
+  "administrativeFinished": "2026-08-29T16:26:45.974Z",
+  "noNewTypesOrRestores": true,
+  "qualifications": [
+    "source-prepared/returned load trace plus exact result, not standalone evaluation proof",
+    "known direct roles, not universal descendants",
+    "collector process exit is reported tool evidence, not an independent OS probe",
+    "no native/product execution by reviewer",
+    "original STOP1002 and LF-copy qualification retained"
+  ]
+}

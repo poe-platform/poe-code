@@ -1,0 +1,235 @@
+{
+  "runtimeRecords": [
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/.gitignore",
+      "blob": "76b5fe44282c2f12e707bf76e240bad731641c42",
+      "mode": 420,
+      "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40",
+      "bytes": 7,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/BINDINGS.json",
+      "blob": "522f3473678fc7217b308197873a862afe4c0906",
+      "mode": 420,
+      "sha256": "36fb6d5de3998795f5ca680861f35843349f8b0761630795dc9f5864566a8371",
+      "bytes": 28557,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/PROTOCOL.md",
+      "blob": "2068e857d34521c0cb2f6568a5aefe6d92f26fe4",
+      "mode": 420,
+      "sha256": "807acc4a575a6c4b2fbf3a0ad9967048bf64e7a46d4cf579d4ffe0a0b7d5521a",
+      "bytes": 8571,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/RECIPE-SEAL.json",
+      "blob": "22892c312499bf09592788cf1a2732f469a93438",
+      "mode": 420,
+      "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+      "bytes": 3994,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/V1-V2.diff",
+      "blob": "7f289d3b5110d97903e04bb94ab3cfd82c12326c",
+      "mode": 420,
+      "sha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
+      "bytes": 6923,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/controls.json",
+      "blob": "56997cb26655545963e707b2985dd2dfffceff65",
+      "mode": 420,
+      "sha256": "589af6e344c3599726aaae217e975b04f4dddb656b316ed0837834eabe13a30a",
+      "bytes": 7248,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/delta.mjs",
+      "blob": "b3226d0aa8a01b88c944c3e2785535f56d5070f8",
+      "mode": 420,
+      "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0",
+      "bytes": 5957,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/frozen.mjs",
+      "blob": "b884efed52989a1e1e3d653a5bba0b8accc77d35",
+      "mode": 420,
+      "sha256": "23937b43be2061780a73a27490bb8ed7009a6d485429417692e607cc1fd3ad0b",
+      "bytes": 4100,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/recipe.mjs",
+      "blob": "5bd687630342e3f9ee30a9c52ca054180a786448",
+      "mode": 420,
+      "sha256": "26d426b6db948fd9f72f3d712bdd8cfdde9d0e84e99c60f140705380617a6198",
+      "bytes": 3104,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/synthetic-child.mjs",
+      "blob": "d93a9feba0d4a9881123a76208c3e82aa64ad227",
+      "mode": 420,
+      "sha256": "21f2f539ea980b10bd859ddf965ac5e235d117771f9725f2d0971b0ead7afed8",
+      "bytes": 2914,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/validate.mjs",
+      "blob": "1260d31f6de6c070ede28219e8bd2278da49523a",
+      "mode": 420,
+      "sha256": "e7ebffcebf1c00afb79a7fdc9f747dd086602d2ad44f2820d36f32d7cad65ea9",
+      "bytes": 23248,
+      "liveMode": 420
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/SOURCE-PRESEAL.json",
+      "blob": "509570c20f13fcd82dec500aae345e9fd007affc",
+      "mode": 420,
+      "sha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64",
+      "bytes": 2233,
+      "liveMode": 420
+    }
+  ],
+  "coreRecords": [
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/COMPONENTS.json",
+      "blob": "ae066e641ccf7e3bbf64a8e9741069cb4e0e50af",
+      "mode": 420,
+      "sha256": "b5ede57be63a39918d2037dd12284df1596e2e14fea9ad6aceb776c4c6ed8e36",
+      "bytes": 8649,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/DATA-CONTROLS.json",
+      "blob": "799d8e9f03f14521377ce196cebb9fa2a32f36e5",
+      "mode": 420,
+      "sha256": "c1acb570c332425e1da1945a78b5d1c15545922e92a1a1bb5ca9e88234d3834b",
+      "bytes": 888,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/RECIPE.json",
+      "blob": "30d27a0379a9e421ec5845baa36e0ef6fa13ade0",
+      "mode": 420,
+      "sha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158",
+      "bytes": 48754,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/SYNTHETIC.json",
+      "blob": "55e37d8d90c9d233f293b2fa87f4537fd2913083",
+      "mode": 420,
+      "sha256": "55195098d059ce21b7bc60872ad757b4a61df6913f9181d7be13bc6747f876a6",
+      "bytes": 949,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/binding.mjs",
+      "blob": "e21d049b0e64d498d182dc1df051a79815ebb5f9",
+      "mode": 420,
+      "sha256": "e9850cafbb4d2cca31cca098408f5ce65ad7cac1d1d700d85855032f9fbef542",
+      "bytes": 8443,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/check.mjs",
+      "blob": "b39683841e359636f0d8725d444e3e8ce675e375",
+      "mode": 420,
+      "sha256": "254bbcbf2a060f3455d56bdaf0585910df771f36d49e047ca8b464a354b670ed",
+      "bytes": 12620,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/components.mjs",
+      "blob": "1f746598bfb0383a353602f7a9c5e58222a78836",
+      "mode": 420,
+      "sha256": "b2da6eac27533d2bb223b10385a2b2c8bb74e2d4cd502828006b59c0255dd25f",
+      "bytes": 5103,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/data-check.mjs",
+      "blob": "db4db4d401859887ccfd553bddf7835d00672bd9",
+      "mode": 420,
+      "sha256": "179133edf6558e195f9d736d5d325ad7d64fa7409e481c1e9db0349669cc660f",
+      "bytes": 12086,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/materialize-runtime.mjs",
+      "blob": "01db374273dcec2d25b482be765de38ca32276d1",
+      "mode": 420,
+      "sha256": "b0e665f5f6d455e33dcfbba99c9feba06773f46264e30514a9f6726e0205a25c",
+      "bytes": 1095,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/prepare-runtime.mjs",
+      "blob": "c2eb66003613547381afd6ec952a12a36303068c",
+      "mode": 420,
+      "sha256": "52848cddbc3a34f7724c87a63bff075455aeb95d76de215fa87b5cf4e55b6671",
+      "bytes": 3456,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/run.mjs",
+      "blob": "8bc36889ac9aebba2546bae80c70d87df8188e1c",
+      "mode": 420,
+      "sha256": "46f5a026659e99bd3c54c3d9bcc189622d141adba035fb0b79e9ed9e72ec5346",
+      "bytes": 9665,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs",
+      "blob": "1bc62bafef4154b754356474a1bdb7d5e42d0b5e",
+      "mode": 420,
+      "sha256": "61188fffbd45445e4ad199f80e531637a0b16d50e97a1e5e0703bad10981b8f6",
+      "bytes": 6681,
+      "liveMode": 420
+    },
+    {
+      "commit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/worker.mjs",
+      "blob": "c3099b61dd6bfa33a72654c6924acce9e63def12",
+      "mode": 420,
+      "sha256": "a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1",
+      "bytes": 4556,
+      "liveMode": 420
+    }
+  ],
+  "coreExactMembership": true,
+  "consumerSealedModesAndHashes": true,
+  "completeGuards": true,
+  "productImports": 0
+}

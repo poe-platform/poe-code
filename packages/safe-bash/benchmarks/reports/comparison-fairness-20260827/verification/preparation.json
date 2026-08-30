@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "PREPARATION_ONLY_ACTIVE_CANDIDATE_NOT_APPROVED",
+  "created": "2026-08-27T05:06:55.298Z",
+  "observedHead": "3b27782db975ca95eac4bf3f881e1725a63bbcf7",
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "performanceExecutions": 0,
+  "verificationChecks": "Node syntax only; one static git/JSON profile audit, not harness tests or guest recipes",
+  "ownedFiles": [
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/README.md",
+      "sha256": "3346eb7bb3ffd3e740f55ca80c0758deeb25356cbb191f8e02b55c137ec9df10",
+      "bytes": 6179
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/REPORT.md",
+      "sha256": "1f0ba54c843900c65e5bf30d88d206f4f845eabda92265ffd940b96aeaf59176",
+      "bytes": 2419
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/audit-profiles.mjs",
+      "sha256": "f2f0eb693eca4f7ab06483ba897b6dc64360ca3d8998501ab814bfd0e8c533aa",
+      "bytes": 7296
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/offline.mjs",
+      "sha256": "d2f168943bc95cfdec3b7afc5665fbcfcea5933ed5135a44ccaf865c0cfebee0",
+      "bytes": 3444
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/profile-delta.json",
+      "sha256": "c27868922376ebed615c61686bb411a11eec6d23692b37095d88ba5c61a53ba7",
+      "bytes": 11486
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/readiness.schema.json",
+      "sha256": "d71c0ecb77823a6762e04c1818d59ad2af3ec90d6413aec420a7a23718b0137c",
+      "bytes": 2754
+    },
+    {
+      "path": "benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs",
+      "sha256": "7e6412a196ec24fcdc69b92ebb40ef34fb23905a797f49fedac69271770cf531",
+      "bytes": 22624
+    }
+  ],
+  "readOnlyCandidateFiles": [
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/phase.mjs",
+      "sha256": "6808bc4a9ee158bce7b325512d33c69521d6078de7591ba56b82788e80918e50"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/supervise.mjs",
+      "sha256": "1c9c14c50c19e4afde33c8ed33962ad7dad2f7ab913c8bd0fbfd8a93caeeeb13"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/preload.mjs",
+      "sha256": "e1a4fd60ee681b0ee6919dfbdebf8b0d56e65947e3b8aebeb88fdbc61eecd90b"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/loader.mjs",
+      "sha256": "0475eb04d5ad2ee9a8b73441244b22a17ca0f2b5bb00eca1b59e64f28d630703"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/prepare.mjs",
+      "sha256": "20fbc21140098699253466ef44e1a1b5bbbdb29597f00a4fcf4163934ea52d9c"
+    },
+    {
+      "path": "benchmarks/reports/current-integration/comparison-replay-20260827/seal.mjs",
+      "sha256": "f4ab43ac0909d54663e24054041d4a8deebda716e7ad5191f7c3c1811d9e62a0"
+    }
+  ],
+  "plan": {
+    "path": "/tmp/safe-bash-comparison-replay-plan.txt",
+    "sha256": "753377819b5575725c64d4cf9ac78a2b7f6d6cdc7c7b8f1323eab68c2c97ec8a"
+  },
+  "criticalRoute": {
+    "path": "/tmp/safe-bash-comparison-verifier-preflight-review.txt",
+    "sha256": "cb2283e4adc14522ec662a282d62ca22fdbb12e5c0316c885f923ab0ec18c75b"
+  },
+  "limits": [
+    "No completed root review/READY created. Candidate author active; these are read-time hashes, not approval of final runtime instrumentation.",
+    "Raw-review adapter syntax-checked only, not executed against active outputs.",
+    "Read-command attempt used zsh reserved path variable, causing command-not-found before any artifact/product execution; retried read-only without that variable."
+  ]
+}

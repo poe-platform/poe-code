@@ -1,0 +1,31 @@
+{
+  "name": "extension-eight-negative-moved",
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/node",
+  "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/tsc.js",
+    "--project",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/moved-internal/tsconfig-extension-eight-negative-moved.json",
+    "--pretty",
+    "false",
+    "--listFiles"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_NO_WARNINGS": "1"
+  },
+  "started": "2026-08-28T00:46:12.555Z",
+  "ended": "2026-08-28T00:46:12.958Z",
+  "pid": 13839,
+  "exit": 2,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "21332d2b52a13b79f8865ddfcb6506ee853e1ae05422ebe5ec155b7e7652bb95",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,1 @@
+throw new Error('NOT_AUTHORIZED_HOLD: inner cumulative accounting, actual outer process adapter, and rootPid/authorization bridge are not implemented; no real launch recipe is granted');

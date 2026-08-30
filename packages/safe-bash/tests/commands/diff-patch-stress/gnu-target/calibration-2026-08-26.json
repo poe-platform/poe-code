@@ -1,0 +1,1082 @@
+{
+  "date": "2026-08-26",
+  "source": "tests/commands/diff-patch-stress/gnu-target-classification/evidence.json",
+  "sourceSha256": "2fc042df35c04c46d6883c7bd3f213c80a439969ad1e422da791311baf7ab955",
+  "identities": [
+    {
+      "tool": "diff",
+      "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "version": "diff (GNU diffutils) 3.12"
+    },
+    {
+      "tool": "patch",
+      "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "version": "GNU patch 2.8"
+    },
+    {
+      "tool": "appleDiff",
+      "binary": "/usr/bin/diff",
+      "sha256": "214a0d91e39424b15e1e3540edf6b33ee3dd2bbccb0c6dd3a9571dae754edede",
+      "version": "Apple diff (based on FreeBSD diff)"
+    },
+    {
+      "tool": "applePatch",
+      "binary": "/usr/bin/patch",
+      "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+      "version": "patch 2.0-12u11-Apple"
+    }
+  ],
+  "formats": [
+    {
+      "name": "delete-3",
+      "flow": {
+        "name": "delete-3",
+        "old": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-4\nv3-original-5\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n",
+        "next": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+      },
+      "gnuDiff": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n",
+          "old": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-4\nv3-original-5\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 5,6 ****\n- v3-original-4\n- v3-original-5\n--- 4 ----\n",
+        "stderr": "",
+        "after": {
+          "new": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n",
+          "old": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-4\nv3-original-5\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+        }
+      },
+      "directions": [
+        {
+          "reverse": false,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 5,6 ****\n- v3-original-4\n- v3-original-5\n--- 4 ----\n",
+            "before": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-4\nv3-original-5\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-4\nv3-original-5\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 5,6 ****\n- v3-original-4\n- v3-original-5\n--- 4 ----\n",
+            "before": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-4\nv3-original-5\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            }
+          }
+        },
+        {
+          "reverse": true,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "-R",
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 5,6 ****\n- v3-original-4\n- v3-original-5\n--- 4 ----\n",
+            "before": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-R",
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 5,6 ****\n- v3-original-4\n- v3-original-5\n--- 4 ----\n",
+            "before": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "v3-original-0\nv3-original-1\nv3-original-2\nv3-original-4\nv3-original-5\nv3-original-3\nv3-original-6\nv3-original-7\nv3-original-8\nv3-original-9\n"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "delete-7",
+      "flow": {
+        "name": "delete-7",
+        "old": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-8\nv7-original-9\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n",
+        "next": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+      },
+      "gnuDiff": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n",
+          "old": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-8\nv7-original-9\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 9,10 ****\n- v7-original-8\n- v7-original-9\n--- 8 ----\n",
+        "stderr": "",
+        "after": {
+          "new": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n",
+          "old": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-8\nv7-original-9\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+        }
+      },
+      "directions": [
+        {
+          "reverse": false,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 9,10 ****\n- v7-original-8\n- v7-original-9\n--- 8 ----\n",
+            "before": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-8\nv7-original-9\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-8\nv7-original-9\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 9,10 ****\n- v7-original-8\n- v7-original-9\n--- 8 ----\n",
+            "before": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-8\nv7-original-9\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            }
+          }
+        },
+        {
+          "reverse": true,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "-R",
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 9,10 ****\n- v7-original-8\n- v7-original-9\n--- 8 ----\n",
+            "before": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-R",
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 9,10 ****\n- v7-original-8\n- v7-original-9\n--- 8 ----\n",
+            "before": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "v7-original-0\nv7-original-1\nv7-original-2\nv7-original-3\nv7-original-4\nv7-original-5\nv7-original-6\nv7-original-8\nv7-original-9\nv7-original-7\nv7-original-10\nv7-original-11\nv7-original-12\nv7-original-13\n"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "delete-11",
+      "flow": {
+        "name": "delete-11",
+        "old": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-12\nv11-original-13\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n",
+        "next": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+      },
+      "gnuDiff": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n",
+          "old": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-12\nv11-original-13\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 13,14 ****\n- v11-original-12\n- v11-original-13\n--- 12 ----\n",
+        "stderr": "",
+        "after": {
+          "new": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n",
+          "old": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-12\nv11-original-13\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+        }
+      },
+      "directions": [
+        {
+          "reverse": false,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 13,14 ****\n- v11-original-12\n- v11-original-13\n--- 12 ----\n",
+            "before": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-12\nv11-original-13\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-12\nv11-original-13\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 13,14 ****\n- v11-original-12\n- v11-original-13\n--- 12 ----\n",
+            "before": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-12\nv11-original-13\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            }
+          }
+        },
+        {
+          "reverse": true,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "-R",
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 13,14 ****\n- v11-original-12\n- v11-original-13\n--- 12 ----\n",
+            "before": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-R",
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 13,14 ****\n- v11-original-12\n- v11-original-13\n--- 12 ----\n",
+            "before": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "v11-original-0\nv11-original-1\nv11-original-2\nv11-original-3\nv11-original-4\nv11-original-5\nv11-original-6\nv11-original-7\nv11-original-8\nv11-original-9\nv11-original-10\nv11-original-12\nv11-original-13\nv11-original-11\nv11-original-14\nv11-original-15\nv11-original-16\nv11-original-17\n"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeated-alignment-0",
+      "flow": {
+        "name": "repeated-alignment-0",
+        "old": "head-0\nsame\nsame\npivot\nsame\ntail-0\n",
+        "next": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n",
+        "ambiguous": true
+      },
+      "gnuDiff": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n",
+          "old": "head-0\nsame\nsame\npivot\nsame\ntail-0\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 3 ****\n- same\n--- 2 ----\n***************\n*** 4 ****\n--- 4,5 ----\n+ new-0\n+ same\n",
+        "stderr": "",
+        "after": {
+          "new": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n",
+          "old": "head-0\nsame\nsame\npivot\nsame\ntail-0\n"
+        }
+      },
+      "directions": [
+        {
+          "reverse": false,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n- same\n--- 2 ----\n***************\n*** 4 ****\n--- 4,5 ----\n+ new-0\n+ same\n",
+            "before": {
+              "target": "head-0\nsame\nsame\npivot\nsame\ntail-0\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "head-0\nsame\nsame\npivot\nsame\ntail-0\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n- same\n--- 2 ----\n***************\n*** 4 ****\n--- 4,5 ----\n+ new-0\n+ same\n",
+            "before": {
+              "target": "head-0\nsame\nsame\npivot\nsame\ntail-0\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n"
+            }
+          }
+        },
+        {
+          "reverse": true,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "-R",
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n- same\n--- 2 ----\n***************\n*** 4 ****\n--- 4,5 ----\n+ new-0\n+ same\n",
+            "before": {
+              "target": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+            "after": {
+              "target": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-R",
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n- same\n--- 2 ----\n***************\n*** 4 ****\n--- 4,5 ----\n+ new-0\n+ same\n",
+            "before": {
+              "target": "head-0\nsame\npivot\nnew-0\nsame\nsame\ntail-0\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "head-0\nsame\nsame\npivot\nsame\ntail-0\n"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeated-alignment-7",
+      "flow": {
+        "name": "repeated-alignment-7",
+        "old": "head-7\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\ntail-7\n",
+        "next": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n",
+        "ambiguous": true
+      },
+      "gnuDiff": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n",
+          "old": "head-7\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\ntail-7\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 3 ****\n--- 4,5 ----\n+ pivot\n+ new-7\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+        "stderr": "",
+        "after": {
+          "new": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n",
+          "old": "head-7\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\ntail-7\n"
+        }
+      },
+      "directions": [
+        {
+          "reverse": false,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n--- 4,5 ----\n+ pivot\n+ new-7\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-7\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\ntail-7\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 9\n",
+            "after": {
+              "target": "head-7\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\ntail-7\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n--- 4,5 ----\n+ pivot\n+ new-7\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-7\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\ntail-7\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n"
+            }
+          }
+        },
+        {
+          "reverse": true,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "-R",
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n--- 4,5 ----\n+ pivot\n+ new-7\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 9\n",
+            "after": {
+              "target": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-R",
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 3 ****\n--- 4,5 ----\n+ pivot\n+ new-7\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-7\nsame\nsame\npivot\nnew-7\nsame\nsame\nsame\nsame\nsame\ntail-7\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "head-7\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-7\n"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeated-alignment-11",
+      "flow": {
+        "name": "repeated-alignment-11",
+        "old": "head-11\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-11\n",
+        "next": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n",
+        "ambiguous": true
+      },
+      "gnuDiff": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n",
+          "old": "head-11\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-11\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 4 ****\n--- 5,6 ----\n+ pivot\n+ new-11\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+        "stderr": "",
+        "after": {
+          "new": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n",
+          "old": "head-11\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-11\n"
+        }
+      },
+      "directions": [
+        {
+          "reverse": false,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 4 ****\n--- 5,6 ----\n+ pivot\n+ new-11\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-11\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-11\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 9\n",
+            "after": {
+              "target": "head-11\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-11\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 4 ****\n--- 5,6 ----\n+ pivot\n+ new-11\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-11\nsame\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\ntail-11\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n"
+            }
+          }
+        },
+        {
+          "reverse": true,
+          "gnu": {
+            "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+            "args": [
+              "-R",
+              "--batch",
+              "--binary",
+              "--fuzz=0",
+              "--no-backup-if-mismatch",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 4 ****\n--- 5,6 ----\n+ pivot\n+ new-11\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n"
+            },
+            "exitCode": 2,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 9\n",
+            "after": {
+              "target": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n"
+            }
+          },
+          "apple": {
+            "binary": "/usr/bin/patch",
+            "args": [
+              "-R",
+              "-f",
+              "-F0",
+              "target"
+            ],
+            "input": "*** target\n--- target\n***************\n*** 4 ****\n--- 5,6 ----\n+ pivot\n+ new-11\n***************\n*** 7 ****\n- pivot\n--- 8 ----\n",
+            "before": {
+              "target": "head-11\nsame\nsame\nsame\npivot\nnew-11\nsame\nsame\nsame\nsame\nsame\ntail-11\n"
+            },
+            "exitCode": 0,
+            "signal": null,
+            "bounded": null,
+            "stdout": "patching file target\n",
+            "stderr": "",
+            "after": {
+              "target": "head-11\nsame\nsame\nsame\nsame\npivot\nsame\nsame\nsame\nsame\ntail-11\n"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "parser": [
+    {
+      "id": "normal-tab-prefix",
+      "fixture": {
+        "id": "normal-tab-prefix",
+        "before": "old\n",
+        "patch": "1c1\n<\told\n---\n>\tnew\n",
+        "after": "new\n",
+        "category": "valid grammar"
+      },
+      "generated": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "--normal",
+          "--initial-tab",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "new\n",
+          "old": "old\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "1c1\n<\told\n---\n>\tnew\n",
+        "stderr": "",
+        "after": {
+          "new": "new\n",
+          "old": "old\n"
+        }
+      },
+      "gnu": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "input": "1c1\n<\told\n---\n>\tnew\n",
+        "before": {
+          "other": "old\n",
+          "target": "old\n"
+        },
+        "exitCode": 2,
+        "signal": null,
+        "bounded": null,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** Only garbage was found in the patch input.\n",
+        "after": {
+          "other": "old\n",
+          "target": "old\n"
+        }
+      }
+    },
+    {
+      "id": "normal-suppress-blank-empty",
+      "fixture": {
+        "id": "normal-suppress-blank-empty",
+        "before": "old\n",
+        "patch": "1c1\n< old\n---\n>\n",
+        "after": "\n",
+        "category": "GNU suppress-blank-empty"
+      },
+      "generated": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "--normal",
+          "--suppress-blank-empty",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "\n",
+          "old": "old\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "1c1\n< old\n---\n>\n",
+        "stderr": "",
+        "after": {
+          "new": "\n",
+          "old": "old\n"
+        }
+      },
+      "gnu": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "input": "1c1\n< old\n---\n>\n",
+        "before": {
+          "other": "old\n",
+          "target": "old\n"
+        },
+        "exitCode": 2,
+        "signal": null,
+        "bounded": null,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '>' followed by space or tab expected at line 4 of patch\n",
+        "after": {
+          "other": "old\n",
+          "target": "old\n"
+        }
+      }
+    },
+    {
+      "id": "normal-unsafe-integer",
+      "fixture": {
+        "id": "normal-unsafe-integer",
+        "before": "old\nkeep\nend\n",
+        "patch": "9007199254740993a1\n> new\n",
+        "category": "coordinate overflow"
+      },
+      "generated": null,
+      "gnu": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "input": "9007199254740993a1\n> new\n",
+        "before": {
+          "other": "old\n",
+          "target": "old\nkeep\nend\n"
+        },
+        "exitCode": null,
+        "signal": "SIGKILL",
+        "bounded": "timeout-3000ms",
+        "stdout": "patching file target\n",
+        "stderr": "",
+        "after": {
+          "other": "old\n",
+          "pp5tjCxJ": {
+            "unreadable": true,
+            "mode": 32768,
+            "bytes": 25
+          },
+          "target": "old\nkeep\nend\n",
+          "target.oW4udrC": ""
+        }
+      }
+    },
+    {
+      "id": "GNU-normal-suppress-blank-empty",
+      "fixture": {
+        "id": "GNU-normal-suppress-blank-empty",
+        "old": "old\n",
+        "next": "\n",
+        "flags": [
+          "--normal",
+          "--suppress-blank-empty"
+        ]
+      },
+      "generated": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "--normal",
+          "--suppress-blank-empty",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "\n",
+          "old": "old\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "1c1\n< old\n---\n>\n",
+        "stderr": "",
+        "after": {
+          "new": "\n",
+          "old": "old\n"
+        }
+      },
+      "gnu": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "input": "1c1\n< old\n---\n>\n",
+        "before": {
+          "other": "old\n",
+          "target": "old\n"
+        },
+        "exitCode": 2,
+        "signal": null,
+        "bounded": null,
+        "stdout": "patching file target\n",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** '>' followed by space or tab expected at line 4 of patch\n",
+        "after": {
+          "other": "old\n",
+          "target": "old\n"
+        }
+      }
+    },
+    {
+      "id": "GNU-context-zero-middle-deletion",
+      "fixture": {
+        "id": "GNU-context-zero-middle-deletion",
+        "old": "left\nremoved\nright\n",
+        "next": "left\nright\n",
+        "flags": [
+          "-C0"
+        ]
+      },
+      "generated": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+        "args": [
+          "-C0",
+          "--label=target",
+          "--label=target",
+          "old",
+          "new"
+        ],
+        "input": "",
+        "before": {
+          "new": "left\nright\n",
+          "old": "left\nremoved\nright\n"
+        },
+        "exitCode": 1,
+        "signal": null,
+        "bounded": null,
+        "stdout": "*** target\n--- target\n***************\n*** 2 ****\n- removed\n--- 1 ----\n",
+        "stderr": "",
+        "after": {
+          "new": "left\nright\n",
+          "old": "left\nremoved\nright\n"
+        }
+      },
+      "gnu": {
+        "binary": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+        "args": [
+          "--batch",
+          "--forward",
+          "--fuzz=0",
+          "--no-backup-if-mismatch",
+          "--reject-file=reject",
+          "--",
+          "target"
+        ],
+        "input": "*** target\n--- target\n***************\n*** 2 ****\n- removed\n--- 1 ----\n",
+        "before": {
+          "other": "old\n",
+          "target": "left\nremoved\nright\n"
+        },
+        "exitCode": 2,
+        "signal": null,
+        "bounded": null,
+        "stdout": "",
+        "stderr": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch: **** replacement text or line numbers mangled in hunk at line 4\n",
+        "after": {
+          "other": "old\n",
+          "target": "left\nremoved\nright\n"
+        }
+      }
+    }
+  ]
+}

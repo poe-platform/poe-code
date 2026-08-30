@@ -1,0 +1,52 @@
+{
+  "revision": "4e2d71c6120078dd9b76e1511804fbca13e4dd2b",
+  "capturedAt": "2026-08-27T07:17:48.201Z",
+  "liveHead": "7617e21882c8319be94937bfd0633b1796012ace",
+  "liveStatus": " M src/fs/mount/README.md\n M src/fs/mount/index.ts\n M src/fs/overlay/README.md\n M src/fs/overlay/index.ts\n M src/fs/readonly/README.md\n M src/fs/s3/README.md\n M src/fs/s3/filesystem.ts\n M tests/fs/s3/rmdir.test.ts\n?? src/commands/time-env/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/\n?? tests/fs/mount/snapshot-rmdir.test.ts\n?? tests/fs/overlay/snapshot-rmdir.test.ts\n?? tests/fs/readonly/snapshot-rmdir.test.ts\n?? tests/fs/s3/rmdir-real-service/snapshot-profile/\n?? tests/integration/adapter-tools/remote-rmdir/wrapper-profile/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-MCzKZA/\n?? tests/shell-stress/canonical-profile-migration/.candidate-A-Utom8y/\n?? tests/shell-stress/canonical-profile-migration/.candidate-B-hwqqUo/\n?? tests/shell-stress/canonical-profile-migration/.candidate-C-jWPzgO/\n?? tests/shell-stress/canonical-profile-migration/.candidate-FINAL-T42B3X/\n?? tests/shell-stress/canonical-profile-migration/.source-6e-9PS0KC/\n?? tests/shell-stress/errexit-legacy-policy/.correction-archive-bLk5Ko/\n?? tests/stress/regex-execution/production-continuation-review/evidence/audit.json\n?? tests/stress/regex-execution/production-continuation-review/evidence/candidate/\n?? tests/stress/regex-execution/production-continuation-review/evidence/packed/\n",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "runnerSha256": "5c8cffa59d823a1a4da69f6f02f7d5c7072db81c053a436042cd882c9397a095",
+  "archiveSha256": "a6300614f0edf24a78dcfe5f2a685efab255a2f914d13c82a9be312c14bf8e20",
+  "overrideHashes": [
+    {
+      "path": "src/fs/mount/index.ts",
+      "sha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d"
+    },
+    {
+      "path": "src/fs/overlay/index.ts",
+      "sha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be"
+    },
+    {
+      "path": "tests/fs/mount/snapshot-rmdir.test.ts",
+      "sha256": "722ba225c19be102fd2dcf0117b4263baba118f93bba14efa2581fca8da9c6c8"
+    },
+    {
+      "path": "tests/fs/overlay/snapshot-rmdir.test.ts",
+      "sha256": "2515a1d6c223868337e9c173a7fc8da525b14a688e809031328abe52b31cbe85"
+    },
+    {
+      "path": "tests/fs/readonly/snapshot-rmdir.test.ts",
+      "sha256": "3f2519d7b8575b2e8a561f8a65797e58ac155793dee291520ba7dee44b2f9013"
+    }
+  ],
+  "toolchain": [
+    {
+      "name": "tsx",
+      "version": "4.23.12"
+    },
+    {
+      "name": "esbuild",
+      "version": "0.28.2"
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3"
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1"
+    }
+  ],
+  "policy": "Committed base plus only named owned overrides; no moving foreign source, install, native provider replay or global build output. Local development dependency trees are not frozen."
+}

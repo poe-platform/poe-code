@@ -1,0 +1,1115 @@
+{
+  "schema": "np1-cjs-original-mapping-and-closure-cases-v1",
+  "date": "2026-08-28",
+  "classification": "contract data only; not executable fixture freeze or new scored denominator",
+  "executionAuthorized": false,
+  "actualExecutions": 0,
+  "results": [],
+  "original": {
+    "commit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+    "path": "tests/commands/node-design-20260828/CASES.json",
+    "sha256": "c4bc4898f4c3935dde7cd31ec1559d76a5fcba82073a87823889de7d3744c583",
+    "identities": 36,
+    "counts": {
+      "included-as-is": 24,
+      "adapted": 9,
+      "deferred": 3
+    },
+    "unchanged": true
+  },
+  "meaning": {
+    "included-as-is": "Original source/program and settled expected fields retained. Explicit per-row new grant envelope replaces no old data; original all-eight-grants defaults are not a valid new configuration. Unbound sibling procedures remain prospective obligations, not a score.",
+    "adapted": "Exact separate binding below; no original input/expectation overwritten.",
+    "deferred": "Original literal/protocol remains deferred; new CJS closure case does not rescore it.",
+    "notAnExecutionCount": "An identity can contain multiple controlled variants; all mappings/holdouts and these24 additions remain unrun. Future provider/command runner needs its own finite execution seal and authorization."
+  },
+  "defaults": {
+    "cwd": "/work",
+    "env": {
+      "KEEP": "parent"
+    },
+    "stdinUtf8": "",
+    "filesUtf8": {},
+    "filesystem": "controlled explicit VFS, /work exists, no ambient authority; no redirection",
+    "provider": "not yet qualified; future exact source-varying provider, never stub",
+    "caps": "BINDINGS.json defaults; listed per-case reductions merge into a complete immutable Limits record before admission",
+    "grants": "only row keys/list true; everything else false; explicit lists are data shorthand for Grants own-data record",
+    "expectations": "Proposed normative bytes/status/state, not observed passes. Unless specified, all cooperative work retired; parent state unchanged; bytes preserved, no rollback."
+  },
+  "mapping": [
+    {
+      "id": "N01",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "actual inline evaluation",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N02",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "primitive print and literal eval arguments",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N03",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "undefined is a print value rather than omitted output",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N04",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "print statement list rejected during admission",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N05",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "VFS script argv, exit status and parent isolation",
+      "grants": {
+        "sourceRead": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N06",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "stdin-as-source is consumed once",
+      "grants": {
+        "sourceRead": true,
+        "stdinRead": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N07",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "stdin data ownership and UTF8 split decoding",
+      "grants": {
+        "stdinRead": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N08",
+      "disposition": "deferred",
+      "execution": "UNRUN",
+      "originalName": "module-mode promise fs JSON editing",
+      "reason": "Original ESM/TLA literal deferred; promise JSON edit obligation bound separately as C01."
+    },
+    {
+      "id": "N09",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "sync VFS creation and exclusive collision",
+      "grants": {
+        "dataRead": true,
+        "dataWrite": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N10",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "sync continuation blocks guest jobs while host read is held",
+      "grants": {
+        "dataRead": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N11",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "JSON first-load timing, alias identity and cache retention",
+      "grants": {
+        "dataRead": true,
+        "dataWrite": true,
+        "jsonModules": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N12",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "failed JSON module load does not poison the cache",
+      "grants": {
+        "dataRead": true,
+        "dataWrite": true,
+        "jsonModules": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N13",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "pure POSIX paths use virtual cwd",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N14",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "exported env only and inert loader environment",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N15",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "read-only provider error remains meaningful",
+      "grants": {
+        "dataWrite": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N16",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "builtin aliases preserve guest identity",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N17",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "main source cannot escape VFS authority",
+      "grants": {
+        "sourceRead": true,
+        "stderrWrite": true
+      },
+      "reason": "Bind previously provider-specific denial to controlled confined adapter EACCES; do not invent universal backend errno.",
+      "control": "Adapter returns actual FsError(EACCES,{path:\"/work/link/main.cjs\",syscall:\"readFile\"}) before outside-namespace content access.",
+      "expected": {
+        "stdoutUtf8": "",
+        "stderrUtf8": "node: EACCES: readFile /work/link/main.cjs\n",
+        "exitCode": 1,
+        "outsideReads": 0,
+        "guestEvaluations": 0
+      }
+    },
+    {
+      "id": "N18",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "malformed JSON causes a real guest failure",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N19",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "unsupported fs overload refuses before data acquisition",
+      "grants": {
+        "dataRead": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N20",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "literal forbidden builtin rejected in complete-entry preflight",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N21",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "computed module refusal does not erase earlier effects",
+      "grants": {
+        "dataWrite": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original JSON decodes an actual LF inside a single-quoted JavaScript string, a source defect. Preserve it; only new mapped variant spells backslash-n so the intended computed refusal can be tested. Original cannot be scored as that runtime case.",
+      "argv": [
+        "-e",
+        "require('fs').writeFileSync('kept','yes'); process.stdout.write('before\\n'); const name='child_'+'process'; require(name);"
+      ],
+      "expected": "Exact original expected bytes/status/effects after this disclosed source adaptation; no constant-folding guest execution."
+    },
+    {
+      "id": "N22",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "local executable module is not confused with entry loading",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N23",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "dynamic import and code-generation syntax denied before entry effects",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N24",
+      "disposition": "deferred",
+      "execution": "UNRUN",
+      "originalName": "ambiguous js entry does not ignore package semantics",
+      "reason": "Original package-sensitive .js protocol deferred; initial unconditional suffix refusal bound as C05.js."
+    },
+    {
+      "id": "N25",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "native flags refused before reading source",
+      "grants": {
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N26",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "unavailable or insufficient provider is not a working node",
+      "grants": {
+        "sourceRead": true,
+        "stderrWrite": true
+      },
+      "reason": "Selected profile name is NP1-CJS, not original NP1.",
+      "expected": {
+        "stdoutUtf8": "",
+        "stderrUtf8": "node: ERR_VNODE_PROVIDER: qualified NP1-CJS provider required\n",
+        "exitCode": 127,
+        "sourceReads": 0,
+        "guestEvaluations": 0
+      }
+    },
+    {
+      "id": "N27",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "caller reason identity and held cooperative acquisition",
+      "grants": {
+        "dataRead": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Raw caller rejection is not a numeric result; explicitly bind held boundary and distinguish actual Shell root route.",
+      "control": "Hold first read before any returned byte; root caller abort reason is same issued object with code ENOENT; release read/cleanup last.",
+      "expected": {
+        "stdoutUtf8": "",
+        "stderrUtf8": "",
+        "raw": {
+          "kind": "reject",
+          "reasonIdentity": "callerObject"
+        },
+        "shell": {
+          "kind": "reject",
+          "reasonIdentity": "callerObject"
+        },
+        "pendingUntilCleanup": true,
+        "laterGuestStatements": 0
+      }
+    },
+    {
+      "id": "N28",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "escaping host failure outranks later local cancellation",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Bind raw and actual Shell routes separately; original raw object unspecified Shell stringification.",
+      "control": "FAILURE = new Error(\"sink failed\"), caller variant CALLER = object {tag:\"caller\"}; fail held sink before local deadline; caller variant aborts root before cleanup release.",
+      "expected": {
+        "withoutCaller": {
+          "rawReasonIdentity": "FAILURE",
+          "shellExitCode": 1,
+          "stdoutUtf8": "",
+          "stderrUtf8": "shell: line 1: sink failed\n"
+        },
+        "withCaller": {
+          "rawReasonIdentity": "CALLER",
+          "shellReasonIdentity": "CALLER",
+          "stdoutUtf8": "",
+          "stderrUtf8": ""
+        }
+      }
+    },
+    {
+      "id": "N29",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "register-before-acquisition and idempotent root cleanup barrier",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N30",
+      "disposition": "deferred",
+      "execution": "UNRUN",
+      "originalName": "destination closure does not cancel sibling resources",
+      "reason": "Original ESM/TLA literal deferred; destination-local ownership bound separately as C02."
+    },
+    {
+      "id": "N31",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "unawaited promise failure cannot disappear after guest return",
+      "grants": {
+        "dataWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Bind unawaited guest rejection diagnostic and quiescence barrier.",
+      "expected": {
+        "stdoutUtf8": "",
+        "stderrUtf8": "node: EROFS: writeFile /work/out\n",
+        "exitCode": 1,
+        "pendingUntilHeldWriteRetires": true,
+        "unobservedHostRejections": 0,
+        "filesChangedUtf8": {}
+      }
+    },
+    {
+      "id": "N32",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "source and parse admission caps precede guest effects",
+      "grants": {
+        "sourceRead": true,
+        "stdinRead": true,
+        "stderrWrite": true
+      },
+      "reason": "Keep original source limit and bind finite parser sibling diagnostics, not wildcard success.",
+      "expected": "Original main262145-byte input: unchanged sourceBytes124 diagnostic.",
+      "siblings": [
+        {
+          "input": "129 nested parenthesized numeric expression, within source cap",
+          "expectedStderrUtf8": "node: ERR_VNODE_LIMIT: parserNesting\n",
+          "exitCode": 124
+        },
+        {
+          "input": "65537 semicolon tokens, source65537 bytes",
+          "expectedStderrUtf8": "node: ERR_VNODE_LIMIT: parserTokens\n",
+          "exitCode": 124
+        }
+      ],
+      "allGuestEvaluations": 0
+    },
+    {
+      "id": "N33",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "guest step and call-depth limits cannot reset",
+      "grants": {
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N34",
+      "disposition": "included-as-is",
+      "execution": "UNRUN",
+      "originalName": "byte output cap refuses an entire write before publication",
+      "grants": {
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Original literal program and settled expectations unchanged; new finite NP1-CJS envelope explicitly supplies only listed grants."
+    },
+    {
+      "id": "N35",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "concurrent invocation caches, state and resource ownership are disjoint",
+      "grants": {
+        "dataRead": true,
+        "jsonModules": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Specify first invocation held before JSON bytes/guest output, avoiding timing-dependent null expectations.",
+      "control": "Separate provider/session/VFS instances; hold A first JSON read, trigger A local deadline, let B finish; then release A read/cleanup.",
+      "expected": {
+        "first": {
+          "stdoutUtf8": "",
+          "stderrUtf8": "node: ERR_VNODE_LIMIT: deadlineMs\n",
+          "exitCode": 124
+        },
+        "second": {
+          "stdoutUtf8": "2\nB\n",
+          "stderrUtf8": "",
+          "exitCode": 0
+        },
+        "sharedFsDisposed": false,
+        "crossInvocationCacheHits": 0
+      }
+    },
+    {
+      "id": "N36",
+      "disposition": "adapted",
+      "execution": "UNRUN",
+      "originalName": "host request validation and insufficient-provider containment",
+      "grants": {
+        "dataRead": true,
+        "stdoutWrite": true,
+        "stderrWrite": true
+      },
+      "reason": "Bind malformed-channel/raw versus Shell protocol failures; independent structural matrix retained, never prototype-only validation.",
+      "invalidShapes": [
+        "accessor path",
+        "inherited path",
+        "extra own field",
+        "missing path",
+        "own path undefined",
+        "symbol extra field",
+        "wrong primitive path type",
+        "hole in GuestArguments"
+      ],
+      "expected": {
+        "getterCalls": 0,
+        "underlyingOperations": 0,
+        "raw": "TypeError(\"NP1-CJS protocol: HostRequest\") except hole -> GuestArguments",
+        "shellExitCode": 1,
+        "stderrTemplateUtf8": "shell: line 1: NP1-CJS protocol: {HostRequest|GuestArguments}\n"
+      },
+      "positive": "Valid cross-realm own-data HostRequest under grants passes structural admission; actual result still must be witnessed."
+    }
+  ],
+  "closureAdditions": {
+    "identityCount": 10,
+    "finiteVariantCount": 24,
+    "cases": [
+      {
+        "id": "C01",
+        "closes": [
+          "N08 retained promise editing obligation",
+          "R1",
+          "R5"
+        ],
+        "grants": [
+          "dataRead",
+          "dataWrite",
+          "stdoutWrite",
+          "stderrWrite"
+        ],
+        "filesUtf8": {
+          "/work/config.json": "{\"count\":1}"
+        },
+        "argv": [
+          "-e",
+          "async function main(){const fs=require('fs/promises');const data=JSON.parse(await fs.readFile('config.json','utf8'));data.count+=1;await fs.writeFile('config.json',JSON.stringify(data));console.log(data.count);} main();"
+        ],
+        "control": "Hold read, then write, release in that order; top-level main() completion is NOT invocation completion.",
+        "expected": {
+          "stdoutUtf8": "2\n",
+          "stderrUtf8": "",
+          "exitCode": 0,
+          "parentCwdEnvUnchanged": true,
+          "filesChangedUtf8": {
+            "/work/config.json": "{\"count\":2}"
+          }
+        },
+        "variants": 1,
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C02",
+        "closes": [
+          "N30 retained destination obligation",
+          "H17",
+          "R5"
+        ],
+        "grants": [
+          "dataWrite",
+          "stdoutWrite",
+          "stderrWrite"
+        ],
+        "argv": [
+          "-e",
+          "const pending=require('fs/promises').writeFile('out','kept');pending.then(()=>process.stderr.write('done'));process.stdout.write('closed');"
+        ],
+        "control": "Hold admitted file write; before stdout publication close enrolled stdout with issued FsError EPIPE sentinel D. Then release write and held cleanup.",
+        "expected": {
+          "stdoutUtf8": "",
+          "stderrUtf8": "",
+          "filesChangedUtf8": {
+            "/work/out": "kept"
+          },
+          "raw": {
+            "kind": "reject",
+            "reasonIdentity": "D"
+          },
+          "shell": {
+            "kind": "result",
+            "exitCode": 141
+          },
+          "guestCallbackDoneExecuted": false,
+          "siblingSignalAborted": false,
+          "pendingBeforeRetirement": true
+        },
+        "variants": 1,
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C03",
+        "closes": [
+          "H05",
+          "H06",
+          "R2"
+        ],
+        "grants": [
+          "stdoutWrite",
+          "stderrWrite"
+        ],
+        "variants": 3,
+        "inputs": [
+          {
+            "label": "missing-write",
+            "argv": [
+              "-e",
+              "try{require('fs').writeFileSync('out','bad');}catch(error){console.log(error.code);}"
+            ],
+            "expected": {
+              "stdoutUtf8": "ERR_VNODE_DENIED\n",
+              "stderrUtf8": "",
+              "exitCode": 0,
+              "parentCwdEnvUnchanged": true,
+              "filesChangedUtf8": {}
+            },
+            "underlyingWrites": 0
+          },
+          {
+            "label": "missing-json",
+            "grants": [
+              "dataRead",
+              "stdoutWrite",
+              "stderrWrite"
+            ],
+            "filesUtf8": {
+              "/work/a.json": "{}"
+            },
+            "argv": [
+              "-e",
+              "require('./a.json');"
+            ],
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_DENIED: jsonModules\n",
+              "exitCode": 2,
+              "parentCwdEnvUnchanged": true
+            },
+            "underlyingMetadataAndContentCalls": 0
+          },
+          {
+            "label": "source-not-data",
+            "grants": [
+              "sourceRead",
+              "stdoutWrite",
+              "stderrWrite"
+            ],
+            "filesUtf8": {
+              "/work/main.cjs": "require('fs').readFileSync('secret','utf8');",
+              "/work/secret": "private"
+            },
+            "argv": [
+              "main.cjs"
+            ],
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_DENIED: dataRead\n",
+              "exitCode": 2,
+              "parentCwdEnvUnchanged": true
+            },
+            "sourceReads": 1,
+            "dataReads": 0
+          }
+        ],
+        "contrast": "Granted read-only EROFS remains original N15, not duplicated or replaced.",
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C04",
+        "closes": [
+          "H10",
+          "R6"
+        ],
+        "variants": 2,
+        "inputs": [
+          {
+            "label": "data-json-encoding",
+            "grants": [
+              "dataRead",
+              "dataWrite",
+              "jsonModules",
+              "stdoutWrite",
+              "stderrWrite"
+            ],
+            "filesHex": {
+              "/work/bom.json": "efbbbf7b226e223a317d",
+              "/work/bad": "41f09f"
+            },
+            "argv": [
+              "-e",
+              "const fs=require('fs');console.log(fs.readFileSync('bom.json','utf8')[0]==='\\ufeff');console.log(require('./bom.json').n);process.stdout.write(fs.readFileSync('bad','utf8'));fs.writeFileSync('out','\\ud800');"
+            ],
+            "chunksHexForBad": [
+              "41f0",
+              "9f"
+            ],
+            "expected": {
+              "stdoutUtf8": "true\n1\nA�",
+              "stderrUtf8": "",
+              "exitCode": 0,
+              "parentCwdEnvUnchanged": true
+            },
+            "filesChangedHex": {
+              "/work/out": "efbfbd"
+            }
+          },
+          {
+            "label": "source-bom-and-consumed-stdin",
+            "grants": [
+              "sourceRead",
+              "stdinRead",
+              "stdoutWrite",
+              "stderrWrite"
+            ],
+            "argv": [
+              "-"
+            ],
+            "stdinUtf8": "﻿console.log(require('fs').readFileSync(0,'utf8').length);",
+            "expected": {
+              "stdoutUtf8": "0\n",
+              "stderrUtf8": "",
+              "exitCode": 0,
+              "parentCwdEnvUnchanged": true
+            },
+            "stdinIteratorAcquisitions": 1
+          }
+        ],
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C05",
+        "closes": [
+          "N24 retained entry refusal obligation",
+          "R7"
+        ],
+        "variants": 3,
+        "grants": [
+          "sourceRead",
+          "stderrWrite"
+        ],
+        "inputs": [
+          {
+            "label": "js",
+            "argv": [
+              "main.js"
+            ],
+            "filesUtf8": {
+              "/work/package.json": "{\"type\":\"commonjs\"}"
+            },
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: entry suffix \".js\"\n",
+              "exitCode": 2,
+              "parentCwdEnvUnchanged": true
+            },
+            "sourceAndMetadataCalls": 0
+          },
+          {
+            "label": "missing-e",
+            "argv": [
+              "-e"
+            ],
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_USAGE: missing operand -e\n",
+              "exitCode": 2,
+              "parentCwdEnvUnchanged": true
+            },
+            "sourceAndMetadataCalls": 0
+          },
+          {
+            "label": "empty-print",
+            "argv": [
+              "--print="
+            ],
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: print requires one expression\n",
+              "exitCode": 2,
+              "parentCwdEnvUnchanged": true
+            },
+            "sourceAndMetadataCalls": 0
+          }
+        ],
+        "retainedIndependentControls": [
+          "H01 empty eval",
+          "H02 -- literal script tail"
+        ],
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C06",
+        "closes": [
+          "R4",
+          "R7 malformed terminal outcome"
+        ],
+        "variants": 4,
+        "argv": [
+          "-e",
+          ""
+        ],
+        "grants": [
+          "stderrWrite"
+        ],
+        "protocolVariants": [
+          {
+            "label": "outcome-undefined",
+            "valueDescription": "own-data {kind:\"complete\",exitCode:undefined,completion:validIssuedRef}",
+            "expectedRaw": "TypeError(\"NP1-CJS protocol: Outcome\")",
+            "expectedShell": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "shell: line 1: NP1-CJS protocol: Outcome\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "outcome-extra",
+            "valueDescription": "own-data {kind:\"complete\",exitCode:0,completion:validIssuedRef,extra:0}",
+            "expectedRaw": "TypeError(\"NP1-CJS protocol: Outcome\")",
+            "expectedShell": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "shell: line 1: NP1-CJS protocol: Outcome\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "stale-completion",
+            "valueDescription": "well-shaped complete0 with previous-session completion Ref",
+            "expectedRaw": "TypeError(\"NP1-CJS protocol: GuestValueRef\")",
+            "expectedShell": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "shell: line 1: NP1-CJS protocol: GuestValueRef\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "crossrealm-valid",
+            "valueDescription": "cross-realm own-data complete0, actual current-session issued completion Ref and witnessed quiescence",
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "",
+              "exitCode": 0,
+              "parentCwdEnvUnchanged": true
+            }
+          }
+        ],
+        "all": "Provider conformance controls, not actual engine evidence. Invalid completion cannot become0; close/drain still required.",
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C07",
+        "closes": [
+          "H12",
+          "R3"
+        ],
+        "variants": 2,
+        "limits": {
+          "contextBytes": 16
+        },
+        "grants": [
+          "stderrWrite"
+        ],
+        "cwd": "/work",
+        "env": {},
+        "inputs": [
+          {
+            "label": "at",
+            "argv": [
+              "-e",
+              "",
+              "éééééa"
+            ],
+            "contextUtf8Bytes": 16,
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "",
+              "exitCode": 0,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "over",
+            "argv": [
+              "-e",
+              "",
+              "éééééé"
+            ],
+            "contextUtf8Bytes": 17,
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_LIMIT: contextBytes\n",
+              "exitCode": 124,
+              "parentCwdEnvUnchanged": true
+            },
+            "providerCreates": 0,
+            "sourceAcquisitions": 0,
+            "guestContextMaterializations": 0
+          }
+        ],
+        "accounting": "Five cwd bytes plus literal tail; generated execPath is guest-seed/state charge, not caller context input. Diagnostic reserve is separate from contextBytes but still output-charged.",
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C08",
+        "closes": [
+          "H13 mutation/alias gap",
+          "R3",
+          "R4"
+        ],
+        "variants": 1,
+        "limits": {
+          "containerEntries": 2
+        },
+        "grants": [
+          "dataRead",
+          "jsonModules",
+          "stdoutWrite",
+          "stderrWrite"
+        ],
+        "filesUtf8": {
+          "/work/a.json": "{\"n\":1}"
+        },
+        "argv": [
+          "-e",
+          "const first=require('./a.json');const second=require('././a.json');console.log(first===second);first.extra=2;second.more=3;"
+        ],
+        "expected": {
+          "stdoutUtf8": "true\n",
+          "stderrUtf8": "node: ERR_VNODE_LIMIT: containerEntries\n",
+          "exitCode": 124,
+          "parentCwdEnvUnchanged": true,
+          "filesChangedUtf8": {}
+        },
+        "assertions": [
+          "one JSON content read/cache identity",
+          "first.extra exists; second.more is not inserted",
+          "mutation reservation precedes effect, across aliases",
+          "fixed builtin seed is not a user data container subject to reduced containerEntries"
+        ],
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C09",
+        "closes": [
+          "H14 deferred TLA obligation in CJS",
+          "R5"
+        ],
+        "variants": 3,
+        "grants": [
+          "stdoutWrite",
+          "stderrWrite"
+        ],
+        "inputs": [
+          {
+            "label": "unresolved",
+            "argv": [
+              "-e",
+              "new Promise(()=>{});"
+            ],
+            "control": "No host work. At monotonic5000ms local deadline, stop guest jobs and witness retirement before settlement.",
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_LIMIT: deadlineMs\n",
+              "exitCode": 124,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "unhandled",
+            "argv": [
+              "-e",
+              "Promise.reject(new Error('boom'));"
+            ],
+            "expected": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "node: ERR_VNODE_GUEST: Error: \"boom\"\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "handled-at-checkpoint",
+            "argv": [
+              "-e",
+              "const pending=Promise.reject(new Error('boom'));pending.catch(()=>console.log('handled'));"
+            ],
+            "expected": {
+              "stdoutUtf8": "handled\n",
+              "stderrUtf8": "",
+              "exitCode": 0,
+              "parentCwdEnvUnchanged": true
+            }
+          }
+        ],
+        "noWorkaround": "Provider must observe actual guest jobs/rejections; do not add await to source or regard host idle as completion.",
+        "status": "PROPOSED_UNRUN"
+      },
+      {
+        "id": "C10",
+        "closes": [
+          "H16",
+          "R4",
+          "R5"
+        ],
+        "variants": 4,
+        "argv": [
+          "-e",
+          ""
+        ],
+        "grants": [
+          "stderrWrite"
+        ],
+        "inputs": [
+          {
+            "label": "undefined-first",
+            "control": "Provider execute rejects undefined; later close rejects Error(\"close failed\"); hold admitted cleanup before release.",
+            "expectedRaw": {
+              "kind": "reject",
+              "present": true,
+              "reason": "actual undefined"
+            },
+            "expectedShell": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "shell: line 1: undefined\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "same-reason-different-origin",
+            "control": "Use the same issued object {tag:\"same\"} for local stop and actual root caller abort; root provenance, not value equality, wins.",
+            "expectedRaw": {
+              "kind": "reject",
+              "reasonIdentity": "caller.reason"
+            },
+            "expectedShell": {
+              "kind": "reject",
+              "reasonIdentity": "caller.reason",
+              "stdoutUtf8": "",
+              "stderrUtf8": ""
+            }
+          },
+          {
+            "label": "create-failure",
+            "control": "After synchronously registering child cleanup and admitting one held resource, create throws Error(\"create failed\"); release resource/cleanup.",
+            "expectedRaw": {
+              "kind": "reject",
+              "reasonMessage": "create failed",
+              "exactIdentity": true
+            },
+            "expectedShell": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "shell: line 1: create failed\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          },
+          {
+            "label": "close-failure",
+            "control": "Execute completes empty source, then close rejects Error(\"close failed\") after tracked work retirement.",
+            "expectedRaw": {
+              "kind": "reject",
+              "reasonMessage": "close failed",
+              "exactIdentity": true
+            },
+            "expectedShell": {
+              "stdoutUtf8": "",
+              "stderrUtf8": "shell: line 1: close failed\n",
+              "exitCode": 1,
+              "parentCwdEnvUnchanged": true
+            }
+          }
+        ],
+        "all": "Raw/Shell procedures separate; pending until cooperative cleanup; no shared FS dispose, no unobserved late rejection; missing telemetry is unknown, not0.",
+        "status": "PROPOSED_UNRUN"
+      }
+    ]
+  },
+  "retainedIndependentHoldouts": "All H01-H18 unchanged. REVIEW-RESPONSE maps each, including deferred H14 literal and H12 package scan. Their detailed provider-specific runner schedules are not silently converted into executed coverage."
+}

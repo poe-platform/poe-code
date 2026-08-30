@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "kind": "explicit-design-verification-not-named-product-acceptance",
+  "acceptedSource": "21220b465537bf45ffcfb36740956a69f43bf75e",
+  "historicalMismatchesPreserved": 10,
+  "proposedScalarAdmissions": 9,
+  "continuedCollationRefusals": 1,
+  "selectorControls": 14,
+  "admissionControls": 517,
+  "manifestMode": "complete-frozen-pre-and-post-inventory",
+  "originalMatrixSha256": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2",
+  "runtime": null
+}

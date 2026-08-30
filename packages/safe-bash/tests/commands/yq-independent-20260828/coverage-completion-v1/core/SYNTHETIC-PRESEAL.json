@@ -1,0 +1,344 @@
+{
+  "schema": 1,
+  "purpose": "CORE_HELPERS_SYNTHETIC_ONLY",
+  "targetExecution": false,
+  "date": "2026-08-28",
+  "abi": {
+    "commit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.json",
+    "sha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1"
+  },
+  "prepared": {
+    "files": {
+      "contributions.mjs": {
+        "sha256": "438db4de0a0c2d69d5118ce1cdd8904dbe7a08dd100edfc003689c12792739d3",
+        "bytes": 2902,
+        "mode": 420
+      },
+      "data/SOURCE-ARGUMENTS.json": {
+        "sha256": "61c2a514c9587712b264feb923e999d23fb000f5e1f6f69475871429253f4c2b",
+        "bytes": 31129,
+        "mode": 420
+      },
+      "data/SOURCE-MANIFEST.json": {
+        "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+        "bytes": 47504,
+        "mode": 420
+      },
+      "data/SOURCE-ORIGINS.json": {
+        "sha256": "be8b2275977c253f3b126ce9ad1a19f9d2de88d86e854c96676a729b9ed937c5",
+        "bytes": 62861,
+        "mode": 420
+      },
+      "data/SOURCE-PROOF-PLAN.json": {
+        "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+        "bytes": 13072,
+        "mode": 420
+      },
+      "own-data.mjs": {
+        "sha256": "f46b7494817f6c2003caf4f838d7ac8d53e4c4d8b4bec8f9671ce1a24fc01289",
+        "bytes": 3785,
+        "mode": 420
+      },
+      "run-synthetic.mjs": {
+        "sha256": "4a48fd06854f31864d922d30e0ba9fce511f9a392e18560028f3b20cf80dc369",
+        "bytes": 8239,
+        "mode": 420
+      },
+      "source-arguments.mjs": {
+        "sha256": "25d7affa6814319e25960e9b65f26f79e9b760147bf5b6f51cbbdc8c1b1d5913",
+        "bytes": 7244,
+        "mode": 420
+      },
+      "source-audit-worker.mjs": {
+        "sha256": "4c6726eea229b8e926ff325ce4ee1d05dc5d0061de8475a6fd2882d748f9728c",
+        "bytes": 2265,
+        "mode": 420
+      },
+      "source-files.mjs": {
+        "sha256": "ffd0a7ad2a4574ae3287bb0ac0f10567ac85c818dd860556afd4de10a9ec8ab0",
+        "bytes": 1800,
+        "mode": 420
+      },
+      "synthetic-child.mjs": {
+        "sha256": "e91cdd937feb3998e6eb81e264c383a607823bc2051ddc093e819ebd6ce98e6f",
+        "bytes": 8542,
+        "mode": 420
+      },
+      "synthetic-fixture.json": {
+        "sha256": "b2fd98bc91d480205f3a3edd012442a63c5dc0ffc6efc5ab65425e2e349f5fbe",
+        "bytes": 3799,
+        "mode": 420
+      }
+    },
+    "directories": {
+      "": 493,
+      "data": 493
+    }
+  },
+  "inputs": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.json",
+      "sha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1",
+      "bytes": 7621,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.md",
+      "sha256": "8b098c06414c2fa0fc832c57629b446471fcc41d5a84da6ce65df1df30e5a79a",
+      "bytes": 3295,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/ALLOCATION.json",
+      "sha256": "2cd020b25855987f9d7af02d9e6e215f867f99d10c402c34d5e80513f92b0545",
+      "bytes": 628572,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/PREPARATION-HISTORY.json",
+      "sha256": "f115f6edb03d345ac4a73247c8b84d95b5c4ee279c4c738e8e80e458d1029a5f",
+      "bytes": 422,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI-SEAL.json",
+      "sha256": "374d1d4c248ce6a553124ac805161fa9957e1fa9a9095060f1facc9155686589",
+      "bytes": 1247,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/SOURCE-BINDING.json",
+      "sha256": "00b18eb4e8c9b47e7b5d6fcc7aa5cbca685187b55560e1c2af051bf2a80b10c6",
+      "bytes": 14921,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/SYNTHETIC-PROTOCOL.md",
+      "sha256": "0e15d538520140d24739d329b0f701130d2f8e5ab2d52c7e5fcc997e3a811574",
+      "bytes": 2227,
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/STATIC-PRESEAL-CHECKS.json",
+      "sha256": "e9e5f7206feb75399fe4d2a958fac31bae603ab58042ff162f223920f7e148be",
+      "bytes": 2642,
+      "mode": 420
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "bytes": 112989184,
+    "mode": 493
+  },
+  "bounds": {
+    "globalMs": 30000,
+    "childMs": 15000,
+    "cleanupMs": 2000,
+    "streamBytes": 65536,
+    "storageBytes": 4194304,
+    "metadataReserveBytes": 65536,
+    "peakOwnedProcesses": 2,
+    "childCount": 1,
+    "nestedToolCount": 0,
+    "outerBackstopMs": 35000,
+    "entryCount": 4096,
+    "preparedAndToolGuardBytes": 268435456,
+    "guardFileBytes": 134217728,
+    "syntheticSourceBytes": 11
+  },
+  "caseIds": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12",
+    "C13",
+    "C14",
+    "C15",
+    "C16",
+    "C17",
+    "C18"
+  ],
+  "cases": [
+    {
+      "id": "C01",
+      "purpose": "bound1/missing1 source result, no semantic credit",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C02",
+      "purpose": "absent arguments remain unrun",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C03",
+      "purpose": "wrong manifest digest refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C04",
+      "purpose": "wrong selected revision refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C05",
+      "purpose": "changed source bytes refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C06",
+      "purpose": "wrong span digest refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C07",
+      "purpose": "duplicate argument refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C08",
+      "purpose": "product author proof role refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C09",
+      "purpose": "actual readSource rejection object identity retained",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C10",
+      "purpose": "cross-realm own-data positive accepted",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C11",
+      "purpose": "accessor/sparse/extra undefined refused without getter",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C12",
+      "purpose": "required hidden own data retained; extra/symbol refused",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C13",
+      "purpose": "added source file detected",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C14",
+      "purpose": "stub runWorker raw before report/source-only role",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C15",
+      "purpose": "raw preserved before failing source assertion",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C16",
+      "purpose": "contribution exact own fields and ownership",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C17",
+      "purpose": "observation duplicate/enrollment rejection",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    },
+    {
+      "id": "C18",
+      "purpose": "complete source binding remains not runtime/truth acceptance",
+      "expected": "PASS_SYNTHETIC_ONLY",
+      "targetProof": false
+    }
+  ],
+  "importClosure": {
+    "entry": "prepared/run-synthetic.mjs",
+    "child": "prepared/synthetic-child.mjs",
+    "relativeModules": [
+      "prepared/contributions.mjs",
+      "prepared/own-data.mjs",
+      "prepared/run-synthetic.mjs",
+      "prepared/source-arguments.mjs",
+      "prepared/source-audit-worker.mjs",
+      "prepared/source-files.mjs",
+      "prepared/synthetic-child.mjs"
+    ],
+    "builtins": [
+      "node:assert/strict",
+      "node:child_process",
+      "node:crypto",
+      "node:fs",
+      "node:path",
+      "node:url",
+      "node:vm"
+    ],
+    "candidateModuleCount": 0,
+    "oldHarnessModuleCount": 0,
+    "peerModuleCount": 0,
+    "realCandidateDataRole": "HASH_GUARD_ONLY_NOT_INGESTED",
+    "fixture": "prepared/synthetic-fixture.json",
+    "dynamicImport": false,
+    "compiler": false,
+    "nativeOracle": false
+  },
+  "execution": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/run-synthetic.mjs",
+      "--preseal-sha256",
+      "<INDEPENDENT_RAW_SHA256_OF_THIS_FILE>",
+      "--evidence",
+      "/private/tmp/yq-coverage-core-stubs-<UNIQUE>"
+    ],
+    "environment": {
+      "LANG": "C",
+      "LC_ALL": "C"
+    },
+    "attempts": 1,
+    "retries": 0,
+    "externalCaptureBytes": 65536,
+    "rawBeforeAssertion": true,
+    "nonzeroAlwaysFailure": true,
+    "continuationRequires": [
+      "integrity",
+      "knownReap"
+    ],
+    "unknownReap": "STOP_FAIL_NO_MORE_ADMISSION",
+    "goRole": "USER_AUTHORIZED_SYNTHETIC_HELPERS_ONLY_NOT_ROOT_TARGET_GO"
+  },
+  "claims": {
+    "hostileJavaScriptSandbox": false,
+    "opaqueHostPreemption": false,
+    "escapedDescendantProof": false,
+    "hardRssLimit": false,
+    "dynamicSaturationOrTimeoutProof": false,
+    "candidateAcceptance": false
+  }
+}

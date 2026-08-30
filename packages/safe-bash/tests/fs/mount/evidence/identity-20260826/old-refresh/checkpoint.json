@@ -1,0 +1,798 @@
+{
+  "recordedAt": "2026-08-26T22:35:45.029Z",
+  "pin": "3731587fa287333ca59c7a81569b367cec66f61d",
+  "results": [
+    {
+      "name": "matrix79",
+      "status": 0,
+      "start": "2026-08-26T22:32:45.230Z",
+      "end": "2026-08-26T22:32:47.477Z",
+      "tests": 79,
+      "pass": 79,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [],
+      "cohorts": {
+        "memory": {
+          "total": 11,
+          "pass": 11,
+          "fail": 0
+        },
+        "real": {
+          "total": 11,
+          "pass": 11,
+          "fail": 0
+        },
+        "s3": {
+          "total": 11,
+          "pass": 11,
+          "fail": 0
+        },
+        "webdav": {
+          "total": 11,
+          "pass": 11,
+          "fail": 0
+        },
+        "readonly": {
+          "total": 10,
+          "pass": 10,
+          "fail": 0
+        },
+        "mount": {
+          "total": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        "overlay": {
+          "total": 12,
+          "pass": 12,
+          "fail": 0
+        },
+        "structured": {
+          "total": 1,
+          "pass": 1,
+          "fail": 0
+        }
+      }
+    },
+    {
+      "name": "fs-memory",
+      "status": 0,
+      "start": "2026-08-26T22:32:47.479Z",
+      "end": "2026-08-26T22:32:47.783Z",
+      "tests": 77,
+      "pass": 77,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "fs-real",
+      "status": 0,
+      "start": "2026-08-26T22:32:47.783Z",
+      "end": "2026-08-26T22:32:49.300Z",
+      "tests": 76,
+      "pass": 76,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "fs-s3",
+      "status": 0,
+      "start": "2026-08-26T22:32:49.301Z",
+      "end": "2026-08-26T22:32:49.769Z",
+      "tests": 160,
+      "pass": 160,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "fs-webdav",
+      "status": 0,
+      "start": "2026-08-26T22:32:49.770Z",
+      "end": "2026-08-26T22:32:50.755Z",
+      "tests": 308,
+      "pass": 308,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "fs-readonly",
+      "status": 0,
+      "start": "2026-08-26T22:32:50.756Z",
+      "end": "2026-08-26T22:32:51.042Z",
+      "tests": 102,
+      "pass": 102,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "fs-mount",
+      "status": 1,
+      "start": "2026-08-26T22:32:51.042Z",
+      "end": "2026-08-26T22:32:51.353Z",
+      "tests": 109,
+      "pass": 106,
+      "fail": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "not ok 1 - direct cross-mount copy rejects a real same-path alias without touching source bytes",
+        "not ok 2 - direct cross-mount copy rejects a real hardlink alias without touching source bytes",
+        "not ok 3 - direct cross-mount copy rejects a real symlink alias without touching source bytes"
+      ]
+    },
+    {
+      "name": "fs-overlay",
+      "status": 0,
+      "start": "2026-08-26T22:32:51.354Z",
+      "end": "2026-08-26T22:32:51.871Z",
+      "tests": 154,
+      "pass": 154,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "shared-conformance",
+      "status": 0,
+      "start": "2026-08-26T22:32:51.871Z",
+      "end": "2026-08-26T22:32:53.207Z",
+      "tests": 202,
+      "pass": 202,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "adapter-stress",
+      "status": 1,
+      "start": "2026-08-26T22:32:53.208Z",
+      "end": "2026-08-26T22:32:53.685Z",
+      "tests": 70,
+      "pass": 66,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "not ok 8 - s3: optional metadata capabilities are exercised or fail closed",
+        "not ok 9 - s3: optional truncate preserves exact bytes or rejects without mutation",
+        "not ok 11 - webdav: optional metadata capabilities are exercised or fail closed",
+        "not ok 41 - s3: default rename explicitly fails closed without opt-in"
+      ]
+    },
+    {
+      "name": "s3-original42",
+      "status": 0,
+      "start": "2026-08-26T22:32:53.685Z",
+      "end": "2026-08-26T22:32:53.948Z",
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "s3-bounded44",
+      "status": 0,
+      "start": "2026-08-26T22:32:53.964Z",
+      "end": "2026-08-26T22:32:54.209Z",
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    },
+    {
+      "name": "remote24",
+      "status": 1,
+      "start": "2026-08-26T22:32:54.209Z",
+      "end": "2026-08-26T22:32:57.028Z",
+      "tests": 24,
+      "pass": 22,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": [
+        "not ok 8 - S08 S3 aggregate head early exit cancels upstream GET",
+        "not ok 20 - D08 native HTTP WebDAV aggregate head early exit cancels GET socket"
+      ]
+    },
+    {
+      "name": "diagnostics8",
+      "status": 0,
+      "start": "2026-08-26T22:32:57.028Z",
+      "end": "2026-08-26T22:32:57.766Z",
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "failures": []
+    }
+  ],
+  "aggregate": {
+    "tests": 1455,
+    "pass": 1446,
+    "fail": 9,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "typecheck": {
+    "status": 0,
+    "entrypoints": 79
+  },
+  "remoteRunnerReview": "run.mjs imports only node:child_process, writes only stdout/stderr, spawns its own child with 60-second watchdog; no artifact writes. AUDIT_REPEATS=1, AUDIT_VERBOSE=1, AUDIT_CASE removed. Existing tests exercise mock/native loopback transports without repository files.",
+  "provenance": {
+    "trees": {
+      "src": "925d3a43c46bd0f4094559d003193e7963780444",
+      "src/fs": "7027443bf082477a1f3ce153829dcecbb3e4149e",
+      "src/fs/memory": "909c8a4df46368a7cace98a9b4155287fe488989",
+      "src/fs/real": "8651d2725b83c4650c16edea5fa10787143a23e2",
+      "src/fs/s3": "801723914b0be45f32739f5c3fa966a39e43fc0a",
+      "src/fs/webdav": "1bd241ac876f56418a02bb79e4fba1da1280ce82",
+      "src/fs/readonly": "b058071bcbf6fca4ad858b03107fd71e512c21f2",
+      "src/fs/mount": "f034515e8f79f37229ec84a00d18befebda1d388",
+      "src/fs/overlay": "1010569f1b3ebc07eff8283fb653996fd0d3a10a",
+      "tests/fs": "6eeef95ff717abf5cd40f814592e10d638697726",
+      "tests/integration/adapter-tools": "5e211a096890144ffdc4f66b50fb9c81311cefac",
+      "tests/stress/adapters": "ed4d8f7a75bed2d26ffb55fe00a291375ef85614",
+      "tests/stress/s3-policy": "e186048dfd542b76ea2b1c1ff13e8e7ceddf96b0",
+      "tests/stress/remote-cancellation": "3a7d74655a60dfbc2408cde6b917b4928567132e",
+      "tests/integration/adapter-tools-diagnostics": "5fab229a24dc4e16c8a3972874abeb18128fc846",
+      "tests/fs/memory": "68896646e3bf0f0413d46de2aaecfc520c775ff4",
+      "tests/fs/real": "0ed161a85008d75d997afd5d7426bcd1d432b388",
+      "tests/fs/s3": "16601d4788a7c3f6ab0cd6148ba23a00af3ba57f",
+      "tests/fs/webdav": "ebb8b38336d70d2b28164252a8952a5058d3aa16",
+      "tests/fs/readonly": "0d8a9d5ba719d0e1763e9ffae88e58828f7affdf",
+      "tests/fs/mount": "42d2805ebeb6f4c77fb1949aea0c2e9a2bd9f82f",
+      "tests/fs/overlay": "6caf831d3da0adbffa1bf2ef1c45ed0f5649259a",
+      "tests/fs/conformance": "0a24ec668e3d7bd1e50e5c2c72918ce962abe446"
+    },
+    "tooling": {
+      "node": "v22.22.2",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "platform": "darwin",
+      "arch": "arm64",
+      "versions": {
+        "node": "22.22.2",
+        "acorn": "8.15.0",
+        "ada": "2.9.2",
+        "amaro": "1.1.5",
+        "ares": "1.34.6",
+        "brotli": "1.1.0",
+        "cjs_module_lexer": "2.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.3.0",
+        "modules": "127",
+        "napi": "10",
+        "nbytes": "0.1.1",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.64.0",
+        "openssl": "3.5.5",
+        "simdjson": "4.2.4",
+        "simdutf": "6.4.2",
+        "sqlite": "3.51.2",
+        "tz": "2025c",
+        "undici": "6.24.1",
+        "unicode": "17.0",
+        "uv": "1.51.0",
+        "uvwasi": "0.0.23",
+        "v8": "12.4.254.21-node.39",
+        "zlib": "1.3.1-e00f703",
+        "zstd": "1.5.7"
+      },
+      "tooling": [
+        {
+          "name": "node_modules/@esbuild/aix-ppc64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/android-arm",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/android-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/android-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/darwin-arm64",
+          "locked": "0.28.2",
+          "actual": "0.28.2",
+          "optional": true,
+          "matched": true
+        },
+        {
+          "name": "node_modules/@esbuild/darwin-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/freebsd-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/freebsd-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-arm",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-ia32",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-loong64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-mips64el",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-ppc64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-riscv64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-s390x",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/linux-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/netbsd-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/netbsd-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/openbsd-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/openbsd-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/openharmony-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/sunos-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/win32-arm64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/win32-ia32",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@esbuild/win32-x64",
+          "locked": "0.28.2",
+          "actual": null,
+          "optional": true,
+          "matched": null
+        },
+        {
+          "name": "node_modules/@types/node",
+          "locked": "22.20.1",
+          "actual": "22.20.1",
+          "optional": false,
+          "matched": true
+        },
+        {
+          "name": "node_modules/esbuild",
+          "locked": "0.28.2",
+          "actual": "0.28.2",
+          "optional": false,
+          "matched": true
+        },
+        {
+          "name": "node_modules/fsevents",
+          "locked": "2.3.3",
+          "actual": "2.3.3",
+          "optional": true,
+          "matched": true
+        },
+        {
+          "name": "node_modules/tsx",
+          "locked": "4.23.12",
+          "actual": "4.23.12",
+          "optional": false,
+          "matched": true
+        },
+        {
+          "name": "node_modules/typescript",
+          "locked": "5.9.3",
+          "actual": "5.9.3",
+          "optional": false,
+          "matched": true
+        },
+        {
+          "name": "node_modules/undici-types",
+          "locked": "6.21.0",
+          "actual": "6.21.0",
+          "optional": false,
+          "matched": true
+        }
+      ],
+      "archiveSha256": "77b5fca312b6fb0ebd72a3177533f21f8414f089d264278ca3d5458cd7119ec1"
+    },
+    "stability": {
+      "before": {
+        "files": 225,
+        "sourceFiles": 117,
+        "mismatches": [],
+        "manifestSha256": "82c13e91ae4c8ac0ed8821031f44a231c21db2419691b78585f399cf7ca97df7"
+      },
+      "after": {
+        "files": 225,
+        "sourceFiles": 117,
+        "mismatches": [],
+        "manifestSha256": "82c13e91ae4c8ac0ed8821031f44a231c21db2419691b78585f399cf7ca97df7"
+      },
+      "stable": true
+    },
+    "start": "2026-08-26T22:30:56Z",
+    "liveHeadAfter": "695eb079c223077da2010872d59effdff15b17f3"
+  },
+  "remoteDelta": [
+    {
+      "name": "S08 S3 aggregate head early exit cancels upstream GET",
+      "verdict": "FAIL",
+      "durationMs": 1203,
+      "pipelines": 1,
+      "events": [
+        "pipeline:cat /input | head -n 1",
+        "command.start:cat",
+        "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+        "command.start:head",
+        "op:S3.headObject:input:callerAborted=false:signal=live",
+        "op:S3.headObject:input/:callerAborted=false:signal=live",
+        "op:S3.listObjectsV2:list:callerAborted=false:signal=live",
+        "op:S3.getObjectStream:input:callerAborted=false:signal=live",
+        "source.acquire",
+        "source.next",
+        "source.next",
+        "head.stdout:first\\\\n",
+        "command.settled:head",
+        "head.before-rescue:signalAborted=false:returned=0:headSettled=true",
+        "caller.abort",
+        "transport.signal.abort:S3.listObjectsV2:list",
+        "transport.signal.abort:S3.getObjectStream:input",
+        "source.return",
+        "settled:shell-rejection:Error: audit cancellation",
+        "command.settled:cat",
+        "head.rescue:iterator-returned-before-fixture-release",
+        "failure:Error: DEADLINE: head early exit (1200ms)"
+      ]
+    },
+    {
+      "name": "D02 injected WebDAV pending metadata stops waiting despite noncooperative fetch",
+      "verdict": "PASS",
+      "durationMs": 3,
+      "pipelines": 0,
+      "events": [
+        "op:DAV.PROPFIND:callerAborted=false:signal=live",
+        "caller.abort",
+        "transport.signal.abort:DAV.PROPFIND",
+        "settled:error:ECANCELED:waitMs=0",
+        "after-fixture-release:metadata",
+        "settled:error:ECANCELED:waitMs=0"
+      ]
+    },
+    {
+      "name": "D05 injected WebDAV late GET response is canceled after bounded caller settlement",
+      "verdict": "PASS",
+      "durationMs": 1,
+      "pipelines": 0,
+      "events": [
+        "op:DAV.PROPFIND:callerAborted=false:signal=live",
+        "op:DAV.GET:callerAborted=false:signal=live",
+        "caller.abort",
+        "transport.signal.abort:DAV.PROPFIND",
+        "transport.signal.abort:DAV.GET",
+        "settled:error:ECANCELED:waitMs=0",
+        "after-fixture-release:GET-response",
+        "late.body.cancel",
+        "settled:error:ECANCELED:waitMs=0",
+        "late.body.reader.released=true"
+      ]
+    },
+    {
+      "name": "D08 native HTTP WebDAV aggregate head early exit cancels GET socket",
+      "verdict": "FAIL",
+      "durationMs": 1207,
+      "pipelines": 1,
+      "events": [
+        "pipeline:cat /input | head -n 1",
+        "command.start:cat",
+        "op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live",
+        "command.start:head",
+        "http.socket.open",
+        "http.request:PROPFIND:/dav/input",
+        "http.response.close:PROPFIND:finished=true",
+        "op:DAV.GET:/dav/input:callerAborted=false:signal=live",
+        "http.socket.open",
+        "http.request:GET:/dav/input",
+        "head.stdout:first\\\\n",
+        "command.settled:head",
+        "head.before-rescue:GETclosed=false:headSettled=true",
+        "caller.abort",
+        "transport.signal.abort:DAV.PROPFIND:/dav/input",
+        "transport.signal.abort:DAV.GET:/dav/input",
+        "settled:shell-rejection:Error: audit cancellation",
+        "command.settled:cat",
+        "http.request.aborted:GET",
+        "http.socket.close",
+        "http.response.close:GET:finished=false",
+        "head.rescue:GET-closed-before-fixture-teardown",
+        "failure:Error: DEADLINE: HTTP head early exit (1200ms)",
+        "http.socket.close",
+        "http.final:sockets=0:tasks=0:listening=false:errors=0"
+      ]
+    }
+  ],
+  "inventory": [
+    {
+      "name": "matrix79",
+      "entrypoints": [
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ]
+    },
+    {
+      "name": "fs-memory",
+      "entrypoints": [
+        "tests/fs/memory/conformance.test.ts",
+        "tests/fs/memory/memory.test.ts",
+        "tests/fs/memory/review-regressions.test.ts"
+      ]
+    },
+    {
+      "name": "fs-real",
+      "entrypoints": [
+        "tests/fs/real/adversarial.test.ts",
+        "tests/fs/real/cancellation-regression.test.ts",
+        "tests/fs/real/conformance.test.ts",
+        "tests/fs/real/stress.test.ts",
+        "tests/fs/real/timestamps.test.ts",
+        "tests/fs/real/traversal-regression.test.ts"
+      ]
+    },
+    {
+      "name": "fs-s3",
+      "entrypoints": [
+        "tests/fs/s3/copy-races.test.ts",
+        "tests/fs/s3/filesystem.test.ts",
+        "tests/fs/s3/mock.test.ts",
+        "tests/fs/s3/mutation-regressions.test.ts",
+        "tests/fs/s3/production-flows.test.ts",
+        "tests/fs/s3/rename-guards.test.ts",
+        "tests/fs/s3/streaming.test.ts",
+        "tests/fs/s3/stress.test.ts"
+      ]
+    },
+    {
+      "name": "fs-webdav",
+      "entrypoints": [
+        "tests/fs/webdav/append.test.ts",
+        "tests/fs/webdav/body-integrity.test.ts",
+        "tests/fs/webdav/fetch-cancellation.test.ts",
+        "tests/fs/webdav/listing-budget.test.ts",
+        "tests/fs/webdav/lock-cancellation.test.ts",
+        "tests/fs/webdav/lock-multistatus.test.ts",
+        "tests/fs/webdav/replacement.test.ts",
+        "tests/fs/webdav/review-regressions.test.ts",
+        "tests/fs/webdav/stream-http.test.ts",
+        "tests/fs/webdav/streams.test.ts",
+        "tests/fs/webdav/timestamps.test.ts",
+        "tests/fs/webdav/uploads.test.ts",
+        "tests/fs/webdav/webdav.test.ts",
+        "tests/fs/webdav/xml.test.ts"
+      ]
+    },
+    {
+      "name": "fs-readonly",
+      "entrypoints": [
+        "tests/fs/readonly/conformance.test.ts",
+        "tests/fs/readonly/metadata.test.ts",
+        "tests/fs/readonly/readonly.test.ts",
+        "tests/fs/readonly/streaming.test.ts"
+      ]
+    },
+    {
+      "name": "fs-mount",
+      "entrypoints": [
+        "tests/fs/mount/copy-identity.test.ts",
+        "tests/fs/mount/mount.test.ts",
+        "tests/fs/mount/review-regressions.test.ts",
+        "tests/fs/mount/streaming.test.ts"
+      ]
+    },
+    {
+      "name": "fs-overlay",
+      "entrypoints": [
+        "tests/fs/overlay/adversarial.test.ts",
+        "tests/fs/overlay/conformance.test.ts",
+        "tests/fs/overlay/review-regressions.test.ts",
+        "tests/fs/overlay/scoped-links.test.ts",
+        "tests/fs/overlay/streaming.test.ts"
+      ]
+    },
+    {
+      "name": "shared-conformance",
+      "entrypoints": [
+        "tests/fs/conformance/shared.test.ts"
+      ]
+    },
+    {
+      "name": "adapter-stress",
+      "entrypoints": [
+        "tests/stress/adapters/core.test.ts",
+        "tests/stress/adapters/policy.test.ts",
+        "tests/stress/adapters/s3.test.ts",
+        "tests/stress/adapters/webdav.test.ts"
+      ]
+    },
+    {
+      "name": "s3-original42",
+      "entrypoints": [
+        "tests/stress/s3-policy/rename.test.ts"
+      ]
+    },
+    {
+      "name": "s3-bounded44",
+      "entrypoints": [
+        "tests/stress/s3-policy/bounded-races.test.ts"
+      ]
+    },
+    {
+      "name": "remote24",
+      "entrypoints": [
+        "tests/stress/remote-cancellation/run.mjs"
+      ]
+    },
+    {
+      "name": "diagnostics8",
+      "entrypoints": [
+        "tests/integration/adapter-tools-diagnostics/eight-cases.test.ts"
+      ]
+    }
+  ],
+  "status": {
+    "before": "",
+    "after": "",
+    "scopedLiveDiff": "",
+    "scopedIndexDiff": ""
+  },
+  "review": {
+    "newConcreteDefectEstablished": false,
+    "originalRemoteCohort": "20/24, separate original source/contract evidence",
+    "currentRemoteCohort": "22/24; D02/D05 pass, S08/D08 remain Sagan shell reds",
+    "outwardFetchWaitOnly": true,
+    "noPhysicalStopOrRollbackClaim": true
+  },
+  "repositoryMutationsByVerifier": false
+}

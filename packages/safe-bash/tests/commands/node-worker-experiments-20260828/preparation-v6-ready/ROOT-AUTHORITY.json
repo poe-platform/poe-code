@@ -1,0 +1,93 @@
+{
+  "date": "2026-08-28",
+  "authority": "current ROOT source/publication GO",
+  "oldCompilerEvidence": "982677cf461c5e36a12bf21662d6b598a26b08c4e16b57cdd2da2fc8893fed79",
+  "publicationCommit": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+  "publicationFailures": {
+    "add": "exit1: repository dist ignore excluded exact emitted files; nonignored artifacts staged",
+    "commit": "exit1: ignored emission paths not known to index",
+    "compilerRetry": false
+  },
+  "sourceDataBudget": {
+    "ms": 1200000,
+    "ownedChildren": 32,
+    "peak": 4,
+    "captureBytes": 67108864,
+    "workBytes": 268435456
+  },
+  "allowedNewBuiltins": [
+    "node:util",
+    "node:async_hooks",
+    "node:fs/promises",
+    "node:path"
+  ],
+  "edges": [
+    {
+      "importer": "compiled/engine/dist/interp/jobs.js",
+      "importerSha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4",
+      "specifier": "node:async_hooks",
+      "target": "node:async_hooks",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise-replay.js",
+      "importerSha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707",
+      "specifier": "node:async_hooks",
+      "target": "node:async_hooks",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/interp/promise-tracker.js",
+      "importerSha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669",
+      "specifier": "node:async_hooks",
+      "target": "node:async_hooks",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "node:fs/promises",
+      "target": "node:fs/promises",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/backend.js",
+      "importerSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a",
+      "specifier": "node:path",
+      "target": "node:path",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/engine/dist/snapshot/validation.js",
+      "importerSha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca",
+      "specifier": "node:util",
+      "target": "node:util",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "importer": "compiled/support/errors.js",
+      "importerSha256": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+      "specifier": "node:util",
+      "target": "node:util",
+      "roles": [
+        "parent"
+      ]
+    }
+  ],
+  "actualWorkerGo": false,
+  "compilerRetry": false,
+  "guestNativeCapabilities": false,
+  "F05": "DEFERRED unchanged; no environment probe"
+}

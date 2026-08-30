@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.documents","value":[{"a":1}],"reason":"JSON document projection not applicable"}],"semanticFullRecordPass":false}

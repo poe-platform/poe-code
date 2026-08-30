@@ -1,0 +1,674 @@
+{
+  "reauthenticated": 126,
+  "pairs": 16,
+  "completeRawCapturePairs": 16,
+  "primary": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+  "signatureCommit": "fe5d87a215310cbe847bee99bbe3c7650aa3f6e3",
+  "gitRows": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/PREPARE-STARTUP.json",
+      "mode": "100644",
+      "oid": "b0cf5ae5b98c11c45a91d0d52132c5a7b6bb8b65"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/PRESEAL.md",
+      "mode": "100644",
+      "oid": "2908c6b42ada2b00baa17fab146b075608879d94"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2-ADMISSION.json",
+      "mode": "100644",
+      "oid": "40ded2166e22c86abef75218cdd988dfb8832c2c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2-STARTUP.json",
+      "mode": "100644",
+      "oid": "eb9fde902a57b8b42508b7763265227ab74add1e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/REVISION-2.md",
+      "mode": "100644",
+      "oid": "96da1e44006e9f3224d5d856c0b0c8ea9abe7a89"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/FAILURE.json",
+      "mode": "100644",
+      "oid": "24f403a533a72e68aff6abae0b3be8ed960fd1ad"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/INPUT-ADMISSION.json",
+      "mode": "100644",
+      "oid": "a4c86f667e2515b115f9c1a04473941cc59eeb6e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/RESULT.json",
+      "mode": "100644",
+      "oid": "b6601ac767ce15825046d8205cbe1d87f1dc881a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-01/STARTUP.json",
+      "mode": "100644",
+      "oid": "6bbc4be55381a102df75fd3cfcd5f51a831db079"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/INPUT-ADMISSION.json",
+      "mode": "100644",
+      "oid": "d0c2a85a187342cb459f851587082a471c5caafb"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/INPUT-POSTCHECK.json",
+      "mode": "100644",
+      "oid": "7bd84cfa59133c8626f8e0c6dd33a1fdf9928a96"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING-BINDING.json",
+      "mode": "100644",
+      "oid": "147c10ee2cc1bf529821ef2f5bd4cccbb414dd61"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/ADMISSION.json",
+      "mode": "100644",
+      "oid": "647a72dc5a2391fb6c9075bbcb02b8926147ba1d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/CHILD.json",
+      "mode": "100644",
+      "oid": "2220928ff8dddbcde686096e3c6fc5ce8f92e2d0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "4e3ef0294611f10e99975f34109457098b14e333"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/stderr.raw",
+      "mode": "100644",
+      "oid": "994978d4826a860b062bda285f57a293ef9235c5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/stdout.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/ADMISSION.json",
+      "mode": "100644",
+      "oid": "51026e608ec357a31eb17a33b051b65db64c6456"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/CHILD.json",
+      "mode": "100644",
+      "oid": "d252534725ca535a04bb6352040e65e17cdc4061"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/OUTCOME.json",
+      "mode": "100644",
+      "oid": "a3e7906677d53a5325cd6d387b066b117599b0d0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/stderr.raw",
+      "mode": "100644",
+      "oid": "19f70e87036c57fb5febb740eda301fc5933cf93"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/stdout.raw",
+      "mode": "100644",
+      "oid": "19287eee11ef3a8027674760eb7cabe5f66edc77"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/ADMISSION.json",
+      "mode": "100644",
+      "oid": "4c0b32e7e945cdd372509a025c9d9927346067fb"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/CHILD.json",
+      "mode": "100644",
+      "oid": "21ae2f39dc7fbcf19daa4b9a233de432bbc446e2"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/OUTCOME.json",
+      "mode": "100644",
+      "oid": "37a1b17d945bffa3590d44972cd5c8375ba90063"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/stderr.raw",
+      "mode": "100644",
+      "oid": "ea14ef37d416a94c1a86fe7eacc1c4987849c9a6"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/stdout.raw",
+      "mode": "100644",
+      "oid": "5e1ee2c3ec885fbd54cffacaf6e647de2f151075"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/ADMISSION.json",
+      "mode": "100644",
+      "oid": "29198fae12460feae2dd79bca96e32741468bc67"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/CHILD.json",
+      "mode": "100644",
+      "oid": "93541313bf9338636f2efea69d527d31e2203186"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/OUTCOME.json",
+      "mode": "100644",
+      "oid": "b8f1efce08832cba887bdbe9167e8ee043901d54"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/stderr.raw",
+      "mode": "100644",
+      "oid": "6a9bfc979f85dfae39c226016e083c56b4260183"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/stdout.raw",
+      "mode": "100644",
+      "oid": "3b272f83a5cfe9733afa99131ce3e8ead4a04d00"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/ADMISSION.json",
+      "mode": "100644",
+      "oid": "292f692a532b9312970e99b74b71f9b3100c70e0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/CHILD.json",
+      "mode": "100644",
+      "oid": "2327fc220c4015ba73c51dba91e6ee901c75450b"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/OUTCOME.json",
+      "mode": "100644",
+      "oid": "c5a7754b0db50f4e503c5e4799ea31bf2a26133d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/stderr.raw",
+      "mode": "100644",
+      "oid": "d11586afd636c6bc8c90f5786a52c3ef936f4cf3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/stdout.raw",
+      "mode": "100644",
+      "oid": "69cc4843324177b088b9df1a1c99b709ae4adb4c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/ADMISSION.json",
+      "mode": "100644",
+      "oid": "18052523df3faad170cf06f6655defef8bbb2443"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/CHILD.json",
+      "mode": "100644",
+      "oid": "d3a08c9d5f8db24060365d6578850325aaee8f6b"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/OUTCOME.json",
+      "mode": "100644",
+      "oid": "85304c3878072281ca30a0d3439f1feb402eb30a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/stderr.raw",
+      "mode": "100644",
+      "oid": "c551fffae31f1fd8d878c9e8c3b372e173462783"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/stdout.raw",
+      "mode": "100644",
+      "oid": "b31e73999715718f8f866495194b295e643e8311"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/ADMISSION.json",
+      "mode": "100644",
+      "oid": "292ab7f70743a3f0c4d19718592da4181fc6143c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/CHILD.json",
+      "mode": "100644",
+      "oid": "1a65a94ec350ba0de1ef2b8591ebec4576d6c715"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/OUTCOME.json",
+      "mode": "100644",
+      "oid": "f53e98c32e7b60466e2c2767041f7394384d7f57"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/stderr.raw",
+      "mode": "100644",
+      "oid": "6ac652d68519471764ab69dbcd7a212b599deec7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/stdout.raw",
+      "mode": "100644",
+      "oid": "05f60a2d262753b3483c112d69412e1e83ba4e80"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/ADMISSION.json",
+      "mode": "100644",
+      "oid": "43cb683906f9c9049a4344f000f660d4fcbb9c8b"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/CHILD.json",
+      "mode": "100644",
+      "oid": "166131781f633cb9843facad89f488db556620a6"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/OUTCOME.json",
+      "mode": "100644",
+      "oid": "c8ae9cbce70c29387f9ff33b7c14f6a5256681cf"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/stderr.raw",
+      "mode": "100644",
+      "oid": "faafa18ed7882e12912b41765ce33ee006160ffa"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/stdout.raw",
+      "mode": "100644",
+      "oid": "d90707e1c3828d0a5bade40b57a103699a3f4518"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/ADMISSION.json",
+      "mode": "100644",
+      "oid": "e0023341bd8bcfe837bced5d8139f4ea4330f33e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/CHILD.json",
+      "mode": "100644",
+      "oid": "56021877e826cfe04e0672eb50b7ded0c53ded16"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/OUTCOME.json",
+      "mode": "100644",
+      "oid": "6d96eff7c3eb640fe253f6e43962166fefe6dd07"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/stderr.raw",
+      "mode": "100644",
+      "oid": "0f97af7167d8df4d5c755183019dbed29d550c16"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/stdout.raw",
+      "mode": "100644",
+      "oid": "9e9cbb3a8a30bb9e5aec185c94c3e968e0d8c178"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/ADMISSION.json",
+      "mode": "100644",
+      "oid": "fc62d795af0e62c30c6e3c0a9a681f5847b1d2b9"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/CHILD.json",
+      "mode": "100644",
+      "oid": "57e495573200675fbecdde4fc218b1de753fefc3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/OUTCOME.json",
+      "mode": "100644",
+      "oid": "fb76bf61359427e3aa2903358a7cdc1c276f3c0f"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/stderr.raw",
+      "mode": "100644",
+      "oid": "a0eb66e310d950a3b2ff55a0a88e5804db2af5c5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/stdout.raw",
+      "mode": "100644",
+      "oid": "e76168983bb5600af8f7b24626c24f3a5a785528"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/ADMISSION.json",
+      "mode": "100644",
+      "oid": "23116d462955ce3ee6cfbd5bac2c949f8d403bad"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/CHILD.json",
+      "mode": "100644",
+      "oid": "4c4139f610a1a54278edc8815c25d09a051e6749"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/OUTCOME.json",
+      "mode": "100644",
+      "oid": "f25ab57d3b739f451f9d9334e9bd158ab3576210"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/stderr.raw",
+      "mode": "100644",
+      "oid": "53c5e945261aa24dbabb24bf072d5aecbe0289f4"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/stdout.raw",
+      "mode": "100644",
+      "oid": "5e284b331c87f55c29c81f0723b6c41d82e5e2bd"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/ADMISSION.json",
+      "mode": "100644",
+      "oid": "95c8624290de35a33b5406366e7f970253aeb650"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/CHILD.json",
+      "mode": "100644",
+      "oid": "c40d1d7aa009f0115aaa96a3a130707383bde24c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/OUTCOME.json",
+      "mode": "100644",
+      "oid": "04a64cba754752a89f13ff34a84e3d74d84c5075"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/stderr.raw",
+      "mode": "100644",
+      "oid": "5552ca87df701cbabb904457a005123ec9c2f7b0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/stdout.raw",
+      "mode": "100644",
+      "oid": "0c7abf8b7610a86d19bda135bed3839f3dd53bc3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/ADMISSION.json",
+      "mode": "100644",
+      "oid": "44a146cd32a27cd16691ed5fa70ab873f361c26d"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/CHILD.json",
+      "mode": "100644",
+      "oid": "c3d7fbc022d211239ca4b5a6ab4034e82ac86d63"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/OUTCOME.json",
+      "mode": "100644",
+      "oid": "2e41c54d31d3ccc9458b6643cb9669de93924bb9"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/stderr.raw",
+      "mode": "100644",
+      "oid": "1ce0ebdc9f55b0db4083c3f7784d97ccde2bd371"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/stdout.raw",
+      "mode": "100644",
+      "oid": "070577df8d94a05aad64d45c247ac734db540b74"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/ADMISSION.json",
+      "mode": "100644",
+      "oid": "6cd7135af7712598419594851a133f94c96576e3"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/CHILD.json",
+      "mode": "100644",
+      "oid": "b0fe3b1da9b390daf80a0fde2c3009aa78adddf7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/OUTCOME.json",
+      "mode": "100644",
+      "oid": "99b27f3759aa1829d5429acb1db0ad43cfb6f333"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/stderr.raw",
+      "mode": "100644",
+      "oid": "9092ce32deb40930c41decc93689183e3a19bfa7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/stdout.raw",
+      "mode": "100644",
+      "oid": "986ef0bd4fca3ae4590a8d4ff99d6f2786333466"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/ADMISSION.json",
+      "mode": "100644",
+      "oid": "83be384a97748b878d0b41b1d59e0ff55573530a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/CHILD.json",
+      "mode": "100644",
+      "oid": "b8763bb6c25d976e82a6cbafdbaedc6c2933cfba"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/OUTCOME.json",
+      "mode": "100644",
+      "oid": "057b23a4f4e3bd9140d5fb60da101779921f978a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/stderr.raw",
+      "mode": "100644",
+      "oid": "26df2eda1253ebc2ddc17e271418010c59b11336"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/stdout.raw",
+      "mode": "100644",
+      "oid": "51ffd3e2958a6c0dce914621ce5b197aba96a290"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/ADMISSION.json",
+      "mode": "100644",
+      "oid": "8cc19621a1e31f1efd16872ac4d13ac068b7e407"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/CHILD.json",
+      "mode": "100644",
+      "oid": "2f88a93086b0be90eb91b1ed87f72e2a74f96345"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/OUTCOME.json",
+      "mode": "100644",
+      "oid": "c034b7fe50c7d442dd54f6a63a9024963256c79a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/stderr.raw",
+      "mode": "100644",
+      "oid": "906ae2ab07a41b85f973f56f0454484598041281"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/stdout.raw",
+      "mode": "100644",
+      "oid": "7d26a66bc04696e534786ddb2b40ab4492d305d5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/ADMISSION.json",
+      "mode": "100644",
+      "oid": "b27163b576e3e58788f56f9a1c17bfc079747c3a"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/CHILD.json",
+      "mode": "100644",
+      "oid": "50ebb87a5e510c59be5cd4f069cf2e4e224bdb09"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/LOADER-HOME.json",
+      "mode": "100644",
+      "oid": "471d6b64c3c9e7f6cfd089a26d9bcccfb04a9996"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/OUTCOME.json",
+      "mode": "100644",
+      "oid": "b9b82ea2eb5fee2ea27f50240df5cc858f26a90e"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/stderr.raw",
+      "mode": "100644",
+      "oid": "be78a99cc0e549b47f3c236f9a467362cfb191ef"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/stdout.raw",
+      "mode": "100644",
+      "oid": "b7fffefd0021ccf55d3864306f7e24f6208c0422"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/RESULT.json",
+      "mode": "100644",
+      "oid": "a3eac9828e2e9a1a864c162ba28acb3094d9047c"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/STARTUP.json",
+      "mode": "100644",
+      "oid": "b057a926177fe9a3a524e9fcf8b43557eb1ff2e8"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+      "mode": "100644",
+      "oid": "ecacc630e949abf1334c723e19ca67d4da309761"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-acquisition-seal.json.data",
+      "mode": "100644",
+      "oid": "b7017394102390e97ce64516357bc315804003c7"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-acquisition.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-verification-seal.json.data",
+      "mode": "100644",
+      "oid": "213e86ad3383ba620e3d79c220ce193054171eb0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/frozen-verification.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/plan-r2.json",
+      "mode": "100644",
+      "oid": "d5f4459113e7e4dfdb313160783d247ea5facbb0"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/plan.json",
+      "mode": "100644",
+      "oid": "0e3f5f9880dc63da74bdaad40b020ed2c8fc146f"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.mjs",
+      "mode": "100644",
+      "oid": "a591d402d9a6b597cd846b4f75082fa0b16df2ce"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/prepare.stdout.raw",
+      "mode": "100644",
+      "oid": "74df8bba3d1ba927521d22746f3278608c00a8ad"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/revision-2-builder.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/revision-2-builder.stdout.raw",
+      "mode": "100644",
+      "oid": "4628e039197678f2df596cd682378b1d83ad7260"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.mjs",
+      "mode": "100644",
+      "oid": "8071e5edea005c5c007d68c2fbaebcba87264b16"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify-r2.stdout.raw",
+      "mode": "100644",
+      "oid": "fbb5a50800e7d6255dc297664ba4adb5bab44002"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.mjs",
+      "mode": "100644",
+      "oid": "e19a7f4abc92390031cb3d19b26f3a53d934b1a5"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.stderr.raw",
+      "mode": "100644",
+      "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v2/verify.stdout.raw",
+      "mode": "100644",
+      "oid": "4c5029d068967b82da647b1f342cb359c6ceab3e"
+    }
+  ]
+}

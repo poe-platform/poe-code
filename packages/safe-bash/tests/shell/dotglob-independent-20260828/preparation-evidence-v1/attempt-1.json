@@ -1,0 +1,4174 @@
+{
+  "qualification": "Synthetic harness preparation only. No product/native/build/compiler execution.",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "sourceBefore": {
+    "HELD.json": {
+      "sha256": "effc9a2fe3df1401abe045223bcf4d721d1ab944a414aebf6946a57f6355018c",
+      "bytes": 1150,
+      "mode": 420
+    },
+    "admission.mjs": {
+      "sha256": "70e63c03cb562ddaad0e27d29632a585829d876c4d9f8b95c5a386e89e2c10da",
+      "bytes": 4805,
+      "mode": 420
+    },
+    "artifacts.mjs": {
+      "sha256": "622cff096b5a551c9eb5f1ace6ae478a0284d2b69b49442dc1843d574a025d6f",
+      "bytes": 3384,
+      "mode": 420
+    },
+    "cohorts.mjs": {
+      "sha256": "1c095221e3cf54ab372c272f0611f0faa36c12380e78e7c7f98f3664bfa035a5",
+      "bytes": 4902,
+      "mode": 420
+    },
+    "fixture-mutant.mjs": {
+      "sha256": "8d30e6fc194ee51e220b867ce25e47e15f0ee6f8d438ee34969bd63bddc1d828",
+      "bytes": 104,
+      "mode": 420
+    },
+    "fixture-value.mjs": {
+      "sha256": "39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b",
+      "bytes": 104,
+      "mode": 420
+    },
+    "guard.mjs": {
+      "sha256": "37dd4f79a6424018e9d50cfdd649ba90be0293369902ad3da83a0730edc7cd68",
+      "bytes": 1195,
+      "mode": 420
+    },
+    "plan.mjs": {
+      "sha256": "4fa42def4f6bd9ddce7c7365afc5e46736f2bd60dde00be5ac4522b8846bf3b0",
+      "bytes": 1655,
+      "mode": 420
+    },
+    "procedures.mjs": {
+      "sha256": "731d3422836b7c50d08b5c756467a108b49952dafcb5a44b4cca88ebb14c67a2",
+      "bytes": 4165,
+      "mode": 420
+    },
+    "protocol.mjs": {
+      "sha256": "20356451ed758b1186c4401e1b34dc848bb119eefba4f5d2ea66134938889587",
+      "bytes": 4908,
+      "mode": 420
+    },
+    "run.mjs": {
+      "sha256": "ebd0b761e3b34de51e2d8335e927b2e364166cb2d711124faf64d6f39295d52d",
+      "bytes": 4691,
+      "mode": 420
+    },
+    "selftest.mjs": {
+      "sha256": "15fecbe43874a5e7dd12c19c63a5da39fa51d1cce153cb1886a9f56397edfc9a",
+      "bytes": 13000,
+      "mode": 420
+    },
+    "settlement.mjs": {
+      "sha256": "e1b7fb5d31507b5e5115d26158576cd3def2a40e5f7daf08915c700933a00a08",
+      "bytes": 1896,
+      "mode": 420
+    },
+    "synthetic-worker.mjs": {
+      "sha256": "3f9edf481ce9b5ad347e8ca89a7f98504997f36daac08fa9d6c41de62b9cc6ae",
+      "bytes": 3431,
+      "mode": 420
+    },
+    "types.mjs": {
+      "sha256": "19e34f2108f1c502e2e6ecd144e093ef4f3285a2d89ff5e83935157ccd461b66",
+      "bytes": 2914,
+      "mode": 420
+    },
+    "verify-inputs.mjs": {
+      "sha256": "c4639808113c54e2603f3459f3baab5af13cbd8a155e47f460dee4839bacf072",
+      "bytes": 2145,
+      "mode": 420
+    },
+    "worker.mjs": {
+      "sha256": "62b28a6eb7b89a3d6bcf0afb7efe5c551516f8ac165a6c14f9e1000a1e8efe90",
+      "bytes": 2346,
+      "mode": 420
+    }
+  },
+  "inputs": {
+    "checked": [
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "BINDINGS.json",
+        "sha256": "c51fb00674ed5ce3bcdbc764553d466d96df2fb6afeb4deaf4919dbb4690387d"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "PROTOCOL.md",
+        "sha256": "0d50aa2efb4d8391eea8fa8dcb5eb698fce29570b6807346890f47b1095554c7"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "README.md",
+        "sha256": "8bdacecb52dbd247af6dd7366755c1b68d31e86342f63b3ad26a19e957ea16b4"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "command-cases.json",
+        "sha256": "4b6983d2b01d6954c1b08fd4fa72d2550ff6041136a225e87fb28bc0e93eb875"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "consumer.mts.fixture",
+        "sha256": "ad55526f5633074f474b1916a42c2654a826bc188487a58dd50b4be70ae0d6d9"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "glob-cases.json",
+        "sha256": "19ee987b233f3e2311f6cdfd5f94b76150439f489d7b2fb07024e46c8cd1a74f"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "glob-fixtures.json",
+        "sha256": "b3a6de71a083b1df4f9f4deaab54fd88ecc8590864015ca5cd07ae5a6f96d90a"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "negative-api.mts.fixture",
+        "sha256": "80b282bba69755d525b9063b3995fc73cc755c868d7af16a31635e5d098d478b"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "negative-option.mts.fixture",
+        "sha256": "3e456d64e5106e1bfd33d2f64be2561722ae7c18d288a9661315a796b0b7c82b"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "procedures.json",
+        "sha256": "78888381a41994031dde725ed8f08e6abb9068b29a700f0120e301639c8a045a"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "state-cases.json",
+        "sha256": "7c2f3c74ec0aa959608f7de272296a38dfd2d39efe78930c6c8b34521276c422"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "unsupported-names.json",
+        "sha256": "d1b895861c0bdba9827031e6bedeafea0880cb530969da5d731c0d0bddc4cd23"
+      },
+      {
+        "revision": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+        "path": "verify-freeze.mjs",
+        "sha256": "588f88c1c6843f4ca87c4f5f06b47f28061f3027844f0e6089784ff8cf7b0130"
+      },
+      {
+        "revision": "deced72dde70151b1b090fbba7d739323491cd89",
+        "path": "byte-overlay-v1/README.md",
+        "sha256": "6509115a79a519402c645ef63355cc1551e8b2b7de5a4ec6517b767fb619ea9e"
+      },
+      {
+        "revision": "deced72dde70151b1b090fbba7d739323491cd89",
+        "path": "byte-overlay-v1/expectations.json",
+        "sha256": "43e1872c9edd44e3dffa5558993496c6788ea66116062a58c48aa8124cf9ca2d"
+      }
+    ],
+    "counts": {
+      "commands": 102,
+      "unsupported": 696,
+      "globs": 72,
+      "states": 14,
+      "procedures": 26,
+      "overlay": 8
+    },
+    "nativeCalls": 0,
+    "productExecutions": 0,
+    "builds": 0,
+    "typeCompilations": 0
+  },
+  "results": [
+    {
+      "id": "receipt-normal",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "normal"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.706Z",
+          "finished": "2026-08-28T08:50:30.748Z",
+          "pid": 54903,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 132
+        },
+        "result": {
+          "coherent": true,
+          "accepted": true,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-split-utf8",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "split-utf8"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.748Z",
+          "finished": "2026-08-28T08:50:30.799Z",
+          "pid": 54904,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 132
+        },
+        "result": {
+          "coherent": true,
+          "accepted": true,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-ordinary",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "ordinary"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.799Z",
+          "finished": "2026-08-28T08:50:30.843Z",
+          "pid": 54905,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":false,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":0,\"failed\":[\"only\"]}}\n",
+          "stderr": "",
+          "bytes": 139
+        },
+        "result": {
+          "coherent": true,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 0,
+          "failed": [
+            "only"
+          ],
+          "errors": [],
+          "observations": [
+            {
+              "id": "only",
+              "pass": false,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 0,
+            "failed": [
+              "only"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-late-exit",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "late-exit"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.843Z",
+          "finished": "2026-08-28T08:50:30.883Z",
+          "pid": 54906,
+          "code": 7,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 132
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [
+            "exit status contradicts body outcomes"
+          ],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-late-throw",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "late-throw"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.883Z",
+          "finished": "2026-08-28T08:50:30.925Z",
+          "pid": 54907,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:58\n  if (mode === 'late-throw') throw new Error('late-after-all-PASS');\n                                   ^\n\nError: late-after-all-PASS\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:58:36\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n\nNode.js v22.22.2\n",
+          "bytes": 780
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [
+            "exit status contradicts body outcomes"
+          ],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-duplicate",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "duplicate"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.925Z",
+          "finished": "2026-08-28T08:50:30.970Z",
+          "pid": 54908,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 219
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 2,
+          "passed": 2,
+          "failed": [],
+          "errors": [
+            "missing/duplicate/unexpected observation",
+            "summary does not reconcile"
+          ],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            },
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-missing",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "missing"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:30.970Z",
+          "finished": "2026-08-28T08:50:31.014Z",
+          "pid": 54909,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 45
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 0,
+          "passed": 0,
+          "failed": [],
+          "errors": [
+            "missing/duplicate/unexpected observation",
+            "summary does not reconcile"
+          ],
+          "observations": [],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-summary",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "summary"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.014Z",
+          "finished": "2026-08-28T08:50:31.056Z",
+          "pid": 54910,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":99,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 133
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [
+            "summary does not reconcile"
+          ],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 99,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-malformed",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "malformed"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.056Z",
+          "finished": "2026-08-28T08:50:31.098Z",
+          "pid": 54911,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{broken\n{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":true,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 140
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [
+            "non-JSON stdout"
+          ],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": true,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "receipt-unretired",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "unretired"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.098Z",
+          "finished": "2026-08-28T08:50:31.136Z",
+          "pid": 54912,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"only\",\"pass\":true,\"settled\":true,\"disposed\":false,\"value\":\"雪\"}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 133
+        },
+        "result": {
+          "coherent": false,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [
+            "observation not settled/disposed"
+          ],
+          "observations": [
+            {
+              "id": "only",
+              "pass": true,
+              "settled": true,
+              "disposed": false,
+              "value": "雪"
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "settlement-aggregate",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "aggregate"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.136Z",
+          "finished": "2026-08-28T08:50:31.184Z",
+          "pid": 54913,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"first\",\"pass\":false,\"error\":\"Error: ordinary-failure\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:35:102\\n    at executeRows (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/settlement.mjs:25:27)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:33:9\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\",\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"second\",\"pass\":true,\"details\":{\"priorDisposed\":true},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":2,\"pass\":1,\"failed\":[\"first\"]}}\n{\"diagnostic\":{\"events\":[\"dispose:first\",\"dispose:second\"]}}\n",
+          "stderr": "",
+          "bytes": 1035
+        },
+        "result": {
+          "coherent": true,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 2,
+          "observed": 2,
+          "passed": 1,
+          "failed": [
+            "first"
+          ],
+          "errors": [],
+          "observations": [
+            {
+              "id": "first",
+              "pass": false,
+              "error": "Error: ordinary-failure\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:35:102\n    at executeRows (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/settlement.mjs:25:27)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:33:9\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "second",
+              "pass": true,
+              "details": {
+                "priorDisposed": true
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 2,
+            "pass": 1,
+            "failed": [
+              "first"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "settlement-falsy",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "falsy"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.184Z",
+          "finished": "2026-08-28T08:50:31.228Z",
+          "pid": 54914,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"first\",\"pass\":false,\"error\":\"undefined\",\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"second\",\"pass\":true,\"details\":{\"priorDisposed\":true},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":2,\"pass\":1,\"failed\":[\"first\"]}}\n{\"diagnostic\":{\"events\":[\"dispose:first\",\"dispose:second\"]}}\n",
+          "stderr": "",
+          "bytes": 367
+        },
+        "result": {
+          "coherent": true,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 2,
+          "observed": 2,
+          "passed": 1,
+          "failed": [
+            "first"
+          ],
+          "errors": [],
+          "observations": [
+            {
+              "id": "first",
+              "pass": false,
+              "error": "undefined",
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "second",
+              "pass": true,
+              "details": {
+                "priorDisposed": true
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 2,
+            "pass": 1,
+            "failed": [
+              "first"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "settlement-cleanup",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "cleanup"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.228Z",
+          "finished": "2026-08-28T08:50:31.273Z",
+          "pid": 54915,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"first\",\"pass\":false,\"details\":{\"priorDisposed\":false},\"error\":null,\"cleanupErrors\":[\"Error: owned-cleanup\"],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"second\",\"pass\":true,\"details\":{\"priorDisposed\":true},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":2,\"pass\":1,\"failed\":[\"first\"]}}\n{\"diagnostic\":{\"events\":[\"dispose:first\",\"dispose:second\"]}}\n",
+          "stderr": "",
+          "bytes": 416
+        },
+        "result": {
+          "coherent": true,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 2,
+          "observed": 2,
+          "passed": 1,
+          "failed": [
+            "first"
+          ],
+          "errors": [],
+          "observations": [
+            {
+              "id": "first",
+              "pass": false,
+              "details": {
+                "priorDisposed": false
+              },
+              "error": null,
+              "cleanupErrors": [
+                "Error: owned-cleanup"
+              ],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "second",
+              "pass": true,
+              "details": {
+                "priorDisposed": true
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 2,
+            "pass": 1,
+            "failed": [
+              "first"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "bounded-timeout",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+          "timeout"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:31.274Z",
+        "finished": "2026-08-28T08:50:31.428Z",
+        "pid": 54916,
+        "code": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "failure": "deadline",
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "",
+        "bytes": 0
+      }
+    },
+    {
+      "id": "bounded-overflow",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+          "overflow"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:31.428Z",
+        "finished": "2026-08-28T08:50:31.470Z",
+        "pid": 54917,
+        "code": null,
+        "signal": "SIGTERM",
+        "spawnError": null,
+        "failure": "output-ceiling",
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "",
+        "bytes": 8192
+      }
+    },
+    {
+      "id": "synthetic-26-procedure-transport",
+      "pass": true,
+      "detail": {
+        "qualification": "26 synthetic checkpoint transports, NOT 26 product procedures",
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "procedures"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.470Z",
+          "finished": "2026-08-28T08:50:31.521Z",
+          "pid": 54918,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"R01\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"call-time-off-on-off\",\"actual\":{\"synthetic\":true,\"id\":\"R01\"},\"expected\":{\"synthetic\":true,\"id\":\"R01\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R02\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"same-shell-new-exec\",\"actual\":{\"synthetic\":true,\"id\":\"R02\"},\"expected\":{\"synthetic\":true,\"id\":\"R02\"}},{\"name\":\"overlapping-isolated-shells\",\"actual\":{\"synthetic\":true,\"id\":\"R02\"},\"expected\":{\"synthetic\":true,\"id\":\"R02\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R03\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"virtual-environment-does-not-enable\",\"actual\":{\"synthetic\":true,\"id\":\"R03\"},\"expected\":{\"synthetic\":true,\"id\":\"R03\"}},{\"name\":\"replacement-retains-clone-state\",\"actual\":{\"synthetic\":true,\"id\":\"R03\"},\"expected\":{\"synthetic\":true,\"id\":\"R03\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R04\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"each-pipeline-stage-inherits\",\"actual\":{\"synthetic\":true,\"id\":\"R04\"},\"expected\":{\"synthetic\":true,\"id\":\"R04\"}},{\"name\":\"stage-mutation-isolated\",\"actual\":{\"synthetic\":true,\"id\":\"R04\"},\"expected\":{\"synthetic\":true,\"id\":\"R04\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R05\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"invoke-clone\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}},{\"name\":\"literal-argv\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}},{\"name\":\"nul-and-type-admission\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}},{\"name\":\"shared-options-signal-budget\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R06\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"scriptFile-whole-input-preflight\",\"actual\":{\"synthetic\":true,\"id\":\"R06\"},\"expected\":{\"synthetic\":true,\"id\":\"R06\"}},{\"name\":\"late-syntax-no-leading-effects\",\"actual\":{\"synthetic\":true,\"id\":\"R06\"},\"expected\":{\"synthetic\":true,\"id\":\"R06\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R07\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"bound-interpreter-entry-routes-fresh\",\"actual\":{\"synthetic\":true,\"id\":\"R07\"},\"expected\":{\"synthetic\":true,\"id\":\"R07\"}},{\"name\":\"source-eval-share\",\"actual\":{\"synthetic\":true,\"id\":\"R07\"},\"expected\":{\"synthetic\":true,\"id\":\"R07\"}},{\"name\":\"subshell-substitution-clone\",\"actual\":{\"synthetic\":true,\"id\":\"R07\"},\"expected\":{\"synthetic\":true,\"id\":\"R07\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R08\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"discovery\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}},{\"name\":\"registry-collision\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}},{\"name\":\"function-precedence-command-bypass\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}},{\"name\":\"default-inventory-unchanged\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R09\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"errexit-named-disabled\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}},{\"name\":\"guarded-control-status\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}},{\"name\":\"no-name-zero\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}},{\"name\":\"invalid-flag-two\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R10\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"ordered-channel-events\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}},{\"name\":\"duplicates\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}},{\"name\":\"valid-unknown-order-no-rollback\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}},{\"name\":\"gated-diagnostics\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R11\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"invalid-before-conflict-before-operands\",\"actual\":{\"synthetic\":true,\"id\":\"R11\"},\"expected\":{\"synthetic\":true,\"id\":\"R11\"}},{\"name\":\"later-flag-is-name\",\"actual\":{\"synthetic\":true,\"id\":\"R11\"},\"expected\":{\"synthetic\":true,\"id\":\"R11\"}},{\"name\":\"no-vfs-access\",\"actual\":{\"synthetic\":true,\"id\":\"R11\"},\"expected\":{\"synthetic\":true,\"id\":\"R11\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R12\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"all-eight-reason-identities\",\"actual\":{\"synthetic\":true,\"id\":\"R12\"},\"expected\":{\"synthetic\":true,\"id\":\"R12\"}},{\"name\":\"no-preabort-dispatch\",\"actual\":{\"synthetic\":true,\"id\":\"R12\"},\"expected\":{\"synthetic\":true,\"id\":\"R12\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R13\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"readdir-abort\",\"actual\":{\"synthetic\":true,\"id\":\"R13\"},\"expected\":{\"synthetic\":true,\"id\":\"R13\"}},{\"name\":\"stat-abort\",\"actual\":{\"synthetic\":true,\"id\":\"R13\"},\"expected\":{\"synthetic\":true,\"id\":\"R13\"}},{\"name\":\"propagated-signal-no-successful-late-effects\",\"actual\":{\"synthetic\":true,\"id\":\"R13\"},\"expected\":{\"synthetic\":true,\"id\":\"R13\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R14\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"actual-pattern-checkpoint-hit\",\"actual\":{\"synthetic\":true,\"id\":\"R14\"},\"expected\":{\"synthetic\":true,\"id\":\"R14\"}},{\"name\":\"caller-reason-identity\",\"actual\":{\"synthetic\":true,\"id\":\"R14\"},\"expected\":{\"synthetic\":true,\"id\":\"R14\"}},{\"name\":\"bounded-fixture\",\"actual\":{\"synthetic\":true,\"id\":\"R14\"},\"expected\":{\"synthetic\":true,\"id\":\"R14\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R15\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"off-five-allow-four-reject\",\"actual\":{\"synthetic\":true,\"id\":\"R15\"},\"expected\":{\"synthetic\":true,\"id\":\"R15\"}},{\"name\":\"on-nine-allow-eight-reject\",\"actual\":{\"synthetic\":true,\"id\":\"R15\"},\"expected\":{\"synthetic\":true,\"id\":\"R15\"}},{\"name\":\"typed-field-limit-before-dispatch\",\"actual\":{\"synthetic\":true,\"id\":\"R15\"},\"expected\":{\"synthetic\":true,\"id\":\"R15\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R16\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"off-fourteen-thirteen\",\"actual\":{\"synthetic\":true,\"id\":\"R16\"},\"expected\":{\"synthetic\":true,\"id\":\"R16\"}},{\"name\":\"on-thirtyone-thirty\",\"actual\":{\"synthetic\":true,\"id\":\"R16\"},\"expected\":{\"synthetic\":true,\"id\":\"R16\"}},{\"name\":\"typed-byte-limit-before-dispatch\",\"actual\":{\"synthetic\":true,\"id\":\"R16\"},\"expected\":{\"synthetic\":true,\"id\":\"R16\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R17\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"ordinary-and-reusable-byte-boundaries\",\"actual\":{\"synthetic\":true,\"id\":\"R17\"},\"expected\":{\"synthetic\":true,\"id\":\"R17\"}},{\"name\":\"silent-zero-cap\",\"actual\":{\"synthetic\":true,\"id\":\"R17\"},\"expected\":{\"synthetic\":true,\"id\":\"R17\"}},{\"name\":\"diagnostic-zero-cap-limit\",\"actual\":{\"synthetic\":true,\"id\":\"R17\"},\"expected\":{\"synthetic\":true,\"id\":\"R17\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R18\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"bound-work-positive\",\"actual\":{\"synthetic\":true,\"id\":\"R18\"},\"expected\":{\"synthetic\":true,\"id\":\"R18\"}},{\"name\":\"bound-work-exhaustion\",\"actual\":{\"synthetic\":true,\"id\":\"R18\"},\"expected\":{\"synthetic\":true,\"id\":\"R18\"}},{\"name\":\"off-controls-accounting-retained\",\"actual\":{\"synthetic\":true,\"id\":\"R18\"},\"expected\":{\"synthetic\":true,\"id\":\"R18\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R19\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"nested-shared-command-limit\",\"actual\":{\"synthetic\":true,\"id\":\"R19\"},\"expected\":{\"synthetic\":true,\"id\":\"R19\"}},{\"name\":\"source-depth-loop-limits\",\"actual\":{\"synthetic\":true,\"id\":\"R19\"},\"expected\":{\"synthetic\":true,\"id\":\"R19\"}},{\"name\":\"earlier-effects-retained\",\"actual\":{\"synthetic\":true,\"id\":\"R19\"},\"expected\":{\"synthetic\":true,\"id\":\"R19\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R20\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"stdout-failure-stops-later-operands\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}},{\"name\":\"stderr-unknown-first-no-later-mutation\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}},{\"name\":\"valid-first-mutation-retained\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}},{\"name\":\"base-error-mapping\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R21\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"stdout-stderr-backpressure\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}},{\"name\":\"registered-cleanup-drained-once\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}},{\"name\":\"caller-execution-cleanup-precedence\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}},{\"name\":\"unawaited-child-colon-comparator-no-unhandled\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R22\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"provider-order-final-sort\",\"actual\":{\"synthetic\":true,\"id\":\"R22\"},\"expected\":{\"synthetic\":true,\"id\":\"R22\"}},{\"name\":\"custom-dot-entries\",\"actual\":{\"synthetic\":true,\"id\":\"R22\"},\"expected\":{\"synthetic\":true,\"id\":\"R22\"}},{\"name\":\"swallowed-vs-propagated-errno\",\"actual\":{\"synthetic\":true,\"id\":\"R22\"},\"expected\":{\"synthetic\":true,\"id\":\"R22\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R23\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"six-offending-z-preflight-rows\",\"actual\":{\"synthetic\":true,\"id\":\"R23\"},\"expected\":{\"synthetic\":true,\"id\":\"R23\"}},{\"name\":\"two-later-cluster-name-neighbors\",\"actual\":{\"synthetic\":true,\"id\":\"R23\"},\"expected\":{\"synthetic\":true,\"id\":\"R23\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R24\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"selected-source-two-file-delta\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"actual-source-installed-moved-loads\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"types-and-inversions\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"denied-source-fallback\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"guard-and-reversion-mutants\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"actual-package-late-nonzero-rejected\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R25\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"source-line-two\",\"actual\":{\"synthetic\":true,\"id\":\"R25\"},\"expected\":{\"synthetic\":true,\"id\":\"R25\"}},{\"name\":\"function-eval-diagnostics\",\"actual\":{\"synthetic\":true,\"id\":\"R25\"},\"expected\":{\"synthetic\":true,\"id\":\"R25\"}},{\"name\":\"redirection-and-stdin-not-consumed\",\"actual\":{\"synthetic\":true,\"id\":\"R25\"},\"expected\":{\"synthetic\":true,\"id\":\"R25\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R26\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"literal-dot-dotdot\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}},{\"name\":\"wildcard-dot-omission-both-states\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}},{\"name\":\"dotdotkeep-preserved\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}},{\"name\":\"configured-realfs-positive-refusal\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":26,\"pass\":26,\"failed\":[]}}\n",
+          "stderr": "",
+          "bytes": 12849
+        },
+        "result": {
+          "coherent": true,
+          "accepted": true,
+          "mutantKilled": false,
+          "expected": 26,
+          "observed": 26,
+          "passed": 26,
+          "failed": [],
+          "errors": [],
+          "observations": [
+            {
+              "id": "R01",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "call-time-off-on-off",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R01"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R01"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R02",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "same-shell-new-exec",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R02"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R02"
+                    }
+                  },
+                  {
+                    "name": "overlapping-isolated-shells",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R02"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R02"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R03",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "virtual-environment-does-not-enable",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R03"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R03"
+                    }
+                  },
+                  {
+                    "name": "replacement-retains-clone-state",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R03"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R03"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R04",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "each-pipeline-stage-inherits",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R04"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R04"
+                    }
+                  },
+                  {
+                    "name": "stage-mutation-isolated",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R04"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R04"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R05",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "invoke-clone",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  },
+                  {
+                    "name": "literal-argv",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  },
+                  {
+                    "name": "nul-and-type-admission",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  },
+                  {
+                    "name": "shared-options-signal-budget",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R06",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "scriptFile-whole-input-preflight",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R06"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R06"
+                    }
+                  },
+                  {
+                    "name": "late-syntax-no-leading-effects",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R06"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R06"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R07",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "bound-interpreter-entry-routes-fresh",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R07"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R07"
+                    }
+                  },
+                  {
+                    "name": "source-eval-share",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R07"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R07"
+                    }
+                  },
+                  {
+                    "name": "subshell-substitution-clone",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R07"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R07"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R08",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "discovery",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  },
+                  {
+                    "name": "registry-collision",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  },
+                  {
+                    "name": "function-precedence-command-bypass",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  },
+                  {
+                    "name": "default-inventory-unchanged",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R09",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "errexit-named-disabled",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  },
+                  {
+                    "name": "guarded-control-status",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  },
+                  {
+                    "name": "no-name-zero",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  },
+                  {
+                    "name": "invalid-flag-two",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R10",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "ordered-channel-events",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  },
+                  {
+                    "name": "duplicates",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  },
+                  {
+                    "name": "valid-unknown-order-no-rollback",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  },
+                  {
+                    "name": "gated-diagnostics",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R11",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "invalid-before-conflict-before-operands",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R11"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R11"
+                    }
+                  },
+                  {
+                    "name": "later-flag-is-name",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R11"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R11"
+                    }
+                  },
+                  {
+                    "name": "no-vfs-access",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R11"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R11"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R12",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "all-eight-reason-identities",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R12"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R12"
+                    }
+                  },
+                  {
+                    "name": "no-preabort-dispatch",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R12"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R12"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R13",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "readdir-abort",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R13"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R13"
+                    }
+                  },
+                  {
+                    "name": "stat-abort",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R13"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R13"
+                    }
+                  },
+                  {
+                    "name": "propagated-signal-no-successful-late-effects",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R13"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R13"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R14",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "actual-pattern-checkpoint-hit",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R14"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R14"
+                    }
+                  },
+                  {
+                    "name": "caller-reason-identity",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R14"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R14"
+                    }
+                  },
+                  {
+                    "name": "bounded-fixture",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R14"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R14"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R15",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "off-five-allow-four-reject",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R15"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R15"
+                    }
+                  },
+                  {
+                    "name": "on-nine-allow-eight-reject",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R15"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R15"
+                    }
+                  },
+                  {
+                    "name": "typed-field-limit-before-dispatch",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R15"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R15"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R16",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "off-fourteen-thirteen",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R16"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R16"
+                    }
+                  },
+                  {
+                    "name": "on-thirtyone-thirty",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R16"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R16"
+                    }
+                  },
+                  {
+                    "name": "typed-byte-limit-before-dispatch",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R16"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R16"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R17",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "ordinary-and-reusable-byte-boundaries",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R17"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R17"
+                    }
+                  },
+                  {
+                    "name": "silent-zero-cap",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R17"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R17"
+                    }
+                  },
+                  {
+                    "name": "diagnostic-zero-cap-limit",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R17"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R17"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R18",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "bound-work-positive",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R18"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R18"
+                    }
+                  },
+                  {
+                    "name": "bound-work-exhaustion",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R18"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R18"
+                    }
+                  },
+                  {
+                    "name": "off-controls-accounting-retained",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R18"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R18"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R19",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "nested-shared-command-limit",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R19"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R19"
+                    }
+                  },
+                  {
+                    "name": "source-depth-loop-limits",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R19"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R19"
+                    }
+                  },
+                  {
+                    "name": "earlier-effects-retained",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R19"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R19"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R20",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "stdout-failure-stops-later-operands",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  },
+                  {
+                    "name": "stderr-unknown-first-no-later-mutation",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  },
+                  {
+                    "name": "valid-first-mutation-retained",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  },
+                  {
+                    "name": "base-error-mapping",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R21",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "stdout-stderr-backpressure",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  },
+                  {
+                    "name": "registered-cleanup-drained-once",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  },
+                  {
+                    "name": "caller-execution-cleanup-precedence",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  },
+                  {
+                    "name": "unawaited-child-colon-comparator-no-unhandled",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R22",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "provider-order-final-sort",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R22"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R22"
+                    }
+                  },
+                  {
+                    "name": "custom-dot-entries",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R22"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R22"
+                    }
+                  },
+                  {
+                    "name": "swallowed-vs-propagated-errno",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R22"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R22"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R23",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "six-offending-z-preflight-rows",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R23"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R23"
+                    }
+                  },
+                  {
+                    "name": "two-later-cluster-name-neighbors",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R23"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R23"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R24",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "selected-source-two-file-delta",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "actual-source-installed-moved-loads",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "types-and-inversions",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "denied-source-fallback",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "guard-and-reversion-mutants",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "actual-package-late-nonzero-rejected",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R25",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "source-line-two",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R25"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R25"
+                    }
+                  },
+                  {
+                    "name": "function-eval-diagnostics",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R25"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R25"
+                    }
+                  },
+                  {
+                    "name": "redirection-and-stdin-not-consumed",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R25"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R25"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R26",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "literal-dot-dotdot",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  },
+                  {
+                    "name": "wildcard-dot-omission-both-states",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  },
+                  {
+                    "name": "dotdotkeep-preserved",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  },
+                  {
+                    "name": "configured-realfs-positive-refusal",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 26,
+            "pass": 26,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-procedure-checkpoint-rejected-after-reap",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs",
+            "procedures",
+            "missing-checkpoint"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+          "started": "2026-08-28T08:50:31.522Z",
+          "finished": "2026-08-28T08:50:31.571Z",
+          "pid": 54919,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"observation\":{\"id\":\"R01\",\"pass\":false,\"error\":\"AssertionError [ERR_ASSERTION]: no missing procedure checkpoints\\n+ actual - expected\\n\\n+ []\\n- [\\n-   'call-time-off-on-off'\\n- ]\\n\\n    at procedureCase (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/procedures.mjs:58:10)\\n    at async executeRows (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/settlement.mjs:25:21)\\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:30:3\",\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R02\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"same-shell-new-exec\",\"actual\":{\"synthetic\":true,\"id\":\"R02\"},\"expected\":{\"synthetic\":true,\"id\":\"R02\"}},{\"name\":\"overlapping-isolated-shells\",\"actual\":{\"synthetic\":true,\"id\":\"R02\"},\"expected\":{\"synthetic\":true,\"id\":\"R02\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R03\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"virtual-environment-does-not-enable\",\"actual\":{\"synthetic\":true,\"id\":\"R03\"},\"expected\":{\"synthetic\":true,\"id\":\"R03\"}},{\"name\":\"replacement-retains-clone-state\",\"actual\":{\"synthetic\":true,\"id\":\"R03\"},\"expected\":{\"synthetic\":true,\"id\":\"R03\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R04\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"each-pipeline-stage-inherits\",\"actual\":{\"synthetic\":true,\"id\":\"R04\"},\"expected\":{\"synthetic\":true,\"id\":\"R04\"}},{\"name\":\"stage-mutation-isolated\",\"actual\":{\"synthetic\":true,\"id\":\"R04\"},\"expected\":{\"synthetic\":true,\"id\":\"R04\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R05\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"invoke-clone\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}},{\"name\":\"literal-argv\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}},{\"name\":\"nul-and-type-admission\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}},{\"name\":\"shared-options-signal-budget\",\"actual\":{\"synthetic\":true,\"id\":\"R05\"},\"expected\":{\"synthetic\":true,\"id\":\"R05\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R06\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"scriptFile-whole-input-preflight\",\"actual\":{\"synthetic\":true,\"id\":\"R06\"},\"expected\":{\"synthetic\":true,\"id\":\"R06\"}},{\"name\":\"late-syntax-no-leading-effects\",\"actual\":{\"synthetic\":true,\"id\":\"R06\"},\"expected\":{\"synthetic\":true,\"id\":\"R06\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R07\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"bound-interpreter-entry-routes-fresh\",\"actual\":{\"synthetic\":true,\"id\":\"R07\"},\"expected\":{\"synthetic\":true,\"id\":\"R07\"}},{\"name\":\"source-eval-share\",\"actual\":{\"synthetic\":true,\"id\":\"R07\"},\"expected\":{\"synthetic\":true,\"id\":\"R07\"}},{\"name\":\"subshell-substitution-clone\",\"actual\":{\"synthetic\":true,\"id\":\"R07\"},\"expected\":{\"synthetic\":true,\"id\":\"R07\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R08\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"discovery\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}},{\"name\":\"registry-collision\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}},{\"name\":\"function-precedence-command-bypass\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}},{\"name\":\"default-inventory-unchanged\",\"actual\":{\"synthetic\":true,\"id\":\"R08\"},\"expected\":{\"synthetic\":true,\"id\":\"R08\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R09\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"errexit-named-disabled\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}},{\"name\":\"guarded-control-status\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}},{\"name\":\"no-name-zero\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}},{\"name\":\"invalid-flag-two\",\"actual\":{\"synthetic\":true,\"id\":\"R09\"},\"expected\":{\"synthetic\":true,\"id\":\"R09\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R10\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"ordered-channel-events\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}},{\"name\":\"duplicates\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}},{\"name\":\"valid-unknown-order-no-rollback\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}},{\"name\":\"gated-diagnostics\",\"actual\":{\"synthetic\":true,\"id\":\"R10\"},\"expected\":{\"synthetic\":true,\"id\":\"R10\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R11\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"invalid-before-conflict-before-operands\",\"actual\":{\"synthetic\":true,\"id\":\"R11\"},\"expected\":{\"synthetic\":true,\"id\":\"R11\"}},{\"name\":\"later-flag-is-name\",\"actual\":{\"synthetic\":true,\"id\":\"R11\"},\"expected\":{\"synthetic\":true,\"id\":\"R11\"}},{\"name\":\"no-vfs-access\",\"actual\":{\"synthetic\":true,\"id\":\"R11\"},\"expected\":{\"synthetic\":true,\"id\":\"R11\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R12\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"all-eight-reason-identities\",\"actual\":{\"synthetic\":true,\"id\":\"R12\"},\"expected\":{\"synthetic\":true,\"id\":\"R12\"}},{\"name\":\"no-preabort-dispatch\",\"actual\":{\"synthetic\":true,\"id\":\"R12\"},\"expected\":{\"synthetic\":true,\"id\":\"R12\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R13\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"readdir-abort\",\"actual\":{\"synthetic\":true,\"id\":\"R13\"},\"expected\":{\"synthetic\":true,\"id\":\"R13\"}},{\"name\":\"stat-abort\",\"actual\":{\"synthetic\":true,\"id\":\"R13\"},\"expected\":{\"synthetic\":true,\"id\":\"R13\"}},{\"name\":\"propagated-signal-no-successful-late-effects\",\"actual\":{\"synthetic\":true,\"id\":\"R13\"},\"expected\":{\"synthetic\":true,\"id\":\"R13\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R14\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"actual-pattern-checkpoint-hit\",\"actual\":{\"synthetic\":true,\"id\":\"R14\"},\"expected\":{\"synthetic\":true,\"id\":\"R14\"}},{\"name\":\"caller-reason-identity\",\"actual\":{\"synthetic\":true,\"id\":\"R14\"},\"expected\":{\"synthetic\":true,\"id\":\"R14\"}},{\"name\":\"bounded-fixture\",\"actual\":{\"synthetic\":true,\"id\":\"R14\"},\"expected\":{\"synthetic\":true,\"id\":\"R14\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R15\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"off-five-allow-four-reject\",\"actual\":{\"synthetic\":true,\"id\":\"R15\"},\"expected\":{\"synthetic\":true,\"id\":\"R15\"}},{\"name\":\"on-nine-allow-eight-reject\",\"actual\":{\"synthetic\":true,\"id\":\"R15\"},\"expected\":{\"synthetic\":true,\"id\":\"R15\"}},{\"name\":\"typed-field-limit-before-dispatch\",\"actual\":{\"synthetic\":true,\"id\":\"R15\"},\"expected\":{\"synthetic\":true,\"id\":\"R15\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R16\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"off-fourteen-thirteen\",\"actual\":{\"synthetic\":true,\"id\":\"R16\"},\"expected\":{\"synthetic\":true,\"id\":\"R16\"}},{\"name\":\"on-thirtyone-thirty\",\"actual\":{\"synthetic\":true,\"id\":\"R16\"},\"expected\":{\"synthetic\":true,\"id\":\"R16\"}},{\"name\":\"typed-byte-limit-before-dispatch\",\"actual\":{\"synthetic\":true,\"id\":\"R16\"},\"expected\":{\"synthetic\":true,\"id\":\"R16\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R17\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"ordinary-and-reusable-byte-boundaries\",\"actual\":{\"synthetic\":true,\"id\":\"R17\"},\"expected\":{\"synthetic\":true,\"id\":\"R17\"}},{\"name\":\"silent-zero-cap\",\"actual\":{\"synthetic\":true,\"id\":\"R17\"},\"expected\":{\"synthetic\":true,\"id\":\"R17\"}},{\"name\":\"diagnostic-zero-cap-limit\",\"actual\":{\"synthetic\":true,\"id\":\"R17\"},\"expected\":{\"synthetic\":true,\"id\":\"R17\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R18\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"bound-work-positive\",\"actual\":{\"synthetic\":true,\"id\":\"R18\"},\"expected\":{\"synthetic\":true,\"id\":\"R18\"}},{\"name\":\"bound-work-exhaustion\",\"actual\":{\"synthetic\":true,\"id\":\"R18\"},\"expected\":{\"synthetic\":true,\"id\":\"R18\"}},{\"name\":\"off-controls-accounting-retained\",\"actual\":{\"synthetic\":true,\"id\":\"R18\"},\"expected\":{\"synthetic\":true,\"id\":\"R18\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R19\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"nested-shared-command-limit\",\"actual\":{\"synthetic\":true,\"id\":\"R19\"},\"expected\":{\"synthetic\":true,\"id\":\"R19\"}},{\"name\":\"source-depth-loop-limits\",\"actual\":{\"synthetic\":true,\"id\":\"R19\"},\"expected\":{\"synthetic\":true,\"id\":\"R19\"}},{\"name\":\"earlier-effects-retained\",\"actual\":{\"synthetic\":true,\"id\":\"R19\"},\"expected\":{\"synthetic\":true,\"id\":\"R19\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R20\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"stdout-failure-stops-later-operands\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}},{\"name\":\"stderr-unknown-first-no-later-mutation\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}},{\"name\":\"valid-first-mutation-retained\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}},{\"name\":\"base-error-mapping\",\"actual\":{\"synthetic\":true,\"id\":\"R20\"},\"expected\":{\"synthetic\":true,\"id\":\"R20\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R21\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"stdout-stderr-backpressure\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}},{\"name\":\"registered-cleanup-drained-once\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}},{\"name\":\"caller-execution-cleanup-precedence\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}},{\"name\":\"unawaited-child-colon-comparator-no-unhandled\",\"actual\":{\"synthetic\":true,\"id\":\"R21\"},\"expected\":{\"synthetic\":true,\"id\":\"R21\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R22\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"provider-order-final-sort\",\"actual\":{\"synthetic\":true,\"id\":\"R22\"},\"expected\":{\"synthetic\":true,\"id\":\"R22\"}},{\"name\":\"custom-dot-entries\",\"actual\":{\"synthetic\":true,\"id\":\"R22\"},\"expected\":{\"synthetic\":true,\"id\":\"R22\"}},{\"name\":\"swallowed-vs-propagated-errno\",\"actual\":{\"synthetic\":true,\"id\":\"R22\"},\"expected\":{\"synthetic\":true,\"id\":\"R22\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R23\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"six-offending-z-preflight-rows\",\"actual\":{\"synthetic\":true,\"id\":\"R23\"},\"expected\":{\"synthetic\":true,\"id\":\"R23\"}},{\"name\":\"two-later-cluster-name-neighbors\",\"actual\":{\"synthetic\":true,\"id\":\"R23\"},\"expected\":{\"synthetic\":true,\"id\":\"R23\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R24\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"selected-source-two-file-delta\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"actual-source-installed-moved-loads\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"types-and-inversions\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"denied-source-fallback\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"guard-and-reversion-mutants\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}},{\"name\":\"actual-package-late-nonzero-rejected\",\"actual\":{\"synthetic\":true,\"id\":\"R24\"},\"expected\":{\"synthetic\":true,\"id\":\"R24\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R25\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"source-line-two\",\"actual\":{\"synthetic\":true,\"id\":\"R25\"},\"expected\":{\"synthetic\":true,\"id\":\"R25\"}},{\"name\":\"function-eval-diagnostics\",\"actual\":{\"synthetic\":true,\"id\":\"R25\"},\"expected\":{\"synthetic\":true,\"id\":\"R25\"}},{\"name\":\"redirection-and-stdin-not-consumed\",\"actual\":{\"synthetic\":true,\"id\":\"R25\"},\"expected\":{\"synthetic\":true,\"id\":\"R25\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"observation\":{\"id\":\"R26\",\"pass\":true,\"details\":{\"checkpoints\":[{\"name\":\"literal-dot-dotdot\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}},{\"name\":\"wildcard-dot-omission-both-states\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}},{\"name\":\"dotdotkeep-preserved\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}},{\"name\":\"configured-realfs-positive-refusal\",\"actual\":{\"synthetic\":true,\"id\":\"R26\"},\"expected\":{\"synthetic\":true,\"id\":\"R26\"}}]},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":26,\"pass\":25,\"failed\":[\"R01\"]}}\n",
+          "stderr": "",
+          "bytes": 13280
+        },
+        "result": {
+          "coherent": true,
+          "accepted": false,
+          "mutantKilled": false,
+          "expected": 26,
+          "observed": 26,
+          "passed": 25,
+          "failed": [
+            "R01"
+          ],
+          "errors": [],
+          "observations": [
+            {
+              "id": "R01",
+              "pass": false,
+              "error": "AssertionError [ERR_ASSERTION]: no missing procedure checkpoints\n+ actual - expected\n\n+ []\n- [\n-   'call-time-off-on-off'\n- ]\n\n    at procedureCase (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/procedures.mjs:58:10)\n    at async executeRows (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/settlement.mjs:25:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/synthetic-worker.mjs:30:3",
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R02",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "same-shell-new-exec",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R02"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R02"
+                    }
+                  },
+                  {
+                    "name": "overlapping-isolated-shells",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R02"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R02"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R03",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "virtual-environment-does-not-enable",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R03"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R03"
+                    }
+                  },
+                  {
+                    "name": "replacement-retains-clone-state",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R03"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R03"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R04",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "each-pipeline-stage-inherits",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R04"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R04"
+                    }
+                  },
+                  {
+                    "name": "stage-mutation-isolated",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R04"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R04"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R05",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "invoke-clone",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  },
+                  {
+                    "name": "literal-argv",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  },
+                  {
+                    "name": "nul-and-type-admission",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  },
+                  {
+                    "name": "shared-options-signal-budget",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R05"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R05"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R06",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "scriptFile-whole-input-preflight",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R06"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R06"
+                    }
+                  },
+                  {
+                    "name": "late-syntax-no-leading-effects",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R06"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R06"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R07",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "bound-interpreter-entry-routes-fresh",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R07"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R07"
+                    }
+                  },
+                  {
+                    "name": "source-eval-share",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R07"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R07"
+                    }
+                  },
+                  {
+                    "name": "subshell-substitution-clone",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R07"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R07"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R08",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "discovery",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  },
+                  {
+                    "name": "registry-collision",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  },
+                  {
+                    "name": "function-precedence-command-bypass",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  },
+                  {
+                    "name": "default-inventory-unchanged",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R08"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R08"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R09",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "errexit-named-disabled",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  },
+                  {
+                    "name": "guarded-control-status",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  },
+                  {
+                    "name": "no-name-zero",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  },
+                  {
+                    "name": "invalid-flag-two",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R09"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R09"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R10",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "ordered-channel-events",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  },
+                  {
+                    "name": "duplicates",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  },
+                  {
+                    "name": "valid-unknown-order-no-rollback",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  },
+                  {
+                    "name": "gated-diagnostics",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R10"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R10"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R11",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "invalid-before-conflict-before-operands",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R11"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R11"
+                    }
+                  },
+                  {
+                    "name": "later-flag-is-name",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R11"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R11"
+                    }
+                  },
+                  {
+                    "name": "no-vfs-access",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R11"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R11"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R12",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "all-eight-reason-identities",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R12"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R12"
+                    }
+                  },
+                  {
+                    "name": "no-preabort-dispatch",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R12"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R12"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R13",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "readdir-abort",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R13"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R13"
+                    }
+                  },
+                  {
+                    "name": "stat-abort",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R13"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R13"
+                    }
+                  },
+                  {
+                    "name": "propagated-signal-no-successful-late-effects",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R13"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R13"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R14",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "actual-pattern-checkpoint-hit",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R14"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R14"
+                    }
+                  },
+                  {
+                    "name": "caller-reason-identity",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R14"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R14"
+                    }
+                  },
+                  {
+                    "name": "bounded-fixture",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R14"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R14"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R15",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "off-five-allow-four-reject",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R15"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R15"
+                    }
+                  },
+                  {
+                    "name": "on-nine-allow-eight-reject",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R15"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R15"
+                    }
+                  },
+                  {
+                    "name": "typed-field-limit-before-dispatch",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R15"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R15"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R16",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "off-fourteen-thirteen",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R16"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R16"
+                    }
+                  },
+                  {
+                    "name": "on-thirtyone-thirty",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R16"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R16"
+                    }
+                  },
+                  {
+                    "name": "typed-byte-limit-before-dispatch",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R16"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R16"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R17",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "ordinary-and-reusable-byte-boundaries",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R17"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R17"
+                    }
+                  },
+                  {
+                    "name": "silent-zero-cap",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R17"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R17"
+                    }
+                  },
+                  {
+                    "name": "diagnostic-zero-cap-limit",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R17"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R17"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R18",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "bound-work-positive",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R18"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R18"
+                    }
+                  },
+                  {
+                    "name": "bound-work-exhaustion",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R18"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R18"
+                    }
+                  },
+                  {
+                    "name": "off-controls-accounting-retained",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R18"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R18"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R19",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "nested-shared-command-limit",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R19"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R19"
+                    }
+                  },
+                  {
+                    "name": "source-depth-loop-limits",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R19"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R19"
+                    }
+                  },
+                  {
+                    "name": "earlier-effects-retained",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R19"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R19"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R20",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "stdout-failure-stops-later-operands",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  },
+                  {
+                    "name": "stderr-unknown-first-no-later-mutation",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  },
+                  {
+                    "name": "valid-first-mutation-retained",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  },
+                  {
+                    "name": "base-error-mapping",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R20"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R20"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R21",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "stdout-stderr-backpressure",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  },
+                  {
+                    "name": "registered-cleanup-drained-once",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  },
+                  {
+                    "name": "caller-execution-cleanup-precedence",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  },
+                  {
+                    "name": "unawaited-child-colon-comparator-no-unhandled",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R21"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R21"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R22",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "provider-order-final-sort",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R22"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R22"
+                    }
+                  },
+                  {
+                    "name": "custom-dot-entries",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R22"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R22"
+                    }
+                  },
+                  {
+                    "name": "swallowed-vs-propagated-errno",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R22"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R22"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R23",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "six-offending-z-preflight-rows",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R23"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R23"
+                    }
+                  },
+                  {
+                    "name": "two-later-cluster-name-neighbors",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R23"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R23"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R24",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "selected-source-two-file-delta",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "actual-source-installed-moved-loads",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "types-and-inversions",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "denied-source-fallback",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "guard-and-reversion-mutants",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  },
+                  {
+                    "name": "actual-package-late-nonzero-rejected",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R24"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R24"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R25",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "source-line-two",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R25"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R25"
+                    }
+                  },
+                  {
+                    "name": "function-eval-diagnostics",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R25"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R25"
+                    }
+                  },
+                  {
+                    "name": "redirection-and-stdin-not-consumed",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R25"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R25"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            },
+            {
+              "id": "R26",
+              "pass": true,
+              "details": {
+                "checkpoints": [
+                  {
+                    "name": "literal-dot-dotdot",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  },
+                  {
+                    "name": "wildcard-dot-omission-both-states",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  },
+                  {
+                    "name": "dotdotkeep-preserved",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  },
+                  {
+                    "name": "configured-realfs-positive-refusal",
+                    "actual": {
+                      "synthetic": true,
+                      "id": "R26"
+                    },
+                    "expected": {
+                      "synthetic": true,
+                      "id": "R26"
+                    }
+                  }
+                ]
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [],
+          "activations": [],
+          "summary": {
+            "cases": 26,
+            "pass": 25,
+            "failed": [
+              "R01"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "missing-or-extra-adapter-rejected",
+      "pass": true
+    },
+    {
+      "id": "frozen-tuple-and-matrix-counts-quoted-not-evaluated",
+      "pass": true
+    },
+    {
+      "id": "held-admission-19",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:31.578Z",
+        "finished": "2026-08-28T08:50:31.626Z",
+        "pid": 54921,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "Error: accepted STACK/candidate committed binding is HELD\n    at refuse (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:7:55)\n    at parseArguments (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:57:46)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs:56:44\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n",
+        "bytes": 696
+      }
+    },
+    {
+      "id": "held-admission-20",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs",
+          "--binding=x"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:31.626Z",
+        "finished": "2026-08-28T08:50:31.668Z",
+        "pid": 54923,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "Error: accepted STACK/candidate committed binding is HELD\n    at refuse (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:7:55)\n    at parseArguments (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:57:46)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs:56:44\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n",
+        "bytes": 696
+      }
+    },
+    {
+      "id": "held-admission-21",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs",
+          "--binding=x",
+          "--binding=x"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:31.668Z",
+        "finished": "2026-08-28T08:50:31.714Z",
+        "pid": 54926,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "Error: explicit unique named arguments required\n    at refuse (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:7:55)\n    at parseArguments (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:53:53)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs:56:44\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n",
+        "bytes": 686
+      }
+    },
+    {
+      "id": "held-admission-22",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs",
+          "--binding=x",
+          "--binding-sha256=y",
+          "--binding-commit=HEAD",
+          "--repository=/"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:31.714Z",
+        "finished": "2026-08-28T08:50:31.758Z",
+        "pid": 54930,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "AssertionError [ERR_ASSERTION]: no moving revision\n    at admitPacket (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:63:10)\n    at runReview (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs:11:18)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/run.mjs:56:34\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n",
+        "bytes": 684
+      }
+    },
+    {
+      "id": "sha256-named-option-parser-not-digit-bug",
+      "pass": true
+    },
+    {
+      "id": "type-result-specificity-controls-no-compiler-execution",
+      "pass": true
+    },
+    {
+      "id": "actual-loaded-synthetic-original",
+      "pass": true,
+      "detail": {
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-original.json",
+            "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+            "load"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "started": "2026-08-28T08:50:31.769Z",
+          "finished": "2026-08-28T08:50:31.882Z",
+          "pid": 54931,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"admission\":{\"kind\":\"dotglob-synthetic-load-v1\",\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\"}}\n{\"load\":{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs\",\"sha256\":\"39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b\"}}\n{\"observation\":{\"id\":\"fixture-value\",\"pass\":true,\"details\":{\"synthetic\":true},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n{\"activation\":{\"id\":\"synthetic-value-mutant\",\"hits\":1}}\n",
+          "stderr": "",
+          "bytes": 597
+        },
+        "result": {
+          "coherent": true,
+          "accepted": true,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [],
+          "observations": [
+            {
+              "id": "fixture-value",
+              "pass": true,
+              "details": {
+                "synthetic": true
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs",
+              "sha256": "39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b"
+            }
+          ],
+          "activations": [
+            {
+              "id": "synthetic-value-mutant",
+              "hits": 1
+            }
+          ],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "loader-wrong-manifest-digest",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-wrong-manifest-digest.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:31.883Z",
+        "finished": "2026-08-28T08:50:31.938Z",
+        "pid": 54933,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: bound bytes /Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-wrong-manifest-digest.json\\n+ actual - expected\\n\\n+ 'd65a46e92d9fdfff79023a71f7343ad853166baac8f4b1cd9f49bfa75abce06d'\\n- '0000000000000000000000000000000000000000000000000000000000000000'\\n\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:17:10)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:31:31)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1093
+      }
+    },
+    {
+      "id": "loader-wrong-node-hash",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-wrong-node-hash.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:31.939Z",
+        "finished": "2026-08-28T08:50:32.048Z",
+        "pid": 54934,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: bound bytes /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\\n+ actual - expected\\n\\n+ '5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011'\\n- '0000000000000000000000000000000000000000000000000000000000000000'\\n\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:17:10)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:35:3)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1009
+      }
+    },
+    {
+      "id": "loader-wrong-node-path",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-wrong-node-path.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.048Z",
+        "finished": "2026-08-28T08:50:32.097Z",
+        "pid": 54935,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: actual child binary\\n+ actual - expected\\n\\n+ '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node'\\n- '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node.wrong'\\n\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:33:10)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 781
+      }
+    },
+    {
+      "id": "loader-wrong-node-version",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-wrong-node-version.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.097Z",
+        "finished": "2026-08-28T08:50:32.152Z",
+        "pid": 54941,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n+ actual - expected\\n\\n+ 'v22.22.2'\\n- 'v0.0.0'\\n\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:34:10)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 707
+      }
+    },
+    {
+      "id": "loader-missing-required-member",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-missing-required-member.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.153Z",
+        "finished": "2026-08-28T08:50:32.272Z",
+        "pid": 54948,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: required member /Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/absent.mjs\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:46:57)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 758
+      }
+    },
+    {
+      "id": "loader-wrong-kind",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-wrong-kind.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.273Z",
+        "finished": "2026-08-28T08:50:32.319Z",
+        "pid": 54950,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: manifest kind\\n+ actual - expected\\n\\n+ 'dotglob-product-load-v1'\\n- 'dotglob-synthetic-load-v1'\\n           ^\\n\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:32:10)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 731
+      }
+    },
+    {
+      "id": "loader-unbound-module",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-unbound-module.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.320Z",
+        "finished": "2026-08-28T08:50:32.433Z",
+        "pid": 54951,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"admission\":{\"kind\":\"dotglob-synthetic-load-v1\",\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\"}}\n{\"diagnostic\":\"Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/unbound.mjs' imported from /Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs\\n    at finalizeResolution (node:internal/modules/esm/resolve:275:11)\\n    at moduleResolve (node:internal/modules/esm/resolve:861:10)\\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)\\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)\\n    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31)\"}\n",
+        "stderr": "",
+        "bytes": 1201
+      }
+    },
+    {
+      "id": "inventory-changed-module",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-changed-module.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.434Z",
+        "finished": "2026-08-28T08:50:32.537Z",
+        "pid": 54952,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: bound bytes /Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs\\n+ actual - expected\\n\\n+ '8d30e6fc194ee51e220b867ce25e47e15f0ee6f8d438ee34969bd63bddc1d828'\\n- '39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b'\\n\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:17:10)\\n    at assertInventory (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:26:5)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:39:5)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1251
+      }
+    },
+    {
+      "id": "inventory-missing-module",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-missing-module.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.538Z",
+        "finished": "2026-08-28T08:50:32.644Z",
+        "pid": 54953,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs'\\n    at realpathSync (node:fs:2791:29)\\n    at regular (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:10:16)\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:16:17)\\n    at assertInventory (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:26:5)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:39:5)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1292
+      }
+    },
+    {
+      "id": "inventory-changed-declaration",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-changed-declaration.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.645Z",
+        "finished": "2026-08-28T08:50:32.748Z",
+        "pid": 54954,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: bound bytes /Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.d.mts\\n+ actual - expected\\n\\n+ '08478965425bbd25163e0e914130bcec35d8e3d17a37bf3f96e0dc65e81efb17'\\n- '72a56ccd57a23ff56b2c76bec2a33cff970cebdda2fdb20c5aaee59452ce6ae0'\\n\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:17:10)\\n    at assertInventory (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:26:5)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:39:5)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1253
+      }
+    },
+    {
+      "id": "inventory-missing-declaration",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-missing-declaration.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.749Z",
+        "finished": "2026-08-28T08:50:32.851Z",
+        "pid": 54955,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.d.mts'\\n    at realpathSync (node:fs:2791:29)\\n    at regular (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:10:16)\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:16:17)\\n    at assertInventory (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:26:5)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:39:5)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1294
+      }
+    },
+    {
+      "id": "inventory-extra-member",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-extra-member.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.852Z",
+        "finished": "2026-08-28T08:50:32.956Z",
+        "pid": 54956,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: exact tree membership/modes/bytes\\n+ actual - expected\\n... Skipped lines\\n\\n  {\\n    'fixture.d.mts': {\\n      bytes: 81,\\n      mode: 420,\\n      sha256: '72a56ccd57a23ff56b2c76bec2a33cff970cebdda2fdb20c5aaee59452ce6ae0'\\n...\\n    },\\n+   'unexpected.json': {\\n+     bytes: 2,\\n+     mode: 420,\\n+     sha256: '44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a'\\n+   }\\n  }\\n\\n    at assertInventory (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:28:10)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:39:5)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1179
+      }
+    },
+    {
+      "id": "inventory-symlink-module",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-symlink-module.json",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+          "load"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+        "started": "2026-08-28T08:50:32.958Z",
+        "finished": "2026-08-28T08:50:33.065Z",
+        "pid": 54957,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: no symlink/alias\\n+ actual - expected\\n\\n+ '/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/fixture-value.mjs'\\n- '/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs'\\n\\n    at regular (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:10:10)\\n    at digestFile (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:16:17)\\n    at assertInventory (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:26:5)\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/admission.mjs:39:5)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:10:20\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 1398
+      }
+    },
+    {
+      "id": "actual-loaded-synthetic-mechanism-mutant-and-reversion",
+      "pass": true,
+      "detail": {
+        "qualification": "actual isolated tiny-module loads, NOT product mutation evidence",
+        "run": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-mechanism-mutant.json",
+            "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+            "load"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "started": "2026-08-28T08:50:33.066Z",
+          "finished": "2026-08-28T08:50:33.179Z",
+          "pid": 54958,
+          "code": 1,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"admission\":{\"kind\":\"dotglob-synthetic-load-v1\",\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\"}}\n{\"load\":{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs\",\"sha256\":\"8d30e6fc194ee51e220b867ce25e47e15f0ee6f8d438ee34969bd63bddc1d828\"}}\n{\"observation\":{\"id\":\"fixture-value\",\"pass\":false,\"error\":\"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n42 !== 41\\n\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:14:14\\n    at executeRows (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/settlement.mjs:25:27)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:13:11\",\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":1,\"pass\":0,\"failed\":[\"fixture-value\"]}}\n{\"activation\":{\"id\":\"synthetic-value-mutant\",\"hits\":1}}\n",
+          "stderr": "",
+          "bytes": 1148
+        },
+        "killed": {
+          "coherent": true,
+          "accepted": false,
+          "mutantKilled": true,
+          "expected": 1,
+          "observed": 1,
+          "passed": 0,
+          "failed": [
+            "fixture-value"
+          ],
+          "errors": [],
+          "observations": [
+            {
+              "id": "fixture-value",
+              "pass": false,
+              "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n42 !== 41\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:14:14\n    at executeRows (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/settlement.mjs:25:27)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs:13:11",
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs",
+              "sha256": "8d30e6fc194ee51e220b867ce25e47e15f0ee6f8d438ee34969bd63bddc1d828"
+            }
+          ],
+          "activations": [
+            {
+              "id": "synthetic-value-mutant",
+              "hits": 1
+            }
+          ],
+          "summary": {
+            "cases": 1,
+            "pass": 0,
+            "failed": [
+              "fixture-value"
+            ]
+          }
+        },
+        "revertedRun": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/manifest-mechanism-reversion.json",
+            "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/harness/synthetic-worker.mjs",
+            "load"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root",
+          "started": "2026-08-28T08:50:33.180Z",
+          "finished": "2026-08-28T08:50:33.293Z",
+          "pid": 54959,
+          "code": 0,
+          "signal": null,
+          "spawnError": null,
+          "failure": null,
+          "groupAbsent": true,
+          "closeObserved": true,
+          "stdout": "{\"admission\":{\"kind\":\"dotglob-synthetic-load-v1\",\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\"}}\n{\"load\":{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs\",\"sha256\":\"39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b\"}}\n{\"observation\":{\"id\":\"fixture-value\",\"pass\":true,\"details\":{\"synthetic\":true},\"error\":null,\"cleanupErrors\":[],\"disposed\":true,\"settled\":true}}\n{\"summary\":{\"cases\":1,\"pass\":1,\"failed\":[]}}\n{\"activation\":{\"id\":\"synthetic-value-mutant\",\"hits\":1}}\n",
+          "stderr": "",
+          "bytes": 597
+        },
+        "reverted": {
+          "coherent": true,
+          "accepted": true,
+          "mutantKilled": false,
+          "expected": 1,
+          "observed": 1,
+          "passed": 1,
+          "failed": [],
+          "errors": [],
+          "observations": [
+            {
+              "id": "fixture-value",
+              "pass": true,
+              "details": {
+                "synthetic": true
+              },
+              "error": null,
+              "cleanupErrors": [],
+              "disposed": true,
+              "settled": true
+            }
+          ],
+          "loads": [
+            {
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N/load-root/data/fixture.mjs",
+              "sha256": "39ee7cbe06c03713a98a12e14058806a27295cb36eb3ab13dd18bac2d88fc51b"
+            }
+          ],
+          "activations": [
+            {
+              "id": "synthetic-value-mutant",
+              "hits": 1
+            }
+          ],
+          "summary": {
+            "cases": 1,
+            "pass": 1,
+            "failed": []
+          }
+        }
+      }
+    },
+    {
+      "id": "real-product-worker-refuses-synthetic-manifest",
+      "pass": true,
+      "detail": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/worker.mjs",
+          "commands",
+          "0",
+          "1"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+        "started": "2026-08-28T08:50:33.294Z",
+        "finished": "2026-08-28T08:50:33.338Z",
+        "pid": 54960,
+        "code": 78,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"diagnostic\":\"AssertionError [ERR_ASSERTION]: manifest kind\\n+ actual - expected\\n\\n+ 'dotglob-synthetic-load-v1'\\n- 'dotglob-product-load-v1'\\n           ^\\n\\n    at readLoadManifest (file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/admission.mjs:32:10)\\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/execution-prep-v1/worker.mjs:9:18\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n",
+        "stderr": "",
+        "bytes": 674
+      }
+    },
+    {
+      "id": "inventory-restored-after-tamper-controls",
+      "pass": true
+    }
+  ],
+  "counts": {
+    "passed": 42,
+    "failed": 0
+  },
+  "workRemoved": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.synthetic-only-ncOM9N",
+  "originalInputsUnchanged": true,
+  "productExecutions": 0,
+  "nativeCalls": 0,
+  "buildExecutions": 0,
+  "typeCompilations": 0
+}

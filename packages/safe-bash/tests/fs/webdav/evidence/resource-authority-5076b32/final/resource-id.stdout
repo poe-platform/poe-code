@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: resource-id comparison is metadata-only, full-ID based, and deduplicates one protocol authority
+ok 1 - resource-id comparison is metadata-only, full-ID based, and deduplicates one protocol authority
+  ---
+  duration_ms: 11.089583
+  type: 'test'
+  ...
+# Subtest: resource IDs survive overwrite and MOVE, change on COPY and delete/recreate
+ok 2 - resource IDs survive overwrite and MOVE, change on COPY and delete/recreate
+  ---
+  duration_ms: 5.928292
+  type: 'test'
+  ...
+# Subtest: actual HTTP negotiates resource identity without receiving private-store provenance
+ok 3 - actual HTTP negotiates resource identity without receiving private-store provenance
+  ---
+  duration_ms: 26.396458
+  type: 'test'
+  ...
+# Subtest: provider-owned factories retain the actual store; manual fetch wrappers do not
+ok 4 - provider-owned factories retain the actual store; manual fetch wrappers do not
+  ---
+  duration_ms: 0.953666
+  type: 'test'
+  ...
+# Subtest: mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown to-remote
+ok 5 - mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown to-remote
+  ---
+  duration_ms: 2.100833
+  type: 'test'
+  ...
+# Subtest: mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown from-remote
+ok 6 - mixed-routing genuine PROPFIND plus local-memory GET/PUT alias stays unknown from-remote
+  ---
+  duration_ms: 1.185541
+  type: 'test'
+  ...
+# Subtest: resource-id absent property never authorizes data effects
+ok 7 - resource-id absent property never authorizes data effects
+  ---
+  duration_ms: 1.033333
+  type: 'test'
+  ...
+# Subtest: resource-id property404 never authorizes data effects
+ok 8 - resource-id property404 never authorizes data effects
+  ---
+  duration_ms: 0.528833
+  type: 'test'
+  ...
+# Subtest: resource-id wrong property namespace never authorizes data effects
+ok 9 - resource-id wrong property namespace never authorizes data effects
+  ---
+  duration_ms: 0.811167
+  type: 'test'
+  ...
+# Subtest: resource-id duplicate property never authorizes data effects
+ok 10 - resource-id duplicate property never authorizes data effects
+  ---
+  duration_ms: 0.722167
+  type: 'test'
+  ...
+# Subtest: resource-id conflicting statuses never authorizes data effects
+ok 11 - resource-id conflicting statuses never authorizes data effects
+  ---
+  duration_ms: 0.536708
+  type: 'test'
+  ...
+# Subtest: resource-id missing property href never authorizes data effects
+ok 12 - resource-id missing property href never authorizes data effects
+  ---
+  duration_ms: 0.497917
+  type: 'test'
+  ...
+# Subtest: resource-id duplicate property href never authorizes data effects
+ok 13 - resource-id duplicate property href never authorizes data effects
+  ---
+  duration_ms: 1.1455
+  type: 'test'
+  ...
+# Subtest: resource-id nested property href never authorizes data effects
+ok 14 - resource-id nested property href never authorizes data effects
+  ---
+  duration_ms: 0.468208
+  type: 'test'
+  ...
+# Subtest: resource-id mixed property text never authorizes data effects
+ok 15 - resource-id mixed property text never authorizes data effects
+  ---
+  duration_ms: 0.438708
+  type: 'test'
+  ...
+# Subtest: resource-id relative identifier never authorizes data effects
+ok 16 - resource-id relative identifier never authorizes data effects
+  ---
+  duration_ms: 0.524125
+  type: 'test'
+  ...
+# Subtest: resource-id bad percent escape never authorizes data effects
+ok 17 - resource-id bad percent escape never authorizes data effects
+  ---
+  duration_ms: 0.462875
+  type: 'test'
+  ...
+# Subtest: resource-id invalid UUID never authorizes data effects
+ok 18 - resource-id invalid UUID never authorizes data effects
+  ---
+  duration_ms: 0.424292
+  type: 'test'
+  ...
+# Subtest: resource-id wrong requested href never authorizes data effects
+ok 19 - resource-id wrong requested href never authorizes data effects
+  ---
+  duration_ms: 0.422542
+  type: 'test'
+  ...
+# Subtest: resource-id escaped root never authorizes data effects
+ok 20 - resource-id escaped root never authorizes data effects
+  ---
+  duration_ms: 0.521791
+  type: 'test'
+  ...
+# Subtest: resource-id case-changed requested href never authorizes data effects
+ok 21 - resource-id case-changed requested href never authorizes data effects
+  ---
+  duration_ms: 0.47875
+  type: 'test'
+  ...
+# Subtest: resource-id extra response never authorizes data effects
+ok 22 - resource-id extra response never authorizes data effects
+  ---
+  duration_ms: 0.484
+  type: 'test'
+  ...
+# Subtest: resource-id whole resource404 never authorizes data effects
+ok 23 - resource-id whole resource404 never authorizes data effects
+  ---
+  duration_ms: 0.449209
+  type: 'test'
+  ...
+# Subtest: resource-id denied property never authorizes data effects
+ok 24 - resource-id denied property never authorizes data effects
+  ---
+  duration_ms: 0.470166
+  type: 'test'
+  ...
+# Subtest: resource-id locked property never authorizes data effects
+ok 25 - resource-id locked property never authorizes data effects
+  ---
+  duration_ms: 0.541916
+  type: 'test'
+  ...
+# Subtest: resource-id invalid success status never authorizes data effects
+ok 26 - resource-id invalid success status never authorizes data effects
+  ---
+  duration_ms: 0.510709
+  type: 'test'
+  ...
+# Subtest: full non-UUID URIs are retained; UUID hex case is canonical, URI paths are not folded
+ok 27 - full non-UUID URIs are retained; UUID hex case is canonical, URI paths are not folded
+  ---
+  duration_ms: 0.044667
+  type: 'test'
+  ...
+# Subtest: property-missing HTTP provider stays unknown and mounted existing target stays untouched
+ok 28 - property-missing HTTP provider stays unknown and mounted existing target stays untouched
+  ---
+  duration_ms: 10.03325
+  type: 'test'
+  ...
+# Subtest: mounted protocol proof permits ordinary overwrite but aliases and exclusive targets never mutate
+ok 29 - mounted protocol proof permits ordinary overwrite but aliases and exclusive targets never mutate
+  ---
+  duration_ms: 2.439333
+  type: 'test'
+  ...
+# Subtest: comparison checks cancellation between ID queries and does not issue the peer request
+ok 30 - comparison checks cancellation between ID queries and does not issue the peer request
+  ---
+  duration_ms: 0.732458
+  type: 'test'
+  ...
+# Subtest: resource-id XML budget and missing-path errors remain typed
+ok 31 - resource-id XML budget and missing-path errors remain typed
+  ---
+  duration_ms: 0.505
+  type: 'test'
+  ...
+# Subtest: case-binding aliases with the same protocol resource-id reject before COPY despite distinct hrefs
+ok 32 - case-binding aliases with the same protocol resource-id reject before COPY despite distinct hrefs
+  ---
+  duration_ms: 2.551417
+  type: 'test'
+  ...
+# Subtest: comparison never weakens missing-target exclusive COPY against a concurrent winner
+ok 33 - comparison never weakens missing-target exclusive COPY against a concurrent winner
+  ---
+  duration_ms: 0.869458
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 197.319416

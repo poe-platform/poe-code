@@ -1,0 +1,142 @@
+{
+  "identifier": "F14",
+  "status": "PASS",
+  "checks": 71,
+  "observation": {
+    "setup": [
+      {
+        "type": "undefined",
+        "undefinedValue": true,
+        "selected": {
+          "present": true,
+          "undefinedValue": true
+        },
+        "launchAccounting": {
+          "enrolled": 0,
+          "attempted": 0,
+          "launched": 0,
+          "closed": 0,
+          "unknownAcquisitions": 0,
+          "allChildrenReaped": null,
+          "unsafe": false
+        }
+      },
+      {
+        "type": "object",
+        "undefinedValue": false,
+        "selected": {
+          "present": true,
+          "undefinedValue": false,
+          "value": null
+        },
+        "launchAccounting": {
+          "enrolled": 0,
+          "attempted": 0,
+          "launched": 0,
+          "closed": 0,
+          "unknownAcquisitions": 0,
+          "allChildrenReaped": null,
+          "unsafe": false
+        }
+      },
+      {
+        "type": "boolean",
+        "undefinedValue": false,
+        "selected": {
+          "present": true,
+          "undefinedValue": false,
+          "value": false
+        },
+        "launchAccounting": {
+          "enrolled": 0,
+          "attempted": 0,
+          "launched": 0,
+          "closed": 0,
+          "unknownAcquisitions": 0,
+          "allChildrenReaped": null,
+          "unsafe": false
+        }
+      },
+      {
+        "type": "number",
+        "undefinedValue": false,
+        "selected": {
+          "present": true,
+          "undefinedValue": false,
+          "value": 0
+        },
+        "launchAccounting": {
+          "enrolled": 0,
+          "attempted": 0,
+          "launched": 0,
+          "closed": 0,
+          "unknownAcquisitions": 0,
+          "allChildrenReaped": null,
+          "unsafe": false
+        }
+      },
+      {
+        "type": "string",
+        "undefinedValue": false,
+        "selected": {
+          "present": true,
+          "undefinedValue": false,
+          "value": ""
+        },
+        "launchAccounting": {
+          "enrolled": 0,
+          "attempted": 0,
+          "launched": 0,
+          "closed": 0,
+          "unknownAcquisitions": 0,
+          "allChildrenReaped": null,
+          "unsafe": false
+        }
+      }
+    ],
+    "tail": {
+      "primary": {
+        "present": true,
+        "undefinedValue": false,
+        "value": 0
+      },
+      "knownChild": {
+        "ordinal": 1,
+        "kind": "probe",
+        "state": "PERSISTED",
+        "launchAttempted": true,
+        "pid": 96757,
+        "group": -96757,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "persisted": true,
+        "errors": [],
+        "operationId": "independent-probe",
+        "operationOrdinal": 1,
+        "configSha": "d3665bf26e796486ca3270f6c6aebfd366d47392788910aa966d1d9a63beddfe",
+        "natural": true,
+        "failures": [],
+        "signals": [],
+        "receiptSha": "b72e4b38025a1695c01e91d3b0a2ac2985391a825d5ad8b42ce92f1db4e54cf8"
+      },
+      "phases": [
+        "configuration",
+        "authentication",
+        "authority-lock",
+        "stage-intent",
+        "stage",
+        "child-prepared",
+        "receipt-persistence",
+        "controls",
+        "tail"
+      ]
+    }
+  }
+}

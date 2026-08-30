@@ -1,0 +1,43 @@
+{
+  "schema": "node-abi-mechanism-obligations-v1",
+  "date": "2026-08-28",
+  "classification": "post-source/post-ROOT-ABI-choice PREPARE; code frozen before syntax checks",
+  "sourceIdentitiesCommit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+  "sourceIdentitiesSha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+  "identities": 7,
+  "guestEvaluations": 8,
+  "evaluationLabels": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06-object",
+    "F06-null",
+    "F07"
+  ],
+  "changesToGuestSources": false,
+  "additionalEvaluation": {
+    "identity": "F06",
+    "label": "F06-null",
+    "change": "Root caller abort reason is null instead of original exact object R. All guest bytes and held read/cleanup schedule remain identical.",
+    "necessity": "One AbortSignal cannot witness first-delivery cancellation as both R and null; one additional real engine evaluation is the minimum direct falsy-reason control.",
+    "expectations": "Exact public rejection remains null; held public settlement and late host rejection observation still required. Engine raw reason shape/timing remain recorded, not required to equal null."
+  },
+  "mechanismObligations": [
+    "Actual matching internal factory injected to host only; ordinary controls use actual public wrapper path",
+    "One actual Budget creation per evaluation, witnessed outside engine; no monkeypatch or fabricated reset-consumption counter",
+    "Source predictions become explicit finite qualification assertions, not presumed passes; F02/F07 required control results remain distinct from sync support",
+    "Actual host/read/intrinsic entry/settlement and resource counts, strict own-data intrinsic args, controlled VFS byte reads, deny writes by default",
+    "Raw engine result/error separate from envelope control provenance; null/object comparison happens in host before serialization",
+    "Close admission; retire read/nativePromise and logical cache ownership; await held cooperative cleanup before public settlement",
+    "No claim of reclaiming every JS reference or forcibly retiring opaque work",
+    "Actual loader trace/source/emission identity and exact final source/namespace state supplement report counters",
+    "Clean assertion failure drains and continues; safety failure stops with bounded archive/cleanup/STOP semantics"
+  ],
+  "remainingConditions": [
+    "Raman read-only review of this exact frozen code/recipe",
+    "Fresh ROOT GO naming eight evaluations and exact hashes/caps",
+    "All actual outcomes and guards must succeed; no source-only or syntax result counts as qualification"
+  ]
+}

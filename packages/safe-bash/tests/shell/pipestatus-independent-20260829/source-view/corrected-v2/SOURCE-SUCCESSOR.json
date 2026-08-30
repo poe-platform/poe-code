@@ -1,0 +1,28 @@
+{
+  "originalSourceSeal": "c590f60ab8f53c5988056087257e2ed8564ef0db5e256ca4a7d836fa88fce718",
+  "unchangedRuntime": {
+    "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/runtime.ts",
+    "size": 214992,
+    "mode": 420,
+    "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+  },
+  "originalHelper": {
+    "path": "src/shell/pipestatus.ts",
+    "bytes": 3145,
+    "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1",
+    "blob": "e4b769a8d1ff3d87f60c7bc01aaa6ed4b3f6dc31",
+    "mode": "100644",
+    "revision": "43050e861bfeb6dcc8c3e97784b80ce18dc8f793",
+    "baseBlob": null,
+    "baseRevision": null
+  },
+  "correctedHelper": {
+    "path": "/private/tmp/safe-bash-pipestatus-corrected/candidate/src/shell/pipestatus.ts",
+    "size": 3145,
+    "mode": 420,
+    "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1"
+  },
+  "strictBuildOfCorrection": "see BUILD.json",
+  "pureCorrectionReplay": "see PURE-RESULTS.json",
+  "expectedSourceCount": 307
+}

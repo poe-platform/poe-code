@@ -1,0 +1,424 @@
+{
+  "kind": "SOURCE_AND_RETAINED_ARTIFACT_ONLY",
+  "executedEngines": 0,
+  "deniedApiCalls": 0,
+  "moduleInitialization": 0,
+  "sources": [
+    {
+      "path": "benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+      "mode": 420,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 510637,
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": [
+            {
+              "byteOffset": 503554,
+              "line": 808,
+              "excerpt": "cted:\",`\n  Type: ${e.type}`,`\n  Path: ${e.path}`,`\n  Message: ${e.message}`,e.executionId?`\n  ExecutionId: ${e.executionId}`:\"\")}}var Mf=null;try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}var da=class{maxSourceBytes;plugins=[];constructor(t=67108864){if(this.maxSourceBytes=t,!Number.isSafeInteger(t)||t<0)throw new Error(\"BashTransformPipeline: invalid maxSourceBytes\")}use(t){return this.plugins.push(t),"
+            }
+          ]
+        },
+        {
+          "token": "\\bMf\\b",
+          "matches": [
+            {
+              "byteOffset": 503528,
+              "line": 808,
+              "excerpt": "h] Security violation detected:\",`\n  Type: ${e.type}`,`\n  Path: ${e.path}`,`\n  Message: ${e.message}`,e.executionId?`\n  ExecutionId: ${e.executionId}`:\"\")}}var Mf=null;try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}var da=class{maxSourceBytes;plugins=[];constructor(t=67108864){if(this.maxSourceBytes=t,!Number.isSafeInteger(t)||t<0)throw new Error(\"BashTransformPipeline: invalid maxSourceBytes\")}use(t){re"
+            },
+            {
+              "byteOffset": 503651,
+              "line": 808,
+              "excerpt": "cutionId: ${e.executionId}`:\"\")}}var Mf=null;try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}var da=class{maxSourceBytes;plugins=[];constructor(t=67108864){if(this.maxSourceBytes=t,!Number.isSafeInteger(t)||t<0)throw new Error(\"BashTransformPipeline: invalid maxSourceBytes\")}use(t){return this.plugins.push(t),this}transform(t){Pr(t,this.maxSourceBytes);let n=Ge(t),r=Object.create(null);for(let s of this.p"
+            },
+            {
+              "byteOffset": 503778,
+              "line": 808,
+              "excerpt": "function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}var da=class{maxSourceBytes;plugins=[];constructor(t=67108864){if(this.maxSourceBytes=t,!Number.isSafeInteger(t)||t<0)throw new Error(\"BashTransformPipeline: invalid maxSourceBytes\")}use(t){return this.plugins.push(t),this}transform(t){Pr(t,this.maxSourceBytes);let n=Ge(t),r=Object.create(null);for(let s of this.plugins){let i=s.transform({ast:n,metadata:r});n=i.ast,i.metadata&&(r=nr(r,i.metadata))}return{script:ur(n),ast:n,metadata:r}}};"
+            }
+          ]
+        },
+        {
+          "token": "\\bKs\\b",
+          "matches": [
+            {
+              "byteOffset": 1275,
+              "line": 2,
+              "excerpt": "Ys,k as Uf,l as jf}from\"./chunks/chunk-GN6CQ3J4.js\";import{a as wt}from\"./chunks/chunk-FOCWZZDE.js\";import{a as $t}from\"./chunks/chunk-W5DWRFSU.js\";import{a as Ks}from\"./chunks/chunk-NCUTH6QL.js\";var un=[{name:\"echo\",load:async()=>(await import(\"./chunks/echo-PLLZYM2L.js\")).echoCommand},{name:\"cat\",load:async()=>(await import(\"./chunks/cat-33KGN4MZ.js\")).catCommand},{name:\"printf\",load:async()=>(await import(\"./chunks/printf-V42QCPHL.js\")).printfCommand},{name:\"ls\",load:async()=>(await import(\"./chunks/ls-R5CQLZQM.js\")).lsCommand},{name:\"mkdir\",load:async()=>(await import(\"./chunks/mkdir-WDDKK2P3.js\"))."
+            },
+            {
+              "byteOffset": 503613,
+              "line": 808,
+              "excerpt": "e: ${e.message}`,e.executionId?`\n  ExecutionId: ${e.executionId}`:\"\")}}var Mf=null;try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}var da=class{maxSourceBytes;plugins=[];constructor(t=67108864){if(this.maxSourceBytes=t,!Number.isSafeInteger(t)||t<0)throw new Error(\"BashTransformPipeline: invalid maxSourceBytes\")}use(t){return this.plugins.push(t),this}transform(t){Pr(t,this.maxSourceBytes);let n=Ge(t),r=O"
+            },
+            {
+              "byteOffset": 503628,
+              "line": 808,
+              "excerpt": "`,e.executionId?`\n  ExecutionId: ${e.executionId}`:\"\")}}var Mf=null;try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}var da=class{maxSourceBytes;plugins=[];constructor(t=67108864){if(this.maxSourceBytes=t,!Number.isSafeInteger(t)||t<0)throw new Error(\"BashTransformPipeline: invalid maxSourceBytes\")}use(t){return this.plugins.push(t),this}transform(t){Pr(t,this.maxSourceBytes);let n=Ge(t),r=Object.create(nu"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "bytes": 1224,
+      "sha256": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BRJERIF4.js",
+      "bytes": 513,
+      "sha256": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KIGPB52X.js",
+      "bytes": 262,
+      "sha256": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "bytes": 784,
+      "sha256": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "bytes": 1240,
+      "sha256": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "bytes": 193,
+      "sha256": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DLL7UR66.js",
+      "bytes": 335,
+      "sha256": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "bytes": 635,
+      "sha256": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "bytes": 179119,
+      "sha256": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 35477,
+      "sha256": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": [
+            {
+              "byteOffset": 1751,
+              "line": 2,
+              "excerpt": "ve Node.js modules\"},{prop:\"dlopen\",target:process,violationType:\"process_dlopen\",strategy:\"throw\",reason:\"process.dlopen allows loading native addons\"},{prop:\"getBuiltinModule\",target:process,violationType:\"process_get_builtin_module\",strategy:\"throw\",reason:\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\"},{prop:\"exit\",target:process,violationType:\"process_exit\",strategy:\"throw\",reason:\"process.exit could terminate the interpreter\"},{prop:\"abort\",target:process,violationType:\"process_exit\",strategy:\"throw\",reason:\"process.abort could crash the interpreter\"},{pro"
+            },
+            {
+              "byteOffset": 1860,
+              "line": 2,
+              "excerpt": "ocess.dlopen allows loading native addons\"},{prop:\"getBuiltinModule\",target:process,violationType:\"process_get_builtin_module\",strategy:\"throw\",reason:\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\"},{prop:\"exit\",target:process,violationType:\"process_exit\",strategy:\"throw\",reason:\"process.exit could terminate the interpreter\"},{prop:\"abort\",target:process,violationType:\"process_exit\",strategy:\"throw\",reason:\"process.abort could crash the interpreter\"},{prop:\"kill\",target:process,violationType:\"process_kill\",strategy:\"throw\",reason:\"process.kill could signal other"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "bytes": 2384,
+      "sha256": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "bytes": 1539,
+      "sha256": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-STHBFACM.js",
+      "bytes": 86,
+      "sha256": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "bytes": 881,
+      "sha256": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-EFORKKSH.js",
+      "bytes": 2346,
+      "sha256": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "bytes": 1712,
+      "sha256": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "bytes": 710,
+      "sha256": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "bytes": 162,
+      "sha256": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 886,
+      "sha256": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0",
+      "mode": 292,
+      "authenticatedBeforeAndAfter": true,
+      "observations": [
+        {
+          "token": "getBuiltinModule",
+          "matches": []
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "AUTHORIZATION.json",
+      "bytes": 844,
+      "sha256": "5d7080348ab228cb74f4ca485519e474685593259b659be5b7f6653bcd4bcded",
+      "exceeds262144": false
+    },
+    {
+      "name": "RESULT.json",
+      "bytes": 531954,
+      "sha256": "902e4643e0e4865daad215c7a7c0cd1285218a8714904169ccf70e18d3467cb2",
+      "exceeds262144": true
+    },
+    {
+      "name": "STAGED.json",
+      "bytes": 979544,
+      "sha256": "626a9f13bc3b3b7f7ad212772e5c75d52ae0add2e8bc4db45a0318078a5c8e6c",
+      "exceeds262144": true
+    },
+    {
+      "name": "child-001.json",
+      "bytes": 148184,
+      "sha256": "cd669ef8c3882f0f63fa513d6d576c259497b4af8849edd063930fb3abebfd4a",
+      "exceeds262144": false
+    },
+    {
+      "name": "child-001.receipt.json",
+      "bytes": 318162,
+      "sha256": "23bdd145808d64a58af5a6883347404e0376ff4da14e6027c773bfc911c5747d",
+      "exceeds262144": true
+    },
+    {
+      "name": "child-002.json",
+      "bytes": 148305,
+      "sha256": "9aef04735717703fa044dab369595a366218980dd80d188e878b7c144e88a8e0",
+      "exceeds262144": false
+    },
+    {
+      "name": "child-002.receipt.json",
+      "bytes": 317978,
+      "sha256": "03e042b838e3955aee83643ff3b7c830483c3a0787eff6388eb895aa9e1bdc33",
+      "exceeds262144": true
+    },
+    {
+      "name": "child-003.json",
+      "bytes": 685153,
+      "sha256": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12",
+      "exceeds262144": true
+    },
+    {
+      "name": "child-003.receipt.json",
+      "bytes": 47115,
+      "sha256": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6",
+      "exceeds262144": false
+    },
+    {
+      "name": "operation-probe-1.claim",
+      "bytes": 179,
+      "sha256": "deb44df6457a21c3f1146a9b3cd6a0f7b45df773ea6c1102072233d26309ba9c",
+      "exceeds262144": false
+    },
+    {
+      "name": "operation-probe-2.claim",
+      "bytes": 175,
+      "sha256": "ef64cd54b62f70a2e740e7b0ddb71f7c3467d201058773d5af9141bdc05fc2e2",
+      "exceeds262144": false
+    },
+    {
+      "name": "operation-probe-3.claim",
+      "bytes": 181,
+      "sha256": "22bc762c630c0dcf6e53a28c145324263fd1f7e42db2c9f7b4b70f52a3e237cf",
+      "exceeds262144": false
+    }
+  ],
+  "artifactBytes": 3177774,
+  "rawStdout": {
+    "observed": 359581,
+    "retainedPrefix": 65536,
+    "irrecoverableUnretained": 294045,
+    "reconstructed": false
+  },
+  "qualifications": [
+    "Only the 21 previously witnessed startup sources were read, not all deferred command chunks.",
+    "Substring/identifier inventory is static evidence, not an executed semantic proof.",
+    "Raw child FD3 channels obeyed their cumulative 262144-byte caps; persisted JSON artifacts did not all obey that same size ceiling."
+  ]
+}

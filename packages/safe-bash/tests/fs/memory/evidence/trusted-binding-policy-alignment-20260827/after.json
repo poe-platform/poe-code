@@ -1,0 +1,715 @@
+{
+  "head": "1b0cbb96bebadb915809014207999799f4e9aa0c",
+  "captured": "2026-08-27T02:34:32.062Z",
+  "hashes": {
+    "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.md": "c28744a112ea356230a0e65c555aaa44c72e18940026fe0360cf504e15b6ec37",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+    "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/s3/COMPARISON.md": "3732efbce0d3ded5a76a3ccd5063d39baa167e49c9dab347bb7fcba0712d176f",
+    "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+    "src/fs/s3/authority.ts": "a89587089b0d059d44393e04822ff8f3481faa0aedb8101449d087100f8e30a8",
+    "src/fs/s3/filesystem.ts": "b34d766829184cf73ff6e8712d0bcb60216c35250234a0b80475f8d91d4f1a9e",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+    "src/fs/s3/transport.ts": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "src/fs/webdav/README.md": "f1706087cf93f495165636343a07e01a980f6abe4f7f4f75152c7b0e06201a47",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "91c91a336e6256bfb824aacec79d0aa31111796c347de91bf2bc0dad47c1e0f5",
+    "src/fs/webdav/webdav.ts": "799b7d501c112ec26171e6abee88e516199e4b087caeb21903909171bf94aba8",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "tests/fs/memory/comparison.test.ts": "55b6f3b4ff9e78a96d44466a65ec6a11fc1ac4a64547ed0ae67e1da89a33f562",
+    "tests/fs/memory/conformance.test.ts": "5f945854f3ca15de3426c3e52b20e51d2b00d74a187c8205ce9efa43bd046403",
+    "tests/fs/memory/evidence/faithful-binding-20260827/REPORT.md": "40eba60fad25ef2c8471982dee8d4bb34c534f9e95eb9d8951547176c6112e25",
+    "tests/fs/memory/evidence/faithful-binding-20260827/after-focused32.tap": "4ff476bc3bc50d8c2c7fae1a4396d16187a191d480a756d0a8f0831d213e224c",
+    "tests/fs/memory/evidence/faithful-binding-20260827/after-owned.tap": "7cf461eb19cb254a11ed25f499d5b3666f12b3312d0ae4041233183e17b8d0e5",
+    "tests/fs/memory/evidence/faithful-binding-20260827/after.json": "d60ead0ace94ef9f027802520702c16fc44638568a825b4d64d5958d358730c4",
+    "tests/fs/memory/evidence/faithful-binding-20260827/artifacts.json": "b6e3b531f2122ab1273d890981df50c218030ea401eb0c205fba6de8233f9be0",
+    "tests/fs/memory/evidence/faithful-binding-20260827/before-faithful.tap": "5614d426b77a771f20cd164fb13ce21ceb0f53aa68dd5481e21034d29381267e",
+    "tests/fs/memory/evidence/faithful-binding-20260827/before-owned.tap": "c6ca19c7c06a6654fefff657490c86d85ff51bad728a8bab1b876d791382de96",
+    "tests/fs/memory/evidence/faithful-binding-20260827/before-source.ts.txt": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "tests/fs/memory/evidence/faithful-binding-20260827/before.json": "d73d74b2fab14c2a96f69247d30e3dce7694db4e52776278a1140a02d12cb980",
+    "tests/fs/memory/evidence/faithful-binding-20260827/original-comparison.test.ts.txt": "a5f25f3e6423d8e1961e4c456a31f5ae01a6b604dccedd3af42034ed8d208fae",
+    "tests/fs/memory/evidence/faithful-binding-20260827/original-late-authority.test.ts.txt": "bcdd289cb8d5d9b75a686121a04cbbff916c66526e3fcd676169ba2ed076cfab",
+    "tests/fs/memory/evidence/faithful-binding-20260827/unchanged-guards53.tap": "5699f89befab5054d92daf1f9f2313ed5b27e581d4ee6641eed8c99ec095e481",
+    "tests/fs/memory/evidence/late-authority-20260827/REPORT.md": "9191131f5922b589ee5a905fb6307a4760114e6c7accf9470375b8f58e9f3ca5",
+    "tests/fs/memory/evidence/late-authority-20260827/after-independent.tap": "eb795dfb7d1e22ca30b7f7ec6d887ee4422d569ccc36feb2b3fe8d92734fe521",
+    "tests/fs/memory/evidence/late-authority-20260827/after.json": "14c0fe7847e330f846fad8eb605c9fe165777d118e83fa796539dadb3512f0f6",
+    "tests/fs/memory/evidence/late-authority-20260827/artifacts.json": "b50dd56ae80c46f554fba2e70ab27d03ff43ca0faf3f15dad79533fb17ae6fd3",
+    "tests/fs/memory/evidence/late-authority-20260827/author17.tap": "f4ead3ba66ade1732807c9eb2f8e249423050392512561da4f1b5cfcba6d4309",
+    "tests/fs/memory/evidence/late-authority-20260827/before-independent.tap": "a0486467f11fea9dd281ff0360150f46d03b41aeaa3721daf1eb604c9404f472",
+    "tests/fs/memory/evidence/late-authority-20260827/before-source.ts.txt": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d",
+    "tests/fs/memory/evidence/late-authority-20260827/before.json": "7cba00010d6f01051bd8d5d62ed1517189842c76bcda51286beb4d998bb52fed",
+    "tests/fs/memory/evidence/late-authority-20260827/focused135.tap": "5d178c9299054e4153d35a53e1d13dd1ff308e9b13cdc27cf63f048785445530",
+    "tests/fs/memory/evidence/late-authority-20260827/independent-fixture.ts.txt": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/REPORT.md": "280175a1bc650a0a31c25bbc4305402163054fe3ed0069d3132163ea980e8c47",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/artifacts.json": "8f546cc6d19919f80e8c0fae6f8d7963b1db8ba3b0b0ac8a9de97c594addd8cc",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/before-manifest.json": "8cfdbf09f0cbf6ec76c16d02ef983da8bf2fa8447b58fa9b755a7166dbb11d85",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/conformance202.tap": "d83598a41d5759d7b06c0d0e2561b3b3f242c637150b094f0abe55ff86ac6fec",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/focused118.tap": "def4c15ee12116a64b57bbf0e1a6c25661aa98efa78589aaeae8ba2dc500e5c8",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/independent47.tap": "c4310670fbc69f1f1b774da63d330ab6eb40997feda193b7dd56ffb30739ed22",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/initial-focused106.tap": "34d21a7793ece45354841d74c5d8cdea82c4d56ecad62653d3ddd6c306afdb28",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/memory-before.ts.txt": "e94247b32d53a5f85a082aaad7494dda86e5ec80db3ea26c86766978df31696c",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/moving-validation-end.json": "e83b519d0c599f04319d38d992ff96bcf5950dbce55bf6f42fc7d68763f0bd12",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/moving-validation-start.json": "abef4495aab7d664902ab13110509b4ba598ac49b93fe87f7221fc256210ef5f",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/mutations8.json": "f4713ef8d2404d40a214705b682d31fcedcfd7a774c0d011911e7c0195f0351a",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/original43.tap": "4ee77e77c8904c6021809daf01b033aeba4d476d7d4132cb7ea1b383355b0503",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/override-tests.ts.txt": "686a4561ecc4efae44bbb772d0c689c15d183f61c034a59994375e5b6dffe817",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/overrides-before.tap": "4ca17ccbfff086f8f59546b5217ce46da6d377b537f87b10216bce0a1890339c",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/owned716.tap": "d7df49fb7ece06efe5accaeef9f93790134a24adf827852d1003ee485fb05b1d",
+    "tests/fs/memory/evidence/qualified-comparison-20260827/sealed-manifest.json": "9633fbfb9f6669521b88c976299acb65f7e0a11778167cfcf15f3372a98728e1",
+    "tests/fs/memory/faithful-binding.test.ts": "235c5a9a622d3626c8ddad6329eb8448c860285630913a7c769cf52ea5c98f9b",
+    "tests/fs/memory/late-authority.test.ts": "b55b0941fa56ca56bf16b96413acd6f52af70b0d1012d17676c6f6771de10ad5",
+    "tests/fs/memory/memory.test.ts": "e2317debbaaeb536da43e869940d7a2645e5c8fa4666662d0bed03dc7c279a44",
+    "tests/fs/memory/review-regressions.test.ts": "02e3d704c35061dd656fade96622e8893edb9c3817b3c5408cb93ba4d2387c48",
+    "tests/fs/memory/rmdir.test.ts": "b50c0d3340d8589ab54a04469394576fe627c4ced7d62f8cf3f2148207de3cce",
+    "tests/fs/mount/copy-identity-guards.test.ts": "bd8074c17c5e0fc418a5408028b409946b2178e64fad29bfa87c5f8aa1eb8027",
+    "tests/fs/mount/copy-identity.test.ts": "e752e633abc902025670c09305c09e7319b171549350ddec7573b6644d29d115",
+    "tests/fs/overlay/copy-identity.test.ts": "d877488ecc76799552313b55db0119c83ecf433ad17ceb88079fa0d9bddd872e",
+    "tests/fs/memory/binding-violations.characterization.ts": "242a9652de56b6f0b96ec34faf5eb059129a95d93760eec6c4dee2c215ae0b6e"
+  },
+  "changedSinceBefore": [
+    "tests/fs/memory/comparison.test.ts"
+  ],
+  "sourceStatus": "",
+  "results": {
+    "historicalD82": {
+      "pass": 143,
+      "total": 158,
+      "fail": 15
+    },
+    "compliant": {
+      "pass": 145,
+      "total": 145,
+      "fail": 0,
+      "exit": 0
+    },
+    "violationCharacterizations": {
+      "verified": 13,
+      "total": 13,
+      "fail": 0,
+      "exit": 0,
+      "compliantPasses": 0
+    },
+    "unchangedGuards": {
+      "pass": 53,
+      "total": 53,
+      "fail": 0,
+      "exit": 0
+    },
+    "scopedTypes": {
+      "exit": 0,
+      "diagnostics": 0
+    }
+  },
+  "classification": {
+    "validForwarders": 2,
+    "declaredBindingViolations": 13,
+    "mixedMetadataContent": 4,
+    "memoryOverrides": 9,
+    "legitimateNewProductFailures": 0
+  },
+  "cases": [
+    {
+      "id": 8,
+      "name": "qualified s3 cannot bless altered or copied Memory observations",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "superseded rejection of faithful method decorator; copied/path-mismatched checks remain valid",
+      "category": "valid-forwarder-obsolete-expectation",
+      "newName": "qualified s3 preserves faithful decorators but rejects copied or wrong-path Memory observations",
+      "newEntrypoint": "tests/fs/memory/comparison.test.ts",
+      "newExpectation": "Copied stat and wrong path still unknown; faithful decorator distinct; copy succeeds with exact bytes and namespaces."
+    },
+    {
+      "id": 10,
+      "name": "genuine s3 metadata with Memory-alias content mapping stays unknown to-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: genuine s3 metadata with Memory-alias content mapping to-remote",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Assert actual distinct declaration, exact copy/mv results and bytes; metadata/content stores contradict declared binding."
+    },
+    {
+      "id": 11,
+      "name": "genuine s3 metadata with Memory-alias content mapping stays unknown from-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: genuine s3 metadata with Memory-alias content mapping from-remote",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Assert actual distinct declaration, exact copy/mv results and bytes; metadata/content stores contradict declared binding."
+    },
+    {
+      "id": 19,
+      "name": "qualified webdav cannot bless altered or copied Memory observations",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "superseded rejection of faithful method decorator; copied/path-mismatched checks remain valid",
+      "category": "valid-forwarder-obsolete-expectation",
+      "newName": "qualified webdav preserves faithful decorators but rejects copied or wrong-path Memory observations",
+      "newEntrypoint": "tests/fs/memory/comparison.test.ts",
+      "newExpectation": "Copied stat and wrong path still unknown; faithful decorator distinct; copy succeeds with exact bytes and namespaces."
+    },
+    {
+      "id": 21,
+      "name": "genuine webdav metadata with Memory-alias content mapping stays unknown to-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: genuine webdav metadata with Memory-alias content mapping to-remote",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Assert actual distinct declaration, exact copy/mv results and bytes; metadata/content stores contradict declared binding."
+    },
+    {
+      "id": 22,
+      "name": "genuine webdav metadata with Memory-alias content mapping stays unknown from-remote",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract remote metadata assertion forwarded while content accesses different local backing; already red before Memory edit",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: genuine webdav metadata with Memory-alias content mapping from-remote",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Assert actual distinct declaration, exact copy/mv results and bytes; metadata/content stores contradict declared binding."
+    },
+    {
+      "id": 30,
+      "name": "Memory subclass data overrides cannot certify an alias to memory",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory subclass data overrides damage memory",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 31,
+      "name": "Memory instance data overrides cannot certify an alias to memory",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory instance data overrides damage memory",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 32,
+      "name": "Memory prototype-before-construction data overrides cannot certify an alias to memory",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage memory",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 33,
+      "name": "Memory subclass data overrides cannot certify an alias to s3",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory subclass data overrides damage s3",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 34,
+      "name": "Memory instance data overrides cannot certify an alias to s3",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory instance data overrides damage s3",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 35,
+      "name": "Memory prototype-before-construction data overrides cannot certify an alias to s3",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage s3",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 36,
+      "name": "Memory subclass data overrides cannot certify an alias to webdav",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory subclass data overrides damage webdav",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 37,
+      "name": "Memory instance data overrides cannot certify an alias to webdav",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory instance data overrides damage webdav",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    },
+    {
+      "id": 38,
+      "name": "Memory prototype-before-construction data overrides cannot certify an alias to webdav",
+      "file": "tests/fs/memory/comparison.test.ts",
+      "classification": "out-of-contract content remapping while retaining inherited backing assertion; original nine checks retained unchanged",
+      "category": "declared-binding-violation",
+      "newName": "CONTRACT VIOLATION: Memory prototype-before-construction data overrides damage webdav",
+      "newEntrypoint": "tests/fs/memory/binding-violations.characterization.ts",
+      "newExpectation": "Copy EIO after one damaging write; mv exits 1 after second damaging write; source sentinel, target previous, both namespaces retained."
+    }
+  ],
+  "observations": [
+    {
+      "kind": "s3",
+      "direction": "to-remote",
+      "action": "copyFile",
+      "contentCalls": 1,
+      "memory": [],
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "kind": "s3",
+      "direction": "to-remote",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EBUSY: move source changed before removal '/memory/source'\\n",
+      "contentCalls": 2,
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ],
+      "memory": []
+    },
+    {
+      "kind": "s3",
+      "direction": "from-remote",
+      "action": "copyFile",
+      "contentCalls": 1,
+      "memory": [],
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "kind": "s3",
+      "direction": "from-remote",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/source'\\n",
+      "contentCalls": 2,
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ],
+      "memory": []
+    },
+    {
+      "kind": "webdav",
+      "direction": "to-remote",
+      "action": "copyFile",
+      "contentCalls": 1,
+      "memory": [
+        0,
+        255,
+        128,
+        13,
+        10,
+        65
+      ],
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "kind": "webdav",
+      "direction": "to-remote",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: cannot preserve timestamps for '/remote/source': operation not supported; retaining copied data\\nmv: EBUSY: move source changed before removal '/memory/source'\\n",
+      "contentCalls": 2,
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ],
+      "memory": [
+        0,
+        255,
+        128,
+        13,
+        10,
+        65
+      ]
+    },
+    {
+      "kind": "webdav",
+      "direction": "from-remote",
+      "action": "copyFile",
+      "contentCalls": 1,
+      "memory": [],
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ]
+    },
+    {
+      "kind": "webdav",
+      "direction": "from-remote",
+      "action": "mv",
+      "exitCode": 0,
+      "stderr": "",
+      "contentCalls": 2,
+      "namespace": [
+        {
+          "name": "source",
+          "type": "file"
+        }
+      ],
+      "memory": []
+    },
+    {
+      "kind": "memory",
+      "phase": "subclass",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "subclass",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "instance",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "instance",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "prototype-before-construction",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "memory",
+      "phase": "prototype-before-construction",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "subclass",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "subclass",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "instance",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "instance",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "prototype-before-construction",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "s3",
+      "phase": "prototype-before-construction",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "subclass",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "subclass",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "instance",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "instance",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "prototype-before-construction",
+      "code": "EIO",
+      "effects": 1,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    },
+    {
+      "kind": "webdav",
+      "phase": "prototype-before-construction",
+      "action": "mv",
+      "exitCode": 1,
+      "stderr": "mv: EIO: input/output error, copyFile '/remote/source' -> '/memory/target'\\n",
+      "effects": 2,
+      "source": [
+        17,
+        18,
+        19
+      ],
+      "target": [
+        4,
+        0,
+        253
+      ]
+    }
+  ]
+}

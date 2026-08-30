@@ -1,0 +1,30 @@
+{
+  "command": [
+    "git",
+    "archive",
+    "--format=tar",
+    "--output=/private/tmp/safe-bash-column-current-Fe3eCP/candidate.tar",
+    "3af3f62890c528bd40da56514e4b08f44b2e6cf0"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "startedAt": "2026-08-27T15:58:21.794Z",
+  "finishedAt": "2026-08-27T15:58:24.783Z",
+  "deadlineMs": 90000,
+  "status": 0,
+  "signal": null,
+  "termination": null,
+  "spawnError": null,
+  "observedBytes": {
+    "stdout": 0,
+    "stderr": 0
+  },
+  "stdoutHex": "",
+  "stderrHex": "",
+  "cleanup": "child-close-observed-owned-process-group-retired",
+  "isolationEnvironment": {
+    "NODE_OPTIONS": "",
+    "NODE_PATH": "",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true"
+  }
+}

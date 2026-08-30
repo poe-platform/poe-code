@@ -1,0 +1,497 @@
+{
+  "authorOnly": true,
+  "results": [
+    {
+      "name": "packed Shell ordinary mkdir/write/read works",
+      "classification": "positive non-rmdir product control",
+      "passed": true,
+      "observation": {
+        "exitCode": 0,
+        "stdout": "payload",
+        "conditionalDelete": false,
+        "capabilities": {
+          "readOnly": false,
+          "symlinks": false,
+          "hardlinks": false,
+          "permissions": false,
+          "timestamps": true,
+          "atomicRename": false,
+          "streamingRead": true,
+          "streamingWrite": false
+        }
+      },
+      "productRequests": [
+        0,
+        26
+      ]
+    },
+    {
+      "name": "packed Shell ordinary empty rmdir remains blocked",
+      "classification": "required positive product workflow NOT satisfied",
+      "passed": true,
+      "observation": {
+        "rmdir": {
+          "stdout": "",
+          "stderr": "rmdir: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/empty'\n",
+          "stdoutBytes": {},
+          "stderrBytes": {
+            "0": 114,
+            "1": 109,
+            "2": 100,
+            "3": 105,
+            "4": 114,
+            "5": 58,
+            "6": 32,
+            "7": 69,
+            "8": 78,
+            "9": 79,
+            "10": 84,
+            "11": 83,
+            "12": 85,
+            "13": 80,
+            "14": 58,
+            "15": 32,
+            "16": 83,
+            "17": 51,
+            "18": 32,
+            "19": 111,
+            "20": 98,
+            "21": 106,
+            "22": 101,
+            "23": 99,
+            "24": 116,
+            "25": 32,
+            "26": 100,
+            "27": 101,
+            "28": 108,
+            "29": 101,
+            "30": 116,
+            "31": 105,
+            "32": 111,
+            "33": 110,
+            "34": 32,
+            "35": 99,
+            "36": 97,
+            "37": 110,
+            "38": 110,
+            "39": 111,
+            "40": 116,
+            "41": 32,
+            "42": 97,
+            "43": 116,
+            "44": 111,
+            "45": 109,
+            "46": 105,
+            "47": 99,
+            "48": 97,
+            "49": 108,
+            "50": 108,
+            "51": 121,
+            "52": 32,
+            "53": 114,
+            "54": 101,
+            "55": 113,
+            "56": 117,
+            "57": 105,
+            "58": 114,
+            "59": 101,
+            "60": 32,
+            "61": 97,
+            "62": 110,
+            "63": 32,
+            "64": 101,
+            "65": 109,
+            "66": 112,
+            "67": 116,
+            "68": 121,
+            "69": 32,
+            "70": 100,
+            "71": 105,
+            "72": 114,
+            "73": 101,
+            "74": 99,
+            "75": 116,
+            "76": 111,
+            "77": 114,
+            "78": 121,
+            "79": 32,
+            "80": 112,
+            "81": 114,
+            "82": 101,
+            "83": 102,
+            "84": 105,
+            "85": 120,
+            "86": 44,
+            "87": 32,
+            "88": 114,
+            "89": 109,
+            "90": 100,
+            "91": 105,
+            "92": 114,
+            "93": 32,
+            "94": 39,
+            "95": 47,
+            "96": 101,
+            "97": 109,
+            "98": 112,
+            "99": 116,
+            "100": 121,
+            "101": 39,
+            "102": 10
+          },
+          "exitCode": 1
+        },
+        "rmDirectory": {
+          "stdout": "",
+          "stderr": "rm: ENOTSUP: S3 object deletion cannot atomically require an empty directory prefix, rmdir '/empty'\n",
+          "stdoutBytes": {},
+          "stderrBytes": {
+            "0": 114,
+            "1": 109,
+            "2": 58,
+            "3": 32,
+            "4": 69,
+            "5": 78,
+            "6": 79,
+            "7": 84,
+            "8": 83,
+            "9": 85,
+            "10": 80,
+            "11": 58,
+            "12": 32,
+            "13": 83,
+            "14": 51,
+            "15": 32,
+            "16": 111,
+            "17": 98,
+            "18": 106,
+            "19": 101,
+            "20": 99,
+            "21": 116,
+            "22": 32,
+            "23": 100,
+            "24": 101,
+            "25": 108,
+            "26": 101,
+            "27": 116,
+            "28": 105,
+            "29": 111,
+            "30": 110,
+            "31": 32,
+            "32": 99,
+            "33": 97,
+            "34": 110,
+            "35": 110,
+            "36": 111,
+            "37": 116,
+            "38": 32,
+            "39": 97,
+            "40": 116,
+            "41": 111,
+            "42": 109,
+            "43": 105,
+            "44": 99,
+            "45": 97,
+            "46": 108,
+            "47": 108,
+            "48": 121,
+            "49": 32,
+            "50": 114,
+            "51": 101,
+            "52": 113,
+            "53": 117,
+            "54": 105,
+            "55": 114,
+            "56": 101,
+            "57": 32,
+            "58": 97,
+            "59": 110,
+            "60": 32,
+            "61": 101,
+            "62": 109,
+            "63": 112,
+            "64": 116,
+            "65": 121,
+            "66": 32,
+            "67": 100,
+            "68": 105,
+            "69": 114,
+            "70": 101,
+            "71": 99,
+            "72": 116,
+            "73": 111,
+            "74": 114,
+            "75": 121,
+            "76": 32,
+            "77": 112,
+            "78": 114,
+            "79": 101,
+            "80": 102,
+            "81": 105,
+            "82": 120,
+            "83": 44,
+            "84": 32,
+            "85": 114,
+            "86": 109,
+            "87": 100,
+            "88": 105,
+            "89": 114,
+            "90": 32,
+            "91": 39,
+            "92": 47,
+            "93": 101,
+            "94": 109,
+            "95": 112,
+            "96": 116,
+            "97": 121,
+            "98": 39,
+            "99": 10
+          },
+          "exitCode": 1
+        },
+        "markerPreserved": true
+      },
+      "productRequests": [
+        26,
+        46
+      ]
+    },
+    {
+      "name": "typed ENOTDIR for /work/file",
+      "classification": "current product negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOTDIR",
+        "markerAndChildPreserved": true
+      },
+      "productRequests": [
+        46,
+        52
+      ]
+    },
+    {
+      "name": "typed ENOTDIR for /work/file/",
+      "classification": "current product negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOTDIR",
+        "markerAndChildPreserved": true
+      },
+      "productRequests": [
+        52,
+        58
+      ]
+    },
+    {
+      "name": "typed ENOENT for /missing",
+      "classification": "current product negative",
+      "passed": true,
+      "observation": {
+        "code": "ENOENT",
+        "markerAndChildPreserved": true
+      },
+      "productRequests": [
+        58,
+        62
+      ]
+    },
+    {
+      "name": "typed ENOTEMPTY for /work",
+      "classification": "current product negative",
+      "passed": false,
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'ENOTEMPTY'\n       ^\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ENOTSUP'\n- 'ENOTEMPTY'\n       ^\n\n    at Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/consumer/service-checks.mjs:64:14)\n    at expectedException (node:assert:576:17)\n    at expectsError (node:assert:701:21)\n    at Function.rejects (node:assert:767:3)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async reject (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/consumer/service-checks.mjs:60:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/consumer/service-checks.mjs:95:7\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/consumer/service-checks.mjs:24:31)\n    at async Module.runChecks (file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/.scratch-7kP61S/consumer/service-checks.mjs:94:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/fs/s3/rmdir-real-service/run.mjs:103:5",
+      "diagnosticLists": [
+        {
+          "path": "/safe-bash-interop?encoding-type=url&list-type=2&max-keys=1&prefix=author%2F",
+          "sequence": 12,
+          "status": 200,
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>safe-bash-interop</Name><Prefix>author/</Prefix><NextContinuationToken>YXV0aG9yL2VtcHR5L1ttaW5pb19jYWNoZTp2MixyZXR1cm46XQ==</NextContinuationToken><KeyCount>1</KeyCount><MaxKeys>1</MaxKeys><IsTruncated>true</IsTruncated><Contents><Key>author/empty/</Key><LastModified>2026-08-27T06:54:11.813Z</LastModified><ETag>&#34;d41d8cd98f00b204e9800998ecf8427e&#34;</ETag><Size>0</Size><StorageClass>STANDARD</StorageClass></Contents><EncodingType>url</EncodingType></ListBucketResult>"
+        },
+        {
+          "path": "/safe-bash-interop?delimiter=%2F&encoding-type=url&list-type=2&max-keys=1&prefix=author%2Fwork%2F",
+          "sequence": 13,
+          "status": 200,
+          "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>safe-bash-interop</Name><Prefix>author/work/</Prefix><KeyCount>1</KeyCount><MaxKeys>1</MaxKeys><Delimiter>/</Delimiter><IsTruncated>false</IsTruncated><Contents><Key>author/work/</Key><LastModified>2026-08-27T06:54:11.757Z</LastModified><ETag>&#34;d41d8cd98f00b204e9800998ecf8427e&#34;</ETag><Size>0</Size><StorageClass>STANDARD</StorageClass></Contents><EncodingType>url</EncodingType></ListBucketResult>"
+        }
+      ]
+    },
+    {
+      "name": "typed EBUSY for /",
+      "classification": "current product negative",
+      "passed": true,
+      "observation": {
+        "code": "EBUSY",
+        "markerAndChildPreserved": true
+      },
+      "productRequests": [
+        66,
+        66
+      ]
+    },
+    {
+      "name": "implicit directory and nested marker remain nonempty",
+      "classification": "current product negative",
+      "passed": true,
+      "observation": {
+        "implicitMarkerAbsent": true,
+        "childrenPreserved": true
+      },
+      "productRequests": [
+        66,
+        76
+      ]
+    },
+    {
+      "name": "readonly wrapper, adapter readonly and mounted root",
+      "classification": "public wrapper negatives",
+      "passed": true,
+      "observation": {
+        "codes": [
+          "EROFS",
+          "EROFS",
+          "EBUSY",
+          "ENOTSUP"
+        ]
+      },
+      "productRequests": [
+        76,
+        86
+      ]
+    },
+    {
+      "name": "pre-abort makes no request",
+      "classification": "current product cancellation",
+      "passed": true,
+      "observation": {
+        "productRequests": 0,
+        "markerPreserved": true
+      },
+      "productRequests": [
+        86,
+        86
+      ]
+    },
+    {
+      "name": "service rejects incorrect synthetic signature",
+      "classification": "native service and product permission negative",
+      "passed": true,
+      "observation": {
+        "code": "EACCES",
+        "markerPreserved": true
+      },
+      "productRequests": [
+        86,
+        87
+      ]
+    },
+    {
+      "name": "current rmdir preserves child inserted after complete list",
+      "classification": "current product race refusal",
+      "passed": true,
+      "observation": {
+        "code": "ENOTSUP",
+        "markerAndChildPreserved": true,
+        "injection": "faithful host transport forwards actual complete LIST snapshot"
+      },
+      "productRequests": [
+        87,
+        91
+      ]
+    },
+    {
+      "name": "abort after actual LIST response precedes mutation",
+      "classification": "current product cancellation boundary",
+      "passed": true,
+      "observation": {
+        "code": "ECANCELED",
+        "actualListCompleted": true,
+        "markerPreserved": true
+      },
+      "productRequests": [
+        91,
+        95
+      ]
+    },
+    {
+      "name": "exact-marker DELETE positive primitive",
+      "classification": "native primitive only; not product rmdir",
+      "passed": true,
+      "observation": {
+        "listSequence": 31,
+        "deleteSequence": 32,
+        "status": 204,
+        "logicalDirectoryAbsentInQuiescentControl": true
+      },
+      "productRequests": [
+        95,
+        99
+      ]
+    },
+    {
+      "name": "snapshot marker deletion preserves children but violates logical removal",
+      "classification": "proposed algorithm contract counterexample",
+      "passed": true,
+      "observation": {
+        "listSequence": 35,
+        "deleteSequence": 39,
+        "markerDeleted": true,
+        "descendantsPreserved": 3,
+        "logicalDirectoryStillPresent": true,
+        "contractSatisfied": false,
+        "hypotheticalSuccessIsNotLogicalRemoval": true
+      },
+      "productRequests": [
+        99,
+        103
+      ]
+    },
+    {
+      "name": "same-content marker replacement ABA",
+      "classification": "proposed algorithm identity limitation",
+      "passed": true,
+      "observation": {
+        "listSequence": 45,
+        "deleteSequence": 49,
+        "sameEtag": true,
+        "replacementMarkerDeleted": true,
+        "conditionalDeleteClaimed": false
+      },
+      "productRequests": [
+        103,
+        103
+      ]
+    },
+    {
+      "name": "native stale conditional DELETE does not justify capability",
+      "classification": "pinned provider unsupported guard",
+      "passed": true,
+      "observation": {
+        "expectedForVerifiedConditionalDelete": 412,
+        "observedStatus": 204,
+        "objectDeleted": true,
+        "providerGuardSupported": false,
+        "conditionalDeleteAdvertised": false
+      },
+      "productRequests": [
+        103,
+        103
+      ]
+    },
+    {
+      "name": "native wrong-signature marker DELETE preserves marker",
+      "classification": "native primitive permission negative",
+      "passed": true,
+      "observation": {
+        "status": 403,
+        "markerPreserved": true
+      },
+      "productRequests": [
+        103,
+        103
+      ]
+    }
+  ],
+  "verifiedProductRmdirPositiveWorkflows": 0,
+  "requestedPositiveWorkflowBlocked": true
+}

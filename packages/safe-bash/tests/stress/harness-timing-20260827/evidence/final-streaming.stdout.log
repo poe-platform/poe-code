@@ -1,0 +1,82 @@
+TAP version 13
+HARNESS_TIMING {"pid":78977,"event":"streaming-module-ready","atMs":106.502667,"detail":{}}
+HARNESS_TIMING {"pid":78977,"event":"semantic-watchdog-armed","atMs":107.122167,"detail":{"timerId":1,"milliseconds":15000,"armedMs":107.1165,"dueMs":15107.1165}}
+HARNESS_TIMING {"pid":78977,"event":"native-delivery","atMs":118.939042,"detail":{"repetition":1,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":78994,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.07645799999998815,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"timer-armed","ms":1.8072079999999886,"detail":{"timerId":1,"label":"readiness","milliseconds":10000,"armedMs":1.801124999999999,"dueMs":10001.801125}},{"event":"spawn","ms":2.815041999999991,"detail":{"pid":78994}},{"event":"write","ms":2.8682079999999956,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":10.408916999999988,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":10.423457999999997,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":10.424374999999998},{"event":"timer-cleared","ms":10.446332999999996,"detail":{"timerId":1}},{"event":"timer-armed","ms":10.451916999999995,"detail":{"timerId":2,"label":"completion","milliseconds":10000,"armedMs":10.447999999999993,"dueMs":10010.448}},{"event":"write","ms":10.464917,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":10.650458},{"event":"stdout-data","ms":10.661417,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stdout-end","ms":11.258624999999995},{"event":"stderr-end","ms":11.283916999999988},{"event":"exit","ms":11.379082999999994,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":11.384499999999989,"detail":{"timerId":2}},{"event":"timer-armed","ms":11.392332999999994,"detail":{"timerId":3,"label":"cleanup","milliseconds":5000,"armedMs":11.390625,"dueMs":5011.390625}},{"event":"stderr-close","ms":11.477542},{"event":"close","ms":11.504957999999988,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":11.510916999999992,"detail":{"timerId":3}},{"event":"stdout-close","ms":11.645792}],"ready":true,"actualClose":true,"closeObserved":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-entered-read","atMs":123.400667,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-first-data","atMs":123.992833,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-suffix-after-output","atMs":124.037667,"detail":{"repetition":1}}
+HARNESS_TIMING {"pid":78977,"event":"semantic-watchdog-cleared","atMs":125.444458,"detail":{"timerId":1}}
+HARNESS_TIMING {"pid":78977,"event":"semantic-watchdog-armed","atMs":126.059208,"detail":{"timerId":2,"milliseconds":15000,"armedMs":126.055833,"dueMs":15126.055833}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 1
+ok 1 - output-acknowledged prefix delivery (native explicitly line-buffered) 1
+  ---
+  duration_ms: 18.90525
+  type: 'test'
+  ...
+HARNESS_TIMING {"pid":78977,"event":"native-delivery","atMs":134.034625,"detail":{"repetition":2,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":79010,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.060584000000005744,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"timer-armed","ms":1.6707920000000058,"detail":{"timerId":1,"label":"readiness","milliseconds":10000,"armedMs":1.6685420000000022,"dueMs":10001.668542}},{"event":"spawn","ms":2.0588750000000147,"detail":{"pid":79010}},{"event":"write","ms":2.0655840000000154,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":7.447458999999995,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":7.461292,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":7.461750000000009},{"event":"timer-cleared","ms":7.470959000000008,"detail":{"timerId":1}},{"event":"timer-armed","ms":7.474042000000011,"detail":{"timerId":2,"label":"completion","milliseconds":10000,"armedMs":7.472459000000001,"dueMs":10007.472459}},{"event":"write","ms":7.482167000000018,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":7.565624999999997},{"event":"stdout-data","ms":7.5728340000000145,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":7.770500000000013},{"event":"stdout-end","ms":7.789666999999994},{"event":"stdout-close","ms":7.888917000000006},{"event":"stderr-close","ms":7.890167000000005},{"event":"exit","ms":7.900874999999999,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":7.906417000000019,"detail":{"timerId":2}},{"event":"timer-armed","ms":7.909624999999991,"detail":{"timerId":3,"label":"cleanup","milliseconds":5000,"armedMs":7.908249999999995,"dueMs":5007.90825}},{"event":"close","ms":7.915292000000008,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":7.916916999999998,"detail":{"timerId":3}}],"ready":true,"actualClose":true,"closeObserved":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-entered-read","atMs":140.318583,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-first-data","atMs":140.5655,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-suffix-after-output","atMs":140.595375,"detail":{"repetition":2}}
+HARNESS_TIMING {"pid":78977,"event":"semantic-watchdog-cleared","atMs":141.541958,"detail":{"timerId":2}}
+HARNESS_TIMING {"pid":78977,"event":"semantic-watchdog-armed","atMs":141.678375,"detail":{"timerId":3,"milliseconds":15000,"armedMs":141.67625,"dueMs":15141.67625}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 2
+ok 2 - output-acknowledged prefix delivery (native explicitly line-buffered) 2
+  ---
+  duration_ms: 15.597458
+  type: 'test'
+  ...
+HARNESS_TIMING {"pid":78977,"event":"native-delivery","atMs":150.795542,"detail":{"repetition":3,"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","pid":79026,"code":0,"signal":null,"stdout":"foo\nbinary file matches (found \"\\0\" byte around offset 4)\n","stderr":"","events":[{"event":"launch","ms":0.054833999999999605,"detail":{"argv":["--no-config","--line-buffered","foo","-"],"profile":"observed-prefix","options":{"lineBuffered":true}}},{"event":"timer-armed","ms":1.3146250000000066,"detail":{"timerId":1,"label":"readiness","milliseconds":10000,"armedMs":1.3128749999999911,"dueMs":10001.312875}},{"event":"spawn","ms":1.6374590000000069,"detail":{"pid":79026}},{"event":"write","ms":1.6421670000000006,"detail":{"hex":"666f6f0a","end":false}},{"event":"stdout-data","ms":8.532083999999998,"detail":{"hex":"666f6f0a"}},{"event":"prefix-consumption-evidenced","ms":8.543624999999992,"detail":"stdout is evidence of prior read; not a read syscall timestamp"},{"event":"ready","ms":8.544000000000011},{"event":"timer-cleared","ms":8.551084000000003,"detail":{"timerId":1}},{"event":"timer-armed","ms":8.554624999999987,"detail":{"timerId":2,"label":"completion","milliseconds":10000,"armedMs":8.552708999999993,"dueMs":10008.552709}},{"event":"write","ms":8.568000000000012,"detail":{"hex":"000a6e6f0a","end":true}},{"event":"stdin-close","ms":8.633999999999986},{"event":"stdout-data","ms":8.642291999999998,"detail":{"hex":"62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"}},{"event":"stderr-end","ms":8.943125000000009},{"event":"stdout-end","ms":8.963459},{"event":"stdout-close","ms":9.05604199999999},{"event":"stderr-close","ms":9.057166999999993},{"event":"exit","ms":9.067791999999997,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":9.069500000000005,"detail":{"timerId":2}},{"event":"timer-armed","ms":9.071916999999985,"detail":{"timerId":3,"label":"cleanup","milliseconds":5000,"armedMs":9.07083399999999,"dueMs":5009.070834}},{"event":"close","ms":9.07650000000001,"detail":{"code":0,"signal":null}},{"event":"timer-cleared","ms":9.077584000000002,"detail":{"timerId":3}}],"ready":true,"actualClose":true,"closeObserved":true,"ownedListenersRemaining":0,"streamsDestroyed":[true,true,true],"activeTimers":0}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-entered-read","atMs":155.402917,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-first-data","atMs":155.657708,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":78977,"event":"virtual-suffix-after-output","atMs":155.693625,"detail":{"repetition":3}}
+HARNESS_TIMING {"pid":78977,"event":"semantic-watchdog-cleared","atMs":156.600542,"detail":{"timerId":3}}
+# Subtest: output-acknowledged prefix delivery (native explicitly line-buffered) 3
+ok 3 - output-acknowledged prefix delivery (native explicitly line-buffered) 3
+  ---
+  duration_ms: 14.9825
+  type: 'test'
+  ...
+# Subtest: whole-write delivery retains the distinct warning-only native result
+ok 4 - whole-write delivery retains the distinct warning-only native result
+  ---
+  duration_ms: 22.408666
+  type: 'test'
+  ...
+# Subtest: binary-aware output respects backpressure before another read
+ok 5 - binary-aware output respects backpressure before another read
+  ---
+  duration_ms: 25.095042
+  type: 'test'
+  ...
+# Subtest: binary-aware output cancels under backpressure before another read
+ok 6 - binary-aware output cancels under backpressure before another read
+  ---
+  duration_ms: 22.613833
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 214.317541
+
+TAP version 13
+# Subtest: isolated matched-delivery, whole-write and backpressure regressions
+ok 1 - isolated matched-delivery, whole-write and backpressure regressions
+  ---
+  duration_ms: 246.081042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 248.309042

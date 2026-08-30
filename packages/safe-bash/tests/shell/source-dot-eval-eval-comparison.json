@@ -1,0 +1,1306 @@
+{
+  "profiles": [
+    {
+      "name": "GNU-5.3",
+      "passed": 36,
+      "total": 36,
+      "rows": [
+        {
+          "name": "state",
+          "mode": "bash",
+          "expected": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1UUTRQaXMvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "actual": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1UUTRQaXMvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "join-expansion",
+          "mode": "bash",
+          "expected": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "empty",
+          "mode": "bash",
+          "expected": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "set-positional",
+          "mode": "bash",
+          "expected": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "function-return",
+          "mode": "bash",
+          "expected": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "source-return",
+          "mode": "bash",
+          "expected": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "actual": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "exit",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "loops",
+          "mode": "bash",
+          "expected": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "nested-source",
+          "mode": "bash",
+          "expected": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "actual": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "prefix-assignment",
+          "mode": "bash",
+          "expected": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOm9sZAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOm9sZAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "command-eval",
+          "mode": "bash",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "subshell",
+          "mode": "bash",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "stdin",
+          "mode": "bash",
+          "expected": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "redirection",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "actual": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "late-syntax",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YmVmb3JlCmFmdGVyOjIK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YmVmb3JlCmFmdGVyOjIK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "same-unit-syntax",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMQo=",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMQo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "terminator",
+          "mode": "bash",
+          "expected": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "invalid-option",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGxpbmUgMTogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGxpbmUgMTogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "state",
+          "mode": "sh",
+          "expected": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1uVnY2bHcvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "actual": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS1uVnY2bHcvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "join-expansion",
+          "mode": "sh",
+          "expected": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "empty",
+          "mode": "sh",
+          "expected": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "set-positional",
+          "mode": "sh",
+          "expected": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "function-return",
+          "mode": "sh",
+          "expected": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "source-return",
+          "mode": "sh",
+          "expected": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "actual": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "exit",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "loops",
+          "mode": "sh",
+          "expected": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "nested-source",
+          "mode": "sh",
+          "expected": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "actual": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "prefix-assignment",
+          "mode": "sh",
+          "expected": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOmNoYW5nZWQK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOmNoYW5nZWQK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "command-eval",
+          "mode": "sh",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "subshell",
+          "mode": "sh",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "stdin",
+          "mode": "sh",
+          "expected": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "redirection",
+          "mode": "sh",
+          "expected": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "actual": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "late-syntax",
+          "mode": "sh",
+          "expected": {
+            "stdout": "YmVmb3JlCmFmdGVyOjIK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YmVmb3JlCmFmdGVyOjIK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "same-unit-syntax",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMQo=",
+            "status": 2,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMQo=",
+            "status": 2,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "terminator",
+          "mode": "sh",
+          "expected": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "invalid-option",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 2,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 2,
+            "files": {}
+          },
+          "match": true
+        }
+      ]
+    },
+    {
+      "name": "historical-3.2",
+      "passed": 30,
+      "total": 36,
+      "rows": [
+        {
+          "name": "state",
+          "mode": "bash",
+          "expected": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS16UzFtckUvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "actual": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS16UzFtckUvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "join-expansion",
+          "mode": "bash",
+          "expected": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "empty",
+          "mode": "bash",
+          "expected": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "set-positional",
+          "mode": "bash",
+          "expected": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "function-return",
+          "mode": "bash",
+          "expected": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "source-return",
+          "mode": "bash",
+          "expected": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "actual": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "exit",
+          "mode": "bash",
+          "expected": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "loops",
+          "mode": "bash",
+          "expected": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "nested-source",
+          "mode": "bash",
+          "expected": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "actual": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "prefix-assignment",
+          "mode": "bash",
+          "expected": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOm9sZAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOm9sZAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "command-eval",
+          "mode": "bash",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "subshell",
+          "mode": "bash",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "stdin",
+          "mode": "bash",
+          "expected": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "redirection",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "actual": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "late-syntax",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YmVmb3JlCmFmdGVyOjEK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YmVmb3JlCmFmdGVyOjIK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": false
+        },
+        {
+          "name": "same-unit-syntax",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YWZ0ZXI6MQo=",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMQo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": false
+        },
+        {
+          "name": "terminator",
+          "mode": "bash",
+          "expected": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "invalid-option",
+          "mode": "bash",
+          "expected": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGxpbmUgMDogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YWZ0ZXI6Mgo=",
+            "stderr": "cHJvYmU6IGxpbmUgMTogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": false
+        },
+        {
+          "name": "state",
+          "mode": "sh",
+          "expected": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS00UVVXT0Uvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "actual": {
+            "stdout": "bmV3Oi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC8uaW52b2NhdGlvbi1jbG9zdXJlLW5hdGl2ZS00UVVXT0Uvc3ViCmZ1bmN0aW9u",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "sub/keep": ""
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "join-expansion",
+          "mode": "sh",
+          "expected": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "c2Vjb25kOnRhaWwK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "empty",
+          "mode": "sh",
+          "expected": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "MAowCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "set-positional",
+          "mode": "sh",
+          "expected": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Mjo8dHdvIHdvcmRzPjo8Pgo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "function-return",
+          "mode": "sh",
+          "expected": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Nwo=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "source-return",
+          "mode": "sh",
+          "expected": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "actual": {
+            "stdout": "OAo=",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "ZXZhbCAicmV0dXJuIDgiOyBwcmludGYgYmFk"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "exit",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "",
+            "status": 9,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "loops",
+          "mode": "sh",
+          "expected": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "ZG9uZQ==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "nested-source",
+          "mode": "sh",
+          "expected": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "actual": {
+            "stdout": "dHdvIHdvcmRzCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "lib": "VkFMVUU9JDE="
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "prefix-assignment",
+          "mode": "sh",
+          "expected": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOmNoYW5nZWQK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "aW46cHJlZml4CmFmdGVyOmNoYW5nZWQK",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "command-eval",
+          "mode": "sh",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "subshell",
+          "mode": "sh",
+          "expected": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2xkCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "stdin",
+          "mode": "sh",
+          "expected": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "Zmlyc3Q6c2Vjb25kCg==",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "redirection",
+          "mode": "sh",
+          "expected": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "actual": {
+            "stdout": "YWZ0ZXIK",
+            "stderr": "",
+            "status": 0,
+            "files": {
+              "out": "c2F2ZWQK"
+            }
+          },
+          "match": true
+        },
+        {
+          "name": "late-syntax",
+          "mode": "sh",
+          "expected": {
+            "stdout": "YmVmb3JlCmFmdGVyOjEK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "YmVmb3JlCmFmdGVyOjIK",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMzogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMgo=",
+            "status": 0,
+            "files": {}
+          },
+          "match": false
+        },
+        {
+          "name": "same-unit-syntax",
+          "mode": "sh",
+          "expected": {
+            "stdout": "YWZ0ZXI6MQo=",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMTogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlCg==",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGV2YWw6IGxpbmUgMjogc3ludGF4IGVycm9yOiB1bmV4cGVjdGVkIGVuZCBvZiBmaWxlIGZyb20gYGlmJyBjb21tYW5kIG9uIGxpbmUgMQo=",
+            "status": 2,
+            "files": {}
+          },
+          "match": false
+        },
+        {
+          "name": "terminator",
+          "mode": "sh",
+          "expected": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "b2s=",
+            "stderr": "",
+            "status": 0,
+            "files": {}
+          },
+          "match": true
+        },
+        {
+          "name": "invalid-option",
+          "mode": "sh",
+          "expected": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMDogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 2,
+            "files": {}
+          },
+          "actual": {
+            "stdout": "",
+            "stderr": "cHJvYmU6IGxpbmUgMTogZXZhbDogLXo6IGludmFsaWQgb3B0aW9uCmV2YWw6IHVzYWdlOiBldmFsIFthcmcgLi4uXQo=",
+            "status": 2,
+            "files": {}
+          },
+          "match": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "controls": 4,
+  "passed": 4,
+  "failed": 0,
+  "candidateRuntimeCasesExecuted": 0,
+  "compilerNpmExecuted": false,
+  "raw": {
+    "PRE.json": "3938e34498f64da561c9c537a41e7b5ee99a477c1ffc6d240bd55c94942dd97e",
+    "actual-materialize-content-hash.json": "ce2e7d518e7a88924957de77b5cb38f6b0348103d668e3d2f36ad4798ce558dd",
+    "actual-materialize-mode-before-acquisition.json": "9635a15623edb16edf137768c674e7b72079923ca8a5fa301c70ceea9505bc5c",
+    "actual-materialize-unknown-link-before-acquisition.json": "01b2cf63698079dc0335f5b02cd16edef2ea8ba5e9c22c0fb3d12917f3b073f9",
+    "raw-commit-corruption-before-object-import.json": "fbbf8c49d62ec59aeda55386e73e5b376a0caa200b919281a73a3a96a50e56fe"
+  }
+}

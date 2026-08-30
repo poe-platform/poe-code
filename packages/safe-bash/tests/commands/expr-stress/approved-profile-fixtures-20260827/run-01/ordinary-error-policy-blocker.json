@@ -1,0 +1,37 @@
+{
+  "classification": "Separate policy-negative control; excluded from both frozen 12-case denominators. Failure is retained, not rebaselined.",
+  "input": {
+    "id": "ordinary-division-output-one",
+    "argv": [
+      "1",
+      "/",
+      "0"
+    ],
+    "limits": {
+      "maxOutputBytes": 1
+    },
+    "expectedStatus": 3,
+    "expectedStderr": "expr: output bytes limit exceeded\n",
+    "workers": 0
+  },
+  "actual": {
+    "status": 2,
+    "stdoutBase64": "",
+    "stderrBase64": "ZXhwcjogZGl2aXNpb24gYnkgemVybwo=",
+    "rejected": false,
+    "error": null,
+    "exactReasonIdentity": false,
+    "events": [
+      "registerCleanup"
+    ],
+    "imports": [],
+    "activeAtSettlement": 0,
+    "activeBeforeSafetyCleanup": 0,
+    "activeAfterSafetyCleanup": 0
+  },
+  "stdout": "",
+  "stderr": "expr: division by zero\n",
+  "stdoutBytes": 0,
+  "stderrBytes": 23,
+  "passed": false
+}

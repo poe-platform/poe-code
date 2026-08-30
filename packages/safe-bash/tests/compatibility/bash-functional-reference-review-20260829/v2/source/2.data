@@ -1,0 +1,119 @@
+{
+  "schema": "launcher-v2-control-preseal",
+  "created": 1787987532852,
+  "preparationDeadline": 1787988369908,
+  "files": [
+    {
+      "path": "AUDIT.json",
+      "bytes": 40103,
+      "mode": 420,
+      "sha256": "2547adf1c6a71bc6868263ee5de469248ae98402fc076e865f202dcfbd0e59c6"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 2658,
+      "mode": 420,
+      "sha256": "13f6f31abd441bb368a1a916fa932063191259ddd3297086a05db9217cef7238"
+    },
+    {
+      "path": "PREPROVISION.json",
+      "bytes": 1024,
+      "mode": 420,
+      "sha256": "fe4378dbe081edec8a9fae12d44e4f7fbae0a9b9feac453cd233b9f8741659d0"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 1849,
+      "mode": 420,
+      "sha256": "0e018ebff855791ee48f3fc0b16e7f80592005e46e89ff3615f15aa9f2b59636"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 30175,
+      "mode": 420,
+      "sha256": "8b0c84331d4f374ee890181777bda41bfba1735ec3e930741f0f55ae0fcc2277"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2657,
+      "mode": 420,
+      "sha256": "77da774f9aae8e1409c6a8dd0425387d435c01842164abe47ce3f6e4f7bfbcc6"
+    },
+    {
+      "path": "VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "mode": 420,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 3716,
+      "mode": 420,
+      "sha256": "c03847089c61e0fc0cf957e85424937c79fa3e1a9d2152cb5fe39dab70d57b0f"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1888,
+      "mode": 420,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "control-owner.mjs",
+      "bytes": 8564,
+      "mode": 420,
+      "sha256": "f1047f59c3a4970a0b5a1b625718f28bb6b7c95910b33a4ae11b61d61f0c179c"
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 7665,
+      "mode": 420,
+      "sha256": "dee567f352bc0239968e0a78a70b11f6c4b5f7760a03777e654fd21128cfe68d"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "mode": 420,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 420,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "mode": 420,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4227,
+      "mode": 420,
+      "sha256": "5566a7f256d57b7f08f2547e7a5b9dcf440c928f161604538c577ce4521d67d5"
+    },
+    {
+      "path": "state.mjs",
+      "bytes": 1572,
+      "mode": 420,
+      "sha256": "28af6d9b42ddf85caa637a4eca2cb36147508e2175668ba8e307ea47b4b4ef88"
+    },
+    {
+      "path": "storage.mjs",
+      "bytes": 2510,
+      "mode": 420,
+      "sha256": "4b5cf5904487ae63b229a5d99b3e02c257b94b5862800e6591b348fc1c5a7049"
+    }
+  ],
+  "identities": 12,
+  "synthetic": 10,
+  "actualFixtureChildren": 2,
+  "controlOwnerProcesses": 1,
+  "totalKnownNodeProcesses": 3,
+  "peakIncludingExistingCoordinator": 3,
+  "nativeBash": 0,
+  "product": 0,
+  "actualProgramsFrozenIn": "CONTROLS.json",
+  "stopNoRetryForSafety": true
+}

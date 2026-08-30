@@ -1,0 +1,490 @@
+{
+  "schema": "l02-independent-pure-v1",
+  "at": "2026-08-29T15:24:08.753Z",
+  "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "replay": {
+    "count": 16,
+    "passed": 16
+  },
+  "novel": {
+    "count": 10,
+    "passed": 10,
+    "rows": [
+      {
+        "id": "N01-setup-undefined-cleanup-zero",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "primary": {
+            "kind": "undefined"
+          },
+          "before": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 914,
+              "reserved": 53,
+              "live": 757,
+              "work": 445
+            }
+          },
+          "after": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 935,
+              "reserved": 53,
+              "live": 757,
+              "work": 466
+            }
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate"
+          ]
+        }
+      },
+      {
+        "id": "N02-setup-null-cleanup-false",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "primary": {
+            "kind": "null"
+          },
+          "before": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 914,
+              "reserved": 53,
+              "live": 757,
+              "work": 445
+            }
+          },
+          "after": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 935,
+              "reserved": 53,
+              "live": 757,
+              "work": 466
+            }
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate"
+          ]
+        }
+      },
+      {
+        "id": "N03-setup-zero-cleanup-null",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "primary": {
+            "kind": "number",
+            "value": 0
+          },
+          "before": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 914,
+              "reserved": 53,
+              "live": 757,
+              "work": 445
+            }
+          },
+          "after": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 935,
+              "reserved": 53,
+              "live": 757,
+              "work": 466
+            }
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate"
+          ]
+        }
+      },
+      {
+        "id": "N04-caller-zero-over-setup-false",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "primary": {
+            "kind": "number",
+            "value": 0
+          },
+          "before": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 914,
+              "reserved": 53,
+              "live": 757,
+              "work": 445
+            }
+          },
+          "after": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 935,
+              "reserved": 53,
+              "live": 757,
+              "work": 466
+            }
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate"
+          ],
+          "retainedCancelListeners": 1
+        }
+      },
+      {
+        "id": "N05-caller-undefined-over-setup-null",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "primary": {
+            "kind": "undefined"
+          },
+          "before": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 914,
+              "reserved": 53,
+              "live": 757,
+              "work": 445
+            }
+          },
+          "after": {
+            "engine": {
+              "patternBytes": 1,
+              "subjectBytes": 1,
+              "work": 131072,
+              "states": 512,
+              "allocationUnits": 40960,
+              "captureBytes": 4096,
+              "captureSlots": 64
+            },
+            "transport": {
+              "spent": 935,
+              "reserved": 53,
+              "live": 757,
+              "work": 466
+            }
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate"
+          ],
+          "retainedCancelListeners": 1
+        }
+      },
+      {
+        "id": "N06-cross-realm-own-data-cleanup-null",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "ownKeys": [
+            "version",
+            "operation",
+            "kind"
+          ],
+          "ownData": true,
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate"
+          ]
+        }
+      },
+      {
+        "id": "N07-pending-terminate-is-not-rejected",
+        "pass": true,
+        "observation": {
+          "pendingObserved": true,
+          "finalRetirement": "RETIRED",
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate",
+            "observed-exit",
+            "stdout:observed-end",
+            "stderr:observed-end"
+          ]
+        }
+      },
+      {
+        "id": "N08-pending-streams-remain-pending",
+        "pass": true,
+        "observation": {
+          "pendingStreamsObserved": true,
+          "finalRetirement": "RETIRED",
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate",
+            "exit-enroll:2",
+            "observed-exit",
+            "stdout:observed-end",
+            "stderr:observed-end"
+          ]
+        }
+      },
+      {
+        "id": "N09-rejection-after-observed-retirement",
+        "pass": true,
+        "observation": {
+          "retirement": "RETIRED",
+          "cleanup": {
+            "kind": "boolean",
+            "value": false
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stdout:enroll:close",
+            "stderr:enroll:end",
+            "stderr:enroll:close",
+            "terminate",
+            "observed-exit",
+            "stdout:observed-end",
+            "stderr:observed-end"
+          ]
+        }
+      },
+      {
+        "id": "N10-independent-streams-first-failure-order",
+        "pass": true,
+        "observation": {
+          "retirement": "UNCONFIRMED",
+          "setup": {
+            "kind": "boolean",
+            "value": false
+          },
+          "firstCleanup": {
+            "kind": "number",
+            "value": 0
+          },
+          "events": [
+            "exit-enroll:1",
+            "stdout:enroll:end",
+            "stderr:enroll:end",
+            "terminate",
+            "exit-enroll:2",
+            "observed-exit",
+            "stdout:observed-end",
+            "stderr:observed-end"
+          ]
+        }
+      }
+    ]
+  },
+  "actualWorkers": 0,
+  "matchingCalls": 0,
+  "publicShellCalls": 0,
+  "loaded": [
+    {
+      "url": "l02-replay:///host-doubles-v2.mjs",
+      "bytes": 7516,
+      "sha256": "168c66c72ca9321f93bb21811fc384fb2ba77971d5557478d06f9f54b9f30272"
+    },
+    {
+      "url": "l02-replay:///fake-worker.mjs",
+      "bytes": 1479,
+      "sha256": "9a07119b77259db123aed83368da7e4a24f3f659112d2ab3dff4bf973c35c27c"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/transport/owner.js",
+      "bytes": 9897,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/transport/protocol.js",
+      "bytes": 1198,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/transport/validation.js",
+      "bytes": 12831,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/errors.js",
+      "bytes": 1045,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/limits.js",
+      "bytes": 3265,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/transport/accounting.js",
+      "bytes": 7003,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "url": "l02-replay:///BUILD/emitted/transport/root.js",
+      "bytes": 14619,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "url": "l02-novel:///transport/owner.js",
+      "bytes": 9897,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "url": "l02-novel:///fake-worker.mjs",
+      "bytes": 2343,
+      "sha256": "e7030de0e5bf88988084526ce14ed1d1186e52939a9d67f9960337c374bf9eb1"
+    },
+    {
+      "url": "l02-novel:///transport/protocol.js",
+      "bytes": 1198,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "url": "l02-novel:///transport/validation.js",
+      "bytes": 12831,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "url": "l02-novel:///errors.js",
+      "bytes": 1045,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "url": "l02-novel:///limits.js",
+      "bytes": 3265,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "url": "l02-novel:///transport/accounting.js",
+      "bytes": 7003,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "url": "l02-novel:///transport/root.js",
+      "bytes": 14619,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    }
+  ],
+  "replacements": [
+    {
+      "importer": "l02-replay:///BUILD/emitted/transport/owner.js",
+      "specifier": "node:worker_threads",
+      "replacement": "l02-replay:///fake-worker.mjs"
+    },
+    {
+      "importer": "l02-novel:///transport/owner.js",
+      "specifier": "node:worker_threads",
+      "replacement": "l02-novel:///fake-worker.mjs"
+    }
+  ],
+  "retainedModelReferences": 30,
+  "qualification": "Fixed host doubles only; rejected/pending/retired distinctions are not native Worker telemetry."
+}

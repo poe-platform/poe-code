@@ -1,0 +1,132 @@
+{
+  "schema": "m1b-type-api-deferred-checks-v2",
+  "checks": [
+    {
+      "id": "D01",
+      "input": "T01",
+      "expected": "No diagnostics, raw capture precedes exact match; validation worker0.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D02",
+      "input": "T02",
+      "expected": "Exactly2353 limits at2:20; API diagnostics, not CLI exit2.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D03",
+      "input": "T03",
+      "expected": "Exactly2353 spawn at2:15; API diagnostics, not CLI exit2.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D04",
+      "input": "T04",
+      "expected": "Exactly2322 number/string at2:21; exact related6500 allowance.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D05",
+      "input": "T05",
+      "expected": "Exactly2322 string/boolean|undefined at2:15; exact related6500 allowance.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D06",
+      "input": "Extra diagnostics/import failure",
+      "expected": "FAIL without filtering.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D07",
+      "input": "Wrong physical diagnostic path",
+      "expected": "FAIL, no basename normalization.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D08",
+      "input": "Unadmitted module/source",
+      "expected": "No host fallback; missing/admission/diagnostic failure.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D09",
+      "input": "Cross-realm getter/hole/extra",
+      "expected": "Reject own-data mismatch without invoking accessor.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D10",
+      "input": "Nonzero child with matched:true",
+      "expected": "Parent aggregateFAIL.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D11",
+      "input": "Compiler throws null/undefined",
+      "expected": "Capture type fact, rethrow actual local value; no serialized identity claim.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D12",
+      "input": "fsync/close/capture error",
+      "expected": "NonzeroFAIL; no capture retry or predicate pass.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D13",
+      "input": "Wrong mode/hash/membership/symlink",
+      "expected": "Admission/after-guardFAIL.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D14",
+      "input": "Compiler byte mutation",
+      "expected": "AdmissionFAIL only, not loaded mutant credit.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D15",
+      "input": "Unexpected related information",
+      "expected": "FAIL; all data retained.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D16",
+      "input": "Timeout/overflow/unknown reap",
+      "expected": "FAIL/STOP without retry/reset.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D17",
+      "input": "Fixture suppression/change",
+      "expected": "Template/hash admissionFAIL.",
+      "status": "UNRUN",
+      "executed": 0
+    },
+    {
+      "id": "D18",
+      "input": "Original22 case IDs",
+      "expected": "Same api/caseId/return/rejection through unchanged modules.",
+      "status": "UNRUN",
+      "executed": 0
+    }
+  ],
+  "executions": 0
+}

@@ -1,0 +1,506 @@
+[
+  {
+    "id": "S11",
+    "parameter": "error-first-caller-error-cleanup-error",
+    "events": [
+      {
+        "sequence": 0,
+        "name": "operation.registerCleanup.before-admission",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 1,
+        "name": "operation.registerCleanup.before-admission",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 2,
+        "name": "local.failure",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 3,
+        "name": "local.close",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 4,
+        "name": "cleanup.enter",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 5,
+        "name": "selector.public-parser",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 6,
+        "name": "host.diagnostic",
+        "detail": "shell: Expected command at offset 0\n",
+        "phase": "observation"
+      },
+      {
+        "sequence": 7,
+        "name": "selected.sink.enter",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 8,
+        "name": "selected.sink.rejected",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 9,
+        "name": "owner.source.return",
+        "detail": {
+          "returns": 1,
+          "ownerAlive": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 10,
+        "name": "caller.abort.request",
+        "detail": {
+          "reason": {
+            "name": "Error",
+            "message": "independent exact caller"
+          },
+          "reasonPresent": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 11,
+        "name": "caller.event",
+        "detail": {
+          "reason": {
+            "name": "Error",
+            "message": "independent exact caller"
+          },
+          "reasonPresent": true,
+          "currentTargetSame": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 12,
+        "name": "cleanup.explicit-release",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 13,
+        "name": "cleanup.release",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 14,
+        "name": "cleanup.reject",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 15,
+        "name": "public.settled",
+        "detail": {
+          "kind": "error",
+          "errorPresent": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 16,
+        "name": "cleanup.observed",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 17,
+        "name": "owner.normal.finalization",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 18,
+        "name": "fixture.teardown.begin",
+        "detail": null,
+        "phase": "teardown"
+      }
+    ],
+    "selectedExecution": {
+      "reached": true,
+      "actualRejection": {
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "independent exact execution"
+        }
+      },
+      "boundary": "public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller"
+    },
+    "caller": {
+      "aborted": true,
+      "reason": {
+        "name": "Error",
+        "message": "independent exact caller"
+      },
+      "reasonPresent": true
+    },
+    "publicResult": {
+      "kind": "error",
+      "error": {
+        "name": "Error",
+        "message": "independent exact caller"
+      }
+    },
+    "cleanup": {
+      "cleanupCalls": 1,
+      "registeredBeforeAcquisition": true,
+      "sharedCompletion": true,
+      "pendingBeforeRelease": true,
+      "secondary": {
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "independent exact cleanup"
+        }
+      }
+    }
+  },
+  {
+    "id": "S11",
+    "parameter": "error-first-caller-zero-cleanup-error",
+    "events": [
+      {
+        "sequence": 0,
+        "name": "operation.registerCleanup.before-admission",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 1,
+        "name": "operation.registerCleanup.before-admission",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 2,
+        "name": "local.failure",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 3,
+        "name": "local.close",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 4,
+        "name": "cleanup.enter",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 5,
+        "name": "selector.public-parser",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 6,
+        "name": "host.diagnostic",
+        "detail": "shell: Expected command at offset 0\n",
+        "phase": "observation"
+      },
+      {
+        "sequence": 7,
+        "name": "selected.sink.enter",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 8,
+        "name": "selected.sink.rejected",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 9,
+        "name": "owner.source.return",
+        "detail": {
+          "returns": 1,
+          "ownerAlive": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 10,
+        "name": "caller.abort.request",
+        "detail": {
+          "reason": 0,
+          "reasonPresent": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 11,
+        "name": "caller.event",
+        "detail": {
+          "reason": 0,
+          "reasonPresent": true,
+          "currentTargetSame": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 12,
+        "name": "cleanup.explicit-release",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 13,
+        "name": "cleanup.release",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 14,
+        "name": "cleanup.reject",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 15,
+        "name": "public.settled",
+        "detail": {
+          "kind": "error",
+          "errorPresent": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 16,
+        "name": "cleanup.observed",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 17,
+        "name": "owner.normal.finalization",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 18,
+        "name": "fixture.teardown.begin",
+        "detail": null,
+        "phase": "teardown"
+      }
+    ],
+    "selectedExecution": {
+      "reached": true,
+      "actualRejection": {
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "independent exact execution"
+        }
+      },
+      "boundary": "public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller"
+    },
+    "caller": {
+      "aborted": true,
+      "reason": 0,
+      "reasonPresent": true
+    },
+    "publicResult": {
+      "kind": "error",
+      "error": 0
+    },
+    "cleanup": {
+      "cleanupCalls": 1,
+      "registeredBeforeAcquisition": true,
+      "sharedCompletion": true,
+      "pendingBeforeRelease": true,
+      "secondary": {
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "independent exact cleanup"
+        }
+      }
+    }
+  },
+  {
+    "id": "S11",
+    "parameter": "normal-close-synthetic-caller-undefined",
+    "events": [
+      {
+        "sequence": 0,
+        "name": "operation.registerCleanup.before-admission",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 1,
+        "name": "operation.registerCleanup.before-admission",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 2,
+        "name": "local.close",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 3,
+        "name": "cleanup.enter",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 4,
+        "name": "caller.abort.request",
+        "detail": {
+          "reason": {
+            "serializationTag": "undefined"
+          },
+          "reasonPresent": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 5,
+        "name": "caller.event",
+        "detail": {
+          "reason": {
+            "serializationTag": "undefined"
+          },
+          "reasonPresent": true,
+          "currentTargetSame": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 6,
+        "name": "owner.source.return",
+        "detail": {
+          "returns": 1,
+          "ownerAlive": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 7,
+        "name": "cleanup.explicit-release",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 8,
+        "name": "cleanup.release",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 9,
+        "name": "cleanup.reject",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 10,
+        "name": "public.settled",
+        "detail": {
+          "kind": "error",
+          "errorPresent": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 11,
+        "name": "cleanup.observed",
+        "detail": {
+          "identity": true
+        },
+        "phase": "observation"
+      },
+      {
+        "sequence": 12,
+        "name": "owner.normal.finalization",
+        "detail": null,
+        "phase": "observation"
+      },
+      {
+        "sequence": 13,
+        "name": "fixture.teardown.begin",
+        "detail": null,
+        "phase": "teardown"
+      }
+    ],
+    "selectedExecution": {
+      "reached": false,
+      "actualRejection": {
+        "serializationTag": "undefined"
+      },
+      "boundary": "none"
+    },
+    "caller": {
+      "aborted": true,
+      "reason": {
+        "serializationTag": "undefined"
+      },
+      "reasonPresent": true
+    },
+    "publicResult": {
+      "kind": "error",
+      "error": {
+        "serializationTag": "undefined"
+      }
+    },
+    "cleanup": {
+      "cleanupCalls": 1,
+      "registeredBeforeAcquisition": true,
+      "sharedCompletion": true,
+      "pendingBeforeRelease": true,
+      "secondary": {
+        "kind": "error",
+        "error": {
+          "name": "Error",
+          "message": "independent exact cleanup"
+        }
+      }
+    }
+  }
+]

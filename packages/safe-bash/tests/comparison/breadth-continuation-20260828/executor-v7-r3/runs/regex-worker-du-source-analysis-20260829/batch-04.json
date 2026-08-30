@@ -1,0 +1,32 @@
+[
+  {
+    "id": "public80-policy",
+    "kind": "git",
+    "args": [
+      "show",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs",
+      "6b4d6c6f:tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE.json"
+    ]
+  },
+  {
+    "id": "run02-observers",
+    "kind": "git",
+    "args": [
+      "show",
+      "8918f35b:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/worker-observer.mjs",
+      "8918f35b:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/worker-preload.mjs",
+      "8918f35b:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/EXACT-BINDINGS.json"
+    ]
+  },
+  {
+    "id": "adapter",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/adapter.mjs"
+  },
+  {
+    "id": "projection",
+    "kind": "file",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json"
+  }
+]

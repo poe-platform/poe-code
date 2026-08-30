@@ -1,0 +1,160 @@
+{
+  "originalAuthorModulesInspected": 14,
+  "matches": [
+    {
+      "path": "controls/run.mjs",
+      "line": 106,
+      "text": "  assert.deepEqual(before, load(join(lifecycle, \"execution-v1/evidence/attempt-01/private-after.json\")), \"Fresh private state drift from original accepted engine profile\");"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 107,
+      "text": "  assert.equal(before.head, pins.privateExpectedAtRelease.head);"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 108,
+      "text": "  assert.equal(before.engine.length, 264);"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 109,
+      "text": "  for (const [filename, info] of Object.entries(before.metadata)) assert.equal(info.sha256, pins.privateExpectedAtRelease.metadata[filename].sha256, filename);"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 123,
+      "text": "  const engineBytes = before.engine.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 }));"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 183,
+      "text": "    const after = privateState(); save(\"private-after.json\", after);"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 184,
+      "text": "    report.privateUnchanged = before !== undefined && JSON.stringify(after) === JSON.stringify(before);"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 217,
+      "text": "console.log(JSON.stringify({ status: report.status, counts: report.counts, privateUnchanged: report.privateUnchanged, sharedUnchanged: report.sharedUnchanged, cleanup: report.cleanup }));"
+    },
+    {
+      "path": "controls/run.mjs",
+      "line": 218,
+      "text": "process.exitCode = report.status === \"PASS\" && report.privateUnchanged && report.cleanup.removed ? 0 : 1;"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 106,
+      "text": "  assert.deepEqual(before, load(join(lifecycle, \"execution-v1/evidence/attempt-01/private-after.json\")), \"Fresh private state drift from original accepted engine profile\");"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 107,
+      "text": "  assert.equal(before.head, pins.privateExpectedAtRelease.head);"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 108,
+      "text": "  assert.equal(before.engine.length, 264);"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 109,
+      "text": "  for (const [filename, info] of Object.entries(before.metadata)) assert.equal(info.sha256, pins.privateExpectedAtRelease.metadata[filename].sha256, filename);"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 123,
+      "text": "  const engineBytes = before.engine.map(({ path, bytes, sha256 }) => ({ path, bytes, sha256 }));"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 182,
+      "text": "    const after = privateState(); save(\"private-after.json\", after);"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 183,
+      "text": "    report.privateUnchanged = before !== undefined && JSON.stringify(after) === JSON.stringify(before);"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 216,
+      "text": "console.log(JSON.stringify({ status: report.status, counts: report.counts, privateUnchanged: report.privateUnchanged, sharedUnchanged: report.sharedUnchanged, cleanup: report.cleanup }));"
+    },
+    {
+      "path": "lifecycle/run.mjs",
+      "line": 217,
+      "text": "process.exitCode = report.status === \"PASS\" && report.privateUnchanged && report.cleanup.removed ? 0 : 1;"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 71,
+      "text": "function comparablePrivate(snapshot) {"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 263,
+      "text": "  assert.equal(before.head, pins.privateEngine.lastRecordedHead);"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 264,
+      "text": "  assert.equal(before.engine.length, 264);"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 266,
+      "text": "  assert.deepEqual(bytesOnly(before.engine), Object.entries(previous).map(([path, value]) => ({ path, bytes: value.bytes, sha256: value.sha256 })).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 275,
+      "text": "  assert.deepEqual(bytesOnly(inventory(join(shared, \"engine\"))), bytesOnly(before.engine));"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 278,
+      "text": "  copyTree(join(shared, \"engine\"), join(task, \"engine\"), bytesOnly(before.engine));"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 329,
+      "text": "    put(join(results, \"private-after.json\"), after);"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 330,
+      "text": "    journal.privateUnchanged = before ? JSON.stringify(comparablePrivate(after)) === JSON.stringify(comparablePrivate(before)) : null;"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 331,
+      "text": "    if (before) assert.deepEqual(comparablePrivate(after), comparablePrivate(before), \"Private state changed; never restore it\");"
+    },
+    {
+      "path": "surface/run.mjs",
+      "line": 359,
+      "text": "  console.log(JSON.stringify({ task, status: journal.status, counts: journal.counts, privateUnchanged: journal.privateUnchanged, inputsUnchanged: journal.inputTreesUnchanged, sharedUnchanged: journal.sharedTreesUnchanged, failures: journal.failures, parent: journal.parentAfter }));"
+    }
+  ],
+  "historicalStatusComparisonsRevised": [
+    "outer run.py: four-field historical pin loop",
+    "lifecycle/run.mjs: whole historical snapshot",
+    "controls/run.mjs: whole historical snapshot"
+  ],
+  "freshBeforeAfterGuardsUnchanged": [
+    "outer raw nanosecond snapshot including full status and eligible shape",
+    "surface comparablePrivate excluding only observation timestamp",
+    "lifecycle whole raw privateState",
+    "controls whole raw privateState"
+  ],
+  "additionalOuterGuard": "Historical whole JS-schema equality, exact ns->ms projection of metadata only; no tolerance. Fresh ns snapshot equality remains verbatim.",
+  "secondaryReportingOnly": "Missing before snapshots are NOT_COMPARED/null when no child launched and primary refusal exists; never passes",
+  "publicGitTranslation": "Only three declared admission pathname bindings; no Git interception, substitute identities or imported hash changes",
+  "privateQueriesDuringPreparation": 0
+}

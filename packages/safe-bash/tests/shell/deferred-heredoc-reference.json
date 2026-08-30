@@ -1,0 +1,319 @@
+{
+  "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+  "version": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+  "executableSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+  "argv0": "shell",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "records": [
+    {
+      "name": "independent skipped body",
+      "source": "printf before >before; false && cat <<EOF\n$(true |)\nEOF\nprintf after >after",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "external malformed substitution",
+      "source": "printf before >before; cat <<EOF\nhead $(true |) tail $(printf good >inner; printf good)\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 2: syntax error near unexpected token `)'\nshell: command substitution: line 2: `true |) tail $(printf good >inner; printf good)'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "builtin malformed substitution",
+      "source": "printf before >before; : <<EOF\nhead $(true |) tail $(printf good >inner)\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 2: syntax error near unexpected token `)'\nshell: command substitution: line 2: `true |) tail $(printf good >inner)'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "function malformed substitution",
+      "source": "call() { cat; }; printf before >before; call <<EOF\nhead $(true |) tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 2: syntax error near unexpected token `)'\nshell: command substitution: line 2: `true |) tail'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "group malformed substitution",
+      "source": "printf before >before; { cat; } <<EOF\nhead $(true |) tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 4: syntax error near unexpected token `)'\nshell: command substitution: line 4: `true |) tail'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "unselected branch",
+      "source": "printf before >before; if false; then cat <<EOF\n$(true |) ${bad!}\nEOF\nfi; printf after >after",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "unused function",
+      "source": "printf before >before; never() { cat <<EOF\n$(true |) ${bad!}\nEOF\n}; printf after >after",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "invoked function body",
+      "source": "call() { cat <<EOF\n$(true |)\nEOF\n}; printf before >before; call; printf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 2: syntax error near unexpected token `)'\nshell: command substitution: line 2: `true |)'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "skipped malformed parameter",
+      "source": "printf before >before; false && cat <<EOF\n${bad!}\nEOF\nprintf after >after",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "external malformed parameter",
+      "source": "printf before >before; cat <<EOF\nhead ${bad!} tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: head ${bad!} tail\n: bad substitution\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "builtin malformed parameter",
+      "source": "printf before >before; : <<EOF\nhead ${bad!} tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: head ${bad!} tail\n: bad substitution\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "function malformed parameter",
+      "source": "call() { cat; }; printf before >before; call <<EOF\nhead ${bad!} tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: head ${bad!} tail\n: bad substitution\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "group malformed parameter",
+      "source": "printf before >before; { cat; } <<EOF\nhead ${bad!} tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 3: head ${bad!} tail\n: bad substitution\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "quoted literal control",
+      "source": "printf before >before; cat <<'EOF'\n$(true |) ${bad!} $((1+))\nEOF\nprintf after >after",
+      "stdout": "$(true |) ${bad!} $((1+))\n",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "ordinary skipped substitution control",
+      "source": "printf before >before; false && printf '%s' \"$(true |)\"; printf after >after",
+      "stdout": "",
+      "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before >before; false && printf '%s' \"$(true |)\"; printf after >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "name": "skipped here-string substitution control",
+      "source": "printf before >before; false && cat <<<\"$(true |)\"; printf after >after",
+      "stdout": "",
+      "stderr": "shell: -c: line 1: syntax error near unexpected token `)'\nshell: -c: line 1: `printf before >before; false && cat <<<\"$(true |)\"; printf after >after'\n",
+      "exitCode": 127,
+      "files": {}
+    },
+    {
+      "name": "body diagnostic after earlier newline",
+      "source": "printf before >before\ncat <<EOF\nfirst\n$(true |)\nlast\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 3: syntax error near unexpected token `)'\nshell: command substitution: line 3: `true |)'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "redirected child diagnostic",
+      "source": "printf before >before; cat 2>errors <<EOF\n$(true |)\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before",
+        "errors": "shell: command substitution: line 2: syntax error near unexpected token `)'\nshell: command substitution: line 2: `true |)'\n"
+      }
+    },
+    {
+      "name": "child earlier effect rejected",
+      "source": "printf before >before; cat <<EOF\n$(printf wrong >wrong; true |)\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 2: syntax error near unexpected token `)'\nshell: command substitution: line 2: `printf wrong >wrong; true |)'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "malformed backtick body",
+      "source": "printf before >before; cat <<EOF\nhead `true |` tail\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "head  tail\nstatus=0",
+      "stderr": "shell: command substitution: line 2: syntax error: unexpected end of file\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "skipped unterminated substitution",
+      "source": "printf before >before; false && cat <<EOF\n$(true\nEOF\nprintf after >after",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "executed unterminated substitution",
+      "source": "printf before >before; cat <<EOF\n$(true\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: command substitution: line 3: unexpected EOF while looking for matching `)'\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "skipped unterminated parameter",
+      "source": "printf before >before; false && cat <<EOF\n${bad\nEOF\nprintf after >after",
+      "stdout": "",
+      "stderr": "",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "executed unterminated parameter",
+      "source": "printf before >before; cat <<EOF\n${bad\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: ${bad\n: bad substitution\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "earlier body expansion before malformed parameter",
+      "source": "printf before >before; cat <<EOF\n$(printf earlier >inner) ${bad!}\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: $(printf earlier >inner) ${bad!}\n: bad substitution\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before",
+        "inner": "earlier"
+      }
+    },
+    {
+      "name": "backtick child failure keeps later expansions",
+      "source": "printf before >before; cat <<EOF\n`true |` $(printf later >inner; printf good)\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": " good\nstatus=0",
+      "stderr": "shell: command substitution: line 2: syntax error: unexpected end of file\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before",
+        "inner": "later"
+      }
+    },
+    {
+      "name": "executed unterminated backtick",
+      "source": "printf before >before; cat <<EOF\nhead `true\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: bad substitution: no closing \"`\" in `true\n\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    },
+    {
+      "name": "executed unterminated arithmetic",
+      "source": "printf before >before; cat <<EOF\nhead $((1+2\nEOF\nprintf 'status=%s' \"$?\"; printf after >after",
+      "stdout": "status=1",
+      "stderr": "shell: line 1: bad substitution: no closing `)' in head $((1+2\n\n",
+      "exitCode": 0,
+      "files": {
+        "after": "after",
+        "before": "before"
+      }
+    }
+  ]
+}

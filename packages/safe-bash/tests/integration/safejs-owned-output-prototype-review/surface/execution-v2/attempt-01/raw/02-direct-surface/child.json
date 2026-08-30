@@ -1,0 +1,17 @@
+{
+  "id": "02-direct-surface",
+  "pid": 32704,
+  "started": 1787847586507,
+  "deadline": 1787847596507,
+  "timedOut": false,
+  "outputExceeded": false,
+  "code": 0,
+  "signal": null,
+  "closed": 1787847587783,
+  "parentAfter": {
+    "pid": 32545,
+    "at": "2026-08-27T16:19:47.783Z",
+    "alive": true,
+    "knownLiveChildren": []
+  }
+}

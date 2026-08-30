@@ -1,0 +1,77 @@
+{
+  "schema": "node-independent-root-selection-np1-cjs-v1",
+  "date": "2026-08-28",
+  "authority": "Current root user message: ROOT chooses explicitlyversioned CJS-FIRST initialdeliveryslice (NP1-CJS), NOTclaimcompletionoffullNode/originalNP1.",
+  "priorReviewCommit": "4362f91f98f2a8b56683a3a33e9fb582153af416",
+  "priorSealSha256": "48857cc538e401da3976e32da86ce18a21243d57ad41c39601a54c4ad71746a3",
+  "authorBaselineCommit": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+  "feasibilityReportCommit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+  "selectedDeliveryProfile": "NP1-CJS",
+  "implementationAuthorized": false,
+  "providerExperimentAuthorized": false,
+  "profileAccepted": false,
+  "actualRuns": 0,
+  "baseline": {
+    "plannedCases": 36,
+    "sourceRecords": 33,
+    "executedHere": 0,
+    "changedFiles": 0
+  },
+  "mapping": {
+    "applicableObligationsNotPasses": [
+      "N01",
+      "N02",
+      "N03",
+      "N04",
+      "N05",
+      "N06",
+      "N07",
+      "N09",
+      "N10",
+      "N11",
+      "N12",
+      "N13",
+      "N14",
+      "N15",
+      "N16",
+      "N17",
+      "N18",
+      "N19",
+      "N20",
+      "N21",
+      "N22",
+      "N23",
+      "N25",
+      "N26",
+      "N27",
+      "N28",
+      "N29",
+      "N31",
+      "N32",
+      "N33",
+      "N34",
+      "N35",
+      "N36"
+    ],
+    "deferredOriginalEsmLiteralsRequiringSeparateCjsObligationCases": [
+      "N08",
+      "N30"
+    ],
+    "entryPolicyRequiresSeparateBinding": [
+      "N24"
+    ]
+  },
+  "mappingQualification": "Exhaustive identity classification only, not an executable case freeze or new scored denominator; compound variants need review.",
+  "file": {
+    "path": "ROOT-SELECTION-NP1-CJS-V1.md",
+    "mode": "0644",
+    "bytes": 6960,
+    "sha256": "e61ca7a3646fc152292ee3defe0ca0a981b6ced7ab62a29e65f5a52825274ad1"
+  },
+  "selfExcluded": true,
+  "staticChecks": {
+    "priorFivePayloadsAndSealUnchanged": true,
+    "original36IdentitiesMappedExactlyOnce": true
+  },
+  "stop": "No provider prototype, actual experiment, product or native execution; author contract completion and different review remain required."
+}

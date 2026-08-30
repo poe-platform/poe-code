@@ -1,0 +1,752 @@
+{
+  "schema": 1,
+  "sourceCommit": "436bda3e21b2b6041409fac7408cf072b5d3fe5e",
+  "scope": "tests/commands/filesystem-inspection-stress/harness-review",
+  "selfExclusion": "This JSON does not recursively hash itself; its exact bytes/hash and all staged paths including this file are in the external final commit receipt manifest.",
+  "fileCountExcludingSelf": 105,
+  "bytesExcludingSelf": 2527362,
+  "originalCommittedFilesUnchanged": 22,
+  "priorPreparedFilesUnchanged": 49,
+  "originalExecuted": 4,
+  "originalHolds": 2,
+  "derivedExecuted": 2,
+  "totalProductInvocations": 6,
+  "nativeCalls": 0,
+  "files": [
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/INTEGRATION_HANDOFF.md",
+      "bytes": 20464,
+      "sha256": "87ba9ae1302df36c1cbeb1733a375597fbddb7fa371abbdc78939e620b5ebb0f",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/README.md",
+      "bytes": 2722,
+      "sha256": "8c6821816f85b4601e22b5b79aaa6f0c94232c8123613a16dd3f8641168c7daf",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/REFERENCE_INDEX.json",
+      "bytes": 8676,
+      "sha256": "34c0eb2803e5bde449641e2f34a01349ee380710d177ff65eeb23fa0521ec4fe",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/SAFETY_FINDINGS.md",
+      "bytes": 17295,
+      "sha256": "f3123473928e3258bc0a8f64d69f3c83a23e5cab9352ba9eced8cebbd6c84e37",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/SOURCE_BINDING.json",
+      "bytes": 4593,
+      "sha256": "4f8e1982c5fb02ec82f3c2d52c9b555fa9bbae219b3d62d5a21d4165364f3c27",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/V2_REVIEW.md",
+      "bytes": 3874,
+      "sha256": "63350a5e103d837f22dc03ddf32ffe2a64b5afc98d452f74d35fe73a745c4a44",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/correction-counterchecks.mjs",
+      "bytes": 4079,
+      "sha256": "25df1b6737fedbbc5ed536534b089bec48ee2f31fe978cbd8b74ddc9da60cadf",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/COPY_MANIFEST.json",
+      "bytes": 7598,
+      "sha256": "ff8d265df6e284dbcbf29ac8b0c7b1955349d05fcf6cadb4185a84ec38d666fa",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/controller-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/controller-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/controller-stdout.txt",
+      "bytes": 163,
+      "sha256": "29f6d95569dac04f960e46682e24b8ae64a1f67e8750a4b0030a4744bb11f2d6",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-DP-cumulative.json",
+      "bytes": 3776,
+      "sha256": "f00997621d1e523bd1da20d15f17f1cc7b0829cae4de31036527da96b706fc25",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-DP-cumulative.modules.jsonl",
+      "bytes": 4186,
+      "sha256": "d03cbccc1a8af8dd7a784029f1d80067c495c91105c7608eda5aa4cf08d41313",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-DP-cumulative.stderr.txt",
+      "bytes": 448,
+      "sha256": "262d548faddd92720c5f329d745ceafead0cdfd7154cd75193b765911ad09bc2",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-DP-cumulative.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-sort-many.json",
+      "bytes": 36664,
+      "sha256": "ea9d11582b0fdca0c74c6be9e710e04789ecf9e342016343d60a6f163571b10f",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-sort-many.modules.jsonl",
+      "bytes": 4186,
+      "sha256": "f186dbb191fed3146e23a9413e9b3cf499c5abdd05a98cf436b40bd5078ea1c1",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-sort-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "f3a0f80760f82da84253d1ad3cf95694313634397d96c0e224346a89b4839946",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/T-sort-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/derived-run/summary.json",
+      "bytes": 44447,
+      "sha256": "a17a55919f1d253554785f77417f564cc925eeb0d0fb6b27c1c8f7e70ce8f3ec",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/execution-claim.json",
+      "bytes": 161,
+      "sha256": "63f2cc1da9b0f83bd617efb29f9c85b5cf538eb18af659c6e2a80d494e626847",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/file-author-text-report.txt",
+      "bytes": 11389,
+      "sha256": "26575726dc3e2df1da386de7ba650e5209468de71c45557a28be515fa34559be",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/historical-four-run-and-two-prep.txt",
+      "bytes": 13137,
+      "sha256": "e565fef2a8f4e092881e8052745ad34b2ea3dc7b811d3b230b7f2107e343e469",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/historical-peer-waiting-and-v1.txt",
+      "bytes": 11424,
+      "sha256": "963bf2f90eceabd6282e5dfe043b3f32c343a539fb63979ad8e83e697836a042",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/delivery.json",
+      "bytes": 1228,
+      "sha256": "69aef3f22361ce7ebcf5d040832a3f1c00f37b73beb76d64012b282b889d18b2",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/offline-validation.json",
+      "bytes": 2274,
+      "sha256": "e9b218cd8f8910fca3e1e00d2a36e85861bb856fdf9e84efd03bd6f514c09e35",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/peer-controls-r2.tap",
+      "bytes": 1359,
+      "sha256": "bfc2621d262866a2c54143c62c6231f5ee0c491d358a5c0384e0499e8fafe35d",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/peer-controls.tap",
+      "bytes": 1501,
+      "sha256": "eab2be41fbd7e91d5e55f9794ef6fbb5e9b4de454fb9578f851666e397e68ede",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/peer-inventory.json",
+      "bytes": 148239,
+      "sha256": "cf7ea5b5ab09d089f329aa90212446c1b9139ec737de1a6fc1915899417c35b2",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/preparation-check.json",
+      "bytes": 2088,
+      "sha256": "0612835a32044063add533c65b7c202c8b1a649e99641b16edbb785c5a1e16a8",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-peer/selfcheck.tap",
+      "bytes": 1632,
+      "sha256": "ef671a64e685700a19190aac73402553d6776a95dc2fa90e46856eb8703d4e39",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-v2-proof.txt",
+      "bytes": 17189,
+      "sha256": "c072c58a4a96606091fdea1c41bb7cedf1e262e2a7383a95a1100ac95d656216",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/independent-v2-proposal.json",
+      "bytes": 14336,
+      "sha256": "e9612864715f8894945f771674016826d0a05a5ef9d44a1ac37e8def3db6cffd",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/postrun.json",
+      "bytes": 2578,
+      "sha256": "44c6eef726ee61980ae706f3d9b41f619946ab6caaf8f35584305244f856060d",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/preflight.json",
+      "bytes": 960,
+      "sha256": "dab42f082d501867e3e837caa1caa093195472855255380936fd61be52e97769",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/root-approved.json",
+      "bytes": 14368,
+      "sha256": "86d99b7d185bdd6e51e61b8476316346c00ab709f5ae39bdba80780f6a92453a",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/tree-author-sort-text-report.txt",
+      "bytes": 10042,
+      "sha256": "254490f4f4033b6a99d1a44610327e601bab3f88e6fdc090ffcf2d0103ce27e9",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/final-safety-evidence/wrong-marker-unexecuted.json",
+      "bytes": 14369,
+      "sha256": "9b9f82b689eec875e30ec1dd6c51c6ce131a9999fa0a57ca7915844054eae3bd",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/inspect-evidence.mjs",
+      "bytes": 3812,
+      "sha256": "30c44316223f762dfb21dd97faf4131e775fd4aabd3a5b565ed8a67cc02d02cf",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/MANIFEST.json",
+      "bytes": 6925,
+      "sha256": "22555f0ea0af50825bd4bd9ee51cbc84ff822186feaa3d9c765e8467a09b1b9c",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/README.md",
+      "bytes": 4006,
+      "sha256": "dc4bf815ff08f4e18d2a42c1fc51078d4978075e05d3412dbae09b30375324b8",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/final-proof-detail.txt",
+      "bytes": 25382,
+      "sha256": "152e4763a2f34eace88afe192c895773616b6cc890f44f86e35ae1cad4a98e7c",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/final-source-provenance.json",
+      "bytes": 108772,
+      "sha256": "2b30576b2fa5474ca9054c6802705e69116e1f663e663ad0f3613302b5755027",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/final-static-accounting.json",
+      "bytes": 18645,
+      "sha256": "aea29869d75711f9a9ee1ad57aefb1f59850e077cef7ce5073adc7983cc36ac6",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-controller-exit.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-controller-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-controller-stdout.txt",
+      "bytes": 319,
+      "sha256": "419fb0230bc904a071be880c092cb543d4beceec81acafd8453b0de1bb813c85",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-preflight.json",
+      "bytes": 4609,
+      "sha256": "71473096035da87052f553422a7806320822a5bdc5b5948e8babb186e7916488",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-proposal.json",
+      "bytes": 210163,
+      "sha256": "4f096db838c296579e52811c5d3a349cd0ecdae0278fe4045219e895c205c11f",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-root-approved.json",
+      "bytes": 210196,
+      "sha256": "e4d048afb4784f802047de589212519465bb7589ccdb99e10ba677add39cee1c",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-JSON-cumulative.json",
+      "bytes": 3079,
+      "sha256": "1a1a98546e58054aa3d8fca1a506bce8dffcf768a125df816d6e946207dc7047",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-JSON-cumulative.modules.jsonl",
+      "bytes": 3499,
+      "sha256": "5a009e07c58e6e298b2a5ab8e0080dc6135b20da56af001342010b5af2abcb4b",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-JSON-cumulative.stderr.txt",
+      "bytes": 448,
+      "sha256": "987ac9cd1e9abbdc38c5966b90a89875a7f774f63964af145a9a41f9adb6166e",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-JSON-cumulative.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-header-many.json",
+      "bytes": 20190,
+      "sha256": "1dd6cd2527356ea2986e7166fbae704a4252f669d3c1261822784534382c6d52",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-header-many.modules.jsonl",
+      "bytes": 3499,
+      "sha256": "ad50b0e477c89f2f2d3ad199b7b5e004eb6a0b7e6298ad2923202aacbdb4137c",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-header-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "4837af4f3898c988cc1d10d8d8c1e10bff9041e5891f555f428353bb7671c050",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-header-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-metadata-many.json",
+      "bytes": 2538,
+      "sha256": "58c2283ac8c26d39aa8c38561dcc4efda9a95ba31ae85248414959ed68eb96df",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-metadata-many.modules.jsonl",
+      "bytes": 3499,
+      "sha256": "2299089960d3ec61bccf1c53a0e0f769c21dea474c6f583fa87598b9ec856062",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-metadata-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "b7e59330fc955781b0e20afc7ff2825d061fc127b6a3a9ff6143710fcbc4dbcc",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/F-metadata-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/T-empty-many.json",
+      "bytes": 38657,
+      "sha256": "5f993475c8d05e937774cc744ac91521e3aebbda18471e76666db09ec5e59edc",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/T-empty-many.modules.jsonl",
+      "bytes": 4186,
+      "sha256": "f186dbb191fed3146e23a9413e9b3cf499c5abdd05a98cf436b40bd5078ea1c1",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/T-empty-many.stderr.txt",
+      "bytes": 448,
+      "sha256": "a6b81c5ae35a63c236038623a518ad01263a330106a902d2dd7ebb4dcb4f1044",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/T-empty-many.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-run-evidence/original-run/summary.json",
+      "bytes": 75086,
+      "sha256": "67eb07af4da1452bce7f7751882d4ed6195fbf91aee016510850f3bc8dcd4465",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/PREPARATION.json",
+      "bytes": 3186,
+      "sha256": "bf3bb80ae614ae6374953abc1312c0352e2740cb59cef70920ca963bf0de04b2",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/PRESEAL.json",
+      "bytes": 969,
+      "sha256": "b72b5e9f109e3da38732c931980d3730bbda14dc0eef16cdea7c3fa632e92ebb",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/README.md",
+      "bytes": 9058,
+      "sha256": "e951df14c58e0608a60eb8f2eac0bc7d8756483bf17a2321d814c371b3531573",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/authorization.mjs",
+      "bytes": 4446,
+      "sha256": "4b562e819b431004ba94e1f28f78a1a1a968aa33a1b183590258bf8c757a8369",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/cases.mjs",
+      "bytes": 6786,
+      "sha256": "2761cb3b037e2e1f3b42abe8f159b854f926be4982dc93b56ae3619a855f32ab",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/child.mjs",
+      "bytes": 4144,
+      "sha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/loader.mjs",
+      "bytes": 2159,
+      "sha256": "e82d22fa5341f76519033cb8bd7976e584bf86d118776150e7a50b380efe7eb3",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/oracle.mjs",
+      "bytes": 5600,
+      "sha256": "c4f5c5fbd73777ccbb9654ac8d86ef00372c7276800f25c02034a9c49111f64e",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/run.mjs",
+      "bytes": 6867,
+      "sha256": "b2593e5b57315356e2df47a2912804aa6636da4820db779c8f39db7419286f2c",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/seal.mjs",
+      "bytes": 2199,
+      "sha256": "544b82e7d1a62c19af02b38b4d27f65f8cd3e8a941aba7154fc11fe5e9bb3c5a",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/sealed-cases.json",
+      "bytes": 1044390,
+      "sha256": "0e7d70e3026e2cc716c28725c529bfc98655224b01f4b2b7ce340fd65f42e6a1",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/selfcheck.tap",
+      "bytes": 2299,
+      "sha256": "2163f6c9c2b424ace01e45c200d20304998f221e3a0840dc4a1968f7328755c5",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/selfcheck.test.mjs",
+      "bytes": 6992,
+      "sha256": "d9d6741f83e726c6ffdabd66012341ab1ca35e84bed882e4685f3093e40cbebe",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v1/vfs.mjs",
+      "bytes": 4182,
+      "sha256": "9ff36eb4a2656e265d7473f90b6852533eef6b773ecbcd68a3916882db2ead2a",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/PREPARATION.json",
+      "bytes": 2088,
+      "sha256": "0612835a32044063add533c65b7c202c8b1a649e99641b16edbb785c5a1e16a8",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/README.md",
+      "bytes": 4572,
+      "sha256": "1aba6770ee352ccd2173b98a1f63b8288df124067b8900dcf4f0a4e6acc7844e",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/SEAL.json",
+      "bytes": 4154,
+      "sha256": "8111403a37f392dd8934c3e0f9d89bc6b8338bf5d14becb3471bc68a6ee682df",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/STATIC_PROOF.md",
+      "bytes": 5996,
+      "sha256": "f6d244865f4df7729ebe51ca592a52af4a62e1c1c2d505db3c255de37c8b1d46",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/authorization.mjs",
+      "bytes": 5157,
+      "sha256": "3ac28ccdcb9fcce133d12c3ad6631b227e0091798902b487190646d49f429c22",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/case-diff.json",
+      "bytes": 69277,
+      "sha256": "36feec0fd37f5096c6a298743125e342114de465c916855edc56ccf4f453e43f",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/cases.mjs",
+      "bytes": 1365,
+      "sha256": "74ee597d8bb23e8112d7a1f9858c96bdea34c10197c283b9c1b9c8dc7dcdd32a",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/child.mjs",
+      "bytes": 4144,
+      "sha256": "67f39d4d9147f5eead02f9e8c1b0ba97329c97d938d986f481ca489aeac6d1e1",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/derivation.json",
+      "bytes": 4902,
+      "sha256": "1cfafb797f63a4075fc0862ea17ff9553f4abc0a989ee35cff139d477cc8e39d",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/derived-cases.json",
+      "bytes": 87429,
+      "sha256": "9a6311c6514fe95739459af32ca0b18a38fecfecb700407a94a72766a70c675c",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/loader.mjs",
+      "bytes": 2256,
+      "sha256": "18c047c90b16767d91d53e73f38316ef851d9fe90754f92c9160d8aef9c2d93d",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/offline-validation.json",
+      "bytes": 2274,
+      "sha256": "e9b218cd8f8910fca3e1e00d2a36e85861bb856fdf9e84efd03bd6f514c09e35",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/oracle.mjs",
+      "bytes": 6773,
+      "sha256": "e121409bb544fee91c2b3281962a802d54bc0b19f38dd0e9e7e3d84cbd7891fa",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/root-review-proposal.json",
+      "bytes": 3687,
+      "sha256": "b1a162cfbe24a418d9c960ec4acb3ec85b0c9781cc5e552f99ee57b3df8a9267",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/run.mjs",
+      "bytes": 7214,
+      "sha256": "d6bd6939ac26c311b8a0b3b9007718289229a870d7b25280552698d650c6b4eb",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/seal.mjs",
+      "bytes": 1223,
+      "sha256": "0f4134e841fda654cbb4a5c4a4ba0034c80f8d9f887d95026ed9cf43de2ba39a",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/selfcheck.tap",
+      "bytes": 1630,
+      "sha256": "490bae5b0424212608850fbefd7875163cc31be868a555f5738b9bf087e596fd",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/selfcheck.test.mjs",
+      "bytes": 6398,
+      "sha256": "996e56eccf5f5b883127f6ea8c80c273e122b13203154c9c16ec0a1c55eb1599",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/syntax-checks.json",
+      "bytes": 715,
+      "sha256": "f483c38f7b5c0f50e68069e4983711ede90ab87c84e149804e37072cfa822533",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/validate.mjs",
+      "bytes": 3934,
+      "sha256": "0a0380f14a73ce8cf8eb0bbac84878c53a809f04e0eb9a7a4fc8964d9096ba4e",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/safety-v2/vfs.mjs",
+      "bytes": 1393,
+      "sha256": "44251f041e04f5abec70d77c5c94bb84bb21636998e194093ca4eca7aaace26b",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/v2-peer-results.json",
+      "bytes": 3106,
+      "sha256": "99b8708fa0bf543e6e33f9207281f2a3fae271a30f4c9da3bfa988612132175d",
+      "mode": "100644",
+      "classification": "report-provenance-or-synthetic-evidence"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/v2-peer.mjs",
+      "bytes": 9587,
+      "sha256": "44c5fc92fb544013dfccdb3de665c3a0a6753696dd83f8e270325fd3d617696a",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/harness-review/verify-file-correction.mjs",
+      "bytes": 4060,
+      "sha256": "f418f91067316482b27aff02a5c58040942c25a0b40ed2aa1807a4b925791e21",
+      "mode": "100644",
+      "classification": "owned-harness-code"
+    }
+  ]
+}

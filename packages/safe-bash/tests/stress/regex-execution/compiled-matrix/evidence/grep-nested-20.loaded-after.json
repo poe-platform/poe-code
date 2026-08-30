@@ -1,0 +1,39 @@
+{
+  "tool": "grep",
+  "phase": "after",
+  "utc": "2026-08-27T04:30:34.499Z",
+  "env": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "execArgv": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--max-semi-space-size=1",
+    "--stack-size=512"
+  ],
+  "paths": [
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/grep.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/internal.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/command.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/errors.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/filesystem.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/index.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/io.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/path.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/plugin.js"
+  ],
+  "hashes": {
+    "js/commands/grep.js": "8ba7ff240a972c598f5f67792ca7629f422cd40b8b56661901a6bde830e4a512",
+    "js/commands/internal.js": "311054de7e4107fd751f1a2446e4a937a452c53fe038825c51e96daf053d0826",
+    "js/contracts/command.js": "2dfc699844400c28b96998571e4d40ba5b753536dfdb763931e8228d91e0475e",
+    "js/contracts/errors.js": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+    "js/contracts/filesystem.js": "5178c790903774b0c5e57caa40f638e0fa956166c7181617d37046a642836d50",
+    "js/contracts/index.js": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "js/contracts/io.js": "c6afd5bc282dd828d71d4ec32cd7b687cc1d779d7108d59e2a7321c58b9aeb0a",
+    "js/contracts/path.js": "c14e293f08164e8de78ba1c3dbcfd94358e122c92254d74ec0b003b324d5fafb",
+    "js/contracts/plugin.js": "69417d4b49af75a6f2045fea89768f2d7b6b7c05c454df279e6ad41c71b4d2a4"
+  },
+  "binding": "Fixed compiled entry import; complete static ESM import/export graph, validated during compilation; builtins excluded"
+}

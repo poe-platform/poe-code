@@ -1,0 +1,14 @@
+{
+  "ordinal": 3,
+  "role": "administrative report apply_patch",
+  "startedElapsedMs": 70086.48275000008,
+  "status": 0,
+  "pid": 92665,
+  "signal": null,
+  "error": null,
+  "completed": true,
+  "endedElapsedMs": 211985.60970899998,
+  "stdout": "__OWNED_PID__=92665\nSuccess. Updated the following files:\nA tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/REVIEW.md\n",
+  "stderr": "",
+  "toolReceipt": "db08f8"
+}

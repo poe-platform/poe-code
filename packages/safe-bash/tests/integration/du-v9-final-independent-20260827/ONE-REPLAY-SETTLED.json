@@ -1,0 +1,67 @@
+{
+  "result": {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/replay.mjs",
+      "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+      "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/replay-once",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 1,
+    "signal": null,
+    "pid": 48872,
+    "pgid": 48872,
+    "timedOut": false,
+    "termination": {
+      "termSent": false,
+      "killSent": false,
+      "groupGone": true
+    },
+    "closure": {
+      "descendantGroupDetected": false,
+      "rootPidGone": true,
+      "groupGone": true
+    },
+    "timeoutMs": 1920000,
+    "startedAt": "2026-08-27T20:55:12.268Z",
+    "finishedAt": "2026-08-27T20:55:23.861Z",
+    "durationMs": 11592.112375,
+    "stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "bytes": 3991,
+      "sha256": "57d3c09297db20641e7830fba41bf0032f2a09bee80e9efd50149226f56278c6"
+    }
+  },
+  "shutdown": {
+    "reason": "independent-one-replay-finished",
+    "ownedGroups": [],
+    "groupsGone": [],
+    "childCloseEventsSettled": true
+  },
+  "closure": {
+    "spawnedRootPids": [
+      48872
+    ],
+    "spawnedProcessGroups": [
+      48872
+    ],
+    "everyRootPidGone": true,
+    "everyOwnedGroupGone": true,
+    "active": []
+  },
+  "environmentOverrides": {
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/temporary",
+    "TMP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/temporary",
+    "TEMP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/temporary",
+    "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/temporary/npm-cache",
+    "npm_config_userconfig": "/dev/null",
+    "npm_config_update_notifier": "false",
+    "XDG_CACHE_HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/temporary/cache",
+    "TSX_DISABLE_CACHE": "1"
+  }
+}

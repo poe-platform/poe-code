@@ -1,0 +1,41 @@
+{
+  "sealedAt": "2026-08-27T05:59:15.733Z",
+  "revision": "e36dab2b6abc216ddc89e5786a0eba76f08a1722",
+  "originalCapturedFiles": 704,
+  "allOriginalArchiveHashesVerified": true,
+  "observedProcessIdentities": 4069,
+  "activeObservedIdentities": [],
+  "originalExecutionTreesRemoved": true,
+  "removedOwnedCapturePaths": [
+    "/tmp/full-gate-e36dab2-first",
+    "/tmp/full-gate-e36dab2-recheck",
+    "/tmp/full-gate-e36dab2-native",
+    "/tmp/full-gate-prep-selftest-initial.log",
+    "/tmp/full-gate-prep-selftest-final.log",
+    "/tmp/full-gate-prep-selftest-expanded.log",
+    "/tmp/full-gate-prep-selftest-final-accounting.log",
+    "/tmp/full-gate-prep-selftest-12.log"
+  ],
+  "sourceAndDependencyChanges": {
+    "source": [],
+    "dependencies": []
+  },
+  "recheckInputsUnchanged": true,
+  "harnessSha256": {
+    "account.mjs": "279f552950ee9f90a884c448f31d19903add6672da042d4a195b89fd84de742c",
+    "archive.mjs": "a71dfdebbeda7095d0a9523ff7932955598fe6c75cfb1ec06352a98b39e31b91",
+    "classify.mjs": "8ab5d88ef232430b4285dd0e41b963f342362bf66d028242b092dc1a2eb4581e",
+    "consumer.mts.fixture": "e047233b7fa41675821fc92d49a14cb59d8f8e9c9f5bd759c5b9793ea06fdfa5",
+    "history.mjs": "f5a33b3d619fb4ca761186ca4c32fb97546e16fd7a39a33c39c6d8ce2f9cd71a",
+    "import-guard.mjs": "742fdeb9926b32da25e65d4b86b1c8b054a2080cb1ccf614b69f21e11924dffc",
+    "inspect.mjs": "073ac58744dadf86f2a26165e4a0957bfbb2c07b79475f6c99caf7679a5803ce",
+    "native-profiles.mjs": "1b911ff26df451deed5856502bb251bc6a4ce1a4e5e7da91bacf7bb97dc51f06",
+    "public.mjs": "50045b6665f2e27166692a16c19389a7b29eb2bcfbbaecc46fac8f9027d190f5",
+    "recheck.mjs": "c6ef083154f1ee5bd893b419b8bf463589f02f161d5ca3e8a59366a3695b6e3d",
+    "run.mjs": "8e090c7f099bbd4e354a75b5bb64e15d7bcbd3f3d7ecec9e9132d68cee6a28ce",
+    "seal.mjs": "3f968186b2d2b07ad2c9eaac3d2f50c1fdd8868ed6bf5cfefe842ae4481921c0",
+    "selftest.mjs": "63b01521380e466ee31bb37dd57d32f5870803edbde5cdab7aa8ba104447ba0e",
+    "supervise.mjs": "e68ef77eb0ad1610177521a1aeab9f6f189e47de47476dafcab7ad05097ebfb9"
+  },
+  "policy": "Only exact owned capture paths removed after hash verification. No product, original test fixture, private-engine, foreign staging, watcher or unrelated temp path changed. No active recorded child identity found; none signalled."
+}

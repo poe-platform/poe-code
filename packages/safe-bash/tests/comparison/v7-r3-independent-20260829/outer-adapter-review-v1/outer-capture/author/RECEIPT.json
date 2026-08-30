@@ -1,0 +1,31 @@
+{
+  "id": "author",
+  "openedBeforeAdmission": true,
+  "pid": 86918,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "observed": {
+    "stdout": 269,
+    "stderr": 0,
+    "fd3": 0
+  },
+  "retained": {
+    "stdout": 269,
+    "stderr": 0,
+    "fd3": 0
+  },
+  "failures": [],
+  "globalAbsenceClaim": false,
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/controls.mjs",
+    "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4"
+  ]
+}

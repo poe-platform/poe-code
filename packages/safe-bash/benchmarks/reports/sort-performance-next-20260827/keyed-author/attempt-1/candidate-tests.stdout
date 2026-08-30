@@ -1,0 +1,604 @@
+TAP version 13
+# Subtest: public sort owns named VFS Buffer fragments before advancing the source, delimiter=10
+ok 1 - public sort owns named VFS Buffer fragments before advancing the source, delimiter=10
+  ---
+  duration_ms: 5.695792
+  type: 'test'
+  ...
+# Subtest: public sort owns named VFS Buffer fragments before advancing the source, delimiter=0
+ok 2 - public sort owns named VFS Buffer fragments before advancing the source, delimiter=0
+  ---
+  duration_ms: 1.093125
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/plain
+ok 3 - sort GNU9.7 byte equality: seed7/plain
+  ---
+  duration_ms: 13.45275
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-r
+ok 4 - sort GNU9.7 byte equality: seed7/-r
+  ---
+  duration_ms: 8.748208
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-u
+ok 5 - sort GNU9.7 byte equality: seed7/-u
+  ---
+  duration_ms: 10.226959
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-s
+ok 6 - sort GNU9.7 byte equality: seed7/-s
+  ---
+  duration_ms: 9.466
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-n
+ok 7 - sort GNU9.7 byte equality: seed7/-n
+  ---
+  duration_ms: 10.945
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-nr
+ok 8 - sort GNU9.7 byte equality: seed7/-nr
+  ---
+  duration_ms: 12.069917
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed7/-nu
+ok 9 - sort GNU9.7 byte equality: seed7/-nu
+  ---
+  duration_ms: 8.090167
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/plain
+ok 10 - sort GNU9.7 byte equality: seed23/plain
+  ---
+  duration_ms: 5.3275
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-r
+ok 11 - sort GNU9.7 byte equality: seed23/-r
+  ---
+  duration_ms: 14.661583
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-u
+ok 12 - sort GNU9.7 byte equality: seed23/-u
+  ---
+  duration_ms: 5.007916
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-s
+ok 13 - sort GNU9.7 byte equality: seed23/-s
+  ---
+  duration_ms: 9.160875
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-n
+ok 14 - sort GNU9.7 byte equality: seed23/-n
+  ---
+  duration_ms: 12.490209
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-nr
+ok 15 - sort GNU9.7 byte equality: seed23/-nr
+  ---
+  duration_ms: 4.899333
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed23/-nu
+ok 16 - sort GNU9.7 byte equality: seed23/-nu
+  ---
+  duration_ms: 12.645209
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/plain
+ok 17 - sort GNU9.7 byte equality: seed71/plain
+  ---
+  duration_ms: 6.137875
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-r
+ok 18 - sort GNU9.7 byte equality: seed71/-r
+  ---
+  duration_ms: 2.833875
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-u
+ok 19 - sort GNU9.7 byte equality: seed71/-u
+  ---
+  duration_ms: 6.167917
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-s
+ok 20 - sort GNU9.7 byte equality: seed71/-s
+  ---
+  duration_ms: 4.069125
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-n
+ok 21 - sort GNU9.7 byte equality: seed71/-n
+  ---
+  duration_ms: 6.824833
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-nr
+ok 22 - sort GNU9.7 byte equality: seed71/-nr
+  ---
+  duration_ms: 6.142084
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed71/-nu
+ok 23 - sort GNU9.7 byte equality: seed71/-nu
+  ---
+  duration_ms: 2.511084
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/plain
+ok 24 - sort GNU9.7 byte equality: seed997/plain
+  ---
+  duration_ms: 5.22075
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-r
+ok 25 - sort GNU9.7 byte equality: seed997/-r
+  ---
+  duration_ms: 6.266208
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-u
+ok 26 - sort GNU9.7 byte equality: seed997/-u
+  ---
+  duration_ms: 5.1625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-s
+ok 27 - sort GNU9.7 byte equality: seed997/-s
+  ---
+  duration_ms: 2.523916
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-n
+ok 28 - sort GNU9.7 byte equality: seed997/-n
+  ---
+  duration_ms: 6.169666
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-nr
+ok 29 - sort GNU9.7 byte equality: seed997/-nr
+  ---
+  duration_ms: 5.4875
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: seed997/-nu
+ok 30 - sort GNU9.7 byte equality: seed997/-nu
+  ---
+  duration_ms: 2.501208
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -f
+ok 31 - sort GNU9.7 byte equality: -f
+  ---
+  duration_ms: 0.24
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -fu
+ok 32 - sort GNU9.7 byte equality: -fu
+  ---
+  duration_ms: 0.150125
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -b
+ok 33 - sort GNU9.7 byte equality: -b
+  ---
+  duration_ms: 2.433459
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -br
+ok 34 - sort GNU9.7 byte equality: -br
+  ---
+  duration_ms: 0.150042
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -s -k2,2n
+ok 35 - sort GNU9.7 byte equality: -s -k2,2n
+  ---
+  duration_ms: 0.471625
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: -u -k2,2n
+ok 36 - sort GNU9.7 byte equality: -u -k2,2n
+  ---
+  duration_ms: 0.160084
+  type: 'test'
+  ...
+# Subtest: sort GNU9.7 byte equality: nul-binary
+ok 37 - sort GNU9.7 byte equality: nul-binary
+  ---
+  duration_ms: 0.084208
+  type: 'test'
+  ...
+# Subtest: sort batches completed output without mutating chunks or exceeding 64KiB
+ok 38 - sort batches completed output without mutating chunks or exceeding 64KiB
+  ---
+  duration_ms: 6.336959
+  type: 'test'
+  ...
+# Subtest: sort awaits backpressure and aborts a blocked output without later writes
+ok 39 - sort awaits backpressure and aborts a blocked output without later writes
+  ---
+  duration_ms: 7.207125
+  type: 'test'
+  ...
+# Subtest: sort -o reads before replacement and preserves binary output
+ok 40 - sort -o reads before replacement and preserves binary output
+  ---
+  duration_ms: 0.412
+  type: 'test'
+  ...
+# Subtest: single numeric key: exact integers beyond binary precision
+ok 41 - single numeric key: exact integers beyond binary precision
+  ---
+  duration_ms: 3.1175
+  type: 'test'
+  ...
+# Subtest: single numeric key: decimal precision and negative fractions
+ok 42 - single numeric key: decimal precision and negative fractions
+  ---
+  duration_ms: 0.398459
+  type: 'test'
+  ...
+# Subtest: single numeric key: grammar excludes plus exponent and hexadecimal
+ok 43 - single numeric key: grammar excludes plus exponent and hexadecimal
+  ---
+  duration_ms: 1.234
+  type: 'test'
+  ...
+# Subtest: single numeric key: default byte tie fallback
+ok 44 - single numeric key: default byte tie fallback
+  ---
+  duration_ms: 0.435583
+  type: 'test'
+  ...
+# Subtest: single numeric key: stable equivalent records
+ok 45 - single numeric key: stable equivalent records
+  ---
+  duration_ms: 0.267041
+  type: 'test'
+  ...
+# Subtest: single numeric key: unique keeps first equivalent record
+ok 46 - single numeric key: unique keeps first equivalent record
+  ---
+  duration_ms: 0.297916
+  type: 'test'
+  ...
+# Subtest: single numeric key: local numeric replaces global reverse
+ok 47 - single numeric key: local numeric replaces global reverse
+  ---
+  duration_ms: 0.275917
+  type: 'test'
+  ...
+# Subtest: single numeric key: local reverse leaves global byte tie forward
+ok 48 - single numeric key: local reverse leaves global byte tie forward
+  ---
+  duration_ms: 0.176334
+  type: 'test'
+  ...
+# Subtest: single numeric key: inherited numeric reverse
+ok 49 - single numeric key: inherited numeric reverse
+  ---
+  duration_ms: 0.509791
+  type: 'test'
+  ...
+# Subtest: single numeric key: inclusive character offsets and separator
+ok 50 - single numeric key: inclusive character offsets and separator
+  ---
+  duration_ms: 0.451708
+  type: 'test'
+  ...
+# Subtest: single numeric key: missing empty reversed and open-ended fields
+ok 51 - single numeric key: missing empty reversed and open-ended fields
+  ---
+  duration_ms: 0.183583
+  type: 'test'
+  ...
+# Subtest: single numeric key: reversed key boundary yields empty numeric keys
+ok 52 - single numeric key: reversed key boundary yields empty numeric keys
+  ---
+  duration_ms: 0.135125
+  type: 'test'
+  ...
+# Subtest: single numeric key: effective blank and fold modes bypass
+ok 53 - single numeric key: effective blank and fold modes bypass
+  ---
+  duration_ms: 0.201958
+  type: 'test'
+  ...
+# Subtest: single numeric key: local flags replace global numeric
+ok 54 - single numeric key: local flags replace global numeric
+  ---
+  duration_ms: 0.234083
+  type: 'test'
+  ...
+# Subtest: single numeric key: multiple numeric keys preserve secondary comparison
+ok 55 - single numeric key: multiple numeric keys preserve secondary comparison
+  ---
+  duration_ms: 0.233167
+  type: 'test'
+  ...
+# Subtest: single numeric key empty-entry saturation preserves stable and unique results
+ok 56 - single numeric key empty-entry saturation preserves stable and unique results
+  ---
+  duration_ms: 41.0135
+  type: 'test'
+  ...
+# Subtest: single numeric key character saturation and huge suffix use valid fallback
+ok 57 - single numeric key character saturation and huge suffix use valid fallback
+  ---
+  duration_ms: 14.302625
+  type: 'test'
+  ...
+# Subtest: single numeric key does not confuse large record backing with selected numeric field
+ok 58 - single numeric key does not confuse large record backing with selected numeric field
+  ---
+  duration_ms: 6.311083
+  type: 'test'
+  ...
+# Subtest: single numeric key owns reused Buffer views, delimiter=10
+ok 59 - single numeric key owns reused Buffer views, delimiter=10
+  ---
+  duration_ms: 5.603375
+  type: 'test'
+  ...
+# Subtest: single numeric key owns reused Buffer views, delimiter=0
+ok 60 - single numeric key owns reused Buffer views, delimiter=0
+  ---
+  duration_ms: 2.11725
+  type: 'test'
+  ...
+# Subtest: single numeric key check mode preserves duplicate diagnostic
+ok 61 - single numeric key check mode preserves duplicate diagnostic
+  ---
+  duration_ms: 0.473959
+  type: 'test'
+  ...
+# Subtest: single numeric key source errors preserve destination and status
+ok 62 - single numeric key source errors preserve destination and status
+  ---
+  duration_ms: 0.6245
+  type: 'test'
+  ...
+# Subtest: single numeric key respects cancellation during backpressured output
+ok 63 - single numeric key respects cancellation during backpressured output
+  ---
+  duration_ms: 0.820709
+  type: 'test'
+  ...
+# Subtest: single numeric key descriptors never cross invocations
+ok 64 - single numeric key descriptors never cross invocations
+  ---
+  duration_ms: 2.002709
+  type: 'test'
+  ...
+# Subtest: unkeyed numeric sort preserves exact decimals, prefix grammar and stable zeros
+ok 65 - unkeyed numeric sort preserves exact decimals, prefix grammar and stable zeros
+  ---
+  duration_ms: 5.01825
+  type: 'test'
+  ...
+# Subtest: public sort -n preserves numeric tie handling
+ok 66 - public sort -n preserves numeric tie handling
+  ---
+  duration_ms: 3.744708
+  type: 'test'
+  ...
+# Subtest: public sort -nr preserves numeric tie handling
+ok 67 - public sort -nr preserves numeric tie handling
+  ---
+  duration_ms: 1.084
+  type: 'test'
+  ...
+# Subtest: public sort -ns preserves numeric tie handling
+ok 68 - public sort -ns preserves numeric tie handling
+  ---
+  duration_ms: 0.497458
+  type: 'test'
+  ...
+# Subtest: public sort -nrs preserves numeric tie handling
+ok 69 - public sort -nrs preserves numeric tie handling
+  ---
+  duration_ms: 0.479292
+  type: 'test'
+  ...
+# Subtest: public sort -nu preserves numeric tie handling
+ok 70 - public sort -nu preserves numeric tie handling
+  ---
+  duration_ms: 0.498291
+  type: 'test'
+  ...
+# Subtest: public sort -nru preserves numeric tie handling
+ok 71 - public sort -nru preserves numeric tie handling
+  ---
+  duration_ms: 1.465416
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -nb
+ok 72 - numeric cache guard preserves -nb
+  ---
+  duration_ms: 0.293583
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -nf
+ok 73 - numeric cache guard preserves -nf
+  ---
+  duration_ms: 0.209958
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -n -k1,1
+ok 74 - numeric cache guard preserves -n -k1,1
+  ---
+  duration_ms: 0.580417
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -n -k1,1n
+ok 75 - numeric cache guard preserves -n -k1,1n
+  ---
+  duration_ms: 0.219166
+  type: 'test'
+  ...
+# Subtest: numeric cache guard preserves -n -k1,1n -k2,2r
+ok 76 - numeric cache guard preserves -n -k1,1n -k2,2r
+  ---
+  duration_ms: 0.116458
+  type: 'test'
+  ...
+# Subtest: explicit key-local flags still replace global numeric mode
+ok 77 - explicit key-local flags still replace global numeric mode
+  ---
+  duration_ms: 0.09775
+  type: 'test'
+  ...
+# Subtest: numeric check mode keeps exact duplicate diagnostic
+ok 78 - numeric check mode keeps exact duplicate diagnostic
+  ---
+  duration_ms: 0.365167
+  type: 'test'
+  ...
+# Subtest: entry saturation includes empty records without changing unique or stable ties
+ok 79 - entry saturation includes empty records without changing unique or stable ties
+  ---
+  duration_ms: 21.474042
+  type: 'test'
+  ...
+# Subtest: character saturation and oversized normalized backing preserve exact fallback
+ok 80 - character saturation and oversized normalized backing preserve exact fallback
+  ---
+  duration_ms: 2.389917
+  type: 'test'
+  ...
+# Subtest: numeric cache owns reused Buffer input, delimiter=10
+ok 81 - numeric cache owns reused Buffer input, delimiter=10
+  ---
+  duration_ms: 1.613666
+  type: 'test'
+  ...
+# Subtest: numeric cache owns reused Buffer input, delimiter=0
+ok 82 - numeric cache owns reused Buffer input, delimiter=0
+  ---
+  duration_ms: 0.90275
+  type: 'test'
+  ...
+# Subtest: numeric sort input failures preserve destination and exact status
+ok 83 - numeric sort input failures preserve destination and exact status
+  ---
+  duration_ms: 0.466584
+  type: 'test'
+  ...
+# Subtest: numeric sort respects cancellation during backpressured output
+ok 84 - numeric sort respects cancellation during backpressured output
+  ---
+  duration_ms: 0.350166
+  type: 'test'
+  ...
+# Subtest: numeric cache has no cross-invocation values
+ok 85 - numeric cache has no cross-invocation values
+  ---
+  duration_ms: 2.070125
+  type: 'test'
+  ...
+# Subtest: byte sources preserve binary bytes and UTF-8 text
+ok 86 - byte sources preserve binary bytes and UTF-8 text
+  ---
+  duration_ms: 1.284083
+  type: 'test'
+  ...
+# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation
+ok 87 - byte sources snapshot Uint8Array and Buffer inputs at creation
+  ---
+  duration_ms: 0.151125
+  type: 'test'
+  ...
+# Subtest: collectors enforce explicit byte limits and close overflowing sources
+ok 88 - collectors enforce explicit byte limits and close overflowing sources
+  ---
+  duration_ms: 0.444417
+  type: 'test'
+  ...
+# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks
+ok 89 - collectors copy reused buffers and decode UTF-8 split across chunks
+  ---
+  duration_ms: 0.245333
+  type: 'test'
+  ...
+# Subtest: collectors reject pre-aborted operations
+ok 90 - collectors reject pre-aborted operations
+  ---
+  duration_ms: 0.351
+  type: 'test'
+  ...
+# Subtest: pipes stream while the producer runs and apply byte-based backpressure
+ok 91 - pipes stream while the producer runs and apply byte-based backpressure
+  ---
+  duration_ms: 7.667458
+  type: 'test'
+  ...
+# Subtest: pipe writes take ownership through byte copies, including Buffer inputs
+ok 92 - pipe writes take ownership through byte copies, including Buffer inputs
+  ---
+  duration_ms: 0.341208
+  type: 'test'
+  ...
+# Subtest: pipe cancellation rejects blocked producers and readers
+ok 93 - pipe cancellation rejects blocked producers and readers
+  ---
+  duration_ms: 0.836333
+  type: 'test'
+  ...
+# Subtest: breaking consumption produces EPIPE for pending writers
+ok 94 - breaking consumption produces EPIPE for pending writers
+  ---
+  duration_ms: 0.436917
+  type: 'test'
+  ...
+# Subtest: returning an unread pipe releases blocked producers
+ok 95 - returning an unread pipe releases blocked producers
+  ---
+  duration_ms: 0.549542
+  type: 'test'
+  ...
+# Subtest: closed and pre-aborted pipes reject further writes
+ok 96 - closed and pre-aborted pipes reject further writes
+  ---
+  duration_ms: 0.348375
+  type: 'test'
+  ...
+# Subtest: pipe watermarks must be positive finite safe integers
+ok 97 - pipe watermarks must be positive finite safe integers
+  ---
+  duration_ms: 0.101958
+  type: 'test'
+  ...
+# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk
+ok 98 - pipeBytes awaits sink acceptance before requesting the next chunk
+  ---
+  duration_ms: 0.177333
+  type: 'test'
+  ...
+# Subtest: writeText encodes UTF-8 and propagates sink failures
+ok 99 - writeText encodes UTF-8 and propagates sink failures
+  ---
+  duration_ms: 0.178917
+  type: 'test'
+  ...
+1..99
+# tests 99
+# suites 0
+# pass 99
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 580.064334

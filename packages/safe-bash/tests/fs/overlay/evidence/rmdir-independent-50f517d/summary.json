@@ -1,0 +1,275 @@
+{
+  "pin": "50f517d4e28281ccba8c7580d017fe65a4bf8e20",
+  "observations": {
+    "sameOriginalNames": true,
+    "total": 11,
+    "withinPreconditions": 10,
+    "outsidePreconditions": 1,
+    "cases": [
+      {
+        "case": "static-lower-only",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTSUP",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTSUP: operation not supported, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "fulfilled"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "static-preexisting-upper-only",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTSUP",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTSUP: operation not supported, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "fulfilled"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "static-merged",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTSUP",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTSUP: operation not supported, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "fulfilled"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "overlay-created-upper",
+        "old": {
+          "status": "fulfilled"
+        },
+        "fixed": {
+          "status": "fulfilled"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "hidden-lower-child-unisolated",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTSUP",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTSUP: operation not supported, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "fulfilled"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "hidden-lower-child-opaque",
+        "old": {
+          "status": "fulfilled"
+        },
+        "fixed": {
+          "status": "fulfilled"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "visible-lower-child",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "visible-upper-child",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        },
+        "withinPreconditions": true
+      },
+      {
+        "case": "same-instance-writer-queued-before-rmdir",
+        "old": [
+          {
+            "status": "fulfilled"
+          },
+          {
+            "status": "rejected",
+            "code": "ENOTEMPTY",
+            "syscall": "rmdir",
+            "path": "/d",
+            "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+          }
+        ],
+        "fixed": [
+          {
+            "status": "fulfilled"
+          },
+          {
+            "status": "rejected",
+            "code": "ENOTEMPTY",
+            "syscall": "rmdir",
+            "path": "/d",
+            "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+          }
+        ],
+        "withinPreconditions": true
+      },
+      {
+        "case": "same-instance-writer-queued-after-rmdir-holds-queue",
+        "old": [
+          {
+            "status": "fulfilled"
+          },
+          {
+            "status": "rejected",
+            "code": "ENOENT",
+            "syscall": "overlay",
+            "path": "/d",
+            "message": "ENOENT: no such file or directory, overlay '/d'"
+          }
+        ],
+        "fixed": [
+          {
+            "status": "fulfilled"
+          },
+          {
+            "status": "rejected",
+            "code": "ENOENT",
+            "syscall": "overlay",
+            "path": "/d",
+            "message": "ENOENT: no such file or directory, overlay '/d'"
+          }
+        ],
+        "withinPreconditions": true
+      },
+      {
+        "case": "external-lower-write-outside-documented-precondition",
+        "old": {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        },
+        "fixed": {
+          "status": "rejected",
+          "code": "ENOTEMPTY",
+          "syscall": "rmdir",
+          "path": "/d",
+          "message": "ENOTEMPTY: directory not empty, rmdir '/d'"
+        },
+        "withinPreconditions": false
+      }
+    ]
+  },
+  "matrix": {
+    "counts": {
+      "tests": 79,
+      "pass": 77,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "groups": {
+      "memory": {
+        "pass": 11,
+        "fail": 0,
+        "total": 11
+      },
+      "real": {
+        "pass": 11,
+        "fail": 0,
+        "total": 11
+      },
+      "s3": {
+        "pass": 10,
+        "fail": 1,
+        "total": 11
+      },
+      "webdav": {
+        "pass": 10,
+        "fail": 1,
+        "total": 11
+      },
+      "mount": {
+        "pass": 12,
+        "fail": 0,
+        "total": 12
+      },
+      "overlay": {
+        "pass": 12,
+        "fail": 0,
+        "total": 12
+      },
+      "readonly": {
+        "pass": 10,
+        "fail": 0,
+        "total": 10
+      },
+      "structured capability gap": {
+        "pass": 1,
+        "fail": 0,
+        "total": 1
+      }
+    },
+    "failedNames": [
+      "s3: create, copy, append, inspect and remove files",
+      "webdav: create, copy, append, inspect and remove files"
+    ]
+  },
+  "stability": {
+    "archiveFiles": 278,
+    "archiveStable": true,
+    "originalArtifactCount": 10,
+    "originalStable": true,
+    "liveFsFilesStable": true,
+    "liveFsTreeStable": true,
+    "liveFsMatchesPin": true,
+    "fsTypecheckEntrypoints": 94
+  },
+  "sourceCounts": {
+    "all": 131
+  },
+  "live": {
+    "beforeHead": "cb707e69a4733a5cf1a7ff5e48060c2984934796",
+    "afterHead": "cb707e69a4733a5cf1a7ff5e48060c2984934796",
+    "afterSrcTree": "bf17a3ebeaceb70185e8839623a2383dcdacec20",
+    "afterFsTree": "d819224f37042b624034a0b55615bc8dc9ec41d1",
+    "broadStatus": "",
+    "sevenStatus": ""
+  },
+  "activeCheckpointProcesses": 0
+}

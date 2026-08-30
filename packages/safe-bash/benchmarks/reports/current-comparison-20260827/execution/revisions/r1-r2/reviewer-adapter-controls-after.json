@@ -1,0 +1,5645 @@
+{
+  "scope": "unchanged independent reviewer adapterControls, synthetic APIs only",
+  "reviewerHelperSha256": "bf0aaaf145b97f9f48a7c9055b34eae44aa1bf97c7d39224be6b677cad05fa31",
+  "expandedSha256": "761bf2422d03f5dcc6162df7d42e1d2fd2bb974ec2e42b9fe0d51e3e406fe3e2",
+  "productImports": 0,
+  "mainObservations": 0,
+  "childProcesses": 0,
+  "networkCalls": 0,
+  "expandedRows": 4,
+  "breadthExistingWiringRows": 8,
+  "issues": [],
+  "rows": [
+    {
+      "profile": "original",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "initialization-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start",
+          "detail": {
+            "apiAvailable": true
+          }
+        },
+        {
+          "phase": "dispose-settled",
+          "detail": {
+            "apiAvailable": true
+          }
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "utimes",
+          "filename": "/fixture/input",
+          "access": 1700000000000,
+          "modified": 1700000000000,
+          "dateObjects": false
+        },
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "commands": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC"
+            },
+            "limits": {
+              "maxOutputBytes": 4194304,
+              "maxCommands": 10000,
+              "maxLoopIterations": 10000,
+              "pipeHighWaterMark": 4096
+            }
+          }
+        },
+        {
+          "method": "use",
+          "plugin": "agentCommands-synthetic-token"
+        },
+        {
+          "method": "exec",
+          "script": "",
+          "options": {
+            "signal": true,
+            "stdin": null
+          }
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "stdin": "AH+A/w==",
+            "signal": true
+          }
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/output",
+          "suppliedSignal": true
+        },
+        {
+          "method": "dispose"
+        }
+      ],
+      "result": {
+        "raw": {
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k="
+        },
+        "stdout": "AH+A/w==",
+        "stderr": "w6k=",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "mode": 384,
+            "bytes": "AH+A/w=="
+          },
+          "output": {
+            "type": "file",
+            "mode": 420,
+            "bytes": "AH+A/w=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "dispatchObservation": "not instrumented; no command replacement",
+        "capture": "native Uint8Array stdout/stderr"
+      }
+    },
+    {
+      "profile": "original",
+      "engine": "just-bash",
+      "configuration": "default",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start",
+          "detail": {
+            "apiAvailable": false
+          }
+        },
+        {
+          "phase": "dispose-settled",
+          "detail": {
+            "apiAvailable": false
+          }
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "utimes",
+          "filename": "/fixture/input",
+          "access": "2023-11-14T22:13:20.000Z",
+          "modified": "2023-11-14T22:13:20.000Z",
+          "dateObjects": true
+        },
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC"
+            },
+            "executionLimits": {
+              "maxOutputSize": 4194304,
+              "maxCommandCount": 10000,
+              "maxLoopIterations": 10000,
+              "maxExecutionTimeMs": 5000
+            }
+          }
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "stdin": "AH+A/w==",
+            "stdinKind": "bytes",
+            "rawScript": true,
+            "replaceEnv": true,
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC"
+            },
+            "signal": true
+          }
+        }
+      ],
+      "result": {
+        "raw": {
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k="
+        },
+        "stdout": "AH+A/w==",
+        "stderr": "w6k=",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "mode": 384,
+            "bytes": "AH+A/w=="
+          },
+          "output": {
+            "type": "file",
+            "mode": 420,
+            "bytes": "AH+A/w=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "dispatchObservation": "not instrumented; no command replacement",
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      }
+    },
+    {
+      "profile": "aligned",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "initialization-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start",
+          "detail": {
+            "apiAvailable": true
+          }
+        },
+        {
+          "phase": "dispose-settled",
+          "detail": {
+            "apiAvailable": true
+          }
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "utimes",
+          "filename": "/fixture/input",
+          "access": 1700000000000,
+          "modified": 1700000000000,
+          "dateObjects": false
+        },
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "commands": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "TMPDIR": "/tmp"
+            },
+            "limits": {
+              "maxOutputBytes": 4194304,
+              "maxCommands": 10000,
+              "maxLoopIterations": 10000,
+              "pipeHighWaterMark": 4096
+            }
+          }
+        },
+        {
+          "method": "use",
+          "plugin": "agentCommands-synthetic-token"
+        },
+        {
+          "method": "exec",
+          "script": "",
+          "options": {
+            "signal": true,
+            "stdin": null
+          }
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "stdin": "AH+A/w==",
+            "signal": true
+          }
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/output",
+          "suppliedSignal": true
+        },
+        {
+          "method": "dispose"
+        }
+      ],
+      "result": {
+        "raw": {
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k="
+        },
+        "stdout": "AH+A/w==",
+        "stderr": "w6k=",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "mode": 384,
+            "bytes": "AH+A/w=="
+          },
+          "output": {
+            "type": "file",
+            "mode": 420,
+            "bytes": "AH+A/w=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "dispatchObservation": "not instrumented; no command replacement",
+        "capture": "native Uint8Array stdout/stderr"
+      }
+    },
+    {
+      "profile": "aligned",
+      "engine": "just-bash",
+      "configuration": "default",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start",
+          "detail": {
+            "apiAvailable": false
+          }
+        },
+        {
+          "phase": "dispose-settled",
+          "detail": {
+            "apiAvailable": false
+          }
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "utimes",
+          "filename": "/fixture/input",
+          "access": "2023-11-14T22:13:20.000Z",
+          "modified": "2023-11-14T22:13:20.000Z",
+          "dateObjects": true
+        },
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "TMPDIR": "/tmp"
+            },
+            "executionLimits": {
+              "maxOutputSize": 4194304,
+              "maxCommandCount": 10000,
+              "maxLoopIterations": 10000,
+              "maxExecutionTimeMs": 5000
+            }
+          }
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "stdin": "AH+A/w==",
+            "stdinKind": "bytes",
+            "rawScript": true,
+            "replaceEnv": true,
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/fixture",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "TMPDIR": "/tmp"
+            },
+            "signal": true
+          }
+        }
+      ],
+      "result": {
+        "raw": {
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k="
+        },
+        "stdout": "AH+A/w==",
+        "stderr": "w6k=",
+        "exitCode": 0,
+        "entries": {
+          "input": {
+            "type": "file",
+            "mode": 384,
+            "bytes": "AH+A/w=="
+          },
+          "output": {
+            "type": "file",
+            "mode": 420,
+            "bytes": "AH+A/w=="
+          }
+        },
+        "events": [],
+        "registryEvents": [],
+        "dispatchObservation": "not instrumented; no command replacement",
+        "capture": "public stdoutAsBytes/latin1FromBytes; stderr UTF8 public text"
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "configuration": "default",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "limits": {
+              "maxOutputBytes": 4194304,
+              "maxCommands": 100,
+              "maxLoopIterations": 100,
+              "pipeHighWaterMark": 4096
+            }
+          }
+        },
+        {
+          "method": "use",
+          "plugin": "agentCommands-synthetic-token"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "stdin": "AH+A/w==",
+            "signal": true
+          }
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/output",
+          "suppliedSignal": true
+        },
+        {
+          "method": "dispose"
+        }
+      ],
+      "result": {
+        "engine": "ours",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "limits": {
+            "maxOutputBytes": 4194304,
+            "maxCommands": 100,
+            "maxLoopIterations": 100,
+            "pipeHighWaterMark": 4096
+          },
+          "plugins": [
+            "agentCommands"
+          ],
+          "optionalRuntimeInjected": false
+        },
+        "registeredNames": [
+          "independent-synthetic-only"
+        ],
+        "kernelSource": {
+          "registered": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "classified": [
+            ":",
+            "true",
+            "false",
+            "pwd",
+            "cd",
+            "set",
+            "shift",
+            "export",
+            "local",
+            "unset",
+            "read",
+            "exit",
+            "return",
+            "break",
+            "continue",
+            "command",
+            "type",
+            "readonly",
+            "echo",
+            "printf",
+            "test",
+            "[",
+            ".",
+            "source",
+            "eval"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "break",
+            "cd",
+            "command",
+            "continue",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "local",
+            "pwd",
+            "read",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "source",
+            "true",
+            "type",
+            "unset"
+          ],
+          "interpreterEntrypoints": [
+            "bash",
+            "sh"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "cat",
+            "cd",
+            "chmod",
+            "cksum",
+            "comm",
+            "command",
+            "continue",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "local",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "read",
+            "readlink",
+            "readonly",
+            "realpath",
+            "return",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "sort",
+            "source",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "type",
+            "uniq",
+            "unset",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "optional": [
+            "curl",
+            "safejs"
+          ],
+          "shadowedRegistry": [
+            "false",
+            "pwd",
+            "true"
+          ],
+          "unshadowedRegistry": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ]
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000��",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "raw ShellResult.stdoutBytes Uint8Array",
+          "stderrBoundary": "raw ShellResult.stderrBytes Uint8Array"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "registeredNamesAfter": [
+          "independent-synthetic-only"
+        ],
+        "cleanup": {
+          "disposed": true,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "configuration": "javascript",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "limits": {
+              "maxOutputBytes": 4194304,
+              "maxCommands": 100,
+              "maxLoopIterations": 100,
+              "pipeHighWaterMark": 4096
+            }
+          }
+        },
+        {
+          "method": "use",
+          "plugin": "agentCommands-synthetic-token"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "stdin": "AH+A/w==",
+            "signal": true
+          }
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/output",
+          "suppliedSignal": true
+        },
+        {
+          "method": "dispose"
+        }
+      ],
+      "result": {
+        "engine": "ours",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "limits": {
+            "maxOutputBytes": 4194304,
+            "maxCommands": 100,
+            "maxLoopIterations": 100,
+            "pipeHighWaterMark": 4096
+          },
+          "plugins": [
+            "agentCommands"
+          ],
+          "optionalRuntimeInjected": false
+        },
+        "registeredNames": [
+          "independent-synthetic-only"
+        ],
+        "kernelSource": {
+          "registered": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "classified": [
+            ":",
+            "true",
+            "false",
+            "pwd",
+            "cd",
+            "set",
+            "shift",
+            "export",
+            "local",
+            "unset",
+            "read",
+            "exit",
+            "return",
+            "break",
+            "continue",
+            "command",
+            "type",
+            "readonly",
+            "echo",
+            "printf",
+            "test",
+            "[",
+            ".",
+            "source",
+            "eval"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "break",
+            "cd",
+            "command",
+            "continue",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "local",
+            "pwd",
+            "read",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "source",
+            "true",
+            "type",
+            "unset"
+          ],
+          "interpreterEntrypoints": [
+            "bash",
+            "sh"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "cat",
+            "cd",
+            "chmod",
+            "cksum",
+            "comm",
+            "command",
+            "continue",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "local",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "read",
+            "readlink",
+            "readonly",
+            "realpath",
+            "return",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "sort",
+            "source",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "type",
+            "uniq",
+            "unset",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "optional": [
+            "curl",
+            "safejs"
+          ],
+          "shadowedRegistry": [
+            "false",
+            "pwd",
+            "true"
+          ],
+          "unshadowedRegistry": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ]
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000��",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "raw ShellResult.stdoutBytes Uint8Array",
+          "stderrBoundary": "raw ShellResult.stderrBytes Uint8Array"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "registeredNamesAfter": [
+          "independent-synthetic-only"
+        ],
+        "cleanup": {
+          "disposed": true,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "configuration": "python",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "limits": {
+              "maxOutputBytes": 4194304,
+              "maxCommands": 100,
+              "maxLoopIterations": 100,
+              "pipeHighWaterMark": 4096
+            }
+          }
+        },
+        {
+          "method": "use",
+          "plugin": "agentCommands-synthetic-token"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "stdin": "AH+A/w==",
+            "signal": true
+          }
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/output",
+          "suppliedSignal": true
+        },
+        {
+          "method": "dispose"
+        }
+      ],
+      "result": {
+        "engine": "ours",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "limits": {
+            "maxOutputBytes": 4194304,
+            "maxCommands": 100,
+            "maxLoopIterations": 100,
+            "pipeHighWaterMark": 4096
+          },
+          "plugins": [
+            "agentCommands"
+          ],
+          "optionalRuntimeInjected": false
+        },
+        "registeredNames": [
+          "independent-synthetic-only"
+        ],
+        "kernelSource": {
+          "registered": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "classified": [
+            ":",
+            "true",
+            "false",
+            "pwd",
+            "cd",
+            "set",
+            "shift",
+            "export",
+            "local",
+            "unset",
+            "read",
+            "exit",
+            "return",
+            "break",
+            "continue",
+            "command",
+            "type",
+            "readonly",
+            "echo",
+            "printf",
+            "test",
+            "[",
+            ".",
+            "source",
+            "eval"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "break",
+            "cd",
+            "command",
+            "continue",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "local",
+            "pwd",
+            "read",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "source",
+            "true",
+            "type",
+            "unset"
+          ],
+          "interpreterEntrypoints": [
+            "bash",
+            "sh"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "cat",
+            "cd",
+            "chmod",
+            "cksum",
+            "comm",
+            "command",
+            "continue",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "local",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "read",
+            "readlink",
+            "readonly",
+            "realpath",
+            "return",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "sort",
+            "source",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "type",
+            "uniq",
+            "unset",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "optional": [
+            "curl",
+            "safejs"
+          ],
+          "shadowedRegistry": [
+            "false",
+            "pwd",
+            "true"
+          ],
+          "unshadowedRegistry": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ]
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000��",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "raw ShellResult.stdoutBytes Uint8Array",
+          "stderrBoundary": "raw ShellResult.stderrBytes Uint8Array"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "registeredNamesAfter": [
+          "independent-synthetic-only"
+        ],
+        "cleanup": {
+          "disposed": true,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "virtual-bash",
+      "configuration": "sqlite",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "limits": {
+              "maxOutputBytes": 4194304,
+              "maxCommands": 100,
+              "maxLoopIterations": 100,
+              "pipeHighWaterMark": 4096
+            }
+          }
+        },
+        {
+          "method": "use",
+          "plugin": "agentCommands-synthetic-token"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "stdin": "AH+A/w==",
+            "signal": true
+          }
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/input",
+          "suppliedSignal": true
+        },
+        {
+          "method": "readFile",
+          "filename": "/fixture/output",
+          "suppliedSignal": true
+        },
+        {
+          "method": "dispose"
+        }
+      ],
+      "result": {
+        "engine": "ours",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "limits": {
+            "maxOutputBytes": 4194304,
+            "maxCommands": 100,
+            "maxLoopIterations": 100,
+            "pipeHighWaterMark": 4096
+          },
+          "plugins": [
+            "agentCommands"
+          ],
+          "optionalRuntimeInjected": false
+        },
+        "registeredNames": [
+          "independent-synthetic-only"
+        ],
+        "kernelSource": {
+          "registered": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "classified": [
+            ":",
+            "true",
+            "false",
+            "pwd",
+            "cd",
+            "set",
+            "shift",
+            "export",
+            "local",
+            "unset",
+            "read",
+            "exit",
+            "return",
+            "break",
+            "continue",
+            "command",
+            "type",
+            "readonly",
+            "echo",
+            "printf",
+            "test",
+            "[",
+            ".",
+            "source",
+            "eval"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "break",
+            "cd",
+            "command",
+            "continue",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "local",
+            "pwd",
+            "read",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "source",
+            "true",
+            "type",
+            "unset"
+          ],
+          "interpreterEntrypoints": [
+            "bash",
+            "sh"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "cat",
+            "cd",
+            "chmod",
+            "cksum",
+            "comm",
+            "command",
+            "continue",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "eval",
+            "exit",
+            "export",
+            "false",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "local",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "pwd",
+            "read",
+            "readlink",
+            "readonly",
+            "realpath",
+            "return",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "sort",
+            "source",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "true",
+            "type",
+            "uniq",
+            "unset",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ],
+          "optional": [
+            "curl",
+            "safejs"
+          ],
+          "shadowedRegistry": [
+            "false",
+            "pwd",
+            "true"
+          ],
+          "unshadowedRegistry": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "comm",
+            "cp",
+            "cut",
+            "diff",
+            "dirname",
+            "echo",
+            "env",
+            "find",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "od",
+            "paste",
+            "patch",
+            "printf",
+            "readlink",
+            "realpath",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "sha1sum",
+            "sha256sum",
+            "sort",
+            "stat",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "uniq",
+            "wc",
+            "xargs",
+            "xxd",
+            "zcat"
+          ]
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000��",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "raw ShellResult.stdoutBytes Uint8Array",
+          "stderrBoundary": "raw ShellResult.stderrBytes Uint8Array"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "registeredNamesAfter": [
+          "independent-synthetic-only"
+        ],
+        "cleanup": {
+          "disposed": true,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "just-bash",
+      "configuration": "default",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "executionLimitProfile": "normal",
+            "executionLimits": {
+              "maxExecutionTimeMs": 30000,
+              "maxOutputSize": 4194304,
+              "maxInputBytes": 33554432,
+              "maxCommandCount": 100,
+              "maxLoopIterations": 100
+            },
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            }
+          }
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "replaceEnv": true,
+            "rawScript": true,
+            "stdin": "AH+A/w==",
+            "stdinKind": "bytes",
+            "signal": true
+          }
+        }
+      ],
+      "result": {
+        "engine": "baseline",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "executionLimitProfile": "normal",
+          "executionLimits": {
+            "maxExecutionTimeMs": 30000,
+            "maxOutputSize": 4194304,
+            "maxInputBytes": 33554432,
+            "maxCommandCount": 100,
+            "maxLoopIterations": 100
+          }
+        },
+        "kernelSource": {
+          "registered": [
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "cat",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "cp",
+            "cut",
+            "date",
+            "diff",
+            "dirname",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "expand",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "printenv",
+            "printf",
+            "pwd",
+            "readlink",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "sleep",
+            "sort",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "classified": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "bg",
+            "break",
+            "builtin",
+            "caller",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "disown",
+            "echo",
+            "enable",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "fc",
+            "fg",
+            "getopts",
+            "hash",
+            "help",
+            "history",
+            "jobs",
+            "kill",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "suspend",
+            "test",
+            "times",
+            "trap",
+            "true",
+            "type",
+            "typeset",
+            "ulimit",
+            "umask",
+            "unalias",
+            "unset",
+            "wait"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "[",
+            "break",
+            "builtin",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "getopts",
+            "hash",
+            "help",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "pushd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "test",
+            "true",
+            "type",
+            "typeset",
+            "unset",
+            "wait"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "builtin",
+            "cat",
+            "cd",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "cp",
+            "cut",
+            "date",
+            "declare",
+            "diff",
+            "dirname",
+            "dirs",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "eval",
+            "exec",
+            "exit",
+            "expand",
+            "export",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "getopts",
+            "grep",
+            "gunzip",
+            "gzip",
+            "hash",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "let",
+            "ln",
+            "local",
+            "ls",
+            "mapfile",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "popd",
+            "printenv",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readlink",
+            "readonly",
+            "return",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "shopt",
+            "sleep",
+            "sort",
+            "source",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "type",
+            "typeset",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "unset",
+            "wait",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "optional": {
+            "network": [
+              "curl"
+            ],
+            "python": [
+              "python3",
+              "python"
+            ],
+            "javascript": [
+              "js-exec",
+              "node"
+            ]
+          }
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000ÿ",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "public stdoutAsBytes ByteString encoded Latin-1; not inferred from text",
+          "stderrBoundary": "derived UTF-8 of public stderr string; no raw byte API"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "cleanup": {
+          "disposed": false,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "just-bash",
+      "configuration": "javascript",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "executionLimitProfile": "normal",
+            "executionLimits": {
+              "maxExecutionTimeMs": 120000,
+              "maxOutputSize": 4194304,
+              "maxInputBytes": 33554432,
+              "maxCommandCount": 100,
+              "maxLoopIterations": 100,
+              "maxJsTimeoutMs": 120000
+            },
+            "javascript": true,
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            }
+          }
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "replaceEnv": true,
+            "rawScript": true,
+            "stdin": "AH+A/w==",
+            "stdinKind": "bytes",
+            "signal": true
+          }
+        }
+      ],
+      "result": {
+        "engine": "baseline",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "executionLimitProfile": "normal",
+          "executionLimits": {
+            "maxExecutionTimeMs": 120000,
+            "maxOutputSize": 4194304,
+            "maxInputBytes": 33554432,
+            "maxCommandCount": 100,
+            "maxLoopIterations": 100,
+            "maxJsTimeoutMs": 120000
+          },
+          "javascript": true
+        },
+        "kernelSource": {
+          "registered": [
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "cat",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "cp",
+            "cut",
+            "date",
+            "diff",
+            "dirname",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "expand",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "printenv",
+            "printf",
+            "pwd",
+            "readlink",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "sleep",
+            "sort",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "classified": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "bg",
+            "break",
+            "builtin",
+            "caller",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "disown",
+            "echo",
+            "enable",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "fc",
+            "fg",
+            "getopts",
+            "hash",
+            "help",
+            "history",
+            "jobs",
+            "kill",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "suspend",
+            "test",
+            "times",
+            "trap",
+            "true",
+            "type",
+            "typeset",
+            "ulimit",
+            "umask",
+            "unalias",
+            "unset",
+            "wait"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "[",
+            "break",
+            "builtin",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "getopts",
+            "hash",
+            "help",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "pushd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "test",
+            "true",
+            "type",
+            "typeset",
+            "unset",
+            "wait"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "builtin",
+            "cat",
+            "cd",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "cp",
+            "cut",
+            "date",
+            "declare",
+            "diff",
+            "dirname",
+            "dirs",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "eval",
+            "exec",
+            "exit",
+            "expand",
+            "export",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "getopts",
+            "grep",
+            "gunzip",
+            "gzip",
+            "hash",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "let",
+            "ln",
+            "local",
+            "ls",
+            "mapfile",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "popd",
+            "printenv",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readlink",
+            "readonly",
+            "return",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "shopt",
+            "sleep",
+            "sort",
+            "source",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "type",
+            "typeset",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "unset",
+            "wait",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "optional": {
+            "network": [
+              "curl"
+            ],
+            "python": [
+              "python3",
+              "python"
+            ],
+            "javascript": [
+              "js-exec",
+              "node"
+            ]
+          }
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000ÿ",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "public stdoutAsBytes ByteString encoded Latin-1; not inferred from text",
+          "stderrBoundary": "derived UTF-8 of public stderr string; no raw byte API"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "cleanup": {
+          "disposed": false,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "just-bash",
+      "configuration": "python",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "executionLimitProfile": "normal",
+            "executionLimits": {
+              "maxExecutionTimeMs": 120000,
+              "maxOutputSize": 4194304,
+              "maxInputBytes": 33554432,
+              "maxCommandCount": 100,
+              "maxLoopIterations": 100,
+              "maxPythonTimeoutMs": 120000
+            },
+            "python": true,
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            }
+          }
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "replaceEnv": true,
+            "rawScript": true,
+            "stdin": "AH+A/w==",
+            "stdinKind": "bytes",
+            "signal": true
+          }
+        }
+      ],
+      "result": {
+        "engine": "baseline",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "executionLimitProfile": "normal",
+          "executionLimits": {
+            "maxExecutionTimeMs": 120000,
+            "maxOutputSize": 4194304,
+            "maxInputBytes": 33554432,
+            "maxCommandCount": 100,
+            "maxLoopIterations": 100,
+            "maxPythonTimeoutMs": 120000
+          },
+          "python": true
+        },
+        "kernelSource": {
+          "registered": [
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "cat",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "cp",
+            "cut",
+            "date",
+            "diff",
+            "dirname",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "expand",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "printenv",
+            "printf",
+            "pwd",
+            "readlink",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "sleep",
+            "sort",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "classified": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "bg",
+            "break",
+            "builtin",
+            "caller",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "disown",
+            "echo",
+            "enable",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "fc",
+            "fg",
+            "getopts",
+            "hash",
+            "help",
+            "history",
+            "jobs",
+            "kill",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "suspend",
+            "test",
+            "times",
+            "trap",
+            "true",
+            "type",
+            "typeset",
+            "ulimit",
+            "umask",
+            "unalias",
+            "unset",
+            "wait"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "[",
+            "break",
+            "builtin",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "getopts",
+            "hash",
+            "help",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "pushd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "test",
+            "true",
+            "type",
+            "typeset",
+            "unset",
+            "wait"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "builtin",
+            "cat",
+            "cd",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "cp",
+            "cut",
+            "date",
+            "declare",
+            "diff",
+            "dirname",
+            "dirs",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "eval",
+            "exec",
+            "exit",
+            "expand",
+            "export",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "getopts",
+            "grep",
+            "gunzip",
+            "gzip",
+            "hash",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "let",
+            "ln",
+            "local",
+            "ls",
+            "mapfile",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "popd",
+            "printenv",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readlink",
+            "readonly",
+            "return",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "shopt",
+            "sleep",
+            "sort",
+            "source",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "type",
+            "typeset",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "unset",
+            "wait",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "optional": {
+            "network": [
+              "curl"
+            ],
+            "python": [
+              "python3",
+              "python"
+            ],
+            "javascript": [
+              "js-exec",
+              "node"
+            ]
+          }
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000ÿ",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "public stdoutAsBytes ByteString encoded Latin-1; not inferred from text",
+          "stderrBoundary": "derived UTF-8 of public stderr string; no raw byte API"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "cleanup": {
+          "disposed": false,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    },
+    {
+      "profile": "breadth",
+      "engine": "just-bash",
+      "configuration": "sqlite",
+      "syntheticLibraryOnly": true,
+      "productImports": 0,
+      "phases": [
+        {
+          "phase": "constructor"
+        },
+        {
+          "phase": "fixture-setup"
+        },
+        {
+          "phase": "product-exec"
+        },
+        {
+          "phase": "exec-start"
+        },
+        {
+          "phase": "exec-settled"
+        },
+        {
+          "phase": "after-census"
+        },
+        {
+          "phase": "snapshot-complete"
+        },
+        {
+          "phase": "dispose-start"
+        },
+        {
+          "phase": "dispose-settled"
+        }
+      ],
+      "issues": [],
+      "calls": [
+        {
+          "method": "constructor",
+          "options": {
+            "executionLimitProfile": "normal",
+            "executionLimits": {
+              "maxExecutionTimeMs": 120000,
+              "maxOutputSize": 4194304,
+              "maxInputBytes": 33554432,
+              "maxCommandCount": 100,
+              "maxLoopIterations": 100,
+              "maxSqliteTimeoutMs": 120000
+            },
+            "fs": {},
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            }
+          }
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/tmp"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home/user"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/home"
+        },
+        {
+          "method": "mkdir",
+          "filename": "/fixture"
+        },
+        {
+          "method": "exec",
+          "script": "independent-synthetic",
+          "options": {
+            "cwd": "/fixture",
+            "env": {
+              "PATH": "/usr/bin:/bin",
+              "HOME": "/home/user",
+              "TMPDIR": "/tmp",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC",
+              "USER": "user",
+              "REVIEW_ONLY": "bound"
+            },
+            "replaceEnv": true,
+            "rawScript": true,
+            "stdin": "AH+A/w==",
+            "stdinKind": "bytes",
+            "signal": true
+          }
+        }
+      ],
+      "result": {
+        "engine": "baseline",
+        "caseId": "independent-adapter-not-a-cohort-case",
+        "phase": "complete",
+        "captureErrors": [],
+        "networkRequests": [],
+        "configuration": {
+          "executionLimitProfile": "normal",
+          "executionLimits": {
+            "maxExecutionTimeMs": 120000,
+            "maxOutputSize": 4194304,
+            "maxInputBytes": 33554432,
+            "maxCommandCount": 100,
+            "maxLoopIterations": 100,
+            "maxSqliteTimeoutMs": 120000
+          }
+        },
+        "kernelSource": {
+          "registered": [
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "cat",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "cp",
+            "cut",
+            "date",
+            "diff",
+            "dirname",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "expand",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "printenv",
+            "printf",
+            "pwd",
+            "readlink",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "sleep",
+            "sort",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "classified": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "bg",
+            "break",
+            "builtin",
+            "caller",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "disown",
+            "echo",
+            "enable",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "fc",
+            "fg",
+            "getopts",
+            "hash",
+            "help",
+            "history",
+            "jobs",
+            "kill",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "suspend",
+            "test",
+            "times",
+            "trap",
+            "true",
+            "type",
+            "typeset",
+            "ulimit",
+            "umask",
+            "unalias",
+            "unset",
+            "wait"
+          ],
+          "kernel": [
+            ".",
+            ":",
+            "[",
+            "break",
+            "builtin",
+            "cd",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "declare",
+            "dirs",
+            "eval",
+            "exec",
+            "exit",
+            "export",
+            "false",
+            "getopts",
+            "hash",
+            "help",
+            "let",
+            "local",
+            "mapfile",
+            "popd",
+            "pushd",
+            "read",
+            "readarray",
+            "readonly",
+            "return",
+            "set",
+            "shift",
+            "shopt",
+            "source",
+            "test",
+            "true",
+            "type",
+            "typeset",
+            "unset",
+            "wait"
+          ],
+          "union": [
+            ".",
+            ":",
+            "[",
+            "alias",
+            "awk",
+            "base64",
+            "basename",
+            "bash",
+            "break",
+            "builtin",
+            "cat",
+            "cd",
+            "chmod",
+            "clear",
+            "column",
+            "comm",
+            "command",
+            "compgen",
+            "complete",
+            "compopt",
+            "continue",
+            "cp",
+            "cut",
+            "date",
+            "declare",
+            "diff",
+            "dirname",
+            "dirs",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "eval",
+            "exec",
+            "exit",
+            "expand",
+            "export",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "getopts",
+            "grep",
+            "gunzip",
+            "gzip",
+            "hash",
+            "head",
+            "help",
+            "history",
+            "hostname",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "let",
+            "ln",
+            "local",
+            "ls",
+            "mapfile",
+            "md5sum",
+            "mkdir",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "popd",
+            "printenv",
+            "printf",
+            "pushd",
+            "pwd",
+            "read",
+            "readarray",
+            "readlink",
+            "readonly",
+            "return",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "set",
+            "sh",
+            "sha1sum",
+            "sha256sum",
+            "shift",
+            "shopt",
+            "sleep",
+            "sort",
+            "source",
+            "split",
+            "sqlite3",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "time",
+            "timeout",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "type",
+            "typeset",
+            "unalias",
+            "unexpand",
+            "uniq",
+            "unset",
+            "wait",
+            "wc",
+            "which",
+            "whoami",
+            "xan",
+            "xargs",
+            "yq",
+            "zcat"
+          ],
+          "optional": {
+            "network": [
+              "curl"
+            ],
+            "python": [
+              "python3",
+              "python"
+            ],
+            "javascript": [
+              "js-exec",
+              "node"
+            ]
+          }
+        },
+        "before": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 4
+        },
+        "result": {
+          "exitCode": 0,
+          "stdout": "\u0000ÿ",
+          "stderr": "é",
+          "stdoutKind": null,
+          "stdoutEncoding": null,
+          "stdoutBase64": "AH+A/w==",
+          "stderrBase64": "w6k=",
+          "stdoutBoundary": "public stdoutAsBytes ByteString encoded Latin-1; not inferred from text",
+          "stderrBoundary": "derived UTF-8 of public stderr string; no raw byte API"
+        },
+        "after": {
+          "entries": [
+            {
+              "path": "/",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/fixture/input",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 384,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 384,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/fixture/output",
+              "type": "file",
+              "rawMetadata": {
+                "type": "file",
+                "mode": 420,
+                "size": 4,
+                "isDirectory": false,
+                "isFile": true,
+                "isSymbolicLink": false
+              },
+              "mode": 420,
+              "size": 4,
+              "base64": "AH+A/w=="
+            },
+            {
+              "path": "/home",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/home/user",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            },
+            {
+              "path": "/tmp",
+              "type": "directory",
+              "rawMetadata": {
+                "type": "directory",
+                "mode": 493,
+                "size": 0,
+                "isDirectory": true,
+                "isFile": false,
+                "isSymbolicLink": false
+              },
+              "mode": 493,
+              "size": 0
+            }
+          ],
+          "errors": [],
+          "complete": true,
+          "bytes": 8
+        },
+        "cleanup": {
+          "disposed": false,
+          "baselineDisposeAPI": false,
+          "completion": "returned"
+        }
+      }
+    }
+  ]
+}

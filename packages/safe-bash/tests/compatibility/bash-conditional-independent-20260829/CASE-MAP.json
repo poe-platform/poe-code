@@ -1,0 +1,630 @@
+[
+  {
+    "id": "C01",
+    "kind": "original-literal",
+    "programSha256": "876d7bc3d63267c92413632edf1875bf51f84e82d5aa0f2d18c6cb0cfd73a92a",
+    "role": "scalar-empty",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C02",
+    "kind": "original-literal",
+    "programSha256": "c571d6c9d0522d207735f473e74de8337815fb34c4f73af071cebc6eb754f02c",
+    "role": "scalar-nonempty",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C03",
+    "kind": "original-literal",
+    "programSha256": "4373ee7a851b599ee5d6d4a6fb91345d32ff9c83f817e74d6bd12adcb58704d0",
+    "role": "no-IFS-splitting",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C04",
+    "kind": "original-literal",
+    "programSha256": "24c593923e666afe78392f4494ad733a0dd0ca04ee309f77b5bfbf5305c1e4dc",
+    "role": "no-pathname-expansion",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C05",
+    "kind": "original-literal",
+    "programSha256": "065c022489c935778b2daeb759c6b47a455893de77cb7983be05da8f68cb49db",
+    "role": "quoted-operator-and-unary-arity",
+    "originalQualification": "arity-native-unresolved",
+    "reviewLane": "OPEN-POLICY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C06",
+    "kind": "original-literal",
+    "programSha256": "a8d1eb51d7c77f7511094c140ba09a86eb1e8dc9374d42c696cbebacd575a338",
+    "role": "quoted-closing-token",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C07",
+    "kind": "original-literal",
+    "programSha256": "f88ffa66d8caace90da92fd18862c4bb84bd3fa09527949548729a22a5ac3518",
+    "role": "basic-pattern",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C08",
+    "kind": "original-literal",
+    "programSha256": "661508ff9df46dd8bef15f8d9dfc76d90bae89eb694bed3284ff9c007418c207",
+    "role": "quoted-pattern",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C09",
+    "kind": "original-literal",
+    "programSha256": "2386a2aac10e58a52ee17c46fa0caa47cfdc59e1ded8f4b11b087f4d3a6add95",
+    "role": "mixed-pattern",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C10",
+    "kind": "original-literal",
+    "programSha256": "0effd63fd3ecb7039ff64bfbed997b57569a0909f6ffde93137bfc14fb1e0bec",
+    "role": "variable-pattern",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C11",
+    "kind": "original-literal",
+    "programSha256": "51c1af0eabcd476c6b3ee7f913c5d2e82955fbf6deb613905ed4a6156e406ff3",
+    "role": "negated-pattern-and-equals",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C12",
+    "kind": "original-literal",
+    "programSha256": "a6a17ec5fdfc4d84721835de244e9cb44d3cc23e21e8c2263c57826083a9ff07",
+    "role": "backslash-literal",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C13",
+    "kind": "original-literal",
+    "programSha256": "8efcb69d86ddc18dbf529ca6d6ceb03567a77ba4025fdb226e890c613d5e1fbd",
+    "role": "brackets",
+    "originalQualification": "C-profile-ratification",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C14",
+    "kind": "original-literal",
+    "programSha256": "08283f4641d9964349d74b91630f60367fada19f33d57fde5eeff55d2465724d",
+    "role": "extglob",
+    "originalQualification": "held-extglob",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C15",
+    "kind": "original-literal",
+    "programSha256": "57d9629f2e17d3eee2f00e7e76326d8b0c0a4e360a5858d121b9a2ea7394ed82",
+    "role": "and-skips-substitution",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C16",
+    "kind": "original-literal",
+    "programSha256": "003570b9bf308ba2c7817e1aa6e7cb7888dddab3964620e2a99e35354f770b90",
+    "role": "or-skips-nounset",
+    "originalQualification": "provisional-unit2",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C17",
+    "kind": "original-literal",
+    "programSha256": "6c9463c855fa497563038592a3f8417afa6831f68c3eb246814036ce8d46f7e3",
+    "role": "precedence",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C18",
+    "kind": "original-literal",
+    "programSha256": "1094dbb869c998511eb7c4ab3d44d8abf5ef81c2b4b6ef4fa4bc37b8533bbdbe",
+    "role": "parentheses-negation",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C19",
+    "kind": "original-literal",
+    "programSha256": "c94908c50eb54aa6a75caef581ae580e81083a05bc3758d8dae5a44ad9bb9c28",
+    "role": "expanded-operator-is-data",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C20",
+    "kind": "original-literal",
+    "programSha256": "4d60070d6cdd1ebf3a19e5b70acd75e7413887e2489bd5f7c450b1e7654e5409",
+    "role": "substitution-once",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C21",
+    "kind": "original-literal",
+    "programSha256": "90961ee4308e869efa0bbd85e9376c78a705de14f6cdc75689ff958794b1f40a",
+    "role": "file-directory",
+    "originalQualification": "VFS-profile",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C22",
+    "kind": "original-literal",
+    "programSha256": "af41fd01e93a04f9799251859c896c0f38ddd6544dfbc379469be69e877a7734",
+    "role": "dangling-symlink",
+    "originalQualification": "VFS-profile",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C23",
+    "kind": "original-literal",
+    "programSha256": "4226fbb9f555463dd04b180da0e4b2b45264801b884e9d063709a90dc6ea51ff",
+    "role": "size-access",
+    "originalQualification": "adapter-access-qualified",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C24",
+    "kind": "original-literal",
+    "programSha256": "b50978a289f56fb2b37073d42c3b07bf690d855f2e9ebe1557f757c7e8d17177",
+    "role": "timestamps",
+    "originalQualification": "held-timestamps",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C25",
+    "kind": "original-literal",
+    "programSha256": "4eef0c32922aab1653d5e02b0d2a4cce4d9ed00bee4418cf581c28c3f74f543c",
+    "role": "presence-unset-empty",
+    "originalQualification": "presence-ratification",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C26",
+    "kind": "original-literal",
+    "programSha256": "fe6ee126e752b933bab4989fac5cd3582baf5762cb3f074daef61ee2a68d01e0",
+    "role": "sparse-presence",
+    "originalQualification": "array-selector-ratification",
+    "reviewLane": "OPEN-POLICY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C27",
+    "kind": "original-literal",
+    "programSha256": "f1270a064e6a1bbe3c962b5daaabc7b0bfb489373534c0e71bf12d0dabcc2c97",
+    "role": "option-query",
+    "originalQualification": "provisional-unit2",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C28",
+    "kind": "original-literal",
+    "programSha256": "24c237ab8a2bebba29ed57b12dabbc9a469922bbf6156c23ae35fed90e9de42d",
+    "role": "C-order",
+    "originalQualification": "C-profile-ratification",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C29",
+    "kind": "original-literal",
+    "programSha256": "661fa6a3b67715d18eb0a1286cd73d44bda45cf8c4ae1626e0439b0e0d9fa0ae",
+    "role": "numeric-octal",
+    "originalQualification": "numeric-literal-ratification",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C30",
+    "kind": "original-literal",
+    "programSha256": "2b37d15dd0a26c94a43fe5605a690b30a95168f929f9d0f9f364a1443f5feec4",
+    "role": "numeric-empty",
+    "originalQualification": "numeric-literal-ratification",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C31",
+    "kind": "original-literal",
+    "programSha256": "e2f7e27410a25ae8f89f315541d721147be0953dc237d31948774d9b30fafa45",
+    "role": "numeric-expression",
+    "originalQualification": "held-arithmetic",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C32",
+    "kind": "original-literal",
+    "programSha256": "ccd0444dcd6f0261fd0fd81faa8d227a8ed968f405cdd475d07a67bf62817027",
+    "role": "arithmetic-nounset",
+    "originalQualification": "held-arithmetic-nounset",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C33",
+    "kind": "original-literal",
+    "programSha256": "161ee3a078a652909cb69dd4187298926146402532c049bb426b8d5ee887f8ea",
+    "role": "ERE-and-captures",
+    "originalQualification": "held-ERE",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C34",
+    "kind": "original-literal",
+    "programSha256": "6e1ebf83c5993404cbfe0216fc01e19457b607d9c0ce16ebed8ce3f5e3fff020",
+    "role": "quoted-ERE",
+    "originalQualification": "held-ERE",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C35",
+    "kind": "original-literal",
+    "programSha256": "7270d64e7a83e04c40184a8f6b63568dc5890a60680ac761d830f2b2a939b8eb",
+    "role": "invalid-ERE",
+    "originalQualification": "held-ERE",
+    "reviewLane": "ROOT-PROFILE-REFUSAL-NOT-NATIVE-PARITY",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C36",
+    "kind": "original-literal",
+    "programSha256": "5f9a7fac3eef478eaaf5c15bc481102423d543d0fa3f23b0cda1571b1d48a0c2",
+    "role": "false-redirect-effect",
+    "originalQualification": "proposed-core",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C37",
+    "kind": "original-literal",
+    "programSha256": "f790bc964d1bad8ce15403387d9d6a9031bf8b5a8522f802aaaa2b77ee7bf179",
+    "role": "compound-function-and-pipeline",
+    "originalQualification": "accepted-unit1-composition",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C38",
+    "kind": "original-literal",
+    "programSha256": "9bde73c171a8d1d1d66be9e323c7fda037940df7539f7bc897c4d530396eeba1",
+    "role": "errexit-condition-exception",
+    "originalQualification": "existing-errexit-composition",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C39",
+    "kind": "original-literal",
+    "programSha256": "4e70d67534383dbee59a946b111661d70d1a2f09ed6cfe698dfa3e17a53a63ac",
+    "role": "errexit-standalone",
+    "originalQualification": "existing-errexit-composition",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "C40",
+    "kind": "original-literal",
+    "programSha256": "de8cabd68dce23903d4bfa8e193bce02b941225797472b7b6b64bb1355796f58",
+    "role": "missing-close",
+    "originalQualification": "syntax-native-status-unresolved",
+    "reviewLane": "ROOT-PROFILE-OBSERVATION",
+    "result": "UNRUN",
+    "nativeExpected": null,
+    "originalProductExpected": null
+  },
+  {
+    "id": "H01",
+    "kind": "host-protocol",
+    "role": "Caller already aborted before metadata",
+    "obligation": "Exact caller reason; no metadata acquisition.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H02",
+    "kind": "host-protocol",
+    "role": "Abort during cooperative metadata",
+    "obligation": "Await owned cleanup; distinguish unrelated provider rejection from caller abort.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H03",
+    "kind": "host-protocol",
+    "role": "Unvisited operand traps",
+    "obligation": "Counter/throwing FS and substitution handlers never entered by skipped branches.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H04",
+    "kind": "host-protocol",
+    "role": "Expansion/node/pattern admission boundaries",
+    "obligation": "Before-growth admission, shared visited-leaf counters, bounded zero/limit/over-limit neighbors.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H05",
+    "kind": "host-protocol",
+    "role": "Sink and diagnostic failure",
+    "obligation": "Raw sink rejection and budget failure preserve existing priorities; no false-predicate recast.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H06",
+    "kind": "host-protocol",
+    "role": "Redirect aliases and failures",
+    "obligation": "False condition still creates/truncates; same writer close once; failure cleanup awaited.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H07",
+    "kind": "host-protocol",
+    "role": "No registry dependency",
+    "obligation": "No test/[ plugin and deliberately shadowed names do not change [[ grammar/evaluation.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H08",
+    "kind": "host-protocol",
+    "role": "Quote/AST/source ownership",
+    "obligation": "Quote fragments survive parse/display; single substitution; no live-source fallback or mutation.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H09",
+    "kind": "host-protocol",
+    "role": "Unsupported regex and sibling isolation",
+    "obligation": "Initial refusal acquires zero workers and does not publish BASH_REMATCH; no sibling cancellation.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "H10",
+    "kind": "host-protocol",
+    "role": "Logical boundary unwind",
+    "obligation": "Visited nounset/control failures unwind functions/source correctly; isolated stage/subshell boundaries retain existing behavior.",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N01",
+    "kind": "independent-novel",
+    "programSha256": "68cd8ae5d01d030b778677bc9ca112c6905efd20e4e648e34c72227227b7d6a4",
+    "role": "mixed quote fragments and single substitution",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N02",
+    "kind": "independent-novel",
+    "programSha256": "e773eee2b2f894b3172653a98513d132a990af7a3ac7c97b85f49830f800a2c7",
+    "role": "expanded operator/closing token remain data",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N03",
+    "kind": "independent-novel",
+    "programSha256": "f96987b1b98b5d45592515d4ca0611c7c6eae75f72a919991e6650dbc4c0adbf",
+    "role": "malformed skipped grammar before effects",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N04",
+    "kind": "independent-novel",
+    "programSha256": "7ec82bff11c719c56799c7a97641e554daaf663371025b8c52e3dc38a2bf250e",
+    "role": "quoted unsupported-looking pattern data",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N05",
+    "kind": "independent-novel",
+    "programSha256": "2178d42ed3df5634fe7e01890d1e3a6bde169ef11f7c23fc57a170cdb735898d",
+    "role": "unvisited valid unsupported RHS with effects",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N06",
+    "kind": "independent-novel",
+    "programSha256": "815323d2ab7c5e81d270685e022181b7aedb7170a8a84eb8adfb39dd2b0c56b1",
+    "role": "reached expanded extglob refuses",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N07",
+    "kind": "independent-novel",
+    "programSha256": "fc381a72fdb7dde28f8257aa2d02b0de5758a3bc2cd56682ee2ef8a79875bf24",
+    "role": "literal numeric/base/empty and expanded positional count",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N08",
+    "kind": "independent-novel",
+    "programSha256": "841336464e680bc95139a219a5a2107c1842aa5c8ca1641c696164bbd80ca803",
+    "role": "expanded assignment-like numeric text cannot write",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N09",
+    "kind": "independent-novel",
+    "programSha256": "4b16b923f81355f1f3e0864cd9a8e012c7f36f835a87a043e2ffc527966ffb66",
+    "role": "reached regex refusal retains array capture state",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N10",
+    "kind": "independent-novel",
+    "programSha256": "8755db7742d35e323da7eabc8b7c7f9d6ac82e154d59e1af54d855b5c54b1843",
+    "role": "skipped nounset and compound redirect effects",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N11",
+    "kind": "independent-novel",
+    "programSha256": "a455254a11d0f2520eb788054011f9b0b12445a6db086d404451cf459dac7307",
+    "role": "visited nounset under already admitted redirect",
+    "reviewLane": "HELD-Q02",
+    "result": "UNRUN",
+    "nativeExpected": null
+  },
+  {
+    "id": "N12",
+    "kind": "independent-novel",
+    "programSha256": "8d6817895eb7f877863f196a282a87ad37cf2b4baeba17734d784b653042398a",
+    "role": "canonical sparse/empty/scalar presence only",
+    "reviewLane": "ROOT-PROFILE",
+    "result": "UNRUN",
+    "nativeExpected": null
+  }
+]

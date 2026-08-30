@@ -1,0 +1,69 @@
+{
+  "accessDate": "2026-08-27",
+  "majorSourceCount": 5,
+  "retrieval": "Live web.run searches/open/find plus exact primary-origin HTTPS fetches; bodies hashed in memory, not vendored.",
+  "webLimitation": "Issue 8 direct web opens returned no text; exact primary publisher HTTPS response succeeded. No older edition substituted.",
+  "sourceBodiesStored": false,
+  "sources": [
+    {
+      "id": "N8",
+      "url": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html",
+      "finalUrl": "https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap09.html",
+      "status": 200,
+      "accessDate": "2026-08-27",
+      "retrievedAt": "2026-08-27T22:04:14.090Z",
+      "bytes": 60438,
+      "sha256": "2f5f60e9fe2954fe09dc0991f5c03b7c1de771b0ae2104e4a8a5745187c64e24",
+      "authority": "POSIX.1-2024 Issue 8 normative",
+      "locator": "XBD 9.1, 9.3.6, 9.3.7"
+    },
+    {
+      "id": "H43",
+      "url": "https://www.open-std.org/jtc1/sc22/wg15/docs/rr/9945-2/9945-2-43.html",
+      "finalUrl": "https://www.open-std.org/jtc1/sc22/wg15/docs/rr/9945-2/9945-2-43.html",
+      "status": 200,
+      "accessDate": "2026-08-27",
+      "retrievedAt": "2026-08-27T22:04:14.691Z",
+      "bytes": 8236,
+      "sha256": "8ac5b881b1446f5fc01568583d273fef59d1a1b7aa5e7beae12601ada2242ad5",
+      "authority": "Historical WG15 interpretation of 9945-2:1993",
+      "locator": "Response Q12 and Parts 14/15; finalized 1995-09-12"
+    },
+    {
+      "id": "H135",
+      "url": "https://www.open-std.org/JTC1/SC22/WG15/docs/rr/9945-2/9945-2-135.html",
+      "finalUrl": "https://www.open-std.org/JTC1/SC22/WG15/docs/rr/9945-2/9945-2-135.html",
+      "status": 200,
+      "accessDate": "2026-08-27",
+      "retrievedAt": "2026-08-27T22:04:14.596Z",
+      "bytes": 14892,
+      "sha256": "184ab35ca3ba4d84752f42adb9fb666c09e2b9e5f04a2ae7776d091115d2ebfe",
+      "authority": "Historical WG15 interpretation of 9945-2:1993",
+      "locator": "Final interpretation response; finalized 1995-11-20"
+    },
+    {
+      "id": "T17",
+      "url": "https://re2c.org/2017_trofimovich_tagged_deterministic_finite_automata_with_lookahead.pdf",
+      "finalUrl": "https://re2c.org/2017_trofimovich_tagged_deterministic_finite_automata_with_lookahead.pdf",
+      "status": 200,
+      "accessDate": "2026-08-27",
+      "retrievedAt": "2026-08-27T22:04:14.408Z",
+      "bytes": 835629,
+      "sha256": "3fef7739cd2e9b3f49f8c0226a9197ad800334f989d278b636393735ba81ad5a",
+      "authority": "Original-author backreference-free tagged-automata research",
+      "locator": "Definition 24 physical PDF p7; section 5 pp10-15; lemmas 2-4 pp13-14"
+    },
+    {
+      "id": "BT19",
+      "url": "https://re2c.org/2019_borsotti_trofimovich_efficient_posix_submatch_extraction_on_nfa.pdf",
+      "finalUrl": "https://re2c.org/2019_borsotti_trofimovich_efficient_posix_submatch_extraction_on_nfa.pdf",
+      "status": 200,
+      "accessDate": "2026-08-27",
+      "retrievedAt": "2026-08-27T22:04:14.390Z",
+      "bytes": 464417,
+      "sha256": "15d0d7d581d2597a751da749c9fa0d40a688c926d745adf0fb711eac972399bf",
+      "authority": "Original-authors backreference-free indexed-tree/TNFA research",
+      "locator": "Definition 5 physical PDF p6; section 4 lemmas 2-4 p13; appendix pp32-33"
+    }
+  ]
+}

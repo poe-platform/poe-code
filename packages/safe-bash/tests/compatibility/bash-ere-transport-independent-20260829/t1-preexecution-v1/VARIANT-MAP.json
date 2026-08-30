@@ -1,0 +1,1201 @@
+{
+  "families": 32,
+  "identities": 60,
+  "eligible": [
+    {
+      "id": "P01/matched-vector",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P04/undefined",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P04/null",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P04/false",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P04/0",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P05/getter",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "P05/proxy",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "P05/extra-symbol",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "P06/hole",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L01/register-throws",
+      "method": "NO_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "method": "NO_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "method": "INSTRUMENTED_PARENT",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "B03/zero",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "B03/exact-boundary",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "B03/one-over",
+      "method": "PURE",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 0
+    },
+    {
+      "id": "B04/crash-unproved",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "A02/source-built",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "built"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "A02/installed",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "installed"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "A02/physical-move",
+      "method": "REAL_WORKER",
+      "layouts": [
+        "moved"
+      ],
+      "Workers": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "method": "INSTRUMENTED_CHILD_LOAD",
+      "layouts": [
+        "built",
+        "installed",
+        "moved"
+      ],
+      "Workers": 1
+    }
+  ],
+  "deferred": [
+    {
+      "id": "L07/messageerror",
+      "reason": "No source-bound genuine native deserialization-failure trigger; emit(messageerror) would be synthetic, not the frozen real route."
+    },
+    {
+      "id": "B01/root-descendants",
+      "reason": "Needs accepted Shell descendant integration; private root stand-in cannot satisfy original role."
+    },
+    {
+      "id": "B02/fresh-independent-exec",
+      "reason": "Needs public Shell.exec independent-root mapping."
+    },
+    {
+      "id": "B07/capture-byte-overflow",
+      "reason": "Needs actual shell capture publication/Budget integration."
+    },
+    {
+      "id": "B07/capture-slot-overflow",
+      "reason": "Needs actual shell capture publication/Budget integration."
+    },
+    {
+      "id": "C01/readonly-capture-target",
+      "reason": "Needs readonly shell capture publication."
+    },
+    {
+      "id": "C02/public-expansion-limit",
+      "reason": "Needs shared public Budget/sink boundary."
+    },
+    {
+      "id": "C02/public-output-limit",
+      "reason": "Needs shared public Budget/sink boundary."
+    },
+    {
+      "id": "C02/sink-raw-false",
+      "reason": "Needs shared public Budget/sink boundary."
+    },
+    {
+      "id": "C03/short-circuited-regex",
+      "reason": "Needs conditional runtime short-circuit."
+    },
+    {
+      "id": "A01/expr-contract-pins",
+      "reason": "Needs accepted legacy Expr contract inputs/authorization; do not substitute private types."
+    },
+    {
+      "id": "A04/positive-new-method",
+      "reason": "Type-consumer obligations need a separate exact consumer/legacy declaration preseal; strict12 build is not their replay."
+    },
+    {
+      "id": "A04/negative-old-union",
+      "reason": "Type-consumer obligations need a separate exact consumer/legacy declaration preseal; strict12 build is not their replay."
+    }
+  ],
+  "cells": [
+    {
+      "id": "P01/matched-vector",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P01/matched-vector",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P01/matched-vector",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P02/empty-versus-absent",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P03/no-match-two-groups",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P04/undefined",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P04/undefined",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P04/undefined",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P04/null",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P04/null",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P04/null",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P04/false",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P04/false",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P04/false",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P04/0",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P04/0",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P04/0",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P04/empty-string",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P05/getter",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "P05/getter",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "P05/getter",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "P05/proxy",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "P05/proxy",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "P05/proxy",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "P05/extra-symbol",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "P05/extra-symbol",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "P05/extra-symbol",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "P06/hole",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P06/hole",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P06/hole",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P06/wrong-count",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P06/outside-overall",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P07/over-grant",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P07/noninteger",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P07/duplicate-counter-mismatch",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P08/syntax-usage",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P08/unsupported-usage",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P08/profile-limit-usage",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P09/duplicate",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P09/stale-id",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "P09/wrong-operation",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L01/register-throws",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "L01/register-throws",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "L01/register-throws",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "L01/closed-before-activation",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L02/handler-setup-throws",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L02/postMessage-throws",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L03/queued-abort-false",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L04/active-abort-zero",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L05/reply-then-parent-abort",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L06/startup-timeout",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L06/request-timeout",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L07/worker-error",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L07/unexpected-exit",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L08/termination-rejects-undefined",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "L09/instrumented-publication-rejects",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "B03/zero",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "B03/zero",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "B03/zero",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "B03/exact-boundary",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "B03/exact-boundary",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "B03/exact-boundary",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "B03/one-over",
+      "layout": "built",
+      "Workers": 0
+    },
+    {
+      "id": "B03/one-over",
+      "layout": "installed",
+      "Workers": 0
+    },
+    {
+      "id": "B03/one-over",
+      "layout": "moved",
+      "Workers": 0
+    },
+    {
+      "id": "B04/crash-unproved",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "B04/crash-unproved",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "B04/crash-unproved",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "B04/malformed-unproved",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "B05/failed-syntax-then-job",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "B06/input-mutation-after-admission",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "A02/source-built",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "A02/installed",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "A02/physical-move",
+      "layout": "moved",
+      "Workers": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "layout": "built",
+      "Workers": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "layout": "installed",
+      "Workers": 1
+    },
+    {
+      "id": "A03/workerData-env-execArgv",
+      "layout": "moved",
+      "Workers": 1
+    }
+  ]
+}

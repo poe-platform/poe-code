@@ -1,0 +1,18 @@
+
+import type { ExprMatchDescriptor, ExprMatchResult } from "../../../../src/commands/regex-execution/protocol.js";
+declare const exprDescriptor: ExprMatchDescriptor;
+declare const regexDescriptor: Descriptor;
+declare const unionDescriptor: Descriptor | ExprMatchDescriptor;
+declare const probeRows: readonly Row[];
+declare const probeSignal: AbortSignal;
+const probeExecutor = new RegexExecutor();
+const regexResult: Promise<Match[][]> = probeExecutor.request(regexDescriptor, probeRows, probeSignal);
+const exprResult: Promise<ExprMatchResult> = probeExecutor.request(exprDescriptor, probeRows, probeSignal);
+if (unionDescriptor.kind === "expr-match") {
+  const result: Promise<ExprMatchResult> = probeExecutor.request(unionDescriptor, probeRows, probeSignal);
+  const bytes: Uint8Array = unionDescriptor.pattern;
+} else {
+  const result: Promise<Match[][]> = probeExecutor.request(unionDescriptor, probeRows, probeSignal);
+  const patterns: readonly string[] = unionDescriptor.patterns;
+  inputBytes(unionDescriptor, probeRows, probeSignal);
+}

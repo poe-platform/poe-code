@@ -1,0 +1,14 @@
+{
+  "name": "negative-missing-installed-du",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/verify-refined-v2.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/.scratch/candidate-capture-a4yR17/negative-missing-du/consumer/node_modules/virtual-bash"
+  ],
+  "status": 1,
+  "signal": null,
+  "stdoutBytes": 0,
+  "stderrBytes": 1521,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "3d3a46041c341be7a4925c955d1b465e44178792b12c59ae5e37a8374fc9b674"
+}

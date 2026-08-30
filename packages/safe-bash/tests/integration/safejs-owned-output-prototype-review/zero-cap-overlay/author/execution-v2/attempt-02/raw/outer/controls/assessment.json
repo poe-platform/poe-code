@@ -1,0 +1,1712 @@
+{
+  "at": "2026-08-27T19:00:50.965235+00:00",
+  "cohort": "controls",
+  "role": "AUTHOR_ONLY_NOT_INDEPENDENT_ACCEPTANCE",
+  "status": "PASS",
+  "inputOrFixtureBindingBlocker": false,
+  "gatesClean": true,
+  "counts": {
+    "total": 6,
+    "launched": 6,
+    "engineRuns": 6,
+    "pass": 6,
+    "failed": 0,
+    "blocked": 0,
+    "invalid": 0,
+    "unproved": 0
+  },
+  "rows": [
+    {
+      "id": "Z01-open",
+      "classification": "PASS",
+      "rawClassification": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "checks": [
+        {
+          "name": "all unchanged child assertions passed",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "public classification and exact bytes",
+          "pass": true
+        },
+        {
+          "name": "exact public exitCode",
+          "pass": true
+        },
+        {
+          "name": "cooperative cleanup before settlement",
+          "pass": true
+        },
+        {
+          "name": "no runtime containment/unhandled/timer leak",
+          "pass": true
+        },
+        {
+          "name": "exactly one auth and transport, no replay",
+          "pass": true
+        },
+        {
+          "name": "authorized initial PUT only",
+          "pass": true
+        },
+        {
+          "name": "upload before EOF, retained reused bytes",
+          "pass": true
+        },
+        {
+          "name": "stdout closure cannot cancel required transfer",
+          "pass": true
+        },
+        {
+          "name": "exact body/header bytes",
+          "pass": true
+        },
+        {
+          "name": "exactly one response and transport cleanup",
+          "pass": true
+        },
+        {
+          "name": "journal before acquisition and cleanup before nested/public settlement",
+          "pass": true
+        },
+        {
+          "name": "exact finite zero-policy consumption counters",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 224,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "kind": "result",
+        "result": {
+          "exitCode": 0,
+          "stdout": "200|0|0|6|12|0\ncurl:0\n",
+          "stderr": "independent-stderr\n"
+        },
+        "stdoutHex": "3230307c307c307c367c31327c300a6375726c3a300a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "critical": {
+        "network": {
+          "authorizationJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseDisposeCalls": 1,
+          "authorizationCallsForRetry": 0,
+          "authorizationCallsWithRedirectFrom": 0,
+          "additionalTransportEntries": 0
+        },
+        "positions": {
+          "authorization-entry": [
+            {
+              "order": 11,
+              "event": "authorization-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false
+            }
+          ],
+          "transport-entry": [
+            {
+              "order": 14,
+              "event": "transport-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false
+            }
+          ],
+          "transport-cleanup-registered": [
+            {
+              "order": 16,
+              "event": "transport-cleanup-registered",
+              "publicSettled": false
+            }
+          ],
+          "transport-upload-received": [
+            {
+              "order": 18,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "41300a"
+            },
+            {
+              "order": 19,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "42310a"
+            }
+          ],
+          "transport-response-created": [
+            {
+              "order": 21,
+              "event": "transport-response-created",
+              "publicSettled": false,
+              "status": 200,
+              "statusText": "OK",
+              "httpVersion": "1.1",
+              "headers": [
+                [
+                  "Content-Type",
+                  "application/octet-stream"
+                ],
+                [
+                  "Content-Length",
+                  "12"
+                ]
+              ],
+              "signalAborted": false
+            }
+          ],
+          "response-disposed": [
+            {
+              "order": 23,
+              "event": "response-disposed",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "transport-cleanup-done": [
+            {
+              "order": 22,
+              "event": "transport-cleanup-done",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "curl-invoke-settled": [
+            {
+              "order": 25,
+              "event": "curl-invoke-settled",
+              "publicSettled": false,
+              "status": 0,
+              "transportClosed": true,
+              "responseDisposed": true
+            }
+          ],
+          "public-exec-settled": [
+            {
+              "order": 45,
+              "event": "public-exec-settled",
+              "publicSettled": true
+            }
+          ]
+        },
+        "atSettlement": {
+          "acquisitions": 1,
+          "releases": 1,
+          "cleanupDone": true,
+          "bridgePending": 0,
+          "cleanupErrorObserved": false,
+          "lateWriteErrorObserved": false,
+          "innerDisposed": true,
+          "callerIdentity": false,
+          "executionIdentity": false,
+          "cleanupIdentity": false,
+          "callerAborted": false,
+          "ordinaryDestinationWriteCalls": 0,
+          "accountedWriteCalls": 2,
+          "holdEntries": 0,
+          "lateEntries": 0,
+          "holdReleased": false,
+          "leftReleases": 0,
+          "rightReleases": 0,
+          "lateAcquisitionStarts": 0,
+          "lateChildCreations": 0,
+          "rightEffect": "",
+          "curlStatus": 0,
+          "curlWriteoutCalls": 1,
+          "transportAbortedByConsumer": false,
+          "transportClosed": true,
+          "responseDisposed": true,
+          "uploadBeforeEof": true,
+          "uploadEof": true,
+          "authorizeCalls": 1,
+          "transportCleanupRegistered": true
+        },
+        "zeroPolicy": {
+          "responseBodyStarts": 1,
+          "responseBodyChunks": 2,
+          "uploadSourceStarts": 1,
+          "timerRequests": [
+            {
+              "operation": "setTimeout",
+              "delay": 7000
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 3500
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 2500
+            }
+          ]
+        },
+        "files": {
+          "/work/late.txt": {
+            "code": "ENOENT"
+          },
+          "/work/body.bin": {
+            "hex": "626f6479300a626f6479310a"
+          },
+          "/work/headers.txt": {
+            "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6f637465742d73747265616d0d0a436f6e74656e742d4c656e6774683a2031320d0a0d0a"
+          }
+        }
+      },
+      "fatal": null
+    },
+    {
+      "id": "Z01-closed",
+      "classification": "PASS",
+      "rawClassification": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "checks": [
+        {
+          "name": "all unchanged child assertions passed",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "public classification and exact bytes",
+          "pass": true
+        },
+        {
+          "name": "exact public exitCode",
+          "pass": true
+        },
+        {
+          "name": "cooperative cleanup before settlement",
+          "pass": true
+        },
+        {
+          "name": "no runtime containment/unhandled/timer leak",
+          "pass": true
+        },
+        {
+          "name": "exactly one auth and transport, no replay",
+          "pass": true
+        },
+        {
+          "name": "authorized initial PUT only",
+          "pass": true
+        },
+        {
+          "name": "upload before EOF, retained reused bytes",
+          "pass": true
+        },
+        {
+          "name": "stdout closure cannot cancel required transfer",
+          "pass": true
+        },
+        {
+          "name": "exact body/header bytes",
+          "pass": true
+        },
+        {
+          "name": "exactly one response and transport cleanup",
+          "pass": true
+        },
+        {
+          "name": "journal before acquisition and cleanup before nested/public settlement",
+          "pass": true
+        },
+        {
+          "name": "exact finite zero-policy consumption counters",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 224,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "kind": "result",
+        "result": {
+          "exitCode": 141,
+          "stdout": "curl:141\n",
+          "stderr": "independent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a3134310a",
+        "stderrHex": "696e646570656e64656e742d7374646572720a"
+      },
+      "critical": {
+        "network": {
+          "authorizationJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseDisposeCalls": 1,
+          "authorizationCallsForRetry": 0,
+          "authorizationCallsWithRedirectFrom": 0,
+          "additionalTransportEntries": 0
+        },
+        "positions": {
+          "authorization-entry": [
+            {
+              "order": 11,
+              "event": "authorization-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false
+            }
+          ],
+          "transport-entry": [
+            {
+              "order": 14,
+              "event": "transport-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false
+            }
+          ],
+          "transport-cleanup-registered": [
+            {
+              "order": 16,
+              "event": "transport-cleanup-registered",
+              "publicSettled": false
+            }
+          ],
+          "transport-upload-received": [
+            {
+              "order": 18,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "41300a"
+            },
+            {
+              "order": 20,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "42310a"
+            }
+          ],
+          "transport-response-created": [
+            {
+              "order": 22,
+              "event": "transport-response-created",
+              "publicSettled": false,
+              "status": 200,
+              "statusText": "OK",
+              "httpVersion": "1.1",
+              "headers": [
+                [
+                  "Content-Type",
+                  "application/octet-stream"
+                ],
+                [
+                  "Content-Length",
+                  "12"
+                ]
+              ],
+              "signalAborted": false
+            }
+          ],
+          "response-disposed": [
+            {
+              "order": 24,
+              "event": "response-disposed",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "transport-cleanup-done": [
+            {
+              "order": 23,
+              "event": "transport-cleanup-done",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "curl-invoke-settled": [
+            {
+              "order": 25,
+              "event": "curl-invoke-settled",
+              "publicSettled": false,
+              "status": 141,
+              "transportClosed": true,
+              "responseDisposed": true
+            }
+          ],
+          "public-exec-settled": [
+            {
+              "order": 42,
+              "event": "public-exec-settled",
+              "publicSettled": true
+            }
+          ]
+        },
+        "atSettlement": {
+          "acquisitions": 1,
+          "releases": 1,
+          "cleanupDone": true,
+          "bridgePending": 0,
+          "cleanupErrorObserved": false,
+          "lateWriteErrorObserved": false,
+          "innerDisposed": true,
+          "callerIdentity": false,
+          "executionIdentity": false,
+          "cleanupIdentity": false,
+          "callerAborted": false,
+          "ordinaryDestinationWriteCalls": 0,
+          "accountedWriteCalls": 1,
+          "holdEntries": 0,
+          "lateEntries": 0,
+          "holdReleased": false,
+          "leftReleases": 0,
+          "rightReleases": 0,
+          "lateAcquisitionStarts": 0,
+          "lateChildCreations": 0,
+          "rightEffect": "",
+          "curlStatus": 141,
+          "curlWriteoutCalls": 0,
+          "transportAbortedByConsumer": false,
+          "transportClosed": true,
+          "responseDisposed": true,
+          "uploadBeforeEof": true,
+          "uploadEof": true,
+          "authorizeCalls": 1,
+          "transportCleanupRegistered": true
+        },
+        "zeroPolicy": {
+          "responseBodyStarts": 1,
+          "responseBodyChunks": 2,
+          "uploadSourceStarts": 1,
+          "timerRequests": [
+            {
+              "operation": "setTimeout",
+              "delay": 7000
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 3500
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 2500
+            }
+          ]
+        },
+        "files": {
+          "/work/late.txt": {
+            "code": "ENOENT"
+          },
+          "/work/body.bin": {
+            "hex": "626f6479300a626f6479310a"
+          },
+          "/work/headers.txt": {
+            "hex": "485454502f312e3120323030204f4b0d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6f637465742d73747265616d0d0a436f6e74656e742d4c656e6774683a2031320d0a0d0a"
+          }
+        }
+      },
+      "fatal": null
+    },
+    {
+      "id": "Z02-open",
+      "classification": "PASS",
+      "rawClassification": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "checks": [
+        {
+          "name": "all unchanged child assertions passed",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "public classification and exact bytes",
+          "pass": true
+        },
+        {
+          "name": "exact public exitCode",
+          "pass": true
+        },
+        {
+          "name": "cooperative cleanup before settlement",
+          "pass": true
+        },
+        {
+          "name": "no runtime containment/unhandled/timer leak",
+          "pass": true
+        },
+        {
+          "name": "exactly one auth and transport, no replay",
+          "pass": true
+        },
+        {
+          "name": "authorized initial PUT only",
+          "pass": true
+        },
+        {
+          "name": "upload before EOF, retained reused bytes",
+          "pass": true
+        },
+        {
+          "name": "stdout closure cannot cancel required transfer",
+          "pass": true
+        },
+        {
+          "name": "exact body/header bytes",
+          "pass": true
+        },
+        {
+          "name": "exactly one response and transport cleanup",
+          "pass": true
+        },
+        {
+          "name": "journal before acquisition and cleanup before nested/public settlement",
+          "pass": true
+        },
+        {
+          "name": "exact finite zero-policy consumption counters",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 224,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "kind": "result",
+        "result": {
+          "exitCode": 22,
+          "stdout": "503|0|0|6|0|22\ncurl:22\n",
+          "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n"
+        },
+        "stdoutHex": "3530337c307c307c367c307c32320a6375726c3a32320a",
+        "stderrHex": "6375726c3a2028323229204854545020726573706f6e736520737461747573203530330a696e646570656e64656e742d7374646572720a"
+      },
+      "critical": {
+        "network": {
+          "authorizationJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseDisposeCalls": 1,
+          "authorizationCallsForRetry": 0,
+          "authorizationCallsWithRedirectFrom": 0,
+          "additionalTransportEntries": 0
+        },
+        "positions": {
+          "authorization-entry": [
+            {
+              "order": 11,
+              "event": "authorization-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false
+            }
+          ],
+          "transport-entry": [
+            {
+              "order": 14,
+              "event": "transport-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false
+            }
+          ],
+          "transport-cleanup-registered": [
+            {
+              "order": 16,
+              "event": "transport-cleanup-registered",
+              "publicSettled": false
+            }
+          ],
+          "transport-upload-received": [
+            {
+              "order": 18,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "41300a"
+            },
+            {
+              "order": 19,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "42310a"
+            }
+          ],
+          "transport-response-created": [
+            {
+              "order": 21,
+              "event": "transport-response-created",
+              "publicSettled": false,
+              "status": 503,
+              "statusText": "Service Unavailable",
+              "httpVersion": "1.1",
+              "headers": [
+                [
+                  "Content-Type",
+                  "application/octet-stream"
+                ],
+                [
+                  "Content-Length",
+                  "12"
+                ],
+                [
+                  "Retry-After",
+                  "1"
+                ]
+              ],
+              "signalAborted": false
+            }
+          ],
+          "response-disposed": [
+            {
+              "order": 23,
+              "event": "response-disposed",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "transport-cleanup-done": [
+            {
+              "order": 22,
+              "event": "transport-cleanup-done",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "curl-invoke-settled": [
+            {
+              "order": 25,
+              "event": "curl-invoke-settled",
+              "publicSettled": false,
+              "status": 22,
+              "transportClosed": true,
+              "responseDisposed": true
+            }
+          ],
+          "public-exec-settled": [
+            {
+              "order": 45,
+              "event": "public-exec-settled",
+              "publicSettled": true
+            }
+          ]
+        },
+        "atSettlement": {
+          "acquisitions": 1,
+          "releases": 1,
+          "cleanupDone": true,
+          "bridgePending": 0,
+          "cleanupErrorObserved": false,
+          "lateWriteErrorObserved": false,
+          "innerDisposed": true,
+          "callerIdentity": false,
+          "executionIdentity": false,
+          "cleanupIdentity": false,
+          "callerAborted": false,
+          "ordinaryDestinationWriteCalls": 0,
+          "accountedWriteCalls": 2,
+          "holdEntries": 0,
+          "lateEntries": 0,
+          "holdReleased": false,
+          "leftReleases": 0,
+          "rightReleases": 0,
+          "lateAcquisitionStarts": 0,
+          "lateChildCreations": 0,
+          "rightEffect": "",
+          "curlStatus": 22,
+          "curlWriteoutCalls": 1,
+          "transportAbortedByConsumer": false,
+          "transportClosed": true,
+          "responseDisposed": true,
+          "uploadBeforeEof": true,
+          "uploadEof": true,
+          "authorizeCalls": 1,
+          "transportCleanupRegistered": true
+        },
+        "zeroPolicy": {
+          "responseBodyStarts": 0,
+          "responseBodyChunks": 0,
+          "uploadSourceStarts": 1,
+          "timerRequests": [
+            {
+              "operation": "setTimeout",
+              "delay": 7000
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 3500
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 2500
+            }
+          ]
+        },
+        "files": {
+          "/work/late.txt": {
+            "code": "ENOENT"
+          },
+          "/work/body.bin": {
+            "hex": "7a65726f2d626f64792d73656e74696e656c0a"
+          },
+          "/work/headers.txt": {
+            "hex": "485454502f312e3120353033205365727669636520556e617661696c61626c650d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6f637465742d73747265616d0d0a436f6e74656e742d4c656e6774683a2031320d0a52657472792d41667465723a20310d0a0d0a"
+          }
+        }
+      },
+      "fatal": null
+    },
+    {
+      "id": "Z02-closed",
+      "classification": "PASS",
+      "rawClassification": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "checks": [
+        {
+          "name": "all unchanged child assertions passed",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "public classification and exact bytes",
+          "pass": true
+        },
+        {
+          "name": "exact public exitCode",
+          "pass": true
+        },
+        {
+          "name": "cooperative cleanup before settlement",
+          "pass": true
+        },
+        {
+          "name": "no runtime containment/unhandled/timer leak",
+          "pass": true
+        },
+        {
+          "name": "exactly one auth and transport, no replay",
+          "pass": true
+        },
+        {
+          "name": "authorized initial PUT only",
+          "pass": true
+        },
+        {
+          "name": "upload before EOF, retained reused bytes",
+          "pass": true
+        },
+        {
+          "name": "stdout closure cannot cancel required transfer",
+          "pass": true
+        },
+        {
+          "name": "exact body/header bytes",
+          "pass": true
+        },
+        {
+          "name": "exactly one response and transport cleanup",
+          "pass": true
+        },
+        {
+          "name": "journal before acquisition and cleanup before nested/public settlement",
+          "pass": true
+        },
+        {
+          "name": "exact finite zero-policy consumption counters",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 224,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "kind": "result",
+        "result": {
+          "exitCode": 22,
+          "stdout": "curl:22\n",
+          "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a32320a",
+        "stderrHex": "6375726c3a2028323229204854545020726573706f6e736520737461747573203530330a696e646570656e64656e742d7374646572720a"
+      },
+      "critical": {
+        "network": {
+          "authorizationJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseDisposeCalls": 1,
+          "authorizationCallsForRetry": 0,
+          "authorizationCallsWithRedirectFrom": 0,
+          "additionalTransportEntries": 0
+        },
+        "positions": {
+          "authorization-entry": [
+            {
+              "order": 11,
+              "event": "authorization-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false
+            }
+          ],
+          "transport-entry": [
+            {
+              "order": 14,
+              "event": "transport-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false
+            }
+          ],
+          "transport-cleanup-registered": [
+            {
+              "order": 16,
+              "event": "transport-cleanup-registered",
+              "publicSettled": false
+            }
+          ],
+          "transport-upload-received": [
+            {
+              "order": 18,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "41300a"
+            },
+            {
+              "order": 20,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "42310a"
+            }
+          ],
+          "transport-response-created": [
+            {
+              "order": 22,
+              "event": "transport-response-created",
+              "publicSettled": false,
+              "status": 503,
+              "statusText": "Service Unavailable",
+              "httpVersion": "1.1",
+              "headers": [
+                [
+                  "Content-Type",
+                  "application/octet-stream"
+                ],
+                [
+                  "Content-Length",
+                  "12"
+                ],
+                [
+                  "Retry-After",
+                  "1"
+                ]
+              ],
+              "signalAborted": false
+            }
+          ],
+          "response-disposed": [
+            {
+              "order": 24,
+              "event": "response-disposed",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "transport-cleanup-done": [
+            {
+              "order": 23,
+              "event": "transport-cleanup-done",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "curl-invoke-settled": [
+            {
+              "order": 25,
+              "event": "curl-invoke-settled",
+              "publicSettled": false,
+              "status": 22,
+              "transportClosed": true,
+              "responseDisposed": true
+            }
+          ],
+          "public-exec-settled": [
+            {
+              "order": 42,
+              "event": "public-exec-settled",
+              "publicSettled": true
+            }
+          ]
+        },
+        "atSettlement": {
+          "acquisitions": 1,
+          "releases": 1,
+          "cleanupDone": true,
+          "bridgePending": 0,
+          "cleanupErrorObserved": false,
+          "lateWriteErrorObserved": false,
+          "innerDisposed": true,
+          "callerIdentity": false,
+          "executionIdentity": false,
+          "cleanupIdentity": false,
+          "callerAborted": false,
+          "ordinaryDestinationWriteCalls": 0,
+          "accountedWriteCalls": 1,
+          "holdEntries": 0,
+          "lateEntries": 0,
+          "holdReleased": false,
+          "leftReleases": 0,
+          "rightReleases": 0,
+          "lateAcquisitionStarts": 0,
+          "lateChildCreations": 0,
+          "rightEffect": "",
+          "curlStatus": 22,
+          "curlWriteoutCalls": 0,
+          "transportAbortedByConsumer": false,
+          "transportClosed": true,
+          "responseDisposed": true,
+          "uploadBeforeEof": true,
+          "uploadEof": true,
+          "authorizeCalls": 1,
+          "transportCleanupRegistered": true
+        },
+        "zeroPolicy": {
+          "responseBodyStarts": 0,
+          "responseBodyChunks": 0,
+          "uploadSourceStarts": 1,
+          "timerRequests": [
+            {
+              "operation": "setTimeout",
+              "delay": 7000
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 3500
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 2500
+            }
+          ]
+        },
+        "files": {
+          "/work/late.txt": {
+            "code": "ENOENT"
+          },
+          "/work/body.bin": {
+            "hex": "7a65726f2d626f64792d73656e74696e656c0a"
+          },
+          "/work/headers.txt": {
+            "hex": "485454502f312e3120353033205365727669636520556e617661696c61626c650d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6f637465742d73747265616d0d0a436f6e74656e742d4c656e6774683a2031320d0a52657472792d41667465723a20310d0a0d0a"
+          }
+        }
+      },
+      "fatal": null
+    },
+    {
+      "id": "Z03-open",
+      "classification": "PASS",
+      "rawClassification": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "checks": [
+        {
+          "name": "all unchanged child assertions passed",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "public classification and exact bytes",
+          "pass": true
+        },
+        {
+          "name": "exact public exitCode",
+          "pass": true
+        },
+        {
+          "name": "cooperative cleanup before settlement",
+          "pass": true
+        },
+        {
+          "name": "no runtime containment/unhandled/timer leak",
+          "pass": true
+        },
+        {
+          "name": "exactly one auth and transport, no replay",
+          "pass": true
+        },
+        {
+          "name": "authorized initial PUT only",
+          "pass": true
+        },
+        {
+          "name": "upload before EOF, retained reused bytes",
+          "pass": true
+        },
+        {
+          "name": "stdout closure cannot cancel required transfer",
+          "pass": true
+        },
+        {
+          "name": "exact body/header bytes",
+          "pass": true
+        },
+        {
+          "name": "exactly one response and transport cleanup",
+          "pass": true
+        },
+        {
+          "name": "journal before acquisition and cleanup before nested/public settlement",
+          "pass": true
+        },
+        {
+          "name": "exact finite zero-policy consumption counters",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 224,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "kind": "result",
+        "result": {
+          "exitCode": 47,
+          "stdout": "307|0|0|6|0|47\ncurl:47\n",
+          "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n"
+        },
+        "stdoutHex": "3330377c307c307c367c307c34370a6375726c3a34370a",
+        "stderrHex": "6375726c3a2028343729204d6178696d756d207265646972656374732065786365656465640a696e646570656e64656e742d7374646572720a"
+      },
+      "critical": {
+        "network": {
+          "authorizationJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseDisposeCalls": 1,
+          "authorizationCallsForRetry": 0,
+          "authorizationCallsWithRedirectFrom": 0,
+          "additionalTransportEntries": 0
+        },
+        "positions": {
+          "authorization-entry": [
+            {
+              "order": 11,
+              "event": "authorization-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false
+            }
+          ],
+          "transport-entry": [
+            {
+              "order": 14,
+              "event": "transport-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false
+            }
+          ],
+          "transport-cleanup-registered": [
+            {
+              "order": 16,
+              "event": "transport-cleanup-registered",
+              "publicSettled": false
+            }
+          ],
+          "transport-upload-received": [
+            {
+              "order": 18,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "41300a"
+            },
+            {
+              "order": 19,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "42310a"
+            }
+          ],
+          "transport-response-created": [
+            {
+              "order": 21,
+              "event": "transport-response-created",
+              "publicSettled": false,
+              "status": 307,
+              "statusText": "Temporary Redirect",
+              "httpVersion": "1.1",
+              "headers": [
+                [
+                  "Content-Type",
+                  "application/octet-stream"
+                ],
+                [
+                  "Content-Length",
+                  "12"
+                ],
+                [
+                  "Location",
+                  "/next"
+                ]
+              ],
+              "signalAborted": false
+            }
+          ],
+          "response-disposed": [
+            {
+              "order": 23,
+              "event": "response-disposed",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "transport-cleanup-done": [
+            {
+              "order": 22,
+              "event": "transport-cleanup-done",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "curl-invoke-settled": [
+            {
+              "order": 25,
+              "event": "curl-invoke-settled",
+              "publicSettled": false,
+              "status": 47,
+              "transportClosed": true,
+              "responseDisposed": true
+            }
+          ],
+          "public-exec-settled": [
+            {
+              "order": 45,
+              "event": "public-exec-settled",
+              "publicSettled": true
+            }
+          ]
+        },
+        "atSettlement": {
+          "acquisitions": 1,
+          "releases": 1,
+          "cleanupDone": true,
+          "bridgePending": 0,
+          "cleanupErrorObserved": false,
+          "lateWriteErrorObserved": false,
+          "innerDisposed": true,
+          "callerIdentity": false,
+          "executionIdentity": false,
+          "cleanupIdentity": false,
+          "callerAborted": false,
+          "ordinaryDestinationWriteCalls": 0,
+          "accountedWriteCalls": 2,
+          "holdEntries": 0,
+          "lateEntries": 0,
+          "holdReleased": false,
+          "leftReleases": 0,
+          "rightReleases": 0,
+          "lateAcquisitionStarts": 0,
+          "lateChildCreations": 0,
+          "rightEffect": "",
+          "curlStatus": 47,
+          "curlWriteoutCalls": 1,
+          "transportAbortedByConsumer": false,
+          "transportClosed": true,
+          "responseDisposed": true,
+          "uploadBeforeEof": true,
+          "uploadEof": true,
+          "authorizeCalls": 1,
+          "transportCleanupRegistered": true
+        },
+        "zeroPolicy": {
+          "responseBodyStarts": 0,
+          "responseBodyChunks": 0,
+          "uploadSourceStarts": 1,
+          "timerRequests": [
+            {
+              "operation": "setTimeout",
+              "delay": 7000
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 3500
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 2500
+            }
+          ]
+        },
+        "files": {
+          "/work/late.txt": {
+            "code": "ENOENT"
+          },
+          "/work/body.bin": {
+            "hex": "7a65726f2d626f64792d73656e74696e656c0a"
+          },
+          "/work/headers.txt": {
+            "hex": "485454502f312e31203330372054656d706f726172792052656469726563740d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6f637465742d73747265616d0d0a436f6e74656e742d4c656e6774683a2031320d0a4c6f636174696f6e3a202f6e6578740d0a0d0a"
+          }
+        }
+      },
+      "fatal": null
+    },
+    {
+      "id": "Z03-closed",
+      "classification": "PASS",
+      "rawClassification": "PASS",
+      "launched": true,
+      "engineRuns": 1,
+      "checks": [
+        {
+          "name": "all unchanged child assertions passed",
+          "pass": true
+        },
+        {
+          "name": "one real engine entry",
+          "pass": true
+        },
+        {
+          "name": "exact imports authenticated",
+          "pass": true
+        },
+        {
+          "name": "public classification and exact bytes",
+          "pass": true
+        },
+        {
+          "name": "exact public exitCode",
+          "pass": true
+        },
+        {
+          "name": "cooperative cleanup before settlement",
+          "pass": true
+        },
+        {
+          "name": "no runtime containment/unhandled/timer leak",
+          "pass": true
+        },
+        {
+          "name": "exactly one auth and transport, no replay",
+          "pass": true
+        },
+        {
+          "name": "authorized initial PUT only",
+          "pass": true
+        },
+        {
+          "name": "upload before EOF, retained reused bytes",
+          "pass": true
+        },
+        {
+          "name": "stdout closure cannot cancel required transfer",
+          "pass": true
+        },
+        {
+          "name": "exact body/header bytes",
+          "pass": true
+        },
+        {
+          "name": "exactly one response and transport cleanup",
+          "pass": true
+        },
+        {
+          "name": "journal before acquisition and cleanup before nested/public settlement",
+          "pass": true
+        },
+        {
+          "name": "exact finite zero-policy consumption counters",
+          "pass": true
+        }
+      ],
+      "imports": {
+        "entries": 224,
+        "engineFiles": 63,
+        "productFiles": 158,
+        "failures": []
+      },
+      "public": {
+        "kind": "result",
+        "result": {
+          "exitCode": 47,
+          "stdout": "curl:47\n",
+          "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n"
+        },
+        "stdoutHex": "6375726c3a34370a",
+        "stderrHex": "6375726c3a2028343729204d6178696d756d207265646972656374732065786365656465640a696e646570656e64656e742d7374646572720a"
+      },
+      "critical": {
+        "network": {
+          "authorizationJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportJournal": [
+            {
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false,
+              "allowed": true
+            }
+          ],
+          "transportCalls": 1,
+          "transportCleanupCalls": 1,
+          "responseDisposeCalls": 1,
+          "authorizationCallsForRetry": 0,
+          "authorizationCallsWithRedirectFrom": 0,
+          "additionalTransportEntries": 0
+        },
+        "positions": {
+          "authorization-entry": [
+            {
+              "order": 11,
+              "event": "authorization-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "attempt": 0,
+              "hasRedirectFrom": false,
+              "signalAborted": false
+            }
+          ],
+          "transport-entry": [
+            {
+              "order": 14,
+              "event": "transport-entry",
+              "publicSettled": false,
+              "call": 1,
+              "url": "https://owned.invalid/upload",
+              "method": "PUT",
+              "signalAborted": false
+            }
+          ],
+          "transport-cleanup-registered": [
+            {
+              "order": 16,
+              "event": "transport-cleanup-registered",
+              "publicSettled": false
+            }
+          ],
+          "transport-upload-received": [
+            {
+              "order": 18,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "41300a"
+            },
+            {
+              "order": 20,
+              "event": "transport-upload-received",
+              "publicSettled": false,
+              "hex": "42310a"
+            }
+          ],
+          "transport-response-created": [
+            {
+              "order": 22,
+              "event": "transport-response-created",
+              "publicSettled": false,
+              "status": 307,
+              "statusText": "Temporary Redirect",
+              "httpVersion": "1.1",
+              "headers": [
+                [
+                  "Content-Type",
+                  "application/octet-stream"
+                ],
+                [
+                  "Content-Length",
+                  "12"
+                ],
+                [
+                  "Location",
+                  "/next"
+                ]
+              ],
+              "signalAborted": false
+            }
+          ],
+          "response-disposed": [
+            {
+              "order": 24,
+              "event": "response-disposed",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "transport-cleanup-done": [
+            {
+              "order": 23,
+              "event": "transport-cleanup-done",
+              "publicSettled": false,
+              "count": 1
+            }
+          ],
+          "curl-invoke-settled": [
+            {
+              "order": 25,
+              "event": "curl-invoke-settled",
+              "publicSettled": false,
+              "status": 47,
+              "transportClosed": true,
+              "responseDisposed": true
+            }
+          ],
+          "public-exec-settled": [
+            {
+              "order": 42,
+              "event": "public-exec-settled",
+              "publicSettled": true
+            }
+          ]
+        },
+        "atSettlement": {
+          "acquisitions": 1,
+          "releases": 1,
+          "cleanupDone": true,
+          "bridgePending": 0,
+          "cleanupErrorObserved": false,
+          "lateWriteErrorObserved": false,
+          "innerDisposed": true,
+          "callerIdentity": false,
+          "executionIdentity": false,
+          "cleanupIdentity": false,
+          "callerAborted": false,
+          "ordinaryDestinationWriteCalls": 0,
+          "accountedWriteCalls": 1,
+          "holdEntries": 0,
+          "lateEntries": 0,
+          "holdReleased": false,
+          "leftReleases": 0,
+          "rightReleases": 0,
+          "lateAcquisitionStarts": 0,
+          "lateChildCreations": 0,
+          "rightEffect": "",
+          "curlStatus": 47,
+          "curlWriteoutCalls": 0,
+          "transportAbortedByConsumer": false,
+          "transportClosed": true,
+          "responseDisposed": true,
+          "uploadBeforeEof": true,
+          "uploadEof": true,
+          "authorizeCalls": 1,
+          "transportCleanupRegistered": true
+        },
+        "zeroPolicy": {
+          "responseBodyStarts": 0,
+          "responseBodyChunks": 0,
+          "uploadSourceStarts": 1,
+          "timerRequests": [
+            {
+              "operation": "setTimeout",
+              "delay": 7000
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 3500
+            },
+            {
+              "operation": "setTimeout",
+              "delay": 2500
+            }
+          ]
+        },
+        "files": {
+          "/work/late.txt": {
+            "code": "ENOENT"
+          },
+          "/work/body.bin": {
+            "hex": "7a65726f2d626f64792d73656e74696e656c0a"
+          },
+          "/work/headers.txt": {
+            "hex": "485454502f312e31203330372054656d706f726172792052656469726563740d0a436f6e74656e742d547970653a206170706c69636174696f6e2f6f637465742d73747265616d0d0a436f6e74656e742d4c656e6774683a2031320d0a4c6f636174696f6e3a202f6e6578740d0a0d0a"
+          }
+        }
+      },
+      "fatal": null
+    }
+  ],
+  "driverStatus": "PASS",
+  "noPromotion": true
+}

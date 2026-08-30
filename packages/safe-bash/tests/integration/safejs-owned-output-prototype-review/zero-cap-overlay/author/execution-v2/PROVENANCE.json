@@ -1,0 +1,45 @@
+{
+  "at": "2026-08-27T19:05:33.967814+00:00",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "sourceAdmissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "bindingPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "bindingReviewCommit": "758880944964ed1bb9f9cbb524dfeb14e88b3047",
+  "bindingReviewPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/status-review-v1/ADMISSION.json",
+  "bindingReviewSha256": "68eed8703df8bb18b63f6b29c05831502c7bf3e3a8997c23e4768122d951cef4",
+  "releaseCommit": "e9a30aa7995e4b29ba179d0aea552c36a5ded51f",
+  "rootDescriptorSha256": "54f630bc7d06e11fe7416075b0d59d530ab2b0c91a59182cbe3213c3479430cd",
+  "bindingFreezeSha256": "2d3f9fb25ad60f0b11e3d38f122249b0c7eab972267e0d5f95b904f713cc26d0",
+  "privateStatusProfileSha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "matchesAuthorNode": true
+  },
+  "sourceIdentities": {
+    "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+    "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+    "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+    "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010"
+  },
+  "wrapperStarted": {
+    "at": "2026-08-27T18:58:34.534092+00:00",
+    "executionFreezeCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+    "oneAttemptOnly": true
+  },
+  "wrapperFinished": "2026-08-27T19:00:50.968785+00:00",
+  "rawRoots": {
+    "controller": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/author-controller-v2",
+    "outer": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/author-attempt-01",
+    "surface": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw/surface-zero-overlay-Q7YVae/results",
+    "lifecycle": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw/lifecycle",
+    "controls": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw/controls"
+  },
+  "captureCount": 190,
+  "captureOriginalBytes": 45763387,
+  "captureManifestSha256": "628a3e426fe5314dd7c8b837a6e331b004f182eafe2ad4138e4dc1731a0bdfaf",
+  "independentActualResultsConsulted": false,
+  "sourceFixtureAssertionChanges": 0,
+  "privateSourceContentsCommitted": false,
+  "noPromotion": true
+}

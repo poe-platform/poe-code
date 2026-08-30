@@ -1,0 +1,30 @@
+{
+  "role": "FINAL_PUBLICATION_ONLY_NO_RUNTIME_RERUN",
+  "adminDirectory": "/private/tmp/bash-strict-independent-publication-ssyZWr",
+  "finalReceipt": "/private/tmp/bash-strict-independent-publication-ssyZWr/FINAL-RECEIPT.json",
+  "plannedGitProcesses": 8,
+  "knownRuntimeProcesses": 41,
+  "alreadyClosedReportApplyProcesses": 1,
+  "conservativeExtraRoles": {
+    "execReplacedShell": 1,
+    "editingHelperReservation": 1
+  },
+  "plannedKnownActualIncludingPublication": 50,
+  "plannedConservativeActual": 52,
+  "internalLoaderAdmissions": 29,
+  "individualInternalWorkerExitsObserved": false,
+  "regexWorkers": 0,
+  "preparation": {
+    "knownClosed": 19,
+    "conservativeEditingReservations": 4,
+    "elapsedSeconds": 989.374
+  },
+  "actualGrant": {
+    "seconds": 3600,
+    "allOsProcesses": 128,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824
+  },
+  "qualification": "Internal-loader admissions are separately recorded; neither a global OS census nor independent internal-worker exit proof. Final actual counts and closure are in the external receipt after the explicit-path evidence commit."
+}

@@ -1,0 +1,528 @@
+{
+  "schema": "priority-preparation-independent-v2-data-review",
+  "date": "2026-08-28",
+  "role": "STATIC_DATA_ONLY_NO_SUBJECT_EXECUTION",
+  "disposition": "Original F1-F4 rootcause repairs supported in bounded static/data scope; F3 known-start metric limitation disclosed and root-routed for narrow correction; no product GO",
+  "identities": {
+    "codeCommit": "2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae",
+    "finalEvidenceCommit": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+    "originalCodeCommit": "116f5dd79f14032ebcf9a2e46de0d912005c3ffa",
+    "priorIndependentReview": "3b094276a7c669427493de5828aab70364ef7b14",
+    "packet": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+    "preparationSealSha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+    "orderedCodeSetSha256": "8d1cd6efee03426e726751175c1c2439323a24c82203b2d70b3da482527b0261",
+    "grantTemplateSha256": "9f84baf5a92e31e9824abc6a8bba23e1254d45fdf4400f6fa80d7705f67acef9",
+    "repairProtocolSha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+    "repairResultsSha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+    "repairPreparationSha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+    "derivedComposition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "full858PackageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e"
+  },
+  "rootResponse": {
+    "sha256": "72b709a1591f971cf4aa7c36e9e955a81584d8f3ca6ae9b16ec4bd62431de3b1",
+    "text": "Final repair source2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae; evidence/seal a63169d1d84f4d81812cafa3b58c1e0624090c3e. PREPARATION-SEAL-v3 SHA00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea; codeset8d1cd6efee03426e726751175c1c2439323a24c82203b2d70b3da482527b0261. Your follow-up F3 documented limitation received; author told no redundant code/cohort if not already begun. Bind actual finaldoc/seal, finish F4 and report promptly; no broader audit or product GO. Final seal explicitly pending independent review. Preserve exactcandidate observations; rawpartial logs and conservativeunknown withholding remain distinct from fullyreconciled counts.\n"
+  },
+  "dataChecks": [
+    {
+      "name": "root-code-and-versioned-seal-binding",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "fourteen-ordered-code-pins",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "bounded-final-file-pins",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "presealed-protocol-and-twenty-one-input-pins",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "author-forty-two-receipt-roles-not-product-checks",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "four-benign-os-children-and-workers-recorded-reaped",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "caught-and-mapped-refusals-have-actual-child-receipts",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "independent-cleanup-preserves-admission-stop",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "eight-frozen-packet-files-byte-unchanged",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "historical-seals-receipts-and-authorities-unchanged",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "closed-template-unchanged-ceilings-and-frozen-denominator",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "f3-known-metric-limit-explicitly-bound-in-final-document",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    },
+    {
+      "name": "root-routed-final-identities-and-call-count",
+      "pass": true,
+      "role": "STATIC_DATA_BINDING_NOT_SUBJECT_EXECUTION"
+    }
+  ],
+  "counts": {
+    "groupedDataBindingChecks": 13,
+    "selectedFinalPins": 41,
+    "totalFinalSealPins": 99,
+    "orderedCodePins": 14,
+    "protocolInputPins": 21,
+    "frozenPacketFilesCompared": 8,
+    "repairReceiptFiles": 13,
+    "authorControls": 42,
+    "authorParseOnly": 9,
+    "authorDataSynthetic": 29,
+    "authorBenignControls": 4,
+    "authorOsChildren": 4,
+    "authorWorkers": 4,
+    "authorControllingDrivers": 1,
+    "frozenCases": 31,
+    "layouts": 3,
+    "futureCallsUnexecuted": 93
+  },
+  "ownActivity": {
+    "gitMetadataChildren": 68,
+    "subjectProcesses": 0,
+    "workerThreads": 0,
+    "productImports": 0,
+    "productDispatches": 0,
+    "allDataGitChildrenSynchronouslyReaped": true,
+    "scopeNote": "68 Git metadata children in the bounded Node DATA-binding session; shell inspection/commit tooling is separate, synchronously completed and not a subject cohort. No background process, stub, product or Worker created; no delegation."
+  },
+  "authorDriver": {
+    "pid": 72573,
+    "exit": 0,
+    "provenance": "Author final-seal attestation, not independently observed process exit."
+  },
+  "authorReceiptSummaries": [
+    {
+      "mode": "natural",
+      "osPid": 72586,
+      "osStatus": 0,
+      "osReaped": true,
+      "workerToken": "natural:1",
+      "workerThreadId": 1,
+      "workerExit": 0,
+      "workerReaped": true,
+      "pendingTermination": 0,
+      "emergency": false,
+      "childAdmissionRefused": false,
+      "entryLoadSha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "refusals": [],
+      "parentAdmissionRefusals": [],
+      "listenerRemoved": true
+    },
+    {
+      "mode": "caught-load",
+      "osPid": 72587,
+      "osStatus": 0,
+      "osReaped": true,
+      "workerToken": "caught-load:1",
+      "workerThreadId": 1,
+      "workerExit": 0,
+      "workerReaped": true,
+      "pendingTermination": 0,
+      "emergency": false,
+      "childAdmissionRefused": true,
+      "entryLoadSha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "refusals": [
+        {
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+          "reason": "AssertionError [ERR_ASSERTION]: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\n+ actual - expected\n\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n"
+        }
+      ],
+      "parentAdmissionRefusals": [],
+      "listenerRemoved": true
+    },
+    {
+      "mode": "mapped-load",
+      "osPid": 72588,
+      "osStatus": 0,
+      "osReaped": true,
+      "workerToken": "mapped-load:1",
+      "workerThreadId": 1,
+      "workerExit": 1,
+      "workerReaped": true,
+      "pendingTermination": 0,
+      "emergency": false,
+      "childAdmissionRefused": true,
+      "entryLoadSha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "refusals": [
+        {
+          "url": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+          "reason": "AssertionError [ERR_ASSERTION]: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\n+ actual - expected\n\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n"
+        }
+      ],
+      "parentAdmissionRefusals": [],
+      "listenerRemoved": true
+    },
+    {
+      "mode": "independent-cleanup",
+      "osPid": 72589,
+      "osStatus": 0,
+      "osReaped": true,
+      "workerToken": "independent-cleanup:1",
+      "workerThreadId": 1,
+      "workerExit": 1,
+      "workerReaped": true,
+      "pendingTermination": 0,
+      "emergency": false,
+      "childAdmissionRefused": false,
+      "entryLoadSha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "refusals": [],
+      "parentAdmissionRefusals": [
+        "AssertionError [ERR_ASSERTION]: WORKER_URL_DRIFT"
+      ],
+      "listenerRemoved": true
+    }
+  ],
+  "codePins": [
+    {
+      "path": "admission.mjs",
+      "sha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a",
+      "bytes": 8788
+    },
+    {
+      "path": "source-auth.mjs",
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9",
+      "bytes": 6787
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00",
+      "bytes": 23692
+    },
+    {
+      "path": "future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "bytes": 24859
+    },
+    {
+      "path": "runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "bytes": 3074
+    },
+    {
+      "path": "worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "bytes": 5646
+    },
+    {
+      "path": "worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "bytes": 2105
+    },
+    {
+      "path": "stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "bytes": 10816
+    },
+    {
+      "path": "stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "bytes": 4148
+    },
+    {
+      "path": "stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "bytes": 786
+    },
+    {
+      "path": "stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "bytes": 53
+    },
+    {
+      "path": "stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622
+    },
+    {
+      "path": "repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "bytes": 12505
+    },
+    {
+      "path": "repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "bytes": 4821
+    }
+  ],
+  "selectedFinalPins": [
+    {
+      "path": "admission.mjs",
+      "bytes": 8788,
+      "sha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a"
+    },
+    {
+      "path": "source-auth.mjs",
+      "bytes": 6787,
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9"
+    },
+    {
+      "path": "future-supervisor.mjs",
+      "bytes": 23692,
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00"
+    },
+    {
+      "path": "future-adapter.mjs",
+      "bytes": 24859,
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf"
+    },
+    {
+      "path": "runtime-entry.mjs",
+      "bytes": 3074,
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0"
+    },
+    {
+      "path": "worker-observer.mjs",
+      "bytes": 5646,
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9"
+    },
+    {
+      "path": "worker-preload.mjs",
+      "bytes": 2105,
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db"
+    },
+    {
+      "path": "stub-controls.mjs",
+      "bytes": 10816,
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21"
+    },
+    {
+      "path": "stub-child.mjs",
+      "bytes": 4148,
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e"
+    },
+    {
+      "path": "stub-entry.mjs",
+      "bytes": 786,
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b"
+    },
+    {
+      "path": "stub-dependency.mjs",
+      "bytes": 53,
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84"
+    },
+    {
+      "path": "stub-guard.mjs",
+      "bytes": 622,
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2"
+    },
+    {
+      "path": "repair-controls.mjs",
+      "bytes": 12505,
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211"
+    },
+    {
+      "path": "repair-child.mjs",
+      "bytes": 4821,
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104"
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 99375,
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b"
+    },
+    {
+      "path": "READY.md",
+      "bytes": 11419,
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 47429,
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da"
+    },
+    {
+      "path": "FIXTURES.json",
+      "bytes": 15139,
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1"
+    },
+    {
+      "path": "SCHEMA.json",
+      "bytes": 3969,
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 30714,
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a"
+    },
+    {
+      "path": "EXECUTION-RECIPE.md",
+      "bytes": 11958,
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 8822,
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1542,
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4"
+    },
+    {
+      "path": "repair-evidence-v3/RESULTS.json",
+      "bytes": 9641,
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed"
+    },
+    {
+      "path": "repair-evidence-v3/caught-load.child.json",
+      "bytes": 1562,
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3"
+    },
+    {
+      "path": "repair-evidence-v3/caught-load.parent.jsonl",
+      "bytes": 1369,
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14"
+    },
+    {
+      "path": "repair-evidence-v3/caught-load.worker.jsonl",
+      "bytes": 2480,
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30"
+    },
+    {
+      "path": "repair-evidence-v3/independent-cleanup.child.json",
+      "bytes": 1309,
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66"
+    },
+    {
+      "path": "repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "bytes": 1770,
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd"
+    },
+    {
+      "path": "repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "bytes": 2391,
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4"
+    },
+    {
+      "path": "repair-evidence-v3/mapped-load.child.json",
+      "bytes": 1896,
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23"
+    },
+    {
+      "path": "repair-evidence-v3/mapped-load.parent.jsonl",
+      "bytes": 1765,
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823"
+    },
+    {
+      "path": "repair-evidence-v3/mapped-load.worker.jsonl",
+      "bytes": 2480,
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7"
+    },
+    {
+      "path": "repair-evidence-v3/natural.child.json",
+      "bytes": 1221,
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5"
+    },
+    {
+      "path": "repair-evidence-v3/natural.parent.jsonl",
+      "bytes": 1354,
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce"
+    },
+    {
+      "path": "repair-evidence-v3/natural.worker.jsonl",
+      "bytes": 2366,
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3"
+    },
+    {
+      "path": "REPAIR-PROTOCOL-v3.json",
+      "bytes": 6899,
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4"
+    },
+    {
+      "path": "REPAIR-PREPARATION-v3.md",
+      "bytes": 8095,
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6"
+    },
+    {
+      "path": "CALLS.json",
+      "bytes": 67637,
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d"
+    },
+    {
+      "path": "PREPARATION-SEAL.json",
+      "bytes": 15814,
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f"
+    },
+    {
+      "path": "GO.template.json",
+      "bytes": 3518,
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae"
+    }
+  ],
+  "historicalPreservation": {
+    "comparisonFrom": "8bb0ac19518a227c06a67d6ef8d273af2111894c",
+    "comparisonTo": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+    "paths": [
+      "PREPARATION-SEAL.json",
+      "GO.template.json",
+      "STUB-PROTOCOL.json",
+      "STUB-PROTOCOL-v2.json",
+      "stub-evidence-v1",
+      "stub-evidence-v2",
+      "SOURCE-AUTH.json",
+      "CALLS.json"
+    ],
+    "result": "git diff --name-status returned empty; historical receipt semantics not rescored"
+  },
+  "f3ReportingQualification": {
+    "knownMetric": "Only fully authenticated/cleanly settled reservation starts; not every observed start.",
+    "withheldMetric": "Four slots remain withheld for each unresolved reservation.",
+    "staticExample": "A first child with an observed start and sticky load refusal stops before settlement: productWorkerStartsKnown=0, productWorkerStarts=null, workerStartsWithheld=4. The actual observed start remains in raw receipts.",
+    "rootDisposition": "Narrow correction routed; this report preserves candidate2a and seala631 before any successor."
+  },
+  "f4Accounting": {
+    "scratchCeilingBytes": 536870912,
+    "terminalReserveBytes": 16777216,
+    "maximumNonterminalBytes": 520093696,
+    "remaining": "max(0, inherited scratch minus actual retained logical bytes)",
+    "deadline": "Per-receipt checks and post-terminal-write sample; bounded STOP-receipt correction only.",
+    "limits": "Sampled logical storage, not kernel quota, RSS, arbitrary host-work preemption or execution adequacy proof."
+  },
+  "reviewerAttempt": {
+    "name": "root-routed-final-identities-and-live-selected-bytes",
+    "outcome": "Stopped on live admission.mjs divergence (10264 bytes versus pinned8788), before any evidence write. Root had already routed a successor edit. This unnecessary live-equality assumption does not veto the explicitly pinned committed review. No successor code imported or inspected for this verdict; corrected check binds only committed inputs.",
+    "candidateFailure": false
+  },
+  "limitations": [
+    "No imports or evaluation of candidate code, product, accepted Worker or benign subject.",
+    "No new framework, classifier replay, parse run, broad cohort, source268/full858 archive analysis, or rerun of historical437 checks.",
+    "41 relevant final pins checked; not a new semantic audit of all99 final-seal entries.",
+    "No append-proof live-tree claim; concurrent successor edits preserved and excluded.",
+    "Author42 control receipts are preparation DATA/SYNTHETIC/benign evidence, not product acceptance.",
+    "All93 product calls remain unexecuted; GO.json, PARENT-BUDGET.json and future-run-01 absent at inspection."
+  ]
+}

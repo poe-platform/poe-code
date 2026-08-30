@@ -1,0 +1,32 @@
+{
+  "schema": "B1-r6-startup-reservation",
+  "binding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-BINDING.json",
+    "bytes": 4746,
+    "sha256": "39f13f45b6bf663c7e2157f0f861f5a337fa628e399272a015955a459fbd6e14"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/publish.mjs",
+      "bytes": 14111,
+      "sha256": "d6071cd81c646360830529a590140de11095ead643beecc60145691c59355eb8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs",
+      "bytes": 4556,
+      "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs",
+      "bytes": 7144,
+      "sha256": "09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/startup-policy.mjs",
+      "bytes": 2495,
+      "sha256": "fb7411f820f3dbb55621cb3e3421ce308c94dd832ce091b8c2a44c8d7b7bbd40"
+    }
+  ],
+  "inheritedReview": "027f058cffebf369dc51a822209742a11f9e6b2a HOLD/N08 retained; r6 prospective controls separate",
+  "actualGo": false
+}

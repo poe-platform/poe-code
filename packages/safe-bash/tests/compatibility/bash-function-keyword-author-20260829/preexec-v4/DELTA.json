@@ -1,0 +1,165 @@
+{
+  "oldDirect": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec",
+  "newDirect": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e",
+  "reversePatchReproducesOld": true,
+  "otherFiles": [
+    {
+      "path": "CASES-v2.json",
+      "kind": "byte-identical",
+      "before": "f05d92840cfa259b5f5327b9ae9bd448fde70835800ede33fbda6436352af7a5",
+      "after": "f05d92840cfa259b5f5327b9ae9bd448fde70835800ede33fbda6436352af7a5"
+    },
+    {
+      "path": "SOURCE-MEMBERS.json",
+      "kind": "byte-identical",
+      "before": "f877aa2a5c9fe2413d28e37464fb40b458ab90436b4ecf63821463069cffd0a7",
+      "after": "f877aa2a5c9fe2413d28e37464fb40b458ab90436b4ecf63821463069cffd0a7"
+    },
+    {
+      "path": "SOURCE-CAPSULE.json.gz.base64",
+      "kind": "byte-identical",
+      "before": "6a49ded4f95a77ae394f418dc8a055c7d8b85cabe2861cc3c27e967f145b1af1",
+      "after": "6a49ded4f95a77ae394f418dc8a055c7d8b85cabe2861cc3c27e967f145b1af1"
+    },
+    {
+      "path": "TOOLS.json",
+      "kind": "byte-identical",
+      "before": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d",
+      "after": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    {
+      "path": "case-driver.mjs",
+      "kind": "byte-identical",
+      "before": "96f54c1f4192726c2531ee57be5ec1bafd1080c3f79707fb45ac2165ebc975c1",
+      "after": "96f54c1f4192726c2531ee57be5ec1bafd1080c3f79707fb45ac2165ebc975c1"
+    },
+    {
+      "path": "package.mjs",
+      "kind": "byte-identical",
+      "before": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2",
+      "after": "915bab186e4f53bf640c897ff5cab77d569d8ba93193b7479cb41ca38ef768b2"
+    },
+    {
+      "path": "consumer.mts.data",
+      "kind": "byte-identical",
+      "before": "6c30f1f41d3823236b7a5f5bde0abcb3484db15eda91b2b17b3918233f48ed84",
+      "after": "6c30f1f41d3823236b7a5f5bde0abcb3484db15eda91b2b17b3918233f48ed84"
+    },
+    {
+      "path": "auth.mjs",
+      "kind": "byte-identical",
+      "before": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9",
+      "after": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "path": "guard.mjs",
+      "kind": "byte-identical",
+      "before": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9",
+      "after": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    {
+      "path": "profile.mjs",
+      "kind": "byte-identical",
+      "before": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc",
+      "after": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    {
+      "path": "case-adapter.mjs",
+      "kind": "byte-identical",
+      "before": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e",
+      "after": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    {
+      "path": "package-admission.mjs",
+      "kind": "byte-identical",
+      "before": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7",
+      "after": "cacedbfb580e92a15d3761ce3885e4080866b8ca624ca4020903cee716b0c8c7"
+    },
+    {
+      "path": "parse-manifest.mjs",
+      "kind": "byte-identical",
+      "before": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708",
+      "after": "9d0dcb72429b36dbbb5555e06b7a645d4c415bc7a68ad953aa728f2eea085708"
+    },
+    {
+      "path": "finalization.mjs",
+      "kind": "byte-identical",
+      "before": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6",
+      "after": "d65f1c5f70069828b8c6417186b6d0abd76c3e27f48e9053b091c495f7a550b6"
+    },
+    {
+      "path": "canonical.mjs",
+      "kind": "byte-identical",
+      "before": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9",
+      "after": "6a173a0c5929ca28cbed2199878155b3006148ca194c0529616275356d3b9ba9"
+    },
+    {
+      "path": "owner-finalization.mjs",
+      "kind": "byte-identical",
+      "before": "816e01ab2995247531d2c1fb194aaac0f16ff9056e7fd91177335c9a899ce6d8",
+      "after": "816e01ab2995247531d2c1fb194aaac0f16ff9056e7fd91177335c9a899ce6d8"
+    },
+    {
+      "path": "supervisor.mjs",
+      "kind": "byte-identical",
+      "before": "a3f797438cdf450c3df449f7669c32c0c506231d047a7164d9d2b9a3ffa82237",
+      "after": "a3f797438cdf450c3df449f7669c32c0c506231d047a7164d9d2b9a3ffa82237"
+    },
+    {
+      "path": "activation.mjs",
+      "kind": "byte-identical",
+      "before": "9c191c863bebe5a16b605615f43cf5f054591b61f8030e87f0fabcc2742aac1a",
+      "after": "9c191c863bebe5a16b605615f43cf5f054591b61f8030e87f0fabcc2742aac1a"
+    },
+    {
+      "path": "preauth.mjs",
+      "kind": "byte-identical",
+      "before": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e",
+      "after": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+    },
+    {
+      "path": "outer.mjs",
+      "kind": "absolute packet/work binding only",
+      "before": "57a174bc43ef297c1e4c52b86816c40b7104c1cd620d6ec681dcc0f718e69cfc",
+      "after": "72bdd48180ad5cfbcab2b816bc4cd1fd3016d29ccde596f1bb7499af1cf161e7"
+    },
+    {
+      "path": "collector-core.mjs",
+      "kind": "byte-identical",
+      "before": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61",
+      "after": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    {
+      "path": "collector.mjs",
+      "kind": "absolute packet/work binding only",
+      "before": "6cfb0e47ef94bcac92b00c5ce6a5b1ec71d80347be205c302dbcff377cc72328",
+      "after": "3781793b90eb564767bb11f5d8ad0614ac89652b97222e0d9ad2a7ffe282028c"
+    },
+    {
+      "path": "launch.sh",
+      "kind": "absolute packet/work binding only",
+      "before": "40bdd09645b5eaf4649287168d27acf30a3a79cc7adee0450f7e5624fde5c479",
+      "after": "ece51578710cb70b39ebaeedb23ca8560b478f781b597738491ff114a1b44e14"
+    },
+    {
+      "path": "COMMAND-PLAN.json",
+      "kind": "absolute packet/work binding only",
+      "before": "9b2a8b6998357c4194781ba91c5e9a97ed8eb15c265c03000aef9e8c317fad0f",
+      "after": "e5a7e7fb9e6e4c77ee786743e74acf1df3911a3ae00ddea99b6b13be6dabaa64"
+    },
+    {
+      "path": "ADDITIONAL-COMMAND-BINDINGS.json",
+      "kind": "absolute packet/work binding only",
+      "before": "025f00c0ede389cb07b9b8bd2b176890761f9825eb651e0dccd8cc17bcfc260c",
+      "after": "30ede4b2967e12f090b00c0fe9451bcc7c8357fbede15023fe33f594386c1a8a"
+    },
+    {
+      "path": "PROFILE.md",
+      "kind": "byte-identical",
+      "before": "f091ebc422d9eb1c471fe10a1041d3c7f5459b35fb42ed424226bd9e004f1332",
+      "after": "f091ebc422d9eb1c471fe10a1041d3c7f5459b35fb42ed424226bd9e004f1332"
+    }
+  ],
+  "finalizationUnchanged": true,
+  "parserSha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a"
+}

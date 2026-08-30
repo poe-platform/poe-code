@@ -1,0 +1,14 @@
+{
+  "id": "D02",
+  "scope": "standalone exact reconciler DATA",
+  "caught": true,
+  "reason": {
+    "type": "object",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "ARRAY_EXTRA_OR_HOLE\n\n20 !== 21\n",
+    "stack": "AssertionError [ERR_ASSERTION]: ARRAY_EXTRA_OR_HOLE\n\n20 !== 21\n\n    at denseData (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:111:10)\n    at Object.reconcileReceipt (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:170:18)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:203:36\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "getterCalls": 0,
+  "status": "PASS"
+}

@@ -1,0 +1,147 @@
+{
+  "createdAt": "2026-08-27T09:49:39.184Z",
+  "classification": "inert-preparation-and-maintained-js-only",
+  "files": [
+    {
+      "path": "BINDING.md",
+      "bytes": 5339,
+      "sha256": "655ca6cae539cf115f265b0e9005fa7dc476678bd4cb5f19d8c49ef130445a48"
+    },
+    {
+      "path": "INTENT.md",
+      "bytes": 8316,
+      "sha256": "e071dd294ee7d5f971b131bd4764db95380cf41cd1647cd527b204ea16f4ca92"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 7575,
+      "sha256": "bfaa026c78fd84e99ee4eeccabfa6739a85f55bdc5e23c15900813cf312c107c"
+    },
+    {
+      "path": "author-api-v1.1.txt.data",
+      "bytes": 4884,
+      "sha256": "942339d7b0ac90268e9f7e3d4fd735cba398c23774a6df184d7b6bbf3f4f2e8e"
+    },
+    {
+      "path": "binding-freeze.json",
+      "bytes": 1193,
+      "sha256": "ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1"
+    },
+    {
+      "path": "binding.mjs",
+      "bytes": 2344,
+      "sha256": "c77c9825e07c178aecb33de4ba99cca62da24525c9a127ea7fa2ba0298e19675"
+    },
+    {
+      "path": "checks.json",
+      "bytes": 6550,
+      "sha256": "8b551e4859917e513d4efb3fbdd3bd97363ea7e145ae03f9ea5123385c2002ac"
+    },
+    {
+      "path": "finalize-prep.mjs",
+      "bytes": 6996,
+      "sha256": "aba4f62a978c51bf0b037b399ae9fd0ae91b03ccb1e82a64346fa0b4e3804230"
+    },
+    {
+      "path": "freeze.mjs",
+      "bytes": 4849,
+      "sha256": "d4d28c789218286a0ab18ad78abc45c56bf507cc43b7b0239995584ac79337c6"
+    },
+    {
+      "path": "holdouts.json",
+      "bytes": 13410,
+      "sha256": "ab06112aaaeb74edf48b673538044ad7eb5edd6f7d03046d973505916c08466f"
+    },
+    {
+      "path": "intentions-freeze.json",
+      "bytes": 2331021,
+      "sha256": "aabc0ea5c7d7f03b4c4038b3c94952e7a08d9c98e2d40b9dbbf76417503be972"
+    },
+    {
+      "path": "prep-check-1.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-1.stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-2.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-2.stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-3.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-3.stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-4.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-4.stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-5.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-5.stdout.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-6.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-6.stdout.data",
+      "bytes": 137,
+      "sha256": "e0ecdc2f8170568187d8a8fb1b4eee6654162f58e0699cb27463ee85a8606ba3"
+    },
+    {
+      "path": "prep-check-7.stderr.data",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "prep-check-7.stdout.data",
+      "bytes": 1437,
+      "sha256": "94de192a8971a5f62b54321275fcc9fff978f2b7a30a594b9455aadba544b083"
+    },
+    {
+      "path": "prep-closure.json",
+      "bytes": 4252,
+      "sha256": "c33b51cadae877a3fcaa75b15dec85250b573faa18145c919b5739fe3d6e784b"
+    },
+    {
+      "path": "scaffold-check.mjs",
+      "bytes": 3707,
+      "sha256": "1b124b33c3c56404b3a7665828a158045e2a12dbb2409b30ff00cedca7de387d"
+    },
+    {
+      "path": "support.mjs",
+      "bytes": 3793,
+      "sha256": "93628fb0b95124bcfb995121191d7465145629bfa00f2e921cd3d693e28be8f7"
+    }
+  ],
+  "productExecuted": false
+}

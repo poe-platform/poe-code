@@ -1,0 +1,7 @@
+{"started":"2026-08-29T09:10:53.093Z","pid":46064,"parent":46062,"mode":"--seal","productExecutions":0}
+{"pid":46066,"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"status":0,"signal":null,"role":"DEVELOPMENT_METADATA_NOT_ORACLE"}
+{"pid":46067,"args":["cat-file","--batch"],"status":0,"signal":null,"role":"DEVELOPMENT_METADATA_NOT_ORACLE"}
+{"role":"SYNTAX_ONLY_NO_MODULE_EVALUATION","filename":"workflows.mjs","pid":46087,"status":0,"signal":null}
+{"role":"SYNTAX_ONLY_NO_MODULE_EVALUATION","filename":"workflow-entry.mjs","pid":46089,"status":0,"signal":null}
+{"role":"SYNTAX_ONLY_NO_MODULE_EVALUATION","filename":"admission.mjs","pid":46090,"status":0,"signal":null}
+{"finished":"2026-08-29T09:10:54.642Z","children":5,"closed":true,"productExecutions":0}

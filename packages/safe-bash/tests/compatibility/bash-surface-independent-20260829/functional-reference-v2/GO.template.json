@@ -1,0 +1,39 @@
+{
+  "schema": "functional-reference-root-grant-v2",
+  "decision": "NO_GO",
+  "profile": "functional-reference-v2",
+  "deadlineEpochMs": null,
+  "preseal": {
+    "bytes": 4520,
+    "mode": 420,
+    "sha256": "384950a91459ff0ee66449a0604313b7af5af162b252426fe53ce787706a4dda"
+  },
+  "independentReviewReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v2/REVIEW-ACCEPTANCE.json",
+    "mode": 384,
+    "bytes": null,
+    "sha256": null
+  },
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 80,
+    "knownPeakCeiling": 6,
+    "ownerStarts": 1,
+    "nativeStarts": 37,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 13,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  }
+}

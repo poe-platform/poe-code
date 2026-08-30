@@ -1,0 +1,128 @@
+{
+  "artifactRevision": "v2-cause-preserving-proposal",
+  "approval": "NOT APPROVED",
+  "patchSha256": "c5419b5edc91a8883d72cb5fe08d08bf47c48fde21bee2fe1f926f836c243f2d",
+  "v1PatchSha256": "5a47508be5571601ccce1158c40e309ac406fd16db6f4f3b34747a9f7fe0ea09",
+  "originalNineSha256": "7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab",
+  "reasonOracleSha256": "bb782e0fe86410dee5f125f1a4e670514eec48d0ccbb3607e2cc95d96254790b",
+  "snapshot": "/tmp/safe-bash-safejs-isolated-pu6gX6",
+  "sourceRoot": "/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline",
+  "verifierExit": 1,
+  "passed": false,
+  "expectedAcceptance": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "results": {
+    "baseline-acceptance": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "patched-acceptance": {
+      "tests": 10,
+      "pass": 9,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "baseline-invariants": {
+      "tests": 9,
+      "pass": 0,
+      "fail": 9,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "patched-invariants": {
+      "tests": 9,
+      "pass": 8,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "baseline-reason-safety": {
+      "tests": 18,
+      "pass": 0,
+      "fail": 18,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "patched-reason-safety": {
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    }
+  },
+  "privateComparison": {
+    "engineUnchanged": true,
+    "revisionUnchanged": true,
+    "statusUnchanged": true,
+    "indexUnchanged": true,
+    "licenseUnchanged": true
+  },
+  "privateBefore": {
+    "recordedAt": "2026-08-26T22:29:45.390Z",
+    "revision": "a7ec0f14c58db154896a68fbacc7c6d9e636b6a3",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n M packages/toolcraft-design/src/prompts/interactive/core.ts\n M src/cli/commands/gaslight.test.ts\n M src/cli/commands/gaslight.ts\n M src/cli/commands/spawn-command.test.ts\n M src/cli/commands/spawn.ts\n?? docs/plans/bugfix-gaslight-dry-run.md\n?? docs/plans/bugfix-interactive-spawn-dry-run.md\n?? docs/plans/bugfix-non-tty-prompt-input-close.md\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/\n?? packages/toolcraft-design/src/prompts/interactive/non-tty-close.test.ts",
+    "index": "998c133f8bc8985ea254cadca2b2437142bd947a53cd9b1609f64efcef003c1f",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineMatchesPinnedBaseline": false
+  },
+  "privateAfter": {
+    "recordedAt": "2026-08-26T22:30:46.281Z",
+    "revision": "a7ec0f14c58db154896a68fbacc7c6d9e636b6a3",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n M packages/toolcraft-design/src/prompts/interactive/core.ts\n M src/cli/commands/gaslight.test.ts\n M src/cli/commands/gaslight.ts\n M src/cli/commands/spawn-command.test.ts\n M src/cli/commands/spawn.ts\n?? docs/plans/bugfix-gaslight-dry-run.md\n?? docs/plans/bugfix-interactive-spawn-dry-run.md\n?? docs/plans/bugfix-non-tty-prompt-input-close.md\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/\n?? packages/toolcraft-design/src/prompts/interactive/non-tty-close.test.ts",
+    "index": "998c133f8bc8985ea254cadca2b2437142bd947a53cd9b1609f64efcef003c1f",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineMatchesPinnedBaseline": false
+  },
+  "privateLatest": {
+    "recordedAt": "2026-08-26T22:33:52.933Z",
+    "revision": "3db0b0a0ed25278b2c1dee361d438891fa1e34fa",
+    "status": " M package-lock.json\n M package.json\n M packages/poe-agent/package.json\n?? docs/plans/bugfix-shell-quote-parser-security.md\n?? packages/terminal-pilot/assets/",
+    "index": "85699b3d1bdd5d678d1e6adbfb614892ec03ef0b5b3b80413083eef51f8075e8",
+    "license": "0f5d2ae231c0461da14b21ac8594071bb51be33e6a3dcc2b105813c69e7f4a13",
+    "engineManifestSha256": "fc14462c1f957d3a716caff094cf48f1117c2c602fa14f805fa3ba9e00167248",
+    "engineMatchesPinnedBaseline": false
+  },
+  "postTestSourceHashesMatch": true,
+  "guardTests": {
+    "pass": 2,
+    "fail": 0
+  },
+  "typecheck": {
+    "baselineStatus": 2,
+    "patchedStatus": 2,
+    "diagnostics": 8,
+    "outputsEqual": true,
+    "limitation": "missing unbuilt workspace declarations; not a passing typecheck"
+  },
+  "versions": {
+    "node": "v22.22.2",
+    "safeBashTsx": "4.23.12",
+    "copied_vitest": "3.2.6",
+    "copied_vite": "6.4.3",
+    "copied_typescript": "5.9.3",
+    "copied_tsx": "4.22.4"
+  },
+  "actualImports": {
+    "run": {
+      "path": "/private/tmp/safe-bash-safejs-isolated-pu6gX6/patched/packages/safejs/src/run.ts",
+      "sha256": "4c7bebb540df03cfa66b367ab1f59284c300fb57aa1a3b8500f58d7811c00cc6"
+    },
+    "interpreter": {
+      "path": "/private/tmp/safe-bash-safejs-isolated-pu6gX6/patched/packages/safejs/src/interp/interpreter.ts",
+      "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+    }
+  },
+  "currentPrivateRebaseTested": false
+}

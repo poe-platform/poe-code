@@ -1,0 +1,247 @@
+{
+  "schema": "B2_R9_PENDING_BINDING",
+  "checkedAt": "2026-08-29T17:17:02.086Z",
+  "status": "PENDING_DIFFERENT_REVIEW_AND_ROOT_ACTUAL_GO",
+  "packet": {
+    "path": "staged/PACKET.json",
+    "bytes": 7320,
+    "sha256": "5b4a12e14081d6c95f7805358737d32008b0b7f5844413b485e77a81fb1b807d"
+  },
+  "grant": {
+    "path": "GRANT.pending.json",
+    "bytes": 1067,
+    "sha256": "11744860187d396db880e1571d07391bd7ed5db44c61985e9bf1b5180f590cf6",
+    "requiredInstalledMode": "0600",
+    "installed": false
+  },
+  "command": {
+    "text": "/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r9/staged/new/launch.sh /private/tmp/B2-R9-ROOT-GO.json 7320",
+    "sha256": "b7f8a9ce325e90c7c1ac371e2cb0a71834942ad3f465a500b843c0fc5a62a5a4",
+    "encoding": "UTF8_NO_LF",
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "login": false
+  },
+  "window": {
+    "notBefore": "2026-08-29T17:20:00.000Z",
+    "externalLatestStart": "2026-08-29T17:25:00.000Z",
+    "activeEnd": "2026-08-29T17:47:00.000Z",
+    "absoluteExpiry": "2026-08-29T17:50:00.000Z",
+    "shrinkingRemainingTime": true,
+    "publicationReserveSeconds": 180
+  },
+  "unusedSlots": [
+    "/private/tmp/B2-R9-ROOT-GO.json",
+    "/private/tmp/safe-bash-b2-runtime-r9",
+    "/private/tmp/safe-bash-b2-runtime-r9.outer.raw"
+  ],
+  "packetPins": [
+    {
+      "path": "legacy/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "legacy/harness/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "legacy/harness/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "path": "legacy/harness/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7"
+    },
+    {
+      "path": "legacy/harness/extension-design.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f"
+    },
+    {
+      "path": "legacy/harness/extension.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc"
+    },
+    {
+      "path": "legacy/harness/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "legacy/harness/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3"
+    },
+    {
+      "path": "legacy/harness/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+    },
+    {
+      "path": "legacy/harness/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "path": "legacy/harness/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561"
+    },
+    {
+      "path": "legacy/harness/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "path": "legacy/harness/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff"
+    },
+    {
+      "path": "legacy/harness/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8"
+    },
+    {
+      "path": "legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "legacy/types/consumer-negative.mts.fixture",
+      "bytes": 1744,
+      "sha256": "01a2ed9b7b6eb42e03e163d6da2e762bf5a3663ebf548495c5788ffc385fe7ff"
+    },
+    {
+      "path": "legacy/types/consumer-positive.mts.fixture",
+      "bytes": 1736,
+      "sha256": "c735d61e010e7f8e6528181d800c3e9e9aac6c22d20b03d1e4bcf68e3222b6ff"
+    },
+    {
+      "path": "metadata/FROZEN-BINDINGS.json",
+      "bytes": 617256,
+      "sha256": "3e4ace73b6ef5f47a3f8eb7330cb22f5d8b51742e484032ae8f2a1864f35b0e9"
+    },
+    {
+      "path": "metadata/RECIPE.json",
+      "bytes": 593493,
+      "sha256": "487065c4454c01102b578a4d7ef1524514bf74d90e3a6d8dc1d9bde513b2a091"
+    },
+    {
+      "path": "metadata/REGEX-CLOSURE.json",
+      "bytes": 101812,
+      "sha256": "2d074a0fa78e95e5d16ede088bc2725ae9b5e7a3ed2a3c11a5bae428b4b4b4c4"
+    },
+    {
+      "path": "new/classify.mjs",
+      "bytes": 4307,
+      "sha256": "356b94df4f61a5d43adf776b250580ea13289e292098e9b983f3edbefbe968bb"
+    },
+    {
+      "path": "new/controls.mjs",
+      "bytes": 3771,
+      "sha256": "d68802d1df095d7cf8c6673ed7d7d2dba82f50fdb3a7938da2d6f14bc2365d33"
+    },
+    {
+      "path": "new/coordinator.mjs",
+      "bytes": 14759,
+      "sha256": "d65289d8d8903e16cda9b0db359fa4196c04ce2c12587f4c93bd7123c34dfdb6"
+    },
+    {
+      "path": "new/fixture.mjs",
+      "bytes": 861,
+      "sha256": "9bc2c8d6b7d25eebbcc74a5d8560efa097ba8b88c101c2d89ba998227b1a565e"
+    },
+    {
+      "path": "new/launch.sh",
+      "bytes": 418,
+      "sha256": "1e70e1ea1942ef4e78599d7dcc1ff05d9f77a6e8774271a3b6f438f5bea69203"
+    },
+    {
+      "path": "new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e"
+    },
+    {
+      "path": "new/outer.mjs",
+      "bytes": 1210,
+      "sha256": "a2080b5298ab237c290c67ff4eaac93ba5ce951e73d2d46ddfc785674ceabb0a"
+    },
+    {
+      "path": "new/owner.mjs",
+      "bytes": 9274,
+      "sha256": "a6b71208dda52f30b601bcf6a3a62009dfdbd374f82e0c209ad3ed09539c923a"
+    },
+    {
+      "path": "new/support.mjs",
+      "bytes": 8442,
+      "sha256": "fae2c6758881c46770079a166935eb8ac5b21ad1edcf6bfc94144d0fa9d98e92"
+    },
+    {
+      "path": "new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865"
+    },
+    {
+      "path": "new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe"
+    },
+    {
+      "path": "new/cache-census.mjs",
+      "bytes": 2896,
+      "sha256": "e82810cef780ef57aa6bcbe63dc88b44baedb735dc0c6f2dd5c05dded6d1f535"
+    }
+  ],
+  "tools": [
+    {
+      "path": "npm/bin/npm-cli.js",
+      "bytes": 54,
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "mode": 493
+    },
+    {
+      "path": "npm/node_modules/pacote/lib/fetcher.js",
+      "bytes": 16849,
+      "sha256": "1a385341f75d6c77496d30e7751012ad91489bb8c4e4e4db5e4568d2b9432a79",
+      "mode": 420
+    },
+    {
+      "path": "npm/node_modules/tar/dist/commonjs/unpack.js",
+      "bytes": 36929,
+      "sha256": "28af0e9e1cba6fe19a15bc5ea985c1ceeb9c79fda76e430daffc34fe9dff8083",
+      "mode": 420
+    },
+    {
+      "path": "npm/node_modules/@npmcli/config/lib/definitions/definitions.js",
+      "bytes": 73801,
+      "sha256": "4eb277f5649c00d5672059a4e61747660d60f72f4335cf1c197b52b4b20a72fe",
+      "mode": 420
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "package": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "reviewSlots": [
+    "reviewAuthority",
+    "reviewCommit"
+  ],
+  "note": "Existing grant schema and caps retained. Pending values deliberately do not pass runtime grant validator. Replace only after actual review/root approval; rehash before installation. No fabricated review acceptance.",
+  "cache": {
+    "root": "runtimeRoot/cache",
+    "reservationBytes": 134217728,
+    "sourceDerivedBound": false,
+    "rootDecision": "ROOT_ACCEPTED_BEST_EFFORT_NATIVE_TOOL_BOUNDARY",
+    "requiredAuthority": "ROOT_ACCEPTS_BEST_EFFORT_MUTABLE_CACHE_R8"
+  }
+}

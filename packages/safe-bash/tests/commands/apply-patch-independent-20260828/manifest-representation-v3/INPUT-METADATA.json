@@ -1,0 +1,104 @@
+[
+  {
+    "name": "common.mjs",
+    "bytes": 2971,
+    "mode": 420,
+    "sha256": "c1362b47011358ae63b6a61e0653106bbc23f93c1a993eaf0b6509b39986407a"
+  },
+  {
+    "name": "path-bytes.mjs",
+    "bytes": 6056,
+    "mode": 420,
+    "sha256": "77d326d80d16be07150722cc589030f09324796c747acaa9f3f83dc08cd04f94"
+  },
+  {
+    "name": "composition.mjs",
+    "bytes": 3390,
+    "mode": 420,
+    "sha256": "f8aaede3a3bbfb11ef33626a2d0f6447a03cde310248cd94d402d36ad726fbd9"
+  },
+  {
+    "name": "package-data.mjs",
+    "bytes": 2719,
+    "mode": 420,
+    "sha256": "9f40c2437c2cb0672886c4d2a4223fa7171c2ba67289c269f7f464f43320cc93"
+  },
+  {
+    "name": "dispatch.mjs",
+    "bytes": 3652,
+    "mode": 420,
+    "sha256": "28e234662c42d55b3323c8dd9b20aeef9788596b8fe6ec838d549d726dbcec65"
+  },
+  {
+    "name": "legacy.mjs",
+    "bytes": 26281,
+    "mode": 420,
+    "sha256": "7d2679ec9d1966bf854dea9548f8deb44beb6e2d8615cdd21cd7b45258903baa"
+  },
+  {
+    "name": "s54.mjs",
+    "bytes": 15863,
+    "mode": 420,
+    "sha256": "1ed6df9124971fa61ba4096c5762e9849fe192c5f10fa16c7b2e0c4a7528a9c7"
+  },
+  {
+    "name": "variants.mjs",
+    "bytes": 5809,
+    "mode": 420,
+    "sha256": "3e10f438e9e575dcc61f85a1da7802ee0fb9199bec6991268830ced3d3b2513c"
+  },
+  {
+    "name": "guard.mjs",
+    "bytes": 2206,
+    "mode": 420,
+    "sha256": "bc41fa58ee7c48d588b910b18ff3145246368628c0006bec056a7df2dcd400c7"
+  },
+  {
+    "name": "build.mjs",
+    "bytes": 1363,
+    "mode": 420,
+    "sha256": "f1b833354daa028ac4483dba21251ef1bf160ce76c686bf36422caada4227cd0"
+  },
+  {
+    "name": "BINDINGS.json",
+    "bytes": 165223,
+    "mode": 420,
+    "sha256": "066328dcc2a6345ed12e7d3d76d8069da121c08eafffee7e4d3bf72233eb1960"
+  },
+  {
+    "name": "PACKAGE-INVENTORY.json",
+    "bytes": 164921,
+    "mode": 420,
+    "sha256": "153f6a58cdd0b180499bc6bc377014257e6c8bc8e3f42ab930d66ecf6f0783d8"
+  },
+  {
+    "name": "JOBS.json",
+    "bytes": 27639,
+    "mode": 420,
+    "sha256": "adffb58983ebcb19b99d79e9ebe73768a40cf8af621b9235a3e3339681ae17e3"
+  },
+  {
+    "name": "VERSIONED-ROWS.json",
+    "bytes": 7108,
+    "mode": 420,
+    "sha256": "b781a86ac4790afabaac2cffb5c066d843c788629f6428f432fedf69e0d1a5d0"
+  },
+  {
+    "name": "VARIANTS.json",
+    "bytes": 404120,
+    "mode": 420,
+    "sha256": "754bcf5a3f313bbbc9c07d1843c84db6dd39fab8659d36fc24978c177d6b411f"
+  },
+  {
+    "name": "RUNTIME-SEAL.json",
+    "bytes": 22330550,
+    "mode": 420,
+    "sha256": "ed92126e7b2399068ae3ca6d500925c0b314b3243af1b04b7a81c946a6139d18"
+  },
+  {
+    "name": "PRESEAL.json",
+    "bytes": 108224,
+    "mode": 420,
+    "sha256": "e0031def83ab08a4ba17bd08863cc8e23bee925bbe8bb34330d27153ceef74ce"
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/time-env/built.mjs"
+  ],
+  "cwd": "/tmp/safe-bash-time-env-frozen-ztW7Wk",
+  "pid": 89065,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 194,
+  "timeoutMs": 120000,
+  "outputBytes": 153,
+  "observed": [
+    {
+      "pid": 89065,
+      "parent": 88813,
+      "group": 89065,
+      "born": "Thu Aug 27 02:41:28 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/commands/time-env/built.mjs"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "counts": {},
+  "stdoutSha256": "7dda96210acb0a3a5b8be1a051065a86be33e682a4914914db5e0583ec56f80c",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

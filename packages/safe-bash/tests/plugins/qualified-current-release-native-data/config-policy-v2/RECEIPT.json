@@ -1,0 +1,39 @@
+{
+  "sourceCommit": "91d56dbececa0cbc273c7680c60cf9a054470414",
+  "sourcePath": "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+  "sourceSha256": "c2241c899f878c1a54ba1d40db12b19a29ce218ae629389e8d039ffc7341a3f2",
+  "scope": "test-only exact compiler policy migration; not product/compiler configuration change",
+  "artifacts": [
+    {
+      "path": "original.tap",
+      "sha256": "a5fd24c78dcb9fc7be4ed42b8e51cfcdcd55a85f834091ced915e9876134c404",
+      "bytes": 4775
+    },
+    {
+      "path": "fixed.tap",
+      "sha256": "50da29e75205b0527ed5bf296570a749c152887b2c91e3a4aeb9cb69a9bee5e7",
+      "bytes": 2073
+    },
+    {
+      "path": "assertion-mutant.json",
+      "sha256": "ade0a52ebcaab429482b83cef4962f76678e3831279666fc756a5149fae2911d",
+      "bytes": 3329
+    },
+    {
+      "path": "guard-scope.json",
+      "sha256": "b6a58385aa6b3b00329d39562c38028f14a74b4aba860f9c714d7c7ed0f0fd44",
+      "bytes": 1034
+    },
+    {
+      "path": "original-controls.ts.txt",
+      "sha256": "8d140468ca8aecd972f47c649fff23f32ab77e76d7e9f939ee0e617f1c35bb20",
+      "bytes": 6096
+    }
+  ],
+  "scopedTypes": {
+    "status": 0,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "command": "node node_modules/typescript/bin/tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --skipLibCheck false --types node tests/plugins/qualified-current-release-native-data/controls.test.ts"
+  }
+}

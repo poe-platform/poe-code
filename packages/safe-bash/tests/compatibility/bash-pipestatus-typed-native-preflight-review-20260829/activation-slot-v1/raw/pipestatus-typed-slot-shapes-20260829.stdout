@@ -1,0 +1,267 @@
+{
+  "authKeys": [
+    "rows"
+  ],
+  "seal": {
+    "schema": "pipestatus-typed-executable-preseal-v1",
+    "files": [
+      {
+        "path": "admission.mjs",
+        "bytes": 9767,
+        "sha256": "1a164fdf354fe0be4bf95d6df33814501ef88e694b411b85a7c881711f9921a8",
+        "mode": 384
+      },
+      {
+        "path": "entry.mjs",
+        "bytes": 7137,
+        "sha256": "8422f3f1f542a7500dd777e14770ddafbbd67c6391ae75c8b23913111238e6cd",
+        "mode": 384
+      },
+      {
+        "path": "observation.mjs",
+        "bytes": 1499,
+        "sha256": "97ec0497143077aa98a58dfced22c11e13d3874dfdf3a3dcac211dfa11d8960b",
+        "mode": 384
+      },
+      {
+        "path": "capture.mjs",
+        "bytes": 1888,
+        "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+        "mode": 384
+      },
+      {
+        "path": "lifecycle.mjs",
+        "bytes": 5280,
+        "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+        "mode": 384
+      },
+      {
+        "path": "group-observer.mjs",
+        "bytes": 759,
+        "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+        "mode": 384
+      },
+      {
+        "path": "observer-state.mjs",
+        "bytes": 1240,
+        "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+        "mode": 384
+      },
+      {
+        "path": "state.mjs",
+        "bytes": 1824,
+        "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+        "mode": 384
+      },
+      {
+        "path": "storage.mjs",
+        "bytes": 3583,
+        "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+        "mode": 384
+      },
+      {
+        "path": "COHORT.json",
+        "bytes": 1723,
+        "sha256": "9c76abda8f03a76cbe3a7e84bf3705816f9b232e3e7171a4bea113103fee563a",
+        "mode": 384
+      },
+      {
+        "path": "REQUESTS.json",
+        "bytes": 4572,
+        "sha256": "ba16facd14e5e31172b7b027f7c1081a58f29e6eee209d56eed359d43d1c8e8d",
+        "mode": 384
+      },
+      {
+        "path": "PROTOCOL.json",
+        "bytes": 1676,
+        "sha256": "54878260d6e58e2339ebf933c84985f7817a573cb9a95a6885ace6c37eca7cbf",
+        "mode": 384
+      },
+      {
+        "path": "TOOLS.json",
+        "bytes": 3067,
+        "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a",
+        "mode": 384
+      },
+      {
+        "path": "programs/P19.bash.data",
+        "bytes": 21,
+        "sha256": "b09abcbeb244d0d3391c11c31ac6e9d1151c4bd46a07f885132b88218e620583",
+        "mode": 384
+      },
+      {
+        "path": "programs/P20.bash.data",
+        "bytes": 49,
+        "sha256": "6b8392098b86a3c9dfe0c058bb4b5ed9079e829c98e53241d024cdcdf23a6990",
+        "mode": 384
+      },
+      {
+        "path": "programs/P21.bash.data",
+        "bytes": 55,
+        "sha256": "e54d0a8c2cef21acb31ae6c63844d83fc0f0425b6717835aaf32fde99a65b857",
+        "mode": 384
+      },
+      {
+        "path": "programs/P22.bash.data",
+        "bytes": 95,
+        "sha256": "9f251636a96ef392b9dcd36f18b0a85db00956ef33cd9e516f97436134417c93",
+        "mode": 384
+      },
+      {
+        "path": "programs/P23.bash.data",
+        "bytes": 98,
+        "sha256": "281f9ca3400db0454b43ed9a77c5aa123b34f8b841ba1b491559c159d79fc8b8",
+        "mode": 384
+      },
+      {
+        "path": "programs/P24.bash.data",
+        "bytes": 45,
+        "sha256": "4d81af5abf13ca1c9757148052ef3742265c4d43850cd1fd9dc85ee8cd078801",
+        "mode": 384
+      }
+    ]
+  },
+  "tools": {
+    "schema": "ere-reference-tools-v1",
+    "toolPins": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      {
+        "path": "/bin/bash",
+        "bytes": 1293840,
+        "mode": 365,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+      }
+    ],
+    "environmentLauncher": {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed"
+    },
+    "wrapperTool": {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true
+    },
+    "freshPins": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "observedAt": "2026-08-29T09:07:47.839Z",
+        "operation": "metadata/stream-hash only"
+      },
+      {
+        "path": "/bin/bash",
+        "bytes": 1293840,
+        "mode": 365,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "observedAt": "2026-08-29T09:07:47.845Z",
+        "operation": "metadata/stream-hash only"
+      },
+      {
+        "path": "/usr/bin/env",
+        "bytes": 102368,
+        "mode": 493,
+        "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+        "phase": "metadata-read-only-not-executed",
+        "observedAt": "2026-08-29T09:07:47.846Z",
+        "operation": "metadata/stream-hash only"
+      },
+      {
+        "schema": "functional-wrapper-tool-metadata-v2",
+        "path": "/bin/zsh",
+        "bytes": 1361216,
+        "mode": 493,
+        "regular": true,
+        "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+        "version": "NOT_PROBED",
+        "execution": "NONE_THIS_PHASE",
+        "scope": "platform tool wrapper only; not Bash reference",
+        "preexecutionRequired": true,
+        "observedAt": "2026-08-29T09:07:47.850Z",
+        "operation": "metadata/stream-hash only"
+      }
+    ],
+    "bashLoadCommands": [
+      {
+        "path": "/bin/bash",
+        "architecture": "unspecified",
+        "rpaths": [],
+        "libraries": [
+          {
+            "name": "/usr/lib/libncurses.5.4.dylib",
+            "kind": "LC_LOAD_DYLIB"
+          },
+          {
+            "name": "/usr/lib/libSystem.B.dylib",
+            "kind": "LC_LOAD_DYLIB"
+          }
+        ],
+        "dylinker": [
+          "/usr/lib/dyld"
+        ]
+      }
+    ],
+    "qualifiedRuntimeLoaderGraph": false,
+    "currentDyldCacheRehash": false,
+    "source": "frozen functional-v3 metadata; fresh executable stream hashes; no version execution"
+  },
+  "template": {
+    "schema": "pipestatus-typed-approval-proposal-v1",
+    "status": "PENDING_DIFFERENT_REVIEW_FRESH_ROOT_GO",
+    "parameters": {
+      "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256 >/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr",
+      "workdir": "/Users/kjopek/Workspace/safe-bash",
+      "shell": "/bin/zsh",
+      "login": false,
+      "sandbox_permissions": "require_escalated",
+      "justification": "Allow only six freshly reviewed literal P19–P24 local Bash3.2.57 typed PIPESTATUS observations, builtins only with zero input fixtures or effects, outside the custom test sandbox; initial tool-shell startup is trusted host, not clean-env/capture or containment qualified?",
+      "yield_time_ms": 1000,
+      "max_output_tokens": 4096
+    },
+    "prefixRule": "NONE",
+    "soleLaterMutableSlot": "ROOT_APPROVED_GRANT_SHA256",
+    "requiredBeforeResolution": [
+      "materialize and authenticate exact reviewed draft bodies and assets; create fresh runtime PRESEAL without GO/receipt/template cycles",
+      "independent accepted runtime receipt pinned to new PRESEAL/REQUESTS",
+      "ROOT fresh GO pins receipt/new PRESEAL/profile/limits/exact namespace/future absolute expiry",
+      "resolve sole SHA slot; separate DATA review of exact command then require_escalated tool approval"
+    ],
+    "initialToolShellStartup": {
+      "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+      "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+      "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+      "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+    },
+    "oldGrantReused": false,
+    "absoluteUtc": {
+      "issued": "PENDING",
+      "expiry": "PENDING_ISSUED_PLUS_45_MINUTES",
+      "latestFull600sStart": "PENDING_EXPIRY_MINUS_600_SECONDS"
+    },
+    "withheldUntilRootScope": []
+  },
+  "readyKeys": [
+    "schema",
+    "files",
+    "bytes",
+    "allSixUnrun",
+    "excludes",
+    "deadline"
+  ]
+}

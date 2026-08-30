@@ -1,0 +1,277 @@
+{
+  "schema": 2,
+  "verdict": "H11_SCOPED_QUALIFIED_ACCEPTANCE",
+  "source": "f03c260269dfd8ee10666f7fd2560655f8e14a38",
+  "authorHarness": "63aae753af1ce5d8fa26160b596d6203e264e970",
+  "authorEvidence": "89c735fcdfe6e09bc88bb41535bad421e7e0cbd9",
+  "recipeCommit": "1a5c1dcf44ec7e719e43f4b6f8268bab81a02965",
+  "priorSeal": "fb6f048d801935d7ebd79ff412f93c9eb387eb88",
+  "driverSha256": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+  "effectiveProfileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "bindings": {
+    "count": 41,
+    "unchangedFromE35": 39,
+    "allowedChanges": [
+      "supervise.mjs",
+      "DRIVER.json"
+    ],
+    "supervisor": "3e624d9dd62d30a134540078a0ee3df4b8fdbd16d3f817c75f9583ba60dbcd08",
+    "osFenceSource": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+    "osFenceIdentityRaw": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+    "toolRoutesRaw": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+    "projectionRaw": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+    "externalEncoded": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "renderedOwnedRootsProfile": "ef3e58ebc54ca98e947fe896b7ce23a27adfec3a55abc3ee469894f18fbacb53"
+  },
+  "newCounts": {
+    "actualChildPass": 3,
+    "actualChildFail": 0,
+    "actualChildUnexecuted": 0,
+    "comparatorDataPass": 22,
+    "collectorDataPass": 6,
+    "dataFail": 0,
+    "getterInvocations": 0,
+    "retainedProofReruns": 0
+  },
+  "originalCountsUnchanged": {
+    "passCount": 15,
+    "harnessFail": 1,
+    "unexecuted": 2,
+    "coordinatorExit": 1,
+    "targetChildren": 0
+  },
+  "actualCases": [
+    {
+      "id": "A01",
+      "verdict": "PASS",
+      "identity": {
+        "pid": 16639,
+        "parent": 16636,
+        "group": 16639,
+        "born": "Fri Aug 28 13:17:50 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node --permission --eval process.stdout.write(\"owned-out\\n\");process.stderr.write(\"owned-err\\n\");setTimeout(()=>process.exit(0),500);"
+      },
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "captureClosed": true,
+      "observability": "FINAL_SNAPSHOT_OBSERVED",
+      "clean": true,
+      "faultIdentities": [],
+      "signals": [],
+      "stdoutBytes": 10,
+      "stderrBytes": 10,
+      "externallyAbsent": true
+    },
+    {
+      "id": "A02",
+      "verdict": "PASS",
+      "identity": {
+        "pid": 16653,
+        "parent": 16636,
+        "group": 16653,
+        "born": "Fri Aug 28 13:17:51 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node --permission --eval process.stdout.write(\"owned-out\\n\");process.stderr.write(\"owned-err\\n\");setTimeout(()=>process.exit(0),2000);"
+      },
+      "status": null,
+      "signal": "SIGTERM",
+      "closed": true,
+      "captureClosed": true,
+      "observability": "UNKNOWN",
+      "clean": false,
+      "faultIdentities": [
+        "null",
+        "undefined",
+        "secondary",
+        "secondary"
+      ],
+      "signals": [
+        {
+          "pid": 16653,
+          "born": null,
+          "signal": "SIGTERM",
+          "target": "owned-child-handle",
+          "delivered": true
+        }
+      ],
+      "stdoutBytes": 10,
+      "stderrBytes": 10,
+      "externallyAbsent": true
+    },
+    {
+      "id": "A03",
+      "verdict": "PASS",
+      "identity": {
+        "pid": 16658,
+        "parent": 16636,
+        "group": 16658,
+        "born": "Fri Aug 28 13:17:51 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node --permission --eval process.stdout.write(\"owned-out\\n\");process.stderr.write(\"owned-err\\n\");setTimeout(()=>process.exit(0),500);"
+      },
+      "status": 0,
+      "signal": null,
+      "closed": true,
+      "captureClosed": true,
+      "observability": "UNKNOWN",
+      "clean": false,
+      "faultIdentities": [
+        "secondary",
+        "secondary"
+      ],
+      "signals": [],
+      "stdoutBytes": 10,
+      "stderrBytes": 10,
+      "externallyAbsent": true
+    }
+  ],
+  "roleCounters": {
+    "companion": {
+      "PASS": 28
+    },
+    "sourceSpawn": {
+      "admitted": 3,
+      "dispatched": 3
+    },
+    "sourceObserver": {
+      "admitted": 18,
+      "dispatched": 12
+    },
+    "ownershipObserver": {
+      "admitted": 3
+    },
+    "absenceObserver": {
+      "admitted": 3
+    }
+  },
+  "parentObserverCalls": 10,
+  "roleJournalRows": 82,
+  "coordinator": {
+    "identity": {
+      "pid": 16636,
+      "parent": 16630,
+      "group": 16636,
+      "born": "Fri Aug 28 13:17:50 2026"
+    },
+    "exit": 0,
+    "signal": null,
+    "elapsedSeconds": 2.5941092499997467,
+    "streamsClosed": true,
+    "captures": {
+      "stdout": {
+        "bytes": 1403,
+        "sha256": "a31981748cde984272baa596af7d368431bc3dc0b0a714dbd71049298c84e09f"
+      },
+      "stderr": {
+        "bytes": 173,
+        "sha256": "8600d40769ca94f61d55f6b48aa3bca118f58a2c869eb9ab2eb1cc1b4d3919cf"
+      }
+    }
+  },
+  "closure": {
+    "controllerIdentity": {
+      "pid": 16630,
+      "parent": 98214,
+      "group": 16630,
+      "born": "Fri Aug 28 13:17:49 2026"
+    },
+    "registeredOwnedChildren": 3,
+    "rescues": 0,
+    "survivors": [],
+    "temporaryRootsRemoved": true,
+    "priorArtifactsUnchanged": 505,
+    "indexDuringCohortUnchanged": true
+  },
+  "rawIntegrity": {
+    "artifactsVerified": 44,
+    "coordinatorStreamsVerified": 2,
+    "cohortSha256": "a922f7ea6949a5c966e066f7350939dabc48f8325d53faedf3bb68f0fde0b876",
+    "loads": [
+      {
+        "file": "/private/tmp/unified76-supervisor-cont-v2-d6bf33152ad8f729/os-instruction-fence.mjs",
+        "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+        "wholeModule": true,
+        "imports": [
+          "node:assert/strict",
+          "node:crypto",
+          "node:fs",
+          "node:path",
+          "node:url",
+          "./tool-routing.mjs"
+        ]
+      },
+      {
+        "file": "/private/tmp/unified76-supervisor-cont-v2-d6bf33152ad8f729/supervise.mjs",
+        "sha256": "3e624d9dd62d30a134540078a0ee3df4b8fdbd16d3f817c75f9583ba60dbcd08",
+        "wholeModule": true,
+        "imports": [
+          "node:assert/strict",
+          "node:child_process",
+          "node:fs",
+          "node:path",
+          "node:timers/promises"
+        ]
+      },
+      {
+        "file": "/private/tmp/unified76-supervisor-cont-v2-d6bf33152ad8f729/supervise.mjs",
+        "sha256": "3e624d9dd62d30a134540078a0ee3df4b8fdbd16d3f817c75f9583ba60dbcd08",
+        "wholeModule": true,
+        "imports": [
+          "node:assert/strict",
+          "node:child_process",
+          "node:fs",
+          "node:path",
+          "node:timers/promises"
+        ]
+      },
+      {
+        "file": "/private/tmp/unified76-supervisor-cont-v2-d6bf33152ad8f729/supervise.mjs",
+        "sha256": "3e624d9dd62d30a134540078a0ee3df4b8fdbd16d3f817c75f9583ba60dbcd08",
+        "wholeModule": true,
+        "imports": [
+          "node:assert/strict",
+          "node:child_process",
+          "node:fs",
+          "node:path",
+          "node:timers/promises"
+        ]
+      }
+    ],
+    "roleJournalSha256": "0bed2ea8e841aee0352c1e9cf91d61ef5a3abbfbf47cd0084138b617a9401d7e",
+    "accessorSentinel": 0
+  },
+  "metadataValidationHistory": [
+    "First inline post-run JSON validator stopped with KeyError: fatal; JSON.stringify omitted the undefined field. No evidence files or runtime were changed.",
+    "This data-only validator uses optional-field lookup AND requires actual exit0/all case outcomes/closure. No runtime retry."
+  ],
+  "composedObligations": [
+    {
+      "obligation": "H11 synthetic/source",
+      "status": "15_SCOPED_PROOFS_RETAINED_NOT_RERUN",
+      "evidence": "fb6f048d801935d7ebd79ff412f93c9eb387eb88"
+    },
+    {
+      "obligation": "H11 actual A01/A02/A03",
+      "status": "3_PASS_NEW_COHORT"
+    },
+    {
+      "obligation": "Original A01 failure/A02-A03 unexecuted",
+      "status": "HISTORICAL_UNRESCORED"
+    },
+    {
+      "obligation": "H06 dual private error",
+      "status": "SOURCEQUALIFIED_ACTUAL_UNEXECUTED",
+      "condition": "terminal persistence succeeds"
+    }
+  ],
+  "qualifications": [
+    "Whole unchanged shipping supervisor linked through role-checked spawn and shipping-rendered OS profile; not complete phase IPC integration.",
+    "Bounded owned PID/birth/PGID observations, not universal background closure or kernel-hard deadline.",
+    "A02 signal receipt born=null reflects injected observer unavailability; actual external birth and owned handle separately bound.",
+    "Existing library/OS metadata exceptions carried only; no fresh full tool/native semantic/OS attestation.",
+    "No private/setup/build/A10/pack/chmod/fullgate execution or original40/consumed0of14 rescore."
+  ],
+  "rootReleaseIssued": false
+}

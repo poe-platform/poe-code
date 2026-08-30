@@ -1,0 +1,11 @@
+{
+  "frozenAt": "2026-08-27T04:44:55.267Z",
+  "purpose": "Independent inputs and native references frozen before new author substring source/expectations inspection; product acceptance awaits ROOT READY.",
+  "files": {
+    "cases.mjs": "84a43ac0f979092690fcf8d2c682f4f867d9a76b64bc66fe2eaa0aeeea65509f",
+    "native.mjs": "2d35b5dabb4067598b3591304c968b7c024ba8fcf5e6dd2257f995c76e6fb3ee",
+    "host.mjs": "b8d3df32429715e0c31c3689fe4c237bff76d2a0e156c8497d2c31f96625d36c",
+    "integrity.test.mjs": "71a3c82d10fac43df2fd9e5e767648de700c555bb9a8f6da057ae79c85ce2f70",
+    "native-frozen.json": "abd6d9d6199f17bc3a30d757f8dadd665c0b10d6918140827dd7d537cdb5843e"
+  }
+}

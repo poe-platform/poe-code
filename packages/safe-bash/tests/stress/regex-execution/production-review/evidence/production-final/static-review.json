@@ -1,0 +1,11 @@
+{
+  "riskSafe": false,
+  "riskGate": "Root explicitly defers all six probes while F1 lifecycle contract remains blocked; zero consumed.",
+  "broadAcceptance": false,
+  "sourceCommit": "c467e8a7bdd78048985f97539bc76e38ff786b09",
+  "priorSourceCommit": "b1939d76b8e28687320a7253380a00b446424548",
+  "contentGraphUnchanged": true,
+  "followup": "Three client source lines add PROTOCOL handling for messageerror and remove that handler after awaited retirement. Original verification assertions unchanged. Benchmark-only instrumentation now records actual worker ready latency as a component of full elapsed time.",
+  "remaining": ["F1: public early-downstream exec/dispose can precede worker retirement; no approved lifecycle fix", "CLI/VFS ignore-file glob native RegExp remains host-side; root forbids scope expansion", "Shell bracket predicates use constrained native host RegExp; parser hex regex has trusted maximum2/4/8"],
+  "inspection": "Static ESM worker/matching/protocol remain isolated from process/eval/filesystem/network/subprocess access; no fast host literal matcher introduced. All build/source identities are independently frozen."
+}

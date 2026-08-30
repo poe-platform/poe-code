@@ -1,0 +1,42 @@
+{
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "sourceCommit": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+  "package": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+  "executorSha256": "01a4499c28fa0873c8563a01df9cd7dfb45a9e979b7fd0500509fafbdc830de5",
+  "presealSha256": "3f1d4db5898c005cabb3ad8456dd305d055831063a33115438a47819e85cae74",
+  "namespace": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v1",
+  "mustBeUnused": true,
+  "sourceControls": 8,
+  "syntaxChecks": 3,
+  "tools": [
+    {
+      "name": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "name": "git",
+      "path": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  ],
+  "mutations": [
+    {
+      "id": "drop-exact-provenance",
+      "file": "shell/runtime.js",
+      "before": "this.cancellationState.recordDiagnostic(publicPromise, reason);",
+      "after": "void publicPromise;",
+      "case": "N10"
+    },
+    {
+      "id": "expose-private-wrapper",
+      "file": "shell/runtime.js",
+      "before": "throw reason.reason;",
+      "after": "throw reason;",
+      "case": "N04"
+    }
+  ],
+  "conditionalGrant": "ROOT successor actual GO after this executable preseal committed; no previous attempt replay.",
+  "noRuntimeYet": true
+}

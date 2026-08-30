@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "state": "PREPARATION_ONLY_STOP_UNTIL_ROOT_AUTHOR_HANDOFF",
+  "createdAt": "2026-08-27T15:39:38.889Z",
+  "ownership": "Only new tests/commands/column-stress/padding-evolution/** and unique isolated tmp. Author source/tests are not read or edited.",
+  "baseline": {
+    "sourceCommit": "38cb670acf0826467e928ea30cdcb0524436d144",
+    "sourceFiveFileSha256": "06a48bca73584c719bad2fa5db1e447e87c63f900e5dc715c80244701d125a75",
+    "priorTopLevelCounts": {
+      "passed": 37,
+      "total": 40
+    },
+    "priorDecision": "historical failed assertions unchanged; no retroactive bug classification",
+    "originalPreparation": "46e90c80",
+    "evidenceCommit": "8927f033e39e4eb8fa27746aec04dcc964f8fea4",
+    "handoffManifestSha256": "f880ebacd7f239acad879df2a5beb92e43853e508d4d5151ef8a6448ab3df37d",
+    "historicalReadmeSha256": "fd8aa127d8f9c46faeb0d539bd3b98ee32318d7889f1e4d8f237c2260aef4738"
+  },
+  "workspace": {
+    "headAtInitialInspection": "b7ef6f460a913ac857afb65d1e42cf326e524309",
+    "dirtyAuthorSourcePathsObservedWithoutReading": [
+      "src/commands/column/column.ts",
+      "src/commands/column/internal.ts"
+    ],
+    "untrackedAuthorSourcePathObservedWithoutReading": "src/commands/column/table.ts",
+    "otherWorkersChanges": "Unrelated dirty/untracked benchmark, native-scratch and integration artifacts observed and preserved. No live source execution or substitution.",
+    "indexInitiallyEmpty": true
+  },
+  "expectationAuthority": [
+    "Latest Root user-authorized profile delta, exact original N01/N03 raw observations",
+    "Historical baseline README API/limit/scalar profile only; no current author implementation/tests/fixtures read",
+    "Fresh small pinned native captures before any evolution candidate; no fixture revised from product output"
+  ],
+  "native": {
+    "command": [
+      "node",
+      "tests/commands/column-stress/padding-evolution/capture.mjs",
+      "/tmp/safe-bash-column-stress-prep-yjjgfG"
+    ],
+    "scratch": "/tmp/safe-bash-column-stress-prep-yjjgfG",
+    "captureRunnerSha256": "01f1cd28e16b61eda0b1dbc74d25aca64ed74b975c25835701cd2b033326f264",
+    "wrapperSha256": "76de5d2581db20719746a1e5ac6e0a202cd36b5d8f2c1cfedd6677bf621d413d",
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "en_US.UTF-8",
+      "LANG": "en_US.UTF-8",
+      "COLUMNS": "80",
+      "TERM": "dumb",
+      "HOME": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-home",
+      "XDG_CONFIG_HOME": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-home/config",
+      "NO_COLOR": "1"
+    },
+    "profiles": [
+      {
+        "name": "bsd-darwin",
+        "executable": "/usr/bin/column",
+        "resolvedPath": "/usr/bin/column",
+        "sha256": "c6d7b469d8e8437c7185bedd356626ca69867c9c6b002cbb0020d995a6e4cc5f",
+        "bytes": 135264
+      },
+      {
+        "name": "util-linux-2.41.2-darwin",
+        "executable": "/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column",
+        "resolvedPath": "/private/tmp/safe-bash-column-stress-prep-Y7nUWq/util-linux-2.41.2/column",
+        "sha256": "a599976edf85eaa3222ac745309596023b5e63283a8b8ee3c3834d741214dd88",
+        "bytes": 196024
+      }
+    ],
+    "priorPrimaryArchiveSha256": "6062a1d89b571a61932e6fc0211f36060c4183568b81ee866cf363bce9f6583e",
+    "build": "Existing pinned isolated util-linux 2.41.2 dev build reused, linked to Darwin libSystem. No new builds/downloads/deps/installations. Prior checksum match was not GPG verification.",
+    "documentation": "Historical primary man7 development rendering is not the pinned binary version; original provenance retained.",
+    "rawObservationsSha256": "9bc0d0e0d63b91c3e277a3309927bea1e2f718aeb4cd6bf9314e11ca272f5244",
+    "counts": {
+      "literalControls": 17,
+      "nativePerProfile": 17,
+      "nativeInvocations": 34,
+      "identityAndHostInvocations": 10,
+      "safetySchedulesPrepared": 16,
+      "candidateInvocations": 0
+    },
+    "rawStatusPartitions": {
+      "bsd-darwin": {
+        "zero": 12,
+        "nonzero": 5
+      },
+      "util-linux-2.41.2-darwin": {
+        "zero": 17,
+        "nonzero": 0
+      }
+    },
+    "forcedTerminations": 0,
+    "streamCaps": 0,
+    "spawnFailures": 0,
+    "normalizations": [],
+    "cleanup": {
+      "invocationDirectoriesRemoved": true,
+      "ownedNativeProcessesRetired": true,
+      "persistentIsolatedHome": "/tmp/safe-bash-column-stress-prep-yjjgfG/native-home"
+    }
+  },
+  "historicalInventory": [
+    {
+      "path": "tests/commands/column-stress/capture-native.mjs",
+      "sha256": "01f1cd28e16b61eda0b1dbc74d25aca64ed74b975c25835701cd2b033326f264"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/authenticate.mjs",
+      "sha256": "fa7111ea49b048f90b55b3120db62146440c4e8708cab0a55dda10ef1e7c9450"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/auth-after.json",
+      "sha256": "791562c6107c71d01be5be2668ca71b5b53b5c78f77f38d4e5fa3ca031ec3264"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/auth-before.json",
+      "sha256": "87b974068c3c94cc26207b1080ab3bc0a49ed235023f229f8234d0c03409533c"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/author-tests.json",
+      "sha256": "eb34a992e14c56cd1e04496457214bb84543038d887814a3dd5e810660f14c04"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/author-types.json",
+      "sha256": "8fbdb59e06e346a9dcf9502b3782b519cec7933fba9bac5df2de473561eaa605"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/build.json",
+      "sha256": "60ff7016b7aaf71d95a16739916e1a10b67d06120c5c550eec294950fbccc049"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/regressions-baseline.json",
+      "sha256": "998e6dd41248d068bbcd77ffc435e327716683563b34f2bbd0f56f44d24e680f"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/regressions-types-baseline.json",
+      "sha256": "dbd7bfc6d9ae6bc83e9dbffeec1323fd90d2196e45f395ac595bd0f88e4cc959"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/stress-baseline-command.json",
+      "sha256": "60e4d35387e130bd1d8595a793a4b81a9247c7708a666c7fc1e15f870610c6be"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/stress-baseline-corrected-command.json",
+      "sha256": "204fef7a3436bdef359c71910bbe5bc03c00436d98ab78cbefaa74411957ecc8"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/stress-baseline-corrected.json",
+      "sha256": "97b4183549bfd108f1bb85b4942d4c6918c3e0e844b5a37d81c8ac27228a0d7e"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/baseline/stress-baseline.json",
+      "sha256": "cb1e3878a88117c8275177a6261d89fab912294a55b5bbd69c71a424d95ddf7c"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/expectations.json",
+      "sha256": "22ba6a1096b2613dc28b93e5b017f461d38b9901849b92b19b20500ef27eac52"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/HISTORY.md",
+      "sha256": "f4018857eafc35d69f78e322a3260a60f5107fb709b230be3cb62af9fbfd52d2"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/history/safety-corrected-baseline.mjs.txt",
+      "sha256": "abb82db94ba904b81b9792cef4f5dd0bb2c57a49aeeea35795461d7d0394c3d5"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/history/safety-initial.mjs.txt",
+      "sha256": "2ec0524b347cb205660afe0157166b915ec80993913485ab871e9d86a7af40d5"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/history/stress-initial.mjs.txt",
+      "sha256": "8e001cb02f3190265d18f43fd3d9eb61bd02dd6b875035bfe9fd365e50e6e23a"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/MANIFEST.json",
+      "sha256": "f880ebacd7f239acad879df2a5beb92e43853e508d4d5151ef8a6448ab3df37d"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/packed-consumer.mjs",
+      "sha256": "3273307791808225271fab40b2c82b30394d4e4d05c05cbd81ef8d729472dc15"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+      "sha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/pack-command.json",
+      "sha256": "9af88c56755b671369aea03c0109220d05df979bbcbf8b4f08ffdfb5c9b0ae9e"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/pack-provenance.json",
+      "sha256": "ea95123590aa4f4558d7d1fe42e5c0a028fc723a9186ab6fe587a143dba304ed"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/packed-runtime-command.json",
+      "sha256": "796fccf4a716683f98865125a84049a0469c2da9433dca4fd84d7287f19639a0"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/packed-runtime.json",
+      "sha256": "5e8a8c22269f228b086518b4812f67403ba7707e4201c7ebabc89cce51d96443"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/packed-types-command.json",
+      "sha256": "4e0ea737a54ae55cf8bc4d62bbf1760238655ed3bda181fba4a5736fb49b36b6"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/packed-types-strict-trace-command.json",
+      "sha256": "e0b4e2fa3032f139943041625a25942b9ec8fd9dfad82583dd66138551b2dae8"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-auth-after.json",
+      "sha256": "35199300fd3433443705c2300ff416b2c5f808900733697ac5c2663241bdbbb9"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-auth-before.json",
+      "sha256": "9dc645a4b58ba968c3ee5e8a180f54b95a0faa814b9abc547b22a6e92ee0ccab"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-auth-final.json",
+      "sha256": "ff09b339bbde3cdfb7e2303752873edf39e2833018099557852432d23067cad2"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-author-tests.json",
+      "sha256": "c64af52fa228337c751207a1727d1e4d00bdc5feb35e15ec402f2b6ee4c437b3"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-build.json",
+      "sha256": "ea06cd2bb9e352f111690e4bbd92d9895f00ad4ad078c93a06853907ac0a2cfe"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-regressions.json",
+      "sha256": "71a570a61954e04c569dca285285e9abc5a6e7e6706ccc5177bcee1df2400ab2"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-stress-command.json",
+      "sha256": "d7f1badd78b8102368b5dda5f03a273fa9b233fc14502cb9b9b46a441fdf7de7"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-stress.json",
+      "sha256": "933c7d626361f38ff45f10f8a6aa7a2ce07d451215d364b0ff46b8cbc42e8128"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/postfix-types.json",
+      "sha256": "fc72bf507c69b47b7ea4b957d17919caf6b0cba299975a7d819d1ff7c42222e0"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/preparation-static-command.json",
+      "sha256": "720fb44245532c43013fdd4bd506dd191063ae71e3434904738d58ca282024a8"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/root-repro-command.json",
+      "sha256": "21fc8494edc27eb88371c06a6211eedf4c097337e3278cad2ee03be3cf3e6e75"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/postfix/root-repro.json",
+      "sha256": "3eb3e82528f6437882500a805c528bed4e5f8c32273112ebdd325f3ddd6c888e"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/REPORT.md",
+      "sha256": "0016caffa85278af703e930edf2e36c0566502ed46707316fed77c9624e6c12c"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/root-hidden-return-repro.mjs",
+      "sha256": "cd225bd6e2a2418729833838c1b296d18ed248c523c869230838e8be55e79f1b"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/run-command.mjs",
+      "sha256": "945919ae167f5ae1adc686a9a9faaed7d7271151e26de2223a30f9436203784a"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/safety.mjs",
+      "sha256": "82c36f9e6c47e88d27a957647c370b8797afa753188c11675c51e2119d489012"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/stress.mjs",
+      "sha256": "97731e477c33f5de4497c1ceff69b415d2e527ca5172bd92f15e7f9389d8d6ff"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/verify-evidence.mjs",
+      "sha256": "758cafd0cfb896fa153deec0e2efa79b0ede42ac1d0d7587a7b51ccc3861b80c"
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-plan.md",
+      "sha256": "9326e3d7f2a88b7c7e680736d83a4db4be03f257ce71ea9134413f879ead4566"
+    },
+    {
+      "path": "tests/commands/column-stress/native-observations.json",
+      "sha256": "89515a42ed2e9e634cf1c82ec523f74f6b04c20732a5826d21177f04f7657a79"
+    },
+    {
+      "path": "tests/commands/column-stress/owned-regressions.test.ts",
+      "sha256": "6d91135248a642e6b301c612bcbcb3d562763d612d73e294bb87bdedafb13e1e"
+    },
+    {
+      "path": "tests/commands/column-stress/provenance.json",
+      "sha256": "cac64592731a4ddb210ced63bbb302a225a11db68e0e74615eec7a4a2da5ce6f"
+    },
+    {
+      "path": "tests/commands/column-stress/README.md",
+      "sha256": "0119576349d5b0cf95b5d30f1c153b7d5e10c317cafbbacd2e2b3005b08631a5"
+    },
+    {
+      "path": "tests/commands/column-stress/recipes.json",
+      "sha256": "e6db28115a575c6da046a9efa81841ed05dc28a04c8860630141c461bf20d2aa"
+    },
+    {
+      "path": "tests/commands/column-stress/validate.mjs",
+      "sha256": "bf1bf4e7cea263808ff1c54395b5d43ae4dbb1d62d8eaa6c6f0ae3496b2ad5bd"
+    }
+  ],
+  "integrity": "Historical recursive inventory detects changed/removed/added entries outside the new directory. seal.json authenticates all new entries except itself; explicit Git commit authenticates the seal. Original seven separately compared to 46e90c80 Git blobs before capture sealing.",
+  "preSealCorrections": "Hand arithmetic for N01 was corrected from 37 to 40 bytes, empty-row control from 7 to 6; preallocation fixture reordered to reach the dangerous padding first; impossible simultaneous input-return/output gate split into independent schedules. These are pre-candidate specification corrections, not observed product failures or expectation migration.",
+  "remaining": "Author closed commit/digest plus Root explicit actual-run authorization required. No source ownership granted to this verifier; no shared-contract decision or public integration. Safety schedules and negative controls are specifications, not executed tests."
+}

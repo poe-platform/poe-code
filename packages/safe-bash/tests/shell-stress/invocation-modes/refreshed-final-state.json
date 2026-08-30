@@ -1,0 +1,552 @@
+{
+  "timestamp": "2026-08-27T00:25:15.537Z",
+  "head": "7d0fe7b45578cfc3836e9a8d6a5fd4a4d5e9edd3",
+  "endTreeChecks": [
+    {
+      "path": "src/commands/basic.ts",
+      "replayStart": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "replayEnd": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "final": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "replayStart": "a0fadd306b6db1fe79cb927b4ff3624101708a0f38a0fe708fbd90c8f67a7275",
+      "replayEnd": "a0fadd306b6db1fe79cb927b4ff3624101708a0f38a0fe708fbd90c8f67a7275",
+      "final": "a0fadd306b6db1fe79cb927b4ff3624101708a0f38a0fe708fbd90c8f67a7275",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "replayStart": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "replayEnd": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "final": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "replayStart": "63e16e4990c19cbf2db23f3820cffd7b3931ea43dd4879706bd9c846f1695e9c",
+      "replayEnd": "63e16e4990c19cbf2db23f3820cffd7b3931ea43dd4879706bd9c846f1695e9c",
+      "final": "63e16e4990c19cbf2db23f3820cffd7b3931ea43dd4879706bd9c846f1695e9c",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/find.ts",
+      "replayStart": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "replayEnd": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "final": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "replayStart": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "replayEnd": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "final": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/index.ts",
+      "replayStart": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "replayEnd": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "final": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "replayStart": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "replayEnd": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "final": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/move.ts",
+      "replayStart": "9766704dc9a65d27c397852db76f5f78baaad8b1db4f1163c428464596662b2c",
+      "replayEnd": "9766704dc9a65d27c397852db76f5f78baaad8b1db4f1163c428464596662b2c",
+      "final": "8e8dcde6f50b4715d78a7a21cc8a931314271e5e099ba8b290fd8834c04a4918",
+      "differsFromRecordedEnd": true
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "replayStart": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "replayEnd": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "final": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "replayStart": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "replayEnd": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "final": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "replayStart": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "replayEnd": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "final": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "replayStart": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "replayEnd": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "final": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "replayStart": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "replayEnd": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "final": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "replayStart": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "replayEnd": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "final": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "replayStart": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "replayEnd": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "final": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "replayStart": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "replayEnd": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "final": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "replayStart": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "replayEnd": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "final": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "replayStart": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "replayEnd": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "final": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/commands/text.ts",
+      "replayStart": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "replayEnd": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "final": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "replayStart": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "replayEnd": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "final": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "replayStart": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "replayEnd": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "final": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "replayStart": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "replayEnd": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "final": "fc3c8ee2c6d2d1dade397567779543a38a4fb0092a7225975fecf7cfd553b915",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "replayStart": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "replayEnd": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "final": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "replayStart": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "replayEnd": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "final": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "replayStart": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "replayEnd": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "final": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "replayStart": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "replayEnd": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "final": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "replayStart": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "replayEnd": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "final": "98704037c57bae8bd5c3782c65aceb98e967837df375b33eda52a00ce762b1a0",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "replayStart": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "replayEnd": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "final": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/index.ts",
+      "replayStart": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "replayEnd": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "final": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/input.ts",
+      "replayStart": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "replayEnd": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "final": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "replayStart": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "replayEnd": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "final": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "replayStart": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "replayEnd": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "final": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "replayStart": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "replayEnd": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "final": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "replayStart": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "replayEnd": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "final": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "replayStart": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "replayEnd": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "final": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "differsFromRecordedEnd": false
+    },
+    {
+      "path": "src/shell/types.ts",
+      "replayStart": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "replayEnd": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "final": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "differsFromRecordedEnd": false
+    }
+  ],
+  "endTreeDrift": [
+    {
+      "path": "src/commands/move.ts",
+      "replayStart": "9766704dc9a65d27c397852db76f5f78baaad8b1db4f1163c428464596662b2c",
+      "replayEnd": "9766704dc9a65d27c397852db76f5f78baaad8b1db4f1163c428464596662b2c",
+      "final": "8e8dcde6f50b4715d78a7a21cc8a931314271e5e099ba8b290fd8834c04a4918",
+      "differsFromRecordedEnd": true
+    }
+  ],
+  "preservedChecks": [
+    {
+      "name": "post-ready-final-audit.json",
+      "expected": "3536deb5b6faf5b5a5b8771915b5ba399a0ccb1986e7a51589885c355ee3165c",
+      "current": "3536deb5b6faf5b5a5b8771915b5ba399a0ccb1986e7a51589885c355ee3165c",
+      "unchanged": true
+    },
+    {
+      "name": "post-ready-handoff-audit.json",
+      "expected": "f2577f84bb320caa08d658cf0b4bf76b3ad0acecb7ff393457c14c36364e59da",
+      "current": "f2577f84bb320caa08d658cf0b4bf76b3ad0acecb7ff393457c14c36364e59da",
+      "unchanged": true
+    },
+    {
+      "name": "post-ready-holdout-evidence.json",
+      "expected": "51aef960db8966604763120d3473efa6e6ef796c5ea48fe3e0931f2c93ae58ec",
+      "current": "51aef960db8966604763120d3473efa6e6ef796c5ea48fe3e0931f2c93ae58ec",
+      "unchanged": true
+    },
+    {
+      "name": "post-ready-raw-comparison.json",
+      "expected": "1a1872267f5737957a24282c434533fc03122d52ba57f036e8e711f2d8debac7",
+      "current": "1a1872267f5737957a24282c434533fc03122d52ba57f036e8e711f2d8debac7",
+      "unchanged": true
+    },
+    {
+      "name": "post-ready-regression-evidence.json",
+      "expected": "d8c6d712d3a7fbdfb07baa7dff730462fd7b1c09b7373a77e11762ec40eb86cb",
+      "current": "d8c6d712d3a7fbdfb07baa7dff730462fd7b1c09b7373a77e11762ec40eb86cb",
+      "unchanged": true
+    },
+    {
+      "name": "post-ready-supplement-evidence.json",
+      "expected": "a3ec0a0c1a50dd85ceac2bb2f053227c72166f911718f13dcc997b21fb24e3aa",
+      "current": "a3ec0a0c1a50dd85ceac2bb2f053227c72166f911718f13dcc997b21fb24e3aa",
+      "unchanged": true
+    }
+  ],
+  "frozenChecks": [
+    {
+      "path": "src/shell/arithmetic.ts",
+      "expected": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "current": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/index.ts",
+      "expected": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "current": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/input.ts",
+      "expected": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "current": "03fce524aef5c5fc87b65c72adefc2dd86e92b0c702d675719ebb0770b876314",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "expected": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "current": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "expected": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "current": "b7f4070c006221c44d822f8a6c45f24f896942ea8e7bef4290a936bb616eb2d6",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "expected": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "current": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "expected": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "current": "6a86339d76e764031a26671586842467a40dc989895589ab416306e655496145",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "expected": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "current": "f4b9e55515e00ef456d48f6a3da60cf5b19b5af7fb91c700c151bd92726f6bb7",
+      "unchanged": true
+    },
+    {
+      "path": "src/shell/types.ts",
+      "expected": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "current": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/audit-preparation.ts",
+      "expected": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b",
+      "current": "fd7906b9668b02e3b076ed294aec9a5ad859a70899195bc8bfd4fdae40d5808b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/baseline-evidence.json",
+      "expected": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965",
+      "current": "28cf441d4e5347d23a9e6043362be0c5076b7b9dde7e3f23e36e2995fe4a7965",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/capture-native.ts",
+      "expected": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+      "current": "87f6c12062d4e14dd31f164e4b547f39e9a94d2b646e6553299b99587ca446a0",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cases.ts",
+      "expected": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "current": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/cleanup-evidence.json",
+      "expected": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8",
+      "current": "530c25c5abfcf71e93e9b6f640694b7a85653550f0736dc0999b57c9875f05f8",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/harness.ts",
+      "expected": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+      "current": "e8735e961c91e6c0ff170d4105c595f5ac9af548d3572cdd97f45f810f0a0679",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/holdout.test.ts",
+      "expected": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "current": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-capture.log",
+      "expected": "eb9d65a0288790846d5bf18748e622cb525395e4e2e80adc40075cbfc0c432ea",
+      "current": "eb9d65a0288790846d5bf18748e622cb525395e4e2e80adc40075cbfc0c432ea",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-capture.log",
+      "expected": "f8cda4b57fb974830fa9a4f293871290097956385e3b94d488d279a30e251f60",
+      "current": "f8cda4b57fb974830fa9a4f293871290097956385e3b94d488d279a30e251f60",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-corrected-evidence.json",
+      "expected": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+      "current": "86e6be4ec1ad22f3c5956ed0b37d8091653c4858fbf143f35b2e80eae4b67e45",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/native-evidence.json",
+      "expected": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+      "current": "538587ce1acc44f4a17ce725c7673df9108c535ef829c3bc73e068bf92256c3f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/preparation-audit.json",
+      "expected": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421",
+      "current": "2a3c8a7c2d8a72422474a67a3661d5b9bbcb4712360b28a53199d2e7fd987421",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/ready-wait-evidence.json",
+      "expected": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183",
+      "current": "247a05df3a30513efa2498d41d7501a1ffe142979c5a7adc1d901b87bef8e183",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/trace.mjs",
+      "expected": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+      "current": "e433375f13dabbf72b364f14cc780e1d30b8d67c386765e0e713b43d2c7996ed",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/verify.ts",
+      "expected": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+      "current": "2b1d34e30ab41e683a5fc25094cb03863ecd0461f3ad7c8b5f65cedf8bcce73b",
+      "unchanged": true
+    },
+    {
+      "path": "tests/shell-stress/invocation-modes/virtual-child.ts",
+      "expected": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+      "current": "c5d770ba6ba0522e0387fbcbdd0dd00c9437ae3520ae593aeaf1546be604781d",
+      "unchanged": true
+    }
+  ],
+  "recordedProcessGroups": [
+    36258,
+    37326,
+    37605,
+    38014,
+    38113,
+    38205,
+    38650,
+    36266,
+    36276,
+    36285,
+    36297,
+    36309,
+    36313,
+    36340,
+    36354,
+    36370,
+    36372,
+    36386,
+    36407,
+    36418,
+    36422,
+    36435,
+    36477,
+    36559,
+    36590,
+    36608,
+    36638,
+    36661,
+    36680,
+    36703,
+    36718,
+    36733,
+    36738,
+    36755,
+    36766,
+    36779,
+    36786,
+    36797,
+    36810,
+    36811,
+    36832,
+    36845,
+    36851,
+    36861,
+    36868,
+    36878,
+    36884,
+    36893,
+    36907,
+    36931,
+    36948,
+    36972,
+    36994,
+    37011,
+    37015,
+    37047,
+    37055,
+    37059,
+    37077,
+    37086,
+    37089,
+    37100,
+    37103,
+    37115,
+    37120,
+    37134,
+    37148,
+    37153,
+    37156,
+    37160,
+    37175,
+    37185,
+    37209,
+    37221,
+    37224,
+    37228,
+    37240,
+    37257,
+    37274,
+    54079,
+    54114
+  ],
+  "survivingGroups": [],
+  "temporaryDirectories": [],
+  "watchersStarted": 0,
+  "indexBeforeOwnedStaging": "A\ttests/fs/mount/identity-authority-review/.gitignore\nA\ttests/fs/mount/identity-authority-review/REPORT.md\nA\ttests/fs/mount/identity-authority-review/audit.mjs\nA\ttests/fs/mount/identity-authority-review/authority.test.ts\nA\ttests/fs/mount/identity-authority-review/evidence/integrity.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/authority.test.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/manifest.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/observations.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/proposal.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/run.mjs.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/source.tar.gz\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/tests.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/tests.stdout.tap\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/tsconfig.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/types.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-final/types.stdout.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/authority.test.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/manifest.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/observations.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/proposal.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/run.mjs.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/source.tar.gz\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/tests.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/tests.stdout.tap\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/tsconfig.json\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/types.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/pinned-reviewed/types.stdout.txt\nA\ttests/fs/mount/identity-authority-review/evidence/preliminary/authority.test.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/preliminary/proposal.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/preliminary/run.mjs.txt\nA\ttests/fs/mount/identity-authority-review/evidence/preliminary/source.tar.gz\nA\ttests/fs/mount/identity-authority-review/evidence/preliminary/tests.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/preliminary/tests.stdout.tap\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/authority.test.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/manifest.json\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/observations.json\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/proposal.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/run.mjs.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/source.tar.gz\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/tests.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/tests.stdout.tap\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/tsconfig.json\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/types.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-final/types.stdout.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/authority.test.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/manifest.json\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/observations.json\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/proposal.ts.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/run.mjs.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/source.tar.gz\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/tests.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/tests.stdout.tap\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/tsconfig.json\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/types.stderr.txt\nA\ttests/fs/mount/identity-authority-review/evidence/worktree-reviewed/types.stdout.txt\nA\ttests/fs/mount/identity-authority-review/proposal.ts\nA\ttests/fs/mount/identity-authority-review/run.mjs\n",
+  "qualification": "Stable runtime snapshots remain distinct from final tree. First global failure is preserved; corrected global compiler exit 0 has incomplete starting-input proof, so no guarded global pass is claimed. No second runtime replay."
+}

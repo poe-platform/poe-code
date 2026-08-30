@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Final offline review readiness; operational validation in verify-replay.mjs",
+  "type": "object",
+  "required": ["schema", "status", "rootAuthorization", "replayRoot", "freezeProduct", "handoffs", "profileAudit", "artifactHashes", "controlBudgets", "callLedgers", "managedQualification"],
+  "properties": {
+    "schema": {"const": 1},
+    "status": {"const": "READY_FOR_OFFLINE_REVIEW"},
+    "rootAuthorization": {"type": "string", "minLength": 21},
+    "replayRoot": {"const": "benchmarks/reports/current-integration/comparison-replay-20260827"},
+    "freezeProduct": {"type": "string", "pattern": "^/private/tmp/safe-bash-comparison-replay-20260827-[^/]+/product$"},
+    "handoffs": {"type": "array", "minItems": 2, "items": {"type": "object", "required": ["role", "path", "sha256"], "properties": {"role": {"enum": ["replay", "fairness", "release"]}, "path": {"type": "string"}, "sha256": {"$ref": "#/$defs/hash"}}, "additionalProperties": false}},
+    "profileAudit": {"type": "string"},
+    "artifactHashes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/hash"}},
+    "controlBudgets": {"type": "object", "required": ["original", "scratch-aligned"], "additionalProperties": {"type": "object", "required": ["neutralityCalls", "transportCalls", "authorization"], "properties": {"neutralityCalls": {"const": 24}, "transportCalls": {"const": 9}, "authorization": {"type": "string", "minLength": 21}}, "additionalProperties": false}},
+    "callLedgers": {"type": "object", "required": ["original", "scratch-aligned"], "properties": {"original": {"type": "null"}, "scratch-aligned": {"type": "null"}}, "additionalProperties": false},
+    "managedQualification": {"const": "benchmarks/reports/current-integration/comparison-replay-20260827/capture-qualification.json"}
+  },
+  "$defs": {"hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+  "additionalProperties": false
+}

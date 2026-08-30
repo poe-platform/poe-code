@@ -1,0 +1,26 @@
+[
+  {
+    "id": "virtual-bash@9.9.9",
+    "name": "virtual-bash",
+    "version": "9.9.9",
+    "size": 273,
+    "unpackedSize": 215,
+    "shasum": "7fbd26fc026bab975c2428cfec595a20c3bcf8d8",
+    "integrity": "sha512-Qd1gcDP+EompXnB2crRJanho9Pxob0jKhQzKymiu+K6hT5faedGmbcBrYabnHCPdMV4VSgyCpHqNpFNZdMb1UQ==",
+    "filename": "virtual-bash-9.9.9.tgz",
+    "files": [
+      {
+        "path": "dist/index.js",
+        "size": 49,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 166,
+        "mode": 420
+      }
+    ],
+    "entryCount": 2,
+    "bundled": []
+  }
+]

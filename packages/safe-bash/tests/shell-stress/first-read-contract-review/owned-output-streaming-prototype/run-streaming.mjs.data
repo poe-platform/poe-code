@@ -1,0 +1,6 @@
+import { capture, candidate } from './supervisor.mjs';
+import { resolve } from 'node:path';
+const round = process.argv[2] ?? 'r0';
+await capture(`${round}-source-build`,process.execPath,[resolve(candidate,'node_modules/typescript/bin/tsc'),'-p','tsconfig.build.json']);
+await capture(`${round}-scoped-typecheck`,process.execPath,[resolve(candidate,'node_modules/typescript/bin/tsc'),'--noEmit','--listFiles','-p','tsconfig.json']);
+await capture(`${round}-author-streaming`,process.execPath,['--unhandled-rejections=strict','--import','tsx','--test','--test-concurrency=1','tests/shell/owned-output-streaming-author.test.ts']);

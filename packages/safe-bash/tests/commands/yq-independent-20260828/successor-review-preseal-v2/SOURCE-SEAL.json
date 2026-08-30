@@ -1,0 +1,147 @@
+{
+  "schema": 2,
+  "date": "2026-08-28",
+  "classification": "BOUND_SUCCESSOR_PLAN_STATIC_PRESEAL_NOT_READY_TO_RUN",
+  "candidateSource": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "candidateEvidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "candidateHandoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "predecessorPlanSource": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+  "predecessorPlanEvidence": "009c20f812926e4dc7c175b379f85753ff632691",
+  "rootMode": 493,
+  "entries": [
+    {
+      "path": "BOUNDARY-PROOFS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20271,
+      "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8"
+    },
+    {
+      "path": "CANDIDATE-BINDINGS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8588,
+      "sha256": "0dfd3bd787cfdeb945db20a912e3b2ecbbbec8f0102be39bfd31696e9cb71a45"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 32551,
+      "sha256": "dc4233dbe1e994a71e15bb005b3371db261ca631d848619c3b6da3c404ef00bb"
+    },
+    {
+      "path": "MUTANT-TRANSFORMS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13771,
+      "sha256": "97d4e4cd9827a6fa159a7cc7ffe2e66cae1ad52b44f74f9a5e2acd2319eddac2"
+    },
+    {
+      "path": "PACKET-BINDING.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8711,
+      "sha256": "f6d4397aed0d347807ec197073dc6460ee9b9af0d4884f732cc8a534dba33a21"
+    },
+    {
+      "path": "PEER-BINDINGS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4257,
+      "sha256": "0d0938c3340a49fedc7f8310c0ba72c2bda8a8aa4ed4e14c7332bcae887f7663"
+    },
+    {
+      "path": "PLAN.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6323,
+      "sha256": "c690e28f8cc57cebe3fb29b2a1afd373d13c4c53fafe231489c8db382d3d9c92"
+    },
+    {
+      "path": "PREPARATION-LOG.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2781,
+      "sha256": "d833805ac778f4cd6ec7fa3609d368446094706dc5138c6bfe5506b922524733"
+    },
+    {
+      "path": "PRESEAL.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17111,
+      "sha256": "45633396655ac8b2b0df2df6356a2964ea2ece1181be81ef152a07671d02d352"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1718,
+      "sha256": "4b327580f2831babeaf6470198044d2a7dab87667fcd229d4b693fca4d341f5e"
+    },
+    {
+      "path": "RECIPE-COMPOSITION.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12618,
+      "sha256": "4e689fef2a869fc173111565fb0e64e1646b0b80fd17423e0e38d92047723e24"
+    },
+    {
+      "path": "ROOT-DECISIONS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3917,
+      "sha256": "4f0ee130249ac23c7601bba420c3d6c20cde3130c6ae2467c642db134b67be25"
+    },
+    {
+      "path": "SCHEDULE-DELTA.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10159,
+      "sha256": "40f23c539f5b329f1c60d94969250b72d5090adf357a491b889efa6d1c67b556"
+    },
+    {
+      "path": "SOURCE-DELTA.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5712,
+      "sha256": "9872104edaafa14c4f606364af1f7e917e89b410b726a38fd71d4cba13304c18"
+    },
+    {
+      "path": "TOOL-LOADER-TYPES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 29633,
+      "sha256": "649c5da87a0bde485dfc3be77ce98e4e63c00aee06ef8857bd74b7edd3e9cab8"
+    }
+  ],
+  "files": 15,
+  "entryDigest": "c1520694b8b0681355fd1e6f3054dbbed415bfccaa315889fa8f763bc926f27d",
+  "selectedInputsSha256": "dc4233dbe1e994a71e15bb005b3371db261ca631d848619c3b6da3c404ef00bb",
+  "completedPacket": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "sealSha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+    "admission": "DENY_MODE_AUTHORITY_MISSING"
+  },
+  "completedScheduleReview": {
+    "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+    "finding": "SS-F01",
+    "explicitDelta": "SCHEDULE-DELTA.json"
+  },
+  "effectiveCohort": {
+    "outerSlots": 336,
+    "compilerDescendants": 18,
+    "globalCapMs": 24165000
+  },
+  "sourceCommitBinding": "Containing plan-source commit must be independently routed; this is not a synthetic candidate commit or execution receipt.",
+  "excludes": [
+    "SOURCE-SEAL.json"
+  ],
+  "laterEvidenceOnly": [
+    "STATIC-CHECKS.json",
+    "FINAL-SEAL.json"
+  ],
+  "RootGO": false,
+  "implementationProvided": false,
+  "productOrControlExecution": false
+}

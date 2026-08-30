@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: only two authorized assertion replacements; exact original is recoverable
+ok 1 - only two authorized assertion replacements; exact original is recoverable
+  ---
+  duration_ms: 0.685708
+  type: 'test'
+  ...
+# Subtest: F29 exact derived block accepts active composed signals and rejects invalid state
+ok 2 - F29 exact derived block accepts active composed signals and rejects invalid state
+  ---
+  duration_ms: 2.640666
+  type: 'test'
+  ...
+# Subtest: F33/F34 exact derived block demands aborted state and exact reason identity
+ok 3 - F33/F34 exact derived block demands aborted state and exact reason identity
+  ---
+  duration_ms: 0.304959
+  type: 'test'
+  ...
+# Subtest: telemetry is reversible and preserves cleanup/rejection assertions without handlers
+ok 4 - telemetry is reversible and preserves cleanup/rejection assertions without handlers
+  ---
+  duration_ms: 0.161041
+  type: 'test'
+  ...
+# Subtest: candidate inputs and three-case selection remain pinned; no fixture predicates change
+ok 5 - candidate inputs and three-case selection remain pinned; no fixture predicates change
+  ---
+  duration_ms: 4.477625
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.418625

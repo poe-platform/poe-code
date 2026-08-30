@@ -1,0 +1,426 @@
+c3f291f04374001d2070235de9bc07d99ef8c2a2 blob 5961
+import { ACCESS_MODES, FsError, readBytes } from "../../contracts/index.js";
+import type {
+  AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileStat,
+  FileSystem, FileSystemCapabilities, FsOptions, MkdirOptions, ReadFileOptions,
+  ReadStreamOptions, RemoveOptions, WriteFileOptions,
+} from "../../contracts/index.js";
+import { compareEntries, registerEntryView } from "../mount/comparison.js";
+
+function readOnly(syscall: string, path: string, dest?: string): never {
+  throw new FsError("EROFS", { syscall, path, ...(dest === undefined ? {} : { dest }) });
+}
+
+function snapshotStat(stat: FileStat): FileStat {
+  const { type, size, allocatedBytes, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, identityScope, ino, dev, nlink, uid, gid } = stat;
+  return {
+    type, size, mode, mtimeMs, atimeMs, ctimeMs,
+    ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
+    ...(birthtimeMs === undefined ? {} : { birthtimeMs }),
+    ...(identityScope === undefined ? {} : { identityScope }),
+    ...(ino === undefined ? {} : { ino }),
+    ...(dev === undefined ? {} : { dev }),
+    ...(nlink === undefined ? {} : { nlink }),
+    ...(uid === undefined ? {} : { uid }),
+    ...(gid === undefined ? {} : { gid }),
+  };
+}
+
+export class ReadOnlyFileSystem implements FileSystem {
+  readonly #filesystem: FileSystem;
+  readonly #capabilities: FileSystemCapabilities;
+
+  constructor(filesystem: FileSystem) {
+    this.#filesystem = filesystem;
+    registerEntryView(this, async (path) => ({ filesystem: this.#filesystem, path, readOnly: true }));
+    const streamingRead = typeof filesystem.readStream === "function" ? filesystem.capabilities.streamingRead : false;
+    this.#capabilities = Object.freeze({
+      readOnly: true,
+      symlinks: filesystem.capabilities.symlinks === true && typeof filesystem.readlink === "function",
+      hardlinks: false,
+      permissions: false,
+      timestamps: false,
+      atomicRename: false,
+      ...(streamingRead === undefined ? {} : { streamingRead }),
+      streamingWrite: false,
+    });
+  }
+
+  get capabilities(): FileSystemCapabilities {
+    return this.#capabilities;
+  }
+
+  async readFile(path: string, options?: ReadFileOptions): Promise<Uint8Array> {
+    return new Uint8Array(await this.#filesystem.readFile(path, options));
+  }
+
+  async stat(path: string, options?: FsOptions): Promise<FileStat> {
+    return snapshotStat(await this.#filesystem.stat(path, options));
+  }
+
+  async lstat(path: string, options?: FsOptions): Promise<FileStat> {
+    return snapshotStat(await this.#filesystem.lstat(path, options));
+  }
+
+  compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}) {
+    return compareEntries(this, path, peer, peerPath, options);
+  }
+
+  async readdir(path: string, options?: FsOptions): Promise<DirectoryEntry[]> {
+    return (await this.#filesystem.readdir(path, options)).map((entry) => ({ name: entry.name, type: entry.type }));
+  }
+
+  async realpath(path: string, options?: FsOptions): Promise<string> {
+    return this.#filesystem.realpath(path, options);
+  }
+
+  async access(path: string, mode: number = ACCESS_MODES.F_OK, options?: FsOptions): Promise<void> {
+    if (!Number.isInteger(mode) || mode < 0 || mode > 7) {
+      throw new FsError("EINVAL", { syscall: "access", path });
+    }
+    if ((mode & ACCESS_MODES.W_OK) !== 0) readOnly("access", path);
+    return this.#filesystem.access(path, mode, options);
+  }
+
+  async readlink(path: string, options?: FsOptions): Promise<string> {
+    if (typeof this.#filesystem.readlink !== "function") {
+      throw new FsError("ENOTSUP", { syscall: "readlink", path });
+    }
+    return this.#filesystem.readlink(path, options);
+  }
+
+  async *readStream(path: string, options?: ReadStreamOptions): ByteSource {
+    if (typeof this.#filesystem.readStream !== "function") {
+      throw new FsError("ENOTSUP", { syscall: "readStream", path });
+    }
+    for await (const chunk of readBytes(this.#filesystem.readStream(path, options), options?.signal)) {
+      yield new Uint8Array(chunk);
+    }
+  }
+
+  async writeFile(path: string, _data: Uint8Array, _options?: WriteFileOptions): Promise<void> {
+    readOnly("writeFile", path);
+  }
+
+  async appendFile(path: string, _data: Uint8Array, _options?: AppendFileOptions): Promise<void> {
+    readOnly("appendFile", path);
+  }
+
+  async writeStream(path: string, _source: ByteSource, _options?: WriteFileOptions): Promise<void> {
+    readOnly("writeStream", path);
+  }
+
+  async mkdir(path: string, _options?: MkdirOptions): Promise<void> {
+    readOnly("mkdir", path);
+  }
+
+  async rm(path: string, _options?: RemoveOptions): Promise<void> {
+    readOnly("rm", path);
+  }
+
+  async unlink(path: string, _options?: FsOptions): Promise<void> {
+    readOnly("unlink", path);
+  }
+
+  async rmdir(path: string, _options?: FsOptions): Promise<void> {
+    readOnly("rmdir", path);
+  }
+
+  async rename(source: string, destination: string, _options?: FsOptions): Promise<void> {
+    readOnly("rename", source, destination);
+  }
+
+  async copyFile(source: string, destination: string, _options?: CopyFileOptions): Promise<void> {
+    readOnly("copyFile", source, destination);
+  }
+
+  async symlink(target: string, path: string, _options?: FsOptions): Promise<void> {
+    readOnly("symlink", target, path);
+  }
+
+  async link(existingPath: string, newPath: string, _options?: FsOptions): Promise<void> {
+    readOnly("link", existingPath, newPath);
+  }
+
+  async chmod(path: string, _mode: number, _options?: FsOptions): Promise<void> {
+    readOnly("chmod", path);
+  }
+
+  async utimes(path: string, _atimeMs: number, _mtimeMs: number, _options?: FsOptions): Promise<void> {
+    readOnly("utimes", path);
+  }
+
+  async truncate(path: string, _length?: number, _options?: FsOptions): Promise<void> {
+    readOnly("truncate", path);
+  }
+}
+
+export function createReadOnlyFileSystem(filesystem: FileSystem): ReadOnlyFileSystem {
+  return new ReadOnlyFileSystem(filesystem);
+}
+
+2af9e522d0aab55428e168f186f39668021ed8e6 blob 9619
+import { posix } from "node:path";
+import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
+import type { VirtualShellPlugin } from "../../contracts/plugin.js";
+import { admitSource } from "./admission.js";
+import { invocation } from "./cli.js";
+import { NodeHost } from "./host.js";
+import { NodeOwner } from "./lifecycle.js";
+import { buildNodeProgram } from "./program.js";
+import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeGrants, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
+import { environment, grants, record, text } from "./values.js";
+
+export { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
+export type { NodeCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
+export { createNodeWorkerProvider } from "./worker-provider.js";
+export { NODE_ENGINE_ABI } from "./worker-types.js";
+export type { NodeBridge, NodeEngineAdapter, NodeEngineInput, NodeEngineResult, NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
+
+export interface NodeCommandsOptions extends NodeCommandOptions {
+  readonly replace?: boolean;
+}
+
+function commandConfiguration(options: NodeCommandsOptions): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
+  const settings = record(options, ["provider"], ["grants", "replace"]);
+  if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
+  const definition = createNodeCommand({
+    provider: settings.provider as NodeRuntimeProvider,
+    ...(Object.hasOwn(settings, "grants") ? { grants: settings.grants as NodeGrants } : {}),
+  });
+  return { definitions: Object.freeze([definition]), replace: settings.replace === true };
+}
+
+export function createNodeCommands(options: NodeCommandsOptions): readonly CommandDefinition[] {
+  return commandConfiguration(options).definitions;
+}
+
+export function nodeCommands(options: NodeCommandsOptions): VirtualShellPlugin {
+  const { definitions, replace } = commandConfiguration(options);
+  return {
+    name: "node-commands",
+    setup(host) {
+      if (!replace && host.commands.has("node")) throw new Error("Command already registered: node");
+      for (const definition of definitions) host.commands.register(definition, { replace });
+    },
+  };
+}
+
+function local(error: unknown): error is NodeProfileError | NodeUsageError { return error instanceof NodeProfileError || error instanceof NodeUsageError; }
+function providerValue(value: unknown): NodeRuntimeProvider {
+  const provider = record(value, ["profile", "identity", "prepare"]);
+  if (provider.profile !== NODE_PROFILE || typeof provider.prepare !== "function" || text(provider.identity, nodeLimits.metadataBytes, "provider identity").length === 0) throw new TypeError("node requires an explicit qualifying provider");
+  return Object.freeze(provider) as unknown as NodeRuntimeProvider;
+}
+export function createNodeCommand(options: NodeCommandOptions): CommandDefinition {
+  const settings = record(options, ["provider"], ["grants"]);
+  const provider = providerValue(settings.provider);
+  const allowed = grants(Object.hasOwn(settings, "grants") ? settings.grants : {});
+  return Object.freeze({
+    name: "node",
+    description: "Explicit-provider restricted synchronous virtual Node profile",
+    execute: async (context: CommandContext): Promise<CommandResult> => {
+      const owner = new NodeOwner(context);
+      let hold: (() => void) | undefined;
+      let request: NodeSourceRequest | undefined;
+      let source: string | undefined;
+      let host: NodeHost | undefined;
+      let result: NodeCompletion | undefined;
+      let escaping: NodeReason | undefined;
+      let cleanup: NodeReason | undefined;
+      context.registerCleanup?.(owner.close);
+      const diagnose = async (message: string): Promise<void> => {
+        if (!allowed.stderrWrite || owner.retiring || owner.signal.aborted || context.signal.aborted) return;
+        const bounded = text(message, nodeLimits.errorBytes, "diagnostic");
+        const output = "node: " + bounded + "\n";
+        if (host) await host.diagnostic(output);
+        else {
+          const diagnosticHost = new NodeHost(owner, allowed, "/", "/");
+          await diagnosticHost.diagnostic(output);
+        }
+      };
+      try {
+        owner.open();
+        hold = owner.ledger.reserve("source-context-diagnostics", nodeLimits.sourceBytes * 6 + nodeLimits.contextBytes * 4 + nodeLimits.diagnosticReserve);
+        const selected = invocation(context.args, context.cwd);
+        const env = environment(context.env);
+        const argv = Object.freeze(selected.argv);
+        let contextBytes = Buffer.byteLength(context.cwd) + Buffer.byteLength(selected.filename);
+        for (const argument of argv) { if (argument.includes("\0")) throw new NodeUsageError("NUL in argument"); contextBytes += Buffer.byteLength(argument); }
+        for (const [name, value] of Object.entries(env)) contextBytes += Buffer.byteLength(name) + Buffer.byteLength(value);
+        if (argv.length > 128 || contextBytes > nodeLimits.contextBytes) throw new NodeProfileError("context bytes/entries");
+        const cwd = text(context.cwd, nodeLimits.pathBytes, "cwd");
+        host = new NodeHost(owner, allowed, cwd, selected.selector === "file" ? posix.dirname(selected.filename) : cwd);
+        owner.attachHost(host);
+        if (selected.source === null) source = await host.source(selected.selector === "file" ? selected.filename : null);
+        else {
+          source = new TextDecoder("utf-8", { ignoreBOM: true }).decode(new TextEncoder().encode(selected.source));
+          if (source.startsWith("\ufeff")) source = source.slice(1);
+        }
+        text(source, nodeLimits.sourceBytes, "source bytes");
+        const parseRelease = owner.ledger.reserve("source-admission", source.length * 32);
+        try { admitSource(source, selected.selector === "print"); } finally { parseRelease(); }
+        owner.check();
+        request = Object.freeze({ profile: NODE_PROFILE, selector: selected.selector, source, program: buildNodeProgram(source, selected.selector), filename: selected.filename, cwd, argv, env, grants: allowed, limits: nodeLimits });
+        const sessionHost = (): NodeHost => {
+          if (!owner.started || !host) { const error = new NodeProfileError("inactive provider session"); owner.failure(error, "profile"); throw error; }
+          return host;
+        };
+        const services: NodeHostServices = Object.freeze<NodeHostServices>({
+          signal: owner.signal,
+          request: async value => {
+            const activeHost = sessionHost();
+            return owner.job(() => activeHost.request(value));
+          },
+          delivered: sequence => sessionHost().delivered(sequence),
+          reserve: (label, bytes) => {
+            sessionHost();
+            try { owner.check(); return owner.ledger.reserve("provider:" + text(label, 119, "provider reservation name"), bytes); }
+            catch (error) { owner.failure(error, "profile"); throw error; }
+          },
+          cutoff: () => { sessionHost(); owner.cutoff(); },
+          job: owner.job,
+          stopProfile: reason => {
+            sessionHost();
+            const failure = record(reason, ["present", "value"]);
+            if (failure.present !== true) throw new TypeError("provider profile failure presence");
+            owner.failure(failure.value, "profile");
+          },
+          fail: reason => {
+            sessionHost();
+            const failure = record(reason, ["present", "value"]);
+            if (failure.present !== true) throw new TypeError("provider execution failure presence");
+            owner.failure(failure.value, "execution");
+          },
+        });
+        const prepare = provider.prepare;
+        let prepared: unknown;
+        try { prepared = prepare(request, services); }
+        catch (error) { owner.capture(error, "execution"); throw error; }
+        owner.attachSession(prepared);
+        result = await owner.start();
+        if (result.kind !== "entryReturned") await diagnose(result.observation.state === "captured" ? result.observation.message ?? result.observation.name ?? "guest failed" : "guest failure; diagnostic unavailable");
+        owner.cutoff();
+      } catch (error) {
+        escaping = { present: true, value: error };
+        if (local(error) && (!owner.primary || owner.primaryIsProfile)) {
+          try { await diagnose(error.message); }
+          catch (diagnosticFailure) { escaping = { present: true, value: diagnosticFailure }; }
+        }
+        owner.capture(escaping.value, "profile");
+      } finally {
+        try { await owner.close(); } catch (error) { cleanup = { present: true, value: error }; }
+        source = undefined; request = undefined; host = undefined; hold?.(); hold = undefined;
+      }
+      context.signal.throwIfAborted();
+      const primary = owner.primary ?? escaping;
+      if (primary && !owner.primaryIsProfile) throw primary.value;
+      if (cleanup) throw cleanup.value;
+      if (primary) return { exitCode: 2 };
+      if (!result) throw new NodeProfileError("missing completion");
+      return { exitCode: result.kind === "entryReturned" ? 0 : result.kind === "guestFailure" ? 1 : 2 };
+    },
+  });
+}
+
+c73910833c1a14ce0419c267e5a25d967f29b01e blob 6122
+import { quote, type Arguments } from "./arguments.js";
+import type { Session } from "./io.js";
+import { demand } from "./limits.js";
+import type { Repository } from "./repository.js";
+
+export interface Side { readonly mode: number; readonly oid: string; readonly bytes: Buffer }
+interface Edit { readonly kind: " " | "+" | "-"; readonly text: string }
+
+async function lines(session: Session, bytes: Buffer): Promise<string[]> {
+  const text = session.text(bytes);
+  const result: string[] = [];
+  let start = 0;
+  for (let position = 0; position < text.length; position++) {
+    await session.step();
+    demand(text.charCodeAt(position) !== 0, "binary Git patches unsupported");
+    if (text[position] === "\n") {
+      session.charge("maxLines", 1); session.reserve(24);
+      result.push(text.slice(start, position + 1)); start = position + 1;
+    }
+  }
+  if (start < text.length) { session.charge("maxLines", 1); session.reserve(24); result.push(text.slice(start)); }
+  return result;
+}
+
+async function edits(session: Session, before: string[], after: string[]): Promise<Edit[]> {
+  const equal = async (left: string, right: string): Promise<boolean> => {
+    await session.step(Math.min(left.length, right.length) + 1); return left === right;
+  };
+  let prefix = 0, suffix = 0;
+  while (prefix < before.length && prefix < after.length && await equal(before[prefix]!, after[prefix]!)) prefix++;
+  while (suffix < before.length - prefix && suffix < after.length - prefix && await equal(before[before.length - suffix - 1]!, after[after.length - suffix - 1]!)) suffix++;
+  const rows = before.length - prefix - suffix, columns = after.length - prefix - suffix;
+  session.reserve((before.length + after.length) * 24);
+  const result: Edit[] = before.slice(0, prefix).map(text => ({ kind: " ", text }));
+  const cells = (rows + 1) * (columns + 1);
+  session.charge("maxDiffCells", cells);
+  const storage = session.allocate(cells * 4);
+  const grid = new Uint32Array(storage.buffer, storage.byteOffset, cells);
+  try {
+    for (let row = rows - 1; row >= 0; row--) for (let column = columns - 1; column >= 0; column--) {
+      const index = row * (columns + 1) + column;
+      grid[index] = await equal(before[prefix + row]!, after[prefix + column]!) ? grid[index + columns + 2]! + 1 : Math.max(grid[index + columns + 1]!, grid[index + 1]!);
+    }
+    let row = 0, column = 0;
+    while (row < rows || column < columns) {
+      await session.step();
+      if (row < rows && column < columns && await equal(before[prefix + row]!, after[prefix + column]!)) {
+        result.push({ kind: " ", text: before[prefix + row++]! }); column++;
+      } else if (row < rows && (column === columns || grid[(row + 1) * (columns + 1) + column]! >= grid[row * (columns + 1) + column + 1]!)) result.push({ kind: "-", text: before[prefix + row++]! });
+      else result.push({ kind: "+", text: after[prefix + column++]! });
+    }
+    for (let offset = before.length - suffix; offset < before.length; offset++) result.push({ kind: " ", text: before[offset]! });
+    return result;
+  } finally { session.release(storage); }
+}
+
+function range(start: number, count: number): string { return count === 1 ? String(start) : `${count === 0 ? start - 1 : start},${count}`; }
+
+export async function patch(repository: Repository, parsed: Arguments, path: string, before: Side | undefined, after: Side | undefined): Promise<void> {
+  const session = repository.session;
+  if (before && after && (before.mode & 0o170000) !== (after.mode & 0o170000)) {
+    await patch(repository, parsed, path, before, undefined);
+    await patch(repository, parsed, path, undefined, after);
+    return;
+  }
+  const original = before ? await lines(session, before.bytes) : [];
+  const replacement = after ? await lines(session, after.bytes) : [];
+  const changes = await edits(session, original, replacement);
+  await session.output(`diff --git ${quote("a/" + path)} ${quote("b/" + path)}\n`);
+  if (!before) await session.output(`new file mode ${after!.mode.toString(8)}\n`);
+  else if (!after) await session.output(`deleted file mode ${before.mode.toString(8)}\n`);
+  else if (before.mode !== after.mode) await session.output(`old mode ${before.mode.toString(8)}\nnew mode ${after.mode.toString(8)}\n`);
+  if (before?.oid === after?.oid) return;
+  const abbreviation = async (side: Side | undefined): Promise<string> => side ? parsed.flags.has("--full-index") ? side.oid : repository.abbreviation(side.oid) : "0".repeat(parsed.flags.has("--full-index") ? 40 : 7);
+  await session.output(`index ${await abbreviation(before)}..${await abbreviation(after)}${before && after && before.mode === after.mode ? " " + before.mode.toString(8) : ""}\n`);
+  if (!changes.some(edit => edit.kind !== " ")) return;
+  await session.output(`--- ${before ? quote("a/" + path) : "/dev/null"}\n+++ ${after ? quote("b/" + path) : "/dev/null"}\n`);
+  const spans: { start: number; end: number }[] = [];
+  for (let offset = 0; offset < changes.length; offset++) {
+    await session.step();
+    if (changes[offset]!.kind === " ") continue;
+    const start = Math.max(0, offset - parsed.context), end = Math.min(changes.length, offset + parsed.context + 1);
+    const last = spans.at(-1);
+    if (last && start <= last.end) last.end = Math.max(last.end, end);
+    else spans.push({ start, end });
+  }
+  let offset = 0, oldLine = 1, newLine = 1;
+  for (const span of spans) {
+    while (offset < span.start) { const edit = changes[offset++]!; if (edit.kind !== "+") oldLine++; if (edit.kind !== "-") newLine++; }
+    let oldCount = 0, newCount = 0;
+    for (let position = span.start; position < span.end; position++) { if (changes[position]!.kind !== "+") oldCount++; if (changes[position]!.kind !== "-") newCount++; }
+    await session.output(`@@ -${range(oldLine, oldCount)} +${range(newLine, newCount)} @@\n`);
+    while (offset < span.end) {
+      const edit = changes[offset++]!;
+      await session.output(edit.kind + edit.text + (edit.text.endsWith("\n") ? "" : "\n\\ No newline at end of file\n"));
+      if (edit.kind !== "+") oldLine++; if (edit.kind !== "-") newLine++;
+    }
+  }
+}
+

@@ -1,0 +1,13 @@
+Host-only post-run data inspection; after the single wrapper completed, before evidence sealing. This is not a guest, product, private engine, transport, native or second wrapper invocation.
+
+The tool returned exit1 with this captured output:
+RAW controller files 4 bytes 2417 extensions {'.log': 2, '.json': 2}
+RAW outer files 35 bytes 22293976 extensions {'.json': 29, '.log': 6}
+RAW surface files 59 bytes 5307951 extensions {'.json': 35, '.log': 16, '.ndjson': 8}
+RAW lifecycle files 56 bytes 9550370 extensions {'.json': 23, '.txt': 22, '.ndjson': 11}
+RAW controls files 36 bytes 8608673 extensions {'.json': 18, '.txt': 12, '.ndjson': 6}
+Traceback (most recent call last):
+  File "<stdin>", line 13, in <module>
+KeyError: 'network'
+
+The inspection selected every truthy row.critical object and then indexed critical['network']; non-curl lifecycle critical objects do not have that field. Subsequent host-only evidence selection explicitly checks for the network field. Frozen driver/fixture/assertion bytes and raw results were not altered, and no runtime was rerun.

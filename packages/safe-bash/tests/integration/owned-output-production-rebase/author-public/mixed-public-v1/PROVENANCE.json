@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "candidateCommit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+  "source": {
+    "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+    "path": "tests/integration/owned-output-production-rebase/author/network.test.ts",
+    "mode": "100644",
+    "blob": "8b93d420f1f526b7d5a1397756b7fbf16e2dfe89",
+    "bytes": 11467,
+    "sha256": "8ed5a8b5fc9aff0056406e80047119845b8f921e6b8c01087d939d21368da709"
+  },
+  "helper": {
+    "commit": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+    "path": "tests/integration/owned-output-production-rebase/author/helpers.ts",
+    "mode": "100644",
+    "blob": "142032782ff0a746bfddf6ab93f093e451089ac0",
+    "bytes": 1356,
+    "sha256": "505f77722129e4e89e12d9f2ad81ebba907d40cd1a98cf8569305631fe020cab"
+  },
+  "selected": [
+    {
+      "start": "test(\"real Shell curl streams stdin without prebuffer and preserves the next borrowed chunk\"",
+      "end": "for (const status of [200, 302, 429, 503])",
+      "bodySha256": "ce142694f1dd31015686f2f837ee8cf8397a5efe91fb79c3c670252eea461b94"
+    },
+    {
+      "start": "for (const output of [\"body-file\", \"header-file\"] as const)",
+      "end": "for (const rejects of [false, true])",
+      "bodySha256": "cea1f8c35daf5590d255ee8967fd51fb3e81a49c79caf0ac2892d75ade0c1400"
+    },
+    {
+      "start": "test(\"curl byte streaming owns reused download chunks across pipe and file output\"",
+      "end": "test(\"real Node transport registers before acquisition",
+      "bodySha256": "0a9ecf0c4cd936fb3c539571619e81ad3a9dce7e798a1cd882bccee6ad19de1b"
+    }
+  ],
+  "cases": 4,
+  "assertionChanges": [],
+  "helperBindingChanges": [
+    [
+      "\"../../../../src/contracts/index.js\"",
+      "\"virtual-bash/contracts\""
+    ],
+    [
+      "\"../../../../src/fs/memory/index.js\"",
+      "\"virtual-bash\""
+    ],
+    [
+      "\"../../../../src/shell/index.js\"",
+      "\"virtual-bash\""
+    ],
+    [
+      "import { streamCommands } from \"../../../../src/commands/streams.js\";",
+      "import { createStandardCommands } from \"virtual-bash\";"
+    ],
+    [
+      "new CommandRegistry(streamCommands())",
+      "new CommandRegistry(createStandardCommands().filter(command => command.name === \"cat\"))"
+    ]
+  ],
+  "scope": "Only four explicit-mock public curl/cat streaming/body-file/header-file/stderr cases. Original test bodies exact. Native Node transport service test is not selected or executed. Public createStandardCommands supplies only its unchanged cat definition; registration set is narrower than source helper and disclosed, not claimed as unchanged all-input proof.",
+  "selectedNativeServiceTests": 0,
+  "selectedOtherSourceOwnerTests": 0
+}

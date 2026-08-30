@@ -1,0 +1,161 @@
+{
+  "schema": "W05-only-literal-amendment-v1",
+  "preparedAt": "2026-08-28T06:32:10.914Z",
+  "originalRecipeCommit": "384fcc7a8b1ee0f10452f136c2cbd046b57e3e2d",
+  "originalEvidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8",
+  "originalEvidenceSHA256": "5198c32b5c9793396c8db534419413168d6929d52baceaffea3fd5d7bc86da40",
+  "originalCasesSHA256": "d9acce9d4eb0d58bda2ffe4359f49a283adaa04c3ff2ebbb1c73d5f8ea4938d0",
+  "patchedCasesSHA256": "2e4673e31cd32067a12b6345b0b4a5720f0b833da89a53686d823f1543e44329",
+  "oldRow": {
+    "id": "W05",
+    "name": "denied redirect has no third authorization or second transport",
+    "duration": ".010",
+    "route": "redirect",
+    "expected": {
+      "exitCode": 7,
+      "stdout": "",
+      "stderr": "curl: Network access denied by host policy\n"
+    },
+    "timers": 1
+  },
+  "newRow": {
+    "id": "W05",
+    "name": "denied redirect has no third authorization or second transport",
+    "duration": ".010",
+    "route": "redirect",
+    "expected": {
+      "exitCode": 7,
+      "stdout": "",
+      "stderr": "curl: (7) Network access denied by host policy\n"
+    },
+    "timers": 1
+  },
+  "semanticDelta": "Only W05 expected.stderr adds the authenticated (7) prefix. Status/stdout/inputs/environment/mocks/budgets/timer/order/all other assertions unchanged. Selection and counts restrict execution to W05 twice.",
+  "originalRunnerSHA256": "7713c77940fd0ac4feb47e03472867439b175d18c76c9507e637bdd3e832843d",
+  "adaptedRunnerSHA256": "d4cfd044eb564f443ad1dfc159971b0b49b8886fd91a8386897c7cf5861376d3",
+  "deltas": [
+    {
+      "label": "common scope alias",
+      "before": "import { own, repo, node,",
+      "after": "import { own as originalOwn, repo, node,",
+      "beforeSHA256": "f645c2f72a3ecea07df57f32232e6b290c6bda23d3d13f7ac202a5714c054de8",
+      "afterSHA256": "34181274ba72fb8a08ac4dacbb74391a677ad582b32560f801823d7162998c66"
+    },
+    {
+      "label": "common import parent",
+      "before": "from './common.mjs';",
+      "after": "from '../common.mjs';",
+      "beforeSHA256": "c09ae0d904706c77209f07f0d0c8646b56066f39fa29af54c937b9f09302f9b9",
+      "afterSHA256": "c36569b8ff43e3f3ab03041b12eb45c30cb0153f216e9da2150e7d764d7c5bbe"
+    },
+    {
+      "label": "only new controls",
+      "before": "import { predicateControls } from './predicates.mjs';",
+      "after": "import { predicateControls } from './controls.mjs';\nimport { guardOriginal } from './verification.mjs';",
+      "beforeSHA256": "3648c72ab1293695b6938a39067f2982d529e5b29f847d457641aa7f36b9e52f",
+      "afterSHA256": "d425b6b1d1f5fae491a8ffe393a1173b97fe475e48e2d2fc4048166dc6d66a9c"
+    },
+    {
+      "label": "parser parent relocation",
+      "before": "from '../../commands/timeout-independent-20260828/repaired-f22-v1/recipe/io.mjs';",
+      "after": "from '../../../commands/timeout-independent-20260828/repaired-f22-v1/recipe/io.mjs';",
+      "beforeSHA256": "5d8b6bb976c16ee71120db124f279760c69928844feebbb1eeda855bc2ae2fd1",
+      "afterSHA256": "e70eb57af95ad60ae846b19ed5c6b3493a834d9d9118bb270ccc49e07d594702"
+    },
+    {
+      "label": "continuation scope and original binding",
+      "before": "const binding = read(join(own, 'BINDINGS.json')), cases",
+      "after": "const own = join(originalOwn, 'w05-literal-v1');\nconst binding = read(join(originalOwn, 'BINDINGS.json')), cases",
+      "beforeSHA256": "88d4d1138390bedfb85192dda4a0d7d042c1bd59f860658f78abfddcb7712bca",
+      "afterSHA256": "23b65a57218e636616871abad4cebcf13ca44da68756ea7ba52cd994b69485db"
+    },
+    {
+      "label": "separate result schema",
+      "before": "schema: 'timeout-curl-actual-safejs-workflow-result-v1'",
+      "after": "schema: 'timeout-curl-safejs-W05-literal-continuation-result-v1'",
+      "beforeSHA256": "18585e25b33b43cf50ae87db43665892ea521a5b3b15ccfe906638500278161b",
+      "afterSHA256": "9cd81318a10c21eabbb525f6badcb9013fa81e3c16087a923e90294a670c679f"
+    },
+    {
+      "label": "original guard before every child",
+      "before": "function guard(label) {",
+      "after": "function guard(label) {\n  guardOriginal();",
+      "beforeSHA256": "58758747b18317eded0003155fc301fe776263e27da676f071a9c826bb6171e3",
+      "afterSHA256": "8dae264c88f77bfbfb43572aeef940558c7976f3e6b7e330e8efb479ec87a75a"
+    },
+    {
+      "label": "unchanged child loader and predicates",
+      "before": "fs.readFileSync(join(own, name)));",
+      "after": "fs.readFileSync(join(name === 'CASES.json' ? own : originalOwn, name)));",
+      "beforeSHA256": "9618a662af4cf1fb261eb66e06214d024a9a4bf42ee130ccf772a421dcca6d8e",
+      "afterSHA256": "6d12788e4c618f11a659b0fb51cf43faa2f82f3a00f5ad1f1d060cd12265f9a9"
+    },
+    {
+      "label": "omit old control artifact materialization",
+      "before": "  const packageProbe = parsed.find(row => row.path === 'dist/commands/timeout/index.js').body;\n  const engineProbe = fs.readFileSync(join(view, 'node_modules/engine/src/run.ts'));\n  write(join(view, 'harness/mutant-package.mjs'), Buffer.concat([packageProbe, Buffer.from('\\nexport const injectedTamper = true;\\n')]));\n  write(join(view, 'harness/mutant-engine.mjs'), Buffer.concat([engineProbe, Buffer.from('\\nexport const injectedTamper = true;\\n')]));\n  write(join(view, 'harness/unbound.mjs'), 'throw new Error(\"UNBOUND_CODE_EXECUTED\");\\n');\n",
+      "after": "",
+      "beforeSHA256": "c4e81bbd2eef872cdd750055ada164f176540f5b2f8bc6d24cbd0661e7a69ff5",
+      "afterSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "omit old control bindings",
+      "before": "  files['harness/mutant-package.mjs'] = sha(packageProbe); files['harness/mutant-engine.mjs'] = sha(engineProbe); delete files['harness/unbound.mjs'];\n",
+      "after": "",
+      "beforeSHA256": "461c55747490bb74f77a7370d4028871fa5a7d203f6c62bdf609bbf8739028f8",
+      "afterSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "precise load binding classification",
+      "before": "countercontrols: 'Intentional separately pinned tampered copies; original product/engine and their bindings remain unchanged.'",
+      "after": "countercontrols: 'Only separately presealed W05 predicate controls; no old load-control replay or mutant artifacts.'",
+      "beforeSHA256": "efefee1dbadafae7eb68128940f8061287fb8424ed01b3e00f27bb8c8980f549",
+      "afterSHA256": "e088eb440371ad7f8c97bda862b8d7067901dcf5fbf55dada8e4dfb859a1e4ee"
+    },
+    {
+      "label": "no prior control child loop",
+      "before": "  for (const control of cases.controls) { const outcome = await child(`control-${control.id}`, undefined, control.id); assert.equal(outcome.classification, 'PASS', 'PREREQUISITE_CONTROL_STOP'); }",
+      "after": "  assert.equal(cases.controls.length, 0, 'NO_OLD_CONTROL_REPLAY');\n  assert.deepEqual(cases.rows.map(row => row.id), ['W05'], 'ONLY_W05');",
+      "beforeSHA256": "61bb60e54426ab7c6bc4f9568a9786ccf398bd894d0ceeac83020fb1fbd6b1cf",
+      "afterSHA256": "64e9887f29700dfb4de62fb8a66575f1fa89e924dc45275b96f96161098526ee"
+    },
+    {
+      "label": "two continuation instances only",
+      "before": "report.rows.length === 24",
+      "after": "report.rows.length === 2",
+      "beforeSHA256": "d12220111ba60c8f6d0475096fdabe40f3258a6339244da86d709009945b9e5f",
+      "afterSHA256": "0e8bfa64b6d21afab8189bf5b214ac49ab9434a95cdb472e81bed8445b940294"
+    },
+    {
+      "label": "continuation unexecuted denominator",
+      "before": "unexecutedWorkflows: 24 - report.rows.length",
+      "after": "unexecutedWorkflows: 2 - report.rows.length",
+      "beforeSHA256": "5ee9d19b2f49e82ceaad94e3e51cc44f2e871caacf06ca40a7b7a295db6e3d49",
+      "afterSHA256": "ee10c56acfa166cc54406d19666ccd79ca2da1a23083944b09b9151a885903a0"
+    }
+  ],
+  "unchangedActualFunctions": [
+    {
+      "path": "child.mjs",
+      "sha256": "51facb8c7ec0a367f211ff7e4d18df9a97ce4b12d6182bef504cab14728d1c03"
+    },
+    {
+      "path": "loader.mjs",
+      "sha256": "80f6aedd533348b3255a8acf60dffa1afe2a785edc6b8c2fe01859218fd39899"
+    },
+    {
+      "path": "predicates.mjs",
+      "sha256": "14e773a680255694e037b4ad4e3f90d1f3baa5fb6dc6bccca4085fd447e2942d"
+    },
+    {
+      "path": "common.mjs",
+      "sha256": "4de7b30439a6bc4c0de22c82da0ed832825e1573a8e13b6dc4d573b03d10e9d5"
+    }
+  ],
+  "controls": {
+    "classes": 3,
+    "cases": 4,
+    "description": "Wrong code/status (two variants), missing numeric prefix (original wrong literal), extra request. Exact original runtime predicates, positive helper baseline, no product loads."
+  },
+  "chronology": "Root-authorized post-failure literal correction; not a pre-source freeze. Zero new product executions before this continuation seal.",
+  "history": "Original 11/12 each and 116/118 remain immutable verifier failures; no product bug or old rescore. Composition may be 11 retained + 1 newly qualified per layout, never a single original12 pass."
+}

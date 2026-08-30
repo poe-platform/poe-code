@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: native-data manifest records complete classification and six exact raw payload hashes
+ok 1 - native-data manifest records complete classification and six exact raw payload hashes
+  ---
+  duration_ms: 1.135792
+  type: 'test'
+  ...
+# Subtest: root compiler configuration contains only the approved raw-data and five captured-type exclusions
+ok 2 - root compiler configuration contains only the approved raw-data and five captured-type exclusions
+  ---
+  duration_ms: 7.53575
+  type: 'test'
+  ...
+# Subtest: approved captured-type classification retains explicit current-consumer typing routes
+ok 3 - approved captured-type classification retains explicit current-consumer typing routes
+  ---
+  duration_ms: 39.115875
+  type: 'test'
+  ...
+# Subtest: compiler-policy mutations cannot add exclusions or weaken current-source coverage
+ok 4 - compiler-policy mutations cannot add exclusions or weaken current-source coverage
+  ---
+  duration_ms: 105.319792
+  type: 'test'
+  ...
+# Subtest: five captured type files are data but current contracts and adjacent sources still compile
+ok 5 - five captured type files are data but current contracts and adjacent sources still compile
+  ---
+  duration_ms: 682.083708
+  type: 'test'
+  ...
+# Subtest: copied root config includes canonical source, test, helper and artifact neighbors
+ok 6 - copied root config includes canonical source, test, helper and artifact neighbors
+  ---
+  duration_ms: 415.323166
+  type: 'test'
+  ...
+# Subtest: identical undefined symbols outside the exact subtree remain real TS2304 errors
+ok 7 - identical undefined symbols outside the exact subtree remain real TS2304 errors
+  ---
+  duration_ms: 237.421958
+  type: 'test'
+  ...
+# Subtest: actual npm script excludes future native test data without excluding neighboring tests/helpers
+ok 8 - actual npm script excludes future native test data without excluding neighboring tests/helpers
+  ---
+  duration_ms: 821.718334
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2748.636625

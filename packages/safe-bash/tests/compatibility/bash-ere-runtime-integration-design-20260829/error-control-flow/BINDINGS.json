@@ -1,0 +1,101 @@
+{
+  "kind": "SOURCE_ONLY",
+  "started": "2026-08-29T10:55:43.392Z",
+  "completed": "2026-08-29T10:55:43.411Z",
+  "core": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "totalBytes": 719977,
+  "admitted": [
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-design-20260829/CORE-SOURCE.json.data",
+      "bytes": 230044,
+      "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/execute_cmd.c",
+      "bytes": 184046,
+      "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032"
+    },
+    {
+      "path": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3/lib/sh/shmatch.c",
+      "bytes": 3687,
+      "sha256": "c889cb70a2670e5f009e4b0f77e6b32ad0c6d55a6bfe36f6cfab14a58515d06c"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-design-20260829/selected/src__shell__conditional.ts.data",
+      "bytes": 8890,
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-design-20260829/selected/src__shell__runtime.ts.data",
+      "bytes": 203623,
+      "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-design-20260829/selected/src__shell__parser.ts.data",
+      "bytes": 42620,
+      "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-design-20260829/selected/src__shell__shell.ts.data",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-design-20260829/selected/src__shell__cancellation.ts.data",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+    }
+  ],
+  "excerpts": [
+    {
+      "name": "gnu-execute",
+      "sourceSha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+      "sourceLines": 6410,
+      "selectedLines": 1082,
+      "excerptSha256": "5d1fe7bd76d709d5867c7d930277fe3b45ccf531d41725fa074c2b97d54e6e0d"
+    },
+    {
+      "name": "gnu-regmatch",
+      "sourceSha256": "c889cb70a2670e5f009e4b0f77e6b32ad0c6d55a6bfe36f6cfab14a58515d06c",
+      "sourceLines": 147,
+      "selectedLines": 94,
+      "excerptSha256": "3f734c15cf137ef39987c25eb3c86be2329d248da1431160f649f3e0fb9b7798"
+    },
+    {
+      "name": "core-conditional",
+      "sourceSha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+      "sourceLines": 181,
+      "selectedLines": 51,
+      "excerptSha256": "34d29f76e4cf3b7a310af2189afdbdab56531358408dc91b19cb651e46d4c533"
+    },
+    {
+      "name": "core-runtime",
+      "sourceSha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+      "sourceLines": 3995,
+      "selectedLines": 302,
+      "excerptSha256": "6cf5082b1beca3c661ecc55adf80752867aa15aad85de509b80b62a325885dc6"
+    },
+    {
+      "name": "core-parser",
+      "sourceSha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690",
+      "sourceLines": 855,
+      "selectedLines": 336,
+      "excerptSha256": "be78694c5fccec93cbc78a3ad43fde3b81f9857ff0dfffe8cba2ef89f462e23d"
+    },
+    {
+      "name": "core-shell",
+      "sourceSha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "sourceLines": 338,
+      "selectedLines": 210,
+      "excerptSha256": "646ce4fcea6afbea35616f003fdba2ae92d28abf735f5d6a151994ef3d7d6f97"
+    },
+    {
+      "name": "core-cancellation",
+      "sourceSha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "sourceLines": 800,
+      "selectedLines": 314,
+      "excerptSha256": "6d9e133b971361f9de820bf90b34eac466f406415f9b27ca5a846f6e21de62c8"
+    }
+  ],
+  "productExecutions": 0
+}

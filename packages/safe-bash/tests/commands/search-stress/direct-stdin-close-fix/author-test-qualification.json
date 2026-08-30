@@ -1,0 +1,30 @@
+{
+  "at": "2026-08-27T13:33:51.542Z",
+  "frozen": "b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "files": [
+    {
+      "path": "tests/commands/search/helpers.ts",
+      "sha256": "5c2d84931141471fdb14a1c9aab8aa487ad65094c06790444b53e57e131578ef",
+      "frozenSha256": "5c2d84931141471fdb14a1c9aab8aa487ad65094c06790444b53e57e131578ef",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search/rg.test.ts",
+      "sha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd",
+      "frozenSha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search/safety.test.ts",
+      "sha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49",
+      "frozenSha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49",
+      "unchanged": true
+    },
+    {
+      "path": "tests/commands/search/pipelines.test.ts",
+      "sha256": "2915fc1792be4ff3f397395015e41ccfa53465d3a16b8f6b5de36bc40b8a09d2",
+      "frozenSha256": "2915fc1792be4ff3f397395015e41ccfa53465d3a16b8f6b5de36bc40b8a09d2",
+      "unchanged": true
+    }
+  ]
+}

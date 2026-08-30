@@ -1,0 +1,5 @@
+{
+  "message": "Cannot read properties of null (reading '4')",
+  "stack": "TypeError: Cannot read properties of null (reading '4')\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/run-v1.mjs:375:26\n    at Array.filter (<anonymous>)\n    at verifyConcurrentIndex (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/run-v1.mjs:375:8)\n    at sealAfterRetainedIndexError (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/run-v1.mjs:388:45)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/run-v1.mjs:418:48\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+  "processes": []
+}

@@ -1,0 +1,152 @@
+{
+  "recordedAt": "2026-08-27T12:39:23.837Z",
+  "process": {
+    "node": "v22.22.2",
+    "versions": {
+      "node": "22.22.2",
+      "acorn": "8.15.0",
+      "ada": "2.9.2",
+      "amaro": "1.1.5",
+      "ares": "1.34.6",
+      "brotli": "1.1.0",
+      "cjs_module_lexer": "2.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.3.0",
+      "modules": "127",
+      "napi": "10",
+      "nbytes": "0.1.1",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.64.0",
+      "openssl": "3.5.5",
+      "simdjson": "4.2.4",
+      "simdutf": "6.4.2",
+      "sqlite": "3.51.2",
+      "tz": "2025c",
+      "undici": "6.24.1",
+      "unicode": "17.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "12.4.254.21-node.39",
+      "zlib": "1.3.1-e00f703",
+      "zstd": "1.5.7"
+    },
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "binarySha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "uid": 501,
+    "euid": 501,
+    "gid": 20,
+    "egid": 20,
+    "groups": [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      701,
+      33,
+      98,
+      100,
+      204,
+      250,
+      395,
+      398,
+      400
+    ],
+    "umask": "0022"
+  },
+  "uname": {
+    "binary": "/usr/bin/uname",
+    "args": [
+      "-a"
+    ],
+    "status": 0,
+    "stdout": "Darwin m5mb-kjopek 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050 arm64\n",
+    "stderr": ""
+  },
+  "swVers": {
+    "binary": "/usr/bin/sw_vers",
+    "args": [],
+    "status": 0,
+    "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "stderr": ""
+  },
+  "id": {
+    "binary": "/usr/bin/id",
+    "args": [],
+    "status": 0,
+    "stdout": "uid=501(kjopek) gid=20(staff) groups=20(staff),12(everyone),61(localaccounts),79(_appserverusr),80(admin),81(_appserveradm),701(com.apple.sharepoint.group.1),33(_appstore),98(_lpadmin),100(_lpoperator),204(_developer),250(_analyticsusers),395(com.apple.access_ftp),398(com.apple.access_screensharing),400(com.apple.access_remote_ae)\n",
+    "stderr": ""
+  },
+  "oracle": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+    "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+    "version": {
+      "binary": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "chmod (GNU coreutils) 9.7\nCopyright (C) 2025 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie and Jim Meyering.\n",
+      "stderr": ""
+    },
+    "file": {
+      "binary": "/usr/bin/file",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod"
+      ],
+      "status": 0,
+      "stdout": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod: Mach-O 64-bit executable arm64\n",
+      "stderr": ""
+    },
+    "linkage": {
+      "binary": "/usr/bin/otool",
+      "args": [
+        "-L",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod"
+      ],
+      "status": 0,
+      "stdout": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+      "stderr": ""
+    }
+  },
+  "bash": {
+    "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+    "version": {
+      "binary": "/bin/bash",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n",
+      "stderr": ""
+    }
+  },
+  "parent": {
+    "stat": {
+      "type": "directory",
+      "mode": "0700",
+      "uid": 501,
+      "gid": 0,
+      "ino": "174043636",
+      "dev": "16777232",
+      "nlink": "20",
+      "size": "640",
+      "atimeNs": "1787834310073720117",
+      "mtimeNs": "1787834363741699289",
+      "ctimeNs": "1787834363741699289",
+      "birthtimeNs": "1787834085786737415"
+    },
+    "acl": {
+      "binary": "/bin/ls",
+      "args": [
+        "-ldeO@",
+        "/tmp/safe-bash-darwin-classification-b04J1M"
+      ],
+      "status": 0,
+      "stdout": "drwx------@ 20 kjopek  wheel  - 640 Aug 27 07:39 /tmp/safe-bash-darwin-classification-b04J1M\n\tcom.apple.provenance\t 11 \n",
+      "stderr": ""
+    }
+  }
+}

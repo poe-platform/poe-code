@@ -1,0 +1,69 @@
+{
+  "schema": "functional-v3-actual-observation-seal",
+  "created": 1787992330598,
+  "sourceCommit": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "presealSha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533",
+  "slotReviewCommit": "f4e08835f26ad58f354e93329c4828c64af49484",
+  "slotResultSha256": "946ee078d89d05115ff5470ce7d04cb83e5a0068dbb51af1e3379ee5980aa48c",
+  "grantSha256": "2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6",
+  "commandSha256": "b514681b0c165c2b029992c08b89dcf3ac793dc062f5ad4d6e7b5eb24c0bd1f6",
+  "actualToolExitCode": 0,
+  "completedNativeObservations": 37,
+  "notPasses": true,
+  "withheld": [
+    "B26",
+    "B27",
+    "B28"
+  ],
+  "artifacts": [
+    {
+      "path": "OBSERVATIONS.json",
+      "bytes": 60469,
+      "sha256": "e0128b578cb1cf4c019b233cdd3c21b4682888d0aacbaa51d6efce35b666a12a",
+      "mode": 420
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 6477,
+      "sha256": "9986fcdbf003c0b15389ffa89ae2685679903d080728c308ea281dbfe6363255",
+      "mode": 420
+    },
+    {
+      "path": "TOOL-OUTCOME.json",
+      "bytes": 872,
+      "sha256": "815b96abf1db19fc2a3ee5f79144b8100ec58c2b88f485d60e90c6932d1a9460",
+      "mode": 420
+    },
+    {
+      "path": "EXACT-REQUEST.json",
+      "bytes": 2264,
+      "sha256": "bef11cff48541af1e880f068582100a0038b8ccf6f274b155e41bf8bfabbee52",
+      "mode": 420
+    },
+    {
+      "path": "ACTUAL-PREFLIGHT.jsonl",
+      "bytes": 2412,
+      "sha256": "f9e6735e77b076eb1a04c96785fca71a458e953c4cdbc6f9b60bca0c540bb85c",
+      "mode": 420
+    },
+    {
+      "path": "RESULTS.original.json",
+      "bytes": 2667,
+      "sha256": "66ad0ff14fae318533cd2d371a95307798b1ae0b13eebe96da5f886b021e39f0",
+      "mode": 420
+    },
+    {
+      "path": "RAW-NATIVE-RUN.json.gz.base64",
+      "bytes": 33497,
+      "sha256": "8964cd09ba23aa896ba6c1443c7b822747f7ec62c825af26c6b415f6b06d64bf",
+      "mode": 420
+    }
+  ],
+  "authoritativeRawLocation": "/private/tmp/safe-bash-surface-functional-v3-20260829-01",
+  "nativeArchiveGzipSha256": "d366b454cbe0a46ac16740c61b207e810cb7f975be3457b4f54b5d348efc8d1b",
+  "noRerun": true,
+  "noNormalization": true,
+  "noVirtualProduct": true,
+  "initialToolStartupOutsideQualification": true,
+  "adminClosure": "captured separately through final publication; no actual reservation reuse"
+}

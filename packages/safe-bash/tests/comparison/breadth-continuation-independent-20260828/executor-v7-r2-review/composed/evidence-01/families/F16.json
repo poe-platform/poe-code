@@ -1,0 +1,54 @@
+{
+  "identifier": "F16",
+  "status": "PASS",
+  "checks": 65,
+  "observation": {
+    "positiveTwin": {
+      "identifier": "positive-after",
+      "qualified": true,
+      "resultReference": {
+        "path": "RESULT.json",
+        "bytes": 5191,
+        "sha256": "6185d36d233c1d0599d0db5683ad258379396bc2aaf3946a9f2b419c11f100db",
+        "mode": 420
+      },
+      "wireSha256": "5a8639ae66ef7304ff900e000368b8ed760efb6b86ee0f7e2d5f0cfdfcbd6b8c",
+      "stdoutSha256": "51f2b64c6b8ddd7bf38a0a65d7b4a395f8d767c503071e2d5964240e855c1751",
+      "outerReference": {
+        "path": "OUTER.json",
+        "bytes": 928,
+        "sha256": "db6d4ad17d56e5911787176a8aba7692ec5d323f4733d94e8868185d6bd6d302",
+        "mode": 420
+      },
+      "seedPreserved": true
+    },
+    "outerStatus": {
+      "identifier": "outer-status",
+      "qualified": false,
+      "primary": {
+        "phase": "body",
+        "value": {
+          "name": "Error",
+          "message": "COORDINATOR_NOT_QUALIFIED",
+          "code": "COORDINATOR_NOT_QUALIFIED"
+        },
+        "undefinedValue": false
+      },
+      "resultReference": {
+        "path": "RESULT.json",
+        "bytes": 5191,
+        "sha256": "6185d36d233c1d0599d0db5683ad258379396bc2aaf3946a9f2b419c11f100db",
+        "mode": 420
+      },
+      "wireSha256": "5a8639ae66ef7304ff900e000368b8ed760efb6b86ee0f7e2d5f0cfdfcbd6b8c",
+      "stdoutSha256": "51f2b64c6b8ddd7bf38a0a65d7b4a395f8d767c503071e2d5964240e855c1751",
+      "outerReference": {
+        "path": "OUTER.json",
+        "bytes": 1076,
+        "sha256": "653cdb65faa2d571ab4a6c0cad6f65a7651bf33e2759d9b36e51d5f39e681bd8",
+        "mode": 420
+      },
+      "seedPreserved": true
+    }
+  }
+}

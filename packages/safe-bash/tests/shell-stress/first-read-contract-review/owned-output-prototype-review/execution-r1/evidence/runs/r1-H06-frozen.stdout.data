@@ -1,0 +1,1 @@
+{"id":"H06","verdict":"PASS","records":[{"first":"first\n","remainder":"second\nthird\n","position":3,"returnedBeforeOwnerTeardown":0,"returns":0,"stageAborted":false}]}

@@ -1,0 +1,279 @@
+{
+  "authorRows": [
+    {
+      "index": 1,
+      "name": "full canonical domain, preserved HOLD, archive and projection",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 2,
+      "name": "copied projection cannot satisfy full pin",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 3,
+      "name": "global tuple sorting cannot replace depth-first traversal",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 4,
+      "name": "trailing LF changes canonical digest",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 5,
+      "name": "missing internal symlink rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 6,
+      "name": "regular mode mutation rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 7,
+      "name": "only BINDINGS npm sha256 differs",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 8,
+      "name": "six byte-identical packet copies and exact dependent manifest",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 9,
+      "name": "runtime delta allowlist roundtrip preserves all behavior bytes",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 10,
+      "name": "unauthorized runtime mutation rejected by source equivalence",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 11,
+      "name": "all314 requests preserve exact canonical306 and rebind8",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 12,
+      "name": "old packet attribution rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 13,
+      "name": "old BINDINGS digest rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 14,
+      "name": "old manifest digest rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 15,
+      "name": "old physical packet path rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 16,
+      "name": "template only packet seal supervisor futureGO differ; original reservation",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 17,
+      "name": "template not actual GO",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 18,
+      "name": "historical GO cannot authorize new packet",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 19,
+      "name": "replacement budget path rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 20,
+      "name": "relocated future-run root rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 21,
+      "name": "changed seal rejected",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 22,
+      "name": "99 original seal pins mapped plus predecessor seal",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 23,
+      "name": "268 inputs and canonical derived composition",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 24,
+      "name": "858 file package unchanged",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 25,
+      "name": "actual packet8 and code8 commit:path verified",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 26,
+      "name": "all100 actual seal paths exact",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 27,
+      "name": "entire314 source-auth closure DATA accepted",
+      "kind": "positive",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 28,
+      "name": "missing final tree",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 29,
+      "name": "extra stored row",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 30,
+      "name": "wrong kind",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 31,
+      "name": "wrong oid",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 32,
+      "name": "wrong byte length",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 33,
+      "name": "wrong archive hash",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    },
+    {
+      "index": 34,
+      "name": "reordered rows",
+      "kind": "negative",
+      "authorReportedPass": true,
+      "independentRole": "DATA source/metadata comparison or finite DATA mutation; no product/supervisor invocation; not independently replayed"
+    }
+  ],
+  "independentReplays": 0,
+  "independentReviewerControls": 12,
+  "accounting": {
+    "boundMs": 600000,
+    "presealChargeMs": 488405,
+    "startAllowanceMs": 60000,
+    "presealMeasuredPostInitializationMs": 428405,
+    "rootRelayedFinalChargeMs": 516115,
+    "rootRelayedFinalPostInitializationMs": 456115,
+    "presealToFinalChargeDeltaMs": 27710,
+    "remainingHeadroomMs": 83885,
+    "presealChildElapsedSumMs": 1197,
+    "presealChildren": 8,
+    "presealClosed": true,
+    "finalClosureRole": "516115ms is root-relayed final conservative charge; the frozen CONTROLS record explicitly delegates final commit/status settlement to handoff. It is not a separately measured exact initial-to-final wall duration.",
+    "initialWallQualification": "Exact initial startup wall is unavailable;60000ms conservative allowance covers two parse failures. Neither the charge nor the child-duration sum is an exact elapsed wall observation.",
+    "renewal": "No reset inferred or authorized; final charge includes allowance once and consumes27710ms after488405ms preseal.",
+    "authorFailuresPreserved": [
+      {
+        "kind": "parse",
+        "count": 2,
+        "phase": "initial controller setup",
+        "childStarts": 0
+      },
+      {
+        "kind": "DATA harness assertion",
+        "control": "306 preserved source-auth rows",
+        "reason": "structuredClone crossed realm; node assert.deepEqual compared prototypes. JSON-parsed finite data compared byte-exact canonical JSON instead; not product failure.",
+        "childStarts": 0
+      },
+      {
+        "kind": "DATA tree lookup control",
+        "reason": "Implicit captured tree root caused stale packet traversal during code-commit check; corrected by explicit commit argument and per-component reset. All8 code/auth commit:path objects independently match. No product execution or file changes from failure.",
+        "childStarts": 0
+      }
+    ]
+  }
+}

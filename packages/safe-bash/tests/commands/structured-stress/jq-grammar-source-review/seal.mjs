@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import { digest, directory, root, snapshot } from './common.mjs';
+import { loadFrozen } from '../jq-grammar-independent/evidence.mjs';
+
+snapshot();
+loadFrozen();
+const output = join(directory, 'MANIFEST.sha256');
+assert.equal(existsSync(output), false, 'never reseal old evidence');
+const files = readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name));
+assert.ok(files.every(entry => entry.isFile()));
+const text = files.map(entry => `${digest(readFileSync(join(directory, entry.name)))}  ${entry.name}\n`).join('');
+const patch = `*** Begin Patch\n*** Add File: ${relative(root, output)}\n${text.trimEnd().split('\n').map(line => `+${line}`).join('\n')}\n*** End Patch\n`;
+const result = spawnSync('apply_patch', [], { cwd: root, input: patch, encoding: 'utf8' });
+assert.ifError(result.error);
+assert.equal(result.status, 0, result.stderr);
+assert.equal(readFileSync(output, 'utf8'), text);
+console.log('sealed files', files.length);

@@ -1,0 +1,125 @@
+{
+  "classification": "AUTHOR combined-source integration only",
+  "revision": "eab1d48a90456c1c2cdeb9289b32f1ed62429137",
+  "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+  "results": [
+    {
+      "name": "original43",
+      "revision": "eab1d48a90456c1c2cdeb9289b32f1ed62429137",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/identity-compatibility-review/compatibility.test.ts"
+      ],
+      "startedAt": "2026-08-27T02:32:22.300Z",
+      "finishedAt": "2026-08-27T02:32:22.840Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+      "stdoutSha256": "9dac207d7d70b5b8bf52cadbb934b340014bd8328bfc107584e4559200d02103",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "original4",
+      "revision": "eab1d48a90456c1c2cdeb9289b32f1ed62429137",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/copy-identity.test.ts"
+      ],
+      "startedAt": "2026-08-27T02:32:22.846Z",
+      "finishedAt": "2026-08-27T02:32:23.047Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+      "stdoutSha256": "146a4691b1734d89eaa5dee2cd4de831aab274c947346e4d755e4ebe6ab644c6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "required49",
+      "revision": "eab1d48a90456c1c2cdeb9289b32f1ed62429137",
+      "command": [
+        "node",
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/fs/mount/copy-identity-guards.test.ts",
+        "tests/fs/overlay/copy-identity.test.ts"
+      ],
+      "startedAt": "2026-08-27T02:32:23.053Z",
+      "finishedAt": "2026-08-27T02:32:23.425Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": {
+        "tests": 49,
+        "pass": 49,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "todo": 0
+      },
+      "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+      "stdoutSha256": "b1edc4fc65101877be02bc056e6b18a0ddf400dc72a5ac4015113cb7e7344432",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped-types",
+      "revision": "eab1d48a90456c1c2cdeb9289b32f1ed62429137",
+      "command": [
+        "node",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "author-integration-types.json"
+      ],
+      "startedAt": "2026-08-27T02:32:23.430Z",
+      "finishedAt": "2026-08-27T02:32:24.580Z",
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "residualGroup": false,
+      "counts": null,
+      "sourceSetSha256": "fc3269f23944309ee92ff8ecfb3cae12654d19bdb3d8e41d26523ab54be39066",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "originalPositivePass": 38,
+  "originalPositiveFailures": [],
+  "guardObservations": 5,
+  "originalFixtureUnchanged": true,
+  "qualificationDeltaApplied": false,
+  "noIndependentAcceptanceClaim": true
+}

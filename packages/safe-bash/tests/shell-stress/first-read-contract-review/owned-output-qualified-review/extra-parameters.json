@@ -1,0 +1,22 @@
+{
+  "classification": "independent pre-declaration frozen parameter intentions",
+  "logicalCases": 12,
+  "historicalParameters": 20,
+  "additionalParameters": 12,
+  "totalParameters": 32,
+  "productExecutions": 0,
+  "records": [
+    {"id":"S11","parameter":"error-first-caller-error-cleanup-error","order":"execution rejection, caller abort, cleanup rejection","executionReason":"unique Error execution","callerReason":"unique Error caller","cleanupReason":"unique Error cleanup","expectedPublic":"caller identity","expectedLocal":"execution identity retained"},
+    {"id":"S11","parameter":"error-first-caller-zero-cleanup-error","order":"execution rejection, caller abort, cleanup rejection","executionReason":"unique Error execution","callerReason":"0","cleanupReason":"unique Error cleanup","expectedPublic":"exact 0","expectedLocal":"execution identity retained"},
+    {"id":"S11","parameter":"caller-first-error-late-execution-zero","order":"caller abort, execution rejection, cleanup rejection","executionReason":"0","callerReason":"unique Error caller","cleanupReason":"unique Error cleanup","expectedPublic":"caller identity","expectedLocal":"thrown 0 retained; late rejection observed"},
+    {"id":"S11","parameter":"normal-close-then-caller-zero","order":"normal local close, caller abort, cleanup completion","executionReason":"none","callerReason":"0","cleanupReason":"none","expectedPublic":"exact 0","expectedLocal":"normal close retained; no retroactive abort requirement"},
+    {"id":"S11","parameter":"normal-close-then-caller-default-undefined","order":"normal local close, native abort(undefined), cleanup rejection","executionReason":"none","callerReason":"captured native default reason","cleanupReason":"unique Error cleanup","expectedPublic":"native signal.reason identity, not undefined","expectedLocal":"normal close retained"},
+    {"id":"S11","parameter":"execution-undefined-cleanup-error","order":"literal undefined execution rejection, cleanup rejection; no caller abort","executionReason":"literal undefined","callerReason":"none","cleanupReason":"unique Error cleanup","expectedPublic":"rejected tag and literal undefined","expectedLocal":"literal undefined rejection retained"},
+    {"id":"S11","parameter":"cleanup-undefined-no-primary","order":"successful execution, literal undefined cleanup rejection; no caller abort","executionReason":"none","callerReason":"none","cleanupReason":"literal undefined","expectedPublic":"rejected tag and literal undefined","expectedLocal":"normal close"},
+    {"id":"S11","parameter":"execution-error-cleanup-zero","order":"execution rejection, cleanup rejection; no caller abort","executionReason":"unique Error execution","callerReason":"none","cleanupReason":"0","expectedPublic":"execution identity","expectedLocal":"execution identity retained"},
+    {"id":"S11","parameter":"normal-close-synthetic-caller-undefined","order":"normal local close, legitimate synthetic caller abort with literal undefined, cleanup rejection","executionReason":"none","callerReason":"literal undefined via authenticated public signal binding only","cleanupReason":"unique Error cleanup","expectedPublic":"rejected tag and literal undefined","expectedLocal":"normal close; BLOCKED if public synthetic binding unavailable"},
+    {"id":"S11","parameter":"cleanup-zero-no-primary","order":"successful execution, cleanup rejection 0; no caller abort","executionReason":"none","callerReason":"none","cleanupReason":"0","expectedPublic":"rejected tag and exact 0","expectedLocal":"normal close"},
+    {"id":"S09","parameter":"parent-abort-waits-admitted-child-cleanup","order":"register parent and child, admit child work, caller abort, attempt late admission, release child cleanup","executionReason":"none","callerReason":"unique Error caller","cleanupReason":"none","expectedPublic":"caller identity only after registered child drain","expectedLocal":"admission closed; child cleanup once; no opaque-handler wait"},
+    {"id":"S10","parameter":"closed-child-parent-error-sibling-effects","order":"close first child normally, observe live sibling file/stderr/input-owner effects, parent execution rejection, cooperative tree drain","executionReason":"unique Error parent","callerReason":"none","cleanupReason":"unique Error child cleanup","expectedPublic":"parent execution identity","expectedLocal":"closed first child not retroactively aborted; sibling useful effects before parent closure; no borrowed stdin return"}
+  ]
+}

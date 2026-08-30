@@ -1,0 +1,452 @@
+{
+  "startedAt": "2026-08-27T02:19:20.502Z",
+  "endedAt": "2026-08-27T02:19:20.538Z",
+  "harnessSha256": "b140a684d74ca6782f704d8bce4a01225f244e803f229b0ef6e3811553a5fde6",
+  "sourceFixtures": {
+    "tests/commands/structured-stress/jq-grammar-author-20260827/planned-test-only-changes-v2.json": "73b3056266ca0022d079b0d3bcd5b02ff911d806affb8cd0811f95717c177684",
+    "tests/commands/structured-stress/raw-input-native.json": "3f582f83c3015317bd53c27ef42290e60c1808ce968e588d8e25edaf3069ff96",
+    "tests/commands/structured-stress/jq-42-independent-review/legacy-native-proof.json": "54a844a4e2b3c7f11fd185334f07e6f283250a9f6ddd49a75268eb48bcbd83e3",
+    "tests/commands/structured-stress/capture-raw-input.mjs": "cbfe8243b08fceade229b37e2ceb41d88e02eaf2465d81e5378190dc538f6561",
+    "tests/commands/structured-stress/jq-grammar-proposal-review/REPORT.md": "93d2b1c555fb5664a43b308a81a95866dc47ac302c6e00200abcc95b425a3d37"
+  },
+  "sourceFixturesUnchanged": true,
+  "executable": "/usr/bin/jq",
+  "executableSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+  "executableUnchanged": true,
+  "environment": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "NO_COLOR": "1",
+    "PATH": "/usr/bin:/bin"
+  },
+  "inheritedEnvironment": false,
+  "environmentProvenance": "Exact legacy-native-proof.json environment; original capture-raw-input.mjs inherited an unrecorded environment, which cannot be reconstructed. No claim of reproducing that unrecorded environment.",
+  "host": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0"
+  },
+  "config": {
+    "shell": false,
+    "timeoutMs": 2000,
+    "killSignal": "SIGKILL",
+    "maxBufferBytes": 65536,
+    "assertedCombinedOutputBoundBytes": 65536,
+    "stdinEncoding": "hex",
+    "fixtureRoute": "literal regular file unicode-start; no fd substitution",
+    "freshDirectoryPerInvocation": true
+  },
+  "counts": {
+    "cases": 2,
+    "repeatsPerCase": 2,
+    "captures": 4,
+    "exactCapturePasses": 4,
+    "metadataInvocations": 2,
+    "metadataPasses": 2,
+    "totalNativeInvocations": 6,
+    "cleanedDirectories": 6
+  },
+  "metadata": [
+    {
+      "argv": [
+        "--version"
+      ],
+      "inputHex": "",
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-literal-file-review/.native-ebqT1E",
+      "beganAt": "2026-08-27T02:19:20.504Z",
+      "endedAt": "2026-08-27T02:19:20.508Z",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "6a712d312e372e312d6170706c650a",
+        "stderrHex": ""
+      },
+      "signal": null,
+      "outputBytes": 15,
+      "before": {
+        "directory": {
+          "dev": 16777232,
+          "ino": 170392873,
+          "mode": 16832
+        },
+        "entries": []
+      },
+      "after": {
+        "directory": {
+          "dev": 16777232,
+          "ino": 170392873,
+          "mode": 16832
+        },
+        "entries": []
+      },
+      "namespaceAndBytesPreserved": true,
+      "exactFrozenMatch": true,
+      "childReaped": true,
+      "cleanup": {
+        "removed": true,
+        "absenceConfirmed": true,
+        "mechanism": "finally: rm recursive then lstat ENOENT"
+      }
+    },
+    {
+      "argv": [
+        "--build-configuration"
+      ],
+      "inputHex": "",
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-literal-file-review/.native-ixE97m",
+      "beganAt": "2026-08-27T02:19:20.509Z",
+      "endedAt": "2026-08-27T02:19:20.513Z",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "2d2d776974682d6f6e69677572756d613d6275696c74696e0a",
+        "stderrHex": ""
+      },
+      "signal": null,
+      "outputBytes": 25,
+      "before": {
+        "directory": {
+          "dev": 16777232,
+          "ino": 170392874,
+          "mode": 16832
+        },
+        "entries": []
+      },
+      "after": {
+        "directory": {
+          "dev": 16777232,
+          "ino": 170392874,
+          "mode": 16832
+        },
+        "entries": []
+      },
+      "namespaceAndBytesPreserved": true,
+      "exactFrozenMatch": true,
+      "childReaped": true,
+      "cleanup": {
+        "removed": true,
+        "absenceConfirmed": true,
+        "mechanism": "finally: rm recursive then lstat ENOENT"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "file-unicode:-Rc",
+      "argv": [
+        "-Rc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": {
+        "unicode-start": "f09f"
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+        "stderrHex": ""
+      },
+      "frozenVectorSha256": "ce6f115ba3b52673ec619f115a738adda7df3cad010df084aae61940762e3d82",
+      "repeatIdentical": true,
+      "captures": [
+        {
+          "repeat": 1,
+          "argv": [
+            "-Rc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-literal-file-review/.native-pIL0gk",
+          "beganAt": "2026-08-27T02:19:20.514Z",
+          "endedAt": "2026-08-27T02:19:20.518Z",
+          "actual": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "signal": null,
+          "outputBytes": 12,
+          "before": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392875,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392876,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "after": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392875,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392876,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "namespaceAndBytesPreserved": true,
+          "exactFrozenMatch": true,
+          "childReaped": true,
+          "cleanup": {
+            "removed": true,
+            "absenceConfirmed": true,
+            "mechanism": "finally: rm recursive then lstat ENOENT"
+          }
+        },
+        {
+          "repeat": 2,
+          "argv": [
+            "-Rc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-literal-file-review/.native-dE3jeA",
+          "beganAt": "2026-08-27T02:19:20.519Z",
+          "endedAt": "2026-08-27T02:19:20.524Z",
+          "actual": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd220a",
+            "stderrHex": ""
+          },
+          "signal": null,
+          "outputBytes": 12,
+          "before": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392877,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392878,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "after": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392877,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392878,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "namespaceAndBytesPreserved": true,
+          "exactFrozenMatch": true,
+          "childReaped": true,
+          "cleanup": {
+            "removed": true,
+            "absenceConfirmed": true,
+            "mechanism": "finally: rm recursive then lstat ENOENT"
+          }
+        }
+      ]
+    },
+    {
+      "id": "file-unicode:-Rsc",
+      "argv": [
+        "-Rsc",
+        ".",
+        "unicode-start",
+        "-"
+      ],
+      "inputHex": "98800a",
+      "files": {
+        "unicode-start": "f09f"
+      },
+      "expected": {
+        "status": 0,
+        "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+        "stderrHex": ""
+      },
+      "frozenVectorSha256": "217c66dd32e62c307cbed753b584a04d8701a98ed18d4fd8d3ddebf4b1d70115",
+      "repeatIdentical": true,
+      "captures": [
+        {
+          "repeat": 1,
+          "argv": [
+            "-Rsc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-literal-file-review/.native-BVKl2W",
+          "beganAt": "2026-08-27T02:19:20.526Z",
+          "endedAt": "2026-08-27T02:19:20.530Z",
+          "actual": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+            "stderrHex": ""
+          },
+          "signal": null,
+          "outputBytes": 14,
+          "before": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392879,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392880,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "after": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392879,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392880,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "namespaceAndBytesPreserved": true,
+          "exactFrozenMatch": true,
+          "childReaped": true,
+          "cleanup": {
+            "removed": true,
+            "absenceConfirmed": true,
+            "mechanism": "finally: rm recursive then lstat ENOENT"
+          }
+        },
+        {
+          "repeat": 2,
+          "argv": [
+            "-Rsc",
+            ".",
+            "unicode-start",
+            "-"
+          ],
+          "inputHex": "98800a",
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-stress/jq-grammar-literal-file-review/.native-mrYSwB",
+          "beganAt": "2026-08-27T02:19:20.532Z",
+          "endedAt": "2026-08-27T02:19:20.536Z",
+          "actual": {
+            "status": 0,
+            "stdoutHex": "22efbfbdefbfbdefbfbd5c6e220a",
+            "stderrHex": ""
+          },
+          "signal": null,
+          "outputBytes": 14,
+          "before": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392881,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392882,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "after": {
+            "directory": {
+              "dev": 16777232,
+              "ino": 170392881,
+              "mode": 16832
+            },
+            "entries": [
+              {
+                "name": "unicode-start",
+                "regularFile": true,
+                "symbolicLink": false,
+                "dev": 16777232,
+                "ino": 170392882,
+                "mode": 33152,
+                "size": 2,
+                "bytesHex": "f09f",
+                "sha256": "3c1c36c746e9b9106e77cfc2ede3374d38a883e23fbcd3b20023e326008c5434"
+              }
+            ]
+          },
+          "namespaceAndBytesPreserved": true,
+          "exactFrozenMatch": true,
+          "childReaped": true,
+          "cleanup": {
+            "removed": true,
+            "absenceConfirmed": true,
+            "mechanism": "finally: rm recursive then lstat ENOENT"
+          }
+        }
+      ]
+    }
+  ],
+  "limitations": "Only two native regular-file cases, repeated twice. No product imports, chunk-partition, VFS, pipeline, full-product, parity or superiority claims. Endpoint namespace/identity/byte checks are not a transient-mutation or ABA guarantee. Historical FD-limited report remains unchanged."
+}

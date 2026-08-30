@@ -1,0 +1,446 @@
+{
+  "schema": "FINAL_BOUNDED_SOURCE_DATA_CROSSCHECK",
+  "date": "2026-08-28",
+  "presealSha256": "4ef523502062efa12821d2dc74ce9b2dad24a4febdd3117517aad77774ce99ff",
+  "checkerSha256": "aaae38d951f884deef1305ea65d6ce662e866cdc98592643a8c57fb034c15df5",
+  "originalResultsSha256": "9a274d0a5d222da3cc6d8dd1281ea8a6ebe0be1f1d9ae5e1b4b97420ac93f913",
+  "supplementalResultsSha256": "8d516d49a41638f43888e79e567b2ca8a507f730cf3dcd447114ff3665632c62",
+  "directLoadAgreement": [
+    {
+      "path": "benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 510637,
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "bytes": 1224,
+      "sha256": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BRJERIF4.js",
+      "bytes": 513,
+      "sha256": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KIGPB52X.js",
+      "bytes": 262,
+      "sha256": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "bytes": 784,
+      "sha256": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "bytes": 1240,
+      "sha256": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "bytes": 193,
+      "sha256": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DLL7UR66.js",
+      "bytes": 335,
+      "sha256": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "bytes": 635,
+      "sha256": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "bytes": 179119,
+      "sha256": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 35477,
+      "sha256": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "bytes": 2384,
+      "sha256": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "bytes": 1539,
+      "sha256": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-STHBFACM.js",
+      "bytes": 86,
+      "sha256": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "bytes": 881,
+      "sha256": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-EFORKKSH.js",
+      "bytes": 2346,
+      "sha256": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "bytes": 1712,
+      "sha256": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "bytes": 710,
+      "sha256": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "bytes": 162,
+      "sha256": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 886,
+      "sha256": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0"
+    }
+  ],
+  "beforeAfter": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/README.md",
+      "sha256Before": "1c44999fc1cbdaa977211a137cc6054c3b05a92e11020fd6069ffb957a2038ab",
+      "sha256After": "1c44999fc1cbdaa977211a137cc6054c3b05a92e11020fd6069ffb957a2038ab"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/REFERENCES.json",
+      "sha256Before": "099290919fc32e90fe492b3e59ff89fc471801f2ca2b98f8cedba7c7ed51472f",
+      "sha256After": "099290919fc32e90fe492b3e59ff89fc471801f2ca2b98f8cedba7c7ed51472f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/inspect.mjs",
+      "sha256Before": "f3dd7b007d819c9d038cc3c633252453d659d35a30d24be1e112e459072af62d",
+      "sha256After": "f3dd7b007d819c9d038cc3c633252453d659d35a30d24be1e112e459072af62d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/OBSERVATIONS.json",
+      "sha256Before": "9edee03f7b259a951ee49d4cd255f18bbf4ac95066a7e059da1554259620fb8f",
+      "sha256After": "9edee03f7b259a951ee49d4cd255f18bbf4ac95066a7e059da1554259620fb8f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/EVIDENCE-MANIFEST.json",
+      "sha256Before": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca",
+      "sha256After": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/HANDOFF.md",
+      "sha256Before": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a",
+      "sha256After": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "sha256Before": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f",
+      "sha256After": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "sha256Before": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97",
+      "sha256After": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/projection.mjs",
+      "sha256Before": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031",
+      "sha256After": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs",
+      "sha256Before": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca",
+      "sha256After": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "sha256Before": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3",
+      "sha256After": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "sha256Before": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "sha256After": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "sha256Before": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "sha256After": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.json",
+      "sha256Before": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12",
+      "sha256After": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.receipt.json",
+      "sha256Before": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6",
+      "sha256After": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "sha256Before": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+      "sha256After": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "sha256Before": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "sha256After": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "sha256Before": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6",
+      "sha256After": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BRJERIF4.js",
+      "sha256Before": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286",
+      "sha256After": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KIGPB52X.js",
+      "sha256Before": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2",
+      "sha256After": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "sha256Before": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4",
+      "sha256After": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "sha256Before": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c",
+      "sha256After": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "sha256Before": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8",
+      "sha256After": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DLL7UR66.js",
+      "sha256Before": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde",
+      "sha256After": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "sha256Before": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f",
+      "sha256After": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "sha256Before": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a",
+      "sha256After": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "sha256Before": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0",
+      "sha256After": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "sha256Before": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9",
+      "sha256After": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "sha256Before": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf",
+      "sha256After": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-STHBFACM.js",
+      "sha256Before": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29",
+      "sha256After": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "sha256Before": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33",
+      "sha256After": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-EFORKKSH.js",
+      "sha256Before": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2",
+      "sha256After": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "sha256Before": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec",
+      "sha256After": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "sha256Before": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e",
+      "sha256After": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "sha256Before": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8",
+      "sha256After": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "sha256Before": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0",
+      "sha256After": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0"
+    }
+  ],
+  "excerpts": [
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "ImportDeclaration",
+      "byteStart": 0,
+      "byteEndExclusive": 40,
+      "line": 1,
+      "excerptBytes": 40,
+      "truncated": false,
+      "text": "import{createRequire} from\"node:module\";"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "ImportDeclaration",
+      "byteStart": 86,
+      "byteEndExclusive": 121,
+      "line": 2,
+      "excerptBytes": 35,
+      "truncated": false,
+      "text": "import*as M from\"node:async_hooks\";"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "ImportDeclaration",
+      "byteStart": 121,
+      "byteEndExclusive": 151,
+      "line": 2,
+      "excerptBytes": 30,
+      "truncated": false,
+      "text": "import*as $ from\"node:module\";"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "FirstStatement",
+      "byteStart": 9832,
+      "byteEndExclusive": 9857,
+      "line": 6,
+      "excerptBytes": 25,
+      "truncated": false,
+      "text": "var P=null,m=null,A=null;"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "IfStatement",
+      "byteStart": 9857,
+      "byteEndExclusive": 9928,
+      "line": 6,
+      "excerptBytes": 71,
+      "truncated": false,
+      "text": "if(!f)try{P=M.AsyncLocalStorage,m=$,A=m.Module??m.default??null}catch{}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "FunctionDeclaration",
+      "name": "S",
+      "byteStart": 9632,
+      "byteEndExclusive": 9832,
+      "line": 6,
+      "excerptBytes": 200,
+      "truncated": false,
+      "text": "function S(){return typeof crypto<\"u\"&&crypto.randomUUID?crypto.randomUUID():\"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\".replace(/[xy]/g,a=>{let e=Math.random()*16|0;return(a===\"x\"?e:e&3|8).toString(16)})}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "FunctionDeclaration",
+      "name": "I",
+      "byteStart": 10251,
+      "byteEndExclusive": 10310,
+      "line": 6,
+      "excerptBytes": 59,
+      "truncated": false,
+      "text": "function I(){return!f&&typeof m?.registerHooks==\"function\"}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "MethodDeclaration",
+      "name": "createBlockingProxy",
+      "byteStart": 17688,
+      "byteEndExclusive": 18222,
+      "line": 6,
+      "excerptBytes": 534,
+      "truncated": false,
+      "text": "createBlockingProxy(e,t,i){let r=this;return new Proxy(e,{apply(o,n,s){if(r.shouldBlock()){let c=`${t} is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} called (audit mode)`),Reflect.apply(o,n,s)},construct(o,n,s){if(r.shouldBlock()){let c=`${t} constructor is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} constructor called (audit mode)`),Reflect.construct(o,n,s)}})}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "MethodDeclaration",
+      "name": "applyPatches",
+      "byteStart": 20647,
+      "byteEndExclusive": 21761,
+      "line": 6,
+      "excerptBytes": 1114,
+      "truncated": false,
+      "text": "applyPatches(){this.patchFailures=[];let e=w(),t=new Set(this.config.excludeViolationTypes??[]),i=new Set([\"process_send\",\"process_channel\",\"process_stdout\",\"process_stderr\"]),r=[];for(let s of e)if(!t.has(s.violationType)&&!i.has(s.violationType)){if(s.strategy===\"freeze\"){r.push(s);continue}this.applyPatch(s)}this.protectConstructorChain(),t.has(\"error_prepare_stack_trace\")||this.protectErrorPrepareStackTrace(),this.protectPromiseThen(),I()&&this.protectDynamicImport(),this.protectModuleLoad(),this.protectModuleResolveFilename(),this.protectProcessMainModule(),this.protectProcessExecPath(),this.protectProxyRevocable();let o=[\"Function.prototype.constructor\",\"Module._load\",\"Module._resolveFilename\"],n=this.patchFailures.filter(s=>o.includes(s));if(n.length>0)throw this.restorePatches(),new Error(`DefenseInDepthBox: critical patches failed: ${n.join(\", \")}`);this.config.processLifetimeIntrinsicHardening||this.protectReversibleIntrinsics(r);for(let s of r)this.applyPatch(s,this.config.processLifetimeIntrinsicHardening===!0);this.config.processLifetimeIntrinsicHardening&&this.lockWellKnownSymbols()}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "MethodDeclaration",
+      "name": "protectDynamicImport",
+      "byteStart": 31404,
+      "byteEndExclusive": 33151,
+      "line": 6,
+      "excerptBytes": 1747,
+      "truncated": false,
+      "text": "protectDynamicImport(){if(!(f||a.importHooksRegistered))try{let e=m;if(!e)throw new Error(\"node:module is unavailable\");let t=new Set;for(let o of e.builtinModules??[]){let n=o.startsWith(\"node:\")?o.slice(5):o;t.add(n);let s=n.indexOf(\"/\");s>0&&t.add(n.slice(0,s))}let i=o=>{if(o.startsWith(\"./\")||o.startsWith(\"../\")||o.startsWith(\"/\")||o.startsWith(\"file:\")||o.startsWith(\"data:\")||o.startsWith(\"blob:\")||o.startsWith(\"http:\")||o.startsWith(\"https:\"))return!1;let n=o.startsWith(\"node:\")?o.slice(5):o;if(!n)return!1;if(typeof e.isBuiltin==\"function\"&&e.isBuiltin(n)||t.has(n))return!0;let s=n.indexOf(\"/\");return s>0&&t.has(n.slice(0,s))},r=o=>{let n=p?.getStore();return o.config.auditMode===!0&&n?.sandboxActive===!0&&!a.isTrustedContext(n)};if(typeof e.registerHooks==\"function\"){e.registerHooks({resolve(o,n,s){let c=a.instance;if(!c)return s(o,n);if((o.startsWith(\"data:\")||o.startsWith(\"blob:\"))&&c.shouldBlock()){let l=`import(${o.startsWith(\"data:\")?\"data:\":\"blob:\"})`,u=`dynamic import of ${o.startsWith(\"data:\")?\"data:\":\"blob:\"} URLs is blocked by defense-in-depth`,h=c.recordViolation(\"dynamic_import_builtin\",l,u);throw new d(u,h)}if(i(o)){let l=`import(${o})`,u=`dynamic import of Node.js builtin '${o}' is blocked during script execution`;if(c.shouldBlock()){let h=c.recordViolation(\"dynamic_import_builtin\",l,u);throw new d(u,h)}r(c)&&c.recordViolation(\"dynamic_import_builtin\",l,`dynamic import of Node.js builtin '${o}' called (audit mode)`)}return s(o,n)}}),a.importHooksRegistered=!0;return}throw new Error(\"context-aware ESM loader hooks (node:module.registerHooks) are unavailable\")}catch(e){throw new Error(`DefenseInDepthBox: could not register dynamic-import hooks: ${e instanceof Error?e.message:String(e)}`,{cause:e})}}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "MethodDeclaration",
+      "name": "protectModuleMethod",
+      "byteStart": 33321,
+      "byteEndExclusive": 34005,
+      "line": 6,
+      "excerptBytes": 684,
+      "truncated": false,
+      "text": "protectModuleMethod(e,t){if(f)return;let i=`Module.${e}`;try{let r=A,o=r?.[e];if(!r||typeof o!=\"function\")throw new Error(\"node:module Module class or method is unavailable\");let n=Object.getOwnPropertyDescriptor(r,e);if(!n)throw new Error(\"method has no own property descriptor\");if(n.configurable===!1&&n.writable===!1)throw new Error(\"method is non-configurable and non-writable\");let s=this.createBlockingProxy(o,i,t);this.originalDescriptors.push({target:r,prop:e,descriptor:n}),Object.defineProperty(r,e,{...n,value:s});let c=Object.getOwnPropertyDescriptor(r,e);if(r[e]!==s||c?.value!==s)throw new Error(\"installed patch failed verification\")}catch{this.patchFailures.push(i)}}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "MethodDeclaration",
+      "name": "applyPatch",
+      "byteStart": 34005,
+      "byteEndExclusive": 34772,
+      "line": 6,
+      "excerptBytes": 767,
+      "truncated": false,
+      "text": "applyPatch(e,t=!1){let{target:i,prop:r,violationType:o,strategy:n}=e;try{let s=i[r];if(s===void 0)return;let c=Object.getOwnPropertyDescriptor(i,r);if(this.originalDescriptors.push({target:i,prop:r,descriptor:c}),n===\"freeze\"){if(typeof s==\"object\"&&s!==null){t&&Object.freeze(s);let l=this.getPathForTarget(i,r),u=this.createReadonlyObjectProxy(s,l,o);Object.defineProperty(i,r,{...c,value:u})}}else{let l=this.getPathForTarget(i,r),u=typeof s==\"function\"?this.createBlockingProxy(s,l,o):this.createBlockingObjectProxy(s,l,o,e.allowedKeys);Object.defineProperty(i,r,{value:u,writable:!0,configurable:!0})}}catch(s){let c=this.getPathForTarget(i,r);this.patchFailures.push(c),console.debug(`[DefenseInDepthBox] Could not patch ${c}:`,s instanceof Error?s.message:s)}}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "MethodDeclaration",
+      "name": "restorePatches",
+      "byteStart": 34772,
+      "byteEndExclusive": 35452,
+      "line": 6,
+      "excerptBytes": 680,
+      "truncated": false,
+      "text": "restorePatches(){for(let e=this.temporaryIntrinsicDescriptors.length-1;e>=0;e--){let{target:t,prop:i,descriptor:r}=this.temporaryIntrinsicDescriptors[e];try{Object.defineProperty(t,i,r)}catch(o){console.debug(`[DefenseInDepthBox] Could not restore temporary intrinsic ${String(i)}:`,o instanceof Error?o.message:o)}}this.temporaryIntrinsicDescriptors=[];for(let e=this.originalDescriptors.length-1;e>=0;e--){let{target:t,prop:i,descriptor:r}=this.originalDescriptors[e];try{r?Object.defineProperty(t,i,r):delete t[i]}catch(o){let n=this.getPathForTarget(t,i);console.debug(`[DefenseInDepthBox] Could not restore ${n}:`,o instanceof Error?o.message:o)}}this.originalDescriptors=[]}"
+    }
+  ],
+  "summary": {
+    "matchedLoadRecords": 21,
+    "matchedBeforeAfterFiles": 36,
+    "engineExecutions": 0,
+    "builtinProbes": 0,
+    "archiveReads": 0,
+    "policyImplementation": false,
+    "appendProof": false
+  }
+}

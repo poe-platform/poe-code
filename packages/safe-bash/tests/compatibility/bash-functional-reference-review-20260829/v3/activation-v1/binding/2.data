@@ -1,0 +1,32 @@
+{
+  "schema": "functional-reference-tool-approval-v3",
+  "status": "TEMPLATE_ONLY_NO_REQUEST_ISSUED",
+  "parameters": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/functional-reference-v3/GO.json --grant-sha256 2ee3666ae6ad5e1507b65ccbb46e690401b95da569e47bd9ef6cbf5a69783fe6 >/private/tmp/safe-bash-surface-functional-v3-20260829-01/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-surface-functional-v3-20260829-01/outer/bootstrap.stdout 2>/private/tmp/safe-bash-surface-functional-v3-20260829-01/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-surface-functional-v3-20260829-01/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only this newly sealed 37-case test-only Bash3.2.57 functional cohort after accepted v3 review and exact ROOT grant, with initial tool-shell startup explicitly trusted host/outside child fresh-env and owned raw-capture qualification; no OS-containment claim or product native fallback?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "prefixRule": "NONE",
+  "requiredResolution": "Replace ONLY ROOT_APPROVED_GRANT_SHA256 with authenticated raw SHA256 of fresh mode0600 GO.json, then publish/review the resolved exact command before tool approval.",
+  "preexecution": [
+    "acknowledge initial tool-shell startup is trusted host and outside child fresh-env/raw capture; login:false is not a startup-suppression guarantee",
+    "authenticate source PRESEAL and every file",
+    "authenticate exact accepted independent receipt and mode0600 grant path/bytes/hash",
+    "authenticate env Node Bash and WRAPPER-TOOL metadata",
+    "authenticate PREPROVISION parent mode/device/inode; capture paths absent, journal empty, cases/captures dirs empty",
+    "no previous reservation; no actual GO or approval is supplied by this template"
+  ],
+  "redirection": "MULTIOS disabled; noclobber create then same-owned-path read/write reopen; independently qualified v2 FD derivative only, not initial tool startup or hostile-concurrent-mutation atomicity; v3 wrapper not executed",
+  "managedRoles": "one exec-replaced owner PID, 37 exact Bash children, zero admin children; 13 internal fork reservations separate/not observed",
+  "startupScope": {
+    "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+    "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+    "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+    "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+  }
+}

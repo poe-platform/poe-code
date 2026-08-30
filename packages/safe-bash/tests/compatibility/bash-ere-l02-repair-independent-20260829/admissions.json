@@ -1,0 +1,78 @@
+{
+  "requests": 27,
+  "bytesRead": 531300,
+  "files": {
+    "tests/compatibility/bash-ere-l02-repair-independent-20260829/evidence-tree.txt": {
+      "bytes": 11445,
+      "sha256": "cb68476e1cecc3a807d7093af411a8d43dd492c4efbfa11366ec4aa269de08c6"
+    },
+    "tests/compatibility/bash-ere-l02-repair-independent-20260829/source.diff": {
+      "bytes": 11898,
+      "sha256": "6ef0806d9a395e8d5fcc48867f54572027d81af77f080ed89822180f4e898641"
+    },
+    "tests/compatibility/bash-ere-l02-repair-independent-20260829/pinned-owner.txt": {
+      "bytes": 8747,
+      "sha256": "3be71f829880b141a07add2a22322787ad56a3e52c305c46fd46698cacc14098"
+    },
+    "tests/compatibility/bash-ere-l02-repair-independent-20260829/pinned-root.txt": {
+      "bytes": 13958,
+      "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles.mjs": {
+      "bytes": 7834,
+      "sha256": "729a9e631941fd6ac5f3d32611b45dfe2aedf848b1f3a73842890558f8eb4c3f"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/fake-worker.mjs": {
+      "bytes": 1479,
+      "sha256": "9a07119b77259db123aed83368da7e4a24f3f659112d2ab3dff4bf973c35c27c"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRODUCER.json": {
+      "bytes": 5127,
+      "sha256": "019575d863dbc99abcdcb3bb2a0aeb7f712c3812822f2ff90a21e7d4be7b6dbc"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-PRESEAL-v2.json": {
+      "bytes": 10221,
+      "sha256": "e22bb35e987e2be7f41293b216bf301c348dd5fe3f760183304e25844e198b9b"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/host-doubles-v2.mjs": {
+      "bytes": 7838,
+      "sha256": "d22ab1125f14f5a47250fbcbc31ca1a4f7597fb7f582dd3360bcd10d56f9ee65"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/FOLLOWUP-13.json": {
+      "bytes": 5646,
+      "sha256": "260e8c086be1fe6979830de584dca380720dcb051513dce94b88448d071e30a3"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/SOURCES.json": {
+      "bytes": 108823,
+      "sha256": "97cd0be9fdf7feae8ba50d8f4bded66207202700e22d46abd7d2684aba422bc5"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/REMAINING-COVERAGE.json": {
+      "bytes": 6495,
+      "sha256": "046bdbb6e6527e7c436598165d5246a4ed0a710288ced2698015095f5aadb188"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PUBLICATION-QUALIFICATION.md": {
+      "bytes": 2322,
+      "sha256": "348c302b01318fcc35f230377c589d49ab5a728f89caf8940fa53ff8d05743a3"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/RESULTS.json": {
+      "bytes": 11648,
+      "sha256": "d8d48cf49bb4edc32ea69c449b9d8200fc6b1fb896d933c1eb7f76c145e2688e"
+    },
+    "src/commands/regex-execution/ere/transport/validation.ts": {
+      "bytes": 13090,
+      "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/DOUBLE-RESULT-v2.json": {
+      "bytes": 2612,
+      "sha256": "f52a13cdcc298f760abe2cbc2dbf721426b11eed30273e546d450f9dc47904af"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/owner.js": {
+      "bytes": 9897,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    "tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/BUILD/emitted/transport/root.js": {
+      "bytes": 14619,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    }
+  }
+}

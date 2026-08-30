@@ -1,0 +1,14 @@
+{
+  "at": "2026-08-29T10:16:36.225Z",
+  "source": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "evidence": "12cb7a0032f581e45402399d5ef0da1ec2d700f9",
+  "seal": "99586c8ec062b54f41430facf9a388bd68c450db44c08d65cc98b07036dc5198",
+  "budget": {
+    "minutes": 25,
+    "knownOS": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456
+  },
+  "scope": "SOURCE/DATA plus 6+4 author and <=8 independent harmless controls; no product"
+}

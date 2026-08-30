@@ -1,0 +1,173 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { FsError } from "../../../src/contracts/index.js";
+import type { FileSystem } from "../../../src/contracts/index.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createMountFileSystem } from "../../../src/fs/mount/index.js";
+import { OverlayFileSystem } from "../../../src/fs/overlay/index.js";
+import { createReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
+import { encode, immutable, snapshot, wrapped } from "./helpers.js";
+
+type Representation = "enumerable-own" | "nonenumerable-own" | "prototype-accessor";
+
+function reporting(backend: FileSystem, allocation: (path: string) => number | undefined,
+  representation: Representation = "prototype-accessor"): FileSystem {
+  return wrapped(backend, {
+    async lstat(path, options) {
+      const source = await backend.lstat(path, options);
+      const owner = representation === "prototype-accessor" ? {} : source;
+      Object.defineProperty(owner, "allocatedBytes", {
+        enumerable: representation === "enumerable-own",
+        get() {
+          assert.equal(this, source);
+          return allocation(path);
+        },
+      });
+      if (owner !== source) Object.setPrototypeOf(source, owner);
+      Object.defineProperty(source, "adapterState", {
+        enumerable: true,
+        get() { throw new Error("must not copy unrelated provider metadata"); },
+      });
+      Object.defineProperty(source, "blocks", { value: 91, enumerable: true });
+      return source;
+    },
+  });
+}
+
+for (const layer of ["upper", "lower"] as const) {
+  for (const representation of ["enumerable-own", "nonenumerable-own", "prototype-accessor"] as const) {
+    for (const reported of [undefined, 0, 1, 4096, Number.MAX_SAFE_INTEGER]) {
+      test(`${layer} ${representation} forwards reported allocation ${reported}`, async () => {
+        const backing = new MemoryFileSystem();
+        const storage = new MemoryFileSystem();
+        const selected = layer === "upper" ? storage : backing;
+        await selected.writeFile("/file", encode("value"));
+        const { lower, mutations } = immutable(backing);
+        let current = reported;
+        const decorated = reporting(layer === "upper" ? storage : lower, () => current, representation);
+        const overlay = new OverlayFileSystem({
+          upper: layer === "upper" ? decorated : storage,
+          lower: layer === "lower" ? decorated : lower,
+        });
+        const results = [await overlay.stat("/file"), await overlay.lstat("/file")];
+        for (const result of results) {
+          assert.equal(result.allocatedBytes, reported);
+          assert.equal(Object.hasOwn(result, "allocatedBytes"), reported !== undefined);
+          assert.equal(result.size, 5);
+          assert.equal(Object.hasOwn(result, "adapterState"), false);
+          assert.equal(Object.hasOwn(result, "blocks"), false);
+          if (reported !== undefined) assert.equal(Object.getOwnPropertyDescriptor(result, "allocatedBytes")?.get, undefined);
+        }
+        current = 8192;
+        for (const result of results) assert.equal(result.allocatedBytes, reported);
+        assert.equal((await overlay.stat("/file")).allocatedBytes, 8192);
+        assert.deepEqual(mutations, []);
+        if (layer === "lower") assert.deepEqual(await storage.readdir("/"), []);
+      });
+    }
+  }
+}
+
+for (const operation of ["chmod", "appendFile"] as const) {
+  for (const upperAllocation of [undefined, 0, 8192]) {
+    test(`${operation} copy-up replaces lower allocation with upper report ${upperAllocation}`, async () => {
+      const backing = new MemoryFileSystem();
+      const storage = new MemoryFileSystem();
+      await backing.writeFile("/file", encode("value"));
+      const before = await snapshot(backing);
+      const { lower, mutations } = immutable(backing);
+      const overlay = new OverlayFileSystem({
+        upper: reporting(storage, () => upperAllocation),
+        lower: reporting(lower, () => 4096),
+      });
+      assert.equal((await overlay.stat("/file")).allocatedBytes, 4096);
+      if (operation === "chmod") await overlay.chmod("/file", 0o600);
+      else await overlay.appendFile("/file", encode("!"));
+      const expected = await storage.lstat("/file");
+      for (const method of ["stat", "lstat"] as const) {
+        const result = await overlay[method]("/file");
+        assert.deepEqual(result, { ...expected, ...(upperAllocation === undefined ? {} : { allocatedBytes: upperAllocation }) });
+        assert.equal(result.allocatedBytes, upperAllocation);
+        assert.equal(Object.hasOwn(result, "allocatedBytes"), upperAllocation !== undefined);
+      }
+      assert.deepEqual(mutations, []);
+      assert.deepEqual(await snapshot(backing), before);
+      await overlay.cleanup();
+      assert.deepEqual((await storage.readdir("/")).map(entry => entry.name), ["file"]);
+    });
+  }
+}
+
+test("overlay allocation composes through mount and read-only views with link semantics", async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/file", encode("value"));
+  await backing.symlink("file", "/link");
+  const overlay = new OverlayFileSystem({ upper: new MemoryFileSystem(), lower: reporting(
+    createReadOnlyFileSystem(backing), path => path === "/link" ? 0 : 4096,
+  ) });
+  const filesystem = createReadOnlyFileSystem(createMountFileSystem({ root: new MemoryFileSystem(), mounts: { "/data": overlay } }));
+  const link = await filesystem.lstat("/data/link");
+  const target = await filesystem.stat("/data/link");
+  assert.equal(link.type, "symlink");
+  assert.equal(link.allocatedBytes, 0);
+  assert.equal(target.type, "file");
+  assert.equal(target.allocatedBytes, 4096);
+  assert.equal((await filesystem.stat("/data")).allocatedBytes, undefined);
+});
+
+test("overlay memory allocation stays unknown before and after copy-up", async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/file", new Uint8Array(8192));
+  const overlay = new OverlayFileSystem({ upper: new MemoryFileSystem(), lower: createReadOnlyFileSystem(backing) });
+  for (const phase of ["lower", "upper"] as const) {
+    if (phase === "upper") await overlay.chmod("/file", 0o600);
+    for (const method of ["stat", "lstat"] as const) {
+      const result = await overlay[method]("/file");
+      assert.equal(result.size, 8192);
+      assert.equal(result.allocatedBytes, undefined);
+      assert.equal(Object.hasOwn(result, "allocatedBytes"), false);
+    }
+  }
+  await overlay.cleanup();
+});
+
+for (const read of ["readFile", "readdir"] as const) {
+  test(`stat/lstat do not clean pending staging or copy up; existing ${read} cleanup remains`, async context => {
+    const backing = new MemoryFileSystem();
+    const storage = new MemoryFileSystem();
+    await backing.writeFile("/file", encode("value"));
+    const before = await snapshot(backing);
+    const { lower, mutations } = immutable(backing);
+    let denyCleanup = true;
+    const removals: string[] = [];
+    const upper = wrapped(storage, {
+      async rm(path, options) {
+        removals.push(path);
+        if (denyCleanup) throw new FsError("EACCES");
+        await storage.rm(path, options);
+      },
+    });
+    const overlay = new OverlayFileSystem({ upper, lower: reporting(lower, () => 4096) });
+    context.after(async () => { denyCleanup = false; await overlay.cleanup(); });
+    await overlay.mkdir("/created");
+    const staged = await storage.readdir("/");
+    assert.ok(staged.some(entry => entry.name.startsWith(".virtual-bash-overlay-")));
+    removals.length = 0;
+    const upperBefore = await snapshot(storage);
+    for (const method of ["stat", "lstat"] as const) {
+      assert.equal((await overlay[method]("/file")).allocatedBytes, 4096);
+      await assert.rejects(overlay[method]("/missing"), { code: "ENOENT" });
+    }
+    assert.deepEqual(removals, []);
+    assert.deepEqual(await snapshot(storage), upperBefore);
+    assert.deepEqual(mutations, []);
+    assert.deepEqual(await snapshot(backing), before);
+    denyCleanup = false;
+    if (read === "readFile") assert.deepEqual(await overlay.readFile("/file"), encode("value"));
+    else assert.deepEqual((await overlay.readdir("/")).map(entry => entry.name), ["created", "file"]);
+    assert.ok(removals.length > 0);
+    assert.deepEqual((await storage.readdir("/")).map(entry => entry.name), ["created"]);
+    assert.deepEqual(mutations, []);
+    assert.deepEqual(await snapshot(backing), before);
+  });
+}

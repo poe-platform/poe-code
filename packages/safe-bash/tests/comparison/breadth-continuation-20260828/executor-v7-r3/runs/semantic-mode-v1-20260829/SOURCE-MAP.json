@@ -1,0 +1,143 @@
+{
+  "schema": "SEMANTIC_SUCCESSOR_EXACT_SOURCE_MAP_V1",
+  "date": "2026-08-29",
+  "originalRecipe": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "originalInterface": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+  "oldFilesUntouched": true,
+  "files": [
+    {
+      "successor": "body.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/body.mjs",
+        "bytes": 12492,
+        "mode": 420,
+        "sha256": "4bc45f6005a64ff7ae5bd589de9d0c89fdbd7c177283de0f2dde95dc28c0b8ee"
+      },
+      "successorBytes": 12660,
+      "successorSha256": "13e8d76d892aa0a85db2dec66db64659467cf98bee4055f12e3c17c9f4911029",
+      "changes": "Relative helper imports rebased; separately authenticated cohort mode/profile; exact code in sealed successor"
+    },
+    {
+      "successor": "authorization.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/authorization.mjs",
+        "bytes": 7498,
+        "mode": 420,
+        "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d"
+      },
+      "successorBytes": 6449,
+      "successorSha256": "69cf09ce23ee3f2a766e73bfb0c5c5fd29976d2d80692b604fcf4ca52341e34d",
+      "changes": "Relative helper imports rebased; separately authenticated cohort mode/profile; exact code in sealed successor"
+    },
+    {
+      "successor": "production.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/production.mjs",
+        "bytes": 4117,
+        "mode": 420,
+        "sha256": "fe1c8d5a475094bc06cac17b7d73dcf7b3e4b12a86126e7ede569b5ff3d00d0d"
+      },
+      "successorBytes": 4197,
+      "successorSha256": "866a2123827869f3eb2427415508eb5297bb653e93291286c0ebeec0fbd59f2b",
+      "changes": "Relative helper imports rebased; separately authenticated cohort mode/profile; exact code in sealed successor"
+    },
+    {
+      "successor": "worker.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/worker.mjs",
+        "bytes": 11608,
+        "mode": 420,
+        "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f"
+      },
+      "successorBytes": 11657,
+      "successorSha256": "6cce4182827c3c07099f298a71e52e94d8e8b7d8c2dbe72c36afb1c232a69d3e",
+      "changes": "Relative helper imports rebased; separately authenticated cohort mode/profile; exact code in sealed successor"
+    },
+    {
+      "successor": "coordinator.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/coordinator.mjs",
+        "bytes": 1819,
+        "mode": 420,
+        "sha256": "766b6ca082c28e91b8e5c80b0a83775d0d6777572e213ae271de5990c19d371c"
+      },
+      "successorBytes": 1846,
+      "successorSha256": "527ca0d0f61b6abf96ea7c6e1df7304ee93887c409fe63c573b9d1d8f6fcd729",
+      "changes": "Relative helper imports rebased; separately authenticated cohort mode/profile; exact code in sealed successor"
+    },
+    {
+      "successor": "launch.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs",
+        "bytes": 2584,
+        "mode": 420,
+        "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed"
+      },
+      "successorBytes": 2667,
+      "successorSha256": "7cc596b830b779e89ebfcbcc7fbb5e6872b4d2b149a9f3065167ddee86c4684b",
+      "changes": "Relative helper imports rebased; separately authenticated cohort mode/profile; exact code in sealed successor"
+    },
+    {
+      "successor": "report.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/report.mjs",
+        "bytes": 13203,
+        "mode": 420,
+        "sha256": "cccd352c86bb62b8a7867a465f38a372171d13d2e92f25f1eb291691a477fe4c"
+      },
+      "successorSha256": "af15856b67b3894a7d0f64b75e0414dc981d0f0883b6b78cf95cf71dc1b36a92",
+      "changes": "Separate semantic terminal/count/receipt assessment and protocol result; admission original untouched"
+    },
+    {
+      "successor": "outer.mjs",
+      "origin": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs",
+        "bytes": 3180,
+        "mode": 420,
+        "sha256": "ad29e8d1407a65d6bf11713aa1a4b81a61bdba51b1f75015926c9f809b810eb8"
+      },
+      "successorSha256": "fea502365e4df75bb4119dde2221602e713059c0860212d49860d4a8b06389c4",
+      "changes": "Separate semantic terminal/count/receipt assessment and protocol result; admission original untouched"
+    }
+  ],
+  "literalDeltas": [
+    {
+      "label": "semantic body phase-only",
+      "old": "requireThat(['admission', 'cohort'].includes(mode)",
+      "new": "requireThat(mode === 'cohort'"
+    },
+    {
+      "label": "publish accepted admission reference",
+      "old": "output.recipe = permission.recipe;",
+      "new": "output.recipe = permission.recipe;\n    output.acceptedAdmission = permission.approved.acceptedAdmission;"
+    },
+    {
+      "label": "distinct successor vs original admission recipe",
+      "old": "requireThat(admission.recipe === permission.recipe && admission.admissionQualified === true && !admission.unsafe, 'ADMISSION_NOT_ACCEPTED', null);",
+      "new": "requireThat(admission.recipe === 'bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c' && admission.admissionQualified === true && !admission.unsafe, 'ADMISSION_NOT_ACCEPTED', null);\n      output.stagedSha256 = admission.stagedSha256;"
+    },
+    {
+      "label": "successor worker exact dispatch",
+      "old": "path.join(root, synthetic ? 'synthetic-worker.mjs' : 'worker.mjs')",
+      "new": "path.join(home, synthetic ? 'NO_SYNTHETIC_WORKER_AUTHORIZED' : 'worker.mjs')"
+    },
+    {
+      "label": "worker inherited layout root",
+      "old": "const root = path.dirname(fileURLToPath(import.meta.url));",
+      "new": "const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');"
+    },
+    {
+      "label": "bootstrap exact successor worker parent",
+      "old": "pathToFileURL(path.join(root, 'worker.mjs')).href",
+      "new": "import.meta.url"
+    },
+    {
+      "label": "coordinator inherited layout root",
+      "old": "const root = path.dirname(fileURLToPath(import.meta.url));",
+      "new": "const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');"
+    }
+  ],
+  "sharedCaptureLogic": "Inherited exact outer-adapter-v2/capture.mjs; no capture implementation edits",
+  "semanticProgramsChanged": 0,
+  "actualGo": false
+}

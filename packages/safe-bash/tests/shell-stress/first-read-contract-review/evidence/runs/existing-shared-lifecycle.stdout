@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: hard-timeout lifecycle regression: shared-delayed-generator
+ok 1 - hard-timeout lifecycle regression: shared-delayed-generator
+  ---
+  duration_ms: 190.732541
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-serialized
+ok 2 - hard-timeout lifecycle regression: shared-serialized
+  ---
+  duration_ms: 202.771042
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-repeated-cancellation
+ok 3 - hard-timeout lifecycle regression: shared-repeated-cancellation
+  ---
+  duration_ms: 192.847917
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-abandoned-rejection
+ok 4 - hard-timeout lifecycle regression: shared-abandoned-rejection
+  ---
+  duration_ms: 226.289291
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-retained-rejection
+ok 5 - hard-timeout lifecycle regression: shared-retained-rejection
+  ---
+  duration_ms: 233.854459
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1187.769042

@@ -1,0 +1,11 @@
+commit 1a18cb1858f9453f41a20caff0988c578aa9c7e2
+Author:     Kamil Jopek <kjopek@quora.com>
+AuthorDate: Thu Aug 27 06:59:50 2026 -0500
+Commit:     Kamil Jopek <kjopek@quora.com>
+CommitDate: Thu Aug 27 06:59:50 2026 -0500
+
+    test(file): type TextEncoder callback instances without changing runtime
+    
+    Use an aliased type-only node:util TextEncoder import for the three callbacks; retain the global runtime constructor and every assertion/vector. No product/config changes.
+    
+    Author scoped evidence against frozen21049bed: before17/17 and after17/17; TS2749 count3 to0; injected encode(42) retains exactly TS2345. Emitted fixture JavaScript is byte-identical, SHA256 bfcd49d6bcfc3a7d57dc76dcba07a6b224f9d9001b6c8adca71ca8c8500b5ff2. Bounded raw logs/harness retained at /tmp/safe-bash-file-types-mkV0z0; copied source/tools and children cleaned. Different reviewer acceptance remains required.

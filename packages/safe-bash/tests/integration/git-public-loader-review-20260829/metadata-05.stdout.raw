@@ -1,0 +1,1579 @@
+18f45c8886318bc41e41dcb17df297676950e719 blob 3960
+# Successor-v2 admission and evidence boundaries
+
+This is SOURCE/DATA preparation only. No actual-v2 activation is authorized here.
+
+## Internal loader versus application Workers
+
+The exact admitted launcher is the pinned Node22.22.2 executable, a finite argv
+vector constructed by internal-loader-arguments.mjs, the fixed loader.mjs URL,
+resources.mjs bootstrap, and a single authenticated consumer. Normal vectors are
+--test-reporter=tap --loader LOADER CONSUMER; the maintained role additionally
+has --test-timeout=30000 before --loader. No other loader/options/preloads are
+admitted. The launch prefix has the owned-root read/write permissions,
+--allow-worker, and --import RESOURCES. Node needs the internal-loader facility
+before the main-context bootstrap. That flag alone is not an application policy.
+
+The main bootstrap replaces the CommonJS Worker constructor and synchronizes ESM
+exports before consumer loading. Only maintained-four-bodies has application
+allowance; all other guarded roles have zero. The application entry is exactly
+dist/commands/regex-execution/worker.js in the authenticated package. Its four
+static closure members, bytes, and import inventory remain bound by resources.mjs
+and the retained WORKER-CLOSURE-v3.json receipt. Options are exact own-data fields:
+execArgv=[] and resourceLimits={maxOldGenerationSizeMb:128,stackSizeMb:4}; extras,
+accessors, wrong entry, wrong values and exhausted allowance are refused. Maximum
+32 cumulative RegexWorkers and two active; no application Worker acquires a new
+loader via options. This is trusted-source admission, not a hostile-JS sandbox or
+runtime all-module trace. Existing Node builtins and Python dependency-identity
+qualifications are unchanged; no new tool/image permission is introduced.
+
+## Counts and observation
+
+43 direct coordinator children are fixed: four setup/tool roles,21 layout roles,
+six type groups, one maintained compilation, two maintained consumers and nine
+loaded mutant/restore/binding roles. Exactly32 labels can admit internal loaders.
+43+32+32=107 conservative resource units; three inner reserve and18 outer/admin
+reserve keep the aggregate at128. Worker threads are not OS processes. The OS
+ceiling is128 cumulative and peak4 including capture owner; dispatch stays serial.
+All actual timing includes publication/cleanup:60minutes,30seconds ordinary child,
+120seconds designated setup,5seconds cleanup. Child raw224MiB +outer16MiB +sidecar
+reserve16MiB =256MiB. Inner work960MiB +outer64MiB =1GiB. No hardRSS/OSquota claim.
+
+Harmless repair evidence has12 internal attempts and11 loader-start witnesses.
+The shipping loader has no added per-Worker lifecycle hook: its counter denotes
+admission, not observed start or exit. Main bootstrap/load traces witness progress;
+known hosting-process close establishes that process retirement, not independently
+observed internal Worker exit events. Application constructor/exit pairs remain
+required. No universal descendant or independent internal-lifetime census.
+
+## Immutable history and peer review
+
+CONTROL-COVERAGE-MAP.json maps all eight original failures without changing their
+status. Three corrected controls are not a22/22 rerun. P09's combined custom-loader
+plus error-Worker configuration remains unexecuted; R03 proved the app-only error
+route. Initial14PASS/8FAIL coordinator1, versioned3PASS coordinator0 and separate
+3DATA hash checks remain distinct. The original112989184-byte whole-buffer binary
+hash was method-noncompliant; only the later source helper uses bounded64KiB reads.
+No earlier execution is retrospectively compliant. Actual-v1 remains consumed/HOLD.
+
+Plato's independent narrow-repair review is separate. This assembly introduces no
+new harmless/real Worker execution. Fresh root GO after that review must bind this
+execution seal, exact unused actual-v2 namespace, and both Worker ceilings. Template
+nonce/expiry/preparationOnly fields are deliberately invalid for launch.
+
+d322c8d8710aa1ca26dfd419d580131e610007dc blob 3169
+{
+  "direct": {
+    "developmentBlobs": 1,
+    "productionBuild": 1,
+    "offlinePack": 1,
+    "offlineInstall": 1,
+    "public": 3,
+    "apply": 3,
+    "m1a": 3,
+    "packs": 3,
+    "arrays": 3,
+    "coherence": 3,
+    "novel": 3,
+    "types": 6,
+    "maintainedCompile": 1,
+    "maintainedBodiesSingleProcess": 1,
+    "maintainedMovedStream": 1,
+    "controls": 9,
+    "directTotal": 43,
+    "loaderReservations": 32,
+    "expectedRegexWorkers": 4,
+    "maxRegexWorkers": 32,
+    "maxRegexActive": 2,
+    "conservativeInternalCeiling": 110,
+    "outerAdministrativeReserve": 18,
+    "totalAllCeiling": 128,
+    "peakOsProcesses": 4
+  },
+  "internalLoader": {
+    "maximumAdmissions": 32,
+    "labels": [
+      "source-public",
+      "source-apply",
+      "source-m1a",
+      "source-packs",
+      "source-arrays",
+      "source-coherence",
+      "source-novel",
+      "installed-public",
+      "installed-apply",
+      "installed-m1a",
+      "installed-packs",
+      "installed-arrays",
+      "installed-coherence",
+      "installed-novel",
+      "moved-public",
+      "moved-apply",
+      "moved-m1a",
+      "moved-packs",
+      "moved-arrays",
+      "moved-coherence",
+      "moved-novel",
+      "maintained-four-bodies",
+      "maintained-stream-consumer",
+      "registration-mutant",
+      "registration-restored",
+      "binding-missing",
+      "binding-changed",
+      "binding-outside",
+      "missing-explicit-export",
+      "explicit-export-restored",
+      "root-export-mutant",
+      "root-export-restored"
+    ],
+    "retirement": "known hosting process close, not independent per-loader Worker exit events",
+    "starts": "source-backed expectation, not runtime events in unchanged product loader"
+  },
+  "regex": {
+    "maximumCumulative": 32,
+    "expectedMaintained": 4,
+    "maximumActive": 2,
+    "roles": [
+      "maintained-four-bodies"
+    ],
+    "allOtherGuardedRolesAllowance": 0
+  },
+  "arithmetic": {
+    "coordinatorDirect": 43,
+    "internalAdmissionMaximum": 32,
+    "regexMaximum": 32,
+    "subtotal": 107,
+    "innerReserve": 3,
+    "outerOwnerControllerAdminReserve": 18,
+    "conservativeOverallMaximum": 128
+  },
+  "os": {
+    "maximumCumulative": 128,
+    "maximumPeak": 4,
+    "includesOwner": true,
+    "serialCoordinatorChildren": true,
+    "threadsNotOSProcesses": true
+  },
+  "witnesses": {
+    "harmlessInternalStarts": 11,
+    "harmlessInternalAttempts": 12,
+    "shippingInternalStarts": "No added per-Worker hook; admissions only, bootstrap witness after loader initialization, hosting process close",
+    "internalIndividualExitEvents": "UNOBSERVED",
+    "regex": "constructor/exit event pairs on admitted exact entry",
+    "globalCensus": false
+  },
+  "bounds": {
+    "totalSeconds": 3540,
+    "children": 110,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 234881024,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608,
+    "outer": {
+      "totalSeconds": 3600,
+      "cleanupSeconds": 5,
+      "captureBytes": 16777216,
+      "maxAllOsProcesses": 128,
+      "peakOsProcesses": 4
+    }
+  },
+  "noExecutionThisPhase": true
+}
+
+794d8fea72192a56b368ab006901a1a8065c3f33 blob 3236
+{
+  "role": "PEER_HANDOFF_MAPPING_NOT_RESCORE",
+  "originalResult": {
+    "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-CONTROLS-01/RESULT.json",
+    "bytes": 32607,
+    "sha256": "3cccadabc1f4ea573fcb3448cd472256dbfec10df04860f0a2790250a75ebc39"
+  },
+  "correctionResult": {
+    "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-CORRECTION-01/RESULT.json",
+    "bytes": 9660,
+    "sha256": "be73698694a7bf00f8dfd9ffc0eb0c81e3a7563302ebc93d6a5c44cc7cafe8cc"
+  },
+  "originalFailedIds": [
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P08",
+    "P09",
+    "P10"
+  ],
+  "rows": [
+    {
+      "originalId": "P02",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R01",
+      "relationship": "RELATED",
+      "qualification": "Loader/bootstrap/benign consumer normal exit0 observed within R01 plus a refused application attempt; literal P02 not rerun."
+    },
+    {
+      "originalId": "P03",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R01",
+      "relationship": "SAME_TARGET_IN_VERSIONED_CONSUMER",
+      "qualification": "No application-role admission refused; normal process exit0. Old P03 remains failed."
+    },
+    {
+      "originalId": "P04",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R02",
+      "relationship": "RELATED",
+      "qualification": "Exact harmless application Worker completes message/exit0 within R02; hosting process deliberately exits7, not original P04 standalone0."
+    },
+    {
+      "originalId": "P05",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R02",
+      "relationship": "TARGET_SUBCHECK",
+      "qualification": "Wrong application entry refused before allowed Worker creation in R02; literal P05 not rerun."
+    },
+    {
+      "originalId": "P06",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R02",
+      "relationship": "TARGET_SUBCHECK",
+      "qualification": "All six invalid-option cases refused before Worker creation; accessor counter0. Literal P06 not rerun."
+    },
+    {
+      "originalId": "P08",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R02",
+      "relationship": "VERSIONED_HOST_EXIT",
+      "qualification": "CommonJS/ESM guarded constructor identity and allowed Worker success observed; R02 deliberately ends process7, unlike original P08 expected0."
+    },
+    {
+      "originalId": "P09",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R03",
+      "relationship": "PARTIAL_CONFIGURATION",
+      "qualification": "Owned error Worker and retirement observed without a custom loader. Combined loader-plus-error-Worker configuration remains UNRUN."
+    },
+    {
+      "originalId": "P10",
+      "originalStatus": "FAIL_PRESERVED",
+      "correctedId": "R02",
+      "relationship": "RELATED_NONZERO_SENTINEL",
+      "qualification": "Actual PASS output followed by exit7 rejected as clean success; R02 includes a Worker, not literal standalone P10."
+    }
+  ],
+  "remaining": "No literal old-eight rerun or 22/22 claim. P09 custom-loader/error combination remains specifically unexecuted. Harmless fixture proof is not real Regex or full successor proof."
+}
+
+cb45d5663aacf99e97d343488d86b9f13d1dceef blob 8650
+{
+  "schema": "public80-independent-successor-v2",
+  "role": "COMPLETE_BINDINGS_NOT_ACTUAL_AUTHORIZATION",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "handoffCommit": "4ade014242d6b6ceac254c41f53b46ca00102fbe",
+  "baseline": {
+    "candidate": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "packageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+  },
+  "module": {
+    "commit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+    "acceptance": "db8b818db983f32c9522ebe4c9589ca8766a5454"
+  },
+  "fixtureV2": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "realpath": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "bytes": 34640,
+    "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+    "qualification": "Direct regular interpreter selected through recorded local symlink metadata, then SHA256 bound; version is path metadata, not an executed version probe. Standard-library/native dependency closure is not freshly attested."
+  },
+  "files": [
+    {
+      "path": "launch.py",
+      "bytes": 5612,
+      "sha256": "9d37eccaec9e7e8217b7915135002e047761d597ce048a7799969d0cb7e62f8a"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 34829,
+      "sha256": "a3c043a69ab6f74638c5fd4b1b9a0cb6e0a17c42a2e0098633f5abf345c529ce"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 441,
+      "sha256": "b5c0bbfa7d20e911140231171a81fb64e0df7dc8def02a9b437b6cb90bfcdba1"
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "worker-policy.mjs",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    },
+    {
+      "path": "novel.mjs",
+      "bytes": 6566,
+      "sha256": "2fbca07c7bdd385a78a7fe7b030d58f3fc22e162d3c17fd852ff25c7f964c7e2"
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "bytes": 1492,
+      "sha256": "0ee35282c69f7b5eb1878393549ac01efe089fbb69839056d7e2f92b7bf14372"
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    },
+    {
+      "path": "SOURCE.json",
+      "bytes": 220097,
+      "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 6214,
+      "sha256": "6bef125d6e78073d1c4e3bb4045b52db34e210d6593f440d443fe168262f7aad"
+    },
+    {
+      "path": "EXECUTOR.json",
+      "bytes": 8468,
+      "sha256": "92f285aeb3fb820beb526a3abe0f3930ac44817fbf949a24d04947521b6e8e8b"
+    },
+    {
+      "path": "INPUT-BINDINGS.json",
+      "bytes": 5691,
+      "sha256": "d7cedfabdb14520682b94b963d60c6662d5f26955741169c597494af585514bf"
+    },
+    {
+      "path": "CENSUS.json",
+      "bytes": 3169,
+      "sha256": "7a6a8bebb7fd2b206f2e770586fdc869dded9d3bb54a3e0dd1634d09e871cc01"
+    },
+    {
+      "path": "COHORTS.json",
+      "bytes": 4781,
+      "sha256": "a30033be0277501b9c670a6b88d2808b662922795566f379fbf758f6a634c645"
+    },
+    {
+      "path": "CONTROL-COVERAGE-MAP.json",
+      "bytes": 3236,
+      "sha256": "490d840e83be873c50ee435ea936d01d5cc85b3fef9f67a3adc362dfc5837840"
+    },
+    {
+      "path": "SOURCE-RECONCILIATION.json",
+      "bytes": 2630,
+      "sha256": "c8611ceeaf0e143dda3da7fb16255d1663758559fc838198245daa196ebbaabe"
+    },
+    {
+      "path": "ADMISSION.md",
+      "bytes": 3960,
+      "sha256": "17db8369829460479da2747cb274c33f944e505127040bf66cddc730ce48bc31"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2915,
+      "sha256": "0838fe0a849e0d2cf97dc4b198aca8c8dc65dfd864b75f3fc8e3f39d487c76c0"
+    }
+  ],
+  "plannedChildren": {
+    "developmentBlobs": 1,
+    "productionBuild": 1,
+    "offlinePack": 1,
+    "offlineInstall": 1,
+    "public": 3,
+    "apply": 3,
+    "m1a": 3,
+    "packs": 3,
+    "arrays": 3,
+    "coherence": 3,
+    "novel": 3,
+    "types": 6,
+    "maintainedCompile": 1,
+    "maintainedBodiesSingleProcess": 1,
+    "maintainedMovedStream": 1,
+    "controls": 9,
+    "directTotal": 43,
+    "loaderReservations": 32,
+    "expectedRegexWorkers": 4,
+    "maxRegexWorkers": 32,
+    "maxRegexActive": 2,
+    "conservativeInternalCeiling": 110,
+    "outerAdministrativeReserve": 18,
+    "totalAllCeiling": 128,
+    "peakOsProcesses": 4
+  },
+  "bounds": {
+    "totalSeconds": 3540,
+    "children": 110,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 234881024,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608
+  },
+  "outerBounds": {
+    "totalSeconds": 3600,
+    "cleanupSeconds": 5,
+    "captureBytes": 16777216,
+    "maxAllOsProcesses": 128,
+    "peakOsProcesses": 4
+  },
+  "captureQualification": "224MiB child stdout/stderr +16MiB outer raw +16MiB finite sidecar reserve =256MiB; inner working960MiB +64MiB outer/admin reserve =1GiB. No OS quota/RSS claim.",
+  "soleCommand": [
+    "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "-I",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/successor-bindings-v2/launch.py",
+    "--run",
+    "ROOT_AUTHORIZATION.json"
+  ],
+  "runDirectory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2",
+  "previousActualGoSuspended": true,
+  "actualRuntimeExecutions": 0,
+  "realWorkers": 0,
+  "qualifications": [
+    "22 retained policy and12 final synthetic/syntax controls; no fresh product outcomes",
+    "Worker closure static authenticated inventory, not worker internal module trace",
+    "Owned group cleanup source-qualified, no new OS observer proof",
+    "No native Git/oracle/comparator/private/XAN/gate role",
+    "Fresh root receipt mandatory; no inherited authorization"
+  ],
+  "repairSealSha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+  "internalLoader": {
+    "maximumAdmissions": 32,
+    "labels": [
+      "source-public",
+      "source-apply",
+      "source-m1a",
+      "source-packs",
+      "source-arrays",
+      "source-coherence",
+      "source-novel",
+      "installed-public",
+      "installed-apply",
+      "installed-m1a",
+      "installed-packs",
+      "installed-arrays",
+      "installed-coherence",
+      "installed-novel",
+      "moved-public",
+      "moved-apply",
+      "moved-m1a",
+      "moved-packs",
+      "moved-arrays",
+      "moved-coherence",
+      "moved-novel",
+      "maintained-four-bodies",
+      "maintained-stream-consumer",
+      "registration-mutant",
+      "registration-restored",
+      "binding-missing",
+      "binding-changed",
+      "binding-outside",
+      "missing-explicit-export",
+      "explicit-export-restored",
+      "root-export-mutant",
+      "root-export-restored"
+    ],
+    "retirement": "known hosting process close, not independent per-loader Worker exit events",
+    "starts": "source-backed expectation, not runtime events in unchanged product loader"
+  },
+  "priorExecutionSealSha256": "869671472a272d3b7b1f620815a5afe969d69992aa795a428e0e58ad47d7aec5",
+  "oldActualV1": "7bd3fc8e35b65d4bbda68f155ec9eb72534a1977 CONSUMED/HOLD",
+  "peerReviewRequired": true,
+  "actualActivation": false,
+  "qualificationAddendum": [
+    "This seal assembles existing source-only repair; harmless control proof is not full successor execution.",
+    "12 historical internal attempts/11 starts are not a shipping individual-worker lifecycle census.",
+    "Exact type diagnostics plus nonzero rejection; no wrapper exit2 or emitSkipped assumption.",
+    "Prior whole-buffer executable hashing remains disclosed; successor uses bounded helper.",
+    "Original eight failed identities stay failed; related coverage and unresolved P09 combined-loader error route are in CONTROL-COVERAGE-MAP.json."
+  ]
+}
+
+18671324d8bc914b5205fdd2caca9ea725b5fae1 blob 8468
+{
+  "role": "IMMUTABLE_PUBLIC80_SUCCESSOR_V2_EXECUTOR_NO_ACTIVATION",
+  "files": [
+    {
+      "path": "tests/integration/git-public-20260829/PRESEAL.json",
+      "bytes": 4195,
+      "sha256": "6f97df8967b905361a3d70dc74a085803a6ab6380bda8e21908929d240abbdb9"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/SOURCE.json",
+      "bytes": 220097,
+      "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/FIXTURE-PLAN.json",
+      "bytes": 5685,
+      "sha256": "225606c88155ff0a29ed5feef27241da35bc1a90e477d9edf572e135b0d764d4"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/FIXTURE-VERSIONS.json",
+      "bytes": 1348,
+      "sha256": "69b9200d184a7957162e188198d0f47d992b1a4dd9b0699fc3b19d8e55ff1420"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/prepare.mjs",
+      "bytes": 7706,
+      "sha256": "ad08f2ac33c2c6452b8f4e344197b7c0cae7ac02def24739e55141b2559ec6bf"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/run.mjs",
+      "bytes": 29986,
+      "sha256": "8bd1cbd8f1e108b231fc399692b92ada9ea0c6846217a680edb9908cdf4492d4"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/public.mjs",
+      "bytes": 13001,
+      "sha256": "5c43af95204ccca8e61493e86268158ee7bd77f932f23f8e24068b4101bf7176"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/consumer.ts.fixture",
+      "bytes": 1336,
+      "sha256": "46a717a1902c55d2c19f6bfd301de45395a81be5e7a76540c7113d08248e1be1"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/apply-public.mjs",
+      "bytes": 15895,
+      "sha256": "ae8e036792df4a4c6e651fd6a75691075f3b8d6fd3bd2ea59fd3f1105561b7c2"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/m1a.mjs",
+      "bytes": 33539,
+      "sha256": "53c30aa44ba4d07c1a891a40a6e3f5baba4021da5f6186ab73e503df57ecf116"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/packs.mjs",
+      "bytes": 23787,
+      "sha256": "30a35ae5f87ad6ce35fc9125f6454e82b48e924d53e452bb44061593f540a25a"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/RECIPE.md",
+      "bytes": 6415,
+      "sha256": "6e5028089d65aef84e23f0a5fef5f15ebf15283cc5141243a522ca74a2172a78"
+    },
+    {
+      "path": "tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    {
+      "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+      "bytes": 370847,
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/probe.mjs",
+      "bytes": 16819,
+      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/names.mjs",
+      "bytes": 853,
+      "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES.json",
+      "bytes": 8553,
+      "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES-v2-overlay.json",
+      "bytes": 1344,
+      "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d"
+    },
+    {
+      "path": "tests/commands/stream-format/helpers.ts",
+      "bytes": 2161,
+      "sha256": "5c07678d78bc17ee3089daa7518cd265230cbd393a02bc9c8b81ddd07b116b9f"
+    },
+    {
+      "path": "tests/commands/split/helpers.ts",
+      "bytes": 2471,
+      "sha256": "7a2fd1fe87851da795ce6ce21d2a4c6df1bc18f95b03146ca6ec669e291834d4"
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "bytes": 5201,
+      "sha256": "17f6a9e05defd210280bd81a5582ffa349a2bc587786cbc4aac9fc35b0f3b5c7"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "bytes": 8978,
+      "sha256": "bff4dc35f4571438b70d794867006b0744e90ca5e69f6824c1fd49761ebd864d"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "bytes": 9848,
+      "sha256": "2f392897044b73da34ab14468d1138bd5223ffd3290d47ae491ce1d8ba11f86d"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "bytes": 9969,
+      "sha256": "457d64bf87b9418a829e47146489fdcda42eb73e8239e0cc648611f559e956a4"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "bytes": 7809,
+      "sha256": "c4ecd6aac0f6883872785b3590ea0a7718e88afc9bc5f6dc406a29d8da4d8c65"
+    },
+    {
+      "path": "tests/integration/git-public-20260829/m1a-public-v2.mjs",
+      "bytes": 33642,
+      "sha256": "7b73d2e7df70a314fabfcea137ee1e25fec7e6dbca38f9f3981df19bf2f12962"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/run.mjs",
+      "bytes": 34829,
+      "sha256": "a3c043a69ab6f74638c5fd4b1b9a0cb6e0a17c42a2e0098633f5abf345c529ce"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/prepare.mjs",
+      "bytes": 441,
+      "sha256": "b5c0bbfa7d20e911140231171a81fb64e0df7dc8def02a9b437b6cb90bfcdba1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/loader.mjs",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/novel.mjs",
+      "bytes": 6566,
+      "sha256": "2fbca07c7bdd385a78a7fe7b030d58f3fc22e162d3c17fd852ff25c7f964c7e2"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/consumer.ts.fixture",
+      "bytes": 1492,
+      "sha256": "0ee35282c69f7b5eb1878393549ac01efe089fbb69839056d7e2f92b7bf14372"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/PRESEAL.json",
+      "bytes": 6214,
+      "sha256": "6bef125d6e78073d1c4e3bb4045b52db34e210d6593f440d443fe168262f7aad"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE.json",
+      "bytes": 220097,
+      "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/hash-regular-file.mjs",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    }
+  ],
+  "source": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450",
+  "productRunsThisRevision": 0,
+  "nativeRuns": 0
+}
+
+ab35998f7aa8c14c983ab16aa840a3823faf43ec blob 2915
+# Public80 successor-v2 complete binding handoff
+
+READY FOR ROOT AND PEER BINDING REVIEW; NOT ACTIVATED.
+
+Candidate c83f352f057c64917f219eb938f54aa42cdab829,292 build inputs, full950 package
+SHA2564671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156.
+Baseline79 plus only git80 authority and accepted M1B composition are retained by
+INPUT-BINDINGS.json, not reauthenticated by another product/archive run.
+Fixture-v2 is2764c0541ebe1a517965bdc73f33b1651cb15935. Original three module-only
+root-export assertion failures remain unchanged.
+
+run.mjs assembles repair seal3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d.
+The only additional runner predicate change is exact negative type diagnostics
+plus nonzero rejection instead of assuming CLI exit2. Diagnostic count/codes/lines,
+positive success, declaration hashes and physical layout binding remain required;
+no emitSkipped assumption. SOURCE-RECONCILIATION.json records17 assembly checks.
+No product, build, install, compiler, loader, RegexWorker, native oracle or private
+execution occurred in this phase. Existing authentication/control receipts were
+bound, not rerun.
+
+COHORTS.json fixes each of source-built,installed,physically-moved:45public,
+28apply,140versioned-M1A,93pack,12arrays,18coherence,12novel. Six type groups,
+83maintained body cases,21moved stream cases,3mutants/3restores/3binding refusals
+remain planned, all UNRUN here. Exact assertions/fixture hashes remain in EXECUTOR.
+No old79/83, module139/140, or actual-v1 rescore. Names/node/npm/npx policies unchanged.
+
+EXECUTION-SEAL.json binds shipping files, receipts, tools, sole prospective command
+and future unused sibling actual-v2 output. ROOT-AUTHORIZATION-TEMPLATE.json is not
+usable authorization. No actual directory is created by preparation; launcher uses
+exclusive creation before any child admission and captures startup before child
+spawn. Prior captures remain immutable. A new root receipt and peer disposition
+are the remaining activation barriers, not an automatic retry permission.
+
+ADMISSION.md defines exact loader/options/application policy and source-qualified
+observability. CENSUS.json separates proposed32 internal admissions from32 Regex
+Workers and the all-process128/peak4 budget, including owner/admin reserve.
+CONTROL-COVERAGE-MAP.json is the author-facing handoff for Plato: original eight
+failed identities stay failed, related coverage and P09 configuration gap explicit.
+
+Future sole command (DO NOT RUN in this phase):
+
+```
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14 -I /Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/successor-bindings-v2/launch.py --run ROOT_AUTHORIZATION.json
+```
+
+The source-only assembly has no activation effect. Final publication/census is
+recorded in PREPARATION-RECEIPT.json and its external publication receipt.
+
+8092d38963595304ce47675e6e7be1db862fd4b3 blob 6214
+{
+  "role": "PUBLIC80_SUCCESSOR_V2_BINDINGS_ONLY_FRESH_ROOT_GO_REQUIRED",
+  "date": "2026-08-29",
+  "base": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "baseSourceSha256": "da431477e0cf1072370b8e55cdebce80e33dbf9cac8471656854572b363b9d0d",
+  "baseEvidence": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+  "moduleCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "moduleAcceptance": "db8b818db983f32c9522ebe4c9589ca8766a5454:208stock/32mechanical/10types/24loaded=274; S02/H09/private-writer SOURCE gaps; native6 UNRUN",
+  "integrationCommit": "68a5a55bbf227c7d4895a4588510a319d4f2c4d8",
+  "fixtureCommit": "75527b5949326d4c82cc027881e772345c4d6a51",
+  "rootOverrides": [
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json",
+    "README.md"
+  ],
+  "metadataOverrides": [
+    "docs/COMMAND_PRIORITIES.md"
+  ],
+  "defaultCount": 80,
+  "expectedInputs": 292,
+  "expectedPackageMembers": 950,
+  "aggregate": "git?: Omit<GitCommandsOptions,\"replace\">; module setup replace:false, top-level host registration replacement authoritative; all unknown module options still rejected; discoveryBoundary only",
+  "subpath": "virtual-bash/commands/git",
+  "bounds": {
+    "totalSeconds": 3540,
+    "children": 110,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 234881024,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "developmentGit": {
+    "path": "/usr/bin/git",
+    "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+    "role": "development exact blob/tree reads, no native oracle"
+  },
+  "stop": "No retry on safety/capture/integrity/unknown retirement; ordinary assertions aggregate after closure; no native/private/network/product fallback/rawHEAD build/YQ/XAN/node/declare/mapfile",
+  "limitations": "Public composition only, not full Git/native/resource parity. All24 Git caps unchanged; baseline79 bounded acceptance; four regex-denied regressions unqualified. Historical module fixtures preserved; two standalone-after-aggregate registration sites versioned to explicit replace:true only.",
+  "executionsAtPreseal": 0,
+  "plannedChildren": {
+    "developmentBlobs": 1,
+    "productionBuild": 1,
+    "offlinePack": 1,
+    "offlineInstall": 1,
+    "public": 3,
+    "apply": 3,
+    "m1a": 3,
+    "packs": 3,
+    "arrays": 3,
+    "coherence": 3,
+    "novel": 3,
+    "types": 6,
+    "maintainedCompile": 1,
+    "maintainedBodiesSingleProcess": 1,
+    "maintainedMovedStream": 1,
+    "controls": 9,
+    "directTotal": 43,
+    "loaderReservations": 32,
+    "expectedRegexWorkers": 4,
+    "maxRegexWorkers": 32,
+    "maxRegexActive": 2,
+    "conservativeInternalCeiling": 110,
+    "outerAdministrativeReserve": 18,
+    "totalAllCeiling": 128,
+    "peakOsProcesses": 4
+  },
+  "cohorts": {
+    "gitPublic": 45,
+    "applyPublic": 28,
+    "arrays": 12,
+    "coherence": 18,
+    "m1a": 140,
+    "packs": 93,
+    "layouts": [
+      "source-build",
+      "installed",
+      "physically-moved"
+    ],
+    "types": "Three positive/three negative groups: eighteen retained diagnostic properties plus six new readonly diagnostics; codes/locations exact",
+    "coherenceSelection": "C02-C18 +R15; original C01=78 not rerun or rewritten; new G02 exact80",
+    "maintained": "all four TS fixture bodies compiled with exact import-only routing to candidate public root; native helper functions denied if called; current stream-five public consumer executed only moved (source/installed not newly claimed)",
+    "controls": [
+      "registration mutant",
+      "registration restore",
+      "missing root member binding",
+      "changed Git member binding",
+      "outside root fallback binding",
+      "explicit subpath mutant",
+      "explicit subpath restore",
+      "root export mutant",
+      "root export restore"
+    ],
+    "novel": 12
+  },
+  "baseAcceptance": "bd772916c26dc87c54bafdaa784d18f058efa275 bounded public79; reviewer four RegexWorker-denied rows unqualified, no product failure/pass inference",
+  "resources": "43 planned direct coordinator children + up to32 fixed internal-loader admissions + up to32 authenticated RegexWorkers =107 conservative units; innerreserve3/outerreserve18 =>128. Peak4 OSprocesses inclcaptureowner; Worker threads tracked separately, max2 active RegexWorkers. No global descendant or individual internal-Worker exit census.",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "m1aFixtureV2": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+  "previousActualGoSuspended": true,
+  "internalLoader": {
+    "maximumAdmissions": 32,
+    "labels": [
+      "source-public",
+      "source-apply",
+      "source-m1a",
+      "source-packs",
+      "source-arrays",
+      "source-coherence",
+      "source-novel",
+      "installed-public",
+      "installed-apply",
+      "installed-m1a",
+      "installed-packs",
+      "installed-arrays",
+      "installed-coherence",
+      "installed-novel",
+      "moved-public",
+      "moved-apply",
+      "moved-m1a",
+      "moved-packs",
+      "moved-arrays",
+      "moved-coherence",
+      "moved-novel",
+      "maintained-four-bodies",
+      "maintained-stream-consumer",
+      "registration-mutant",
+      "registration-restored",
+      "binding-missing",
+      "binding-changed",
+      "binding-outside",
+      "missing-explicit-export",
+      "explicit-export-restored",
+      "root-export-mutant",
+      "root-export-restored"
+    ],
+    "retirement": "known hosting process close, not independent per-loader Worker exit events",
+    "starts": "source-backed expectation, not runtime events in unchanged product loader"
+  },
+  "previousActual": "7bd3fc8e35b65d4bbda68f155ec9eb72534a1977 CONSUMED/HOLD",
+  "repairSealSha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+  "actualActivation": false,
+  "typesCriterion": "Exact pinned compiler/options/locations/codes and nonzero rejection; wrapper exit2 is not semantic credit. No emitSkipped assumption."
+}
+
+489ed8dd0ba3da6b56b281890e261fa9a7424b3d blob 740
+{
+  "kind": "FRESH_ONE_PUBLIC80_INDEPENDENT_REVIEW",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "executionSealSha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+  "repairSealSha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+  "runDirectory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2",
+  "maxSeconds": 3600,
+  "maxAllOsProcesses": 128,
+  "maxRegexWorkers": 32,
+  "maxInternalLoaderAdmissions": 32,
+  "acceptHistoricalFailuresUnrescored": true,
+  "nonce": "ROOT_MUST_SUPPLY_FRESH",
+  "expiresUnix": 0,
+  "preparationOnly": true
+}
+
+dbb936343a7cf219493a144ea107a80a8592dbfe blob 2630
+{
+  "role": "DATA_ONLY_NOT_PRODUCT_OR_LOADER_EXECUTION",
+  "rows": [
+    {
+      "id": "S01-source-manifest-identity",
+      "pass": true
+    },
+    {
+      "id": "S02-run-only-sealed-proposal-and-type-exit",
+      "pass": true
+    },
+    {
+      "id": "S03-exact-12-novelties",
+      "pass": true
+    },
+    {
+      "id": "S04-loader-label-count-unique",
+      "pass": true
+    },
+    {
+      "id": "S05-namespace-unused",
+      "pass": true
+    },
+    {
+      "id": "S06-source-input-count",
+      "pass": true
+    },
+    {
+      "id": "S07-source-candidate",
+      "pass": true
+    },
+    {
+      "id": "S08-repair-receipt-identity",
+      "pass": true
+    },
+    {
+      "id": "S09-prior-execution-seal-identity",
+      "pass": true
+    },
+    {
+      "id": "S10-unchanged-prepare.mjs",
+      "pass": true
+    },
+    {
+      "id": "S10-unchanged-resources.mjs",
+      "pass": true
+    },
+    {
+      "id": "S10-unchanged-worker-policy.mjs",
+      "pass": true
+    },
+    {
+      "id": "S10-unchanged-loader.mjs",
+      "pass": true
+    },
+    {
+      "id": "S10-unchanged-novel.mjs",
+      "pass": true
+    },
+    {
+      "id": "S10-unchanged-consumer.ts.fixture",
+      "pass": true
+    },
+    {
+      "id": "S11-qualified-helper-internal-loader-arguments.mjs",
+      "pass": true
+    },
+    {
+      "id": "S11-qualified-helper-hash-regular-file.mjs",
+      "pass": true
+    }
+  ],
+  "runProposal": {
+    "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/RUN-SUCCESSOR-V2.mjs.data",
+    "bytes": 34829,
+    "sha256": "5dfbe0522523c3960785f69e96a07d0f926feeae0785cfb6a14feba26a9d74d8"
+  },
+  "runSuccessor": {
+    "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/run.mjs",
+    "bytes": 34829,
+    "sha256": "a3c043a69ab6f74638c5fd4b1b9a0cb6e0a17c42a2e0098633f5abf345c529ce"
+  },
+  "deltas": [
+    "Assemble exact source-only repair proposal with unchanged fixture payloads.",
+    "Version negative type acceptance from literal CLI exit2 to exact diagnostics plus nonzero rejection, per root type policy.",
+    "Move sole launch output to exclusive unused sibling actual-v2.",
+    "Require repair identity and separate maxInternalLoaderAdmissions=32 in new root receipt; reject preparation template.",
+    "Replace stale textual legacy37/26/17 resource summary with explicit43/32/32 bounds."
+  ],
+  "counts": {
+    "sourceDataChecks": 17,
+    "product": 0,
+    "compiler": 0,
+    "loader": 0,
+    "regex": 0
+  },
+  "qualification": "These are assembly checks, not a rerun of retained authentication, controls, completed metadata receipts, or product tests."
+}
+
+2f5d1436cf40ed0548146e9cf9801427bcecd4d1 blob 1255
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { createHash } from 'node:crypto';
+export function hashRegularFile(filename) {
+  assert.equal(typeof filename, 'string');
+  const before = fs.lstatSync(filename);
+  assert.ok(before.isFile() && !before.isSymbolicLink() && before.size <= 268435456);
+  const descriptor = fs.openSync(filename, 'r');
+  const digest = createHash('sha256'), buffer = Buffer.alloc(65536);
+  let bytesRead = 0, largestRead = 0, readCalls = 0;
+  try {
+    const opened = fs.fstatSync(descriptor);
+    assert.equal(opened.dev, before.dev); assert.equal(opened.ino, before.ino); assert.equal(opened.size, before.size);
+    for (;;) {
+      const count = fs.readSync(descriptor, buffer, 0, buffer.length, null); readCalls++;
+      if (count === 0) break;
+      bytesRead += count; largestRead = Math.max(largestRead, count);
+      assert.ok(bytesRead <= before.size); digest.update(buffer.subarray(0, count));
+    }
+    const after = fs.fstatSync(descriptor);
+    assert.equal(bytesRead, before.size); assert.equal(after.size, before.size); assert.equal(after.mtimeMs, before.mtimeMs);
+  } finally { fs.closeSync(descriptor); }
+  return { sha256: digest.digest('hex'), bytesRead, largestRead, readCalls };
+}
+
+f833c2d2924e523fc2a841cc750c6e9dc5162b05 blob 1391
+import assert from 'node:assert/strict';
+export function exactStrings(value) {
+  assert.ok(Array.isArray(value), 'argument array required');
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  assert.ok(Object.hasOwn(descriptors.length, 'value'));
+  const length = descriptors.length.value;
+  assert.ok(Number.isSafeInteger(length) && length >= 0 && length <= 16);
+  const keys = ['length', ...Array.from({ length }, (_, index) => String(index))];
+  assert.deepEqual(Reflect.ownKeys(descriptors).sort(), keys.sort());
+  return Array.from({ length }, (_, index) => {
+    const descriptor = descriptors[String(index)];
+    assert.ok(Object.hasOwn(descriptor, 'value'), 'argument accessor refused');
+    assert.equal(typeof descriptor.value, 'string');
+    return descriptor.value;
+  });
+}
+export function internalLoaderArguments(value, paths) {
+  const args = exactStrings(value);
+  const expected = ['--test-reporter=tap', ...(args.length === 5 ? ['--test-timeout=30000'] : []), '--loader', paths.loader, paths.consumer];
+  assert.deepEqual(args, expected, 'exact loader/consumer arguments required');
+  for (const field of ['root', 'loader', 'bootstrap', 'consumer']) assert.equal(typeof paths[field], 'string');
+  return ['--experimental-permission', '--allow-fs-read=' + paths.root, '--allow-fs-write=' + paths.root, '--allow-worker', '--import', paths.bootstrap, ...args];
+}
+
+aed6b9093cecdf29f006318e2f9e09f5a43a6ff7 blob 5612
+from pathlib import Path
+import hashlib
+import json
+import os
+import selectors
+import signal
+import subprocess
+import sys
+import time
+import traceback
+
+OWN = Path(__file__).resolve().parent
+assert len(sys.argv) == 3 and sys.argv[1] == '--run', 'sole entry: --run ROOT_AUTHORIZATION.json'
+RUN = OWN.parent / 'actual-v2'
+RUN.mkdir()
+STDOUT = open(RUN / 'coordinator.stdout.raw', 'xb')
+STDERR = open(RUN / 'coordinator.stderr.raw', 'xb')
+EVENTS = open(RUN / 'outer-events.jsonl', 'xb')
+child = None
+started = time.monotonic()
+
+
+def event(value):
+    EVENTS.write((json.dumps(value) + '\n').encode())
+    EVENTS.flush()
+
+
+def digest(filename):
+    result = hashlib.sha256()
+    with open(filename, 'rb') as stream:
+        while part := stream.read(65536):
+            result.update(part)
+    return result.hexdigest()
+
+
+def terminate_owned():
+    if child is None:
+        return
+    def group_exists():
+        try:
+            os.killpg(child.pid, 0)
+            return True
+        except ProcessLookupError:
+            return False
+    for action, seconds in [(signal.SIGTERM, 1), (signal.SIGKILL, 4)]:
+        if not group_exists():
+            child.wait(timeout=5)
+            event({'ownedGroupAbsentAfterCleanup': child.pid})
+            return
+        event({'ownedGroupSignal': child.pid, 'signal': int(action), 'leaderAlreadyClosed': child.poll() is not None})
+        os.killpg(child.pid, action)
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            child.poll()
+            if not group_exists():
+                child.wait(timeout=5)
+                event({'ownedGroupAbsentAfterCleanup': child.pid})
+                return
+            time.sleep(0.025)
+    raise RuntimeError('unknown owned process-group retirement')
+
+try:
+    event({'outerCaptureBeforeAdmission': True, 'pid': os.getpid(), 'startedNs': time.time_ns()})
+    seal_path = OWN / 'EXECUTION-SEAL.json'
+    seal_hash = digest(seal_path)
+    seal = json.loads(seal_path.read_text())
+    authority = Path(sys.argv[2]); assert authority.is_file() and not authority.is_symlink() and authority.stat().st_size <= 16384
+    authorization = json.loads(authority.read_text())
+    expected = {'kind': 'FRESH_ONE_PUBLIC80_INDEPENDENT_REVIEW', 'candidate': seal['candidate'], 'packageSha256': seal['packageSha256'], 'executionSealSha256': seal_hash, 'runDirectory': str(RUN), 'maxSeconds': 3600, 'maxAllOsProcesses': 128, 'maxRegexWorkers': 32, 'maxInternalLoaderAdmissions': 32, 'repairSealSha256': seal['repairSealSha256'], 'acceptHistoricalFailuresUnrescored': True}
+    for key, value in expected.items():
+        assert authorization.get(key) == value, key
+    assert authorization.get('nonce') and isinstance(authorization['nonce'], str) and authorization['nonce'] != 'ROOT_MUST_SUPPLY_FRESH'
+    assert authorization.get('preparationOnly') is False
+    assert time.time() <= authorization['expiresUnix'] <= time.time() + 86400
+    for row in seal['files']:
+        filename = OWN / row['path']
+        assert filename.is_file() and not filename.is_symlink() and filename.stat().st_size == row['bytes'] and digest(filename) == row['sha256'], row['path']
+    assert digest(seal['node']['path']) == seal['node']['sha256']
+    for name in ['home', 'tmp', 'scratch']:
+        (RUN / name).mkdir()
+    environment = {'PATH': str(Path(seal['node']['path']).parent), 'HOME': str(RUN / 'home'), 'TMPDIR': str(RUN / 'tmp'), 'NO_COLOR': '1', 'INDEPENDENT_PUBLIC80_ADMITTED': seal['candidate'], 'INDEPENDENT_PUBLIC80_SCRATCH': str(RUN / 'scratch')}
+    command = [seal['node']['path'], str(OWN / 'run.mjs'), '--run']
+    event({'enrollBeforeSpawn': True, 'command': command, 'environment': environment, 'authorization': authorization, 'sealSha256': seal_hash})
+    child = subprocess.Popen(command, cwd=OWN, env=environment, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+    event({'ownedPidAndGroup': child.pid})
+    selector = selectors.DefaultSelector()
+    for stream, target in [(child.stdout, STDOUT), (child.stderr, STDERR)]:
+        os.set_blocking(stream.fileno(), False)
+        selector.register(stream, selectors.EVENT_READ, target)
+    captured = 0
+    while selector.get_map():
+        if time.monotonic() - started > 3595:
+            raise TimeoutError('outer deadline; cleanup reserved')
+        for key, mask in selector.select(0.2):
+            part = os.read(key.fileobj.fileno(), 65536)
+            if not part:
+                selector.unregister(key.fileobj)
+                key.fileobj.close()
+                continue
+            captured += len(part)
+            assert captured <= 16 * 1024 * 1024, 'outer capture ceiling'
+            key.data.write(part)
+            key.data.flush()
+    selector.close()
+    code = child.wait(timeout=5)
+    event({'naturalClose': True, 'returncode': code, 'capturedBytes': captured, 'elapsedSeconds': time.monotonic() - started})
+    sys.exit(code if code >= 0 else 1)
+except BaseException as error:
+    if isinstance(error, SystemExit):
+        raise
+    STDERR.write(traceback.format_exc().encode())
+    STDERR.flush()
+    event({'failure': True, 'reasonPresent': True, 'type': type(error).__name__, 'reason': str(error)})
+    sys.exit(1)
+finally:
+    cleanup_failed = False
+    try:
+        terminate_owned()
+    except BaseException as cleanup_error:
+        cleanup_failed = True
+        event({'cleanupFailure': True, 'reasonPresent': True, 'reason': str(cleanup_error)})
+    for stream in [STDOUT, STDERR, EVENTS]:
+        stream.close()
+
+    if cleanup_failed:
+        os._exit(1)
+
+f92cd818d9965c7b48211cd6ad3e5b86680d6164 blob 1355
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+const binding = JSON.parse(await fs.readFile(process.env.PUBLIC_BINDING));
+const admitted = new Map(binding.inputs.map(row => [path.join(binding.root, 'dist', row.path), row]));
+const harness = new Map(binding.harness.map(row => [row.path, row]));
+export async function load(url, context, next) {
+  if (url.startsWith('node:')) return next(url, context);
+  if (!url.startsWith('file:')) throw Error('Non-file module capability denied');
+  const filename = fileURLToPath(url), metadata = await fs.lstat(filename);
+  if (!metadata.isFile() || metadata.isSymbolicLink() || await fs.realpath(filename) !== filename || metadata.size > 8388608) throw Error('Module file admission failed');
+  const row = harness.get(filename) ?? admitted.get(filename);
+  if (!row) throw Error('package outside authenticated compiled root or package binding missing member');
+  const data = await fs.readFile(filename), sha256 = createHash('sha256').update(data).digest('hex');
+  if (sha256 !== row.sha256) throw Error('package hash mismatch');
+  if (admitted.has(filename)) await fs.appendFile(binding.trace, JSON.stringify({ file: filename, sha256 }) + '\n');
+  return { format: 'module', source: data, shortCircuit: true };
+}
+
+efd880e3a394fa4e1b2e1a5c0063edf220572255 blob 4271
+import fs from 'node:fs';
+import path from 'node:path';
+import workerThreads from 'node:worker_threads';
+import { syncBuiltinESMExports } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+import { admitWorker } from './worker-policy.mjs';
+const closure = {"qualification":"STATIC_AUTHENTICATED_IMPORT_INVENTORY_NOT_RUNTIME_TRACE","members":{"dist/commands/regex-execution/worker.js":{"sha256":"46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f","bytes":1981,"imports":["node:worker_threads","./matching.js","../expr/bre-worker.js","./protocol.js"],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false},"dist/commands/regex-execution/protocol.js":{"sha256":"a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6","bytes":7869,"imports":[],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false},"dist/commands/expr/bre-worker.js":{"sha256":"e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874","bytes":19153,"imports":["node:worker_threads","../regex-execution/protocol.js"],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false},"dist/commands/regex-execution/matching.js":{"sha256":"2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791","bytes":13278,"imports":["node:buffer"],"dynamicImportLiteral":false,"requireLiteral":false,"workerConstructorLiteral":false}},"builtins":["node:buffer","node:worker_threads"],"candidate":"c83f352f057c64917f219eb938f54aa42cdab829","packageSha256":"4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156"};
+
+const destination = process.env.RESOURCE_LOG;
+const allowance = Number(process.env.RESOURCE_ALLOWANCE);
+assert.ok(destination && Number.isSafeInteger(allowance) && allowance >= 0 && allowance <= 32);
+const binding = JSON.parse(fs.readFileSync(process.env.PUBLIC_BINDING));
+const emit = event => fs.appendFileSync(destination, JSON.stringify(event) + '\n');
+const NativeWorker = workerThreads.Worker;
+let created = 0, live = 0;
+emit({ kind: 'bootstrap', pid: process.pid, allowance });
+workerThreads.Worker = class extends NativeWorker {
+  constructor(filename, options) {
+    assert.ok(created < allowance && live < 2, 'owned worker admission budget');
+    const entry = filename instanceof URL ? fileURLToPath(filename) : filename;
+    const expected = path.join(binding.root, 'dist/commands/regex-execution/worker.js');
+    assert.equal(entry, expected, 'only selected RegexWorker is admitted');
+    const metadata = fs.lstatSync(entry); assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
+    assert.equal(fs.realpathSync(entry), entry);
+    const row = binding.inputs.find(item => item.path === 'commands/regex-execution/worker.js');
+    assert.ok(row); assert.equal(createHash('sha256').update(fs.readFileSync(entry)).digest('hex'), row.sha256);
+    admitWorker(entry, expected, options, created, live, allowance);
+    for (const [relative, member] of Object.entries(closure.members)) {
+      const target = path.join(binding.root, relative), metadata = fs.lstatSync(target);
+      assert.ok(metadata.isFile() && !metadata.isSymbolicLink()); assert.equal(fs.realpathSync(target), target);
+      const data = fs.readFileSync(target); assert.equal(data.length, member.bytes); assert.equal(createHash('sha256').update(data).digest('hex'), member.sha256);
+      assert.equal(binding.inputs.find(row => 'dist/' + row.path === relative)?.sha256, member.sha256);
+    }
+    emit({ kind: 'worker-admit', entry, options });
+    super(filename, { execArgv: [], resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 } });
+    const id = ++created; live++;
+    this.once('exit', code => { live--; try { emit({ kind: 'worker-exit', id, code, live }); } catch { process.exitCode = 78; } });
+    try { emit({ kind: 'worker-create', id, threadId: this.threadId, entry, sha256: row.sha256, live }); } catch (error) { process.exitCode = 78; void this.terminate().catch(() => { process.exitCode = 78; }); throw error; }
+  }
+};
+syncBuiltinESMExports();
+process.once('beforeExit', () => { emit({ kind: 'before-exit', created, live }); if (live !== 0) process.exitCode = 78; });
+
+4d93ca6796de978de00cb88f96abfe4b891a25e5 blob 34829
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+import fsSync from 'node:fs';
+import { spawn } from 'node:child_process';
+import { gunzipSync } from 'node:zlib';
+import { own, repo, sha, objectHash } from './prepare.mjs';
+import { internalLoaderArguments } from './internal-loader-arguments.mjs';
+import { hashRegularFile } from './hash-regular-file.mjs';
+
+assert.deepEqual(process.argv.slice(2), ['--run']);
+assert.equal(process.env.INDEPENDENT_PUBLIC80_ADMITTED, 'c83f352f057c64917f219eb938f54aa42cdab829');
+const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR.json')));
+for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
+const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json')));
+assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE.json'))), executor.source);
+assert.equal(process.execPath, seal.node.path); assert.equal(process.version, seal.node.version); assert.equal(hashRegularFile(process.execPath).sha256, seal.node.sha256);
+const baseBytes = await fs.readFile(path.join(repo, 'tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64'));
+assert.equal(sha(baseBytes), seal.baseEvidence);
+const base = JSON.parse(gunzipSync(Buffer.from(baseBytes.toString().trim(), 'base64'), { maxOutputLength: 67108864 }));
+const started = Date.now(), output = await fs.mkdtemp(path.join(process.env.INDEPENDENT_PUBLIC80_SCRATCH, 'work-'));
+const campaignStart = started;
+console.log(JSON.stringify({ output, source: executor.source, candidate: manifest.computedTree }));
+const receipt = { schema: 'git-public-independent-presealed-v3', output, source: manifest, executor, status: 'PREPARING', children: [], cohorts: [], types: [], controls: [], failures: [], tools: {}, nativeRuns: 0, privateRuns: 0 };
+let captured = 0, written = 0, childCount = 0, workerCount = 0, loaderReservations = 0;
+async function scratchBytes() {
+  let total = 0;
+  const scan = async root => { for (const name of await fs.readdir(root)) { const filename = path.join(root, name), stat = await fs.lstat(filename); assert.ok(!stat.isSymbolicLink()); if (stat.isDirectory()) await scan(filename); else { total += stat.size; assert.ok(total <= seal.bounds.scratchBytes); } } };
+  await scan(output); return total;
+}
+const save = () => fs.writeFile(path.join(output, 'RESULT.json'), JSON.stringify(receipt, null, 2) + '\n');
+async function write(file, bytes, mode = 0o644) { written += Buffer.byteLength(bytes); assert.ok(written <= seal.bounds.scratchBytes); await fs.mkdir(path.dirname(file), { recursive: true }); await fs.writeFile(file, bytes, { flag: 'wx', mode }); }
+async function inventory(root) {
+  const rows = [];
+  const walk = async relative => { for (const name of (await fs.readdir(path.join(root, relative))).sort()) { assert.notEqual(name, 'AGENTS.md'); const filename = path.join(relative, name), target = path.join(root, filename), metadata = await fs.lstat(target); assert.ok(!metadata.isSymbolicLink()); if (metadata.isDirectory()) await walk(filename); else { assert.ok(metadata.isFile()); const bytes = await fs.readFile(target); rows.push({ path: filename, mode: metadata.mode & 0o777, bytes: bytes.length, sha256: sha(bytes) }); } } };
+  await walk(''); return rows.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+}
+const environment = { PATH: path.dirname(process.execPath), HOME: path.join(output, 'home'), TMPDIR: path.join(output, 'tmp'), npm_config_cache: path.join(output, 'cache'), npm_config_userconfig: path.join(output, 'npmrc'), npm_config_globalconfig: path.join(output, 'global-npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_update_notifier: 'false', NO_COLOR: '1' };
+async function child(label, executable, args, cwd, extra = {}, input) {
+  assert.ok(++childCount + workerCount + loaderReservations <= seal.bounds.children);
+  const guarded = args.includes('--loader');
+  if (guarded) { loaderReservations++; assert.ok(childCount + workerCount + loaderReservations <= seal.bounds.children); }
+  const resourceLog = path.join(output, label + '-resources.jsonl');
+  if (guarded) {
+    assert.ok(seal.internalLoader.labels.includes(label), 'unbound internal loader role');
+    assert.ok(loaderReservations <= seal.internalLoader.maximumAdmissions);
+    const loader = path.join(harness, 'loader.mjs'), bootstrap = path.join(harness, 'resources.mjs'), policy = path.join(harness, 'worker-policy.mjs');
+    assert.equal(typeof extra.PUBLIC_BINDING, 'string');
+    assert.ok(extra.PUBLIC_BINDING.startsWith(output + path.sep));
+    const bindingMetadata = await fs.lstat(extra.PUBLIC_BINDING);
+    assert.ok(bindingMetadata.isFile() && !bindingMetadata.isSymbolicLink() && bindingMetadata.size <= 8388608);
+    assert.equal(await fs.realpath(extra.PUBLIC_BINDING), extra.PUBLIC_BINDING);
+    const binding = JSON.parse(await fs.readFile(extra.PUBLIC_BINDING));
+    const consumer = args.at(-1);
+    for (const filename of [loader, bootstrap, policy, consumer]) {
+      assert.equal(typeof filename, 'string'); assert.ok(filename.startsWith(output + path.sep));
+      const metadata = await fs.lstat(filename); assert.ok(metadata.isFile() && !metadata.isSymbolicLink() && metadata.size <= 8388608);
+      assert.equal(await fs.realpath(filename), filename);
+      const expected = filename === loader ? executor.files.find(row => row.path === path.relative(repo, path.join(own, 'loader.mjs'))) : binding.harness.find(row => row.path === filename);
+      assert.ok(expected, 'unbound loader/bootstrap/consumer file');
+      assert.equal(sha(await fs.readFile(filename)), expected.sha256);
+    }
+    args = internalLoaderArguments(args, { root: output, loader, bootstrap, consumer });
+  }
+  extra = { ...extra, ...(guarded ? { RESOURCE_LOG: resourceLog, RESOURCE_ALLOWANCE: String(label === 'maintained-four-bodies' ? Math.min(32 - workerCount, seal.bounds.children - childCount - workerCount - loaderReservations) : 0) } : {}) }; assert.ok(Date.now() - campaignStart < seal.bounds.totalSeconds * 1000);
+  const row = { label, executable, executableSha256: hashRegularFile(executable).sha256, args, cwd, signals: [], closed: false };
+  assert.equal(row.executableSha256, executable === seal.node.path ? seal.node.sha256 : seal.developmentGit.sha256); assert.ok(executable === seal.node.path || executable === seal.developmentGit.path);
+  receipt.children.push(row);
+  const rawPaths = [path.join(output, `${label}.stdout`), path.join(output, `${label}.stderr`)], ownedFds = []; let instance;
+  try { for (const raw of rawPaths) ownedFds.push(fsSync.openSync(raw, 'wx')); instance = spawn(executable, args, { cwd, env: { ...environment, ...extra }, stdio: ['pipe', 'pipe', 'pipe'] }); row.pid = instance.pid; } catch (error) { for (const fd of ownedFds) { try { fsSync.closeSync(fd); } catch {} } throw error; }
+  const out = [], err = []; let size = 0, rescue, spawnError, alarm = false;
+  const terminate = () => { if (alarm) return; alarm = true; row.signals.push('SIGTERM'); instance.kill('SIGTERM'); rescue = setTimeout(() => { if (!row.closed) { row.signals.push('SIGKILL'); instance.kill('SIGKILL'); } }, 1000); };
+  const timer = setTimeout(terminate, Math.min(['production-build-once', 'offline-pack', 'offline-install', 'maintained-fixture-compile'].includes(label) ? 120000 : 30000, seal.bounds.totalSeconds * 1000 - (Date.now() - campaignStart)));
+  for (const [stream, chunks] of [[instance.stdout, out], [instance.stderr, err]]) stream.on('data', bytes => { size += bytes.length; captured += bytes.length; if (size > seal.bounds.childCaptureBytes || captured > seal.bounds.captureBytes) terminate(); else { try { fsSync.writeSync(ownedFds[stream === instance.stdout ? 0 : 1], bytes); chunks.push(Buffer.from(bytes)); } catch (error) { row.captureError = String(error); terminate(); } } });
+  instance.on('error', error => { spawnError = String(error); }); instance.stdin.on('error', () => {}); instance.stdin.end(input);
+  const [code, signal] = await new Promise(resolve => instance.once('close', (...values) => resolve(values)));
+  row.closed = true; clearTimeout(timer); clearTimeout(rescue);
+  const closeErrors = []; for (const fd of ownedFds) { try { fsSync.closeSync(fd); } catch (error) { closeErrors.push(String(error)); } } assert.equal(closeErrors.length, 0, 'capture retirement failed');
+  if (guarded) {
+    const events = (await fs.readFile(resourceLog, 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error; })).trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
+    const births = events.filter(event => event.kind === 'worker-create'), exits = events.filter(event => event.kind === 'worker-exit');
+    workerCount += births.length; assert.ok(workerCount <= 32); row.resources = { events, births: births.length, exits: exits.length, loaderReservation: 1 };
+    assert.ok(childCount + workerCount + loaderReservations <= seal.bounds.children);
+    if (!events.some(event => event.kind === 'bootstrap') || births.length !== exits.length || births.some(event => !exits.some(exit => exit.id === event.id))) { row.resourceClosureUnknown = true; }
+  }
+  const stdout = Buffer.concat(out), stderr = Buffer.concat(err); Object.assign(row, { code, signal, spawnError, alarm, outputBytes: size, stdoutSha256: sha(stdout), stderrSha256: sha(stderr) });
+  assert.equal(sha(await fs.readFile(rawPaths[0])), sha(stdout)); assert.equal(sha(await fs.readFile(rawPaths[1])), sha(stderr)); await save();
+  row.scratchBytesAfterClose = await scratchBytes();
+  assert.ok(!row.captureError && !row.resourceClosureUnknown && !alarm && !spawnError && signal === null && code !== 78, `safety/setup/retirement stop: ${label}`);
+  return { row, code, out: stdout, err: stderr };
+}
+const source = path.join(output, 'source'), harness = path.join(output, 'harness');
+let compiler, npm, packageRows;
+const consumers = new Map();
+async function setupConsumer(product, layout) {
+  const directory = layout === 'source' ? path.join(product, '__consumer') : path.dirname(path.dirname(product));
+  await fs.mkdir(directory, { recursive: true });
+  for (const name of ['public.mjs', 'apply-public.mjs', 'm1a.mjs', 'packs.mjs', 'fixture.json', 'packs.json', 'names.mjs', 'arrays.mjs', 'ARRAY-CASES.json', 'stream-consumer.mjs', 'novel.mjs']) await write(path.join(directory, name), await fs.readFile(path.join(harness, name)));
+  await fs.mkdir(path.join(directory, 'coherence'));
+  for (const name of ['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json']) await write(path.join(directory, 'coherence', name), await fs.readFile(path.join(harness, 'coherence', name)));
+  consumers.set(await fs.realpath(product), await fs.realpath(directory)); return directory;
+}
+async function run(label, product, script, extras = {}, bindingMutation) {
+  const real = await fs.realpath(product), directory = consumers.get(real); assert.ok(directory);
+  const rows = await inventory(path.join(real, 'dist')), harnessRows = [];
+  for (const file of [path.join(directory, script), path.join(directory, 'names.mjs'), path.join(directory, 'coherence/names.mjs'), path.join(harness, 'resources.mjs'), path.join(harness, 'worker-policy.mjs')]) { const bytes = await fs.readFile(file); harnessRows.push({ path: await fs.realpath(file), sha256: sha(bytes) }); }
+  const binding = { root: real, inputs: rows, harness: harnessRows, trace: path.join(output, label + '-loads.jsonl') }; if (bindingMutation) bindingMutation(binding);
+  const bindingFile = path.join(output, label + '-binding.json'); await write(bindingFile, JSON.stringify(binding));
+  return child(label, process.execPath, ['--test-reporter=tap', '--loader', path.join(harness, 'loader.mjs'), path.join(directory, script)], product, { PUBLIC_BINDING: bindingFile, GIT_AUTHOR_ROOT: real, GIT_AUTHOR_RESULT: path.join(output, label + '-git-cases.json'), PRODUCT_ROOT: real, PUBLIC_RESULT: path.join(output, label + '-cases.json'), LAYOUT: label, ...extras });
+}
+async function cohort(label, product, script, expected, extras = {}) {
+  const result = await run(label, product, script, extras);
+  const lines = result.out.toString().trim().split('\n').filter(Boolean).map(line => JSON.parse(line)); const summary = lines.at(-1)?.summary; assert.ok(summary); assert.equal(summary.cases, expected); assert.equal(result.code, summary.pass === expected ? 0 : 1);
+  const cases = lines.slice(0, -1); assert.equal(cases.length, expected);
+  assert.ok(cases.every(row => !row.cleanupError && !row.cleanupFailure && (row.disposed === undefined || row.disposed === true || row.disposed === row.created)), 'cleanup failure stops dependent execution');
+  receipt.cohorts.push({ label, ...summary, cases }); if (summary.pass !== expected) receipt.failures.push({ label, cases: cases.filter(row => !row.pass) });
+}
+async function moduleCohort(label, product, script, expected) {
+  const result = await run(label, product, script);
+  const summary = JSON.parse(await fs.readFile(path.join(output, label + '-git-cases.json')));
+  assert.equal(summary.cases.length, expected); assert.equal(summary.pass + summary.fail, expected); assert.equal(result.code, summary.fail ? 1 : 0);
+  receipt.cohorts.push({ label, ...summary }); if (summary.fail) receipt.failures.push({ label, cases: summary.cases.filter(row => row.status !== 'PASS') });
+}
+async function types(label, product) {
+  const original = await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8');
+  for (const negative of [false, true]) {
+    const filename = path.join(consumers.get(await fs.realpath(product)), `consumer-${label}-${negative}.mts`);
+    const text = original.replaceAll(negative ? '// @ts-expect-error' : 'NEVER_REPLACE', negative ? '// removed directive' : '');
+    await write(filename, text);
+    const result = await child(`types-${label}-${negative}`, process.execPath, [compiler, '--strict', '--exactOptionalPropertyTypes', '--noEmit', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--pretty', 'false', '--listFiles', '--typeRoots', path.join(source, 'node_modules/@types'), filename], output);
+    const diagnostic = result.out.toString() + result.err.toString(), errors = diagnostic.split('\n').filter(line => /error TS\d+:/.test(line));
+    const codes = errors.map(line => line.match(/error TS(\d+):/)?.[1]), lines = errors.map(line => Number(line.match(/\((\d+),\d+\): error TS/)?.[1]));
+    const pass = negative ? result.code !== 0 && JSON.stringify(codes) === JSON.stringify(['2353','2353','2322','2353','2353','2353','2540','2540']) && JSON.stringify(lines) === JSON.stringify([9,11,13,15,17,19,21,23]) : result.code === 0 && errors.length === 0;
+    const declarations = result.out.toString().split('\n').filter(line => line.endsWith('.d.ts') && line.includes('/dist/'));
+    assert.ok(declarations.length > 0);
+    const real = await fs.realpath(product), bound = [];
+    for (const file of declarations) { const actual = await fs.realpath(file); assert.ok(actual.startsWith(real + '/dist/')); const row = packageRows.find(row => row.path === path.relative(real, actual)); assert.ok(row); assert.equal(sha(await fs.readFile(actual)), row.sha256); bound.push({ file: actual, sha256: row.sha256 }); }
+    receipt.types.push({ label, negative, pass, errors, declarations: bound }); if (!pass) receipt.failures.push({ label: `types-${label}`, negative, errors });
+  }
+}
+try {
+  for (const name of ['home', 'tmp', 'cache', 'source', 'harness']) await fs.mkdir(path.join(output, name));
+  for (const name of ['npmrc', 'global-npmrc']) await write(path.join(output, name), '');
+  const blobs = await child('development-blobs', '/usr/bin/git', ['-c', 'gc.auto=0', '-c', 'maintenance.auto=false', '-c', 'core.hooksPath=/dev/null', 'cat-file', '--batch'], repo, { GIT_OPTIONAL_LOCKS: '0', PATH: '/usr/bin' }, manifest.inputs.map(row => row.blob).join('\n') + '\n');
+  assert.equal(blobs.code, 0); let offset = 0;
+  for (const row of manifest.inputs) {
+    assert.ok(!row.path.startsWith('/') && !row.path.split('/').some(part => part === '..' || part === 'AGENTS.md'));
+    const newline = blobs.out.indexOf(10, offset); assert.equal(blobs.out.subarray(offset, newline).toString(), `${row.blob} blob ${row.bytes}`); offset = newline + 1;
+    const bytes = blobs.out.subarray(offset, offset + row.bytes); offset += row.bytes + 1; assert.equal(sha(bytes), row.sha256); assert.equal(objectHash('blob', bytes), row.blob); assert.equal(blobs.out[offset - 1], 10);
+    await write(path.join(source, row.path), bytes, Number.parseInt(row.mode, 8) & 0o777);
+  }
+  assert.equal(offset, blobs.out.length);
+  for (const name of ['typescript', '@types/node', 'undici-types', 'npm']) {
+    const tool = base.tools[name], destination = name === 'npm' ? path.join(output, 'tools/npm') : path.join(source, 'node_modules', name);
+    assert.equal(sha(Buffer.from(JSON.stringify(tool.originalRows))), manifest.toolBindings[name].inventorySha256);
+    for (const [relative, mode, length, digest] of tool.originalRows) {
+      const filename = path.join(tool.origin, relative), stat = await fs.lstat(filename);
+      if (mode === 'SYMLINK') { assert.ok(stat.isSymbolicLink()); assert.equal(await fs.readlink(filename), length); assert.ok(tool.omittedInternalBinLinks.some(([name, target]) => name === relative && target === length)); const target = await fs.realpath(filename), real = await fs.realpath(tool.origin); assert.ok(target.startsWith(real + path.sep)); const row = tool.originalRows.find(row => row[0] === path.relative(real, target)); assert.ok(row && row[1] !== 'SYMLINK'); assert.equal(sha(await fs.readFile(target)), row[3]); continue; }
+      assert.ok(stat.isFile() && !stat.isSymbolicLink()); const bytes = await fs.readFile(filename); assert.equal(stat.mode & 0o777, mode); assert.equal(bytes.length, length); assert.equal(sha(bytes), digest); await write(path.join(destination, relative), bytes, mode);
+    }
+    receipt.tools[name] = { origin: tool.origin, rows: tool.originalRows, omittedInternalBinLinks: tool.omittedInternalBinLinks, copied: destination };
+    assert.equal(JSON.parse(await fs.readFile(path.join(destination, 'package.json'))).version, tool.version);
+  }
+  const harnessMap = [
+    ['fixture.json', 'tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json'], ['packs.json', 'tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json'],
+    ...['public.mjs', 'apply-public.mjs', 'packs.mjs', 'names.mjs'].map(name => [name, 'tests/integration/git-public-20260829/' + name]),
+    ['m1a.mjs', 'tests/integration/git-public-20260829/m1a-public-v2.mjs'],
+    ...['resources.mjs', 'worker-policy.mjs', 'loader.mjs', 'novel.mjs', 'consumer.ts.fixture'].map(name => [name, path.relative(repo, path.join(own, name))]),
+    ['arrays.mjs', 'tests/integration/coherent78-arrays-author-20260828/arrays.mjs'], ['ARRAY-CASES.json', 'tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json'],
+    ...['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json'].map(name => ['coherence/' + name, 'tests/integration/coherent78-shell-author-20260828/' + name]),
+    ['stream-consumer.mjs', 'tests/plugins/stream-five-public/consumer.mjs'],
+  ];
+  for (const [destination, from] of harnessMap) { const row = executor.files.find(row => row.path === from), bytes = await fs.readFile(path.join(repo, from)); assert.equal(sha(bytes), row.sha256); await write(path.join(harness, destination), bytes); }
+  const sourceBefore = await inventory(path.join(source, 'src'));
+  compiler = path.join(source, 'node_modules/typescript/bin/tsc'); npm = path.join(output, 'tools/npm/bin/npm-cli.js');
+  const build = await child('production-build-once', process.execPath, [compiler, '-p', path.join(source, 'tsconfig.build.json')], source); assert.equal(build.code, 0, build.out.toString());
+  const packed = await child('offline-pack', process.execPath, [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', output], source); assert.equal(packed.code, 0, packed.err.toString());
+  const filename = JSON.parse(packed.out.toString())[0].filename; assert.equal(path.basename(filename), filename); const tarball = path.join(output, filename), archive = await fs.readFile(tarball);
+  receipt.package = { file: filename, bytes: archive.length, sha256: sha(archive), manifest: JSON.parse(packed.out.toString())[0] };
+  const tar = gunzipSync(archive, { maxOutputLength: 67108864 }), tarRows = []; let cursor = 0;
+  while (cursor + 512 <= tar.length && tar[cursor] !== 0) {
+    const header = tar.subarray(cursor, cursor + 512), name = header.subarray(0, 100).toString().split('\0')[0], size = Number.parseInt(header.subarray(124, 136).toString().replace(/\0/g, '').trim(), 8), mode = Number.parseInt(header.subarray(100, 108).toString().replace(/\0/g, '').trim(), 8), type = header[156];
+    assert.ok(name.startsWith('package/') && !name.split('/').some(part => part === '..' || part === 'AGENTS.md')); assert.ok(type === 0 || type === 48); assert.ok(Number.isSafeInteger(size) && size >= 0 && size <= tar.length - cursor - 512);
+    let checksum = 0; for (let position = 0; position < 512; position++) checksum += position >= 148 && position < 156 ? 32 : header[position]; assert.equal(checksum, Number.parseInt(header.subarray(148, 156).toString().replace(/\0/g, '').trim(), 8));
+    tarRows.push({ path: name.slice(8), mode, bytes: size, sha256: sha(tar.subarray(cursor + 512, cursor + 512 + size)) }); cursor += 512 + Math.ceil(size / 512) * 512;
+  }
+  assert.ok(tar.subarray(cursor).every(byte => byte === 0)); assert.equal(new Set(tarRows.map(row => row.path)).size, tarRows.length); receipt.package.members = tarRows;
+  packageRows = tarRows; assert.equal(tarRows.length, seal.expectedPackageMembers); assert.equal(receipt.package.sha256, '4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156'); assert.deepEqual(JSON.parse(await fs.readFile(path.join(source, 'package.json'))).dependencies ?? {}, {});
+  const sourceDist = await inventory(path.join(source, 'dist'));
+  for (const row of tarRows) { const bytes = await fs.readFile(path.join(source, row.path)); assert.equal(sha(bytes), row.sha256); }
+  const coherenceIds = Array.from({ length: 17 }, (_, index) => 'C' + String(index + 2).padStart(2, '0')).concat('R15').join(',');
+  async function layout(label, product) {
+    await setupConsumer(product, label); await cohort(label + '-public', product, 'public.mjs', seal.cohorts.gitPublic); await cohort(label + '-apply', product, 'apply-public.mjs', 28); await moduleCohort(label + '-m1a', product, 'm1a.mjs', 140); await moduleCohort(label + '-packs', product, 'packs.mjs', 93); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-coherence', product, 'coherence/probe.mjs', 18, { CASE_IDS: coherenceIds }); await types(label, product); await cohort(label + '-novel', product, 'novel.mjs', 12);
+  }
+  await layout('source', source);
+  const installed = path.join(output, 'installed'); await write(path.join(installed, 'package.json'), '{"private":true,"type":"module"}\n');
+  const install = await child('offline-install', process.execPath, [npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', '--omit=dev', tarball], installed); assert.equal(install.code, 0, install.err.toString());
+  const installedRoot = path.join(installed, 'node_modules/virtual-bash'); assert.deepEqual(await inventory(installedRoot), [...tarRows].sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+  await layout('installed', installedRoot);
+  const moved = path.join(output, 'moved package'); await fs.rename(installed, moved); const movedRoot = path.join(moved, 'node_modules/virtual-bash');
+  consumers.set(await fs.realpath(movedRoot), await fs.realpath(moved));
+  await cohort('moved-public', movedRoot, 'public.mjs', seal.cohorts.gitPublic); await cohort('moved-apply', movedRoot, 'apply-public.mjs', 28); await moduleCohort('moved-m1a', movedRoot, 'm1a.mjs', 140); await moduleCohort('moved-packs', movedRoot, 'packs.mjs', 93); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-coherence', movedRoot, 'coherence/probe.mjs', 18, { CASE_IDS: coherenceIds }); await types('moved', movedRoot); await cohort('moved-novel', movedRoot, 'novel.mjs', 12);
+  const fixtureSources = [...manifest.fixtures.filter(row => row.path.endsWith('.ts')).map(row => row.path), 'tests/commands/stream-format/helpers.ts', 'tests/commands/split/helpers.ts'];
+  const fixtureRoot = path.join(source, '__canonical'), fixtureBuild = path.join(source, '__canonical-built'); const migrations = [];
+  for (const name of fixtureSources) {
+    const row = executor.files.find(row => row.path === name), original = await fs.readFile(path.join(repo, name), 'utf8'); assert.equal(sha(Buffer.from(original)), row.sha256);
+    const imports = []; const text = original.replace(/(["'])(?:\.\.\/)+src\/[^"']+\.js\1/g, specifier => { imports.push(specifier); return '"virtual-bash"'; });
+    assert.ok(imports.length); await write(path.join(fixtureRoot, name), text); migrations.push({ path: name, originalSha256: row.sha256, routedSha256: sha(Buffer.from(text)), imports, onlyImportRouting: true });
+  }
+  receipt.maintainedImportRouting = migrations;
+  const compiled = await child('maintained-fixture-compile', process.execPath, [compiler, '--strict', '--noUncheckedIndexedAccess', '--exactOptionalPropertyTypes', '--target', 'ES2023', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--pretty', 'false', '--rootDir', fixtureRoot, '--outDir', fixtureBuild, '--typeRoots', path.join(source, 'node_modules/@types'), ...fixtureSources.map(name => path.join(fixtureRoot, name))], source);
+  assert.equal(compiled.code, 0, compiled.out.toString());
+  const testFiles = manifest.fixtures.filter(row => row.path.endsWith('.ts')).map(row => path.join(fixtureBuild, row.path.replace(/\.ts$/, '.js')));
+  const driver = path.join(source, '__canonical-driver.mjs');
+  await write(driver, 'import cp from "node:child_process"; import { syncBuiltinESMExports } from "node:module"; let calls=0; for(const key of ["spawn","spawnSync","exec","execSync","execFile","execFileSync","fork"])cp[key]=()=>{calls++;throw Error("Native fixture execution not admitted");};syncBuiltinESMExports();process.once("beforeExit",()=>{if(calls)process.exitCode=78;});\n' + testFiles.map(file => 'await import(' + JSON.stringify('file://' + file) + ');').join('\n'));
+  const canonicalInputs = await inventory(fixtureBuild), canonicalReal = await fs.realpath(fixtureBuild); const canonicalBinding = { root: await fs.realpath(source), inputs: sourceDist, harness: [{ path: await fs.realpath(path.join(harness, 'worker-policy.mjs')), sha256: sha(await fs.readFile(path.join(harness, 'worker-policy.mjs'))) }, { path: await fs.realpath(path.join(harness, 'resources.mjs')), sha256: sha(await fs.readFile(path.join(harness, 'resources.mjs'))) }, { path: await fs.realpath(driver), sha256: sha(await fs.readFile(driver)) }, ...canonicalInputs.map(row => ({ path: path.join(canonicalReal, row.path), sha256: row.sha256 }))], trace: path.join(output, 'maintained-loads.jsonl') };
+  await write(path.join(output, 'maintained-binding.json'), JSON.stringify(canonicalBinding));
+  const maintained = await child('maintained-four-bodies', process.execPath, ['--test-reporter=tap', '--test-timeout=30000', '--loader', path.join(harness, 'loader.mjs'), driver], source, { PUBLIC_BINDING: path.join(output, 'maintained-binding.json') });
+  const tapCount = name => Number(maintained.out.toString().match(new RegExp('^# ' + name + ' ([0-9]+)$', 'm'))?.[1]);
+  const maintainedResult = { code: maintained.code, tests: tapCount('tests'), pass: tapCount('pass'), fail: tapCount('fail'), skipped: tapCount('skipped'), cancelled: tapCount('cancelled') }; receipt.maintained = maintainedResult;
+  assert.ok(Number.isSafeInteger(maintainedResult.tests) && maintainedResult.tests > 0); if (maintained.code !== 0 || maintainedResult.fail || maintainedResult.skipped || maintainedResult.cancelled) receipt.failures.push({ label: 'maintained-four-bodies', ...maintainedResult });
+  const stream = await run('maintained-stream-consumer', movedRoot, 'stream-consumer.mjs'); const streamOut = stream.out.toString(); const streamResult = { code: stream.code, tests: Number(streamOut.match(/^# tests ([0-9]+)$/m)?.[1]), pass: Number(streamOut.match(/^# pass ([0-9]+)$/m)?.[1]), fail: Number(streamOut.match(/^# fail ([0-9]+)$/m)?.[1]) }; receipt.streamConsumer = streamResult; assert.ok(Number.isSafeInteger(streamResult.tests) && streamResult.tests > 0); if (stream.code !== 0 || streamResult.fail) receipt.failures.push({ label: 'maintained-stream-consumer', ...streamResult });
+  const mutant = path.join(output, 'registration-mutant'); await write(path.join(mutant, 'package.json'), '{"private":true,"type":"module"}\n'); const mutantRoot = path.join(mutant, 'node_modules/virtual-bash');
+  for (const row of tarRows) await write(path.join(mutantRoot, row.path), await fs.readFile(path.join(movedRoot, row.path)), row.mode); await setupConsumer(mutantRoot, 'mutant');
+  const target = path.join(mutantRoot, 'dist/plugins/index.js'), original = await fs.readFile(target, 'utf8'), marker = '...createGitCommands({ ...options.git, replace: false })'; assert.equal(original.split(marker).length, 2); await fs.writeFile(target, original.replace(marker, '...[]'));
+  const omission = await run('registration-mutant', mutantRoot, 'public.mjs', { PUBLIC_CASE: 'G02-exact80' }); const omittedCases = JSON.parse(await fs.readFile(path.join(output, 'registration-mutant-cases.json'))); const detected = omission.code === 1 && omittedCases.fail === 1 && omittedCases.cases[0].id === 'G02-exact80'; receipt.controls.push({ name: 'registration-omission', detected, candidateArtifactSha256: sha(Buffer.from(original)), mutantArtifactSha256: sha(await fs.readFile(target)) }); if (!detected) receipt.failures.push({ label: 'registration-omission', omittedCases });
+  await fs.writeFile(target, original); const restored = await run('registration-restored', mutantRoot, 'public.mjs', { PUBLIC_CASE: 'G02-exact80' }); assert.equal(sha(await fs.readFile(target)), tarRows.find(row => row.path === 'dist/plugins/index.js').sha256); receipt.controls.push({ name: 'registration-restored', pass: restored.code === 0 }); if (restored.code !== 0) receipt.failures.push({ label: 'registration-restored' });
+  for (const kind of ['missing', 'changed', 'outside']) {
+    const result = await run('binding-' + kind, movedRoot, 'public.mjs', {}, binding => { if (kind === 'outside') binding.root += '/not-candidate'; else { const name = kind === 'missing' ? 'index.js' : 'commands/git/index.js'; if (kind === 'missing') binding.inputs = binding.inputs.filter(row => row.path !== name); else binding.inputs.find(row => row.path === name).sha256 = '0'.repeat(64); } }); assert.equal(result.code, 1); assert.match(result.err.toString(), /package (binding missing member|hash mismatch|outside authenticated compiled root)/); receipt.controls.push({ name: 'binding-' + kind, pass: true });
+  }
+  const packagePath = path.join(mutantRoot, 'package.json'), packageText = await fs.readFile(packagePath, 'utf8'), packageData = JSON.parse(packageText); delete packageData.exports['./commands/git']; await fs.writeFile(packagePath, JSON.stringify(packageData));
+  const noExport = await run('missing-explicit-export', mutantRoot, 'public.mjs'); assert.equal(noExport.code, 1); assert.match(noExport.err.toString(), /ERR_PACKAGE_PATH_NOT_EXPORTED/); receipt.controls.push({ name: 'missing-explicit-export', pass: true }); await fs.writeFile(packagePath, packageText);
+  const exportRestored = await run('explicit-export-restored', mutantRoot, 'public.mjs', { PUBLIC_CASE: 'G01-public-exports' }); assert.equal(exportRestored.code, 0); receipt.controls.push({ name: 'explicit-export-restored', pass: true });
+  const rootIndex = path.join(mutantRoot, 'dist/index.js'), rootText = await fs.readFile(rootIndex, 'utf8'), rootLine = 'export * from "./commands/git/index.js";'; assert.equal(rootText.split(rootLine).length, 2);
+  await fs.writeFile(rootIndex, rootText.replace(rootLine, ''));
+  const rootMissing = await run('root-export-mutant', mutantRoot, 'public.mjs', { PUBLIC_CASE: 'G01-public-exports' }); assert.equal(rootMissing.code, 1); assert.ok(rootMissing.out.toString().includes('G01-public-exports')); receipt.controls.push({ name: 'root-export-mutant', pass: true });
+  await fs.writeFile(rootIndex, rootText);
+  const rootRestored = await run('root-export-restored', mutantRoot, 'public.mjs', { PUBLIC_CASE: 'G01-public-exports' }); assert.equal(rootRestored.code, 0); receipt.controls.push({ name: 'root-export-restored', pass: true });
+  assert.deepEqual(await inventory(path.join(source, 'src')), sourceBefore); assert.deepEqual(await inventory(path.join(source, 'dist')), sourceDist); assert.deepEqual(await inventory(movedRoot), [...tarRows].sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+  for (const row of manifest.inputs) assert.equal(sha(await fs.readFile(path.join(source, row.path))), row.sha256);
+  receipt.status = receipt.failures.length ? 'INDEPENDENT_ASSERTION_FAILURES' : 'INDEPENDENT_SCOPED_PASS';
+} catch (error) { receipt.status = 'FAILED_OR_INCOMPLETE'; receipt.error = String(error?.stack ?? error); }
+receipt.elapsedMs = Date.now() - started;
+receipt.qualification = 'Scoped public Git80 author composition only; no module reacceptance, native/private/network, whole gate, hard preemption or global resource census. Maintained fixture body imports routed to authenticated built package; historical fixed cohorts unchanged.'; receipt.captureBytes = captured; receipt.scratchWriteBytes = written;
+receipt.actualScratchBytes = await scratchBytes();
+receipt.cleanup = { directChildren: childCount, observedProductWorkers: workerCount, internalLoaderAdmissions: loaderReservations, internalWorkerExitEventsObserved: false, boundedOwnedTotal: childCount + workerCount + loaderReservations, allClosed: receipt.children.every(row => row.closed), signals: receipt.children.flatMap(row => row.signals), noGlobalDescendantClaim: true };
+await save(); console.log(JSON.stringify({ output, status: receipt.status, failures: receipt.failures.length, package: receipt.package?.sha256 }));
+process.exitCode = receipt.status === 'INDEPENDENT_SCOPED_PASS' ? 0 : 1;
+
+0df32688f37e4dfffb9ca98d76836a1299f1115d blob 1445
+import assert from 'node:assert/strict';
+export function ownData(value, keys) {
+  assert.ok(value !== null && typeof value === 'object');
+  const descriptors = Object.getOwnPropertyDescriptors(value), actual = Reflect.ownKeys(descriptors);
+  assert.ok(actual.every(key => typeof key === 'string')); assert.deepEqual(actual.sort(), [...keys].sort());
+  for (const key of keys) assert.ok(Object.hasOwn(descriptors[key], 'value'), 'accessor refused');
+  return Object.fromEntries(keys.map(key => [key, descriptors[key].value]));
+}
+export function admitWorker(entry, expected, options, created, live, allowance) {
+  assert.equal(typeof entry, 'string'); assert.equal(entry, expected);
+  assert.ok(Number.isSafeInteger(allowance) && allowance >= 0 && allowance <= 32);
+  assert.ok(Number.isSafeInteger(created) && created >= 0 && created < allowance);
+  assert.ok(Number.isSafeInteger(live) && live >= 0 && live < 2);
+  const fields = ownData(options, ['execArgv', 'resourceLimits']); assert.ok(Array.isArray(fields.execArgv));
+  assert.equal(ownData(fields.execArgv, ['length']).length, 0);
+  const limits = ownData(fields.resourceLimits, ['maxOldGenerationSizeMb', 'stackSizeMb']);
+  assert.equal(limits.maxOldGenerationSizeMb, 128); assert.equal(limits.stackSizeMb, 4); return true;
+}
+export function terminalVerdict(code, signal, live, complete, pass) { return code === 0 && signal === null && live === 0 && complete === true && pass === true; }
+

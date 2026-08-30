@@ -1,0 +1,191 @@
+{
+  "pass": true,
+  "sourceCommit": "b1939d7",
+  "time": "2026-08-27T06:07:19.348Z",
+  "identities": {
+    "src/index.ts": "59feca270ddb39073148032b6d53225b932979faaeb5f244158eff44bd347ff2",
+    "src/commands/index.ts": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+    "src/commands/grep.ts": "529c84fa5b3a603881fc0844691f2b2c3bd1e9e9cba13fd3bf80a51ad3072f74",
+    "src/commands/search/matcher.ts": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+    "src/commands/search/options.ts": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+    "src/commands/search/rg.ts": "6c7f37b46f491b3567b32cd673654d398e3749c4f17689154ac15c67700d69a6",
+    "src/commands/regex-execution/client.ts": "e34c7d7e9ea0a4e1e8a6faef102c4553b0a7a21461f33066e3fdbb57f81f071d",
+    "src/commands/regex-execution/worker.ts": "75ecf3769458cb67872ad8b560491cff28e4735b9f0005a508565d520da709ea",
+    "src/commands/regex-execution/protocol.ts": "90abb84b235d6828d4194ea4a749910d128f66387a083767d153c680b9eeac33",
+    "src/commands/regex-execution/matching.ts": "cae9d51946013e8ea98c80b764c210dcdc2fb7fabb44d5b94bef851eeeb55497"
+  },
+  "packageArchiveSha256": "31ed4fbddc7c22b00fb9acb0d5213c8be08a323e4cb0a9079970278b2c48c4dd",
+  "immutableHistoricalArtifacts": 659,
+  "graph": [
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "./protocol.js"
+      ],
+      "dynamicRegExpConstructionLines": []
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "imports": [
+        "node:buffer",
+        "./protocol.js"
+      ],
+      "dynamicRegExpConstructionLines": [
+        55,
+        72,
+        144
+      ]
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "imports": [],
+      "dynamicRegExpConstructionLines": []
+    }
+  ],
+  "reports": {
+    "existing-initial.tap": {
+      "sha256": "98d37660991589baa2a8ec78f41f695775047ca0833d023d7e83145782371a6b",
+      "counts": {
+        "tests": 111,
+        "pass": 111,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "executor-initial.tap": {
+      "sha256": "3c84c44b994b65c8888c2d41df06920aa0778214a51703dbd81496776fd1a33e",
+      "counts": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "commands-initial.tap": {
+      "sha256": "7470875842d42015aab21936c4298bce5477aeec8564289f2dae3154d1a4136b",
+      "counts": {
+        "tests": 30,
+        "pass": 29,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "author-second.tap": {
+      "sha256": "1c7cb2eb677e62af95fa6226f7d886cc72860d07c7c662bf6ec30d500d78e5e2",
+      "counts": {
+        "tests": 43,
+        "pass": 43,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "scoped-third.tap": {
+      "sha256": "25842294b0b595db4bb54ae202e55c4511b001216b5cdeba727942a2991eb91f",
+      "counts": {
+        "tests": 718,
+        "pass": 718,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "batch-budget-before.tap": {
+      "sha256": "f508b31778f577ed94401ac3c684b69593f98495b0e336f9014a697e60c9336a",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "batch-budget-after.tap": {
+      "sha256": "5207171e721c22dab4abbb1deb07b5f46ca89eab438dd7213f5c7c55619f1a07",
+      "counts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "scoped-final.tap": {
+      "sha256": "f76f63bf2468fab3a1bf25d4a2cbbe6505ac33833cee78e7f1ad5b1859d9266e",
+      "counts": {
+        "tests": 726,
+        "pass": 726,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "early-stop-before.tap": {
+      "sha256": "c32be059f38440ad62f61523c9ac86cc32ae92fb4b187694e3f6c94452005628",
+      "counts": {
+        "tests": 4,
+        "pass": 0,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "early-stop-after.tap": {
+      "sha256": "79362809344e0dddd3517ca4fd077b769fdafe1df38b205246059d56850d1f8a",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "scoped-handoff.tap": {
+      "sha256": "345d428bb69e6d43c5bf4113e91ab2b115093eba3db3261131d909ee05f58b93",
+      "counts": {
+        "tests": 730,
+        "pass": 730,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  },
+  "packageWorkers": 8,
+  "packageActiveWorkers": 0,
+  "pathological": {
+    "historical": "12 archived, untouched",
+    "priorRevisionAuthor": 0,
+    "productionAuthor": 0,
+    "productionAuthorMaximum": 2,
+    "independentMaximum": 4
+  },
+  "residualHostRegExp": [
+    "src/commands/search/glob.ts:57 constructor",
+    "src/commands/search/glob.ts:61/64 matches",
+    "src/commands/search/walk.ts CLI/ignore-file call sites"
+  ],
+  "limitations": [
+    "Scoped AST/import audit plus dynamic host-construction tripwire, not a general JS sandbox proof",
+    "Root instructed no edits to glob/walk; broad untrusted-regex/default acceptance remains blocked",
+    "No dangerous baseline or default 1000ms pathological deadline measurement",
+    "Other-owner global typecheck diagnostic retained; scoped types/build pass",
+    "Ignored package artifacts intentionally retained; no unrelated/native artifacts removed"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "m1b-decoder-v3-source-denial-v1",
+  "classification": "HARNESS_PRESEAL_MODE_DOMAIN_ERROR_NOT_PRODUCT_FINDING",
+  "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "recipe": "98cbfd6cfea24483a2b32ffd0f696971e59b8e588aa6ba82f81214afc50f5a72",
+  "finalSeal": "753dec0aa57020e60017c5652fd78c27de8478d26d91625227be4288b6e8579f",
+  "path": "decoder-v3/DATA-01/492.json",
+  "expected": {
+    "path": "decoder-v3/DATA-01/492.json",
+    "mode": 420,
+    "bytes": 22044,
+    "sha256": "ea3ad544c34d02c7f68cffc04af54d47236ba7990e7d00918e4a0a50b6a1af7c"
+  },
+  "observed": {
+    "mode": 384,
+    "bytes": 22044,
+    "sha256": "ea3ad544c34d02c7f68cffc04af54d47236ba7990e7d00918e4a0a50b6a1af7c"
+  },
+  "originalDecoderSealRow": {
+    "path": "DATA-01/492.json",
+    "mode": 384,
+    "bytes": 22044,
+    "sha256": "ea3ad544c34d02c7f68cffc04af54d47236ba7990e7d00918e4a0a50b6a1af7c"
+  },
+  "sourceCheckResult": {
+    "path": "source-observations/RESULT.json",
+    "bytes": 374,
+    "sha256": "0bc9c655c93808994e1351a07e1d86613250413490f3c0780f780538657fccb9"
+  },
+  "counts": {
+    "dataChecksPassed": 245,
+    "sourceCheckControllerProcesses": 1,
+    "metadataChildren": 0,
+    "productLoads": 0,
+    "compilerRuns": 0,
+    "actualCalls": 0,
+    "unfulfilledCalls": 274,
+    "S01Unfulfilled": 21
+  },
+  "ownership": {
+    "processRetired": true,
+    "actualRunRootCreated": false,
+    "actualRouteCreated": false,
+    "noModeChanges": true,
+    "noRetry": true,
+    "rawCapturesPreserved": true
+  },
+  "decision": "STOP; need narrow versioned preseal POSIX-mode correction authority before another admission or actual run"
+}

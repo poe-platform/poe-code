@@ -1,0 +1,1082 @@
+480:#endif
+481:#if defined (SELECT_COMMAND)
+482:    case cm_select:
+483:#endif
+484:#if defined (DPAREN_ARITHMETIC)
+485:    case cm_arith:
+486:#endif
+487:#if defined (COND_COMMAND)
+488:    case cm_cond:
+489:#endif
+490:    case cm_case:
+491:    case cm_while:
+492:    case cm_until:
+493:    case cm_if:
+494:    case cm_for:
+495:    case cm_group:
+496:    case cm_function_def:
+497:      return (1);
+498:
+499:    default:
+500:      return (0);
+501:    }
+502:}
+503:
+504:/* A function to use to unwind_protect the redirection undo list
+505:   for loops. */
+506:static void
+507:cleanup_redirects (REDIRECT *list)
+508:{
+509:  do_redirections (list, RX_ACTIVE);
+510:  dispose_redirects (list);
+511:}
+512:
+642:  QUIT;
+643:  run_pending_traps ();
+644:
+645:#if 0
+646:  if (running_trap == 0)
+647:#endif
+648:    currently_executing_command = command;
+649:
+650:  invert = (command->flags & CMD_INVERT_RETURN) != 0;
+651:
+652:  /* If we're inverting the return value and `set -e' has been executed,
+653:     we don't want a failing command to inadvertently cause the shell
+654:     to exit. */
+655:  if (exit_immediately_on_error && invert)	/* XXX */
+656:    command->flags |= CMD_IGNORE_RETURN;	/* XXX */
+657:
+658:  exec_result = EXECUTION_SUCCESS;
+659:
+660:  /* If a command was being explicitly run in a subshell, or if it is
+661:     a shell control-structure, and it has a pipe, then we do the command
+662:     in a subshell. */
+663:  if (command->type == cm_subshell && (command->flags & CMD_NO_FORK))
+664:    return (execute_in_subshell (command, asynchronous, pipe_in, pipe_out, fds_to_close));
+665:
+666:#if defined (COPROCESS_SUPPORT)
+667:  if (command->type == cm_coproc)
+668:    return (last_command_exit_value = execute_coproc (command, pipe_in, pipe_out, fds_to_close));
+669:#endif
+670:
+671:  user_subshell = command->type == cm_subshell || ((command->flags & CMD_WANT_SUBSHELL) != 0);
+672:
+673:#if defined (TIME_BEFORE_SUBSHELL)
+674:  if ((command->flags & CMD_TIME_PIPELINE) && user_subshell && asynchronous == 0)
+749:	  if (pipe_out != NO_PIPE)
+750:	    return (EXECUTION_SUCCESS);
+751:
+752:	  stop_pipeline (asynchronous, (COMMAND *)NULL);
+753:
+754:	  if (asynchronous == 0)
+755:	    {
+756:	      was_error_trap = signal_is_trapped (ERROR_TRAP) && signal_is_ignored (ERROR_TRAP) == 0;
+757:	      invert = (command->flags & CMD_INVERT_RETURN) != 0;
+758:	      ignore_return = (command->flags & CMD_IGNORE_RETURN) != 0;
+759:
+760:	      exec_result = wait_for (paren_pid, 0);
+761:
+762:	      /* If we have to, invert the return value. */
+763:	      if (invert)
+764:		exec_result = ((exec_result == EXECUTION_SUCCESS)
+765:				? EXECUTION_FAILURE
+766:				: EXECUTION_SUCCESS);
+767:
+768:	      last_command_exit_value = exec_result;
+769:	      if (user_subshell && was_error_trap && ignore_return == 0 && invert == 0 && exec_result != EXECUTION_SUCCESS)
+770:		{
+771:		  save_line_number = line_number;
+772:		  line_number = line_number_for_err_trap;
+773:		  run_error_trap ();
+774:		  line_number = save_line_number;
+775:		}
+776:
+777:	      if (user_subshell && ignore_return == 0 && invert == 0 && exit_immediately_on_error && exec_result != EXECUTION_SUCCESS)
+778:		{
+779:		  /* Update BASH_COMMAND before running any traps,
+780:		     including the exit trap, since we are going to exit
+781:		     the shell. */
+782:		  if (signal_in_progress (DEBUG_TRAP) == 0 && running_trap == 0)
+783:		    {
+784:		      FREE (the_printed_command_except_trap);
+785:		      the_printed_command_except_trap = savestring (the_printed_command);
+786:		    }
+787:		  run_pending_traps ();
+788:		  jump_to_top_level (ERREXIT);
+789:		}
+790:
+791:	      return (last_command_exit_value);
+792:	    }
+793:	  else
+794:	    {
+795:	      DESCRIBE_PID (paren_pid);
+796:
+797:	      run_pending_traps ();
+798:
+799:	      /* Posix 2013 2.9.3.1: "the exit status of an asynchronous list
+800:		 shall be zero." */
+801:	      last_command_exit_value = 0;
+860:	{
+861:	  free (ofifo_list);
+862:          discard_unwind_frame ("internal_fifos");
+863:	}
+864:#endif
+865:
+866:      /* Handle redirection error as command failure if errexit set. */
+867:      last_command_exit_value = EXECUTION_FAILURE;
+868:      if (ignore_return == 0 && invert == 0 && pipe_in == NO_PIPE && pipe_out == NO_PIPE)
+869:	{
+870:	  if (was_error_trap)
+871:	    {
+872:	      save_line_number = line_number;
+873:	      line_number = line_number_for_err_trap;
+874:	      run_error_trap ();
+875:	      line_number = save_line_number;
+876:	    }
+877:	  if (exit_immediately_on_error)
+878:	    {	  
+879:	      run_pending_traps ();
+880:	      jump_to_top_level (ERREXIT);
+881:	    }
+882:	}
+883:      return (last_command_exit_value);
+884:    }
+885:
+886:  my_undo_list = redirection_undo_list;
+887:  redirection_undo_list = (REDIRECT *)NULL;
+888:
+889:  exec_undo_list = exec_redirection_undo_list;
+890:  exec_redirection_undo_list = (REDIRECT *)NULL;
+891:
+892:  if (my_undo_list || exec_undo_list)
+961:	if (already_making_children && pipe_out == NO_PIPE)
+962:	  {
+963:	    stop_pipeline (asynchronous, (COMMAND *)NULL);
+964:
+965:	    if (asynchronous)
+966:	      {
+967:		DESCRIBE_PID (last_made_pid);
+968:		exec_result = EXECUTION_SUCCESS;
+969:		invert = 0;		/* async commands always succeed */
+970:	      }
+971:	    else
+972:#if !defined (JOB_CONTROL)
+973:	      /* Do not wait for asynchronous processes started from
+974:		 startup files. */
+975:	    if (last_made_pid != NO_PID && last_made_pid != last_asynchronous_pid)
+976:#else
+977:	    if (last_made_pid != NO_PID)
+978:#endif
+979:	    /* When executing a shell function that executes other
+980:	       commands, this causes the last simple command in
+981:	       the function to be waited for twice.  This also causes
+982:	       subshells forked to execute builtin commands (e.g., in
+983:	       pipelines) to be waited for twice. */
+984:	      exec_result = wait_for (last_made_pid, 0);
+985:	  }
+986:      }
+987:
+988:      /* 2009/02/13 -- pipeline failure is processed elsewhere.  This handles
+989:	 only the failure of a simple command. We don't want to run the error
+990:	 trap if the command run by the `command' builtin fails; we want to
+991:	 defer that until the command builtin itself returns failure. */
+992:      /* 2020/07/14 -- this changes with how the command builtin is handled */ 
+993:      if (was_error_trap && ignore_return == 0 && invert == 0 &&
+994:	    pipe_in == NO_PIPE && pipe_out == NO_PIPE &&
+995:	    (command->value.Simple->flags & CMD_COMMAND_BUILTIN) == 0 &&
+996:	    exec_result != EXECUTION_SUCCESS)
+997:	{
+998:	  last_command_exit_value = exec_result;
+999:	  line_number = line_number_for_err_trap;
+1000:	  run_error_trap ();
+1001:	  line_number = save_line_number;
+1002:	}
+1003:
+1004:      if (ignore_return == 0 && invert == 0 &&
+1005:	  ((posixly_correct && interactive == 0 && special_builtin_failed) ||
+1006:	   (exit_immediately_on_error && pipe_in == NO_PIPE && pipe_out == NO_PIPE && exec_result != EXECUTION_SUCCESS)))
+1007:	{
+1008:	  last_command_exit_value = exec_result;
+1009:	  run_pending_traps ();
+1010:
+1011:	  /* Undo redirections before running exit trap on the way out of
+1012:	     set -e. Report by Mark Farrell 5/19/2014 */
+1013:	  if (exit_immediately_on_error && signal_is_trapped (0) &&
+1014:		unwind_protect_tag_on_stack ("saved-redirects"))
+1015:	    run_unwind_frame ("saved-redirects");
+1016:
+1017:	  jump_to_top_level (ERREXIT);
+1018:	}
+1019:
+1020:      break;
+1021:
+1022:    case cm_for:
+1023:      if (ignore_return || invert)
+1024:	command->value.For->flags |= CMD_IGNORE_RETURN;
+1025:      exec_result = execute_for_command (command->value.For);
+1026:      break;
+1027:
+1028:#if defined (ARITH_FOR_COMMAND)
+1112:				      fds_to_close);
+1113:	}
+1114:      break;
+1115:
+1116:    case cm_connection:
+1117:      exec_result = execute_connection (command, asynchronous,
+1118:					pipe_in, pipe_out, fds_to_close);
+1119:      if (asynchronous)
+1120:	invert = 0;		/* XXX */
+1121:
+1122:      break;
+1123:
+1124:#if defined (DPAREN_ARITHMETIC)
+1125:    case cm_arith:
+1126:#endif
+1127:#if defined (COND_COMMAND)
+1128:    case cm_cond:
+1129:#endif
+1130:    case cm_function_def:
+1131:      was_error_trap = signal_is_trapped (ERROR_TRAP) && signal_is_ignored (ERROR_TRAP) == 0;
+1132:#if defined (DPAREN_ARITHMETIC)
+1133:      if (ignore_return && command->type == cm_arith)
+1134:	command->value.Arith->flags |= CMD_IGNORE_RETURN;
+1135:#endif
+1136:#if defined (COND_COMMAND)
+1137:      if (ignore_return && command->type == cm_cond)
+1138:	command->value.Cond->flags |= CMD_IGNORE_RETURN;
+1139:#endif
+1140:
+1141:      line_number_for_err_trap = save_line_number = line_number;	/* XXX */
+1142:      begin_unwind_frame ("misc_compound");
+1143:      add_unwind_protect (uw_restore_lineno, (void *) (intptr_t) save_line_number);
+1144:
+1145:#if defined (DPAREN_ARITHMETIC)
+1146:      if (command->type == cm_arith)
+1147:	exec_result = execute_arith_command (command->value.Arith);
+1148:      else
+1149:#endif
+1150:#if defined (COND_COMMAND)
+1151:      if (command->type == cm_cond)
+1152:	exec_result = execute_cond_command (command->value.Cond);
+1153:      else
+1154:#endif
+1155:      if (command->type == cm_function_def)
+1156:	exec_result = execute_intern_function (command->value.Function_def->name,
+1157:					       command->value.Function_def);
+1158:      line_number = save_line_number;
+1159:      discard_unwind_frame ("misc_compound");
+1160:
+1161:      if (was_error_trap && ignore_return == 0 && invert == 0 && exec_result != EXECUTION_SUCCESS)
+1162:	{
+1163:	  last_command_exit_value = exec_result;
+1164:	  save_line_number = line_number;
+1165:	  line_number = line_number_for_err_trap;
+1166:	  run_error_trap ();
+1167:	  line_number = save_line_number;
+1168:	}
+1169:
+1170:      if (ignore_return == 0 && invert == 0 && exit_immediately_on_error && exec_result != EXECUTION_SUCCESS)
+1171:	{
+1172:	  last_command_exit_value = exec_result;
+1173:	  run_pending_traps ();
+1174:	  jump_to_top_level (ERREXIT);
+1175:	}
+1176:
+1177:      break;
+1178:
+1179:    default:
+1180:      command_error ("execute_command", CMDERR_BADTYPE, command->type, 0);
+1181:    }
+1182:
+1183:  if (my_undo_list)
+1184:    cleanup_redirects (my_undo_list);
+1185:
+1186:  if (exec_undo_list)
+1187:    dispose_redirects (exec_undo_list);
+1188:
+1189:  if (my_undo_list || exec_undo_list)
+1190:    discard_unwind_frame ("loop_redirections");
+1191:
+1192:#if defined (PROCESS_SUBSTITUTION)
+1193:  if (saved_fifo)
+1194:    {
+1196:      if (nfifo > ofifo)
+1197:	close_new_fifos (ofifo_list, osize);
+1198:      free (ofifo_list);
+1199:      discard_unwind_frame ("internal_fifos");
+1200:    }
+1201:#endif
+1202:
+1203:  /* Invert the return value if we have to */
+1204:  if (invert)
+1205:    exec_result = (exec_result == EXECUTION_SUCCESS)
+1206:		    ? EXECUTION_FAILURE
+1207:		    : EXECUTION_SUCCESS;
+1208:
+1209:#if defined (DPAREN_ARITHMETIC) || defined (COND_COMMAND)
+1210:  /* This is where we set PIPESTATUS from the exit status of the appropriate
+1211:     compound commands (the ones that look enough like simple commands to
+1212:     cause confusion).  We might be able to optimize by not doing this if
+1213:     subshell_environment != 0. */
+1214:  switch (command->type)
+1215:    {
+1216:#  if defined (DPAREN_ARITHMETIC)
+1217:    case cm_arith:
+1218:#  endif
+1219:#  if defined (COND_COMMAND)
+1220:    case cm_cond:
+1221:#  endif
+1222:      set_pipestatus_from_exit (exec_result);
+1223:      break;
+1224:    default:
+1225:      break;
+1226:    }
+1227:#endif
+1228:
+1229:  last_command_exit_value = exec_result;
+1230:  run_pending_traps ();
+1231:  currently_executing_command = (COMMAND *)NULL;
+1232:
+1233:  return (last_command_exit_value);
+1234:}
+1235:
+1236:#if defined (COMMAND_TIMING)
+1237:
+1238:#if defined (HAVE_GETRUSAGE) && defined (HAVE_GETTIMEOFDAY)
+1239:extern struct timeval *difftimeval (struct timeval *, struct timeval *, struct timeval *);
+1240:extern struct timeval *addtimeval (struct timeval *, struct timeval *, struct timeval *);
+1241:extern int timeval_to_cpu (struct timeval *, struct timeval *, struct timeval *);
+1242:#endif
+1243:
+1244:#define POSIX_TIMEFORMAT "real %2R\nuser %2U\nsys %2S"
+1585:  USE_VAR(tcom);
+1586:  USE_VAR(asynchronous);
+1587:
+1588:  subshell_level++;
+1589:  should_redir_stdin = (asynchronous && (command->flags & CMD_STDIN_REDIR) &&
+1590:			  pipe_in == NO_PIPE &&
+1591:			  stdin_redirects (command->redirects) == 0);
+1592:
+1593:  invert = (command->flags & CMD_INVERT_RETURN) != 0;
+1594:  user_subshell = command->type == cm_subshell || ((command->flags & CMD_WANT_SUBSHELL) != 0);
+1595:  user_coproc = command->type == cm_coproc;
+1596:
+1597:  command->flags &= ~(CMD_FORCE_SUBSHELL | CMD_WANT_SUBSHELL | CMD_INVERT_RETURN);
+1598:
+1599:  /* If a command is asynchronous in a subshell (like ( foo ) & or
+1600:     the special case of an asynchronous GROUP command where the
+1601:     subshell bit is turned on down in case cm_group: above),
+1602:     turn off `asynchronous', so that two subshells aren't spawned.
+1603:     XXX - asynchronous used to be set to 0 in this block, but that
+1604:     means that setup_async_signals was never run.  Now it's set to
+1605:     0 after subshell_environment is set appropriately and setup_async_signals
+1606:     is run.
+1607:
+1608:     This seems semantically correct to me.  For example,
+1609:     ( foo ) & seems to say ``do the command `foo' in a subshell
+1610:     environment, but don't wait for that subshell to finish'',
+1611:     and "{ foo ; bar ; } &" seems to me to be like functions or
+1612:     builtins in the background, which executed in a subshell
+1613:     environment.  I just don't see the need to fork two subshells. */
+1614:
+1615:  /* Don't fork again, we are already in a subshell.  A `doubly
+1616:     async' shell is not interactive, however. */
+1617:  if (asynchronous)
+1783:  if (command->flags & CMD_TIME_POSIX)
+1784:    tcom->flags |= CMD_TIME_POSIX;
+1785:  
+1786:  /* Make sure the subshell inherits any CMD_IGNORE_RETURN flag. */
+1787:  if ((command->flags & CMD_IGNORE_RETURN) && tcom != command)
+1788:    tcom->flags |= CMD_IGNORE_RETURN;
+1789:  /* If the subshell's return value is being inverted, ignore set -e even
+1790:     if the subshell enables it. */
+1791:  if (invert)
+1792:    tcom->flags |= CMD_IGNORE_RETURN;
+1793:
+1794:  /* If this is a simple command, tell execute_disk_command that it
+1795:     might be able to get away without forking and simply exec.
+1796:     This means things like ( sleep 10 ) will only cause one fork.
+1797:     If we're timing the command or inverting its return value, however,
+1798:     we cannot do this optimization. */
+1799:  if ((user_subshell || user_coproc) && (tcom->type == cm_simple || tcom->type == cm_subshell) &&
+1800:      ((tcom->flags & CMD_TIME_PIPELINE) == 0) &&
+1801:      ((tcom->flags & CMD_INVERT_RETURN) == 0))
+1802:    {
+1803:      tcom->flags |= CMD_NO_FORK;
+1804:      if (tcom->type == cm_simple)
+1805:	tcom->value.Simple->flags |= CMD_NO_FORK;
+1806:    }
+1807:
+1808:  invert = (tcom->flags & CMD_INVERT_RETURN) != 0;
+1809:  tcom->flags &= ~CMD_INVERT_RETURN;
+1810:
+1811:  result = setjmp_nosigs (top_level);
+1812:
+1813:  /* If we're inside a function while executing this subshell, we
+1814:     need to handle a possible `return'. */
+1815:  function_value = 0;
+1816:  if (return_catch_flag)
+1817:    function_value = setjmp_nosigs (return_catch);
+1818:
+1819:  /* If we're going to exit the shell, we don't want to invert the return
+1820:     status. */
+1821:  if (result == EXITPROG || result == EXITBLTIN)
+1822:    invert = 0, return_code = last_command_exit_value;
+1823:  else if (result)
+1824:    return_code = (last_command_exit_value == EXECUTION_SUCCESS) ? EXECUTION_FAILURE : last_command_exit_value;
+1825:  else if (function_value)
+1826:    return_code = return_catch_value;
+1827:  else
+1828:    return_code = execute_command_internal ((COMMAND *)tcom, asynchronous, NO_PIPE, NO_PIPE, fds_to_close);
+1829:
+1830:  /* If we are asked to, invert the return value. */
+1831:  if (invert)
+1832:    return_code = (return_code == EXECUTION_SUCCESS) ? EXECUTION_FAILURE
+1833:						     : EXECUTION_SUCCESS;
+1834:
+1835:  /* Check for terminating signals before we return to our caller, which we
+1836:     expect to exit immediately anyway. */
+1837:  CHECK_TERMSIG;
+1838:
+1839:  /* If we were explicitly placed in a subshell with (), we need
+1840:     to do the `shell cleanup' things, such as running traps[0]. */
+1841:  if (user_subshell && signal_is_trapped (0))
+1842:    {
+1843:      last_command_exit_value = return_code;
+1844:      return_code = run_exit_trap ();
+1845:    }
+1846:
+1847:#if 0
+1848:  subshell_level--;		/* don't bother, caller will just exit */
+1849:#endif
+1850:  return (return_code);
+1851:  /* NOTREACHED */
+1852:}
+1853:
+1854:#if defined (COPROCESS_SUPPORT)
+1855:#define COPROC_MAX	16
+2492:    {
+2493:      internal_warning (_("execute_coproc: coproc [%d:%s] still exists"), sh_coproc.c_pid, sh_coproc.c_name);
+2494:      oldrfd = sh_coproc.c_rfd;
+2495:      oldwfd = sh_coproc.c_wfd;
+2496:    }
+2497:  coproc_init (&sh_coproc);
+2498:#endif
+2499:
+2500:  invert = (command->flags & CMD_INVERT_RETURN) != 0;
+2501:
+2502:  /* expand name without splitting - could make this dependent on a shopt option */
+2503:  name = expand_string_unsplit_to_string (command->value.Coproc->name, 0);
+2504:  /* Optional check -- could be relaxed */
+2505:  if (valid_identifier (name) == 0)
+2506:    {
+2507:      err_invalidid (name);
+2508:      free (name);
+2509:      return (invert ? EXECUTION_SUCCESS : EXECUTION_FAILURE);
+2510:    }
+2511:  else
+2512:    {
+2513:      free (command->value.Coproc->name);
+2514:      command->value.Coproc->name = name;
+2515:    }
+2516:
+2517:  command_string_index = 0;
+2518:  tcmd = make_command_string (command);
+2519:
+2520:  sh_openpipe ((int *)&rpipe);	/* 0 = parent read, 1 = child write */
+2521:  sh_openpipe ((int *)&wpipe); /* 0 = child read, 1 = parent write */
+2522:
+2523:  BLOCK_SIGNAL (SIGCHLD, set, oset);
+2524:
+2626:  pid_t lastpid;
+2627:
+2628:#if defined (JOB_CONTROL)
+2629:  sigset_t set, oset;
+2630:  BLOCK_CHILD (set, oset);
+2631:#endif /* JOB_CONTROL */
+2632:
+2633:  ignore_return = (command->flags & CMD_IGNORE_RETURN) != 0;
+2634:  invert = (command->flags & CMD_INVERT_RETURN) != 0;
+2635:
+2636:  stdin_valid = sh_validfd (0);
+2637:
+2638:  prev = pipe_in;
+2639:  cmd = command;
+2640:
+2641:  while (cmd && cmd->type == cm_connection &&
+2642:	 cmd->value.Connection && cmd->value.Connection->connector == '|')
+2643:    {
+2644:      /* Make a pipeline between the two commands. */
+2645:      if (pipe (fildes) < 0)
+2646:	{
+2647:	  sys_error (_("pipe error"));
+2648:#if defined (JOB_CONTROL)
+2649:	  terminate_current_pipeline ();
+2650:	  kill_current_pipeline ();
+2651:	  UNBLOCK_CHILD (oset);
+2652:#endif /* JOB_CONTROL */
+2653:	  last_command_exit_value = EXECUTION_FAILURE;
+2654:	  /* The unwind-protects installed below will take care
+2655:	     of closing all of the open file descriptors. */
+2656:	  throw_to_top_level ();
+2657:	  return (EXECUTION_FAILURE);	/* XXX */
+2658:	}
+2803:    }
+2804:
+2805:  discard_unwind_frame ("lastpipe-exec");
+2806:
+2807:  return (exec_result);
+2808:}
+2809:
+2810:static int
+2811:execute_connection (COMMAND *command, int asynchronous, int pipe_in, int pipe_out, struct fd_bitmap *fds_to_close)
+2812:{
+2813:  COMMAND *tc, *second;
+2814:  int ignore_return, exec_result, was_error_trap, invert;
+2815:  volatile int save_line_number;
+2816:
+2817:  ignore_return = (command->flags & CMD_IGNORE_RETURN) != 0;
+2818:  invert = (command->flags & CMD_INVERT_RETURN) != 0;
+2819:
+2820:  switch (command->value.Connection->connector)
+2821:    {
+2822:    /* Do the first command asynchronously. */
+2823:    case '&':
+2824:      tc = command->value.Connection->first;
+2825:      if (tc == 0)
+2826:	return (EXECUTION_SUCCESS);
+2827:
+2828:      if (ignore_return)
+2829:	tc->flags |= CMD_IGNORE_RETURN;
+2830:      tc->flags |= CMD_AMPERSAND;
+2831:
+2832:      /* If this shell was compiled without job control support,
+2833:	 if we are currently in a subshell via `( xxx )', or if job
+2834:	 control is not active then the standard input for an
+2835:	 asynchronous command is forced to /dev/null. */
+2836:#if defined (JOB_CONTROL)
+2837:      if ((subshell_environment || !job_control) && !stdin_redir)
+2838:#else
+2839:      if (!stdin_redir)
+2840:#endif /* JOB_CONTROL */
+2841:	tc->flags |= CMD_STDIN_REDIR;
+2842:
+2843:      exec_result = execute_command_internal (tc, 1, pipe_in, pipe_out, fds_to_close);
+2844:      QUIT;
+2845:
+2846:      if (tc->flags & CMD_STDIN_REDIR)
+2847:	tc->flags &= ~CMD_STDIN_REDIR;
+2848:
+2849:      second = command->value.Connection->second;
+2850:      if (second)
+2851:	{
+2852:	  if (ignore_return)
+2853:	    second->flags |= CMD_IGNORE_RETURN;
+2854:
+2855:	  exec_result = execute_command_internal (second, asynchronous, pipe_in, pipe_out, fds_to_close);
+2856:	}
+2857:
+2858:      break;
+2859:
+2860:    /* Just call execute command on both sides. */
+2861:    case ';':
+2862:    case '\n':		/* special case, happens in command substitutions */
+2863:      if (ignore_return || invert)
+2864:	{
+2865:	  if (command->value.Connection->first)
+2866:	    command->value.Connection->first->flags |= CMD_IGNORE_RETURN;
+2867:	  if (command->value.Connection->second)
+2868:	    command->value.Connection->second->flags |= CMD_IGNORE_RETURN;
+2869:	}
+2870:      interrupt_execution++; retain_fifos++;
+2871:      QUIT;
+2872:
+2873:#if 1
+2874:      execute_command (command->value.Connection->first);
+2875:#else
+2876:      execute_command_internal (command->value.Connection->first,
+2877:				  asynchronous, pipe_in, pipe_out,
+2878:				  fds_to_close);
+2879:#endif
+2880:
+2881:      QUIT;
+2882:#if defined (JOB_CONTROL)
+2883:      if (command->value.Connection->connector == ';' && job_control && interactive && posixly_correct == 0)
+2884:        notify_and_cleanup (-1);
+2885:#endif
+2886:      optimize_connection_fork (command);			/* XXX */
+2887:      exec_result = execute_command_internal (command->value.Connection->second,
+2888:				      asynchronous, pipe_in, pipe_out,
+2889:				      fds_to_close);
+2890:      interrupt_execution--; retain_fifos--;
+2891:      break;
+2892:
+2893:    case '|':
+2894:      was_error_trap = signal_is_trapped (ERROR_TRAP) && signal_is_ignored (ERROR_TRAP) == 0;
+2895:      SET_LINE_NUMBER (line_number);	/* XXX - save value? */
+2896:      exec_result = execute_pipeline (command, asynchronous, pipe_in, pipe_out, fds_to_close);
+2897:
+2898:      if (asynchronous)
+2899:	{
+2900:	  exec_result = EXECUTION_SUCCESS;
+2901:	  invert = 0;
+2902:	}
+2903:
+2904:      if (was_error_trap && ignore_return == 0 && invert == 0 && exec_result != EXECUTION_SUCCESS)
+2905:	{
+2906:	  last_command_exit_value = exec_result;
+2907:	  save_line_number = line_number;
+2908:	  line_number = line_number_for_err_trap;
+2909:	  run_error_trap ();
+2910:	  line_number = save_line_number;
+2911:	}
+2912:
+2913:      if (ignore_return == 0 && invert == 0 && exit_immediately_on_error && exec_result != EXECUTION_SUCCESS)
+2914:	{
+2915:	  last_command_exit_value = exec_result;
+2916:	  run_pending_traps ();
+2917:	  jump_to_top_level (ERREXIT);
+2918:	}
+2919:
+2920:      break;
+2921:
+2922:    case AND_AND:
+2923:    case OR_OR:
+2924:      if (asynchronous)
+2925:	{
+2926:	  /* If we have something like `a && b &' or `a || b &', run the
+2927:	     && or || stuff in a subshell.  Force a subshell and just call
+2928:	     execute_command_internal again.  Leave asynchronous on
+2929:	     so that we get a report from the parent shell about the
+2930:	     background job. */
+2931:	  command->flags |= CMD_FORCE_SUBSHELL;
+2932:	  exec_result = execute_command_internal (command, 1, pipe_in, pipe_out, fds_to_close);
+2933:	  break;
+2934:	}
+2935:
+2936:      /* Execute the first command.  If the result of that is successful
+2937:	 and the connector is AND_AND, or the result is not successful
+2938:	 and the connector is OR_OR, then execute the second command,
+2939:	 otherwise return. */
+2940:
+2941:      interrupt_execution++; retain_fifos++;
+2942:      if (command->value.Connection->first)
+2943:	command->value.Connection->first->flags |= CMD_IGNORE_RETURN;
+2944:
+2945:#if 1
+2946:      exec_result = execute_command (command->value.Connection->first);
+2947:#else
+2948:      exec_result = execute_command_internal (command->value.Connection->first, 0, NO_PIPE, NO_PIPE, fds_to_close);
+2949:#endif
+2950:      QUIT;
+2951:      if (((command->value.Connection->connector == AND_AND) &&
+2952:	   (exec_result == EXECUTION_SUCCESS)) ||
+2953:	  ((command->value.Connection->connector == OR_OR) &&
+2954:	   (exec_result != EXECUTION_SUCCESS)))
+2955:	{
+2956:	  optimize_connection_fork (command);
+2957:
+2958:	  second = command->value.Connection->second;
+2959:	  if (ignore_return && second)
+2960:	    second->flags |= CMD_IGNORE_RETURN;
+2961:
+2962:	  exec_result = execute_command (second);
+2963:	}
+2964:      interrupt_execution--; retain_fifos--;
+2965:      break;
+2966:
+2967:    default:
+2968:      command_error ("execute_connection", CMDERR_BADCONN, command->value.Connection->connector, 0);
+2969:      jump_to_top_level (DISCARD);
+2970:      exec_result = EXECUTION_FAILURE;
+2971:    }
+2972:
+2973:  return exec_result;
+2974:}
+2975:
+2976:/* The test used to be only for interactive_shell, but we don't want to report
+2977:   job status when the shell is not interactive or when job control isn't
+2978:   enabled. */
+2979:#define REAP() \
+2980:  do \
+2981:    { \
+2982:      if (job_control == 0 || interactive_shell == 0) \
+2983:	reap_dead_jobs (); \
+2984:    } \
+2985:  while (0)
+2986:
+2987:/* Execute a FOR command.  The syntax is: FOR word_desc IN word_list;
+2988:   DO command; DONE */
+2989:static int
+2990:execute_for_command (FOR_COM *for_command)
+2991:{
+2992:  WORD_LIST *releaser, *list;
+2993:  SHELL_VAR *v;
+2994:  char *identifier;
+2995:  int retval, save_line_number;
+2996:#if 0
+2997:  SHELL_VAR *old_value = (SHELL_VAR *)NULL; /* Remember the old value of x. */
+2998:#endif
+2999:
+3000:  save_line_number = line_number;
+3001:  line_number = for_command->line;	/* for expansion error messages */
+3002:
+3003:  if (check_identifier (for_command->name, 1) == 0)
+3004:    {
+3005:      line_number = save_line_number;
+3006:      if (posixly_correct && interactive_shell == 0)
+3007:	{
+3008:	  last_command_exit_value = EX_BADUSAGE;
+3009:	  jump_to_top_level (ERREXIT);
+3010:	}
+3011:      return (EXECUTION_FAILURE);
+3012:    }
+3013:
+3014:  loop_level++; interrupt_execution++; retain_fifos++;
+3015:  identifier = for_command->name->word;
+3016:
+3017:  list = releaser = expand_words_no_vars (for_command->map_list);
+3018:
+3019:  begin_unwind_frame ("for");
+3020:  add_unwind_protect (uw_dispose_words, releaser);
+3021:  add_unwind_protect (uw_restore_lineno, (void *) (intptr_t) save_line_number);
+3022:
+3023:#if 0
+3024:  if (lexical_scoping)
+3025:    {
+3026:      old_value = copy_variable (find_variable (identifier));
+3027:      if (old_value)
+3028:	add_unwind_protect (uw_dispose_variable, old_value);
+3029:    }
+3030:#endif
+3031:
+3032:  if (for_command->flags & CMD_IGNORE_RETURN)
+3033:    for_command->action->flags |= CMD_IGNORE_RETURN;
+3034:
+3035:  for (retval = EXECUTION_SUCCESS; list; list = list->next)
+3036:    {
+3037:      QUIT;
+3038:
+3039:      line_number = for_command->line;
+3040:
+3041:      /* Remember what this command looks like, for debugger. */
+3042:      command_string_index = 0;
+3043:      print_for_command_head (for_command);
+3044:
+3045:      /* Save this command unless it's a trap command and we're not running
+3046:	 a debug trap. */
+3047:      if (signal_in_progress (DEBUG_TRAP) == 0 && running_trap == 0)
+3048:	{
+3049:	  FREE (the_printed_command_except_trap);
+3050:	  the_printed_command_except_trap = savestring (the_printed_command);
+3051:	}
+3052:
+3053:      retval = run_debug_trap ();
+3054:#if defined (DEBUGGER)
+3055:      /* In debugging mode, if the DEBUG trap returns a non-zero status, we
+3056:	 skip the command. */
+3057:      if (debugging_mode && retval != EXECUTION_SUCCESS)
+3058:        continue;
+3059:#endif
+3060:
+3061:      if (echo_command_at_execute)
+3062:	xtrace_print_for_command_head (for_command);
+3063:
+3064:      this_command_name = (char *)NULL;
+3065:      /* XXX - special ksh93 for command index variable handling */
+3066:      v = find_variable_last_nameref (identifier, 1);
+3067:      if (v && nameref_p (v))
+3068:	{
+3069:	  if (valid_nameref_value (list->word->word, 1) == 0)
+3070:	    {
+3071:	      sh_invalidid (list->word->word);
+3072:	      v = 0;
+3073:	    }
+3074:	  else if (readonly_p (v))
+3075:	    err_readonly (name_cell (v));
+3076:	  else
+3077:	    v = bind_variable_value (v, list->word->word, ASS_NAMEREF);
+3078:	}
+3079:      else
+3080:	v = bind_variable (identifier, list->word->word, 0);
+3081:
+3082:      if (v == 0 || ASSIGN_DISALLOWED (v, 0))
+3083:	{
+3084:	  line_number = save_line_number;
+3085:	  if (v && readonly_p (v) && interactive_shell == 0 && posixly_correct)
+3086:	    {
+3087:	      last_command_exit_value = EXECUTION_FAILURE;
+3088:	      jump_to_top_level (FORCE_EOF);
+3089:	    }
+3090:	  else
+3091:	    {
+3092:	      dispose_words (releaser);
+3093:	      discard_unwind_frame ("for");
+3094:	      loop_level--; interrupt_execution--; retain_fifos--;
+3095:	      return (EXECUTION_FAILURE);
+3096:	    }
+3097:	}
+3098:
+3099:      if (ifsname (identifier))
+3100:	setifs (v);
+3101:      else
+3102:	stupidly_hack_special_variables (identifier);
+3103:
+3104:      retval = execute_command (for_command->action);
+3105:      REAP ();
+3106:      QUIT;
+3967:#endif /* DPAREN_ARITHMETIC */
+3968:
+3969:#if defined (COND_COMMAND)
+3970:
+3971:static char * const nullstr = "";
+3972:
+3973:/* XXX - can COND ever be NULL when this is called? */
+3974:static int
+3975:execute_cond_node (COND_COM *cond)
+3976:{
+3977:  int result, invert, patmatch, rmatch, arith, mode, mflags, ignore;
+3978:  char *arg1, *arg2, *op;
+3979:#if 0
+3980:  char *t1, *t2;
+3981:#endif
+3982:
+3983:  invert = (cond->flags & CMD_INVERT_RETURN);
+3984:  ignore = (cond->flags & CMD_IGNORE_RETURN);
+3985:  if (ignore)
+3986:    {
+3987:      if (cond->left)
+3988:	cond->left->flags |= CMD_IGNORE_RETURN;
+3989:      if (cond->right)
+3990:	cond->right->flags |= CMD_IGNORE_RETURN;
+3991:    }
+3992:      
+3993:  if (cond->type == COND_EXPR)
+3994:    result = execute_cond_node (cond->left);
+3995:  else if (cond->type == COND_OR)
+3996:    {
+3997:      result = execute_cond_node (cond->left);
+3998:      if (result != EXECUTION_SUCCESS)
+3999:	result = execute_cond_node (cond->right);
+4000:    }
+4001:  else if (cond->type == COND_AND)
+4002:    {
+4003:      result = execute_cond_node (cond->left);
+4004:      if (result == EXECUTION_SUCCESS)
+4005:	result = execute_cond_node (cond->right);
+4006:    }
+4007:  else if (cond->type == COND_UNARY)
+4008:    {
+4009:      int oa, varop, varflag;
+4010:
+4011:      if (ignore)
+4012:	comsub_ignore_return++;
+4013:      varop = STREQ (cond->op->word, "-v");
+4014:#if defined (ARRAY_VARS)
+4015:      varflag = (varop && valid_array_reference (cond->left->op->word, VA_NOEXPAND)) ? TEST_ARRAYEXP : 0;
+4016:#else
+4017:      varflag = 0;
+4018:#endif
+4019:      arg1 = cond_expand_word (cond->left->op, varop ? 3 : 0);
+4020:      if (ignore)
+4021:	comsub_ignore_return--;
+4022:      if (arg1 == 0)
+4023:	arg1 = nullstr;
+4024:      if (echo_command_at_execute)
+4025:	xtrace_print_cond_term (cond->type, invert, cond->op, arg1, (char *)NULL);
+4026:#if defined (ARRAY_VARS)
+4027:      if (varop)
+4028:	oa = set_expand_once (0, 0);	/* no-op for compatibility levels <= 51 */
+4029:#endif
+4030:      result = cond_test (cond->op->word, arg1, NULL, varflag);
+4031:#if defined (ARRAY_VARS)
+4032:      if (varop)
+4033:	array_expand_once = oa;
+4034:#endif
+4035:      if (arg1 != nullstr)
+4036:	free (arg1);
+4037:    }
+4038:  else if (cond->type == COND_BINARY)
+4039:    {
+4040:      rmatch = 0;
+4041:      op = cond->op->word;
+4042:      mode = 0;
+4043:      patmatch = (((op[1] == '=') && (op[2] == '\0') &&
+4044:		   (op[0] == '!' || op[0] == '=')) ||
+4045:		  (op[0] == '=' && op[1] == '\0'));
+4046:#if defined (COND_REGEXP)
+4047:      rmatch = (op[0] == '=' && op[1] == '~' && op[2] == '\0');
+4048:#endif
+4049:      arith = STREQ (op, "-eq") || STREQ (op, "-ne") || STREQ (op, "-lt") ||
+4050:	      STREQ (op, "-le") || STREQ (op, "-gt") || STREQ (op, "-ge");
+4051:
+4052:      if (arith)
+4053:	mode = 3;
+4054:      else if (rmatch && shell_compatibility_level > 31)
+4055:	mode = 2;
+4056:      else if (patmatch)
+4057:	mode = 1;
+4058:
+4059:      if (ignore)
+4060:	comsub_ignore_return++;
+4061:      arg1 = cond_expand_word (cond->left->op, arith ? mode : 0);
+4062:      if (ignore)
+4063:	comsub_ignore_return--;
+4064:      if (arg1 == 0)
+4065:	arg1 = nullstr;
+4066:      if (ignore)
+4067:	comsub_ignore_return++;
+4068:      arg2 = cond_expand_word (cond->right->op, mode);
+4069:      if (ignore)
+4070:	comsub_ignore_return--;
+4071:      if (arg2 == 0)
+4072:	arg2 = nullstr;
+4073:
+4074:      if (echo_command_at_execute)
+4075:	xtrace_print_cond_term (cond->type, invert, cond->op, arg1, arg2);
+4076:
+4077:#if defined (COND_REGEXP)
+4078:      if (rmatch)
+4079:	{
+4080:	  char *errstr;
+4081:
+4082:	  mflags = SHMAT_PWARN;
+4083:#if defined (ARRAY_VARS)
+4084:	  mflags |= SHMAT_SUBEXP;
+4085:#endif
+4086:
+4087:#if 0
+4088:	  t1 = strescape(arg1);
+4089:	  t2 = strescape(arg2);
+4090:	  itrace("execute_cond_node: sh_regmatch on `%s' and `%s'", t1, t2);
+4091:	  free(t1);
+4092:	  free(t2);
+4093:#endif
+4094:
+4095:	  errstr = NULL;
+4096:	  result = sh_regmatch (arg1, arg2, mflags, &errstr);
+4097:	  if (result == 2)
+4098:	    {
+4099:	      if (errstr && *errstr)
+4100:		builtin_error (_("invalid regular expression `%s': %s"), arg2, errstr);
+4101:	      else
+4102:		builtin_error (_("invalid regular expression `%s'"), arg2);
+4103:	      free (errstr);
+4104:	    }
+4105:	}
+4106:      else
+4107:#endif /* COND_REGEXP */
+4108:	{
+4109:	  extended_glob = 1;
+4110:	  result = cond_test (cond->op->word, arg1, arg2, TEST_PATMATCH|TEST_ARITHEXP|TEST_LOCALE);
+4111:	  extended_glob = extglob_flag;
+4112:	}
+4113:      if (arg1 != nullstr)
+4114:	free (arg1);
+4115:      if (arg2 != nullstr)
+4116:	free (arg2);
+4117:    }
+4118:  else
+4119:    {
+4120:      command_error ("execute_cond_node", CMDERR_BADTYPE, cond->type, 0);
+4121:      jump_to_top_level (DISCARD);
+4122:      result = EXECUTION_FAILURE;
+4123:    }
+4124:
+4125:  if (invert)
+4126:    result = (result == EXECUTION_SUCCESS) ? EXECUTION_FAILURE : EXECUTION_SUCCESS;
+4127:
+4128:  return result;
+4129:}
+4130:
+4131:static int
+4132:execute_cond_command (COND_COM *cond_command)
+4133:{
+4134:  int retval, save_line_number;
+4135:
+4136:  save_line_number = line_number;
+4137:
+4138:  SET_LINE_NUMBER (cond_command->line);
+4139:  /* If we're in a function, update the line number information. */
+4140:  ADJUST_LINE_NUMBER ();
+4141:
+4142:  command_string_index = 0;
+4143:  print_cond_command (cond_command);
+4144:
+4145:  if (signal_in_progress (DEBUG_TRAP) == 0 && running_trap == 0)
+4146:    {
+4147:      FREE (the_printed_command_except_trap);
+4148:      the_printed_command_except_trap = savestring (the_printed_command);
+4149:    }
+4150:
+4151:  /* Run the debug trap before each conditional command, but do it after we
+4152:     update the line number information. */
+4153:  retval = run_debug_trap ();
+4154:#if defined (DEBUGGER)
+4155:  /* In debugging mode, if the DEBUG trap returns a non-zero status, we
+4156:     skip the command. */
+4157:  if (debugging_mode && retval != EXECUTION_SUCCESS)
+4158:    {
+4159:      line_number = save_line_number;
+4160:      return (EXECUTION_SUCCESS);
+4161:    }
+4162:#endif
+4163:
+4164:  this_command_name = "[[";	/* ]] */
+4165:
+4166:#if 0
+4167:  debug_print_cond_command (cond_command);
+4168:#endif
+4169:
+4170:  last_command_exit_value = retval = execute_cond_node (cond_command);
+4171:  line_number = save_line_number;
+4172:  return (retval);
+4173:}
+4174:#endif /* COND_COMMAND */
+4175:
+4176:char *
+4177:save_lastarg (void)
+4178:{
+4179:  char *v;
+4180:
+4181:  v = get_string_value ("_");
+4182:  if (v)
+4183:    v = savestring (v);
+4184:  return v;
+4185:}
+4186:
+4187:void
+4188:bind_lastarg (char *arg)
+4189:{
+4190:  SHELL_VAR *var;
+4191:
+4192:  if (arg == 0)
+4193:    arg = "";
+4194:  var = bind_variable ("_", arg, 0);
+4195:  if (var)
+4196:    VUNSETATTR (var, att_exported);
+4197:}
+4198:
+4199:/* Execute a null command.  Fork a subshell if the command uses pipes or is
+4200:   to be run asynchronously.  This handles all the side effects that are
+4201:   supposed to take place. */
+4202:static int
+4203:execute_null_command (REDIRECT *redirects, int pipe_in, int pipe_out, int async)
+4204:{
+4205:  int r, code;
+4206:  int forcefork, fork_flags;
+4207:  REDIRECT *rd;
+4208:
+4209:  for (forcefork = 0, rd = redirects; rd; rd = rd->next)
+4210:    {
+4211:      forcefork += rd->rflags & REDIR_VARASSIGN;
+4212:      /* Safety */
+4213:      forcefork += (rd->redirector.dest == 0 || fd_is_bash_input (rd->redirector.dest));
+4214:    }
+4215:
+4216:  if (forcefork || pipe_in != NO_PIPE || pipe_out != NO_PIPE || async)
+4217:    {
+4218:      /* We have a null command, but we really want a subshell to take
+4219:	 care of it.  Just fork, do piping and redirections, and exit. */
+4220:      fork_flags = async ? FORK_ASYNC : 0;

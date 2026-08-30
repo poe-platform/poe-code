@@ -1,0 +1,56 @@
+{
+  "date": "2026-08-27T13:06:38.168Z",
+  "role": "handoff preparation, not another behavioral acceptance or future candidate freeze",
+  "revision": "4bb4ad85d4554889cd6f59097af776f4172e34d1",
+  "tree": "138d4d7fc33d2b716b1c5758f82692dece4bb082",
+  "helperBindings": [
+    {
+      "path": "tests/shell-stress/invocation-cleanup-runtime/migration/replay.mjs",
+      "sha256": "5bddec036e4961f22f7aab96381d7687e90c86e417a25efdaf050706c6293a30",
+      "revision": "4bb4ad85d4554889cd6f59097af776f4172e34d1"
+    },
+    {
+      "path": "tests/shell-stress/invocation-cleanup-runtime/migration/binding.ts",
+      "sha256": "825ebf23e40c3f6293c13cb286ccf6267acb7ed71f3ce6df545c356e76cfc563",
+      "revision": "4bb4ad85d4554889cd6f59097af776f4172e34d1"
+    }
+  ],
+  "expectedPath": "tests/shell-stress/invocation-cleanup-runtime/migration-review/expected-inputs.json",
+  "manifestSha256": "0c2f02a80388c6634df0963dfdcbb523842a44a3241e1df14d412ed78dcf56c7",
+  "inputs": 220,
+  "controls": [
+    {
+      "name": "unchanged accepted envelope regenerated from explicit Git commit",
+      "outcome": "accepted"
+    },
+    {
+      "name": "wrong revision",
+      "outcome": "rejected"
+    },
+    {
+      "name": "wrong tree",
+      "outcome": "rejected"
+    },
+    {
+      "name": "changed input hash",
+      "outcome": "rejected"
+    },
+    {
+      "name": "omitted input",
+      "outcome": "rejected"
+    },
+    {
+      "name": "nonexplicit revision HEAD",
+      "outcome": "rejected"
+    },
+    {
+      "name": "nonexplicit revision 4bb4ad85",
+      "outcome": "rejected"
+    }
+  ],
+  "builds": 0,
+  "productTests": 0,
+  "installedDependencies": 0,
+  "futureCandidate": null,
+  "futureManifest": null
+}

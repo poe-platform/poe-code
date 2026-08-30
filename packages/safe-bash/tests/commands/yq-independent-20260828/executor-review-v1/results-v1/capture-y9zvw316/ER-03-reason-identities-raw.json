@@ -1,0 +1,40 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "primitives": [
+      {
+        "kind": "undefined"
+      },
+      {
+        "kind": "null"
+      },
+      {
+        "kind": "boolean",
+        "value": "false"
+      }
+    ],
+    "first": {
+      "kind": "object",
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "firstAgain": {
+      "kind": "object",
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "second": {
+      "kind": "object",
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

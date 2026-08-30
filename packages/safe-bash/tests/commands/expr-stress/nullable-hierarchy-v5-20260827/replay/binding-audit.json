@@ -1,0 +1,124 @@
+{
+  "runnerOriginalSha256": "ca82b5c348604e4ae4cf55638dd0d8441a353cb294804901793a74312e938c07",
+  "runnerBoundSha256": "b5aaafd036cee817ab4bb2179a5ebd30ff3b4b07b137b79200af2b5ff8be785e",
+  "replacements": [
+    [
+      "import { deriveTree, expectedComparison } from './oracle.mjs';",
+      "import { deriveTree, expectedComparison } from './oracle.mjs';\nimport { bind } from './bind-api.mjs';"
+    ],
+    [
+      "const api = await import(pathToFileURL(modulePath).href);",
+      "const api = bind(await import(pathToFileURL(modulePath).href));"
+    ],
+    [
+      "  if (source.split(mutation.before).length !== 2) {",
+      "  const mutationSource = await readFile(mutation.originalPath, 'utf8');\n  if (mutationSource.split(mutation.before).length !== 2) {"
+    ],
+    [
+      "  const modified = source.replace(mutation.before, mutation.after);",
+      "  const modified = mutationSource.replace(mutation.before, mutation.after);\n  assert.equal(await readFile(mutation.modifiedPath, 'utf8'), modified);"
+    ],
+    [
+      "  const implementation = await import(`data:text/javascript;base64,${Buffer.from(modified).toString('base64')}`);",
+      "  const implementation = bind(await import(pathToFileURL(mutation.modulePath).href));"
+    ]
+  ],
+  "adapterSha256": "687565fe06139acc0ac13e02b1066bd10562af9f34788b6d094441882af720f3",
+  "frozenControlsSha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409",
+  "frozenOracleSha256": "bb380d38f3a9b25838f05c4e1e229a4dd55d6a080bdf26bc1b9c91cddb1cb134",
+  "frozenInputsAndExpectedAssertionsUnchanged": true,
+  "eligibility": {
+    "trueOrOmitted": "LOCAL-TAIL-HYPOTHESIS",
+    "false": "FINITE-PERMISSIVE",
+    "noGenericTailApproval": true
+  },
+  "caseBindings": [
+    {
+      "case": "P4",
+      "suppliedPlans": 4,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "P3",
+      "suppliedPlans": 2,
+      "eligibility": "FINITE-PERMISSIVE"
+    },
+    {
+      "case": "prefix",
+      "suppliedPlans": 3,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "boundedPrefix",
+      "suppliedPlans": 2,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "nestedPrefix",
+      "suppliedPlans": 2,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "emptyBody",
+      "suppliedPlans": 3,
+      "eligibility": "FINITE-PERMISSIVE"
+    },
+    {
+      "case": "Q0",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "requiredChild",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "requiredPrefix",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "W3",
+      "suppliedPlans": 2,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "W4",
+      "suppliedPlans": 2,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "W4bare",
+      "suppliedPlans": 2,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "W4wrapped",
+      "suppliedPlans": 2,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "D",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "Dreentry",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "E",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    },
+    {
+      "case": "emptyRef",
+      "suppliedPlans": 1,
+      "eligibility": "LOCAL-TAIL-HYPOTHESIS"
+    }
+  ],
+  "explicitLocalTailControl": "G2/LOCAL-TAIL-HYPOTHESIS-only retains rejection of P3 tail and acceptance of narrow completed-nonempty",
+  "dependencyBinding": "Prepared data-URL mutant loading cannot resolve inherited-model.mjs. Each focused mutant uses its own full two-module file-URL closure; imports must succeed before any kill is considered."
+}

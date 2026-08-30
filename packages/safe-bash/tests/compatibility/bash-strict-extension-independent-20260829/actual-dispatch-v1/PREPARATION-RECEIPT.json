@@ -1,0 +1,19 @@
+{
+  "startedMs": 1787987433025,
+  "endedMs": 1787988611372,
+  "elapsedSeconds": 1178.347,
+  "directBeforeSpawn": 26,
+  "closedEvents": 26,
+  "editingHelperReservations": 4,
+  "captureRoot": "/private/tmp/strict-extension-independent-prep-3vmDXP",
+  "sourceDataControls": 8,
+  "syntaxChecksInitial": 5,
+  "syntaxChecksFinal": 2,
+  "toolTranscriptExceptions": [
+    "initial template parse before child",
+    "initial sparse-tree inline refusal"
+  ],
+  "foreignIndexPreserved": true,
+  "presealCommit": "b4b1f490b217dadfe01b215d9295fc0c89ed1ce1",
+  "actualProductBeforeThis": 0
+}

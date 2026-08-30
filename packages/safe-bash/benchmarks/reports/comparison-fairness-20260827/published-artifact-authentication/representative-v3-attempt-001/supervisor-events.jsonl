@@ -1,0 +1,5 @@
+{"at":"2026-08-27T06:41:58.311Z","event":"coordinator-launch-attempt","executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","environment":{"PATH":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin","HOME":"/private/tmp/safe-bash-published-auth-JydnQ4/home","TMPDIR":"/private/tmp/safe-bash-published-auth-JydnQ4/tmp","npm_config_cache":"/private/tmp/safe-bash-published-auth-JydnQ4/npm-cache","LANG":"C","LC_ALL":"C","TZ":"UTC","AUTH_SUPERVISOR_PID":"80129","AUTH_APPROVAL_SHA256":"40d096afcb54a38a3fab58ea16ba550350917ce81f80765c07a7c9068b7f0938"}}
+{"at":"2026-08-27T06:41:58.313Z","event":"coordinator-launched","pid":80445,"groupId":80445}
+{"at":"2026-08-27T06:42:01.528Z","event":"coordinator-exit","code":0,"signal":null}
+{"at":"2026-08-27T06:42:01.529Z","event":"coordinator-pipes-closed"}
+{"at":"2026-08-27T06:42:01.530Z","event":"supervisor-final","reason":"coordinator exit/close; owned group gone","spawned":true,"exited":true,"exit":{"code":0,"signal":null},"survivors":false}

@@ -1,0 +1,326 @@
+TAP version 13
+# Subtest: independent conformance source provenance
+ok 1 - independent conformance source provenance
+  ---
+  duration_ms: 4.25925
+  type: 'test'
+  ...
+# {"sourceSha256":{"src/contracts/filesystem.ts":"7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009","src/contracts/errors.ts":"66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840","src/contracts/io.ts":"e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb","src/contracts/path.ts":"948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34","src/fs/memory/index.ts":"2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4","src/fs/real/index.ts":"d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da","src/fs/s3/filesystem.ts":"b34d766829184cf73ff6e8712d0bcb60216c35250234a0b80475f8d91d4f1a9e","src/fs/s3/mock.ts":"99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e","src/fs/s3/transport.ts":"185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c","src/fs/webdav/webdav.ts":"36e9b5eb6f012df25bd5bb529d29716400f53a6ffa593d75b78f19f77c791b22","src/fs/webdav/xml.ts":"c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1","tests/fs/webdav/mock.ts":"177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36"}}
+# Subtest: webdav: shared binary round trip preserves NUL, high bytes, and detached read copies
+ok 2 - webdav: shared binary round trip preserves NUL, high bytes, and detached read copies
+  ---
+  duration_ms: 24.94275
+  type: 'test'
+  ...
+# Subtest: webdav: shared write handles sliced typed arrays without leaking backing bytes
+ok 3 - webdav: shared write handles sliced typed arrays without leaking backing bytes
+  ---
+  duration_ms: 6.271834
+  type: 'test'
+  ...
+# Subtest: webdav: shared overwrite truncates and zero-byte reads honor maxBytes zero
+ok 4 - webdav: shared overwrite truncates and zero-byte reads honor maxBytes zero
+  ---
+  duration_ms: 4.48125
+  type: 'test'
+  ...
+# Subtest: webdav: shared read maxBytes rejects overflow and accepts exact size
+ok 5 - webdav: shared read maxBytes rejects overflow and accepts exact size
+  ---
+  duration_ms: 3.785666
+  type: 'test'
+  ...
+# Subtest: webdav: shared mandatory appendFile creates and appends exact bytes
+ok 6 - webdav: shared mandatory appendFile creates and appends exact bytes
+  ---
+  duration_ms: 3.603875
+  type: 'test'
+  ...
+# Subtest: webdav: shared write flag a appends existing bytes
+ok 7 - webdav: shared write flag a appends existing bytes
+  ---
+  duration_ms: 3.610209
+  type: 'test'
+  ...
+# Subtest: webdav: shared exclusive wx rejects existing files without modifying content
+ok 8 - webdav: shared exclusive wx rejects existing files without modifying content
+  ---
+  duration_ms: 3.116583
+  type: 'test'
+  ...
+# Subtest: webdav: shared exclusive ax creates once without modifying existing content
+ok 9 - webdav: shared exclusive ax creates once without modifying existing content
+  ---
+  duration_ms: 2.257791
+  type: 'test'
+  ...
+# Subtest: webdav: shared missing read/stat/lstat/access/realpath preserve ENOENT
+ok 10 - webdav: shared missing read/stat/lstat/access/realpath preserve ENOENT
+  ---
+  duration_ms: 2.344333
+  type: 'test'
+  ...
+# Subtest: webdav: shared missing parents do not get created by writeFile
+ok 11 - webdav: shared missing parents do not get created by writeFile
+  ---
+  duration_ms: 1.38075
+  type: 'test'
+  ...
+# Subtest: webdav: shared write through non-directory parent produces ENOTDIR and preserves bytes
+ok 12 - webdav: shared write through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 2.232792
+  type: 'test'
+  ...
+# Subtest: webdav: shared read through non-directory parent produces ENOTDIR and preserves bytes
+ok 13 - webdav: shared read through non-directory parent produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 2.588584
+  type: 'test'
+  ...
+# Subtest: webdav: shared readdir on a file produces ENOTDIR and preserves bytes
+ok 14 - webdav: shared readdir on a file produces ENOTDIR and preserves bytes
+  ---
+  duration_ms: 3.436458
+  type: 'test'
+  ...
+# Subtest: webdav: shared reading and overwriting directories produce EISDIR
+ok 15 - webdav: shared reading and overwriting directories produce EISDIR
+  ---
+  duration_ms: 2.315083
+  type: 'test'
+  ...
+# Subtest: webdav: shared trailing slash requires a directory, not lexical stripping
+ok 16 - webdav: shared trailing slash requires a directory, not lexical stripping
+  ---
+  duration_ms: 1.860542
+  type: 'test'
+  ...
+# Subtest: webdav: shared recursive mkdir creates exactly one tree and is idempotent
+ok 17 - webdav: shared recursive mkdir creates exactly one tree and is idempotent
+  ---
+  duration_ms: 4.8625
+  type: 'test'
+  ...
+# Subtest: webdav: shared nonrecursive directory removal fails closed on nonempty directories
+ok 18 - webdav: shared nonrecursive directory removal fails closed on nonempty directories
+  ---
+  duration_ms: 4.182042
+  type: 'test'
+  ...
+# DIRECTORY POLICY: FsError: ENOTSUP: nonrecursive directory removal has no safe portable WebDAV equivalent, nonrecursive directory removal '/dir'
+# Subtest: webdav: shared recursive directory removal removes an empty directory
+ok 19 - webdav: shared recursive directory removal removes an empty directory
+  ---
+  duration_ms: 1.730625
+  type: 'test'
+  ...
+# Subtest: webdav: shared recursive rm preserves sibling-prefix names
+ok 20 - webdav: shared recursive rm preserves sibling-prefix names
+  ---
+  duration_ms: 5.224417
+  type: 'test'
+  ...
+# Subtest: webdav: shared force only suppresses absent paths
+ok 21 - webdav: shared force only suppresses absent paths
+  ---
+  duration_ms: 1.073833
+  type: 'test'
+  ...
+# Subtest: webdav: shared file rename replaces destination and removes source
+ok 22 - webdav: shared file rename replaces destination and removes source
+  ---
+  duration_ms: 6.252167
+  type: 'test'
+  ...
+# Subtest: webdav: shared directory rename moves all descendants and preserves siblings
+ok 23 - webdav: shared directory rename moves all descendants and preserves siblings
+  ---
+  duration_ms: 6.455542
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename onto self is a no-op; missing source still fails
+ok 24 - webdav: shared rename onto self is a no-op; missing source still fails
+  ---
+  duration_ms: 2.224583
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename cannot move a directory beneath itself
+ok 25 - webdav: shared rename cannot move a directory beneath itself
+  ---
+  duration_ms: 3.452667
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename file onto directory has EISDIR and preserves both
+ok 26 - webdav: shared rename file onto directory has EISDIR and preserves both
+  ---
+  duration_ms: 2.744417
+  type: 'test'
+  ...
+# Subtest: webdav: shared rename onto empty directory replaces it
+ok 27 - webdav: shared rename onto empty directory replaces it
+  ---
+  duration_ms: 5.165541
+  type: 'test'
+  ...
+# Subtest: webdav: shared copyFile duplicates bytes, exclusive copy preserves destination
+ok 28 - webdav: shared copyFile duplicates bytes, exclusive copy preserves destination
+  ---
+  duration_ms: 4.959084
+  type: 'test'
+  ...
+# Subtest: webdav: shared copyFile replaces an existing destination by default
+ok 29 - webdav: shared copyFile replaces an existing destination by default
+  ---
+  duration_ms: 4.552
+  type: 'test'
+  ...
+# Subtest: webdav: shared copyFile refuses a directory source
+ok 30 - webdav: shared copyFile refuses a directory source
+  ---
+  duration_ms: 1.233291
+  type: 'test'
+  ...
+# Subtest: webdav: shared Unicode and literal URL metacharacters round-trip
+ok 31 - webdav: shared Unicode and literal URL metacharacters round-trip
+  ---
+  duration_ms: 6.971333
+  type: 'test'
+  ...
+# Subtest: webdav: shared NUL and non-string paths reject EINVAL without mutation
+ok 32 - webdav: shared NUL and non-string paths reject EINVAL without mutation
+  ---
+  duration_ms: 0.822458
+  type: 'test'
+  ...
+# Subtest: webdav: shared malformed read limits reject EINVAL
+ok 33 - webdav: shared malformed read limits reject EINVAL
+  ---
+  duration_ms: 1.204083
+  type: 'test'
+  ...
+# Subtest: webdav: shared malformed payload and flag reject EINVAL without data loss
+ok 34 - webdav: shared malformed payload and flag reject EINVAL without data loss
+  ---
+  duration_ms: 1.680875
+  type: 'test'
+  ...
+# Subtest: webdav: shared stat metadata is finite and type-consistent
+ok 35 - webdav: shared stat metadata is finite and type-consistent
+  ---
+  duration_ms: 2.222417
+  type: 'test'
+  ...
+# Subtest: webdav: shared large directory lists every child exactly once
+ok 36 - webdav: shared large directory lists every child exactly once
+  ---
+  duration_ms: 162.365208
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted readFile rejects cancellation without mutation
+ok 37 - webdav: pre-aborted readFile rejects cancellation without mutation
+  ---
+  duration_ms: 3.665416
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted stat rejects cancellation without mutation
+ok 38 - webdav: pre-aborted stat rejects cancellation without mutation
+  ---
+  duration_ms: 1.811167
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted lstat rejects cancellation without mutation
+ok 39 - webdav: pre-aborted lstat rejects cancellation without mutation
+  ---
+  duration_ms: 1.742792
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted readdir rejects cancellation without mutation
+ok 40 - webdav: pre-aborted readdir rejects cancellation without mutation
+  ---
+  duration_ms: 1.62325
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted realpath rejects cancellation without mutation
+ok 41 - webdav: pre-aborted realpath rejects cancellation without mutation
+  ---
+  duration_ms: 1.675417
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted access rejects cancellation without mutation
+ok 42 - webdav: pre-aborted access rejects cancellation without mutation
+  ---
+  duration_ms: 1.659792
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted writeFile rejects cancellation without mutation
+ok 43 - webdav: pre-aborted writeFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.895416
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted mkdir rejects cancellation without mutation
+ok 44 - webdav: pre-aborted mkdir rejects cancellation without mutation
+  ---
+  duration_ms: 1.68775
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted rm rejects cancellation without mutation
+ok 45 - webdav: pre-aborted rm rejects cancellation without mutation
+  ---
+  duration_ms: 1.763208
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted rename rejects cancellation without mutation
+ok 46 - webdav: pre-aborted rename rejects cancellation without mutation
+  ---
+  duration_ms: 1.60575
+  type: 'test'
+  ...
+# Subtest: webdav: pre-aborted copyFile rejects cancellation without mutation
+ok 47 - webdav: pre-aborted copyFile rejects cancellation without mutation
+  ---
+  duration_ms: 1.598916
+  type: 'test'
+  ...
+# Subtest: webdav: symlinks follow capabilities, dangling links and cycles stay explicit
+ok 48 - webdav: symlinks follow capabilities, dangling links and cycles stay explicit
+  ---
+  duration_ms: 0.615417
+  type: 'test'
+  ...
+# CAPABILITY GAP: symlinks=false; methods absent or reject ENOTSUP
+# Subtest: webdav: hardlink capabilities match inode-sharing or fail-closed behavior
+ok 49 - webdav: hardlink capabilities match inode-sharing or fail-closed behavior
+  ---
+  duration_ms: 2.781375
+  type: 'test'
+  ...
+# CAPABILITY GAP: hardlinks=false; link absent or rejects ENOTSUP
+# Subtest: webdav: streaming capabilities match bounded reads or absent methods
+ok 50 - webdav: streaming capabilities match bounded reads or absent methods
+  ---
+  duration_ms: 2.486375
+  type: 'test'
+  ...
+# Subtest: webdav: streaming write capability independently matches exact bytes or absent method
+ok 51 - webdav: streaming write capability independently matches exact bytes or absent method
+  ---
+  duration_ms: 3.232542
+  type: 'test'
+  ...
+# Subtest: conformance source state remained stable during suite
+ok 52 - conformance source state remained stable during suite
+  ---
+  duration_ms: 0.592541
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 472.447167

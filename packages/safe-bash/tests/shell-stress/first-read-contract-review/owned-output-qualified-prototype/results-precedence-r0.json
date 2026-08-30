@@ -1,0 +1,521 @@
+{
+  "startedAt": "2026-08-27T12:21:29.347Z",
+  "mode": "precedence",
+  "curl": [],
+  "precedence": [
+    {
+      "id": "P01",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "number",
+          "value": 0
+        },
+        "exactIdentity": true
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "local IO"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": true,
+        "reason": {
+          "kind": "number",
+          "value": 0
+        },
+        "actualUndefined": false
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": true,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P02",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "Error",
+          "name": "Error",
+          "message": "caller"
+        },
+        "exactIdentity": true
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "local IO"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": true,
+        "reason": {
+          "kind": "Error",
+          "name": "Error",
+          "message": "caller"
+        },
+        "actualUndefined": false
+      },
+      "operation": {
+        "aborted": true,
+        "reason": {
+          "kind": "Error",
+          "name": "Error",
+          "message": "caller"
+        }
+      },
+      "stageAborted": true,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P03",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "Error",
+          "name": "AbortError",
+          "message": "This operation was aborted",
+          "code": 20
+        },
+        "exactIdentity": true
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "local IO"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": true,
+        "reason": {
+          "kind": "Error",
+          "name": "AbortError",
+          "message": "This operation was aborted",
+          "code": 20
+        },
+        "actualUndefined": false
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": true,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P04",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "number",
+          "value": 0
+        },
+        "exactIdentity": true
+      },
+      "localObserved": false,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": true,
+        "reason": {
+          "kind": "number",
+          "value": 0
+        },
+        "actualUndefined": false
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": true,
+      "cleanupCalls": 1,
+      "events": [
+        "cleanup-start",
+        "cleanup-end",
+        "normally-closed"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P05",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "Error",
+          "name": "Error",
+          "message": "cleanup"
+        },
+        "exactIdentity": false
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "number",
+        "value": 0
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [
+        "public precedence/identity"
+      ],
+      "passed": false
+    },
+    {
+      "id": "P06",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "Error",
+          "name": "Error",
+          "message": "cleanup"
+        },
+        "exactIdentity": false
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [
+        "public precedence/identity"
+      ],
+      "passed": false
+    },
+    {
+      "id": "P07",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "number",
+          "value": 0
+        },
+        "exactIdentity": false
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "Error",
+        "name": "Error",
+        "message": "local IO"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [
+        "public precedence/identity"
+      ],
+      "passed": false
+    },
+    {
+      "id": "P08",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "number",
+          "value": 0
+        },
+        "exactIdentity": true
+      },
+      "localObserved": false,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P09",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "undefined"
+        },
+        "exactIdentity": true
+      },
+      "localObserved": false,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P10",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "Error",
+          "name": "Error",
+          "message": "cleanup"
+        },
+        "exactIdentity": true
+      },
+      "localObserved": false,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P11",
+      "public": {
+        "kind": "result",
+        "exitCode": 0
+      },
+      "localObserved": false,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        },
+        "actualUndefined": true
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": false,
+      "cleanupCalls": 1,
+      "events": [
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    },
+    {
+      "id": "P12",
+      "public": {
+        "kind": "error",
+        "error": {
+          "kind": "Error",
+          "name": "AbortError",
+          "message": "This operation was aborted",
+          "code": 20
+        },
+        "exactIdentity": true
+      },
+      "localObserved": true,
+      "local": {
+        "kind": "undefined"
+      },
+      "localIdentity": true,
+      "caller": {
+        "aborted": true,
+        "reason": {
+          "kind": "Error",
+          "name": "AbortError",
+          "message": "This operation was aborted",
+          "code": 20
+        },
+        "actualUndefined": false
+      },
+      "operation": {
+        "aborted": false,
+        "reason": {
+          "kind": "undefined"
+        }
+      },
+      "stageAborted": true,
+      "cleanupCalls": 1,
+      "events": [
+        "local-throw",
+        "cleanup-start",
+        "cleanup-end"
+      ],
+      "errors": [],
+      "passed": true
+    }
+  ],
+  "auxiliary": [
+    {
+      "id": "Q03",
+      "passed": true,
+      "events": [
+        "first-cleanup",
+        "second-start",
+        "second-end"
+      ],
+      "sharedClose": true,
+      "parentAborted": false,
+      "siblingAborted": false,
+      "admissionRefused": true
+    },
+    {
+      "id": "Q04",
+      "passed": true,
+      "reads": 1,
+      "returnsAfterOwnerFinalization": 1,
+      "operationState": {
+        "aborted": true,
+        "borrowedReturnsBeforeOwnerFinalization": 0
+      },
+      "stageLive": true,
+      "effects": [
+        "sibling-live"
+      ],
+      "independentHex": "696e646570656e64656e742d66696c650a"
+    }
+  ],
+  "failures": [],
+  "completedAt": "2026-08-27T12:21:29.359Z"
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "INDEPENDENT_REVIEW_VISIBLE_PROCESS_TOPOLOGY_V1",
+  "throughThisManifestRole": 53,
+  "finalReservedRoles": [
+    "publication-shell",
+    "git-add",
+    "git-commit-hooks-maintenance-disabled",
+    "git-rev-parse",
+    "git-scoped-status"
+  ],
+  "expectedFinalRoles": 58,
+  "rootAllOwnedCap": 96,
+  "peak": 3,
+  "controlRoles": [
+    "capture-owner",
+    "dispatch",
+    "sole-byte-stub",
+    "separate-continuation-zero-descendants"
+  ],
+  "exactChildEvidence": [
+    "raw/RECEIPT.json",
+    "work/RESULT.json",
+    "work/N12-RECEIPT.json",
+    "CONTINUATION-RESULT.json"
+  ],
+  "toolCompletionEvidence": "exec tool exit records; final reserved roles are qualified by final command result, not recursively claimed executed in this file",
+  "globalKernelCensus": false
+}

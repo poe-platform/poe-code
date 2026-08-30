@@ -1,0 +1,408 @@
+{
+  "checkedAt": "2026-08-27T21:40:57.886Z",
+  "product": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "sourceTree": "8be381b8970f76df3e290acd330417403219b82c",
+  "sources": [
+    {
+      "path": "src/commands/expr/index.ts",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "blob": "1031dd28c5dda297d35914dbff4c99f8844c8981"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "blob": "46b7604d21fe6823167301e1012d97d0ed7b6342"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4",
+      "blob": "352e8d330bfb54427844451711d56b7959a4d147"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+      "blob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99"
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "blob": "95d2fda3b701d095458f83eadb4ebec61eb9f669"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "blob": "efa79f233dde5b62e7044e528b0fc2426e2fe065"
+    },
+    {
+      "path": "package.json",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "blob": "c821769405cc40b17eb2fcec860a97728f128268"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da"
+    }
+  ],
+  "sourceArchiveSha256": "66d53b29c609957e3f5b7ee27c7734c72a959771b68e3b9b6417df0dd379b97f",
+  "sourceArchiveMatchesBebaCore": true,
+  "allCompiledFilesMatchBebaCore": true,
+  "packageSha256": "8331e853455f295dfda24ff53d612514212067ca2075df09e8b60339bda58a5e",
+  "originalConsumerPathAbsent": true,
+  "installedPhysicalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-nghAA5/physically-moved/node_modules/virtual-bash",
+  "packageContainsNoSource": true,
+  "runtimeDependencies": {},
+  "workerClosure": {
+    "commands/regex-execution/worker.js": {
+      "sha256": "46479e6d87bd5d20371a2e523310b2275c74d32d15105fcc9678ec73410efe4f",
+      "imports": [
+        "node:worker_threads",
+        "./matching.js",
+        "../expr/bre-worker.js",
+        "./protocol.js"
+      ]
+    },
+    "commands/regex-execution/matching.js": {
+      "sha256": "2f97a68fce0ab504676afe31b4c4fd5eea1edde87ffb28bea9f55c8422693791",
+      "imports": [
+        "node:buffer"
+      ]
+    },
+    "commands/expr/bre-worker.js": {
+      "sha256": "e744453f4430b6a929cadac4e4b6a8a4e58ac75440ef16006ff4f4dab31f4874",
+      "imports": [
+        "node:worker_threads",
+        "../regex-execution/protocol.js"
+      ]
+    },
+    "commands/regex-execution/protocol.js": {
+      "sha256": "a38e930b62581a22b23d05087b4f67937accbe157d5f6bb6c9b33e7c35f5c9b6",
+      "imports": []
+    }
+  },
+  "workerClosureBuiltins": [
+    "node:buffer",
+    "node:worker_threads"
+  ],
+  "workerClosureQualifiedByExactCompiledBeforeHashes": true,
+  "canonicalImports": {
+    "original": {
+      "records": 649,
+      "workerStarts": 174,
+      "workerExits": 174,
+      "workersSettled": true
+    },
+    "revised": {
+      "records": 649,
+      "workerStarts": 174,
+      "workerExits": 174,
+      "workersSettled": true
+    }
+  },
+  "specificity": [
+    {
+      "target": "canonical",
+      "mutation": "swallow",
+      "actualAssertion": "Missing expected rejection",
+      "detected": true
+    },
+    {
+      "target": "canonical",
+      "mutation": "recast",
+      "actualAssertion": "Missing expected rejection",
+      "detected": true
+    },
+    {
+      "target": "canonical",
+      "mutation": "wrong-error-copy",
+      "actualAssertion": "validation function is expected to return \"true\"",
+      "detected": true
+    },
+    {
+      "target": "canonical",
+      "mutation": "wrong-sentinel",
+      "actualAssertion": "validation function is expected to return \"true\"",
+      "detected": true
+    },
+    {
+      "target": "canonical",
+      "mutation": "duplicate-diagnostic",
+      "actualAssertion": "2 !== 0",
+      "detected": true
+    },
+    {
+      "target": "core",
+      "mutation": "swallow",
+      "actualAssertion": "'fulfilled'",
+      "detected": true
+    },
+    {
+      "target": "core",
+      "mutation": "recast",
+      "actualAssertion": "'fulfilled'",
+      "detected": true
+    },
+    {
+      "target": "core",
+      "mutation": "wrong-error-copy",
+      "actualAssertion": "reference-equal",
+      "detected": true
+    },
+    {
+      "target": "core",
+      "mutation": "wrong-sentinel",
+      "actualAssertion": "reference-equal",
+      "detected": true
+    },
+    {
+      "target": "core",
+      "mutation": "duplicate-diagnostic",
+      "actualAssertion": "'stderr'",
+      "detected": true
+    },
+    {
+      "target": "quota",
+      "mutation": "swallow",
+      "actualAssertion": "exact result and rejection identity",
+      "detected": true
+    },
+    {
+      "target": "quota",
+      "mutation": "recast",
+      "actualAssertion": "exact result and rejection identity",
+      "detected": true
+    },
+    {
+      "target": "quota",
+      "mutation": "wrong-error-copy",
+      "actualAssertion": "exact result and rejection identity",
+      "detected": true
+    },
+    {
+      "target": "quota",
+      "mutation": "wrong-sentinel",
+      "actualAssertion": "exact result and rejection identity",
+      "detected": true
+    },
+    {
+      "target": "quota",
+      "mutation": "duplicate-diagnostic",
+      "actualAssertion": "exact result and rejection identity",
+      "detected": true
+    },
+    {
+      "target": "nearby",
+      "mutation": "swallow",
+      "actualAssertion": "rejection identity/output",
+      "detected": true
+    },
+    {
+      "target": "nearby",
+      "mutation": "recast",
+      "actualAssertion": "rejection identity/output",
+      "detected": true
+    },
+    {
+      "target": "nearby",
+      "mutation": "wrong-error-copy",
+      "actualAssertion": "rejection identity/output",
+      "detected": true
+    },
+    {
+      "target": "nearby",
+      "mutation": "wrong-sentinel",
+      "actualAssertion": "rejection identity/output",
+      "detected": true
+    },
+    {
+      "target": "nearby",
+      "mutation": "duplicate-diagnostic",
+      "actualAssertion": "rejection identity/output",
+      "detected": true
+    }
+  ],
+  "authorRows": [
+    {
+      "path": "original/canonical/contracts.test.ts.data",
+      "sha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197",
+      "unchanged": true
+    },
+    {
+      "path": "revised/canonical/contracts.test.ts.data",
+      "sha256": "ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7",
+      "unchanged": true
+    },
+    {
+      "path": "original/core/runtime-driver.mjs",
+      "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/runtime-driver.mjs",
+      "sha256": "1ecb6e435f0fd42956836b593de9c4015a94e90788d7a832e9504449586a94f5",
+      "unchanged": true
+    },
+    {
+      "path": "original/core/protocol-driver.mjs",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/protocol-driver.mjs",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc",
+      "unchanged": true
+    },
+    {
+      "path": "original/core/lifecycle-driver.mjs",
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/lifecycle-driver.mjs",
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37",
+      "unchanged": true
+    },
+    {
+      "path": "original/core/watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "unchanged": true
+    },
+    {
+      "path": "revised/core/watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "unchanged": true
+    },
+    {
+      "path": "original/quota/cases.mjs",
+      "sha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086",
+      "unchanged": true
+    },
+    {
+      "path": "revised/quota/cases.mjs",
+      "sha256": "95b43097e3d7685504fc11db5b90f6fa59988b34daf5ee236e679ca8b8b3ea40",
+      "unchanged": true
+    },
+    {
+      "path": "original/quota/probe.mjs",
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "unchanged": true
+    },
+    {
+      "path": "revised/quota/probe.mjs",
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1",
+      "unchanged": true
+    },
+    {
+      "path": "original/quota/common.mjs",
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f",
+      "unchanged": true
+    },
+    {
+      "path": "revised/quota/common.mjs",
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f",
+      "unchanged": true
+    },
+    {
+      "path": "original/nearby/controls.json",
+      "sha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+      "unchanged": true
+    },
+    {
+      "path": "revised/nearby/controls.json",
+      "sha256": "8842bd8d8542757a64cca37306491903233cb43e41fe9b37d0801feba6816fda",
+      "unchanged": true
+    },
+    {
+      "path": "support/nearby-driver.mjs",
+      "sha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe",
+      "unchanged": true
+    },
+    {
+      "path": "support/core-bound.mjs",
+      "sha256": "ea789c6fde5f09a85a84504e772451e44ca04e3acf88c4f90024f1c3bcd388d1",
+      "unchanged": true
+    },
+    {
+      "path": "support/core-drivers/watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee",
+      "unchanged": true
+    },
+    {
+      "path": "support/core-bindings.mjs",
+      "sha256": "76ba82c4c7b226122343ca19a331504be1e1d3e38e334ad30e0b22ef3d2cea13",
+      "unchanged": true
+    },
+    {
+      "path": "support/original-core-binding-deltas.json",
+      "sha256": "9ea5e46827d867d828c12a65c47e922fd502b3c31efbdb7c93e0d31803274b2a",
+      "unchanged": true
+    },
+    {
+      "path": "support/revised-core-binding-deltas.json",
+      "sha256": "e9240686f0a077240f138e0edccbb69e17525c5421dfa576de934492de680906",
+      "unchanged": true
+    },
+    {
+      "path": "historical/final-REPORT.md",
+      "sha256": "0bb7190f00f277dee529c9c8383bbaaeea1524704ec01cfc051f05d49b7b7bb2",
+      "unchanged": true
+    },
+    {
+      "path": "historical/final-regression-summary.json",
+      "sha256": "ed28c33e5811ec2f8befa58493623df60cf6202988467fa226990424d0655935",
+      "unchanged": true
+    },
+    {
+      "path": "historical/final-legacy-no-native-process.json",
+      "sha256": "fa3adb17fe8606fcc07aa222d46b8c9f6f24305752e6936744c526182e11cccf",
+      "unchanged": true
+    },
+    {
+      "path": "historical/final-core-summary.json",
+      "sha256": "8b6eb072485386bac00a9d21d1fc6462efe30c22dd06442eb54032b5f606be53",
+      "unchanged": true
+    },
+    {
+      "path": "historical/author-REPORT.md",
+      "sha256": "62ec9b99afe5ed4e9fd54b9bc4eb0dcdebee25bd3a62ed229430d5db1e996e7b",
+      "unchanged": true
+    },
+    {
+      "path": "historical/author-candidate-summary.json",
+      "sha256": "8125c596053531d4c1152260317fe0029fb3ca2b12cc86796ec64dd9a91d968e",
+      "unchanged": true
+    },
+    {
+      "path": "historical/author-candidate-expr.tap.data",
+      "sha256": "ab7dd148ed70b55877712e403905841229c54a5d41812e0a7d6603744a796a0e",
+      "unchanged": true
+    },
+    {
+      "path": "historical/outside-REPORT.md",
+      "sha256": "cbe923248fdc01af6c83d4f679726332980411fde69d299d499232adaeb2b3e6",
+      "unchanged": true
+    }
+  ],
+  "appendAwareSourceDistInstalledChecks": true,
+  "sourceIgnoredAfterBuild": [
+    "dist (separately checked exhaustively)"
+  ],
+  "liveHEADInputsUsed": false,
+  "externalOracleRecapture": false,
+  "globalRepositoryCleanlinessClaim": false
+}

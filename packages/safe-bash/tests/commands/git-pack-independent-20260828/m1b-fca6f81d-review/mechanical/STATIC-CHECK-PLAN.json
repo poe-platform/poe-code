@@ -1,0 +1,106 @@
+{
+  "schema": "m1b-static-text-check-plan-v1",
+  "role": "SYNTAX_AND_SPEC_TEXT_ONLY_NOT_COMPONENT_CONTROL_EXECUTION",
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "mode": 493,
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/python3",
+      "mode": 493,
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+      "mode": 493,
+      "bytes": 3644,
+      "sha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd"
+    }
+  ],
+  "commands": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/checkpoints.mjs"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/counter.mjs"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/fixture-data.mjs"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/ownership.mjs"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/session-observation.mjs"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/types.mjs"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "/usr/bin/python3",
+        "-I",
+        "-B",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/SPECIFICATION.md"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/"
+      ],
+      "timeoutMs": 10000,
+      "maxBuffer": 65536
+    }
+  ],
+  "environment": "NODE_OPTIONS,NODE_PATH,PYTHONPATH,PYTHONHOME removed. No module imports or execution; no compiler/--version/build/native Git oracle.",
+  "sourceSealBeforeChecks": true,
+  "targetExecutions": 0,
+  "controlsExecuted": 0
+}

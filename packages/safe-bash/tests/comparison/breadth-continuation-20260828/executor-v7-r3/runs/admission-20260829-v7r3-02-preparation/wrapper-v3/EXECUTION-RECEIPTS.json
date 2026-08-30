@@ -1,0 +1,62 @@
+{
+  "schema": "NARROW_REPAIR_EXECUTIONS",
+  "probe": {
+    "presealCommit": "ce47629f43f9e466dccd4cc1e9fcc0cf72aa0918",
+    "sealSha256": "8a22599e56af42e7a48c7da78b88910023074293747351ac007c6ffecc398041",
+    "runnerPid": 28659,
+    "exitCode": 0,
+    "closed": true,
+    "attempts": 1,
+    "processes": 4,
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/probe-01/RECEIPT.json",
+      "bytes": 1584,
+      "mode": 384,
+      "sha256": "85f7297bbea04ad40e0f2ac1aba7a24432db35c90b4f278abc6b8912df641d9f"
+    },
+    "qualification": "One actual host-Node environment probe only; known finite metadata, origin unknown"
+  },
+  "data": {
+    "presealCommit": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+    "sealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+    "runnerPid": 35811,
+    "exitCode": 0,
+    "closed": true,
+    "attempts": 1,
+    "processes": 1,
+    "qualified": 26,
+    "total": 26,
+    "unrun": 0,
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/DATA-RESULT.json",
+      "bytes": 2655,
+      "mode": 384,
+      "sha256": "893f5a647e57fac86e8c0cc8f29555cd85898175001142ec552154f97388ff5e"
+    },
+    "qualification": "Actual DATA/helper checks, no actual owner module evaluation"
+  },
+  "tails": {
+    "presealCommit": "ecb89887b9595227bc2753cbdf42a018d8e36f09",
+    "sealSha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46",
+    "runnerPid": 35873,
+    "exitCode": 0,
+    "closed": true,
+    "attempts": 1,
+    "processes": 10,
+    "qualified": 3,
+    "total": 3,
+    "unrun": 0,
+    "unsafe": false,
+    "receipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/tails-01/REPORT.json",
+      "bytes": 5553,
+      "mode": 384,
+      "sha256": "cc6d58c51dabacd8597e12248ade253f58c46aa2f4ff92a7903cca399819344d"
+    },
+    "qualification": "New versioned M01-M03 all complete trailing assertions; old3failures unrescored"
+  },
+  "totalProcesses": 15,
+  "peak": 3,
+  "noActualOwnerEngineWorkersC11Semantics": true,
+  "toolCapture": "Exact exec_command terminal receipts separately retained; no old missing bytes reconstructed"
+}

@@ -1,0 +1,1578 @@
+{
+  "schema": "REGEX_V3_IMMUTABLE_UNSAFE_STOP",
+  "status": "UNSAFE_STOP",
+  "preseal": "81443d3d9eabcf17040d77eb34c60106fc543ccc",
+  "sealSha256": "68f824801932f77b07fed4de0597e6c39d6463e304a02d24b179978d36d6421f",
+  "authSha256": "6690931e5c39da20aa0d47d4e2419740faf1a314644109b902b24380ca5b0c50",
+  "attempts": 1,
+  "retry": false,
+  "rawOutcomes": {
+    "qualified": 19,
+    "ordinaryFail": 10,
+    "unsafeStop": 1,
+    "unrun": 25,
+    "total": 55
+  },
+  "launchedChildControls": 30,
+  "publishedResults": 29,
+  "missingResults": [
+    "G06.4"
+  ],
+  "unlaunchedChildControls": 21,
+  "unrunInProcessData": 4,
+  "plannedWorkers": 41,
+  "WorkerCounters": {
+    "publishedCreated": 0,
+    "publishedConstructorAttempts": 0,
+    "unpublishedControl": "G06.4",
+    "totalActual": "UNQUALIFIED: missing final control receipt; do not substitute completed-only counters"
+  },
+  "actualTargetImports": 0,
+  "actualComparatorImports": 0,
+  "C11": 0,
+  "actualSemanticCalls": 0,
+  "writer": {
+    "observedOwnedDescriptorsOpened": 10,
+    "observedOwnedDescriptorsClosed": 10,
+    "observedNativeFsyncRefusals": 10,
+    "fsyncSuccesses": 0,
+    "exactDiagnostic": "fsync API is disabled when Permission Model is enabled.",
+    "code": "ERR_ACCESS_DENIED",
+    "scope": "pinned Node22.22.2 controls launched with --permission; not a product bug"
+  },
+  "mutation": {
+    "G05_1": "NOT_ENTERED; exact original artifact postguard passed in this new version; original V2 stop unchanged",
+    "publishedSchemaAssertions": 348,
+    "physicalMutationFaultMatrix": "UNRUN"
+  },
+  "witness": {
+    "publishedSchemaRejections": 319,
+    "channelInstallation": "UNQUALIFIED",
+    "crossWorkerIsolation": "UNRUN",
+    "restorationAfterNativeConstruction": "UNRUN",
+    "actualNestedTargetLoads": 0
+  },
+  "capture": {
+    "childObserved": [
+      7444,
+      6732
+    ],
+    "childRetained": [
+      7444,
+      6732
+    ],
+    "outerObserved": [
+      110,
+      0
+    ],
+    "outerRetained": [
+      110,
+      0
+    ],
+    "totalObserved": 14286,
+    "loss": 0,
+    "outerQualified": true,
+    "qualificationDoesNotOverrideUnsafeStop": true
+  },
+  "closure": {
+    "knownHostChildControlsClosed": 30,
+    "supervisorClosed": true,
+    "outerClosed": true,
+    "allHostRuntimeChildrenClosed": 32,
+    "reportedWorkerRetirementQualifiedResults": 29,
+    "lastControlIndividualWorkerCounters": "UNKNOWN/UNPUBLISHED; host process is closed"
+  },
+  "stop": {
+    "id": "G06.4",
+    "secondaryFailure": "TypeError: Cannot set properties of undefined (setting 'exitCode')",
+    "line": "case.mjs:156:70",
+    "supervisorFailure": "RESULT.json missing",
+    "missingPrimary": "No original operation/primary receipt for G06.4; not reconstructed from sibling cases or source correlation.",
+    "retainedArtifacts": [
+      {
+        "name": "CONFIG.json",
+        "bytes": 11131,
+        "mode": 384,
+        "sha256": "0e7be2b260c647580587e40b8b8f86b5935bd6519026b7281e19053e187d4282"
+      },
+      {
+        "name": "SUPERVISION.json",
+        "bytes": 1497,
+        "mode": 384,
+        "sha256": "805cdb5c253083b57e96a510bd57c3e558feccf022e1a2fd5eec45b1c5ae575b"
+      },
+      {
+        "name": "bre-worker.mjs",
+        "bytes": 162,
+        "mode": 420,
+        "sha256": "6198c017bdc52b99daa3b22a1933981173dd05ddd320929569c65a37b50ed559"
+      },
+      {
+        "name": "foreign.mjs",
+        "bytes": 42,
+        "mode": 420,
+        "sha256": "0786298e8c3b0a539af0bcb9432af63331f9eda86fdecdb9054ef861ba491964"
+      },
+      {
+        "name": "matching.mjs",
+        "bytes": 110,
+        "mode": 420,
+        "sha256": "2fe438402ed8a96ee22c00c856d3751692bcba92cc2968e5ef6a676f217f47c4"
+      },
+      {
+        "name": "protocol.mjs",
+        "bytes": 40,
+        "mode": 420,
+        "sha256": "9ae2827c98dcb254696ee5ebe5b5c799d833cd30b74da62937235ffea4d2f34e"
+      },
+      {
+        "name": "stderr.raw",
+        "bytes": 845,
+        "mode": 384,
+        "sha256": "f7c44ec9922af9491773e2f4f9167a6dff29fdc0c696fb7476813d66dc56873c"
+      },
+      {
+        "name": "stdout.raw",
+        "bytes": 68,
+        "mode": 384,
+        "sha256": "075d029dd62f707d261292f46ab78cd94df63b5bffa302e4c3b6051e9988a1b8"
+      },
+      {
+        "name": "worker-1.jsonl",
+        "bytes": 0,
+        "mode": 384,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "worker.mjs",
+        "bytes": 682,
+        "mode": 420,
+        "sha256": "6ef7dbda338f816744460f1f27b58ff5d96ff71875d1a28222a1cdb84255979b"
+      }
+    ]
+  },
+  "sourcePostflight": {
+    "role": "standalone DATA after stop; not runtime rescore",
+    "bindings": [
+      {
+        "role": "v3",
+        "path": "AUTH-INACTIVE.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "CONTROL-AMENDMENT.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "INSTRUMENTATION.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "PLAN.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "PRIOR-DRAFT.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "README.md",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "ROOT-AUTHORITY.txt",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "SOURCE-CHECK-AMENDMENT.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "SOURCE-CHECK-PRESEAL.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "SOURCE-SYNTAX-AMENDMENT.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "SOURCE-SYNTAX.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "capture.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "case.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "common.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "controls.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "fixtures.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "guarded-operation.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "mutation.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "observer.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "owned-writer.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "package.json",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "policy.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "preload.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "supervisor.mjs",
+        "pass": true
+      },
+      {
+        "role": "v3",
+        "path": "writer-controls.mjs",
+        "pass": true
+      },
+      {
+        "role": "unchanged-offline",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+        "pass": true
+      },
+      {
+        "role": "unchanged-offline",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+        "pass": true
+      },
+      {
+        "role": "unchanged-offline",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "AUTH-INACTIVE.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "INSTRUMENTATION.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "PLAN.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "PRIOR-DRAFT.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "README.md",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "ROOT-AUTHORITY.txt",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "capture.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "case.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "common.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "controls.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "fixtures.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "guarded-operation.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "observer.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "package.json",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "policy.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "preload.mjs",
+        "pass": true
+      },
+      {
+        "role": "immutable-v2",
+        "path": "supervisor.mjs",
+        "pass": true
+      }
+    ],
+    "allPass": true
+  },
+  "outcomes": [
+    {
+      "id": "G01.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G01.1/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G01.2",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G01.2/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G01.3",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "FILE_BOUND_METADATA",
+        "message": "FILE_BOUND_METADATA"
+      }
+    },
+    {
+      "id": "G01.4",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "FILE_BOUND_METADATA",
+        "message": "FILE_BOUND_METADATA"
+      }
+    },
+    {
+      "id": "G01.5",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "FILE_METADATA",
+        "message": "FILE_METADATA"
+      }
+    },
+    {
+      "id": "G02.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G02.1/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G02.2",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      }
+    },
+    {
+      "id": "G02.3",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      }
+    },
+    {
+      "id": "G02.4",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      }
+    },
+    {
+      "id": "G02.5",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      }
+    },
+    {
+      "id": "G02.6",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      }
+    },
+    {
+      "id": "G02.7",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      }
+    },
+    {
+      "id": "G03.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT",
+        "DESIGNATED_QUALIFICATION_PREDICATE"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G03.1/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G03.2",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      }
+    },
+    {
+      "id": "G03.3",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "ACCESSOR",
+        "message": "ACCESSOR"
+      }
+    },
+    {
+      "id": "G03.4",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      }
+    },
+    {
+      "id": "G03.5",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "RESOURCE_LIMITS",
+        "message": "RESOURCE_LIMITS"
+      }
+    },
+    {
+      "id": "G04.1",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      }
+    },
+    {
+      "id": "G04.2",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      }
+    },
+    {
+      "id": "G04.3",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "OWN_KEYS",
+        "message": "OWN_KEYS"
+      }
+    },
+    {
+      "id": "G04.4",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      }
+    },
+    {
+      "id": "G04.5",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_EXACT",
+        "message": "URL_EXACT"
+      }
+    },
+    {
+      "id": "G05.1",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G05.1/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G05.2",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G05.2/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G05.3",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G05.3/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G05.4",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G05.4/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G06.1",
+      "rawStatus": "QUALIFIED",
+      "failures": [],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": []
+      },
+      "primary": {
+        "type": "undefined"
+      },
+      "caught": {
+        "type": "object",
+        "name": "Error",
+        "code": "URL_BRAND",
+        "message": "URL_BRAND"
+      }
+    },
+    {
+      "id": "G06.2",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G06.2/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    },
+    {
+      "id": "G06.3",
+      "rawStatus": "ORDINARY_CONTROL_FAILURE",
+      "failures": [
+        "EXACT_WORKER_COUNT"
+      ],
+      "created": 0,
+      "attempts": 0,
+      "knownRetired": true,
+      "mutation": {
+        "state": "NOT_ENTERED",
+        "bytesWritten": 0,
+        "primaryPresent": false,
+        "primary": null
+      },
+      "writer": {
+        "schema": "OWNED_DESCRIPTOR_WRITER_V1",
+        "role": "HARNESS_WITNESS",
+        "retired": true,
+        "unknown": false,
+        "closed": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/runs/controls-01/G06.3/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "closed": true,
+            "bytes": 0,
+            "fsynced": false,
+            "primaryPresent": true,
+            "primary": {
+              "type": "object",
+              "code": "ERR_ACCESS_DENIED",
+              "message": "fsync API is disabled when Permission Model is enabled."
+            },
+            "cleanup": [],
+            "stages": [
+              "enrolled",
+              "opened",
+              "written",
+              "closed"
+            ]
+          }
+        ]
+      },
+      "primary": {
+        "type": "object",
+        "name": "Error",
+        "code": "ERR_ACCESS_DENIED",
+        "message": "fsync API is disabled when Permission Model is enabled."
+      },
+      "caught": {
+        "type": "undefined"
+      }
+    }
+  ],
+  "unrun": [
+    "G07.1",
+    "G07.2",
+    "G07.3",
+    "G07.4",
+    "G08.1",
+    "G08.2",
+    "G08.3",
+    "G08.4",
+    "G09.1",
+    "G09.2",
+    "G09.3",
+    "G09.4",
+    "G10.1",
+    "G10.2",
+    "G10.3",
+    "G10.4",
+    "G11.1",
+    "G11.2",
+    "G11.3",
+    "G11.4",
+    "G11.5",
+    "G12.1",
+    "G12.2",
+    "G12.3",
+    "G12.4"
+  ],
+  "budget": {
+    "started": "2026-08-29T08:50:03.285Z",
+    "at": "2026-08-29T09:11:32.663Z",
+    "deadline": "2026-08-29T09:25:03.285Z",
+    "elapsedMilliseconds": 1289378,
+    "knownOwnedClosedBeforePublication": 50,
+    "toolServiceReservation": 1,
+    "osCap": 96,
+    "peakOwnedRuntimeTopology": 3,
+    "captureCap": 134217728,
+    "workCap": 536870912,
+    "publicationIncluded": true,
+    "publicationNotYetComplete": true
+  },
+  "history": {
+    "v2Evidence": "a1aa3bfebf99e68402f08e99e1d7f7a0a58446d9",
+    "v2Publication": "05bca6d96d821c3a628387d8ecfa313c79cddb02",
+    "v2Unchanged": true,
+    "oldLossesAndFailuresUnchanged": true
+  },
+  "remainingDecision": "Preserve --permission and every external guard. ROOT must decide whether existing parent collector may fsync authenticated owned witness files after child retirement, explicitly changing durability timing. If pre-evaluation durability is required, HOLD for a separately approved parent-owned publication protocol. Do not skip fsync, widen permission, or reuse this consumed grant."
+}

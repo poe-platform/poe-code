@@ -1,0 +1,35 @@
+{
+  "schema": 3,
+  "groups": 6,
+  "passed": 6,
+  "rows": [
+    {
+      "id": "R3-01-runtime-trusted-postcheck",
+      "pass": true
+    },
+    {
+      "id": "R3-02-publication-trusted-postcheck",
+      "pass": true
+    },
+    {
+      "id": "R3-03-old-enforcement-and-EOF-claims-refused",
+      "pass": true
+    },
+    {
+      "id": "R3-04-overflow-and-byte-binding",
+      "pass": true
+    },
+    {
+      "id": "R3-05-own-data-no-getters-extras",
+      "pass": true
+    },
+    {
+      "id": "R3-06-reserve-and-identity",
+      "pass": true
+    }
+  ],
+  "Workers": 0,
+  "children": 0,
+  "productImports": 0,
+  "actualPostcheckFiles": 0
+}

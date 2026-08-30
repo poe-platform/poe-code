@@ -1,0 +1,70 @@
+{
+  "schema": "unified76-instruction-projection-v1",
+  "authority": "ROOT narrow metadata-only projection after a9ec3561; full release not transferred",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+  "pathProfile": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "syntax": "posix",
+    "separator": "/"
+  },
+  "candidateEntries": [
+    {
+      "path": "AGENTS.md",
+      "mode": "100644",
+      "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+      "bytes": 12424,
+      "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857,
+      "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857,
+      "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857,
+      "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857,
+      "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+    }
+  ],
+  "dependencyEntries": [
+    {
+      "role": "benchmark",
+      "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+      "path": "just-bash/dist/AGENTS.md",
+      "mode": "100644",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+    }
+  ],
+  "logical": {
+    "entries": 37397,
+    "bytes": 2382440321
+  },
+  "physical": {
+    "entries": 37392,
+    "bytes": 2382392469
+  },
+  "opaqueGit": "Original authenticated Git object/pack bytes may retain historical instruction blobs as inert provenance only. No checkout, plaintext instruction snapshots, substituted instruction text, or reading those blobs as instructions.",
+  "fullGateReleased": false
+}
+

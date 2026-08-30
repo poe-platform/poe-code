@@ -1,0 +1,24 @@
+{
+  "schema": "SEMANTIC_FIXTURE_V2_PRESEAL",
+  "originalPresealSha256": "21193008cf6f91b96a14cfa94dc6844a7dafa9dc6d135227f999eb478b5a42b0",
+  "own": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/semantic-mode-review/continuation.mjs",
+      "bytes": 5715,
+      "sha256": "5ed8182fba34526eaa0fb37da1ec3080e6642162c49c9478f364ec798c68d80c",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/semantic-mode-review/CONTINUATION-PLAN.md",
+      "bytes": 1571,
+      "sha256": "8deda457f068db4fcc40392ef13dfe6e30d9739bdf418f40839c7eabc32fff00",
+      "mode": 420
+    }
+  ],
+  "controls": [
+    "N03-v2",
+    "N04-v2"
+  ],
+  "newOSChildren": 0,
+  "realEngines": 0
+}

@@ -1,0 +1,23 @@
+{
+  "handoffLedgerCommit": "ec007f15fbd032c32fd5b18b094a80914586c176",
+  "ledgerPaths": [
+    "docs/PROJECT_LEDGER.md"
+  ],
+  "documents": [
+    {
+      "path": "README.md",
+      "bytes": 51008,
+      "sha256": "e1465dace0d50eaf5038edc08623faeba807ffb0cb4aa8138b9cf5f3fbaea351"
+    },
+    {
+      "path": "docs/COMMAND_PRIORITIES.md",
+      "bytes": 23990,
+      "sha256": "468735d7a04283069172b554cca1c2e1b36a5616c823273347d3c7ef67e3c692"
+    },
+    {
+      "path": "docs/PROJECT_LEDGER.md",
+      "bytes": 277892,
+      "sha256": "afc8108c8be70908803f1f4451fba8041bb84247caa2e9cc0af014e1414ab20d"
+    }
+  ]
+}

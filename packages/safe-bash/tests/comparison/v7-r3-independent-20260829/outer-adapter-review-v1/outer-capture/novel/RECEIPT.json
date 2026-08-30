@@ -1,0 +1,30 @@
+{
+  "id": "novel",
+  "openedBeforeAdmission": true,
+  "pid": 86995,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "close": {
+    "code": 1,
+    "signal": null
+  },
+  "observed": {
+    "stdout": 48,
+    "stderr": 0,
+    "fd3": 0
+  },
+  "retained": {
+    "stdout": 48,
+    "stderr": 0,
+    "fd3": 0
+  },
+  "failures": [],
+  "globalAbsenceClaim": false,
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/novel.mjs"
+  ]
+}

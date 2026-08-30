@@ -1,0 +1,27 @@
+{
+  "schema": "R2_PRESEALED_AFFECTED_SCOPE",
+  "attempts": 1,
+  "runId": "affected-r2-01",
+  "authorization": "DATA_AND_OWN_STUB_ONLY_NO_REAL_AUTHORITY_ENGINE_STAGING_C11_ADMISSION_OR_COHORT",
+  "composed": [
+    ["C01", "positive", true, 2, 1],
+    ["C02", "final-count", false, 2, 1],
+    ["C03", "missing-observer", false, 2, 1],
+    ["C04", "metadata-mismatch", false, 2, 1],
+    ["C05", "child-boolean", false, 2, 1],
+    ["C06", "intentional-status", true, 2, 2],
+    ["C07", "metadata-nonzero", false, 1, 0],
+    ["C08", "array-authority", false, 0, 0],
+    ["C09", "outer-nonzero", false, 2, 1],
+    ["C10", "invalid-cli", false, 0, 0]
+  ],
+  "data": [
+    ["A01", "Both primitive reference boundaries, both roles, JSON primitives/arrays/objects; own getter/inherited/extra/missing/toString/toJSON cases must refuse before observer use"],
+    ["A02", "Complete signed review/grant/command schema, inert positives and malformed nested primitives/keys/sequences/getters; no valid root token or Git resolution"],
+    ["A03", "Actual positive composed receipt through full assessor with final-report and observer count/role/PID/hash/size/order/missing/extra mutations; actual data-model negatives, not claimed production bypasses"],
+    ["A04", "Typed child terminal and ledger dispositions, missing/equal-invalid/nonnatural/incomplete cases; designated C09 status/deadline data positives separate from actual C06 status7"],
+    ["A05", "Inclusive 2097151 config-byte ceiling including LF: minus1 and exact through actual writer+reader+two stub readers; plus1 refused, staged2097152 stays separate; metadata closed-schema controls"]
+  ],
+  "bounds": { "families": 15, "composedParents": 10, "synchronousMetadataStubs": 15, "nestedWorkerStubs": 8, "configReaderStubs": 2, "testRunner": 1, "totalProcessesExcludingLauncher": 36, "concurrency": 1, "childOldSpaceMiB": 256, "metadataDeadlineMs": 10000, "childDeadlineMs": 30000, "termGraceMs": 2000, "killGraceMs": 1000, "runnerDeadlineMs": 180000, "streamBytes": 65536, "recordBytes": 262144, "syntheticTotalBytes": 67108864 },
+  "qualifications": ["Metadata stubs expose actual process status/signal/hash/reaping through the production reference-load helper, but never Git/root authority", "Twelve body control PASS rows are inert fixture data, not actual C11/admission controls", "Full 248+8 MiB quota boundaries STATIC_ONLY; exact 2 MiB-class config boundary is the declared finite dynamic control", "Keep independent30/30+1supplement/F08 EPERM qualification/7of8 and author31of33 unchanged", "No retries; ordinary assertions aggregate only after cleanup and integrity; unsafe child or binding failure stops dependents"]
+}

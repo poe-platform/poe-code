@@ -1,0 +1,372 @@
+[
+  {
+    "id": "parent-zero-pass",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "parent-nonzero-pass",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-nonzero-fail",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-zero-fail",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-missing-required",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-duplicate",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-stale",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-wrong-job",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-wrong-manifest",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-wrong-phase",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-wrong-count",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-incomplete",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-cleanup-false",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-intact-false",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-final-position",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-timeout",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "parent-replay",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-W14",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-R63",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-AMPLE-RECORDS",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-AMPLE-INPUT",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-LOW-OUTPUT",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-CALLER",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-parentBudget",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-parentControl",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-sink",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-cleanup",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "positive-F11-DEFAULT-SUCCESS",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "reject-candidate",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-input",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-args",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-caps",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-factory",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-primary",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-diagnosticPath",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-status",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reason",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-caller",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-cleanup",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-partial",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-overbudget",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reservation",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-uncharged",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-missingStdout",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-missingStderr",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-invocations",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-admission",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-intact",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-closed",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-omission-F11-AMPLE-RECORDS",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-omission-F11-AMPLE-INPUT",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reason-parentBudget",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reason-parentControl",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reason-sink",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reason-cleanup",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-reason-CALLER",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-mask-parentBudget",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-mask-parentControl",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-mask-sink",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-mask-cleanup",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "reject-mask-CALLER",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "failed-required-phase",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "missing-required-phase",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "ordinary-failure-continues",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "unsafe-receipt-stops",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "append-aware-source",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "append-aware-package",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "actual-promise-identity",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "middleware-readiness-results",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "overlay-mechanical-byte-proof",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "full-when-fit-maxWork",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "omission-when-fit-maxWork",
+    "polarity": "negative",
+    "passed": true
+  },
+  {
+    "id": "full-when-fit-maxRetainedBytes",
+    "polarity": "positive",
+    "passed": true
+  },
+  {
+    "id": "omission-when-fit-maxRetainedBytes",
+    "polarity": "negative",
+    "passed": true
+  }
+]

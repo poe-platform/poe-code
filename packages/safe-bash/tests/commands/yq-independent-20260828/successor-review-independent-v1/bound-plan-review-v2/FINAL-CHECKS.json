@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "classification": "STATIC_REVIEW_OUTPUT_VALIDATION_NOT_TARGET_TESTS",
+  "date": "2026-08-28",
+  "criteriaCommit": "1e20418887cb87073270d87ef17d74576e02440f",
+  "files": [
+    {
+      "path": "CRITERIA.md",
+      "sha256": "466cbdd4b3115877834b646a5d87552874389d9fe82a9e12c3e4a6d838869e88",
+      "bytes": 4475,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "b44407f4cf72bfd9781ba89bd8e7eb48a7235870d61df2c5b6b78f3c87680f1e",
+      "bytes": 1163,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "MODE-ROLE-DECISION.json",
+      "sha256": "1e7ae2f2f3431898c17a04375f431babb5a1d353c9db7cd71b17d988bf3fcc7d",
+      "bytes": 12277,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "MUTANT-DATA-AUDIT.json",
+      "sha256": "cbf7329649627c516f56186549fb079932d3fd4d8552ea8835e4e0d75b1516cc",
+      "bytes": 12411,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "PLAN-AUTHENTICATION.json",
+      "sha256": "a3a7a97ee3e9c8d5265b0fc75d2cf5f74a3b2101438dce64e70a6ac0df5c0b17",
+      "bytes": 6814,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "PREPARATION-NOTES.md",
+      "sha256": "8520c1fb52753b9585aa16de2d0353ebf7217198638998ab1f4453fd03c2d4fb",
+      "bytes": 1758,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "REFERENCE-AUTHENTICATION.json",
+      "sha256": "12aaef2df785a1469f2b4723722894ac4db71ccf4a138baeaa81253745b4d388",
+      "bytes": 41216,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "REVIEW.md",
+      "sha256": "ee59eee867c525b72f396367a32eed8896d4376afad1b3c7b65298ae7a3661ee",
+      "bytes": 13582,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "SCHEDULE-MATRIX-AUDIT.json",
+      "sha256": "b1c4828072d7f5c08a37391c7d5829bbae003388a1a199bc2f02af62fc4d1a9d",
+      "bytes": 22892,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "SERIALIZATION-CLARIFICATION.json",
+      "sha256": "eb93bda354d77dfd0d64365b402b360fde65e56763aa48cc5cccd6a3548245bd",
+      "bytes": 2555,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "TOOL-PROOF-LIMITS.json",
+      "sha256": "91f0b33428b3059ff98072a9b4a0c224b4ee651b77b1a6da012979beca5525c8",
+      "bytes": 13729,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    },
+    {
+      "path": "VERDICT.json",
+      "sha256": "e1098e93dfc2b252ee62212e4c99243911f6af8372541ea5cf3b39b2b5ae9e3c",
+      "bytes": 3608,
+      "mode": 420,
+      "kind": "regular-file",
+      "links": 1
+    }
+  ],
+  "filesBeforeThisSelfExcludedCheck": 12,
+  "jsonFilesValidatedBeforeThisSelfExcludedCheck": 9,
+  "uniqueJsonKeys": true,
+  "allFilesRegularSingleLink": true,
+  "writeSpecCriteria": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "originalCriteriaInputsUnchanged": true,
+  "previousBoundReviewUnchanged": {
+    "commit": "dffc3047c2e06651cde6356338b3f73ec9cfd7af",
+    "changedPaths": []
+  },
+  "previousScheduleReviewUnchanged": {
+    "commit": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+    "changedPaths": []
+  },
+  "precommitIndexPaths": [],
+  "staticDiagnostics": "One bounded missing-path lookup and seven initial wrong-serialization hashes are qualified in PREPARATION-NOTES; no authored control failed or ran. Raw mutation diagnostic retained.",
+  "oldHistoryRescored": false,
+  "unsealedCoreWorkerBodiesRead": false,
+  "rootGO": false,
+  "runtimePasses": 0,
+  "controlPasses": 0,
+  "candidateExecutions": 0,
+  "independentBuilds": 0,
+  "compilerInvocations": 0,
+  "productModuleLoads": 0,
+  "authoredAdapterPredicateValidatorCalls": 0,
+  "targetChildrenSpawned": 0,
+  "targetPidsReapedClaimed": 0,
+  "selfExcludedExactPath": "FINAL-CHECKS.json",
+  "qualification": "This file is content-bound by the final exact-path Git commit and /tmp handoff. No historical full-mode self authority or change-and-restore guarantee is invented."
+}

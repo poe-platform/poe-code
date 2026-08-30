@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+import { gunzipSync } from 'node:zlib';
+import { hash, packInventory } from '../execution-prep-v1/artifacts.mjs';
+import { verifyInputs } from '../execution-prep-v1/verify-inputs.mjs';
+import { classify } from '../execution-prep-v1/protocol.mjs';
+import { checkTypes, sourceDelta, packageDelta } from '../execution-v2/guards.mjs';
+const directory = new URL('./review-01/', import.meta.url);
+const seal = JSON.parse(readFileSync(new URL('RESULT-SEAL.json', directory)));
+const encoded = readFileSync(new URL('RESULT.json.gz.base64', directory));
+assert.equal(hash(encoded), seal.gzipBase64Sha256);
+const raw = gunzipSync(Buffer.from(encoded.toString().trim(), 'base64'), { maxOutputLength: 64 * 1024 * 1024 });
+assert.equal(hash(raw), seal.sha256); assert.equal(raw.length, seal.bytes);
+const report = JSON.parse(raw), binding = JSON.parse(readFileSync(new URL('../stack-binding-v1/BINDING.json', import.meta.url)));
+const archive = Buffer.from(readFileSync(new URL('PACKAGE.tgz.base64', directory), 'utf8').trim(), 'base64');
+assert.equal(hash(archive), 'b0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa');
+assert.deepEqual(packInventory(archive), report.pack.members); assert.equal(Object.keys(report.pack.members).length, 846);
+assert.deepEqual(packageDelta(binding, archive).changed, report.pack.changed);
+assert.deepEqual(sourceDelta(binding, report.binding.candidateInputs), ['src/shell/runtime.ts', 'src/shell/shell.ts']);
+assert.equal(report.binding.composition, '37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e');
+assert.deepEqual(report.binding.sourceBefore, report.sourceAfter);
+assert.equal(report.accepted, false); assert.equal(seal.accepted, false); assert.equal(report.error, undefined);
+const original = verifyInputs(fileURLToPath(new URL('../../../../', import.meta.url)));
+assert.deepEqual(report.layouts.map(row => row.layout), ['source', 'installed', 'moved']);
+const summary = [];
+for (const layout of report.layouts) {
+  const load = { modulePath: layout.runtimeModule, moduleSha256: layout.runtimeSha256 };
+  for (const row of layout.runs) assert.deepEqual(classify(row.run, row.ids, load), row.classification);
+  assert.deepEqual(layout.before, layout.after);
+  const failed = layout.runs.flatMap(row => row.classification.failed);
+  assert.deepEqual(failed, ['G039']);
+  const count = cohort => layout.runs.filter(row => row.cohort === cohort).reduce((sum, row) => sum + row.classification.observed, 0);
+  assert.deepEqual(['commands', 'unsupported', 'globs', 'states', 'overlay', 'procedures'].map(count), [102, 696, 72, 14, 8, 25]);
+  assert.equal(layout.sourceDenial.accepted, true); assert.equal(layout.late.accepted, true);
+  summary.push({ layout: layout.layout, failed, counts: [102, 696, 72, 14, 8, 25] });
+}
+checkTypes(report.types, report.layouts[2].packageRoot);
+assert.equal(report.guards.length, 14); assert.ok(report.guards.every(row => row.accepted));
+assert.equal(report.mutants.length, 11);
+for (const mutant of report.mutants) {
+  assert.equal(mutant.run.code, 78); assert.equal(mutant.classification.loads.length, 0);
+  assert.equal(mutant.classification.mutantKilled, false);
+  assert.ok(mutant.run.stdout.includes('node:internal/modules/package_json_reader:116:33'));
+  assert.equal(mutant.run.groupAbsent, true);
+}
+assert.equal(report.procedureR24.length, 1);
+assert.deepEqual(report.procedureR24[0].classification.failed, ['R24']);
+assert.equal(report.procedureR24[0].actualLoadLayout, 'moved');
+assert.equal(report.cleanup.absent, true); assert.equal(existsSync(report.cleanup.exactOwnedRootRemoved), false);
+console.log(JSON.stringify({ role: 'evidence reclassification only, no product/native replay', originalFiles: original.checked.length, summary, types: 5, guards: 20, mutationLoads: 0, mutationAdmissionFailures: 11, sharedR24: 'failed', overall: 'held', sourceAfterStable: true, cleanup: true }));

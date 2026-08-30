@@ -1,0 +1,7 @@
+{
+  "cohort": "lifecycle",
+  "started": "2026-08-27T18:22:11.150232+00:00",
+  "status": "BLOCKED",
+  "childrenLaunched": 0,
+  "reason": "Earlier surface cohort nonpass; no later cohort or retry launched"
+}

@@ -1,0 +1,1184 @@
+{
+  "label": "runtime-r1-observed",
+  "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "mode": "runtime-handoff",
+  "base": "1b133a8662a32ee84524794842074c9c98d5f6c3",
+  "handoff": {
+    "path": "/tmp/regex-cleanup-runtime-ready.txt",
+    "contents": "EXPLICIT USER-RELAYED RUNTIME HANDOFF, August 27, 2026.\nruntime_commit 1b133a8662a32ee84524794842074c9c98d5f6c3\nruntime_scopes 4c16d9c\nregistration_commit 01aa1bffe0568cc6787d5ff8e0331e024a787385\nfixture_commit 10273352f8d65d929cbf5a23e69119414dacee60\ncontract_commit 07acb1a4d30b7592cf247a0220250317be4e2038\nSagan closed. Earlier real-worker10/10 belongs ONLY to4c16d9c, not this freeze.\nRun unchanged originalfive compiled/packed plus prepared nested/abort/dispose/lateacquire/cleanup-error/crossinvocation controls against the exact combined frozen bytes. Initially no production edits; report concrete bugs first. Original failures and pre-firstread caveat remain distinct.\nProduction build passes; globaltype qualification pending nativebyte data fixture exclusion by Faraday. Do not edit root config or immutable data.\nSix additional tiny pathological probes remain UNUSED. Execute only after all actual benign lifecycle boundary controls pass and root confirms the recorded green result. Exact child handle cleanup, static harness, no eval/mainthread risky matching, no broad process kills. Default1sactive/3sstartup/2leases retained.\nEquivalent complete-command performance/startup-qualified measurements required; no protocol-only default acceptance.\n",
+    "sha256": "96c31fba212fdd106eba5ea4a75e8a940974d0dfc165c215304f4ad01c4852cf"
+  },
+  "rootDelta": [],
+  "time": "2026-08-27T08:38:09.665Z",
+  "method": "git-show immutable full src closure with explicit per-file commit provenance; no dirty source or live dist",
+  "node": "v22.22.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "worktreeHead": "2542cfa2cefa2eb53b44b07f4245ae81ea1e9ad8",
+  "status": "?? benchmarks/reports/sort-performance-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/file/sqlite-regression.test.ts\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/atomic-extension-independent/phase2/\n?? tests/plugins/qualified-current-release-native-data/\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-audit.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-build.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-compiled-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-freeze.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-packed-old-five.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-registration.json\n?? tests/stress/regex-execution/cleanup-boundary-review/evidence/runtime-r1-runtime.json\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-identities.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observed.mjs\n?? tests/stress/regex-execution/cleanup-boundary-review/runtime-r1-observer.mjs\n?? tests/stress/regex-execution/runtime-acceptance-workloads/\n",
+  "index": "",
+  "identities": [
+    {
+      "path": "src/commands/README.md",
+      "sha256": "b6fb2730f3cf0e9d2fe882352b1c2ece3ab7eacd9b6932ea6fcfc0358863228a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/README.md",
+      "sha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/create.ts",
+      "sha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/extract.ts",
+      "sha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/format.ts",
+      "sha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/index.ts",
+      "sha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/internal.ts",
+      "sha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/options.ts",
+      "sha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/archive/stream.ts",
+      "sha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/README.md",
+      "sha256": "c630d1fb9d0f21671ae7ded4bdb86b5a73a6e124c63da1c8b87908c77b577a20",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/checksums/README.md",
+      "sha256": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/checksums/index.ts",
+      "sha256": "042bb34a0b81a03d70bc148eae753e2f562817dda5a5023bddda67a567088bab",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/compression/README.md",
+      "sha256": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/compression/files.ts",
+      "sha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/compression/gunzip.ts",
+      "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/compression/index.ts",
+      "sha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/compression/options.ts",
+      "sha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/compression/stream.ts",
+      "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/encoding/README.md",
+      "sha256": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/encoding/base.ts",
+      "sha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/encoding/index.ts",
+      "sha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/encoding/od.ts",
+      "sha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/encoding/shared.ts",
+      "sha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/encoding/xxd.ts",
+      "sha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/bytes/index.ts",
+      "sha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/GNU-DIFF.md",
+      "sha256": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/GNU-PATCH.md",
+      "sha256": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/PARSER.md",
+      "sha256": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/README.md",
+      "sha256": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/diff-format.ts",
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/diff.ts",
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/index.ts",
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-envelope.ts",
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-formats.ts",
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-paths.ts",
+      "sha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-gnu-reject.ts",
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/patch-path.ts",
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/patch.ts",
+      "sha256": "4676d745a02a739f403025c5c1867de44052a5be4c7e29f8e59a899244330606",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/shared.ts",
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/diff-patch/unified.ts",
+      "sha256": "31ac868fb3fabcde00178fa02cdf0fbcabdfa408cead72bb2d3aedc2c90813f5",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "sha256": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/file/README.md",
+      "sha256": "d6a74577448970deb15f899f49a7778b3a4c1c9028df6a831d8f0f1bbd95ce42",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/file/classify.ts",
+      "sha256": "d3f17f0e1d5ffeff08a015ee7131d9934a3938148ab65388478702e2764f0d1e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/file/index.ts",
+      "sha256": "1753ac81d099b329d52bb83b0047d5241ca25ec74f9c57b62399f254404ee825",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/file/shared.ts",
+      "sha256": "fa4d86f5cc1eb3a642aac34845737566c89e2b2b4983ec21a111441c3b94f87a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/metadata/README.md",
+      "sha256": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/metadata/chmod.ts",
+      "sha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/metadata/index.ts",
+      "sha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/metadata/internal.ts",
+      "sha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/metadata/stat.ts",
+      "sha256": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/move.ts",
+      "sha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/README.md",
+      "sha256": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/args.ts",
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/body.ts",
+      "sha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/curl.ts",
+      "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/index.ts",
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/output.ts",
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/shared.ts",
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/transport.ts",
+      "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/network/types.ts",
+      "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/regex-execution/README.md",
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "sha256": "ad818ba991aa54ce7029e8ca7be7e6d92c326134705c402f244a51da505d044e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/safejs/README.md",
+      "sha256": "d914f984a176f4bc5f2e1f101ad57329782a3ea5d1362f69d0b198d22a015102",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/safejs/index.ts",
+      "sha256": "3978b1f876a3651034a56e793313d54bc5031c650f82d23bc59f40a73545fceb",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/safejs/io.ts",
+      "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/safejs/options.ts",
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/safejs/render.ts",
+      "sha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/safejs/types.ts",
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/README.md",
+      "sha256": "21bb3308dc36282f6a8b0c5f7ec8e0684bf71563af0b5b35ea2254595d7a70d7",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/glob.ts",
+      "sha256": "7bce0c409e26ba1a3cf9c05199a495bec51a935c0bbb61a67825f68302d6c0da",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/index.ts",
+      "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/matcher.ts",
+      "sha256": "db1d257b12c3cd11a2c8335fd2b56a3959e95c9a301cd8ed6d3dc16e9744989e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/options.ts",
+      "sha256": "8e0bd7dea4d395e36ec8ffb6edc8712e3dfacab7cde8e928d8947c7c8aeb5fbf",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/output.ts",
+      "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/rg.ts",
+      "sha256": "fee9a380679e17da179a1c6b4f9bacf9c89a10e0dd1d18981c26b9296f9846d3",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/shared.ts",
+      "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/search/walk.ts",
+      "sha256": "20fa6d36855750ceb3d19fb2efc8c5b736c361f23211fd11858ee2ec2a5e5ba0",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/README.md",
+      "sha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/index.ts",
+      "sha256": "95807b8fc31e38310915a3b5ea593a1ed31ed6b19bbc29ed104150f049d89e60",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/io.ts",
+      "sha256": "83b42d0087270bb2e365c51b2f5bbf847c749dd1aebf39e15c97b5b068a34879",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/names.ts",
+      "sha256": "3639d937c30f9c57df7dc74588323003a3a9157330862194ca0b42bae2de59a3",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/options.ts",
+      "sha256": "d85d22d1c2e4afb1641eb3cff48ccbf5e487e8f56fdca2dacb59c1b323e771df",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/outputs.ts",
+      "sha256": "3a46de1948b16b5c8e8917967e17d4e6bffdc1f07d0433e33c01ed36ebf15ee3",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/split/split.ts",
+      "sha256": "4c7d2988862e4ab979de6b8d9ee630bbf3823c2bbf7f1d0f049b7541f3ab50f0",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/README.md",
+      "sha256": "d4180b1dafcdf8be758089f7e7105cf0fe6db5977880353c32c99645b264f778",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/index.ts",
+      "sha256": "4a3da605ea75a71fd8f409654e2c1f42b6daeb9d0194d303e52eb3f71a42b4e6",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/nl.ts",
+      "sha256": "91417793ec91fec3de72864d17a522c88c83f9be111804523289c0eeea71433e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/rev.ts",
+      "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/seq.ts",
+      "sha256": "da12d6b4792fe42a9c21b0dae93e85a00f7a30f0b5067c051cfb9ef0d2f35198",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/shared.ts",
+      "sha256": "a75bf6c98f5a4ecc76bbf07cbc41d220e957d72d8ceef770c51c950910f0edcb",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-format/unexpand.ts",
+      "sha256": "465ae7b673d381e2bc038a61e05e701874b954e0bfcd4c3d4d8802910ee30636",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/README.md",
+      "sha256": "519dee9089cdff247f1f137f16a9f8447d96830dfffe2422136c49d55b2fe1d0",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/expand.ts",
+      "sha256": "d2d9e8b878822f27a74f148c66c0da6edcca3dd40a56749718685d6a5bbf2ff9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/fold.ts",
+      "sha256": "608d9392bad152ed35aeabb94cb7a1b455d87f64a4d6b7183b18f463c2184dd2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/index.ts",
+      "sha256": "a7af51784ea70f49fd5bbbc686c2bcc289b75d2e837a6e74987dfdf199864842",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/numeric-options.ts",
+      "sha256": "b09c1781d720c79fbb4ab6b4952616b0455a3214595c7a5649cdfc509752c71a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/shared.ts",
+      "sha256": "0df865f2c7d5831acc06903e9fe8b117cd22cb3f1899033a76b0d73a5b46a937",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/strings.ts",
+      "sha256": "a5d7e051591541ffeb0dd5d51183bb708afaa836f84565368447793949e5b78c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/stream-inspection/tac.ts",
+      "sha256": "2704f57dc67e6e0197833eb0ca1f85db11b5a8307f5cfb9b0995ad61057fcb36",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "sha256": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/README.md",
+      "sha256": "a86d20662bc2f7f5f7c807533b732de1775be88e0884fa912fcd0dce9f0b0d2b",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/index.ts",
+      "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/limits.ts",
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/split.ts",
+      "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/table-text/README.md",
+      "sha256": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "sha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/table-text/index.ts",
+      "sha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/table-text/join.ts",
+      "sha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/table-text/paste.ts",
+      "sha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/README.md",
+      "sha256": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/awk-runtime.ts",
+      "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/awk-syntax.ts",
+      "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/awk-values.ts",
+      "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/awk.ts",
+      "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/index.ts",
+      "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/regex.ts",
+      "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/sed.ts",
+      "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text-programs/shared.ts",
+      "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "sha256": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/README.md",
+      "sha256": "8bca1f9447d8461c0c5381ed39d0a62c5a62685219861034a3dc888576ad0849",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/calendar.ts",
+      "sha256": "a761667dddc8ca42df81bfad154c04d433d63a243432d4299a5704a1d16f31ec",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/date.ts",
+      "sha256": "e1e2df940c7464112279eba3e407b80a3fb2f792932763300c85748825add726",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/format.ts",
+      "sha256": "1ce9deaa9eb5c187e70650957f745f9a78db56a1ffee675d1d981cecf699be59",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/index.ts",
+      "sha256": "ddbad0cf7599324eb165b14ae9352326de57d817f5302f16f4737915aa1aed60",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/printenv.ts",
+      "sha256": "ee13e1a416da4f7ed153fa9535a716fb3c43d4e5d07444efdc0a7d88075d0c33",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/shared.ts",
+      "sha256": "e7572901c107373afa51adba1b4e97d01ced89e71e53e4ad0affefbdaab5f532",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/time-env/sleep.ts",
+      "sha256": "b0e8aca87bbcc690653f8c6db3cb0039832a481f6bedfbc381deb12bb6b4de96",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/README.md",
+      "sha256": "4a6117109d46c28d74bfd16ef984ddf7f529f30b309f18970a1fa01532a5f2a9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "sha256": "0b3d8ef78852d0d7623eb0286202bcfec44590906a9fa8892bc51376904bfce3",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/index.ts",
+      "sha256": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "sha256": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/options.ts",
+      "sha256": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "sha256": "6209978bbd3cbfd171eab7cd63aca95414b757ebc2151317835f8ee4166d0121",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "sha256": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "4c0c83ac7477776455055b32370844453ee7521467f02e5304bff23901df06b2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/mount/COMPARISON.md",
+      "sha256": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/mount/README.md",
+      "sha256": "43b143a25bad076e4b17f0b091e86281b8f801a2abf0b303a6425022892be746",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/mount/comparison.ts",
+      "sha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/mount/identity.ts",
+      "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/mount/index.ts",
+      "sha256": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/overlay/README.md",
+      "sha256": "6f7983213bec73ef63c249832a85d6f03b550846b02940451efc0bbdf522a089",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/overlay/index.ts",
+      "sha256": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/readonly/README.md",
+      "sha256": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/readonly/index.ts",
+      "sha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "sha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "sha256": "3b2fa90a245c3b4454205731938da8c36abf3467810e360d1c58391c33d4ff67",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/README.md",
+      "sha256": "a45743f5660219857369e6568d734ace3e0007537fedcfb402cd04ec0ae11e78",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/SDK_COMPARISON.md",
+      "sha256": "0906ebcb14f8a7cca712a75ad21822a600e7464c5297665af35dd4c767a28542",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/authority.ts",
+      "sha256": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "sha256": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/README.md",
+      "sha256": "67494abd767b494e1f062eefb746fc962ad9412e7d6f99d0669034e7b93c964b",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/index.ts",
+      "sha256": "bd414ce2de1aeb4becff1375ba994ee5bea6ca46600234807515c28385130dd4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/request.ts",
+      "sha256": "33e2232404d05c08db2ccce200b6ca1d10af36f6a72f197e196fe1fa3f5ba618",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/signature.ts",
+      "sha256": "094b2e6fce2657757bf168ae694213f874e644d81cc9ead75faa1120f0910b3b",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/transport.ts",
+      "sha256": "73611a0d279cec24d85d14031a02d92607979977ef926245fe0a6f9e7eb6161d",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/types.ts",
+      "sha256": "b8ee451a00d17355919024c542dd5c7cbd027d74c7d2f5686f37fd6c0a5ab39e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/http/xml.ts",
+      "sha256": "73598f1a2aedbf22a5d455849dae4f7e80f022d5ad847f136b2d1d6ecc99301e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/index.ts",
+      "sha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/mock.ts",
+      "sha256": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/s3/transport.ts",
+      "sha256": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/webdav/PRODUCTION_CHECKPOINT.md",
+      "sha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "sha256": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/webdav/index.ts",
+      "sha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/fs/webdav/xml.ts",
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "c9d4d5693dd65dfcb90ff14c43631d00d9d2975a5f58ab03df7ff0e1d34a3e6e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/integrations/safejs/filesystem.ts",
+      "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/integrations/safejs/index.ts",
+      "sha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/integrations/safejs/shell.ts",
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/integrations/safejs/stats.ts",
+      "sha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/integrations/safejs/values.ts",
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "sha256": "bf653ec1ae5f528090d7031caeb5fc3fcae6b240b5f7459318f1d90840a405d9",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "sha256": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "package.json",
+      "sha256": "c9b768b3ec77ac19262a36ce46f331618916fd7746492d83f0bf6e1212999360",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "31a3ef68430276b806701fe5d24d86aa7bb3d1630d79b4d5f381d6cd2c2a4c08",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    },
+    {
+      "path": "tsconfig.build.json",
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "commit": "1b133a8662a32ee84524794842074c9c98d5f6c3"
+    }
+  ],
+  "contract": [
+    {
+      "path": "src/contracts/command.ts",
+      "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "commit": "07acb1a4d30b7592cf247a0220250317be4e2038",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    }
+  ],
+  "historical": [
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/child.mjs",
+      "commit": "839f2d4",
+      "sha256": "6f6182401ba7628935f6426e9de1841c4ea5849c47899ca4628c119a8a25902b"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/cohort.mjs",
+      "commit": "839f2d4",
+      "sha256": "4a3020cc7c8e39f9330cf7d0bfb9bf0db038d0af57606c17985431d8352d5b2e"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/walker-cases.mjs",
+      "commit": "839f2d4",
+      "sha256": "e2eeb2d9af70fe6e616caaf2e656c152929bd9e2f3222d58bcb728394cbda2c1"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/REPORT.md",
+      "commit": "839f2d4",
+      "sha256": "d54af48b5e1e53fcf89904435b66555ef1c299da04e23a6fe15f912366831021"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/EXPECTATIONS.md",
+      "commit": "839f2d4",
+      "sha256": "3ba3640b940d25d556e1d002c53d8c25d694c79606b7c56a827288c994de9641"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/candidate/cohort.json",
+      "commit": "839f2d4",
+      "sha256": "6ddd4c0620c770485cd6b5b7ce29fd80d617465cbd79e8df172d70166d194240"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/candidate/lifecycle.json",
+      "commit": "839f2d4",
+      "sha256": "e5b6e5cb475a715e13250894598f3c27b7984a6d23cb8ca0b7edf972ca930b57"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/candidate/public.json",
+      "commit": "839f2d4",
+      "sha256": "f9532d95966ecee65a52a1e49828da416c6dd188cbda14e18a8999b0ac10588d"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/candidate/walker.json",
+      "commit": "839f2d4",
+      "sha256": "c380f1104e5ff50ade82e0ab951d6c192a1c3208309265c46ca1a32cb8f886c7"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/packed/cohort.json",
+      "commit": "839f2d4",
+      "sha256": "8db6342a49377ff9e17be1e5b457a106745a2657fcc77eaa7c8aaa0a07e9ef80"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/packed/lifecycle.json",
+      "commit": "839f2d4",
+      "sha256": "4acc7d167c8b6d2ae7d4d5107ff8324937eedfd5ef5fcf66fdd87403fda6ef5c"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/packed/public.json",
+      "commit": "839f2d4",
+      "sha256": "23d83aec3c9c59ac389aea4951d5667a5806e05fec318213c667e31b8d2e435c"
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/evidence/packed/walker.json",
+      "commit": "839f2d4",
+      "sha256": "45ebf4df468e22c15819befd4e33060be3ef72aa2ed01002bd9ccce5e1e37c47"
+    }
+  ],
+  "riskConsumed": 0,
+  "additionalSix": "UNUSED",
+  "defaultAcceptance": false
+}

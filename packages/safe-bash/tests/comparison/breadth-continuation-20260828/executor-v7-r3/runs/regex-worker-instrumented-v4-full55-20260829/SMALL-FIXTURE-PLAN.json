@@ -1,0 +1,54 @@
+{
+  "schema": "TWO_CHILD_DEFERRED_PLAN_V1",
+  "outer": "capture.mjs",
+  "parent": "fixture-parent.mjs",
+  "children": [
+    {
+      "id": "FALSE_PRIMARY",
+      "reason": {
+        "type": "boolean",
+        "value": false
+      }
+    },
+    {
+      "id": "UNDEFINED_PRIMARY",
+      "reason": {
+        "type": "undefined"
+      }
+    }
+  ],
+  "fixtureStarts": 4,
+  "peakOS": 3,
+  "concurrentChildren": 1,
+  "childMilliseconds": 10000,
+  "childExpectedExit": 1,
+  "guard": "unchanged actual executor-v3/offline.mjs",
+  "checks": [
+    "actual owned descriptor write under unchanged Node permission model",
+    "write/close without in-child fsync",
+    "early primary and known zero before missing-row judge",
+    "ordinary FAIL and exit1 retained",
+    "parent waits natural child close before path/inode/hash authentication",
+    "parent fsync and close all three exact files",
+    "observed equals retained; source/guard postbindings"
+  ],
+  "Workers": 0,
+  "newControlFamilies": 0,
+  "full55Executed": false,
+  "expectedFiles": [
+    "worker-1.jsonl",
+    "EARLY.json",
+    "RESULT.json",
+    "stdout.raw",
+    "stderr.raw",
+    "SUPERVISION.json"
+  ],
+  "currentFixtureWitnessText": "owned-witness\n",
+  "limits": {
+    "stdout": 65536,
+    "stderr": 65536,
+    "record": 262144,
+    "work": 268435456,
+    "capture": 67108864
+  }
+}

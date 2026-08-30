@@ -1,0 +1,148 @@
+{
+  "schema": "RETAINED_TRACE_EXCERPT_V1",
+  "sourcePath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-20260829-v7r3-01/child-002.receipt.json",
+  "sourceSha256": "41a6f6316c77dad4327c204f05310ce7c03e6e242d0e1accc82757709ae3f52f",
+  "rawRecordsBytes": 73163,
+  "records": [
+    {
+      "sequence": 3,
+      "kind": "bootstrap-authentication-start",
+      "operationId": "case-2",
+      "entryURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs"
+    },
+    {
+      "sequence": 4,
+      "kind": "bootstrap-authenticated",
+      "operationId": "case-2",
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "entryURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs"
+    },
+    {
+      "sequence": 5,
+      "kind": "worker-loader-installed",
+      "operationId": "case-2",
+      "entryURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs"
+    },
+    {
+      "sequence": 6,
+      "kind": "worker-offline-installed",
+      "operationId": "case-2",
+      "entryURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs"
+    },
+    {
+      "sequence": 9,
+      "kind": "consumer-entry-resolution",
+      "specifier": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "parentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+      "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "expectedParentURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs",
+      "expectedURL": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/consumer-v5/consumer.mjs",
+      "accepted": true
+    },
+    {
+      "sequence": 54,
+      "kind": "bootstrap-unavailable",
+      "query": "module",
+      "slot": 1,
+      "nativeDelegation": false
+    },
+    {
+      "sequence": 55,
+      "kind": "bootstrap-unavailable",
+      "query": "worker_threads",
+      "slot": 2,
+      "nativeDelegation": false
+    },
+    {
+      "sequence": 56,
+      "kind": "consumer-evaluated",
+      "engine": "just-bash"
+    },
+    {
+      "sequence": 57,
+      "kind": "phase",
+      "event": "constructor"
+    },
+    {
+      "sequence": 58,
+      "kind": "phase",
+      "event": "fixture-setup"
+    },
+    {
+      "sequence": 59,
+      "kind": "phase",
+      "event": "exec-start"
+    },
+    {
+      "sequence": 60,
+      "kind": "offline-denied",
+      "operation": "Socket",
+      "argument": "object"
+    },
+    {
+      "sequence": 61,
+      "kind": "offline-denied",
+      "operation": "module.registerHooks",
+      "argument": "object"
+    },
+    {
+      "sequence": 62,
+      "kind": "phase",
+      "event": "exec-settled"
+    },
+    {
+      "sequence": 63,
+      "kind": "phase",
+      "event": "snapshot-complete"
+    },
+    {
+      "sequence": 64,
+      "kind": "phase",
+      "event": "dispose-start"
+    },
+    {
+      "sequence": 65,
+      "kind": "phase",
+      "event": "dispose-settled"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "DefenseInDepthBox: could not register dynamic-import hooks: OFFLINE_DENIED:module.registerHooks",
+    "stack": "Error: DefenseInDepthBox: could not register dynamic-import hooks: OFFLINE_DENIED:module.registerHooks\n    at a.protectDynamicImport (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js:6:23562)\n    at a.applyPatches (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js:6:11637)\n    at a.activate (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js:6:5526)\n    at xr.execInScope (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js:798:1178)\n    at async xr.exec (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed/benchmarks/node_modules/just-bash/dist/bundle/index.js:797:402)\n    at async body (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/adapter.mjs:102:22)\n    at async settle (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:29:17)\n    at async observe (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/adapter.mjs:52:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/worker.mjs:114:14"
+  },
+  "SocketStack": null,
+  "SocketObjectFields": null,
+  "unknowns": "Those fields were not captured. Do not synthesize them from the hook stack or Node source.",
+  "bootstrap": {
+    "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "opened": true,
+    "revoked": true,
+    "consumed": 2,
+    "nativeDelegations": 0,
+    "violations": [],
+    "callerAuthenticated": false,
+    "stockNodeCapabilities": false
+  },
+  "resources": {
+    "pending": 0,
+    "descriptors": 0,
+    "violations": [
+      {
+        "operation": "Socket",
+        "argument": "object"
+      },
+      {
+        "operation": "module.registerHooks",
+        "argument": "object"
+      }
+    ]
+  },
+  "workerExit": {
+    "code": 1,
+    "signal": null
+  },
+  "workerNatural": false,
+  "workerReaped": true
+}

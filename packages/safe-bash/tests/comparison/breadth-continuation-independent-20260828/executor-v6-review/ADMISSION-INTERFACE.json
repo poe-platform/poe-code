@@ -1,0 +1,551 @@
+{
+  "documentKind": "NON_AUTHORIZING_EXACT_V6_ADMISSION_INTERFACE",
+  "status": "PREEXECUTION_ACCEPTED_BUT_ACTUAL_ADMISSION_HELD_FOR_NEW_ROOT_GO",
+  "usableGrantIssued": false,
+  "coordinatorInvocations": 0,
+  "authorInterface": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v6/ADMISSION-INTERFACE.json",
+    "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+    "sha256": "6f1cea302f4b371e94bf0143b333356acc44c9aeb37bbc3f10afa398f8e018e1"
+  },
+  "commandArgv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs",
+    "admission",
+    "<FRESH_ROOT_RUN_ID>",
+    "<PINNED_AUTH_JSON>"
+  ],
+  "commandString": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --max-old-space-size=256 tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs admission <FRESH_ROOT_RUN_ID> <PINNED_AUTH_JSON>",
+  "authJsonFields": {
+    "review": {
+      "commit": "40hex final evidence commit containing the exact REVIEW.json (provided in final handoff)",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/REVIEW.json",
+      "sha256": "c86d2fd9e7cbfe2dbc0cf173cca1a4e2d453699ea4464144a6d4fa7011b049c5"
+    },
+    "grant": {
+      "commit": "40hex NEW ROOT GRANT COMMIT, not supplied here",
+      "path": "repository-relative non-instruction JSON path selected by root",
+      "sha256": "64hex SHA256 of that exact committed grant JSON"
+    }
+  },
+  "referenceLoading": {
+    "gitShow": "<commit>:<path>",
+    "timeoutMs": 10000,
+    "maxBuffer": 65536,
+    "hash": "SHA256 of immutable Git blob bytes",
+    "relativePath": "No absolute/backslash/NUL/empty/dot/dotdot components; instruction member names rejected case-insensitively."
+  },
+  "positiveReviewRequiredFields": {
+    "role": "different-reviewer",
+    "verdict": "PREEXECUTION_ACCEPTED",
+    "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0"
+  },
+  "rootReceiptFieldRequirements": {
+    "role": "root",
+    "phase": "admission",
+    "attempts": 1,
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+    "reviewSha256": "c86d2fd9e7cbfe2dbc0cf173cca1a4e2d453699ea4464144a6d4fa7011b049c5",
+    "runId": "Fresh root-selected [a-z0-9-]{1,64}; no run selected or authorized here",
+    "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v6/runs/<same-root-runId>",
+    "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+    "command": {
+      "orderedValue": {
+        "entry": "coordinator.mjs",
+        "phase": "admission",
+        "runId": "<same-root-runId>",
+        "nodeArgs": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256"
+        ]
+      },
+      "propertyOrderSignificant": true
+    }
+  },
+  "phaseHashMeaning": "SHA256(JSON.stringify({limits:plan.limits,command:plan.command,phase:\"admission\",operations:plan.admission})); not raw file hash",
+  "operationPlanFileSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+  "operationsAreBoundByPlanHashNotSeparateGrantArray": true,
+  "plannedOperations": [
+    {
+      "id": "probe-1",
+      "worker": "engine",
+      "kind": "probe",
+      "layout": "target-installed",
+      "ordinal": 1
+    },
+    {
+      "id": "probe-2",
+      "worker": "engine",
+      "kind": "probe",
+      "layout": "target-moved",
+      "ordinal": 2
+    },
+    {
+      "id": "probe-3",
+      "worker": "engine",
+      "kind": "probe",
+      "layout": "baseline-installed",
+      "ordinal": 3
+    },
+    {
+      "id": "C03-esm",
+      "worker": "control",
+      "kind": "control",
+      "family": "C03",
+      "mode": "load",
+      "entry": "loaded.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 4
+    },
+    {
+      "id": "C03-cjs",
+      "worker": "control",
+      "kind": "control",
+      "family": "C03",
+      "mode": "load",
+      "entry": "loaded.cjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 5
+    },
+    {
+      "id": "C03-require",
+      "worker": "control",
+      "kind": "control",
+      "family": "C03",
+      "mode": "require",
+      "entry": "require-consumer.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 6
+    },
+    {
+      "id": "C03-wrong-hash",
+      "worker": "control",
+      "kind": "control",
+      "family": "C03",
+      "mode": "load",
+      "entry": "loaded.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "ordinal": 7
+    },
+    {
+      "id": "C04-unbound",
+      "worker": "control",
+      "kind": "control",
+      "family": "C04",
+      "mode": "load",
+      "entry": "loaded.mjs",
+      "files": [],
+      "ordinal": 8
+    },
+    {
+      "id": "C04-offline",
+      "worker": "control",
+      "kind": "control",
+      "family": "C04",
+      "mode": "offline",
+      "entry": "loaded.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 9
+    },
+    {
+      "id": "C09-status",
+      "worker": "control",
+      "kind": "control",
+      "family": "C09",
+      "mode": "nonzero",
+      "entry": "loaded.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 10
+    },
+    {
+      "id": "C09-deadline",
+      "worker": "control",
+      "kind": "control",
+      "family": "C09",
+      "mode": "leak",
+      "entry": "loaded.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 11
+    },
+    {
+      "id": "C11-positive",
+      "worker": "engine",
+      "kind": "C11",
+      "layout": "target-installed",
+      "negative": false,
+      "ordinal": 12
+    },
+    {
+      "id": "C11-rejected",
+      "worker": "engine",
+      "kind": "C11",
+      "layout": "target-installed",
+      "negative": true,
+      "ordinal": 13
+    },
+    {
+      "id": "C12-loaded-noop",
+      "worker": "control",
+      "kind": "control",
+      "family": "C12",
+      "mode": "load",
+      "entry": "loaded.mjs",
+      "files": [
+        {
+          "path": "loaded.mjs",
+          "mode": 420,
+          "bytes": 65,
+          "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+        },
+        {
+          "path": "loaded.cjs",
+          "mode": 420,
+          "bytes": 32,
+          "sha256": "ab4a21eb5da95891903469eb629b1f6bad1251f47cd150f4f501a1fb565f9107"
+        },
+        {
+          "path": "require-consumer.mjs",
+          "mode": 420,
+          "bytes": 217,
+          "sha256": "4f14b131c4e9cf6b46f88e4f37a5f95f81bacbf77feae1efcff70c82ef62bc84"
+        }
+      ],
+      "ordinal": 14
+    }
+  ],
+  "workerEdgeBinding": {
+    "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+    "worker": {
+      "path": "worker.mjs",
+      "bytes": 9011,
+      "mode": 420,
+      "sha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+    },
+    "loader": {
+      "path": "loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    "source": "fixed import.meta.url in worker body, not a new grant permission",
+    "consumerScopes": {
+      "path": "../executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    }
+  },
+  "workerConfigFields": [
+    "authorization.repository",
+    "authorization.phase",
+    "authorization.runId",
+    "authorization.outputRoot",
+    "authorization.review",
+    "authorization.grant",
+    "operationId",
+    "operationOrdinal",
+    "launchOrdinal",
+    "kind",
+    "view"
+  ],
+  "workerOperationRules": {
+    "beforeClaim": [
+      "authority and review/root/candidate/pack/recipe bindings",
+      "phase-plan/run/output/ordered-command",
+      "exact operation id/ordinal/worker/kind/layout/arguments",
+      "exact launch ordinal/config path and strict unhandled"
+    ],
+    "claim": "<outputRoot>/operation-<operation.id>.claim; exclusive wx,0444",
+    "beforeImport": [
+      "authenticateView against unchanged exact V5 projection",
+      "inspectTree including modes/hash/membership/new entries",
+      "oldOrigin absent when moved",
+      "fixed import.meta.url -> installLoader entryParentURL",
+      "offline guard"
+    ],
+    "afterImport": [
+      "exactly one accepted entry witness",
+      "exactly one accepted consumer-to-bare witness",
+      "public export shape"
+    ],
+    "engineAdmissionKinds": [
+      "probe",
+      "C11"
+    ],
+    "engineCohortKinds": [
+      "case"
+    ],
+    "controlOnly": {
+      "phase": "admission",
+      "kind": "control",
+      "checks": [
+        "family",
+        "mode",
+        "entry",
+        "view.files exact",
+        "view.root=<outputRoot>/synthetic-view",
+        "no specimen or negative"
+      ]
+    },
+    "mutableParentPermission": false
+  },
+  "oneAttemptEnforcement": {
+    "authorityLock": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/authority-<grant.sha256>.lock",
+    "mode": "0444",
+    "creation": "wx before run directory and staging",
+    "outputDirectory": "fresh mkdir without recursive overwrite",
+    "automaticRetry": false
+  },
+  "budgets": {
+    "admissionChildren": 27,
+    "admissionPlanned": 14,
+    "cohortChildren": 99,
+    "admissionSetup": 2,
+    "admissionSemantics": 0,
+    "deadlineMs": 30000,
+    "graceMs": 2000,
+    "killMs": 1000,
+    "outerMs": 4500000,
+    "metadataBytes": 262144,
+    "newPerStreamBytes": 65536,
+    "legacyCombinedBytes": 8388608,
+    "evidenceBytes": 268435456,
+    "heapMiB": 256,
+    "concurrentChildren": 1,
+    "strictUnhandledRejections": true,
+    "outerQualification": "Elapsed deadline checked at integrity boundaries; not arbitrary synchronous preemption."
+  },
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "cohortLater": {
+    "operations": 99,
+    "separateRootGrantRequired": true,
+    "phase": "cohort",
+    "phaseSpecificPlanHashRequired": true,
+    "acceptedAdmissionFields": [
+      "path",
+      "sha256"
+    ],
+    "acceptedAdmissionUnder": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/",
+    "acceptedAdmissionMustHave": {
+      "mode": "admission",
+      "recipe": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+      "admissionQualified": true,
+      "unsafe": false
+    },
+    "stageHash": "RESULT.stagedSha256 authenticates exact STAGED.json, then every actual view is checked again",
+    "authorized": false
+  },
+  "runtimeDuties": [
+    "Reauthenticate exact live recipe namespaces and pinned tools; committed positive review and fresh root phase grant.",
+    "Exclusive grant lock, new root run directory, ordered operation claims; no replay of V4 or prior capture.",
+    "Actual pinned full target pack bytes/member metadata and comparator archive/closure; omitted instruction member metadata-only, never plaintext staging.",
+    "Exact target-installed/target-moved/baseline-installed inventories with fixed private wrappers. Physically move target and prove old origin absent.",
+    "Guarded actual consumer import, export/factory evaluation, returned-source hashes, ESM/CJS/createRequire source witnesses as declared; no general full closure inference from one load.",
+    "Offline source and non-ESM asset membership/hash/mode witnesses; no new network/native/worker/Wasm authority.",
+    "Exactly14 planned workers within27, two actual C11 setup calls, zero semantic cohort calls; C03-C12 actual controls remain future duties.",
+    "Await/reap exact owned handles, strict bounded transport, preserve primary errors and unsafe tails; closed cooperative resources, no opaque preemption guarantee.",
+    "Accepted final admission and authenticated RESULT/STAGED are prerequisites to a separate99-operation cohort grant."
+  ],
+  "sourceBindings": {
+    "seal": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/SEAL.json",
+      "bytes": 48788,
+      "mode": 420,
+      "sha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    },
+    "loader": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "bytes": 5431,
+      "mode": 420,
+      "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    },
+    "worker": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "bytes": 9011,
+      "mode": 420,
+      "sha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    },
+    "authorization": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs",
+      "bytes": 3564,
+      "mode": 420,
+      "sha256": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    },
+    "coordinator": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs",
+      "bytes": 12062,
+      "mode": 420,
+      "sha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    },
+    "operations": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    },
+    "consumerScopes": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb"
+    }
+  },
+  "sourcePointers": {
+    "authority": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs:37",
+    "reviewAndRootChecks": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs:49",
+    "exclusiveLock": "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs:43",
+    "workerPreImport": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs:32",
+    "fixedWorkerParent": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs:42",
+    "entryGuards": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs:18",
+    "phasePlan": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs:4"
+  },
+  "historicalAuthority": "V4 c1b03b64 consumed by d40af0d5; V5 never granted; this positive V6 review is not a root grant.",
+  "freshGrantGenerated": false
+}

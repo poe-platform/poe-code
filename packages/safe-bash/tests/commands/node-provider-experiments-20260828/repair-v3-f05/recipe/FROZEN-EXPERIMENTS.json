@@ -1,0 +1,101 @@
+{
+  "schema": "virtual-node-source-feasibility-experiments-v1",
+  "classification": "PREPARE-only design data; not an executable fixture or canonical test",
+  "date": "2026-08-28",
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "executionAuthorized": false,
+  "experimentCount": 7,
+  "actualRuns": 0,
+  "results": null,
+  "qualification": "Source predictions and required observations only. Internal-factory experiments require a separately approved, authenticated same-instance provider; neither imports nor execution are granted here.",
+  "commonPreparation": {
+    "entry": "one public run(guestSource, options) per identity, no CLI/Node oracle or source rewrite",
+    "signal": "one initially live invocation AbortSignal; E06 alone aborts it",
+    "snapshots": "disabled; no snapshotBackend/path/interval or replay",
+    "mark": "ordinary synchronous host binding: accepts exactly one primitive, appends it to bounded event data, returns undefined; no guest reentry",
+    "hostFs": "controlled explicitly injected async VFS with only /work/a containing UTF8 AB, no host paths or ambient authority; writes denied",
+    "hostPromise": "one deferred native Promise per admitted read; allocated only after cleanup registration and admission; resolver/rejector retained by the controller",
+    "intrinsicFactory": "proposed host-supplied exact-engine createSandboxClosure from src/interp/values.ts; not a package-root export; no brand synthesis, guessing, private import, engine copy or modification",
+    "intrinsicShapeData": "createSandboxClosure({ name: 'readFileSync', call: (args) => checkedTrackedRead(args) }); deliberately omit async:true; checkedTrackedRead returns native Promise<guest string>, not SandboxPromise",
+    "sourceBytesMax": 4096,
+    "budgets": {"maxSteps": 2000, "maxCallDepth": 32, "stringLength": 4096, "arrayLength": 256, "dataSize": 65536, "deadlineOffsetMs": 1000},
+    "controllerCaps": {"hostCalls": 16, "pendingHostReads": 1, "copiedVfsBytes": 4096, "retainedGuestObjects": 8, "eventRecords": 32, "capturedOutputBytes": 2048, "scheduleTransitions": 12, "observationMicrotaskCheckpointsPerHold": 32},
+    "capsStatus": "finite proposed experiment controls, not ratified NP1 product caps; deadlines/watchdogs are failure bounds, not correctness oracles or forced-preemption claims",
+    "capture": ["engine entry/settlement and ok/error shape", "ordered primitive mark events", "read admission/settlement counts", "cleanup registration/release/settlement order", "pending-resource counts", "raw reason identity comparisons in trusted host", "stdout/stderr bytes if any"],
+    "expectedStdoutUtf8": "",
+    "expectedStderrUtf8": "",
+    "expectedNamespaceMutation": "none",
+    "noReadyCriterion": "A missing planned admission/event within the finite observation cap is inconclusive/failure-to-observe, never a fabricated passing held-state observation. For a failed hold, release/reject the owned deferred work and drain it; do not keep waiting or add runs."
+  },
+  "experiments": [
+    {
+      "id": "F01",
+      "question": "Do ordinary pure synchronous nested module callbacks return/throw synchronously?",
+      "guestSource": "import fs from 'host'; mark(fs.pure(6)); try { fs.fail(); } catch (error) { mark(error.message); } mark('after');",
+      "providerData": {"modules": {"host": {"default": {"pure": "ordinary non-async function(value) returning value+1", "fail": "ordinary non-async function throwing Error('PURE')"}}}},
+      "schedule": ["Register cleanup, inject module and mark, start one run", "No delayed host operation; await controlled run settlement", "Drain owner and close"],
+      "sourcePrediction": {"marks": [7, "PURE", "after"], "engineOk": true, "hostReads": 0},
+      "discriminates": "Supported pure sync host calls are not evidence that async VFS is sync, and absence of builtin fs does not imply impossibility"
+    },
+    {
+      "id": "F02",
+      "question": "Does an ordinary non-async host callback returning a Promise expose a guest promise rather than the eventual string?",
+      "guestSource": "const text=fs.readFileSync('/work/a','utf8'); mark(text==='AB'); mark(typeof text); mark('after');",
+      "providerData": {"bindings.fs.readFileSync": "ordinary non-async function returning the admitted deferred Promise; no async keyword and no branded intrinsic"},
+      "schedule": ["Register cleanup, start run", "At read admission hold resolver; observe up to32 checkpoints or until all three marks", "Record whether engine settled while read remained pending; do not require settlement", "Resolve read with AB exactly once", "Drain read, engine and owner"],
+      "sourcePrediction": {"marksBeforeReadRelease": [false, "object", "after"], "engineSettlementBeforeReadRelease": null, "marksAfterFullDrain": [false, "object", "after"]},
+      "unresolvedObservation": "Exact outer run settlement timing is a discrimination question; no unhandled-rejection or general pending-work drain guarantee is inferred",
+      "discriminates": "Changing host async syntax does not avoid executeHostCall/createHostCallPromise boxing"
+    },
+    {
+      "id": "F03",
+      "question": "Can the unflagged internal intrinsic suspend an ordinary unawaited readFileSync call while preserving guest job ordering?",
+      "guestSource": "Promise.resolve().then(()=>mark('job')); const text=fs.readFileSync('/work/a','utf8'); mark(text==='AB'); mark(text.length); mark('after');",
+      "providerData": {"bindings.fs.readFileSync": "same-instance branded intrinsic from commonPreparation.intrinsicShapeData"},
+      "schedule": ["Register cleanup, create intrinsic, start run", "Hold at admitted read and observe up to32 checkpoints", "Record no following guest marks and pending engine; record whether queued job ran", "Resolve read with AB exactly once", "Await engine, job and owner retirement"],
+      "sourcePrediction": {"whileHeld": {"marks": [], "enginePending": true}, "marksAfterFullDrain": [true, 2, "after", "job"], "engineOk": true},
+      "qualification": "Predicted by invokeSandboxClosure's non-async native-Promise await plus retained job ownership, not newly measured behavior; failure requires revising feasibility"
+    },
+    {
+      "id": "F04",
+      "question": "Does delayed rejection from the intrinsic throw at the ordinary call into its same try/catch?",
+      "guestSource": "try { fs.readFileSync('/work/a','utf8'); mark('bad'); } catch (error) { mark(error==='DENIED'); } mark('after');",
+      "providerData": {"bindings.fs.readFileSync": "same-instance unflagged branded intrinsic returning the admitted deferred Promise"},
+      "schedule": ["Register cleanup and start run", "Hold at read admission; observe no marks within32 checkpoints", "Reject admitted read with the primitive string DENIED", "Await engine and owner retirement"],
+      "sourcePrediction": {"whileHeldMarks": [], "marksAfterFullDrain": [true, "after"], "engineOk": true},
+      "qualification": "Primitive catch semantics are isolated from arbitrary object/control identity. This does not authorize converting root cancellation to an ordinary catchable filesystem error."
+    },
+    {
+      "id": "F05",
+      "question": "Which repeated-return and module cache identities survive ordinary copying versus intrinsic return?",
+      "guestSource": "import first from 'cached'; import second from 'cached'; mark(first===second); const hostFirst=hostRequire('cached'); const hostSecond=hostRequire('cached'); mark(hostFirst===hostSecond); const guestFirst=require('cached'); const guestSecond=require('cached'); mark(guestFirst===guestSecond); guestFirst.value=2; mark(guestSecond.value);",
+      "providerData": {
+        "modules.cached.default": "one plain data record with value1",
+        "bindings.hostRequire": "ordinary synchronous host function returning the same host record H={value:1} every call",
+        "bindings.require": "same-instance unflagged intrinsic whose call returns one provider-owned validated guest-data record G={value:1}, without ordinary copyHostResultToSandbox; distinct from H and module default; enforce name cached only"
+      },
+      "schedule": ["Register cleanup and allocate bounded H/G/module input", "Start one signal-wrapped run; no deferred operation", "Capture all marks, retained object counts and mutation state", "Drain owner; destroy invocation-local cache"],
+      "sourcePrediction": {"marks": [true, false, true, 2], "engineOk": true, "hostRecordHAfter": {"value": 1}},
+      "unresolvedObservation": "Whether G itself or a cancellation-wrapper copy receives the guest mutation is recorded, not used as a host-state identity claim. Different module aliases/namespaces and other invocations are not certified."
+    },
+    {
+      "id": "F06",
+      "question": "Can an external provider retain caller reason identity and hold public settlement until cooperative cleanup retires, even if engine cancellation settles earlier?",
+      "guestSource": "const text=fs.readFileSync('/work/a','utf8'); mark(text); mark('late');",
+      "providerData": {"bindings.fs.readFileSync": "same-instance unflagged intrinsic with one tracked cooperative read", "callerReason": "one exact host object R={code:'ENOENT',tag:'root'}", "publicEnvelope": "PREPARE-only owner design: register idempotent cleanup before acquisition; retain caller provenance/R independently of engine result; await admitted read and held cleanup before propagating R"},
+      "schedule": ["Register cleanup, start engine inside owner envelope", "Hold read after admission", "Abort root signal with the exact R object; close owner admission", "Keep cooperative cleanup held for32 observation checkpoints; record raw engine pending/settled and error identity without forcing an outcome", "Reject underlying held read with a distinct Error('late-host') to exercise late observation", "Release cleanup exactly once", "Await every tracked settlement and envelope rejection"],
+      "qualificationTargets": {"whileCleanupHeld": "public envelope remains pending", "finalPublicReason": "R by exact reference", "unhandledHostRejections": 0, "postCloseAdmissions": 0, "finalOwnedResources": 0, "marks": []},
+      "sourcePrediction": {"rawEngineSettlementBeforeCleanupRelease": null, "rawEngineReasonIdentity": null, "engineOk": null},
+      "qualification": "No envelope is implemented here. Raw engine timing/error shape are discrimination questions. A failing target rejects the provider design; abort does not prove underlying work stopped."
+    },
+    {
+      "id": "F07",
+      "question": "Does explicit guest await correctly consume the ordinary host Promise while releasing the guest job queue?",
+      "guestSource": "Promise.resolve().then(()=>mark('job')); const text=await fs.readFileSync('/work/a','utf8'); mark(text==='AB'); mark(text.length); mark('after');",
+      "providerData": {"bindings.fs.readFileSync": "ordinary non-async host function returning the admitted deferred Promise, exactly the F02 route"},
+      "schedule": ["Register cleanup and start run", "Hold at read admission; observe up to32 checkpoints for job mark", "Record pending engine and absence of text/after marks", "Resolve read with AB exactly once", "Await engine and owner retirement"],
+      "sourcePrediction": {"whileHeld": {"marks": ["job"], "enginePending": true}, "marksAfterFullDrain": ["job", true, 2, "after"], "engineOk": true},
+      "qualification": "This control uses explicit guest await and must never be reported as synchronous readFileSync compatibility. Scheduler observations remain unexecuted source predictions."
+    }
+  ]
+}

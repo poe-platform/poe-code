@@ -1,0 +1,1190 @@
+{
+  "schema": "B2_R9_ACTUAL_RAW_MANIFEST",
+  "publishedAt": "2026-08-29T17:40:13.752Z",
+  "files": [
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/RESULT.json",
+      "path": "evidence/payload/runtime/RESULT.json",
+      "bytes": 1175476,
+      "sha256": "50a5641818f30b3f02078ec7b0a3893bf9cb7f99661e1bb52acbf2743b474f0b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/CACHE-RECONCILIATION.json",
+      "path": "evidence/payload/runtime/CACHE-RECONCILIATION.json",
+      "bytes": 338419,
+      "sha256": "ea225edbe708571f5fa726f4f2f66c678376502933a2e762444c2dd0c6aa6f38"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/00-retained-source-built-redirections-v3.stderr",
+      "path": "evidence/payload/runtime/children/00-retained-source-built-redirections-v3.stderr",
+      "bytes": 807,
+      "sha256": "b529fc616adb4a3b4bcde48d6db8c1529cc7660182fb814f9a87b6c376be276c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/00-retained-source-built-redirections-v3.stdout",
+      "path": "evidence/payload/runtime/children/00-retained-source-built-redirections-v3.stdout",
+      "bytes": 3854,
+      "sha256": "8c8eae6a4c7e5cfea91063538102251b9161010a7a3d074e3ae64f15bdab7fd9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/01-retained-source-built-strict.stderr",
+      "path": "evidence/payload/runtime/children/01-retained-source-built-strict.stderr",
+      "bytes": 807,
+      "sha256": "62289cd0ddbaf72d4dfd883c95ac91a9e1f9d6c5ab967bd70c8d88cca1f75ffc"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/01-retained-source-built-strict.stdout",
+      "path": "evidence/payload/runtime/children/01-retained-source-built-strict.stdout",
+      "bytes": 8809,
+      "sha256": "34cd5fee3bd6630cc397d67d657f4b32f9d2e87815e2d1223d5d18443121f638"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/02-retained-source-built-conditional.stderr",
+      "path": "evidence/payload/runtime/children/02-retained-source-built-conditional.stderr",
+      "bytes": 807,
+      "sha256": "a91a2677b8fdb8d1a5423f26f4ad168fa7548db9a93ae0ed4e4d1018eb8aab76"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/02-retained-source-built-conditional.stdout",
+      "path": "evidence/payload/runtime/children/02-retained-source-built-conditional.stdout",
+      "bytes": 11346,
+      "sha256": "f6e00c5e99f4156b1b180588c6178ad74da9f41820d007cc6b761f163de59fc0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/03-retained-source-built-extension.stderr",
+      "path": "evidence/payload/runtime/children/03-retained-source-built-extension.stderr",
+      "bytes": 1405,
+      "sha256": "14122aec99c7318b527abaf0018efcb3416f71b7d5730b065b47125de710d7db"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/03-retained-source-built-extension.stdout",
+      "path": "evidence/payload/runtime/children/03-retained-source-built-extension.stdout",
+      "bytes": 20384,
+      "sha256": "469ee9ee007cfd8d705ad3f0e4822bd4f66bee3313732d036f98e82a8677433e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/04-retained-source-built-arrays.stderr",
+      "path": "evidence/payload/runtime/children/04-retained-source-built-arrays.stderr",
+      "bytes": 807,
+      "sha256": "2f6773e0154214c4f247acfff95d5c46e410304b399acf7df50abeb984ae10f2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/04-retained-source-built-arrays.stdout",
+      "path": "evidence/payload/runtime/children/04-retained-source-built-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/05-retained-source-built-n14.stderr",
+      "path": "evidence/payload/runtime/children/05-retained-source-built-n14.stderr",
+      "bytes": 3647,
+      "sha256": "197c61eb11b1d2b023299d41e1cc2ea832e806777e3920770339c5eaf6b70ac3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/05-retained-source-built-n14.stdout",
+      "path": "evidence/payload/runtime/children/05-retained-source-built-n14.stdout",
+      "bytes": 3526,
+      "sha256": "40e5efc76a1a545a866157058058a7f7db76d14109e7cf189e6a14166939c501"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/06-types-source-built-positive.stderr",
+      "path": "evidence/payload/runtime/children/06-types-source-built-positive.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/06-types-source-built-positive.stdout",
+      "path": "evidence/payload/runtime/children/06-types-source-built-positive.stdout",
+      "bytes": 22208,
+      "sha256": "1c8f5b2077ee3900a58b27ff22ceb7176009d877f402f4e5d258df3bcbace989"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/07-types-source-built-negative.stderr",
+      "path": "evidence/payload/runtime/children/07-types-source-built-negative.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/07-types-source-built-negative.stdout",
+      "path": "evidence/payload/runtime/children/07-types-source-built-negative.stdout",
+      "bytes": 23618,
+      "sha256": "5b26ce2d22308296f4a76cfe408ca6e3db532384e4ce0206d1e669fe6fbe2d30"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/08-offline-install.stderr",
+      "path": "evidence/payload/runtime/children/08-offline-install.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/08-offline-install.stdout",
+      "path": "evidence/payload/runtime/children/08-offline-install.stdout",
+      "bytes": 23,
+      "sha256": "84b3615a2b55669c4069410770606e7290261ae70a9db72789bff656c372ce48"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/09-retained-installed-redirections-v3.stderr",
+      "path": "evidence/payload/runtime/children/09-retained-installed-redirections-v3.stderr",
+      "bytes": 807,
+      "sha256": "499144a5831e0ad3b9ad951f3f2d5493c95ae0a99d6874117f2ec06a20d9faca"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/09-retained-installed-redirections-v3.stdout",
+      "path": "evidence/payload/runtime/children/09-retained-installed-redirections-v3.stdout",
+      "bytes": 3854,
+      "sha256": "8c8eae6a4c7e5cfea91063538102251b9161010a7a3d074e3ae64f15bdab7fd9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/10-retained-installed-strict.stderr",
+      "path": "evidence/payload/runtime/children/10-retained-installed-strict.stderr",
+      "bytes": 807,
+      "sha256": "6809f6f78e0b06a03af7405a9aed17a67281e6a6a86a7f4f6dac12e25dd8831f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/10-retained-installed-strict.stdout",
+      "path": "evidence/payload/runtime/children/10-retained-installed-strict.stdout",
+      "bytes": 8809,
+      "sha256": "34cd5fee3bd6630cc397d67d657f4b32f9d2e87815e2d1223d5d18443121f638"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/11-retained-installed-conditional.stderr",
+      "path": "evidence/payload/runtime/children/11-retained-installed-conditional.stderr",
+      "bytes": 807,
+      "sha256": "538c6bc29fe2375a0fb769d0955fca56649736d5c0395262b2642b685d09110e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/11-retained-installed-conditional.stdout",
+      "path": "evidence/payload/runtime/children/11-retained-installed-conditional.stdout",
+      "bytes": 11346,
+      "sha256": "f6e00c5e99f4156b1b180588c6178ad74da9f41820d007cc6b761f163de59fc0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/12-retained-installed-extension.stderr",
+      "path": "evidence/payload/runtime/children/12-retained-installed-extension.stderr",
+      "bytes": 1405,
+      "sha256": "d636338ed282b9cba906b44b814bbb9af229abca045d173a760ecd7e1dcd9874"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/12-retained-installed-extension.stdout",
+      "path": "evidence/payload/runtime/children/12-retained-installed-extension.stdout",
+      "bytes": 20384,
+      "sha256": "469ee9ee007cfd8d705ad3f0e4822bd4f66bee3313732d036f98e82a8677433e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/13-retained-installed-arrays.stderr",
+      "path": "evidence/payload/runtime/children/13-retained-installed-arrays.stderr",
+      "bytes": 807,
+      "sha256": "d8c17744125dd146a048a6b634c62bf567577222a7c6665490aded2ccf984806"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/13-retained-installed-arrays.stdout",
+      "path": "evidence/payload/runtime/children/13-retained-installed-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/14-retained-installed-n14.stderr",
+      "path": "evidence/payload/runtime/children/14-retained-installed-n14.stderr",
+      "bytes": 3647,
+      "sha256": "412135db9ab8cc7180ae7a2efe082cec006db8b9cbcb845f7b98f77de46334b2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/14-retained-installed-n14.stdout",
+      "path": "evidence/payload/runtime/children/14-retained-installed-n14.stdout",
+      "bytes": 3526,
+      "sha256": "40e5efc76a1a545a866157058058a7f7db76d14109e7cf189e6a14166939c501"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/15-types-installed-positive.stderr",
+      "path": "evidence/payload/runtime/children/15-types-installed-positive.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/15-types-installed-positive.stdout",
+      "path": "evidence/payload/runtime/children/15-types-installed-positive.stdout",
+      "bytes": 21920,
+      "sha256": "d8df5d47bc9e2278f4e451af370d8bfc7966309e4ecc73ea7fe527152539efd9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/16-types-installed-negative.stderr",
+      "path": "evidence/payload/runtime/children/16-types-installed-negative.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/16-types-installed-negative.stdout",
+      "path": "evidence/payload/runtime/children/16-types-installed-negative.stdout",
+      "bytes": 23330,
+      "sha256": "0bf176204e62002c708bb3e2b6d30beca4dcbf2e7370c71b06a2986bc2332da7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/17-retained-physically-moved-redirections-v3.stderr",
+      "path": "evidence/payload/runtime/children/17-retained-physically-moved-redirections-v3.stderr",
+      "bytes": 807,
+      "sha256": "541415063a3a3e635a8afcf5c78e243c9e06156f8a1e6a986ea08487e5cf7a51"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/17-retained-physically-moved-redirections-v3.stdout",
+      "path": "evidence/payload/runtime/children/17-retained-physically-moved-redirections-v3.stdout",
+      "bytes": 3854,
+      "sha256": "8c8eae6a4c7e5cfea91063538102251b9161010a7a3d074e3ae64f15bdab7fd9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/18-retained-physically-moved-strict.stderr",
+      "path": "evidence/payload/runtime/children/18-retained-physically-moved-strict.stderr",
+      "bytes": 807,
+      "sha256": "eac9ed187712b9461c93721cddd3a66842b19d1c09892f7629423f9e0d59971b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/18-retained-physically-moved-strict.stdout",
+      "path": "evidence/payload/runtime/children/18-retained-physically-moved-strict.stdout",
+      "bytes": 8809,
+      "sha256": "34cd5fee3bd6630cc397d67d657f4b32f9d2e87815e2d1223d5d18443121f638"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/19-retained-physically-moved-conditional.stderr",
+      "path": "evidence/payload/runtime/children/19-retained-physically-moved-conditional.stderr",
+      "bytes": 807,
+      "sha256": "ce5e446d4e23fc341143c4e362cefe213b1aa96a5bb7ace2a8ec318de8b875f2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/19-retained-physically-moved-conditional.stdout",
+      "path": "evidence/payload/runtime/children/19-retained-physically-moved-conditional.stdout",
+      "bytes": 11346,
+      "sha256": "f6e00c5e99f4156b1b180588c6178ad74da9f41820d007cc6b761f163de59fc0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/20-retained-physically-moved-extension.stderr",
+      "path": "evidence/payload/runtime/children/20-retained-physically-moved-extension.stderr",
+      "bytes": 1405,
+      "sha256": "b1dd4820eef7ef9782c11d1267e0da9c911a8ed9f48b254a8d3300b6dcd24d30"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/20-retained-physically-moved-extension.stdout",
+      "path": "evidence/payload/runtime/children/20-retained-physically-moved-extension.stdout",
+      "bytes": 20384,
+      "sha256": "469ee9ee007cfd8d705ad3f0e4822bd4f66bee3313732d036f98e82a8677433e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/21-retained-physically-moved-arrays.stderr",
+      "path": "evidence/payload/runtime/children/21-retained-physically-moved-arrays.stderr",
+      "bytes": 807,
+      "sha256": "be54722739c2a881785e622802022c122e9ae6911e5b11ee8d104df0d276e04b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/21-retained-physically-moved-arrays.stdout",
+      "path": "evidence/payload/runtime/children/21-retained-physically-moved-arrays.stdout",
+      "bytes": 3818,
+      "sha256": "54bdae0aa211de57a7694da3a16f5168e1a10c81107005e965b03afb28dafb9b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/22-retained-physically-moved-n14.stderr",
+      "path": "evidence/payload/runtime/children/22-retained-physically-moved-n14.stderr",
+      "bytes": 3647,
+      "sha256": "987b0b6dae94369bed3eda07e4d9fb3fb0475bbf96592ae2ac3c3d254480a0f9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/22-retained-physically-moved-n14.stdout",
+      "path": "evidence/payload/runtime/children/22-retained-physically-moved-n14.stdout",
+      "bytes": 3526,
+      "sha256": "40e5efc76a1a545a866157058058a7f7db76d14109e7cf189e6a14166939c501"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/23-types-physically-moved-positive.stderr",
+      "path": "evidence/payload/runtime/children/23-types-physically-moved-positive.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/23-types-physically-moved-positive.stdout",
+      "path": "evidence/payload/runtime/children/23-types-physically-moved-positive.stdout",
+      "bytes": 22592,
+      "sha256": "add407cd6d42f74fe4da797d06335fa8a78bbabd9270a26c301af426e2ee0bf6"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/24-types-physically-moved-negative.stderr",
+      "path": "evidence/payload/runtime/children/24-types-physically-moved-negative.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/24-types-physically-moved-negative.stdout",
+      "path": "evidence/payload/runtime/children/24-types-physically-moved-negative.stdout",
+      "bytes": 24002,
+      "sha256": "0c7dab0d93b2085bd0319fda6d648092a79a2c62e8302a07e351b8f1a745879e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/25-mutant-n14-drop-provenance.stderr",
+      "path": "evidence/payload/runtime/children/25-mutant-n14-drop-provenance.stderr",
+      "bytes": 1084,
+      "sha256": "72afca17cbe25afae70f4b98a976d603e70acf79bbbdfd669a23ad83bf5a82e5"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/25-mutant-n14-drop-provenance.stdout",
+      "path": "evidence/payload/runtime/children/25-mutant-n14-drop-provenance.stdout",
+      "bytes": 731,
+      "sha256": "430e4db034f5ad96f50004862c233eb72023d85e5279bb9610eebf711ad57225"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/26-restore-n14-drop-provenance.stderr",
+      "path": "evidence/payload/runtime/children/26-restore-n14-drop-provenance.stderr",
+      "bytes": 1044,
+      "sha256": "53f5c6e03b1991e7848942be9ee8c26f0ead533b8531f93ee3ad1273e76b14b2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/26-restore-n14-drop-provenance.stdout",
+      "path": "evidence/payload/runtime/children/26-restore-n14-drop-provenance.stdout",
+      "bytes": 323,
+      "sha256": "d4614d7c1d35d6f8cc340d74be3d1b376fc90d0eea89ff3e7198f960f657e115"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/27-mutant-missing-read-zero.stderr",
+      "path": "evidence/payload/runtime/children/27-mutant-missing-read-zero.stderr",
+      "bytes": 801,
+      "sha256": "8125864b790eff6c9dc6a8fdb4782096e4031fab64e2da3dffb17819741c6df6"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/27-mutant-missing-read-zero.stdout",
+      "path": "evidence/payload/runtime/children/27-mutant-missing-read-zero.stdout",
+      "bytes": 727,
+      "sha256": "bc7e3ea1b42352ed07503b36e004c70d7710eda714e0821c9c8e920f7bcbf67d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/28-restore-missing-read-zero.stderr",
+      "path": "evidence/payload/runtime/children/28-restore-missing-read-zero.stderr",
+      "bytes": 801,
+      "sha256": "36bd952e6f2f7cb49aa517adc5b91553b84a314b09dea8e398fda3a8ea6ebccb"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/28-restore-missing-read-zero.stdout",
+      "path": "evidence/payload/runtime/children/28-restore-missing-read-zero.stdout",
+      "bytes": 646,
+      "sha256": "821d148ab4e1362b2e54502f9e053a3d9370c84ac26e32eff58d25dd9c78221d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/29-mutant-read-assignment-lhs.stderr",
+      "path": "evidence/payload/runtime/children/29-mutant-read-assignment-lhs.stderr",
+      "bytes": 801,
+      "sha256": "407b07e4b6775ec9010a5894d4c628dfc4e0c81dd777d8e679cc2614bc7719b6"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/29-mutant-read-assignment-lhs.stdout",
+      "path": "evidence/payload/runtime/children/29-mutant-read-assignment-lhs.stdout",
+      "bytes": 1044,
+      "sha256": "f3e5b76e4653df41f6a6a15297e6143625c2cd4751fdaa67a2b1539fcaa038e6"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/30-restore-read-assignment-lhs.stderr",
+      "path": "evidence/payload/runtime/children/30-restore-read-assignment-lhs.stderr",
+      "bytes": 801,
+      "sha256": "c1605493387e4fcf9156201f593e690659b63a80dcbb65ffdf13a2c9930bb74a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/30-restore-read-assignment-lhs.stdout",
+      "path": "evidence/payload/runtime/children/30-restore-read-assignment-lhs.stdout",
+      "bytes": 276,
+      "sha256": "1bc1a7ef0e4379c56dd93f1dee9c16f94e10cb169035d3f2fbabd92aaae1fbb0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/31-mutant-let-recast.stderr",
+      "path": "evidence/payload/runtime/children/31-mutant-let-recast.stderr",
+      "bytes": 801,
+      "sha256": "c00c747784d6d8812860dc67ad760ac61a64a5db13053b5c9f40f29f489b0e59"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/31-mutant-let-recast.stdout",
+      "path": "evidence/payload/runtime/children/31-mutant-let-recast.stdout",
+      "bytes": 1144,
+      "sha256": "cd34d6fb0022bb3a696de2488a7c6ae7a504917f5d44823177e90648c5a5c94c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/32-restore-let-recast.stderr",
+      "path": "evidence/payload/runtime/children/32-restore-let-recast.stderr",
+      "bytes": 801,
+      "sha256": "8bfd760a57316505bf89e5d7518787f183a4ebf5520745b152f374abb9eeeeb8"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/32-restore-let-recast.stdout",
+      "path": "evidence/payload/runtime/children/32-restore-let-recast.stdout",
+      "bytes": 646,
+      "sha256": "536066b5e0f892afc917a0214a04d6c6b20b7f91a0c61c38b6b689033d53b61d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/33-mutant-rollback-prefix.stderr",
+      "path": "evidence/payload/runtime/children/33-mutant-rollback-prefix.stderr",
+      "bytes": 801,
+      "sha256": "a7d7419b01c87cf2d9ce22dead4d2b6d654b3cf145392329be01204c2f567952"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/33-mutant-rollback-prefix.stdout",
+      "path": "evidence/payload/runtime/children/33-mutant-rollback-prefix.stdout",
+      "bytes": 855,
+      "sha256": "419da8e8abf1f751d0f998d361dcf93da9c72557224c786f98ee6661fe002f89"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/34-restore-rollback-prefix.stderr",
+      "path": "evidence/payload/runtime/children/34-restore-rollback-prefix.stderr",
+      "bytes": 801,
+      "sha256": "660e38032ce0b02249d38bdbab0720326a1f94bc131cc275cb1c4498bac4d1c7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/34-restore-rollback-prefix.stdout",
+      "path": "evidence/payload/runtime/children/34-restore-rollback-prefix.stdout",
+      "bytes": 2121,
+      "sha256": "f6c2dccbc1d4c5e6904d44b5ea8d22f7371d87004fc50387ec582dbacbfcba39"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/35-mutant-swallow-parameter-sink.stderr",
+      "path": "evidence/payload/runtime/children/35-mutant-swallow-parameter-sink.stderr",
+      "bytes": 801,
+      "sha256": "bb5ae2accda613da544c19da114a1794de6e3ecacdab8b11ebb5dfb12bb68ab4"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/35-mutant-swallow-parameter-sink.stdout",
+      "path": "evidence/payload/runtime/children/35-mutant-swallow-parameter-sink.stdout",
+      "bytes": 612,
+      "sha256": "1f895f89756393b10cb283e8ba3f409e1a862366daed64ffc9959e51e94ec39a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/36-restore-swallow-parameter-sink.stderr",
+      "path": "evidence/payload/runtime/children/36-restore-swallow-parameter-sink.stderr",
+      "bytes": 801,
+      "sha256": "baf67d034b70bd3241adc82e843152a52e651697df7885c03cc92380863c56b2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/36-restore-swallow-parameter-sink.stdout",
+      "path": "evidence/payload/runtime/children/36-restore-swallow-parameter-sink.stdout",
+      "bytes": 199,
+      "sha256": "fad20bf757ecabcc10fd1edb55368192e05aa39f7e66fdcd2ab67f30d1287bad"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/37-mutant-false-option-state.stderr",
+      "path": "evidence/payload/runtime/children/37-mutant-false-option-state.stderr",
+      "bytes": 801,
+      "sha256": "f24fd1cd003e4b6c4b416b2ab805e75c55826ac005bc864f78dce9eb37dacb8a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/37-mutant-false-option-state.stdout",
+      "path": "evidence/payload/runtime/children/37-mutant-false-option-state.stdout",
+      "bytes": 1394,
+      "sha256": "9c89b97fc7c084b7066109ad220c270b1064916e20ad8257221b3aaf226947d6"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/38-restore-false-option-state.stderr",
+      "path": "evidence/payload/runtime/children/38-restore-false-option-state.stderr",
+      "bytes": 801,
+      "sha256": "0d0526f60740d2bdcaea5fbab62910f68da8db4fdc1141597192db71e634ecc8"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/38-restore-false-option-state.stdout",
+      "path": "evidence/payload/runtime/children/38-restore-false-option-state.stdout",
+      "bytes": 817,
+      "sha256": "e3c0bea549f62e28f45ca3c7322f62b48fede8992845eb64615a32b0f270072b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/39-binding-missing.stderr",
+      "path": "evidence/payload/runtime/children/39-binding-missing.stderr",
+      "bytes": 1652,
+      "sha256": "797140906394f92e6c42e3518249cc65d5a9729dc8fe5611ab868ca8b527fbd4"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/39-binding-missing.stdout",
+      "path": "evidence/payload/runtime/children/39-binding-missing.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/40-binding-changed.stderr",
+      "path": "evidence/payload/runtime/children/40-binding-changed.stderr",
+      "bytes": 1659,
+      "sha256": "3151ed7783b0cb615e1c40995c6e671a03cf31ce0b7e6cbefcbb62ba37b0d9d7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/40-binding-changed.stdout",
+      "path": "evidence/payload/runtime/children/40-binding-changed.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/children/events.jsonl",
+      "path": "evidence/payload/runtime/children/events.jsonl",
+      "bytes": 96783,
+      "sha256": "e1407fc87156b79ecb10efe6777aa7f9057f6fc799ea164aed803788cfc0736c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/binding-changed.jsonl",
+      "path": "evidence/payload/runtime/traces/binding-changed.jsonl",
+      "bytes": 14511,
+      "sha256": "d5d3b18510222fd1658de6152dc7c938ff707c9e2f86f0d57623befabb6e8a52"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/binding-changed.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/binding-changed.jsonl.verified.json",
+      "bytes": 14663,
+      "sha256": "ea96f03ded82e7ca757e3c9c266a6036457b275876be9768873da80fb5e38390"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/binding-missing.jsonl",
+      "path": "evidence/payload/runtime/traces/binding-missing.jsonl",
+      "bytes": 554,
+      "sha256": "8ba6bde825a7ca16011811aac289e209ae5f89a8af7c937f39a7916f8ffa462c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/binding-missing.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/binding-missing.jsonl.verified.json",
+      "bytes": 704,
+      "sha256": "ed420e481b4b24e8cf6c6005719129a8bd3629d5376736b569b4f7ed229f314f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-false-option-state.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-false-option-state.jsonl",
+      "bytes": 69769,
+      "sha256": "a92497e0c9b70d1a2673e2d9d1a81ff4fddf00e835df929c1f384fab0667a0df"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-false-option-state.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-false-option-state.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "031833461844b728131c9b9994fbc9bd28229e12fc3606bad2422c1cf8b6ba1d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-let-recast.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-let-recast.jsonl",
+      "bytes": 69769,
+      "sha256": "1634d425436d25fcaa3febcfdaa2d5e1c5150cf3aec240bdc3a2c3b3579b4714"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-let-recast.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-let-recast.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "cc0780900a61a34dcaef0e2ae3af05d8c82daa0fadd5ceac14239853fc3b1163"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-missing-read-zero.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-missing-read-zero.jsonl",
+      "bytes": 69769,
+      "sha256": "9b6f6077a8d072e9b2fda505f1e107ac144b1dfa30f6b82fb1a121f95dcac08b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-missing-read-zero.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-missing-read-zero.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "16e21907aaaadf75baba427de34e03c752480bf555940b0ff2a52e324d32c55e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-n14-drop-provenance.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-n14-drop-provenance.jsonl",
+      "bytes": 69757,
+      "sha256": "3053e1518344f4680c5551341f73d060ae25aa0add9039c47c01c2b5907e56de"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-n14-drop-provenance.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-n14-drop-provenance.jsonl.verified.json",
+      "bytes": 69909,
+      "sha256": "18185184e79a3d5ae0ecc6f4cfc28498608842ef6d83e4a7ebecfffcd21a338c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-read-assignment-lhs.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-read-assignment-lhs.jsonl",
+      "bytes": 69769,
+      "sha256": "4257711d51f85e756a7cb713ae3716537c646dd45c60024b28d0c3dae3302bd2"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-read-assignment-lhs.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-read-assignment-lhs.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "96c1ab308f6f1d2da0576927f2774dea44bea97fbee04b3ddc12c50d3844e59c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-rollback-prefix.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-rollback-prefix.jsonl",
+      "bytes": 69769,
+      "sha256": "3617bb172531e0749d8fdc98833f76b46debd9bf42daee3067afeb3c03da141f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-rollback-prefix.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-rollback-prefix.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "86e1a4dca6242990c9f82868e08767bc248bd8496bb463acc8fba7210c3ce8f3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-swallow-parameter-sink.jsonl",
+      "path": "evidence/payload/runtime/traces/mutant-swallow-parameter-sink.jsonl",
+      "bytes": 69769,
+      "sha256": "4d7689ba1ac23a1b1f444baa4198f6bda0e84759edb5f39b381e8c6a0cc15d67"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/mutant-swallow-parameter-sink.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/mutant-swallow-parameter-sink.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "e134ccf7d4cabf5898b54140141cec57e89d8b8bdbe099d7e0d40a8c695a4b1a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-false-option-state.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-false-option-state.jsonl",
+      "bytes": 69769,
+      "sha256": "86bfe9298c9fc6031767106166c7b5b973ddce61b488198d6cecf46812ec0c47"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-false-option-state.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-false-option-state.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "841e99dbf05f0fbc1a45aabc3b3425582deb68b93e911d1f82b1eb801755941c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-let-recast.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-let-recast.jsonl",
+      "bytes": 69769,
+      "sha256": "4896448c6f646c5933e4e96bcb092845627db2c9b08d5b029d213f3a1efadfdd"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-let-recast.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-let-recast.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "b7418950ffee0b3d703b77fc7844b0b5331400f70563112939d446f90a876438"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-missing-read-zero.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-missing-read-zero.jsonl",
+      "bytes": 69769,
+      "sha256": "b1589fa7a012bc1e6052583fdc47b099fca9e397302be5a7bd1289caddbabc6d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-missing-read-zero.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-missing-read-zero.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "7a789ddddeea55c899deb653e6ce1b870fc2d9cdf6d21eec56e76f8655327a61"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-n14-drop-provenance.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-n14-drop-provenance.jsonl",
+      "bytes": 69757,
+      "sha256": "f3ba44499cf8fa3bcc26188024140307bfc492191ae04c929c3af37a4e8b2193"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-n14-drop-provenance.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-n14-drop-provenance.jsonl.verified.json",
+      "bytes": 69909,
+      "sha256": "50a14b1cd7e77d3958eb64e6c036dfcf450584537d48fdc8d5a18654537a8777"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-read-assignment-lhs.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-read-assignment-lhs.jsonl",
+      "bytes": 69769,
+      "sha256": "c1bbe84ce57105457ec9ecb8258124b7422e1d57dc2a25f1071a397c5c222a51"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-read-assignment-lhs.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-read-assignment-lhs.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "8f94b4e45e326c32c00aec999232a05e856c7dcf4e1ba49b7468be1698190bda"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-rollback-prefix.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-rollback-prefix.jsonl",
+      "bytes": 69769,
+      "sha256": "0739f0616b2e76193a932423394c8a4a3dcb7169bbefc5a80212ab7663ccfeed"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-rollback-prefix.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-rollback-prefix.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "825d59869d45d728b299ec20a4fdabd7e71688ab08c7fe268474f5fab551f2c9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-swallow-parameter-sink.jsonl",
+      "path": "evidence/payload/runtime/traces/restore-swallow-parameter-sink.jsonl",
+      "bytes": 69769,
+      "sha256": "1e2c6c4e5a37be50e59079d103b47519bbd29b4f6e96620dd8d808aebc8de198"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/restore-swallow-parameter-sink.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/restore-swallow-parameter-sink.jsonl.verified.json",
+      "bytes": 69921,
+      "sha256": "41c9da01902564eab3e026bfdd6b59f8d8545c6720985ed0b004255904025b62"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-arrays.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-installed-arrays.jsonl",
+      "bytes": 69265,
+      "sha256": "b7cf01a2ba22d4f3535d1d7a321b6836994de20a021f09a63eccadd92af6218f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-arrays.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-installed-arrays.jsonl.verified.json",
+      "bytes": 69417,
+      "sha256": "7677131eaf004648b06e5808aff11b08c0d2e05249ef3e42d23370af2c01b993"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-conditional.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-installed-conditional.jsonl",
+      "bytes": 69275,
+      "sha256": "f2eb0d92fe674bfc5cd35360cbc262d9ef8fd0e01282ba86e65586d667d8c3c7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-conditional.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-installed-conditional.jsonl.verified.json",
+      "bytes": 69427,
+      "sha256": "82c395b2a6fa914befb73249e0e4cea41a6e7ce9f20edeba2e497529b1cbfa67"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-extension.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-installed-extension.jsonl",
+      "bytes": 69271,
+      "sha256": "1297fcae09d17880f2188526b43d4fd4add9e563116d5a3b949f08436052c932"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-extension.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-installed-extension.jsonl.verified.json",
+      "bytes": 69423,
+      "sha256": "7f605e73c5c6ef92f59e7de8a1270cc346d36987546c40a07d36118d9fef0153"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-n14.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-installed-n14.jsonl",
+      "bytes": 69259,
+      "sha256": "3fa45a4f9f75ecfb5a69550f2a37ed8cba31615b5af40352e9dc8c0531e1c9c9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-n14.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-installed-n14.jsonl.verified.json",
+      "bytes": 69411,
+      "sha256": "5791d263b8bb7645fa7976543792bff6b0080ba5400454a9ffca621b22fd5296"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-redirections-v3.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-installed-redirections-v3.jsonl",
+      "bytes": 69506,
+      "sha256": "5afc9cdb48b64bf2a2554cf3060fa73925034ffa4703d81753ad6ac56ecaf0a7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-redirections-v3.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-installed-redirections-v3.jsonl.verified.json",
+      "bytes": 69658,
+      "sha256": "f53533e1c4948a2cd0814ec4295f6ad3ef3435412ec8ce71e969046645b5b42f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-strict.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-installed-strict.jsonl",
+      "bytes": 69265,
+      "sha256": "4fc2b6a3f956c9ca0a7eeffac69ac013c2427ba27f789cfcc47343d3a0e35cb8"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-installed-strict.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-installed-strict.jsonl.verified.json",
+      "bytes": 69417,
+      "sha256": "323573437489505fff06baa5cf5596fe2a60bad7c864223c6a8c5d9a74fef5f9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-arrays.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-arrays.jsonl",
+      "bytes": 71008,
+      "sha256": "451b3d3b656b58ea7ab587afb6323d15824a37bf0519d0e0be32da65c1b76feb"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-arrays.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-arrays.jsonl.verified.json",
+      "bytes": 71160,
+      "sha256": "e1008100aaf43f3aa6f6ca4f8acbfa07b7db486d79753b41442cddee7e0166d4"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-conditional.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-conditional.jsonl",
+      "bytes": 71018,
+      "sha256": "41760563cf24c321fbbecf7199f618c9ce4de65f74d52cd92ed8e4c9a3a880b1"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-conditional.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-conditional.jsonl.verified.json",
+      "bytes": 71170,
+      "sha256": "4e48a5ef1d70212050eff090abf8c90b8dd43ffb4a457b52417174dc73bcdaa9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-extension.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-extension.jsonl",
+      "bytes": 71014,
+      "sha256": "1b9d92114bef498eb41728dd14d2df57b91becbf669631d5bddfefffd783c0a3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-extension.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-extension.jsonl.verified.json",
+      "bytes": 71166,
+      "sha256": "045fdf328130494b4bc3fc2faffb17bdb46e8d83a0945534f1824e5f9cb33ac6"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-n14.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-n14.jsonl",
+      "bytes": 71002,
+      "sha256": "4f34e48d8bd691e85466f385c756c15ad2150967e18682167d7cfd65a7ddfeb3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-n14.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-n14.jsonl.verified.json",
+      "bytes": 71154,
+      "sha256": "89985c0835e993f4982e78f8285dea4abd0530b9b1ae18ec7160420e12bfd06a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-redirections-v3.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-redirections-v3.jsonl",
+      "bytes": 71256,
+      "sha256": "86960483c5eb3af97bb4bd1cf103da6cb9d77ae839df8bf2c9b333c3e3059a16"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-redirections-v3.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-redirections-v3.jsonl.verified.json",
+      "bytes": 71408,
+      "sha256": "14634cf474320b39b481188c7dc97dc19a9ca13bc4ee8fa8f464c5745ab22efb"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-strict.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-strict.jsonl",
+      "bytes": 71008,
+      "sha256": "38200356f0e6749558879609217cafb06423e3c12853a888cd60d5dc8b385856"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-physically-moved-strict.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-physically-moved-strict.jsonl.verified.json",
+      "bytes": 71160,
+      "sha256": "077bd6470151d6b6264d1f7543578e7df7690abaa36ca0e951d1f00c7c7ee1b0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-arrays.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-source-built-arrays.jsonl",
+      "bytes": 70012,
+      "sha256": "976a242a03d259d8460c723574ec88f72eba9b9a6ac16a62a1b644dc0d86d81e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-arrays.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-source-built-arrays.jsonl.verified.json",
+      "bytes": 70164,
+      "sha256": "13baa87be3d3d27a8898b9ae8683661109e5db774ef8026fcddff1a0a587fc61"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-conditional.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-source-built-conditional.jsonl",
+      "bytes": 70022,
+      "sha256": "b40b739399e365eac5c9b78526b4ee424f317e3168a17c0c2b053389f6838234"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-conditional.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-source-built-conditional.jsonl.verified.json",
+      "bytes": 70174,
+      "sha256": "61dd7e151aa1f5cf65c677c605dfbdcf4bdae8f4689c2d59d446e7c9121bf08c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-extension.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-source-built-extension.jsonl",
+      "bytes": 70018,
+      "sha256": "2ae3baec54990ea366662246347c92d3bc00088d15f4dc275b62e14e99ea978d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-extension.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-source-built-extension.jsonl.verified.json",
+      "bytes": 70170,
+      "sha256": "e44eeb983b782da34a7541a6aa75ee16779a7164298996e96391766adeb83b89"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-n14.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-source-built-n14.jsonl",
+      "bytes": 70006,
+      "sha256": "d8b004c34f46aea22635a0f1edeecc00cfc818a44f45eda2ae21f7a7bbd16bb0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-n14.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-source-built-n14.jsonl.verified.json",
+      "bytes": 70158,
+      "sha256": "193a1919cbe1eb4de7a09b5547a88b5b6177693e48e019228c70c8c19a6caad7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-redirections-v3.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-source-built-redirections-v3.jsonl",
+      "bytes": 70256,
+      "sha256": "c554e0ae0082c66a2863de7978a52370180ba7e3b98eadab1025c1570097ea99"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-redirections-v3.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-source-built-redirections-v3.jsonl.verified.json",
+      "bytes": 70408,
+      "sha256": "1d4f3dcd52e39eb4523ce38a78d4e6a91f698be3cfdb61de8bca401e7e1b214a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-strict.jsonl",
+      "path": "evidence/payload/runtime/traces/retained-source-built-strict.jsonl",
+      "bytes": 70012,
+      "sha256": "ecf99728dcba88a4a910251fe04946628ea77ffe6d73f261716fb35882d6448f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/traces/retained-source-built-strict.jsonl.verified.json",
+      "path": "evidence/payload/runtime/traces/retained-source-built-strict.jsonl.verified.json",
+      "bytes": 70164,
+      "sha256": "204bebdef7de48664ba057a7f675c35d6648439c0a48ccb0d5ca33e93fabbfd4"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/binding-changed.json",
+      "path": "evidence/payload/runtime/bindings/binding-changed.json",
+      "bytes": 69765,
+      "sha256": "c0f51c243b0f87dbf66f05fe9735977d405d5a4a940784041ff32b2ab6ba1a71"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/binding-missing.json",
+      "path": "evidence/payload/runtime/bindings/binding-missing.json",
+      "bytes": 69533,
+      "sha256": "761a3b9b39c9a6b1641454cf533394ad5343480a7e04bc739739a8aa8e3e4205"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-false-option-state.json",
+      "path": "evidence/payload/runtime/bindings/mutant-false-option-state.json",
+      "bytes": 68455,
+      "sha256": "f52f4f138722a14adb4cfb2f352d5ef4dccf6dc1d954682aae4b3755d0da9084"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-let-recast.json",
+      "path": "evidence/payload/runtime/bindings/mutant-let-recast.json",
+      "bytes": 68447,
+      "sha256": "777637bf871e7496268a299fe362ed46a0cf759545d7923a937b51c343cad46e"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-missing-read-zero.json",
+      "path": "evidence/payload/runtime/bindings/mutant-missing-read-zero.json",
+      "bytes": 68454,
+      "sha256": "3650f3acdbabf8c9e12274a68bb633c41acc597d379c224371515b612bf84577"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-n14-drop-provenance.json",
+      "path": "evidence/payload/runtime/bindings/mutant-n14-drop-provenance.json",
+      "bytes": 68456,
+      "sha256": "721403d6ce883f3e914b725975d5615969e8e8dd9336b476864c827e2eb9077d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-read-assignment-lhs.json",
+      "path": "evidence/payload/runtime/bindings/mutant-read-assignment-lhs.json",
+      "bytes": 68456,
+      "sha256": "1169936a20e4b9e031e335b0822afe711d03d3dc8f906fe910658744cc593204"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-rollback-prefix.json",
+      "path": "evidence/payload/runtime/bindings/mutant-rollback-prefix.json",
+      "bytes": 68452,
+      "sha256": "088bc27f8bc66fb4ee0dabe3f5b9ce6d9e2ec8bb9f3dfcb6f443f19037514f64"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/mutant-swallow-parameter-sink.json",
+      "path": "evidence/payload/runtime/bindings/mutant-swallow-parameter-sink.json",
+      "bytes": 68459,
+      "sha256": "4a0a8ff5d482e63568f1b1644ab46eb8de631de78bcbd4e18f01aba3074ecff3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-false-option-state.json",
+      "path": "evidence/payload/runtime/bindings/restore-false-option-state.json",
+      "bytes": 68456,
+      "sha256": "9811cca891897f6ca7c71a4d107217c7ecc47f584c9cd806be42f590d07ad836"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-let-recast.json",
+      "path": "evidence/payload/runtime/bindings/restore-let-recast.json",
+      "bytes": 68448,
+      "sha256": "c0f5e3dd647f06804a12bb97374d5b31fbf6bd57c4b85d0e00d09acb970d841a"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-missing-read-zero.json",
+      "path": "evidence/payload/runtime/bindings/restore-missing-read-zero.json",
+      "bytes": 68455,
+      "sha256": "f992c688b25c0a6cd35b2489e825273029cf37f345db0eb78d8de92b942561e7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-n14-drop-provenance.json",
+      "path": "evidence/payload/runtime/bindings/restore-n14-drop-provenance.json",
+      "bytes": 68457,
+      "sha256": "7a426deb9d33cd74d902a4f83eb10fb607fac2392fe6af150ca00474b336d9ed"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-read-assignment-lhs.json",
+      "path": "evidence/payload/runtime/bindings/restore-read-assignment-lhs.json",
+      "bytes": 68457,
+      "sha256": "130ddc9b066e06a4bbca4f3d47d8fb895c281d83fb83aaf6675d4d2abca18bc7"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-rollback-prefix.json",
+      "path": "evidence/payload/runtime/bindings/restore-rollback-prefix.json",
+      "bytes": 68453,
+      "sha256": "32d260c16690695f7fd4ddf7ac1a0944f03fae6c3c52d28620cc87a32a532504"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/restore-swallow-parameter-sink.json",
+      "path": "evidence/payload/runtime/bindings/restore-swallow-parameter-sink.json",
+      "bytes": 68460,
+      "sha256": "28c9c7e4f7ab20de1ac81f0d7f3c8f3ee2f886dafae11f812684d3ce75e2d857"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-installed-arrays.json",
+      "path": "evidence/payload/runtime/bindings/retained-installed-arrays.json",
+      "bytes": 67927,
+      "sha256": "5120d1b943aee4248123950247307912f25de16571e264b92c1ecfd31f2affe0"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-installed-conditional.json",
+      "path": "evidence/payload/runtime/bindings/retained-installed-conditional.json",
+      "bytes": 67932,
+      "sha256": "b98057d39f3cd23acdc3f64e9a854b09cde1103ce71121a727ee07616f4958dc"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-installed-extension.json",
+      "path": "evidence/payload/runtime/bindings/retained-installed-extension.json",
+      "bytes": 67930,
+      "sha256": "1a2ccb71ec86f0181e6f3f3848387f56d70353adc03e1b2ff5be930caa7a8a92"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-installed-n14.json",
+      "path": "evidence/payload/runtime/bindings/retained-installed-n14.json",
+      "bytes": 67924,
+      "sha256": "ccb3e5e7a7937548992b51e8ccaa0deb802f7cbb7f4045cbe003136ca36d2007"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-installed-redirections-v3.json",
+      "path": "evidence/payload/runtime/bindings/retained-installed-redirections-v3.json",
+      "bytes": 67936,
+      "sha256": "86605f798c76a7921393421ee6eef58e64eacb4005e10928139f3cff3ea9b5aa"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-installed-strict.json",
+      "path": "evidence/payload/runtime/bindings/retained-installed-strict.json",
+      "bytes": 67927,
+      "sha256": "3278719f902f1321fd0be84270da388b30f36891b651923955331ca7e763dc2f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-physically-moved-arrays.json",
+      "path": "evidence/payload/runtime/bindings/retained-physically-moved-arrays.json",
+      "bytes": 69782,
+      "sha256": "6181bd1168d98c40357c9c2d1be84e51773152ed0c7a9decf95fdab4bcbd958f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-physically-moved-conditional.json",
+      "path": "evidence/payload/runtime/bindings/retained-physically-moved-conditional.json",
+      "bytes": 69787,
+      "sha256": "3efde880b293c7c4d7dbb8f348c513cedee50f67810c74f4bc6764fee7997d23"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-physically-moved-extension.json",
+      "path": "evidence/payload/runtime/bindings/retained-physically-moved-extension.json",
+      "bytes": 69785,
+      "sha256": "a3bfa16dfe498ea1b1d671a36f09468f5b819422ab1fd0241b021aba4a016207"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-physically-moved-n14.json",
+      "path": "evidence/payload/runtime/bindings/retained-physically-moved-n14.json",
+      "bytes": 69779,
+      "sha256": "9b9736ed4f97f9c3b2201c79e2e9046256a4747b874fd311688ec5442d5dea64"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-physically-moved-redirections-v3.json",
+      "path": "evidence/payload/runtime/bindings/retained-physically-moved-redirections-v3.json",
+      "bytes": 69791,
+      "sha256": "4dc4e0a56bae8a714e20841a1e021ae8ef8127f6a0bec819b4439afb18e2ec14"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-physically-moved-strict.json",
+      "path": "evidence/payload/runtime/bindings/retained-physically-moved-strict.json",
+      "bytes": 69782,
+      "sha256": "a7af1503ed20f4320b34b64ac277cc60b1a080f2dbf69adfbf1136ecba842cea"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-source-built-arrays.json",
+      "path": "evidence/payload/runtime/bindings/retained-source-built-arrays.json",
+      "bytes": 68722,
+      "sha256": "3c4c120982e8777de67d93641533bc4c2681e343bd500ba35250763b47737659"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-source-built-conditional.json",
+      "path": "evidence/payload/runtime/bindings/retained-source-built-conditional.json",
+      "bytes": 68727,
+      "sha256": "c3d4f6849ff7a27517b825b902e9e11382f689e3e8418b888d146974b096b274"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-source-built-extension.json",
+      "path": "evidence/payload/runtime/bindings/retained-source-built-extension.json",
+      "bytes": 68725,
+      "sha256": "963cb97d3bb28092ca3b89724c4267d26c8f86266087c0971309fb9fa44f2988"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-source-built-n14.json",
+      "path": "evidence/payload/runtime/bindings/retained-source-built-n14.json",
+      "bytes": 68719,
+      "sha256": "1e1e37d10f5d638ab3924d0e674987fdb6415c0991075c41ec55e9520cd4c6ee"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-source-built-redirections-v3.json",
+      "path": "evidence/payload/runtime/bindings/retained-source-built-redirections-v3.json",
+      "bytes": 68731,
+      "sha256": "f10231a9f8618ab664dbbcb2483e2e4c01e9c5d2c85bbc7f552b8c82cbd76a47"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9/bindings/retained-source-built-strict.json",
+      "path": "evidence/payload/runtime/bindings/retained-source-built-strict.json",
+      "bytes": 68722,
+      "sha256": "50f63031375f54537881abfb1f1c50ed44b5fc1d65420dfe8f29d0ee36abe94d"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-runtime-r9.outer.raw",
+      "path": "evidence/payload/runtime/outer.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/B2-R9-ROOT-GO.json",
+      "path": "evidence/payload/runtime/ROOT-GO.json",
+      "bytes": 1081,
+      "sha256": "26aa0d1c7c6a34d576fae7b326dc08c600fc5ae7bae4753609ea78b9224d3e30"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/ADMISSION.json",
+      "path": "evidence/payload/administration/ADMISSION.json",
+      "bytes": 369,
+      "sha256": "d2e99c4aa0ff7d2d12f0e64c20c174c0438054b15827ac5b2ff2b4f35615375f"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/DATA-READER-FAILURE.json",
+      "path": "evidence/payload/administration/DATA-READER-FAILURE.json",
+      "bytes": 376,
+      "sha256": "f37b2f1e563d74345322b70696b88d691c2b15e27420d0da0c4a438344a1f7a3"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/POSTGUARDS.json",
+      "path": "evidence/payload/administration/POSTGUARDS.json",
+      "bytes": 1321778,
+      "sha256": "40ad742720e7881b28914933b4107a5e26f9a0d72841abf5b61aa1e65d8c5086"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/RAW-CLASSIFICATION-v2.json",
+      "path": "evidence/payload/administration/RAW-CLASSIFICATION-v2.json",
+      "bytes": 26485,
+      "sha256": "e1cc68407960402006e57bad5a39f24e112df4509bc3f8e377a316dfbfd3acee"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/TOOL-TERMINAL.json",
+      "path": "evidence/payload/administration/TOOL-TERMINAL.json",
+      "bytes": 339,
+      "sha256": "7b548a6784d934122bbeb5182d2ea2c9fb7455c3a046227eac10049ff4830ca9"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/startup.stderr",
+      "path": "evidence/payload/administration/startup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-b2-r9-actual-v2-admin-20260829/startup.stdout",
+      "path": "evidence/payload/administration/startup.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "filesCount": 196,
+  "bytes": 10155453,
+  "identityReceipts": 196,
+  "publisherSha256": "f8ede5c4890135e0e68020cfc39007bd74f9d39d6402d6a31a6b031df2c9bf5f",
+  "outcomes": {
+    "created": 196,
+    "reused": 0
+  }
+}

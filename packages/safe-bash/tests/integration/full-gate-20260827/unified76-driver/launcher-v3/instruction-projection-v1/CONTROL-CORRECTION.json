@@ -1,0 +1,20 @@
+{
+  "createdAt": "2026-08-28T04:26:08.448Z",
+  "source": "fb376b3a",
+  "driverSha256": "2922ac6400ecccce808431952e3aaccc97e20c2b4b2acc93041b514f52818809",
+  "originalControlSha256": "224c66b1094753a0a0855a7958ee05b52aaecbd7b28d7597b361a6da8ec1d075",
+  "correctedControlSha256": "9453e2215be74fbe05f971b3f8f5307aa2dd790580cebbab72f3474eef1fa897",
+  "originalRun": {
+    "status": 1,
+    "work": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-instruction-controls-eGBc9X",
+    "reason": "Control cleanup used rmSync on an empty directory, throwing ERR_FS_EISDIR. Final absence assertion saw copy-preflight/AGENTS.md directory and threw before writing REPORT. No instruction body written; no complete original summary retained.",
+    "fullGateLaunched": false
+  },
+  "exactChanges": [
+    "Use rmdirSync for the exact empty test directory",
+    "Record final absence through check() so report persists if a guard fails"
+  ],
+  "productOrDriverChanged": false,
+  "originalControlPreserved": true,
+  "correctedRunExecuted": false
+}

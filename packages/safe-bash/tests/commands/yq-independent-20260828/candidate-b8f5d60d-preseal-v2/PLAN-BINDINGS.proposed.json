@@ -1,0 +1,313 @@
+{
+  "schema": 1,
+  "state": "ADDITIVE_DATA_BINDING_PROPOSAL_ONLY",
+  "execute": false,
+  "rootGO": {
+    "state": "UNBOUND_DENY",
+    "value": null,
+    "reason": "Fresh complete successor executor seals and explicit root GO required; no old35da fallback."
+  },
+  "oldNullPlan": {
+    "sourceCommit": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+    "evidenceCommit": "009c20f812926e4dc7c175b379f85753ff632691",
+    "admission": {
+      "revision": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CANDIDATE-ADMISSION.json",
+      "sha256": "17cbe2634b85b0d70067261882a60bbd485df802a52b6b35a97a3bcbd18bf448",
+      "bytes": 9138
+    },
+    "schedule": {
+      "revision": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+      "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc",
+      "bytes": 23015
+    },
+    "finalSeal": {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/FINAL-SEAL.json",
+      "sha256": "b29006dedd2d2be64165d6688ed4f451ccb369967a2cac5af97365546128b656",
+      "bytes": 4905
+    },
+    "policy": "No plan/job/schedule/335-slot/global-bound changes in this packet; root routes additive bindings to its owner."
+  },
+  "slots": {
+    "sourceCommit": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    "evidenceCommit": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": "644460b932feb6fa87222b7042d705da1219cf0c"
+    },
+    "handoffCommit": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": "065f824d06e36de3fafaee1b7a5baa278f40407c"
+    },
+    "selectedFileOrigins": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "composition": {
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+          "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+          "bytes": 25587,
+          "mode": 420
+        },
+        "sourceBase": {
+          "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+          "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/SOURCE-BASE.json",
+          "blob": "fc6aecc13d0a34af94a6388b76ab4fd6baa29694",
+          "sha256": "75acd3804802c92aabf77bab12a27e61a15468341af8022338a1c68d028c4043",
+          "bytes": 63100,
+          "mode": 420
+        },
+        "newSourceAuthority": {
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+          "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+          "bytes": 3766,
+          "mode": 420
+        }
+      }
+    },
+    "sourceArchive": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+        "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+        "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+        "bytes": 2727936,
+        "mode": 420
+      }
+    },
+    "fullPackageArchive": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+        "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+        "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+        "bytes": 786778,
+        "mode": 420
+      }
+    },
+    "sourceManifest": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+        "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+        "blob": "52038d7ec7b05f3162eebf3cff11bae74b2b6306",
+        "sha256": "b1e11c9dfc076c4b9ae307e0ff48ac0f18c4d002ed8ff06394bf49d5a562d9e1",
+        "bytes": 70320,
+        "mode": 420
+      }
+    },
+    "sourceProjectionManifest": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "composition": {
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+          "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+          "bytes": 25587,
+          "mode": 420,
+          "pointer": "/source"
+        },
+        "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+        "entries": 271,
+        "recipe": "Authenticated SOURCE-BASE264 descriptors plus exact seven new additions; see COMPOSITION references",
+        "runtimeTreeProfileSha256": "7115663d90bda97b29adf26aaaffb4e7f3861df9e8b1c73f5e2115f8b70cd8d3"
+      }
+    },
+    "packageManifest": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "composition": {
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+          "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+          "bytes": 25587,
+          "mode": 420,
+          "pointer": "/package"
+        },
+        "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+        "entries": 870,
+        "recipe": "Authenticated full baseline846 plus exact24 emitted descriptors and prospective0755 directories",
+        "runtimeTreeProfileSha256": "ab2cdcb1882596a57a463bff3d62cc292b4363fd3abac44db0621acb17856ea1"
+      }
+    },
+    "compiledEntry": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "path": "dist/commands/yq/index.js",
+        "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+        "bytes": 26827,
+        "mode": 420,
+        "role": "BOUND_AUTHOR_ARTIFACT_ONLY"
+      }
+    },
+    "declarationEntries": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "dist/commands/yq/index.d.ts": {
+          "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+          "bytes": 419,
+          "mode": 420
+        },
+        "dist/contracts/index.d.ts": {
+          "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+          "bytes": 237,
+          "mode": 420
+        },
+        "dist/commands/structured/query-core.d.ts": {
+          "sha256": "1f316b2cc3856e4254c62f3a616b0f03b49249c8f77e4cec6cacea19d8bc949e",
+          "bytes": 1307,
+          "mode": 420
+        }
+      }
+    },
+    "toolchain": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "reference": {
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+          "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+          "bytes": 4800,
+          "mode": 420
+        },
+        "role": "OLD_EXACT_PINS_AND_METHOD_ONLY_FRESH_TOOL_AUTHENTICATION_REQUIRED"
+      }
+    },
+    "independentBuildProof": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "No b8 source compiled. Old f7503dc independent35da build is not successor proof."
+    },
+    "sourceMapRelocationRecipe": {
+      "state": "DATA_PROPOSAL_NOT_ROOT_ADMITTED",
+      "value": {
+        "reference": {
+          "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+          "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RECIPE.md",
+          "blob": "3095dda0391778b2cf7cef4c2fffe4b2713d66c9",
+          "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+          "bytes": 7880,
+          "mode": 420
+        },
+        "newExpectedOutputManifest": {
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+          "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+          "bytes": 25587,
+          "mode": 420,
+          "pointer": "/package"
+        },
+        "role": "METHOD_ONLY_NO_RELOCATION_OR_BUILD_PERFORMED"
+      }
+    },
+    "runtimeGuardRecipe": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "consumerSeals": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Current consumers-v2 still pins old35da; proposed exact SOURCE-AUTHORITY data is not an installed or accepted consumer seal."
+    },
+    "rootReceipt": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Proposed source/full receipts exist but require independent review and explicit root routing; historical mode-authority denial is unresolved."
+    },
+    "rootReceiptExpectedHash": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Root must independently pin the proposed raw receipt hashes from this immutable packet."
+    },
+    "rootDesignatedBuildVerifier": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "cohortExecutorSeal": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "loaderSeal": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "loadedMutantAuthorizations": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "CMD22CorrectionSeal": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "frameworkReviewReceipt": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "toolInvocationInventory": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    },
+    "sourceStaticProofBindings": {
+      "state": "UNBOUND_DENY",
+      "value": null,
+      "reason": "Assigned future owner/root exact binding still required; this packet grants no execution."
+    }
+  },
+  "proposedReceipts": {
+    "sourceAuthority": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "mode": 420
+    },
+    "source": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "full": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455,
+      "mode": 420
+    },
+    "boundAuthorBuild": {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+      "bytes": 1368,
+      "mode": 420
+    }
+  },
+  "wholeCandidateGitIdentity": {
+    "commit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "tree": "7d573d3214404f98f9664c79c16f1d7e9ce5d05e",
+    "sourceScope": 301,
+    "selectedProjection": 271,
+    "sameIdentity": false
+  },
+  "historyModeDenials": [
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "path": "FINAL-SEAL.json",
+      "reason": "MODE_AUTHORITY_MISSING",
+      "goldenPosixModeVerified": false
+    }
+  ],
+  "history": {
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+    "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+    "bytes": 15621,
+    "mode": 420
+  },
+  "semanticAcceptance": false,
+  "admission": "DENY"
+}

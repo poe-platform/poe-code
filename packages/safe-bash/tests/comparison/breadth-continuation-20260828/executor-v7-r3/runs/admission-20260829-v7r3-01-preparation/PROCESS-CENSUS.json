@@ -1,0 +1,418 @@
+{
+  "schema": "V7_R3_FUTURE_ALL_PROCESS_CENSUS",
+  "status": "PREDECLARED_SOURCE_CALLGRAPH_NOT_RUNTIME_MEASUREMENT",
+  "counts": {
+    "captureOwner": 1,
+    "launcher": 1,
+    "coordinator": 1,
+    "workers": 14,
+    "coordinatorAuthorityGit": 2,
+    "workerAuthorityGit": 28,
+    "runtimeIncludingOwner": 47,
+    "administrativeProcesses": 8,
+    "allPlannedIncludingAdministration": 55,
+    "rootAllProcessCap": 128,
+    "legacyWorkerCapOnly": 27,
+    "peakIncludingOwner": 5,
+    "concurrency": 1,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0
+  },
+  "chain": [
+    "persistent capture owner (no extra shell/CLI)",
+    "pinned Node launch.mjs",
+    "pinned Node coordinator.mjs",
+    "one worker.mjs or synthetic-worker.mjs",
+    "one synchronous Git authority metadata child at a time"
+  ],
+  "workerRows": [
+    {
+      "ordinal": 1,
+      "id": "probe-1",
+      "role": "engine",
+      "entry": "worker.mjs",
+      "kind": "probe",
+      "layout": "target-installed",
+      "mode": null,
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 2,
+      "id": "probe-2",
+      "role": "engine",
+      "entry": "worker.mjs",
+      "kind": "probe",
+      "layout": "target-moved",
+      "mode": null,
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 3,
+      "id": "probe-3",
+      "role": "engine",
+      "entry": "worker.mjs",
+      "kind": "probe",
+      "layout": "baseline-installed",
+      "mode": null,
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 4,
+      "id": "C03-esm",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "load",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 5,
+      "id": "C03-cjs",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "load",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 6,
+      "id": "C03-require",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "require",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 7,
+      "id": "C03-wrong-hash",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "load",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 8,
+      "id": "C04-unbound",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "load",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 9,
+      "id": "C04-offline",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "offline",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 10,
+      "id": "C09-status",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "nonzero",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 11,
+      "id": "C09-deadline",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "leak",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 12,
+      "id": "C11-positive",
+      "role": "engine",
+      "entry": "worker.mjs",
+      "kind": "C11",
+      "layout": "target-installed",
+      "mode": null,
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 13,
+      "id": "C11-rejected",
+      "role": "engine",
+      "entry": "worker.mjs",
+      "kind": "C11",
+      "layout": "target-installed",
+      "mode": null,
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    },
+    {
+      "ordinal": 14,
+      "id": "C12-loaded-noop",
+      "role": "control",
+      "entry": "synthetic-worker.mjs",
+      "kind": "control",
+      "layout": null,
+      "mode": "load",
+      "authorityMetadataChildren": [
+        {
+          "ordinal": 1,
+          "reference": "review",
+          "entry": "pinned git show"
+        },
+        {
+          "ordinal": 2,
+          "reference": "grant",
+          "entry": "pinned git show"
+        }
+      ]
+    }
+  ],
+  "administration": [
+    {
+      "id": "A01",
+      "tool": "git",
+      "action": "add only newly authorized ROOT-GRANT.json"
+    },
+    {
+      "id": "A02",
+      "tool": "git",
+      "action": "commit --only ROOT-GRANT.json; hooks/maintenance disabled"
+    },
+    {
+      "id": "A03",
+      "tool": "git",
+      "action": "rev-parse exact grant commit from A02 receipt, never moving HEAD fallback"
+    },
+    {
+      "id": "A04",
+      "tool": "git",
+      "action": "show d27fd9145ef27fa1f03e273fe0d4954e7680b147:tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json"
+    },
+    {
+      "id": "A05",
+      "tool": "git",
+      "action": "show exact new grant commit:path"
+    },
+    {
+      "id": "A06",
+      "tool": "git",
+      "action": "add only actual new run evidence paths"
+    },
+    {
+      "id": "A07",
+      "tool": "git",
+      "action": "commit --only actual new run evidence paths; hooks/maintenance disabled"
+    },
+    {
+      "id": "A08",
+      "tool": "git",
+      "action": "rev-parse exact evidence commit from A07 receipt"
+    }
+  ],
+  "metadataLimits": {
+    "milliseconds": 10000,
+    "maxBufferBytes": 65536,
+    "stdio": "bounded stdout/stderr, no shell",
+    "reaping": "spawnSync return plus exact PID/group absence in actual authority receipt"
+  },
+  "workerLimits": {
+    "workersPlanned": 14,
+    "workerCap": 27,
+    "concurrency": 1,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0,
+    "childOldSpaceMiB": 256,
+    "childMs": 30000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "outerCheckedMs": 4500000,
+    "heapIsNotRSS": true,
+    "notHardPreemption": true
+  },
+  "prohibitedAdditions": [
+    "No extra shell retained above owner: would make peak6",
+    "No CLI leaf, npm/install/build, new native/provider worker or metadata stub",
+    "No retries or extra controls beyond exact14 operations",
+    "No use of spare128-cap slots without separately declared root purpose"
+  ],
+  "sourceWitnesses": [
+    {
+      "path": "authorization.mjs",
+      "lines": "76-83",
+      "fact": "Two real pinned Git show calls for review/grant; no metadata-stub route in production"
+    },
+    {
+      "path": "production.mjs",
+      "fact": "Coordinator authorize() invokes authority; workers selected from exact operation plan"
+    },
+    {
+      "path": "worker.mjs",
+      "lines": "40-44",
+      "fact": "Engine operation authority before view/bootstrap/product evaluation"
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "lines": "38-44",
+      "fact": "Actual authorized control operations also use real authority; focused no-auth branch not selected"
+    },
+    {
+      "path": "launch.mjs",
+      "fact": "Real entry delegates to observeCoordinator/coordinator, never prepare/test"
+    }
+  ],
+  "qualification": "55 is a complete planned callgraph under unchanged guarded code, not observed production authority or an OS-wide runtime census. Unknown/spare helper creation, unobserved authority, missing exits or extra process effects must UNSAFE_STOP."
+}

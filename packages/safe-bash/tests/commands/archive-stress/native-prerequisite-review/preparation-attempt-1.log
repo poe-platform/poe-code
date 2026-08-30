@@ -1,0 +1,24 @@
+Historical runner-only preparation failure; no snapshot or tests created/run.
+Command: GNU_TAR="$PWD/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar" node tests/commands/archive-stress/native-prerequisite-review/runner.mjs prepare /tmp/safe-bash-archive-prerequisites-e36dab2-20260827
+Exit: 1
+Three version calls completed: GNU tar, BSD tar, Apple gzip.
+Raw command output:
+Apple gzip 479
+AssertionError [ERR_ASSERTION]: gzip: version/dialect mismatch
++ actual - expected
+
++ ''
+- 'Apple gzip 479'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:36:12
+    at Array.map (<anonymous>)
+    at profile (file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:32:51)
+    at prepare (file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:70:17)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:245:32
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Correction in the owned harness only: retain stdout and stderr separately;
+validate Apple gzip/gunzip's version on stderr, GNU/BSD versions on stdout.
+Native executable hashes, existing tests, expected stdio and source unchanged.

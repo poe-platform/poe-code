@@ -1,0 +1,10 @@
+tree badd2ec61bdbfcbf977f0c682cb5683f2f6dcebe
+parent 0123c83d3aae72a15621acbb29a165b97b2c6ab6
+author Kamil Jopek <kjopek@quora.com> 1787851383 -0500
+committer Kamil Jopek <kjopek@quora.com> 1787851383 -0500
+
+Isolated aliases/column public integration candidate v4
+
+Accepted base 0123c83d3aae72a15621acbb29a165b97b2c6ab6, unchanged production wiring cb940da68052a9f1ab7e115279900d277e051fdb.
+Exact root-owned fixture/harness 0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44; registered-definition identity correction only since v3.
+No foreign tree/regex/du source, overlays, branch or shared index modifications.

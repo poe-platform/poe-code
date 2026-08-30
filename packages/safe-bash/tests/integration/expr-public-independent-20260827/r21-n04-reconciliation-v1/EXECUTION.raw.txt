@@ -1,0 +1,6 @@
+{"checkpoint":"prebindings-admitted","recipe":"0efeb43ece20f2dd55ae1cd5328c6dd3abc5ca08","P01":"BOUND_ACCEPTED_PROOF","planned":{"targetedTypeOutcomes":8,"R21ObservationsNotRescored":16,"boundaryControls":16,"sourceFallbackControls":4,"freshTraceBindingControls":4,"validatorControls":42,"resolutionParserControls":6,"newControls":72,"probeChildren":48,"expectedForcedChildren":0}}
+{"checkpoint":"layout-completed","label":"installed-node22","observations":4,"types":["N04:pass","combined:pass"]}
+{"checkpoint":"layout-completed","label":"installed-node24","observations":4,"types":["N04:pass","combined:pass"]}
+{"checkpoint":"layout-completed","label":"moved-node22","observations":4,"types":["N04:pass","combined:pass"]}
+{"checkpoint":"layout-completed","label":"moved-node24","observations":4,"types":["N04:pass","combined:pass"]}
+{"checkpoint":"targeted-entry-closed","exitCode":0,"counts":{"observations":16,"targetExecuted":8,"targetPass":8,"targetFail":0,"controlsPass":72,"controlsFail":0,"children":48,"naturalChildren":48,"forcedChildren":0,"workers":0,"checks":98,"targetUnrun":0,"observationsUnrun":0,"controlsUnrun":0},"errors":[]}

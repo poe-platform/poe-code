@@ -1,0 +1,7 @@
+{
+  "classification": "BOUND_NODE_BUNDLED_JS_STATIC_TEXT_NOT_NATIVE_HANDLE_PROOF",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "module": "internal/streams/destroy",
+  "moduleSha256": "74aaae64ff7e4553fbf981baffb1f1dab7748c1e3fedfbef59eb8ab9ed4ec22d",
+  "excerpt": "function _destroy(self, err, cb) {\n  let called = false;\n\n  function onDestroy(err) {\n    if (called) {\n      return;\n    }\n    called = true;\n\n    const r = self._readableState;\n    const w = self._writableState;\n\n    checkError(err, w, r);\n\n    if (w) {\n      w[kState] |= kClosed;\n    }\n    if (r) {\n      r[kState] |= kClosed;\n    }\n\n    if (typeof cb === 'function') {\n      cb(err);\n    }\n\n    if (err) {\n      process.nextTick(emitErrorCloseNT, self, err);\n    } else {\n      process.nextTick(emitCloseNT, self);\n    }\n  }\n  try {\n    self._destroy(err || null, onDestroy);\n  } catch (err) {\n    onDestroy(err);\n  }\n}\n\nfunction emitErrorCloseNT(self, err) {\n  emitErrorNT(self, err);\n  emitCloseNT(self);\n}\n\nfunction emitCloseNT(self) {\n  const r = self._readableState;\n  const w = self._writableState;\n\n  if (w) {\n    w[kState] |= kCloseEmitted;\n  }\n  if (r) {\n    r[kState] |= kCloseEmitted;\n  }\n\n  if (\n    (w && (w[kState] & kEmitClose) !== 0) ||\n    (r && (r[kState] & kEmitClose) !== 0)\n  ) {\n    self.emit('close');\n  }\n}\n\nfunction emitErrorNT(self, err) {\n  con"
+}

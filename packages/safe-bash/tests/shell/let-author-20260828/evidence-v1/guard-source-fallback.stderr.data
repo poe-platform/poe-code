@@ -1,0 +1,17 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/load-hook.mjs:22
+    if (!expected || realpathSync(filename) !== filename || !lstatSync(filename).isFile()) throw new Error(`UNBOUND_MODULE:${url}`);
+                                                                                                 ^
+
+Error: UNBOUND_MODULE:file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/selected-source/src/index.ts
+    at load (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/load-hook.mjs:22:98)
+    at nextStep (node:internal/modules/customization_hooks:189:26)
+    at loadWithHooks (node:internal/modules/customization_hooks:352:18)
+    at #loadSync (node:internal/modules/esm/loader:849:14)
+    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)
+    at #createModuleJob (node:internal/modules/esm/loader:624:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25)
+
+Node.js v22.22.2

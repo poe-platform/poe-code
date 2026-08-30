@@ -1,0 +1,612 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-27T17:23:09.966Z",
+  "candidateHandoffPresent": false,
+  "candidateExecuted": false,
+  "checks": [
+    {
+      "file": "review.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "stage.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "watchdog.mjs",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "baseline": "8f19a9d5bb244ff6c095b7117e6d0738fdf40421",
+  "baselineInputHashes": [
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "sha256": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+    },
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "sha256": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "sha256": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca"
+    },
+    {
+      "path": "tests/commands/regex-execution/executor.test.ts",
+      "sha256": "c66088f18f79d9c16a30ad30936e2c4b2d85da04ca11a56b7789c506cc1574ad"
+    },
+    {
+      "path": "tests/commands/regex-execution/commands.test.ts",
+      "sha256": "47ddfea7abcb259838cc29920ad044cdffbd0e954043349b4289eaf79da7af67"
+    },
+    {
+      "path": "tests/commands/regex-execution/cleanup-registration/controls.test.ts",
+      "sha256": "65630d7a336c1f017069c54ce6f0468dd8365f641e957ebe126bd1be956804bf"
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/messageerror.test.ts",
+      "sha256": "1be27d16a8487dae108d0d80de2a6e443d1f6da0a0913461ebea768a8448a5c3"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/glob-transport.test.ts",
+      "sha256": "deee09a7278767c0b9e8ea4165d26eb47d9842fd6217e3362b5c32888a019f89"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/glob.test.ts",
+      "sha256": "3e128ac96388c1a6389dc62e2ed6c0c931fe750ab71ea2028c474793316b47dd"
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/public.test.ts",
+      "sha256": "9ae166a7a444b293b54aedf38c0ed1630cf9c22d57d18262bbf3e633fa178dcc"
+    },
+    {
+      "path": "tests/commands/grep-aliases/aliases.test.ts",
+      "sha256": "d166c44a1dc1e25878ed313d66097cd17e915b46bc2ba92750dcc5a8579a9ff5"
+    },
+    {
+      "path": "tests/commands/grep-aliases/safety.test.ts",
+      "sha256": "4fda8ad4d35c9ef479aeed637b76e7bc31071ae7a6f8f0a7bdcce02999ab25f0"
+    },
+    {
+      "path": "tests/commands/search/rg.test.ts",
+      "sha256": "aa9907fb7aeca44b64a8f7b3d38002ac23767d86e04179d3a3279d0f745094dd"
+    },
+    {
+      "path": "tests/commands/search/safety.test.ts",
+      "sha256": "54cc44add8a7b41ee315aec1fe7eb3d986efee63ff8516c0b96375f650256b49"
+    }
+  ],
+  "currentHarnessHashes": [
+    {
+      "path": "review.mjs",
+      "sha256": "d34d81cff2b5b8bb93f5c66aa1595bd7706f8de01042f3cc1fd9d170d0a2bf51"
+    },
+    {
+      "path": "stage.mjs",
+      "sha256": "c0bed5d6a384fc9616ef7d9fabfa6f3297a6ff1511ce63f56095456b2e4986b8"
+    },
+    {
+      "path": "watchdog.mjs",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee"
+    },
+    {
+      "path": "README.md",
+      "sha256": "b6d679bfac627ee26c9c66437caa4a1eeb474617fbe40279a59368b251f5bf28"
+    }
+  ],
+  "freezes": [
+    {
+      "commit": "35aa8054ac0ebc1eacefc7cde63e4706f4c72137",
+      "base": "tests/commands/expr-stress/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/frozen/README.md",
+          "sha256": "123231477bc6efa4f9f8f36dad66e2386772d60f6b6f70ad5c53b8999276cdc9"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/controls.json",
+          "sha256": "5cbd8dd6e102730bf09d88b2e61ebdaccdcf3127432f37edab36ed879f32e4ec"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/manifest.json",
+          "sha256": "74966f1d10cdc574100d2f2936ef759f711f8f658a6a82fda2fe1edcb53a1543"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/original-20260827/oracle.json",
+          "sha256": "66b3b03c30b63d97e6cbe4ba77e185d03caa57780a6be3b681a15784dee9efd3"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/evidence/validation-20260827.json",
+          "sha256": "5ae67ba3a82246567d9dae5124421b0f10eae385df153c3c7a9406c11f1b6fd0"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/inputs.json",
+          "sha256": "d52e6d93668c2d368d65f456a1d4fdf12a43820b6a3bbd46b9c4980cfc5ac8ba"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/primary-sources.json",
+          "sha256": "6e259e64408bb3eb5835ccd302e1baec051d29a56b6c68ebb1a651f9334f741b"
+        },
+        {
+          "path": "tests/commands/expr-stress/frozen/runner.mjs.data",
+          "sha256": "41aea89a81b5e83eafd072ab585844c8590f6bdc766cd2cc59726674562fb9d8"
+        }
+      ],
+      "appendedEntriesChecked": true
+    },
+    {
+      "commit": "92fe8a6335366b93cbc9a80d61fede69af711444",
+      "base": "tests/commands/expr-stress/extension-review/frozen",
+      "files": [
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/ADDENDUM.md",
+          "sha256": "8125965baffbfb4fc23746cf0b81515b73f4cbf7b0f2a3297008cb6fe77f2e6b"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/README.md",
+          "sha256": "6f29774d0dfaa6c75dfcc7154a8eb6db4b9a208e4b6540b6b7469e37cd7b7711"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/controls.json",
+          "sha256": "cd551e8636d055bad42a95a22d3d291422e3bbbe2ab1a6fcb677bd2992f3508c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-input.json",
+          "sha256": "5274c5c39857f0ff3e601aa35fee93ae7108309f3f2063598414adf7e063e8d5"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/correction-native.mjs.data",
+          "sha256": "472b7dcd18b1d7eaa8c480751a910db44112d4267eaf848f85d4c8fb29ff61f3"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/manifest.json",
+          "sha256": "e31f164aed21209e194b78b424cd70314cf8479d343958a06f686fcc0b755198"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/native-20260827/oracle.json",
+          "sha256": "43f2f8c37004c91022c387ac88afd7ce15334ddabd30a1996c1606f89ff9dd08"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/quoted-parenthesis-20260827/oracle.json",
+          "sha256": "4366b45060a74a59b4c3772227062ee4ae4efec8ce9953a814463bb468386e4e"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/evidence/validation-20260827.json",
+          "sha256": "7997dc52a5a7326c021a5c979f80be98a62f86badf83fe5687af5852050b05dd"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/freeze-manifest.json",
+          "sha256": "8debc13022bebfd427c1862e75b7dcabe4eb17600bfb09c0b417c9d38f73c5f2"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/inputs.json",
+          "sha256": "4a02ebb53184ed13aa7627b322c7f87ea00389601f6acc5bc81feb234d520108"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/mutations.json",
+          "sha256": "e4683eafd36ea82c96437d0fc93eb864fcc5cbf9faeec71b8d035820dad9d30c"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/primary-sources.json",
+          "sha256": "6aa5dce418af4c1887e2c8d648cfa541b6765dbcffc6630d13172b392da83103"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/provenance.json",
+          "sha256": "79af9a119dcc71054d09a4a1ff17bce563633899d31ef1bd0b9153eae9148b87"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/runner.mjs.data",
+          "sha256": "ac40665793ea0230274b6f4523430b6d3c45f3f614700808289f20bf23493a11"
+        },
+        {
+          "path": "tests/commands/expr-stress/extension-review/frozen/verify-seal.mjs.data",
+          "sha256": "87703aaaa07e99cd6c3248dd6ba5dda948894d87e17de4e54fd5b02e96d24de9"
+        }
+      ],
+      "appendedEntriesChecked": true
+    }
+  ],
+  "harnessComparatorChecks": {
+    "positiveAccepted": true,
+    "statusMutationRejected": true,
+    "stdoutMutationRejected": true,
+    "diagnosticMutationSeparate": true,
+    "transportFailureRejected": true,
+    "productMutationScore": null
+  },
+  "originalControls": [
+    {
+      "id": "direct-zero-stdin-reads",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "await-stdout-backpressure",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "sink-rejection",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "preabort-and-midflight",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "cleanup-ownership",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "arg-byte-boundary",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "digit-boundary",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "node-boundary",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "depth-boundary",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "work-boundary",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "output-boundary",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "required-regex-worker",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "bounded-redos",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "short-circuit-worker-admission",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "unicode-contract",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "no-host-effects",
+      "status": "NOT RUN: no authenticated extension candidate"
+    }
+  ],
+  "shellWorkflows": [
+    {
+      "id": "increment-capture-pipeline",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "version-parse-pipeline",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "false-last-pipeline-status",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "false-upstream-default-status",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "false-upstream-pipefail",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "arithmetic-error-and-status",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "vfs-build-artifact",
+      "status": "NOT RUN: no authenticated extension candidate"
+    }
+  ],
+  "redos": [
+    {
+      "index": 0,
+      "argv": [
+        "aaaaaaaaaaaaaaaaaaaaaaaa!",
+        ":",
+        "\\(a\\+\\)\\+$"
+      ],
+      "status": "NOT RUN: no authenticated extension candidate; watchdog selfcheck is not this probe"
+    },
+    {
+      "index": 1,
+      "argv": [
+        "aaaaaaaaaaaaaaaaaaaaaaaa!",
+        ":",
+        "\\(a\\|aa\\)*$"
+      ],
+      "status": "NOT RUN: no authenticated extension candidate; watchdog selfcheck is not this probe"
+    },
+    {
+      "index": 2,
+      "argv": [
+        "aaaaaaaaaaaaaaaaaaaaaaaa!",
+        ":",
+        "\\(a*\\)*\\1$"
+      ],
+      "status": "NOT RUN: no authenticated extension candidate; watchdog selfcheck is not this probe"
+    },
+    {
+      "index": 3,
+      "argv": [
+        "a",
+        ":",
+        "a\\{32768\\}"
+      ],
+      "status": "NOT RUN: no authenticated extension candidate; watchdog selfcheck is not this probe"
+    }
+  ],
+  "extensionControls": [
+    {
+      "id": "P01-envelope-dispatch",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P02-result-shape",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P03-span-validation",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P04-state-consistency",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P05-byte-span-roundtrip",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P06-owned-request-bytes",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P07-cache-and-response-isolation",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "P08-worker-request-rejection",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L01-zero-admission",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L02-registration-order",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L03-registration-throw",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L04-late-acquisition-rejection",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L05-admission-budgets",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L06-startup-timeout",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L07-active-timeout",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L08-exact-abort-reasons",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L09-termination-latch",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L10-callerabort-and-natural-close",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L11-work-and-error-categories",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "L12-worker-only-compile",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "R01-legacy-protocol-unchanged",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "R02-installed-standalone",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "R03-original-separate-denominators",
+      "status": "NOT RUN: no authenticated extension candidate"
+    },
+    {
+      "id": "R04-installed-legacy-transcript",
+      "status": "NOT RUN: no authenticated extension candidate"
+    }
+  ],
+  "mutations": [
+    {
+      "id": "M01",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M02",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M03",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M04",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M05",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M06",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M07",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M08",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M09",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M10",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M11",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M12",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M13",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M14",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M15",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M16",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M17",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M18",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M19",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M20",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M21",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M22",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M23",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M24",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M25",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M26",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M27",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M28",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M29",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M30",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M31",
+      "status": "NOT RUN: no bound installed reply API"
+    },
+    {
+      "id": "M32",
+      "status": "NOT RUN: no bound installed reply API"
+    }
+  ],
+  "distribution": {
+    "archive": "NOT RUN",
+    "build": "NOT RUN",
+    "packInstallMove": "NOT RUN",
+    "plainNodeRuntime": "NOT RUN",
+    "strictDeclarationConsumer": "NOT RUN"
+  },
+  "regressions": {
+    "baselineSourceTests": "NOT RUN",
+    "movedInstalledLegacyTranscript": "NOT RUN"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "authorSourceSha256": "3e415abe8d16c9e42037fa16793632c9ea23feb199580c5e6837cb9d886f1bb4",
+  "controlledTypeScriptSha256": "85949e70d588c68f653b142e34713678698dfb994286ae18aa16a39bcd3da8ce",
+  "emittedJavaScriptSha256": "2f651b5f9673fa2bb31a78617c20e460b3fbb0bd3843ac6ccf556b202670cc6b",
+  "compiler": {
+    "name": "typescript",
+    "version": "5.9.3",
+    "target": "ES2022",
+    "module": "ES2022"
+  },
+  "replacements": [
+    [
+      "import { spawn } from \"node:child_process\";",
+      "import { spawnReviewChild, guardSettings, holdClose } from \"./control-observer.mjs\";"
+    ],
+    [
+      "const child = spawn(\"rg\", argv, { env, stdio: [\"pipe\", \"pipe\", \"pipe\"] });",
+      "const child = spawnReviewChild(env);"
+    ],
+    [
+      "      target.on(event, handler); ownListeners.push({ target, event, handler });",
+      "      if (target === child && event === \"close\" && guardSettings.holdClose) {\n        const realHandler = handler;\n        handler = (...args: any[]) => holdClose(child, realHandler, args);\n      }\n      target.on(event, handler); ownListeners.push({ target, event, handler });"
+    ],
+    [
+      "          if (options.mutation === \"suppress-readiness\") return;",
+      "          if (guardSettings.suppressReadiness) { mark(\"review-readiness-suppressed\"); return; }\n          if (options.mutation === \"suppress-readiness\") return;"
+    ],
+    [
+      "      mark(\"write\", { hex: bytes.toString(\"hex\"), end });",
+      "      if (guardSettings.withholdSuffix && end) { mark(\"review-suffix-withheld\"); return; }\n      mark(\"write\", { hex: bytes.toString(\"hex\"), end });"
+    ]
+  ],
+  "scope": "test-only native supervisor with tiny independent child; no product imports, no native oracle equivalence claim"
+}

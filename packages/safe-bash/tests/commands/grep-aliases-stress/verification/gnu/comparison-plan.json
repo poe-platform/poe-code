@@ -1,0 +1,21 @@
+{
+  "classification": "pre-candidate-GNU-comparison-policy",
+  "frozenCorpusCommit": "28a8ad15ada9aa70a828694c53e7dbadc281826a",
+  "corpusSha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+  "candidateCommit": "c9bd0dbb05553dc1f1cf9136a4e11ed6a3767bc8",
+  "declaredBeforeFirstCandidateRun": true,
+  "denominator": 26,
+  "comparisons": [
+    "Exact native tuple: unmodified stdout bytes, stderr bytes, status and file effects; report GNU and BSD separately over all 26 rows",
+    "Qualified GNU payload projection: stdout bytes, status and file effects only; explicitly excludes all stderr, is not exact-native parity, and never replaces the exact comparison",
+    "Bounded product acceptance: the immutable preparation data/candidate-profiles.json defines 16 exact BSD rows, four E/F conflict rows and six diagnostic/unsupported-option rows; all full product stderr remains captured",
+    "Safety/Shell: immutable S01-S12 plus separately identified additional adversarial subcases; failures and unavailable observations remain distinct"
+  ],
+  "warningPolicy": "GNU wrappers' obsolescence warnings remain raw in every captured stream. No warning stripping. The proposed product intentionally emits no GNU warning; this intentional mismatch is not an exact-native pass.",
+  "newNativePrerequisite": {
+    "builderCommit": "a767c48eb477cf3248febaeb21d266d0bf5a3362",
+    "platform": "GNU grep 3.12 built on Darwin arm64 with NLS and PCRE disabled; not GNU/Linux evidence",
+    "trust": "Primary GNU HTTPS archive SHA-256 verified. Builder checked its signature with an HTTPS GNU keyring. Signer ownership was not independently authenticated; no latest-version claim.",
+    "originalMissingPrerequisiteRecord": "Preserved unchanged in preparation docs/provenance.json and commit 28a8ad15"
+  }
+}

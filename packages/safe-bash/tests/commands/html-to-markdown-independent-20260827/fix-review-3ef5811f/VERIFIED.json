@@ -1,0 +1,1181 @@
+{
+  "source": "3ef5811f98d61800b6d4c6f16be046d4f539eeef",
+  "verification": "2c5178caaa90f687cfedd127879bf88e9f2b8f87",
+  "authorEvidence": "cbed49318f91db0be47a9e6638092452b448a0c1",
+  "freeze": "9a386630d12e79de0b1a2e53f819068fe6846f92",
+  "packSHA256": "c71dc31a785791707c40d6906d59874f4218a550e019bd5c18a96ce71e2f0986",
+  "compressedSHA256": "a327e0b58695067aa26d3e9b6d47d8f84f3755ab650ceef11c99566a7b4650c6",
+  "archivedFiles": 2934,
+  "gitInputBindings": 63,
+  "sourceFiles": 36,
+  "emittedFiles": 144,
+  "packedFiles": 145,
+  "receipts": 644,
+  "productLoads": 15934,
+  "harnessLoads": 874,
+  "killed": [
+    {
+      "path": "replay/isolated/supervisor-negative/busy-loop.receipt.json",
+      "classification": "EXPECTED_SUPERVISOR_KILL"
+    },
+    {
+      "path": "replay/moved/supervisor-negative/busy-loop.receipt.json",
+      "classification": "EXPECTED_SUPERVISOR_KILL"
+    }
+  ],
+  "allGroupsGoneAtReceipt": true,
+  "phases": {
+    "followup/isolated": {
+      "receipts": 25,
+      "natural": 25,
+      "killed": 0,
+      "assertionPass": 25,
+      "assertionFail": 0
+    },
+    "followup/moved": {
+      "receipts": 25,
+      "natural": 25,
+      "killed": 0,
+      "assertionPass": 25,
+      "assertionFail": 0
+    },
+    "legacy-ast/isolated/audit": {
+      "receipts": 1,
+      "natural": 1,
+      "killed": 0,
+      "assertionPass": 1,
+      "assertionFail": 0
+    },
+    "legacy-ast/isolated/parser": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 6,
+      "assertionFail": 0
+    },
+    "legacy-ast-v2/isolated/audit": {
+      "receipts": 1,
+      "natural": 1,
+      "killed": 0,
+      "assertionPass": 1,
+      "assertionFail": 0
+    },
+    "legacy-ast-v2/isolated/parser": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 6,
+      "assertionFail": 0
+    },
+    "legacy-ast-v2/moved/audit": {
+      "receipts": 1,
+      "natural": 1,
+      "killed": 0,
+      "assertionPass": 1,
+      "assertionFail": 0
+    },
+    "legacy-ast-v2/moved/parser": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 6,
+      "assertionFail": 0
+    },
+    "replay/isolated/abort-observation": {
+      "receipts": 3,
+      "natural": 3,
+      "killed": 0,
+      "assertionPass": 3,
+      "assertionFail": 0
+    },
+    "replay/isolated/adjacent-work": {
+      "receipts": 8,
+      "natural": 8,
+      "killed": 0,
+      "assertionPass": 8,
+      "assertionFail": 0
+    },
+    "replay/isolated/corrections-v2": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 5,
+      "assertionFail": 1
+    },
+    "replay/isolated/denials": {
+      "receipts": 5,
+      "natural": 5,
+      "killed": 0,
+      "assertionPass": 5,
+      "assertionFail": 0
+    },
+    "replay/isolated/frozen-original": {
+      "receipts": 125,
+      "natural": 125,
+      "killed": 0,
+      "assertionPass": 119,
+      "assertionFail": 6
+    },
+    "replay/isolated/host-negative": {
+      "receipts": 4,
+      "natural": 4,
+      "killed": 0,
+      "assertionPass": 4,
+      "assertionFail": 0
+    },
+    "replay/isolated/in-flight-abort": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 6,
+      "assertionFail": 0
+    },
+    "replay/isolated/old-abort-original": {
+      "receipts": 1,
+      "natural": 1,
+      "killed": 0,
+      "assertionPass": 0,
+      "assertionFail": 1
+    },
+    "replay/isolated/policy-v2": {
+      "receipts": 2,
+      "natural": 2,
+      "killed": 0,
+      "assertionPass": 2,
+      "assertionFail": 0
+    },
+    "replay/isolated/semantic-conversion": {
+      "receipts": 32,
+      "natural": 32,
+      "killed": 0,
+      "assertionPass": 32,
+      "assertionFail": 0
+    },
+    "replay/isolated/semantic-original": {
+      "receipts": 9,
+      "natural": 9,
+      "killed": 0,
+      "assertionPass": 7,
+      "assertionFail": 2
+    },
+    "replay/isolated/semantic-parser": {
+      "receipts": 32,
+      "natural": 32,
+      "killed": 0,
+      "assertionPass": 32,
+      "assertionFail": 0
+    },
+    "replay/isolated/slash-neighbor": {
+      "receipts": 3,
+      "natural": 3,
+      "killed": 0,
+      "assertionPass": 3,
+      "assertionFail": 0
+    },
+    "replay/isolated/stress-original": {
+      "receipts": 28,
+      "natural": 28,
+      "killed": 0,
+      "assertionPass": 28,
+      "assertionFail": 0
+    },
+    "replay/isolated/supervisor-negative": {
+      "receipts": 1,
+      "natural": 0,
+      "killed": 1,
+      "assertionPass": 0,
+      "assertionFail": 0
+    },
+    "replay/isolated/supplemental-original": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 5,
+      "assertionFail": 1
+    },
+    "replay/isolated/types": {
+      "receipts": 4,
+      "natural": 4,
+      "killed": 0,
+      "assertionPass": 4,
+      "assertionFail": 0
+    },
+    "replay/isolated/valid-boundaries": {
+      "receipts": 10,
+      "natural": 10,
+      "killed": 0,
+      "assertionPass": 10,
+      "assertionFail": 0
+    },
+    "replay/moved/abort-observation": {
+      "receipts": 3,
+      "natural": 3,
+      "killed": 0,
+      "assertionPass": 3,
+      "assertionFail": 0
+    },
+    "replay/moved/adjacent-work": {
+      "receipts": 8,
+      "natural": 8,
+      "killed": 0,
+      "assertionPass": 8,
+      "assertionFail": 0
+    },
+    "replay/moved/corrections-v2": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 5,
+      "assertionFail": 1
+    },
+    "replay/moved/denials": {
+      "receipts": 5,
+      "natural": 5,
+      "killed": 0,
+      "assertionPass": 5,
+      "assertionFail": 0
+    },
+    "replay/moved/frozen-original": {
+      "receipts": 125,
+      "natural": 125,
+      "killed": 0,
+      "assertionPass": 119,
+      "assertionFail": 6
+    },
+    "replay/moved/host-negative": {
+      "receipts": 4,
+      "natural": 4,
+      "killed": 0,
+      "assertionPass": 4,
+      "assertionFail": 0
+    },
+    "replay/moved/in-flight-abort": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 6,
+      "assertionFail": 0
+    },
+    "replay/moved/old-abort-original": {
+      "receipts": 1,
+      "natural": 1,
+      "killed": 0,
+      "assertionPass": 0,
+      "assertionFail": 1
+    },
+    "replay/moved/policy-v2": {
+      "receipts": 2,
+      "natural": 2,
+      "killed": 0,
+      "assertionPass": 2,
+      "assertionFail": 0
+    },
+    "replay/moved/semantic-conversion": {
+      "receipts": 32,
+      "natural": 32,
+      "killed": 0,
+      "assertionPass": 32,
+      "assertionFail": 0
+    },
+    "replay/moved/semantic-original": {
+      "receipts": 9,
+      "natural": 9,
+      "killed": 0,
+      "assertionPass": 7,
+      "assertionFail": 2
+    },
+    "replay/moved/semantic-parser": {
+      "receipts": 32,
+      "natural": 32,
+      "killed": 0,
+      "assertionPass": 32,
+      "assertionFail": 0
+    },
+    "replay/moved/slash-neighbor": {
+      "receipts": 3,
+      "natural": 3,
+      "killed": 0,
+      "assertionPass": 3,
+      "assertionFail": 0
+    },
+    "replay/moved/stress-original": {
+      "receipts": 28,
+      "natural": 28,
+      "killed": 0,
+      "assertionPass": 28,
+      "assertionFail": 0
+    },
+    "replay/moved/supervisor-negative": {
+      "receipts": 1,
+      "natural": 0,
+      "killed": 1,
+      "assertionPass": 0,
+      "assertionFail": 0
+    },
+    "replay/moved/supplemental-original": {
+      "receipts": 6,
+      "natural": 6,
+      "killed": 0,
+      "assertionPass": 5,
+      "assertionFail": 1
+    },
+    "replay/moved/types": {
+      "receipts": 4,
+      "natural": 4,
+      "killed": 0,
+      "assertionPass": 4,
+      "assertionFail": 0
+    },
+    "replay/moved/valid-boundaries": {
+      "receipts": 10,
+      "natural": 10,
+      "killed": 0,
+      "assertionPass": 10,
+      "assertionFail": 0
+    },
+    "setup": {
+      "receipts": 3,
+      "natural": 3,
+      "killed": 0,
+      "assertionPass": 3,
+      "assertionFail": 0
+    }
+  },
+  "negatives": {
+    "wrongRuntimeHashRejected": true,
+    "missingPackedEntryRejected": true
+  },
+  "oldASTv2": [
+    {
+      "layout": "isolated",
+      "originalFive": {
+        "native": {
+          "path": "/opt/homebrew/bin/pandoc",
+          "sha256": "61574e53a089110eae07817b91510ff150e826807ac020aa744e0ade23025e0d",
+          "version": "pandoc 3.10.1\nFeatures: +server +lua\nScripting engine: Lua 5.4\nUser data directory: /Users/kjopek/.local/share/pandoc\nCopyright (C) 2006-2025 John MacFarlane. Web:  https://pandoc.org\nThis is free software; see the source for copying conditions. There is no\nwarranty, not even for merchantability or fitness for a particular purpose.\n",
+          "args": [
+            "--sandbox",
+            "--from=html",
+            "--to=commonmark-raw_html",
+            "--wrap=none"
+          ]
+        },
+        "meaning": "Independent semantic assertions using authenticated Pandoc CommonMark-extension reader; not all-renderer/security equivalence",
+        "rows": [
+          {
+            "id": "R01-ordered-period-text-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "R02-ordered-paren-text-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "R03-strike-text-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "R06-adjacent-emphasis-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "U-title-alt-injection-v2-semantics",
+            "outcome": "PASS"
+          }
+        ]
+      },
+      "additionalVisibleChecks": {
+        "malformed": "before <a href=\"unfinished",
+        "title": "safe] [evil](javascript:bad) <img src=x onerror=evil>",
+        "outcome": "PASS",
+        "meaning": "Semantic observations only; original exact-byte failures remain failures without an expectation waiver."
+      }
+    },
+    {
+      "layout": "moved",
+      "originalFive": {
+        "native": {
+          "path": "/opt/homebrew/bin/pandoc",
+          "sha256": "61574e53a089110eae07817b91510ff150e826807ac020aa744e0ade23025e0d",
+          "version": "pandoc 3.10.1\nFeatures: +server +lua\nScripting engine: Lua 5.4\nUser data directory: /Users/kjopek/.local/share/pandoc\nCopyright (C) 2006-2025 John MacFarlane. Web:  https://pandoc.org\nThis is free software; see the source for copying conditions. There is no\nwarranty, not even for merchantability or fitness for a particular purpose.\n",
+          "args": [
+            "--sandbox",
+            "--from=html",
+            "--to=commonmark-raw_html",
+            "--wrap=none"
+          ]
+        },
+        "meaning": "Independent semantic assertions using authenticated Pandoc CommonMark-extension reader; not all-renderer/security equivalence",
+        "rows": [
+          {
+            "id": "R01-ordered-period-text-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "R02-ordered-paren-text-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "R03-strike-text-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "R06-adjacent-emphasis-semantics",
+            "outcome": "PASS"
+          },
+          {
+            "id": "U-title-alt-injection-v2-semantics",
+            "outcome": "PASS"
+          }
+        ]
+      },
+      "additionalVisibleChecks": {
+        "malformed": "before <a href=\"unfinished",
+        "title": "safe] [evil](javascript:bad) <img src=x onerror=evil>",
+        "outcome": "PASS",
+        "meaning": "Semantic observations only; original exact-byte failures remain failures without an expectation waiver."
+      }
+    }
+  ],
+  "semanticFailures": [
+    {
+      "layout": "isolated",
+      "id": "empty-em-period",
+      "input": "<p>1<em></em>. ordinary</p>",
+      "runs": [
+        [
+          "1. ordinary",
+          []
+        ]
+      ],
+      "markdown": "1. ordinary\n",
+      "structures": [
+        "OrderedList",
+        "Decimal",
+        "Period",
+        "Plain",
+        "Str"
+      ],
+      "observed": [
+        [
+          "o",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "d",
+          []
+        ],
+        [
+          "i",
+          []
+        ],
+        [
+          "n",
+          []
+        ],
+        [
+          "a",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "y",
+          []
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!structures.some(type => ['OrderedList', 'BulletList', 'RawInline', 'RawBlock'].includes(type)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:87\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "isolated",
+      "id": "empty-code-paren",
+      "input": "<p>1<code></code>) ordinary</p>",
+      "runs": [
+        [
+          "1) ordinary",
+          []
+        ]
+      ],
+      "markdown": "1) ordinary\n",
+      "structures": [
+        "OrderedList",
+        "Decimal",
+        "OneParen",
+        "Plain",
+        "Str"
+      ],
+      "observed": [
+        [
+          "o",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "d",
+          []
+        ],
+        [
+          "i",
+          []
+        ],
+        [
+          "n",
+          []
+        ],
+        [
+          "a",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "y",
+          []
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!structures.some(type => ['OrderedList', 'BulletList', 'RawInline', 'RawBlock'].includes(type)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:87\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "isolated",
+      "id": "empty-anchor-period",
+      "input": "<p>1<a></a>. ordinary</p>",
+      "runs": [
+        [
+          "1. ordinary",
+          []
+        ]
+      ],
+      "markdown": "1. ordinary\n",
+      "structures": [
+        "OrderedList",
+        "Decimal",
+        "Period",
+        "Plain",
+        "Str"
+      ],
+      "observed": [
+        [
+          "o",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "d",
+          []
+        ],
+        [
+          "i",
+          []
+        ],
+        [
+          "n",
+          []
+        ],
+        [
+          "a",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "y",
+          []
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!structures.some(type => ['OrderedList', 'BulletList', 'RawInline', 'RawBlock'].includes(type)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:87\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "isolated",
+      "id": "empty-strong-between-em",
+      "input": "<em>a</em><b></b><em>b</em>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "markdown": "*a**b*\n",
+      "structures": [
+        "Para",
+        "Emph",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Emph'\n...\n    [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Emph'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "isolated",
+      "id": "empty-anchor-between-em",
+      "input": "<em>a</em><a></a><em>b</em>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "markdown": "*a**b*\n",
+      "structures": [
+        "Para",
+        "Emph",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Emph'\n...\n    [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Emph'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "isolated",
+      "id": "transparent-empty-strong",
+      "input": "<em>a</em><span><strong></strong></span><em>b</em>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "markdown": "*a**b*\n",
+      "structures": [
+        "Para",
+        "Emph",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Emph'\n...\n    [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Emph'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "isolated",
+      "id": "empty-em-between-strong",
+      "input": "<b>a</b><em></em><b>b</b>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Strong"
+          ]
+        ]
+      ],
+      "markdown": "__a____b__\n",
+      "structures": [
+        "Para",
+        "Strong",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Strong"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Strong'\n...\n    [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Strong'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-em-period",
+      "input": "<p>1<em></em>. ordinary</p>",
+      "runs": [
+        [
+          "1. ordinary",
+          []
+        ]
+      ],
+      "markdown": "1. ordinary\n",
+      "structures": [
+        "OrderedList",
+        "Decimal",
+        "Period",
+        "Plain",
+        "Str"
+      ],
+      "observed": [
+        [
+          "o",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "d",
+          []
+        ],
+        [
+          "i",
+          []
+        ],
+        [
+          "n",
+          []
+        ],
+        [
+          "a",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "y",
+          []
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!structures.some(type => ['OrderedList', 'BulletList', 'RawInline', 'RawBlock'].includes(type)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:87\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-code-paren",
+      "input": "<p>1<code></code>) ordinary</p>",
+      "runs": [
+        [
+          "1) ordinary",
+          []
+        ]
+      ],
+      "markdown": "1) ordinary\n",
+      "structures": [
+        "OrderedList",
+        "Decimal",
+        "OneParen",
+        "Plain",
+        "Str"
+      ],
+      "observed": [
+        [
+          "o",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "d",
+          []
+        ],
+        [
+          "i",
+          []
+        ],
+        [
+          "n",
+          []
+        ],
+        [
+          "a",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "y",
+          []
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!structures.some(type => ['OrderedList', 'BulletList', 'RawInline', 'RawBlock'].includes(type)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:87\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-anchor-period",
+      "input": "<p>1<a></a>. ordinary</p>",
+      "runs": [
+        [
+          "1. ordinary",
+          []
+        ]
+      ],
+      "markdown": "1. ordinary\n",
+      "structures": [
+        "OrderedList",
+        "Decimal",
+        "Period",
+        "Plain",
+        "Str"
+      ],
+      "observed": [
+        [
+          "o",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "d",
+          []
+        ],
+        [
+          "i",
+          []
+        ],
+        [
+          "n",
+          []
+        ],
+        [
+          "a",
+          []
+        ],
+        [
+          "r",
+          []
+        ],
+        [
+          "y",
+          []
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(!structures.some(type => ['OrderedList', 'BulletList', 'RawInline', 'RawBlock'].includes(type)))\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:87\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-strong-between-em",
+      "input": "<em>a</em><b></b><em>b</em>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "markdown": "*a**b*\n",
+      "structures": [
+        "Para",
+        "Emph",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Emph'\n...\n    [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Emph'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-anchor-between-em",
+      "input": "<em>a</em><a></a><em>b</em>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "markdown": "*a**b*\n",
+      "structures": [
+        "Para",
+        "Emph",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Emph'\n...\n    [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Emph'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "transparent-empty-strong",
+      "input": "<em>a</em><span><strong></strong></span><em>b</em>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "markdown": "*a**b*\n",
+      "structures": [
+        "Para",
+        "Emph",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "*",
+          [
+            "Emph"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Emph"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Emph'\n...\n    [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n+     '*',\n+     [\n+       'Emph'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Emph'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    {
+      "layout": "moved",
+      "id": "empty-em-between-strong",
+      "input": "<b>a</b><em></em><b>b</b>",
+      "runs": [
+        [
+          "ab",
+          [
+            "Strong"
+          ]
+        ]
+      ],
+      "markdown": "__a____b__\n",
+      "structures": [
+        "Para",
+        "Strong",
+        "Str"
+      ],
+      "observed": [
+        [
+          "a",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "_",
+          [
+            "Strong"
+          ]
+        ],
+        [
+          "b",
+          [
+            "Strong"
+          ]
+        ]
+      ],
+      "outcome": "FAIL",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      'a',\n      [\n        'Strong'\n...\n    [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n+     '_',\n+     [\n+       'Strong'\n+     ]\n+   ],\n+   [\n      'b',\n      [\n        'Strong'\n      ]\n    ]\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/html-to-markdown-independent-20260827/fix-review-3ef5811f/followup.mjs:42:199\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    }
+  ],
+  "authorAttestation": {
+    "retainedOnlyNotRerun": true,
+    "tests": 154,
+    "probes": 55,
+    "parserCases": 22,
+    "matchingSourceInputs": 23,
+    "matchingExecutableAndDeclarationOutputs": 46,
+    "differentLocationDependentSourceMaps": 46
+  }
+}

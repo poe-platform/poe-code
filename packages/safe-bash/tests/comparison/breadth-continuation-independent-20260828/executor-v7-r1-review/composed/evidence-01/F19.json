@@ -1,0 +1,18 @@
+{
+  "id": "F19",
+  "expected": "Exact262144 record accepts plusone refuses; actual small transport cumulative overflow poisons later writes and partial parse refuses.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.637Z",
+  "finished": "2026-08-28T15:01:02.639Z",
+  "detail": {
+    "exactRecord": 262144,
+    "plusOneRefused": true,
+    "smallTransportCap": 128,
+    "partialTransportRefused": true,
+    "writer": {
+      "total": 143,
+      "sequence": 2,
+      "failed": true
+    }
+  }
+}

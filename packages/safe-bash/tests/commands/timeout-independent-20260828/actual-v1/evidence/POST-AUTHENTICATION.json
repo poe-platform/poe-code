@@ -1,0 +1,549 @@
+{
+  "startedAt": "2026-08-28T03:35:16.502Z",
+  "protectedFiles": 97,
+  "recipeManifestSha256": "6bc3c407c859e7ba1c1790c581cd10df44de2299149fcfa6adfad4c654984d99",
+  "sourceInputs": 268,
+  "sourceArchiveSha256": "1a7f280f4f309af3dcc8f3a7ec629b95dddbc65d180bc45c9911ff64523d6ded",
+  "packageMembers": 857,
+  "packSha256": "32e2bef5eafbb00e9b6704e2765f55e36514eda0da0fe84ea78367813c756630",
+  "tools": {
+    "regular": 2274,
+    "metadataOnlyAliases": 12
+  },
+  "freshGuardTreesUnchanged": true,
+  "originalInstalledPathAbsent": true,
+  "reaping": [
+    {
+      "label": "build",
+      "pid": 7673,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7673,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7673,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "pack",
+      "pid": 7733,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7733,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7733,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "install",
+      "pid": 7760,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7760,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7760,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-positive",
+      "pid": 7770,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7770,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7770,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-readonly",
+      "pid": 7791,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7791,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7791,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-array",
+      "pid": 7812,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7812,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7812,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-unknown",
+      "pid": 7844,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7844,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7844,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-number",
+      "pid": 7846,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7846,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7846,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-replace",
+      "pid": 7855,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7855,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7855,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-root",
+      "pid": 7865,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7865,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7865,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "installed-subpath",
+      "pid": 7867,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7867,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7867,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "source",
+      "pid": 7876,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 7876,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -7876,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-positive",
+      "pid": 8071,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8071,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8071,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-readonly",
+      "pid": 8094,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8094,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8094,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-array",
+      "pid": 8099,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8099,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8099,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-unknown",
+      "pid": 8113,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8113,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8113,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-number",
+      "pid": 8122,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8122,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8122,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-replace",
+      "pid": 8125,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8125,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8125,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-root",
+      "pid": 8138,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8138,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8138,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved-subpath",
+      "pid": 8140,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8140,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8140,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "moved",
+      "pid": 8150,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8150,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8150,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "A08-wrong-module-hash",
+      "pid": 8207,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8207,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8207,
+          "observation": "ESRCH"
+        }
+      ]
+    },
+    {
+      "label": "A09-source-permission-denial",
+      "pid": 8230,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "checks": [
+        {
+          "identifier": 8230,
+          "observation": "ESRCH"
+        },
+        {
+          "identifier": -8230,
+          "observation": "ESRCH"
+        }
+      ]
+    }
+  ],
+  "toolObservations": [
+    {
+      "file": "build-tool.jsonl",
+      "observations": 394,
+      "actualCompiles": 3,
+      "actualReads": 389
+    },
+    {
+      "file": "install-tool.jsonl",
+      "observations": 1121,
+      "actualCompiles": 550,
+      "actualReads": 569
+    },
+    {
+      "file": "installed-array-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "installed-number-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "installed-positive-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "installed-readonly-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "installed-replace-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "installed-root-tool.jsonl",
+      "observations": 268,
+      "actualCompiles": 3,
+      "actualReads": 263
+    },
+    {
+      "file": "installed-subpath-tool.jsonl",
+      "observations": 183,
+      "actualCompiles": 3,
+      "actualReads": 178
+    },
+    {
+      "file": "installed-unknown-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "moved-array-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "moved-number-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "moved-positive-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "moved-readonly-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "moved-replace-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "moved-root-tool.jsonl",
+      "observations": 268,
+      "actualCompiles": 3,
+      "actualReads": 263
+    },
+    {
+      "file": "moved-subpath-tool.jsonl",
+      "observations": 183,
+      "actualCompiles": 3,
+      "actualReads": 178
+    },
+    {
+      "file": "moved-unknown-tool.jsonl",
+      "observations": 192,
+      "actualCompiles": 3,
+      "actualReads": 187
+    },
+    {
+      "file": "pack-tool.jsonl",
+      "observations": 1101,
+      "actualCompiles": 541,
+      "actualReads": 558
+    }
+  ],
+  "workInventoryEntries": 4833,
+  "rawInventoryEntries": 282
+}

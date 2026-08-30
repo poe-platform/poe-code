@@ -1,0 +1,591 @@
+{
+  "identities": [
+    {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+      "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9",
+      "version": "diff (GNU diffutils) 3.12"
+    },
+    {
+      "path": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+      "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+      "version": "GNU patch 2.8"
+    }
+  ],
+  "sourceHashes": {
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch/pruning-consumer/capture-native.mjs": "f74089ddcfdbcdc12eecbe40030cc53b4ddf7e01dce57a3228017a123e0d5424",
+    "file:///Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch/pruning-consumer/native-interpose.c": "968d21fbdeef92d73ced0c56440265e40d298aa1660dadce503c60201a2fca84",
+    "/private/tmp/safe-bash-prune-consumer-native-sZnuCg/pruning-interpose.dylib": "0c816c405f7fa75d5729b1ca1e62b1692f9e2dfceb3eafb005e61642f45cc095",
+    "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/util.c": "67ba718ceec6cf3004d2619cd0303f9cea5c2c962603bf7ebd7978519f10bfb2",
+    "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/safe.c": "0aa6b4928c957bfef819bef237e3c98c9276dcb53b332abc822482e8ddbeb533"
+  },
+  "boundary": "/private/tmp/safe-bash-prune-consumer-native-sZnuCg",
+  "capturedAt": "2026-08-26T23:06:08.699Z",
+  "uid": 501,
+  "platform": "darwin",
+  "node": "v22.22.2",
+  "compile": {
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "argv": [
+    "-p0",
+    "--batch",
+    "--no-backup-if-mismatch"
+  ],
+  "env": {
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "results": [
+    {
+      "mode": "empty",
+      "injected": false,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t0\t0\nparent\t0\t0\n"
+    },
+    {
+      "mode": "nonempty",
+      "injected": false,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/keep": {
+          "type": "file",
+          "hex": "6b6565700a"
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/keep": {
+          "type": "file",
+          "hex": "6b6565700a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t0\t0\nparent\t-1\t66\n"
+    },
+    {
+      "mode": "permission",
+      "injected": false,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 365
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 365
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t-1\t13\nparent\t-1\t66\n"
+    },
+    {
+      "mode": "enoent",
+      "injected": true,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t-1\t2\nparent\t0\t0\n"
+    },
+    {
+      "mode": "child",
+      "injected": true,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/concurrent": {
+          "type": "file",
+          "hex": "73757276697665730a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t-1\t66\nparent\t-1\t66\n"
+    },
+    {
+      "mode": "eacces",
+      "injected": true,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t-1\t13\nparent\t-1\t66\n"
+    },
+    {
+      "mode": "eio",
+      "injected": true,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": "leaf\t-1\t5\nparent\t-1\t66\n"
+    },
+    {
+      "mode": "control-empty",
+      "injected": false,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": null
+    },
+    {
+      "mode": "control-nonempty",
+      "injected": false,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/keep": {
+          "type": "file",
+          "hex": "6b6565700a"
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/keep": {
+          "type": "file",
+          "hex": "6b6565700a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": null
+    },
+    {
+      "mode": "control-permission",
+      "injected": false,
+      "diff": {
+        "status": 1,
+        "stdout": "--- parent/leaf/file\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n",
+        "stderr": ""
+      },
+      "patch": {
+        "status": 0,
+        "signal": null,
+        "stdout": "patching file parent/leaf/file\n",
+        "stderr": ""
+      },
+      "before": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 365
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent/leaf/file": {
+          "type": "file",
+          "hex": "6f6c640a"
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "after": {
+        ".": {
+          "type": "directory",
+          "mode": 493
+        },
+        "parent": {
+          "type": "directory",
+          "mode": 365
+        },
+        "parent/leaf": {
+          "type": "directory",
+          "mode": 493
+        },
+        "sentinel": {
+          "type": "file",
+          "hex": "726f6f742073656e74696e656c0a"
+        }
+      },
+      "calls": null
+    }
+  ]
+}

@@ -1,0 +1,3498 @@
+{
+  "started": "2026-08-27T02:08:21.705Z",
+  "finished": "2026-08-27T02:08:26.079Z",
+  "startHead": "b5ec52a0d3ff16da47e814729f72153f9b09b926",
+  "endHead": "b5ec52a0d3ff16da47e814729f72153f9b09b926",
+  "shellCommit": "b02bbe855b6b45d635b521e3dc2f31ea2b04e215",
+  "corpusSha256": "7474a5a4a54f25ab57a3f5afb2575261cec182e885bf630902c4934e3078f36f",
+  "initialStatus": "M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/text.ts\n M tests/commands/archive-stress/native.test.ts\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/core-sort/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-author-20260827/\n?? tests/commands/structured-stress/jq-grammar-proposal-review/\n?? tests/shell-stress/current-shell/\n?? tests/shell-stress/expanded-kernel/\n?? tests/shell/source-dot-eval-cases.ts\n?? tests/shell/source-dot-eval-eval-native.json\n?? tests/shell/source-dot-eval-eval.test.ts\n?? tests/shell/source-dot-eval-native.ts\n?? tests/shell/source-dot-eval-red.json\n?? tests/shell/source-dot-eval-source-native.json\n?? tests/shell/source-dot-eval-source.test.ts",
+  "finalStatus": "M src/commands/archive/README.md\n M src/commands/archive/format.ts\n M src/commands/text.ts\n M tests/commands/archive-stress/native.test.ts\n?? tests/commands/archive-stress/pax-extensibility-evidence/\n?? tests/commands/archive-stress/pax-extensibility.test.ts\n?? tests/commands/archive-stress/pax-independent/\n?? tests/commands/archive-stress/pax-native.test.ts\n?? tests/commands/core-sort/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/structured-stress/jq-grammar-author-20260827/\n?? tests/commands/structured-stress/jq-grammar-proposal-review/\n?? tests/shell-stress/current-shell/\n?? tests/shell-stress/expanded-kernel/\n?? tests/shell/source-dot-eval-cases.ts\n?? tests/shell/source-dot-eval-eval-native.json\n?? tests/shell/source-dot-eval-eval.test.ts\n?? tests/shell/source-dot-eval-native.ts\n?? tests/shell/source-dot-eval-red.json\n?? tests/shell/source-dot-eval-source-native.json\n?? tests/shell/source-dot-eval-source.test.ts",
+  "before": {
+    "src/commands/README.md": "94bf62a61bdd5706e19494a8b5cac85860282e3bc315bcb23d6101482bb27290",
+    "src/commands/archive/README.md": "ec814681a5fc5c5a341b4a7fb15cb8afe460378df9a905c849254fe73cf92ef1",
+    "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+    "src/commands/archive/format.ts": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0",
+    "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+    "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+    "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+    "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+    "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+    "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+    "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+    "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+    "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+    "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+    "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+    "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+    "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+    "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+    "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+    "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+    "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+    "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+    "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+    "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+    "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+    "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+    "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+    "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+    "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+    "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+    "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+    "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+    "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+    "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+    "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+    "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+    "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+    "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+    "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+    "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+    "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+    "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+    "src/commands/streams.ts": "4e2d525fc237c9d1566b57db97c9e529b01b9d41f9f9663179836b2016d3afc5",
+    "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+    "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+    "src/commands/structured/interpreter.ts": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053",
+    "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+    "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+    "src/commands/structured/parser.ts": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9",
+    "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "src/commands/structured/values.ts": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab",
+    "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+    "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+    "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+    "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+    "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+    "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+    "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+    "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "src/commands/text.ts": "e49af40d9ec51c038f53235f43233af7423d661ded2886998beb5873f4bcc53c",
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+    "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/s3/COMPARISON.md": "909ccdae411009d4fd1566a4ac79d8aaeac7457b1f5735843b9e9a93ab908aca",
+    "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+    "src/fs/s3/authority.ts": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229",
+    "src/fs/s3/filesystem.ts": "97f91913c3b2a9916218776d286eeaf25928d3aebbe3df60f0bf2d24d1635f6f",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+    "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "src/fs/webdav/README.md": "5f1ed9c4d19ad3445310144ae94148c19ad125a156032a3e05993b30555b88fb",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc",
+    "src/fs/webdav/webdav.ts": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+    "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+    "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+    "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+    "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+    "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+    "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "after": {
+    "src/commands/README.md": "94bf62a61bdd5706e19494a8b5cac85860282e3bc315bcb23d6101482bb27290",
+    "src/commands/archive/README.md": "ec814681a5fc5c5a341b4a7fb15cb8afe460378df9a905c849254fe73cf92ef1",
+    "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "src/commands/archive/extract.ts": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212",
+    "src/commands/archive/format.ts": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0",
+    "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "src/commands/basic.ts": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+    "src/commands/bytes/README.md": "517a12a32591ea36e4d65954cd72f6f446b231414658249f115877b40b7e5053",
+    "src/commands/bytes/checksums/README.md": "f1fac999a988b48789368cf46105ef268d432a08fbc4be8f137a7eed90bb218d",
+    "src/commands/bytes/checksums/index.ts": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4",
+    "src/commands/bytes/compression/README.md": "970ab6bf5c3c9fc97582d25b508513656aa265e5352ce3be5e77bc2d041c9dc7",
+    "src/commands/bytes/compression/files.ts": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df",
+    "src/commands/bytes/compression/gunzip.ts": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f",
+    "src/commands/bytes/compression/index.ts": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9",
+    "src/commands/bytes/compression/options.ts": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95",
+    "src/commands/bytes/compression/stream.ts": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4",
+    "src/commands/bytes/encoding/README.md": "8b73fdf7a5ebc57fa44014a9449dcb767ba48030b29d36d5e37580cdbcdee886",
+    "src/commands/bytes/encoding/base.ts": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d",
+    "src/commands/bytes/encoding/index.ts": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f",
+    "src/commands/bytes/encoding/od.ts": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03",
+    "src/commands/bytes/encoding/shared.ts": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396",
+    "src/commands/bytes/encoding/xxd.ts": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78",
+    "src/commands/bytes/index.ts": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f",
+    "src/commands/copy-identity.ts": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+    "src/commands/diff-patch/GNU-DIFF.md": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+    "src/commands/diff-patch/GNU-PATCH.md": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+    "src/commands/diff-patch/PARSER.md": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+    "src/commands/diff-patch/README.md": "b4d2e1edcb0d333af11bca02970ffed3602c6516196cf768b785eb0d6a5ce787",
+    "src/commands/diff-patch/diff-format.ts": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+    "src/commands/diff-patch/diff.ts": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+    "src/commands/diff-patch/index.ts": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+    "src/commands/diff-patch/patch-envelope.ts": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+    "src/commands/diff-patch/patch-formats.ts": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "src/commands/diff-patch/patch-gnu-paths.ts": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+    "src/commands/diff-patch/patch-gnu-reject.ts": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+    "src/commands/diff-patch/patch-path.ts": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+    "src/commands/diff-patch/patch.ts": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe",
+    "src/commands/diff-patch/shared.ts": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+    "src/commands/diff-patch/unified.ts": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+    "src/commands/execution.ts": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+    "src/commands/filesystem.ts": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+    "src/commands/find.ts": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+    "src/commands/grep.ts": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+    "src/commands/index.ts": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+    "src/commands/internal.ts": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+    "src/commands/metadata/README.md": "211ee5e45c207e3dd775fdbfd3a58ef4b676c5c9aed9a13086693e1f3f99be68",
+    "src/commands/metadata/chmod.ts": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+    "src/commands/metadata/index.ts": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+    "src/commands/metadata/internal.ts": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+    "src/commands/metadata/mktemp.ts": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+    "src/commands/metadata/stat.ts": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860",
+    "src/commands/move.ts": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+    "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+    "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+    "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+    "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+    "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+    "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+    "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+    "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+    "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+    "src/commands/predicates.ts": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+    "src/commands/safejs/README.md": "7c182e72770fd7c4a9e98624c04d4e09770c3f8bc9d42a55890019f7fedc405c",
+    "src/commands/safejs/index.ts": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29",
+    "src/commands/safejs/io.ts": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1",
+    "src/commands/safejs/options.ts": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43",
+    "src/commands/safejs/render.ts": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e",
+    "src/commands/safejs/types.ts": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4",
+    "src/commands/search/README.md": "99385bcf106ecbe66185c285cc10626a487f748b8dc14562e7d47451aa9bca72",
+    "src/commands/search/glob.ts": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+    "src/commands/search/index.ts": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+    "src/commands/search/matcher.ts": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+    "src/commands/search/options.ts": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+    "src/commands/search/output.ts": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+    "src/commands/search/rg.ts": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+    "src/commands/search/shared.ts": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+    "src/commands/search/walk.ts": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+    "src/commands/streams.ts": "4e2d525fc237c9d1566b57db97c9e529b01b9d41f9f9663179836b2016d3afc5",
+    "src/commands/structured/README.md": "5fecf1186d9004e378d77a1e9ad297af94b4f4f9070d9b620d70cd179a7e1b00",
+    "src/commands/structured/index.ts": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+    "src/commands/structured/input.ts": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+    "src/commands/structured/interpreter.ts": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053",
+    "src/commands/structured/jq.ts": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac",
+    "src/commands/structured/limits.ts": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+    "src/commands/structured/numbers.ts": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+    "src/commands/structured/parser.ts": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9",
+    "src/commands/structured/split.ts": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+    "src/commands/structured/values.ts": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab",
+    "src/commands/table-text/README.md": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+    "src/commands/table-text/comm.ts": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+    "src/commands/table-text/index.ts": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9",
+    "src/commands/table-text/internal.ts": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+    "src/commands/table-text/join.ts": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0",
+    "src/commands/table-text/paste.ts": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5",
+    "src/commands/text-programs/README.md": "b39d89bf294fecc3da6d9ecff88aa07e8d7b0d12e0471d3c7974538907d1552a",
+    "src/commands/text-programs/awk-runtime.ts": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e",
+    "src/commands/text-programs/awk-syntax.ts": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7",
+    "src/commands/text-programs/awk-values.ts": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c",
+    "src/commands/text-programs/awk.ts": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3",
+    "src/commands/text-programs/index.ts": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2",
+    "src/commands/text-programs/regex.ts": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f",
+    "src/commands/text-programs/sed.ts": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9",
+    "src/commands/text-programs/shared.ts": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e",
+    "src/commands/text.ts": "e49af40d9ec51c038f53235f43233af7423d661ded2886998beb5873f4bcc53c",
+    "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+    "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "src/contracts/filesystem.md": "0f930c0413b3c2a57b333c6cb4b1f88cf3cc2c878a326626036fa520ff929c83",
+    "src/contracts/filesystem.ts": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+    "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+    "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+    "src/fs/memory/index.ts": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "src/fs/mount/COMPARISON.md": "5892edfab8bcf07f23dc93ea691b183e8b7d20c55b8507bf93ae43c89acdd771",
+    "src/fs/mount/README.md": "ac5d57b95f1276d7aa095f5c8177254be8fbb37b8d6271f34b5d86b0469e4f2b",
+    "src/fs/mount/comparison.ts": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+    "src/fs/mount/identity.ts": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+    "src/fs/mount/index.ts": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee",
+    "src/fs/overlay/README.md": "58f8b4e1717af0de202c926af4541cfbea4be5650b624d8559a4e791279eabd5",
+    "src/fs/overlay/index.ts": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e",
+    "src/fs/readonly/README.md": "0a06e4740302f2e320d3bc7df70ff5190be34e135220a0a56409b31bc7541d64",
+    "src/fs/readonly/index.ts": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+    "src/fs/real/index.ts": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+    "src/fs/s3/COMPARISON.md": "909ccdae411009d4fd1566a4ac79d8aaeac7457b1f5735843b9e9a93ab908aca",
+    "src/fs/s3/README.md": "82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8",
+    "src/fs/s3/authority.ts": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229",
+    "src/fs/s3/filesystem.ts": "97f91913c3b2a9916218776d286eeaf25928d3aebbe3df60f0bf2d24d1635f6f",
+    "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+    "src/fs/s3/mock.ts": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821",
+    "src/fs/s3/transport.ts": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe",
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+    "src/fs/webdav/README.md": "5f1ed9c4d19ad3445310144ae94148c19ad125a156032a3e05993b30555b88fb",
+    "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+    "src/fs/webdav/resource-id.ts": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc",
+    "src/fs/webdav/webdav.ts": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/index.ts": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1",
+    "src/integrations/safejs/filesystem.ts": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578",
+    "src/integrations/safejs/index.ts": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384",
+    "src/integrations/safejs/shell.ts": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da",
+    "src/integrations/safejs/stats.ts": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824",
+    "src/integrations/safejs/values.ts": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a",
+    "src/plugins/index.ts": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d",
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "frozenDrift": [
+    {
+      "path": "src/commands/README.md",
+      "frozenSha256": "c541ca716302f6e59c2252ae2a0fcf6d999e93de9d187cc604a7f621e9ca0221",
+      "sha256": "94bf62a61bdd5706e19494a8b5cac85860282e3bc315bcb23d6101482bb27290"
+    },
+    {
+      "path": "src/commands/archive/README.md",
+      "frozenSha256": "a2dad5781d249f9a206739cb7ab36cf77c839abe8ea1222e16abdea953896069",
+      "sha256": "ec814681a5fc5c5a341b4a7fb15cb8afe460378df9a905c849254fe73cf92ef1"
+    },
+    {
+      "path": "src/commands/archive/format.ts",
+      "frozenSha256": "30ba491fca428e91e11bc26802f6e69d05f94fdd30ab1c40f5812a4e92827719",
+      "sha256": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "frozenSha256": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "frozenSha256": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+      "sha256": "4e2d525fc237c9d1566b57db97c9e529b01b9d41f9f9663179836b2016d3afc5"
+    },
+    {
+      "path": "src/commands/structured/input.ts",
+      "frozenSha256": "e375af3eab2855664d30bf7619c2b5e05c2fe3770c79613068082d622af4ef4d",
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca"
+    },
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "frozenSha256": "8239b8342f57a2f30a5c71c9207955e545fdd2af52e04dd3db11508187a0da37",
+      "sha256": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053"
+    },
+    {
+      "path": "src/commands/structured/jq.ts",
+      "frozenSha256": "57efe4e40beb00d1cb527e33bd700925fed6cd08b2d309e1d5b4134466e3d6b3",
+      "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+    },
+    {
+      "path": "src/commands/structured/numbers.ts",
+      "frozenSha256": "f2f18b3f201b22f560b9022304235ca26084319ca103a954f1aabb5f0f74be7d",
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2"
+    },
+    {
+      "path": "src/commands/structured/parser.ts",
+      "frozenSha256": "5673072aa6512c4fcbc6b008ab9ee595a9b0555c6c35ccf93fc3bb45c57d0ff8",
+      "sha256": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9"
+    },
+    {
+      "path": "src/commands/structured/values.ts",
+      "frozenSha256": "b7764b6333525b44875aa76f4e9bb546f1b655b91a7dda52360498574c4c6222",
+      "sha256": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "frozenSha256": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+      "sha256": "e49af40d9ec51c038f53235f43233af7423d661ded2886998beb5873f4bcc53c"
+    },
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "frozenSha256": "db2306041639907c46b980e6256b3fd318ed760791599e2a118966513be71b5a",
+      "sha256": "909ccdae411009d4fd1566a4ac79d8aaeac7457b1f5735843b9e9a93ab908aca"
+    },
+    {
+      "path": "src/fs/s3/authority.ts",
+      "frozenSha256": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4",
+      "sha256": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229"
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "frozenSha256": "8c98a7738aed477a238084624b4e374d4cdf1575708684d0991869427288a120",
+      "sha256": "97f91913c3b2a9916218776d286eeaf25928d3aebbe3df60f0bf2d24d1635f6f"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "frozenSha256": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+      "sha256": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c"
+    }
+  ],
+  "imports": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/frozen/engine.mjs",
+      "sha256": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/frozen/common.mjs",
+      "sha256": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/index.ts",
+      "sha256": "76a17e2be09c743f8522a5f45868c1da84a80f107a2aae7e72b2e564bfff88b1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+      "sha256": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/plugins/index.ts",
+      "sha256": "b42974c3208fda3c9e4378b235d6d5d955f1c753c8bfb5e5dd31e22355323f0d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/index.ts",
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/index.ts",
+      "sha256": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/index.ts",
+      "sha256": "6df5a7c5c242e71e18d8a15ea87d1c6c5bcd90aa57edb529af64e147135ea9e2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/index.ts",
+      "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/index.ts",
+      "sha256": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/index.ts",
+      "sha256": "70643f22b1b47c1d6422b97d76cacf95e4e6337521f6f42e0f5f559bacbed84f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/index.ts",
+      "sha256": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/index.ts",
+      "sha256": "479c111291e2e181b3ab1a8a41905592ff71b968a691e25f21970eee089d8f29"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/index.ts",
+      "sha256": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/index.ts",
+      "sha256": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/index.ts",
+      "sha256": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/index.ts",
+      "sha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/memory/index.ts",
+      "sha256": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/real/index.ts",
+      "sha256": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/s3/index.ts",
+      "sha256": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/index.ts",
+      "sha256": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts",
+      "sha256": "290e22e36016bf206badff86e55047e8311c3c4feb1c525b9ae0807c568333ee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/overlay/index.ts",
+      "sha256": "6442f61ab61aee52a321ef91892ec4c0dc73674bb40ca9a732ffa69f7e73495e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/readonly/index.ts",
+      "sha256": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/index.ts",
+      "sha256": "b0866c13456991f05f30dd23cabcf895d92b8af89985eb88172ac3d76b3b8384"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+      "sha256": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+      "sha256": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/internal.ts",
+      "sha256": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/basic.ts",
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/filesystem.ts",
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/streams.ts",
+      "sha256": "4e2d525fc237c9d1566b57db97c9e529b01b9d41f9f9663179836b2016d3afc5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text.ts",
+      "sha256": "e49af40d9ec51c038f53235f43233af7423d661ded2886998beb5873f4bcc53c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/grep.ts",
+      "sha256": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/shell.ts",
+      "sha256": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/parser.ts",
+      "sha256": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/types.ts",
+      "sha256": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/predicates.ts",
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/execution.ts",
+      "sha256": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/find.ts",
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/sed.ts",
+      "sha256": "38fceb4869a0db8197a050de3430d5b9c5017e1606a4348d17d8004745c645a9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk.ts",
+      "sha256": "af422696809543efb470ae219774e32819124035d51a756d5761f41fa4607dc3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/rg.ts",
+      "sha256": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/index.ts",
+      "sha256": "6df6b0d7393fd2abb82b476915fc48ae333730c1e9b323a11776a3b9c2607d5f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/checksums/index.ts",
+      "sha256": "8aa42545dd80cc028bce529b0719b0af51d11bef5d7117d37ed2e773097834f4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/jq.ts",
+      "sha256": "feca27d38a096931faabe5a5449ecc65c39c8b0abbcf69d3ea73a31f729fdbac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/limits.ts",
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/chmod.ts",
+      "sha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/stat.ts",
+      "sha256": "21f4e1bd5f938f33f41ea9976fbd5b2e00fbe3a7b80cb99c8ecc03131900d860"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/mktemp.ts",
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/metadata/internal.ts",
+      "sha256": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/create.ts",
+      "sha256": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/extract.ts",
+      "sha256": "db27fa691b839849b982fecd38eb1196d1c370dc08bae500905d8b62bd533212"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/internal.ts",
+      "sha256": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/options.ts",
+      "sha256": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/index.ts",
+      "sha256": "cb0de2e91261eaf255491fe5dc2e62683ef002e07cddef5827b57527eaaf88f9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff.ts",
+      "sha256": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch.ts",
+      "sha256": "b344c6f7b0f6afaccdab75778a12c11c868d7f8bccd5d453c56e552039e619fe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/curl.ts",
+      "sha256": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/types.ts",
+      "sha256": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/transport.ts",
+      "sha256": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/values.ts",
+      "sha256": "91ac3025b6420a7a908736f1d746077f27c9f045f6be22d82a37f4a07ff9111a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/io.ts",
+      "sha256": "ef366f40b1d1d161ec0f2c18f1138daf75693ab416274bb92763ebf73899f2f1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/options.ts",
+      "sha256": "4009050c3a75daececeb2e75af46be8872d21a83c7a8132b6221b0b4d87c7a43"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/types.ts",
+      "sha256": "edd5f7cf2ed473ca33105cfe1039c3fb36ae913112d0564ea3d9b163b3c08bf4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/mount/identity.ts",
+      "sha256": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/s3/mock.ts",
+      "sha256": "f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/s3/transport.ts",
+      "sha256": "df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/webdav.ts",
+      "sha256": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/stream.ts",
+      "sha256": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/paste.ts",
+      "sha256": "39b236794d5254d3e40471d9cb867d488ab4c57c236c2730bd2640ded84d1ba5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/comm.ts",
+      "sha256": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/join.ts",
+      "sha256": "83704c0da1bcd137fedf1e90e1d922af482bcfac290bc90f6b7ef3e36b6429b0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/table-text/internal.ts",
+      "sha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/mount/comparison.ts",
+      "sha256": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/s3/authority.ts",
+      "sha256": "102a8ada61020ff65d3617cdd60fca350bff3e99f287fc0696ece04aac32b229"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/resource-id.ts",
+      "sha256": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/s3/filesystem.ts",
+      "sha256": "97f91913c3b2a9916218776d286eeaf25928d3aebbe3df60f0bf2d24d1635f6f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/filesystem.ts",
+      "sha256": "c9ab864768e430bbfbea7590071646985c6374634124f62516ec09c13d9af578"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/shell.ts",
+      "sha256": "5cb3e55c5e62adb540b41ac7ce39e8458a3a25ffb8422e6164419c1d22ef15da"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/input.ts",
+      "sha256": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/copy-identity.ts",
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/move.ts",
+      "sha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/base.ts",
+      "sha256": "91e4309ca4947fbf3ac0dd9d0dc9431d3d22d29fb66e46706290922c9feb134d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/od.ts",
+      "sha256": "dbe5312675e4ecf74d852e28ac8134be5586d8aa53d5b21a3cccc5d986213a03"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/xxd.ts",
+      "sha256": "1b78b95a9b0175e5297b988a1794310c03786df5a7aa90a4dd261e91ec765a78"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/input.ts",
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/interpreter.ts",
+      "sha256": "8f17ce0a4f886a932fdadf6bb5a66dc7a3c8ba94ef8ca98744189c65b1266053"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/parser.ts",
+      "sha256": "f099e0ba0e9cdf1d5e0250449edaa5a04b78bbba743e271d1b804ba3e456cfa9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-syntax.ts",
+      "sha256": "179754bbb74643f57f8e19b0a87c43a8793130aa4b4f8d07a4cc14cae871d4d7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-runtime.ts",
+      "sha256": "30821e08780042b3382ceedb4b133a89475938a1212ed607782e2d0e592bd35e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/shared.ts",
+      "sha256": "fec28a956be858e725811f9e83a7f325d99d3152da0231af0d619847e8e6206e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/matcher.ts",
+      "sha256": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/options.ts",
+      "sha256": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/output.ts",
+      "sha256": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/shared.ts",
+      "sha256": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/walk.ts",
+      "sha256": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/regex.ts",
+      "sha256": "23df19386627659c3a5175562a2f8eeda873b81e3dc3e78d3cf51aafa7b3b06f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/locale.ts",
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+      "sha256": "bb629885983de4169d8419c97f8d09be2ae1729841ae306675ce530cd8287d7c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/arithmetic.ts",
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/shared.ts",
+      "sha256": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/unified.ts",
+      "sha256": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-path.ts",
+      "sha256": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-envelope.ts",
+      "sha256": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-formats.ts",
+      "sha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-gnu-paths.ts",
+      "sha256": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/files.ts",
+      "sha256": "1f8d8b243f10d63ae5cccea40d1d9cfc6cb841a46bea15cc61f4a5caa70572df"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/options.ts",
+      "sha256": "3218bbcba8d3c5c113eb7f4761f81e0919e380c6f3de76b26b6a52c44ba7cd95"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/stream.ts",
+      "sha256": "573157fda5382df052ea30011ff3094ac6c838618e1272689766819777a8c9e4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/diff-format.ts",
+      "sha256": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/archive/format.ts",
+      "sha256": "4e3c6fe95a6b967cf45bfd7b6903fd2e8b568233de33182e2e5af4424b79cfe0"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/numbers.ts",
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/safejs/render.ts",
+      "sha256": "10eabbdc8d3c1f2e7c40aeafd51b15484ece05de844fcb73f2ef1aed01fe5d6e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/diff-patch/patch-gnu-reject.ts",
+      "sha256": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/args.ts",
+      "sha256": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/body.ts",
+      "sha256": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/output.ts",
+      "sha256": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/network/shared.ts",
+      "sha256": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/fs/webdav/xml.ts",
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/integrations/safejs/stats.ts",
+      "sha256": "94bb724a7281296e08ac4465979e0f9cac585e28f91fc79382650a3c60ea4824"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/encoding/shared.ts",
+      "sha256": "8a0eb870513630296a7f28d7d6867d25aba9b785365b812d740c6d7b4da3d396"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/bytes/compression/gunzip.ts",
+      "sha256": "6bf534778fa82558ae36bd96412662a8e4c4e864c0a93f15b40d1148a64f835f"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pattern.ts",
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/shell/display.ts",
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/text-programs/awk-values.ts",
+      "sha256": "6824c5348221d98f9d94c058bbe119eaa6aa1e7ca7775af8d460f358436c2d7c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/split.ts",
+      "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/structured/values.ts",
+      "sha256": "7c4334f964a1af67324d73542bbb271044cfa6c8310f7352ba1d92c12e4ac9ab"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/search/glob.ts",
+      "sha256": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425"
+    }
+  ],
+  "sourceImports": 130,
+  "changed": [],
+  "importMismatches": [],
+  "guarded": true,
+  "node": "v22.22.2",
+  "tooling": {
+    "package.json": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "node_modules/tsx/package.json": "96aee9fd252d0cc31f3c01468250961f5b338c797bc208700d7db926450c7659"
+  },
+  "runnerHashes": {
+    "replay.mjs": "e462a182ae4aad9e40ed21f708ad57cf5b98f60689bb1756f176781f9abb9537",
+    "guard.mjs": "ee3a45fd2ee2b4c64d29e208dd09a190ef00826ee7f9f5435af49104ec7c4ca3",
+    "loader.mjs": "72b15c4009662cc2ab879b6e49797fb59daa038a4b54053e103c81c54bf34dc5",
+    "frozen/engine.mjs": "0d534d17f3eb930c12f10d11df551ea31ec79ca4ce495e53bba91ab3abf95b39",
+    "frozen/common.mjs": "28e51f7bb98aaf72550a76a159d79a09fb767b5780320fc1426740fedc311061"
+  },
+  "profiles": [
+    {
+      "label": "gnu53",
+      "bash": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "bin": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+      "identities": {
+        "true": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+          "sha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6"
+        },
+        "false": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+          "sha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab"
+        },
+        "echo": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+          "sha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511"
+        },
+        "pwd": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+          "sha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2"
+        },
+        "basename": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+          "sha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b"
+        },
+        "dirname": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+          "sha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c"
+        },
+        "printf": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+          "sha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a"
+        },
+        "mkdir": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+          "sha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0"
+        },
+        "touch": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+          "sha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc"
+        },
+        "cp": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+          "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5"
+        },
+        "mv": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+          "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500"
+        },
+        "rm": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+          "sha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e"
+        },
+        "rmdir": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+          "sha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d"
+        },
+        "ln": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+          "sha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef"
+        },
+        "readlink": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+          "sha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9"
+        },
+        "realpath": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+          "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81"
+        },
+        "ls": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+          "sha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3"
+        },
+        "cat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+          "sha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96"
+        },
+        "head": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+          "sha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62"
+        },
+        "tail": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+          "sha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956"
+        },
+        "wc": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+          "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060"
+        },
+        "tee": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+          "sha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242"
+        },
+        "tr": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+          "sha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c"
+        },
+        "sort": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+          "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5"
+        },
+        "uniq": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+          "sha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184"
+        },
+        "cut": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+          "sha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d"
+        },
+        "grep": {
+          "executable": "/usr/bin/grep",
+          "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab"
+        },
+        "test": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+          "sha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53"
+        },
+        "[": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+          "sha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c"
+        },
+        "env": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+        },
+        "xargs": {
+          "executable": "/usr/bin/xargs",
+          "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213"
+        },
+        "find": {
+          "executable": "/usr/bin/find",
+          "sha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4"
+        },
+        "sed": {
+          "executable": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+          "sha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1"
+        },
+        "awk": {
+          "executable": "/usr/bin/awk",
+          "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+        },
+        "jq": {
+          "executable": "/usr/bin/jq",
+          "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+        },
+        "rg": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+          "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f"
+        },
+        "base64": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+          "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44"
+        },
+        "base32": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+          "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710"
+        },
+        "xxd": {
+          "executable": "/usr/bin/xxd",
+          "sha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161"
+        },
+        "od": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+          "sha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8"
+        },
+        "sha256sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+          "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604"
+        },
+        "sha1sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+          "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3"
+        },
+        "md5sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+          "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7"
+        },
+        "cksum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+          "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43"
+        },
+        "gzip": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+          "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c"
+        },
+        "gunzip": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+          "sha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df"
+        },
+        "zcat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+          "sha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef"
+        },
+        "diff": {
+          "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+          "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+        },
+        "patch": {
+          "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+          "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+        },
+        "chmod": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+          "sha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0"
+        },
+        "stat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+          "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+        },
+        "mktemp": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+          "sha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322"
+        },
+        "tar": {
+          "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+          "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66"
+        },
+        "paste": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+          "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc"
+        },
+        "comm": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+          "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718"
+        },
+        "join": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+          "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e"
+        },
+        "bash": {
+          "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+        },
+        "sh": {
+          "executable": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+          "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+        },
+        "curl": {
+          "executable": "/usr/bin/curl",
+          "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+        },
+        "absoluteEnv": {
+          "executable": "/usr/bin/env",
+          "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+        }
+      },
+      "version": {
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gNS4zLjAoMSktcmVsZWFzZSAoYWFyY2g2NC1hcHBsZS1kYXJ3aW4yNS40LjApCkNvcHlyaWdodCAoQykgMjAyNSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4KTGljZW5zZSBHUEx2Mys6IEdOVSBHUEwgdmVyc2lvbiAzIG9yIGxhdGVyIDxodHRwOi8vZ251Lm9yZy9saWNlbnNlcy9ncGwuaHRtbD4KClRoaXMgaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGFyZSBmcmVlIHRvIGNoYW5nZSBhbmQgcmVkaXN0cmlidXRlIGl0LgpUaGVyZSBpcyBOTyBXQVJSQU5UWSwgdG8gdGhlIGV4dGVudCBwZXJtaXR0ZWQgYnkgbGF3Lgo=",
+        "stderr": "",
+        "exitCode": 0,
+        "signal": null,
+        "reason": null
+      }
+    },
+    {
+      "label": "bash32",
+      "bash": "/bin/bash",
+      "bin": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+      "identities": {
+        "true": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/true",
+          "sha256": "b1418c18dc164ff9622139b12f67d4fff709e02845fa1f58051351576d34b3b6"
+        },
+        "false": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/false",
+          "sha256": "39732a775b1c39b47152389fb072a47a8ca54db7c2206d34d4ead71070641aab"
+        },
+        "echo": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/echo",
+          "sha256": "02aa6dce372cbc4b1a6703570fc57363e6090ff93da95f9aacbfd17ab8752511"
+        },
+        "pwd": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/pwd",
+          "sha256": "f140fb6bacb964f7a2f360711094af81657b3af858aa6c891794cb70c706e5e2"
+        },
+        "basename": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/basename",
+          "sha256": "35d9c06d9bb81a88bedf7f076f47f9c64ec1fd14e150d6fc8edb75cd885abf2b"
+        },
+        "dirname": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/dirname",
+          "sha256": "68dad0b0c12352ad85aad378544a1034329ae2ba65d7ea805c38f2b0af47593c"
+        },
+        "printf": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/printf",
+          "sha256": "6137f189a1f9235a691ac291a3946db6a7216f076369597858c8c78d5b94e95a"
+        },
+        "mkdir": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mkdir",
+          "sha256": "ac1135fd4a3493b336eb473f0a01df3b20c2ce859432f52b2adc7b5cc1e3a6a0"
+        },
+        "touch": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/touch",
+          "sha256": "b9ad7d77fc728255e22f4ae0e4ef4d4ff1e905537f9c1316f3474062689737dc"
+        },
+        "cp": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cp",
+          "sha256": "fe93071259536039cb18aa8393c86b9042f3912eca82992a3f7af1baef5fc3e5"
+        },
+        "mv": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mv",
+          "sha256": "0b546b9069ec7523a424bb5be1ff2b825f3f2ac8a12fcec0b452fdb021a11500"
+        },
+        "rm": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rm",
+          "sha256": "0ba2285521607805b1696c03d7335c482aee211db3c2432ba97231c47853325e"
+        },
+        "rmdir": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/rmdir",
+          "sha256": "592b57d91ef946d140a5a2feb472e903737ca234468a7d8dfd4197adf58dc46d"
+        },
+        "ln": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ln",
+          "sha256": "20edee25870bdc34c11394550a14600868d89b71039b8ffb11b295a308df49ef"
+        },
+        "readlink": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/readlink",
+          "sha256": "180c81ba68ad7b87bc45995c48a4fcd439f2c028a51b6e1e75355a64ed02a3c9"
+        },
+        "realpath": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/realpath",
+          "sha256": "c88d28201142f5126674d7d32cdc32f08d6dd5dbbf10b6c774e6810716067e81"
+        },
+        "ls": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/ls",
+          "sha256": "74f85d4ca750dbc20dfc498127c665d322aacea8741e76ee1cc2fe8898c029d3"
+        },
+        "cat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cat",
+          "sha256": "939e15035f639d275954e4a338e670087e5d29a66a0d7ceffca9c9c85cc0cd96"
+        },
+        "head": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/head",
+          "sha256": "a0e0db954c55629531f4f800a8a78a1ed7b0af7ccb1df718ce4ed046fba11c62"
+        },
+        "tail": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tail",
+          "sha256": "47822f1733ad19afcc0996a0446c896534a8115e85446b8771dad50fbe9e4956"
+        },
+        "wc": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+          "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060"
+        },
+        "tee": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tee",
+          "sha256": "2b16c8c18c44f37ba2d93805a32d529fa24efb5ea130b1c31cbc0d084bbf6242"
+        },
+        "tr": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tr",
+          "sha256": "4847ade75448c7834f295052a7c1dd29df2e45e61acdd4adc98db85ef8aa750c"
+        },
+        "sort": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sort",
+          "sha256": "ce2ff9ef2a8f80f2420a0a046c2bde5a40c0b9aedbf472c5560924c8aa8b54a5"
+        },
+        "uniq": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/uniq",
+          "sha256": "c0a8589d62edd484ace4278fd4bfd96c0c142b8dca59db09041012e8e42e3184"
+        },
+        "cut": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cut",
+          "sha256": "551e121c47410beb8514aa9492fa948b2f6198995bd3ea667930430baed50d8d"
+        },
+        "grep": {
+          "executable": "/usr/bin/grep",
+          "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab"
+        },
+        "test": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/test",
+          "sha256": "344f320cca86104a7e15c4335be790da3d43d73f5a7d0d3be3f8f4438b2beb53"
+        },
+        "[": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/[",
+          "sha256": "27968fdbff375de8c6796273ceb6018030b447c2f5c1da858f6c160f9f63450c"
+        },
+        "env": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/env",
+          "sha256": "1026eb36ffd2fdca6d064c0ffd6dd99ceb7bb3f49ec5e804df2c53bef372dbf0"
+        },
+        "xargs": {
+          "executable": "/usr/bin/xargs",
+          "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213"
+        },
+        "find": {
+          "executable": "/usr/bin/find",
+          "sha256": "cba00ca2fb86aaafa7f8448b2b3d94fd792d28f079562b9547425fda1fa683a4"
+        },
+        "sed": {
+          "executable": "/private/tmp/safe-bash-gnu-sed-4.9.oqztSn/sed-4.9/sed/sed",
+          "sha256": "6902b31ee223e6a4ef6c6bd9ee010c96bad43d7b39d808866fa59595d3b3cfa1"
+        },
+        "awk": {
+          "executable": "/usr/bin/awk",
+          "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+        },
+        "jq": {
+          "executable": "/usr/bin/jq",
+          "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+        },
+        "rg": {
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+          "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f"
+        },
+        "base64": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+          "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44"
+        },
+        "base32": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+          "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710"
+        },
+        "xxd": {
+          "executable": "/usr/bin/xxd",
+          "sha256": "3d0750827dbf28eac2e967b4bc9fb9a33532c99596ad0172e3fc45f2693aa161"
+        },
+        "od": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/od",
+          "sha256": "a20c3dff8309ac8025addb112432b44175684f333bd619be164000eff0718eb8"
+        },
+        "sha256sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+          "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604"
+        },
+        "sha1sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+          "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3"
+        },
+        "md5sum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+          "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7"
+        },
+        "cksum": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/cksum",
+          "sha256": "0b7f60af075d73d860c3c1f3b467856f2ff8c64da61ce0285fdd89fe3986de43"
+        },
+        "gzip": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+          "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c"
+        },
+        "gunzip": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gunzip",
+          "sha256": "4f13375fc268dcc8f94112fdcf9e2a334487e8f14a0ba1d830ba3173da3aa3df"
+        },
+        "zcat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/zcat",
+          "sha256": "92d54e643e95fe03732613bc48cf744d95bb7029779aa6be4ce1a32a58feb1ef"
+        },
+        "diff": {
+          "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/diffutils-3.12/src/diff",
+          "sha256": "f13ef516c397b0281818ffe8685aa763100b56a6549295c91849c6af937a83c9"
+        },
+        "patch": {
+          "executable": "/private/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+          "sha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00"
+        },
+        "chmod": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/chmod",
+          "sha256": "d81ce6d3d2e45ce887ed78b376ab4895252a16de0b9b669e3c858b7ff8e556c0"
+        },
+        "stat": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+          "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+        },
+        "mktemp": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/mktemp",
+          "sha256": "d2457bdef598e8119245dff116f4f11781660e243ebf01b98bbf1486d5fa7322"
+        },
+        "tar": {
+          "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+          "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66"
+        },
+        "paste": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/paste",
+          "sha256": "1916958b8ae7c602acf473b4d3c7928945394ec0598a7dc4c04ed015733c0cbc"
+        },
+        "comm": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm",
+          "sha256": "de6214ad2723e5c660d4fe2d7bcc01b1abb7604403c2ecc06ba5218544215718"
+        },
+        "join": {
+          "executable": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/join",
+          "sha256": "dc44314f9b47e818b2c0467c38813684e1a18f9a35229fd9ad55012684bd4c3e"
+        },
+        "bash": {
+          "executable": "/bin/bash",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+        },
+        "sh": {
+          "executable": "/bin/bash",
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+        },
+        "curl": {
+          "executable": "/usr/bin/curl",
+          "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+        },
+        "absoluteEnv": {
+          "executable": "/usr/bin/env",
+          "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+        }
+      },
+      "version": {
+        "stdout": "R05VIGJhc2gsIHZlcnNpb24gMy4yLjU3KDEpLXJlbGVhc2UgKGFybTY0LWFwcGxlLWRhcndpbjI1KQpDb3B5cmlnaHQgKEMpIDIwMDcgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuCg==",
+        "stderr": "",
+        "exitCode": 0,
+        "signal": null,
+        "reason": null
+      }
+    }
+  ],
+  "controls": [
+    {
+      "label": "gnu53",
+      "pass": true,
+      "argv0": "bash",
+      "stdout": "YmVuY2htYXJrfGFyZ3VtZW50fEN8VVRDfC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvZXhwYW5kZWQta2VybmVsLy5ydW4td3VPZmhiL2dudTUzL2Jpbnw1LjMuMCgxKS1yZWxlYXNlCgD/YnVpbHRpbgpmaWxlCi9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvZXhwYW5kZWQta2VybmVsLy5ydW4td3VPZmhiL2dudTUzL2Jpbi9iYXNoCjUuMy4wKDEpLXJlbGVhc2U=",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "label": "bash32",
+      "pass": true,
+      "argv0": "bash",
+      "stdout": "YmVuY2htYXJrfGFyZ3VtZW50fEN8VVRDfC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9zaGVsbC1zdHJlc3MvZXhwYW5kZWQta2VybmVsLy5ydW4td3VPZmhiL2Jhc2gzMi9iaW58My4yLjU3KDEpLXJlbGVhc2UKAP9idWlsdGluCmZpbGUKL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL3NoZWxsLXN0cmVzcy9leHBhbmRlZC1rZXJuZWwvLnJ1bi13dU9maGIvYmFzaDMyL2Jpbi9iYXNoCjMuMi41NygxKS1yZWxlYXNl",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ],
+  "counts": {
+    "currentVsFrozen": 0,
+    "denominator": 7,
+    "gnu53": {
+      "nativeVsFrozen": 7,
+      "currentVsNative": 0,
+      "denominator": 7
+    },
+    "bash32": {
+      "nativeVsFrozen": 7,
+      "currentVsNative": 0,
+      "denominator": 7
+    }
+  },
+  "rows": [
+    {
+      "id": "kernel/type/type",
+      "recipeHash": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+      "virtual": {
+        "id": 1,
+        "observation": {
+          "stdout": "Y29tbWFuZApjb21tYW5kCmZ1bmN0aW9uCg==",
+          "stderr": "",
+          "exitCode": 0,
+          "entries": {},
+          "events": [
+            {
+              "name": "type",
+              "args": [
+                "-t",
+                "printf"
+              ]
+            },
+            {
+              "name": "type",
+              "args": [
+                "-t",
+                "cat"
+              ]
+            },
+            {
+              "name": "type",
+              "args": [
+                "-t",
+                "f"
+              ]
+            }
+          ],
+          "registryEvents": [],
+          "executeMs": 2.0345839999999953,
+          "memory": {
+            "before": {
+              "rss": 119078912,
+              "heapTotal": 32276480,
+              "heapUsed": 13766264,
+              "external": 4256282,
+              "arrayBuffers": 87205
+            },
+            "after": {
+              "rss": 119275520,
+              "heapTotal": 32276480,
+              "heapUsed": 14175952,
+              "external": 4067393,
+              "arrayBuffers": 87230
+            },
+            "sampledPeak": {
+              "rss": 119275520,
+              "heapUsed": 14174600,
+              "external": 4256282
+            },
+            "processMaxRssKiB": 116496,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": true
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "raw": {
+              "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+              "stderr": "",
+              "entries": {}
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\ntype -t printf; type -t cat; f(){ :; }; type -t f",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-TozcNB",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-TozcNB",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-TozcNB/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-TozcNB",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-TozcNB",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "raw": {
+              "stdout": "YnVpbHRpbgpmaWxlCmZ1bmN0aW9uCg==",
+              "stderr": "",
+              "entries": {}
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\ntype -t printf; type -t cat; f(){ :; }; type -t f",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-s2j73K",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-s2j73K",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-s2j73K/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-s2j73K",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-s2j73K",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kernel/executable-file/executable-file",
+      "recipeHash": "5dd2479896042416025c66f25b3562f2fd783de8f9936d7a1660cab41f1d3631",
+      "virtual": {
+        "id": 2,
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IGRpcmVjdCBleGVjdXRpb24gcmVxdWlyZXMgYSBzdXBwb3J0ZWQgQmFzaCBzaGViYW5nCg==",
+          "exitCode": 126,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+            }
+          },
+          "events": [
+            {
+              "name": "./script",
+              "args": [
+                "argument"
+              ]
+            }
+          ],
+          "registryEvents": [],
+          "executeMs": 0.6062910000000272,
+          "memory": {
+            "before": {
+              "rss": 119357440,
+              "heapTotal": 32276480,
+              "heapUsed": 13981320,
+              "external": 4067879,
+              "arrayBuffers": 87268
+            },
+            "after": {
+              "rss": 119406592,
+              "heapTotal": 32276480,
+              "heapUsed": 14153208,
+              "external": 4067698,
+              "arrayBuffers": 87535
+            },
+            "sampledPeak": {
+              "rss": 119406592,
+              "heapUsed": 14152488,
+              "external": 4067879
+            },
+            "processMaxRssKiB": 116608,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "cmFuOmFyZ3VtZW50",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+              }
+            },
+            "raw": {
+              "stdout": "cmFuOmFyZ3VtZW50",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\n./script argument",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-GBcqqo",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-GBcqqo",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-GBcqqo/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-GBcqqo",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-GBcqqo",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "cmFuOmFyZ3VtZW50",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+              }
+            },
+            "raw": {
+              "stdout": "cmFuOmFyZ3VtZW50",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "cHJpbnRmICdyYW46JXMnICIkMSIK"
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\n./script argument",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-n3ghFW",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-n3ghFW",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-n3ghFW/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-n3ghFW",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-n3ghFW",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kernel/env-shebang/env-shebang",
+      "recipeHash": "938e615695b559d6f9d9dd0975dd8fa3e04af86ff48b66c3161c7a5d0ff7751a",
+      "virtual": {
+        "id": 3,
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IGxpbmUgMTogLi9zY3JpcHQ6IHVuc3VwcG9ydGVkIGludGVycHJldGVyOiAvdXNyL2Jpbi9lbnYgYmFzaAo=",
+          "exitCode": 126,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+            }
+          },
+          "events": [
+            {
+              "name": "./script",
+              "args": [
+                "argument"
+              ]
+            }
+          ],
+          "registryEvents": [],
+          "executeMs": 0.7640830000000278,
+          "memory": {
+            "before": {
+              "rss": 119455744,
+              "heapTotal": 32276480,
+              "heapUsed": 14030040,
+              "external": 4068222,
+              "arrayBuffers": 87280
+            },
+            "after": {
+              "rss": 119586816,
+              "heapTotal": 32538624,
+              "heapUsed": 14267920,
+              "external": 4067686,
+              "arrayBuffers": 87523
+            },
+            "sampledPeak": {
+              "rss": 119586816,
+              "heapUsed": 14266976,
+              "external": 4068222
+            },
+            "processMaxRssKiB": 116800,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "ZW52OmFyZ3VtZW50",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+              }
+            },
+            "raw": {
+              "stdout": "ZW52OmFyZ3VtZW50",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\n./script argument",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-RpE9ig",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-RpE9ig",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-RpE9ig/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-RpE9ig",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-RpE9ig",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "ZW52OmFyZ3VtZW50",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+              }
+            },
+            "raw": {
+              "stdout": "ZW52OmFyZ3VtZW50",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "IyEvdXNyL2Jpbi9lbnYgYmFzaApwcmludGYgJ2VudjolcycgIiQxIgo="
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\n./script argument",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-BV8Ap9",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-BV8Ap9",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-BV8Ap9/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-BV8Ap9",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-BV8Ap9",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kernel/source/source",
+      "recipeHash": "015ed7a630c4c22758ed6aebdbc33d677bf1aedcd021afc5579fd15f93e92bd0",
+      "virtual": {
+        "id": 4,
+        "observation": {
+          "stdout": "",
+          "stderr": "c291cmNlOiBjb21tYW5kIG5vdCBmb3VuZAo=",
+          "exitCode": 0,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "VkFMVUU9c291cmNlZAo="
+            }
+          },
+          "events": [
+            {
+              "name": "source",
+              "args": [
+                "script"
+              ]
+            },
+            {
+              "name": "printf",
+              "args": [
+                "%s",
+                ""
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "printf",
+              "args": [
+                "%s",
+                ""
+              ]
+            }
+          ],
+          "executeMs": 1.853334000000018,
+          "memory": {
+            "before": {
+              "rss": 119668736,
+              "heapTotal": 32538624,
+              "heapUsed": 14176656,
+              "external": 4068162,
+              "arrayBuffers": 87232
+            },
+            "after": {
+              "rss": 119701504,
+              "heapTotal": 32538624,
+              "heapUsed": 14415640,
+              "external": 4067427,
+              "arrayBuffers": 87264
+            },
+            "sampledPeak": {
+              "rss": 119701504,
+              "heapUsed": 14412280,
+              "external": 4068162
+            },
+            "processMaxRssKiB": 116912,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "c291cmNlZA==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9c291cmNlZAo="
+              }
+            },
+            "raw": {
+              "stdout": "c291cmNlZA==",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "VkFMVUU9c291cmNlZAo="
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\nsource script; printf '%s' \"$VALUE\"",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-9WWinJ",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-9WWinJ",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-9WWinJ/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-9WWinJ",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-9WWinJ",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "c291cmNlZA==",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9c291cmNlZAo="
+              }
+            },
+            "raw": {
+              "stdout": "c291cmNlZA==",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "VkFMVUU9c291cmNlZAo="
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\nsource script; printf '%s' \"$VALUE\"",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-W6dKAP",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-W6dKAP",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-W6dKAP/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-W6dKAP",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-W6dKAP",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kernel/dot/dot",
+      "recipeHash": "f98c9431e2acb4d05f000772a4bd3030d1f5026ccc54ca23d96befcd49492ef0",
+      "virtual": {
+        "id": 5,
+        "observation": {
+          "stdout": "",
+          "stderr": "LjogY29tbWFuZCBub3QgZm91bmQK",
+          "exitCode": 0,
+          "entries": {
+            "script": {
+              "type": "file",
+              "bytes": "VkFMVUU9ZG90dGVkCg=="
+            }
+          },
+          "events": [
+            {
+              "name": ".",
+              "args": [
+                "./script"
+              ]
+            },
+            {
+              "name": "printf",
+              "args": [
+                "%s",
+                ""
+              ]
+            }
+          ],
+          "registryEvents": [
+            {
+              "name": "printf",
+              "args": [
+                "%s",
+                ""
+              ]
+            }
+          ],
+          "executeMs": 1.3461670000000368,
+          "memory": {
+            "before": {
+              "rss": 119783424,
+              "heapTotal": 32538624,
+              "heapUsed": 14278064,
+              "external": 4067888,
+              "arrayBuffers": 87217
+            },
+            "after": {
+              "rss": 119947264,
+              "heapTotal": 32538624,
+              "heapUsed": 14595072,
+              "external": 4067407,
+              "arrayBuffers": 87244
+            },
+            "sampledPeak": {
+              "rss": 119947264,
+              "heapUsed": 14594176,
+              "external": 4067888
+            },
+            "processMaxRssKiB": 117136,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": true
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "ZG90dGVk",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9ZG90dGVkCg=="
+              }
+            },
+            "raw": {
+              "stdout": "ZG90dGVk",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "VkFMVUU9ZG90dGVkCg=="
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\n. ./script; printf '%s' \"$VALUE\"",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-pPcUmn",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-pPcUmn",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-pPcUmn/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-pPcUmn",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-pPcUmn",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "ZG90dGVk",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {
+              "script": {
+                "type": "file",
+                "bytes": "VkFMVUU9ZG90dGVkCg=="
+              }
+            },
+            "raw": {
+              "stdout": "ZG90dGVk",
+              "stderr": "",
+              "entries": {
+                "script": {
+                  "type": "file",
+                  "bytes": "VkFMVUU9ZG90dGVkCg=="
+                }
+              }
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\n. ./script; printf '%s' \"$VALUE\"",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-vPjl2x",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-vPjl2x",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-vPjl2x/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-vPjl2x",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-vPjl2x",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kernel/eval/eval",
+      "recipeHash": "6a2c30dc94bc450cea746bdc695646d470d3f45b73bd8fa8fa8d9fbbae73a3bb",
+      "virtual": {
+        "id": 6,
+        "observation": {
+          "stdout": "",
+          "stderr": "ZXZhbDogY29tbWFuZCBub3QgZm91bmQK",
+          "exitCode": 127,
+          "entries": {},
+          "events": [
+            {
+              "name": "eval",
+              "args": [
+                "printf \"hello %s\" \"$VALUE\""
+              ]
+            }
+          ],
+          "registryEvents": [],
+          "executeMs": 0.5227910000000975,
+          "memory": {
+            "before": {
+              "rss": 119980032,
+              "heapTotal": 32538624,
+              "heapUsed": 14421040,
+              "external": 4067811,
+              "arrayBuffers": 87206
+            },
+            "after": {
+              "rss": 119980032,
+              "heapTotal": 32538624,
+              "heapUsed": 14566680,
+              "external": 4067399,
+              "arrayBuffers": 87236
+            },
+            "sampledPeak": {
+              "rss": 119980032,
+              "heapUsed": 14565944,
+              "external": 4067811
+            },
+            "processMaxRssKiB": 117200,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "aGVsbG8gd29ybGQ=",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "raw": {
+              "stdout": "aGVsbG8gd29ybGQ=",
+              "stderr": "",
+              "entries": {}
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\nVALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-g4YvLn",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-g4YvLn",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-g4YvLn/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-g4YvLn",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-g4YvLn",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "aGVsbG8gd29ybGQ=",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "raw": {
+              "stdout": "aGVsbG8gd29ybGQ=",
+              "stderr": "",
+              "entries": {}
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\nVALUE=world; eval 'printf \"hello %s\" \"$VALUE\"'",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-EuKbl9",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-EuKbl9",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-EuKbl9/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-EuKbl9",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-EuKbl9",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kernel/parameter/parameter",
+      "recipeHash": "0206d7ab02a9bb0870ded71bd3360303cbd38415f41b34a162deb1ac78466da2",
+      "virtual": {
+        "id": 7,
+        "observation": {
+          "stdout": "",
+          "stderr": "c2hlbGw6IFVudGVybWluYXRlZCBvciB1bnN1cHBvcnRlZCBwYXJhbWV0ZXIgZXhwYW5zaW9uIGF0IG9mZnNldCA3MAo=",
+          "exitCode": 2,
+          "entries": {},
+          "events": [],
+          "registryEvents": [],
+          "executeMs": 0.3623330000000351,
+          "memory": {
+            "before": {
+              "rss": 120029184,
+              "heapTotal": 32800768,
+              "heapUsed": 14436672,
+              "external": 4067830,
+              "arrayBuffers": 87259
+            },
+            "after": {
+              "rss": 120029184,
+              "heapTotal": 32800768,
+              "heapUsed": 14499808,
+              "external": 4067626,
+              "arrayBuffers": 87463
+            },
+            "sampledPeak": {
+              "rss": 120029184,
+              "heapUsed": 14499072,
+              "external": 4067830
+            },
+            "processMaxRssKiB": 117216,
+            "sampleIntervalMs": 2
+          },
+          "capture": "native Uint8Array stdout/stderr"
+        }
+      },
+      "frozenComparison": {
+        "pass": false,
+        "assertions": [
+          {
+            "field": "stdout",
+            "pass": false
+          },
+          {
+            "field": "stderr",
+            "pass": false
+          },
+          {
+            "field": "exitCode",
+            "pass": false
+          },
+          {
+            "field": "entries",
+            "pass": true
+          }
+        ]
+      },
+      "native": {
+        "gnu53": {
+          "observation": {
+            "stdout": "YWJjOmFiYzpYYmNYYmM=",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "raw": {
+              "stdout": "YWJjOmFiYzpYYmNYYmM=",
+              "stderr": "",
+              "entries": {}
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\nVALUE=abcabc; printf '%s:%s:%s' \"${VALUE#abc}\" \"${VALUE%abc}\" \"${VALUE//a/X}\"",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-kdKlFI",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-kdKlFI",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-kdKlFI/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-kdKlFI",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53-case-kdKlFI",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/gnu53/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        },
+        "bash32": {
+          "observation": {
+            "stdout": "YWJjOmFiYzpYYmNYYmM=",
+            "stderr": "",
+            "exitCode": 0,
+            "entries": {},
+            "raw": {
+              "stdout": "YWJjOmFiYzpYYmNYYmM=",
+              "stderr": "",
+              "entries": {}
+            },
+            "reason": null,
+            "signal": null,
+            "launch": {
+              "executable": "/bin/bash",
+              "argv0": "bash",
+              "args": [
+                "--noprofile",
+                "--norc",
+                "-c",
+                "umask 022\nVALUE=abcabc; printf '%s:%s:%s' \"${VALUE#abc}\" \"${VALUE%abc}\" \"${VALUE//a/X}\"",
+                "benchmark"
+              ],
+              "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-gOIwnR",
+              "env": {
+                "PATH": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-gOIwnR",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC",
+                "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-gOIwnR/tmp"
+              },
+              "stdin": "",
+              "replacements": [
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-gOIwnR",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32-case-gOIwnR",
+                  "/fixture"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ],
+                [
+                  "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/expanded-kernel/.run-wuOfhb/bash32/bin",
+                  "/usr/bin"
+                ]
+              ]
+            }
+          },
+          "frozenComparison": {
+            "pass": true,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": true
+              },
+              {
+                "field": "stderr",
+                "pass": true
+              },
+              {
+                "field": "exitCode",
+                "pass": true
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          },
+          "currentComparison": {
+            "pass": false,
+            "assertions": [
+              {
+                "field": "stdout",
+                "pass": false
+              },
+              {
+                "field": "stderr",
+                "pass": false
+              },
+              {
+                "field": "exitCode",
+                "pass": false
+              },
+              {
+                "field": "entries",
+                "pass": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "virtualLogs": "",
+  "pids": [
+    60008,
+    60009,
+    60010,
+    60011,
+    60013,
+    60014,
+    60015,
+    60016,
+    60017,
+    60018,
+    60020,
+    60021,
+    60022,
+    60023,
+    60024,
+    60025,
+    60026,
+    60027,
+    60028
+  ],
+  "cleanup": {
+    "workspaceRemoved": true,
+    "liveChildren": 0,
+    "processGroupsAbsent": true
+  }
+}

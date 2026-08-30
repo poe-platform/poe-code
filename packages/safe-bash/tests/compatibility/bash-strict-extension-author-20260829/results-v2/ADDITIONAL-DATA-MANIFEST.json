@@ -1,0 +1,12 @@
+[
+  {
+    "path": "ADMIN-THROUGH-HANDOFF.jsonl",
+    "bytes": 13586,
+    "sha256": "e589c6679c6fbf4ff8d3563e791ae3b972f97e9c22a80749bebbbc70f4ab3c4f"
+  },
+  {
+    "path": "PUBLICATION-RECEIPT.jsonl",
+    "bytes": 268,
+    "sha256": "ee1e2f399d745f6e61ec26faf3d26f20b68920863055f28dd51735b3be44dca7"
+  }
+]

@@ -1,0 +1,506 @@
+
+> virtual-bash@0.0.0 test:contracts
+> node --import tsx --test "tests/contracts/**/*.test.ts"
+
+TAP version 13
+# Subtest: late next calls cannot dispatch commands after middleware has returned
+ok 1 - late next calls cannot dispatch commands after middleware has returned
+  ---
+  duration_ms: 1.415
+  type: 'test'
+  ...
+# Subtest: concurrent repeated next attempts execute the terminal only once
+ok 2 - concurrent repeated next attempts execute the terminal only once
+  ---
+  duration_ms: 0.25425
+  type: 'test'
+  ...
+# Subtest: middleware cancellation between layers prevents terminal execution
+ok 3 - middleware cancellation between layers prevents terminal execution
+  ---
+  duration_ms: 0.113333
+  type: 'test'
+  ...
+# Subtest: reentrant invocation has its own dispatch cursor
+ok 4 - reentrant invocation has its own dispatch cursor
+  ---
+  duration_ms: 0.096792
+  type: 'test'
+  ...
+# Subtest: middleware stacks are snapshotted and invalid runtime handlers fail loudly
+ok 5 - middleware stacks are snapshotted and invalid runtime handlers fail loudly
+  ---
+  duration_ms: 0.1635
+  type: 'test'
+  ...
+# Subtest: registries accept class-based command definitions without dropping prototype methods
+ok 6 - registries accept class-based command definitions without dropping prototype methods
+  ---
+  duration_ms: 0.150958
+  type: 'test'
+  ...
+# Subtest: registry rejects non-string names from JavaScript callers
+ok 7 - registry rejects non-string names from JavaScript callers
+  ---
+  duration_ms: 0.202708
+  type: 'test'
+  ...
+# Subtest: prototype-like names remain ordinary map keys and failed registration preserves existing entries
+ok 8 - prototype-like names remain ordinary map keys and failed registration preserves existing entries
+  ---
+  duration_ms: 0.176583
+  type: 'test'
+  ...
+# Subtest: middleware cannot finish while detached next work is still running
+ok 9 - middleware cannot finish while detached next work is still running
+  ---
+  duration_ms: 11.528083
+  type: 'test'
+  ...
+# Subtest: middleware failure drains started downstream work and preserves the original error
+ok 10 - middleware failure drains started downstream work and preserves the original error
+  ---
+  duration_ms: 0.635375
+  type: 'test'
+  ...
+# Subtest: middleware may intentionally recover from an awaited downstream error
+ok 11 - middleware may intentionally recover from an awaited downstream error
+  ---
+  duration_ms: 0.136334
+  type: 'test'
+  ...
+# Subtest: ignored downstream rejection is supervised rather than left unhandled
+ok 12 - ignored downstream rejection is supervised rather than left unhandled
+  ---
+  duration_ms: 11.969792
+  type: 'test'
+  ...
+# Subtest: registry supports explicit registration, lookup, replacement, and removal
+ok 13 - registry supports explicit registration, lookup, replacement, and removal
+  ---
+  duration_ms: 1.004
+  type: 'test'
+  ...
+# Subtest: registry snapshots definitions and does not expose its backing collection
+ok 14 - registry snapshots definitions and does not expose its backing collection
+  ---
+  duration_ms: 0.153542
+  type: 'test'
+  ...
+# Subtest: registry rejects empty, NUL, whitespace, and path-based names
+ok 15 - registry rejects empty, NUL, whitespace, and path-based names
+  ---
+  duration_ms: 0.086792
+  type: 'test'
+  ...
+# Subtest: exit statuses follow the 0 through 255 shell range
+ok 16 - exit statuses follow the 0 through 255 shell range
+  ---
+  duration_ms: 0.120708
+  type: 'test'
+  ...
+# Subtest: middleware nests in registration order and shares command state
+ok 17 - middleware nests in registration order and shares command state
+  ---
+  duration_ms: 0.232042
+  type: 'test'
+  ...
+# Subtest: middleware can short-circuit without invoking a command
+ok 18 - middleware can short-circuit without invoking a command
+  ---
+  duration_ms: 0.068541
+  type: 'test'
+  ...
+# Subtest: middleware rejects repeated next calls
+ok 19 - middleware rejects repeated next calls
+  ---
+  duration_ms: 0.18125
+  type: 'test'
+  ...
+# Subtest: middleware errors propagate and cancellation prevents dispatch
+ok 20 - middleware errors propagate and cancellation prevents dispatch
+  ---
+  duration_ms: 0.195625
+  type: 'test'
+  ...
+# Subtest: middleware dispatch state is independent for concurrent invocations
+ok 21 - middleware dispatch state is independent for concurrent invocations
+  ---
+  duration_ms: 0.268125
+  type: 'test'
+  ...
+# Subtest: plugin contract supports async setup, middleware, and filesystem factories
+ok 22 - plugin contract supports async setup, middleware, and filesystem factories
+  ---
+  duration_ms: 0.326834
+  type: 'test'
+  ...
+# Subtest: FsError exposes standard errno metadata and cause
+ok 23 - FsError exposes standard errno metadata and cause
+  ---
+  duration_ms: 0.661792
+  type: 'test'
+  ...
+# Subtest: error guards reject inherited keys and arbitrary objects
+ok 24 - error guards reject inherited keys and arbitrary objects
+  ---
+  duration_ms: 0.174458
+  type: 'test'
+  ...
+# Subtest: native errno errors normalize without losing source metadata
+ok 25 - native errno errors normalize without losing source metadata
+  ---
+  duration_ms: 0.085708
+  type: 'test'
+  ...
+# Subtest: normalization preserves FsError identity and explicitly overrides native paths
+ok 26 - normalization preserves FsError identity and explicitly overrides native paths
+  ---
+  duration_ms: 0.052208
+  type: 'test'
+  ...
+# Subtest: unknown failures use EIO and retain the original cause
+ok 27 - unknown failures use EIO and retain the original cause
+  ---
+  duration_ms: 0.109833
+  type: 'test'
+  ...
+# Subtest: errno values use Node system-error numbers and normalize the EOPNOTSUPP alias
+ok 28 - errno values use Node system-error numbers and normalize the EOPNOTSUPP alias
+  ---
+  duration_ms: 0.120709
+  type: 'test'
+  ...
+# Subtest: root exports expose committed shell, filesystem, command, and SafeJS APIs
+ok 29 - root exports expose committed shell, filesystem, command, and SafeJS APIs
+  ---
+  duration_ms: 3.959875
+  type: 'test'
+  ...
+# Subtest: FileStat identity scope is optional and opaque, preserving legacy structural compatibility
+ok 30 - FileStat identity scope is optional and opaque, preserving legacy structural compatibility
+  ---
+  duration_ms: 0.340834
+  type: 'test'
+  ...
+# Subtest: stat forwarding preserves object scope by reference without coercion
+ok 31 - stat forwarding preserves object scope by reference without coercion
+  ---
+  duration_ms: 0.106333
+  type: 'test'
+  ...
+# Subtest: symbol descriptions are not identity while the native convention shares a token
+ok 32 - symbol descriptions are not identity while the native convention shares a token
+  ---
+  duration_ms: 0.050209
+  type: 'test'
+  ...
+# Subtest: partial identity metadata remains representable and is not a complete proof
+ok 33 - partial identity metadata remains representable and is not a complete proof
+  ---
+  duration_ms: 0.041417
+  type: 'test'
+  ...
+# Subtest: rmdir is an additive optional signal-only filesystem method
+ok 34 - rmdir is an additive optional signal-only filesystem method
+  ---
+  duration_ms: 0.319833
+  type: 'test'
+  ...
+# Subtest: adding rmdir does not change the required rm contract
+ok 35 - adding rmdir does not change the required rm contract
+  ---
+  duration_ms: 0.058875
+  type: 'test'
+  ...
+# Subtest: shared invocation types structurally match the existing shell hook
+ok 36 - shared invocation types structurally match the existing shell hook
+  ---
+  duration_ms: 0.30125
+  type: 'test'
+  ...
+# Subtest: registered commands use optional invoke directly without shell-specific casts
+ok 37 - registered commands use optional invoke directly without shell-specific casts
+  ---
+  duration_ms: 3.010458
+  type: 'test'
+  ...
+# Subtest: abort remains observable after producer close while bytes are unread
+ok 38 - abort remains observable after producer close while bytes are unread
+  ---
+  duration_ms: 6.70025
+  type: 'test'
+  ...
+# Subtest: aborting a fully drained pipe does not undo successful closure
+ok 39 - aborting a fully drained pipe does not undo successful closure
+  ---
+  duration_ms: 0.282
+  type: 'test'
+  ...
+# Subtest: abort preserves the first failure and releases blocked writes and close
+ok 40 - abort preserves the first failure and releases blocked writes and close
+  ---
+  duration_ms: 0.56225
+  type: 'test'
+  ...
+# Subtest: a thrown producer can fail the pipe without dangling internal rejections
+ok 41 - a thrown producer can fail the pipe without dangling internal rejections
+  ---
+  duration_ms: 1.021208
+  type: 'test'
+  ...
+# Subtest: concurrent pipe writes preserve invocation order and snapshot mutable chunks
+ok 42 - concurrent pipe writes preserve invocation order and snapshot mutable chunks
+  ---
+  duration_ms: 5.372208
+  type: 'test'
+  ...
+# Subtest: an oversized individual chunk still flows through a small watermark
+ok 43 - an oversized individual chunk still flows through a small watermark
+  ---
+  duration_ms: 0.521375
+  type: 'test'
+  ...
+# Subtest: return and throw cancel consumers even before the first read
+ok 44 - return and throw cancel consumers even before the first read
+  ---
+  duration_ms: 0.758458
+  type: 'test'
+  ...
+# Subtest: collectBytes cancels a stalled next and does not await uncooperative cleanup
+ok 45 - collectBytes cancels a stalled next and does not await uncooperative cleanup
+  ---
+  duration_ms: 1.278625
+  type: 'test'
+  ...
+# Subtest: pipeBytes aborts a stalled sink and observes late write and cleanup failures
+ok 46 - pipeBytes aborts a stalled sink and observes late write and cleanup failures
+  ---
+  duration_ms: 0.797042
+  type: 'test'
+  ...
+# Subtest: invalid runtime byte inputs are rejected instead of coerced
+ok 47 - invalid runtime byte inputs are rejected instead of coerced
+  ---
+  duration_ms: 0.372833
+  type: 'test'
+  ...
+# Subtest: hundreds of empty, closed, and abandoned pipes settle without background errors
+ok 48 - hundreds of empty, closed, and abandoned pipes settle without background errors
+  ---
+  duration_ms: 20.807417
+  type: 'test'
+  ...
+# Subtest: successful and canceled stream helpers release their AbortSignal listeners
+ok 49 - successful and canceled stream helpers release their AbortSignal listeners
+  ---
+  duration_ms: 0.719041
+  type: 'test'
+  ...
+# Subtest: an aborted pending input can reject later without an unhandled rejection
+ok 50 - an aborted pending input can reject later without an unhandled rejection
+  ---
+  duration_ms: 0.583084
+  type: 'test'
+  ...
+# Subtest: byte limits preserve the primary error when iterator cleanup also fails
+ok 51 - byte limits preserve the primary error when iterator cleanup also fails
+  ---
+  duration_ms: 0.16075
+  type: 'test'
+  ...
+# Subtest: byte sources preserve binary bytes and UTF-8 text
+ok 52 - byte sources preserve binary bytes and UTF-8 text
+  ---
+  duration_ms: 0.941875
+  type: 'test'
+  ...
+# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation
+ok 53 - byte sources snapshot Uint8Array and Buffer inputs at creation
+  ---
+  duration_ms: 0.151167
+  type: 'test'
+  ...
+# Subtest: collectors enforce explicit byte limits and close overflowing sources
+ok 54 - collectors enforce explicit byte limits and close overflowing sources
+  ---
+  duration_ms: 0.428792
+  type: 'test'
+  ...
+# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks
+ok 55 - collectors copy reused buffers and decode UTF-8 split across chunks
+  ---
+  duration_ms: 0.245
+  type: 'test'
+  ...
+# Subtest: collectors reject pre-aborted operations
+ok 56 - collectors reject pre-aborted operations
+  ---
+  duration_ms: 0.111667
+  type: 'test'
+  ...
+# Subtest: pipes stream while the producer runs and apply byte-based backpressure
+ok 57 - pipes stream while the producer runs and apply byte-based backpressure
+  ---
+  duration_ms: 7.476583
+  type: 'test'
+  ...
+# Subtest: pipe writes take ownership through byte copies, including Buffer inputs
+ok 58 - pipe writes take ownership through byte copies, including Buffer inputs
+  ---
+  duration_ms: 0.377166
+  type: 'test'
+  ...
+# Subtest: pipe cancellation rejects blocked producers and readers
+ok 59 - pipe cancellation rejects blocked producers and readers
+  ---
+  duration_ms: 0.87625
+  type: 'test'
+  ...
+# Subtest: breaking consumption produces EPIPE for pending writers
+ok 60 - breaking consumption produces EPIPE for pending writers
+  ---
+  duration_ms: 0.475042
+  type: 'test'
+  ...
+# Subtest: returning an unread pipe releases blocked producers
+ok 61 - returning an unread pipe releases blocked producers
+  ---
+  duration_ms: 0.61975
+  type: 'test'
+  ...
+# Subtest: closed and pre-aborted pipes reject further writes
+ok 62 - closed and pre-aborted pipes reject further writes
+  ---
+  duration_ms: 0.362334
+  type: 'test'
+  ...
+# Subtest: pipe watermarks must be positive finite safe integers
+ok 63 - pipe watermarks must be positive finite safe integers
+  ---
+  duration_ms: 0.121542
+  type: 'test'
+  ...
+# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk
+ok 64 - pipeBytes awaits sink acceptance before requesting the next chunk
+  ---
+  duration_ms: 0.201166
+  type: 'test'
+  ...
+# Subtest: writeText encodes UTF-8 and propagates sink failures
+ok 65 - writeText encodes UTF-8 and propagates sink failures
+  ---
+  duration_ms: 0.179458
+  type: 'test'
+  ...
+# Subtest: relative paths are resolved in virtual root rather than leaking the host cwd
+ok 66 - relative paths are resolved in virtual root rather than leaking the host cwd
+  ---
+  duration_ms: 0.5165
+  type: 'test'
+  ...
+# Subtest: traversal and prefix lookalikes never pass lexical containment
+ok 67 - traversal and prefix lookalikes never pass lexical containment
+  ---
+  duration_ms: 0.155
+  type: 'test'
+  ...
+# Subtest: normalization is idempotent across a generated traversal corpus
+ok 68 - normalization is idempotent across a generated traversal corpus
+  ---
+  duration_ms: 1.365708
+  type: 'test'
+  ...
+# Subtest: invalid runtime errno codes cannot manufacture NaN errno metadata
+ok 69 - invalid runtime errno codes cannot manufacture NaN errno metadata
+  ---
+  duration_ms: 0.166875
+  type: 'test'
+  ...
+# Subtest: explicit error-normalization overrides work for existing FsError instances
+ok 70 - explicit error-normalization overrides work for existing FsError instances
+  ---
+  duration_ms: 0.153708
+  type: 'test'
+  ...
+# Subtest: error normalization drops wrong-shaped metadata without losing the cause
+ok 71 - error normalization drops wrong-shaped metadata without losing the cause
+  ---
+  duration_ms: 0.089042
+  type: 'test'
+  ...
+# Subtest: normalization uses virtual absolute POSIX paths, not the host cwd
+ok 72 - normalization uses virtual absolute POSIX paths, not the host cwd
+  ---
+  duration_ms: 0.429625
+  type: 'test'
+  ...
+# Subtest: invalid cwd and NUL bytes report EINVAL
+ok 73 - invalid cwd and NUL bytes report EINVAL
+  ---
+  duration_ms: 0.282125
+  type: 'test'
+  ...
+# Subtest: lexical containment checks path components rather than string prefixes
+ok 74 - lexical containment checks path components rather than string prefixes
+  ---
+  duration_ms: 0.1665
+  type: 'test'
+  ...
+# Subtest: POSIX helpers remain available without platform-specific separators
+ok 75 - POSIX helpers remain available without platform-specific separators
+  ---
+  duration_ms: 0.074
+  type: 'test'
+  ...
+# Subtest: transparent delegation preserves stdin provenance true without reading
+ok 76 - transparent delegation preserves stdin provenance true without reading
+  ---
+  duration_ms: 1.864875
+  type: 'test'
+  ...
+# Subtest: xargs replaces argument stream with implicit child default from true
+ok 77 - xargs replaces argument stream with implicit child default from true
+  ---
+  duration_ms: 0.843292
+  type: 'test'
+  ...
+# Subtest: transparent delegation preserves stdin provenance false without reading
+ok 78 - transparent delegation preserves stdin provenance false without reading
+  ---
+  duration_ms: 0.287166
+  type: 'test'
+  ...
+# Subtest: xargs replaces argument stream with implicit child default from false
+ok 79 - xargs replaces argument stream with implicit child default from false
+  ---
+  duration_ms: 0.912792
+  type: 'test'
+  ...
+# Subtest: transparent delegation preserves stdin provenance undefined without reading
+ok 80 - transparent delegation preserves stdin provenance undefined without reading
+  ---
+  duration_ms: 0.299542
+  type: 'test'
+  ...
+# Subtest: xargs replaces argument stream with implicit child default from undefined
+ok 81 - xargs replaces argument stream with implicit child default from undefined
+  ---
+  duration_ms: 0.386333
+  type: 'test'
+  ...
+# Subtest: supplied empty and exhausted streams retain nondefault provenance
+ok 82 - supplied empty and exhausted streams retain nondefault provenance
+  ---
+  duration_ms: 0.430709
+  type: 'test'
+  ...
+1..82
+# tests 82
+# suites 0
+# pass 82
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 319.19725

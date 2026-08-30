@@ -1,0 +1,19 @@
+{
+  "schema": "root-coordinated-source-acceptance-addendum-v1",
+  "date": "2026-08-29",
+  "presealSha256": "02c98960983bfeffabf43ba11d5a594c498623c2befe3a06136c12d99d2dfd17",
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "overlayCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "overlayPaths": ["src/commands/regex-execution/ere/transport/owner.ts", "src/commands/regex-execution/ere/transport/root.ts"],
+  "sourcePureAcceptance": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "inheritedReplayGroups": 16,
+  "inheritedNovelGroups": 10,
+  "coordinationAuthority": "User ROOT producer-coordination update in this preparation turn",
+  "supersedes": "Earlier ongoing-Hooke SOURCE status text in the frozen COMPOSITION/PRESEAL snapshots only; no bytes, manifests, code or test results changed",
+  "sourceDependencyRemovedForProducerPreparation": true,
+  "actual13Acceptance": "PENDING",
+  "privateT1Acceptance": "PENDING",
+  "producerIndependentReview": "REQUIRED",
+  "freshRootProducerGo": "REQUIRED BEFORE compiler/build/pack",
+  "actualCoreAuthority": false
+}

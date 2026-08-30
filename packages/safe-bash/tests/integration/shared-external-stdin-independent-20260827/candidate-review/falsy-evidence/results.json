@@ -1,0 +1,71 @@
+{
+  "label": "explicitly authorized separate postfreeze falsy cohort",
+  "rows": [
+    {
+      "id": "direct-primary-null",
+      "observed": {
+        "ok": false,
+        "reason": "null",
+        "samePrimary": true,
+        "reads": 1,
+        "returns": 1,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "direct-primary-undefined",
+      "observed": {
+        "ok": false,
+        "reason": "undefined",
+        "samePrimary": true,
+        "reads": 1,
+        "returns": 1,
+        "stdoutHex": "",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "Shell-primary-null",
+      "observed": {
+        "ok": true,
+        "reason": "undefined",
+        "samePrimary": false,
+        "exitCode": 1,
+        "reads": 1,
+        "returns": 1,
+        "stdoutHex": "",
+        "stderr": "shell: line 1: null\n"
+      },
+      "pass": true
+    },
+    {
+      "id": "Shell-primary-undefined",
+      "observed": {
+        "ok": true,
+        "reason": "undefined",
+        "samePrimary": false,
+        "exitCode": 1,
+        "reads": 1,
+        "returns": 1,
+        "stdoutHex": "",
+        "stderr": "shell: line 1: undefined\n"
+      },
+      "pass": true
+    },
+    {
+      "id": "Shell-abort-undefined-native-reason",
+      "observed": {
+        "ok": false,
+        "exactNativeReason": true,
+        "name": "AbortError",
+        "nativeDOMException": true,
+        "reads": 0,
+        "returns": 1
+      },
+      "pass": true
+    }
+  ]
+}

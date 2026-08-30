@@ -1,0 +1,16 @@
+{
+  "consultedOn": "2026-08-27",
+  "primaryOfficialDocumentation": [
+    {"url":"https://www.gnu.org/s/bash/manual/html_node/Bourne-Shell-Builtins.html","method":"web search retrieved primary documentation text before freeze","supports":"getopts startup OPTIND1, explicit argv versus positionals, reset responsibility, OPTARG, silent mode and OPTERR0","doesNotEstablish":"hidden cursor snapshot timing, readonly exceptions or exact partial-write ordering"},
+    {"url":"https://www.gnu.org/s/bash/manual/html_node/Bash-Builtins.html","method":"web search retrieved primary documentation text before freeze","supports":"command function bypass, builtin dispatcher meaning, type discovery, read assignment errors and source alias","qualification":"Native documentation does not imply the virtual shell implements every documented command; builtin/declare/typeset remain unsupported at baseline."},
+    {"url":"https://www.gnu.org/s/bash/manual/html_node/Shell-Functions.html","method":"web search retrieved primary documentation text before freeze","supports":"dynamic locals, nested visibility and restoration","doesNotEstablish":"specific getopts function-entry hidden cursor snapshot"},
+    {"url":"https://www.gnu.org/s/bash/manual/html_node/Command-Execution-Environment.html","method":"web search retrieved primary documentation text before freeze","supports":"subshell/substitution/pipeline environments and nonleaking changes","qualification":"Native lastpipe is an exception; sanitized default noninteractive profile used here, not arbitrary host shell options."}
+  ],
+  "directFetchLimitation": "An additional Node fetch of the official Bourne-Shell-Builtins page timed out with UND_ERR_CONNECT_TIMEOUT. No direct HTML body was captured by that attempt; official text was available through web search. No substitute third-party technical authority used.",
+  "localAuthority": [
+    {"path":"tests/shell/getopts/AUTHOR_HANDOFF.md","lines":"48,71","supports":"private scanner boundary, deferred adapter responsibilities, stronger readonly and ASCII policies"},
+    {"path":"tests/shell/getopts/README.md","lines":"59","supports":"root stronger readonly overrides historical unchecked-unset proposal"},
+    {"path":"tests/shell/getopts/evidence/design-v1/archive.json","embedded":"REPORT.md lines117-144,160-189,200-216; cases.json; followup-cases.json; ordering-cases.json; corresponding raw captures","supports":"prior measured Bash5.3 assignment/local/prefix/readonly/alias behavior; separate Bash3.2 differences","qualification":"Read-only prior evidence, not newly executed; documented native readonly quirk is intentionally NOT the product policy."},
+    {"path":"tests/shell/getopts-independent-20260827/REPORT.md","lines":"19,41,58","supports":"already-acknowledged Phase1 failures/corrections remain preserved, no rerun"}
+  ]
+}

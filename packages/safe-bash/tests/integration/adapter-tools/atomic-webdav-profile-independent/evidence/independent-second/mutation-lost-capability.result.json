@@ -1,0 +1,42 @@
+{
+  "name": "mutation-lost-capability",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/observe.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer",
+  "startedAt": "2026-08-27T09:14:50.401Z",
+  "finishedAt": "2026-08-27T09:14:50.612Z",
+  "status": 1,
+  "signal": null,
+  "counts": {
+    "tests": 27,
+    "pass": 12,
+    "fail": 15,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "failedRows": [
+    "hidden: configured public shell removes only exact encoded target /target",
+    "hidden: configured public shell removes only exact encoded target /space name",
+    "hidden: configured public shell removes only exact encoded target /snow-雪",
+    "hidden: configured public shell removes only exact encoded target /percent%2Fname",
+    "hidden: configured public shell removes only exact encoded target /hash\\#name",
+    "hidden: rmdir existing deep child preserves exact namespace",
+    "hidden: rm -d existing deep child preserves exact namespace",
+    "hidden: rmdir late deep child preserves exact namespace",
+    "hidden: rm -d late deep child preserves exact namespace",
+    "hidden: corrupt operation receipt errors after effect without rollback or fallback",
+    "hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback",
+    "hidden: corrupt path receipt errors after effect without rollback or fallback",
+    "hidden: corrupt outcome receipt errors after effect without rollback or fallback",
+    "hidden: actual mount contract, not fabricated capabilities",
+    "hidden: mount forwards late-child refusal and preserves sibling mount prefix"
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "observedAt": "2026-08-27T19:15:01.886Z",
+  "freezeCommit": "10291e71",
+  "sourceCommit": "157d78c957b56f83f6e705fc35da60b1f2ea3a9b",
+  "executionQualification": "Scoped current-worktree tests/types; all five owned source/test hashes equal explicit source commit. Not an archived whole-product gate.",
+  "headAtCapture": "8897ece39c730812b74164377180b90d6cd02444",
+  "sourceHashes": {
+    "src/shell/getopts.ts": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+    "tests/shell/getopts/helpers.ts": "0e0f941940b306e4ff747da0dc431f79da5eafe57c29624d384cf8d8b8fc3614",
+    "tests/shell/getopts/native.test.ts": "ff2e7fd25b24dd589e8d29e393536f7e725c99943318e9bb1ad43b7f91090710",
+    "tests/shell/getopts/scanner.test.ts": "1f5aa957a798ec64fdc2c9eba0f41ef51b1cd19bf69c08843f562ca5df35b5bb",
+    "tests/shell/getopts/work.test.ts": "a5661e0d3d3756a9101eb4d220e84791309c3e657e99a92283a887625da5561d"
+  },
+  "ownedInputsEqualSourceCommit": true,
+  "checks": [
+    {
+      "name": "tests-first",
+      "command": "TSX_DISABLE_CACHE=1 TMPDIR=<own-temp> node --import tsx --test --test-reporter=tap tests/shell/getopts/native.test.ts tests/shell/getopts/scanner.test.ts tests/shell/getopts/work.test.ts",
+      "status": 0,
+      "tests": 134,
+      "pass": 134,
+      "fail": 0,
+      "skip": 0
+    },
+    {
+      "name": "tests-committed",
+      "status": 0,
+      "tests": 134,
+      "pass": 134,
+      "fail": 0,
+      "skip": 0
+    },
+    {
+      "name": "strict-types-first-and-committed",
+      "command": "node_modules/.bin/tsc --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --skipLibCheck --types node src/shell/getopts.ts tests/shell/getopts/helpers.ts tests/shell/getopts/native.test.ts tests/shell/getopts/scanner.test.ts tests/shell/getopts/work.test.ts",
+      "status": 0,
+      "runs": 2
+    },
+    {
+      "name": "isolated-declaration-build",
+      "command": "node_modules/.bin/tsc --declaration --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --verbatimModuleSyntax --skipLibCheck --types node --rootDir src/shell --outDir <own-temp>/build src/shell/getopts.ts",
+      "status": 0
+    },
+    {
+      "name": "compiled-private-consumer",
+      "status": 0,
+      "scannerCalls": 2
+    },
+    {
+      "name": "freeze-verification",
+      "command": "node tests/shell/getopts/evidence/verify.mjs",
+      "status": 0
+    }
+  ],
+  "nativeAccounting": {
+    "archivedCaseInvocations": 124,
+    "archivedScriptsPerProfile": 62,
+    "projectedBash53ScriptCases": 17,
+    "projectionAssertions": 76,
+    "fixtureTests": 36,
+    "primaryCasesOutsideHelperCohort": 45,
+    "bash32": "preserved historical, not helper acceptance",
+    "nativeBashInvocationsThisPhase": 0,
+    "notice": "76 projection assertions are not 76 independent script runs; 124 historical native invocations are not helper/runtime passes. Author edge tests were added after the helper candidate, not claimed as blind holdouts."
+  },
+  "artifacts": {
+    "tests-first.tap": {
+      "bytes": 23984,
+      "sha256": "54700b23c3a3cd8fd51903097e4449589e35fb4252365f18da8bc15bde2db261"
+    },
+    "tests-committed.tap": {
+      "bytes": 23982,
+      "sha256": "e67e6d07e102cc1948a37f70e61ed58e28df15fc7b8499420b6da320442372ec"
+    },
+    "types-first.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "types-committed.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "compiled-consumer.json": {
+      "bytes": 628,
+      "sha256": "d4594d08403deefc7606478e71eb41a3ac39e43ba9d250b1165ec89b24ba8d49"
+    },
+    "freeze-verification.json": {
+      "bytes": 176,
+      "sha256": "2d040100940cb1d6940906f4866c643801fa462b879ac88744f580951626f0af"
+    }
+  },
+  "isolatedBuild": {
+    "outputDirectory": "/tmp/safe-bash-getopts-phase1.cntRFD/build",
+    "files": {
+      "getopts.js": "e6c92f625e233c1a6994580cba6832e21bc2f397191f7d6476325c99b867bbe0",
+      "getopts.d.ts": "25f6cef9448d16e85ba1df757fde407da5aa22df5785d4ccf4f0ae56ac58546a"
+    }
+  },
+  "preservation": {
+    "observedBefore": {
+      "src/shell/runtime.ts": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+      "src/shell/shell.ts": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "src/index.ts": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "package.json": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "AGENTS.md": "6fc4b23357522dd3c3cf20347a9d6586268fb8e42cc04f35d3cbe3e4beeac75c"
+    },
+    "observedAfter": {
+      "src/shell/runtime.ts": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+      "src/shell/shell.ts": "538f7ea1504019fcde03abc2781c1f903573243a0332033b87501804a1c4ac5c",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "src/index.ts": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2",
+      "package.json": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535",
+      "AGENTS.md": "6fc4b23357522dd3c3cf20347a9d6586268fb8e42cc04f35d3cbe3e4beeac75c"
+    },
+    "changedObservedPaths": [],
+    "wholeTreeFrozen": false,
+    "sharedDistWritesByAuthor": false,
+    "publicWiringChangesByAuthor": false,
+    "otherOwnerStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/expr-stress/fixture-output-contract-20260827/\n?? tests/commands/expr-stress/named-profile-design-20260827/\n?? tests/commands/expr-stress/repeat-history-author/candidate-bre-worker.ts.data\n?? tests/commands/expr-stress/sequencing-design-20260827/baseline-01/\n?? tests/commands/html-to-markdown-independent-20260827/audit-loader.mjs\n?? tests/commands/html-to-markdown-independent-20260827/capture-01/\n?? tests/commands/html-to-markdown-independent-20260827/consumer.mjs\n?? tests/commands/html-to-markdown-independent-20260827/execute.mjs\n?? tests/commands/html-to-markdown-independent-20260827/setup.mjs\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell/getopts/evidence/phase1-author/\n",
+    "staged": ""
+  },
+  "cleanup": {
+    "allAuthorToolChildrenSettled": true,
+    "nativeBashChildrenSpawned": 0,
+    "backgroundJobs": 0,
+    "independentAgentsSpawned": 0,
+    "temporaryBuildRetainedForAudit": true,
+    "callbacksTested": "Pending checkpoint abort, late resolution/rejection, no resumed scan; host callbacks themselves are not forcibly stopped."
+  },
+  "remaining": "Stage2 variable/name/integer/local/readonly/middleware/builtin/runtimebudget integration explicitly unimplemented. No public getopts feature or native parity claim."
+}

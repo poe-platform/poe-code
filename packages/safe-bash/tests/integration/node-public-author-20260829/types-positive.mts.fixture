@@ -1,0 +1,13 @@
+import {nodeCommands,createNodeCommands,createNodeCommand,createNodeWorkerProvider,NODE_PROFILE,NODE_ENGINE_ABI,nodeLimits,NodeProfileError,NodeUsageError,type NodeCommandsOptions,type NodeRuntimeProvider,type NodeEngineAdapter,type VirtualShellPlugin,type CommandDefinition} from 'virtual-bash';
+import {nodeCommands as subpath,type NodeCommandOptions,type NodeWorkerProviderOptions} from 'virtual-bash/commands/node';
+declare const provider: NodeRuntimeProvider;
+declare const adapter: NodeEngineAdapter;
+const options: NodeCommandsOptions={provider,replace:true,grants:{stdoutWrite:true}};
+const inherited: NodeCommandOptions=options;
+const plugin: VirtualShellPlugin=nodeCommands(options);
+const definitions: readonly CommandDefinition[]=createNodeCommands(options);
+const definition: CommandDefinition=createNodeCommand({provider});
+const workerOptions: NodeWorkerProviderOptions={entry:'file:///authorized/adapter.mjs',identity:'trusted'};
+const supplied: NodeRuntimeProvider=createNodeWorkerProvider(workerOptions);
+const same: typeof nodeCommands=subpath;
+void [adapter,inherited,plugin,definitions,definition,supplied,same,NODE_PROFILE,NODE_ENGINE_ABI,nodeLimits,NodeProfileError,NodeUsageError];

@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "jobId": "materialize-runtime",
+  "outcome": "CAPTURED",
+  "recipeRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/validation-UdOTznoL/run-2026-08-28T09-41-48.478Z-07f64989-c68e-4012-9170-50cca3afcdcd/runtime-recipe",
+  "seal": {
+    "schemaVersion": 1,
+    "kind": "YQ_DEFERRED_EXECUTOR_RECIPE",
+    "version": "yq-runtime-v2-20260828",
+    "state": "SYNTHETIC_ONLY_NO_GO",
+    "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "contractCommit": "bd471ef682d768692a682d40009a874f51e3ad68",
+    "originalSourceCommit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+    "originalEvidenceCommit": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+    "originalTreeSha256": "e04229e35902d8dd34c91c0adfbb357120312ff743ecdc9434b0d239c152db78",
+    "treeSha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878",
+    "entries": [
+      {
+        "path": ".",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "assert-capture.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 6815,
+        "sha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd"
+      },
+      {
+        "path": "authorization.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 6620,
+        "sha256": "075c713eb1dde7f0a50553d3a0f9f297813ab01dd40edee1802720627d1a1efb"
+      },
+      {
+        "path": "child.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 2141,
+        "sha256": "b7d3760b337476b75cfb66b31bc62d7cb373944f6364540a4bf61771fb3e76d6"
+      },
+      {
+        "path": "context.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 5245,
+        "sha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821"
+      },
+      {
+        "path": "execute.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1698,
+        "sha256": "8a1eff6c41e53f65747f6e15716bdfdb6a4e59125cdca767d2db28ad8bc52e18"
+      },
+      {
+        "path": "fixtures.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 5817,
+        "sha256": "4cdac53d4cccfd3970ff0d24f9a88247dc5c31857f84a5b048d1946bbb3a4dd3"
+      },
+      {
+        "path": "host.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7365,
+        "sha256": "fa7c2b3293604fac9d671bd4ff98f48297ce2c56299dc5db61b58502cc16ba76"
+      },
+      {
+        "path": "import-fence.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1230,
+        "sha256": "2ad9cd5aaf7f36f440b525679494152ceb71fbe4a5cb5457bbdb0d9dfa60cb5c"
+      },
+      {
+        "path": "integrity.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 3889,
+        "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+      },
+      {
+        "path": "inventory.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 192322,
+        "sha256": "21e650910cf1025e20684e9ba434c66d736a376644d988199c588427d5ac355a"
+      },
+      {
+        "path": "source-bindings.json",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 8421,
+        "sha256": "4acd5904bcf78688a2c7a8329d37ffcbd84a03319099bbb32d8242957d5994bc"
+      }
+    ],
+    "changes": [
+      {
+        "path": "assert-capture.mjs",
+        "beforeSha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88",
+        "afterSha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd"
+      },
+      {
+        "path": "authorization.mjs",
+        "beforeSha256": "a05fb4234c8127fc0438bd86c4175f7ec488d4f3d27c654df17458472cf83987",
+        "afterSha256": "075c713eb1dde7f0a50553d3a0f9f297813ab01dd40edee1802720627d1a1efb"
+      },
+      {
+        "path": "context.mjs",
+        "beforeSha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23",
+        "afterSha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821"
+      },
+      {
+        "path": "import-fence.mjs",
+        "beforeSha256": "332ca99b7836f557c957e0e3f2ed9abb37ea6612e98cde4d0b52e7bfba27ec9b",
+        "afterSha256": "2ad9cd5aaf7f36f440b525679494152ceb71fbe4a5cb5457bbdb0d9dfa60cb5c"
+      }
+    ],
+    "roleCounts": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "semanticPasses": 0,
+    "grantsGO": false
+  },
+  "sealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "sealPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/RECIPE-SEAL.json",
+  "productImports": 0,
+  "proofRole": "HARNESS_RECIPE_MATERIALIZATION_ONLY"
+}

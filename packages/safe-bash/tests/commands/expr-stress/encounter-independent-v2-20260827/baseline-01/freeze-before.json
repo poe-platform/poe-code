@@ -1,0 +1,18 @@
+{
+  "FREEZE.md": "482cbbc7c598f5073992e30760cc3833bda4125620c14ee12e818e42c80d9ad2",
+  "controls.mjs": "ce3fb051f688d67350ae4f0e3472e5aeb48fb1e161477cd9b744aba352f54c22",
+  "freeze.mjs": "a6b8304a06378dde5ee9eb961ebe038eaccbe466b6b100d897078eea878e81a0",
+  "freeze/controls.json": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764",
+  "freeze/manifest.json": "8797248cfb900f270f8744ee89aa6c6196dcf71a21b3e33f13aac727de62c1f3",
+  "freeze/original-cases.json": "d1892a748a9437fa253735636abf6f8d349c00d4898579d7a8b92bf0a2598314",
+  "freeze/original-driver.mjs": "3871b6fa2bf72b482910217ff0f16919e20f752b3b1862e9683c5c5247fa3613",
+  "freeze/original-receipt.json": "79f10c8d6e143798537868270d40dacad65a95f65de5824c98acc8bef1bcda5f",
+  "freeze/source-archive.b64.data": "ee0919604daa1f957cda05ea9e3a9178b3c23fe54212b01f3ae507a44f38f852",
+  "freeze/source-manifest.json": "20dc364ece8a567894a323924b2f3beebaca9bb529c53139987d7fcf448071f4",
+  "historical/accepted-product.json": "b72d2ab3e990f112984330f018f1e211ba7d47ede1a9ac16ad6e172595121dce",
+  "historical/native-controls.json": "ee13883ba3562bdf9caa9a4c75dac9aa29721505f18f8238c003b7da5da7baf3",
+  "historical/native-semantics.json": "f731ff89519429d2ab111c49ccf97deb9a7ddb258d259fcd8e48eb4cecd9593c",
+  "historical/qualified-sequencing.json": "6fd12fc992ae68bb13b76f4ede2bdd03f0757eb866c0c3caa0febf1cf2600e5c",
+  "historical/qualified-summary.json": "e7642d9cb5f2f0eebcc2db0fe9e11cac185f83f4bc2e9f69d082d34b9c20676b",
+  "nearby-driver.mjs": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe"
+}

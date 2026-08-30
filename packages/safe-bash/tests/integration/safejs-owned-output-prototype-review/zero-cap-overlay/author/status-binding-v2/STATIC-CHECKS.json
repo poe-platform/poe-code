@@ -1,0 +1,75 @@
+{
+  "at": "2026-08-27T18:33:51.932393+00:00",
+  "classification": "PREPARATION_DATA_AND_STATIC_CHECKS_ONLY",
+  "originalAuthorFiles": 88,
+  "previousRuntimeFiles": 37,
+  "newRuntimeFiles": 38,
+  "changedRuntimeFiles": 3,
+  "unchangedPreviousRuntimeFiles": 34,
+  "expectedProfileChangedFields": [
+    "status"
+  ],
+  "preservedPrivateBeforeAfterExact": true,
+  "preservedCaptureMatchesDerivedProfile": true,
+  "all271MetadataRecordsExactlyProjectToHistoricalMs": true,
+  "source213Compiled708Full940Package709IdentitiesUnchanged": true,
+  "originalSharedAndExecutionInputsBeforeAfterUnchanged": true,
+  "pythonASTParsed": [
+    "assess.py",
+    "binding.py",
+    "prepare.py",
+    "run.py",
+    "shared.py"
+  ],
+  "dataOnlyNegativeChecks": [
+    {
+      "case": "historical-status-without-additions",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "one-addition-missing",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "extra-unapproved-status-line",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "reordered-status",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "changed-head",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "changed-tree",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "changed-staging",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "changed-index",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "changed-metadata",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    },
+    {
+      "case": "changed-engine",
+      "classification": "DATA_ONLY_REJECTED_NOT_GUEST_PASS"
+    }
+  ],
+  "guestPasses": 0,
+  "newActualAttempts": 0,
+  "privateQueries": 0,
+  "nodeExecutions": 0,
+  "productImports": 0,
+  "privateEngineImports": 0,
+  "nativeOrTransportExecutions": 0,
+  "MjsSyntaxRuntimeValidation": "Not executed; exact guard-only patches and unchanged modules statically inspected; different review pending",
+  "noPromotion": true
+}

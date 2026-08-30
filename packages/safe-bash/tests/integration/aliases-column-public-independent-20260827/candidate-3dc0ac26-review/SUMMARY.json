@@ -1,0 +1,184 @@
+{
+  "verdict": "PASS scoped exact-artifact external replay; unmodified frozen driver pack REJECTED",
+  "candidate": "3dc0ac26d681badfd4db6319f2630274095c3100",
+  "candidateTree": "badd2ec61bdbfcbf977f0c682cb5683f2f6dcebe",
+  "base": "0123c83d3aae72a15621acbb29a165b97b2c6ab6",
+  "fixtureCommit": "dbceec2b9890927ea93cee3b416f78908c648cc6",
+  "sourceCommit": "cb940da68052a9f1ab7e115279900d277e051fdb",
+  "evidenceCommit": "899b3d7b8a81f094e7a7feae89f307eebade5480",
+  "ledgerCommit": "ce2729f55be7e74fd53e73833eed249e4a8f9b1e",
+  "assemblyPaths": [
+    {
+      "path": "README.md",
+      "blob": "b1b345bbd64a3820c66c8b9fc9b73eca958d7e81",
+      "source": "cb940da68052a9f1ab7e115279900d277e051fdb",
+      "sourceBlob": "b1b345bbd64a3820c66c8b9fc9b73eca958d7e81",
+      "candidateBlob": "b1b345bbd64a3820c66c8b9fc9b73eca958d7e81",
+      "sha256": "8f81df57dd131aec4d431ab38eae937cc354edacee7576a63d765a541b599c08"
+    },
+    {
+      "path": "package.json",
+      "blob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "source": "cb940da68052a9f1ab7e115279900d277e051fdb",
+      "sourceBlob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "candidateBlob": "c821769405cc40b17eb2fcec860a97728f128268",
+      "sha256": "691426f4934c471d2a76d49675f3fc19f3ddc47c8aa63cc38671d899a09c4535"
+    },
+    {
+      "path": "src/index.ts",
+      "blob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "source": "cb940da68052a9f1ab7e115279900d277e051fdb",
+      "sourceBlob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "candidateBlob": "efa79f233dde5b62e7044e528b0fc2426e2fe065",
+      "sha256": "496b64711dde0f614723e7006a6b1a7e6bce57f45ec255c6134c1292584316e2"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "blob": "73fb9823f19d30be8b1e048be7f64c447354ec27",
+      "source": "cb940da68052a9f1ab7e115279900d277e051fdb",
+      "sourceBlob": "73fb9823f19d30be8b1e048be7f64c447354ec27",
+      "candidateBlob": "73fb9823f19d30be8b1e048be7f64c447354ec27",
+      "sha256": "b0b7fbbf0aa36b7998c760f0e3ec5ee7dbaf18e929b6c2fb434f7ea62a2f082d"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/consumer.mts",
+      "blob": "4bba5d9ff40d2f5fd14977ac3b15190fbe0ba48d",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "4bba5d9ff40d2f5fd14977ac3b15190fbe0ba48d",
+      "candidateBlob": "4bba5d9ff40d2f5fd14977ac3b15190fbe0ba48d",
+      "sha256": "b08279ec82bdb6d9152b8cea1ebc2bac6f5b8baa748de07a37b43589b47d5e8d"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "blob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+      "candidateBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+      "sha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0"
+    },
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "blob": "14f1fa83c57add1e71b1b8bc44ca66c390b9330b",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "14f1fa83c57add1e71b1b8bc44ca66c390b9330b",
+      "candidateBlob": "14f1fa83c57add1e71b1b8bc44ca66c390b9330b",
+      "sha256": "a0f7e8f8972eb59047b803a7bea10d584d84eeb882549d5e773923746835ba54"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/FIXTURE_CORRECTION.md",
+      "blob": "edcf693fb27a3535bbd07d4c0dc78a042e27a201",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "edcf693fb27a3535bbd07d4c0dc78a042e27a201",
+      "candidateBlob": "edcf693fb27a3535bbd07d4c0dc78a042e27a201",
+      "sha256": "7a9dd3c08e1e91e6f3d661baf6e540796d6d454423d204f2dba9e131a6d8e5cf"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/MIGRATION.md",
+      "blob": "d7740017b35f875c5cdadeaf8618edef1a5be84d",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "d7740017b35f875c5cdadeaf8618edef1a5be84d",
+      "candidateBlob": "d7740017b35f875c5cdadeaf8618edef1a5be84d",
+      "sha256": "e79634d93f839530402d69d6965027c98a64bf2cc06d70de4181fe84c5cd62f8"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/consumer.ts.fixture",
+      "blob": "61a4951639387c71335269405d405c44ed24c2da",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "61a4951639387c71335269405d405c44ed24c2da",
+      "candidateBlob": "61a4951639387c71335269405d405c44ed24c2da",
+      "sha256": "066df4d8c88dfe7d783dd91b50f2337360d46ffd3077eb605b6f611be0b830cd"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/negative.ts.fixture",
+      "blob": "5714f499f994cae08049a6d446aa55909f4302d4",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "5714f499f994cae08049a6d446aa55909f4302d4",
+      "candidateBlob": "5714f499f994cae08049a6d446aa55909f4302d4",
+      "sha256": "c4c2dc05e373fee19223c56ee98b0b6115cfc06bd3e68a1db505f74b1a78311d"
+    },
+    {
+      "path": "tests/plugins/aliases-column-public-author/verify.mjs",
+      "blob": "8f0de2e14e1c22e135f73e1a51244ac3083dfd54",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "8f0de2e14e1c22e135f73e1a51244ac3083dfd54",
+      "candidateBlob": "8f0de2e14e1c22e135f73e1a51244ac3083dfd54",
+      "sha256": "94bb2b8e05997740fde45656374f7048b415424f60356941c68c8117efb9f178"
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
+      "blob": "7d245724e4624bb00c7cabafed9dfc7abce3a1a0",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "7d245724e4624bb00c7cabafed9dfc7abce3a1a0",
+      "candidateBlob": "7d245724e4624bb00c7cabafed9dfc7abce3a1a0",
+      "sha256": "5689b93155a0c198181dbb401615748b11ac230a514d30a35a1a4618244fe59a"
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/registry.test.ts",
+      "blob": "080a9ec4c2f1f449c062c26521347a4e7a2dac6a",
+      "source": "0bd5c20bd19b3993e2ec9eb48b2a00dcd9ffba44",
+      "sourceBlob": "080a9ec4c2f1f449c062c26521347a4e7a2dac6a",
+      "candidateBlob": "080a9ec4c2f1f449c062c26521347a4e7a2dac6a",
+      "sha256": "dd02da645bf5a0793b1cfbbd79415012fcb1faf2f12bf134df5574f4aa12b13a"
+    }
+  ],
+  "pack": {
+    "status": "PASS",
+    "supplied": "994dca37308937059b1adacade54f24bd8227589ad65c46c7f4fb661c702c9d5",
+    "independentlyRebuilt": "994dca37308937059b1adacade54f24bd8227589ad65c46c7f4fb661c702c9d5",
+    "expected": "994dca37308937059b1adacade54f24bd8227589ad65c46c7f4fb661c702c9d5"
+  },
+  "frozenDriver": {
+    "status": "PASS",
+    "runtime": {
+      "passed": 56,
+      "failed": 0
+    },
+    "pack": "40fe53856586ee115446591c6afb2f0d05c38d3e3302f89f84aa323ba936c8d9",
+    "artifactAdmission": "REJECTED",
+    "reason": "omits candidate README.md from archive; exact tarball bytes differ"
+  },
+  "exactReplay": {
+    "runtime": {
+      "passed": 56,
+      "failed": 0
+    },
+    "positiveTypes": "PASS",
+    "negativeTypeLines": 13,
+    "loads": 181,
+    "workers": 33,
+    "controls": {
+      "missingExports": 3,
+      "poisonedSourceFallback": 1,
+      "deniedDirectSourceRead": 1,
+      "removedWorkerLayout": 1,
+      "invalidTypeLines": 13,
+      "wrongOutput": "55 pass / 1 intentional failure",
+      "manifestMutations": 22,
+      "inventories": "source/installed/fixture unchanged including added entries"
+    }
+  },
+  "supplemental": {
+    "grep": {
+      "passed": 4,
+      "failed": 0
+    },
+    "loads": 181,
+    "workers": 4,
+    "namedTypes": "PASS",
+    "nestedReplaceNegativeLines": 2
+  },
+  "rawArchive": {
+    "bytes": 7296739,
+    "sha256": "3f4dc4918bb19fad05f97d281c9d532e5bd9f0b106a47177e7aba4bc01b3ec85"
+  },
+  "sourceBugs": [],
+  "fixtureDiscrepancies": [
+    "Unmodified dbceec2b runner excludes README.md from source archive and therefore cannot produce the required exact npm artifact. Its tar extraction is not npm install. Original failure of artifact admission preserved; separate external harness performs actual offline npm install of independently rebuilt exact artifact and executes byte-identical frozen consumer/cases and all controls."
+  ],
+  "limitations": [
+    "No whole-project gate, module re-audit, provider acceptance, broad parity, superiority or duration claim.",
+    "Workers have selected-entry hashes/readiness/exits, not complete in-worker load traces.",
+    "No claim unmodified frozen driver has accepted the exact artifact.",
+    "Supplemental named-type and nested replace checks and grep checks are new independent cases, not frozen cases."
+  ]
+}

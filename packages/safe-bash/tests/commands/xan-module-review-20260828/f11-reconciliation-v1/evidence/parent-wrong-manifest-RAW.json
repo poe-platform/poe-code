@@ -1,0 +1,15 @@
+{
+  "id": "parent-wrong-manifest",
+  "state": "HOLD",
+  "exitCode": 1,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "A01_HOLD_DEPENDENTS: receipt manifest\n+ actual - expected\n\n+ 'wrong'\n- 'be29dce60f7d3f40ad4db46758333dde738d5d4d390d7340a1d5fa44e7833db5'\n"
+  }
+}

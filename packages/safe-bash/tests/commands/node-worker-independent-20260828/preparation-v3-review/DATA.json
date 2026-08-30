@@ -1,0 +1,540 @@
+{
+  "schema": "different-public-worker-v3-review-v1",
+  "date": "2026-08-28",
+  "subject": "10f498874769e4c37d3648f5e9b657414218a4f1",
+  "authorEvidence": {
+    "commit": "f90e63c1028285c4d720332f0fdb79d704bbaa73",
+    "sha256": "2d9561dc7c0ed30a6d56f553a7f1d4e88b6aa9efba81b85ead6a3fe512eb4ff7"
+  },
+  "preseal": "ea41dd05",
+  "controlSeal": "d5d65de9",
+  "inputInventory": [
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/CASES.json",
+      "blob": "73f7b3e1018815fed8e5723e855457a1a8a24296",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/CONTROL-RECIPES.json",
+      "blob": "5046819f3346a446b929d6d3be2af147da30d2d3",
+      "bytes": 1200,
+      "sha256": "45bce8df81b2cd1e701b3febcac31e2db2f3e4a16ef0a328a67ad7ec33e0e0f9"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/EMISSION-RECIPE.json",
+      "blob": "df13a28d4f4230f447e3a9fe44bba3ab10cf3c11",
+      "bytes": 19450,
+      "sha256": "f6d03ca85f7b6c35983681844ebc714cd870261acca9f0011fb97ba131e4cbe1"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/FINDINGS.json",
+      "blob": "eb8c7de6a1dc928b601ac320a883e8d307d21656",
+      "bytes": 2938,
+      "sha256": "dc0914109fa998d5ab9ba31a3ec06d636c8f2c7823586f15d0af6abd142cbb57"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/GRANT.template.json",
+      "blob": "17977ec42262f8fa59076f577f3865eb5a9f3487",
+      "bytes": 293,
+      "sha256": "865899eab7d23fd9755b0d6ffdfa5822d2c1c13bddfd34e7751ea770553ee65e"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/GRAPH.json",
+      "blob": "f6900cd228e6c25d66740e9b19fa25dec2fff39a",
+      "bytes": 109284,
+      "sha256": "032eae1e06ba116dc5d5b4718fd7bc7f38729688fae9ee32d8d6998a0d224e8c"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/HANDOFF.md",
+      "blob": "e80568d0129f93c26d29bd885ff21b185f62f9c0",
+      "bytes": 1857,
+      "sha256": "16d866b18f0d2c1aef6daf3b3c09f6e96d07a4a5fde519064facfa4590f4fda1"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/MODULES.json",
+      "blob": "16163b75f2f5bcaa4e3589aaa9b36bfd6b60b11e",
+      "bytes": 659,
+      "sha256": "6f9dfb5dca83f8b0972c97a62bf1ab78dbfbfbaf14f94864af15a22337592c5a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/NETWORK.json",
+      "blob": "e8f7fa40d41054e9d2cd0d8a0d4da3a3872c56c3",
+      "bytes": 10032,
+      "sha256": "2788fe398704cafc20e7bd99ab826258658ddb283780c82acb56e362291a5fcf"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/PRESEAL.md",
+      "blob": "30ab4aea00f60851c0cfc67dcc0db7e87db50a46",
+      "bytes": 2534,
+      "sha256": "2e0ca5565625be1e6babbdfc2d1b6dc8d3d9d9633657d1cc1d34e5ad2344f693"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/PROFILE.json",
+      "blob": "75c0e2016cd9c950bc8a3a0c2f574b0757590c27",
+      "bytes": 2627,
+      "sha256": "0cf471d43d17fccef23ac92a7470cc67ebd0f0d43508c8827eda01de24bcf054"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/PUBLIC98.json.gz.base64",
+      "blob": "124d54245059f2ef5828a4841a4a0452efb0f291",
+      "bytes": 461669,
+      "sha256": "8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/SEAL.json",
+      "blob": "eba5496571a38ff168a7dacdc99472b7cdfa7426",
+      "bytes": 3700,
+      "sha256": "6a0895adf3382a8f9845938fb873902adf93b90a12053115ce2aece92e4a99eb"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/SOURCES.json",
+      "blob": "82db292b0868db63e324150226555889048e8ee6",
+      "bytes": 19681,
+      "sha256": "2c9bd07ec2fe0a23c17b3a272a0251aab9f83da54d8cbb683b2b61df44ff9fb1"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/TOOL-AUTH.json",
+      "blob": "daaef8481561059ab31c591d5ec3abcdafec0f62",
+      "bytes": 904,
+      "sha256": "57cbe6e4c25c9726a2b431b3968882a52bc90b826e871ffe8a681b06c0843dc6"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/TOOLS.json",
+      "blob": "9e585c737e5e854a07cd2c2728add3736357e657",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/compile-entry.mjs",
+      "blob": "139c4b0aa315ea348d6722ebf45ec19f00b94146",
+      "bytes": 2926,
+      "sha256": "5ea1dd1628449d93edf4394bb2ec5fff4cdcc30023325634bdde5fdb9e0ea92d"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/errors.mjs",
+      "blob": "1335d6691ad4eba9944c860c7e234cbf4d6d5478",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/fixtures.mjs",
+      "blob": "10faf0e6a58037dbbb2be6cfadb6f398006f8cc1",
+      "bytes": 3353,
+      "sha256": "305515267d5ceefc8b7e41021c28e33194460927173f9e4beb9aed9f76fd0092"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/heap-worker.mjs",
+      "blob": "8de10fb12c289893359207acb615656c2875d662",
+      "bytes": 323,
+      "sha256": "73d3c0d28889726ffd2d743a82ed5b1dd01d43327d9b7ad4ebd767d638c69165"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/inputs/errors.ts.data",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/json-size.mjs",
+      "blob": "f1b5b49b1f94e0f01f0920472fdfc9f43646e651",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/load-guard.mjs",
+      "blob": "7a1b4cbc1e0dd0fdd4ff647a2e5e889dc0d87c3b",
+      "bytes": 3278,
+      "sha256": "4988195c30d0310171e72405cfd94161180ad7c8ce0bcb8dd8834a28315cbbcf"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/owner.mjs",
+      "blob": "eda957e8129f6f410d8d4120692cbdddf42ca4ed",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/parent-entry.mjs",
+      "blob": "e898b33bdd541bf980ba8527cddc1488e5081d0c",
+      "bytes": 3148,
+      "sha256": "fa5c6e5ed0403180a7ef385b9b7ca74bca593cf6d94bce0c95e69257a2cb5a84"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/parent-rpc.mjs",
+      "blob": "89f9dc5a4e6e94ceefeaa699ffb3d62497adcef3",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/reservations.mjs",
+      "blob": "6d099918da8b9d441fa8d427c89efa535fd8021d",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/scaffold.guest.js.data",
+      "blob": "7a2975ef95bc611f2d9cb6dd46d10f8bcddab68b",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/supervisor.mjs",
+      "blob": "5a2c77dfdac39a09d92dddf367de0ad9466e77bb",
+      "bytes": 5861,
+      "sha256": "68285fa3ee4996d7182772d7359cd6cef55c3b05864e5e8f475aa8720a7e4bbd"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/sync-bridge.mjs",
+      "blob": "e18f068e6c02900e130ed75a99aaf44e39e35698",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/wire.mjs",
+      "blob": "df294d62ee85308daa7dc59bbc6ce8d640ada069",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/worker-body.mjs",
+      "blob": "a00a39765e2375a9d5ecce352b2e77e918050fe0",
+      "bytes": 1977,
+      "sha256": "b19c45e3938e6c9d782cebd139f00361e98007b6ada1d3929d5e3ddeb1eea98e"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v3/worker-entry.mjs",
+      "blob": "05a3625d57adede137c96cc4015fda5b9af32756",
+      "bytes": 151,
+      "sha256": "f53d1bc9d746243e4eb9c229d0c61ebf637f29892ed346e735920fcfcf36bf0b"
+    }
+  ],
+  "public": {
+    "archiveSha256": "8a65517b0105b3fbfb9337eda671442fa6c44d6b00185b98199ca05f17c2e637",
+    "count": 98,
+    "trees": 15,
+    "declaredEdges": 321,
+    "recomputedAll": 94,
+    "recomputedRuntime": 93,
+    "typeQueries": 18,
+    "emissionInputs": 95,
+    "compilerExecutions": 0
+  },
+  "toolChecks": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+      "bytes": 9112572,
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+      "bytes": 3620,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  ],
+  "initialDataFailure": {
+    "check": "graph every edge resolves to source",
+    "observed": 9,
+    "rootCause": "reviewer predicate incorrectly included authenticated node builtin edges",
+    "qualification": "initial failure preserved; corrected predicate accepts only category=builtin plus node: specifier and null target"
+  },
+  "synthetic": {
+    "kind": "synthetic-helper-child",
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "{\"qualification\":\"actual five frozen helpers; synthetic owner/provider; zero Worker/engine/compiler/guest\",\"results\":[{\"id\":\"S1a\",\"pass\":true},{\"id\":\"S1b\",\"pass\":true},{\"id\":\"S1c\",\"pass\":true},{\"id\":\"S2a\",\"pass\":true},{\"id\":\"S2b\",\"pass\":true},{\"id\":\"S3a\",\"pass\":true},{\"id\":\"S4a\",\"pass\":true},{\"id\":\"S4b\",\"pass\":true},{\"id\":\"S4c\",\"pass\":true},{\"id\":\"S6a\",\"pass\":true}]}\n",
+    "stderr": "",
+    "stdoutSha256": "d80ec30b569271e9e68935a42a2d8976209d9011e0e2e66a90518b0b5b9ed41a",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inputManifest": [
+      {
+        "path": "parent-rpc.mjs",
+        "bytes": 9267,
+        "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+      },
+      {
+        "path": "wire.mjs",
+        "bytes": 10371,
+        "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+      },
+      {
+        "path": "errors.mjs",
+        "bytes": 2257,
+        "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+      },
+      {
+        "path": "json-size.mjs",
+        "bytes": 1709,
+        "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+      },
+      {
+        "path": "reservations.mjs",
+        "bytes": 919,
+        "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+      },
+      {
+        "path": "controls.mjs",
+        "bytes": 8330,
+        "sha256": "73c3c17cb973b6f63c6607a5af4539fc9df91727eec03c5dbbef056ac7cfb0cf"
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/vb-wrq-v3-review-vUGvoQ",
+    "files": [
+      "controls.mjs",
+      "errors.mjs",
+      "json-size.mjs",
+      "parent-rpc.mjs",
+      "reservations.mjs",
+      "stderr.raw",
+      "stdout.raw",
+      "wire.mjs"
+    ],
+    "childSettled": true,
+    "signal": null,
+    "rootAbsent": true
+  },
+  "sourceOnly": [
+    "S5a",
+    "L08a",
+    "owner.mjs",
+    "actual public bridge",
+    "compiled FsError",
+    "all Worker lifecycle"
+  ],
+  "missingWorkerBuiltins": [
+    "node:util",
+    "node:async_hooks",
+    "node:fs/promises",
+    "node:path"
+  ],
+  "compilerDiagnosticSource": {
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "line": 145427,
+    "byteOffset": 6739704
+  },
+  "childrenBeforeEvidence": [
+    {
+      "role": "initial live AGENTS read",
+      "executable": "/bin/cat",
+      "status": 0
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "role": "preseal apply_patch tool",
+      "status": 0,
+      "conservativeOSSlots": 2
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "add",
+        "--",
+        "tests/commands/node-worker-independent-20260828/preparation-v3-review/PRESEAL.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "commit",
+        "--only",
+        "-m",
+        "test(node): seal PUBLIC Worker preparation-v3 review",
+        "--",
+        "tests/commands/node-worker-independent-20260828/preparation-v3-review/PRESEAL.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 689,
+      "stdoutSha256": "d1def13e5a37f68a1da4f72e86e629851e6fc2b6173ed4c330634787179e1768",
+      "stderr": ""
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "ls-tree",
+        "-r",
+        "-z",
+        "10f498874769e4c37d3648f5e9b657414218a4f1",
+        "--",
+        "tests/commands/node-worker-experiments-20260828/preparation-v3"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 4324,
+      "stdoutSha256": "3b599bc56a0ee1d5ae6beb4336e3041bbb91046f588c1c7bfad72ec733843158",
+      "stderr": ""
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 712358,
+      "stdoutSha256": "e161fed942d7d4a17286f53ae65f0477faf3723702f02a8aff2b372abeb011c7",
+      "stderr": ""
+    },
+    {
+      "kind": "apply_patch-control-admission",
+      "conservativeOsSlots": 2,
+      "status": 0
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "add",
+        "--",
+        "tests/commands/node-worker-independent-20260828/preparation-v3-review/CONTROL-ADMISSION.md",
+        "tests/commands/node-worker-independent-20260828/preparation-v3-review/controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "commit",
+        "--only",
+        "-m",
+        "test(node): preseal bounded v3 helper controls",
+        "--",
+        "tests/commands/node-worker-independent-20260828/preparation-v3-review/CONTROL-ADMISSION.md",
+        "tests/commands/node-worker-independent-20260828/preparation-v3-review/controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 798,
+      "stdoutSha256": "cd63d94ff8cdcc90644105206f1a4c5091f778fcfd8985cd95eb22ef9e0817d4",
+      "stderr": ""
+    },
+    {
+      "kind": "synthetic-helper-child",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "{\"qualification\":\"actual five frozen helpers; synthetic owner/provider; zero Worker/engine/compiler/guest\",\"results\":[{\"id\":\"S1a\",\"pass\":true},{\"id\":\"S1b\",\"pass\":true},{\"id\":\"S1c\",\"pass\":true},{\"id\":\"S2a\",\"pass\":true},{\"id\":\"S2b\",\"pass\":true},{\"id\":\"S3a\",\"pass\":true},{\"id\":\"S4a\",\"pass\":true},{\"id\":\"S4b\",\"pass\":true},{\"id\":\"S4c\",\"pass\":true},{\"id\":\"S6a\",\"pass\":true}]}\n",
+      "stderr": "",
+      "stdoutSha256": "d80ec30b569271e9e68935a42a2d8976209d9011e0e2e66a90518b0b5b9ed41a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputManifest": [
+        {
+          "path": "parent-rpc.mjs",
+          "bytes": 9267,
+          "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+        },
+        {
+          "path": "wire.mjs",
+          "bytes": 10371,
+          "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+        },
+        {
+          "path": "errors.mjs",
+          "bytes": 2257,
+          "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+        },
+        {
+          "path": "json-size.mjs",
+          "bytes": 1709,
+          "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+        },
+        {
+          "path": "reservations.mjs",
+          "bytes": 919,
+          "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+        },
+        {
+          "path": "controls.mjs",
+          "bytes": 8330,
+          "sha256": "73c3c17cb973b6f63c6607a5af4539fc9df91727eec03c5dbbef056ac7cfb0cf"
+        }
+      ]
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "ls-tree",
+        "-rz",
+        "f90e63c1028285c4d720332f0fdb79d704bbaa73",
+        "--",
+        "tests/commands/node-worker-experiments-20260828/preparation-v3/evidence"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "show",
+        "--format=fuller",
+        "--stat",
+        "--oneline",
+        "f90e63c1028285c4d720332f0fdb79d704bbaa73"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 171,
+      "stdoutSha256": "63060d432aa1d32021033167c40f36e9e4a160a348fe1982de3e8a36977fbba0",
+      "stderr": ""
+    },
+    {
+      "role": "git metadata",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 1509,
+      "stdoutSha256": "7dc70d0eb1278789eeb99032dc887c8bc617c646feb7c7654464c9dfcf4fba36",
+      "stderr": ""
+    }
+  ],
+  "accounting": {
+    "elapsedMs": 778004,
+    "logicalDataBytes": 134048934,
+    "captureMeasuredBytes": 7398,
+    "captureConservativeUpperBound": 4194304,
+    "workConservativeUpperBound": 167772160,
+    "ownedLaunchRecordsBeforeEvidence": 14,
+    "conservativeOsSlotsBeforeEvidence": 16,
+    "remainingReservedOsSlots": 6,
+    "maximumTotalOsSlots": 24,
+    "peakConservative": 3,
+    "actualSyntheticChildren": 1,
+    "workerEngineCompilerGuestPrivateNetwork": 0,
+    "qualification": "Reused Node REPL tool coordinator not counted as newly owned child; shell/apply_patch wrapper slots conservatively included; final evidence patch/add/commit/status reserved."
+  }
+}

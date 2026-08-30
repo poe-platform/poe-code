@@ -1,0 +1,24 @@
+{
+  "schema": "k08-harness-v2-final-controls",
+  "sourceSeal": {
+    "bytes": 199109,
+    "sha256": "76f316ee62182275a84485f86c39b39abd44aac7134577aaa1d749f970f3220a"
+  },
+  "controls": {
+    "code": 0,
+    "signal": null,
+    "stdout": "{\"schema\":\"k08-harness-v2-data-results\",\"groups\":[{\"id\":\"B1-01\",\"pass\":true},{\"id\":\"B1-02\",\"pass\":true},{\"id\":\"B1-03\",\"pass\":true},{\"id\":\"B1-04\",\"pass\":true},{\"id\":\"B1-05\",\"pass\":true},{\"id\":\"B1-06\",\"pass\":true},{\"id\":\"B2-07\",\"pass\":true},{\"id\":\"B2-08\",\"pass\":true},{\"id\":\"B2-09\",\"pass\":true},{\"id\":\"B2-10\",\"pass\":true},{\"id\":\"B3-11\",\"pass\":true},{\"id\":\"B3-12\",\"pass\":true},{\"id\":\"B3-13\",\"pass\":true},{\"id\":\"B4-14\",\"pass\":true},{\"id\":\"B4-15\",\"pass\":true},{\"id\":\"B4-16\",\"pass\":true}],\"syntaxOnlyFiles\":[\"auth.mjs\",\"direct-child.mjs\",\"collector-core.mjs\",\"preauth.mjs\",\"helper-driver.mjs\",\"case-adapter.mjs\",\"target-owner.mjs\",\"collector.mjs\",\"case-driver.mjs\",\"activation.mjs\",\"qualification.mjs\",\"controls.mjs\",\"fixture-owner.mjs\"],\"productCalls\":0,\"harmlessLifecycleFixtures\":0,\"qualification\":\"PURE DATA/syntax, not actual child timing or product execution\"}\n",
+    "stderr": "(node:78540) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+  },
+  "fixture": {
+    "code": 0,
+    "signal": null,
+    "stdout": "{\"schema\":\"k08-harness-v2-owned-drain-fixture\",\"row\":{\"id\":\"harmless-owned-drain\",\"events\":[{\"name\":\"capture-open\",\"at\":1788016461328},{\"name\":\"listeners-enrolled\",\"at\":1788016461330},{\"name\":\"spawn\",\"at\":1788016461330},{\"name\":\"stderr-end\",\"at\":1788016463585},{\"name\":\"stdout-end\",\"at\":1788016463585},{\"name\":\"exit\",\"at\":1788016463586},{\"name\":\"close\",\"at\":1788016463586}],\"exit\":true,\"close\":true,\"stdoutEOF\":true,\"stderrEOF\":true,\"captures\":[{\"kind\":\"stdout\",\"bytes\":6,\"sha256\":\"3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5\",\"base64\":\"UkVBRFkK\",\"flushed\":true,\"closed\":true},{\"kind\":\"stderr\",\"bytes\":0,\"sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"base64\":\"\",\"flushed\":true,\"closed\":true}],\"signals\":[{\"signal\":\"SIGTERM\",\"at\":1788016461577,\"returned\":true},{\"signal\":\"SIGKILL\",\"at\":1788016463582,\"returned\":true}],\"forced\":true,\"capturesQualified\":true,\"knownOutstanding\":0,\"pid\":78639,\"status\":null,\"signal\":\"SIGKILL\",\"primaryPresent\":true,\"primary\":{\"kind\":\"number\",\"value\":0},\"secondary\":[],\"qualified\":false,\"finished\":1788016463600},\"primaryPresent\":true,\"primaryIsZero\":true,\"ledger\":{\"starts\":1,\"maximum\":1,\"active\":0,\"stopped\":true,\"captureBytes\":6,\"captureMaximum\":65536,\"rows\":[{\"id\":\"harmless-owned-drain\",\"events\":[{\"name\":\"capture-open\",\"at\":1788016461328},{\"name\":\"listeners-enrolled\",\"at\":1788016461330},{\"name\":\"spawn\",\"at\":1788016461330},{\"name\":\"stderr-end\",\"at\":1788016463585},{\"name\":\"stdout-end\",\"at\":1788016463585},{\"name\":\"exit\",\"at\":1788016463586},{\"name\":\"close\",\"at\":1788016463586}],\"exit\":true,\"close\":true,\"stdoutEOF\":true,\"stderrEOF\":true,\"captures\":[{\"kind\":\"stdout\",\"bytes\":6,\"sha256\":\"3dfa3fb239f56c778a1e9b33eb31328349edd155a95806dac4378904e88527e5\",\"base64\":\"UkVBRFkK\",\"flushed\":true,\"closed\":true},{\"kind\":\"stderr\",\"bytes\":0,\"sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"base64\":\"\",\"flushed\":true,\"closed\":true}],\"signals\":[{\"signal\":\"SIGTERM\",\"at\":1788016461577,\"returned\":true},{\"signal\":\"SIGKILL\",\"at\":1788016463582,\"returned\":true}],\"forced\":true,\"capturesQualified\":true,\"knownOutstanding\":0,\"pid\":78639,\"status\":null,\"signal\":\"SIGKILL\",\"primaryPresent\":true,\"primary\":{\"kind\":\"number\",\"value\":0},\"secondary\":[],\"qualified\":false,\"finished\":1788016463600}]},\"started\":1788016461275,\"finished\":1788016463600,\"qualification\":\"One fixed harmless Node child; injected owner cancellation, actual childTERM/KILL/exit/close/EOF. Not actual product or external ownerTERM proof.\"}\n",
+    "stderr": ""
+  },
+  "pureGroups": 16,
+  "harmlessRoles": 2,
+  "productCalls": 0,
+  "firstSyntaxFailure": "preliminary-v1/ATTEMPT.json",
+  "intermediateResult": "preliminary-v2/CONTROLS-RESULT.json"
+}

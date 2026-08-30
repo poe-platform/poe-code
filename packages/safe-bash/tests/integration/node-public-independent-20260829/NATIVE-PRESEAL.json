@@ -1,0 +1,30 @@
+{
+  "schema": "independent-node-public-native-resolution-v1",
+  "date": "2026-08-29",
+  "timing": "After main 942 outcomes; before any I13 execution. Additive no-guest control, no original rescore.",
+  "candidate": "a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "packageSha256": "274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9",
+  "mainEvidenceSha256": "f9ac0cb4605a23cc9a1f2702413ef5a153393ff20c0c88e01378172b49438b6d",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "inputs": [
+    {"path":"native-run.mjs","bytes":7902,"sha256":"f05f6c5920166afab2178f22774bb22ab0e64cb971372a90f0676704637ca9d5"},
+    {"path":"native-guard.mjs","bytes":1577,"sha256":"02abb0c83e1ae0191e1a3b4c141b569dc12a212d84e0ad74e5b756bd5148752e"},
+    {"path":"native-consumer.mjs","bytes":1253,"sha256":"c90a9bd9a0dfb5a5b092978d6558ac424368d990aa2700fd06dc78abfd327a1c"},
+    {"path":"actual-v1/TERMINAL.json","bytes":349217,"sha256":"c6ee8728df03f58ea4be77787ca5900cf2e3d7cd745c5557b84fdacf924b63e0"}
+  ],
+  "purpose": "Main actual root/subpath consumers authenticate files through aliases. I13 instead uses next-resolved native exports, then authenticates the admitted files. Native package resolution is not guest execution.",
+  "cases": [
+    {"id":"I13","layout":"rehydrated","expected":0,"checks":"9 identical symbols, 80 defaults without node, inert factories, 4 exact private export refusals, 2 native resolutions"},
+    {"id":"I13","layout":"physically-moved","expected":0,"checks":"same; prior consumer path absent"},
+    {"id":"I13-M01","layout":"moved","expected":1,"checks":"package import target changed to private host.js, types unchanged; NATIVE_PUBLIC_EXPORT_MISMATCH"},
+    {"id":"I13-M01-restore","layout":"moved","expected":0,"checks":"all original package bytes restored; positive control"}
+  ],
+  "provenance": "Fresh regular-file rehydration of exact main-built full1010 tar from archived evidence; not a second npm install or reuse of removed scratch. No source fallback, aliases, engine, guest or provider preparation.",
+  "caps": {"children":4,"coordinators":1,"peakProcesses":2,"childSeconds":30,"captureBytesPerChild":2097152,"scratchBytes":67108864,"NodeWorkers":0,"guestEntries":0,"fixedLoaderAdmissions":0},
+  "cumulative": {"priorRecordedExecutionProcesses":73,"newRecordedExecutionProcessesPlanned":5,"totalRecordedExecutionProcessesPlanned":78,"administrationReservedSeparately":48,"rootAllProcessCap":192,"originalGrantSeconds":4500,"reset":false},
+  "limitations": "Zero Worker/guest admission derives from no Worker permission and inert calls; no new global OS/transitive accounting claim. Main resource census and limitations remain. Tool binary is hashed in bounded blocks; no text decoding. Native resolver package.json accesses are checked by parent pre/post bytes, not module-load events.",
+  "activation": "node native-run.mjs ACTIVATE-COMMITTED-NATIVE-v1; only after this preseal and input files are committed. Capture startup opened before fallible admission. Safety/capture/integrity/unknown-retirement/cap failures stop. Ordinary closed helper failures retain original artifacts before any versioned correction."
+}

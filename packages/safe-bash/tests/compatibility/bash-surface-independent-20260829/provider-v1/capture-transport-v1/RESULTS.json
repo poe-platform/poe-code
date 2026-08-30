@@ -1,0 +1,142 @@
+{
+  "role": "NEW_D03_NOT_F01_OR_D02_RESCORE",
+  "receipt": {
+    "id": "D03-regular-fd-readiness",
+    "request": {
+      "id": "D03-regular-fd-readiness",
+      "executable": "/usr/bin/sandbox-exec",
+      "args": [
+        "-f",
+        "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/profile.sb",
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--eval",
+        "process.stdout.write(\"PROVIDER_DIAGNOSTIC_READY\\n\");"
+      ],
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/home",
+        "TMPDIR": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/tmp",
+        "PATH": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/empty-path"
+      },
+      "cwd": "/private/tmp/safe-bash-surface-provider-author-v1/cases/F01/work",
+      "stdinBase64": "",
+      "shell": false,
+      "detached": true,
+      "stdio": [
+        {
+          "childFd": 0,
+          "kind": "pipe",
+          "inputBytes": 0
+        },
+        {
+          "childFd": 1,
+          "kind": "owner-preopened-regular",
+          "path": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stdout",
+          "flags": [
+            "O_RDWR",
+            "O_CREAT",
+            "O_EXCL",
+            "O_NOFOLLOW"
+          ],
+          "mode": 384
+        },
+        {
+          "childFd": 2,
+          "kind": "owner-preopened-regular",
+          "path": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stderr",
+          "flags": [
+            "O_RDWR",
+            "O_CREAT",
+            "O_EXCL",
+            "O_NOFOLLOW"
+          ],
+          "mode": 384
+        },
+        {
+          "childFd": 3,
+          "kind": "unused-observer-pipe"
+        }
+      ],
+      "expected": {
+        "stdoutBase64": "UFJPVklERVJfRElBR05PU1RJQ19SRUFEWQo=",
+        "stderrBase64": "",
+        "status": 0,
+        "signal": null
+      }
+    },
+    "started": 1787979984416,
+    "pid": 17408,
+    "spawnObserved": true,
+    "exitObserved": true,
+    "closeObserved": true,
+    "eventPipeEOF": true,
+    "stdinFinished": true,
+    "stdoutEOF": null,
+    "stderrEOF": null,
+    "outputKind": "REGULAR_FDS_NO_STREAM_EOF",
+    "status": null,
+    "signal": "SIGABRT",
+    "errors": [],
+    "signalsSent": [],
+    "groupPresent": false,
+    "regularFilesComplete": true,
+    "knownRetired": true,
+    "stdout": {
+      "initial": {
+        "path": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stdout",
+        "device": 16777232,
+        "inode": 184663133,
+        "mode": 384,
+        "links": 1,
+        "bytes": 0
+      },
+      "final": {
+        "path": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stdout",
+        "device": 16777232,
+        "inode": 184663133,
+        "mode": 384,
+        "links": 1,
+        "bytes": 0
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": "",
+      "completion": "OWNER_FD_READBACK_AFTER_CHILD_EXIT_CLOSE_NOT_STREAM_EOF"
+    },
+    "stderr": {
+      "initial": {
+        "path": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stderr",
+        "device": 16777232,
+        "inode": 184663134,
+        "mode": 384,
+        "links": 1,
+        "bytes": 0
+      },
+      "final": {
+        "path": "/private/tmp/safe-bash-surface-provider-capture-diagnostic-v1/stderr",
+        "device": 16777232,
+        "inode": 184663134,
+        "mode": 384,
+        "links": 1,
+        "bytes": 0
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": "",
+      "completion": "OWNER_FD_READBACK_AFTER_CHILD_EXIT_CLOSE_NOT_STREAM_EOF"
+    },
+    "expectedReadiness": false,
+    "finished": 1787979984461,
+    "ownerOutputDescriptorsClosed": true
+  },
+  "failure": "SOLE_DIAGNOSTIC_STOP_OR_FAILURE",
+  "captureBytes": 5170,
+  "soleTargetAttempted": 1,
+  "retries": 0,
+  "nativeBash": 0,
+  "product": 0,
+  "networkAPIProbe": 0,
+  "qualification": "Regular FD completion, NOT streamed stdout/stderr EOF; no kernel-wide descendant or RSS claim."
+}

@@ -1,0 +1,19 @@
+import * as fs from "fs";
+import * as stdio from "stdio";
+import * as shell from "shell";
+import * as command from "command";
+await stdio.write("G03:enter\n");
+command.env.C78 = "guest-mutated";
+try {
+  await fs.writeFile("/work/locked", "changed");
+  throw new Error("readonly write unexpectedly succeeded");
+} catch (error) {
+  if (error.code !== "EROFS") throw error;
+  await stdio.write("readonly:" + error.code + "\n");
+}
+await stdio.write(await fs.readFile("/work/locked", "utf8"));
+const result = await shell.exec("export C78=child; printf 'child:%s\\n' \"$C78\"");
+await stdio.write(result.stdout);
+await stdio.error(result.stderr);
+if (result.exitCode !== 0) throw new Error("child shell failed");
+throw new Error("C78 guest failure");

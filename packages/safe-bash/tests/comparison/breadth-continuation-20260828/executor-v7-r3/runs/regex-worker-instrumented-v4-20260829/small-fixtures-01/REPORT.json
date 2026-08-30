@@ -1,0 +1,137 @@
+{
+  "schema": "SMALL_DEFERRED_FIXTURES_V1",
+  "rows": [
+    {
+      "kind": "FALSE_PRIMARY",
+      "qualified": true,
+      "state": {
+        "kind": "FALSE_PRIMARY",
+        "pid": 79553,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          799,
+          203
+        ],
+        "retained": [
+          799,
+          203
+        ],
+        "captureClosed": [
+          true,
+          true
+        ],
+        "failures": [],
+        "signals": []
+      },
+      "durability": {
+        "schema": "PARENT_DEFERRED_DURABILITY_V1",
+        "qualified": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/small-fixtures-01/FALSE_PRIMARY/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "authenticated": true,
+            "fsynced": true,
+            "closed": true
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/small-fixtures-01/FALSE_PRIMARY/EARLY.json",
+            "enrolled": true,
+            "opened": true,
+            "authenticated": true,
+            "fsynced": true,
+            "closed": true
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/small-fixtures-01/FALSE_PRIMARY/RESULT.json",
+            "enrolled": true,
+            "opened": true,
+            "authenticated": true,
+            "fsynced": true,
+            "closed": true
+          }
+        ],
+        "primaryPresent": false,
+        "primary": null,
+        "cleanup": [],
+        "crashDurableBeforeAcquisition": false
+      },
+      "reason": {
+        "type": "boolean",
+        "value": false
+      },
+      "ordinaryFailurePreserved": true,
+      "workerCreated": 0
+    },
+    {
+      "kind": "UNDEFINED_PRIMARY",
+      "qualified": true,
+      "state": {
+        "kind": "UNDEFINED_PRIMARY",
+        "pid": 79555,
+        "closed": true,
+        "status": 1,
+        "signal": null,
+        "observed": [
+          811,
+          203
+        ],
+        "retained": [
+          811,
+          203
+        ],
+        "captureClosed": [
+          true,
+          true
+        ],
+        "failures": [],
+        "signals": []
+      },
+      "durability": {
+        "schema": "PARENT_DEFERRED_DURABILITY_V1",
+        "qualified": true,
+        "rows": [
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/small-fixtures-01/UNDEFINED_PRIMARY/worker-1.jsonl",
+            "enrolled": true,
+            "opened": true,
+            "authenticated": true,
+            "fsynced": true,
+            "closed": true
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/small-fixtures-01/UNDEFINED_PRIMARY/EARLY.json",
+            "enrolled": true,
+            "opened": true,
+            "authenticated": true,
+            "fsynced": true,
+            "closed": true
+          },
+          {
+            "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/small-fixtures-01/UNDEFINED_PRIMARY/RESULT.json",
+            "enrolled": true,
+            "opened": true,
+            "authenticated": true,
+            "fsynced": true,
+            "closed": true
+          }
+        ],
+        "primaryPresent": false,
+        "primary": null,
+        "cleanup": [],
+        "crashDurableBeforeAcquisition": false
+      },
+      "reason": {
+        "type": "undefined"
+      },
+      "ordinaryFailurePreserved": true,
+      "workerCreated": 0
+    }
+  ],
+  "unsafe": false,
+  "knownOsChildren": 2,
+  "workers": 0
+}

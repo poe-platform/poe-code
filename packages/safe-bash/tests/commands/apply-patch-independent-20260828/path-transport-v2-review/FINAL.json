@@ -1,0 +1,4858 @@
+{
+  "schema": "independent-path-transport-v2-final-review-v1",
+  "classification": "HARNESS ONLY; DATA/SYNTHETIC and development Git metadata; no actual future GO",
+  "verdict": "HOLD_UNQUALIFIED_ACCEPTANCE",
+  "demonstrated": "Complete stored-tree/path transport for the declared strict-UTF8 sealed-inventory profile",
+  "repairSourceCommit": "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+  "authorEvidenceCommit": "d3817018efd58d7a6e319192ef388aff7c9cc2cd",
+  "authorEvidenceCommitTree": "d60b9fe207b5bfa13cf9b6c6d3c0824787331870",
+  "authorEvidence": [
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/REPORT.md",
+      "bytes": 6067,
+      "mode": 420,
+      "sha256": "6cbfcc5418731b64f8982a7d320b62b8ce6fe55866cd21fd1b1f7137271615d1",
+      "blob": "ef6276e3f96745e7666f05f90f2b859134d1347d"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/runs/data-01/RESULT.json",
+      "bytes": 10367,
+      "mode": 420,
+      "sha256": "3ddeda8bda65ca7cf2b2e48222c21ae213f4fa8d81f96154394123d300709e5b",
+      "blob": "eb23eaab8f8e93da89c714e092ccd2821824deaf"
+    }
+  ],
+  "productSourceCommit": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "productEvidenceCommit": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+  "executionSealSha256": "c05afd4ca977cc32e81d0ea4cff9311b44e6475a72c54ebf7bcdba7f47a2b116",
+  "independentPreparationCommit": "7d7e322b7e11fdc2ded4b5a4708da2e0aedad65b",
+  "runnerPresealCommit": "9f9fca99bb96e35a409c23ae3bf9349238184557",
+  "runnerSealSha256": "eb54714b839dc31bc31a2a51f0f993c2975bc7e2d0e389c279c9aae304cd14dd",
+  "initialRunnerPresealCommit": "6978a89c75284b9e7e0efb125fef7a6b78ee8572",
+  "initialEvidenceCommit": "655bfba476e82dd0843f67ed9f86c4ff9af3c56b",
+  "finalEvidenceCommit": "Reported externally: the atomic commit containing this file; no self-reference",
+  "cohortSeparation": {
+    "author": {
+      "prepared": 65,
+      "reportedPass": 65,
+      "independentReplay": false,
+      "classification": "Authenticated committed evidence, not our controls"
+    },
+    "independentPreparation": {
+      "controls": 206,
+      "actualPathIdentities": 98,
+      "historicalSourceFiles": 12,
+      "historicalDataFiles": 19,
+      "consumerSites": 21,
+      "originalMetadataChildren": 3,
+      "candidateExecutionsAtPreparation": 0
+    },
+    "initialAttemptQualified": {
+      "dynamic": 79,
+      "PASS": 78,
+      "UNSUPPORTED": 1,
+      "NOT_RUN": 127,
+      "fixtureBlocked": 120,
+      "invalidatedNegativePasses": 21,
+      "cases": [
+        {
+          "id": "H001",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H002",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H003",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H004",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H005",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H006",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H007",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H008",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H009",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H010",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H011",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H012",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H013",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H014",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H015",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H016",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H017",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H018",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H019",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H020",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H021",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H022",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H023",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H024",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H025",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H026",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H027",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H028",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H029",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H030",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H031",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H032",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H033",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H034",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H035",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H036",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H037",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H038",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H039",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H040",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H041",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H042",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H043",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H044",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H045",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H046",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H047",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H048",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H049",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H050",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H051",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H052",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H053",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H054",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H055",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H056",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H057",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H058",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H059",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H060",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H061",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H062",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H063",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H064",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H065",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H066",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H067",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H068",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H069",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H070",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H071",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H072",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H073",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H074",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H075",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H076",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H077",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H078",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H079",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H080",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H081",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H082",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H083",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H084",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H085",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H086",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H087",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H088",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H089",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H090",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H091",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H092",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H093",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H094",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H095",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H096",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H097",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "H098",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "P01",
+          "status": "PASS"
+        },
+        {
+          "id": "P02",
+          "status": "PASS"
+        },
+        {
+          "id": "P03",
+          "status": "PASS"
+        },
+        {
+          "id": "P04",
+          "status": "PASS"
+        },
+        {
+          "id": "P05",
+          "status": "PASS"
+        },
+        {
+          "id": "P06",
+          "status": "PASS"
+        },
+        {
+          "id": "P07",
+          "status": "PASS"
+        },
+        {
+          "id": "P08",
+          "status": "PASS"
+        },
+        {
+          "id": "P09",
+          "status": "PASS"
+        },
+        {
+          "id": "P10",
+          "status": "PASS"
+        },
+        {
+          "id": "P11",
+          "status": "PASS"
+        },
+        {
+          "id": "P12",
+          "status": "PASS"
+        },
+        {
+          "id": "P13",
+          "status": "PASS"
+        },
+        {
+          "id": "P14",
+          "status": "PASS"
+        },
+        {
+          "id": "P15",
+          "status": "PASS"
+        },
+        {
+          "id": "P16",
+          "status": "PASS"
+        },
+        {
+          "id": "P17",
+          "status": "PASS"
+        },
+        {
+          "id": "P18",
+          "status": "PASS"
+        },
+        {
+          "id": "P19",
+          "status": "PASS"
+        },
+        {
+          "id": "P20",
+          "status": "PASS"
+        },
+        {
+          "id": "P21",
+          "status": "PASS"
+        },
+        {
+          "id": "P22",
+          "status": "PASS"
+        },
+        {
+          "id": "P23",
+          "status": "PASS"
+        },
+        {
+          "id": "P24",
+          "status": "PASS"
+        },
+        {
+          "id": "P25",
+          "status": "PASS"
+        },
+        {
+          "id": "P26",
+          "status": "PASS"
+        },
+        {
+          "id": "P27",
+          "status": "PASS"
+        },
+        {
+          "id": "P28",
+          "status": "UNSUPPORTED"
+        },
+        {
+          "id": "P29",
+          "status": "PASS"
+        },
+        {
+          "id": "P30",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "R01",
+          "status": "PASS"
+        },
+        {
+          "id": "R02",
+          "status": "PASS"
+        },
+        {
+          "id": "R03",
+          "status": "PASS"
+        },
+        {
+          "id": "R04",
+          "status": "PASS"
+        },
+        {
+          "id": "R05",
+          "status": "PASS"
+        },
+        {
+          "id": "R06",
+          "status": "PASS"
+        },
+        {
+          "id": "R07",
+          "status": "PASS"
+        },
+        {
+          "id": "R08",
+          "status": "PASS"
+        },
+        {
+          "id": "R09",
+          "status": "PASS"
+        },
+        {
+          "id": "R10",
+          "status": "PASS"
+        },
+        {
+          "id": "R11",
+          "status": "PASS"
+        },
+        {
+          "id": "R12",
+          "status": "PASS"
+        },
+        {
+          "id": "R13",
+          "status": "PASS"
+        },
+        {
+          "id": "R14",
+          "status": "PASS"
+        },
+        {
+          "id": "R15",
+          "status": "PASS"
+        },
+        {
+          "id": "R16",
+          "status": "PASS"
+        },
+        {
+          "id": "R17",
+          "status": "PASS"
+        },
+        {
+          "id": "R18",
+          "status": "PASS"
+        },
+        {
+          "id": "R19",
+          "status": "PASS"
+        },
+        {
+          "id": "R20",
+          "status": "PASS"
+        },
+        {
+          "id": "R21",
+          "status": "PASS"
+        },
+        {
+          "id": "R22",
+          "status": "PASS"
+        },
+        {
+          "id": "R23",
+          "status": "PASS"
+        },
+        {
+          "id": "R24",
+          "status": "PASS"
+        },
+        {
+          "id": "R25",
+          "status": "PASS"
+        },
+        {
+          "id": "R26",
+          "status": "PASS"
+        },
+        {
+          "id": "R27",
+          "status": "PASS"
+        },
+        {
+          "id": "R28",
+          "status": "PASS"
+        },
+        {
+          "id": "R29",
+          "status": "PASS"
+        },
+        {
+          "id": "C01",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "FAIL"
+        },
+        {
+          "id": "C02",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C03",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C04",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C05",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C06",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C07",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C08",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C09",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C10",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C11",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C12",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C13",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C14",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C15",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C16",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C17",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C18",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C19",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C20",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "C21",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "B01",
+          "status": "PASS"
+        },
+        {
+          "id": "B02",
+          "status": "PASS"
+        },
+        {
+          "id": "B03",
+          "status": "PASS"
+        },
+        {
+          "id": "B04",
+          "status": "PASS"
+        },
+        {
+          "id": "B05",
+          "status": "PASS"
+        },
+        {
+          "id": "B06",
+          "status": "PASS"
+        },
+        {
+          "id": "B07",
+          "status": "PASS"
+        },
+        {
+          "id": "B08",
+          "status": "PASS"
+        },
+        {
+          "id": "B09",
+          "status": "PASS"
+        },
+        {
+          "id": "B10",
+          "status": "PASS"
+        },
+        {
+          "id": "B11",
+          "status": "PASS"
+        },
+        {
+          "id": "B12",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "B13",
+          "status": "PASS"
+        },
+        {
+          "id": "D01",
+          "status": "PASS"
+        },
+        {
+          "id": "D02",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "D03",
+          "status": "PASS"
+        },
+        {
+          "id": "D04",
+          "status": "PASS"
+        },
+        {
+          "id": "M01",
+          "status": "PASS"
+        },
+        {
+          "id": "M02",
+          "status": "NOT_RUN",
+          "reason": "Verifier fixture preparation permission failure; original verdict invalidated",
+          "originalStatus": "PASS"
+        },
+        {
+          "id": "M03",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "M04",
+          "status": "PASS"
+        },
+        {
+          "id": "M05",
+          "status": "PASS"
+        },
+        {
+          "id": "M06",
+          "status": "PASS"
+        },
+        {
+          "id": "M07",
+          "status": "PASS"
+        },
+        {
+          "id": "M08",
+          "status": "PASS"
+        },
+        {
+          "id": "M09",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "M10",
+          "status": "NOT_RUN"
+        },
+        {
+          "id": "M11",
+          "status": "NOT_RUN"
+        }
+      ]
+    },
+    "correctedAttempt": {
+      "dynamic": 199,
+      "PASS": 197,
+      "FAIL": 1,
+      "UNSUPPORTED": 1,
+      "NOT_RUN": 7,
+      "unique206Outcomes": [
+        {
+          "id": "H001",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "1c3d1cceaaef423d29c255d73ee2770cc460b932",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H002",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "6558b195481dc386449999deb195ab4b326ffe5b",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H003",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "0e378b66d446988b0b01ca78e622fd3a4e682f9e",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H004",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "81ce0ce57919118eed750c6d2f0fab51d5beac35",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H005",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "190bf941fd88a5510efdd129ecd4a85e85851478",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H006",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "c6ba32c253c97125ddb360be560046fcab40b11a",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H007",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a4c1c33eff9e6c3879a0f91b5bae6f1cda5ab3a5",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H008",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7094c8f7f869638039899f8d49a769621730f64c",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H009",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "0c9bd99718402018f44a5e0bfd51ab839df758d6",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H010",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "75dc9bfd3e6705392fb236f123941628f12b86d3",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H011",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "309ea87f180ed81037d3148a532af10bdd575a37",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H012",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "409b681630cc91351f821adf9a986e22bd915bf0",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H013",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "1a36e69cd9b8e56afce4a3c2c12375d445a3d6a0",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H014",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e7510ed6fa631c51b30667b1afd2dedb0b76eef4",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H015",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "8abd733672e2ad1cfd0436494212a2659d4d719d",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H016",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "1c0dabdb2f841e56153574b7ddd0170459f0b982",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H017",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "f127afe539b0798455e0a385e2c21307d08c4fef",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H018",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "fb6b4414be336ac0d2b12d4fe9bae7507f198f65",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H019",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "f6a1e0659ef088544419676531ba732dd40ea3f4",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H020",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "20f8477b900000c6f9a59e9f0c6b101fa5d17ce8",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H021",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e2658b2c13c221d444cf998093da4a6c8d36349e",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H022",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "1c2c4b5167642b7aae04a4f544c7aa6a01ae40dd",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H023",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "490754b31b55b3fa79d4826235977a231938b515",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H024",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "ce8cc13fdaea817c322d50351eadee1a52fe3312",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H025",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "5446726f1d7e0fda4a1282b437742810de43df65",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H026",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "d4fa69f216347fa5db26a37d4176462c118a7193",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H027",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "9ccc1fba61d896bdef955e3cc415bc28b83a223d",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H028",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "50e61cf18e1a26d5083bca4d1222860c8de9ada7",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H029",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "5fbb160f0848bd790842d26bfa41507f38b0db58",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H030",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "de0069ec70811633ed63903447bac1a194e3dd25",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H031",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "4cc7e45028b68aa01fd12999df98e2a7e83cec01",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H032",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e294edffd9947839868dd32235333d381086c156",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H033",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "d6075adc7514325c0ba2a3936b7357d7f5820f0a",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H034",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "0f686932aabc4febfe2fc5c3fd889e4a51241fbd",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H035",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "fb3ccc3f2fcf02bd6ad580a326a1be27f3abcd33",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H036",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "b647e3c048cd3bbe1c0c4bb7f5d8f628c6f86dab",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H037",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a0426dce8bd7bb36fd110253b3bf793252148807",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H038",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "df683095124d86bda438e1aceef829677227cd11",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H039",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "ff0d75efd79f5c024b354cbdbfcb42bcb1775956",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H040",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "308d546342aeddde865b8c3cf9c1d1cf0f2da2a2",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H041",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "f67a3b41d3bc42efba5e811554b17cbba46b3fa8",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H042",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "2df3e314d9daadc6203c8c0c35727d2be8578a03",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H043",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "ede6cad49d3129ea0d7ddf397980ec0e1033f2dd",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H044",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "8d2f07f82af062b2da9e8a7afc2a58d7d3ee68ab",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H045",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "02f04b0fdecc8cf24977d869c592794bfdced1ac",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H046",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a15cc93095c82258e9709e97a89248f5242244b2",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H047",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "975efff9fb595e25dd88ec9bf83c0e3f72ea7e3f",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H048",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "123e7e85cd89bb67e89db1e958542c087f66adc2",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H049",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "19e1cc76561a6914898c02420b0aaac50686697e",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H050",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "52b0ed4084b8542bd64c021284fc7137616dd5ee",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H051",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "6766c66ce378e3da3ad0752f93e2729850a3f2ed",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H052",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "6461e008af9054ccdfd86d8774c4bd5d0a29fc03",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H053",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "bf66f3586ab856723265948921da0dc3fa2c4e27",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H054",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "54ad9c1be9d6eddd1f96237e12717b37b5d1108e",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H055",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "5589c2de3d98b4ba72d560ff1432cba6b15b028e",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H056",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e82cc95952e642cb898abc35d1e4f8df55650b11",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H057",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a27438b0a8afe4a7c770d037ecda1a0714404f95",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H058",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "661402b0e642c1c1064344458a448b15410cd3e4",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H059",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "bc8e25e70511f42557b5d19657a24ea23e58ed6f",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H060",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "0d4954ec8ad44d1f5319bed1e24644936d5e1bec",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H061",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "6530aae23d188f85c043a68fb7220e7254a1a119",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H062",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "dade15b9fa5a99ef0d08b4d74e2e23e4a90a8d83",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H063",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "27b637a339eba139eeeda5ce9d21347cca6b2227",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H064",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "8b9243ed9abbdebcd1e7d30ea8718c86360d736e",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H065",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "461c8ff59c0abc526e00ef6bebe303ad3a4e4748",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H066",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "4d759dfe3aea08cf1dc08bd9b7adf9b814590825",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H067",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "be11b3ff044d409e6b527072dcd768a7d76fef0c",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H068",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "88bdc7914a8866ab131d05ab3961c3239840648a",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H069",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "2f5544d832d9e6dbd339a0867719c12c485a7575",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H070",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "24e905639d354931cc36a3179b7a14eb23add615",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H071",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "c0393ba6c748c2b082d890237493f32f6291b8e8",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H072",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "4ac070f1567f51a91849bf41f3b11e0500d44db8",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H073",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "500acc65fcf0fd68e01d0639d2bbeb3edf44d7a1",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H074",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "48e11b09fcb960b26e8e8dc1c3e94c6a248fff2a",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H075",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "71d05037550d0f164b012c15d0dcad240e226b64",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H076",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7d1c5acf81c1bf797c12ed33b49fd0a711146692",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H077",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "1f2f76d5c9d0489949108a8438f46d426c202461",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H078",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "abe5488f9a4ee0ac69178169c6d3f6d88edcbb37",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H079",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "2280f8027209ae0369aabd42f1f32f33c73a1cf1",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H080",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7a248506d1563f059ecbf212caac8b25fd4f96bf",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H081",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7eff930f50bc7b9ca7cde110c4c181c6c1c8da57",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H082",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "616ea6a54175025727cc541ba6b10e26260c65a3",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H083",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "3a92c117e44dc884b922567f3c23adbe400ddcb5",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H084",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "4634ee337f9c7fa3ab212b70dd4e9f635b6e3952",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H085",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "0a33d3fc6fbd1096715ccb3f497a0d272560711d",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H086",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "faba3fb757628faef19dd7d10a5bacf96b27e4c1",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H087",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "8b5d19fd8468dab5cadd9333c8edd96f838caf52",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H088",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a98b44290e4e3c2b97061ecef592b573fc27e5f9",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H089",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7a3c078d07020b296b550ff7b8516a3c7493d6c7",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H090",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a9b95baedfe99a2f642223f39123139511beb38c",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H091",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "1b4554825b64b0dbe1145dff8dcbd2355de3f8bb",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H092",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "2c16a7ae668aae7cc9b12b90705243eb004c7e16",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H093",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7ca783124aaac64df0948a532a1fd66492e564b6",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H094",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "514779bc7e5837f56cf72482d20ba5b4fd96e634",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H095",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "79d7d6b3aaf909c4543e50d4fa73aac12a7c71e2",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H096",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "2927d2c978323213bae2ec48b290bd5b0105f717",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H097",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7084b9d6fa744d401b4413f888291715125727e0",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "H098",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "5f6d247805412517afc0c1dd59c166c85d2247f7",
+            "entries": 1,
+            "routes": [
+              "readCapture",
+              "parseTree",
+              "treeHash",
+              "actual-full-census",
+              "verifyProjection"
+            ]
+          }
+        },
+        {
+          "id": "P01",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "7a00b4384b16b2bc4c5e2d656d6527d23d1ac274",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P02",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "d99cb78d70b286138ffa48e9b4afb7e0f16b2650",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P03",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "77c815781db7e88fb6b13407077071c20a08b38d",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P04",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "864b383bfdb2c32899e9df16fc69554b9dfe977d",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P05",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "a218c2a9a664e82b07071ca09fef061cc7897476",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P06",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e612612243791956c97ef9dd53124612ad06f5f0",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P07",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "bc1fb2cc90c8eefb5e55bd355864243943fef850",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P08",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "40725a8235a7e5cb084ea16bf17fb3346085f80b",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P09",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "53fb893c9660ea5a00845b7e8ab9d3823420d144",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P10",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "966757664d38d1b221710dac5c16e909e9375439",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P11",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "9f80c1f446c87e09175c9a4674d83dfc917f89bf",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P12",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "46d0a55ddd64b8605244f3260080e16a7518601f",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P13",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "9c33e30ff2aa4bcef614ffe55d8d2f132f17b84a",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P14",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "78a3ff3e754f74abb046357f0364c6f739452868",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P15",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "affc2e40b33f9ab6b335f6179d1b5e1cc12c15aa",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P16",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "8c50da285ce407358c5d923c7619ad25d3213133",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P17",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "fdc32eaee1270763baef1c986b24dc40d1168bb0",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P18",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e6fe0bb1e80314727e528c404654f31d75686fdc",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P19",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "dc698c05dbb88946cc7f47c0203ca40db0cb87ea",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P20",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "dba070163b060e162d98bf7b28298187a585970a",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P21",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "2a7174bb6b32ab8c9ecd66ddc5a6667b33d56ea7",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P22",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "196a5bab9c0bc1dd03876c5bcc92ce11f93a5c1c",
+            "entries": 1,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P23",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "21ee4fece97741003e7d14a940611ac68b64a44a",
+            "entries": 2,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P24",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "3987e964017a7cb1d76091f94dc0f638150211f3",
+            "entries": 8,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P25",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "e7403f02a51e861059e9c35162e0bf86a3794c21",
+            "entries": 3,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P26",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "eba58a9f30349f0138ecbed8a04b182dc6b42308",
+            "entries": 4,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P27",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
+            "entries": 0,
+            "routes": [
+              "parseTree",
+              "treeHash"
+            ]
+          }
+        },
+        {
+          "id": "P28",
+          "status": "UNSUPPORTED",
+          "expectedAccepted": true,
+          "observedAccepted": false,
+          "error": {
+            "name": "TypeError",
+            "code": "ERR_ENCODING_INVALID_ENCODED_DATA",
+            "message": "The encoded data was not valid for encoding utf-8",
+            "stack": [
+              "TypeError: The encoded data was not valid for encoding utf-8",
+              "    at TextDecoder.decode (node:internal/encoding:449:16)",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:10:24)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)"
+            ]
+          },
+          "qualification": "Declared strict UTF8-only domain; unchanged raw-byte expected acceptance is not met."
+        },
+        {
+          "id": "P29",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "TypeError",
+            "code": "ERR_ENCODING_INVALID_ENCODED_DATA",
+            "message": "The encoded data was not valid for encoding utf-8",
+            "stack": [
+              "TypeError: The encoded data was not valid for encoding utf-8",
+              "    at TextDecoder.decode (node:internal/encoding:449:16)",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:10:24)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)"
+            ]
+          }
+        },
+        {
+          "id": "P30",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "No nonrecursive record consumer exists in the repaired closure; recursive leaf parser intentionally excludes 040000/tree. Expected acceptance preserved, route NOT_RUN."
+        },
+        {
+          "id": "R01",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated record",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated record",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:21:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R02",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "missing header delimiter",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: missing header delimiter",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R03",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "missing header delimiter",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: missing header delimiter",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R04",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "missing header delimiter",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: missing header delimiter",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R05",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "pathname domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: pathname domain",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:8:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R06",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R07",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R08",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R09",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R10",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R11",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R12",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R13",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R14",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R15",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R16",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R17",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R18",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R19",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R20",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R21",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R22",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "relative canonical components",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: relative canonical components",
+              "    at pathname (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:12:10)",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:29:18)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R23",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "duplicate path",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: duplicate path",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:30:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R24",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "duplicate path",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: duplicate path",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:30:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R25",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "file/directory conflict",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: file/directory conflict",
+              "    at treeHash (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:51:14)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:92)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R26",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "duplicate or directory/file conflict",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: duplicate or directory/file conflict",
+              "    at treeHash (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:54:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:92)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R27",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated record",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated record",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:21:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R28",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "missing header delimiter",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: missing header delimiter",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:23:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "R29",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: header domain",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:27:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:110:21)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "C01",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "bytes": 126,
+            "sha256": "d4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56",
+            "routes": [
+              "readCapture"
+            ]
+          }
+        },
+        {
+          "id": "C02",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'\n- '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'",
+              "- '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'"
+            ]
+          }
+        },
+        {
+          "id": "C03",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'd0436cc508fefc7b550c2ec77e84506deb95707ba563e79e1defea89614e05c8'\n- 'd4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ 'd0436cc508fefc7b550c2ec77e84506deb95707ba563e79e1defea89614e05c8'",
+              "- 'd4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56'"
+            ]
+          }
+        },
+        {
+          "id": "C04",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n2 !== 1\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "2 !== 1",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:51:55)"
+            ]
+          }
+        },
+        {
+          "id": "C05",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "0 !== 1",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:51:55)"
+            ]
+          }
+        },
+        {
+          "id": "C06",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n126 !== 127\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "126 !== 127",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:53:45)"
+            ]
+          }
+        },
+        {
+          "id": "C07",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n1 !== 2\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "1 !== 2",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:52:14)"
+            ]
+          }
+        },
+        {
+          "id": "C08",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'",
+              "- '0000000000000000000000000000000000000000000000000000000000000000'"
+            ]
+          }
+        },
+        {
+          "id": "C09",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'",
+              "- '0000000000000000000000000000000000000000000000000000000000000000'"
+            ]
+          }
+        },
+        {
+          "id": "C10",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n'stderr' !== 'stdout'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "'stderr' !== 'stdout'",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:51:14)"
+            ]
+          }
+        },
+        {
+          "id": "C11",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'synthetic-stdout-0.json'\n- 'synthetic-stdout-1.json'\n                    ^\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ 'synthetic-stdout-0.json'",
+              "- 'synthetic-stdout-1.json'"
+            ]
+          }
+        },
+        {
+          "id": "C12",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n125 !== 126\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "125 !== 126",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:55:12)"
+            ]
+          }
+        },
+        {
+          "id": "C13",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'synthetic-stdout-125.json'\n- 'synthetic-stdout-0.json'\n                    ^\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ 'synthetic-stdout-125.json'",
+              "- 'synthetic-stdout-0.json'"
+            ]
+          }
+        },
+        {
+          "id": "C14",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n'MQ==' !== 'MQ==\\n'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "'MQ==' !== 'MQ==\\n'",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:50:68)"
+            ]
+          }
+        },
+        {
+          "id": "C15",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n'MQ==' !== 'MQ==!'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "'MQ==' !== 'MQ==!'",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:50:68)"
+            ]
+          }
+        },
+        {
+          "id": "C16",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n0.5 !== 0\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "0.5 !== 0",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:51:55)"
+            ]
+          }
+        },
+        {
+          "id": "C17",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n126 !== '126'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "126 !== '126'",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:53:45)"
+            ]
+          }
+        },
+        {
+          "id": "C18",
+          "status": "FAIL",
+          "expectedAccepted": false,
+          "observedAccepted": true,
+          "observation": {
+            "bytes": 126,
+            "sha256": "d4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56",
+            "routes": [
+              "readCapture"
+            ]
+          },
+          "qualification": "Helper accepts unreferenced file; full sealed inventory append guard is SOURCEONLY, not dynamically credited."
+        },
+        {
+          "id": "C19",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n126 !== 127\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "126 !== 127",
+              "",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:58:10)"
+            ]
+          }
+        },
+        {
+          "id": "C20",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "TypeError",
+            "code": null,
+            "message": "Cannot read properties of null (reading 'base64')",
+            "stack": [
+              "TypeError: Cannot read properties of null (reading 'base64')",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:50:42)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:126:19)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "C21",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "Error",
+            "code": "ENOENT",
+            "message": "ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/.data-review-02/C21/synthetic-stdout-0.json'",
+            "stack": [
+              "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/.data-review-02/C21/synthetic-stdout-0.json'",
+              "    at Object.openSync (node:fs:560:18)",
+              "    at Object.readFileSync (node:fs:444:35)",
+              "    at readCapture (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs:49:38)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:126:19)"
+            ]
+          }
+        },
+        {
+          "id": "B01",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "objects": 1,
+            "routes": [
+              "batchObjects"
+            ]
+          }
+        },
+        {
+          "id": "B02",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated object header",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated object header",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:86:56)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B03",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated object payload",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated object payload",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:89:43)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B04",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated object payload",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated object payload",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:89:43)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B05",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "object header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: object header domain",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:88:112)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B06",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "object header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: object header domain",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:88:112)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B07",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated object payload",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated object payload",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:89:43)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B08",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "object header domain",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: object header domain",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:88:112)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:131:20)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "B09",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "extra object bytes\n\n55 !== 56\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: extra object bytes",
+              "",
+              "55 !== 56",
+              "",
+              "    at batchObjects (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:94:10)"
+            ]
+          }
+        },
+        {
+          "id": "B10",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'ab2c6846789c5681cd5544fd3e407c6648761ab9'\n- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ 'ab2c6846789c5681cd5544fd3e407c6648761ab9'",
+              "- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'"
+            ]
+          }
+        },
+        {
+          "id": "B11",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '6e24f143faababc0f6ab21e890de44f6e8611049'\n- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ '6e24f143faababc0f6ab21e890de44f6e8611049'",
+              "- 'd0ceabbe4448a463f6224ecc715ba3df2a6c483f'"
+            ]
+          }
+        },
+        {
+          "id": "B12",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "OID request construction is inline controller.mjs:239-241, not an exported DATA function. No copied builder or controller dispatch is substituted. OID batch parsing and full selected bindings execute separately."
+        },
+        {
+          "id": "B13",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "bindings": 2,
+            "qualification": "Inventory mode/path/OID bindings; selected materialization intentionally permits only 100644. Inline request builder NOT_RUN."
+          }
+        },
+        {
+          "id": "D01",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "6a328474bf7bcb7058e2846b7ac14d6eb3893583",
+            "storedLookups": 0
+          }
+        },
+        {
+          "id": "D02",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "No exported stored-claim admission API. Controller binds actual commit object payload/type/hash after batchObjects; missing stored-claim recipe remains unexecuted."
+        },
+        {
+          "id": "D03",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "root": "189bef24a927241d7c47a662f1ac447b56da1835",
+            "records": 50002,
+            "specialCount": 98,
+            "listingBytes": 7695763,
+            "listingSha256": "2648f28efa3a98f6d5dd4e1cd890001a2d287dfb0573304e11dbe61e58c6f689",
+            "rootPayloadBytes": 449,
+            "rootPayloadSha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+            "referenceDirectories": 4911,
+            "incorrectRootRejected": "bd69c1a1dd0e65e442017ab27f86ed72a284fa95",
+            "actual98IdentitiesSha256": "46d48cf138d0e8c7601fad52e1289f914c1fc5291eb789eb01ddea3610dec0e3"
+          }
+        },
+        {
+          "id": "D04",
+          "status": "PASS",
+          "expectedAccepted": true,
+          "observedAccepted": true,
+          "observation": {
+            "baseCommit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+            "baseRoot": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+            "baseCount": 37412,
+            "derivedBase": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+            "candidateComposition": "f761c0e1d7a1df48236da38ad78a18cf00a4813c",
+            "combinedCount": 37418,
+            "selected": 274,
+            "overrides": 5,
+            "storedLookupsForDerivedRoots": 0,
+            "baseListingSha256": "d158f9bf8f6d0a18053939105fa92387a0f7ab766ea94f2fb42246a3c4f29fe5",
+            "derivedRootPayloadSha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520"
+          }
+        },
+        {
+          "id": "M01",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "truncated record",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: truncated record",
+              "    at parseTree (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:21:12)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:184:37)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "M02",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9'\n- '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ '5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9'",
+              "- '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b'"
+            ]
+          }
+        },
+        {
+          "id": "M03",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "Declared 50002 count comparison is inline controller.mjs:237; parseTree has no declared-count parameter. No fabricated helper pass."
+        },
+        {
+          "id": "M04",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n\n'100755' !== '100644'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "",
+              "'100755' !== '100644'",
+              "",
+              "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:71:12)"
+            ]
+          }
+        },
+        {
+          "id": "M05",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '35ee95b3a286007917c5eb46ba48a3a96a77075e'\n- '0000000000000000000000000000000000000000'\n",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:",
+              "+ actual - expected",
+              "",
+              "+ '35ee95b3a286007917c5eb46ba48a3a96a77075e'",
+              "- '0000000000000000000000000000000000000000'"
+            ]
+          }
+        },
+        {
+          "id": "M06",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "selected path absent",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: selected path absent",
+              "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:75:14)",
+              "    at selectedMutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:95:10)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:183:36)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "M07",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "duplicate selected path",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: duplicate selected path",
+              "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:69:12)",
+              "    at selectedMutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:95:10)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:183:36)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "M08",
+          "status": "PASS",
+          "expectedAccepted": false,
+          "observedAccepted": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "duplicate selected path",
+            "stack": [
+              "AssertionError [ERR_ASSERTION]: duplicate selected path",
+              "    at verifyProjection (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs:69:12)",
+              "    at selectedMutation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:95:10)",
+              "    at execute (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:183:36)",
+              "    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs:197:22"
+            ]
+          }
+        },
+        {
+          "id": "M09",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "Extra unreferenced capture file is the C18 helper boundary. Whole inventory append rejection exists only in controller checkHarness, which is not dispatched."
+        },
+        {
+          "id": "M10",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "Bodyless-stub recipe is sourcequalified by actual imports plus negative body tests. No replacement stub or controller mutation is executed."
+        },
+        {
+          "id": "M11",
+          "status": "NOT_RUN",
+          "qualification": "SOURCEONLY",
+          "reason": "All consumer replacement is a source integration property, not a dynamically dispatched control. See SOURCE-REVIEW.md."
+        }
+      ]
+    },
+    "historical": {
+      "DATA": 25,
+      "NOT_RUN": 68,
+      "unchanged": true
+    },
+    "noSummedAcceptanceDenominator": true
+  },
+  "findings": [
+    {
+      "id": "C18",
+      "status": "FAIL",
+      "boundary": "Actual readCapture consumes referenced files, accepts unreferenced sixth record file",
+      "controllerBypassDemonstrated": false,
+      "qualification": "Existing controller inventory-v1 append guard is SOURCEONLY. Do not label this full-controller acceptance.",
+      "beforeFreshRootGo": "Close consumed-capture boundary or supply concrete independent proof of existing composed append gate and explicit root narrow-contract acceptance; preserve failed control."
+    },
+    {
+      "id": "P28",
+      "status": "UNSUPPORTED",
+      "boundary": "Invalid UTF8 raw-byte preservation expected; declared strict-UTF8 decoder refuses",
+      "priorDeclaredScope": true,
+      "beforeFreshRootGo": "Root must explicitly accept strict-UTF8 finite profile or require raw-byte support/new exact repair seal/review. No silent narrowing."
+    }
+  ],
+  "notRunSourceOnly": [
+    {
+      "id": "P30",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "No nonrecursive record consumer exists in the repaired closure; recursive leaf parser intentionally excludes 040000/tree. Expected acceptance preserved, route NOT_RUN."
+    },
+    {
+      "id": "B12",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "OID request construction is inline controller.mjs:239-241, not an exported DATA function. No copied builder or controller dispatch is substituted. OID batch parsing and full selected bindings execute separately."
+    },
+    {
+      "id": "D02",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "No exported stored-claim admission API. Controller binds actual commit object payload/type/hash after batchObjects; missing stored-claim recipe remains unexecuted."
+    },
+    {
+      "id": "M03",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "Declared 50002 count comparison is inline controller.mjs:237; parseTree has no declared-count parameter. No fabricated helper pass."
+    },
+    {
+      "id": "M09",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "Extra unreferenced capture file is the C18 helper boundary. Whole inventory append rejection exists only in controller checkHarness, which is not dispatched."
+    },
+    {
+      "id": "M10",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "Bodyless-stub recipe is sourcequalified by actual imports plus negative body tests. No replacement stub or controller mutation is executed."
+    },
+    {
+      "id": "M11",
+      "status": "NOT_RUN",
+      "qualification": "SOURCEONLY",
+      "reason": "All consumer replacement is a source integration property, not a dynamically dispatched control. See SOURCE-REVIEW.md."
+    }
+  ],
+  "sourceOnlyFutureChecks": [
+    "controller integration",
+    "inline OID request construction",
+    "declared count gate",
+    "full directory append admission",
+    "module loader",
+    "read-permission routes",
+    "package882",
+    "BUILD-RECEIPT",
+    "concrete app/loader/worker hashes",
+    "committed RUNTIME-SEAL then RUNTIME-START"
+  ],
+  "treeAndObjectProof": {
+    "candidate": {
+      "root": "189bef24a927241d7c47a662f1ac447b56da1835",
+      "records": 50002,
+      "specialCount": 98,
+      "listingBytes": 7695763,
+      "listingSha256": "2648f28efa3a98f6d5dd4e1cd890001a2d287dfb0573304e11dbe61e58c6f689",
+      "rootPayloadBytes": 449,
+      "rootPayloadSha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+      "referenceDirectories": 4911,
+      "incorrectRootRejected": "bd69c1a1dd0e65e442017ab27f86ed72a284fa95",
+      "actual98IdentitiesSha256": "46d48cf138d0e8c7601fad52e1289f914c1fc5291eb789eb01ddea3610dec0e3"
+    },
+    "actualBatch": {
+      "bytes": 2475165,
+      "sha256": "80e819e2e1ee4ddcafb20cfc2ddc35566c80b51b45b3d8ed1aa6303b863f4958",
+      "objectCount": 276,
+      "selectedPaths": 274,
+      "sourceEntriesUnchanged": true,
+      "baseManifestUnchanged": true
+    },
+    "composition": {
+      "baseCommit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "baseRoot": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+      "baseCount": 37412,
+      "derivedBase": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+      "candidateComposition": "f761c0e1d7a1df48236da38ad78a18cf00a4813c",
+      "combinedCount": 37418,
+      "selected": 274,
+      "overrides": 5,
+      "storedLookupsForDerivedRoots": 0,
+      "baseListingSha256": "d158f9bf8f6d0a18053939105fa92387a0f7ab766ea94f2fb42246a3c4f29fe5",
+      "derivedRootPayloadSha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520"
+    }
+  },
+  "actual98CorrectedPasses": 98,
+  "authenticatedBindings": {
+    "files": 672,
+    "directories": 28,
+    "cumulativeBytesHashed": 178062998,
+    "entryListSha256": "2a3dc94a7e40e69dd2d1f08174a6f8e7198cf8408c7c1b1717125217557207bb",
+    "directoryAppendChecks": "Exact recorded directory entry lists, including entire inventory-v1 and tool directories; not an append-proof repository tree.",
+    "afterEqual": true,
+    "finalReauthentication": true
+  },
+  "finalMetadataChildren": [
+    {
+      "args": [
+        "cat-file",
+        "commit",
+        "d3817018efd58d7a6e319192ef388aff7c9cc2cd"
+      ],
+      "pid": 6841,
+      "elapsedMs": 29,
+      "timeoutMs": 10000,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 279,
+      "stdoutSha256": "e1e612795e95dbee368ce4f2545fd7e0e289f5315975fed547b560d41300dd5f",
+      "stderrBytes": 0,
+      "exactChildReaped": true
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "d3817018efd58d7a6e319192ef388aff7c9cc2cd",
+        "--",
+        "tests/commands/apply-patch-independent-20260828/path-transport-v2/REPORT.md",
+        "tests/commands/apply-patch-independent-20260828/path-transport-v2/runs/data-01/RESULT.json"
+      ],
+      "pid": 6842,
+      "elapsedMs": 22,
+      "timeoutMs": 10000,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 273,
+      "stdoutSha256": "b88fe48753dc47cee07d60369f598a6134429a6830e6182ffcc7cf5007805d78",
+      "stderrBytes": 0,
+      "exactChildReaped": true
+    }
+  ],
+  "executionBudget": {
+    "limitMs": 900000,
+    "totalElapsedThroughFinalAuthenticationMs": 353187,
+    "launchWindowMs": 103207,
+    "dataChildren": 2,
+    "freezeMetadataChildren": 8,
+    "launchMetadataChildren": 2,
+    "finalMetadataChildren": 2,
+    "metadataChildrenTotalThisReview": 12,
+    "interactiveGitToolingSeparate": true,
+    "serial": true,
+    "dataChildLimitMs": 30000,
+    "metadataChildLimitMs": 10000,
+    "allRecordedChildrenReaped": true,
+    "firstAndSecondLaunchCapturedBytes": 228370,
+    "finalMetadataCapturedBytes": 552,
+    "syntheticWorkBytes": 115160,
+    "syntheticFilesCleaned": 322,
+    "captureLimitBytes": 134217728,
+    "workLimitBytes": 536870912,
+    "qualification": "Accounting, not RSS or global CLI peak; snapshots/hash reads are not working-memory measurements"
+  },
+  "cleanup": {
+    "firstAbsent": true,
+    "secondAbsent": true,
+    "noOwnedTemporaryDirectory": true,
+    "persistentResources": 0
+  },
+  "unchangedFutureInterface": {
+    "selectedCount": 274,
+    "futurePackageCount": 882,
+    "futureJobs": 70,
+    "controllerMs": 6600000,
+    "buildExecuted": false,
+    "generatedJsHashes": null,
+    "binding": "Derived selected source/config/tool inputs -> complete BUILD-RECEIPT package/emissions -> exact app/loader/worker/mutations -> committed RUNTIME-SEAL -> RUNTIME-START; no actual GO"
+  },
+  "forbiddenExecutionCounts": {
+    "compiler": 0,
+    "build": 0,
+    "install": 0,
+    "product": 0,
+    "runtimeController": 0,
+    "loaderInstallation": 0,
+    "network": 0,
+    "nativeOracle": 0,
+    "mutants": 0,
+    "instructionPlaintextSnapshots": 0
+  },
+  "originalPreseal8Unchanged": true,
+  "retainedFilesBeforeFinalJson": [
+    {
+      "path": "ACTUAL98.json",
+      "bytes": 55646,
+      "mode": 420,
+      "sha256": "c0a0081aa342742d6f5fd3b9221a5f42ea235ebd662aef34ef837c6d8eec4a32"
+    },
+    {
+      "path": "CONSUMERS.md",
+      "bytes": 8341,
+      "mode": 420,
+      "sha256": "10bd3e2d70d557d6d20099e811fe83e15d9dc7263c8c0f1180c4b59485b7f848"
+    },
+    {
+      "path": "CONTROLS.json",
+      "bytes": 678348,
+      "mode": 420,
+      "sha256": "e8601ad08a14bcfaf372729882ee0b0ac1b37b46512d0469a31b1b84cb1042b8"
+    },
+    {
+      "path": "PREPARATION.json",
+      "bytes": 2590,
+      "mode": 420,
+      "sha256": "47f2bce52859ef2279ed2d1690abb1d8d76378d2f707a8e0c951faf0aee8ca6a"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 2429,
+      "mode": 420,
+      "sha256": "3551b20217eb733759a1387ea3910d79d65f0f07f185586a7b449c7271f5f60a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9753,
+      "mode": 420,
+      "sha256": "2fd79722c9004f0096eca67c687959e3307dcba0e22ed247e9fa8c0eab81ae6e"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 10135,
+      "mode": 420,
+      "sha256": "676ba95a6be8c4b0e0243271df868927bb82ce9c2d82c950e1e64241747f61c6"
+    },
+    {
+      "path": "REVIEW-01-QUALIFICATION.md",
+      "bytes": 1998,
+      "mode": 420,
+      "sha256": "d14f5114928023dad5abc68718ca533a6afdafcdff1cf9bbc8ad0aeffa9f39f2"
+    },
+    {
+      "path": "REVIEW-RECIPE.md",
+      "bytes": 6088,
+      "mode": 420,
+      "sha256": "33bd62204b1892530e39e4e1abd14c46858aa17bebbd72d67e89fbd0b0f5fe66"
+    },
+    {
+      "path": "RUNNER-SEAL-V2.json",
+      "bytes": 234125,
+      "mode": 420,
+      "sha256": "eb54714b839dc31bc31a2a51f0f993c2975bc7e2d0e389c279c9aae304cd14dd"
+    },
+    {
+      "path": "RUNNER-SEAL.json",
+      "bytes": 231837,
+      "mode": 420,
+      "sha256": "47a946b1f043e8855ee2fcc6324953d8dbecc53a853d7e808ee5580bcff3793a"
+    },
+    {
+      "path": "SOURCE-INVENTORY.json",
+      "bytes": 7432,
+      "mode": 420,
+      "sha256": "d19288d6b14f686c199841bf57c1de1e66acab572a2e3ba4ceded8c266d2efde"
+    },
+    {
+      "path": "SOURCE-REVIEW.md",
+      "bytes": 8809,
+      "mode": 420,
+      "sha256": "b8572c02d8bb3dcd7e54da8a710f08fd749e452390db35e387cc7cdc7bce5b91"
+    },
+    {
+      "path": "finalize-review.mjs",
+      "bytes": 10495,
+      "mode": 420,
+      "sha256": "7f9b2149ee92cc8caffeab36073febbbdb81baa446cc3ee42166b4e9ca92371e"
+    },
+    {
+      "path": "freeze-review-v2.mjs",
+      "bytes": 5997,
+      "mode": 420,
+      "sha256": "ba0e6f4e39db414464ed0d150afb60dd73c9b09ace821afec6d7cc4ed70f8f8f"
+    },
+    {
+      "path": "freeze-review.mjs",
+      "bytes": 5829,
+      "mode": 420,
+      "sha256": "f2349294aeb0993145b7662c62b3379046d4cec9884c91dbbda145c97d52a9df"
+    },
+    {
+      "path": "launch-review-v2.mjs",
+      "bytes": 6875,
+      "mode": 420,
+      "sha256": "988d185abc1d5c0275038a95abe3d3344c19c4f9aa91cdca14a736aaa81ea576"
+    },
+    {
+      "path": "launch-review.mjs",
+      "bytes": 6698,
+      "mode": 420,
+      "sha256": "459fdce9a05290f4a2a7ff94ea14d9beaf362ad47ead49e724b87067d77a7c07"
+    },
+    {
+      "path": "prepare-data.mjs",
+      "bytes": 27539,
+      "mode": 420,
+      "sha256": "262633ce78aa96f712fd3bc5485bf5aeb5aef5fc57e387c4d74e32a8edb6e4d8"
+    },
+    {
+      "path": "prepare-review-v2.mjs",
+      "bytes": 2720,
+      "mode": 420,
+      "sha256": "940f4c764053abc73e8d926c78c75a076662174530710a33dc347134b1f19d92"
+    },
+    {
+      "path": "review-01.json",
+      "bytes": 186450,
+      "mode": 420,
+      "sha256": "08542418c87b9bc98fa4eaa35af6f1b95e389a7921cbb94fc68d1b5d8fe87bdc"
+    },
+    {
+      "path": "review-02.json",
+      "bytes": 119473,
+      "mode": 420,
+      "sha256": "a035a8fe73e4faa661d73c6960d9014625faa6b92eb47d2d7277d1296babf512"
+    },
+    {
+      "path": "review-reference.mjs",
+      "bytes": 2846,
+      "mode": 420,
+      "sha256": "b3c1744700a8397247ffb1ead9d3c0a1fc564540c5ac2d1db6f0a5069d356680"
+    },
+    {
+      "path": "run-review-v2.mjs",
+      "bytes": 18017,
+      "mode": 420,
+      "sha256": "c3beca2b42cba465395f61c89ac22e383ff6ca4e9ab30d4da979de0de9fc7600"
+    },
+    {
+      "path": "run-review.mjs",
+      "bytes": 17967,
+      "mode": 420,
+      "sha256": "9e68bb8669459d31f7b3be43f64e874ce48080a866898a44da27ab21cc89b74b"
+    }
+  ],
+  "retainedBytesBeforeFinalJson": 1668437
+}

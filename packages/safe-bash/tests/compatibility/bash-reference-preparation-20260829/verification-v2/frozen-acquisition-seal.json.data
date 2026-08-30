@@ -1,0 +1,789 @@
+{
+  "role": "SOURCE_DATA_CHECKS_ONLY_NOT_SIGNATURE_ACCEPTANCE",
+  "sealedAt": "2026-08-29T04:47:45.952Z",
+  "elapsedMs": 120.305958,
+  "files": 96,
+  "logicalBytes": 15209447,
+  "metadataBashStarts": 1,
+  "inspectedProgramsOtherwiseExecuted": 0,
+  "acquired": 33,
+  "unavailable": 5,
+  "signatureVerifications": 0,
+  "extraction": false,
+  "build": false,
+  "rows": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6606,
+      "mode": "644",
+      "sha256": "c0fe53e6c0d2781f10d4df75a42b4da0d121a27dab17a13015a35c040cedc3d8",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "OBJECTS.json",
+      "bytes": 28813,
+      "mode": "600",
+      "sha256": "8f6b1103cffee8d6449996ba4386ff4bae3540c6151826a672ca91ddaea7bf00",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 3688,
+      "mode": "644",
+      "sha256": "85e7766459405919b2f08eed1c6bc042b29748ccea2e5b5cf5391650f3d8ca63",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "RUN-01/REQUESTS.json",
+      "bytes": 6381,
+      "mode": "600",
+      "sha256": "867b7db33d4db64346b5c0664aba242a4e3ed236e29850a88b824570d90efd7d",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/RESULT.json",
+      "bytes": 28917,
+      "mode": "600",
+      "sha256": "c6b38d87b53c5172fb1a322529954a3bc7264b57157bcab0a8c00c9986d07b0e",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/STARTUP.json",
+      "bytes": 163,
+      "mode": "600",
+      "sha256": "cbd1f82e41a048dc446d6e8cdeed33a3ae049073d04862ff21d4bb19b16c868b",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/TOOLS.json",
+      "bytes": 1394,
+      "mode": "600",
+      "sha256": "ac7149d9341b105e75695bd9a00009eaa081c1879695f9bb65762536ec63e7bd",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/VERSION-ADMISSION.json",
+      "bytes": 993,
+      "mode": "600",
+      "sha256": "9aabc47c327beec378ca58e3b7836c8858ec162cc274fafffea334174d7a2438",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/VERSION-POST-IDENTITY.json",
+      "bytes": 196,
+      "mode": "600",
+      "sha256": "d2049615ddf1379b8783fb2ec8e6fa3050ce963d0864fbacd4cb8d5836a1b8a6",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/VERSION-RESULT.json",
+      "bytes": 538,
+      "mode": "600",
+      "sha256": "26bc52b3448a0266db45fd2b4690be12f9b85aacba26828b491cf8d85cded29d",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/bash-version.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/bash-version.stdout.raw",
+      "bytes": 109,
+      "mode": "600",
+      "sha256": "bbb931c0afdf20554fcb03c4414a67092e2d8db87226567a6ad5be3c1bcc1a15",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash-5.3.tar.gz.data",
+      "bytes": 11355854,
+      "mode": "600",
+      "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash-5.3.tar.gz.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-001.data",
+      "bytes": 1531,
+      "mode": "600",
+      "sha256": "1f608434364af86b9b45c8b0ea3fb3b165fb830d27697e6cdfc7ac17dee3287f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-001.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "47a678b49a5b5c63f56cf119a65be650d37b922e49ef4263654fc7842bc7f4c6",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-002.data",
+      "bytes": 2635,
+      "mode": "600",
+      "sha256": "e385548a00130765ec7938a56fbdca52447ab41fabc95a25f19ade527e282001",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-002.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "693d6b30c3cbcbcb30ad262b1b870fd33ee6f56113146b0f3586577af57d3f3f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-003.data",
+      "bytes": 2683,
+      "mode": "600",
+      "sha256": "f245d9c7dc3f5a20d84b53d249334747940936f09dc97e1dcb89fc3ab37d60ed",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-003.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "975ea7c4d40ec435ed8d453b2802f4d61916db1fa2d56f760db5b13a8b918500",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-004.data",
+      "bytes": 1266,
+      "mode": "600",
+      "sha256": "9591d245045529f32f0812f94180b9d9ce9023f5a765c039b852e5dfc99747d0",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-004.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "8014107113756b307b9e79b9d17a99806e7e529694d3e90c906bc2ef8cf8ca2e",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-005.data",
+      "bytes": 1072,
+      "mode": "600",
+      "sha256": "cca1ef52dbbf433bc98e33269b64b2c814028efe2538be1e2c9a377da90bc99d",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-005.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "cb47825ff8ed52574bc15550aa4175d8e989955644f8e94a4d25047f8f1c8654",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-006.data",
+      "bytes": 1346,
+      "mode": "600",
+      "sha256": "29119addefed8eff91ae37fd51822c31780ee30d4a28376e96002706c995ff10",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-006.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "0039bdd8d88c9150358bbfb3155a97019b9b88cd9a8c6d4ad5d7a19de65c51e7",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-007.data",
+      "bytes": 1437,
+      "mode": "600",
+      "sha256": "c0976bbfffa1453c7cfdd62058f206a318568ff2d690f5d4fa048793fa3eb299",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-007.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "66ef5f0e535594c9836810aba5b9e4a0cd23a2fb258a01f5e34a950618e4faea",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-008.data",
+      "bytes": 5717,
+      "mode": "600",
+      "sha256": "097cd723cbfb8907674ac32214063a3fd85282657ec5b4e544d2c0f719653fb4",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-008.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "09e80b5a51d848da582b61aa99e2a18e4f5c7102348c8e16f735dd9dd8b3405f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-009.data",
+      "bytes": 2468,
+      "mode": "600",
+      "sha256": "eee30fe78a4b0cb2fe20e010e00308899cfc613e0774ebb3c8557a1552f24f8c",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-009.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "153a8b129f2a4d97e75ccedda7cda032283d3976196b831a191f391a62a8120c",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-010.data",
+      "bytes": 1457,
+      "mode": "600",
+      "sha256": "cf76f1cce2ea300c18bff9f002d21f280cc931acd17c28518110b93fe6e72569",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-010.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "fbf008c39eaf01401df6ade2a9b8ac38a173cce2025523c6b0919c54d8bea69d",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-011.data",
+      "bytes": 2251,
+      "mode": "600",
+      "sha256": "0298df8f5ea2a31d3be43ed7d269c5b3c7c342dd5b570bea7f64d66dcbbe7531",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-011.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "97a2fefb3ac297635b54662c201b80edd7f54276a0eabb54494fe5d17443fb0f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-012.data",
+      "bytes": 2378,
+      "mode": "600",
+      "sha256": "d71379b39bebaedaf123414414e77fb458a0a43b9ad3116594c6df7ca6754573",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-012.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "536ccbaff4fd28c95fb0394bea230b125d607821d12fee3f231f44682aa2c8af",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-013.data",
+      "bytes": 1467,
+      "mode": "600",
+      "sha256": "042f9cda967e24bf4211944697441e93d06ff42b4b998629a98a1b249279f200",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-013.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "c1ed27f2231f982e494e3bb73f53c9310f8853ee46354b993114cc8c1030eb22",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-014.data",
+      "bytes": 2229,
+      "mode": "600",
+      "sha256": "bd4360b401d38507e358783dcad8536a99c6789f0d3a5bd0cfb8c4a34144696c",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-014.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "fa7746cd7c02a03a752d41c5dea8343a8ef4ffd9d0fe88b1e3247f9d0678e80b",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-015.data",
+      "bytes": 2151,
+      "mode": "600",
+      "sha256": "55b79ceee2fc27f6767eed697e939a7eb2fe2a28c01556bd75f18d581014f46e",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/bash53-015.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "8a432fbe5bd1f0d4f5ecbcb7a462009fe7f780a8c5cf0e71b423692aaf22bfc5",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/downloads/gnu-keyring.gpg.data",
+      "bytes": 3687794,
+      "mode": "600",
+      "sha256": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-01.json",
+      "bytes": 701,
+      "mode": "600",
+      "sha256": "e4e39f57af154712f5e339c74962cafa50c0df5dc4b4d20554c0214b4fdd59ec",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-02.json",
+      "bytes": 712,
+      "mode": "600",
+      "sha256": "823e343cd22c76375c06277d343d32499325f6ff8caa0d66b0db01c06df92e08",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-03.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "e08cd93bfca31925abee9a24f8cebcb313f97aa2fae81235462a6f5e84c9c486",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-04.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "3ad95efc2a5bd94b15db652f2f2c6b7d6d4c0d2817f9c2675502567aeb099ab0",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-05.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "fdb472750c49ff4ad38ee176587ab366c5b20a5878b0ad1067c7fd7c60ee248b",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-06.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "242df353638f847e00e33ae31451c6dc133935abf3f088d18b6716f898040eaa",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-07.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "29643708719d06e4a38be71a374ff54e0375c299cd30f16e43b467ef0a93e226",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-08.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "9938596468cc76a430d356cff4bc695682a9d34a646159eb0daa6f1acee16126",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-09.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "63abd5b88ed97fdaf24f4513b614ff7b1ea35f37c12510e4e45a1175a05203e1",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-10.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "2513888d190d0d30adc5df79d41eb0999ede15c3865300083f9c2474b039017f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-11.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "62ac64a5498253f8658fa6eb4524e84aaefebdd8d1c3bb5620b500fdcf69b58e",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-12.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "f923c3dd46fdb97e8bb23efc716dd2092fb400d71253871f42388b3c7c3c1df3",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-13.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "e4a3b29be3c59a65fd3d9ab9e4c9d158fece604378c88abed14158de176ec101",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-14.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "5bfe5a6a5f9aa44ab00db7acfd12f893615be1f906f841761c3718b7f8aa45ed",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-15.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "a0344a9a2faecee12d4d5c93be0b7387a1d9a071aa2567920e2cc8cfaacb3bcb",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-16.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "7fcbac4ceb349c44a44f035e9accaca90ee79c2b496fc6c84aad4ee76c39651b",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-17.json",
+      "bytes": 674,
+      "mode": "600",
+      "sha256": "24770a591c49b7b368b11e62e15ac13de919c960b889c06bece462f5a74e058f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-18.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "421a04f2636d170799d691045be00973a6846f4769c5a5e8561cc8ee5fb154aa",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-19.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "752ad50e05edeaff16bd30cfd43592d904e246116326c218b5d8d940e0bae7fb",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-20.json",
+      "bytes": 714,
+      "mode": "600",
+      "sha256": "5be5295c7947cafecfbc1076e9982795d61ebf691ef985ff032966b518759960",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-21.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "4fa0a93772c284c9c9499a1568bf3cba7a565470f12ea274a5bf572ab170d71c",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-22.json",
+      "bytes": 716,
+      "mode": "600",
+      "sha256": "50b9a79cd9110154e5612accb17f4b1cc41aa34f3bb9132c0520437d2719bcaa",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-23.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "3acd1d9f3192dca6edf78b7d1b4a3a63a5a1bbde32b9490457ed135bd4bc9e0c",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-24.json",
+      "bytes": 716,
+      "mode": "600",
+      "sha256": "213f312e2b9b094c0fe3cfa1562d2ae41fddd56b74216657a956f142775a0af0",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-25.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "d6867e3dac8144cba9e9d486771c1eee334c98b4c37eb2f49d8764863d03a220",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-26.json",
+      "bytes": 716,
+      "mode": "600",
+      "sha256": "86fb30a3edcab37a382bba50476a29ffabe9abdf32820b2daa1d0358ec773a50",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-27.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "c62588698f391d57958c052ed1b196460ec153039bf5753eccf5b4c32f6ad86d",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-28.json",
+      "bytes": 716,
+      "mode": "600",
+      "sha256": "91391109b17463b6aa2488bacad54332cc154487245d5f5b6ff7ccbffe6d4627",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-29.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "d48336635951dcfa687a948a4b811526123bf18dbc80327afcaef1cfa82371eb",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-30.json",
+      "bytes": 716,
+      "mode": "600",
+      "sha256": "a66ccb6a74e7efc0b4752a8f6e59ec42f0f88c5775f2e986bd54f415773c361e",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-31.json",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "59c701f1f57e500f122cc02837f4ebaeb04c4cc2a633956534ade8b1bbf4ac9e",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-32.json",
+      "bytes": 716,
+      "mode": "600",
+      "sha256": "f7f9ff8c92bc5837aca3b6eb7dda02c6e5d14d455ea078d9f3ef0b45a37a0eb2",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-33.json",
+      "bytes": 704,
+      "mode": "600",
+      "sha256": "8a0477327e02b0254e37d2ad30a4435a10c46e9864678d41afbeffd649215e38",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-34.json",
+      "bytes": 569,
+      "mode": "600",
+      "sha256": "c80746f0017a9cda0fdbc0192cab1718784934fd182f822b8c8983ed62061a0f",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-35.json",
+      "bytes": 567,
+      "mode": "600",
+      "sha256": "e086d237867701e84f1141166fef26866aaa1202f3c1fd0b465bdf2086fb73b9",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-36.json",
+      "bytes": 402,
+      "mode": "600",
+      "sha256": "4e40292da7553b56e392da965a1d156098b92bc4766f1baec12868d72c7f8a94",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-37.json",
+      "bytes": 399,
+      "mode": "600",
+      "sha256": "7b6fcbde4811043d37f28cfc7152a4349645c2840a4b2ef328ea02933c8fdab2",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "RUN-01/request-38.json",
+      "bytes": 389,
+      "mode": "600",
+      "sha256": "e4fc30527de530b49218f204e305bf5bc162c8800a32273ae687270b2ea96219",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "VERIFY-GAP-01/INSTALL_RECEIPT.json.data",
+      "bytes": 4290,
+      "mode": "600",
+      "sha256": "8e9a0e9f87428634f209f976f44a52d26b7840d2a687e700c1694f2f6df0f61a",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "VERIFY-GAP-01/RESULT.json",
+      "bytes": 734,
+      "mode": "600",
+      "sha256": "fdc54c3bfb9c7ad5a75376af2620c11b97448bf1b7d4f301d0a5c48b66d1e8e6",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "VERIFY-GAP-01/STARTUP.json",
+      "bytes": 96,
+      "mode": "600",
+      "sha256": "8a41f6e735390f5f8ed941a3ef867b5936627e9ef677218852fa30d26629e625",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "VERIFY-GAP-01/gnupg.rb.data",
+      "bytes": 3059,
+      "mode": "600",
+      "sha256": "749cde3b8a168a21c6c560fd51837afc349e0dc00b736db37249dc30a9f2acee",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "VERIFY-GAP-PRESEAL.md",
+      "bytes": 890,
+      "mode": "644",
+      "sha256": "7725c800115ebeb1e96417a0c0f5aaef937d8c6ebb8f30825aeac1f062f60a3f",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "acquire.mjs",
+      "bytes": 9683,
+      "mode": "644",
+      "sha256": "4f191bb469acf4c946d70c4465cba6289c0d903150cb570365632fc01fab5a4a",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "outer.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "outer.stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "plan.json",
+      "bytes": 2679,
+      "mode": "644",
+      "sha256": "2ea8bdb3a6851a01018fb8fbc2b4281dc288a3769166807e50643803031c2bc2",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 5577,
+      "mode": "644",
+      "sha256": "dec4d419c02e056ed6abdbb3269935c859a3a1dcffa36ca72a5e2f082fc45198",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "verify-gap.mjs",
+      "bytes": 1956,
+      "mode": "644",
+      "sha256": "9ef66d71da7723482d40c4139736948f1a6c7c9333da0b6b35ee5a66652ac04f",
+      "role": "AUTHORED_SOURCE",
+      "modeAuthority": "CURRENT_AUTHORED_FILE_LSTAT"
+    },
+    {
+      "path": "verify-gap.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    },
+    {
+      "path": "verify-gap.stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_DATA",
+      "modeAuthority": "EXCLUSIVE_CREATION_0600_OR_UMASK077_AND_CURRENT_LSTAT"
+    }
+  ],
+  "exclusions": [
+    "SEAL.json",
+    "seal.stdout.raw",
+    "seal.stderr.raw"
+  ]
+}

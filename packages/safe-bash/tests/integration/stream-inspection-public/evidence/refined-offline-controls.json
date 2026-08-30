@@ -1,0 +1,81 @@
+{
+  "status": "pass",
+  "productExecution": false,
+  "controls": 4,
+  "negativeControlPrepareExecutedDespiteIgnoreScripts": true,
+  "suppressedLifecycleNames": [
+    "prepack",
+    "postpack",
+    "preinstall",
+    "install",
+    "postinstall"
+  ],
+  "guardedSentinelExists": false,
+  "node": "v22.22.2",
+  "npmRealpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+  "npmSha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+  "networkPolicy": "(version 1) (allow default) (deny network*)\n",
+  "steps": [
+    {
+      "label": "negative control npm10 prepare bypasses ignore-scripts",
+      "args": [
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined"
+      ],
+      "cwd": "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/canary",
+      "status": 91,
+      "stdout": "{\n  \"error\": {\n    \"code\": 91,\n    \"summary\": \"command failed\",\n    \"detail\": \"sh -c node -e \\\"require('node:fs').writeFileSync('/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/LIFECYCLE_EXECUTED','executed'); process.exit(91)\\\"\"\n  }\n}\n",
+      "stderr": "\n> stream-public-offline-canary@1.0.0 prepare\n> node -e \"require('node:fs').writeFileSync('/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/LIFECYCLE_EXECUTED','executed'); process.exit(91)\"\n\nnpm error code 91\nnpm error path /private/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/canary\nnpm error command failed\nnpm error command sh -c node -e \"require('node:fs').writeFileSync('/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/LIFECYCLE_EXECUTED','executed'); process.exit(91)\"\nnpm error A complete log of this run can be found in: /tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/empty-cache/_logs/2026-08-27T05_26_46_211Z-debug-0.log\n"
+    },
+    {
+      "label": "prepare absent: offline pack suppresses prepack/postpack",
+      "args": [
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined"
+      ],
+      "cwd": "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/guarded-canary",
+      "status": 0,
+      "stdout": "[\n  {\n    \"id\": \"stream-public-guarded-canary@1.0.0\",\n    \"name\": \"stream-public-guarded-canary\",\n    \"version\": \"1.0.0\",\n    \"size\": 331,\n    \"unpackedSize\": 1022,\n    \"shasum\": \"a9bbafd52e508b09ab1ddf9ed955cc013a548dae\",\n    \"integrity\": \"sha512-cZ3hQ3UA3NhyKWP+gnL3C6PrIE7yYh8eAOkYLoQpVP+KpNHACOk024GeEmmY0nr6MbWDPqzPoCdzDiVJfzSSUQ==\",\n    \"filename\": \"stream-public-guarded-canary-1.0.0.tgz\",\n    \"files\": [\n      {\n        \"path\": \"package.json\",\n        \"size\": 1022,\n        \"mode\": 420\n      }\n    ],\n    \"entryCount\": 1,\n    \"bundled\": []\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "label": "explicit offline install suppresses preinstall/install/postinstall",
+      "args": [
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--omit=dev",
+        "--no-audit",
+        "--no-fund",
+        "--no-package-lock",
+        "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/stream-public-guarded-canary-1.0.0.tgz"
+      ],
+      "cwd": "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/consumer",
+      "status": 0,
+      "stdout": "\nadded 1 package in 163ms\n",
+      "stderr": ""
+    },
+    {
+      "label": "empty-cache uncached lookup explicitly fails offline",
+      "args": [
+        "view",
+        "stream-public-never-cached-control-8675309",
+        "version",
+        "--offline",
+        "--ignore-scripts"
+      ],
+      "cwd": "/tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/consumer",
+      "status": 1,
+      "stdout": "",
+      "stderr": "npm error code ENOTCACHED\nnpm error request to https://registry.npmjs.org/stream-public-never-cached-control-8675309 failed: cache mode is 'only-if-cached' but no cached response is available.\nnpm error A complete log of this run can be found in: /tmp/safe-bash-stream-public-independent.p8j8em/offline-controls-refined/empty-cache/_logs/2026-08-27T05_26_47_114Z-debug-0.log\n"
+    }
+  ]
+}

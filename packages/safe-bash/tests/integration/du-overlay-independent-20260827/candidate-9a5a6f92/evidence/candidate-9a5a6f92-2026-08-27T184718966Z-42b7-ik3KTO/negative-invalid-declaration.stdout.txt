@@ -1,0 +1,1 @@
+node_modules/virtual-bash/dist/commands/du/index.d.ts(8,47): error TS1110: Type expected.

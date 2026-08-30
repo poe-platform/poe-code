@@ -1,0 +1,268 @@
+{
+  "revision": "68059389bf95e03caeae6479837187add3d07814",
+  "sourceTree": "67da7e232729bb75fc3313f80d644112558dc1fa",
+  "sourceManifestSha256": "0bf604ee810f6ac5dd2cdf771934288fe654700f9b3f6875903592df47f314d1",
+  "matrixSha256": "14d9150068fa2b28acd671b6077e56b08c7565840c1760af9387cb5dbba2030d",
+  "commandWorkloadsAndAssertionsSha256": "2d6700674dbaadd10fba3765def70a647709ed7578c10bbc2f783fe4cbac64bf",
+  "stockFixtureSha256": "127a6910a2733d6b6df01285d37d5c90ccbeeeefda40e0869dc633ef8f6d14e5",
+  "configuredFixtureSha256": "6ca47426b3926125950755679dfadd8169bb19620968adf51a0ec8b92f6a34ba",
+  "mockSha256": "177f79ee640460822cfe0486c87f7cc61ac7c8b84389abe32b48ef27f4b4ef36",
+  "atomicHelperSha256": "70a52a3f2f8df440f6b038c19af02f2d63f79d1b4f099e934b4e2d30c23998bf",
+  "packSha256": "2e33387a28f91e0d187eaab429410765bf317ff59567c9f0287aa73199d63dbf",
+  "generatedBuildSha256": "693a50d3ba681bb3afc2f5f8e4ae8edf84091ed4f492935a95f2f54c5bd4a8e0",
+  "loadedSummary": {
+    "packed-stock79": {
+      "entries": 163,
+      "sha256": "ee2ed425a529c65787665170849290c64a925c05779a7d50c243dd297006af50"
+    },
+    "packed-configured79": {
+      "entries": 164,
+      "sha256": "d31abeb4ede96ee01fe5e859c0b5e31917a1318038db475acaed92dedf44a1eb"
+    },
+    "packed-controls": {
+      "entries": 162,
+      "sha256": "070ef7b42a0a2bbf859892b99183eef3adda2a79cbcd263112444e876e40db30"
+    }
+  },
+  "summaries": {
+    "stock-original79": {
+      "tests": 79,
+      "pass": 78,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "packed-stock79": {
+      "tests": 79,
+      "pass": 78,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "packed-configured79": {
+      "tests": 79,
+      "pass": 79,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "packed-controls": {
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "delta": [
+    "+import { atomicMockBinding } from \"./atomic-webdav-profile/atomic-mock.js\";",
+    "+    atomicEmptyDirectory: atomicMockBinding(dav, baseUrl.href),"
+  ],
+  "unchangedOriginalInputs": true,
+  "unchangedCommandWorkloadsAndAssertions": true,
+  "configuredChangesInputs": true,
+  "independentVerification": "required after clean author checkpoint; not performed by this author",
+  "realInterop": "not measured; prior WsgiDAV evidence remains independent",
+  "results": [
+    {
+      "name": "build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "cwd": "source",
+      "startedAt": "2026-08-27T09:02:26.362Z",
+      "durationMs": 1626.9731250000004,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "strict-stock",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.stock.json"
+      ],
+      "cwd": "source",
+      "startedAt": "2026-08-27T09:02:28.034Z",
+      "durationMs": 1137.0281250000007,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "stock-original79",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-reporter=tap",
+        "tests/integration/adapter-tools/matrix.test.ts"
+      ],
+      "cwd": "source",
+      "startedAt": "2026-08-27T09:02:29.172Z",
+      "durationMs": 1746.127708,
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failedRows": [
+        "webdav: create, copy, append, inspect and remove files"
+      ]
+    },
+    {
+      "name": "pack",
+      "executable": "npm",
+      "args": [
+        "--cache",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/npm-cache",
+        "pack",
+        "--ignore-scripts",
+        "--json",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/evidence/author-corrected"
+      ],
+      "cwd": "source",
+      "startedAt": "2026-08-27T09:02:30.918Z",
+      "durationMs": 717.5440419999995,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "strict-public-stock",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "consumer",
+      "startedAt": "2026-08-27T09:02:31.802Z",
+      "durationMs": 373.6346249999988,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "packed-stock79",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "out-stock/tests/integration/adapter-tools/matrix.test.js"
+      ],
+      "cwd": "consumer",
+      "startedAt": "2026-08-27T09:02:32.176Z",
+      "durationMs": 1669.7690840000014,
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 79,
+        "pass": 78,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failedRows": [
+        "webdav: create, copy, append, inspect and remove files"
+      ]
+    },
+    {
+      "name": "strict-public-configured",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwd": "consumer",
+      "startedAt": "2026-08-27T09:02:33.846Z",
+      "durationMs": 392.0186250000006,
+      "status": 0,
+      "signal": null
+    },
+    {
+      "name": "packed-configured79",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "out-configured/tests/integration/adapter-tools/matrix.test.js"
+      ],
+      "cwd": "consumer",
+      "startedAt": "2026-08-27T09:02:34.292Z",
+      "durationMs": 1625.9429579999996,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 79,
+        "pass": 79,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failedRows": []
+    },
+    {
+      "name": "packed-controls",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/source/tests/integration/adapter-tools/atomic-webdav-profile/loaded-hook.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "out-configured/tests/integration/adapter-tools/atomic-webdav-profile/controls.js"
+      ],
+      "cwd": "consumer",
+      "startedAt": "2026-08-27T09:02:35.918Z",
+      "durationMs": 207.77162499999758,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 22,
+        "pass": 22,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failedRows": []
+    },
+    {
+      "name": "public-resolution",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { agentCommands, Shell, MemoryFileSystem } from 'virtual-bash'; const consumer = JSON.parse(readFileSync('package.json')); assert.notEqual(consumer.name, 'virtual-bash'); const resolved = import.meta.resolve('virtual-bash'); assert.equal(resolved, \"file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile/.isolated-CQNrbI/consumer/node_modules/virtual-bash/dist/index.js\"); const shell = new Shell({fs:new MemoryFileSystem()}).use(agentCommands()); assert.equal((await shell.exec(':')).exitCode, 0); const names = [\"cat\",\"cp\",\"find\",\"mkdir\",\"mv\",\"printf\",\"pwd\",\"rm\",\"rmdir\",\"sort\",\"tee\",\"test\",\"touch\",\"xargs\",\"sed\",\"awk\",\"jq\",\"rg\",\"sha256sum\",\"gzip\",\"diff\",\"patch\"]; for (const name of names) assert.equal(typeof shell.commands.get(name)?.execute, 'function', name); console.log(JSON.stringify({consumer:consumer.name,resolved,requiredCommands:names,actualAggregate:true})); await shell.dispose();"
+      ],
+      "cwd": "consumer",
+      "startedAt": "2026-08-27T09:02:36.126Z",
+      "durationMs": 86.06441599999744,
+      "status": 0,
+      "signal": null
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: RED provider no-effects control: actual Overlay readdir retries pending garbage deletion
+ok 1 - RED provider no-effects control: actual Overlay readdir retries pending garbage deletion
+  ---
+  duration_ms: 4.92925
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 158.638042

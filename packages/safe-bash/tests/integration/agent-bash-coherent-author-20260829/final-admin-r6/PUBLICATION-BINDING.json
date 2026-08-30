@@ -1,0 +1,132 @@
+{
+  "schema": "b1-publication-v2-review-only",
+  "repo": "/Users/kjopek/Workspace/safe-bash",
+  "candidate": "14be114b99bd4df2e275ee5d1f59db45bb2085d9",
+  "runtimePreseal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+    "bytes": 20784,
+    "sha256": "576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5"
+  },
+  "package": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/publish.mjs",
+      "bytes": 14111,
+      "sha256": "d6071cd81c646360830529a590140de11095ead643beecc60145691c59355eb8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs",
+      "bytes": 4556,
+      "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs",
+      "bytes": 7144,
+      "sha256": "09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/startup-policy.mjs",
+      "bytes": 2495,
+      "sha256": "fb7411f820f3dbb55621cb3e3421ce308c94dd832ce091b8c2a44c8d7b7bbd40"
+    }
+  ],
+  "retiredBinding": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b1-final-binding/BINDING.json",
+    "bytes": 4265,
+    "sha256": "adce87b6432ac4c80b84bdf13a225e1b9b0771a398740866734b70476610c97f"
+  },
+  "windows": "NONE: pending different review and fresh final-slot authority",
+  "rootActualAuthority": false,
+  "outputs": {
+    "work": "/private/tmp/coherent-b1-r5-runtime",
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/actual-evidence",
+    "publication": "/private/tmp/coherent-b1-r5-publication",
+    "launchCaptures": [
+      "/private/tmp/coherent-b1-r5-admin/capture/runtime-coordinator.stdout",
+      "/private/tmp/coherent-b1-r5-admin/capture/runtime-coordinator.stderr",
+      "/private/tmp/coherent-b1-r5-admin/capture/publication-preimport.stdout",
+      "/private/tmp/coherent-b1-r5-admin/capture/publication-preimport.stderr",
+      "/private/tmp/coherent-b1-r5-admin/START.json",
+      "/private/tmp/coherent-b1-r5-admin/ROOT-GRANT.json",
+      "/private/tmp/coherent-b1-r5-admin/PRIOR-LEDGER.json",
+      "/private/tmp/coherent-b1-r5-admin/PREIMPORT-ADMISSION.json"
+    ],
+    "startupCaptures": [
+      "/private/tmp/coherent-b1-r5-owner.stdout",
+      "/private/tmp/coherent-b1-r5-owner.stderr",
+      "/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout",
+      "/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr"
+    ],
+    "authority": "exact future root-bound absolute file, identity and bytes required",
+    "git": "shared existing database excluded; newly generated logical object allowance charged; actual physical object growth unobserved"
+  },
+  "expectedCalls": 15,
+  "expectedIds": [
+    "C10",
+    "C11",
+    "C15",
+    "C16",
+    "C18"
+  ],
+  "workerProfile": {
+    "knownOS": 36,
+    "peak": 3,
+    "roles": [
+      "offline-install",
+      "workflow-source-built",
+      "workflow-installed",
+      "workflow-physically-moved"
+    ],
+    "ids": [
+      "C10",
+      "C11",
+      "C15",
+      "C16",
+      "C18"
+    ],
+    "layouts": [
+      "source-built",
+      "installed",
+      "physically-moved"
+    ],
+    "calls": 15,
+    "guestWorkersPerLayout": 5,
+    "guestWorkersTotal": 15,
+    "guestWorkersLive": 5,
+    "regexWorkers": 0,
+    "asyncLoaderThreads": 0,
+    "mainSyncHooks": 3,
+    "guestSyncHooks": 15,
+    "inclusiveSeconds": 1800,
+    "activeSeconds": 1620,
+    "publicationReserveSeconds": 180,
+    "installSeconds": 120,
+    "layoutSeconds": 300,
+    "caseSeconds": 30,
+    "cleanupSeconds": 5,
+    "captureBytes": 67108864,
+    "workBytes": 805306368
+  },
+  "startupStreams": [
+    {
+      "path": "/private/tmp/coherent-b1-r5-owner.stdout",
+      "capBytes": 4096
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-owner.stderr",
+      "capBytes": 4096
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publisher.stdout",
+      "capBytes": 4096
+    },
+    {
+      "path": "/private/tmp/coherent-b1-r5-admin/capture/publisher.stderr",
+      "capBytes": 4096
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "controls": [
+    {
+      "id": "N01-diagnostic-code",
+      "pass": true
+    },
+    {
+      "id": "N02-diagnostic-path-and-exit",
+      "pass": true
+    },
+    {
+      "id": "N03-mutant-missing-load",
+      "pass": true
+    },
+    {
+      "id": "N04-mutant-wrong-hash",
+      "pass": true
+    },
+    {
+      "id": "N05-restore-status",
+      "pass": true
+    },
+    {
+      "id": "N06-falsy-cleanup-presence",
+      "pass": true
+    },
+    {
+      "id": "N07-grant-time-and-caps",
+      "pass": true
+    },
+    {
+      "id": "N08-raw-falsy-publication",
+      "pass": true
+    },
+    {
+      "id": "N09-partial-open-primary",
+      "pass": true
+    },
+    {
+      "id": "N10-auth-before-decode",
+      "pass": true
+    }
+  ],
+  "harmless": [
+    {
+      "id": "H01",
+      "result": {
+        "exitCode": 0,
+        "exitSignal": null,
+        "exited": true,
+        "closed": true,
+        "signalCount": 0,
+        "stdout": "/private/tmp/b2-r6-independent-IhkGEU/children/00-H01.stdout",
+        "stderr": "/private/tmp/b2-r6-independent-IhkGEU/children/00-H01.stderr",
+        "pid": 20158,
+        "stdoutBytes": 29,
+        "stderrBytes": 0,
+        "storedStdout": 29,
+        "storedStderr": 0
+      },
+      "stdoutBytes": 29,
+      "stderrBytes": 0,
+      "traceRows": [
+        {
+          "kind": "authenticated-source-supplied",
+          "url": "file:///private/tmp/b2-r6-independent-IhkGEU/H01/moved/dist/index.js",
+          "member": "dist/index.js",
+          "sha256": "a217e693b5e97a1c2051a79136e03707e11267e18466c3794846421ae87e3cce"
+        }
+      ],
+      "qualified": true
+    },
+    {
+      "id": "H02",
+      "result": {
+        "exitCode": 1,
+        "exitSignal": null,
+        "exited": true,
+        "closed": true,
+        "signalCount": 0,
+        "stdout": "/private/tmp/b2-r6-independent-IhkGEU/children/01-H02.stdout",
+        "stderr": "/private/tmp/b2-r6-independent-IhkGEU/children/01-H02.stderr",
+        "pid": 20159,
+        "stdoutBytes": 0,
+        "stderrBytes": 482,
+        "storedStdout": 0,
+        "storedStderr": 482
+      },
+      "stdoutBytes": 0,
+      "stderrBytes": 482,
+      "traceRows": [
+        {
+          "kind": "binding-refusal",
+          "alteration": "missing",
+          "member": "dist/index.js",
+          "filename": "/private/tmp/b2-r6-independent-IhkGEU/H02/package/dist/index.js",
+          "identity": "B2_BINDING_REFUSAL:missing:/private/tmp/b2-r6-independent-IhkGEU/H02/package/dist/index.js"
+        }
+      ],
+      "qualified": true
+    },
+    {
+      "id": "H03",
+      "result": {
+        "exitCode": 1,
+        "exitSignal": null,
+        "exited": true,
+        "closed": true,
+        "signalCount": 0,
+        "stdout": "/private/tmp/b2-r6-independent-IhkGEU/children/02-H03.stdout",
+        "stderr": "/private/tmp/b2-r6-independent-IhkGEU/children/02-H03.stderr",
+        "pid": 20160,
+        "stdoutBytes": 0,
+        "stderrBytes": 489,
+        "storedStdout": 0,
+        "storedStderr": 489
+      },
+      "stdoutBytes": 0,
+      "stderrBytes": 489,
+      "traceRows": [
+        {
+          "kind": "binding-refusal",
+          "alteration": "changed",
+          "member": "dist/shell/parser.js",
+          "filename": "/private/tmp/b2-r6-independent-IhkGEU/H03/package/dist/shell/parser.js",
+          "identity": "B2_BINDING_REFUSAL:changed:/private/tmp/b2-r6-independent-IhkGEU/H03/package/dist/shell/parser.js"
+        }
+      ],
+      "qualified": true
+    },
+    {
+      "id": "H04",
+      "result": {
+        "exitCode": 2,
+        "exitSignal": null,
+        "exited": true,
+        "closed": true,
+        "signalCount": 0,
+        "stdout": "/private/tmp/b2-r6-independent-IhkGEU/children/03-H04.stdout",
+        "stderr": "/private/tmp/b2-r6-independent-IhkGEU/children/03-H04.stderr",
+        "pid": 20161,
+        "stdoutBytes": 112,
+        "stderrBytes": 0,
+        "storedStdout": 112,
+        "storedStderr": 0
+      },
+      "stdoutBytes": 112,
+      "stderrBytes": 0,
+      "traceRows": [],
+      "qualified": true
+    }
+  ],
+  "retirement": {
+    "children": 4,
+    "attemptedBytes": 1112,
+    "storedBytes": 1112,
+    "elapsedMs": 208.67479200000002,
+    "failures": []
+  },
+  "pureGroups": 10,
+  "harmlessGroups": 4,
+  "actualProduct": 0,
+  "actualCompiler": 0,
+  "asyncLoaderStarts": 0,
+  "workerStarts": 0,
+  "loaderEvidence": "direct exported functions in harmless Node process; not async-loader integration",
+  "pid": 20157
+}

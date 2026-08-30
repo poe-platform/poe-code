@@ -1,0 +1,296 @@
+import assert from "node:assert/strict";
+import { createServer, type ServerResponse } from "node:http";
+import type { Socket } from "node:net";
+import { setImmediate as turn } from "node:timers/promises";
+import { test } from "node:test";
+import { agentCommands, collectBytes, createBytePipe, createOutputOperation, MemoryFileSystem, networkCommands, pipeBytes, Shell, toByteSource, writeBytes, type ByteSource, type CommandContext } from "../../src/index.js";
+import { bounded, gate } from "../stress/remote-cancellation/helpers.js";
+
+const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
+const text = (bytes: Uint8Array): string => new TextDecoder().decode(bytes);
+const aborted = (signal: AbortSignal): Promise<never> => new Promise((_resolve, reject) => {
+  if (signal.aborted) reject(signal.reason);
+  else signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+});
+const isPipe = (error: unknown): boolean => error instanceof Error && "code" in error && error.code === "EPIPE";
+
+for (const status of [0, 7]) test(`A${status === 0 ? 1 : 2}: owned close preserves independent file/stderr and status ${status}`, { timeout: 2500 }, async testContext => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  const started = gate();
+  const events: string[] = [];
+  const caller = new AbortController();
+  let releases = 0;
+  let stage: AbortSignal | undefined;
+  shell.use(async (context, next) => {
+    if (context.command === "head") await started.promise;
+    const result = await next();
+    events.push(`${context.command}:${result.exitCode}`);
+    return result;
+  });
+  shell.commands.register({ name: "owned", async execute(context) {
+    stage = context.signal;
+    const operation = createOutputOperation(context, context.stdout);
+    operation.registerCleanup(async () => { await turn(); releases++; events.push("released"); });
+    const source: ByteSource = (async function* () {
+      events.push("read:1"); started.resolve();
+      try { await aborted(operation.signal); yield encode("unreachable"); }
+      finally { events.push("read:finally"); }
+    })();
+    operation.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });
+    try { await pipeBytes(source, operation.output, operation.signal); assert.fail("read must cancel"); }
+    catch (error) { assert.ok(isPipe(error)); assert.equal(context.signal.aborted, false); }
+    finally { await Promise.all([operation.close(), operation.close()]); }
+    assert.equal(releases, 1);
+    await context.fs.writeFile("/effect", encode("kept"), { signal: context.signal });
+    await writeBytes(context.stderr, encode("diagnostic\n"), context.signal);
+    events.push("independent-effects");
+    return { exitCode: status };
+  } });
+  try {
+    const result = await bounded(shell.exec("set -o pipefail; owned | head -n 0", { signal: caller.signal }), "author independent");
+    assert.deepEqual(result, { exitCode: status, stdout: "", stderr: "diagnostic\n", stdoutBytes: encode(""), stderrBytes: encode("diagnostic\n") });
+    assert.equal(text(await fs.readFile("/effect")), "kept");
+    assert.equal(caller.signal.aborted, false);
+    assert.equal(stage?.aborted, false);
+    assert.equal(releases, 1);
+    assert.ok(events.indexOf("read:1") < events.indexOf("head:0"));
+    assert.ok(events.indexOf("released") < events.indexOf("independent-effects"));
+    testContext.diagnostic(JSON.stringify({ result, effect: "kept", releases, events }));
+  } finally { caller.abort(new Error("author teardown")); await shell.dispose(); }
+});
+
+test("A3: borrowed shared stdin survives owned cancellation and nested independent destination", { timeout: 2500 }, async testContext => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  const started = gate();
+  const events: string[] = [];
+  let reads = 0;
+  let returned = 0;
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { return {
+    async next() { reads++; return reads === 1 ? { done: false, value: encode("borrowed\nretained\n") } : { done: true, value: undefined }; },
+    async return() { returned++; return { done: true, value: undefined }; },
+  }; } };
+  shell.use(async (context, next) => { if (context.command === "head" && context.args.includes("0")) await started.promise; return next(); });
+  shell.commands.register({ name: "owned", async execute(context) {
+    const operation = createOutputOperation(context, context.stdout);
+    try { started.resolve(); await aborted(operation.signal); }
+    catch (error) { assert.ok(isPipe(error)); }
+    finally { await operation.close(); }
+    assert.equal(reads, 0); assert.equal(returned, 0); assert.equal(context.signal.aborted, false);
+    assert.ok(context.invoke);
+    const result = await context.invoke("reader", [], { stdout: { write: chunk => fs.appendFile("/nested", chunk) } });
+    assert.equal(result.exitCode, 0);
+    events.push("nested-done");
+    return { exitCode: 0 };
+  } });
+  shell.commands.register({ name: "reader", async execute(context) {
+    const operation = createOutputOperation(context, context.stdout);
+    try {
+      const bytes = await collectBytes(context.stdin, { maxBytes: 64, signal: context.signal });
+      assert.equal(text(bytes), "borrowed\nretained\n");
+      await writeBytes(operation.output, bytes, operation.signal);
+      return { exitCode: 0 };
+    } finally { await operation.close(); }
+  } });
+  try {
+    const result = await bounded(shell.exec("owned | head -n 0", { stdin }), "borrowed survives");
+    assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encode(""), stderrBytes: encode("") });
+    assert.equal(text(await fs.readFile("/nested")), "borrowed\nretained\n");
+    assert.equal(reads, 2); assert.equal(returned, 0);
+    testContext.diagnostic(JSON.stringify({ result, reads, returned, file: text(await fs.readFile("/nested")), events }));
+  } finally { await shell.dispose(); }
+});
+
+test("A4: writer empty completion and opaque sinks are not consumer close", { timeout: 2500 }, async testContext => {
+  const pipe = createBytePipe();
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  let releases = 0;
+  shell.commands.register({ name: "check", async execute(context) {
+    const operation = createOutputOperation(context, pipe.writable);
+    operation.registerCleanup(() => { releases++; });
+    const collected = collectBytes(pipe.readable, { maxBytes: 1 });
+    await pipe.close();
+    assert.equal((await collected).length, 0);
+    assert.equal(pipe.writable.ownedOutput?.consumerClosed.aborted, false);
+    assert.equal(operation.signal.aborted, false);
+    await operation.close();
+    const opaque = createOutputOperation(context, context.stdout);
+    assert.equal(context.stdout.ownedOutput, undefined);
+    await writeBytes(opaque.output, encode("kept"), opaque.signal);
+    await opaque.close();
+    assert.equal(opaque.signal.aborted, false);
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await bounded(shell.exec("check"), "normal close");
+    assert.deepEqual(result, { exitCode: 0, stdout: "kept", stderr: "", stdoutBytes: encode("kept"), stderrBytes: encode("") });
+    assert.equal(releases, 1);
+    testContext.diagnostic(JSON.stringify({ result, releases }));
+  } finally { await pipe.abort(); await shell.dispose(); }
+});
+
+test("A5: caller wins public outcome after operation EPIPE and cleanup failure", { timeout: 2500 }, async testContext => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  const caller = new AbortController();
+  const reason = new Error("exact caller reason");
+  const cleanupFailure = new Error("secondary cooperative failure");
+  const started = gate();
+  const cleanupEntered = gate();
+  const release = gate();
+  let operationReason: unknown;
+  let cleanups = 0;
+  shell.use(async (context, next) => { if (context.command === "head") await started.promise; return next(); });
+  shell.commands.register({ name: "owned", async execute(context) {
+    const operation = createOutputOperation(context, context.stdout);
+    operation.registerCleanup(async () => { cleanupEntered.resolve(); await release.promise; cleanups++; throw cleanupFailure; });
+    try { started.resolve(); await aborted(operation.signal); }
+    catch (error) { operationReason = error; }
+    finally { await operation.close(); }
+    return { exitCode: 0 };
+  } });
+  const pending = shell.exec("owned | head -n 0", { signal: caller.signal });
+  const outcome = pending.then(value => ({ value }), error => ({ error }));
+  try {
+    await bounded(cleanupEntered.promise, "cleanup started");
+    assert.ok(isPipe(operationReason));
+    caller.abort(reason); release.resolve();
+    const result = await bounded(outcome, "caller precedence");
+    assert.ok("error" in result); assert.equal(result.error, reason);
+    assert.ok(isPipe(operationReason)); assert.equal(cleanups, 1);
+    testContext.diagnostic(JSON.stringify({ callerIdentityPreserved: true, operationEPIPE: true, cleanups }));
+  } finally { release.resolve(); caller.abort(reason); await outcome; await shell.dispose(); }
+});
+
+test("A6: late opaque acquisition refused/released, rejection observed, admission closed", { timeout: 2500 }, async testContext => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  const started = gate();
+  const acquisition = gate<{ id: string }>();
+  const rejection = gate<{ id: string }>();
+  const released = gate();
+  const unhandled: unknown[] = [];
+  const onUnhandled = (error: unknown): void => { unhandled.push(error); };
+  process.on("unhandledRejection", onUnhandled);
+  let releases = 0;
+  let admissions = 0;
+  shell.use(async (context, next) => { if (context.command === "head") await started.promise; return next(); });
+  shell.commands.register({ name: "owned", async execute(context) {
+    const operation = createOutputOperation(context, context.stdout);
+    const pending = operation.acquire(() => { admissions++; return acquisition.promise; }, async resource => { assert.equal(resource.id, "late"); releases++; released.resolve(); });
+    const losing = operation.acquire(() => rejection.promise, () => assert.fail("rejected acquisition release"));
+    void losing.catch(error => assert.ok(isPipe(error)));
+    started.resolve();
+    await assert.rejects(pending, isPipe);
+    await operation.close();
+    await assert.rejects(operation.acquire(() => { admissions++; return { id: "forbidden" }; }, () => {}), isPipe);
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await bounded(shell.exec("owned | head -n 0"), "opaque acquisition not awaited");
+    assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encode(""), stderrBytes: encode("") });
+    assert.equal(releases, 0); assert.equal(admissions, 1);
+    acquisition.resolve({ id: "late" }); rejection.reject(new Error("late opaque rejection"));
+    await bounded(released.promise, "late resource release"); await turn(); await turn();
+    assert.equal(releases, 1); assert.deepEqual(unhandled, []);
+    testContext.diagnostic(JSON.stringify({ result, releases, admissions, unhandled: unhandled.length }));
+  } finally { acquisition.resolve({ id: "late" }); rejection.reject(new Error("teardown rejection")); await shell.dispose(); process.removeListener("unhandledRejection", onUnhandled); }
+});
+
+const mixedCases = [
+  { name: "A7: curl -o file ignores unused closed stdout before headers", args: "-o /body", status: 0, body: true, headers: false, httpStatus: 200 },
+  { name: "A8: curl -o/-D files finish before closed --write-out", args: "-o /body -D /headers --write-out '%{http_code}'", status: 141, body: true, headers: true, httpStatus: 200 },
+  { name: "A9: curl -D stdout close does not cancel independent -o file", args: "-o /body -D -", status: 141, body: true, headers: false, httpStatus: 200 },
+  { name: "A10: curl -D file survives closed stdout then owns body", args: "-D /headers", status: 141, body: false, headers: true, httpStatus: 200 },
+  { name: "A12: curl HTTP failure preserves independent header effect and status", args: "--fail -o /body -D /headers", status: 22, body: false, headers: true, httpStatus: 404 },
+];
+
+for (const entry of mixedCases) test(entry.name, { timeout: 2500 }, async testContext => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  const caller = new AbortController();
+  const started = gate();
+  const afterHead = gate();
+  const sockets = new Set<Socket>();
+  const events: string[] = [];
+  let requests = 0;
+  let stage: AbortSignal | undefined;
+  const server = createServer((request, response) => {
+    requests++; events.push("request-start"); started.resolve();
+    response.once("close", () => events.push("response-close"));
+    void afterHead.promise.then(() => {
+      events.push("send-headers");
+      response.writeHead(entry.httpStatus, { "Content-Length": "5", "X-Owned": "kept" });
+      response.end("hello");
+    });
+  });
+  server.on("connection", socket => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const url = `http://127.0.0.1:${address.port}/owned`;
+  shell.use(networkCommands({ authorize: request => request.url === url && request.method === "GET" }));
+  shell.use(async (context, next) => {
+    if (context.command === "curl") stage = context.signal;
+    if (context.command === "head") await started.promise;
+    const result = await next();
+    if (context.command === "head") { events.push("head-done"); setImmediate(() => afterHead.resolve()); }
+    return result;
+  });
+  try {
+    const result = await bounded(shell.exec(`set -o pipefail; curl ${entry.args} ${url} | head -n 0`, { signal: caller.signal }), entry.name);
+    assert.equal(result.exitCode, entry.status); assert.equal(result.stdout, "");
+    if (entry.httpStatus === 404) assert.match(result.stderr, /HTTP response status 404/);
+    else assert.equal(result.stderr, "");
+    assert.equal(caller.signal.aborted, false); assert.equal(stage?.aborted, false); assert.equal(requests, 1);
+    if (entry.body) assert.equal(text(await fs.readFile("/body")), "hello");
+    if (entry.headers) assert.match(text(await fs.readFile("/headers")), /X-Owned: kept/i);
+    assert.ok(events.indexOf("request-start") < events.indexOf("head-done"));
+    assert.ok(events.indexOf("head-done") < events.indexOf("send-headers"));
+    testContext.diagnostic(JSON.stringify({ result, requests, body: entry.body ? text(await fs.readFile("/body")) : null, headers: entry.headers ? text(await fs.readFile("/headers")) : null, events }));
+  } finally {
+    afterHead.resolve(); caller.abort(new Error("author teardown")); await shell.dispose();
+    for (const socket of sockets) socket.destroy();
+    await new Promise<void>(resolve => server.close(() => resolve()));
+    await turn(); assert.equal(sockets.size, 0);
+    testContext.diagnostic(JSON.stringify({ cleanup: "server-closed", sockets: sockets.size }));
+  }
+});
+
+test("A11: actual curl body closes after owned write without aborting invoking stage", { timeout: 2500 }, async testContext => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, limits: { pipeHighWaterMark: 1 } }).use(agentCommands());
+  const closed = gate();
+  const sockets = new Set<Socket>();
+  const events: string[] = [];
+  let requests = 0;
+  let stage: AbortSignal | undefined;
+  let response: ServerResponse | undefined;
+  const server = createServer((_request, incoming) => {
+    response = incoming; requests++; events.push("request");
+    incoming.once("close", () => { events.push("closed"); closed.resolve(); });
+    incoming.writeHead(200); incoming.write("x"); events.push("first-byte");
+  });
+  server.on("connection", socket => { sockets.add(socket); socket.once("close", () => sockets.delete(socket)); });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const address = server.address(); assert.ok(address && typeof address !== "string");
+  const url = `http://127.0.0.1:${address.port}/owned`;
+  shell.use(networkCommands({ authorize: request => request.url === url }));
+  shell.commands.register({ name: "outer", async execute(context: CommandContext) {
+    stage = context.signal; assert.ok(context.invoke);
+    const child = await context.invoke("curl", [url]);
+    assert.equal(child.exitCode, 141); assert.equal(context.signal.aborted, false);
+    await fs.writeFile("/after", encode("kept"), { signal: context.signal }); events.push("after");
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await bounded(shell.exec("set -o pipefail; outer | head -c 1"), "owned body cancellation");
+    await bounded(closed.promise, "actual response close before teardown");
+    assert.deepEqual(result, { exitCode: 0, stdout: "x", stderr: "", stdoutBytes: encode("x"), stderrBytes: encode("") });
+    assert.equal(text(await fs.readFile("/after")), "kept"); assert.equal(stage?.aborted, false); assert.equal(requests, 1);
+    testContext.diagnostic(JSON.stringify({ result, requests, file: "kept", events }));
+  } finally {
+    await shell.dispose(); response?.destroy(); for (const socket of sockets) socket.destroy();
+    await new Promise<void>(resolve => server.close(() => resolve())); await turn(); assert.equal(sockets.size, 0);
+    testContext.diagnostic(JSON.stringify({ cleanup: "server-closed", sockets: sockets.size }));
+  }
+});

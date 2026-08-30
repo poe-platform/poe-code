@@ -1,0 +1,189 @@
+{
+  "homebrew_version": "6.0.6-18-gf0bc156",
+  "used_options": [],
+  "unused_options": [],
+  "built_as_bottle": true,
+  "poured_from_bottle": true,
+  "loaded_from_api": true,
+  "loaded_from_internal_api": true,
+  "installed_on_request": false,
+  "changed_files": [
+    "libexec/gpg-wks-client",
+    "share/man/man1/gpg-wks-client.1"
+  ],
+  "time": 1787774245,
+  "source_modified_time": 1782996200,
+  "compiler": "clang",
+  "aliases": [
+    "gnupg@2.5",
+    "gpg",
+    "gpg2"
+  ],
+  "runtime_dependencies": [
+    {
+      "full_name": "ca-certificates",
+      "version": "2026-08-13",
+      "revision": 0,
+      "bottle_rebuild": 1,
+      "pkg_version": "2026-08-13",
+      "declared_directly": false
+    },
+    {
+      "full_name": "gmp",
+      "version": "6.3.0",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "6.3.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "libunistring",
+      "version": "1.4.2",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.4.2",
+      "declared_directly": false
+    },
+    {
+      "full_name": "json-c",
+      "version": "0.19",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "0.19",
+      "declared_directly": false
+    },
+    {
+      "full_name": "gettext",
+      "version": "1.0",
+      "revision": 0,
+      "bottle_rebuild": 1,
+      "pkg_version": "1.0",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libidn2",
+      "version": "2.3.8",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "2.3.8",
+      "declared_directly": false
+    },
+    {
+      "full_name": "libtasn1",
+      "version": "4.21.0",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "4.21.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "nettle",
+      "version": "4.0",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "4.0",
+      "declared_directly": false
+    },
+    {
+      "full_name": "p11-kit",
+      "version": "0.26.5",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "0.26.5",
+      "declared_directly": false
+    },
+    {
+      "full_name": "gnutls",
+      "version": "3.8.13",
+      "revision": 2,
+      "bottle_rebuild": 1,
+      "pkg_version": "3.8.13_2",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libgpg-error",
+      "version": "1.61",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.61",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libassuan",
+      "version": "3.0.2",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "3.0.2",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libgcrypt",
+      "version": "1.12.2",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.12.2",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libksba",
+      "version": "1.8.1",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.8.1",
+      "declared_directly": true
+    },
+    {
+      "full_name": "libusb",
+      "version": "1.0.30",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.0.30",
+      "declared_directly": true
+    },
+    {
+      "full_name": "npth",
+      "version": "1.8",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.8",
+      "declared_directly": true
+    },
+    {
+      "full_name": "pinentry",
+      "version": "1.3.3",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "1.3.3",
+      "declared_directly": true
+    },
+    {
+      "full_name": "readline",
+      "version": "8.3.3",
+      "revision": 0,
+      "bottle_rebuild": 0,
+      "pkg_version": "8.3.3",
+      "declared_directly": true
+    }
+  ],
+  "source": {
+    "spec": "stable",
+    "versions": {
+      "stable": "2.5.21",
+      "head": null,
+      "version_scheme": 0,
+      "compatibility_version": null
+    },
+    "path": "/Users/kjopek/Library/Caches/Homebrew/api/internal/packages.arm64_tahoe.jws.json",
+    "tap_git_head": null,
+    "tap": "homebrew/core"
+  },
+  "arch": "arm64",
+  "built_on": {
+    "os": "Macintosh",
+    "os_version": "macOS 26",
+    "cpu_family": "dunno",
+    "xcode": "26.4",
+    "clt": "26.4.0.0.1774242506",
+    "preferred_perl": "5.34"
+  }
+}

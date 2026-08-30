@@ -1,0 +1,12 @@
+2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49  src/fs/s3/authority.ts
+7544d066ea75125279b6e29f82110c326d75fd04b44648a80a358603d2296f88  src/fs/s3/filesystem.ts
+f80eb6ac65477d7cbfd1083a00cb8c5043ba594b0fd07cf167d698b7c6905821  src/fs/s3/mock.ts
+df111b273073bcbebc8be0648027211e545af7fcd00561057f4da0665683b9fe  src/fs/s3/transport.ts
+82667f5a83510601672b33faace0f874bba958dddd5844e54d84dffae747eae8  src/fs/s3/README.md
+fdbce267dc0a02b8201521eb06b40dbde940756e88302348a0a0da934846726b  src/fs/s3/COMPARISON.md
+7b3238fc289dffef790ba029a0094d6c0c73c44016fef30d421800c30ee4f95d  tests/fs/s3/comparison.test.ts
+15639e7c378edf6ae767938488450cde79e46b0ea15499f803ca918671eb265e  tests/stress/adapters/s3-permission-profile/authority-bound-validation-01.json
+f996e11ec2002d25eb72b0226fbfd868c7e8b232728c5cc3c7c8fa76429e5894  tests/stress/adapters/s3-permission-profile/authority-first-original-gate.json
+32e8909d0a3c0ddde49d17a9f8e086a88f6d4145e0474443dafc860877717cf5  tests/stress/adapters/s3-permission-profile/rejected-head-only-source.json
+ba77f147bdd3a8c54bf27473395ba8430bba56b031078f1a3d1a72de4bc1adbf  tests/stress/adapters/s3-permission-profile/validate-authority.mjs
+9e86013505855e225647ca984f0ab62a023089a70d2fd01e6431d45bf374f066  tests/stress/adapters/s3-permission-profile/BOUND-AUTHORITY-REPORT.md

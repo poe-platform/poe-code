@@ -1,0 +1,26 @@
+{
+  "verdict": "ALLOW_REPLAY_OF_EXACT_STATUS_BINDING",
+  "bindingPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "bindingFreezeSha256": "2d3f9fb25ad60f0b11e3d38f122249b0c7eab972267e0d5f95b904f713cc26d0",
+  "privateStatusProfileSha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "reviewerIdentity": "Codex Independent Leaf Verifier",
+  "reviewerThread": "01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "date": "2026-08-27",
+  "sourceAdmissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "stopScope": {
+    "surface": "All eight unconditional bounded children; no new assertion or case changes.",
+    "lifecycle": "Stop within cohort at first nonpass; positive open prerequisite retained.",
+    "controls": "Stop within cohort at first nonpass; positive open prerequisites retained.",
+    "guardFailure": "Stop later cohorts."
+  },
+  "authorizationLimit": "Exact metadata binding and frozen source/fixtures only; ROOT conditional release requires independently committed runnable-copy/guard bindings before one actual attempt. This admission is not runtime acceptance.",
+  "privateQueries": 0,
+  "actualGuestExecutions": 0,
+  "newPasses": 0,
+  "noPromotion": true
+}

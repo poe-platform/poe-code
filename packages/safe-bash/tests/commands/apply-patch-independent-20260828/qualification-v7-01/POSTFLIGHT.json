@@ -1,0 +1,125 @@
+{
+  "at": "2026-08-28T21:43:19.520Z",
+  "pid": 47150,
+  "ownerPid": 46983,
+  "ownerPpid": 79787,
+  "startedAt": "2026-08-28T21:42:49.842Z",
+  "elapsedMs": 468.318709,
+  "stopped": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at child (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/owner.mjs:229:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/owner.mjs:291:20"
+  },
+  "discoveryQualified": true,
+  "startupRefusalQualified": false,
+  "actualChildren": 2,
+  "peakAllOwnedProcesses": 2,
+  "results": [],
+  "dataResults": [],
+  "cleanup": {
+    "removed": true,
+    "bytes": 484,
+    "entries": 16,
+    "inventorySha256": "714d0af971b309b263da0ce8c1b1aa65916c319414ce2d9e33282bc5bf380ad5",
+    "identityChecked": true
+  },
+  "rawBytes": 1171,
+  "membershipFiles": 10,
+  "allSealedV7FilesUnchanged": 21,
+  "artifactFiles": [
+    "01-D00.receipt.json",
+    "01-D00.stderr.raw",
+    "01-D00.stdout.raw",
+    "02-START-POSITIVE.receipt.json",
+    "02-START-POSITIVE.stderr.raw",
+    "02-START-POSITIVE.stdout.raw",
+    "MAIN-PRESEAL.json",
+    "OUTCOME.json",
+    "OWNER-ENV-DISCOVERY.json",
+    "OWNER-EVENTS.jsonl",
+    "RAW-MEMBERSHIP.json",
+    "WORK-INVENTORY.json"
+  ],
+  "receipts": [
+    {
+      "sequence": 1,
+      "id": "D00",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs",
+        "discovery"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+      "registeredAtMs": 112.14887499999999,
+      "pid": 46984,
+      "closeObserved": true,
+      "absent": true,
+      "code": 0,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "01-D00.stdout.raw",
+        "bytes": 118,
+        "sha256": "8f645a698bbd5490b21b3031014a0057e69137b8cb68c5002e1c607b27addb42"
+      },
+      "stderr": {
+        "file": "01-D00.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "closedAtMs": 165.08437500000002
+    },
+    {
+      "sequence": 2,
+      "id": "START-POSITIVE",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--no-warnings",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/data-controls.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/primitives.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/fixture-data.mjs",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/INPUTS-v6.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/FIXTURES-v6.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01/MAIN-PRESEAL.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs",
+        "positive",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01/MAIN-PRESEAL.json"
+      ],
+      "env": {
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+      },
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+      "registeredAtMs": 265.850834,
+      "pid": 46985,
+      "closeObserved": true,
+      "absent": true,
+      "code": 1,
+      "signal": null,
+      "fault": null,
+      "stdout": {
+        "file": "02-START-POSITIVE.stdout.raw",
+        "bytes": 405,
+        "sha256": "ce1fb89fd3fab96cbc991e65665fffd46a7cc0547afab8fb99bcdd13bdcc0bfb"
+      },
+      "stderr": {
+        "file": "02-START-POSITIVE.stderr.raw",
+        "bytes": 648,
+        "sha256": "561a32ea914a67f7ab4d4429d3c30ef8b9f9ae7991d4986b6f209c1c00bdaf10"
+      },
+      "closedAtMs": 351.187
+    }
+  ]
+}

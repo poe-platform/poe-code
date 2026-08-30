@@ -1,0 +1,91 @@
+import { createHash } from 'node:crypto';
+
+export const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+export function createBoundedFs(fs, declaration, limits, data) {
+  const spec = data.snapshotOwnData(declaration), ceiling = data.snapshotOwnData(limits);
+  data.assertOwnData(Object.keys(spec).sort(), ['inputs','root','runId']);
+  data.assertOwnData(Object.keys(ceiling).sort(), ['descriptors','files','metadata','readBytes','writeBytes']);
+  for (const value of Object.values(ceiling)) if (!Number.isSafeInteger(value) || value < 1) throw new Error('invalid FS ceiling');
+  if (typeof spec.runId !== 'string' || !/^[A-Za-z0-9-]{16,48}$/u.test(spec.runId) || spec.root !== `/private/tmp/mapfile-observer-outer-${spec.runId}`) throw new Error('unknown outer root');
+  const names = ['guard.bin','stdout.raw','stderr.raw','status.json','receipt.json','receipt.seal.json'];
+  const location = name => name === 'guard.bin' ? `${spec.root}-guard.bin` : `${spec.root}/${name}`;
+  const records = new Map(), inputs = new Map(Object.entries(spec.inputs));
+  if(inputs.size>64)throw new Error('input membership ceiling');
+  for(const [filename,binding] of inputs){data.assertOwnData(Object.keys(binding).sort(),['bytes','mode','sha256']);if(typeof filename!=='string'||!filename.startsWith('/private/tmp/')||filename.includes('/../')||filename.length>1024||![0o600,0o644].includes(binding.mode)||!Number.isSafeInteger(binding.bytes)||binding.bytes<0||binding.bytes>8388608||typeof binding.sha256!=='string'||!/^[a-f0-9]{64}$/u.test(binding.sha256))throw new Error('unknown input binding');}
+  const counters = { metadata:0, readReserved:0, writeReserved:0, descriptors:0, peakDescriptors:0, acquisitions:0, directoryReads:0 };
+  let directoryIdentity, directoryPlanned = false, directoryAcquired = false, sequence = 0, previous = '0'.repeat(64), journalBytes = 0;
+  function metadata(count=1) { if (counters.metadata + count > ceiling.metadata) throw new Error('metadata ceiling'); counters.metadata += count; }
+  function call(method, ...args) { metadata(); return fs[method](...args); }
+  function admitDescriptor() { if (counters.descriptors >= ceiling.descriptors) throw new Error('descriptor ceiling'); metadata(); counters.descriptors++; counters.peakDescriptors=Math.max(counters.peakDescriptors,counters.descriptors); }
+  function closeDescriptor(descriptor, directory=false) { try { if(directory)descriptor.closeSync();else fs.closeSync(descriptor); } finally { counters.descriptors--; } }
+  function identity(stat) { return `${stat.dev}:${stat.ino}`; }
+  function same(first, second) { return ['dev','ino','size','mode','mtimeMs','ctimeMs'].every(key=>first[key]===second[key]); }
+  function stat(filename, mode, expectedIdentity) {
+    const value=call('lstatSync',filename); if(!value.isFile()||(value.mode&4095)!==mode||call('realpathSync',filename)!==filename||(expectedIdentity&&identity(value)!==expectedIdentity))throw new Error('file identity/mode/path');return value;
+  }
+  function output(name) {
+    if(!names.includes(name)||records.has(name)||records.size>=ceiling.files)throw new Error('unknown/duplicate output');
+    const record={name,path:location(name),planned:true,acquired:false,fd:null,identity:null,bytes:0,hash:createHash('sha256')};records.set(name,record);
+    admitDescriptor();
+    try { record.fd=call('openSync',record.path,fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);counters.acquisitions++;record.acquired=true; }
+    catch(reason){counters.descriptors--;throw reason;}
+    const value=call('fstatSync',record.fd);record.identity=identity(value);if(!value.isFile()||(value.mode&4095)!==0o600||value.size!==0)throw new Error('acquired output shape');return record;
+  }
+  function append(name, bytes) {
+    if(!Buffer.isBuffer(bytes))throw new Error('owned bytes required');
+    if(counters.writeReserved+bytes.length>ceiling.writeBytes)throw new Error('storage ceiling');counters.writeReserved+=bytes.length;
+    const record=records.get(name)??output(name);if(record.fd===null)throw new Error('closed output');
+    const pathname=stat(record.path,0o600,record.identity), descriptor=call('fstatSync',record.fd);
+    if(!same(pathname,descriptor)||descriptor.size!==record.bytes)throw new Error('append tamper');
+    let offset=0;while(offset<bytes.length){const count=call('writeSync',record.fd,bytes,offset,Math.min(65536,bytes.length-offset));if(!Number.isSafeInteger(count)||count<=0||count>bytes.length-offset)throw new Error('short/invalid write');record.hash.update(bytes.subarray(offset,offset+count));record.bytes+=count;offset+=count;}
+  }
+  function journal(value) {
+    if(sequence>=1024)throw new Error('journal frame count');const payload=Buffer.from(JSON.stringify({sequence,previous,runId:spec.runId,value}));
+    if(payload.length>4096||journalBytes+payload.length+4>131072)throw new Error('journal ceiling');const frame=Buffer.alloc(payload.length+4);frame.writeUInt32BE(payload.length);payload.copy(frame,4);append('guard.bin',frame);call('fsyncSync',records.get('guard.bin').fd);previous=digest(frame);sequence++;journalBytes+=frame.length;
+  }
+  function initialize() {
+    if(call('realpathSync','/private/tmp')!=='/private/tmp'||!call('lstatSync','/private/tmp').isDirectory())throw new Error('unknown capture parent');
+    directoryPlanned=true;journal({kind:'prospective-root',root:spec.root});
+    call('mkdirSync',spec.root,{mode:0o700});directoryAcquired=true;counters.acquisitions++;
+    const value=call('lstatSync',spec.root);directoryIdentity=identity(value);
+    if(!value.isDirectory()||(value.mode&4095)!==0o700||call('realpathSync',spec.root)!==spec.root)throw new Error('root identity');
+    journal({kind:'root-acquired',identity:directoryIdentity});append('stdout.raw',Buffer.alloc(0));append('stderr.raw',Buffer.alloc(0));
+  }
+  function read(filename, maximum) {
+    const outputRecord=[...records.values()].find(record=>record.path===filename&&record.acquired), input=inputs.get(filename);
+    if(!outputRecord&&!input)throw new Error('unknown read path');
+    const expectedMode=outputRecord?0o600:input.mode, before=stat(filename,expectedMode,outputRecord?.identity);
+    if(before.size>maximum||!Number.isSafeInteger(before.size)||before.size<0)throw new Error('read shape ceiling');
+    if(counters.readReserved+before.size+1>ceiling.readBytes)throw new Error('cumulative read ceiling');counters.readReserved+=before.size+1;
+    admitDescriptor();let descriptor;
+    try { descriptor=call('openSync',filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW); }
+    catch(reason){counters.descriptors--;throw reason;}
+    try {
+      if(!same(before,call('fstatSync',descriptor)))throw new Error('read FD identity');
+      const bytes=Buffer.alloc(before.size);let offset=0;while(offset<bytes.length){const count=call('readSync',descriptor,bytes,offset,Math.min(65536,bytes.length-offset),null);if(!Number.isSafeInteger(count)||count<=0||count>bytes.length-offset)throw new Error('short read');offset+=count;}
+      if(call('readSync',descriptor,Buffer.alloc(1),0,1,null)!==0||!same(before,call('fstatSync',descriptor))||!same(before,stat(filename,expectedMode,outputRecord?.identity)))throw new Error('changed read');
+      if(input&&(before.size!==input.bytes||digest(bytes)!==input.sha256))throw new Error('input binding');return bytes;
+    } finally { closeDescriptor(descriptor); }
+  }
+  function scan(expectedInput) {
+    const expected=data.snapshotOwnData(expectedInput);if(!Array.isArray(expected)||expected.some(name=>typeof name!=='string'||name.length>255))throw new Error('finite census names required');
+    data.assertOwnData(expected.slice().sort(), [...new Set(expected)].sort());
+    if(expected.length>ceiling.files)throw new Error('member ceiling');
+    const value=call('lstatSync',spec.root);if(!value.isDirectory()||(value.mode&4095)!==0o700||(directoryIdentity&&identity(value)!==directoryIdentity)||call('realpathSync',spec.root)!==spec.root)throw new Error('census root');
+    admitDescriptor();let directory;
+    try{directory=call('opendirSync',spec.root,{bufferSize:1});}catch(reason){counters.descriptors--;throw reason;}
+    const seen=[];
+    try{while(true){metadata();counters.directoryReads++;const entry=directory.readSync();if(entry===null)break;const descriptor=Object.getOwnPropertyDescriptor(entry,'name');if(!descriptor||!Object.hasOwn(descriptor,'value')||typeof descriptor.value!=='string'||descriptor.value.length>255||!expected.includes(descriptor.value)||seen.includes(descriptor.value))throw new Error('unexpected directory member');seen.push(descriptor.value);if(seen.length>ceiling.files)throw new Error('member ceiling');}}finally{closeDescriptor(directory,true);}
+    data.assertOwnData(seen.sort(),expected.slice().sort());return seen;
+  }
+  function close() {
+    let failed=false,reason;
+    for(const record of records.values())if(record.fd!==null){const descriptor=record.fd;record.fd=null;try{closeDescriptor(descriptor);}catch(error){if(!failed)reason=error;failed=true;}}
+    if(failed)throw reason;
+  }
+  function audit() {
+    const expected=[...records.values()].filter(record=>record.acquired&&record.name!=='guard.bin').map(record=>record.name);scan(expected);
+    const files=[];for(const record of records.values())if(record.acquired){const bytes=read(record.path,524288);if(bytes.length!==record.bytes||digest(bytes)!==record.hash.copy().digest('hex'))throw new Error('producer digest');files.push({name:record.name,path:record.path,bytes:record.bytes,mode:0o600,identity:record.identity,sha256:digest(bytes)});}return files;
+  }
+  return {initialize,append,journal,read,scan,close,audit,location,counters,state:()=>({directoryPlanned,directoryAcquired,directoryIdentity:directoryIdentity??null,files:[...records.values()].map(({fd,hash,...record})=>({...record,descriptorOpen:fd!==null}))})};
+}

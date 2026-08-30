@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "revisions": {
+    "initial": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+    "final": "5783b8e03912f7774d2a86ba1dae9de778121273",
+    "adoption": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+    "freeze": "f074c142411ba839cbd9da45a499cc798965149d",
+    "normative": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+    "query": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+    "reconciliation": "544f8279138cb1335ded08f9db638410e91c1324",
+    "n": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+    "nReview": "5fa2d5b92c323c1dfcacab1d4998f3d47dfbfc06",
+    "qbBase": "89e403e080ba2ac051bcc19a634d9e964620152d",
+    "qb": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+    "qbReview": "0457fa7939b8d48dd47d0fc3912c9c055462a100",
+    "length": "3387a103798bb441764218d38696639d501d19d2",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+  },
+  "sources": [
+    {
+      "id": "initial-readme",
+      "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "mode": "100644",
+      "blob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+      "bytes": 29498,
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50",
+      "workingMatch": true
+    },
+    {
+      "id": "initial-decisions",
+      "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/decisions.json",
+      "mode": "100644",
+      "blob": "cc7d8c342eda556a743196deb1a519e4b9be79e6",
+      "bytes": 5381,
+      "sha256": "2d7e03e6e8e38020e62b96245ea95826208a400df19c106f0c3f857d4fa3d3fc",
+      "workingMatch": true
+    },
+    {
+      "id": "final-readme",
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md",
+      "mode": "100644",
+      "blob": "a6550e0698ff588b5e2d4ca4289282793a6f4f32",
+      "bytes": 8158,
+      "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff",
+      "workingMatch": true
+    },
+    {
+      "id": "final",
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "mode": "100644",
+      "blob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "bytes": 37274,
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "workingMatch": true
+    },
+    {
+      "id": "adoption-readme",
+      "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/README.md",
+      "mode": "100644",
+      "blob": "289cd87cbd208578f16b5411dd44501fb0d03f48",
+      "bytes": 5128,
+      "sha256": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081",
+      "workingMatch": true
+    },
+    {
+      "id": "adoption",
+      "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "mode": "100644",
+      "blob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+      "bytes": 8461,
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-command-parser",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "mode": "100644",
+      "blob": "2818796d706eb48e452d769d36c0644754ceefbd",
+      "bytes": 10728,
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-value-query",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+      "mode": "100644",
+      "blob": "15386e9f5336d8244ead725f0c5402b4e5a1183d",
+      "bytes": 12730,
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-utf8",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+      "mode": "100644",
+      "blob": "d191c59bd40fd9413d4b73d7e8ac57acd4c197c2",
+      "bytes": 4211,
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-accounting",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+      "mode": "100644",
+      "blob": "122721e4bef71663f098456e94990b8055b84b87",
+      "bytes": 10897,
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-integration",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "mode": "100644",
+      "blob": "889e6db198ca7521e175501e39864a42ffc71e24",
+      "bytes": 12184,
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-integrity",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integrity.json",
+      "mode": "100644",
+      "blob": "b05483562a8c8961ef594f7bf909b33fc9852285",
+      "bytes": 3428,
+      "sha256": "658c00cf9b38c7b4c0f8cf2c0c9092baa04468433747e0427e25868f94ba5462",
+      "workingMatch": true
+    },
+    {
+      "id": "freeze-fixed-values",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/fixed-values.json",
+      "mode": "100644",
+      "blob": "f6d1f2e79e6fbc1e4edeb5e34ffead287525cb48",
+      "bytes": 3446,
+      "sha256": "59a1fbcc170e9b26e6184fca8f082f17c558ca3b0b9dcd15561a6a9dbf470b3a",
+      "workingMatch": true
+    },
+    {
+      "id": "normative-cases",
+      "revision": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "path": "tests/commands/yq-independent-20260828/normative/cases.json",
+      "mode": "100644",
+      "blob": "61c8bf10b3de59500b14462875a8650190b5aa8f",
+      "bytes": 20354,
+      "sha256": "36538ec3e40205a61d9d1b3a3ce0e9232bcff47502512dafc9cd90c615282d9e",
+      "workingMatch": true
+    },
+    {
+      "id": "query-cases",
+      "revision": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+      "path": "tests/commands/yq-independent-20260828/query-budget/CASES.json",
+      "mode": "100644",
+      "blob": "a447806a83a413aba3562a806a57902a2b9a5777",
+      "bytes": 16845,
+      "sha256": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3",
+      "workingMatch": true
+    },
+    {
+      "id": "reconciliation",
+      "revision": "544f8279138cb1335ded08f9db638410e91c1324",
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/crosswalk.json",
+      "mode": "100644",
+      "blob": "19727506747a63f02ccc90cc8e63a098a8d28317",
+      "bytes": 12336,
+      "sha256": "c19081327f7e3d2602e0383078dd1acc05fbf2f70e6e60e4a7d9f895f4c34f4f",
+      "workingMatch": true
+    },
+    {
+      "id": "n-decisions",
+      "revision": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/decisions.json",
+      "mode": "100644",
+      "blob": "043c4c868022cbb0093e062f3b05ffe8e51035ff",
+      "bytes": 6187,
+      "sha256": "bb4b07487d10340ab3ca715d52e6ada6765ee05b06bbd97f58d06fc87dabbdcc",
+      "workingMatch": true
+    },
+    {
+      "id": "n-cases",
+      "revision": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/cases.json",
+      "mode": "100644",
+      "blob": "29a584ae5513f43e03c86ff0bd9c2e307404db4f",
+      "bytes": 10246,
+      "sha256": "cb1c52cc7c5d50b2e6e31cc0229f1a16cc526ab242c01bc04df16e581bf50279",
+      "workingMatch": true
+    },
+    {
+      "id": "n-review",
+      "revision": "5fa2d5b92c323c1dfcacab1d4998f3d47dfbfc06",
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/REVIEW.md",
+      "mode": "100644",
+      "blob": "ca80745b90fd460611b38b01d0b6a031cf758d8d",
+      "bytes": 9476,
+      "sha256": "dec947b595be7ec9763ca73b616eb837ce9f9dca0ac363d19245b47c9b09a7a1",
+      "workingMatch": true
+    },
+    {
+      "id": "n-results",
+      "revision": "5fa2d5b92c323c1dfcacab1d4998f3d47dfbfc06",
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/RESULTS.json",
+      "mode": "100644",
+      "blob": "3f66b39a409bd5e3dc95726c4ae63685fd4320b2",
+      "bytes": 73686,
+      "sha256": "7711c6833d9605e19bd2a2f1197f06798a8f2cafb4e269c7159795ff6f7535cc",
+      "workingMatch": true
+    },
+    {
+      "id": "qb-base",
+      "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "mode": "100644",
+      "blob": "82e9db96a2f8acb09b94014169639f54542fa4eb",
+      "bytes": 14241,
+      "sha256": "9e17fcf17acce080b74667580c95fccd11c6a3171781f483904029899a034879",
+      "workingMatch": false
+    },
+    {
+      "id": "qb-policy",
+      "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+      "mode": "100644",
+      "blob": "69d60070d289e422164ebe45cf34f6bc2919a37c",
+      "bytes": 17271,
+      "sha256": "96a7ae5aa36cec464a28d9ba09cfcd9791cb0dd09e80a51a6fc203cdd87b7ac6",
+      "workingMatch": true
+    },
+    {
+      "id": "qb-identity",
+      "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+      "mode": "100644",
+      "blob": "5ff9922a1c99a72858a4c7e1b8aa974a8713b954",
+      "bytes": 6614,
+      "sha256": "23a949aa0837aa50fa92c38941b83eae4c4404c9e6e5c3600e393817ca4852a4",
+      "workingMatch": true
+    },
+    {
+      "id": "qb-controls",
+      "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+      "mode": "100644",
+      "blob": "2757932475a9303c59a857311fbbfe14caaca3a2",
+      "bytes": 3729,
+      "sha256": "305f884198df8c8626b8246d1189f5708938fb0af4a2990e924420a178a9c43d",
+      "workingMatch": true
+    },
+    {
+      "id": "qb-review",
+      "revision": "0457fa7939b8d48dd47d0fc3912c9c055462a100",
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/REVIEW.md",
+      "mode": "100644",
+      "blob": "02333e186660e0004cd7c39b11e378f93c0c25af",
+      "bytes": 11739,
+      "sha256": "bcbc458a7a99fdae4940711899ae289fd6fb112b0bd18a693109387e8f339969",
+      "workingMatch": true
+    },
+    {
+      "id": "qb-review-cases",
+      "revision": "0457fa7939b8d48dd47d0fc3912c9c055462a100",
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/CASES.json",
+      "mode": "100644",
+      "blob": "6ec60d283a3f20a0af1938ffaeafdb35188c0e59",
+      "bytes": 11434,
+      "sha256": "ee1cbe07b3590cff1405c9708f7122385067189e56ef060bcbb58ce7edbb7c65",
+      "workingMatch": true
+    },
+    {
+      "id": "length-relay",
+      "revision": "3387a103798bb441764218d38696639d501d19d2",
+      "path": "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+      "mode": "100644",
+      "blob": "ae15f35b39adf79830bbfafcf2f4c91356ded6e8",
+      "bytes": 2599,
+      "sha256": "77246ca464b245e4258e622f10014cff70aa0b7293209fd3e6fbbca18914e713",
+      "workingMatch": true
+    },
+    {
+      "id": "baseline-limits",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/limits.ts",
+      "mode": "100644",
+      "blob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "workingMatch": false
+    }
+  ],
+  "protectedScopes": [
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "tree": "7ec5e3e15684a0799b7ab9d52f0d3335e56db013",
+      "files": 12,
+      "treeListingSha256": "516644f03456d2a52cfce70576f03e57a850dd4a7c04f5cb4ac3fc8f3eb98b0c"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative",
+      "revision": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "tree": "3dd68fd76a50082c690c442bc2e0fde8fd79abac",
+      "files": 6,
+      "treeListingSha256": "12946db2a731b887bb7694e0c513ba0df4d04aa7d190f6910a9497bd0d785305"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget",
+      "revision": "3387a103798bb441764218d38696639d501d19d2",
+      "tree": "2b39f4898553dbdae8e2bc399fc55a2e1271cbdd",
+      "files": 7,
+      "treeListingSha256": "ee968f9c99016eb5179bf1e41f8d0aaaf76db4650d0186791d0a5f238126b9b8"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1",
+      "revision": "544f8279138cb1335ded08f9db638410e91c1324",
+      "tree": "57e189f0b53a32a9479bd855c754dbb9a2258ba4",
+      "files": 4,
+      "treeListingSha256": "cb991c0f8512f548ef320bac09bb8c2b6cac543b8b9bb5856762af2221224035"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1",
+      "revision": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+      "tree": "29898a525d78447fa8f788531ca9c64076684e59",
+      "files": 6,
+      "treeListingSha256": "b1ae2a11e4e5eef4ac8c79d8151faecdab9b836e571dfd0aad2d939c8082272c"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1",
+      "revision": "5fa2d5b92c323c1dfcacab1d4998f3d47dfbfc06",
+      "tree": "767c87801d6232a379cea1cfed7c49c518ddc654",
+      "files": 6,
+      "treeListingSha256": "7c1700d7abbc594d77c3b1c50085d61cc4b58aea9378de1cd66b5d5fb7f195f9"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/qb-policy-v1",
+      "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+      "tree": "2026be9614b1250c7cc7f43e7fa27c2bc5eb4551",
+      "files": 4,
+      "treeListingSha256": "1253d9200b0f39c4c8e282983009b14387b6cd9c5b4226c01fb0e16139086653"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1",
+      "revision": "0457fa7939b8d48dd47d0fc3912c9c055462a100",
+      "tree": "09eb019060da67d949b275f7f7e00a02d86c8155",
+      "files": 5,
+      "treeListingSha256": "7d24f200b3a17538c1c3c4f7f125fa4d7e64fcb5436335f780319fe83b3ce55b"
+    }
+  ],
+  "protectedFileCount": 50,
+  "qualification": "Selected immutable sources and eight bounded subtree inventories; no archives or source copies. Original inputs/modes remain unchanged; no whole-repository append-proof or concurrent-transaction claim."
+}

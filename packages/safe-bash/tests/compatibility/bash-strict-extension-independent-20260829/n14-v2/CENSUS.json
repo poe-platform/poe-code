@@ -1,0 +1,28 @@
+{
+  "runtime": {
+    "correctedDirect": 40,
+    "initialCoordinatorAndPython": 2,
+    "correctedCoordinatorAndPython": 2,
+    "totalIdentifiedRuntime": 44,
+    "closed": true,
+    "rescueSignals": 0
+  },
+  "administration": {
+    "publicationJournal": "/private/tmp/n14-independent-publication-H5DGJA/events.jsonl",
+    "correctionJournal": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/startup-correction/events.jsonl",
+    "prepJournal": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prep/events.jsonl",
+    "qualification": "Tool-call shell/read/metadata roles are recorded in transcript rather than all PID-indexed. Conservative preparation37 known-role slots and actual runtime+administration envelope below128; not global/transitive census."
+  },
+  "loaders": {
+    "admitted": 30,
+    "hostingProcessesClosed": 30,
+    "individualExitObserved": false
+  },
+  "regex": {
+    "births": 0,
+    "exits": 0
+  },
+  "activeKnownExecutionProcesses": 0,
+  "startedMs": 1787992110728.0342,
+  "publicationElapsedMs": 440446.9658203125
+}

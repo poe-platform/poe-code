@@ -1,0 +1,73 @@
+{
+  "schema": "v7-capture-repair",
+  "review": "f4e92bb14ff75cc68da136a9a7253d9f2917165e",
+  "priorOwnerCommit": "b3395e24ed1ee4e8309b9daca17273f1b158b84d",
+  "priorOwnerSha256": "5127e4ef18bc1c35f157aba82f45f9df06e4be7d4c79dd46a69c70cf17a44008",
+  "sourceFindingOnly": true,
+  "observedHistoricalLeak": false,
+  "controls": [
+    "C01-first-open-undefined",
+    "C02-second-open-closes-first",
+    "C03-first-close-undefined-second-attempted",
+    "C04-both-closes-preserve-secondary",
+    "C05-existing-undefined-and-cleanup",
+    "C06-short-write-completes-bounded",
+    "C07-zero-write-rejected",
+    "C08-write-falsy-reason-retained",
+    "C09-normal-full-capture"
+  ],
+  "limits": {
+    "ms": 600000,
+    "children": 12,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "sourceFiles": [
+    {
+      "path": "capture-owner.mjs",
+      "bytes": 3125,
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    },
+    {
+      "path": "future-owner.mjs",
+      "bytes": 7260,
+      "sha256": "2b2fbe1fb45c819e16d6dfe8378bc50e276fb2dfa0854c069fe9976a5c2719af"
+    },
+    {
+      "path": "capture-controls.mjs",
+      "bytes": 3940,
+      "sha256": "1944ba32e00521c6bee83416916334af52ef52d217b99b50473929f672246b4c"
+    }
+  ],
+  "test": {
+    "argv": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/capture-controls.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/capture-owner.mjs",
+      "--max-old-space-size=64",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/capture-controls.mjs"
+    ],
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "stdout": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/controls-v1/stdout.raw",
+    "stderr": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/controls-v1/stderr.raw",
+    "ms": 60000,
+    "captureBytes": 1048576,
+    "proof": "same capture helper used by owner; injected finite IO, no actual fd exhaustion/Worker/engine"
+  },
+  "workerActivation": "conditional separate ROOT authority; requires these controls pass and full activation preseal committed"
+}

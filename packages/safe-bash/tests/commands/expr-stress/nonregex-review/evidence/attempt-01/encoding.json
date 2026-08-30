@@ -1,0 +1,8 @@
+{
+  "encoding": "gzip then base64; no original receipt bytes removed or rewritten",
+  "originalName": "provenance.json",
+  "originalBytes": 3818035,
+  "originalSha256": "7c93b55c1c70c5e371fa68a6aa34235a0aad223500289afecfe3d28c29b030bb",
+  "reason": "Preliminary logger recorded Git archive stdout as text. Lossless compression avoids bulky duplicate source text; final logger records binary output hashes instead.",
+  "limits": "Preliminary harness evolved before final capture; not the final harness identity. Initial packaging inherited npm user cache/configuration; may have touched normal npm cache/log metadata. Final packaging uses explicit unique cache/home/configuration. No ambient user content was inspected."
+}

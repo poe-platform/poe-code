@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "status": "STATIC_WRITER_AND_ACCOUNTING_INVENTORY",
+  "candidateExecution": 0,
+  "definition": {
+    "perJobRoot": "request.evidenceRoot = evidence/jobs/<ordinal>",
+    "included": "Every regular file and byte at every depth; no extension, content-hash or writer exemption.",
+    "cap": 33554432,
+    "perFile": 16777216,
+    "terminalReserved": 933888,
+    "phaseReserved": 4194304,
+    "ordinaryInitial": 28426240,
+    "actualTotalCheck": "snapshot(evidenceRoot, evidenceLimits) plus captureAccounting, repeated after final metadata writes",
+    "unchargedActualBytes": "FAIL, never excluded or deduplicated",
+    "guard": "Complete immutable closed-job bytes/modes/membership, including additions."
+  },
+  "publishers": [
+    {
+      "role": "request",
+      "paths": [
+        "request.json"
+      ],
+      "writer": "supervisor.mjs",
+      "charge": "captureJson -> chargeCapture before atomicBytes; no pre-budget request write"
+    },
+    {
+      "role": "phase",
+      "paths": [
+        "phases.ndjson"
+      ],
+      "writer": "phase-capture.mjs",
+      "charge": "4MiB already reserved inside32MiB; chargePhase exact serialized line before append,4096 events/262144-byte line unchanged"
+    },
+    {
+      "role": "owned stdout/stderr",
+      "paths": [
+        "worker.stdout.bin",
+        "worker.stderr.bin",
+        "tool-<ordinal>.stdout.bin",
+        "tool-<ordinal>.stderr.bin"
+      ],
+      "writer": "owned-process.mjs",
+      "charge": "Accepted prefix charged to shared ordinary balance before writes; own combined16MiB outer/8MiB compiler bounds unchanged"
+    },
+    {
+      "role": "owned process metadata",
+      "paths": [
+        "worker.process.json",
+        "tool-<ordinal>.process.json"
+      ],
+      "writer": "owned-process.mjs",
+      "charge": "Outer protected131072 slot; each tool temporarily reserves131072 ordinary bytes before acquisition; unused returned only after terminal publication; extra complete metadata charges ordinary bytes, not another reserve"
+    },
+    {
+      "role": "worker publication and copies",
+      "paths": [
+        "capture-0.json",
+        "captured-stdout.bin",
+        "captured-stderr.bin",
+        "partial-stdout.bin",
+        "partial-stderr.bin",
+        "loaded-files.json",
+        "load-admission-failure.json",
+        "pristine-capture.json",
+        "build/**",
+        "type/control/declaration artifacts through api.writeJson/writeBytes"
+      ],
+      "writer": "worker-api.mjs (unchanged, separately FC-F01-owned)",
+      "charge": "Existing EVIDENCE_RESERVE acknowledged before atomicBytes; all repeated/hex-encoded/copied content counts at its own serialized size"
+    },
+    {
+      "role": "predicate projection copies",
+      "paths": [
+        "projection-<ordinal>/command-stdout.bin",
+        "projection-<ordinal>/command-stderr.bin",
+        "projection-<ordinal>/obligations.json",
+        "projection-<ordinal>/cmd22-path-domain.json",
+        "all other files under projection-<ordinal>",
+        "projection-result-<ordinal>.json"
+      ],
+      "writer": "worker-api.mjs and frozen/assert-capture.mjs (unchanged)",
+      "charge": "Existing3145728 EVIDENCE_RESERVE for direct projection files plus exact ordinary reserve for projection-result. Final actual tree counts every file, no copied-stdout dedup."
+    },
+    {
+      "role": "parent independent-build adoption",
+      "paths": [
+        "parent-build-adoption.json"
+      ],
+      "writer": "build-adapter.mjs (unchanged)",
+      "charge": "Existing exact serialized byte debit from context.rawBudget.remaining before atomicJson; failed admission is caught and reported using reserved failure metadata"
+    },
+    {
+      "role": "parent result/failure/closing metadata",
+      "paths": [
+        "job-receipt.json",
+        "integrity-failure.json",
+        "outer-outcome.json",
+        "capture-accounting.json",
+        "capture-overflow.json",
+        "phase-deadline.json"
+      ],
+      "writer": "supervisor.mjs / phase-capture.mjs / capture-budget-v3.mjs",
+      "charge": "Named terminal reservations inside the same32MiB; supplements only from free ordinary bytes; overflow is incomplete FAIL with bounded metadata prefix, not waived capture"
+    }
+  ],
+  "separateFilesystemRole": {
+    "root": "evidence/work/<ordinal>",
+    "bound": {
+      "entries": 8192,
+      "treeBytes": 268435456,
+      "fileBytes": 67108864
+    },
+    "writers": [
+      {
+        "source": "b1b8566686769e5e53433048f2058ab09d8c00c3:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+        "paths": [
+          "scratch/source-archive-273/**",
+          "scratch/consumer-source-271/**",
+          "scratch/installed-unmoved-package-870/**"
+        ],
+        "role": "Authentication filesystem materializations, retained originals"
+      },
+      {
+        "source": "937c1f6a35c620146e62924b16d90e808319024f:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+        "paths": [
+          "scratch/independent-build/compiler/**",
+          "scratch/independent-build/raw-output/**",
+          "scratch/independent-build/package/**"
+        ],
+        "role": "Compiler inputs/raw emitted artifacts/fresh package filesystem. Copies serialized through api.writeBytes under evidenceRoot count separately toward32MiB."
+      },
+      {
+        "source": "b1b8566686769e5e53433048f2058ab09d8c00c3:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+        "paths": [
+          "materializations/package-<ordinal>-installed/**",
+          "materializations/package-<ordinal>-moved/**",
+          "scratch/type-<ordinal>-<fixture>/**"
+        ],
+        "role": "Installed/moved/variant package and declaration fixture filesystem"
+      },
+      {
+        "source": "b1b8566686769e5e53433048f2058ab09d8c00c3:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+        "paths": [
+          "scratch/control-tree/**",
+          "scratch/<declared-CMD22-case>/raw-fixture.json",
+          "scratch/<declared-CMD22-case>/*"
+        ],
+        "role": "Owned controlled filesystem and counterfactual CMD22 fixture/predicate output; no candidate execution receipt relocated here"
+      }
+    ],
+    "accounting": "All work bytes remain in existing global disk accounting and strict closedWorks snapshots. No file is moved or newly reclassified by this overlay.",
+    "unknownFiles": "Not exempted by extension/content; included in the entire enclosing tree and existing guard/failure rules. Accounting is not proof of an additional path allowlist."
+  },
+  "cohortScope": {
+    "root": "evidence root outside jobs/work",
+    "paths": [
+      "coordinator-boot.json",
+      "coordinator.stdout.bin",
+      "coordinator.stderr.bin",
+      "coordinator.process.json",
+      "coordinator-summary.json",
+      "coverage-194.json",
+      "supervisor-final.json"
+    ],
+    "role": "Existing finite cohort records, not job metadata",
+    "processReceipt": "Now charged inside the existing16777216 coordinator capture balance using a temporary131072 reservation; stream ceiling unchanged; no extra capacity added",
+    "globalLogicalLimit": 25769803776,
+    "reservedLogicalBytes": 24964497408,
+    "hardQuota": false
+  },
+  "unchanged": {
+    "workerApiEdited": false,
+    "toolRequestHelperEdited": false,
+    "productEdited": false,
+    "artifactRelocations": 0,
+    "globalOuter": 336,
+    "compilerDescendants": 18,
+    "globalMilliseconds": 24165000,
+    "semanticCasesAdded": 0
+  }
+}

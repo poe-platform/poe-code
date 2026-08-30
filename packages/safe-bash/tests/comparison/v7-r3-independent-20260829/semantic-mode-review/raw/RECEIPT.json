@@ -1,0 +1,20 @@
+{
+  "pid": 89239,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "close": {
+    "code": 1,
+    "signal": null
+  },
+  "streams": {
+    "stdout": 348,
+    "stderr": 0,
+    "fd3": 11473
+  },
+  "primary": null,
+  "childCount": 1,
+  "preflight": true,
+  "postflight": true
+}

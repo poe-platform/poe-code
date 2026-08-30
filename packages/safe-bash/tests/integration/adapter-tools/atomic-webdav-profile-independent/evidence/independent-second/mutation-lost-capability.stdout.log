@@ -1,0 +1,440 @@
+TAP version 13
+# Subtest: hidden: direct helper mutates actual backing synchronously, exactly one entry
+ok 1 - hidden: direct helper mutates actual backing synchronously, exactly one entry
+  ---
+  duration_ms: 5.573291
+  type: 'test'
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /target
+not ok 2 - hidden: configured public shell removes only exact encoded target /target
+  ---
+  duration_ms: 10.103625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:65:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/target'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:72:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /space name
+not ok 3 - hidden: configured public shell removes only exact encoded target /space name
+  ---
+  duration_ms: 3.535208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:65:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/space name'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:72:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /snow-雪
+not ok 4 - hidden: configured public shell removes only exact encoded target /snow-雪
+  ---
+  duration_ms: 1.999792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:65:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/snow-雪'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:72:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /percent%2Fname
+not ok 5 - hidden: configured public shell removes only exact encoded target /percent%2Fname
+  ---
+  duration_ms: 1.383458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:65:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/percent%2Fname'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:72:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: configured public shell removes only exact encoded target /hash\#name
+not ok 6 - hidden: configured public shell removes only exact encoded target /hash\#name
+  ---
+  duration_ms: 1.411584
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:65:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/hash#name'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:72:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: rmdir existing deep child preserves exact namespace
+not ok 7 - hidden: rmdir existing deep child preserves exact namespace
+  ---
+  duration_ms: 1.713959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:85:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:110:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: rm -d existing deep child preserves exact namespace
+not ok 8 - hidden: rm -d existing deep child preserves exact namespace
+  ---
+  duration_ms: 1.93425
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:85:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:110:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: rmdir late deep child preserves exact namespace
+not ok 9 - hidden: rmdir late deep child preserves exact namespace
+  ---
+  duration_ms: 1.225708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:85:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /ENOTEMPTY/. Input:
+    
+    "rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/target'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    rmdir: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/target'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:109:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: rm -d late deep child preserves exact namespace
+not ok 10 - hidden: rm -d late deep child preserves exact namespace
+  ---
+  duration_ms: 2.628708
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:85:9'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /ENOTEMPTY/. Input:
+    
+    "rm: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/target'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    rm: ENOTSUP: rmdir has no safe portable WebDAV equivalent, rmdir '/target'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:109:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: direct namespace, operation, spelling and absent/file/root guards preserve bytes
+ok 11 - hidden: direct namespace, operation, spelling and absent/file/root guards preserve bytes
+  ---
+  duration_ms: 0.526666
+  type: 'test'
+  ...
+# Subtest: hidden: stock refuses empty and nonempty without destructive fallback
+ok 12 - hidden: stock refuses empty and nonempty without destructive fallback
+  ---
+  duration_ms: 1.971834
+  type: 'test'
+  ...
+# Subtest: hidden: raw helper refusals never turn into HTTP DELETE
+ok 13 - hidden: raw helper refusals never turn into HTTP DELETE
+  ---
+  duration_ms: 0.363208
+  type: 'test'
+  ...
+# Subtest: hidden: corrupt operation receipt errors after effect without rollback or fallback
+not ok 14 - hidden: corrupt operation receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.498625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:159:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOTSUP' !== 'EIO'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EIO'
+  actual: 'ENOTSUP'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:31:16)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:165:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback
+not ok 15 - hidden: corrupt namespaceUrl receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.400333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:159:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOTSUP' !== 'EIO'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EIO'
+  actual: 'ENOTSUP'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:31:16)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:165:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: corrupt path receipt errors after effect without rollback or fallback
+not ok 16 - hidden: corrupt path receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.379042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:159:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOTSUP' !== 'EIO'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EIO'
+  actual: 'ENOTSUP'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:31:16)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:165:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: corrupt outcome receipt errors after effect without rollback or fallback
+not ok 17 - hidden: corrupt outcome receipt errors after effect without rollback or fallback
+  ---
+  duration_ms: 0.307375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:159:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'ENOTSUP' !== 'EIO'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'EIO'
+  actual: 'ENOTSUP'
+  operator: 'strictEqual'
+  stack: |-
+    Object.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:31:16)
+    expectedException (node:assert:576:17)
+    expectsError (node:assert:701:21)
+    Function.rejects (node:assert:767:3)
+    async TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:165:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: canonical binding mismatch fails before callback and preserves storage
+ok 18 - hidden: canonical binding mismatch fails before callback and preserves storage
+  ---
+  duration_ms: 0.10325
+  type: 'test'
+  ...
+# Subtest: hidden: lock ancestors and descendants block; expired and prefix siblings do not
+ok 19 - hidden: lock ancestors and descendants block; expired and prefix siblings do not
+  ---
+  duration_ms: 0.241667
+  type: 'test'
+  ...
+# Subtest: hidden: errno-shaped preabort preserves exact reason and backing
+ok 20 - hidden: errno-shaped preabort preserves exact reason and backing
+  ---
+  duration_ms: 0.066084
+  type: 'test'
+  ...
+# Subtest: hidden: actual mount contract, not fabricated capabilities
+not ok 21 - hidden: actual mount contract, not fabricated capabilities
+  ---
+  duration_ms: 1.718125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:209:5'
+  failureType: 'testCodeFailure'
+  error: |-
+    rmdir: ENOTSUP: operation not supported, rmdir '/remote/target'
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:236:20)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: actual readonly contract, not fabricated capabilities
+ok 22 - hidden: actual readonly contract, not fabricated capabilities
+  ---
+  duration_ms: 0.574625
+  type: 'test'
+  ...
+# Subtest: hidden: actual readonly-mount contract, not fabricated capabilities
+ok 23 - hidden: actual readonly-mount contract, not fabricated capabilities
+  ---
+  duration_ms: 0.75325
+  type: 'test'
+  ...
+# Subtest: hidden: actual webdav-upper contract, not fabricated capabilities
+ok 24 - hidden: actual webdav-upper contract, not fabricated capabilities
+  ---
+  duration_ms: 0.541708
+  type: 'test'
+  ...
+# Subtest: hidden: mount forwards late-child refusal and preserves sibling mount prefix
+not ok 25 - hidden: mount forwards late-child refusal and preserves sibling mount prefix
+  ---
+  duration_ms: 1.325
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:254:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /ENOTEMPTY/. Input:
+    
+    "rm: ENOTSUP: operation not supported, rmdir '/remote/target'\n"
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    rm: ENOTSUP: operation not supported, rmdir '/remote/target'
+    
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/consumer/out-configured/tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.js:266:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: hidden: overlay lower nonempty refusal cannot hide existing descendants
+ok 26 - hidden: overlay lower nonempty refusal cannot hide existing descendants
+  ---
+  duration_ms: 3.372583
+  type: 'test'
+  ...
+# Subtest: hidden: independent clients of same backing never fabricate disjoint identities
+ok 27 - hidden: independent clients of same backing never fabricate disjoint identities
+  ---
+  duration_ms: 6.298834
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 12
+# fail 15
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 183.366959

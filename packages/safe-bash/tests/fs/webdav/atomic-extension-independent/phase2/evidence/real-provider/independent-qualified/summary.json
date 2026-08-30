@@ -1,0 +1,29 @@
+{
+  "rows": 30,
+  "totals": {
+    "positive": {
+      "pass": 8,
+      "killed": 0,
+      "fail": 0
+    },
+    "guard": {
+      "pass": 17,
+      "killed": 0,
+      "fail": 0
+    },
+    "refusal": {
+      "pass": 1,
+      "killed": 0,
+      "fail": 0
+    },
+    "mutation": {
+      "pass": 0,
+      "killed": 4,
+      "fail": 0
+    }
+  },
+  "retainedLocks": 0,
+  "cleanupErrors": [],
+  "rootResolution": "file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/atomic-extension-independent/phase2/.work-jz86dH/consumer/node_modules/virtual-bash/dist/index.js",
+  "profile": "single stable /dav provider; separate stock root; no server aliases; mutations separately labeled"
+}

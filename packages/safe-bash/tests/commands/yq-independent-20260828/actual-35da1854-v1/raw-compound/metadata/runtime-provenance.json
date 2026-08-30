@@ -1,0 +1,20 @@
+{
+  "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "consumerCandidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "baselineCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLengthCommit": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "sourceTreeSha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+  "compiledTreeSha256": "782b3b4e92d66339c2f2d037f16b6f55ac281550fd99c440bac5828a04c13742",
+  "rootAcceptedComposition": true,
+  "buildReceiptSha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d",
+  "newPaths": [
+    "src/commands/structured/query-core.ts",
+    "src/commands/yq/README.md",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts",
+    "src/commands/yq/errors.ts",
+    "src/commands/yq/index.ts",
+    "src/commands/yq/parser.ts"
+  ],
+  "buildProofClassification": "AUTHOR_ARTIFACT_BINDING_ONLY"
+}

@@ -1,0 +1,367 @@
+{
+  "classification": "PINNED_GIT_INPUT_BINDINGS_NOT_ARCHIVE_OR_RUNTIME_PROOF",
+  "createdAtUTC": "2026-08-28T06:23:07.771Z",
+  "composition": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "candidate": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+    "baselineTypeScriptFiles": 211,
+    "baselinePackageConfigFiles": 4,
+    "candidateOverlayFiles": 10,
+    "totalInventoryEntries": 225,
+    "inventorySha256": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+    "archiveSha256": null,
+    "semanticScope": "Ten XAN modules and cited baseline sections only; remaining composition entries hash-only."
+  },
+  "inputs": [
+    {
+      "id": "candidate/argv.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/argv.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "d5076ba89e7a515173bbe69a33c0c72de20fc8c7",
+      "bytes": 9587,
+      "sha256": "11d030855f5a694bf59e6c602c5e352c155271863a2084f9e81b5020e3ae75fe",
+      "lines": 168
+    },
+    {
+      "id": "candidate/budget.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/budget.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "b6d5b6233182f558358648e158dcfccbcc9158cb",
+      "bytes": 4361,
+      "sha256": "cd2e2269cdbbd23acc38d7ecfcb0573f84d12d3a91158f231051be28977cefcc",
+      "lines": 95
+    },
+    {
+      "id": "candidate/commands.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/commands.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "9d1bb493d04b2490233d7a74bcaf50f29ce32610",
+      "bytes": 12915,
+      "sha256": "2fce3aa23a4bcf3265bf0e124bb42c29ed0ab7bfe7fb243929e168090002d702",
+      "lines": 231
+    },
+    {
+      "id": "candidate/csv.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/csv.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "11b7d8ba194fb888795279a5f2d883ad124a1366",
+      "bytes": 6361,
+      "sha256": "2dda24db47c5e31950f3a1f03fe6f4026c7c94711c921782ea8071eac488d43d",
+      "lines": 141
+    },
+    {
+      "id": "candidate/index.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/index.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "e9d5a3eeb15860413fa19696841088fbbdc93f87",
+      "bytes": 5498,
+      "sha256": "fb664e5a432222c0d79765507da65712a3412a719390a01741b1aa730d4260e9",
+      "lines": 93
+    },
+    {
+      "id": "candidate/io.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/io.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "6709ea821e1fb5919f9130871f90062163575d9e",
+      "bytes": 9935,
+      "sha256": "162afedc011dd2949203be57f4fe2f656ef7b8a657e0b1cdef90a72805222590",
+      "lines": 207
+    },
+    {
+      "id": "candidate/options.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/options.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "25555618b17a210c3f66e609940df5bb5d023063",
+      "bytes": 2454,
+      "sha256": "b8048c66111f47c6b56c1cf420eee20512c0ef17d5055b70fca2785976f1f074",
+      "lines": 37
+    },
+    {
+      "id": "candidate/selector.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/selector.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "57f61dbe8fd77a1dc9da89f9097ccc53e205292d",
+      "bytes": 9063,
+      "sha256": "27d93b7f759b512b1710eaa9f532aeccf5a43fbd62e32d6010d6009d3e0c56af",
+      "lines": 159
+    },
+    {
+      "id": "candidate/sort.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/sort.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "9177e370e7eb7919290192e82c0beea834b723bc",
+      "bytes": 1377,
+      "sha256": "443a57afffc1fdd00652a6d388de5dc3d4b44d88125641293771b610eedca274",
+      "lines": 30
+    },
+    {
+      "id": "candidate/writer.ts",
+      "revision": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+      "path": "src/commands/xan/writer.ts",
+      "role": "SOURCE_CONTENT_INSPECTED",
+      "blob": "9308fa2ebef473213f158f4be130c1bda2ee9260",
+      "bytes": 3918,
+      "sha256": "610a3dd7fbc97fda2d429221774b56da92d7937db75567e4327b7a93d5303c03",
+      "lines": 80
+    },
+    {
+      "id": "base/src/contracts/io.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/io.ts",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "lines": 236
+    },
+    {
+      "id": "base/src/contracts/output.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/output.ts",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "lines": 120
+    },
+    {
+      "id": "base/src/contracts/command.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.ts",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "lines": 102
+    },
+    {
+      "id": "base/src/contracts/command.md",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "lines": 151
+    },
+    {
+      "id": "base/src/contracts/filesystem.md",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/filesystem.md",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "bytes": 20876,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "lines": 322
+    },
+    {
+      "id": "base/src/contracts/path.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/path.ts",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "lines": 48
+    },
+    {
+      "id": "base/src/commands/copy-identity.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/copy-identity.ts",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "020bedd35a95893736aae453330c96cff58a112b",
+      "bytes": 2179,
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "lines": 43
+    },
+    {
+      "id": "base/src/shell/runtime.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/runtime.ts",
+      "role": "RELEVANT_SOURCE_SECTIONS_INSPECTED_NOT_WHOLE_BASELINE_AUDIT",
+      "blob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "bytes": 132362,
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+      "lines": 2606
+    },
+    {
+      "id": "policy/design",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "path": "src/commands/xan/DESIGN.md",
+      "role": "NORMATIVE_ACCOUNTING_LIFECYCLE_SECTIONS",
+      "blob": "0d04e8b9cf1b7fe37107d02bad12d6c937defb78",
+      "bytes": 38677,
+      "sha256": "a91220c4b62c15e89e88e54d488d8b58534907a8197d71a97748b6f7e945e5ea",
+      "lines": 587
+    },
+    {
+      "id": "policy/profile",
+      "revision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "role": "NORMATIVE_POLICY_DELTA",
+      "blob": "6b845ecb307bd8d397cee809ff92fc1c9d3d45bf",
+      "bytes": 5952,
+      "sha256": "8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44",
+      "lines": 92
+    },
+    {
+      "id": "policy/selector",
+      "revision": "5b27c32b941315247bf5dca7b20faf2a9aca6d48",
+      "path": "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+      "role": "NORMATIVE_SECTIONS_2_TO_4",
+      "blob": "c86f1fdfcd4e23beb8370dc1125c526cfbe447f0",
+      "bytes": 13305,
+      "sha256": "1e0d605985ddc6c2877d9ed38f76769a85b07e82d1c844406c39b2aa45a11493",
+      "lines": 214
+    },
+    {
+      "id": "freeze/FINAL-CONTRACT-V4.md",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-CONTRACT-V4.md",
+      "role": "FROZEN_AUTHORITY",
+      "blob": "ab1c3bced330134073016c2943d9908e3f0dc1d2",
+      "bytes": 7335,
+      "sha256": "130d9877dcca4a560b064c827adec95258baad14efc5dc00737a3ff39f4a0a61",
+      "lines": 107
+    },
+    {
+      "id": "freeze/FINAL-BINDING-V4.json",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-BINDING-V4.json",
+      "role": "FROZEN_AUTHORITY",
+      "blob": "9f2646c49db17b8cd05591c40c717d59022c6dcb",
+      "bytes": 16369,
+      "sha256": "058782fddf4e18e2c36e665b5836a2543b897fdb1f908d1092df074975e5b30b",
+      "lines": 19
+    },
+    {
+      "id": "freeze/final-freeze-v3/LIMITS.json",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "role": "FROZEN_AUTHORITY",
+      "blob": "1e25b11e696bcd37cf18a37d957b1f1b73d42377",
+      "bytes": 7514,
+      "sha256": "cc81bbe66251f1e143ff17b45da05ac5f0b5cfe0209230a84a16cfe6581b48e9",
+      "lines": 28
+    },
+    {
+      "id": "freeze/final-freeze-v3/CONTROLS.json",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "role": "FROZEN_AUTHORITY",
+      "blob": "ef10a696fa4f7f6fe6c3f3d959fc125e95bc43f9",
+      "bytes": 13506,
+      "sha256": "35f3c9081d4617abc56714f174f82cfd1d221ba9f8c8715b4d7a34762051f518",
+      "lines": 85
+    },
+    {
+      "id": "freeze/final-freeze-v3/CASES.json",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "role": "INVENTORY_AND_HASH_ONLY_NOT_BROAD_SEMANTIC_REAUDIT",
+      "blob": "d2c859c1365bd03eaef1000ab8ceddd7595de7be",
+      "bytes": 30285,
+      "sha256": "fe33803bad06802d8cad8d0c4faa3b7eaeb75b28b67f46ed7e7b92fbe72568c5",
+      "lines": 98
+    },
+    {
+      "id": "freeze/B01-RATIFICATION-7.json",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "role": "INVENTORY_AND_HASH_ONLY_NOT_BROAD_SEMANTIC_REAUDIT",
+      "blob": "44d74e2de98d6dedeae33e38179fd823471680fb",
+      "bytes": 8271,
+      "sha256": "b632cca2f185f3b222062fc4bdc091a6a95861a8743a209608d40dff947d54de",
+      "lines": 69
+    },
+    {
+      "id": "freeze/SELECTOR-FREEZE-V4.json",
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "role": "INVENTORY_AND_HASH_ONLY_NOT_BROAD_SEMANTIC_REAUDIT",
+      "blob": "197a11851ab12ff67713875c2eefa4ef98247ba5",
+      "bytes": 10936,
+      "sha256": "e4fff14cdfd5407429bcd57846978c34b6be893884a961833152e52e4d605c62",
+      "lines": 65
+    },
+    {
+      "id": "author/handoff",
+      "revision": "01f8826628b6ba070498e6b833f9a1597d2db375",
+      "path": "tests/commands/xan-author-20260828/AUTHOR-HANDOFF.md",
+      "role": "AUTHOR_PROVENANCE_NOT_INDEPENDENT_ACCEPTANCE",
+      "blob": "99fbb9412eca8b41a7884e3bf08385757c6a7063",
+      "bytes": 11605,
+      "sha256": "2175efba720f2182460812a51a02d65193ac563ec3697c95545e1a68435e67f7",
+      "lines": 190
+    },
+    {
+      "id": "author/manifest",
+      "revision": "01f8826628b6ba070498e6b833f9a1597d2db375",
+      "path": "tests/commands/xan-author-20260828/core/evidence/MANIFEST.json",
+      "role": "AUTHOR_PROVENANCE_AND_INPUT_IDENTITY",
+      "blob": "3d5319ca8d975ef767890e993a7c34db3df79c00",
+      "bytes": 17584,
+      "sha256": "fa90038de2587e76cdfc2e899f912897da0e131d7d67e3a929675d353df55be1",
+      "lines": 555
+    },
+    {
+      "id": "author/receipt",
+      "revision": "01f8826628b6ba070498e6b833f9a1597d2db375",
+      "path": "tests/commands/xan-author-20260828/core/evidence/06-final-green.receipt.json",
+      "role": "INVENTORY_FORMAT_AND_IDENTITY_NOT_LOG_REPLAY",
+      "blob": "34b069054f1a29770404b958c3b537275a752640",
+      "bytes": 336194,
+      "sha256": "923a51f88ece8d96969333d7fab62e1e599719c51c39475b02d9759163f95b9f",
+      "lines": 9621
+    },
+    {
+      "id": "author/assembly",
+      "revision": "19332038cd7e0054f1290b3f9cf6f613018b99fc",
+      "path": "tests/commands/xan-author-20260828/assembly/assemble.mjs",
+      "role": "READ_ONLY_INVENTORY_ALGORITHM_NOT_EXECUTED",
+      "blob": "c153bdc4865a0f9d7ea57c0153805445d1698e02",
+      "bytes": 17662,
+      "sha256": "b7c813219e1ecfca70c4b4ff790540a50aaf566024afbd9d69dba732518668f7",
+      "lines": 194
+    },
+    {
+      "id": "prep/resources",
+      "revision": "c6569532babb6b7e9604e21486dee4da43ac995f",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/resources.mjs",
+      "role": "SYNTHETIC_RECIPE_COMPARISON_NOT_EXECUTED",
+      "blob": "cdb5bf245be24a7215500cb294a60603b813f83e",
+      "bytes": 12606,
+      "sha256": "840cc5cc46a23998478d8dd041690f86035d8d8265036b32ad1f91edb1fbe52e",
+      "lines": 211
+    },
+    {
+      "id": "prep/readiness",
+      "revision": "c6569532babb6b7e9604e21486dee4da43ac995f",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/READINESS-AUDIT.md",
+      "role": "HISTORICAL_ORCHESTRATION_LIMITATION_NOT_REAUDITED",
+      "blob": "f5744db759c1df563fe054e57ff3028cf18d7427",
+      "bytes": 2614,
+      "sha256": "c1f925c2f460cd3e50f19f5cffe0e976398f6acc1c8877cdedc46810401469d3",
+      "lines": 45
+    },
+    {
+      "id": "prep/cohort",
+      "revision": "c6569532babb6b7e9604e21486dee4da43ac995f",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/COHORT.json",
+      "role": "METADATA_ONLY_NOT_EXECUTED",
+      "blob": "b5527d3894fb13d0a9de040658f7ccfc138ed138",
+      "bytes": 529278,
+      "sha256": "e7a7ea3471ef70a74f92619295ebadb03317044dd54375870a5c5ae9b3b48f23",
+      "lines": 18875
+    }
+  ]
+}

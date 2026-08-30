@@ -1,0 +1,17 @@
+{
+  "at": "2026-08-28T02:37:43.775Z",
+  "scratchRemoved": true,
+  "rawCompactedLosslessly": true,
+  "childrenNatural": 9,
+  "processGroupsEmpty": 9,
+  "active": 0,
+  "postOnlyAuditProductReexecutions": 0,
+  "scopeOnly": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+  "intentionalAlias": {
+    "path": "guard-controls/alias",
+    "type": "symlink",
+    "mode": 493,
+    "link": "input.data",
+    "disposition": "intentional P06 negative; metadata recorded without following; removed before strict remaining-work inventory"
+  }
+}

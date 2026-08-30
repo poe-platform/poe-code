@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "checkpoint": "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+  "preparation": "797aa13996f04a332f37a84888d151f2352efee9",
+  "preseal": {
+    "path": "tests/commands/node-independent-20260829/source-review-v1/PRESEAL.md",
+    "sha256": "18f1ff5f5bb022df313a13615a36984d1bc359a9aa92d12db36ebd093b9f16d3"
+  },
+  "files": [
+    {
+      "path": "tests/commands/node-independent-20260829/source-review-v1/SOURCE-INPUTS.json",
+      "bytes": 7461,
+      "sha256": "2921763b9105b95d9667b5a381dce3bca87aeb770f03936fdca90e993e42b627"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/source-review-v1/FINDINGS.json",
+      "bytes": 8653,
+      "sha256": "a34659b8087fc299f8c509a2f872dd2d51f9ce7613c501c8bcd1c204f8182831"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/source-review-v1/MAP.json",
+      "bytes": 32406,
+      "sha256": "edab12fc94cb4ac69f2892e69af784dff2ccf93f116330a74e83a80130a4394c"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/source-review-v1/SCENARIOS.json",
+      "bytes": 5697,
+      "sha256": "64edf21e1fd4f2a8cafb149e3894959e36a6456578cba6febdb4f73831d3085f"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/source-review-v1/REPORT.md",
+      "bytes": 8560,
+      "sha256": "23c33174343cd1be3ff9a6bd8c1ae90e9d56b576f347884c63a0e724f6edd60a"
+    }
+  ],
+  "sourceFiles": 9,
+  "semanticFamiliesMapped": 38,
+  "typeFamiliesMapped": 8,
+  "loadFamiliesMapped": 6,
+  "sourceFindings": 3,
+  "unscoredQuestions": 3,
+  "executions": 0,
+  "acceptance": false
+}

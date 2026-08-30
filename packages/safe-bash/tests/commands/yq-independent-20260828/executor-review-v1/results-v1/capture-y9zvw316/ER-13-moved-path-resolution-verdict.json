@@ -1,0 +1,9 @@
+{
+  "family": "ER-13",
+  "name": "moved-path-resolution",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-13-moved-path-resolution-input.json",
+  "raw": "ER-13-moved-path-resolution-raw.json"
+}

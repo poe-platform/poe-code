@@ -1,0 +1,40 @@
+{
+  "selectedCase": "N18",
+  "startedAt": "2026-08-27T08:47:09.444Z",
+  "finishedAt": "2026-08-27T08:47:09.673Z",
+  "elapsedMs": 229,
+  "node": "v22.22.2",
+  "pid": 33115,
+  "completion": {
+    "exitCode": 0,
+    "signal": null
+  },
+  "processDeadlineMs": 120000,
+  "unchangedSealedSettlementGuardMs": 2000,
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "--import",
+    "/tmp/safe-bash-tree-initial-run-NN3E3X/candidate/node_modules/tsx/dist/loader.mjs",
+    "/private/tmp/safe-bash-tree-n18-correction-tWzxcm/derived/run.mjs",
+    "--execute",
+    "/private/tmp/safe-bash-tree-n18-correction-tWzxcm/bridge.mjs",
+    "/private/tmp/safe-bash-tree-n18-correction-tWzxcm/profile.json",
+    "N18"
+  ],
+  "cwd": "/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "rawPredicate": {
+    "id": "N18",
+    "status": "pass",
+    "evidence": {
+      "exitCode": 2,
+      "stdoutBytes": 0,
+      "stderrBytes": 35,
+      "fsCalls": 0,
+      "comparison": "status-and-diagnostic"
+    }
+  },
+  "productInvocations": 1,
+  "otherSelectionsExecuted": 0,
+  "nativeInvocations": 0,
+  "activeOwnedChildren": 0
+}

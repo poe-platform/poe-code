@@ -1,0 +1,13 @@
+{
+  "args": [
+    "diff",
+    "--check",
+    "--",
+    "tests/compatibility/bash-conditional-independent-20260829"
+  ],
+  "closed": true,
+  "captureBytes": 0,
+  "pid": 28623,
+  "code": 0,
+  "signal": null
+}

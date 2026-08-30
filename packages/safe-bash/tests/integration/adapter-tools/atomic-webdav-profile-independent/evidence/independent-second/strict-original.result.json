@@ -1,0 +1,14 @@
+{
+  "name": "strict-original",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.stock.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/adapter-tools/atomic-webdav-profile-independent/.isolated-XCrUhe/source",
+  "startedAt": "2026-08-27T09:14:41.378Z",
+  "finishedAt": "2026-08-27T09:14:42.770Z",
+  "status": 0,
+  "signal": null
+}

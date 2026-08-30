@@ -1,0 +1,25 @@
+{
+  "file": "tests/fs/s3/http-independent/public-workflow.mts",
+  "sha256": "fa70c0a26f55b319d0346f7d38fd70e7f3db59f599370ffa8c6bdd447627e643",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "--target",
+    "ES2023",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--strict",
+    "--noUncheckedIndexedAccess",
+    "--exactOptionalPropertyTypes",
+    "--skipLibCheck",
+    "--types",
+    "node",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/@types",
+    "public-workflow.mts"
+  ],
+  "status": 0,
+  "stdout": "",
+  "stderr": ""
+}

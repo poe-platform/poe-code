@@ -1,0 +1,205 @@
+{
+  "schema": 1,
+  "verdict": "QUALIFIED_MECHANISM_ACCEPT_ACTIVATION_HOLD_CLOCK_AND_AUTHORITY",
+  "created": "2026-08-29T14:04:10.175Z",
+  "reviewDeadline": "2026-08-29T14:10:49.053Z",
+  "source": "ba1721a99fdfe4954e187c57ae36d77fafac3a5a",
+  "preseal": {
+    "bytes": 6119,
+    "sha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a"
+  },
+  "authoritySha256": "554f8aa10ff57f4ce3feb0be38dff63b21585aae6ca471e10b09f2a8d4031f8c",
+  "packageSha256": "fcf17fcb9682a8d3970f0ec3577807359ac03d437ad0d0f7e4fac36d1260f674",
+  "outcomes": {
+    "versionedPurposes": 33,
+    "rejections": 8,
+    "additionalGroups": 10,
+    "independentGroups": 6,
+    "independentFailures": 0,
+    "retainedNormalDATAIncludedInSix": true,
+    "normalRerun": false,
+    "harmlessFixtureChildren": 3,
+    "harmlessRetired": 3,
+    "controllers": 2,
+    "actualWorkers": 0,
+    "matching": 0,
+    "productImports": 0,
+    "compiler": 0
+  },
+  "mapping": {
+    "eligible": 47,
+    "common": 44,
+    "layoutSpecific": 3,
+    "cells": 135,
+    "perLayout": 45,
+    "plannedWorkers": 111,
+    "deferredPublic": 7,
+    "deferredNonpublic": 6,
+    "allRuntimeVariants": "60 UNRUN"
+  },
+  "clockDecision": {
+    "rootRequestedMilliseconds": 1800000,
+    "candidateMilliseconds": 2100000,
+    "sourceGrantRejects1800": true,
+    "rootApprovalOf2100": false,
+    "choices": [
+      "ROOT explicitly approves revised 2100s profile in fresh authority",
+      "Author seals 1800s source/profile/grant-admission successor"
+    ]
+  },
+  "actualProposal": {
+    "knownOS": 146,
+    "roleGraph": {
+      "owner": 1,
+      "sequentialCaseNodes": 135,
+      "administration": 10
+    },
+    "peakOS": 3,
+    "Workers": 111,
+    "peakWorkers": 1,
+    "nativeThreads": "UNKNOWN_NOT_CLAIMED",
+    "captureBytes": 67108864,
+    "workBytes": 268435456,
+    "caseMilliseconds": 10000,
+    "termMilliseconds": 2000,
+    "postKillObservationMilliseconds": 1000,
+    "publicationReserveMilliseconds": 180000,
+    "guaranteedQuiescence": false
+  },
+  "authorityPending": [
+    "Complete external owner and per-case import edges",
+    "A03 bootstrap worker_threads/fs/crypto/module/url/path metadata and fixed static entry instrumentation",
+    "Fresh ROOT grant, exact command/capture/parent admission",
+    "Clock decision or successor binding"
+  ],
+  "knownReviewRoles": {
+    "throughPlannedPublication": 25,
+    "finalPublicationPendingAtReceipt": 2,
+    "graph": {
+      "initialGit": 5,
+      "presealGit": 2,
+      "mapAuthenticationGit": 2,
+      "controllers": 2,
+      "harmlessFixtures": 3,
+      "developmentPatchShellAndTool": 6,
+      "finalMetadataGit": 3,
+      "finalPublicationGit": 2
+    },
+    "peakConservative": 3,
+    "universalCensus": false,
+    "rawCaptureSnapshotBytes": 8245532,
+    "ownedScopeBytesBeforeReceipt": 18192135
+  },
+  "history": [
+    "24a2b1adf HOLD and seven original survivors unchanged",
+    "C2 original gate failure preserved; retained receipt DATA only",
+    "Synthetic late closure does not prove real KILL or rescore STOP_UNKNOWN"
+  ],
+  "files": [
+    {
+      "path": "ADMISSION.json",
+      "bytes": 32963,
+      "sha256": "0e4a80597b86bc8ebb9530401fbd9ec48cf2407f0a8412e0192aab29a990ced3"
+    },
+    {
+      "path": "CAPTURE-MANIFEST.json",
+      "bytes": 320,
+      "sha256": "ca75321239f4e232b6bbd453369ce484b19c23e5a082dba7de5dc8485185806f"
+    },
+    {
+      "path": "CAPTURE.json.gz",
+      "bytes": 7264942,
+      "sha256": "c111ed2e09f35acd8e4f63a7859722af80528101f0e4aba36652ba9a5e6f8793"
+    },
+    {
+      "path": "CONTROL-PROFILE.md",
+      "bytes": 2071,
+      "sha256": "66ca51765e522d3ae371897b8dcc12932c751c5e05886f1cb823dd8e28cd2b72"
+    },
+    {
+      "path": "CORE70-SOURCE-MAP.json",
+      "bytes": 29026,
+      "sha256": "e5d6d7de3f33c9c688c902390b83e24046874dc31024b00755fb41bbabbb442e"
+    },
+    {
+      "path": "EXTERNAL-AUTHORITY-SOURCE.json",
+      "bytes": 566,
+      "sha256": "10bc3655f8204428d299baac2899169f445525aa73b2be746e59297e0f07c2f6"
+    },
+    {
+      "path": "FINAL-METADATA.json",
+      "bytes": 651,
+      "sha256": "ae1b4f1289d4ea2bb17ed32c28121ee59dc14550c2b754df10cd4b5382980d3c"
+    },
+    {
+      "path": "INHERITED.json",
+      "bytes": 267099,
+      "sha256": "c3183ac72fdd1e573560e198ea13b9848a9a8c2a387d14860b75cbf0e57ff1cb"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 10528974,
+      "sha256": "68642d73c425f0937ce5e229429b040d2075c86997cbff2aea1f17e651627d9f"
+    },
+    {
+      "path": "MAP-AND-A03.json",
+      "bytes": 25927,
+      "sha256": "7290ca2067eea290e0df9225d2cc1d9fb6753523665ba1d2b2f4768c3cfaba92"
+    },
+    {
+      "path": "OWNERSHIP-PROCESS.json",
+      "bytes": 314,
+      "sha256": "8e9dce486c0bcb8500fca1807dac2c248512c88543088e3db8891a4f7a3f1adf"
+    },
+    {
+      "path": "OWNERSHIP.json",
+      "bytes": 1414,
+      "sha256": "7a3b856d5d585708381d139c5fde4c124120402e00f144de303ad41d537f93ad"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 1499,
+      "sha256": "01284bbf49cdbeed762a9e164b7cf857589191694ff23955918d639ce894b4db"
+    },
+    {
+      "path": "PURE-PROCESS.json",
+      "bytes": 309,
+      "sha256": "59331ba13e55c96a38f6b0845cbf7747effc59465195803ad0dbfa64ea4d3efa"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 13261,
+      "sha256": "0d40250d222e7e74aed33c2fac65c52941914915bfa80c6178156be15993ea4a"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 6396,
+      "sha256": "6156d8b539db33e8bda935fb4fead7310e380fbd746f89489d4ec693490f5841"
+    },
+    {
+      "path": "SOURCE-BINDING-CHECK.json",
+      "bytes": 4218,
+      "sha256": "04960888bdbe2c32be897dacb94f776c1b3675175394ef15cf3248aa4ba3b936"
+    },
+    {
+      "path": "SOURCE-PROCESS.json",
+      "bytes": 192,
+      "sha256": "1438d33b47ed49695e31512b4113c66e527c884258272f9debffc2f4a2c64bb6"
+    },
+    {
+      "path": "TOOL-ADMISSION.json",
+      "bytes": 282,
+      "sha256": "7a43cda00c42f139e728e191189c07836939b9b329d87065ae1a79d79a280667"
+    },
+    {
+      "path": "ownership.mjs",
+      "bytes": 2499,
+      "sha256": "b83c8917cdf6180f2ba5134f5b061a660ec2ae7d5650497cf88fdb9cf1f7bb58"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 9212,
+      "sha256": "74d37218770f2da2b31482005e1a758dfa5ed1c2bddd80c2c57a2adb4e7cfadc"
+    }
+  ]
+}

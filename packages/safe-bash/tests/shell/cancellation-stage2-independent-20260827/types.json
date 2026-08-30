@@ -1,0 +1,32 @@
+[
+  {
+    "id": "T01",
+    "name": "public CommandInvokeOptions accepts a native signal without other new requirements",
+    "source": "import type { CommandInvokeOptions } from '$PUBLIC';\nconst options: CommandInvokeOptions = { signal: new AbortController().signal };\nconst signal: AbortSignal | undefined = options.signal;\nvoid signal;\n"
+  },
+  {
+    "id": "T02",
+    "name": "internal ShellInvokeOptions matches the public signal and remains readonly",
+    "source": "import type { CommandInvokeOptions } from '$PUBLIC';\nimport type { ShellInvokeOptions } from '$SHELL';\nconst internal: ShellInvokeOptions = { signal: new AbortController().signal };\nconst publicOptions: CommandInvokeOptions = internal;\nconst back: ShellInvokeOptions = publicOptions;\n// @ts-expect-error signal is readonly\nback.signal = new AbortController().signal;\n"
+  },
+  {
+    "id": "T03",
+    "name": "null primitive controller and unbranded lookalike remain type errors",
+    "source": "import type { CommandInvokeOptions } from '$PUBLIC';\nconst good: CommandInvokeOptions = { signal: new AbortController().signal };\n// @ts-expect-error null is not a signal\nconst badNull: CommandInvokeOptions = { signal: null };\n// @ts-expect-error numeric value is not a signal\nconst badNumber: CommandInvokeOptions = { signal: 1 };\n// @ts-expect-error controller is not its signal\nconst badController: CommandInvokeOptions = { signal: new AbortController() };\n// @ts-expect-error lookalike is incomplete\nconst badObject: CommandInvokeOptions = { signal: { aborted: false, reason: undefined } };\nvoid good; void badNull; void badNumber; void badController; void badObject;\n"
+  },
+  {
+    "id": "T04",
+    "name": "old optional options and explicit undefined argument remain source compatible",
+    "source": "import type { CommandContext, CommandInvokeOptions } from '$PUBLIC';\ndeclare const context: CommandContext;\ncontext.invoke?.('true', []);\ncontext.invoke?.('true', [], undefined);\nconst prior: CommandInvokeOptions = { cwd: '/', env: { VALUE: 'x' }, replaceEnv: true, stdinIsDefault: false };\ncontext.invoke?.('true', [], prior);\nconst projected: AbortSignal | undefined = prior.signal;\nvoid projected;\n"
+  },
+  {
+    "id": "T05",
+    "name": "literal argv and existing byte streams coexist with child signal",
+    "source": "import type { CommandContext, CommandResult, ByteSource, ByteSink } from '$PUBLIC';\ndeclare const context: CommandContext;\ndeclare const input: ByteSource;\ndeclare const output: ByteSink;\nif (context.invoke) {\n const result: Promise<CommandResult> = context.invoke('cat', ['a b', '*'], { signal: new AbortController().signal, stdin: input, stdout: output, stderr: output });\n void result;\n}\n"
+  },
+  {
+    "id": "T06",
+    "name": "result stays CommandResult with no new observed-status or timeout channel",
+    "source": "import type { CommandContext } from '$PUBLIC';\nimport type { ShellCommandContext } from '$SHELL';\ndeclare const context: ShellCommandContext;\nconst base: CommandContext = context;\nconst result = await context.invoke('true', [], { signal: new AbortController().signal });\nconst exitCode: number = result.exitCode;\n// @ts-expect-error no observed status channel\nconst observed = result.observedStatus;\n// @ts-expect-error no timeout status channel\nconst timeout = result.timedOut;\nvoid base; void exitCode; void observed; void timeout;\n"
+  }
+]

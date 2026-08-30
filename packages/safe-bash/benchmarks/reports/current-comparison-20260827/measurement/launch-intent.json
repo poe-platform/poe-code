@@ -1,0 +1,29 @@
+{
+  "command": "/usr/bin/env -i 'PATH=/usr/bin:/bin' 'HOME=/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/home' 'TMPDIR=/private/tmp/safe-bash-measurement-freeze-XAFOrN/host/tmp' 'LANG=C' 'LC_ALL=C' 'TZ=UTC' '/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node' '/private/tmp/safe-bash-measurement-freeze-XAFOrN/runtime/execution/run.mjs' 'MEASURE' '--binding' '/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/execution-binding.json' '--root-receipt' '/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement-freeze/proposed-root-receipt.json' '--root-receipt-sha256' 'c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5' '--output' '/private/tmp/safe-bash-measurement-freeze-XAFOrN/measurement-attempt-001'",
+  "commandFileSha256": "cfa4b86d9ed13c8dc4c1dee0fdd46cd22895827dbb2886ef31516d8d89905425",
+  "commandSha256": "ee21e6dfbc6922b97bdbfa3a034162b00bf1faa57a2f53ac0bfb38c178205ff0",
+  "output": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/measurement-attempt-001",
+  "before": {
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/../measurement-freeze/execution-binding.json": {
+      "bytes": 1172804,
+      "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e"
+    },
+    "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/measurement/../measurement-freeze/proposed-root-receipt.json": {
+      "bytes": 1580,
+      "sha256": "c0f9468f33d1df5ec468bc98830c06fc8fcadb797f3595b0a7fa18f346f607a5"
+    },
+    "/private/tmp/safe-bash-measurement-freeze-XAFOrN/tools/node": {
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "capBytesPerChannel": 16777216,
+  "destinationAbsent": true,
+  "scope": "COMMITTED_FROZEN_COMPARISON_ONLY",
+  "adoptedRootReceipt": true,
+  "authorization": "Explicit ROOT execution authorization and pre-import announcement supplied by user",
+  "requestedAt": "2026-08-27T12:53:46.910Z",
+  "wrapperPid": 84948,
+  "outputPolicy": "Separate bounded streaming prefixes; all received bytes hashed; overflow retained as capture failure, not a score or reason to kill productive children",
+  "restartPolicy": "No retries; launch-intent and exclusive output files prevent rerunning this launcher"
+}

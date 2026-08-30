@@ -1,0 +1,295 @@
+{
+  "request": {
+    "id": "independent/clean",
+    "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+    "synthetic": true,
+    "engine": "independent-sentinel-not-product",
+    "profile": "original",
+    "mode": "clean",
+    "expected": {
+      "stdout": "AAF/gP7/",
+      "stderr": "aW5kZXBlbmRlbnQK",
+      "exitCode": 0,
+      "entries": {
+        "binary": {
+          "type": "file",
+          "bytes": "AAF/gP7/"
+        }
+      }
+    },
+    "caps": {
+      "startupMs": 2000,
+      "guestMs": 180,
+      "requestMs": 1400,
+      "totalMs": 4500,
+      "settleMs": 150,
+      "snapshotMs": 200,
+      "disposeMs": 200,
+      "naturalMs": 240,
+      "termMs": 120,
+      "killMs": 200,
+      "outputBytes": 4194304,
+      "diagnosticBytes": 4096,
+      "reportBytes": 131072,
+      "events": 64,
+      "snapshotBytes": 33554432,
+      "entries": 4096,
+      "depth": 32
+    },
+    "heapMiB": 128,
+    "host": {
+      "root": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+      "cwd": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+      "env": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+        "TMPDIR": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC"
+      }
+    }
+  },
+  "attempt": {
+    "id": "independent/clean",
+    "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+    "synthetic": true,
+    "profile": "original",
+    "engine": "independent-sentinel-not-product",
+    "failures": [],
+    "events": [
+      {
+        "atMs": 1.014,
+        "kind": "group-admitted",
+        "pid": 96051,
+        "pgid": 96051,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs",
+          "--synthetic"
+        ],
+        "host": {
+          "root": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+          "cwd": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+          "env": {
+            "PATH": "/usr/bin:/bin",
+            "HOME": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+            "TMPDIR": "/private/tmp/safe-bash-independent-bridge-BBhHqv",
+            "LANG": "C",
+            "LC_ALL": "C",
+            "TZ": "UTC"
+          }
+        }
+      },
+      {
+        "atMs": 36.914,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "engine-spawn",
+        "pid": 96074,
+        "argv": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--unhandled-rejections=strict",
+          "--experimental-import-meta-resolve",
+          "--max-old-space-size=128",
+          "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs",
+          "--synthetic"
+        ]
+      },
+      {
+        "atMs": 89.073,
+        "kind": "request-start",
+        "absoluteDeadlineMs": 1489.0637920000001
+      },
+      {
+        "atMs": 89.076,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "ready"
+      },
+      {
+        "atMs": 89.688,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "phase",
+        "phase": "exec-start"
+      },
+      {
+        "atMs": 89.746,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "phase",
+        "phase": "exec-settled"
+      },
+      {
+        "atMs": 89.872,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "phase",
+        "phase": "snapshot-complete"
+      },
+      {
+        "atMs": 90.255,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "phase",
+        "phase": "dispose-start"
+      },
+      {
+        "atMs": 90.262,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "phase",
+        "phase": "dispose-settled"
+      },
+      {
+        "atMs": 90.864,
+        "kind": "result-received",
+        "sha256": "c5b3fff179e24dacb879ac9fbca6a7b9b13769440ed4142ce41af79bd68fb2e8",
+        "absoluteTotalUnchangedMs": 4500
+      },
+      {
+        "atMs": 93.085,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "engine-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 93.224,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "engine-close",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 93.248,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "fixture-close",
+        "closed": true,
+        "sockets": 0,
+        "requests": []
+      },
+      {
+        "atMs": 93.258,
+        "id": "independent/clean",
+        "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+        "kind": "session-complete"
+      },
+      {
+        "atMs": 95.54,
+        "kind": "coordinator-exit",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "atMs": 95.552,
+        "kind": "coordinator-close",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "signals": [],
+    "result": {
+      "id": "independent/clean",
+      "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+      "kind": "result",
+      "observation": {
+        "stdout": "AAF/gP7/",
+        "stderr": "aW5kZXBlbmRlbnQK",
+        "exitCode": 0,
+        "entries": {
+          "binary": {
+            "type": "file",
+            "bytes": "AAF/gP7/"
+          }
+        }
+      }
+    },
+    "engineExit": {
+      "code": 0,
+      "signal": null
+    },
+    "engineClose": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionExit": {
+      "code": 0,
+      "signal": null
+    },
+    "sessionClose": {
+      "code": 0,
+      "signal": null
+    },
+    "diagnostics": [],
+    "clean": true,
+    "groupGone": true,
+    "coordinatorPid": 96051,
+    "enginePid": 96074,
+    "network": {
+      "id": "independent/clean",
+      "nonce": "c5244cc7-5bb5-4aab-ac19-fd5e2e60f083",
+      "kind": "fixture-close",
+      "closed": true,
+      "sockets": 0,
+      "requests": []
+    },
+    "elapsedMs": 104.772,
+    "deadlinesMs": {
+      "total": 4500,
+      "request": 1489.064,
+      "natural": 330.672
+    },
+    "hostBytes": 0,
+    "reportBytes": 1779,
+    "execAdmissions": {
+      "scoredCase": 1,
+      "emptyInitialization": 0
+    },
+    "wireCapture": {
+      "receivedBytes": 1779,
+      "receivedSha256": "6ae38c5e89cb57623287d6e0326a92f32dd8c1dcc6a289c20a3ae382f420071a",
+      "prefixBase64": "AAABhXsiaWQiOiJpbmRlcGVuZGVudC9jbGVhbiIsIm5vbmNlIjoiYzUyNDRjYzctNWJiNS00YWFiLWFjMTktZmQ1ZTJlNjBmMDgzIiwia2luZCI6ImVuZ2luZS1zcGF3biIsInBpZCI6OTYwNzQsImFyZ3YiOlsiL1VzZXJzL2tqb3Blay8ubnZtL3ZlcnNpb25zL25vZGUvdjIyLjIyLjIvYmluL25vZGUiLCItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tZXhwZXJpbWVudGFsLWltcG9ydC1tZXRhLXJlc29sdmUiLCItLW1heC1vbGQtc3BhY2Utc2l6ZT0xMjgiLCIvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvYmVuY2htYXJrcy9yZXBvcnRzL2N1cnJlbnQtY29tcGFyaXNvbi0yMDI2MDgyNy9leGVjdXRpb24vZW5naW5lLWNoaWxkLm1qcyIsIi0tc3ludGhldGljIl19AAAAWHsiaWQiOiJpbmRlcGVuZGVudC9jbGVhbiIsIm5vbmNlIjoiYzUyNDRjYzctNWJiNS00YWFiLWFjMTktZmQ1ZTJlNjBmMDgzIiwia2luZCI6InJlYWR5In0AAABteyJpZCI6ImluZGVwZW5kZW50L2NsZWFuIiwibm9uY2UiOiJjNTI0NGNjNy01YmI1LTRhYWItYWMxOS1mZDVlMmU2MGYwODMiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImV4ZWMtc3RhcnQifQAAAG97ImlkIjoiaW5kZXBlbmRlbnQvY2xlYW4iLCJub25jZSI6ImM1MjQ0Y2M3LTViYjUtNGFhYi1hYzE5LWZkNWUyZTYwZjA4MyIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZXhlYy1zZXR0bGVkIn0AAAB0eyJpZCI6ImluZGVwZW5kZW50L2NsZWFuIiwibm9uY2UiOiJjNTI0NGNjNy01YmI1LTRhYWItYWMxOS1mZDVlMmU2MGYwODMiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6InNuYXBzaG90LWNvbXBsZXRlIn0AAABweyJpZCI6ImluZGVwZW5kZW50L2NsZWFuIiwibm9uY2UiOiJjNTI0NGNjNy01YmI1LTRhYWItYWMxOS1mZDVlMmU2MGYwODMiLCJraW5kIjoicGhhc2UiLCJwaGFzZSI6ImRpc3Bvc2Utc3RhcnQifQAAAHJ7ImlkIjoiaW5kZXBlbmRlbnQvY2xlYW4iLCJub25jZSI6ImM1MjQ0Y2M3LTViYjUtNGFhYi1hYzE5LWZkNWUyZTYwZjA4MyIsImtpbmQiOiJwaGFzZSIsInBoYXNlIjoiZGlzcG9zZS1zZXR0bGVkIn0AAADeeyJpZCI6ImluZGVwZW5kZW50L2NsZWFuIiwibm9uY2UiOiJjNTI0NGNjNy01YmI1LTRhYWItYWMxOS1mZDVlMmU2MGYwODMiLCJraW5kIjoicmVzdWx0Iiwib2JzZXJ2YXRpb24iOnsic3Rkb3V0IjoiQUFGL2dQNy8iLCJzdGRlcnIiOiJhVzVrWlhCbGJtUmxiblFLIiwiZXhpdENvZGUiOjAsImVudHJpZXMiOnsiYmluYXJ5Ijp7InR5cGUiOiJmaWxlIiwiYnl0ZXMiOiJBQUYvZ1A3LyJ9fX19AAAAdXsiaWQiOiJpbmRlcGVuZGVudC9jbGVhbiIsIm5vbmNlIjoiYzUyNDRjYzctNWJiNS00YWFiLWFjMTktZmQ1ZTJlNjBmMDgzIiwia2luZCI6ImVuZ2luZS1leGl0IiwiY29kZSI6MCwic2lnbmFsIjpudWxsfQAAAHZ7ImlkIjoiaW5kZXBlbmRlbnQvY2xlYW4iLCJub25jZSI6ImM1MjQ0Y2M3LTViYjUtNGFhYi1hYzE5LWZkNWUyZTYwZjA4MyIsImtpbmQiOiJlbmdpbmUtY2xvc2UiLCJjb2RlIjowLCJzaWduYWwiOm51bGx9AAAAiHsiaWQiOiJpbmRlcGVuZGVudC9jbGVhbiIsIm5vbmNlIjoiYzUyNDRjYzctNWJiNS00YWFiLWFjMTktZmQ1ZTJlNjBmMDgzIiwia2luZCI6ImZpeHR1cmUtY2xvc2UiLCJjbG9zZWQiOnRydWUsInNvY2tldHMiOjAsInJlcXVlc3RzIjpbXX0AAABjeyJpZCI6ImluZGVwZW5kZW50L2NsZWFuIiwibm9uY2UiOiJjNTI0NGNjNy01YmI1LTRhYWItYWMxOS1mZDVlMmU2MGYwODMiLCJraW5kIjoic2Vzc2lvbi1jb21wbGV0ZSJ9",
+      "prefixOnly": false
+    }
+  },
+  "assessment": {
+    "comparison": {
+      "pass": true,
+      "assertions": [
+        {
+          "field": "stdout",
+          "pass": true
+        },
+        {
+          "field": "stderr",
+          "pass": true
+        },
+        {
+          "field": "exitCode",
+          "pass": true
+        },
+        {
+          "field": "entries",
+          "pass": true
+        }
+      ]
+    },
+    "lifecycle": true,
+    "status": "pass"
+  },
+  "control": {
+    "mode": "clean",
+    "controlSatisfied": true,
+    "observationStatus": "pass",
+    "clean": true,
+    "groupGone": true,
+    "signals": [],
+    "resources": {}
+  }
+}

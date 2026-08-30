@@ -1,0 +1,191 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { spawn } from 'node:child_process';
+import { createServer } from 'node:http';
+import { readFile, realpath, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const directory = dirname(fileURLToPath(import.meta.url));
+const innerDeadlineMs = 1200;
+const outerDeadlineMs = 3000;
+const outputLimitBytes = 1048576;
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+const bytes = value => encoder.encode(value);
+const text = value => decoder.decode(value);
+const sha256 = value => createHash('sha256').update(value).digest('hex');
+const immediate = () => new Promise(resolveTurn => setImmediate(resolveTurn));
+const observe = promise => Promise.resolve(promise).then(value => ({ kind: 'value', value }), error => ({ kind: 'error', error }));
+const encodeJson = value => JSON.stringify(value, (_key, item) => item instanceof Error ? { name: item.name, message: item.message, code: item.code } : item);
+const pipeReason = () => Object.assign(new Error('binding destination consumer closed'), { code: 'EPIPE' });
+
+class Blocked extends Error {}
+
+function gate() {
+  let resolveGate;
+  let rejectGate;
+  let state = 'pending';
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolveGate = value => { if (state === 'pending') { state = 'resolved'; resolvePromise(value); } };
+    rejectGate = reason => { if (state === 'pending') { state = 'rejected'; rejectPromise(reason); } };
+  });
+  void promise.catch(() => {});
+  return { promise, resolve: resolveGate, reject: rejectGate, get state() { return state; } };
+}
+
+function tracked(promise) {
+  const observation = { state: 'pending', outcome: null };
+  observation.promise = observe(promise).then(outcome => {
+    observation.state = outcome.kind;
+    observation.outcome = outcome;
+    return outcome;
+  });
+  return observation;
+}
+
+class Scope {
+  controller = new AbortController();
+  timers = new Set();
+  releases = [];
+  cleanups = [];
+  events = [];
+  unhandled = [];
+  sockets = new Set();
+  tasks = new Set();
+  snapshots = [];
+  teardownStarted = false;
+  constructor() {
+    this.unhandledListener = reason => this.unhandled.push(reason);
+    process.on('unhandledRejection', this.unhandledListener);
+  }
+  event(name, detail = null) {
+    assert.ok(this.events.length < 2048, 'bounded event journal');
+    this.events.push({ sequence: this.events.length, name, detail, phase: this.teardownStarted ? 'teardown' : 'observation' });
+  }
+  async bound(promise, label, milliseconds = innerDeadlineMs) {
+    let timer;
+    try {
+      return await Promise.race([promise, new Promise((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+        this.timers.add(timer);
+      })]);
+    } finally {
+      clearTimeout(timer);
+      this.timers.delete(timer);
+    }
+  }
+  async teardown() {
+    this.teardownStarted = true;
+    this.event('fixture.teardown.begin');
+    this.controller.abort(new Error('binding teardown; never acceptance rescue'));
+    for (const release of this.releases) release();
+    const failures = [];
+    for (const cleanup of this.cleanups.reverse()) {
+      try { await this.bound(Promise.resolve().then(cleanup), 'owned cleanup'); }
+      catch (error) { failures.push(error); }
+    }
+    await immediate();
+    await immediate();
+    for (const timer of this.timers) clearTimeout(timer);
+    this.timers.clear();
+    process.removeListener('unhandledRejection', this.unhandledListener);
+    if (this.sockets.size) failures.push(new Error(`remaining sockets: ${this.sockets.size}`));
+    if (this.tasks.size) failures.push(new Error(`remaining cooperative server tasks: ${this.tasks.size}`));
+    if (this.unhandled.length) failures.push(...this.unhandled);
+    return { failures, timers: this.timers.size, sockets: this.sockets.size, tasks: this.tasks.size, children: 0 };
+  }
+}
+
+function destination(scope, customWrite) {
+  const controller = new AbortController();
+  const chunks = [];
+  const attempted = [];
+  let size = 0;
+  let attemptedSize = 0;
+  scope.snapshots.push(() => ({ kind: 'destination', consumerClosed: controller.signal.aborted, attempted: text(Buffer.concat(attempted)), delivered: text(Buffer.concat(chunks)) }));
+  const write = async chunk => {
+    attemptedSize += chunk.byteLength;
+    assert.ok(attemptedSize <= outputLimitBytes, 'bounded destination attempts');
+    attempted.push(Buffer.from(chunk));
+    controller.signal.throwIfAborted();
+    if (customWrite) await customWrite(chunk);
+    controller.signal.throwIfAborted();
+    size += chunk.byteLength;
+    assert.ok(size <= outputLimitBytes, 'bounded destination');
+    chunks.push(Buffer.from(chunk));
+  };
+  return {
+    controller, chunks, attempted, sink: { write, ownedOutput: { consumerClosed: controller.signal, write } },
+    close(reason = pipeReason()) { scope.event('destination.consumer.close', reason); controller.abort(reason); },
+    contents() { return Buffer.concat(chunks); },
+  };
+}
+
+function captureSink() {
+  const chunks = [];
+  let count = 0;
+  return {
+    sink: { async write(chunk) { count += chunk.byteLength; assert.ok(count <= outputLimitBytes); chunks.push(Buffer.from(chunk)); } },
+    contents: () => Buffer.concat(chunks),
+  };
+}
+
+async function loopback(scope, handler) {
+  const failures = [];
+  const server = createServer((request, response) => {
+    let received = 0;
+    const body = { first: gate(), complete: gate(), chunks: [] };
+    request.on('data', chunk => {
+      received += chunk.length;
+      if (received > outputLimitBytes) {
+        const error = new Error('bounded loopback request exceeded 1 MiB');
+        failures.push(error);
+        body.first.reject(error);
+        body.complete.reject(error);
+        request.destroy();
+        return;
+      }
+      body.chunks.push(Buffer.from(chunk));
+      scope.event('fixture.capture.data', { bytes: chunk.length, total: received, dataListeners: request.listenerCount('data') });
+      body.first.resolve();
+    });
+    request.once('end', () => {
+      scope.event('fixture.capture.end', { bytes: received });
+      body.complete.resolve(body.chunks);
+    });
+    const rejectBody = error => { body.first.reject(error); body.complete.reject(error); };
+    request.once('aborted', () => rejectBody(new Error('fixture upload aborted before data/end')));
+    request.once('error', rejectBody);
+    scope.event('fixture.capture.installed', { dataListeners: request.listenerCount('data') });
+    const task = Promise.resolve().then(() => handler(request, response, body)).catch(error => {
+      if (!request.aborted && !response.destroyed) failures.push(error);
+      response.destroy();
+    });
+    scope.tasks.add(task);
+    void task.then(() => scope.tasks.delete(task));
+  });
+  server.on('connection', socket => {
+    scope.sockets.add(socket);
+    socket.once('close', () => scope.sockets.delete(socket));
+  });
+  scope.cleanups.push(async () => {
+    const stopped = new Promise((resolveStop, rejectStop) => server.close(error => error ? rejectStop(error) : resolveStop()));
+    server.closeAllConnections();
+    for (const socket of scope.sockets) socket.destroy();
+    await stopped;
+    await Promise.all([...scope.tasks]);
+    await immediate();
+    assert.deepEqual(failures, []);
+  });
+  await scope.bound(new Promise((resolveListen, rejectListen) => {
+    server.once('error', rejectListen);
+    server.listen(0, '127.0.0.1', resolveListen);
+  }), 'loopback listen');
+  const address = server.address();
+  assert.ok(address && typeof address !== 'string');
+  return { server, url: `http://127.0.0.1:${address.port}/owned-output` };
+}
+
+
+export { Scope, loopback };

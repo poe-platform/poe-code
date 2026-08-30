@@ -1,0 +1,7 @@
+Success. Updated the following files:
+A tests/compatibility/bash-conditional-independent-20260829/successor-v5/run.mjs
+A tests/compatibility/bash-conditional-independent-20260829/successor-v5/launch.mjs
+A tests/compatibility/bash-conditional-independent-20260829/successor-v5/author-consumer.mts.fixture
+A tests/compatibility/bash-conditional-independent-20260829/successor-v5/independent-positive.mts.fixture
+A tests/compatibility/bash-conditional-independent-20260829/successor-v5/independent-negative.mts.fixture
+A tests/compatibility/bash-conditional-independent-20260829/successor-v5/fixtures/fallback.mjs

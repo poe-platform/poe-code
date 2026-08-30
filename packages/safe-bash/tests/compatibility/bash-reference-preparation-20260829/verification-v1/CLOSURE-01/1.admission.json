@@ -1,0 +1,23 @@
+{
+  "tool": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "resolved": "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+    "bytes": 138208,
+    "mode": "755",
+    "sha256": "61ff2c63cf68eeeadf9c4700dadb8271740ff4960f98500f30db82b31521c0de"
+  },
+  "argv": [
+    "-L",
+    "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg"
+  ],
+  "environment": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/home",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/empty",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/home"
+}

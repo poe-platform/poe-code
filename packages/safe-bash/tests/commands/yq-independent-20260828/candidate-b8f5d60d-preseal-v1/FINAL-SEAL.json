@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "INCOMPLETE_STATIC_INSPECTOR_FAILURE_DENY",
+  "purpose": "Immutable stopped-preseal evidence and pending root route; not candidate admission or semantic acceptance",
+  "presealCommit": "a59ac90a60ebdf3e87eb17814e7718b8177c125c",
+  "dataPresealSha256": "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664",
+  "rootMode": 493,
+  "selfExcludedExactPath": "FINAL-SEAL.json",
+  "files": {
+    "BINDING-SPEC.md": {
+      "sha256": "c94883c42c25a6ef5c2c6fc391840e3ee1684c1a01dee970c21a3fa8e561b375",
+      "bytes": 8997,
+      "mode": 420
+    },
+    "DATA-PRESEAL.json": {
+      "sha256": "665962b00ee3bd745296eff0f36e00a08db98cb82f75abd67b425edc68dda664",
+      "bytes": 1780,
+      "mode": 420
+    },
+    "FAILURE-DIAGNOSTIC.json": {
+      "sha256": "a32a9b2d6dd5b92181488bb42ad8ff4a9dc34696615fa0f6e77da243f6995d42",
+      "bytes": 1506,
+      "mode": 420
+    },
+    "FAILURE.md": {
+      "sha256": "ea37224070e8e2ced9127f94b28a3a0e9b5eaf8b48508737747f0203c49be6a8",
+      "bytes": 3521,
+      "mode": 420
+    },
+    "INSPECTION-PLAN.md": {
+      "sha256": "05c78ccc8f0f0b4944bcb9762865ef7582125632b339ba07423d05e7eb897d88",
+      "bytes": 3592,
+      "mode": 420
+    },
+    "README.md": {
+      "sha256": "a4b353b8cc7322b302411049ab92be70cd0582a51374c0c7ce2fd25b5c02ed69",
+      "bytes": 1836,
+      "mode": 420
+    },
+    "REBINDING-PROPOSAL.pending.json": {
+      "sha256": "c91f2348e70322d89fa6f3dda7cada35a5cdfe062ac9f95de06881082d55b033",
+      "bytes": 6965,
+      "mode": 420
+    },
+    "SOURCE-OBSERVATIONS.md": {
+      "sha256": "1443707a3aa13abe8568f4b4e3432ecfa82fc665df930915496ecfb94ae9e67e",
+      "bytes": 4683,
+      "mode": 420
+    },
+    "STATIC-CAPTURE.json": {
+      "sha256": "96d475ba1805ca8b1c5ad1826a069c0ebd302b66cb1fb37a520ecc1a1c6b2de4",
+      "bytes": 1663,
+      "mode": 420
+    },
+    "STATUS.json": {
+      "sha256": "cd512930edf3b4b2e3f205ddc98d5ff4f08cf8cb187ab43bfbd119ae8c8a6806",
+      "bytes": 2174,
+      "mode": 420
+    },
+    "TOOLCHAIN-ROLES.pending.json": {
+      "sha256": "622e832940afda9cfe90d07dc504be1558b21349bbe842db61ef76f7761fb2ba",
+      "bytes": 3806,
+      "mode": 420
+    },
+    "inspect-data.mjs": {
+      "sha256": "88e84e21e2ed3359beeeb0aac985b00ece0f2ea2f2724aa484508bc5a3f29453",
+      "bytes": 31676,
+      "mode": 420
+    }
+  },
+  "entryCount": 12,
+  "completeFileMembershipSha256": "487551e3c880c1f327970723ea932f48e65295e354006d77563a325b83f4c6e8",
+  "newArtifactVerificationCompleted": false,
+  "admissionReceiptsIssued": false,
+  "retryCount": 0,
+  "productExecutionGranted": false,
+  "validation": {
+    "ownedJsonSyntax": true,
+    "presealByteModeUnchanged": true,
+    "ownFilesRegularSingleLink": true,
+    "ownScriptSyntax": "PASS_BEFORE_PRESEAL",
+    "writeSpecLint": "PASS_0_WARNINGS_BEFORE_PRESEAL"
+  }
+}

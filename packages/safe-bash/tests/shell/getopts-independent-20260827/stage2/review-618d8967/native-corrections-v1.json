@@ -1,0 +1,139 @@
+{
+  "format": "independent-stage2-native-correction-overlay-v1",
+  "version": 1,
+  "classification": "Two known native oracle errors only; no execution, historical rescore or product-policy substitution",
+  "originalFreeze": "51f14914a0e7de15c3a23961424f232853bf5c33",
+  "originalEvidence": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+  "originalPolicy": "bf3bfd63204ddd8fc5dbfa7308b77444de51d6f7",
+  "approvedDecisions": "f9d8737b6e391b20062f6f2a12d8fbec94e80ae8",
+  "originalCounts": {
+    "bash53": "14/16",
+    "bash32": "9/16",
+    "hostDefinitions": 12,
+    "hostExecutionsAtOriginalFreeze": 0
+  },
+  "corrections": [
+    {
+      "id": "N05",
+      "originalFrozenControl": {
+        "id": "N05",
+        "productBytes": 408,
+        "productSHA256": "4a4f7b86298c51ff9c332101194fad8e15be0a7b9e540aaa2b84b65f9a15fcad",
+        "completeControlSHA256": "08b04a34e94ace2eb9b9f8c0f9917ac2e332af86f8efd6c0e75f8d782fa22884"
+      },
+      "field": "expected.stdout",
+      "replaceExactlyOnce": {
+        "from": "repeated-local|0|b|1|||1\n",
+        "to": "repeated-local|0|a|1|||1\n"
+      },
+      "originalSelectedExpectation": {
+        "stdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|b|1|||1\nresumed|0|b|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "correctedSelectedNativeExpectation": {
+        "stdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|a|1|||1\nresumed|0|b|1|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "empty"
+        }
+      },
+      "preservedNativeObservations": {
+        "bash53": {
+          "profile": {
+            "id": "bash53",
+            "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+            "version": "5.3.0(1)-release",
+            "role": "selected Darwin binding profile"
+          },
+          "productStdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|a|1|||1\nresumed|0|b|1|||1\n",
+          "rawStderr": "",
+          "processStatus": 0,
+          "originalSelectedExpectationMatched": false
+        },
+        "bash32": {
+          "profile": {
+            "id": "bash32",
+            "binary": "/bin/bash",
+            "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+            "version": "3.2.57(1)-release",
+            "role": "separate historical Darwin observations; selected-profile mismatches are not candidate failures"
+          },
+          "productStdout": "parent|0|a|1|||1\nbefore-local|0|b|1|||1\nlocal|0|a|1|||1\nrepeated-local|0|a|1|||1\nresumed|0|a|1|||1\n",
+          "rawStderr": "",
+          "processStatus": 0,
+          "originalSelectedExpectationMatched": false
+        }
+      },
+      "productPolicy": "Use the corrected repeated-local observation with Bash5.3 entry-snapshot restoration. Bash3.2 resumed a stays a separate historical difference; not a new equality expectation."
+    },
+    {
+      "id": "N13",
+      "originalFrozenControl": {
+        "id": "N13",
+        "productBytes": 337,
+        "productSHA256": "258f40528175c3b97e28dfbaf4235a95979e654bac5e6fc21e91f44ec56b2692",
+        "completeControlSHA256": "3267f3920686a480b570291740cecc7e5bae0331cf995261402271295b34817d"
+      },
+      "field": "expected.stdout",
+      "replaceExactlyOnce": {
+        "from": "no-argument|0|b|4|||1\n",
+        "to": "no-argument|0|b|4|x|old|1\n"
+      },
+      "originalSelectedExpectation": {
+        "stdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|||1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "OPTARG: readonly variable"
+          ]
+        }
+      },
+      "correctedSelectedNativeExpectation": {
+        "stdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|x|old|1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+        "status": 0,
+        "stderr": {
+          "kind": "contains",
+          "text": [
+            "OPTARG: readonly variable"
+          ]
+        }
+      },
+      "preservedNativeObservations": {
+        "bash53": {
+          "profile": {
+            "id": "bash53",
+            "binary": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+            "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+            "version": "5.3.0(1)-release",
+            "role": "selected Darwin binding profile"
+          },
+          "productStdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|x|old|1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+          "rawStderr": "stage2-N13: line 3: OPTARG: readonly variable\nstage2-N13: line 4: OPTARG: readonly variable\n",
+          "processStatus": 0,
+          "originalSelectedExpectationMatched": false
+        },
+        "bash32": {
+          "profile": {
+            "id": "bash32",
+            "binary": "/bin/bash",
+            "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+            "version": "3.2.57(1)-release",
+            "role": "separate historical Darwin observations; selected-profile mismatches are not candidate failures"
+          },
+          "productStdout": "readonly-set|0|a|3|x|old|1\nno-argument|0|b|4|x|old|1\neof|1|?|4|||1\nordinary-unset|0|?|4|||1\n",
+          "rawStderr": "stage2-N13: line 2: OPTARG: readonly variable\nstage2-N13: line 3: OPTARG: readonly variable\n",
+          "processStatus": 0,
+          "originalSelectedExpectationMatched": false
+        }
+      },
+      "productPolicy": "DO NOT use native output/status as product oracle. D01 checked fail-fast preserves earlier scanner/OPTIND effects, retains OPTARG old and readonly even at EOF, stops later name writes, and later ordinary unset must refuse."
+    }
+  ],
+  "otherControls": "Unchanged, including deliberate N04/D01 product divergences; no normalized stderr or diagnostic relaxation.",
+  "newRuns": 0
+}

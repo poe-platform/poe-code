@@ -1,0 +1,88 @@
+[
+  {
+    "name": "cleanup-ordering-journal-weakening",
+    "scenario": "first-read-curl-body",
+    "file": "fixture",
+    "replacements": [["this.mark(\"transport-cleanup-finish\");", "this.events.push(\"dispose:transport-cleanup-finish\");"]],
+    "externalGuard": true,
+    "error": "transport-cleanup-finish before public boundary"
+  },
+  {
+    "name": "late-transport-cleanup-completion",
+    "scenario": "first-read-curl-body",
+    "file": "fixture",
+    "replacements": [["this.counters.transportCleanupCompleted++;", "setTimeout(() => { this.counters.transportCleanupCompleted++; }, 100);"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "late-response-disposal-completion",
+    "scenario": "first-read-curl-body-acquired",
+    "file": "fixture",
+    "replacements": [["fixture.counters.responseDisposalsDone++;", "setTimeout(() => { fixture.counters.responseDisposalsDone++; }, 100);"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "missing-reader-lock-release",
+    "scenario": "first-read-webdav-body-acquired",
+    "file": "fixture",
+    "replacements": [["const result = originalReleaseLock();\n        this.counters.getReaderReleases++;", "const result = undefined;"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "missing-iterator-return-completion",
+    "scenario": "first-read-curl-body-acquired",
+    "file": "fixture",
+    "replacements": [["fixture.counters.responseIteratorReturnsDone++;", "fixture.counters.responseIteratorReturnsDone += 0;"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "whole-caller-abort-rescue",
+    "scenario": "first-read-curl-body-acquired",
+    "file": "probe",
+    "replacements": [["if (context.command === \"head\" && scenario !== \"first-read-head-zero\") await fixture.started.promise;", "if (context.command === \"head\" && scenario !== \"first-read-head-zero\") { await fixture.started.promise; trace.controller.abort(new Error('INJECTED_CALLER_ABORT')); }"]],
+    "error": "INJECTED_CALLER_ABORT"
+  },
+  {
+    "name": "webdav-no-acquisition-false-positive",
+    "scenario": "first-read-webdav-body-acquired",
+    "file": "probe",
+    "replacements": [["if (scenario !== \"first-read-webdav-body-acquired\" && scenario !== \"first-read-curl-body-acquired\") {", "if (true) {"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "curl-no-acquisition-false-positive",
+    "scenario": "first-read-curl-body-acquired",
+    "file": "probe",
+    "replacements": [["if (scenario !== \"first-read-webdav-body-acquired\" && scenario !== \"first-read-curl-body-acquired\") {", "if (true) {"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "required-body-byte-loss",
+    "scenario": "first-read-required-destinations",
+    "file": "probe",
+    "replacements": [["response.end(\"first\\nsecond\\n\");", "response.end(\"wrong\\nbytes!\\n\");"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "required-header-loss",
+    "scenario": "first-read-required-destinations",
+    "file": "probe",
+    "replacements": [["curl -v -o /body -D /headers", "curl -v -o /body"]],
+    "error": "ENOENT"
+  },
+  {
+    "name": "required-stderr-loss",
+    "scenario": "first-read-required-destinations",
+    "file": "probe",
+    "replacements": [["curl -v -o /body -D /headers", "curl -o /body -D /headers"]],
+    "error": "AssertionError"
+  },
+  {
+    "name": "shortened-unenrolled-observation",
+    "scenario": "first-read-local-unenrolled-controlled",
+    "file": "probe",
+    "replacements": [["settlesWithin(publicExecution, 1200)", "settlesWithin(publicExecution, 0)"]],
+    "externalGuard": true,
+    "error": "unenrolled observation cannot be shortened"
+  }
+]

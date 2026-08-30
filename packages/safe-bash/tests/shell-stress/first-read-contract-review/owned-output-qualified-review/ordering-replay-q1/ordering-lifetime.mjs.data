@@ -1,0 +1,111 @@
+import assert from 'node:assert/strict';
+import { assertRejectedIdentity, assertReasonPriority, assertLiteralUndefinedCaller } from './qualified-criteria.mjs';
+import { createOwnedUndefinedController } from './typed-dist/typed-signal.js';
+
+export async function correctedLifetime(api,config,entry,scope,result,harness) {
+  const { gate, tracked, observe, immediate, makeShell, sourceWithOwner, destination, createOperation, bytes, text }=harness;
+  const synthetic=entry.parameter==='normal-close-synthetic-caller-undefined';
+  const caller=synthetic?createOwnedUndefinedController():scope.controller;
+  const executionReason=new Error('independent exact execution');
+  const cleanupReason=new Error('independent exact cleanup');
+  const callerReason=synthetic?undefined:entry.parameter.includes('caller-zero')?0:new Error('independent exact caller');
+  const started=gate(), normalClosed=gate(), cleanupEntered=gate(), releaseCleanup=gate(), selectedRejected=gate(), ownerReturned=gate();
+  scope.releases.push(()=>releaseCleanup.resolve());
+  const {shell,stages}=makeShell(api,scope);
+  const owner=sourceWithOwner(scope,'once');
+  const originalReturn=owner.source.return;
+  owner.source.return=async function(){const returned=await originalReturn.call(this);ownerReturned.resolve();return returned;};
+  let operation,holder,local,closeOutcome,cleanupCalls=0,selectedOutcome,selectedSeen=false,callerEvents=0,onabortEvents=0;
+  caller.signal.addEventListener('abort',event=>{
+    callerEvents++;
+    assert.strictEqual(event.target,caller.signal);
+    scope.event('caller.event',{reason:caller.signal.reason,reasonPresent:true,currentTargetSame:event.currentTarget===caller.signal});
+  },{once:true});
+  caller.signal.onabort=()=>{onabortEvents++;};
+  const heldCleanup=async()=>{
+    cleanupCalls++;scope.event('cleanup.enter');cleanupEntered.resolve();
+    await releaseCleanup.promise;scope.event('cleanup.release');
+    scope.event('cleanup.reject',{identity:true});throw cleanupReason;
+  };
+  shell.register({name:'qualified-lifetime',async execute(context){
+    holder=createOperation(api,scope,context,destination(scope).sink);
+    holder.registerCleanup(heldCleanup);
+    operation=createOperation(api,scope,context,{async write(){throw executionReason;}});
+    started.resolve();
+    let failed=false,failure;
+    try {if(!synthetic)await operation.output.write(bytes('x'));}
+    catch(error){failed=true;failure=error;local={kind:'error',error};scope.event('local.failure',{identity:Object.is(error,executionReason)});}
+    closeOutcome=await observe(operation.close());
+    assert.equal(closeOutcome.kind,'value');
+    scope.event('local.close');normalClosed.resolve();
+    if(failed)throw failure;
+    return {exitCode:0};
+  }});
+  if(!synthetic)shell.register({name:'ordering-selector',async execute(){
+    await normalClosed.promise;
+    await cleanupEntered.promise;
+    scope.event('selector.public-parser');
+    api.parseShell(')');
+    assert.fail('public parser must reject invalid frozen syntax');
+  }});
+  const syntax=synthetic?'qualified-lifetime':'qualified-lifetime | ordering-selector\n)';
+  const pending=tracked(shell.exec(syntax,{signal:caller.signal,stdin:owner.source,stderr:{write(chunk){
+    const diagnostic=text(chunk);scope.event('host.diagnostic',diagnostic);
+    if(!synthetic&&diagnostic==='shell: Expected command at offset 0\n'){
+      scope.event('selected.sink.enter');
+      const rejected=Promise.reject(executionReason);
+      return rejected.catch(error=>{
+        selectedOutcome={kind:'error',error};selectedSeen=true;
+        scope.event('selected.sink.rejected',{identity:Object.is(error,executionReason)});
+        selectedRejected.resolve();throw error;
+      });
+    }
+    return Promise.resolve();
+  }}}));
+  void pending.promise.then(value=>scope.event('public.settled',{kind:value.kind,errorPresent:Object.hasOwn(value,'error')}));
+  await scope.bound(started.promise,'lifetime command registered');
+  await scope.bound(normalClosed.promise,'completed local normal close');
+  await scope.bound(cleanupEntered.promise,'separate invocation cleanup holds public settlement');
+  if(!synthetic){
+    await scope.bound(selectedRejected.promise,'actual host sink rejection');
+    await scope.bound(ownerReturned.promise,'top-level execute finally after selected rejection');
+    assertRejectedIdentity(selectedOutcome,executionReason,'actual selected host rejection');
+    assertRejectedIdentity(local,executionReason,'local exact IO');
+  }
+  await immediate();
+  assert.equal(pending.state,'pending','registered cooperative cleanup holds public result');
+  assert.equal(caller.signal.aborted,false);
+  assert.equal(operation.signal.aborted,false);
+  scope.event('caller.abort.request',{reason:callerReason,reasonPresent:true});
+  if(synthetic)caller.abort();else caller.abort(callerReason);
+  assert.equal(callerEvents,1);assert.equal(onabortEvents,1);
+  assert.equal(caller.signal.aborted,true);assert.ok(Object.is(caller.signal.reason,callerReason));
+  await immediate();assert.equal(pending.state,'pending');
+  const shared=holder.close();assert.strictEqual(holder.close(),shared);
+  const sharedObserved=observe(shared);
+  scope.event('cleanup.explicit-release');releaseCleanup.resolve();
+  result.publicResult=await scope.bound(pending.promise,'qualified public precedence');
+  const cleanupObserved=await scope.bound(sharedObserved,'registered secondary close');
+  scope.event('cleanup.observed',{identity:cleanupObserved.kind==='error'&&Object.is(cleanupObserved.error,cleanupReason)});
+  assertRejectedIdentity(cleanupObserved,cleanupReason,'secondary cleanup retained');
+  assertReasonPriority(result.publicResult,{caller:{present:true,reason:caller.signal.reason},execution:{present:!synthetic,reason:executionReason},cleanup:{present:true,reason:cleanupReason}});
+  assert.equal(operation.signal.aborted,false,'already closed local operation stays normal');
+  assert.equal(operation.signal.reason,undefined);assert.equal(cleanupCalls,1);
+  const names=scope.events.map(event=>event.name);
+  const ordered=(...events)=>{for(let index=1;index<events.length;index++){assert.ok(names.indexOf(events[index-1])>=0);assert.ok(names.indexOf(events[index])>names.indexOf(events[index-1]),events.join(' < '));}};
+  ordered('operation.registerCleanup.before-admission','local.close','cleanup.enter','caller.abort.request','caller.event','cleanup.explicit-release','cleanup.release','cleanup.reject','public.settled');
+  if(!synthetic)ordered('local.failure','local.close','selector.public-parser','selected.sink.enter','selected.sink.rejected','owner.source.return','caller.abort.request');
+  if(synthetic){
+    assert.equal(config.syntheticSignalPublicCompatibilityAuthenticated,true);
+    assertLiteralUndefinedCaller(caller.signal,result.publicResult,config);
+    caller.abort();assert.equal(callerEvents,1);assert.equal(onabortEvents,1);
+  }
+  result.localThrown=local;result.localClose=closeOutcome;
+  result.selectedExecution={reached:selectedSeen,actualRejection:selectedOutcome,boundary:synthetic?'none':'public parseShell sibling routes genuine syntax error to outer Shell diagnostic ByteSink; rejected promise then top-level input finalization before caller'};
+  result.cooperativeCleanup={cleanupCalls,registeredBeforeAcquisition:true,sharedCompletion:true,pendingBeforeRelease:true,secondary:cleanupObserved};
+  result.operationClosed=true;result.stageAborted=stages.map(stage=>({command:stage.command,aborted:stage.signal.aborted}));
+  result.callerAborted={aborted:caller.signal.aborted,reason:caller.signal.reason,reasonPresent:true};
+  result.signalBinding={synthetic,callerEvents,onabortEvents,publicRejected:result.publicResult.kind==='error',publicReasonPresent:Object.hasOwn(result.publicResult,'error'),localNormalClosePreserved:true};
+  result.ownerReturnsAfterPublic=owner.returns;
+  owner.finalize();await immediate();assert.deepEqual(scope.unhandled,[]);
+}

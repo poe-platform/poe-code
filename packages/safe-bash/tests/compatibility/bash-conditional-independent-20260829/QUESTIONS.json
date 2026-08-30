@@ -1,0 +1,32 @@
+[
+  {
+    "id": "Q01",
+    "priority": "resolve before exact VFS host expectations",
+    "finding": "Design claims access adds EPERM, but authenticated predicates.ts:77 only lists ENOENT/ENOTDIR/EACCES/EROFS; metadata additionally collapses ELOOP. Root authorizes missing/nondir/documented denial false, not every error-as-absence.",
+    "recommendation": "Use explicit per-operation matrix: ENOENT/ENOTDIR false; EACCES denial false; decide EPERM and EROFS (W_OK only versus all access); ENOSYS/ENOTSUP unsupported2; do not silently reuse ELOOP-as-absence. Unexpected errors retain inherited command error route, not successful false/no diagnostic."
+  },
+  {
+    "id": "Q02",
+    "priority": "route clarification, no API request",
+    "finding": "Design says diagnostics use original caller stderr, while root authorizes inherited compound redirects/Unit1 currentIO semantics.",
+    "recommendation": "Treat original caller as current logical IO after redirects, not bypassing redirect destinations; bind reached nounset and profile-refusal routes to frozen Unit2 runtime before exact expected bytes. N11 held only on disputed diagnostic route."
+  },
+  {
+    "id": "Q03",
+    "priority": "known open policy, not implementation blocker for settled subset",
+    "finding": "C05 standalone unquoted -n, C26 aggregate -v a[@], unknown -o names and basic bracket class/malformed/collating boundaries are not fully resolved by a boolean engine.",
+    "recommendation": "Preserve originals UNRUN; no forced false/2 goldens for open arity/aggregate/unknown-option cases. Root-approved unquoted reached extglob/collating refusal2 and quoted literal data are enforceable now."
+  },
+  {
+    "id": "Q04",
+    "priority": "mechanical candidate proof obligations",
+    "finding": "4096-expression-node/depth64 syntax admission needs exact node/depth counting; engine pattern helper eagerly Array.from/tokenizes before per-character work and silently turns invalid/unknown classes into never-match.",
+    "recommendation": "Count all parsed branches before growth; define groups/Words versus expression nodes, depth origin, and sharing of work across visited leaves/invoked scopes. Reject unsupported bracket syntax before matcher; pre-admit bounded expanded input/provenance. No cap relabeling or private lowered-cap proof."
+  },
+  {
+    "id": "Q05",
+    "priority": "exact locale domain",
+    "finding": "Design requires C/POSIX valid-Unicode UTF8 ordering with nonempty virtual locale precedence; root says C profile but non-C refusal/fixed-C behavior is not specified in this packet.",
+    "recommendation": "Freeze C-locale tests only. Confirm non-C behavior before any broad locale claim; never use ambient host locale or JS UTF16 comparison as UTF8 order."
+  }
+]

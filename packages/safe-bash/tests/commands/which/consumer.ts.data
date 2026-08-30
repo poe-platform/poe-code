@@ -1,0 +1,20 @@
+import {
+  createWhichCommand, createWhichCommands, whichCommands,
+  type WhichCommandsOptions, type WhichLimits,
+} from "./dist/commands/which/index.js";
+import type { CommandDefinition, VirtualShellPlugin } from "./dist/contracts/index.js";
+
+type Equal<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends
+  (<Value>() => Value extends Right ? 1 : 2) ? true : false;
+type Assert<Value extends true> = Value;
+type LimitKeys = "maxArguments" | "maxArgumentBytes" | "maxPathEnvBytes" | "maxPathComponents"
+  | "maxPathBytes" | "maxProbes" | "maxOutputBytes";
+export type ExactLimits = Assert<Equal<keyof WhichLimits, LimitKeys>>;
+export type ExactOptions = Assert<Equal<keyof WhichCommandsOptions, "replace" | "limits">>;
+export type ReadonlyDefinitions = Assert<Equal<ReturnType<typeof createWhichCommands>, readonly CommandDefinition[]>>;
+export type ReadonlyLimits = Assert<Equal<WhichLimits, Readonly<WhichLimits>>>;
+export type ReadonlyOptions = Assert<Equal<WhichCommandsOptions, Readonly<WhichCommandsOptions>>>;
+export type OptionalPartialLimits = Assert<Equal<WhichCommandsOptions["limits"], Partial<WhichLimits> | undefined>>;
+export const command: CommandDefinition = createWhichCommand({ limits: { maxProbes: 2 } });
+export const commands: readonly CommandDefinition[] = createWhichCommands();
+export const plugin: VirtualShellPlugin = whichCommands({ replace: true });

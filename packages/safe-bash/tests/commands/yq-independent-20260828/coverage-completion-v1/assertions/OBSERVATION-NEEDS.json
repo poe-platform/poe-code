@@ -1,0 +1,891 @@
+{
+  "schema": 1,
+  "abiCommit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+  "counts": {
+    "fragments": 40,
+    "jobs": 28,
+    "captureBindings": 15,
+    "conditionalBindings": 25,
+    "sameRecordGapIds": 23,
+    "executorMissingTotal": 77
+  },
+  "observations": [
+    {
+      "bindingId": "PAR-12--whole::expected/queryRuns",
+      "recordId": "PAR-12",
+      "projectionId": "PAR-12--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 0,
+      "declaredValueSha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 0
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "PAR-12::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-command-parser",
+        "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/35",
+        "recordSha256": "bff1a273213d20b2fe478760cb3c98d01875a137024474af4586c81ba2f441fd",
+        "inputSha256": "50ec8ba47aea899a20e16a0c7ddc1f616f3adb8cc583e944fe75a1e8a4560a2c",
+        "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "PAR-13--whole::expected/queryRuns",
+      "recordId": "PAR-13",
+      "projectionId": "PAR-13--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 2,
+      "declaredValueSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 2
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "PAR-13::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-command-parser",
+        "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/36",
+        "recordSha256": "086108924b03481b0a210632a2478b122daec26d49ea858dd612558341d27638",
+        "inputSha256": "777e41a1edc0a95e6afb7ef87768909dac808639465031a2727c47a11abe2efd",
+        "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "PAR-26--whole::expected/assertions/0",
+      "recordId": "PAR-26",
+      "projectionId": "PAR-26--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Composed query object has null prototype; keys are own data entries.",
+      "declaredValueSha256": "cdb68a00cdab20db0d6fa28f818a434a12c2a0d3fad8ec5fda4dd8dc10afe7b3",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "null-prototype",
+        "facts": {
+          "prototypeIsNull": true,
+          "keys": [
+            "__proto__",
+            "constructor",
+            "prototype"
+          ],
+          "values": [
+            1,
+            2,
+            3
+          ],
+          "allOwnData": true
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "PAR-26::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-command-parser",
+        "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/49",
+        "recordSha256": "8cb39a291f00b8b124a5cba5c3440381d631b20ef1faf0e25cf96d8fdf8b839d",
+        "inputSha256": "45aa80a2db370e20e26bab1a6c30169e7a7fdcaf4b0889cb84f51fe7c47be599",
+        "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "NUM-11--whole::expected/assertions/0",
+      "recordId": "NUM-11",
+      "projectionId": "NUM-11--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Retain a finite Decimal representing the nonzero decimal, even though double underflows to zero.",
+      "declaredValueSha256": "81b1390b31fb2bc002aa6ff438da248a504e527c73d481c9cbcd0ba723df2b41",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "finite-decimal",
+        "facts": {
+          "finite": true,
+          "coefficient": "1",
+          "exponent": -1147483646,
+          "doubleText": "0"
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "NUM-11::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/10",
+        "recordSha256": "779395e8c6632111ef96102a43abc438d4ffe0142c9502d5879b50bd9fe4e1bc",
+        "inputSha256": "601d021ae8bd61e1bce4f587eb32394331deda77c011f4716c906392d322d9b3",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "NUM-15--whole::expected/numeric",
+      "recordId": "NUM-15",
+      "projectionId": "NUM-15--whole",
+      "expectedPointer": "/expected/numeric",
+      "declaredValue": {
+        "coefficient": "1",
+        "exponent": -1147483646,
+        "removedTrailingZeros": 1,
+        "exactIntegral": false,
+        "doubleText": "0",
+        "canonicalText": "1E-1147483646"
+      },
+      "declaredValueSha256": "8c3af0b870fc91621b1b45a46ffc3a2f7b0278430fcb4a55ee8c04993444c818",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "numeric",
+        "facts": {
+          "coefficient": "1",
+          "exponent": -1147483646,
+          "removedTrailingZeros": 1,
+          "exactIntegral": false,
+          "doubleText": "0",
+          "canonicalText": "1E-1147483646"
+        }
+      },
+      "dependency": "core source/observer: actual Decimal fields, not public output interpretation",
+      "sameRecordGapIds": [
+        "NUM-15::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/14",
+        "recordSha256": "ccba9edf447c37a5e678120e599ebcbe31b470148327e55f349a5d614bc80b23",
+        "inputSha256": "5dec3b0e28e7b02e3e0b6eb4de763c6ae7a0e76fbb98c68c713004e097cba87d",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": "final-manifest#/overlays/1",
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "NUM-16--whole::expected/assertions/0",
+      "recordId": "NUM-16",
+      "projectionId": "NUM-16--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Preserve numeric negative zero where baseline representation preserves it; exact output uses inspected baseline numeric text.",
+      "declaredValueSha256": "a660e361e153afdd16b7d79e9b9c081fbb66d1cc13728f19d2929b6c0a135d31",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "negative-zero",
+        "facts": {
+          "baselinePreservesNegativeZero": "boolean",
+          "candidateNegativeZero": "boolean",
+          "baselineStdoutHex": "hex",
+          "baselineEvidenceRef": "nonempty-string"
+        },
+        "unavailable": "Exact inspected baseline negative-zero text is not sealed in the frozen expectation. A self-declared observer baseline is insufficient; this binding stays UNOBSERVED."
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "NUM-16::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/15",
+        "recordSha256": "d58fe29be85299c93969273b32d6a6602a806f3ac81eba0a3fb09ea5ed4477a5",
+        "inputSha256": "626d309ea383f618d781e4d9e337a7c9229e0fee76cb080351841d81e70eb6c3",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "QUE-01--whole::expected/queryRuns",
+      "recordId": "QUE-01",
+      "projectionId": "QUE-01--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 2,
+      "declaredValueSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 2
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "QUE-01::missing/0",
+        "QUE-01::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/26",
+        "recordSha256": "2620e7518ced62257759c347ff2c9868bff92f0d205817c7aa0254a664847c34",
+        "inputSha256": "6d6cc57acf6fdc3945f5a28995c1fa8a4662a30b81b92bc873892ced3c2e5696",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "QUE-01--whole::expected/compileAttempts",
+      "recordId": "QUE-01",
+      "projectionId": "QUE-01--whole",
+      "expectedPointer": "/expected/compileAttempts",
+      "declaredValue": 1,
+      "declaredValueSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "compileAttempts",
+        "facts": {
+          "compileAttempts": 1
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "QUE-01::missing/0",
+        "QUE-01::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/26",
+        "recordSha256": "2620e7518ced62257759c347ff2c9868bff92f0d205817c7aa0254a664847c34",
+        "inputSha256": "6d6cc57acf6fdc3945f5a28995c1fa8a4662a30b81b92bc873892ced3c2e5696",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "QUE-02--whole::expected/queryRuns",
+      "recordId": "QUE-02",
+      "projectionId": "QUE-02--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 2,
+      "declaredValueSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 2
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "QUE-02::missing/0",
+        "QUE-02::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/27",
+        "recordSha256": "8215512121ff6c8c52d23c3848071b03148f2efad04d5a6bc837f79e735d1a34",
+        "inputSha256": "fb905ca1bb2b59c12b8dcd5301810d0b8b8654dafe76b3fce13d91bf9e36a60f",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "QUE-02--whole::expected/compileAttempts",
+      "recordId": "QUE-02",
+      "projectionId": "QUE-02--whole",
+      "expectedPointer": "/expected/compileAttempts",
+      "declaredValue": 1,
+      "declaredValueSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "compileAttempts",
+        "facts": {
+          "compileAttempts": 1
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "QUE-02::missing/0",
+        "QUE-02::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/27",
+        "recordSha256": "8215512121ff6c8c52d23c3848071b03148f2efad04d5a6bc837f79e735d1a34",
+        "inputSha256": "fb905ca1bb2b59c12b8dcd5301810d0b8b8654dafe76b3fce13d91bf9e36a60f",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-01--whole::expected/assertions/0",
+      "recordId": "ALS-01",
+      "projectionId": "ALS-01--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "The two arrays are distinct recursive copies at the query boundary.",
+      "declaredValueSha256": "ea45f3b0655ef65f0e985f70af8ccb75b2e90d83a7c71104cadd246f7845798b",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "recursive-copy",
+        "facts": {
+          "copies": [
+            [
+              1
+            ],
+            [
+              1
+            ]
+          ],
+          "distinctRecursiveCopies": true
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-01::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/38",
+        "recordSha256": "5585c88f31c416c147d7a81ce5cb813d115c58445c83c537890aec278d8dd9de",
+        "inputSha256": "d8e96f86c8b9b77b20348464dc02f4db79b3a687424dadb322998d62802b588c",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-03--whole::expected/assertions/0",
+      "recordId": "ALS-03",
+      "projectionId": "ALS-03--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Prior alias copy retains [1]; later definition does not mutate it.",
+      "declaredValueSha256": "fcdc3465a0225de1a4a90b8084f3878cdd510d7d863048b2c2dd949df5427e09",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "prior-copy",
+        "facts": {
+          "prior": [
+            1
+          ],
+          "priorAfterLaterDefinition": [
+            1
+          ],
+          "later": [
+            2
+          ],
+          "priorDistinctFromLater": true
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-03::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/40",
+        "recordSha256": "e001efd2b708da39e5567e45638533cc4dd4c643f6c428051f297586782f4ac6",
+        "inputSha256": "0a07306fa691c394f900cb75dd01b010687d8c1d92febfe39312d8bbd507d526",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-07--whole::expected/assertions/0",
+      "recordId": "ALS-07",
+      "projectionId": "ALS-07--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "The exact catalogue distinguishes a later definition from an absent name; bounded identification must not reorder the first selected source failure.",
+      "declaredValueSha256": "f49f1b1dbb76ce3c573581951ae62b22973f52710ed66aef83e24890b90763ab",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "first-error",
+        "facts": {
+          "referenceName": "later",
+          "laterDefinitionPresent": true,
+          "referenceBeforeDefinition": true,
+          "selectedDiagnostic": "ALIAS_FORWARD",
+          "earlierSelectedFailureReordered": false
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-07::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/44",
+        "recordSha256": "5f338b24663217b997c80fadb9062d1a3b7e38048cbd4044b1b0c63777f2163f",
+        "inputSha256": "4f6f35b4ef9c879f98899d5d0e4fd6cc7dd7fd01ec50fd105281cc5b8a525a3f",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-10--whole::expected/assertions/0",
+      "recordId": "ALS-10",
+      "projectionId": "ALS-10--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "1024 definition events admitted even though distinct-name map size is one; no duplicate-anchor diagnostic.",
+      "declaredValueSha256": "9e9e42fc9d4052d3beb27b432324fb76ec03976f400ad9621f350581458c1f97",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "anchor-admission",
+        "facts": {
+          "definitionEvents": 1024,
+          "distinctNames": 1,
+          "admittedDefinitions": 1024,
+          "duplicateAnchorDiagnostic": false
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-10::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/47",
+        "recordSha256": "bca6280b1d5ebe39219110ee73c6e66da8625c551b1d69ea782c44ed3a4a097b",
+        "inputSha256": "0065ce45c1d89b79b422a191f3b7ae7e83e0f6b3d84021843f6852f985fd004d",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-11--whole::expected/assertions/0",
+      "recordId": "ALS-11",
+      "projectionId": "ALS-11--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Definition 1025 refused before retaining its metadata or allocating its value.",
+      "declaredValueSha256": "2f10fca2868e8c652e502f720f4f2cb447fab81ec3ae05131977360ec345fd8d",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "anchor-refusal",
+        "facts": {
+          "definitionEvents": 1025,
+          "admittedDefinitions": 1024,
+          "refusedDefinition": 1025,
+          "refusedMetadataRetained": false,
+          "refusedValueAllocated": false
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-11::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/48",
+        "recordSha256": "b085e8fbd4e170a39e147ccf6b218582b2de3227b2540d694a032b2ed6cb6e90",
+        "inputSha256": "18c03fb8bbe71ca85473a93b9c9aaf7b0f814aeb351ed99fa7d65246147067ea",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-12--whole::expected/queryRuns",
+      "recordId": "ALS-12",
+      "projectionId": "ALS-12--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 2,
+      "declaredValueSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 2
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "ALS-12::missing/0",
+        "ALS-12::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/49",
+        "recordSha256": "60966b093171af7c22d530251fa4ce83946232a0bb260771380b28447c07218a",
+        "inputSha256": "8d1c1c29903d0882ba548752a028d1b34ebd41600a21fa69a60316bdeb0d9dbb",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-12--whole::expected/assertions/0",
+      "recordId": "ALS-12",
+      "projectionId": "ALS-12--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Per-document definition counter resets; cumulative invocation work/input/output counters do not.",
+      "declaredValueSha256": "14afc67187da67891b217969edaa736386a47f1d5138c2ebb8b96e8181c5c759",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "document-reset",
+        "facts": {
+          "documentDefinitionCounts": [
+            1024,
+            1024
+          ],
+          "invocationWorkReset": false,
+          "invocationInputReset": false,
+          "invocationOutputReset": false
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-12::missing/0",
+        "ALS-12::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/49",
+        "recordSha256": "60966b093171af7c22d530251fa4ce83946232a0bb260771380b28447c07218a",
+        "inputSha256": "8d1c1c29903d0882ba548752a028d1b34ebd41600a21fa69a60316bdeb0d9dbb",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-13--whole::expected/assertions/0",
+      "recordId": "ALS-13",
+      "projectionId": "ALS-13--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Cached subtree projection includes copied descendants; no shared identity suppresses charging.",
+      "declaredValueSha256": "3cb77bc01a5af894f43d1157523c2dd16285187523cc29aeb4d76a9a9204f96a",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "subtree-charge",
+        "facts": {
+          "copiedDescendantsIncluded": true,
+          "sharedIdentitySuppressesCharging": false
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-13::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/50",
+        "recordSha256": "9fb7acf6d938bb8d41322b6690d007e586837c47f50caa981d71a648eccd8c30",
+        "inputSha256": "3658f993ffe094a980a43443dd4bc9ebf60c77a9681bcbaddfb5f36525f9bed1",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-14--whole::expected/queryRuns",
+      "recordId": "ALS-14",
+      "projectionId": "ALS-14--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 2,
+      "declaredValueSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 2
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "ALS-14::missing/0",
+        "ALS-14::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/51",
+        "recordSha256": "d91ffd8720a663884f633864ceda1578b8946381204202a4cec7fb091cf763eb",
+        "inputSha256": "0aa51e66d7c8eefd60ccd6f57d0ef61e869d7d2bd9e90b5174530472b9768197",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-14--whole::expected/assertions/0",
+      "recordId": "ALS-14",
+      "projectionId": "ALS-14--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Exactly 1024 accepted aliases across two documents; each document has its own completed anchor.",
+      "declaredValueSha256": "03854c8384eb4c89016db65117d4958ec35408175992074337e3295c4cfa8515",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "alias-two-documents",
+        "facts": {
+          "acceptedAliasesByDocument": [
+            512,
+            512
+          ],
+          "completedAnchorByDocument": [
+            true,
+            true
+          ]
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-14::missing/0",
+        "ALS-14::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/51",
+        "recordSha256": "d91ffd8720a663884f633864ceda1578b8946381204202a4cec7fb091cf763eb",
+        "inputSha256": "0aa51e66d7c8eefd60ccd6f57d0ef61e869d7d2bd9e90b5174530472b9768197",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-15--whole::expected/queryRuns",
+      "recordId": "ALS-15",
+      "projectionId": "ALS-15--whole",
+      "expectedPointer": "/expected/queryRuns",
+      "declaredValue": 1,
+      "declaredValueSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "queryRuns",
+        "facts": {
+          "queryRuns": 1
+        }
+      },
+      "dependency": "core source/observer: exact invocation counter is not inferred from outputs",
+      "sameRecordGapIds": [
+        "ALS-15::missing/0",
+        "ALS-15::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/52",
+        "recordSha256": "13488b53907b24f6d2aff7fa00b405b9653d624548eca2c7cbe13453979b4b7a",
+        "inputSha256": "dba4d66b19758894c5624ed2046dbb8bde9e1ccfe3a969974158766183ea0470",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "ALS-15--whole::expected/assertions/0",
+      "recordId": "ALS-15",
+      "projectionId": "ALS-15--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Second document alias 513 is invocation alias 1025 and fails before copying; first complete output remains.",
+      "declaredValueSha256": "a7c6f618d3bb8ae1470ae01e62a51bfa65a00b9e0fed6aed78e0be5e62703769",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "alias-refusal",
+        "facts": {
+          "firstDocumentAcceptedAliases": 512,
+          "secondDocumentAcceptedAliases": 512,
+          "refusedDocument": 2,
+          "refusedDocumentAlias": 513,
+          "refusedInvocationAlias": 1025,
+          "copiedRefusedAlias": false,
+          "firstCompleteOutputRetained": true
+        }
+      },
+      "dependency": "core source/observer; internal facts not exposed by public output",
+      "sameRecordGapIds": [
+        "ALS-15::missing/0",
+        "ALS-15::missing/1"
+      ],
+      "sourceReference": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/52",
+        "recordSha256": "13488b53907b24f6d2aff7fa00b405b9653d624548eca2c7cbe13453979b4b7a",
+        "inputSha256": "dba4d66b19758894c5624ed2046dbb8bde9e1ccfe3a969974158766183ea0470",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "UTF-22--whole::expected/assertions/0",
+      "recordId": "UTF-22",
+      "projectionId": "UTF-22--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Retained fragments survive producer reuse and finalization; subarray/slice views do not qualify as owned copies.",
+      "declaredValueSha256": "06f07879cb10ec784b5e4a576d3ce521fd92e7336f2f28f1523cd0416ad28312",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "retained-fragments",
+        "facts": {
+          "producerReuse": true,
+          "deliveredChunksHex": [
+            "5b31",
+            "2c32",
+            "5d0a"
+          ],
+          "reuseBeforeNext": true,
+          "finalized": true,
+          "finalizationBeforeSettlement": true,
+          "finalOverwriteByte": 120,
+          "retainedFragmentsOwned": true
+        },
+        "unavailable": "Actor reuse/finalization events can establish the benign output witness, not internal ownership by themselves. retainedFragmentsOwned requires an independently bound source argument; source binding is not automatically truth."
+      },
+      "dependency": "actors + core admitted capture/source closure; currently not bound",
+      "sameRecordGapIds": [],
+      "sourceReference": {
+        "source": "freeze-utf8",
+        "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/21",
+        "recordSha256": "5800fe8e40af4e8470c6944ee83525e46032bf46d1377a06dc48132b53bb22f3",
+        "inputSha256": "187ba82678310cd5b9972cf606eb75f8eb153a166151fdcacbf5f44fc8a473c8",
+        "defaultsSha256": "4806f191f0a41f9a24c9e20e373fb40cc3f307f3e0af67f3133f54d9e4dceca1"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "WRK-14--whole::expected/assertions/0",
+      "recordId": "WRK-14",
+      "projectionId": "WRK-14--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "First 1024 explicit null documents may complete; 1025 is refused before composition/query; empty stream counts zero.",
+      "declaredValueSha256": "46982f3fa98da15d1023cca9cca93ebf3c7dacfd0a4c4733f48fae4948179eee",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "document-boundary",
+        "facts": {
+          "completedExplicitNullDocuments": 1024,
+          "refusedDocument": 1025,
+          "refusedBeforeComposition": true,
+          "refusedBeforeQuery": true,
+          "emptyStreamDocumentCount": 0
+        }
+      },
+      "dependency": "actors + core admitted capture/source closure; currently not bound",
+      "sameRecordGapIds": [
+        "WRK-14::missing/0"
+      ],
+      "sourceReference": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/13",
+        "recordSha256": "4c9c72cb0174a2596258cafbd6c72762b44d45dfd231ad219ce49ad3eb8df072",
+        "inputSha256": "f75ae668f71ec336e2da120315389825545ba61169bcef045b8d1446e6f242b9",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    },
+    {
+      "bindingId": "FS-01--whole::expected/assertions/0",
+      "recordId": "FS-01",
+      "projectionId": "FS-01--whole",
+      "expectedPointer": "/expected/assertions/0",
+      "declaredValue": "Literal file order and repetitions preserved; one stdin occurrence; use supplied signal in readBytes; no host path access or writes.",
+      "declaredValueSha256": "a3c21eafb2067023fa007100a94d6c856b851e519c8861f4e145ea72613ae149",
+      "kind": "observation",
+      "role": "runtime",
+      "contract": {
+        "predicate": "read-order",
+        "facts": {
+          "hostPathAccessObserved": false,
+          "hostAccessObservationComplete": true
+        },
+        "unavailable": "No host-access absence guarantee follows from VFS events. Requires separately authenticated complete import/capability closure or observer authority."
+      },
+      "dependency": "actors + core admitted capture/source closure; currently not bound",
+      "sameRecordGapIds": [],
+      "sourceReference": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/10",
+        "recordSha256": "faa4584f62a4875984b80e7517ce3efb29f1e580334185d9574240e254491648",
+        "inputSha256": "355fa0e948f212bd89890514149cd4f649ec9c69de73dfc716b225b826b3815e",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "overlayReference": null,
+      "status": "IMPLEMENTED_PREDICATE_UNRUN_TARGET"
+    }
+  ],
+  "qualification": "40 fragments overlap the 77 executor-missing items; direct same-record links are not equivalence or additional completed counts. Public output cannot establish private facts. All target proof UNRUN."
+}

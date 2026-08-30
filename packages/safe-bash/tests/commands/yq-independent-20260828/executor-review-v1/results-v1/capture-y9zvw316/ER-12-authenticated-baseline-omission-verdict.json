@@ -1,0 +1,9 @@
+{
+  "family": "ER-12",
+  "name": "authenticated-baseline-omission",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-12-authenticated-baseline-omission-input.json",
+  "raw": "ER-12-authenticated-baseline-omission-raw.json"
+}

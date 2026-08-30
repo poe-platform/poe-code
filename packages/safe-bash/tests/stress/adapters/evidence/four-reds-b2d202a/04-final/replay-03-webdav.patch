@@ -1,0 +1,1006 @@
+*** Begin Patch
+*** Update File: tests/stress/adapters/core.test.ts
+@@
+-import assert from "node:assert/strict";
+-import { mkdir, readFile, symlink, writeFile } from "node:fs/promises";
+-import { join } from "node:path";
+-import { test } from "node:test";
+-import { createRealFileSystem } from "../../../src/fs/real/index.js";
+-import { adapters, binary, cancellation, errno } from "../../fs/conformance/fixtures.js";
+-
+-for (const adapter of adapters) {
+-  test(`${adapter.name}: traversal remains rooted under explicit backend policy`, async (context) => {
+-    const { fs } = await adapter.create(context);
+-    await fs.writeFile("/sentinel", binary);
+-    if (adapter.name === "memory" || adapter.name === "real") {
+-      assert.deepEqual(await fs.readFile("/../../sentinel"), binary);
+-      await fs.writeFile("../../new", new Uint8Array([0, 255]));
+-      assert.deepEqual(await fs.readFile("/new"), new Uint8Array([0, 255]));
+-      context.diagnostic("PATH POLICY: lexical root ascent clamps at virtual root");
+-    } else {
+-      await assert.rejects(fs.readFile("/../../sentinel"), errno("EACCES"));
+-      await assert.rejects(fs.writeFile("../../new", binary), errno("EACCES"));
+-      await assert.rejects(fs.stat("/new"), errno("ENOENT"));
+-      context.diagnostic("PATH POLICY: lexical root ascent rejects EACCES");
+-    }
+-    assert.deepEqual(await fs.readFile("/sentinel"), binary);
+-  });
+-
+-  test(`${adapter.name}: optional metadata capabilities are exercised or fail closed`, async (context) => {
+-    const { fs } = await adapter.create(context);
+-    await fs.writeFile("/file", binary);
+-    if (fs.capabilities.permissions) {
+-      assert.ok(fs.chmod);
+-      await fs.chmod("/file", 0o600);
+-      assert.equal((await fs.stat("/file")).mode & 0o777, 0o600);
+-    } else {
+-      assert.equal(fs.capabilities.permissions, false);
+-      if (fs.chmod) await assert.rejects(fs.chmod("/file", 0o600), errno("ENOTSUP"));
+-      await assert.rejects(fs.writeFile("/mode", binary, { mode: 0o600 }), errno("ENOTSUP"));
+-      await assert.rejects(fs.access("/file", 1), errno("ENOTSUP"));
+-      context.diagnostic("CAPABILITY GAP: permissions, creation modes, execute access checks unsupported");
+-    }
+-    if (fs.capabilities.timestamps) {
+-      assert.ok(fs.utimes);
+-      const atimeMs = adapter.name === "real" ? (Math.floor(Date.now() / 1000) + 86400) * 1000 : 10000;
+-      await fs.utimes("/file", atimeMs, 20000);
+-      const stat = await fs.stat("/file");
+-      assert.equal(stat.atimeMs, atimeMs);
+-      assert.equal(stat.mtimeMs, 20000);
+-    } else {
+-      assert.equal(fs.capabilities.timestamps, false);
+-      if (fs.utimes) await assert.rejects(fs.utimes("/file", 10000, 20000), errno("ENOTSUP"));
+-      context.diagnostic("CAPABILITY GAP: timestamp mutation unsupported");
+-    }
+-    assert.deepEqual(await fs.readFile("/file"), binary);
+-  });
+-
+-  test(`${adapter.name}: optional truncate preserves exact bytes or rejects without mutation`, async (context) => {
+-    const { fs } = await adapter.create(context);
+-    await fs.writeFile("/file", binary.slice(0, 16));
+-    if (!fs.truncate) {
+-      context.diagnostic("CAPABILITY GAP: optional truncate absent; no dedicated capability flag");
+-      assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
+-      return;
+-    }
+-    if (adapter.name === "s3" || adapter.name === "webdav") {
+-      await assert.rejects(fs.truncate("/file", 8), errno("ENOTSUP"));
+-      assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
+-      context.diagnostic("CAPABILITY GAP: optional truncate exists but rejects ENOTSUP; no dedicated capability flag");
+-      return;
+-    }
+-    await fs.truncate("/file", 8);
+-    assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 8));
+-    await fs.truncate("/file", 12);
+-    assert.deepEqual(await fs.readFile("/file"), new Uint8Array([...binary.slice(0, 8), 0, 0, 0, 0]));
+-    await assert.rejects(fs.truncate("/file", -1), errno("EINVAL"));
+-  });
+-}
+-
+-for (const adapter of adapters.filter((candidate) => candidate.name === "memory" || candidate.name === "real")) {
+-  test(`${adapter.name}: cancellation between stream reads closes the iterator`, async (context) => {
+-    const { fs } = await adapter.create(context);
+-    assert.ok(fs.readStream);
+-    await fs.writeFile("/file", binary);
+-    const controller = new AbortController();
+-    const reason = new Error("cancel after first chunk");
+-    const iterator = fs.readStream("/file", { chunkSize: 64, signal: controller.signal })[Symbol.asyncIterator]();
+-    const first = await iterator.next();
+-    assert.deepEqual(first.value, binary.slice(0, 64));
+-    controller.abort(reason);
+-    await assert.rejects(iterator.next(), cancellation(controller.signal));
+-    assert.equal((await iterator.next()).done, true);
+-    assert.deepEqual(await fs.readFile("/file"), binary);
+-  });
+-
+-  test(`${adapter.name}: cancellation during streaming write does not consume post-abort bytes`, async (context) => {
+-    const { fs } = await adapter.create(context);
+-    assert.ok(fs.writeStream);
+-    const controller = new AbortController();
+-    const reason = new Error("cancel during producer resume");
+-    let closed = false;
+-    let consumedAfterAbort = false;
+-    const source = (async function* () {
+-      try {
+-        yield binary.slice(0, 64);
+-        controller.abort(reason);
+-        yield new Uint8Array([99]);
+-        consumedAfterAbort = true;
+-      } finally { closed = true; }
+-    })();
+-    await assert.rejects(fs.writeStream("/partial", source, { signal: controller.signal }), cancellation(controller.signal));
+-    assert.equal(closed, true);
+-    assert.equal(consumedAfterAbort, false);
+-    const exists = (await fs.readdir("/")).some((entry) => entry.name === "partial");
+-    if (exists) {
+-      const actual = await fs.readFile("/partial");
+-      assert.ok(actual.length <= 64);
+-      assert.deepEqual(actual, binary.slice(0, actual.length));
+-    }
+-  });
+-
+-  test(`${adapter.name}: symlink dot-dot resolution and directory unlink preserve targets`, async (context) => {
+-    const { fs } = await adapter.create(context);
+-    assert.ok(fs.symlink);
+-    await fs.mkdir("/target/nested", { recursive: true });
+-    await fs.writeFile("/target/file", binary);
+-    await fs.symlink("/target/nested", "/alias");
+-    assert.deepEqual(await fs.readFile("/alias/../file"), binary);
+-    await fs.rm("/alias", { recursive: true });
+-    assert.deepEqual(await fs.readFile("/target/file"), binary);
+-    assert.equal((await fs.stat("/target/nested")).type, "directory");
+-  });
+-}
+-
+-test("real: preexisting host symlink cannot escape a disposable sandbox", async (context) => {
+-  const fixture = await adapters[1].create(context);
+-  assert.ok(fixture.root);
+-  const sandbox = join(fixture.root, "sandbox");
+-  const secret = join(fixture.root, "secret");
+-  await mkdir(sandbox);
+-  await writeFile(secret, binary);
+-  await symlink("../secret", join(sandbox, "escape"));
+-  const fs = await createRealFileSystem({ root: sandbox });
+-  await assert.rejects(fs.readFile("/escape"), errno("EACCES"));
+-  await assert.rejects(fs.writeFile("/escape", new Uint8Array()), errno("EACCES"));
+-  assert.equal((await fs.lstat("/escape")).type, "symlink");
+-  await fs.rm("/escape");
+-  assert.deepEqual(new Uint8Array(await readFile(secret)), binary);
+-});
++import assert from "node:assert/strict";
++import { mkdir, readFile, symlink, writeFile } from "node:fs/promises";
++import { join } from "node:path";
++import { test } from "node:test";
++import { createRealFileSystem } from "../../../src/fs/real/index.js";
++import { adapters, binary, cancellation, errno, loopbackDav } from "../../fs/conformance/fixtures.js";
++import { PropertyDav } from "../../fs/webdav/property-fixture.js";
++
++for (const adapter of adapters) {
++  test(`${adapter.name}: traversal remains rooted under explicit backend policy`, async (context) => {
++    const { fs } = await adapter.create(context);
++    await fs.writeFile("/sentinel", binary);
++    if (adapter.name === "memory" || adapter.name === "real") {
++      assert.deepEqual(await fs.readFile("/../../sentinel"), binary);
++      await fs.writeFile("../../new", new Uint8Array([0, 255]));
++      assert.deepEqual(await fs.readFile("/new"), new Uint8Array([0, 255]));
++      context.diagnostic("PATH POLICY: lexical root ascent clamps at virtual root");
++    } else {
++      await assert.rejects(fs.readFile("/../../sentinel"), errno("EACCES"));
++      await assert.rejects(fs.writeFile("../../new", binary), errno("EACCES"));
++      await assert.rejects(fs.stat("/new"), errno("ENOENT"));
++      context.diagnostic("PATH POLICY: lexical root ascent rejects EACCES");
++    }
++    assert.deepEqual(await fs.readFile("/sentinel"), binary);
++  });
++
++  test(`${adapter.name}: optional metadata capabilities are exercised or fail closed`, async (context) => {
++    const propertyFixture = adapter.name === "webdav" ? await loopbackDav(context) : undefined;
++    if (propertyFixture) propertyFixture.fixture.intercept = new PropertyDav().fetch;
++    const { fs } = propertyFixture ?? await adapter.create(context);
++    await fs.writeFile("/file", binary);
++    if (fs.capabilities.permissions) {
++      assert.ok(fs.chmod);
++      await fs.chmod("/file", 0o600);
++      assert.equal((await fs.stat("/file")).mode & 0o777, 0o600);
++    } else {
++      assert.equal(fs.capabilities.permissions, false);
++      if (fs.chmod) await assert.rejects(fs.chmod("/file", 0o600), errno("ENOTSUP"));
++      await assert.rejects(fs.writeFile("/mode", binary, { mode: 0o600 }), errno("ENOTSUP"));
++      await assert.rejects(fs.access("/file", 1), errno("ENOTSUP"));
++      context.diagnostic("CAPABILITY GAP: permissions, creation modes, execute access checks unsupported");
++    }
++    if (fs.capabilities.timestamps) {
++      assert.ok(fs.utimes);
++      const atimeMs = adapter.name === "real" ? (Math.floor(Date.now() / 1000) + 86400) * 1000 : 10000;
++      await fs.utimes("/file", atimeMs, 20000);
++      const stat = await fs.stat("/file");
++      assert.equal(stat.atimeMs, atimeMs);
++      assert.equal(stat.mtimeMs, 20000);
++    } else {
++      assert.equal(fs.capabilities.timestamps, false);
++      if (fs.utimes) await assert.rejects(fs.utimes("/file", 10000, 20000), errno("ENOTSUP"));
++      context.diagnostic("CAPABILITY GAP: timestamp mutation unsupported");
++    }
++    assert.deepEqual(await fs.readFile("/file"), binary);
++  });
++
++  test(`${adapter.name}: optional truncate preserves exact bytes or rejects without mutation`, async (context) => {
++    const { fs } = await adapter.create(context);
++    await fs.writeFile("/file", binary.slice(0, 16));
++    if (!fs.truncate) {
++      context.diagnostic("CAPABILITY GAP: optional truncate absent; no dedicated capability flag");
++      assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
++      return;
++    }
++    if (adapter.name === "webdav") {
++      await assert.rejects(fs.truncate("/file", 8), errno("ENOTSUP"));
++      assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
++      context.diagnostic("CAPABILITY GAP: optional truncate exists but rejects ENOTSUP; no dedicated capability flag");
++      return;
++    }
++    await fs.truncate("/file", 8);
++    assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 8));
++    await fs.truncate("/file", 12);
++    assert.deepEqual(await fs.readFile("/file"), new Uint8Array([...binary.slice(0, 8), 0, 0, 0, 0]));
++    await assert.rejects(fs.truncate("/file", -1), errno("EINVAL"));
++    assert.equal((await fs.stat("/file")).size, 12);
++    assert.deepEqual(await fs.readFile("/file"), new Uint8Array([...binary.slice(0, 8), 0, 0, 0, 0]));
++  });
++}
++
++for (const adapter of adapters.filter((candidate) => candidate.name === "memory" || candidate.name === "real")) {
++  test(`${adapter.name}: cancellation between stream reads closes the iterator`, async (context) => {
++    const { fs } = await adapter.create(context);
++    assert.ok(fs.readStream);
++    await fs.writeFile("/file", binary);
++    const controller = new AbortController();
++    const reason = new Error("cancel after first chunk");
++    const iterator = fs.readStream("/file", { chunkSize: 64, signal: controller.signal })[Symbol.asyncIterator]();
++    const first = await iterator.next();
++    assert.deepEqual(first.value, binary.slice(0, 64));
++    controller.abort(reason);
++    await assert.rejects(iterator.next(), cancellation(controller.signal));
++    assert.equal((await iterator.next()).done, true);
++    assert.deepEqual(await fs.readFile("/file"), binary);
++  });
++
++  test(`${adapter.name}: cancellation during streaming write does not consume post-abort bytes`, async (context) => {
++    const { fs } = await adapter.create(context);
++    assert.ok(fs.writeStream);
++    const controller = new AbortController();
++    const reason = new Error("cancel during producer resume");
++    let closed = false;
++    let consumedAfterAbort = false;
++    const source = (async function* () {
++      try {
++        yield binary.slice(0, 64);
++        controller.abort(reason);
++        yield new Uint8Array([99]);
++        consumedAfterAbort = true;
++      } finally { closed = true; }
++    })();
++    await assert.rejects(fs.writeStream("/partial", source, { signal: controller.signal }), cancellation(controller.signal));
++    assert.equal(closed, true);
++    assert.equal(consumedAfterAbort, false);
++    const exists = (await fs.readdir("/")).some((entry) => entry.name === "partial");
++    if (exists) {
++      const actual = await fs.readFile("/partial");
++      assert.ok(actual.length <= 64);
++      assert.deepEqual(actual, binary.slice(0, actual.length));
++    }
++  });
++
++  test(`${adapter.name}: symlink dot-dot resolution and directory unlink preserve targets`, async (context) => {
++    const { fs } = await adapter.create(context);
++    assert.ok(fs.symlink);
++    await fs.mkdir("/target/nested", { recursive: true });
++    await fs.writeFile("/target/file", binary);
++    await fs.symlink("/target/nested", "/alias");
++    assert.deepEqual(await fs.readFile("/alias/../file"), binary);
++    await fs.rm("/alias", { recursive: true });
++    assert.deepEqual(await fs.readFile("/target/file"), binary);
++    assert.equal((await fs.stat("/target/nested")).type, "directory");
++  });
++}
++
++test("real: preexisting host symlink cannot escape a disposable sandbox", async (context) => {
++  const fixture = await adapters[1].create(context);
++  assert.ok(fixture.root);
++  const sandbox = join(fixture.root, "sandbox");
++  const secret = join(fixture.root, "secret");
++  await mkdir(sandbox);
++  await writeFile(secret, binary);
++  await symlink("../secret", join(sandbox, "escape"));
++  const fs = await createRealFileSystem({ root: sandbox });
++  await assert.rejects(fs.readFile("/escape"), errno("EACCES"));
++  await assert.rejects(fs.writeFile("/escape", new Uint8Array()), errno("EACCES"));
++  assert.equal((await fs.lstat("/escape")).type, "symlink");
++  await fs.rm("/escape");
++  assert.deepEqual(new Uint8Array(await readFile(secret)), binary);
++});
+*** Add File: tests/stress/adapters/s3-rename-profile.test.ts
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { MockS3Client, S3FileSystem, S3RenameError, createS3Transport } from "../../../src/fs/s3/index.js";
++import { binary, errno } from "../../fs/conformance/fixtures.js";
++
++const bucket = "rename-profile";
++
++for (const profile of ["conditional-copy", "buffered-put", "streamed-put"] as const) {
++  for (const existing of [false, true]) {
++    test(`s3: default ${profile} rename ${existing ? "replaces" : "creates"} with exact guards and bytes`, async () => {
++      const mock = new MockS3Client({ buckets: [bucket] });
++      const transport = createS3Transport(mock, {
++        conditionalCopy: profile === "conditional-copy", conditionalPut: true, conditionalDelete: true,
++        streamingRead: profile === "streamed-put", streamingWrite: profile === "streamed-put",
++      });
++      const fs = new S3FileSystem({ transport, bucket });
++      await fs.writeFile("/source", binary);
++      if (existing) await fs.writeFile("/dest", new Uint8Array([9, 0]));
++      await fs.writeFile("/sentinel", new Uint8Array([255, 7]));
++      const source = await mock.headObject({ Bucket: bucket, Key: "source" });
++      const target = existing ? await mock.headObject({ Bucket: bucket, Key: "dest" }) : undefined;
++      const before = mock.requests.length;
++      await fs.rename("/source", "/dest");
++      const mutations = mock.requests.slice(before).filter(request => ["copyObject", "putObject", "deleteObject"].includes(request.operation));
++      assert.deepEqual(mutations.map(request => request.operation), [profile === "conditional-copy" ? "copyObject" : "putObject", "deleteObject"]);
++      const publication = mutations[0]!.input;
++      assert.equal("IfMatch" in publication ? publication.IfMatch : undefined, target?.ETag);
++      assert.equal("IfNoneMatch" in publication ? publication.IfNoneMatch : undefined, existing ? undefined : "*");
++      if (profile === "conditional-copy") assert.equal("CopySourceIfMatch" in publication && publication.CopySourceIfMatch, source.ETag);
++      const deletion = mutations[1]!.input;
++      assert.equal("Key" in deletion && deletion.Key, "source");
++      assert.equal("IfMatch" in deletion && deletion.IfMatch, source.ETag);
++      assert.deepEqual(await fs.readFile("/dest"), binary);
++      assert.deepEqual(await fs.readFile("/sentinel"), new Uint8Array([255, 7]));
++      await assert.rejects(fs.stat("/source"), errno("ENOENT"));
++      assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["dest", "sentinel"]);
++      assert.equal(fs.capabilities.atomicRename, false);
++    });
++  }
++}
++
++for (const capabilities of [{}, { conditionalDelete: true }, { conditionalCopy: false, conditionalPut: false, conditionalDelete: true }, { conditionalPut: true }]) {
++  test(`s3: default rename missing guards ${JSON.stringify(capabilities)} has no host effects`, async () => {
++    const mock = new MockS3Client({ buckets: [bucket] });
++    await mock.putObject({ Bucket: bucket, Key: "source", Body: binary });
++    await mock.putObject({ Bucket: bucket, Key: "dest", Body: new Uint8Array([9, 0]) });
++    const fs = new S3FileSystem({ bucket, transport: createS3Transport(mock, capabilities) });
++    const before = mock.requests.length;
++    await assert.rejects(fs.rename("/source", "/dest"), errno("ENOTSUP"));
++    assert.equal(mock.requests.length, before);
++    assert.deepEqual(await fs.readFile("/source"), binary);
++    assert.deepEqual(await fs.readFile("/dest"), new Uint8Array([9, 0]));
++    assert.equal(fs.capabilities.atomicRename, false);
++  });
++}
++
++for (const phase of ["copy", "delete"] as const) {
++  test(`s3: default rename ${phase} race preserves winning bytes and exact acknowledged effects`, async () => {
++    const winner = new Uint8Array([255, 0, 71]);
++    let armed = false;
++    const mock = new MockS3Client({ buckets: [bucket], authorize: async request => {
++      if (armed && request.operation === (phase === "copy" ? "copyObject" : "deleteObject")) {
++        armed = false;
++        await mock.putObject({ Bucket: bucket, Key: phase === "copy" ? "dest" : "source", Body: winner });
++      }
++    } });
++    const fs = new S3FileSystem({ transport: mock, bucket });
++    await fs.writeFile("/source", binary);
++    armed = true;
++    await assert.rejects(fs.rename("/source", "/dest"), error => {
++      assert.ok(error instanceof S3RenameError);
++      assert.equal(error.code, "EAGAIN");
++      assert.equal(error.phase, phase);
++      assert.equal(error.path, "/source");
++      assert.equal(error.dest, "/dest");
++      assert.deepEqual(error.copiedKeys, phase === "copy" ? [] : ["dest"]);
++      assert.deepEqual(error.deletedKeys, []);
++      return true;
++    });
++    assert.equal(armed, false);
++    assert.deepEqual(await fs.readFile("/source"), phase === "copy" ? binary : winner);
++    assert.deepEqual(await fs.readFile("/dest"), phase === "copy" ? winner : binary);
++    assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["dest", "source"]);
++  });
++}
+*** Add File: tests/stress/adapters/s3-truncate-profile.test.ts
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { MockS3Client, S3FileSystem, createS3Transport } from "../../../src/fs/s3/index.js";
++import { binary, errno } from "../../fs/conformance/fixtures.js";
++
++const bucket = "truncate-profile";
++
++test("s3: truncate without conditional PUT preserves exact bytes and sends no mutation", async () => {
++  const mock = new MockS3Client({ buckets: [bucket] });
++  await mock.putObject({ Bucket: bucket, Key: "file", Body: binary, Metadata: { owner: "original" } });
++  const fs = new S3FileSystem({ bucket, transport: createS3Transport(mock, {}) });
++  const before = mock.requests.length;
++  await assert.rejects(fs.truncate("/file", 8), errno("ENOTSUP"));
++  assert.ok(mock.requests.slice(before).every(request => request.operation === "headObject" || request.operation === "listObjectsV2"));
++  assert.deepEqual(await fs.readFile("/file"), binary);
++  assert.deepEqual((await mock.headObject({ Bucket: bucket, Key: "file" })).Metadata, { owner: "original" });
++});
++
++test("s3: truncate condition conflicts preserve competing bytes and metadata", async () => {
++  let armed = false;
++  const winner = new Uint8Array([255, 0, 128]);
++  const mock = new MockS3Client({ buckets: [bucket], async authorize(request) {
++    if (armed && request.operation === "putObject") {
++      armed = false;
++      assert.ok("IfMatch" in request.input && request.input.IfMatch);
++      await mock.putObject({ Bucket: bucket, Key: "file", Body: winner, Metadata: { owner: "winner" } });
++    }
++  } });
++  const fs = new S3FileSystem({ bucket, transport: mock });
++  await fs.writeFile("/file", binary);
++  armed = true;
++  await assert.rejects(fs.truncate("/file", 8), errno("EAGAIN"));
++  assert.equal(armed, false);
++  assert.deepEqual(await fs.readFile("/file"), winner);
++  assert.deepEqual((await mock.headObject({ Bucket: bucket, Key: "file" })).Metadata, { owner: "winner" });
++});
++
++test("s3: bounded truncate guards publication and zero truncate never downloads old bytes", async () => {
++  const mock = new MockS3Client({ buckets: [bucket] });
++  const fs = new S3FileSystem({ bucket, transport: mock, maxReadBytes: 16 });
++  await fs.writeFile("/file", binary.slice(0, 16));
++  const before = mock.requests.length;
++  await assert.rejects(fs.truncate("/file", 17), errno("EFBIG"));
++  assert.ok(mock.requests.slice(before).every(request => request.operation === "headObject" || request.operation === "listObjectsV2"));
++  assert.deepEqual(await fs.readFile("/file"), binary.slice(0, 16));
++  const etag = (await mock.headObject({ Bucket: bucket, Key: "file" })).ETag;
++  const start = mock.requests.length;
++  await fs.truncate("/file");
++  const requests = mock.requests.slice(start);
++  assert.ok(requests.every(request => request.operation !== "getObject" && request.operation !== "getObjectStream"));
++  const writes = requests.filter(request => request.operation === "putObject");
++  assert.equal(writes.length, 1);
++  assert.ok("IfMatch" in writes[0]!.input);
++  assert.equal(writes[0]!.input.IfMatch, etag);
++  assert.deepEqual(await fs.readFile("/file"), new Uint8Array());
++  assert.equal((await fs.stat("/file")).size, 0);
++});
+*** Update File: tests/stress/adapters/s3.test.ts
+@@
+-import assert from "node:assert/strict";
+-import { test } from "node:test";
+-import { MockS3Client, S3FileSystem, S3RenameError, S3ServiceError, createS3Transport } from "../../../src/fs/s3/index.js";
+-import type { MockS3Operation, S3ListOutput } from "../../../src/fs/s3/index.js";
+-import { binary, deferred, errno } from "../../fs/conformance/fixtures.js";
+-
+-const bucket = "independent-stress";
+-
+-test("s3: 1203 files paginate without omissions across a subtree rename and recursive delete", async () => {
+-  const mock = new MockS3Client({ buckets: [bucket], pageSize: 19 });
+-  const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope", pageSize: 23, allowNonAtomicRename: true });
+-  await fs.mkdir("/tree");
+-  const names = Array.from({ length: 1203 }, (_, index) => `file-${String(index).padStart(4, "0")}`);
+-  for (const name of names) await mock.putObject({ Bucket: bucket, Key: `scope/tree/${name}`, Body: binary.slice(0, 3) });
+-  await mock.putObject({ Bucket: bucket, Key: "scope/tree-sibling", Body: binary });
+-  assert.deepEqual((await fs.readdir("/tree")).map((entry) => entry.name).sort(), names);
+-  assert.ok(mock.requests.filter((request) => request.operation === "listObjectsV2" && "ContinuationToken" in request.input).length >= 63);
+-  await fs.rename("/tree", "/moved");
+-  assert.deepEqual((await fs.readdir("/moved")).map((entry) => entry.name).sort(), names);
+-  assert.deepEqual(await fs.readFile("/moved/file-1202"), binary.slice(0, 3));
+-  await assert.rejects(fs.stat("/tree"), errno("ENOENT"));
+-  await fs.rm("/moved", { recursive: true });
+-  assert.deepEqual(await fs.readdir("/"), [{ name: "tree-sibling", type: "file" }]);
+-  assert.deepEqual(await fs.readFile("/tree-sibling"), binary);
+-});
+-
+-for (const [name, page] of Object.entries({
+-  "out-of-prefix key": { Contents: [{ Key: "elsewhere/leak", Size: 1 }], IsTruncated: false },
+-  "missing continuation token": { Contents: [], IsTruncated: true },
+-  "cyclic continuation token": { Contents: [], IsTruncated: true, NextContinuationToken: "same" },
+-  "invalid object size": { Contents: [{ Key: "scope/file", Size: -1 }], IsTruncated: false },
+-  "nested non-direct child": { Contents: [{ Key: "scope/nested/file", Size: 1 }], IsTruncated: false },
+-} satisfies Record<string, S3ListOutput>)) {
+-  test(`s3: malformed listing ${name} fails closed`, async () => {
+-    const mock = new MockS3Client({ buckets: [bucket] });
+-    const transport = createS3Transport(mock, mock.capabilities);
+-    let calls = 0;
+-    transport.listObjectsV2 = async (input) => {
+-      if (input.Delimiter === undefined) return { Contents: [], IsTruncated: false };
+-      calls++;
+-      assert.ok(calls <= 3, "pagination must terminate");
+-      return page;
+-    };
+-    const fs = new S3FileSystem({ transport, bucket, prefix: "scope" });
+-    await assert.rejects(fs.readdir("/"), errno("EIO"));
+-    assert.equal(calls, name === "cyclic continuation token" ? 2 : 1, "adapter must reject before the transport guard can mask a pagination loop");
+-    assert.equal(mock.requests.length, 0);
+-  });
+-}
+-
+-test("s3: maxListEntries rejects rather than returning a truncated listing", async () => {
+-  const mock = new MockS3Client({ buckets: [bucket], pageSize: 2 });
+-  for (let index = 0; index < 6; index++) await mock.putObject({ Bucket: bucket, Key: `scope/file-${index}`, Body: binary });
+-  const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope", maxListEntries: 5 });
+-  await assert.rejects(fs.readdir("/"), errno("EFBIG"));
+-});
+-
+-test("s3: exclusive copy rejects a destination created during copy authorization", async () => {
+-  const competing = new Uint8Array([255, 0, 73]);
+-  let raced = false;
+-  const mock = new MockS3Client({ buckets: [bucket], authorize: async (request) => {
+-    if (request.operation === "copyObject" && !raced) {
+-      raced = true;
+-      await mock.putObject({ Bucket: bucket, Key: "dest", Body: competing });
+-    }
+-  } });
+-  const fs = new S3FileSystem({ transport: mock, bucket });
+-  await fs.writeFile("/source", binary);
+-  await assert.rejects(fs.copyFile("/source", "/dest", { exclusive: true }), errno("EEXIST"));
+-  assert.equal(raced, true);
+-  assert.deepEqual(await fs.readFile("/source"), binary);
+-  assert.deepEqual(await fs.readFile("/dest"), competing);
+-});
+-
+-for (const operation of ["getObject", "putObject", "listObjectsV2"] satisfies MockS3Operation[]) {
+-  test(`s3: cancellation during ${operation} reaches the repository mock`, { timeout: 3000 }, async () => {
+-    const entered = deferred<void>();
+-    const release = deferred<void>();
+-    let active = false;
+-    const mock = new MockS3Client({ buckets: [bucket], authorize: async (request) => {
+-      if (active && request.operation === operation) { entered.resolve(); await release.promise; }
+-    } });
+-    const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope" });
+-    await fs.writeFile("/file", binary);
+-    const controller = new AbortController();
+-    active = true;
+-    const pending = operation === "getObject" ? fs.readFile("/file", { signal: controller.signal })
+-      : operation === "putObject" ? fs.writeFile("/file", new Uint8Array([9]), { signal: controller.signal })
+-        : fs.readdir("/", { signal: controller.signal });
+-    const rejected = assert.rejects(pending, errno("ECANCELED"));
+-    try {
+-      await entered.promise;
+-      controller.abort();
+-    } finally { release.resolve(); }
+-    await rejected;
+-    active = false;
+-    assert.deepEqual(await fs.readFile("/file"), binary);
+-  });
+-}
+-
+-test("s3: default rename explicitly fails closed without opt-in", async (context) => {
+-  const mock = new MockS3Client({ buckets: [bucket] });
+-  const fs = new S3FileSystem({ transport: mock, bucket });
+-  await fs.writeFile("/source", binary);
+-  const count = mock.requests.length;
+-  await assert.rejects(fs.rename("/source", "/dest"), errno("ENOTSUP"));
+-  assert.equal(mock.requests.length, count);
+-  assert.deepEqual(await fs.readFile("/source"), binary);
+-  await assert.rejects(fs.stat("/dest"), errno("ENOENT"));
+-  assert.equal(fs.capabilities.atomicRename, false);
+-  context.diagnostic("CAPABILITY GAP: required rename defaults to ENOTSUP; opt-in is non-atomic copy/delete");
+-});
+-
+-for (const failurePhase of ["copy", "delete"] as const) {
+-  test(`s3: non-atomic rename reports exact ${failurePhase}-phase partial state`, async () => {
+-    let enabled = false;
+-    let attempts = 0;
+-    const mock = new MockS3Client({ buckets: [bucket], authorize: (request) => {
+-      if (enabled && request.operation === (failurePhase === "copy" ? "copyObject" : "deleteObject") && ++attempts === 2) {
+-        throw new S3ServiceError("AccessDenied", 403);
+-      }
+-    } });
+-    const fs = new S3FileSystem({ transport: mock, bucket, allowNonAtomicRename: true });
+-    await fs.mkdir("/source");
+-    await fs.writeFile("/source/one", binary);
+-    await fs.writeFile("/source/two", binary);
+-    enabled = true;
+-    let failure!: S3RenameError;
+-    await assert.rejects(fs.rename("/source", "/dest"), (error: unknown) => {
+-      assert.ok(error instanceof S3RenameError);
+-      assert.equal(error.phase, failurePhase);
+-      assert.equal(error.code, "EACCES");
+-      failure = error;
+-      return true;
+-    });
+-    enabled = false;
+-    assert.equal(failure.copiedKeys.length, failurePhase === "copy" ? 1 : 3);
+-    assert.equal(failure.deletedKeys.length, failurePhase === "copy" ? 0 : 1);
+-    for (const key of failure.copiedKeys) await mock.headObject({ Bucket: bucket, Key: key });
+-    for (const key of failure.deletedKeys) await assert.rejects(mock.headObject({ Bucket: bucket, Key: key }), { code: "NoSuchKey" });
+-    assert.deepEqual(await fs.readFile("/source/one"), binary);
+-    assert.deepEqual(await fs.readFile("/source/two"), binary);
+-  });
+-}
+-
+-test("s3: unrepresentable object keys and file-prefix collisions remain explicit", async () => {
+-  for (const key of ["scope/../escape", "scope/double//child", "scope/dot/./child"]) {
+-    const mock = new MockS3Client({ buckets: [bucket] });
+-    await mock.putObject({ Bucket: bucket, Key: key, Body: binary });
+-    const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope" });
+-    await assert.rejects(fs.rm("/", { recursive: true }), errno("EBUSY"));
+-    await assert.rejects(fs.readdir(key.includes("double") ? "/double" : key.includes("dot") ? "/dot" : "/"), errno("ENOTSUP"));
+-    assert.equal((await mock.headObject({ Bucket: bucket, Key: key })).ContentLength, binary.length);
+-  }
+-  const mock = new MockS3Client({ buckets: [bucket] });
+-  await mock.putObject({ Bucket: bucket, Key: "scope/file", Body: binary });
+-  await mock.putObject({ Bucket: bucket, Key: "scope/file/child", Body: binary });
+-  await assert.rejects(new S3FileSystem({ transport: mock, bucket, prefix: "scope" }).readdir("/"), errno("ENOTSUP"));
+-});
+-
+-for (const flag of ["a", "wx"] as const) {
+-  test(`s3: concurrent ${flag} writes enforce transport preconditions without lost updates`, { timeout: 3000 }, async () => {
+-    const entered = deferred<void>();
+-    const release = deferred<void>();
+-    let active = false;
+-    let arrivals = 0;
+-    const mock = new MockS3Client({ buckets: [bucket], authorize: async (request) => {
+-      if (active && request.operation === "putObject") {
+-        if (++arrivals === 2) entered.resolve();
+-        await release.promise;
+-      }
+-    } });
+-    const fs = new S3FileSystem({ transport: mock, bucket });
+-    if (flag === "a") await fs.writeFile("/file", binary);
+-    active = true;
+-    const results = Promise.allSettled([
+-      fs.writeFile("/file", new Uint8Array([17]), { flag }),
+-      fs.writeFile("/file", new Uint8Array([18]), { flag }),
+-    ]);
+-    try { await entered.promise; }
+-    finally { release.resolve(); }
+-    const settled = await results;
+-    active = false;
+-    assert.equal(settled.filter((result) => result.status === "fulfilled").length, 1);
+-    const rejected = settled.find((result) => result.status === "rejected");
+-    assert.ok(rejected && rejected.status === "rejected");
+-    errno(flag === "a" ? "EAGAIN" : "EEXIST")(rejected.reason);
+-    const winner = settled.findIndex((result) => result.status === "fulfilled");
+-    const actual = await fs.readFile("/file");
+-    assert.deepEqual(actual, flag === "a" ? new Uint8Array([...binary, 17 + winner]) : new Uint8Array([17 + winner]));
+-  });
+-}
+-
+-test("s3: read-only capability rejects every mutating required operation", async () => {
+-  const mock = new MockS3Client({ buckets: [bucket] });
+-  await mock.putObject({ Bucket: bucket, Key: "file", Body: binary });
+-  const fs = new S3FileSystem({ transport: mock, bucket, readOnly: true, allowNonAtomicRename: true });
+-  const before = mock.requests.length;
+-  for (const operation of [
+-    () => fs.writeFile("/file", new Uint8Array()), () => fs.appendFile("/file", binary),
+-    () => fs.mkdir("/dir"), () => fs.rm("/file"), () => fs.rename("/file", "/dest"),
+-    () => fs.copyFile("/file", "/copy"),
+-  ]) await assert.rejects(operation(), errno("EROFS"));
+-  assert.equal(mock.requests.length, before);
+-  assert.equal(fs.capabilities.readOnly, true);
+-  assert.deepEqual(await fs.readFile("/file"), binary);
+-});
+-
+-test("s3: false body lengths reject exact-byte corruption", async () => {
+-  const mock = new MockS3Client({ buckets: [bucket] });
+-  await mock.putObject({ Bucket: bucket, Key: "file", Body: binary });
+-  const transport = createS3Transport(mock, mock.capabilities);
+-  transport.getObject = async (input, options) => ({ ...await mock.getObject(input, options), ContentLength: binary.length + 1 });
+-  const fs = new S3FileSystem({ transport, bucket });
+-  await assert.rejects(fs.readFile("/file"), errno("EIO"));
+-});
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { MockS3Client, S3FileSystem, S3RenameError, S3ServiceError, createS3Transport } from "../../../src/fs/s3/index.js";
++import type { MockS3Operation, S3ListOutput } from "../../../src/fs/s3/index.js";
++import { binary, deferred, errno } from "../../fs/conformance/fixtures.js";
++
++const bucket = "independent-stress";
++
++test("s3: 1203 files paginate without omissions across a subtree rename and recursive delete", async () => {
++  const mock = new MockS3Client({ buckets: [bucket], pageSize: 19 });
++  const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope", pageSize: 23, allowNonAtomicRename: true });
++  await fs.mkdir("/tree");
++  const names = Array.from({ length: 1203 }, (_, index) => `file-${String(index).padStart(4, "0")}`);
++  for (const name of names) await mock.putObject({ Bucket: bucket, Key: `scope/tree/${name}`, Body: binary.slice(0, 3) });
++  await mock.putObject({ Bucket: bucket, Key: "scope/tree-sibling", Body: binary });
++  assert.deepEqual((await fs.readdir("/tree")).map((entry) => entry.name).sort(), names);
++  assert.ok(mock.requests.filter((request) => request.operation === "listObjectsV2" && "ContinuationToken" in request.input).length >= 63);
++  await fs.rename("/tree", "/moved");
++  assert.deepEqual((await fs.readdir("/moved")).map((entry) => entry.name).sort(), names);
++  assert.deepEqual(await fs.readFile("/moved/file-1202"), binary.slice(0, 3));
++  await assert.rejects(fs.stat("/tree"), errno("ENOENT"));
++  await fs.rm("/moved", { recursive: true });
++  assert.deepEqual(await fs.readdir("/"), [{ name: "tree-sibling", type: "file" }]);
++  assert.deepEqual(await fs.readFile("/tree-sibling"), binary);
++});
++
++for (const [name, page] of Object.entries({
++  "out-of-prefix key": { Contents: [{ Key: "elsewhere/leak", Size: 1 }], IsTruncated: false },
++  "missing continuation token": { Contents: [], IsTruncated: true },
++  "cyclic continuation token": { Contents: [], IsTruncated: true, NextContinuationToken: "same" },
++  "invalid object size": { Contents: [{ Key: "scope/file", Size: -1 }], IsTruncated: false },
++  "nested non-direct child": { Contents: [{ Key: "scope/nested/file", Size: 1 }], IsTruncated: false },
++} satisfies Record<string, S3ListOutput>)) {
++  test(`s3: malformed listing ${name} fails closed`, async () => {
++    const mock = new MockS3Client({ buckets: [bucket] });
++    const transport = createS3Transport(mock, mock.capabilities);
++    let calls = 0;
++    transport.listObjectsV2 = async (input) => {
++      if (input.Delimiter === undefined) return { Contents: [], IsTruncated: false };
++      calls++;
++      assert.ok(calls <= 3, "pagination must terminate");
++      return page;
++    };
++    const fs = new S3FileSystem({ transport, bucket, prefix: "scope" });
++    await assert.rejects(fs.readdir("/"), errno("EIO"));
++    assert.equal(calls, name === "cyclic continuation token" ? 2 : 1, "adapter must reject before the transport guard can mask a pagination loop");
++    assert.equal(mock.requests.length, 0);
++  });
++}
++
++test("s3: maxListEntries rejects rather than returning a truncated listing", async () => {
++  const mock = new MockS3Client({ buckets: [bucket], pageSize: 2 });
++  for (let index = 0; index < 6; index++) await mock.putObject({ Bucket: bucket, Key: `scope/file-${index}`, Body: binary });
++  const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope", maxListEntries: 5 });
++  await assert.rejects(fs.readdir("/"), errno("EFBIG"));
++});
++
++test("s3: exclusive copy rejects a destination created during copy authorization", async () => {
++  const competing = new Uint8Array([255, 0, 73]);
++  let raced = false;
++  const mock = new MockS3Client({ buckets: [bucket], authorize: async (request) => {
++    if (request.operation === "copyObject" && !raced) {
++      raced = true;
++      await mock.putObject({ Bucket: bucket, Key: "dest", Body: competing });
++    }
++  } });
++  const fs = new S3FileSystem({ transport: mock, bucket });
++  await fs.writeFile("/source", binary);
++  await assert.rejects(fs.copyFile("/source", "/dest", { exclusive: true }), errno("EEXIST"));
++  assert.equal(raced, true);
++  assert.deepEqual(await fs.readFile("/source"), binary);
++  assert.deepEqual(await fs.readFile("/dest"), competing);
++});
++
++for (const operation of ["getObject", "putObject", "listObjectsV2"] satisfies MockS3Operation[]) {
++  test(`s3: cancellation during ${operation} reaches the repository mock`, { timeout: 3000 }, async () => {
++    const entered = deferred<void>();
++    const release = deferred<void>();
++    let active = false;
++    const mock = new MockS3Client({ buckets: [bucket], authorize: async (request) => {
++      if (active && request.operation === operation) { entered.resolve(); await release.promise; }
++    } });
++    const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope" });
++    await fs.writeFile("/file", binary);
++    const controller = new AbortController();
++    active = true;
++    const pending = operation === "getObject" ? fs.readFile("/file", { signal: controller.signal })
++      : operation === "putObject" ? fs.writeFile("/file", new Uint8Array([9]), { signal: controller.signal })
++        : fs.readdir("/", { signal: controller.signal });
++    const rejected = assert.rejects(pending, errno("ECANCELED"));
++    try {
++      await entered.promise;
++      controller.abort();
++    } finally { release.resolve(); }
++    await rejected;
++    active = false;
++    assert.deepEqual(await fs.readFile("/file"), binary);
++  });
++}
++
++test("s3: explicit non-atomic rename opt-out rejects before host effects", async (context) => {
++  const mock = new MockS3Client({ buckets: [bucket] });
++  const fs = new S3FileSystem({ transport: mock, bucket, allowNonAtomicRename: false });
++  await fs.writeFile("/source", binary);
++  const count = mock.requests.length;
++  await assert.rejects(fs.rename("/source", "/dest"), errno("ENOTSUP"));
++  assert.equal(mock.requests.length, count);
++  assert.deepEqual(await fs.readFile("/source"), binary);
++  await assert.rejects(fs.stat("/dest"), errno("ENOENT"));
++  assert.equal(fs.capabilities.atomicRename, false);
++  context.diagnostic("PROFILE: explicit opt-out rejects; default guarded rename remains non-atomic copy/delete");
++});
++
++for (const failurePhase of ["copy", "delete"] as const) {
++  test(`s3: non-atomic rename reports exact ${failurePhase}-phase partial state`, async () => {
++    let enabled = false;
++    let attempts = 0;
++    const mock = new MockS3Client({ buckets: [bucket], authorize: (request) => {
++      if (enabled && request.operation === (failurePhase === "copy" ? "copyObject" : "deleteObject") && ++attempts === 2) {
++        throw new S3ServiceError("AccessDenied", 403);
++      }
++    } });
++    const fs = new S3FileSystem({ transport: mock, bucket, allowNonAtomicRename: true });
++    await fs.mkdir("/source");
++    await fs.writeFile("/source/one", binary);
++    await fs.writeFile("/source/two", binary);
++    enabled = true;
++    let failure!: S3RenameError;
++    await assert.rejects(fs.rename("/source", "/dest"), (error: unknown) => {
++      assert.ok(error instanceof S3RenameError);
++      assert.equal(error.phase, failurePhase);
++      assert.equal(error.code, "EACCES");
++      assert.equal(error.path, "/source");
++      assert.equal(error.dest, "/dest");
++      failure = error;
++      return true;
++    });
++    enabled = false;
++    assert.deepEqual(failure.copiedKeys, failurePhase === "copy" ? ["dest/"] : ["dest/", "dest/one", "dest/two"]);
++    assert.deepEqual(failure.deletedKeys, failurePhase === "copy" ? [] : ["source/"]);
++    const keys = (await mock.listObjectsV2({ Bucket: bucket })).Contents!.map(entry => entry.Key!);
++    assert.deepEqual(keys, failurePhase === "copy"
++      ? ["dest/", "source/", "source/one", "source/two"]
++      : ["dest/", "dest/one", "dest/two", "source/one", "source/two"]);
++    for (const key of keys) {
++      assert.deepEqual((await mock.getObject({ Bucket: bucket, Key: key })).Body, key.endsWith("/") ? new Uint8Array() : binary);
++    }
++    assert.deepEqual(await fs.readFile("/source/one"), binary);
++    assert.deepEqual(await fs.readFile("/source/two"), binary);
++  });
++}
++
++test("s3: unrepresentable object keys and file-prefix collisions remain explicit", async () => {
++  for (const key of ["scope/../escape", "scope/double//child", "scope/dot/./child"]) {
++    const mock = new MockS3Client({ buckets: [bucket] });
++    await mock.putObject({ Bucket: bucket, Key: key, Body: binary });
++    const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope" });
++    await assert.rejects(fs.rm("/", { recursive: true }), errno("EBUSY"));
++    await assert.rejects(fs.readdir(key.includes("double") ? "/double" : key.includes("dot") ? "/dot" : "/"), errno("ENOTSUP"));
++    assert.equal((await mock.headObject({ Bucket: bucket, Key: key })).ContentLength, binary.length);
++  }
++  const mock = new MockS3Client({ buckets: [bucket] });
++  await mock.putObject({ Bucket: bucket, Key: "scope/file", Body: binary });
++  await mock.putObject({ Bucket: bucket, Key: "scope/file/child", Body: binary });
++  await assert.rejects(new S3FileSystem({ transport: mock, bucket, prefix: "scope" }).readdir("/"), errno("ENOTSUP"));
++});
++
++for (const flag of ["a", "wx"] as const) {
++  test(`s3: concurrent ${flag} writes enforce transport preconditions without lost updates`, { timeout: 3000 }, async () => {
++    const entered = deferred<void>();
++    const release = deferred<void>();
++    let active = false;
++    let arrivals = 0;
++    const mock = new MockS3Client({ buckets: [bucket], authorize: async (request) => {
++      if (active && request.operation === "putObject") {
++        if (++arrivals === 2) entered.resolve();
++        await release.promise;
++      }
++    } });
++    const fs = new S3FileSystem({ transport: mock, bucket });
++    if (flag === "a") await fs.writeFile("/file", binary);
++    active = true;
++    const results = Promise.allSettled([
++      fs.writeFile("/file", new Uint8Array([17]), { flag }),
++      fs.writeFile("/file", new Uint8Array([18]), { flag }),
++    ]);
++    try { await entered.promise; }
++    finally { release.resolve(); }
++    const settled = await results;
++    active = false;
++    assert.equal(settled.filter((result) => result.status === "fulfilled").length, 1);
++    const rejected = settled.find((result) => result.status === "rejected");
++    assert.ok(rejected && rejected.status === "rejected");
++    errno(flag === "a" ? "EAGAIN" : "EEXIST")(rejected.reason);
++    const winner = settled.findIndex((result) => result.status === "fulfilled");
++    const actual = await fs.readFile("/file");
++    assert.deepEqual(actual, flag === "a" ? new Uint8Array([...binary, 17 + winner]) : new Uint8Array([17 + winner]));
++  });
++}
++
++test("s3: read-only capability rejects every mutating required operation", async () => {
++  const mock = new MockS3Client({ buckets: [bucket] });
++  await mock.putObject({ Bucket: bucket, Key: "file", Body: binary });
++  const fs = new S3FileSystem({ transport: mock, bucket, readOnly: true, allowNonAtomicRename: true });
++  const before = mock.requests.length;
++  for (const operation of [
++    () => fs.writeFile("/file", new Uint8Array()), () => fs.appendFile("/file", binary),
++    () => fs.mkdir("/dir"), () => fs.rm("/file"), () => fs.rename("/file", "/dest"),
++    () => fs.copyFile("/file", "/copy"),
++  ]) await assert.rejects(operation(), errno("EROFS"));
++  assert.equal(mock.requests.length, before);
++  assert.equal(fs.capabilities.readOnly, true);
++  assert.deepEqual(await fs.readFile("/file"), binary);
++});
++
++test("s3: false body lengths reject exact-byte corruption", async () => {
++  const mock = new MockS3Client({ buckets: [bucket] });
++  await mock.putObject({ Bucket: bucket, Key: "file", Body: binary });
++  const transport = createS3Transport(mock, mock.capabilities);
++  transport.getObject = async (input, options) => ({ ...await mock.getObject(input, options), ContentLength: binary.length + 1 });
++  const fs = new S3FileSystem({ transport, bucket });
++  await assert.rejects(fs.readFile("/file"), errno("EIO"));
++});
+*** Add File: tests/stress/adapters/webdav-timestamps-profile.test.ts
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { WebDavFileSystem } from "../../../src/fs/webdav/index.js";
++import { binary, errno } from "../../fs/conformance/fixtures.js";
++import { MockDav } from "../../fs/webdav/mock.js";
++import { PropertyDav, withLoopbackDav } from "../../fs/webdav/property-fixture.js";
++
++test("webdav: capable timestamp provider persists exact values over real fetch without rewriting bytes", async () => {
++  const mock = new PropertyDav();
++  const statuses: number[] = [];
++  await withLoopbackDav(async (url, init) => {
++    const result = await mock.fetch(url, init);
++    if (init.method === "PROPPATCH") statuses.push(result.status);
++    return result;
++  }, async baseUrl => {
++    const fs = new WebDavFileSystem({ baseUrl });
++    await fs.writeFile("/file", binary);
++    const tag = mock.base.etag("/file");
++    const before = mock.base.requests.length;
++    await fs.utimes("/file", 1234.5, -6789);
++    const mutations = mock.base.requests.slice(before).filter(request => request.init.method !== "PROPFIND");
++    assert.deepEqual(mutations.map(request => request.init.method), ["PROPPATCH"]);
++    assert.equal(mutations[0]!.headers.get("If-Match"), tag);
++    assert.ok(!String(mutations[0]!.init.body).includes("getlastmodified"));
++    assert.deepEqual(statuses, [207]);
++    assert.deepEqual(JSON.parse(mock.properties.get("/file")!), {
++      version: 1, type: "file", etag: tag, atimeMs: 1234.5, mtimeMs: -6789,
++    });
++    const fresh = new WebDavFileSystem({ baseUrl });
++    assert.equal(fresh.capabilities.timestamps, true);
++    const stat = await fresh.stat("/file");
++    assert.equal(stat.atimeMs, 1234.5);
++    assert.equal(stat.mtimeMs, -6789);
++    assert.deepEqual(await fresh.readFile("/file"), binary);
++    assert.deepEqual((await fresh.readdir("/")).map(entry => entry.name), ["file"]);
++  });
++});
++
++test("webdav: original provider's PROPPATCH 501 remains typed ENOTSUP with no fallback effects", async () => {
++  const mock = new MockDav();
++  mock.files.set("/file", binary.slice());
++  const statuses: number[] = [];
++  await withLoopbackDav(async (url, init) => {
++    const result = await mock.fetch(url, init);
++    if (init.method === "PROPPATCH") statuses.push(result.status);
++    return result;
++  }, async baseUrl => {
++    const fs = new WebDavFileSystem({ baseUrl });
++    const before = await fs.stat("/file");
++    const count = mock.requests.length;
++    await assert.rejects(fs.utimes("/file", 1, 2), errno("ENOTSUP", "/file"));
++    assert.deepEqual(statuses, [501]);
++    assert.deepEqual(mock.requests.slice(count).map(request => request.init.method), ["PROPFIND", "PROPPATCH"]);
++    assert.deepEqual(await fs.stat("/file"), before);
++    assert.deepEqual(await fs.readFile("/file"), binary);
++    assert.deepEqual([...mock.files.keys()], ["/", "/file"]);
++    assert.equal(fs.capabilities.timestamps, true);
++  });
++});
++
++for (const [status, code] of [[403, "EACCES"], [423, "EBUSY"], [424, "EIO"], [507, "ENOSPC"]] as const) {
++  test(`webdav: timestamp property status ${status} preserves bytes and prior property`, async () => {
++    const mock = new PropertyDav();
++    mock.base.files.set("/file", binary.slice());
++    const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch });
++    await fs.utimes("/file", 10, 20);
++    const property = mock.properties.get("/file");
++    const count = mock.base.requests.length;
++    mock.propertyStatus = status;
++    await assert.rejects(fs.utimes("/file", 30, 40), errno(code, "/file"));
++    assert.deepEqual(mock.base.requests.slice(count).map(request => request.init.method), ["PROPFIND", "PROPPATCH"]);
++    assert.equal(mock.properties.get("/file"), property);
++    assert.deepEqual(mock.base.files.get("/file"), binary);
++    const stat = await fs.stat("/file");
++    assert.equal(stat.atimeMs, 10);
++    assert.equal(stat.mtimeMs, 20);
++  });
++}
++
++test("webdav: stale timestamp condition preserves competing bytes and prior property", async () => {
++  const mock = new PropertyDav();
++  mock.base.files.set("/file", binary.slice());
++  const original = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch });
++  await original.utimes("/file", 10, 20);
++  const property = mock.properties.get("/file");
++  const winner = new Uint8Array([0, 71, 255]);
++  const statuses: number[] = [];
++  const racing = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: async (url, init) => {
++    if (init.method === "PROPPATCH") mock.base.files.set("/file", winner);
++    const result = await mock.fetch(url, init);
++    if (init.method === "PROPPATCH") statuses.push(result.status);
++    return result;
++  } });
++  await assert.rejects(racing.utimes("/file", 30, 40), errno("EAGAIN", "/file"));
++  assert.deepEqual(statuses, [412]);
++  assert.equal(mock.properties.get("/file"), property);
++  assert.deepEqual(await original.readFile("/file"), winner);
++  assert.equal((await original.stat("/file")).atimeMs, 0);
++});
++
++test("webdav: lost PROPPATCH acknowledgement reports EIO without pretending persisted effects rolled back", async () => {
++  const mock = new PropertyDav();
++  mock.base.files.set("/file", binary.slice());
++  const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: async (url, init) => {
++    const result = await mock.fetch(url, init);
++    if (init.method === "PROPPATCH") {
++      await result.body?.cancel();
++      throw new Error("lost acknowledgement after property commit");
++    }
++    return result;
++  } });
++  await assert.rejects(fs.utimes("/file", 30, 40), errno("EIO", "/file"));
++  const fresh = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch });
++  const stat = await fresh.stat("/file");
++  assert.equal(stat.atimeMs, 30);
++  assert.equal(stat.mtimeMs, 40);
++  assert.deepEqual(await fresh.readFile("/file"), binary);
++  assert.equal(mock.base.requests.filter(request => request.init.method === "PROPPATCH").length, 1);
++});
+*** End Patch

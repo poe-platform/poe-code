@@ -1,0 +1,155 @@
+{
+  "sourceCommit": "6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f",
+  "peerCommit": "053c4e942c66928972af6aa227177726ca503eab",
+  "repairCommit": "7b2a72e98c50d43fe4d06ded0773ca857e5d233a",
+  "executionSealSha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "files": [
+    {
+      "path": "launch.py",
+      "bytes": 5612,
+      "sha256": "9d37eccaec9e7e8217b7915135002e047761d597ce048a7799969d0cb7e62f8a",
+      "verified": true
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 34829,
+      "sha256": "a3c043a69ab6f74638c5fd4b1b9a0cb6e0a17c42a2e0098633f5abf345c529ce",
+      "verified": true
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 441,
+      "sha256": "b5c0bbfa7d20e911140231171a81fb64e0df7dc8def02a9b437b6cb90bfcdba1",
+      "verified": true
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 4271,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f",
+      "verified": true
+    },
+    {
+      "path": "worker-policy.mjs",
+      "bytes": 1445,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782",
+      "verified": true
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 1355,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342",
+      "verified": true
+    },
+    {
+      "path": "novel.mjs",
+      "bytes": 6566,
+      "sha256": "2fbca07c7bdd385a78a7fe7b030d58f3fc22e162d3c17fd852ff25c7f964c7e2",
+      "verified": true
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "bytes": 1492,
+      "sha256": "0ee35282c69f7b5eb1878393549ac01efe089fbb69839056d7e2f92b7bf14372",
+      "verified": true
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1",
+      "verified": true
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "bytes": 1255,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7",
+      "verified": true
+    },
+    {
+      "path": "SOURCE.json",
+      "bytes": 220097,
+      "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450",
+      "verified": true
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 6214,
+      "sha256": "6bef125d6e78073d1c4e3bb4045b52db34e210d6593f440d443fe168262f7aad",
+      "verified": true
+    },
+    {
+      "path": "EXECUTOR.json",
+      "bytes": 8468,
+      "sha256": "92f285aeb3fb820beb526a3abe0f3930ac44817fbf949a24d04947521b6e8e8b",
+      "verified": true
+    },
+    {
+      "path": "INPUT-BINDINGS.json",
+      "bytes": 5691,
+      "sha256": "d7cedfabdb14520682b94b963d60c6662d5f26955741169c597494af585514bf",
+      "verified": true
+    },
+    {
+      "path": "CENSUS.json",
+      "bytes": 3169,
+      "sha256": "7a6a8bebb7fd2b206f2e770586fdc869dded9d3bb54a3e0dd1634d09e871cc01",
+      "verified": true
+    },
+    {
+      "path": "COHORTS.json",
+      "bytes": 4781,
+      "sha256": "a30033be0277501b9c670a6b88d2808b662922795566f379fbf758f6a634c645",
+      "verified": true
+    },
+    {
+      "path": "CONTROL-COVERAGE-MAP.json",
+      "bytes": 3236,
+      "sha256": "490d840e83be873c50ee435ea936d01d5cc85b3fef9f67a3adc362dfc5837840",
+      "verified": true
+    },
+    {
+      "path": "SOURCE-RECONCILIATION.json",
+      "bytes": 2630,
+      "sha256": "c8611ceeaf0e143dda3da7fb16255d1663758559fc838198245daa196ebbaabe",
+      "verified": true
+    },
+    {
+      "path": "ADMISSION.md",
+      "bytes": 3960,
+      "sha256": "17db8369829460479da2747cb274c33f944e505127040bf66cddc730ce48bc31",
+      "verified": true
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2915,
+      "sha256": "0838fe0a849e0d2cf97dc4b198aca8c8dc65dfd864b75f3fc8e3f39d487c76c0",
+      "verified": true
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+      "bytes": 34640,
+      "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634"
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    }
+  ],
+  "namespaceUnused": true,
+  "rootGrant": "Latest explicit one actual-v2 authorization; no inherited GO",
+  "unrunQualifications": [
+    "P09 combined custom-loader/error Worker",
+    "real Regex closure SOURCE until actual",
+    "no individual internal Worker exit census",
+    "no global descendant/RSS/fullBash claim"
+  ]
+}

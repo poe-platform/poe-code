@@ -1,0 +1,11 @@
+import type { EreTransportRoot } from './BOUND-PRIVATE/ere/transport/root.js';
+declare const root: EreTransportRoot;
+declare const register: Parameters<EreTransportRoot['openSession']>[0];
+const session = root.openSession(register);
+declare const request: Parameters<typeof session.execute>[0];
+const execution: Promise<unknown> = session.execute(request);
+const retirement: Promise<void> = session.close();
+const rootRetirement: Promise<void> = root.close();
+void execution;
+void retirement;
+void rootRetirement;

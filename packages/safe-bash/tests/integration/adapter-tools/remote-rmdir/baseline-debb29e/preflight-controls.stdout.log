@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: preflight rejects missing required standard command: cat
+ok 1 - preflight rejects missing required standard command: cat
+  ---
+  duration_ms: 5.732375
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: cp
+ok 2 - preflight rejects missing required standard command: cp
+  ---
+  duration_ms: 0.874292
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: find
+ok 3 - preflight rejects missing required standard command: find
+  ---
+  duration_ms: 0.534541
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: mkdir
+ok 4 - preflight rejects missing required standard command: mkdir
+  ---
+  duration_ms: 0.524833
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: mv
+ok 5 - preflight rejects missing required standard command: mv
+  ---
+  duration_ms: 0.474042
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: printf
+ok 6 - preflight rejects missing required standard command: printf
+  ---
+  duration_ms: 0.342
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: pwd
+ok 7 - preflight rejects missing required standard command: pwd
+  ---
+  duration_ms: 0.355459
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: rm
+ok 8 - preflight rejects missing required standard command: rm
+  ---
+  duration_ms: 0.662833
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: rmdir
+ok 9 - preflight rejects missing required standard command: rmdir
+  ---
+  duration_ms: 1.34125
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: sort
+ok 10 - preflight rejects missing required standard command: sort
+  ---
+  duration_ms: 0.559334
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: tee
+ok 11 - preflight rejects missing required standard command: tee
+  ---
+  duration_ms: 0.306875
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: test
+ok 12 - preflight rejects missing required standard command: test
+  ---
+  duration_ms: 0.258459
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: touch
+ok 13 - preflight rejects missing required standard command: touch
+  ---
+  duration_ms: 0.255667
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required standard command: xargs
+ok 14 - preflight rejects missing required standard command: xargs
+  ---
+  duration_ms: 0.9105
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing standard plugin commands
+ok 15 - preflight rejects missing standard plugin commands
+  ---
+  duration_ms: 0.343042
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required text command: sed
+ok 16 - preflight rejects missing required text command: sed
+  ---
+  duration_ms: 0.345041
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required text command: awk
+ok 17 - preflight rejects missing required text command: awk
+  ---
+  duration_ms: 0.225833
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing text plugin commands
+ok 18 - preflight rejects missing text plugin commands
+  ---
+  duration_ms: 0.240375
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required structured command: jq
+ok 19 - preflight rejects missing required structured command: jq
+  ---
+  duration_ms: 0.219833
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing structured plugin commands
+ok 20 - preflight rejects missing structured plugin commands
+  ---
+  duration_ms: 0.212041
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required search command: rg
+ok 21 - preflight rejects missing required search command: rg
+  ---
+  duration_ms: 0.225542
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing search plugin commands
+ok 22 - preflight rejects missing search plugin commands
+  ---
+  duration_ms: 0.217334
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required bytes command: sha256sum
+ok 23 - preflight rejects missing required bytes command: sha256sum
+  ---
+  duration_ms: 0.259542
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required bytes command: gzip
+ok 24 - preflight rejects missing required bytes command: gzip
+  ---
+  duration_ms: 0.21425
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing bytes plugin commands
+ok 25 - preflight rejects missing bytes plugin commands
+  ---
+  duration_ms: 0.211875
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required diffPatch command: diff
+ok 26 - preflight rejects missing required diffPatch command: diff
+  ---
+  duration_ms: 0.213
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing required diffPatch command: patch
+ok 27 - preflight rejects missing required diffPatch command: patch
+  ---
+  duration_ms: 0.205959
+  type: 'test'
+  ...
+# Subtest: preflight rejects missing diffPatch plugin commands
+ok 28 - preflight rejects missing diffPatch plugin commands
+  ---
+  duration_ms: 0.211333
+  type: 'test'
+  ...
+# Subtest: preflight rejects an absent aggregate plugin
+ok 29 - preflight rejects an absent aggregate plugin
+  ---
+  duration_ms: 0.233667
+  type: 'test'
+  ...
+# Subtest: preflight permits an unrelated executable command alongside all workflow commands
+ok 30 - preflight permits an unrelated executable command alongside all workflow commands
+  ---
+  duration_ms: 0.785834
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 208.840083

@@ -1,0 +1,101 @@
+{
+  "schema": "expr-composed-evidence-seal/1",
+  "recipe": "a316d868fd6b330653f893276b8f5970dfe8800f",
+  "recipeManifestSha256": "99397e6ec5d95d158002e23b65699d41ab20ccea39dbfe6f45f36800148afd9c",
+  "qualified": true,
+  "counts": {
+    "targets": 16,
+    "targetPass": 16,
+    "targetFail": 0,
+    "targetUnrun": 0,
+    "controls": 64,
+    "controlsPass": 64,
+    "controlsFail": 0,
+    "controlsUnrun": 0,
+    "children": 28,
+    "naturalChildren": 28,
+    "forcedChildren": 0,
+    "workers": 0,
+    "checks": 59
+  },
+  "audit": {
+    "status": "pass",
+    "entries": 185,
+    "bytes": 12300813,
+    "archive": {
+      "path": "RAW.jsonl.gz",
+      "bytes": 2771559,
+      "sha256": "0a56848b4c36600f5d50066e75e1daddb3a5ba623337d94259ce5b01a50e0e50"
+    },
+    "channels": 56,
+    "moduleLoads": 4924
+  },
+  "artifacts": [
+    {
+      "path": "RECIPE-SEAL.json",
+      "mode": 420,
+      "bytes": 2612,
+      "sha256": "99397e6ec5d95d158002e23b65699d41ab20ccea39dbfe6f45f36800148afd9c"
+    },
+    {
+      "path": "BINDINGS.json",
+      "mode": 420,
+      "bytes": 30397,
+      "sha256": "f63ce48f9d3414a704fe5186877512d7b75df532d59a5d339977b92951e3dc1c"
+    },
+    {
+      "path": "EXECUTION.raw.txt",
+      "mode": 420,
+      "bytes": 784,
+      "sha256": "d6d5dcc96a3ef218f7572dbbaa77507d8eff820160e7d77c276bdce528f5fc88"
+    },
+    {
+      "path": "PRE-BINDINGS.json",
+      "mode": 420,
+      "bytes": 72730,
+      "sha256": "1ce976249601a0006f05fd71ec77312801390544d910520df3db49652b78e24c"
+    },
+    {
+      "path": "POST-BINDINGS.json",
+      "mode": 420,
+      "bytes": 114715,
+      "sha256": "a6ecae2e50db2f0def81cbd3a5d297962c9d16137a8ddf147e3d2baa081a36da"
+    },
+    {
+      "path": "REPORT.json",
+      "mode": 420,
+      "bytes": 3500553,
+      "sha256": "a539f4586c49f521c3d18ddabf7bd66c17ad3a8652c03bd7dfbc3488cc4b16a4"
+    },
+    {
+      "path": "OUTER.json",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "ba10eb3cefc6980351c9b5591e002a836239b5d36daa3b0b70acfb5386c4985e"
+    },
+    {
+      "path": "MANIFEST.json",
+      "mode": 420,
+      "bytes": 36625,
+      "sha256": "8db87c9b613c1a06d0d9d76d134209626e775be71797514ea9c82375740a445f"
+    },
+    {
+      "path": "RAW.jsonl.gz",
+      "mode": 420,
+      "bytes": 2771559,
+      "sha256": "0a56848b4c36600f5d50066e75e1daddb3a5ba623337d94259ce5b01a50e0e50"
+    },
+    {
+      "path": "MATRIX.json",
+      "mode": 420,
+      "bytes": 50115,
+      "sha256": "c4be9baa4b72bccd0311e70fbbcf74332dd4b7d3476f40b9eefaf3bce29ab595"
+    },
+    {
+      "path": "CHECKPOINT.md",
+      "mode": 420,
+      "bytes": 2343,
+      "sha256": "adbdf0ef5d35a187afe3d723021e97807db20ecc391cfa48a9b6542aa5a5cd74"
+    }
+  ]
+}

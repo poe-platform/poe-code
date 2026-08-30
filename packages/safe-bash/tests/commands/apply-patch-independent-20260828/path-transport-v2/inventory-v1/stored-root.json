@@ -1,0 +1,36 @@
+{
+  "id": "stored-root",
+  "executable": "/usr/bin/git",
+  "args": [
+    "--no-replace-objects",
+    "cat-file",
+    "tree",
+    "189bef24a927241d7c47a662f1ac447b56da1835"
+  ],
+  "started": "2026-08-28T18:08:38.618Z",
+  "finished": "2026-08-28T18:08:38.635Z",
+  "startedElapsedMs": 575.954083,
+  "finishedElapsedMs": 593.077166,
+  "pid": 93721,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 449,
+  "fragments": [
+    {
+      "name": "stored-root-stdout-0.json",
+      "bytes": 449,
+      "sha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0"
+    }
+  ],
+  "stdoutSha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "knownChildCleanup": true
+}

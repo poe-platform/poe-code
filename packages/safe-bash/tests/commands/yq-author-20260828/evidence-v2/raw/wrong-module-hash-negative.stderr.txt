@@ -1,0 +1,11 @@
+file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-yq-author-TlLYKT/consumer/consumer.mjs:7
+if (createHash("sha256").update(readFileSync(modulePath)).digest("hex") !== "0000000000000000000000000000000000000000000000000000000000000000") throw new Error("bound yq module hash mismatch");
+                                                                                                                                                      ^
+
+Error: bound yq module hash mismatch
+    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-yq-author-TlLYKT/consumer/consumer.mjs:7:151
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

@@ -1,0 +1,2864 @@
+{
+  "capturedAt": "2026-08-27T04:05:47.494Z",
+  "phase": "static-only",
+  "independentEngineCalls": 0,
+  "attempt": "benchmarks/reports/baseline-only-20260827/coverage-execution/attempt-002",
+  "freeze": {
+    "manifestSha256": "185eb4bb8dd79b8c51a39458043f8b592b0d36823a47320e0536b3f4346fecb4",
+    "inputsSha256": "5a8dc009375fbc373b4bb708f75aee7f0be8f7088812aac4d73260dff9127e6c",
+    "frozenBeforeAnyProductExecution": true
+  },
+  "sourceSha256": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732",
+  "sourceFiles": 165,
+  "checks": [
+    {
+      "name": "frozen manifest bytes",
+      "passes": true,
+      "actual": "185eb4bb8dd79b8c51a39458043f8b592b0d36823a47320e0536b3f4346fecb4",
+      "expected": "185eb4bb8dd79b8c51a39458043f8b592b0d36823a47320e0536b3f4346fecb4"
+    },
+    {
+      "name": "frozen input bytes",
+      "passes": true,
+      "actual": "5a8dc009375fbc373b4bb708f75aee7f0be8f7088812aac4d73260dff9127e6c",
+      "expected": "5a8dc009375fbc373b4bb708f75aee7f0be8f7088812aac4d73260dff9127e6c"
+    },
+    {
+      "name": "historical inventory retained",
+      "passes": true,
+      "actual": 53,
+      "expected": 53
+    },
+    {
+      "name": "historical measured retained",
+      "passes": true,
+      "actual": 3,
+      "expected": 3
+    },
+    {
+      "name": "all current default names",
+      "passes": true,
+      "actual": [
+        "alias",
+        "builtin",
+        "clear",
+        "column",
+        "compgen",
+        "complete",
+        "compopt",
+        "date",
+        "declare",
+        "dirs",
+        "du",
+        "egrep",
+        "exec",
+        "expand",
+        "expr",
+        "fgrep",
+        "file",
+        "fold",
+        "getopts",
+        "hash",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "let",
+        "mapfile",
+        "nl",
+        "popd",
+        "printenv",
+        "pushd",
+        "readarray",
+        "rev",
+        "seq",
+        "shopt",
+        "sleep",
+        "split",
+        "sqlite3",
+        "strings",
+        "tac",
+        "time",
+        "timeout",
+        "tree",
+        "typeset",
+        "unalias",
+        "unexpand",
+        "wait",
+        "which",
+        "whoami",
+        "xan",
+        "yq"
+      ],
+      "expected": [
+        "alias",
+        "builtin",
+        "clear",
+        "column",
+        "compgen",
+        "complete",
+        "compopt",
+        "date",
+        "declare",
+        "dirs",
+        "du",
+        "egrep",
+        "exec",
+        "expand",
+        "expr",
+        "fgrep",
+        "file",
+        "fold",
+        "getopts",
+        "hash",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "let",
+        "mapfile",
+        "nl",
+        "popd",
+        "printenv",
+        "pushd",
+        "readarray",
+        "rev",
+        "seq",
+        "shopt",
+        "sleep",
+        "split",
+        "sqlite3",
+        "strings",
+        "tac",
+        "time",
+        "timeout",
+        "tree",
+        "typeset",
+        "unalias",
+        "unexpand",
+        "wait",
+        "which",
+        "whoami",
+        "xan",
+        "yq"
+      ]
+    },
+    {
+      "name": "all four optional names",
+      "passes": true,
+      "actual": [
+        "js-exec",
+        "node",
+        "python",
+        "python3"
+      ],
+      "expected": [
+        "js-exec",
+        "node",
+        "python",
+        "python3"
+      ]
+    },
+    {
+      "name": "primary count",
+      "passes": true,
+      "actual": 61,
+      "expected": 61
+    },
+    {
+      "name": "unique specimen identifiers",
+      "passes": true,
+      "actual": 68,
+      "expected": 68
+    },
+    {
+      "name": "input hash alias-positive",
+      "passes": true,
+      "actual": "95a3060827835528cd3fab73a7f4ab639b2337f1b29fd39fe49ec86aa1515d7c",
+      "expected": "95a3060827835528cd3fab73a7f4ab639b2337f1b29fd39fe49ec86aa1515d7c"
+    },
+    {
+      "name": "input hash builtin-positive",
+      "passes": true,
+      "actual": "a9bfdc2db3ab96d242e12c7d2082ca1fbb9aac5b5126c6c689d462f4be83e492",
+      "expected": "a9bfdc2db3ab96d242e12c7d2082ca1fbb9aac5b5126c6c689d462f4be83e492"
+    },
+    {
+      "name": "input hash clear-positive",
+      "passes": true,
+      "actual": "d0b672bc95bcff4f89b197053067ca6ed345ab4f8be173351a768c4a283c6796",
+      "expected": "d0b672bc95bcff4f89b197053067ca6ed345ab4f8be173351a768c4a283c6796"
+    },
+    {
+      "name": "input hash column-positive",
+      "passes": true,
+      "actual": "557b803851325321d445e5dfef809a44251160e54e933a4634753a86d863e8ee",
+      "expected": "557b803851325321d445e5dfef809a44251160e54e933a4634753a86d863e8ee"
+    },
+    {
+      "name": "contained fixture column-positive/input.csv",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes column-positive",
+      "passes": true,
+      "actual": "YSxiYgpjYyxkCg==",
+      "expected": "YSxiYgpjYyxkCg=="
+    },
+    {
+      "name": "input hash compgen-positive",
+      "passes": true,
+      "actual": "8445ad75a305b704c38cdaed9d597fcb0071a44783491265d4ba342aa8cae1d2",
+      "expected": "8445ad75a305b704c38cdaed9d597fcb0071a44783491265d4ba342aa8cae1d2"
+    },
+    {
+      "name": "input hash complete-positive",
+      "passes": true,
+      "actual": "5c27041f504a9472ad5ac592545797a124bb6be7063247ff05dc8d1ae6869bac",
+      "expected": "5c27041f504a9472ad5ac592545797a124bb6be7063247ff05dc8d1ae6869bac"
+    },
+    {
+      "name": "input hash compopt-positive",
+      "passes": true,
+      "actual": "91b02b51c58b2147704422a6920dddfa87653f39dcba5b707e856290b99b5886",
+      "expected": "91b02b51c58b2147704422a6920dddfa87653f39dcba5b707e856290b99b5886"
+    },
+    {
+      "name": "input hash date-positive",
+      "passes": true,
+      "actual": "91e3ed20441d54980454b8d1efe67db44cd718c36cfe86cb489984ca60af9d84",
+      "expected": "91e3ed20441d54980454b8d1efe67db44cd718c36cfe86cb489984ca60af9d84"
+    },
+    {
+      "name": "input hash declare-positive",
+      "passes": true,
+      "actual": "f3162ee8c8a95255a3c63fb8d0d9f2b3fa1b60fda6f3f1fd0f08cfebe18a9039",
+      "expected": "f3162ee8c8a95255a3c63fb8d0d9f2b3fa1b60fda6f3f1fd0f08cfebe18a9039"
+    },
+    {
+      "name": "input hash dirs-positive",
+      "passes": true,
+      "actual": "360942aedf12996dad5dd47651cd8384f6d812fd29484f0cc7f32acfdef1918e",
+      "expected": "360942aedf12996dad5dd47651cd8384f6d812fd29484f0cc7f32acfdef1918e"
+    },
+    {
+      "name": "contained fixture dirs-positive/sub",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "input hash du-positive",
+      "passes": true,
+      "actual": "c7cab415ae6517b60161bed271954d88d1c3f330c46b7feaf0e88c2fb5e7639e",
+      "expected": "c7cab415ae6517b60161bed271954d88d1c3f330c46b7feaf0e88c2fb5e7639e"
+    },
+    {
+      "name": "contained fixture du-positive/data.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes du-positive",
+      "passes": true,
+      "actual": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg=",
+      "expected": "eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHg="
+    },
+    {
+      "name": "input hash egrep-positive",
+      "passes": true,
+      "actual": "b83931e3df279044eaf0c9e7d581da1474509ac8a749a94ee3795792db04c996",
+      "expected": "b83931e3df279044eaf0c9e7d581da1474509ac8a749a94ee3795792db04c996"
+    },
+    {
+      "name": "contained fixture egrep-positive/colors",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes egrep-positive",
+      "passes": true,
+      "actual": "cmVkCmdyZWVuCmJsdWUK",
+      "expected": "cmVkCmdyZWVuCmJsdWUK"
+    },
+    {
+      "name": "input hash exec-positive",
+      "passes": true,
+      "actual": "576a9551bc3a3db1381774acc6262d0edc32b03fa38738f653d74abb55cb8c62",
+      "expected": "576a9551bc3a3db1381774acc6262d0edc32b03fa38738f653d74abb55cb8c62"
+    },
+    {
+      "name": "input hash expand-positive",
+      "passes": true,
+      "actual": "fa224a9096818a176518b264856d57d9edb0416364144444f8e1d4fb00bc8809",
+      "expected": "fa224a9096818a176518b264856d57d9edb0416364144444f8e1d4fb00bc8809"
+    },
+    {
+      "name": "contained fixture expand-positive/tabs",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes expand-positive",
+      "passes": true,
+      "actual": "YQliCg==",
+      "expected": "YQliCg=="
+    },
+    {
+      "name": "input hash expr-positive",
+      "passes": true,
+      "actual": "86a57b5b7d1b4028f38832d99a3fc4025674ba2f02fb4ffc948e0b14954da5d6",
+      "expected": "86a57b5b7d1b4028f38832d99a3fc4025674ba2f02fb4ffc948e0b14954da5d6"
+    },
+    {
+      "name": "input hash fgrep-positive",
+      "passes": true,
+      "actual": "1e8eb71f65fc01bc4e71cf13f3bc9acb443c069e14e71cfee17b7ba4c56a4673",
+      "expected": "1e8eb71f65fc01bc4e71cf13f3bc9acb443c069e14e71cfee17b7ba4c56a4673"
+    },
+    {
+      "name": "contained fixture fgrep-positive/literals",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes fgrep-positive",
+      "passes": true,
+      "actual": "YS5iCmF4Ygo=",
+      "expected": "YS5iCmF4Ygo="
+    },
+    {
+      "name": "input hash file-positive",
+      "passes": true,
+      "actual": "5468fc45aa336b0b83b6c0fba09f94656ee45a5c02deb2c5d530d6004382e2f5",
+      "expected": "5468fc45aa336b0b83b6c0fba09f94656ee45a5c02deb2c5d530d6004382e2f5"
+    },
+    {
+      "name": "contained fixture file-positive/note.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes file-positive",
+      "passes": true,
+      "actual": "cGxhaW4gdGV4dAo=",
+      "expected": "cGxhaW4gdGV4dAo="
+    },
+    {
+      "name": "input hash fold-positive",
+      "passes": true,
+      "actual": "84bf60fdb53bfb363cc77b29ed2aa99ad20af27f54bbd59894212ec7b77d3bc7",
+      "expected": "84bf60fdb53bfb363cc77b29ed2aa99ad20af27f54bbd59894212ec7b77d3bc7"
+    },
+    {
+      "name": "contained fixture fold-positive/lines",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes fold-positive",
+      "passes": true,
+      "actual": "YWJjZGVmZ2hpago=",
+      "expected": "YWJjZGVmZ2hpago="
+    },
+    {
+      "name": "input hash getopts-positive",
+      "passes": true,
+      "actual": "3ea9e621f6218e0c77ec2d49672c842186d5731a7086c3c183eb885ceb5ea6da",
+      "expected": "3ea9e621f6218e0c77ec2d49672c842186d5731a7086c3c183eb885ceb5ea6da"
+    },
+    {
+      "name": "input hash hash-positive",
+      "passes": true,
+      "actual": "2b653073fa31e617df660a28644a837c98820ddc754b5e2e31693a112e071516",
+      "expected": "2b653073fa31e617df660a28644a837c98820ddc754b5e2e31693a112e071516"
+    },
+    {
+      "name": "input hash help-positive",
+      "passes": true,
+      "actual": "eec744d631d5c54149f23f31a20b447ca24a5c2e2956a02fbac929733f3b1782",
+      "expected": "eec744d631d5c54149f23f31a20b447ca24a5c2e2956a02fbac929733f3b1782"
+    },
+    {
+      "name": "input hash history-positive",
+      "passes": true,
+      "actual": "0637a663c5d89584a01562d295d0084120e28249a78299c76039cb1216f4a911",
+      "expected": "0637a663c5d89584a01562d295d0084120e28249a78299c76039cb1216f4a911"
+    },
+    {
+      "name": "input hash hostname-positive",
+      "passes": true,
+      "actual": "a26351e344d556d8d9085e1e7d26af3b78a59b5f352e1f204fbc6166889ae675",
+      "expected": "a26351e344d556d8d9085e1e7d26af3b78a59b5f352e1f204fbc6166889ae675"
+    },
+    {
+      "name": "input hash html-to-markdown-positive",
+      "passes": true,
+      "actual": "805e719963515971bd38e2277e99876887a1e16184cdedc4ab3f556d2116dba3",
+      "expected": "805e719963515971bd38e2277e99876887a1e16184cdedc4ab3f556d2116dba3"
+    },
+    {
+      "name": "contained fixture html-to-markdown-positive/page.html",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes html-to-markdown-positive",
+      "passes": true,
+      "actual": "PGgxPlJlbGVhc2U8L2gxPjxwPlJlYWR5IDxzdHJvbmc+bm93PC9zdHJvbmc+LjwvcD4=",
+      "expected": "PGgxPlJlbGVhc2U8L2gxPjxwPlJlYWR5IDxzdHJvbmc+bm93PC9zdHJvbmc+LjwvcD4="
+    },
+    {
+      "name": "input hash let-positive",
+      "passes": true,
+      "actual": "c538509cd3fa5d4df694d09ff9d8fd02014d633785925414d35e0f44b3062c0c",
+      "expected": "c538509cd3fa5d4df694d09ff9d8fd02014d633785925414d35e0f44b3062c0c"
+    },
+    {
+      "name": "input hash mapfile-positive",
+      "passes": true,
+      "actual": "ab2530fe86650331df276368f90009093ec6cb3f47518913bd97aefcc1726b57",
+      "expected": "ab2530fe86650331df276368f90009093ec6cb3f47518913bd97aefcc1726b57"
+    },
+    {
+      "name": "contained fixture mapfile-positive/rows.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes mapfile-positive",
+      "passes": true,
+      "actual": "YWxwaGEKYmV0YQo=",
+      "expected": "YWxwaGEKYmV0YQo="
+    },
+    {
+      "name": "input hash nl-positive",
+      "passes": true,
+      "actual": "5e7b8fa03fc2dccfd5ce139855acabbdf216e8278a15815b9500efa41e147245",
+      "expected": "5e7b8fa03fc2dccfd5ce139855acabbdf216e8278a15815b9500efa41e147245"
+    },
+    {
+      "name": "contained fixture nl-positive/lines",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes nl-positive",
+      "passes": true,
+      "actual": "YWxwaGEKCmJldGEK",
+      "expected": "YWxwaGEKCmJldGEK"
+    },
+    {
+      "name": "input hash popd-positive",
+      "passes": true,
+      "actual": "daed285149b8a9c9ef9fe092c06894ec59be2317c4146a5e67ea3d3d0cf770ac",
+      "expected": "daed285149b8a9c9ef9fe092c06894ec59be2317c4146a5e67ea3d3d0cf770ac"
+    },
+    {
+      "name": "contained fixture popd-positive/sub",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "input hash printenv-positive",
+      "passes": true,
+      "actual": "bac2be05910cda092e6f76a7de1e14d0a28e3552ee2c2dac0fb39c25542ec1e7",
+      "expected": "bac2be05910cda092e6f76a7de1e14d0a28e3552ee2c2dac0fb39c25542ec1e7"
+    },
+    {
+      "name": "input hash pushd-positive",
+      "passes": true,
+      "actual": "5f3a2c6179cf7eeac476ce19d559070f4a3d0383b0072c6c6645ed3a66bda1ff",
+      "expected": "5f3a2c6179cf7eeac476ce19d559070f4a3d0383b0072c6c6645ed3a66bda1ff"
+    },
+    {
+      "name": "contained fixture pushd-positive/sub",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "input hash readarray-positive",
+      "passes": true,
+      "actual": "011f6d05fd8934fd7151706cf3fee378ffe5d37abda39a2339d88c1ce741a46d",
+      "expected": "011f6d05fd8934fd7151706cf3fee378ffe5d37abda39a2339d88c1ce741a46d"
+    },
+    {
+      "name": "contained fixture readarray-positive/rows.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes readarray-positive",
+      "passes": true,
+      "actual": "YWxwaGEKYmV0YQo=",
+      "expected": "YWxwaGEKYmV0YQo="
+    },
+    {
+      "name": "input hash rev-positive",
+      "passes": true,
+      "actual": "618a0c79f9718ca88312bb4ef91372f8a8676a896a7bb09d1bc814be613a5dca",
+      "expected": "618a0c79f9718ca88312bb4ef91372f8a8676a896a7bb09d1bc814be613a5dca"
+    },
+    {
+      "name": "contained fixture rev-positive/lines",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes rev-positive",
+      "passes": true,
+      "actual": "YWJjCjEyMwo=",
+      "expected": "YWJjCjEyMwo="
+    },
+    {
+      "name": "input hash seq-positive",
+      "passes": true,
+      "actual": "7bfe6f7f97258161b5a20b0b649cc773117e6c3f7553bda1e0cfd7761e96c2c9",
+      "expected": "7bfe6f7f97258161b5a20b0b649cc773117e6c3f7553bda1e0cfd7761e96c2c9"
+    },
+    {
+      "name": "input hash shopt-positive",
+      "passes": true,
+      "actual": "ed0f81425febf07feea4deada76dbf76becc6e228eac99c2b8061ebeea9fcbca",
+      "expected": "ed0f81425febf07feea4deada76dbf76becc6e228eac99c2b8061ebeea9fcbca"
+    },
+    {
+      "name": "contained fixture shopt-positive/.hidden",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "contained fixture shopt-positive/visible",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes shopt-positive",
+      "passes": true,
+      "actual": "aGlkZGVuCg==",
+      "expected": "aGlkZGVuCg=="
+    },
+    {
+      "name": "canonical bytes shopt-positive",
+      "passes": true,
+      "actual": "dmlzaWJsZQo=",
+      "expected": "dmlzaWJsZQo="
+    },
+    {
+      "name": "input hash sleep-positive",
+      "passes": true,
+      "actual": "eac21117bad870a1e92c70cff9dcc1752fd240c9020ee553f19819d0721853a5",
+      "expected": "eac21117bad870a1e92c70cff9dcc1752fd240c9020ee553f19819d0721853a5"
+    },
+    {
+      "name": "input hash split-positive",
+      "passes": true,
+      "actual": "022d4313164f945c4e2cce24e3cfb8e617880ab3d88250fc8683194ae0d4cbf0",
+      "expected": "022d4313164f945c4e2cce24e3cfb8e617880ab3d88250fc8683194ae0d4cbf0"
+    },
+    {
+      "name": "contained fixture split-positive/rows",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes split-positive",
+      "passes": true,
+      "actual": "YWxwaGEKYmV0YQpnYW1tYQo=",
+      "expected": "YWxwaGEKYmV0YQpnYW1tYQo="
+    },
+    {
+      "name": "input hash sqlite3-positive",
+      "passes": true,
+      "actual": "fdbbd70227694474404465a8ad9d1d94c34abcbf85552df708f328cc219d7569",
+      "expected": "fdbbd70227694474404465a8ad9d1d94c34abcbf85552df708f328cc219d7569"
+    },
+    {
+      "name": "input hash strings-positive",
+      "passes": true,
+      "actual": "be2225eddd6fb237a2a61fce9689187b8de985e163d0d3107ab6eba7d59b7fab",
+      "expected": "be2225eddd6fb237a2a61fce9689187b8de985e163d0d3107ab6eba7d59b7fab"
+    },
+    {
+      "name": "contained fixture strings-positive/blob",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes strings-positive",
+      "passes": true,
+      "actual": "AAFIRUxMTwACV09STEQA",
+      "expected": "AAFIRUxMTwACV09STEQA"
+    },
+    {
+      "name": "input hash tac-positive",
+      "passes": true,
+      "actual": "3b5c9d4f26e6f11741c59cde731b63787700d90973ae9e456514b38dbfc88469",
+      "expected": "3b5c9d4f26e6f11741c59cde731b63787700d90973ae9e456514b38dbfc88469"
+    },
+    {
+      "name": "contained fixture tac-positive/rows",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes tac-positive",
+      "passes": true,
+      "actual": "YWxwaGEKYmV0YQpnYW1tYQo=",
+      "expected": "YWxwaGEKYmV0YQpnYW1tYQo="
+    },
+    {
+      "name": "input hash time-positive",
+      "passes": true,
+      "actual": "fc56ec17d8fff0851b8549e90c8d49d734329e11047fcb4ecf29c28a5c172c1f",
+      "expected": "fc56ec17d8fff0851b8549e90c8d49d734329e11047fcb4ecf29c28a5c172c1f"
+    },
+    {
+      "name": "input hash timeout-positive",
+      "passes": true,
+      "actual": "0f909f54310dd771d177c7b5f557860f9c4a3e6712ab5d4e1bdce258cb9fe7d8",
+      "expected": "0f909f54310dd771d177c7b5f557860f9c4a3e6712ab5d4e1bdce258cb9fe7d8"
+    },
+    {
+      "name": "input hash tree-positive",
+      "passes": true,
+      "actual": "663875a73c52040deffdd3c0015842c913ffaf809332c21a3a47ccc0538c9db2",
+      "expected": "663875a73c52040deffdd3c0015842c913ffaf809332c21a3a47ccc0538c9db2"
+    },
+    {
+      "name": "contained fixture tree-positive/tree-input/a.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "contained fixture tree-positive/tree-input/sub/b.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes tree-positive",
+      "passes": true,
+      "actual": "YQo=",
+      "expected": "YQo="
+    },
+    {
+      "name": "canonical bytes tree-positive",
+      "passes": true,
+      "actual": "Ygo=",
+      "expected": "Ygo="
+    },
+    {
+      "name": "input hash typeset-positive",
+      "passes": true,
+      "actual": "588e0ddb532bcb96a603d4fe589f0348fca95a7a2a2a86a7810cc96d381aaf36",
+      "expected": "588e0ddb532bcb96a603d4fe589f0348fca95a7a2a2a86a7810cc96d381aaf36"
+    },
+    {
+      "name": "input hash unalias-positive",
+      "passes": true,
+      "actual": "aba1f56ced64ec16a7e47c805f512588ed6598e115b8c9f73f7c85d2eaf69853",
+      "expected": "aba1f56ced64ec16a7e47c805f512588ed6598e115b8c9f73f7c85d2eaf69853"
+    },
+    {
+      "name": "input hash unexpand-positive",
+      "passes": true,
+      "actual": "7fbadb96af991933d59ca09e85cbde2a5fd9844d48c97f29af84accc16241dfd",
+      "expected": "7fbadb96af991933d59ca09e85cbde2a5fd9844d48c97f29af84accc16241dfd"
+    },
+    {
+      "name": "contained fixture unexpand-positive/spaces",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes unexpand-positive",
+      "passes": true,
+      "actual": "YSAgIGIK",
+      "expected": "YSAgIGIK"
+    },
+    {
+      "name": "input hash wait-positive",
+      "passes": true,
+      "actual": "6cef264ca890d94fb6408472d72742d8d23e1c425134df9c1f652f7a8b1c0b61",
+      "expected": "6cef264ca890d94fb6408472d72742d8d23e1c425134df9c1f652f7a8b1c0b61"
+    },
+    {
+      "name": "input hash which-positive",
+      "passes": true,
+      "actual": "caeb23511f48e14faf3ca9241a8cf2563a804bdaecb71b53d6b693c80426813e",
+      "expected": "caeb23511f48e14faf3ca9241a8cf2563a804bdaecb71b53d6b693c80426813e"
+    },
+    {
+      "name": "input hash whoami-positive",
+      "passes": true,
+      "actual": "69cefbafce5be302644a7db3f052778e35edfd71f08ea0a279189698f9c9d09b",
+      "expected": "69cefbafce5be302644a7db3f052778e35edfd71f08ea0a279189698f9c9d09b"
+    },
+    {
+      "name": "input hash xan-positive",
+      "passes": true,
+      "actual": "80c216230bb8b0a9686e47f4632e4595b3ba303590a19f7490964607aa8bd915",
+      "expected": "80c216230bb8b0a9686e47f4632e4595b3ba303590a19f7490964607aa8bd915"
+    },
+    {
+      "name": "contained fixture xan-positive/rows.csv",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes xan-positive",
+      "passes": true,
+      "actual": "bmFtZSx2YWx1ZQphbHBoYSwyCmJldGEsMwo=",
+      "expected": "bmFtZSx2YWx1ZQphbHBoYSwyCmJldGEsMwo="
+    },
+    {
+      "name": "input hash yq-positive",
+      "passes": true,
+      "actual": "45482363c7caa89817b1d5e4a7bb3d3e751f2ab3324e986986d535933b86b82c",
+      "expected": "45482363c7caa89817b1d5e4a7bb3d3e751f2ab3324e986986d535933b86b82c"
+    },
+    {
+      "name": "contained fixture yq-positive/data.yaml",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes yq-positive",
+      "passes": true,
+      "actual": "aXRlbXM6CiAgLSBuYW1lOiBhbHBoYQogIC0gbmFtZTogYmV0YQo=",
+      "expected": "aXRlbXM6CiAgLSBuYW1lOiBhbHBoYQogIC0gbmFtZTogYmV0YQo="
+    },
+    {
+      "name": "input hash js-exec-positive",
+      "passes": true,
+      "actual": "abb0f1a3512c6708492f7f4c9f91972b495f6901c0c0289b379cd5b04a4cc816",
+      "expected": "abb0f1a3512c6708492f7f4c9f91972b495f6901c0c0289b379cd5b04a4cc816"
+    },
+    {
+      "name": "input hash node-positive",
+      "passes": true,
+      "actual": "4a48054a00690eae8de42717dfbcaa393a04a0b7365b67b56a245062526690c0",
+      "expected": "4a48054a00690eae8de42717dfbcaa393a04a0b7365b67b56a245062526690c0"
+    },
+    {
+      "name": "input hash python-positive",
+      "passes": true,
+      "actual": "fb1e18d1b0d8988044d419f059867867cd92cf37f126367124ad04e62b767bd9",
+      "expected": "fb1e18d1b0d8988044d419f059867867cd92cf37f126367124ad04e62b767bd9"
+    },
+    {
+      "name": "input hash python3-positive",
+      "passes": true,
+      "actual": "5fc76537d851eaabeaeb40bf45cabf0bff5e2beea712613f448879016232448c",
+      "expected": "5fc76537d851eaabeaeb40bf45cabf0bff5e2beea712613f448879016232448c"
+    },
+    {
+      "name": "input hash dot-positive",
+      "passes": true,
+      "actual": "5a19c2941e0dfd87b523c556a34b018ef1a839a6b30e425817c55c290d4a0b00",
+      "expected": "5a19c2941e0dfd87b523c556a34b018ef1a839a6b30e425817c55c290d4a0b00"
+    },
+    {
+      "name": "contained fixture dot-positive/loaded.sh",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes dot-positive",
+      "passes": true,
+      "actual": "TE9BREVEX1ZBTFVFPWxvYWRlZAo=",
+      "expected": "TE9BREVEX1ZBTFVFPWxvYWRlZAo="
+    },
+    {
+      "name": "input hash source-positive",
+      "passes": true,
+      "actual": "b860681599422a28728abc8c02146ae42bcecf8b78e714026436340a14dab221",
+      "expected": "b860681599422a28728abc8c02146ae42bcecf8b78e714026436340a14dab221"
+    },
+    {
+      "name": "contained fixture source-positive/loaded.sh",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes source-positive",
+      "passes": true,
+      "actual": "TE9BREVEX1ZBTFVFPWxvYWRlZAo=",
+      "expected": "TE9BREVEX1ZBTFVFPWxvYWRlZAo="
+    },
+    {
+      "name": "input hash eval-positive",
+      "passes": true,
+      "actual": "0fb7a91070cb0eeed7fd8a86c12e8c01b39af2a7990dd1de3eae5591cced069f",
+      "expected": "0fb7a91070cb0eeed7fd8a86c12e8c01b39af2a7990dd1de3eae5591cced069f"
+    },
+    {
+      "name": "input hash printf-positive",
+      "passes": true,
+      "actual": "0ca4946151daa1f66a95df8fc74c86037f153813bcdba912b1b0f00172099122",
+      "expected": "0ca4946151daa1f66a95df8fc74c86037f153813bcdba912b1b0f00172099122"
+    },
+    {
+      "name": "input hash terminal-byte-control",
+      "passes": true,
+      "actual": "1a04b236a306a7aeef6ed2d6ab9408fbd271a2d3a05a67863e396fbb9fe4b141",
+      "expected": "1a04b236a306a7aeef6ed2d6ab9408fbd271a2d3a05a67863e396fbb9fe4b141"
+    },
+    {
+      "name": "input hash curl-positive",
+      "passes": true,
+      "actual": "6eb4be7020cf0a392abf3fc2af724fbfd3cb73a840a66ed8523bb6d1d16787e6",
+      "expected": "6eb4be7020cf0a392abf3fc2af724fbfd3cb73a840a66ed8523bb6d1d16787e6"
+    },
+    {
+      "name": "input hash vfs-census-control",
+      "passes": true,
+      "actual": "6ab64642ba53d5c7fc7daf42ef211406d466c045b91ed4759cc101ee129cb2ab",
+      "expected": "6ab64642ba53d5c7fc7daf42ef211406d466c045b91ed4759cc101ee129cb2ab"
+    },
+    {
+      "name": "contained fixture vfs-census-control/control-file",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "contained fixture vfs-census-control/control-link",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes vfs-census-control",
+      "passes": true,
+      "actual": "bGlua2VkCg==",
+      "expected": "bGlua2VkCg=="
+    },
+    {
+      "name": "input hash compopt-direct-diagnostic",
+      "passes": true,
+      "actual": "8222847f83e40739e8baeace3d412e6656a321a78679a2d206cbea9d8ac413fb",
+      "expected": "8222847f83e40739e8baeace3d412e6656a321a78679a2d206cbea9d8ac413fb"
+    },
+    {
+      "name": "no diagnostic credit compopt-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "input hash dirs-direct-diagnostic",
+      "passes": true,
+      "actual": "79daa23ae8a1ef6b2c26258f06487749546ac3cdb72a568554babc6e2a19e2d9",
+      "expected": "79daa23ae8a1ef6b2c26258f06487749546ac3cdb72a568554babc6e2a19e2d9"
+    },
+    {
+      "name": "no diagnostic credit dirs-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "input hash popd-direct-diagnostic",
+      "passes": true,
+      "actual": "f669e36fb41f0260e1deb6637ac618326b25357bf986d491f7dfe7fc15b12b65",
+      "expected": "f669e36fb41f0260e1deb6637ac618326b25357bf986d491f7dfe7fc15b12b65"
+    },
+    {
+      "name": "no diagnostic credit popd-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "input hash unalias-direct-diagnostic",
+      "passes": true,
+      "actual": "bc05257e2ae1a337941beb19a89085efe9d998dcdf8d1dfe72d25349b20ee351",
+      "expected": "bc05257e2ae1a337941beb19a89085efe9d998dcdf8d1dfe72d25349b20ee351"
+    },
+    {
+      "name": "no diagnostic credit unalias-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "input hash wait-direct-diagnostic",
+      "passes": true,
+      "actual": "5bd8059e10b9f2f9ec0092bb9ebb88c6d0c8423ed18e3a81a36f8232bffaae41",
+      "expected": "5bd8059e10b9f2f9ec0092bb9ebb88c6d0c8423ed18e3a81a36f8232bffaae41"
+    },
+    {
+      "name": "no diagnostic credit wait-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "input hash mapfile-direct-diagnostic",
+      "passes": true,
+      "actual": "788c21589ae27b8e2d930484c250aa7298bfa4152f1b5a61d2851821a2b723e3",
+      "expected": "788c21589ae27b8e2d930484c250aa7298bfa4152f1b5a61d2851821a2b723e3"
+    },
+    {
+      "name": "contained fixture mapfile-direct-diagnostic/rows.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes mapfile-direct-diagnostic",
+      "passes": true,
+      "actual": "YWxwaGEKYmV0YQo=",
+      "expected": "YWxwaGEKYmV0YQo="
+    },
+    {
+      "name": "no diagnostic credit mapfile-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "input hash readarray-direct-diagnostic",
+      "passes": true,
+      "actual": "648787b614c4bf7a362a157c93b4e986cda333b9cd872076204cf7f4291b2dfe",
+      "expected": "648787b614c4bf7a362a157c93b4e986cda333b9cd872076204cf7f4291b2dfe"
+    },
+    {
+      "name": "contained fixture readarray-direct-diagnostic/rows.txt",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "canonical bytes readarray-direct-diagnostic",
+      "passes": true,
+      "actual": "YWxwaGEKYmV0YQo=",
+      "expected": "YWxwaGEKYmV0YQo="
+    },
+    {
+      "name": "no diagnostic credit readarray-direct-diagnostic",
+      "passes": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "snapshot source hash",
+      "passes": true,
+      "actual": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732",
+      "expected": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732"
+    },
+    {
+      "name": "same pinned source",
+      "passes": true,
+      "actual": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732",
+      "expected": "30f5cfb47f69af0aeb4460fa901904d0b70f4ca8594013f70aa308dafb379732"
+    },
+    {
+      "name": "frozen definition sed",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition awk",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition jq",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition rg",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition base32",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition base64",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition xxd",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition od",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition sha256sum",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition sha1sum",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition md5sum",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition cksum",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition gzip",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition gunzip",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition zcat",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition diff",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition patch",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition chmod",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition stat",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition mktemp",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition tar",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition paste",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition comm",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen definition join",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "frozen registry static definitions",
+      "passes": true,
+      "actual": [
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "cat",
+        "chmod",
+        "cksum",
+        "comm",
+        "cp",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "false",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "pwd",
+        "readlink",
+        "realpath",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "true",
+        "uniq",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ],
+      "expected": [
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "cat",
+        "chmod",
+        "cksum",
+        "comm",
+        "cp",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "false",
+        "find",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "pwd",
+        "readlink",
+        "realpath",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "stat",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "true",
+        "uniq",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ]
+    },
+    {
+      "name": "frozen ours concrete kernel",
+      "passes": true,
+      "actual": [
+        ".",
+        ":",
+        "break",
+        "cd",
+        "command",
+        "continue",
+        "eval",
+        "exit",
+        "export",
+        "false",
+        "local",
+        "pwd",
+        "read",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "source",
+        "true",
+        "type",
+        "unset"
+      ],
+      "expected": [
+        ".",
+        ":",
+        "break",
+        "cd",
+        "command",
+        "continue",
+        "eval",
+        "exit",
+        "export",
+        "false",
+        "local",
+        "pwd",
+        "read",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "source",
+        "true",
+        "type",
+        "unset"
+      ]
+    },
+    {
+      "name": "pinned baseline registry",
+      "passes": true,
+      "actual": [
+        "alias",
+        "awk",
+        "base64",
+        "basename",
+        "bash",
+        "cat",
+        "chmod",
+        "clear",
+        "column",
+        "comm",
+        "cp",
+        "cut",
+        "date",
+        "diff",
+        "dirname",
+        "du",
+        "echo",
+        "egrep",
+        "env",
+        "expand",
+        "expr",
+        "false",
+        "fgrep",
+        "file",
+        "find",
+        "fold",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mv",
+        "nl",
+        "od",
+        "paste",
+        "printenv",
+        "printf",
+        "pwd",
+        "readlink",
+        "rev",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "seq",
+        "sh",
+        "sha1sum",
+        "sha256sum",
+        "sleep",
+        "sort",
+        "split",
+        "sqlite3",
+        "stat",
+        "strings",
+        "tac",
+        "tail",
+        "tar",
+        "tee",
+        "time",
+        "timeout",
+        "touch",
+        "tr",
+        "tree",
+        "true",
+        "unalias",
+        "unexpand",
+        "uniq",
+        "wc",
+        "which",
+        "whoami",
+        "xan",
+        "xargs",
+        "yq",
+        "zcat"
+      ],
+      "expected": [
+        "alias",
+        "awk",
+        "base64",
+        "basename",
+        "bash",
+        "cat",
+        "chmod",
+        "clear",
+        "column",
+        "comm",
+        "cp",
+        "cut",
+        "date",
+        "diff",
+        "dirname",
+        "du",
+        "echo",
+        "egrep",
+        "env",
+        "expand",
+        "expr",
+        "false",
+        "fgrep",
+        "file",
+        "find",
+        "fold",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mv",
+        "nl",
+        "od",
+        "paste",
+        "printenv",
+        "printf",
+        "pwd",
+        "readlink",
+        "rev",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "seq",
+        "sh",
+        "sha1sum",
+        "sha256sum",
+        "sleep",
+        "sort",
+        "split",
+        "sqlite3",
+        "stat",
+        "strings",
+        "tac",
+        "tail",
+        "tar",
+        "tee",
+        "time",
+        "timeout",
+        "touch",
+        "tr",
+        "tree",
+        "true",
+        "unalias",
+        "unexpand",
+        "uniq",
+        "wc",
+        "which",
+        "whoami",
+        "xan",
+        "xargs",
+        "yq",
+        "zcat"
+      ]
+    },
+    {
+      "name": "pinned concrete baseline dispatch",
+      "passes": true,
+      "actual": [
+        ".",
+        ":",
+        "[",
+        "break",
+        "builtin",
+        "cd",
+        "command",
+        "compgen",
+        "complete",
+        "compopt",
+        "continue",
+        "declare",
+        "dirs",
+        "eval",
+        "exec",
+        "exit",
+        "export",
+        "false",
+        "getopts",
+        "hash",
+        "help",
+        "let",
+        "local",
+        "mapfile",
+        "popd",
+        "pushd",
+        "read",
+        "readarray",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "shopt",
+        "source",
+        "test",
+        "true",
+        "type",
+        "typeset",
+        "unset",
+        "wait"
+      ],
+      "expected": [
+        ".",
+        ":",
+        "[",
+        "break",
+        "builtin",
+        "cd",
+        "command",
+        "compgen",
+        "complete",
+        "compopt",
+        "continue",
+        "declare",
+        "dirs",
+        "eval",
+        "exec",
+        "exit",
+        "export",
+        "false",
+        "getopts",
+        "hash",
+        "help",
+        "let",
+        "local",
+        "mapfile",
+        "popd",
+        "pushd",
+        "read",
+        "readarray",
+        "readonly",
+        "return",
+        "set",
+        "shift",
+        "shopt",
+        "source",
+        "test",
+        "true",
+        "type",
+        "typeset",
+        "unset",
+        "wait"
+      ]
+    },
+    {
+      "name": "exact current default difference",
+      "passes": true,
+      "actual": [
+        "alias",
+        "builtin",
+        "clear",
+        "column",
+        "compgen",
+        "complete",
+        "compopt",
+        "date",
+        "declare",
+        "dirs",
+        "du",
+        "egrep",
+        "exec",
+        "expand",
+        "expr",
+        "fgrep",
+        "file",
+        "fold",
+        "getopts",
+        "hash",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "let",
+        "mapfile",
+        "nl",
+        "popd",
+        "printenv",
+        "pushd",
+        "readarray",
+        "rev",
+        "seq",
+        "shopt",
+        "sleep",
+        "split",
+        "sqlite3",
+        "strings",
+        "tac",
+        "time",
+        "timeout",
+        "tree",
+        "typeset",
+        "unalias",
+        "unexpand",
+        "wait",
+        "which",
+        "whoami",
+        "xan",
+        "yq"
+      ],
+      "expected": [
+        "alias",
+        "builtin",
+        "clear",
+        "column",
+        "compgen",
+        "complete",
+        "compopt",
+        "date",
+        "declare",
+        "dirs",
+        "du",
+        "egrep",
+        "exec",
+        "expand",
+        "expr",
+        "fgrep",
+        "file",
+        "fold",
+        "getopts",
+        "hash",
+        "help",
+        "history",
+        "hostname",
+        "html-to-markdown",
+        "let",
+        "mapfile",
+        "nl",
+        "popd",
+        "printenv",
+        "pushd",
+        "readarray",
+        "rev",
+        "seq",
+        "shopt",
+        "sleep",
+        "split",
+        "sqlite3",
+        "strings",
+        "tac",
+        "time",
+        "timeout",
+        "tree",
+        "typeset",
+        "unalias",
+        "unexpand",
+        "wait",
+        "which",
+        "whoami",
+        "xan",
+        "yq"
+      ]
+    },
+    {
+      "name": "classifier phantom exclusions",
+      "passes": true,
+      "actual": [
+        "bg",
+        "caller",
+        "disown",
+        "enable",
+        "fc",
+        "fg",
+        "jobs",
+        "kill",
+        "suspend",
+        "times",
+        "trap",
+        "ulimit",
+        "umask"
+      ],
+      "expected": [
+        "bg",
+        "caller",
+        "disown",
+        "enable",
+        "fc",
+        "fg",
+        "jobs",
+        "kill",
+        "suspend",
+        "times",
+        "trap",
+        "ulimit",
+        "umask"
+      ]
+    },
+    {
+      "name": "node remains diagnostic stub",
+      "passes": true,
+      "actual": "nodeStubCommand",
+      "expected": "nodeStubCommand"
+    },
+    {
+      "name": "dependency tree node_modules",
+      "passes": true,
+      "actual": "2f972a7d0212bdfa8b0a5d17e40701effd1f998973acdb75c945516a497eec1c",
+      "expected": "2f972a7d0212bdfa8b0a5d17e40701effd1f998973acdb75c945516a497eec1c"
+    },
+    {
+      "name": "dependency tree benchmarks/node_modules",
+      "passes": true,
+      "actual": "f08e64c4d83b8f75c43c6cb788b27df27159866ae72fbdc2f81f5504979254d4",
+      "expected": "f08e64c4d83b8f75c43c6cb788b27df27159866ae72fbdc2f81f5504979254d4"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "passes": true,
+      "actual": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973",
+      "expected": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "passes": true,
+      "actual": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173",
+      "expected": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "passes": true,
+      "actual": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f",
+      "expected": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "passes": true,
+      "actual": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42",
+      "expected": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "passes": true,
+      "actual": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee",
+      "expected": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "passes": true,
+      "actual": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915",
+      "expected": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+      "passes": true,
+      "actual": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a",
+      "expected": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.wasm",
+      "passes": true,
+      "actual": "e346c792a99a6a3a5886a1b173015b3a7839d6800a7378695eb49db1a470160c",
+      "expected": "e346c792a99a6a3a5886a1b173015b3a7839d6800a7378695eb49db1a470160c"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.wasm",
+      "passes": true,
+      "actual": "4d2f9f8adf28c48ed273515b815e05ae9a698b54955f7348e951faf43b1febc3",
+      "expected": "4d2f9f8adf28c48ed273515b815e05ae9a698b54955f7348e951faf43b1febc3"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.wasm",
+      "passes": true,
+      "actual": "b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba",
+      "expected": "b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba"
+    },
+    {
+      "name": "runtime asset benchmarks/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+      "passes": true,
+      "actual": "105c3bed22d457e43e3d1c3c1c6959fda62a8fe06f0fc8a985303c3a2be72232",
+      "expected": "105c3bed22d457e43e3d1c3c1c6959fda62a8fe06f0fc8a985303c3a2be72232"
+    },
+    {
+      "name": "installed version",
+      "passes": true,
+      "actual": "3.4.2",
+      "expected": "3.4.2"
+    },
+    {
+      "name": "lock version",
+      "passes": true,
+      "actual": "3.4.2",
+      "expected": "3.4.2"
+    },
+    {
+      "name": "node binary",
+      "passes": true,
+      "actual": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "expected": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "name": "explicit optional JavaScript",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "explicit optional Python",
+      "passes": true,
+      "actual": true,
+      "expected": true
+    }
+  ],
+  "passes": true,
+  "counts": {
+    "primary": 61,
+    "diagnostics": 7,
+    "declaredEngineAttempts": 136,
+    "oursRegistry": 56,
+    "oursUnion": 76,
+    "baselineRegistry": 83,
+    "baselineUnion": 120,
+    "defaultTargets": 50,
+    "optionalTargets": 4,
+    "excludedPhantoms": 13
+  },
+  "definitions": [
+    {
+      "name": "true",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "false",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "echo",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "pwd",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "basename",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "dirname",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "printf",
+      "path": "commands/basic.ts"
+    },
+    {
+      "name": "mkdir",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "touch",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "cp",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "mv",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "rm",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "rmdir",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "ln",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "readlink",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "realpath",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "ls",
+      "path": "commands/filesystem.ts"
+    },
+    {
+      "name": "cat",
+      "path": "commands/streams.ts"
+    },
+    {
+      "name": "wc",
+      "path": "commands/streams.ts"
+    },
+    {
+      "name": "tee",
+      "path": "commands/streams.ts"
+    },
+    {
+      "name": "tr",
+      "path": "commands/streams.ts"
+    },
+    {
+      "name": "sort",
+      "path": "commands/text.ts"
+    },
+    {
+      "name": "uniq",
+      "path": "commands/text.ts"
+    },
+    {
+      "name": "cut",
+      "path": "commands/text.ts"
+    },
+    {
+      "name": "grep",
+      "path": "commands/grep.ts"
+    },
+    {
+      "name": "env",
+      "path": "commands/execution.ts"
+    },
+    {
+      "name": "xargs",
+      "path": "commands/execution.ts"
+    },
+    {
+      "name": "find",
+      "path": "commands/find.ts"
+    },
+    {
+      "name": "head",
+      "path": "commands/streams.ts"
+    },
+    {
+      "name": "tail",
+      "path": "commands/streams.ts"
+    },
+    {
+      "name": "test",
+      "path": "commands/predicates.ts"
+    },
+    {
+      "name": "[",
+      "path": "commands/predicates.ts"
+    },
+    {
+      "name": "sed",
+      "path": "commands/text-programs/sed.ts"
+    },
+    {
+      "name": "awk",
+      "path": "commands/text-programs/awk.ts"
+    },
+    {
+      "name": "jq",
+      "path": "commands/structured/jq.ts"
+    },
+    {
+      "name": "rg",
+      "path": "commands/search/rg.ts"
+    },
+    {
+      "name": "base32",
+      "path": "commands/bytes/encoding/index.ts"
+    },
+    {
+      "name": "base64",
+      "path": "commands/bytes/encoding/index.ts"
+    },
+    {
+      "name": "xxd",
+      "path": "commands/bytes/encoding/index.ts"
+    },
+    {
+      "name": "od",
+      "path": "commands/bytes/encoding/index.ts"
+    },
+    {
+      "name": "sha256sum",
+      "path": "commands/bytes/checksums/index.ts"
+    },
+    {
+      "name": "sha1sum",
+      "path": "commands/bytes/checksums/index.ts"
+    },
+    {
+      "name": "md5sum",
+      "path": "commands/bytes/checksums/index.ts"
+    },
+    {
+      "name": "cksum",
+      "path": "commands/bytes/checksums/index.ts"
+    },
+    {
+      "name": "gzip",
+      "path": "commands/bytes/compression/index.ts"
+    },
+    {
+      "name": "gunzip",
+      "path": "commands/bytes/compression/index.ts"
+    },
+    {
+      "name": "zcat",
+      "path": "commands/bytes/compression/index.ts"
+    },
+    {
+      "name": "diff",
+      "path": "commands/diff-patch/diff.ts"
+    },
+    {
+      "name": "patch",
+      "path": "commands/diff-patch/patch.ts"
+    },
+    {
+      "name": "chmod",
+      "path": "commands/metadata/chmod.ts"
+    },
+    {
+      "name": "stat",
+      "path": "commands/metadata/stat.ts"
+    },
+    {
+      "name": "mktemp",
+      "path": "commands/metadata/mktemp.ts"
+    },
+    {
+      "name": "tar",
+      "path": "commands/archive/index.ts"
+    },
+    {
+      "name": "paste",
+      "path": "commands/table-text/paste.ts"
+    },
+    {
+      "name": "comm",
+      "path": "commands/table-text/comm.ts"
+    },
+    {
+      "name": "join",
+      "path": "commands/table-text/join.ts"
+    }
+  ],
+  "baselineRegistry": [
+    {
+      "name": "echo",
+      "import": "./chunks/echo-PLLZYM2L.js",
+      "exported": "echoCommand"
+    },
+    {
+      "name": "cat",
+      "import": "./chunks/cat-33KGN4MZ.js",
+      "exported": "catCommand"
+    },
+    {
+      "name": "printf",
+      "import": "./chunks/printf-V42QCPHL.js",
+      "exported": "printfCommand"
+    },
+    {
+      "name": "ls",
+      "import": "./chunks/ls-R5CQLZQM.js",
+      "exported": "lsCommand"
+    },
+    {
+      "name": "mkdir",
+      "import": "./chunks/mkdir-WDDKK2P3.js",
+      "exported": "mkdirCommand"
+    },
+    {
+      "name": "rmdir",
+      "import": "./chunks/rmdir-WZKAT6M5.js",
+      "exported": "rmdirCommand"
+    },
+    {
+      "name": "touch",
+      "import": "./chunks/touch-W4DF6Z4T.js",
+      "exported": "touchCommand"
+    },
+    {
+      "name": "rm",
+      "import": "./chunks/rm-JQ4GDKDD.js",
+      "exported": "rmCommand"
+    },
+    {
+      "name": "cp",
+      "import": "./chunks/cp-FKTQRFYJ.js",
+      "exported": "cpCommand"
+    },
+    {
+      "name": "mv",
+      "import": "./chunks/mv-XSJA2FNL.js",
+      "exported": "mvCommand"
+    },
+    {
+      "name": "ln",
+      "import": "./chunks/ln-VYDFOFNO.js",
+      "exported": "lnCommand"
+    },
+    {
+      "name": "chmod",
+      "import": "./chunks/chmod-APOXUPXW.js",
+      "exported": "chmodCommand"
+    },
+    {
+      "name": "pwd",
+      "import": "./chunks/pwd-76BPYV5F.js",
+      "exported": "pwdCommand"
+    },
+    {
+      "name": "readlink",
+      "import": "./chunks/readlink-IY6QKK2P.js",
+      "exported": "readlinkCommand"
+    },
+    {
+      "name": "head",
+      "import": "./chunks/head-CFENJILH.js",
+      "exported": "headCommand"
+    },
+    {
+      "name": "tail",
+      "import": "./chunks/tail-BDNMS4FR.js",
+      "exported": "tailCommand"
+    },
+    {
+      "name": "wc",
+      "import": "./chunks/wc-RUR7HE5O.js",
+      "exported": "wcCommand"
+    },
+    {
+      "name": "stat",
+      "import": "./chunks/stat-6KILP5AL.js",
+      "exported": "statCommand"
+    },
+    {
+      "name": "grep",
+      "import": "./chunks/grep-5UPEO42U.js",
+      "exported": "grepCommand"
+    },
+    {
+      "name": "fgrep",
+      "import": "./chunks/grep-5UPEO42U.js",
+      "exported": "fgrepCommand"
+    },
+    {
+      "name": "egrep",
+      "import": "./chunks/grep-5UPEO42U.js",
+      "exported": "egrepCommand"
+    },
+    {
+      "name": "rg",
+      "import": "./chunks/rg-UQE6KUBP.js",
+      "exported": "rgCommand"
+    },
+    {
+      "name": "sed",
+      "import": "./chunks/sed-JW2JDLSI.js",
+      "exported": "sedCommand"
+    },
+    {
+      "name": "awk",
+      "import": "./chunks/awk2-NPLZQ3K7.js",
+      "exported": "awkCommand2"
+    },
+    {
+      "name": "sort",
+      "import": "./chunks/sort-PV2NEQHF.js",
+      "exported": "sortCommand"
+    },
+    {
+      "name": "uniq",
+      "import": "./chunks/uniq-OVOW532K.js",
+      "exported": "uniqCommand"
+    },
+    {
+      "name": "comm",
+      "import": "./chunks/comm-DTWKU2MC.js",
+      "exported": "commCommand"
+    },
+    {
+      "name": "cut",
+      "import": "./chunks/cut-RWPUW5FY.js",
+      "exported": "cutCommand"
+    },
+    {
+      "name": "paste",
+      "import": "./chunks/paste-LLZ3ZQR2.js",
+      "exported": "pasteCommand"
+    },
+    {
+      "name": "tr",
+      "import": "./chunks/tr-3I4MDKIF.js",
+      "exported": "trCommand"
+    },
+    {
+      "name": "rev",
+      "import": "./chunks/rev-EPOS3MFH.js",
+      "exported": "rev"
+    },
+    {
+      "name": "nl",
+      "import": "./chunks/nl-RFXH2GNX.js",
+      "exported": "nl"
+    },
+    {
+      "name": "fold",
+      "import": "./chunks/fold-QJBPHRFJ.js",
+      "exported": "fold"
+    },
+    {
+      "name": "expand",
+      "import": "./chunks/expand-2BPPGGSM.js",
+      "exported": "expand"
+    },
+    {
+      "name": "unexpand",
+      "import": "./chunks/unexpand-YD5BWFH4.js",
+      "exported": "unexpand"
+    },
+    {
+      "name": "strings",
+      "import": "./chunks/strings-WTD7Q2EF.js",
+      "exported": "strings"
+    },
+    {
+      "name": "split",
+      "import": "./chunks/split-2SD6EP72.js",
+      "exported": "split"
+    },
+    {
+      "name": "column",
+      "import": "./chunks/column-LKMDIDCH.js",
+      "exported": "column"
+    },
+    {
+      "name": "join",
+      "import": "./chunks/join-KQ4Z5OD4.js",
+      "exported": "join"
+    },
+    {
+      "name": "tee",
+      "import": "./chunks/tee-OOWSWHRQ.js",
+      "exported": "teeCommand"
+    },
+    {
+      "name": "find",
+      "import": "./chunks/find-PM3TD7V4.js",
+      "exported": "findCommand"
+    },
+    {
+      "name": "basename",
+      "import": "./chunks/basename-SJZQ5W65.js",
+      "exported": "basenameCommand"
+    },
+    {
+      "name": "dirname",
+      "import": "./chunks/dirname-Z2ZMOOW2.js",
+      "exported": "dirnameCommand"
+    },
+    {
+      "name": "tree",
+      "import": "./chunks/tree-7OOL2MH6.js",
+      "exported": "treeCommand"
+    },
+    {
+      "name": "du",
+      "import": "./chunks/du-PR3M44X6.js",
+      "exported": "duCommand"
+    },
+    {
+      "name": "env",
+      "import": "./chunks/env-VUUMB47B.js",
+      "exported": "envCommand"
+    },
+    {
+      "name": "printenv",
+      "import": "./chunks/env-VUUMB47B.js",
+      "exported": "printenvCommand"
+    },
+    {
+      "name": "alias",
+      "import": "./chunks/alias-T5TO5GWK.js",
+      "exported": "aliasCommand"
+    },
+    {
+      "name": "unalias",
+      "import": "./chunks/alias-T5TO5GWK.js",
+      "exported": "unaliasCommand"
+    },
+    {
+      "name": "history",
+      "import": "./chunks/history-3N762S3K.js",
+      "exported": "historyCommand"
+    },
+    {
+      "name": "xargs",
+      "import": "./chunks/xargs-L7TJHOJT.js",
+      "exported": "xargsCommand"
+    },
+    {
+      "name": "true",
+      "import": "./chunks/true-QUBPEGGU.js",
+      "exported": "trueCommand"
+    },
+    {
+      "name": "false",
+      "import": "./chunks/true-QUBPEGGU.js",
+      "exported": "falseCommand"
+    },
+    {
+      "name": "clear",
+      "import": "./chunks/clear-KPIUNI6K.js",
+      "exported": "clearCommand"
+    },
+    {
+      "name": "bash",
+      "import": "./chunks/bash-HIEWVHJ2.js",
+      "exported": "bashCommand"
+    },
+    {
+      "name": "sh",
+      "import": "./chunks/bash-HIEWVHJ2.js",
+      "exported": "shCommand"
+    },
+    {
+      "name": "jq",
+      "import": "./chunks/jq-X2P7Q64K.js",
+      "exported": "jqCommand"
+    },
+    {
+      "name": "base64",
+      "import": "./chunks/base64-2BAITDZF.js",
+      "exported": "base64Command"
+    },
+    {
+      "name": "diff",
+      "import": "./chunks/diff-CSARC7WF.js",
+      "exported": "diffCommand"
+    },
+    {
+      "name": "date",
+      "import": "./chunks/date-FN2DXAEE.js",
+      "exported": "dateCommand"
+    },
+    {
+      "name": "sleep",
+      "import": "./chunks/sleep-PPRBTSVR.js",
+      "exported": "sleepCommand"
+    },
+    {
+      "name": "timeout",
+      "import": "./chunks/timeout-C6WDYPLV.js",
+      "exported": "timeoutCommand"
+    },
+    {
+      "name": "time",
+      "import": "./chunks/time-NERE2JJ2.js",
+      "exported": "timeCommand"
+    },
+    {
+      "name": "seq",
+      "import": "./chunks/seq-5R2GKXC6.js",
+      "exported": "seqCommand"
+    },
+    {
+      "name": "expr",
+      "import": "./chunks/expr-UMT2OHZ7.js",
+      "exported": "exprCommand"
+    },
+    {
+      "name": "md5sum",
+      "import": "./chunks/md5sum-JEDX55KS.js",
+      "exported": "md5sumCommand"
+    },
+    {
+      "name": "sha1sum",
+      "import": "./chunks/sha1sum-BLPZJ6MP.js",
+      "exported": "sha1sumCommand"
+    },
+    {
+      "name": "sha256sum",
+      "import": "./chunks/sha256sum-VJZ4PHQ4.js",
+      "exported": "sha256sumCommand"
+    },
+    {
+      "name": "file",
+      "import": "./chunks/file-VEGKTTSF.js",
+      "exported": "fileCommand"
+    },
+    {
+      "name": "html-to-markdown",
+      "import": "./chunks/html-to-markdown-GGVR4YGL.js",
+      "exported": "htmlToMarkdownCommand"
+    },
+    {
+      "name": "help",
+      "import": "./chunks/help-QDDMBDU7.js",
+      "exported": "helpCommand"
+    },
+    {
+      "name": "which",
+      "import": "./chunks/which-UWVKETYW.js",
+      "exported": "whichCommand"
+    },
+    {
+      "name": "tac",
+      "import": "./chunks/tac-YXC4HBTR.js",
+      "exported": "tac"
+    },
+    {
+      "name": "hostname",
+      "import": "./chunks/hostname-CESD3CQR.js",
+      "exported": "hostname"
+    },
+    {
+      "name": "whoami",
+      "import": "./chunks/whoami-KR6E7UIR.js",
+      "exported": "whoami"
+    },
+    {
+      "name": "od",
+      "import": "./chunks/od-BI6XJPXY.js",
+      "exported": "od"
+    },
+    {
+      "name": "gzip",
+      "import": "./chunks/gzip-ZINVK3M6.js",
+      "exported": "gzipCommand"
+    },
+    {
+      "name": "gunzip",
+      "import": "./chunks/gzip-ZINVK3M6.js",
+      "exported": "gunzipCommand"
+    },
+    {
+      "name": "zcat",
+      "import": "./chunks/gzip-ZINVK3M6.js",
+      "exported": "zcatCommand"
+    },
+    {
+      "name": "tar",
+      "import": "./chunks/tar-6365WH6H.js",
+      "exported": "tarCommand"
+    },
+    {
+      "name": "yq",
+      "import": "./chunks/yq-MI27NZ2U.js",
+      "exported": "yqCommand"
+    },
+    {
+      "name": "xan",
+      "import": "./chunks/xan-HUOXKUQA.js",
+      "exported": "xanCommand"
+    },
+    {
+      "name": "sqlite3",
+      "import": "./chunks/sqlite3-UVVRYDAL.js",
+      "exported": "sqlite3Command"
+    },
+    {
+      "name": "python3",
+      "import": "./chunks/python3-F5S5TYGS.js",
+      "exported": "python3Command"
+    },
+    {
+      "name": "python",
+      "import": "./chunks/python3-F5S5TYGS.js",
+      "exported": "pythonCommand"
+    },
+    {
+      "name": "js-exec",
+      "import": "./chunks/js-exec-XKF2B7C3.js",
+      "exported": "jsExecCommand"
+    },
+    {
+      "name": "node",
+      "import": "./chunks/js-exec-XKF2B7C3.js",
+      "exported": "nodeStubCommand"
+    },
+    {
+      "name": "curl",
+      "import": "./chunks/curl-DEHFBW27.js",
+      "exported": "curlCommand"
+    }
+  ],
+  "dependencies": [
+    {
+      "directory": "node_modules",
+      "sha256": "2f972a7d0212bdfa8b0a5d17e40701effd1f998973acdb75c945516a497eec1c",
+      "files": 318,
+      "symlinks": [
+        {
+          "path": ".bin/esbuild",
+          "type": "symlink",
+          "target": "../esbuild/bin/esbuild",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/esbuild/bin/esbuild",
+          "sha256": "10b6243df618d374bb2d5c9cfbe7052e1405f6aa4e53a6164f11a91b9f2e1384"
+        },
+        {
+          "path": ".bin/tsc",
+          "type": "symlink",
+          "target": "../typescript/bin/tsc",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+          "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+        },
+        {
+          "path": ".bin/tsserver",
+          "type": "symlink",
+          "target": "../typescript/bin/tsserver",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsserver",
+          "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+        },
+        {
+          "path": ".bin/tsx",
+          "type": "symlink",
+          "target": "../tsx/dist/cli.mjs",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/cli.mjs",
+          "sha256": "fd00586b96028510c228365a4eeb1f163dac5245f1d0e40649969cf9560d376b"
+        }
+      ]
+    },
+    {
+      "directory": "benchmarks/node_modules",
+      "sha256": "f08e64c4d83b8f75c43c6cb788b27df27159866ae72fbdc2f81f5504979254d4",
+      "files": 3510,
+      "symlinks": [
+        {
+          "path": ".bin/fxparser",
+          "type": "symlink",
+          "target": "../fast-xml-parser/src/cli/cli.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/fast-xml-parser/src/cli/cli.js",
+          "sha256": "8f5e6ebdc7cd90fa77a5e835fec6a57f399f82ec5eb0dd277b26415a83e29c48"
+        },
+        {
+          "path": ".bin/just-bash",
+          "type": "symlink",
+          "target": "../just-bash/dist/bin/just-bash.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bin/just-bash.js",
+          "sha256": "71999c59118f9d32207af333112fcd67d8397c20331fcc84f67ff590bf5258f6"
+        },
+        {
+          "path": ".bin/just-bash-shell",
+          "type": "symlink",
+          "target": "../just-bash/dist/bin/shell/shell.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bin/shell/shell.js",
+          "sha256": "ec60b11cb49fd3a89e2055f5a6ac1a182adaa9136d6bb8214c5389782213baf9"
+        },
+        {
+          "path": ".bin/node-gyp-build",
+          "type": "symlink",
+          "target": "../node-gyp-build/bin.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-gyp-build/bin.js",
+          "sha256": "dc022adc093b9b79e1a0ef4b6bc3e6a52e3d627102113dad4afacbbe81f13a26"
+        },
+        {
+          "path": ".bin/node-gyp-build-optional",
+          "type": "symlink",
+          "target": "../node-gyp-build/optional.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-gyp-build/optional.js",
+          "sha256": "e0b3a3a04166e6ecf1020cb31c0c4a54432c16d6d88714bd4de2214cf67dec81"
+        },
+        {
+          "path": ".bin/node-gyp-build-test",
+          "type": "symlink",
+          "target": "../node-gyp-build/build-test.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-gyp-build/build-test.js",
+          "sha256": "34c19ff8b6675d6d27c63a7df44d77a442805eeea8756d1c89e0264f4a3028f6"
+        },
+        {
+          "path": ".bin/nxz",
+          "type": "symlink",
+          "target": "../node-liblzma/lib/cli/nxz.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/node-liblzma/lib/cli/nxz.js",
+          "sha256": "302f38e5e5539f629775c6a1183737359ea16cac0d2be2a2745a91cbdfe1de4b"
+        },
+        {
+          "path": ".bin/prebuild-install",
+          "type": "symlink",
+          "target": "../prebuild-install/bin.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/prebuild-install/bin.js",
+          "sha256": "27e6a2d2e63549eb0b3c2d9a9067b7646f9157a120b7f345a12a1e20c997a998"
+        },
+        {
+          "path": ".bin/rc",
+          "type": "symlink",
+          "target": "../rc/cli.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/rc/cli.js",
+          "sha256": "82383f5748af5f9380dbcde8f0166088614bf024e25bdbe073bb87cd385336ba"
+        },
+        {
+          "path": ".bin/seek-bunzip",
+          "type": "symlink",
+          "target": "../seek-bzip/bin/seek-bunzip",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/bin/seek-bunzip",
+          "sha256": "7c8f14a66505a44767d2a3b54c4d5507c9e0b6351ea40aa71dbc846d30b078ec"
+        },
+        {
+          "path": ".bin/seek-table",
+          "type": "symlink",
+          "target": "../seek-bzip/bin/seek-bzip-table",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/seek-bzip/bin/seek-bzip-table",
+          "sha256": "7f2c2b2dcd83396eaa432cf16c1e8396faa814e6e5248590262daa24d5ea08ce"
+        },
+        {
+          "path": ".bin/semver",
+          "type": "symlink",
+          "target": "../semver/bin/semver.js",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/semver/bin/semver.js",
+          "sha256": "bd6c871026985937dc945011fc54b74b47f5998154216d7b8d40d5ed782e4402"
+        },
+        {
+          "path": ".bin/yaml",
+          "type": "symlink",
+          "target": "../yaml/bin.mjs",
+          "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/yaml/bin.mjs",
+          "sha256": "faebbf70669988b5be13130907adf7b788145960448eab08e92e66189e72f448"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/js-exec-worker.js",
+      "links": [],
+      "symlink": null,
+      "sha256": "a3bf9b04270901976d043f8d8ed7146a2939757c46fd3ccd73678be3d857b973"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/worker.js",
+      "links": [],
+      "symlink": null,
+      "sha256": "c8712e2e639dde2eb928770706c6742008d1e31b5e9ffe83b54d082bd21bc173"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/bundle/chunks/sqlite3-worker.js",
+      "links": [],
+      "symlink": null,
+      "sha256": "60f88dd90228eda2024488189a8d5407fe7bc79c26c7e4eac7c6ab5ea17f787f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.cjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "b45f414d674fafeeefbd72b544bf7e5079f230f424371e462bd748eb5f82ec42"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "b2b1a3f18a6fe035d609e3aa47e9508b55729e5f3ebbd2a40d467c0cd3200eee"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/vendor/cpython-emscripten/python313.zip",
+      "links": [],
+      "symlink": null,
+      "sha256": "00b6fb26ce2157860ce0eaae6849ea2b673f32ca06456503176e8d1fe8be4915"
+    },
+    {
+      "path": "benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/sql.js/dist/sql-wasm.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-asyncify/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "e346c792a99a6a3a5886a1b173015b3a7839d6800a7378695eb49db1a470160c"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-debug-sync/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "4d2f9f8adf28c48ed273515b815e05ae9a698b54955f7348e951faf43b1febc3"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-release-asyncify/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "b790f3842eef48d154984cea48d35303b5c3c3696fedab4dc79f314bde005dba"
+    },
+    {
+      "path": "benchmarks/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/@jitl/quickjs-wasmfile-release-sync/dist/emscripten-module.wasm",
+      "links": [],
+      "symlink": null,
+      "sha256": "105c3bed22d457e43e3d1c3c1c6959fda62a8fe06f0fc8a985303c3a2be72232"
+    }
+  ],
+  "harness": [
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+      "frozenSha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/assess.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "4e1ef722249987da598a0765f87e48c021cf5a2f1ec83c09e86d2489c39397eb",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/audit-common.mjs",
+      "frozenSha256": "f091a451e9bc9f54362be119bff9d064fcddf02a173f3ed315c17d24b0be8aa8",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/audit-common.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "f091a451e9bc9f54362be119bff9d064fcddf02a173f3ed315c17d24b0be8aa8",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "frozenSha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/cases.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "45cfbf02a4e68483e2b4f0fe85dc2c72d40a2a6c16ede16420480c80eb160b72",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/engine-child.mjs",
+      "frozenSha256": "cab53ffc60f6e0035c2f3fe56c5eca54d0bc07132c3cb10067ca9463ce483e63",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/engine-child.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "cab53ffc60f6e0035c2f3fe56c5eca54d0bc07132c3cb10067ca9463ce483e63",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/execution-cases.mjs",
+      "frozenSha256": "aea93fbc1f2436033a18e4c4a08f3242ece70a8e17f76bcb1c044fff9e4ee301",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/execution-cases.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "aea93fbc1f2436033a18e4c4a08f3242ece70a8e17f76bcb1c044fff9e4ee301",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/freeze-execution.mjs",
+      "frozenSha256": "a7f2d61d0d140a8dd15e688bce9a0e0c711b8c2f9a5c5a7979b15207bfb943b2",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/freeze-execution.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "a7f2d61d0d140a8dd15e688bce9a0e0c711b8c2f9a5c5a7979b15207bfb943b2",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/prepare.mjs",
+      "frozenSha256": "ed3cae99aa8d43b9e43195c6b76da2bd60a3baa1acee6fdbad5b46b975d6f3bb",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/prepare.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "ed3cae99aa8d43b9e43195c6b76da2bd60a3baa1acee6fdbad5b46b975d6f3bb",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/run.mjs",
+      "frozenSha256": "a4604a6067537575a5794669fb05e0091c18f6f0efcbcefefe66ee1bff3e6570",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/run.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "a4604a6067537575a5794669fb05e0091c18f6f0efcbcefefe66ee1bff3e6570",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/trace-loader.mjs",
+      "frozenSha256": "860b1bfce860ab2992e897c61f76f18ae234cd8e534dd9b31739e8f3b06c79ed",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/trace-loader.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "860b1bfce860ab2992e897c61f76f18ae234cd8e534dd9b31739e8f3b06c79ed",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/trace-register.mjs",
+      "frozenSha256": "fbf1bedceb9422748c9a1820a83cfa4f07ddb6fd29223ac6117729452e7947e5",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/trace-register.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "fbf1bedceb9422748c9a1820a83cfa4f07ddb6fd29223ac6117729452e7947e5",
+      "matches": true
+    },
+    {
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-execution/verify-execution.mjs",
+      "frozenSha256": "75142b714fc3b63120b0214ea9cff3be7c1e7d3c5f63069e050160822880f002",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/benchmarks/reports/baseline-only-20260827/coverage-execution/verify-execution.mjs",
+      "links": [],
+      "symlink": null,
+      "sha256": "75142b714fc3b63120b0214ea9cff3be7c1e7d3c5f63069e050160822880f002",
+      "matches": true
+    }
+  ],
+  "snapshotPackageAndConfig": [
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/package.json",
+      "realpath": "/private/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/package.json",
+      "links": [
+        {
+          "path": "/tmp",
+          "target": "private/tmp",
+          "realpath": "/private/tmp"
+        }
+      ],
+      "symlink": null,
+      "sha256": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b"
+    },
+    {
+      "path": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/tsconfig.json",
+      "realpath": "/private/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/tsconfig.json",
+      "links": [
+        {
+          "path": "/tmp",
+          "target": "private/tmp",
+          "realpath": "/private/tmp"
+        }
+      ],
+      "symlink": null,
+      "sha256": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd"
+    }
+  ],
+  "childEnvironment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307",
+    "TMPDIR": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "USER": "coverage",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_TSCONFIG_PATH": "/tmp/safe-bash-baseline-coverage-execution-1787803035592-37307/tsconfig.json"
+  },
+  "primarySources": {
+    "accessedViaWebRun": "2026-08-27",
+    "upstreamCommit": "a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+    "installedCanonical": true,
+    "documentationClaimsLimitedToOptionsAndStub": true
+  },
+  "limits": [
+    "No product import, constructor, execution, native oracle, or optional worker startup in this static audit.",
+    "Dependency trees use installed byte hashes, not tarball reattestation.",
+    "First attempt remains invalid even if hash/schema checks pass; known IPC/network/scratch faults are not product losses.",
+    "Hash checks do not guarantee absence of transient between-check edits or prove every worker asset file read."
+  ]
+}

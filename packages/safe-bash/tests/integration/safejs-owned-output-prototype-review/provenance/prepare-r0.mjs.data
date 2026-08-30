@@ -1,0 +1,170 @@
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const repository = "/Users/kjopek/Workspace/safe-bash";
+const owned = dirname(fileURLToPath(import.meta.url));
+const evidenceCommit = "e57b5aa16f749b6fac558877dff0712e64df05a8";
+const baseCommit = "c9b96263d1204bdf54e89324cc0c7d1ef6bd3f79";
+const prefix = "tests/shell-stress/first-read-contract-review/";
+const old = prefix + "owned-output-prototype/";
+const streaming = prefix + "owned-output-streaming-prototype/";
+const qualified = prefix + "owned-output-qualified-prototype/";
+const ordering = prefix + "owned-output-qualified-review/ordering-replay-q1/";
+assert.equal(process.cwd(), repository);
+const task = realpathSync(mkdtempSync("/tmp/safe-bash-owned-output-prototype-preparation-"));
+const inputs = join(task, "inputs");
+const candidate = join(task, "candidate");
+const baseline = join(task, "baseline");
+const rebuilt = join(task, "reconstructed");
+for (const name of [inputs, candidate, baseline, rebuilt, join(task, "tmp"), join(task, "home")]) mkdirSync(name, { recursive: true });
+const environment = { PATH: "/usr/bin:/bin", HOME: join(task, "home"), TMPDIR: join(task, "tmp"), TMP: join(task, "tmp"), TEMP: join(task, "tmp"), GIT_OPTIONAL_LOCKS: "0", LC_ALL: "C", TZ: "UTC" };
+const hash = bytes => createHash("sha256").update(bytes).digest("hex");
+const commands = [];
+const frozenInputs = new Map();
+const git = (...args) => execFileSync("/usr/bin/git", ["-C", repository, ...args], { env: environment, timeout: 30000, maxBuffer: 64 * 1024 * 1024 });
+const put = (path, bytes) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, bytes, { flag: "wx" }); };
+const save = (name, value) => put(join(owned, name), JSON.stringify(value, null, 2) + "\n");
+
+function capture(path, expected) {
+  const bytes = git("show", `${evidenceCommit}:${path}`);
+  const sha256 = hash(bytes);
+  if (expected) assert.equal(sha256, expected, path);
+  if (!frozenInputs.has(path)) {
+    put(join(inputs, path), bytes);
+    frozenInputs.set(path, { path, commit: evidenceCommit, bytes: bytes.length, sha256, blob: git("rev-parse", `${evidenceCommit}:${path}`).toString().trim() });
+  }
+  return bytes;
+}
+
+function inventory(root) {
+  const files = [];
+  function visit(directory) {
+    for (const name of readdirSync(directory).sort()) {
+      const path = join(directory, name);
+      const stat = lstatSync(path);
+      assert.equal(stat.isSymbolicLink(), false, path);
+      if (stat.isDirectory()) visit(path);
+      else {
+        assert.ok(stat.isFile(), path);
+        files.push({ path: relative(root, path), bytes: stat.size, sha256: hash(readFileSync(path)) });
+      }
+    }
+  }
+  visit(root);
+  return files.sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0);
+}
+
+function run(executable, args, cwd) {
+  const result = spawnSync(executable, args, { cwd, env: environment, encoding: "utf8", timeout: 60000, maxBuffer: 16 * 1024 * 1024 });
+  const record = { executable, args, cwd, pid: result.pid, status: result.status, signal: result.signal, stdout: result.stdout, stderr: result.stderr, error: result.error?.message };
+  commands.push(record);
+  assert.equal(result.error, undefined, record.error);
+  assert.equal(result.status, 0, JSON.stringify(record));
+  assert.throws(() => process.kill(result.pid, 0), { code: "ESRCH" });
+  record.reaped = true;
+  return result.stdout;
+}
+
+function extract(path, destination) {
+  const names = run("/usr/bin/tar", ["-tzf", path], task).trim().split("\n");
+  assert.ok(names.every(name => !name.startsWith("/") && !name.split("/").includes("..")));
+  const listing = run("/usr/bin/tar", ["-tvzf", path], task).trim().split("\n");
+  assert.ok(listing.every(line => line.startsWith("-") || line.startsWith("d")), "Only regular files/directories");
+  run("/usr/bin/tar", ["-xzf", path, "-C", destination], task);
+}
+
+function validate(root, files) {
+  for (const entry of files) assert.equal(hash(readFileSync(join(root, entry.path))), entry.sha256, entry.path);
+}
+
+function copyRegular(source, destination, files) {
+  for (const entry of files) {
+    const path = join(source, entry.path);
+    assert.ok(lstatSync(path).isFile() && !lstatSync(path).isSymbolicLink(), path);
+    const bytes = readFileSync(path);
+    assert.equal(hash(bytes), entry.sha256, path);
+    put(join(destination, entry.path), bytes);
+  }
+  assert.deepEqual(inventory(destination).map(({ path, sha256 }) => ({ path, sha256 })), files.map(({ path, sha256 }) => ({ path, sha256 })).sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+}
+
+function seal(root) {
+  for (const name of readdirSync(root)) {
+    const path = join(root, name);
+    if (lstatSync(path).isDirectory()) seal(path);
+    else chmodSync(path, 0o444);
+  }
+  chmodSync(root, 0o555);
+}
+
+try {
+  const manifest = JSON.parse(capture(streaming + "tested-manifest.json", "4e84fe7dc3a762654a6bb1865f5f73f259fc61f8aa9bcabb250663ff7c9645f9"));
+  for (const entry of manifest.restoreInputs) capture(entry.path, entry.sha256);
+  const profile = JSON.parse(capture(qualified + "SOURCE-PROFILE.json"));
+  const archive = profile.archives.find(entry => entry.name === "candidate");
+  capture(qualified + archive.path, archive.sha256);
+  for (const cohort of [qualified, ordering]) {
+    const artifacts = JSON.parse(capture(cohort + "ARTIFACTS.json"));
+    for (const entry of artifacts.files) capture(cohort + entry.path, entry.sha256);
+  }
+  for (const name of ["SEAL.json", "restore.mjs.data", "RECONSTRUCTION.md"]) capture(streaming + name);
+  const reconstruction = JSON.parse(readFileSync(join(inputs, old, "reconstruction.json")));
+  assert.equal(reconstruction.baselineHead, baseCommit);
+  extract(join(inputs, old, "baseline.tar.gz.data"), baseline);
+  validate(baseline, reconstruction.files);
+  const baseSource = reconstruction.files.filter(entry => entry.path.startsWith("src/") || manifest.config.some(config => config.path === entry.path));
+  for (const entry of baseSource) assert.equal(hash(git("show", `${baseCommit}:${entry.path}`)), entry.sha256, `Committed base: ${entry.path}`);
+  copyRegular(baseline, rebuilt, inventory(baseline));
+  const patchPaths = [old + "source-r1.patch-data", streaming + "baseline-current-retention.patch-data", streaming + "source-S1-r0.patch-data"];
+  run("/usr/bin/git", ["apply", "--check", join(inputs, patchPaths[0])], rebuilt);
+  run("/usr/bin/git", ["apply", join(inputs, patchPaths[0])], rebuilt);
+  for (const name of ["owned-output-author.test.ts", "adapted-first-read-probe.ts", "adapted-remote-close.test.ts"]) put(join(rebuilt, "tests/shell", name), readFileSync(join(inputs, old, name + ".data")));
+  const v1 = JSON.parse(readFileSync(join(inputs, old, "handoff.json")));
+  validate(rebuilt, [...v1.source, ...v1.tests]);
+  for (const path of patchPaths.slice(1)) {
+    run("/usr/bin/git", ["apply", "--check", join(inputs, path)], rebuilt);
+    run("/usr/bin/git", ["apply", join(inputs, path)], rebuilt);
+  }
+  put(join(rebuilt, "tests/shell/owned-output-streaming-author.test.ts"), readFileSync(join(inputs, streaming, "author-r1.test.ts.data")));
+  validate(rebuilt, [...manifest.source, ...manifest.tests, ...manifest.config]);
+  extract(join(inputs, qualified, archive.path), candidate);
+  assert.deepEqual(inventory(candidate), [...archive.files].sort((left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+  for (const [directory, expected] of [["src", manifest.sourceManifestSha256], ["tests", manifest.testManifestSha256], ["dist", manifest.compiledManifestSha256]]) {
+    const entries = inventory(join(candidate, directory)).map(entry => ({ ...entry, path: directory + "/" + entry.path }));
+    assert.equal(hash(JSON.stringify(entries)), expected, directory);
+    if (directory !== "dist") assert.deepEqual(inventory(join(rebuilt, directory)), inventory(join(candidate, directory)));
+  }
+  validate(candidate, manifest.config);
+  const tooling = [];
+  for (const name of ["typescript", "@types/node", "undici-types"]) {
+    const source = join(repository, "node_modules", name);
+    const files = inventory(source);
+    copyRegular(source, join(task, "node_modules", name), files);
+    tooling.push({ name, source, package: JSON.parse(readFileSync(join(source, "package.json"))).version, files });
+  }
+  for (const entry of manifest.compilerInputs.filter(entry => entry.classification === "existing-authenticated-development-tooling")) assert.equal(hash(readFileSync(entry.path)), entry.sha256, entry.path);
+  assert.equal(hash(readFileSync(process.execPath)), manifest.tools.node.sha256);
+  const privateBefore = JSON.parse(readFileSync(join(owned, "snapshot-before.json"))).private;
+  const engineFiles = Object.entries(privateBefore.engine).map(([path, entry]) => ({ path, ...entry }));
+  copyRegular("/Users/kjopek/Workspace/poe-code/packages/safejs", join(task, "engine"), engineFiles);
+  const priorLoader = "tests/integration/safejs-cleanup-regression/surface/loader.mjs";
+  put(join(task, "loader.mjs"), capture(priorLoader));
+  const output = {
+    at: new Date().toISOString(), status: "ASSEMBLED_SOURCE_AUTHENTICATED_NO_PRODUCT_OR_ENGINE_EXECUTION", task, evidenceCommit, baseCommit,
+    baseTree: git("rev-parse", `${baseCommit}^{tree}`).toString().trim(),
+    baseline, baseSource, candidate, reconstructed: rebuilt, frozenInputs: [...frozenInputs.values()], patchPaths,
+    sourceManifestSha256: manifest.sourceManifestSha256, testManifestSha256: manifest.testManifestSha256, compiledManifestSha256: manifest.compiledManifestSha256,
+    candidateFiles: inventory(candidate), privateHead: privateBefore.head, engineFiles: engineFiles.length,
+    tooling, commands, publicBuildPerformed: false, productOrEngineImported: false, laterSourcePatchRequired: false,
+  };
+  for (const name of [inputs, candidate, baseline, join(task, "engine"), join(task, "node_modules")]) seal(name);
+  save("assembly.json", output);
+  console.log(JSON.stringify({ task, baseCommit, candidate, candidateFiles: output.candidateFiles.length, source: output.sourceManifestSha256, engineFiles: output.engineFiles }));
+} catch (error) {
+  save("preparation-first-failure.json", { at: new Date().toISOString(), task, commands, message: error.message, stack: error.stack });
+  throw error;
+}

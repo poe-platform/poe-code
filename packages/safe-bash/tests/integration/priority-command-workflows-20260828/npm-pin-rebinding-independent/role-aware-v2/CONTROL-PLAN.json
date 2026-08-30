@@ -1,0 +1,13 @@
+{
+  "schema": "role-aware-review-controls-v2",
+  "role": "PURE_SYNTHETIC_REVIEWER_ADMISSION_ONLY",
+  "count": 12,
+  "positive": ["stored-valid-plan", "historical-null-plan", "stored-valid-proof", "historical-bound-proof"],
+  "negative": ["malformed-role", "type-mismatch", "nonnull-bad-stored-identity", "stored-null", "historical-nonnull", "active-missing-proof", "active-wrong-content", "historical-missing-binding"],
+  "controlChildren": 0,
+  "actualGitInvalidRequests": 0,
+  "authorControlReplays": 0,
+  "workflowExecutions": 0,
+  "capture": "Record returned observations before checking all pass; no product/module imports",
+  "failure": "Sticky independent review failure, not author/product finding"
+}

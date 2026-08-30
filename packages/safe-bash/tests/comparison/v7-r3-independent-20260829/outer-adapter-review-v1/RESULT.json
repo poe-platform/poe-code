@@ -1,0 +1,936 @@
+{
+  "schema": "INDEPENDENT_OUTER_ADAPTER_REVIEW_RESULT_V1",
+  "status": "REPLAY_COMPLETE_WITH_ONE_FROZEN_HOLDOUT_FAILURE_NO_ADMISSION_GO",
+  "sourceCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "evidenceCommit": "88036591c32067ffe86a5950198f9f73fbb5cb63",
+  "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "inputSha256": "a6a3f58de6ffb123125637adbb9610f7cb81fe6410bc78e5b65ca0923a423870",
+  "sourceBindingsVerifiedBeforeAndAfter": 32,
+  "earlier416Replayed": false,
+  "original": {
+    "pass": 25,
+    "fail": 0,
+    "unrun": [],
+    "unsafe": false,
+    "spawnAttempts": 18,
+    "actualChildren": 17
+  },
+  "novel": {
+    "pass": 7,
+    "fail": 1,
+    "unsafe": false,
+    "actualChildren": 6,
+    "findings": [
+      {
+        "id": "N02",
+        "status": "FAILED_FROZEN_EXPECTATION_NOT_REPLAYED",
+        "expected": {
+          "observed": 65537,
+          "retained": 65536,
+          "lost": 1
+        },
+        "actual": {
+          "observed": 66254,
+          "retained": 65536,
+          "lost": 718,
+          "extraObservedBeyondPlan": 717,
+          "prefixEqualsDeclaredDBytes": true,
+          "prefixSha256": "dcb3cceeb89595b15abac3233c5871a9dc8d5e4af56443c0c5085386c9b50439",
+          "qualified": false,
+          "primary": {
+            "phase": "stderr",
+            "reason": {
+              "type": "object",
+              "code": "OUTER_CAPTURE_CAP",
+              "message": "OUTER_CAPTURE_CAP"
+            }
+          },
+          "child": {
+            "attempted": true,
+            "pid": 86997,
+            "group": 86997,
+            "enrolled": true,
+            "error": null,
+            "exit": {
+              "code": null,
+              "signal": "SIGTERM"
+            },
+            "close": {
+              "code": null,
+              "signal": "SIGTERM"
+            },
+            "pidPresence": "absent",
+            "groupPresence": "absent",
+            "reaped": true,
+            "natural": false
+          }
+        },
+        "tailAvailable": false,
+        "reconstruction": false,
+        "diagnosis": "No capture-body defect established. Child synchronous write loop has no handler; a runtime diagnostic is a source-level possibility, not observed proof.",
+        "rootDispositionRequired": true
+      }
+    ]
+  },
+  "originalNegativeLosses": [
+    {
+      "id": "O06",
+      "streams": {
+        "stdout": {
+          "observed": 65537,
+          "retained": 65536,
+          "lost": 1
+        }
+      }
+    },
+    {
+      "id": "O07",
+      "streams": {
+        "fd3": {
+          "observed": 262145,
+          "retained": 262144,
+          "lost": 1
+        }
+      }
+    },
+    {
+      "id": "O08",
+      "streams": {
+        "stdout": {
+          "observed": 9,
+          "retained": 0,
+          "lost": 9
+        }
+      }
+    },
+    {
+      "id": "O09",
+      "streams": {
+        "stdout": {
+          "observed": 9,
+          "retained": 3,
+          "lost": 6
+        }
+      }
+    }
+  ],
+  "physicalInvalidIOQualification": "N05 reported retained0/lost9 but one physical byte retained; injected invalid progress response is not a trusted physical-byte ledger.",
+  "processes": {
+    "testRunners": 2,
+    "actualHarmlessChildren": 23,
+    "testProcesses": 25,
+    "spawnAttempts": 24,
+    "ENOENTWithoutPid": 1,
+    "developerMetadataChildren": 4,
+    "sharedToolHostIsNotInventedTaskDescendant": true,
+    "peakTaskProcesses": 2,
+    "peakIncludingExistingSharedHostConservative": 3,
+    "approvedPeak": 4,
+    "allOwnedProcessCap": 80,
+    "administrativeReserve": 25,
+    "knownChildren": [
+      {
+        "cohort": "original",
+        "id": "O01",
+        "child": {
+          "attempted": true,
+          "pid": 86920,
+          "group": 86920,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O02",
+        "child": {
+          "attempted": true,
+          "pid": 86921,
+          "group": 86921,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 7,
+            "signal": null
+          },
+          "close": {
+            "code": 7,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O04",
+        "child": {
+          "attempted": true,
+          "pid": 86922,
+          "group": 86922,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 1,
+            "signal": null
+          },
+          "close": {
+            "code": 1,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O05",
+        "child": {
+          "attempted": true,
+          "pid": 86924,
+          "group": 86924,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O06",
+        "child": {
+          "attempted": true,
+          "pid": 86925,
+          "group": 86925,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O07",
+        "child": {
+          "attempted": true,
+          "pid": 86926,
+          "group": 86926,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O08",
+        "child": {
+          "attempted": true,
+          "pid": 86927,
+          "group": 86927,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O09",
+        "child": {
+          "attempted": true,
+          "pid": 86928,
+          "group": 86928,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O10",
+        "child": {
+          "attempted": true,
+          "pid": 86929,
+          "group": 86929,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O11",
+        "child": {
+          "attempted": true,
+          "pid": 86930,
+          "group": 86930,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O12",
+        "child": {
+          "attempted": true,
+          "pid": 86934,
+          "group": 86934,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O13",
+        "child": {
+          "attempted": true,
+          "pid": 86936,
+          "group": 86936,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O15",
+        "child": {
+          "attempted": true,
+          "pid": 86937,
+          "group": 86937,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O16",
+        "child": {
+          "attempted": true,
+          "pid": 86938,
+          "group": 86938,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "unknown",
+          "groupPresence": "unknown",
+          "reaped": false,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O17",
+        "child": {
+          "attempted": true,
+          "pid": 86940,
+          "group": 86940,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O19",
+        "child": {
+          "attempted": true,
+          "pid": 86944,
+          "group": 86944,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "original",
+        "id": "O20",
+        "child": {
+          "attempted": true,
+          "pid": 86950,
+          "group": 86950,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "novel",
+        "id": "N01",
+        "child": {
+          "attempted": true,
+          "pid": 86996,
+          "group": 86996,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "novel",
+        "id": "N02",
+        "child": {
+          "attempted": true,
+          "pid": 86997,
+          "group": 86997,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "novel",
+        "id": "N03",
+        "child": {
+          "attempted": true,
+          "pid": 86998,
+          "group": 86998,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "novel",
+        "id": "N04",
+        "child": {
+          "attempted": true,
+          "pid": 86999,
+          "group": 86999,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "novel",
+        "id": "N05",
+        "child": {
+          "attempted": true,
+          "pid": 87000,
+          "group": 87000,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "code": null,
+            "signal": "SIGTERM"
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": false
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      },
+      {
+        "cohort": "novel",
+        "id": "N06",
+        "child": {
+          "attempted": true,
+          "pid": 87001,
+          "group": 87001,
+          "enrolled": true,
+          "error": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "pidPresence": "absent",
+          "groupPresence": "absent",
+          "reaped": true,
+          "natural": true
+        },
+        "independentlyRetired": true,
+        "handlesActuallyClosed": true
+      }
+    ],
+    "outerReceipts": [
+      {
+        "id": "author",
+        "openedBeforeAdmission": true,
+        "pid": 86918,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "observed": {
+          "stdout": 269,
+          "stderr": 0,
+          "fd3": 0
+        },
+        "retained": {
+          "stdout": 269,
+          "stderr": 0,
+          "fd3": 0
+        },
+        "failures": [],
+        "globalAbsenceClaim": false,
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/fixture/controls.mjs",
+          "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4"
+        ]
+      },
+      {
+        "id": "novel",
+        "openedBeforeAdmission": true,
+        "pid": 86995,
+        "exit": {
+          "code": 1,
+          "signal": null
+        },
+        "close": {
+          "code": 1,
+          "signal": null
+        },
+        "observed": {
+          "stdout": 48,
+          "stderr": 0,
+          "fd3": 0
+        },
+        "retained": {
+          "stdout": 48,
+          "stderr": 0,
+          "fd3": 0
+        },
+        "failures": [],
+        "globalAbsenceClaim": false,
+        "args": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256",
+          "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/novel.mjs"
+        ]
+      }
+    ],
+    "metadata": [
+      {
+        "id": "final-outer-inventory",
+        "args": [
+          "ls-tree",
+          "-rz",
+          "--full-tree",
+          "88036591c32067ffe86a5950198f9f73fbb5cb63",
+          "--",
+          "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/",
+          "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1",
+          "tests/AGENTS.md",
+          "tests/comparison/AGENTS.md",
+          "tests/comparison/v7-r3-independent-20260829/AGENTS.md"
+        ],
+        "pid": 84656,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "bytes": 30876,
+        "errors": [],
+        "stdoutSha256": "36ab40400a3c6f6168c53572233be84a8eee2106df32956aa501ee8a44bbac37"
+      },
+      {
+        "id": "source-preseal-inventory",
+        "args": [
+          "ls-tree",
+          "-rz",
+          "--full-tree",
+          "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+          "--",
+          "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/outer-adapter-v1/"
+        ],
+        "pid": 85288,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "bytes": 1519,
+        "errors": [],
+        "stdoutSha256": "4b77e43457788447cc726ffd08715b0be5af2ad329123a6086c77488f11231d0"
+      },
+      {
+        "id": "accepted-review-references",
+        "args": [
+          "ls-tree",
+          "-rz",
+          "--full-tree",
+          "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+          "--",
+          "tests/comparison/v7-r3-independent-20260829/review-v2/RESULT.json",
+          "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+          "tests/comparison/v7-r3-independent-20260829/review-v2/FUTURE-INTERFACE.json"
+        ],
+        "pid": 85289,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "bytes": 375,
+        "errors": [],
+        "stdoutSha256": "f3bd8f9ae09e9c89f1997dd321d3d44711d62288c2685af6773e791d4a3deaf9"
+      },
+      {
+        "id": "inert-preparation-references",
+        "args": [
+          "ls-tree",
+          "-rz",
+          "--full-tree",
+          "27fd896575280fa96100924cf4f2ecc110710b82",
+          "--",
+          "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-PREPARATION-REPORT.json",
+          "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/SOURCE-AUTH.json",
+          "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/PROCESS-CENSUS.json",
+          "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/FRESH-MANIFEST.json"
+        ],
+        "pid": 85290,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "bytes": 723,
+        "errors": [],
+        "stdoutSha256": "794cc8c52830a10144ee31a8968733d47c665e0140726bc717a263cad9eb9081"
+      }
+    ],
+    "globalProcessCensus": false,
+    "allActualChildRetirementKnown": true,
+    "allHandlesPhysicallyClosed": true
+  },
+  "sourcePoints": {
+    "captureOpen": 113,
+    "beforeLaunch": 128,
+    "enroll": 136,
+    "drain": 142,
+    "cleanup": 101,
+    "receiptPublication": 203,
+    "postguard": 216,
+    "terminal": 239,
+    "ownerCapture": 72
+  },
+  "sourceAssessment": {
+    "captureAcquisitionBeforePreflight": true,
+    "enrollmentBeforeFalliblePublication": true,
+    "threeChannelCountersAndPostguard": true,
+    "ordinaryShortWritesSupported": true,
+    "undefinedNullIdentityAndIndependentCloseVerified": true,
+    "receiptAloneNotAcceptance": true,
+    "newAdapterDefectEstablished": false,
+    "actualOwnerExecuted": false,
+    "hardDeadline": false,
+    "hardRSS": false,
+    "full257MiBAllocationTested": false,
+    "detachedInnerDescendantRetirementNotEstablishedByOuterGroup": true
+  },
+  "future": {
+    "plannedRuntimeProcesses": 47,
+    "plannedAdministration": 8,
+    "plannedTotal": 55,
+    "peak": 5,
+    "conditionalOnNoExtraOwnedWaitingParent": true,
+    "execReplacedShellCanPreservePeak": true,
+    "sharedToolServiceNotTaskDescendant": true,
+    "allProcess128InInactiveMetadataNotNewAuthority": true,
+    "profile": {
+      "overall": 269484032,
+      "inner": 268435456,
+      "body": 260046848,
+      "innerCollector": 8388608,
+      "outer": 524288,
+      "administration": 524288,
+      "terminal": 8192
+    },
+    "actualOwnersOrWorkers": 0,
+    "C11": 0,
+    "semantics": 0,
+    "grantIssued": false,
+    "AUTHCreated": false,
+    "sourceOnlyStagingQualification": true
+  },
+  "history": {
+    "priorReview": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+    "priorPasses": "8+13 and416 authentication unchanged",
+    "V6IrrecoverableStdoutBytes": 294045,
+    "oldHoldsAndScoresUnchanged": true,
+    "W07": "UNQUALIFIED_UNCREDITED"
+  },
+  "elapsedMinutesBeforePublication": 14.231666666666667
+}

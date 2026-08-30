@@ -1,0 +1,6 @@
+Initial authentication failed before restoration or any product execution:
+AssertionError at restore.mjs.data:17, binding-freeze.json SHA-256 mismatch.
+actual: ed00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1
+expected copied from assignment: 00497a9503623e51922f3d0b65ed15aec5a5c03608d06f265e223cb923b8b1
+Node.js v22.22.2; exit 1. The assignment digest omits the initial 'ed'.
+Correction authenticates the full 64-character digest against immutable 044aaaca, not new binding content. No frozen intention, input, assertion or status set changed.

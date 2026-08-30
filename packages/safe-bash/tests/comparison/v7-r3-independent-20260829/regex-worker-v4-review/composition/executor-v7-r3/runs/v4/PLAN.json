@@ -1,0 +1,27 @@
+{
+  "schema": "REGEX_V4_DEFERRED_PREEXECUTION",
+  "started": "2026-08-29T09:20:29.773Z",
+  "deadline": "2026-08-29T09:40:29.773Z",
+  "campaignEnabled": false,
+  "limits": {
+    "osProcesses": 48,
+    "peakOs": 3,
+    "captureBytes": 67108864,
+    "workingBytes": 268435456,
+    "fixtureStarts": 4,
+    "harmlessWorkers": 0,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "recordBytes": 262144
+  },
+  "smallFixtures": [
+    "FALSE_PRIMARY",
+    "UNDEFINED_PRIMARY"
+  ],
+  "fullCampaign": {
+    "controls": 55,
+    "plannedWorkers": 41,
+    "status": "HELD_DIFFERENT_REVIEW_REQUIRED"
+  },
+  "actualImports": 0
+}

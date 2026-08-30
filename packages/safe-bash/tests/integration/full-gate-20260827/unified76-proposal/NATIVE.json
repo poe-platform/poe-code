@@ -1,0 +1,512 @@
+{
+  "at": "2026-08-27T23:41:01.723Z",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "baseRequirements": 49,
+  "env": {
+    "RG_NATIVE_BIN": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+    "TREE_NATIVE_BIN": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree"
+  },
+  "assets": [
+    {
+      "name": "coreutils-9.7.tar.xz",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+      "mode": 420
+    },
+    {
+      "name": "chmod.c",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+      "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+      "mode": 420
+    },
+    {
+      "name": "stat.c",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+      "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+      "mode": 420
+    },
+    {
+      "name": "mktemp.c",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+      "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+      "mode": 420
+    },
+    {
+      "name": "modechange.c",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+      "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+      "mode": 420
+    },
+    {
+      "name": "comm.c",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+      "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+      "mode": 420
+    },
+    {
+      "name": "coreutils.texi",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "executable": false,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "mode": 420
+    },
+    {
+      "name": "chmod",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+      "mode": 493
+    },
+    {
+      "name": "stat",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+      "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+      "mode": 493
+    },
+    {
+      "name": "mktemp",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+      "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+      "mode": 493
+    },
+    {
+      "name": "paste",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+      "mode": 493
+    },
+    {
+      "name": "comm",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+      "mode": 493
+    },
+    {
+      "name": "join",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+      "mode": 493
+    },
+    {
+      "name": "touch",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+      "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+      "mode": 493
+    },
+    {
+      "name": "stat",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+      "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "executable": true,
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+      "mode": 493
+    },
+    {
+      "name": "gtar",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "sha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "executable": true,
+      "target": "snapshot:tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar",
+      "authority": "prior tar profile capture",
+      "actualSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+      "mode": 365
+    },
+    {
+      "name": "bsdtar",
+      "origin": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "executable": true,
+      "authority": "prior tar profile capture",
+      "actualSha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "mode": 493
+    },
+    {
+      "name": "gzip",
+      "origin": "/usr/bin/gzip",
+      "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+      "executable": true,
+      "authority": "prior tar profile capture",
+      "actualSha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3",
+      "mode": 493
+    },
+    {
+      "name": "gunzip",
+      "origin": "/usr/bin/gunzip",
+      "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+      "executable": true,
+      "authority": "prior tar profile capture",
+      "actualSha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73",
+      "mode": 493
+    },
+    {
+      "name": "base64",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base64",
+      "sha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+      "executable": true,
+      "target": "native:bytes/base64",
+      "authority": "prior pinned GNU byte profile",
+      "actualSha256": "6a3b29a34efcae29e80465d1420c3a7c6b6ba36fe01d41a868ece04a5b945a44",
+      "mode": 493
+    },
+    {
+      "name": "base32",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/base32",
+      "sha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+      "executable": true,
+      "target": "native:bytes/base32",
+      "authority": "prior pinned GNU byte profile",
+      "actualSha256": "8744306c59f36cdb062639bb77e9d5f215740c9d8ac2c5550b4cefe1b6413710",
+      "mode": 493
+    },
+    {
+      "name": "sha256sum",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha256sum",
+      "sha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "executable": true,
+      "target": "native:bytes/sha256sum",
+      "authority": "prior pinned GNU byte profile",
+      "actualSha256": "3762e64f4f316b945e47226d998570785707dfdc68f8998c329b5192ded37604",
+      "mode": 493
+    },
+    {
+      "name": "sha1sum",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/sha1sum",
+      "sha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+      "executable": true,
+      "target": "native:bytes/sha1sum",
+      "authority": "prior pinned GNU byte profile",
+      "actualSha256": "614e3fbda9ec6864d950668b53844f46100f3275f0abee1ee2690078e35de1f3",
+      "mode": 493
+    },
+    {
+      "name": "md5sum",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/md5sum",
+      "sha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+      "executable": true,
+      "target": "native:bytes/md5sum",
+      "authority": "prior pinned GNU byte profile",
+      "actualSha256": "0c8db6953d4be626a1cc67a0613e19d121fc3d4503d1b452e695a5f1a098c6c7",
+      "mode": 493
+    },
+    {
+      "name": "gzip",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/gzip-1.14/gzip",
+      "sha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+      "executable": true,
+      "target": "native:bytes/gzip",
+      "authority": "prior pinned GNU byte profile",
+      "actualSha256": "732b7e6e8c8969cebbc841c38f9d0f5b2524c752dbd323d0594550ecb1a8be9c",
+      "mode": 493
+    },
+    {
+      "name": "bash3.2",
+      "origin": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "actualSha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "mode": 365
+    },
+    {
+      "name": "bash5.3",
+      "origin": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "actualSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "mode": 493
+    },
+    {
+      "name": "sed",
+      "origin": "/usr/bin/sed",
+      "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "actualSha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360",
+      "mode": 493
+    },
+    {
+      "name": "awk",
+      "origin": "/usr/bin/awk",
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "actualSha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505",
+      "mode": 493
+    },
+    {
+      "name": "jq",
+      "origin": "/usr/bin/jq",
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "actualSha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f",
+      "mode": 493
+    },
+    {
+      "name": "curl",
+      "origin": "/usr/bin/curl",
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "actualSha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+      "mode": 493
+    },
+    {
+      "name": "rg",
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+      "sha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "executable": true,
+      "authority": "prior actual native identity",
+      "target": "native:rg",
+      "originEnv": "RG_NATIVE_BIN",
+      "actualSha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f",
+      "mode": 365
+    },
+    {
+      "name": "seq",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+      "sha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/seq",
+      "authority": "stream-format/evidence/freeze-native.json",
+      "actualSha256": "ffc2f2585818b4185924d73e839c93c44b9115f6e91a28b340760e4a0533f70f",
+      "mode": 493
+    },
+    {
+      "name": "nl",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+      "sha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/nl",
+      "authority": "stream-format/evidence/freeze-native.json",
+      "actualSha256": "f53799fe27723aa0e61075b4d698b5dca44e5e96b4e38544b3ae047c7bed0d2e",
+      "mode": 493
+    },
+    {
+      "name": "rev",
+      "origin": "/usr/bin/rev",
+      "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+      "executable": true,
+      "authority": "stream-format/evidence/freeze-native.json",
+      "actualSha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247",
+      "mode": 493
+    },
+    {
+      "name": "unexpand",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+      "sha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/unexpand",
+      "authority": "stream-format/evidence/freeze-native.json",
+      "actualSha256": "ea0e663158cd8d84c4e7869139b4180bd6d9a8dc6b9f09dda1c615484a4145fa",
+      "mode": 493
+    },
+    {
+      "name": "split",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+      "sha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/split",
+      "authority": "split/native.test.ts exact pin",
+      "actualSha256": "cf5851c4e6566983ce69940b766c0b5eb0cd26ebf2bb45eefe215b2d5c62f958",
+      "mode": 493
+    },
+    {
+      "name": "date",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "sha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/date",
+      "version": "date (GNU coreutils) 9.7",
+      "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion",
+      "actualSha256": "14c1c04f8a1e859e9421993856ba1d29f49dc750d91be5dd299841f970f31f44",
+      "mode": 493
+    },
+    {
+      "name": "sleep",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "sha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/sleep",
+      "version": "sleep (GNU coreutils) 9.7",
+      "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion",
+      "actualSha256": "6b90f4cbba603c981bbf7324026ea99fe30efb167ccae0e1d579b54cab86a95f",
+      "mode": 493
+    },
+    {
+      "name": "printenv",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+      "sha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/printenv",
+      "version": "printenv (GNU coreutils) 9.7",
+      "authority": "additional observed GNU9.7 Darwin binary pin; version verified, not a supply-chain or GNU/Linux assertion",
+      "actualSha256": "8c2d4675579df37dd2cd6eac8a9d27e61a5b92e4c18d830110a85c04cffab4d9",
+      "mode": 493
+    },
+    {
+      "name": "tac",
+      "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/tac",
+      "sha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+      "executable": true,
+      "target": "native:stream/tac",
+      "authority": "stream-inspection/oracle.ts",
+      "actualSha256": "5fad8c461c2583b9fc9052b943a87eba6dba6b271ff51d811e5cdc21e722ad41",
+      "mode": 493
+    },
+    {
+      "name": "expand",
+      "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/expand",
+      "sha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+      "executable": true,
+      "target": "native:stream/expand",
+      "authority": "stream-inspection/oracle.ts",
+      "actualSha256": "158dccaca888f3187291f4f4ede9b3715ccee15e8e441f82030dc09d25a2648b",
+      "mode": 493
+    },
+    {
+      "name": "fold",
+      "origin": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/fold",
+      "sha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+      "executable": true,
+      "target": "native:stream/fold",
+      "authority": "stream-inspection/oracle.ts",
+      "actualSha256": "8cfe2de684b57136dcb7040d529289b610f4f15a4f8696cded679d56a5361559",
+      "mode": 493
+    },
+    {
+      "name": "strings",
+      "origin": "/tmp/safe-bash-gnu-strings-20260827-YJqPHf/build-system-zlib/binutils/strings",
+      "sha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "executable": true,
+      "target": "native:stream/strings",
+      "authority": "stream-inspection/gnu-strings-oracle.ts",
+      "actualSha256": "90b9c9257095110594ae58a4bb1531d9670bd6aed297b8dbf0dc01914c5de09f",
+      "mode": 365
+    },
+    {
+      "name": "expand",
+      "origin": "/usr/bin/expand",
+      "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+      "executable": true,
+      "authority": "stream-inspection/evidence/native-corrected.json",
+      "actualSha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78",
+      "mode": 493
+    },
+    {
+      "name": "fold",
+      "origin": "/usr/bin/fold",
+      "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+      "executable": true,
+      "authority": "stream-inspection/evidence/native-corrected.json",
+      "actualSha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+      "mode": 493
+    },
+    {
+      "name": "strings",
+      "origin": "/usr/bin/strings",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "executable": true,
+      "authority": "stream-inspection/evidence/native-corrected.json",
+      "actualSha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "mode": 493
+    },
+    {
+      "name": "strings",
+      "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strings",
+      "sha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+      "executable": true,
+      "authority": "stream-inspection/evidence/native-corrected.json",
+      "actualSha256": "52ddfe491e72485fa7425f7e0f7447d99764cb584b1aec72633b18e70d8714e9",
+      "mode": 493
+    },
+    {
+      "name": "tree",
+      "originEnv": "TREE_NATIVE_BIN",
+      "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+      "executable": true,
+      "target": "native:tree",
+      "authority": "tree/native-fixtures.json; caller must explicitly supply exact pinned binary",
+      "origin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+      "actualSha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+      "mode": 493
+    },
+    {
+      "name": "expr",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "executable": true,
+      "authority": "GNU9.7 author oracle; independent source/profile acceptance remains external",
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "actualSha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "mode": 493
+    },
+    {
+      "name": "du",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+      "executable": true,
+      "authority": "GNU9.7 author oracle; live presence and profile acceptance remain explicit",
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "actualSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+      "mode": 493
+    }
+  ],
+  "issues": []
+}

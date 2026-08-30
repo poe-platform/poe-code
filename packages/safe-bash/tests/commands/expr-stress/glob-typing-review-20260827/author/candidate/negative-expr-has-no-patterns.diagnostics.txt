@@ -1,0 +1,1 @@
+tests/commands/regex-execution/continuation/glob.test.ts(86,16): error TS2551: Property 'patterns' does not exist on type 'ExprMatchDescriptor'. Did you mean 'pattern'?

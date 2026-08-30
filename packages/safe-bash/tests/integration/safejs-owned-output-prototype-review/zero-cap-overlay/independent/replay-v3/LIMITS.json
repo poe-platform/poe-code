@@ -1,0 +1,85 @@
+{
+  "surface": {
+    "casesSha256": "c0849f349888c4ab8c3c8be6741136f37bfa34bcd831eee004e757b4b57dd535",
+    "safeJsLimits": {
+      "maxSourceBytes": 65536,
+      "maxInputBytes": 4096,
+      "maxOutputBytes": 65536,
+      "timeoutMs": 2000,
+      "maxSteps": 20000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 4096,
+      "dataSize": 1048576
+    },
+    "deadlines": {
+      "caseAbsoluteMs": 10000,
+      "cohortAbsoluteMs": 100000,
+      "noExtension": true,
+      "noRescueForPass": true
+    }
+  },
+  "lifecycle": {
+    "casesSha256": "acdc370de3e67573a1f3033740688a39cce6b35f9e4c511484598f56408809b3",
+    "defaultSafeJsLimits": {
+      "maxSourceBytes": 16384,
+      "maxInputBytes": 65536,
+      "maxOutputBytes": 65536,
+      "timeoutMs": 3500,
+      "maxSteps": 200000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 8192,
+      "dataSize": 1048576
+    },
+    "containment": {
+      "caseChildrenAtOnce": 1,
+      "childDeadlineMs": 7000,
+      "supervisorDeadlineMs": 9000,
+      "wholeCohortDeadlineMs": 120000,
+      "heapMb": 256,
+      "childOutputMaxBytes": 1048576,
+      "eventMaxCount": 4096,
+      "unexpectedWorkersAllowed": 0,
+      "unexpectedSubprocessesAllowed": 0,
+      "socketsAllowed": 0,
+      "acceptanceAfterContainment": false,
+      "automaticRetries": 0
+    }
+  },
+  "controls": {
+    "casesSha256": "697cc8d61de33506f85b11fcd550535c5b94a2c7f3ceffc88854efe512cef364",
+    "defaultSafeJsLimits": {
+      "maxSourceBytes": 16384,
+      "maxInputBytes": 65536,
+      "maxOutputBytes": 65536,
+      "timeoutMs": 3500,
+      "maxSteps": 200000,
+      "maxCallDepth": 64,
+      "stringLength": 65536,
+      "arrayLength": 8192,
+      "dataSize": 1048576
+    },
+    "containment": {
+      "caseChildrenAtOnce": 1,
+      "childDeadlineMs": 7000,
+      "supervisorDeadlineMs": 9000,
+      "wholeCohortDeadlineMs": 120000,
+      "heapMb": 256,
+      "childOutputMaxBytes": 1048576,
+      "eventMaxCount": 4096,
+      "unexpectedWorkersAllowed": 0,
+      "unexpectedSubprocessesAllowed": 0,
+      "socketsAllowed": 0,
+      "acceptanceAfterContainment": false,
+      "automaticRetries": 0
+    }
+  },
+  "surfaceParentActualBounds": {
+    "perChildMs": 10000,
+    "wholeCohortMs": 100000,
+    "source": "exact runtime surface/run.mjs"
+  },
+  "finiteHostControlTimeoutSeconds": 5,
+  "noRescueOrRetries": true
+}

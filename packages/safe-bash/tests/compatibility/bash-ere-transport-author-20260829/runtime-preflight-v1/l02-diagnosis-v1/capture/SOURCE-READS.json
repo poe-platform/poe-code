@@ -1,0 +1,27 @@
+[
+  {
+    "name": "preparation-r3/CASES/076-built/worker-bridge.mjs",
+    "size": 2775,
+    "sha256": "05e485aaf0ee2161093a1bd39983498fd98b52d72039a085a28fc16cff51f739"
+  },
+  {
+    "name": "preparation-r3/CASES/076-built/package/ere/transport/owner.js",
+    "size": 7353,
+    "sha256": "16306b78d3cdee1758b1e81834419187e0f50597a756e27ff589f02f015e2652"
+  },
+  {
+    "name": "preparation-r3/CASES/076-built/package/ere/transport/root.js",
+    "size": 12642,
+    "sha256": "44600e8e777a212da0dede616ee22416e092aa27e01ef2c6ac55a5fe494a4d9a"
+  },
+  {
+    "name": "preparation-r3/DEFERRED.md",
+    "size": 5416,
+    "sha256": "37a9db8330410dac73cc891f01301beb100b13a0b26d6e18de28e288f8c446ae"
+  },
+  {
+    "name": "SOURCES.json",
+    "size": 103555,
+    "sha256": "84d53de2f9f0905caba16fcf728c324e3a325d72328bb733510371479d78119b"
+  }
+]

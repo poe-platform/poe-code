@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-08-27T09:19:24.314Z",
+  "requiredReport": "/tmp/safe-bash-inspection-safety-prep-detail.txt",
+  "present": false,
+  "authorized": false,
+  "decision": "STOP_READY_NO_PRODUCT_OR_NATIVE_CALLS",
+  "requiredScope": [
+    "explicit GO final F29v2",
+    "explicit GO F33/F34 corrections",
+    "exact published final runner hash"
+  ],
+  "requiredRunnerSha256": "de11b74f47288916cd7fd486e91754465e53963ae0bc63c9d4a309ee2e77e756",
+  "earlierF33F34ScopedGoDoesNotAuthorizeFull40": true
+}

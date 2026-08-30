@@ -1,0 +1,81 @@
+{
+  "sealedAt": "2026-08-27T08:27:39.755Z",
+  "candidate": "d1174e2db9f4a4c92403842dee6fb3d4ff57ec96",
+  "approvedPredecessor": "e9daab5722c682377cc59abec099648e3692c6ec",
+  "sourceStatus": "scoped-source-checkpoint-passed",
+  "concreteCandidateSourceDefectsReproduced": [],
+  "serviceStatus": "not-executed-await-frozen-author-evidence-and-explicit-RESUME",
+  "blanketApiAcceptance": false,
+  "originalStockProfile": "78/79 unchanged, not rerun or relabeled",
+  "cohorts": [
+    {
+      "name": "independent",
+      "tests": 46,
+      "passed": 46,
+      "failed": 0
+    },
+    {
+      "name": "original33-unchanged",
+      "tests": 33,
+      "passed": 33,
+      "failed": 0
+    },
+    {
+      "name": "top-level-unchanged",
+      "tests": 568,
+      "passed": 568,
+      "failed": 0
+    },
+    {
+      "name": "legacy-lock.test.ts",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0
+    },
+    {
+      "name": "direct-comparison.test.ts",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0
+    },
+    {
+      "name": "timestamp-postcondition.test.ts",
+      "tests": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "name": "lock-scope.test.ts",
+      "tests": 28,
+      "passed": 28,
+      "failed": 0
+    },
+    {
+      "name": "aliases-unchanged",
+      "tests": 49,
+      "passed": 49,
+      "failed": 0
+    }
+  ],
+  "packageLoadedModuleVerification": {
+    "loadedModules": 157,
+    "everyLoadedSourceMatchesIsolatedBuildAndExtractedPackage": true,
+    "selfReferenceDefeated": true
+  },
+  "harnessCorrections": [
+    {
+      "cohort": "first",
+      "failure": "TS2339 in own capability assertions",
+      "correction": "public FileSystem type view; runtime assertion unchanged",
+      "originalInputsPreserved": true
+    }
+  ],
+  "authorFiles": "read-only dirty observations only",
+  "serviceDownloads": 0,
+  "serviceInstalls": 0,
+  "servicesStarted": 0,
+  "primarySourceTextFilesRetrieved": 6,
+  "sharedDistWritten": false,
+  "ownedTemporaryWorkspacesRemoved": true,
+  "next": "SERVICE-HOLDOUTS.md: actual authentication, early provider hook/native rmdir, real manager mutation serialization, probes and aliased binding"
+}

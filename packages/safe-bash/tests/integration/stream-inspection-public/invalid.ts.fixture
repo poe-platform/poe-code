@@ -1,0 +1,7 @@
+import { createStreamInspectionCommands, streamInspectionCommands } from 'virtual-bash';
+import { createStreamInspectionCommands as subFactory, streamInspectionCommands as subPlugin } from 'virtual-bash/commands/stream-inspection';
+
+createStreamInspectionCommands({ limits: { maxInputBytes: '1024' } });
+streamInspectionCommands({ replace: 'yes' });
+subFactory({ limits: { maxChunkBytes: false } });
+subPlugin({ limits: { maxFiles: [] } });

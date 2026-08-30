@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "researchBound": {
+    "fetches": 8,
+    "maxEachBytes": 524288,
+    "maxTotalBytes": 1048576,
+    "timeoutEachMs": 10000,
+    "retries": 0
+  },
+  "sources": [
+    {
+      "id": "gitformat-pack-current",
+      "url": "https://git-scm.com/docs/gitformat-pack",
+      "sections": "Checksums, pack header, size encoding, delta instructions, idx2",
+      "sha256": "a6a19ac5f305c7e77cd78ec78d629c9e7ed2ed47a21b87bc920285ceb354882b",
+      "bytes": 66717,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Observed current official entry displays manual last update2.54.0, 2.55.0 no changes; no installed Git version claim"
+    },
+    {
+      "id": "gitformat-pack-v2.54.0",
+      "url": "https://raw.githubusercontent.com/git/git/v2.54.0/Documentation/gitformat-pack.adoc",
+      "sections": "Pinned official manual source",
+      "sha256": "ec285ba4f4e15a68ad83a570eaf74e8549b477496e49933126ef935d9291381b",
+      "bytes": 27494,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    },
+    {
+      "id": "patch-delta-v2.54.0",
+      "url": "https://raw.githubusercontent.com/git/git/v2.54.0/patch-delta.c",
+      "sections": "patch_delta lines13-89; minimum program, copy/literal bounds",
+      "sha256": "000c620534d9c937a88589d4973d377460ba36790d072e639484e10891024066",
+      "bytes": 2408,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    },
+    {
+      "id": "delta-h-v2.54.0",
+      "url": "https://raw.githubusercontent.com/git/git/v2.54.0/delta.h",
+      "sections": "DELTA_SIZE_MIN lines75-76",
+      "sha256": "7655d4d6d9f22c90dc1c67a94e95b5541b508ea7a4b1668eaa235f94edb375ea",
+      "bytes": 3455,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    },
+    {
+      "id": "packfile-v2.54.0",
+      "url": "https://raw.githubusercontent.com/git/git/v2.54.0/packfile.c",
+      "sections": "load_idx lines178-249; local REF/OFS base lookup",
+      "sha256": "bbd4fecf6bd44135c4472ea3a66ae83cd9a67117963feb63f19ce49dfa26f48d",
+      "bytes": 76679,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    },
+    {
+      "id": "pack-write-v2.54.0",
+      "url": "https://raw.githubusercontent.com/git/git/v2.54.0/pack-write.c",
+      "sections": "need_large_offset and write_idx_file lines37-168",
+      "sha256": "d05740383304052ca451c14ef9829953a487561691e7f1d64e8f25cbca2bfbf2",
+      "bytes": 17227,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    },
+    {
+      "id": "index-pack-v2.54.0",
+      "url": "https://raw.githubusercontent.com/git/git/v2.54.0/builtin/index-pack.c",
+      "sections": "use/unpack_entry_data/unpack_raw_entry lines319-550",
+      "sha256": "3b7b76b177d55b9ee18b7a893693f6c0a44309b13618d6fc56ef39dda72a5e71",
+      "bytes": 59935,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    },
+    {
+      "id": "node-zlib-v22.22.2",
+      "url": "https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/zlib.md",
+      "sections": "bytesWritten, info, maxOutputLength; convenience API only",
+      "sha256": "41a3be7ecdbf530ead3c83bbfd3b3e7873f98d4624ed6bf4150cf0e1d96b7135",
+      "bytes": 50462,
+      "retrievedDate": "2026-08-28",
+      "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+      "preservation": "Content hash and source location only; no source code vendored",
+      "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+    }
+  ],
+  "qualification": "Primary official source inspection only. No Git/native/version execution, no author or product imports. Source arithmetic may expose compatibility restrictions beyond the prose manual; such differences stay explicitly classified."
+}

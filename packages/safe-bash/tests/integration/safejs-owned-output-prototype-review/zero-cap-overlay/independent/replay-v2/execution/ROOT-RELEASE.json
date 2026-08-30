@@ -1,0 +1,18 @@
+{
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "candidateRoot": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/candidate",
+  "packageRoot": "/private/tmp/safe-bash-zero-overlay-independent-inspect-5q9y5wec/consumer/node_modules/virtual-bash",
+  "outputRoot": "/private/tmp/safe-bash-zero-overlay-independent-v2-vikcxq_y",
+  "noPromotion": true,
+  "rootAuthorized": true,
+  "rootAuthorization": "ROOT NARROW VERSIONED INPUT-BINDING REPAIR and ONE new attempt release, 2026-08-27, verifier thread01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4; isolated exact88 inputs plus only public Git run-location identity rebinding; same8/11/6 cohorts and unchanged stop scopes/positive prerequisites; no retry or semantic/source/limit/signal/cleanup change.",
+  "allowedCohorts": [
+    "surface",
+    "lifecycle",
+    "controls"
+  ],
+  "independentReviewCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "independentReviewPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json"
+}

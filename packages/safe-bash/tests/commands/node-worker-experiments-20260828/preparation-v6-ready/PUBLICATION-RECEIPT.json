@@ -1,0 +1,442 @@
+{
+  "schema": "worker-readiness-publication-v6",
+  "date": "2026-08-28",
+  "compilerPublicationCommit": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+  "compilerEvidenceUnchanged": [
+    {
+      "path": "EVIDENCE.json",
+      "sha256": "982677cf461c5e36a12bf21662d6b598a26b08c4e16b57cdd2da2fc8893fed79"
+    },
+    {
+      "path": "EMISSIONS.json.gz.base64",
+      "sha256": "79c1d5cead359ac1b54a3d8937352983b134ac0ef8655cba94311c9ac951dca3"
+    },
+    {
+      "path": "EMITTED.json",
+      "sha256": "850d0d6eaa3d196b1a11eb60a1234c3ae4517b105665abfa0c3f012dcdc776b7"
+    }
+  ],
+  "oldCompilerOwnedStarts": 8,
+  "newWindow": {
+    "limitMs": 1200000,
+    "elapsedAtReceiptMs": 1087326,
+    "startsBeforeEvidenceCommit": 13,
+    "publicationStarts": 5,
+    "sourcePatchAndCommitStarts": 6,
+    "syntheticChildren": 2,
+    "peakOwnedProcesses": 1,
+    "captureConservativeUpperBytes": 2097152,
+    "workConservativeUpperBytes": 33554432,
+    "binaryHashChunkBytes": 65536
+  },
+  "sourceCommitV5": "50f3a4770016676d92d50aaa0a2007fcd15e611c",
+  "sourceCommitV6": "b3395e24ed1ee4e8309b9daca17273f1b158b84d",
+  "v5EvidenceSha256": "bb7c114744a2159ad1c2c8bee0906d0f275a71a87765dfb151a2169773eb9bab",
+  "v6EvidenceSha256": "3669b17913e22c64af4da669b59533495b94a205c35eacc089ffdc5531fc7264",
+  "moduleSha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad",
+  "compositionSha256": "08f115ecd60396b8e18af354647364fa0bed3aef7b2e109df416096760adc189",
+  "workerProfileSha256": "e25481f2ea96c3bcace145c277cd3d83844b3664e01d8fbe5f411e683315b321",
+  "sourcePostIntegrity": [
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/scaffold.guest.js.data",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/worker-body.mjs",
+      "bytes": 2232,
+      "sha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/import-policy.mjs",
+      "bytes": 1636,
+      "sha256": "2a1eee6e2f624cabe25a0664738d0c84ee1cf16990ae4cac0ca377a1d16f9674"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/PROFILE.json",
+      "bytes": 2948,
+      "sha256": "31e8346581f657ae17b2f8a5f6794e00baab1701b8df5796aafd4033a0b4c87b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/GRANT.template.json",
+      "bytes": 601,
+      "sha256": "eb64f745d8747934dbd64da5e979fdfe29a6242044600e0a6d7592d8b233bfac"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/MODULES.json",
+      "bytes": 121324,
+      "sha256": "c161004f91c6209811882af7f5d812e8ee7338846c482e0b4c4cc05a8b51db7b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/SOURCES.json",
+      "bytes": 25458,
+      "sha256": "18d7473fb76132a2ed29220724fdcc17ae80f0a837d30c2c8cc0a2fb4063778f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/future-owner.mjs",
+      "bytes": 6887,
+      "sha256": "5127e4ef18bc1c35f157aba82f45f9df06e4be7d4c79dd46a69c70cf17a44008"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/EXECUTION-PROFILE.json",
+      "bytes": 3492,
+      "sha256": "e25481f2ea96c3bcace145c277cd3d83844b3664e01d8fbe5f411e683315b321"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/ROOT-AUTHORITY.json",
+      "bytes": 2824,
+      "sha256": "5f61460646f9fb0ecba2d2e865252aa0b2529905c7139e72874ef3c9f3d37aaf"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/CONTROL-PRESEAL.json",
+      "bytes": 2025,
+      "sha256": "5d5321938f8b60e66b8c3197b773d20000d2f8b3ffc3d3e41e72197a8d534345"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/synthetic-controls.mjs",
+      "bytes": 9014,
+      "sha256": "c64163ddf71e9037ba03dbbec6419ddbd449556257d0e2a75da46dfe5d31a3de"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/COMPOSITION.json",
+      "bytes": 43450,
+      "sha256": "e292a6f80da4046023cd635b35bf496ba8e4f3aa4a961fdb3aafe7ec0765979e"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/HANDOFF.md",
+      "bytes": 4786,
+      "sha256": "b07e588efc8b8adde0c440170bc4fdedc505c630299112a92b061323e4224f03"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/DATA-INVOCATION.json",
+      "bytes": 4604,
+      "sha256": "27614cebd7ba5ef1f360a39895f786299822588ed05ddffba9686ba28b9ac0b6"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v5-ready/PRESEAL.json",
+      "bytes": 5912,
+      "sha256": "996bd5cac738540ff48bc925cfcf17b671be3c8011994bd90626ba7bb9f2c42e"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/fixtures.mjs",
+      "bytes": 3353,
+      "sha256": "60cb330a1b1ac7e87fd212d6c8cb4fcd51d970690471813e29b9e49ade4ff4c4"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/heap-worker.mjs",
+      "bytes": 418,
+      "sha256": "014216cc2febaf9e1976f105b3c179794332d3c12f9767f63fb9b75b295c94e7"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/owner.mjs",
+      "bytes": 4104,
+      "sha256": "e86da9f52404b543ce8e5e245232170effb28e8ba0d3a1c05b113ad35e8a0c6f"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/parent-rpc.mjs",
+      "bytes": 9267,
+      "sha256": "6da73a508559cc99d3adf095c5d6fd069b2567db065de5e7c6659352f124d23b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/scaffold.guest.js.data",
+      "bytes": 7000,
+      "sha256": "04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/sync-bridge.mjs",
+      "bytes": 4769,
+      "sha256": "ac1a1f6f589efe1c24c404a593a5d88a6b9bb023fe62823de20b5becf7cc6497"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/worker-body.mjs",
+      "bytes": 2232,
+      "sha256": "fb119f95f5314f49bdd025b0983406408978baf3906f95333ffdc1c1ba1074e5"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/worker-entry.mjs",
+      "bytes": 297,
+      "sha256": "4a9f087877a69d3e3b8cc19655ede85804736e1db3b265aba5d022f29991a21c"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/supervisor.mjs",
+      "bytes": 6942,
+      "sha256": "8573f0df8d6adb45628705fc216438c5d10c786ab2e9280967e35022f90187ae"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/TOOLS.json",
+      "bytes": 2386,
+      "sha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/parent-entry.mjs",
+      "bytes": 3433,
+      "sha256": "48ba21590724a2efcfd75f8ff2d5c10cfc2d0b2d35c575edc12862815d994a75"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/load-guard.mjs",
+      "bytes": 2602,
+      "sha256": "f2ce456b6c455bf313a58c3b1bbb17db0ad290eab29109436624e58ef615ec2b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/worker-permissions.mjs",
+      "bytes": 1261,
+      "sha256": "71e0041b18e97674c1d2d0de39290e4dc8deeed1bd06cb9e7da690edd75393e0"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/PROFILE.json",
+      "bytes": 2948,
+      "sha256": "31e8346581f657ae17b2f8a5f6794e00baab1701b8df5796aafd4033a0b4c87b"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/ENGINE-PACKAGE.json.data",
+      "bytes": 1330,
+      "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/GRANT.template.json",
+      "bytes": 601,
+      "sha256": "eb64f745d8747934dbd64da5e979fdfe29a6242044600e0a6d7592d8b233bfac"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/MODULES.json",
+      "bytes": 121324,
+      "sha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/SOURCES.json",
+      "bytes": 25458,
+      "sha256": "3376b6d4fd3aaee969d9716e80fbe2025ed51e58b5b19b676f82ada7ac981a78"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/future-owner.mjs",
+      "bytes": 6887,
+      "sha256": "5127e4ef18bc1c35f157aba82f45f9df06e4be7d4c79dd46a69c70cf17a44008"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/EXECUTION-PROFILE.json",
+      "bytes": 3492,
+      "sha256": "e25481f2ea96c3bcace145c277cd3d83844b3664e01d8fbe5f411e683315b321"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/ROOT-AUTHORITY.json",
+      "bytes": 2824,
+      "sha256": "5f61460646f9fb0ecba2d2e865252aa0b2529905c7139e72874ef3c9f3d37aaf"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/CONTROL-PRESEAL.json",
+      "bytes": 2025,
+      "sha256": "5d5321938f8b60e66b8c3197b773d20000d2f8b3ffc3d3e41e72197a8d534345"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/synthetic-controls.mjs",
+      "bytes": 9192,
+      "sha256": "80663f37b0de98a3325a7bcd14ebf59311ed2e19f9ac4dd4f04e678023ed765e"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/COMPOSITION.json",
+      "bytes": 43450,
+      "sha256": "08f115ecd60396b8e18af354647364fa0bed3aef7b2e109df416096760adc189"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/HANDOFF.md",
+      "bytes": 5261,
+      "sha256": "a0c00ee37de1c749ad487d75b0cb61049632578f1bec6cc647d466008d930dd8"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/DATA-INVOCATION.json",
+      "bytes": 4604,
+      "sha256": "991a45da44c0433d79819291655555840a79c5742a14e8645c4be1aaf0a3b963"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/PRESEAL.json",
+      "bytes": 6060,
+      "sha256": "7f1b010e68145c8eddea61af6e2571393724c61191ce0f3465c6c2db76318443"
+    },
+    {
+      "path": "tests/commands/node-worker-experiments-20260828/preparation-v6-ready/SOURCE-ADDENDUM.json",
+      "bytes": 838,
+      "sha256": "2e6272825cedd300966c80b12c3c0a555f91195afbec259e94178004c900d902"
+    }
+  ],
+  "nodePostHash": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "counts": {
+    "syntheticIdentities": 54,
+    "syntheticExecutions": 108,
+    "syntheticPasses": 108,
+    "syntheticFailures": 0,
+    "workerCeiling": 11,
+    "guestCeiling": 10,
+    "actualWorkers": 0,
+    "actualGuestEvaluations": 0,
+    "actualEngineLoads": 0,
+    "compilerRetries": 0,
+    "privateReads": 0,
+    "installs": 0
+  },
+  "qualifications": [
+    "Old compiler95 emissions/1076164bytes/zero diagnostics still transpilation only.",
+    "Inherited PUBLIC98/94sources/93runtime/95emission input qualification unchanged.",
+    "54/54 v5 and separate54/54 v6; not108 unique rows or actual lifecycle traces.",
+    "Ten earlier eligible helper groups remain independent history; twelve old recipes not rescored.",
+    "K1-K4 actual provider/Worker/permissions/loaded-code/cleanup obligations remain unrun.",
+    "F05 DEFERRED d831fcd4 0/34; no ambient environment secret values inspected.",
+    "Compiler publication add/commit initially failed because dist ignored. Known status/messages retained in ROOT-AUTHORITY; those Git stderr bodies survive tool transcript, not byte-exact raw files. No compiler retry.",
+    "Synthetic replay timeout branch differs from its declared escalation recipe; unexercised, not a containment qualification."
+  ],
+  "remainingForRoot": "Poincare source/readiness review, then fresh exact Worker GO; no automatic engine/Worker activation"
+}

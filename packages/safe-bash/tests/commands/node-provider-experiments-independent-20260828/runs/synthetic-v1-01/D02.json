@@ -1,0 +1,40 @@
+{
+  "id": "D02",
+  "classifiedAs": "COUNTEREXAMPLE_INVALID_RECEIPT_ACCEPTED",
+  "observation": {
+    "accepted": true,
+    "receipt": {
+      "schema": "node-abi-child-v1",
+      "identity": "F01",
+      "label": "F01",
+      "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "classification": "PASS",
+      "clean": true,
+      "unhandled": [],
+      "assertions": [],
+      "counters": {
+        "engineEntered": 1,
+        "engineSettled": 1
+      },
+      "engineOutcome": {
+        "settled": false,
+        "ok": false
+      },
+      "finalResources": {
+        "hostPending": 1,
+        "accepting": true
+      }
+    },
+    "result": {
+      "status": 0,
+      "terminal": {
+        "label": "F01",
+        "classification": "PASS",
+        "receiptSha256": "575a2ba77440f8d125e6c866d8d0754ccb80f0a16b4bc5352a5ffd7a8a6ec1f9"
+      }
+    },
+    "counterexample": true,
+    "qualification": "Standalone exact receipt-acceptor counterexample, not proof that the sealed complete driver can emit this receipt."
+  },
+  "safeToContinue": true
+}

@@ -1,0 +1,9 @@
+[main 88bcd761007776d8b0743d208b2e4fff3b6310bf] test: version N14 nested-harness root locator correction
+ 7 files changed, 1234 insertions(+)
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/EXECUTOR-v2.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/PRESEAL-v2.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/STARTUP-CORRECTION.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/correct-startup-v2.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/launch-v2.py
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prepare-v2.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run-v2.mjs

@@ -1,0 +1,42 @@
+diff --git a/src/commands/text.ts b/src/commands/text.ts
+index 175ecac4..b28fc2e6 100644
+--- a/src/commands/text.ts
++++ b/src/commands/text.ts
+@@ -133,7 +133,7 @@ export function textCommands(): CommandDefinition[] {
+         };
+         compareNumeric = (left, right) => compareNumericValues(numericValue(left), numericValue(right));
+       }
+-      const keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
++      let keyCompare = simple ? (left: Uint8Array, right: Uint8Array) => compareBytes(left, right) * direction : (left: Uint8Array, right: Uint8Array) => {
+         for (const key of keys.length ? keys : [undefined]) {
+           const flags = key?.flags.size ? key.flags : parsed.flags;
+           let first = key ? keyBytes(left, key, separator, flags.has("b")) : left;
+@@ -149,6 +149,28 @@ export function textCommands(): CommandDefinition[] {
+         }
+         return 0;
+       };
++      const numericKey = keys.length === 1 ? keys[0] : undefined;
++      const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
++      if (numericKey && numericKeyFlags.has("n") && !["b", "f"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
++        const keyedNumericValues = new Map<Uint8Array, NumericValue>();
++        let retainedKeyBytes = 0;
++        const keyedNumericValue = (record: Uint8Array): NumericValue => {
++          const cached = keyedNumericValues.get(record);
++          if (cached !== undefined) return cached;
++          context.signal.throwIfAborted();
++          const bytes = keyBytes(record, numericKey, separator, false);
++          const charge = 6 * bytes.length + 2;
++          if (keyedNumericValues.size >= 16_384 || charge > 1_048_576 - retainedKeyBytes) return parseNumeric(bytes);
++          const parsedValue = parseNumeric(bytes);
++          keyedNumericValues.set(record, parsedValue);
++          retainedKeyBytes += charge;
++          return parsedValue;
++        };
++        keyCompare = (left, right) => {
++          const result = compareNumericValues(keyedNumericValue(left), keyedNumericValue(right));
++          return numericKeyFlags.has("r") ? -result : result;
++        };
++      }
+       const compare = simple ? keyCompare : (left: Uint8Array, right: Uint8Array) => keyCompare(left, right)
+         || (parsed.flags.has("s") || parsed.flags.has("u") ? 0 : compareBytes(left, right) * (parsed.flags.has("r") ? -1 : 1));
+       const records: Uint8Array[] = [];

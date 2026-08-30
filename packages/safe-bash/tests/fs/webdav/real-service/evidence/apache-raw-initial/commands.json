@@ -1,0 +1,88 @@
+[
+  {
+    "command": "git",
+    "args": [
+      "status",
+      "--porcelain=v1"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": " M tests/fs/webdav/real-service/raw.mjs\n M tests/fs/webdav/real-service/run.mjs\n?? benchmarks/reports/comparison-fairness-20260827/\n?? benchmarks/reports/current-integration/comparison-replay-20260827/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/fs/webdav/real-service/apache.mjs\n",
+    "stderr": ""
+  },
+  {
+    "command": "tar",
+    "args": [
+      "xf",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-t8vK1j/baseline.tar",
+      "-C",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-t8vK1j/snapshot"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "openssl",
+    "args": [
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-nodes",
+      "-keyout",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-t8vK1j/key.pem",
+      "-out",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-t8vK1j/cert.pem",
+      "-days",
+      "1",
+      "-config",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/openssl.cnf"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": ".+...........+...+.+...+.....+++++++++++++++++++++++++++++++++++++++*........+....+..+...............+......+...+......+...................+.........+...+...+......+.....+...............+...+++++++++++++++++++++++++++++++++++++++*....+..+............+...+....+..............+.+.....+.........+....+............+...+...+...+...........+.+..............+......+...+.........+.......+...+..+...+.............+...+..+..........+..+...+...+.+.........+..+...+......+.+.....+....++++++\n....+.+..+.......+.....+...+.+......+........+...+.......+......+..+...+....+...+...+++++++++++++++++++++++++++++++++++++++*......+.....+....+...+..+.........+.+......+...+..+.........+.+++++++++++++++++++++++++++++++++++++++*..+...........+..........+...+..+......+.............+.....+.+.....+...+............+...+.......+......+........+....+...+...+.....+......+.+...+......+...+......+.....+.......+...+.....+....+..+.+..+......+.......+..+.+......+........+.......+...+..+......+.........+......+............+.............+...+.........+.....+.+......+.........+..+...............+.............+.....+.........+.+..+............+.+......+......+..................+............+..+.+.....+.......+........+.+...+...+.....+...+..........+......+.....+....+......+......+..+..........+...+........+......+......+..........+.....+...............+...+....+..+....+..+.......+..+....+.........+............+......+...+......+......+.........+.....+.........+..........++++++\n-----\n"
+  },
+  {
+    "command": "/usr/sbin/httpd",
+    "args": [
+      "-v"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "Server version: Apache/2.4.66 (Unix)\nServer built:   Feb 21 2026 17:59:25\n",
+    "stderr": ""
+  },
+  {
+    "command": "/usr/sbin/httpd",
+    "args": [
+      "-t",
+      "-f",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-t8vK1j/httpd.conf"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "",
+    "stderr": "Syntax OK\n"
+  },
+  {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/raw.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/.work-t8vK1j",
+      "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/real-service/evidence/apache-raw-initial"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "status": 0,
+    "signal": null,
+    "stdout": "[\n  {\n    \"name\": \"PROPFIND namespace/base/trailing slash\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      0,\n      1\n    ],\n    \"hostWitnessesBase64\": {}\n  },\n  {\n    \"name\": \"conditional PUT accepted and stale/exclusive PUT preserved\",\n    \"kind\": \"guard\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 204\\n\",\n    \"events\": [\n      1,\n      7\n    ],\n    \"hostWitnessesBase64\": {\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"COPY source If-Match with distinct destination ETag\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 204\\n\",\n    \"events\": [\n      7,\n      12\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"COPY absent target source If-Match\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 201\\n\",\n    \"events\": [\n      12,\n      15\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"COPY Overwrite F and stale destination tagged If\",\n    \"kind\": \"guard\",\n    \"result\": \"pass\",\n    \"events\": [\n      15,\n      21\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"COPY destination LOCK token and unlock after overwrite\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      21,\n      28\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-lock-source\": \"c291cmNl\",\n      \"COPY-lock-target\": \"c291cmNl\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"MOVE source If-Match with distinct destination ETag\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 204\\n\",\n    \"events\": [\n      28,\n      33\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-lock-source\": \"c291cmNl\",\n      \"COPY-lock-target\": \"c291cmNl\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"MOVE-source\": \"c291cmNlIGJ5dGVz\",\n      \"MOVE-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"MOVE absent target source If-Match\",\n    \"kind\": \"positive\",\n    \"result\": \"fail\",\n    \"error\": \"AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\\n\\n412 !== 201\\n\",\n    \"events\": [\n      33,\n      36\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-lock-source\": \"c291cmNl\",\n      \"COPY-lock-target\": \"c291cmNl\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"MOVE-new-source\": \"bmV3IGJ5dGVz\",\n      \"MOVE-source\": \"c291cmNlIGJ5dGVz\",\n      \"MOVE-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"MOVE Overwrite F and stale destination tagged If\",\n    \"kind\": \"guard\",\n    \"result\": \"pass\",\n    \"events\": [\n      36,\n      42\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-lock-source\": \"c291cmNl\",\n      \"COPY-lock-target\": \"c291cmNl\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"MOVE-guard-source\": \"c291cmNl\",\n      \"MOVE-guard-target\": \"dGFyZ2V0\",\n      \"MOVE-new-source\": \"bmV3IGJ5dGVz\",\n      \"MOVE-source\": \"c291cmNlIGJ5dGVz\",\n      \"MOVE-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"MOVE destination LOCK token and unlock after overwrite\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      42,\n      49\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-lock-source\": \"c291cmNl\",\n      \"COPY-lock-target\": \"c291cmNl\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"MOVE-guard-source\": \"c291cmNl\",\n      \"MOVE-guard-target\": \"dGFyZ2V0\",\n      \"MOVE-lock-target\": \"c291cmNl\",\n      \"MOVE-new-source\": \"bmV3IGJ5dGVz\",\n      \"MOVE-source\": \"c291cmNlIGJ5dGVz\",\n      \"MOVE-target\": \"T0xE\",\n      \"put\": \"b25l\"\n    }\n  },\n  {\n    \"name\": \"LOCK header is RFC coded-URL\",\n    \"kind\": \"positive\",\n    \"result\": \"pass\",\n    \"events\": [\n      49,\n      52\n    ],\n    \"hostWitnessesBase64\": {\n      \"COPY-guard-source\": \"c291cmNl\",\n      \"COPY-guard-target\": \"dGFyZ2V0\",\n      \"COPY-lock-source\": \"c291cmNl\",\n      \"COPY-lock-target\": \"c291cmNl\",\n      \"COPY-new-source\": \"bmV3IGJ5dGVz\",\n      \"COPY-source\": \"c291cmNlIGJ5dGVz\",\n      \"COPY-target\": \"T0xE\",\n      \"MOVE-guard-source\": \"c291cmNl\",\n      \"MOVE-guard-target\": \"dGFyZ2V0\",\n      \"MOVE-lock-target\": \"c291cmNl\",\n      \"MOVE-new-source\": \"bmV3IGJ5dGVz\",\n      \"MOVE-source\": \"c291cmNlIGJ5dGVz\",\n      \"MOVE-target\": \"T0xE\",\n      \"lock-syntax\": \"b3JpZ2luYWw=\",\n      \"put\": \"b25l\"\n    }\n  }\n]\n",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,1161 @@
+{
+  "rawFiles": 192,
+  "rawBytes": 26768280,
+  "files": [
+    {
+      "path": "raw/surface/01-supported-facades/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/01-supported-facades/actual.json",
+      "bytes": 123201,
+      "sha256": "8407f7a70b7932e89052dde8af03ba975e4e78204c32f80d0aa9587c5c9adf3b"
+    },
+    {
+      "path": "raw/surface/01-supported-facades/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/01-supported-facades/assessment.json",
+      "bytes": 1269,
+      "sha256": "5454ddd7f6675e4581256a9f7446d22ee6c479ae85b5dc84715fed6b36204b4f"
+    },
+    {
+      "path": "raw/surface/01-supported-facades/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/01-supported-facades/child.json",
+      "bytes": 341,
+      "sha256": "764c55758ab6e27622648f30865a6f34635399d9c01625767f5eee66acdac3a8"
+    },
+    {
+      "path": "raw/surface/01-supported-facades/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/01-supported-facades/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "4323a6a46d73fc38f0dba6051b331030ddd7b94293939b77b297a2b845a9aaeb"
+    },
+    {
+      "path": "raw/surface/01-supported-facades/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/01-supported-facades/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/01-supported-facades/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/01-supported-facades/stdout.log",
+      "bytes": 68,
+      "sha256": "7f26b055bb14eb059a624b64d85e1d0431145604b047c864d8f397d59e2b1cf9"
+    },
+    {
+      "path": "raw/surface/02-direct-surface/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/02-direct-surface/actual.json",
+      "bytes": 151491,
+      "sha256": "06632f91d6743a86329a3d45e12859ac5365b70a7311f8dbcfb84dba095afed8"
+    },
+    {
+      "path": "raw/surface/02-direct-surface/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/02-direct-surface/assessment.json",
+      "bytes": 2162,
+      "sha256": "0b1499de816e91c062f4a3f703b3a21cb913c59364f6d18472026c9623dcfa18"
+    },
+    {
+      "path": "raw/surface/02-direct-surface/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/02-direct-surface/child.json",
+      "bytes": 338,
+      "sha256": "2c7907e5fd84648e8ffbbdb2ae882569443e20d0926a232809e8cbe7ff12f844"
+    },
+    {
+      "path": "raw/surface/02-direct-surface/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/02-direct-surface/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "c0e5c84c0a6f56aab6ab4592c0d98077fd97e442d636eab95dd0c25af3ae936d"
+    },
+    {
+      "path": "raw/surface/02-direct-surface/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/02-direct-surface/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/02-direct-surface/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/02-direct-surface/stdout.log",
+      "bytes": 65,
+      "sha256": "2b55fd05907f1b82a33e0ac63c013c3ee2ec4e96023b2fdaa5a22d5e03c96584"
+    },
+    {
+      "path": "raw/surface/03-namespace-spread/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/03-namespace-spread/actual.json",
+      "bytes": 148452,
+      "sha256": "6dcaafe573c523ba525ac5a2ac34c432190c356ad1836d1b50279c5462ab1c52"
+    },
+    {
+      "path": "raw/surface/03-namespace-spread/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/03-namespace-spread/assessment.json",
+      "bytes": 2065,
+      "sha256": "3493123e9b4aaf5e9514441353b197429638eca3c7d17fbe2279defcabc5e0bd"
+    },
+    {
+      "path": "raw/surface/03-namespace-spread/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/03-namespace-spread/child.json",
+      "bytes": 340,
+      "sha256": "aae971fc7d246c435ad44ecc6776c5c97f3f4bccf9c4a3af44de260664390d48"
+    },
+    {
+      "path": "raw/surface/03-namespace-spread/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/03-namespace-spread/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "c8c12f1972c3df243f7f26f24870c42f6ccaed987861dac5749c53fe54cd421a"
+    },
+    {
+      "path": "raw/surface/03-namespace-spread/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/03-namespace-spread/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/03-namespace-spread/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/03-namespace-spread/stdout.log",
+      "bytes": 67,
+      "sha256": "b0a2ebd4885b6064dc3d3516b90c8fedbbf1cb9530c759f3257c9f97ad2085d3"
+    },
+    {
+      "path": "raw/surface/04-shell-module/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/04-shell-module/actual.json",
+      "bytes": 137910,
+      "sha256": "0139737d5126a756ae0c5e47f7e6ed1dbc969bf6bfa96764c1ef39b792a96d83"
+    },
+    {
+      "path": "raw/surface/04-shell-module/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/04-shell-module/assessment.json",
+      "bytes": 1645,
+      "sha256": "3895ab05083ad3badcc6e4c5f3b6e70f4b43a8808a5eb3d15207c131d54cbe34"
+    },
+    {
+      "path": "raw/surface/04-shell-module/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/04-shell-module/child.json",
+      "bytes": 336,
+      "sha256": "af1b840ca456cd8ef4e8bdbce4406640f47d3fff468a20e5794bf4a752330ccc"
+    },
+    {
+      "path": "raw/surface/04-shell-module/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/04-shell-module/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "4547ebb0419a94b69cf38e2a5150613d12068c885d1b278aa03bb98ac3fd38c7"
+    },
+    {
+      "path": "raw/surface/04-shell-module/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/04-shell-module/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/04-shell-module/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/04-shell-module/stdout.log",
+      "bytes": 63,
+      "sha256": "f6bec38e8bbe007eadafeeaba3e513b6c4ddb7db3c6b8b904989dc70c187ae1b"
+    },
+    {
+      "path": "raw/surface/05-missing-register-cleanup/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/05-missing-register-cleanup/actual.json",
+      "bytes": 122956,
+      "sha256": "94b667a04c3a7f6cc38c633cb62c7e2e1fa42a94c815ad736e1918ee3f3aaeb6"
+    },
+    {
+      "path": "raw/surface/05-missing-register-cleanup/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/05-missing-register-cleanup/assessment.json",
+      "bytes": 1276,
+      "sha256": "bf0af86675f3c4cf1528548196bc42cd37d047f6941cd748bdb40ed5458b94e5"
+    },
+    {
+      "path": "raw/surface/05-missing-register-cleanup/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/05-missing-register-cleanup/child.json",
+      "bytes": 348,
+      "sha256": "bd6eaee4792bab79e0e72108e4bfc184d70e18c9362afacb9d4c738f44255d2c"
+    },
+    {
+      "path": "raw/surface/05-missing-register-cleanup/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/05-missing-register-cleanup/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "c5319b0a77e77f30c0294d5469890ece3aa0b877fa176cdff4c64880342ec9fc"
+    },
+    {
+      "path": "raw/surface/05-missing-register-cleanup/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/05-missing-register-cleanup/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/05-missing-register-cleanup/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/05-missing-register-cleanup/stdout.log",
+      "bytes": 75,
+      "sha256": "8d244a7c305214b150f369f193b3b0d3a69a87176e7b047a83d6f809acdf9a66"
+    },
+    {
+      "path": "raw/surface/06-missing-acquire/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/06-missing-acquire/actual.json",
+      "bytes": 123140,
+      "sha256": "d70fa8a2a773f29c4ed9f7801b5b153c025220c59468464832c9bd0b338c4712"
+    },
+    {
+      "path": "raw/surface/06-missing-acquire/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/06-missing-acquire/assessment.json",
+      "bytes": 1267,
+      "sha256": "c5cc0156676d9ed8fdfe77fba5e1f90825f7402afe7009202a80ea1baab5909b"
+    },
+    {
+      "path": "raw/surface/06-missing-acquire/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/06-missing-acquire/child.json",
+      "bytes": 339,
+      "sha256": "1e3027d9245e75be07f3ec06188ba6ca301a9eb28ae4545e2620e10046a48aa0"
+    },
+    {
+      "path": "raw/surface/06-missing-acquire/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/06-missing-acquire/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "479da625b8aa8e5f83c7cde4bbaf98fc6504ca0e4906faf0d0462d72556de0a1"
+    },
+    {
+      "path": "raw/surface/06-missing-acquire/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/06-missing-acquire/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/06-missing-acquire/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/06-missing-acquire/stdout.log",
+      "bytes": 66,
+      "sha256": "d62258beb95546519025aa16846c128be5fb4e0117b374e4d8205410caf4138c"
+    },
+    {
+      "path": "raw/surface/07-reflection-profile/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/07-reflection-profile/actual.json",
+      "bytes": 124111,
+      "sha256": "286f21c91d85ff7f05a5f28e3c4024166858bdbaed214faa9f0691f6196a588c"
+    },
+    {
+      "path": "raw/surface/07-reflection-profile/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/07-reflection-profile/assessment.json",
+      "bytes": 1292,
+      "sha256": "1d5df6971d45f20ce8b1754f194a15618c7cac5ccb6b9b786cb4b07983a5159b"
+    },
+    {
+      "path": "raw/surface/07-reflection-profile/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/07-reflection-profile/child.json",
+      "bytes": 342,
+      "sha256": "73c72cc3bf61c01aa6358b2b2ea1f7a9dce49bcff475f7967bd432af3670633b"
+    },
+    {
+      "path": "raw/surface/07-reflection-profile/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/07-reflection-profile/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "1c1553c4ca99a0c60a00e4e7d3226602e515ac79d72f9763fadf3663cb49cbac"
+    },
+    {
+      "path": "raw/surface/07-reflection-profile/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/07-reflection-profile/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/07-reflection-profile/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/07-reflection-profile/stdout.log",
+      "bytes": 69,
+      "sha256": "d5dad48d9954d3a941ebb41a5a09f5003bd1dd6e1829dca2e6046bd07bb9348d"
+    },
+    {
+      "path": "raw/surface/08-function-spread-profile/actual.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/08-function-spread-profile/actual.json",
+      "bytes": 121784,
+      "sha256": "ab6595967b4f30d56638b10ca79bf4bd16f15d23b7bb2e850486c83db880bd54"
+    },
+    {
+      "path": "raw/surface/08-function-spread-profile/assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/08-function-spread-profile/assessment.json",
+      "bytes": 1337,
+      "sha256": "35ecbb1d51899ec736d7cf6f4b948a0fe5013dbad6b86efc770315489d79f4dd"
+    },
+    {
+      "path": "raw/surface/08-function-spread-profile/child.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/08-function-spread-profile/child.json",
+      "bytes": 347,
+      "sha256": "c1f54257725310d3ae981ec3cab17bbe21960aacfeab3a77a33815fa0b968c0d"
+    },
+    {
+      "path": "raw/surface/08-function-spread-profile/imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/08-function-spread-profile/imports.ndjson",
+      "bytes": 41796,
+      "sha256": "711750efb0a5af440637d83235adc0da12408a3b2bd886c4d42a57df3003427e"
+    },
+    {
+      "path": "raw/surface/08-function-spread-profile/stderr.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/08-function-spread-profile/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/surface/08-function-spread-profile/stdout.log",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/08-function-spread-profile/stdout.log",
+      "bytes": 74,
+      "sha256": "813aa23d16efb0f126613ee7f0b7573375bc019527f24dd4744efafdec7e0fe3"
+    },
+    {
+      "path": "raw/surface/copy-provenance.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/copy-provenance.json",
+      "bytes": 380452,
+      "sha256": "a3d913850f28121412466870fd708f805b58672c8a4913c3bf244ad65e0a6344"
+    },
+    {
+      "path": "raw/surface/directory-shape-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/directory-shape-after.json",
+      "bytes": 728252,
+      "sha256": "c8926af78fe81c3032cba4f4a17ff69e7d42e92641fa505f3aa1e540f5078ae1"
+    },
+    {
+      "path": "raw/surface/directory-shape-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/directory-shape-before.json",
+      "bytes": 728252,
+      "sha256": "c8926af78fe81c3032cba4f4a17ff69e7d42e92641fa505f3aa1e540f5078ae1"
+    },
+    {
+      "path": "raw/surface/import-allowlist.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/import-allowlist.json",
+      "bytes": 269733,
+      "sha256": "15a0555c90339e2c7a090b6c567d23633dad78022dc3ffcee74627d5687b6341"
+    },
+    {
+      "path": "raw/surface/inputs-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/inputs-after.json",
+      "bytes": 582541,
+      "sha256": "74d0b492a2416344e5b2fb8bf79706d1a259d356c551aa88a40be76f75b8e425"
+    },
+    {
+      "path": "raw/surface/inputs-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/inputs-before.json",
+      "bytes": 582541,
+      "sha256": "74d0b492a2416344e5b2fb8bf79706d1a259d356c551aa88a40be76f75b8e425"
+    },
+    {
+      "path": "raw/surface/journal.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/journal.json",
+      "bytes": 428051,
+      "sha256": "f6706a8da214a224f022e438d9e8f2ea9899810b90afcef2591c6e331e205dfb"
+    },
+    {
+      "path": "raw/surface/private-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/private-after.json",
+      "bytes": 69741,
+      "sha256": "c415bd464b42497bc6dd0f496855f199cd8fe585f1a763d6950facf757a9c98c"
+    },
+    {
+      "path": "raw/surface/private-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/private-before.json",
+      "bytes": 69741,
+      "sha256": "eab9e1b536b2c41e276f05d50abe6df27663106c684e979efa6a439bb2d2f1b7"
+    },
+    {
+      "path": "raw/surface/public-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/public-before.json",
+      "bytes": 62422,
+      "sha256": "24c4ce86db9f6917124a57d2c526ddfd09a33e076f3d8652c0912c2262239115"
+    },
+    {
+      "path": "raw/surface/shared-guard.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/surface-zero-overlay-6d4KlU/results/shared-guard.json",
+      "bytes": 3186,
+      "sha256": "06e464da6cf5e19c9b9795e1f0182b9e83839bbfb22f84ffea3c65fa782d305c"
+    },
+    {
+      "path": "raw/lifecycle/L01-aliases.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L01-aliases.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "687cd1cecc686dffaaddd57fd6ed267ffe372d509a1031251d635e14c831c799"
+    },
+    {
+      "path": "raw/lifecycle/L01-aliases.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L01-aliases.json",
+      "bytes": 15045,
+      "sha256": "f3da0e4b14963da8124a067c05868ccc91151f631fb93d57ddbc54bf7771d0c7"
+    },
+    {
+      "path": "raw/lifecycle/L01-aliases.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L01-aliases.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L01-aliases.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L01-aliases.stdout.txt",
+      "bytes": 350,
+      "sha256": "9ef611a153c7c2f0c06ea1d6e97ddad218b8c9db51e01118b9d8647f5fb571b9"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-exhausted.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-exhausted.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "1f83a448453e2bb2d7c185f1440c700613610d6cedcf88855055b41bf5812574"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-exhausted.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-exhausted.json",
+      "bytes": 15896,
+      "sha256": "b8fb052db2da07d0997cef8c2de51691abe5c7841499b92f1d30e859c07a40bd"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-exhausted.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-exhausted.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-exhausted.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-exhausted.stdout.txt",
+      "bytes": 406,
+      "sha256": "e7d6bc39e900179536c4749f28459b07e8c6646060deb0acc97921bf1eba44b7"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-positive.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-positive.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "00252a411c7b577df6b0bc03126e5a0cff52b3477585684fe1755658277ea090"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-positive.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-positive.json",
+      "bytes": 15148,
+      "sha256": "296904d08dfe744b9f1818dd26858c0a7bcc9a93c057ffa8652274dac90d1ce1"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-positive.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-positive.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L02-budget-positive.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L02-budget-positive.stdout.txt",
+      "bytes": 404,
+      "sha256": "9e6ae9b80425850f1b9cc7358190bfce68a87bfe4dee7dfbc0d7f262dc413afd"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-after-lifetime.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-after-lifetime.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "22e3f8c75417336fca96c020afdf1207d4907da4b281e993807e9757de284592"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-after-lifetime.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-after-lifetime.json",
+      "bytes": 17001,
+      "sha256": "b764f96ccc3e96c118dc8b11256ed5c6bb4998e05c3ca0dcbbb5b63881b119dd"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-after-lifetime.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-after-lifetime.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-after-lifetime.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-after-lifetime.stdout.txt",
+      "bytes": 435,
+      "sha256": "03229a92f938e7854dad94454cc981e28213662d4e788687b9b5844522c30b67"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-live.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-live.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "203079831ff4072b960c1f7feab15dafa57edb8757bf3cd177ae5bc411bb40a8"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-live.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-live.json",
+      "bytes": 17480,
+      "sha256": "a17c71e964a98ab435218dcac99d41be824ded272d8fb781bb777f6577728436"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-live.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-live.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L03-callback-live.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L03-callback-live.stdout.txt",
+      "bytes": 415,
+      "sha256": "62fd4165a2d9b73aa89e5710cb64b77c867dfd3b1adbd288e081a91fd1afffe5"
+    },
+    {
+      "path": "raw/lifecycle/L04-explicit-children.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L04-explicit-children.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "cae23274197ea5b6ea74a0bd13c093092eb7ed9c7b1783ee84258f4cbac03aa2"
+    },
+    {
+      "path": "raw/lifecycle/L04-explicit-children.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L04-explicit-children.json",
+      "bytes": 24652,
+      "sha256": "9fba962eca0a16f957c305cf8b56be941e72fdc010537571a47cb27b7a29d0ea"
+    },
+    {
+      "path": "raw/lifecycle/L04-explicit-children.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L04-explicit-children.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L04-explicit-children.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L04-explicit-children.stdout.txt",
+      "bytes": 426,
+      "sha256": "b21e8ad42457e6445218b41eb9b35aa4b24082863b4f45a08fcbb43ce207453a"
+    },
+    {
+      "path": "raw/lifecycle/L05-caller-error.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-caller-error.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "ee118b6db5c93954152de81f3d784c781858a6f88e2ec60b417916a78ad79db0"
+    },
+    {
+      "path": "raw/lifecycle/L05-caller-error.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-caller-error.json",
+      "bytes": 15460,
+      "sha256": "3b42a05ef07806606d40bf0830e12f0972b67d520e897f8c41bcd00d567cd9d9"
+    },
+    {
+      "path": "raw/lifecycle/L05-caller-error.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-caller-error.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L05-caller-error.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-caller-error.stdout.txt",
+      "bytes": 415,
+      "sha256": "6d981c9e3ea06801dbf1148f910869def13598799e29e044002014d37648ed88"
+    },
+    {
+      "path": "raw/lifecycle/L05-cleanup-error.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-cleanup-error.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "78e22d6c83f2b4bb4abacc402390753fe30656114d361dbd1126ddd196f54f92"
+    },
+    {
+      "path": "raw/lifecycle/L05-cleanup-error.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-cleanup-error.json",
+      "bytes": 16376,
+      "sha256": "60f1e79863533db35b9ce8850adc007bb12e26f532eaa51d86f4314ec89dc5b7"
+    },
+    {
+      "path": "raw/lifecycle/L05-cleanup-error.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-cleanup-error.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L05-cleanup-error.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-cleanup-error.stdout.txt",
+      "bytes": 417,
+      "sha256": "adf266ebd5d7403df44ae0216e78fb984ca918a14e1a790c0449f5bea248d1fe"
+    },
+    {
+      "path": "raw/lifecycle/L05-execution-error.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-execution-error.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "737c93232250535f15d04fd08ca8364bb6e8e68373b35b5448b715ffe179f4eb"
+    },
+    {
+      "path": "raw/lifecycle/L05-execution-error.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-execution-error.json",
+      "bytes": 17121,
+      "sha256": "0695d300d3d5ed303b5e211ef8d2a30424c102a69f4da41fa62742044091dfa6"
+    },
+    {
+      "path": "raw/lifecycle/L05-execution-error.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-execution-error.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L05-execution-error.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L05-execution-error.stdout.txt",
+      "bytes": 508,
+      "sha256": "d290e4058ce11cee94b562687fc37323c6fd31256f448fbb91fa5e3d9c980cc2"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-consumer-closed.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-consumer-closed.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "c65a9f532c841e926bb5de18c0f0b551d8a4dd4e40343c1b66d1ac1ed86ba297"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-consumer-closed.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-consumer-closed.json",
+      "bytes": 19557,
+      "sha256": "1e9fa1a8730f41e03ddcb243fe3557e52f883924bffe70f4195c065a78cd6905"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-consumer-closed.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-consumer-closed.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-consumer-closed.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-consumer-closed.stdout.txt",
+      "bytes": 520,
+      "sha256": "628dec44869c129893efde6731801e7e40a7abcb51316a43832ef58f04a72628"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-open.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-open.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "1672825a268e3e97335ba7088e7977c5b6dc87a4c779d26e0be8631eddd8ef63"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-open.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-open.json",
+      "bytes": 19692,
+      "sha256": "6dbe632862da5d67b350802e857b8a44855ffe4c597fc32081901b000fb864d4"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-open.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-open.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/lifecycle/L06-curl-open.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/L06-curl-open.stdout.txt",
+      "bytes": 498,
+      "sha256": "2f238f7e76b8a83f69c8757be3b168a532914aafca6102c0000788e2478b7a45"
+    },
+    {
+      "path": "raw/lifecycle/directory-shape-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/directory-shape-after.json",
+      "bytes": 948173,
+      "sha256": "7628906dd0aa7433b64e39c4d8bf83e054d5d7611855cc0095f299e32420e0ff"
+    },
+    {
+      "path": "raw/lifecycle/directory-shape-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/directory-shape-before.json",
+      "bytes": 948173,
+      "sha256": "7628906dd0aa7433b64e39c4d8bf83e054d5d7611855cc0095f299e32420e0ff"
+    },
+    {
+      "path": "raw/lifecycle/immutable-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/immutable-after.json",
+      "bytes": 563281,
+      "sha256": "9b8c38aa3a12e5bb24fc2d446691588cf52d48cb254e584e23539730cbf3b48b"
+    },
+    {
+      "path": "raw/lifecycle/immutable-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/immutable-before.json",
+      "bytes": 563281,
+      "sha256": "9b8c38aa3a12e5bb24fc2d446691588cf52d48cb254e584e23539730cbf3b48b"
+    },
+    {
+      "path": "raw/lifecycle/original-freeze.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/original-freeze.json",
+      "bytes": 19582,
+      "sha256": "ebda136b328bce311fcf5d41d09b438c5706bd162917e508cbb5f438d0c35bb5"
+    },
+    {
+      "path": "raw/lifecycle/private-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/private-after.json",
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "raw/lifecycle/private-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/private-before.json",
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "raw/lifecycle/report-before-removal.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/report-before-removal.json",
+      "bytes": 864428,
+      "sha256": "a4bd0389418683c007a3b397a52c5a9e9ab9c110dc30d7c7b25510c268157644"
+    },
+    {
+      "path": "raw/lifecycle/report.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/report.json",
+      "bytes": 864427,
+      "sha256": "a8cc6136d13662a014b2821f4fd6f474d247f484e91006d59f8bea36a7ff9edd"
+    },
+    {
+      "path": "raw/lifecycle/runner-freeze.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/runner-freeze.json",
+      "bytes": 16518,
+      "sha256": "21630afdf43a4538faf25bf00c372a6b0c1e7ab632e30bdc1880e086fa14eedf"
+    },
+    {
+      "path": "raw/lifecycle/shared-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/shared-after.json",
+      "bytes": 1980285,
+      "sha256": "3927c5d13bbaa1eaa5308fc895064c3beba037b434c016d054273cbc880e2e15"
+    },
+    {
+      "path": "raw/lifecycle/shared-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/lifecycle-raw/shared-before.json",
+      "bytes": 1980285,
+      "sha256": "3927c5d13bbaa1eaa5308fc895064c3beba037b434c016d054273cbc880e2e15"
+    },
+    {
+      "path": "raw/controls/Z01-closed.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-closed.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "a0250c7f23f23b1e4be4ef1b02fed51d42e990ef545b60a0601deb5902f0fc68"
+    },
+    {
+      "path": "raw/controls/Z01-closed.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-closed.json",
+      "bytes": 22611,
+      "sha256": "ab9d5a44f88d5727fe47e287eb07bb59f5c086b96e1c017c85d4a075c65417c6"
+    },
+    {
+      "path": "raw/controls/Z01-closed.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-closed.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/controls/Z01-closed.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-closed.stdout.txt",
+      "bytes": 701,
+      "sha256": "7f97c4ccc139a54cc3ae53b5f7c7fd8d5664e71921cba77a84aaaeec65a567f0"
+    },
+    {
+      "path": "raw/controls/Z01-open.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-open.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "6f36a6095f78822af3201ff5fc07da31067ae1d3d96d466495627e69c6590440"
+    },
+    {
+      "path": "raw/controls/Z01-open.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-open.json",
+      "bytes": 23027,
+      "sha256": "5456993f5364ea7dff9bfd561d28022da247a06d5fdf6056284795535840fc50"
+    },
+    {
+      "path": "raw/controls/Z01-open.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-open.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/controls/Z01-open.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z01-open.stdout.txt",
+      "bytes": 697,
+      "sha256": "76eb54e3874d9b93006692afdd44805251ad65d2aea63730d98be32eca59ea4b"
+    },
+    {
+      "path": "raw/controls/Z02-closed.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-closed.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "622097f820bfa7890b136812edb0e9fe79a805d96bd6ed7ba936b776c0ec8d18"
+    },
+    {
+      "path": "raw/controls/Z02-closed.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-closed.json",
+      "bytes": 23110,
+      "sha256": "03dc1230b23cd4d2eb5f427231bfcdcfc4bb26b8bd8feaf4882d114dfb15a17b"
+    },
+    {
+      "path": "raw/controls/Z02-closed.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-closed.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/controls/Z02-closed.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-closed.stdout.txt",
+      "bytes": 701,
+      "sha256": "beece96066681f4d7cb49a6edb66febd71ff5f224b84e422dfb68aa14c2eeb79"
+    },
+    {
+      "path": "raw/controls/Z02-open.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-open.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "9f758d27fb3d812c0fc721e3bfef0c424018d0397f5f7d952cd04fc55ea06812"
+    },
+    {
+      "path": "raw/controls/Z02-open.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-open.json",
+      "bytes": 23558,
+      "sha256": "7f016c9ac2f9c58c8b7d31a7f0fe7558365a83ea4c38e65ff1bfc3b72f92e3e3"
+    },
+    {
+      "path": "raw/controls/Z02-open.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-open.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/controls/Z02-open.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z02-open.stdout.txt",
+      "bytes": 697,
+      "sha256": "663e29009b448f7c0e56c6b91f7e26f91dd3c4dfe72954e44f69ecfb444fcd6a"
+    },
+    {
+      "path": "raw/controls/Z03-closed.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-closed.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "8c06371eac4c31a698cd5fd628597c0a42cb2c144322a40b05e20ca41c686113"
+    },
+    {
+      "path": "raw/controls/Z03-closed.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-closed.json",
+      "bytes": 23104,
+      "sha256": "8c142a853ea6e13f20b94a12a04673e9c1af296b10cca1ff345b2b0d0c9efaab"
+    },
+    {
+      "path": "raw/controls/Z03-closed.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-closed.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/controls/Z03-closed.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-closed.stdout.txt",
+      "bytes": 701,
+      "sha256": "c74e381a87d224542628c34e800f11831ab1df02f451040531be91194447f690"
+    },
+    {
+      "path": "raw/controls/Z03-open.imports.ndjson",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-open.imports.ndjson",
+      "bytes": 41739,
+      "sha256": "d0262d033c72c0db79f6802b32daabfe19b62126ec10890e93cf6f06cc279626"
+    },
+    {
+      "path": "raw/controls/Z03-open.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-open.json",
+      "bytes": 23552,
+      "sha256": "12efa8c380c28de906755d11b925d8634585865d18fdcd5b0f0275f29ffa6567"
+    },
+    {
+      "path": "raw/controls/Z03-open.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-open.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/controls/Z03-open.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/Z03-open.stdout.txt",
+      "bytes": 697,
+      "sha256": "93ae9fa89174b767485723110610bb50353a833c58cd1a281d35d2f17318ac29"
+    },
+    {
+      "path": "raw/controls/directory-shape-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/directory-shape-after.json",
+      "bytes": 947776,
+      "sha256": "b528ef3f4d7f4b568bcd46081d65d0ce186f14d7b45ccc77655b7a408b8dba72"
+    },
+    {
+      "path": "raw/controls/directory-shape-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/directory-shape-before.json",
+      "bytes": 947776,
+      "sha256": "b528ef3f4d7f4b568bcd46081d65d0ce186f14d7b45ccc77655b7a408b8dba72"
+    },
+    {
+      "path": "raw/controls/immutable-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/immutable-after.json",
+      "bytes": 562003,
+      "sha256": "5ac07fafab68f08ea6d7f7104d204cc3623b87429ec8eca4c71d6d6c0433fd6b"
+    },
+    {
+      "path": "raw/controls/immutable-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/immutable-before.json",
+      "bytes": 562003,
+      "sha256": "5ac07fafab68f08ea6d7f7104d204cc3623b87429ec8eca4c71d6d6c0433fd6b"
+    },
+    {
+      "path": "raw/controls/original-freeze.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/original-freeze.json",
+      "bytes": 19582,
+      "sha256": "ebda136b328bce311fcf5d41d09b438c5706bd162917e508cbb5f438d0c35bb5"
+    },
+    {
+      "path": "raw/controls/private-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/private-after.json",
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "raw/controls/private-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/private-before.json",
+      "bytes": 69396,
+      "sha256": "d543c4eed5017c54a21d1216e92aa0d65758261ab190f78bcb42dca08abb2ff9"
+    },
+    {
+      "path": "raw/controls/report-before-removal.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/report-before-removal.json",
+      "bytes": 527310,
+      "sha256": "57e9a0ddc0ffcbb8567a556f500bfbca2e509d5e086a2aa09eb77035fd900ee5"
+    },
+    {
+      "path": "raw/controls/report.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/report.json",
+      "bytes": 527309,
+      "sha256": "450ea701d7de704677d7a669df3253e0bdc620ed515a3db1d3b736855ad42f05"
+    },
+    {
+      "path": "raw/controls/runner-freeze.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/runner-freeze.json",
+      "bytes": 16518,
+      "sha256": "21630afdf43a4538faf25bf00c372a6b0c1e7ab632e30bdc1880e086fa14eedf"
+    },
+    {
+      "path": "raw/controls/shared-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/shared-after.json",
+      "bytes": 1980285,
+      "sha256": "3927c5d13bbaa1eaa5308fc895064c3beba037b434c016d054273cbc880e2e15"
+    },
+    {
+      "path": "raw/controls/shared-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/controls-raw/shared-before.json",
+      "bytes": 1980285,
+      "sha256": "3927c5d13bbaa1eaa5308fc895064c3beba037b434c016d054273cbc880e2e15"
+    },
+    {
+      "path": "raw/independent-surface/authentication-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/authentication-after.json",
+      "bytes": 400,
+      "sha256": "23a36d3423e681174356917d7b100bbc4f4f9475ed3620d3a5bb17bd03fde1a0"
+    },
+    {
+      "path": "raw/independent-surface/authentication-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/authentication-before.json",
+      "bytes": 400,
+      "sha256": "48496a47042aca7cbcd31d178eb49415a9186c9331d586d52a16c2f27cc9ded2"
+    },
+    {
+      "path": "raw/independent-surface/independent-assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/independent-assessment.json",
+      "bytes": 5585,
+      "sha256": "0eb87818d8fd13b981170ea39f1d3213776ea74f130a3f8a1796624be1f00a2e"
+    },
+    {
+      "path": "raw/independent-surface/independent-inputs-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/independent-inputs-after.json",
+      "bytes": 473158,
+      "sha256": "837b43514abc9fa71f3baf4e0ab7c58dc66b547e879fd267a8c63ec3586b3698"
+    },
+    {
+      "path": "raw/independent-surface/independent-inputs-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/independent-inputs-before.json",
+      "bytes": 473158,
+      "sha256": "837b43514abc9fa71f3baf4e0ab7c58dc66b547e879fd267a8c63ec3586b3698"
+    },
+    {
+      "path": "raw/independent-surface/parent.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/parent.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/independent-surface/parent.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/parent.stdout.txt",
+      "bytes": 1224,
+      "sha256": "c22f094fbf1d4f639506072084df60c3273ec77df657403c8080fc6ad4cbf6ba"
+    },
+    {
+      "path": "raw/independent-surface/private-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/private-after.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "raw/independent-surface/private-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/private-before.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "raw/independent-surface/run.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-surface/run.json",
+      "bytes": 659,
+      "sha256": "82e440763d53283d928a60ab97e38dcaa4a24383f6d30a086acceec6f109b2aa"
+    },
+    {
+      "path": "raw/independent-lifecycle/authentication-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/authentication-after.json",
+      "bytes": 400,
+      "sha256": "34ba5ceb5541cc66444c39acdeef67d6d8d6550d7de6e31b282ed8072c4de595"
+    },
+    {
+      "path": "raw/independent-lifecycle/authentication-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/authentication-before.json",
+      "bytes": 400,
+      "sha256": "81e5a74aff5b034a0725d9dd4529616feb845c86e0aec60723f3377089288808"
+    },
+    {
+      "path": "raw/independent-lifecycle/independent-assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/independent-assessment.json",
+      "bytes": 10768,
+      "sha256": "139b21e1cd3c27a9a7a950ff933401d40eca19629c4ef0bc881c1858b285c74a"
+    },
+    {
+      "path": "raw/independent-lifecycle/independent-inputs-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/independent-inputs-after.json",
+      "bytes": 473158,
+      "sha256": "837b43514abc9fa71f3baf4e0ab7c58dc66b547e879fd267a8c63ec3586b3698"
+    },
+    {
+      "path": "raw/independent-lifecycle/independent-inputs-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/independent-inputs-before.json",
+      "bytes": 473158,
+      "sha256": "837b43514abc9fa71f3baf4e0ab7c58dc66b547e879fd267a8c63ec3586b3698"
+    },
+    {
+      "path": "raw/independent-lifecycle/parent.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/parent.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/independent-lifecycle/parent.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/parent.stdout.txt",
+      "bytes": 2508,
+      "sha256": "5b7da81c9caf2f84d9a633acf2e1f2d1785d870450ec734b021017f400021566"
+    },
+    {
+      "path": "raw/independent-lifecycle/private-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/private-after.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "raw/independent-lifecycle/private-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/private-before.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "raw/independent-lifecycle/run.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-lifecycle/run.json",
+      "bytes": 753,
+      "sha256": "410452c4bcf3e147cd250dba33744261da256347b030b49a139c3f843dbc0ffc"
+    },
+    {
+      "path": "raw/independent-controls/authentication-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/authentication-after.json",
+      "bytes": 400,
+      "sha256": "f3d6ef1e8a426e06ab74f71dd79ce4468f00731246b7531e7157755afdb1f05d"
+    },
+    {
+      "path": "raw/independent-controls/authentication-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/authentication-before.json",
+      "bytes": 400,
+      "sha256": "44b7dd7c58e7599d0fa90266f3b96244112bad1e887d4a03e4110e2d1b0920dc"
+    },
+    {
+      "path": "raw/independent-controls/independent-assessment.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/independent-assessment.json",
+      "bytes": 12052,
+      "sha256": "6b0e59464f9505747f3857f89f0bc54b1f6477d6045f27af7098039a1c75cd25"
+    },
+    {
+      "path": "raw/independent-controls/independent-inputs-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/independent-inputs-after.json",
+      "bytes": 473158,
+      "sha256": "837b43514abc9fa71f3baf4e0ab7c58dc66b547e879fd267a8c63ec3586b3698"
+    },
+    {
+      "path": "raw/independent-controls/independent-inputs-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/independent-inputs-before.json",
+      "bytes": 473158,
+      "sha256": "837b43514abc9fa71f3baf4e0ab7c58dc66b547e879fd267a8c63ec3586b3698"
+    },
+    {
+      "path": "raw/independent-controls/parent.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/parent.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/independent-controls/parent.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/parent.stdout.txt",
+      "bytes": 1523,
+      "sha256": "e50705ad209c07a4e98b439366aaae2e689646c15138f4e10e855f5f17d920e4"
+    },
+    {
+      "path": "raw/independent-controls/private-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/private-after.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "raw/independent-controls/private-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/private-before.json",
+      "bytes": 70152,
+      "sha256": "6684c57b7d753b5d555a1d2ae4ca7821da1dba1f0eb7a1c3030737af448ca6d3"
+    },
+    {
+      "path": "raw/independent-controls/run.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-controls/run.json",
+      "bytes": 745,
+      "sha256": "c688d7016eac3b3a2662644e76be6c46bcf64f410296af507db22762539e1ffa"
+    },
+    {
+      "path": "raw/finite-host-controls/RESULT.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/finite-host-controls/RESULT.json",
+      "bytes": 120,
+      "sha256": "3cb446dd965974dbcb18eabd0c651c4c2f71cccc080e374172b4a38dac8e8416"
+    },
+    {
+      "path": "raw/finite-host-controls/STARTED.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/finite-host-controls/STARTED.json",
+      "bytes": 353,
+      "sha256": "de267f51a27357f9b8b8f4835036dda612a378fba6bafa0447070e79ee65b943"
+    },
+    {
+      "path": "raw/finite-host-controls/inputs-after.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/finite-host-controls/inputs-after.json",
+      "bytes": 644,
+      "sha256": "ff394c51d4e5020986f5c24b7a3af9cca449628fdf9d59754cae50cd9baec88d"
+    },
+    {
+      "path": "raw/finite-host-controls/inputs-before.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/finite-host-controls/inputs-before.json",
+      "bytes": 644,
+      "sha256": "ff394c51d4e5020986f5c24b7a3af9cca449628fdf9d59754cae50cd9baec88d"
+    },
+    {
+      "path": "raw/finite-host-controls/stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/finite-host-controls/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/finite-host-controls/stdout.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/finite-host-controls/stdout.json",
+      "bytes": 4071,
+      "sha256": "e1b16d808812a22eeefd864e3d9f435aa5c42ef679b097a5238ec73ccf6e3212"
+    },
+    {
+      "path": "raw/attempt-once.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/attempt-once.json",
+      "bytes": 144,
+      "sha256": "b0c17de271938d45205626a1fe34e68dc0b2ea47b60a1924d65cbf8146300d5a"
+    },
+    {
+      "path": "raw/data-negatives.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/data-negatives.json",
+      "bytes": 1870,
+      "sha256": "0eb4edf67d094dc4dff4583794c9203387158daf8a1d5da0509bef9a2a7ee38f"
+    },
+    {
+      "path": "raw/independent-summary.json",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/raw/independent-summary.json",
+      "bytes": 4564,
+      "sha256": "05c6d6b83cd464594b41178ed4887e6f65a2870615bd7d53c03ff1fa89c9a0b1"
+    },
+    {
+      "path": "raw/outer.stdout.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/outer.stdout.txt",
+      "bytes": 2072,
+      "sha256": "39000ae5ebed85775c51f5a591238c57cc30045e3b581d7ad3c3aa769eef9ccd"
+    },
+    {
+      "path": "raw/outer.stderr.txt",
+      "source": "/private/tmp/safe-bash-zero-overlay-independent-v3-7tzzo6fn/outer.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "rawCopyMethod": "apply_patch exact UTF-8 bytes, verified after write; zero normalization",
+  "privateSourceBytesVendored": false,
+  "excludedScratch": "Actual engine/product/tool/input trees retained in regular TMP or removed naturally by frozen parents, never copied as source into repository."
+}

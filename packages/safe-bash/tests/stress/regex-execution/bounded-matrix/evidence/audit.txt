@@ -1,0 +1,9 @@
+Command:
+node --unhandled-rejections=strict tests/stress/regex-execution/bounded-matrix/audit-evidence.mjs
+Exit code: 0
+Stderr: empty
+Exact stdout:
+{"evidenceConsistent":true,"executed":1,"risky":0,"unexecuted":11,"driftFiles":["src/shell/runtime.ts"],"activeOwnedChildren":0}
+
+This command checks frozen case data and saved evidence only. It does not
+import product code, execute regex patterns, spawn children or rerun a case.

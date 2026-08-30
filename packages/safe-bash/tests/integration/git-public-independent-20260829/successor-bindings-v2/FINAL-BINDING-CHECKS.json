@@ -1,0 +1,143 @@
+{
+  "role": "DATA_ONLY_IMMUTABLE_BYTES_NOT_EXECUTION",
+  "rows": [
+    {
+      "path": "launch.py",
+      "pass": true
+    },
+    {
+      "path": "run.mjs",
+      "pass": true
+    },
+    {
+      "path": "prepare.mjs",
+      "pass": true
+    },
+    {
+      "path": "resources.mjs",
+      "pass": true
+    },
+    {
+      "path": "worker-policy.mjs",
+      "pass": true
+    },
+    {
+      "path": "loader.mjs",
+      "pass": true
+    },
+    {
+      "path": "novel.mjs",
+      "pass": true
+    },
+    {
+      "path": "consumer.ts.fixture",
+      "pass": true
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "pass": true
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "pass": true
+    },
+    {
+      "path": "SOURCE.json",
+      "pass": true
+    },
+    {
+      "path": "PRESEAL.json",
+      "pass": true
+    },
+    {
+      "path": "EXECUTOR.json",
+      "pass": true
+    },
+    {
+      "path": "INPUT-BINDINGS.json",
+      "pass": true
+    },
+    {
+      "path": "CENSUS.json",
+      "pass": true
+    },
+    {
+      "path": "COHORTS.json",
+      "pass": true
+    },
+    {
+      "path": "CONTROL-COVERAGE-MAP.json",
+      "pass": true
+    },
+    {
+      "path": "SOURCE-RECONCILIATION.json",
+      "pass": true
+    },
+    {
+      "path": "ADMISSION.md",
+      "pass": true
+    },
+    {
+      "path": "HANDOFF.md",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/run.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/prepare.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/resources.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/worker-policy.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/loader.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/novel.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/consumer.ts.fixture",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/PRESEAL.json",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE.json",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/internal-loader-arguments.mjs",
+      "pass": true
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/hash-regular-file.mjs",
+      "pass": true
+    }
+  ],
+  "oldFailureMembershipEqual": true,
+  "oldFailureIds": [
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P08",
+    "P09",
+    "P10"
+  ],
+  "namespaceUnused": true,
+  "sourceNoProductEdits": true,
+  "sourceOnly": true
+}

@@ -1,0 +1,823 @@
+{
+  "schema": "structured-length-author-result/1",
+  "completed": true,
+  "mode": "baseline",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "freezeCommit": "6db95e8935cac95fc8ad314f9e7fdf4453c1c5e1",
+  "prerequisiteBindings": {
+    "independentFreeze": "20351e9920f89cc2a07a98eb24ac062f42be78ad",
+    "runnerCorrection": "fed806142b311a4b79b39806400238100b619ad8",
+    "baselineEvidence": "c05ea6edf5189772f7210520fbd464c94c290e58",
+    "proposal": "debfdd8b42930d8c5f1c0301897e4eeaa68e0979"
+  },
+  "fixtureHashes": {
+    "README.md": "a608131dfacabcc31671f798dfd876a4600f59a496f0df2674d6ffee56075284",
+    "vectors.json": "08098f801a99795f9c89dd71033bebaaca7f10e2ce3b52c69fcaa0b5f27ff307",
+    "worker.mjs": "b1e317f1ce78f90f762e9274e93c96779179d1b0a0176edfda15fb70b544a7f2",
+    "deny-native.mjs": "be2a79a8937b28960fb59f6d5e7c380c34bb8cafe8b55a92d566861e49038f8a",
+    "consumer.ts.data": "5137b0f3944540b9a6fffe0d1942c8f3e6fd26a50079ee2f5fbb8ad19e935c67",
+    "consumer-tsconfig.json.data": "8135425d3cdc7978a7a36ce7c95c9757c562e44d710c10ed9e6480cccb8eaa3f",
+    "reconstruct.mjs": "d9875714779e252a76704266a4217add5764104e4660ba9b5078a3cb1b6296f9"
+  },
+  "sourceArchive": {
+    "path": "SOURCE.tar",
+    "sha256": "7d18cf871e721aa1f22b59264e3e7ef05ab3d4ab859d20bb1f5eebbf57d6b6a3",
+    "bytes": 2626048,
+    "entryCount": 269,
+    "manifestSha256": "f1acbf063f2c4080c5e6c109a8ca7d1d1415b0ffc32435f16db1ec6d2929a70a"
+  },
+  "candidateDelta": null,
+  "toolchain": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    "tsxLoader": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+      "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+    },
+    "npm": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    }
+  },
+  "cohorts": {
+    "sourceDirectDistinctGroups": 41,
+    "installedPublicDistinctGroups": 18,
+    "movedDistinctGroups": 2,
+    "overlapBetweenAuthorCohorts": 0,
+    "selectedRegressions": {
+      "semantics": 91,
+      "resources": 2,
+      "total": 93
+    },
+    "independentHistoricalGroupsNotRescored": 60
+  },
+  "desiredNoncollection": {
+    "accepted": false,
+    "status": "UNMET",
+    "arrayFromCollectionDetected": true
+  },
+  "tamperControls": {
+    "count": 2,
+    "moduleDenied": true,
+    "wrongPackageDenied": true
+  },
+  "package": {
+    "sha256": "2e8d7945a27fb9606d79cb8731553ce0e78f27fcbbf96e1629d3835401564456",
+    "path": "package/baseline/virtual-bash-0.0.0.tgz",
+    "files": 845,
+    "physicallyMoved": true,
+    "movedManifestSha256": "37773d43e92bdcf8db4c113bb0afbffb6c4a195f6a08a1d5f4d35b2d619a397d",
+    "loadedModules": [
+      {
+        "path": "dist/index.js",
+        "sha256": "37a94a97433b8d5b654696d1c1332c88b3aeb63fd963a51a997568d4295904a7"
+      },
+      {
+        "path": "dist/commands/structured/interpreter.js",
+        "sha256": "42366cfd87db215b3ededa70c255fd8395d72706591360d503bd863f1ecb9d4c"
+      },
+      {
+        "path": "dist/commands/structured/limits.js",
+        "sha256": "f6005af75948816c4d323d4610b112bf87cb3fb7b69d0fbd18538ad3df47b149"
+      },
+      {
+        "path": "dist/commands/structured/numbers.js",
+        "sha256": "e54edb0ffa9fa261f18e6474b9bd2c90672d46e50adea28790d6dc048cc5200c"
+      },
+      {
+        "path": "dist/contracts/errors.js",
+        "sha256": "18a4a05815e6673dff47a7ffe8caa43b9a8d3c97f67571bebb9d562b1703aa6f"
+      }
+    ]
+  },
+  "reversionMutant": "pending candidate",
+  "runs": [
+    {
+      "name": "source-archive-list",
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tf",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-length-author-20260828/evidence-baseline-v1/SOURCE.tar"
+      ],
+      "cwdRole": "../../../../../../../Users/kjopek/Workspace/safe-bash",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 8377,
+      "stderrBytes": 0,
+      "stdoutSha256": "d1e58fc7e184c4af2bc07c8952b343a5b15f4f9edb39a2302ced45e6545d8b2b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "strict-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/@types"
+      ],
+      "cwdRole": "fixed-source",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "source-direct-focused",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/source-harness/worker.mjs",
+        "direct",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/source-harness/manifest-source.json",
+        "6153aee91ef94dc3a6c00be9f94f5a06894b447001337fa305a313a9e94db06a",
+        "none"
+      ],
+      "cwdRole": "source-harness",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 3319,
+      "stderrBytes": 0,
+      "stdoutSha256": "cd5ce1bbb221f3b2213d01c4c466504f2d5b6b27be93b37ef9818b816e58c8fc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt": {
+        "mode": "direct",
+        "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "packageRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/fixed-source",
+        "observations": [
+          {
+            "cohort": "unicode",
+            "id": "empty",
+            "value": 0,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "ascii",
+            "value": 4,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "nul-newline",
+            "value": 3,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "astral-middle",
+            "value": 3,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "two-astral",
+            "value": 2,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "combining",
+            "value": 2,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "composed",
+            "value": 1,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "zwj",
+            "value": 3,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "family-zwj",
+            "value": 7,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "flag-and-tone",
+            "value": 4,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "variation-selector",
+            "value": 2,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "high-surrogate",
+            "value": 1,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "low-surrogate",
+            "value": 1,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "reversed-surrogates",
+            "value": 2,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "high-then-pair",
+            "value": 2,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "separated-surrogates",
+            "value": 3,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "unicode",
+            "id": "bmp-and-astral-boundaries",
+            "value": 4,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "null",
+            "expected": "0",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "positive",
+            "expected": "2.25",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "negative",
+            "expected": "2.25",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "negative-zero",
+            "expected": "0",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "infinity",
+            "expected": "Infinity",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "nan",
+            "expected": "NaN",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "array",
+            "expected": "3",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "empty-array",
+            "expected": "0",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "sparse-array",
+            "expected": "3",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "empty-object",
+            "expected": "0",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "own-special-keys",
+            "expected": "2",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "decimal",
+            "expected": "2.5",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "boolean-true",
+            "error": "JqError:boolean has no length:5",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "non-string",
+            "id": "boolean-false",
+            "error": "JqError:boolean has no length:5",
+            "entryTicks": 1
+          },
+          {
+            "cohort": "pre-abort",
+            "id": "errno",
+            "exactReason": true,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "pre-abort",
+            "id": "null",
+            "exactReason": true,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "pre-abort",
+            "id": "false",
+            "exactReason": true,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "pre-abort",
+            "id": "zero",
+            "exactReason": true,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "pre-abort",
+            "id": "empty",
+            "exactReason": true,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "pre-abort",
+            "id": "symbol",
+            "exactReason": true,
+            "entryTicks": 1
+          },
+          {
+            "cohort": "trusted-iterator",
+            "id": "finite",
+            "events": [
+              "next-1",
+              "value-1",
+              "next-2",
+              "value-2",
+              "next-3",
+              "value-3",
+              "next-4"
+            ],
+            "restored": true
+          },
+          {
+            "cohort": "trusted-iterator",
+            "id": "empty",
+            "events": [
+              "next-1"
+            ],
+            "restored": true
+          },
+          {
+            "cohort": "trusted-iterator",
+            "id": "throws",
+            "events": [
+              "next-1"
+            ],
+            "restored": true
+          },
+          {
+            "cohort": "trusted-iterator",
+            "id": "abort-without-new-observation",
+            "events": [
+              "next-1",
+              "value-1",
+              "next-2",
+              "value-2",
+              "next-3",
+              "value-3",
+              "next-4",
+              "microtask"
+            ],
+            "restored": true
+          }
+        ],
+        "nativeExecuted": false
+      }
+    },
+    {
+      "name": "selected-semantic-regressions",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/source-harness/deny-native.mjs",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "--test-name-pattern=^(semantic matrix |prototype keys preserve data|integer-like keys retain)",
+        "tests/commands/structured/semantics.test.ts"
+      ],
+      "cwdRole": "fixed-source",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 13490,
+      "stderrBytes": 0,
+      "stdoutSha256": "763302ed3800f21c03903f654221ed749ed38cfba73a2c834ad6ec33026c5dad",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counts": {
+        "tests": 91,
+        "pass": 91,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "selected-resource-regressions",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/source-harness/deny-native.mjs",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "--test",
+        "--test-reporter=tap",
+        "--test-concurrency=1",
+        "--test-name-pattern=^(limits protect hidden Cartesian expansion, collections, and emitted results|input, source, output, slurp and result budgets enforce boundary values)$",
+        "tests/commands/structured/resources.test.ts"
+      ],
+      "cwdRole": "fixed-source",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 553,
+      "stderrBytes": 0,
+      "stdoutSha256": "ba9e8fbc35989ebc16fdb3697ec1e0b42728dac550df3c1f37109d1831e3c190",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counts": {
+        "tests": 2,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "baseline-npm-pack",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "args": [
+        "pack",
+        "--json",
+        "--ignore-scripts",
+        "--pack-destination",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-length-author-20260828/evidence-baseline-v1/package/baseline"
+      ],
+      "cwdRole": "package-stage-baseline",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 95184,
+      "stderrBytes": 208,
+      "stdoutSha256": "ec5b297fbf283c1f9f270896856ac3a28964dc7a204641d49c337ebdbd0920fd",
+      "stderrSha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    {
+      "name": "baseline-package-list",
+      "executable": "/usr/bin/bsdtar",
+      "args": [
+        "-tzf",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-length-author-20260828/evidence-baseline-v1/package/baseline/virtual-bash-0.0.0.tgz"
+      ],
+      "cwdRole": "package-stage-baseline",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 35845,
+      "stderrBytes": 0,
+      "stdoutSha256": "8b701973ce2e68480921c5d7d7f0d1ebdfd4c47ddaf909c810fe7f47cab86b6b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-offline-install",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "args": [
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/structured-length-author-20260828/evidence-baseline-v1/package/baseline/virtual-bash-0.0.0.tgz"
+      ],
+      "cwdRole": "baseline-consumer-installed",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 23,
+      "stderrBytes": 0,
+      "stdoutSha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-installed-public",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/worker.mjs",
+        "installed-public",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/manifest-installed.json",
+        "89d4d68e8e323d96cfa50187e0371488c54f99049d46bbaba0aaa306a6c884f1",
+        "none"
+      ],
+      "cwdRole": "baseline-consumer-installed",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 1575,
+      "stderrBytes": 0,
+      "stdoutSha256": "29e6a9daf6d9a13eb687235933c85e0e3ae109bd38b6af566e3ff473dee29852",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt": {
+        "mode": "installed-public",
+        "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "packageRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/node_modules/virtual-bash",
+        "observations": [
+          {
+            "cohort": "installed-public-command",
+            "id": "empty",
+            "stdout": "0\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "ascii",
+            "stdout": "4\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "nul-newline",
+            "stdout": "3\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "astral-middle",
+            "stdout": "3\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "two-astral",
+            "stdout": "2\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "combining",
+            "stdout": "2\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "composed",
+            "stdout": "1\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "zwj",
+            "stdout": "3\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "family-zwj",
+            "stdout": "7\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "flag-and-tone",
+            "stdout": "4\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "variation-selector",
+            "stdout": "2\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "bmp-and-astral-boundaries",
+            "stdout": "4\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "array",
+            "stdout": "3\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "object",
+            "stdout": "2\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "null",
+            "stdout": "0\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "negative-number",
+            "stdout": "3.5\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "negative-zero",
+            "stdout": "0\n"
+          },
+          {
+            "cohort": "installed-public-command",
+            "id": "mixed-stream",
+            "stdout": "3\n2\n0\n"
+          }
+        ],
+        "nativeExecuted": false
+      }
+    },
+    {
+      "name": "baseline-installed-consumer-typecheck",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.json"
+      ],
+      "cwdRole": "baseline-consumer-installed",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline-tamper-module-denied",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/worker.mjs",
+        "discriminator",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/manifest-installed.json",
+        "89d4d68e8e323d96cfa50187e0371488c54f99049d46bbaba0aaa306a6c884f1",
+        "noncollecting"
+      ],
+      "cwdRole": "baseline-consumer-installed",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 1077,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c7d839bcb758acac7032446653e954ddf4a1966f9837534cf36791a448f30082"
+    },
+    {
+      "name": "baseline-tamper-package-denied",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/worker.mjs",
+        "discriminator",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-installed/manifest-wrong-package.json",
+        "3976580c41a00af6b57402e39a70424c734cc10f781e847712688976216c68ed",
+        "noncollecting"
+      ],
+      "cwdRole": "baseline-consumer-installed",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 547,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "8c19f1059cea71d982236ea0f88b4fb877b763b58e96c217afa40f279d5d03a4"
+    },
+    {
+      "name": "baseline-moved-public",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs",
+        "moved-public",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/manifest-moved.json",
+        "37773d43e92bdcf8db4c113bb0afbffb6c4a195f6a08a1d5f4d35b2d619a397d",
+        "none"
+      ],
+      "cwdRole": "baseline-consumer-moved",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 366,
+      "stderrBytes": 0,
+      "stdoutSha256": "b8025250e5b5e7a76d2d3fd9024fcae2c2eb591a1382316175654bfe6d5e20d0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt": {
+        "mode": "moved-public",
+        "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "packageRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/node_modules/virtual-bash",
+        "observations": [
+          {
+            "cohort": "moved-shell-vfs",
+            "id": "jq-pipeline",
+            "resultFile": "3\\n",
+            "inputPreserved": true
+          }
+        ],
+        "nativeExecuted": false
+      }
+    },
+    {
+      "name": "baseline-baseline-candidate-assertion",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs",
+        "discriminator",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/manifest-moved.json",
+        "37773d43e92bdcf8db4c113bb0afbffb6c4a195f6a08a1d5f4d35b2d619a397d",
+        "noncollecting"
+      ],
+      "cwdRole": "baseline-consumer-moved",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 652,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "276bdce29ea2740062963eedab29a9d01670d52e5d5f3cb671f3cc6d1d6b4b3c"
+    },
+    {
+      "name": "baseline-baseline-collection-characterization",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs",
+        "discriminator",
+        "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/manifest-moved.json",
+        "37773d43e92bdcf8db4c113bb0afbffb6c4a195f6a08a1d5f4d35b2d619a397d",
+        "collecting"
+      ],
+      "cwdRole": "baseline-consumer-moved",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 2206,
+      "stderrBytes": 0,
+      "stdoutSha256": "f0424bfd989e6dd200cd11b6075a12c093d184b94ab85e3ae345b466dccc3f7f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt": {
+        "mode": "discriminator",
+        "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "packageRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/node_modules/virtual-bash",
+        "observations": [
+          {
+            "cohort": "moved-discriminator",
+            "id": "tiny-array-from",
+            "productCollected": true,
+            "wrapperActive": true,
+            "wrongInputDelegated": true,
+            "unrelatedDelegated": true,
+            "counterReturned": 4,
+            "restored": true,
+            "markerStacks": [
+              "Error\n    at Function.value (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:161:19)\n    at count (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:166:31)\n    at getActual (node:assert:609:5)\n    at Function.throws (node:assert:757:24)\n    at allocationDiscriminator (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:166:12)\n    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:211:51",
+              "Error\n    at Function.value (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:161:19)\n    at Interpreter.call (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/node_modules/virtual-bash/dist/commands/structured/interpreter.js:352:29)\n    at call.next (<anonymous>)\n    at Interpreter.run (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/node_modules/virtual-bash/dist/commands/structured/interpreter.js:159:29)\n    at async allocationDiscriminator (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:175:21)\n    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-NOIEmN/baseline-consumer-moved/worker.mjs:211:51"
+            ]
+          }
+        ],
+        "nativeExecuted": false
+      }
+    }
+  ],
+  "nativeOrReferenceRuns": 0,
+  "rssOrHeapMeasurements": 0,
+  "processes": {
+    "allExited": true,
+    "signals": 0
+  },
+  "sourceAndArchiveUnchangedAfterRuns": true,
+  "scratchRemoved": true
+}

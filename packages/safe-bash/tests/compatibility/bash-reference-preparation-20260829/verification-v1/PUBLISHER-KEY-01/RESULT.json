@@ -1,0 +1,16 @@
+{
+  "url": "https://savannah.gnu.org/people/viewgpg.php?user_id=2590",
+  "bytes": 2200,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 05:05:50 GMT",
+    "content-type": "application/pgp-keys",
+    "content-length": null,
+    "location": null
+  },
+  "sha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8",
+  "capture": "maintainer-public-key.data",
+  "role": "PUBLISHER_LINKED_MAINTAINER_RESPONSE_NOT_YET_VALIDATED_KEY",
+  "endedAt": "2026-08-29T05:05:50.378Z",
+  "children": 0
+}

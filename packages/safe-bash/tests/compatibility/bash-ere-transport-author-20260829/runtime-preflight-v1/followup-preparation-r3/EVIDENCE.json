@@ -1,0 +1,66 @@
+{
+  "schema": 3,
+  "presealCommit": "345931a8304146b6556ada2e3cf0f3792a9158e1",
+  "profileSha256": "1c2b19a7b8a8b2d91bae89045d6077e81b4b0f10af359da44d89d8b469fe808e",
+  "preparationSha256": "01c3fd97b27a962b339c9e8b2c772180b1e63ab3f8235d62881bc76183032d56",
+  "groups": 6,
+  "passed": 6,
+  "helperProcesses": 1,
+  "helperToolExit": 0,
+  "childFixtures": 0,
+  "Workers": 0,
+  "productImports": 0,
+  "compiler": 0,
+  "actualStartupFileValidatorCalls": 0,
+  "captures": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/capture/controls.stdout",
+      "size": 444,
+      "sha256": "a6f4fb92815f6d0b8d134500e5469ac93be7a77ce55eb44843afeb0dec2a65c2"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-r3/capture/controls.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "startupCapture": "RESERVED_POSTCHECK_NOT_PREWRITE_ENFORCED",
+  "sourcePostHash": true,
+  "oldResultsRescored": false,
+  "sourceOnly": [
+    "postcheckFile filesystem route",
+    "activation",
+    "admin publication",
+    "supervisor"
+  ],
+  "qualification": "No actual startup/OS EOF qualification; external trusted-tool policy adopted prospectively",
+  "knownPreparationRoleAccounting": {
+    "completedBeforePublication": [
+      "source zsh",
+      "source apply_patch",
+      "scoped git status",
+      "preseal zsh",
+      "preseal apply_patch",
+      "git add",
+      "git commit",
+      "control zsh exec image",
+      "control env exec image",
+      "control Node",
+      "metadata zsh",
+      "git rev-parse"
+    ],
+    "reservedPublication": [
+      "publication zsh",
+      "publication apply_patch",
+      "git add",
+      "git commit",
+      "git log"
+    ],
+    "existingToolHost": 1,
+    "chargedUpperBound": 18,
+    "grantMaximum": 24,
+    "notDistinctPidCensus": true
+  },
+  "started": "2026-08-29T16:28:49.087Z",
+  "evidencePrepared": "2026-08-29T16:34:23.896Z"
+}

@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: aggregate definitions are exactly the delivered families, each registered once
+ok 1 - aggregate definitions are exactly the delivered families, each registered once
+  ---
+  duration_ms: 2.570292
+  type: 'test'
+  ...
+# Subtest: collision with printf leaves the entire host registry untouched
+ok 2 - collision with printf leaves the entire host registry untouched
+  ---
+  duration_ms: 0.226
+  type: 'test'
+  ...
+# Subtest: collision with sed leaves the entire host registry untouched
+ok 3 - collision with sed leaves the entire host registry untouched
+  ---
+  duration_ms: 0.154125
+  type: 'test'
+  ...
+# Subtest: collision with jq leaves the entire host registry untouched
+ok 4 - collision with jq leaves the entire host registry untouched
+  ---
+  duration_ms: 0.078
+  type: 'test'
+  ...
+# Subtest: collision with rg leaves the entire host registry untouched
+ok 5 - collision with rg leaves the entire host registry untouched
+  ---
+  duration_ms: 0.104542
+  type: 'test'
+  ...
+# Subtest: collision with gzip leaves the entire host registry untouched
+ok 6 - collision with gzip leaves the entire host registry untouched
+  ---
+  duration_ms: 0.058417
+  type: 'test'
+  ...
+# Subtest: collision with patch leaves the entire host registry untouched
+ok 7 - collision with patch leaves the entire host registry untouched
+  ---
+  duration_ms: 0.055417
+  type: 'test'
+  ...
+# Subtest: collision with chmod leaves the entire host registry untouched
+ok 8 - collision with chmod leaves the entire host registry untouched
+  ---
+  duration_ms: 0.207542
+  type: 'test'
+  ...
+# Subtest: collision with stat leaves the entire host registry untouched
+ok 9 - collision with stat leaves the entire host registry untouched
+  ---
+  duration_ms: 0.177416
+  type: 'test'
+  ...
+# Subtest: collision with mktemp leaves the entire host registry untouched
+ok 10 - collision with mktemp leaves the entire host registry untouched
+  ---
+  duration_ms: 0.272292
+  type: 'test'
+  ...
+# Subtest: collision with tar leaves the entire host registry untouched
+ok 11 - collision with tar leaves the entire host registry untouched
+  ---
+  duration_ms: 0.071834
+  type: 'test'
+  ...
+# Subtest: collision with paste leaves the entire host registry untouched
+ok 12 - collision with paste leaves the entire host registry untouched
+  ---
+  duration_ms: 0.055125
+  type: 'test'
+  ...
+# Subtest: collision with comm leaves the entire host registry untouched
+ok 13 - collision with comm leaves the entire host registry untouched
+  ---
+  duration_ms: 0.050166
+  type: 'test'
+  ...
+# Subtest: collision with join leaves the entire host registry untouched
+ok 14 - collision with join leaves the entire host registry untouched
+  ---
+  duration_ms: 0.093584
+  type: 'test'
+  ...
+# Subtest: explicit replacement affects all families once and preserves unrelated commands
+ok 15 - explicit replacement affects all families once and preserves unrelated commands
+  ---
+  duration_ms: 0.256583
+  type: 'test'
+  ...
+# Subtest: invalid eager family limits install no commands
+ok 16 - invalid eager family limits install no commands
+  ---
+  duration_ms: 0.055875
+  type: 'test'
+  ...
+# Subtest: definitions fallback resolves nested argv across families without a shell
+ok 17 - definitions fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 18.565375
+  type: 'test'
+  ...
+# Subtest: plugin fallback resolves nested argv across families without a shell
+ok 18 - plugin fallback resolves nested argv across families without a shell
+  ---
+  duration_ms: 14.459958
+  type: 'test'
+  ...
+# Subtest: plugin fallback can resolve host commands outside the aggregate
+ok 19 - plugin fallback can resolve host commands outside the aggregate
+  ---
+  duration_ms: 0.251708
+  type: 'test'
+  ...
+# Subtest: custom fallback applies only without the shell invocation hook
+ok 20 - custom fallback applies only without the shell invocation hook
+  ---
+  duration_ms: 3.440292
+  type: 'test'
+  ...
+# Subtest: aggregate forwards text limits without rewriting them
+ok 21 - aggregate forwards text limits without rewriting them
+  ---
+  duration_ms: 0.542
+  type: 'test'
+  ...
+# Subtest: aggregate forwards structured limits without rewriting them
+ok 22 - aggregate forwards structured limits without rewriting them
+  ---
+  duration_ms: 0.599959
+  type: 'test'
+  ...
+# Subtest: aggregate forwards search limits without rewriting them
+ok 23 - aggregate forwards search limits without rewriting them
+  ---
+  duration_ms: 13.821167
+  type: 'test'
+  ...
+# Subtest: aggregate forwards diffPatch limits without rewriting them
+ok 24 - aggregate forwards diffPatch limits without rewriting them
+  ---
+  duration_ms: 1.961916
+  type: 'test'
+  ...
+# Subtest: aggregate forwards metadata limits without rewriting them
+ok 25 - aggregate forwards metadata limits without rewriting them
+  ---
+  duration_ms: 0.951416
+  type: 'test'
+  ...
+# Subtest: aggregate forwards archive limits without rewriting them
+ok 26 - aggregate forwards archive limits without rewriting them
+  ---
+  duration_ms: 1.476125
+  type: 'test'
+  ...
+# Subtest: aggregate forwards tableText limits without rewriting them
+ok 27 - aggregate forwards tableText limits without rewriting them
+  ---
+  duration_ms: 0.578958
+  type: 'test'
+  ...
+# Subtest: search defaultInput remains an explicit family override
+ok 28 - search defaultInput remains an explicit family override
+  ---
+  duration_ms: 12.757125
+  type: 'test'
+  ...
+# Subtest: README aggregate example and binary pipelines use the actual shell
+ok 29 - README aggregate example and binary pipelines use the actual shell
+  ---
+  duration_ms: 7.999041
+  type: 'test'
+  ...
+# Subtest: aggregate tar streams binary archives through the actual VFS pipeline
+ok 30 - aggregate tar streams binary archives through the actual VFS pipeline
+  ---
+  duration_ms: 2.410834
+  type: 'test'
+  ...
+# Subtest: aggregate table-text composes with existing cut and virtual files
+ok 31 - aggregate table-text composes with existing cut and virtual files
+  ---
+  duration_ms: 2.804
+  type: 'test'
+  ...
+# Subtest: current factory and installed registry are exactly frozen60 plus the approved five
+ok 32 - current factory and installed registry are exactly frozen60 plus the approved five
+  ---
+  duration_ms: 2.453417
+  type: 'test'
+  ...
+# Subtest: seq aggregate collision is atomic and replacement remains explicit
+ok 33 - seq aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.39375
+  type: 'test'
+  ...
+# Subtest: nl aggregate collision is atomic and replacement remains explicit
+ok 34 - nl aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.18125
+  type: 'test'
+  ...
+# Subtest: rev aggregate collision is atomic and replacement remains explicit
+ok 35 - rev aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.111667
+  type: 'test'
+  ...
+# Subtest: unexpand aggregate collision is atomic and replacement remains explicit
+ok 36 - unexpand aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.286333
+  type: 'test'
+  ...
+# Subtest: split aggregate collision is atomic and replacement remains explicit
+ok 37 - split aggregate collision is atomic and replacement remains explicit
+  ---
+  duration_ms: 0.1065
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 335.587333

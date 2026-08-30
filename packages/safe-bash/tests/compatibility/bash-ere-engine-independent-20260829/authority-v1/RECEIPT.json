@@ -1,0 +1,76 @@
+{
+  "at": "2026-08-29T08:58:27.346Z",
+  "role": "SOURCE/DATA authority clarification",
+  "files": [
+    {
+      "path": "PRESEAL.md",
+      "bytes": 1244,
+      "mode": 420,
+      "sha256": "fa9719ccac0fea59a0c0c4c2937c15981ddbe41f5bf26d32e79ad39d8ad54d1a"
+    },
+    {
+      "path": "ROUTING.md",
+      "bytes": 7297,
+      "mode": 420,
+      "sha256": "56da6aa386169fcf565658548f89ea81f9a48dbbba90fbd99dfe20ebb20ce193"
+    },
+    {
+      "path": "check.mjs",
+      "bytes": 3416,
+      "mode": 420,
+      "sha256": "0472d84fcf3220173acbe01d406122faff174e9e0865ba573eeb1501abf94e9d"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 1785,
+      "mode": 420,
+      "sha256": "6d70f1eaad877cec27f58db11f3a32c38580206c571ccbe9d3e43f3b2f28debf"
+    },
+    {
+      "path": "SOURCE-DATA.json",
+      "bytes": 9278,
+      "mode": 384,
+      "sha256": "4c717a525f1bc332c8daba4365ef0d64deb22373c3a9483a7d65fd522a9d60d9"
+    },
+    {
+      "path": "capture.data",
+      "bytes": 423,
+      "mode": 384,
+      "sha256": "e52d556c2ebdc4d4d9378072af7c8c8069aedbed4cb24624b2c9404c1be4f4b5"
+    },
+    {
+      "path": "outer.stdout.data",
+      "bytes": 6852,
+      "mode": 384,
+      "sha256": "fdf8e3b9db8a36ca50780f19ad77286945beade6d0b0ef9aff031a1b28d0485f"
+    },
+    {
+      "path": "outer.stderr.data",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax.stdout.data",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "syntax.stderr.data",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "bytes": 30295,
+  "productLoads": 0,
+  "nativeExecutions": 0,
+  "knownProcessesThroughSeal": 10,
+  "reservedGitPublicationAndMetadata": 5,
+  "knownFinalCeiling": 15,
+  "authorizedCeiling": 16,
+  "peakKnown": 2,
+  "originalOutcome": "17PASS7FAIL per layout preserved",
+  "authority": "GNU documented model verified; direct POSIX reporting-rule quotation not retrieved; native tuple UNKNOWN"
+}

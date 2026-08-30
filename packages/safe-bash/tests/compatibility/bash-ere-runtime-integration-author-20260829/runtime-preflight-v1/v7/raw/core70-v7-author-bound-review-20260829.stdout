@@ -1,0 +1,181 @@
+
+---WORKING-BOUND.json---
+{
+  "domain": "prospective logical regular-file bytes, not allocated blocks/RSS/Git internal storage",
+  "components": {
+    "retainedAndFreshLayoutCopies": 43910864,
+    "uniqueCellEvents": 55050240,
+    "uniqueCellPipesIncludingFinalAudits": 55050240,
+    "coordinatorCapture": 8388608,
+    "administrativeToolCaptures": 8388608,
+    "publicationTails": 4194304,
+    "generatedBindingsManifestsMetadata": 16777216,
+    "onePublicationCopyOfAllCaptures": 131072000,
+    "archivedPackage": 908381,
+    "extraMetadataReserve": 8388608
+  },
+  "logicalMaximum": 332129069,
+  "limit": 536870912,
+  "captureMaximum": 131072000,
+  "captureLimit": 134217728,
+  "sourceBasis": "all frozen layout row sizes; twice for old/new copies; exact per-cell event and combined pipe reservations; fixed metadata/tool/publication ceilings; immutable inventory must admit copied bytes before materialization",
+  "conditions": [
+    "No arbitrary additional files or duplicate evidence copies",
+    "Only declared bounded write roles",
+    "Git object/index/internal storage explicitly outside this logical budget",
+    "No raw whole executable copies; stream tool hashes",
+    "Existing old roots remain immutable"
+  ],
+  "runtimeAuthority": false
+}
+
+---SOURCE-PREPARATION.json---
+{
+  "at": "2026-08-29T14:45:39.830Z",
+  "phase": "SOURCE_DATA_ONLY",
+  "patchSha256": "7dab4402f3e6e8be1326a64cbd647318fd9ef74b804d0708a59816d1c7b17739",
+  "bodySha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+  "staticBytes": 21431144,
+  "logicalMaximum": 332129069,
+  "captureMaximum": 131072000,
+  "Workers": 0,
+  "product": 0
+}
+
+---BINDING-RECIPE.json---
+{
+  "status": "SOURCE_REPAIR_NOT_MATERIALIZED_RUNTIME",
+  "frozenExecutionSealSha256": "ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301",
+  "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "archive": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+    "size": 908381,
+    "mode": 420,
+    "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e"
+  },
+  "definitions": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v4/CASES-v4.json",
+    "sha256": "278f9e51ab2eb96f0bae7564b1357ee9424166e475af10d1e5cb27b9a45fb7fb",
+    "count": 70,
+    "layoutCells": 210
+  },
+  "priorCellSha256": "d08db63b92ee90dc043d34b20038530997aa18896ffa29c8257b67da7ee414ee",
+  "newCellSha256": "03a697fd41efa9c4b1f197ff920372eab0018a426d5ec4e22719a0231f24dc6b",
+  "priorDispatchSha256": "656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80",
+  "newDispatchSha256": "348d77dafcad1b648d4504a3052c5fc1b5094ca3e0895daeffc53d40bfa32c02",
+  "unchangedBody": {
+    "bytes": 5865,
+    "sha256": "a083b9139e79bd49676a8d8b12c1881ba0488409f5f73dfaa3e96fbdaa3c0c59",
+    "startAnchor": "  const cell = JSON.parse(",
+    "endAnchor": "} catch (error) { primaryFailed = true;"
+  },
+  "newModules": [
+    "event-writer.mjs",
+    "finalize-cell.mjs"
+  ],
+  "requiredNextBinding": "copy exact new harness modules into newly owned layout copies and regenerate only paths/manifests/controller seals; never mutate v4/v6 roots; reauthenticate same product files before imports",
+  "layouts": [
+    {
+      "name": "source-built",
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json",
+        "size": 302100,
+        "mode": 384,
+        "sha256": "521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"
+      },
+      "files": 1390,
+      "bytes": 8923286,
+      "cells": 70,
+      "privateAssets": 48
+    },
+    {
+      "name": "installed",
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-installed.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "702b18624838d40c1124b055006226747ad17c476b01bec415fca836b2c51e4c"
+      },
+      "files": 1087,
+      "bytes": 6261263,
+      "cells": 70,
+      "privateAssets": 48
+    },
+    {
+      "name": "moved",
+      "manifest": {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-moved.json",
+        "size": 254534,
+        "mode": 384,
+        "sha256": "9b479b3c4a617ffe1ef4491a429142b980f4e1a6d6e9379dce32e2be9690c38f"
+      },
+      "files": 1087,
+      "bytes": 6246595,
+      "cells": 70,
+      "privateAssets": 48
+    }
+  ],
+  "productExecuted": false,
+  "Workers": 0
+}
+
+---CONTROL-RESULT.json---
+{
+  "phase": "AUTHOR_ONLY_PURE_WRITER_CONTROLS",
+  "rows": [
+    {
+      "id": "C01-short-exact-UTF8",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-invalid-write-counts",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-partial-then-raw0-sticky",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-cumulative-exact-cap",
+      "status": "PASS"
+    },
+    {
+      "id": "C05-UTF8-not-code-unit-cap",
+      "status": "PASS"
+    },
+    {
+      "id": "C06-serializer-raw-false",
+      "status": "PASS"
+    },
+    {
+      "id": "C07-body-primary-close-secondary",
+      "status": "PASS"
+    },
+    {
+      "id": "C08-close-first-undefined",
+      "status": "PASS"
+    },
+    {
+      "id": "C09-every-cleanup-attempted",
+      "status": "PASS"
+    },
+    {
+      "id": "C10-audit-failure-not-green",
+      "status": "PASS"
+    },
+    {
+      "id": "C11-bounded-identity-ledger-and-close-once",
+      "status": "PASS"
+    },
+    {
+      "id": "C12-versioned-source-newline-and-old-writer-control",
+      "status": "PASS"
+    }
+  ],
+  "pass": 12,
+  "fail": 0,
+  "product": 0,
+  "Workers": 0,
+  "native": 0,
+  "priorNovelNotRescored": true
+}

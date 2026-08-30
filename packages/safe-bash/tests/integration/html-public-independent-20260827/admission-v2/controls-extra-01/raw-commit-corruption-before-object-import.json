@@ -1,0 +1,12 @@
+{
+  "name": "raw-commit-corruption-before-object-import",
+  "expectedBoundary": "COMMIT_BODY",
+  "started": "2026-08-27T22:34:35.632Z",
+  "error": {
+    "message": "BOUNDARY:COMMIT_BODY",
+    "code": "COMMIT_BODY",
+    "stack": "Error: BOUNDARY:COMMIT_BODY\n    at guard (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/core.mjs:20:39)\n    at reconstruct (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/reconstruct.mjs:10:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:54:15\n    at negative (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:21:15)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v2/controls-extra.mjs:48:7"
+  },
+  "status": "pass",
+  "finished": "2026-08-27T22:34:35.633Z"
+}

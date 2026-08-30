@@ -1,0 +1,7 @@
+{
+  "action": "execute-array-successor-v3",
+  "sealSha256": "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+  "candidate": "c0adae539c736db0e4023d401562ce958d9ebb00",
+  "packageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+  "rootReceipt": "7e83d873223f10df5f48271bf2afe31bfc9983ab"
+}

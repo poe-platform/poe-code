@@ -1,0 +1,3563 @@
+{
+  "candidate": "27a7793526830768484885afba5832bf8bb248b5",
+  "classification": "Undefined cancellation defects closed; frozen semantic/diagnostic acceptance remains FAIL. No full expr completion.",
+  "original": [
+    {
+      "id": "direct-zero-stdin-reads",
+      "frozenRequirement": {
+        "id": "direct-zero-stdin-reads",
+        "kind": "safety",
+        "setup": "Call execute with getter-counted stdin whose Symbol.asyncIterator, next, return and throw each fail and increment separate counters; include explicit, implicit, binary and never-ending sources without iterating them.",
+        "inputs": [
+          [
+            "41",
+            "+",
+            "1"
+          ],
+          [
+            "0"
+          ],
+          [
+            "1",
+            "+"
+          ],
+          [
+            "abc",
+            ":",
+            "a"
+          ]
+        ],
+        "require": "Every stdin access/iteration counter remains zero, success/error output and status retain native meaning. FS proxy and invoke must likewise remain unused. Freeze env/cwd/args and assert no mutation."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-3",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "await-stdout-backpressure",
+      "frozenRequirement": {
+        "id": "await-stdout-backpressure",
+        "kind": "safety",
+        "setup": "For 41 + 1 hold the first stdout.write promise; copy chunks at admission, mark settlement, then release.",
+        "require": "No execute settlement before release; one logical result 42 LF, Uint8Array only, no concurrent unawaited writes or later mutation. Also hold stderr.write for syntax failure; failure status must await its write."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "backpressure-stdout",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "backpressure-stderr",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "sink-rejection",
+      "frozenRequirement": {
+        "id": "sink-rejection",
+        "kind": "safety",
+        "setup": "Reject stdout then stderr sinks with distinct object sentinels.",
+        "require": "No swallowed failure, retry, duplicate result or unhandled rejection. Apply existing host contract rejection semantics, not invented GNU errno serialization."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "sink-rejection",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "preabort-and-midflight",
+      "frozenRequirement": {
+        "id": "preabort-and-midflight",
+        "kind": "cancellation",
+        "setup": "Abort before execute, during cooperative output write, queued regex acquisition, compile, and match; use object, primitive and errno-shaped reasons.",
+        "require": "Exact caller reason identity wins at public Shell settlement; no pre-abort output/stdin/worker acquisition; close acquisition admission, await owned cooperative retirement, observe late opaque host rejections without requiring their settlement."
+      },
+      "status": "PHASE_NOT_OBSERVED",
+      "scope": "Actual worker startup/active exchange and retirement, native and synthetic identities, output and index cancellation pass. Precise compiler-versus-matcher interruption is not instrumented or observed.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-abort-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-abort-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-abort-pre-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-abort-output-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-abort-output-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-abort-output-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-pre-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-startup-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-startup-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-startup-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-active-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-active-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-zero",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-error",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "typed-synthetic-undefined-pre",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "typed-synthetic-undefined-active",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-large-cancellation",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "cleanup-ownership",
+      "frozenRequirement": {
+        "id": "cleanup-ownership",
+        "kind": "cancellation",
+        "setup": "Instrument registerCleanup before admission; overlap finally/abort/Shell.dispose and run a sibling invocation plus a second Shell.",
+        "require": "Same idempotent cleanup completion is shared; accepted acquisition work covered, owned leases/requests retired before execute/public exec settles where contracted; no global-worker-zero assertion or termination of siblings. Direct host without hook still cleans up in finally."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "registration-close",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "registration-throw-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "registration-throw-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-termination-latch",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-late-admission",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-late-startup-error",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "direct-finally-no-hook",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-zero",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-error",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-undefined-native",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "arg-byte-boundary",
+      "frozenRequirement": {
+        "id": "arg-byte-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Bind documented argument-byte limit B; test ASCII and é tokens whose UTF-8 totals are B-1/B/B+1, documenting separators/counting convention before executing. Include a long forced literal in a skipped branch.",
+        "require": "Enforce byte accounting before large copies/parse/BigInt/regex admission; no silent truncation or UTF-16-length substitution; refusal has bounded diagnostic and no result output."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-4",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-5",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "argument-bytes-skipped",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "digit-boundary",
+      "frozenRequirement": {
+        "id": "digit-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Bind digit limit D; test signed and zero-padded decimals of D-1/D/D+1 digits, a 128-digit positive arithmetic control, and product growth from two individually valid factors.",
+        "require": "Exact arithmetic below limits, including beyond 2^53; preflight input and intermediate/output growth before unbounded BigInt work. Record whether sign/zeros count; no Number rounding, overflow wrap or false zero."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-7-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-7--",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-7-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-8-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-8--",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-8-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-9-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-9--",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-digits-9-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-128-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-product-growth",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "node-boundary",
+      "frozenRequirement": {
+        "id": "node-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Generate left-associative 1 + 1 chains at N-1/N/N+1 documented parse nodes; also place the chain after kept |.",
+        "require": "Bound parse allocation independently of evaluation short-circuit. Report explicit accounting unit, no undocumented token-to-node conversion. No partial result on refusal."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "nodes-4",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "nodes-5",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "nodes-6",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "chain-below",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "chain-at",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "chain-above",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "chain-skipped",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "depth-boundary",
+      "frozenRequirement": {
+        "id": "depth-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Generate nested parentheses and nested length prefixes at documented depth H-1/H/H+1; maximum harness-generated depth 256.",
+        "require": "Bound both grouping and prefix recursion, no native JS stack overflow or event-loop lock; unclosed skipped parentheses remain syntax failures within budgets."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "depth-group-7",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "depth-prefix-7",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "depth-group-8",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "depth-prefix-8",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "depth-group-9",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "depth-prefix-9",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "work-boundary",
+      "frozenRequirement": {
+        "id": "work-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Use bounded repeated arithmetic, string index scans, regex calls and skipped branches; bind documented work accounting before execution.",
+        "require": "Finite aggregate invocation work, not a fresh allowance per operator. Parent Shell shared budget is not reset by dispatch; family-specific limits remain distinct. Valid short-circuit skips numeric conversions and regex compilation while syntax checking remains."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Dedicated 2048-by-64 ASCII index: 399505 refuses, 399506/399507 return exact no-match; positive last match returns2048; external cancellation at eighth immediate turn rejects exact Error without output/workers. Same frozen work-boundary requirement, not new breadth.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "work-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "work-100000",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "shared-work-remaining",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-shared-command-budget",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-work-399505",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-work-399506",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-work-399507",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-large-positive",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-large-cancellation",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "output-boundary",
+      "frozenRequirement": {
+        "id": "output-boundary",
+        "kind": "intentionalBudget",
+        "setup": "Bind output limit O; forced literal output of O-1/O/O+1 bytes including terminal LF, a 128-digit sum, a regex capture, and bounded diagnostic output.",
+        "require": "Predictable exact bytes below/at limit, documented nonzero refusal above; no successful truncated number, fabricated output or unbounded capture. Test Shell aggregate output limits separately from command configuration."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "numeric-128-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "output-6-false",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "output-6-true",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "output-7-false",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "output-7-true",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "output-8-false",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "output-8-true",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "real-vfs-artifact-pipeline",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-output-at-bound",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-output-over-bound",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "real-vfs-invalid-utf8-capture",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "required-regex-worker",
+      "frozenRequirement": {
+        "id": "required-regex-worker",
+        "kind": "safety",
+        "setup": "Audit and instrument actual candidate compilation/matching thread IDs; intercept string-to-RegExp compilation including validation, skipped branches, translation and caches. Run dangerous probes only inside an outer REQUIRED worker watchdog, never compile untrusted patterns in the harness main thread.",
+        "require": "Both regex compile and match run in product-owned bounded worker execution, not just the harness containment worker. Literal grammar checks may be bounded non-RegExp parsing. Existing shared worker protocol support is a prerequisite, not assumed. Missing support blocks regex acceptance, never removes frozen regex cases."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-invalid",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "empty-subject-invalid-compiles",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-absent",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-unmatched",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-empty",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-no-match",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-repeated",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "bounded-redos",
+      "frozenRequirement": {
+        "id": "bounded-redos",
+        "kind": "safety",
+        "inputs": [
+          {
+            "argv": [
+              "aaaaaaaaaaaaaaaaaaaaaaaa!",
+              ":",
+              "\\(a\\+\\)\\+$"
+            ]
+          },
+          {
+            "argv": [
+              "aaaaaaaaaaaaaaaaaaaaaaaa!",
+              ":",
+              "\\(a\\|aa\\)*$"
+            ]
+          },
+          {
+            "argv": [
+              "aaaaaaaaaaaaaaaaaaaaaaaa!",
+              ":",
+              "\\(a*\\)*\\1$"
+            ]
+          },
+          {
+            "argv": [
+              "a",
+              ":",
+              "a\\{32768\\}"
+            ]
+          }
+        ],
+        "caps": {
+          "outerWorkerDeadlineMs": 2000,
+          "outerWorkerOldGenerationMb": 64,
+          "combinedOutputBytes": 8192,
+          "maximumArgumentBytes": 4096,
+          "maximumConcurrentProbes": 1
+        },
+        "require": "No main-thread compile/match, heartbeat remains responsive, finite product deadline/work refusal or correct result, all invocation-owned workers retired. Outer timeout/termination is a FAILED safety control, not acceptable product cancellation. Do not run these as native goldens. Await worker.terminate and exit; outer containment alone does not prove product isolation."
+      },
+      "status": "CONTAINMENT_ONLY",
+      "scope": "Four original inputs: product remains bounded and outer watchdog never times out; unsupported nullable pattern is not semantic success.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-3",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "short-circuit-worker-admission",
+      "frozenRequirement": {
+        "id": "short-circuit-worker-admission",
+        "kind": "safety",
+        "inputs": [
+          [
+            "kept",
+            "|",
+            "abc",
+            ":",
+            "["
+          ],
+          [
+            "0",
+            "&",
+            "match",
+            "abc",
+            "\\("
+          ]
+        ],
+        "require": "No regex request/compile/match/worker admission in skipped branches. Invalid token grammar still rejected. Positive corresponding evaluated branches must actually exercise regex worker; never credit a blanket regex refusal."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shortcircuit-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shortcircuit-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-invalid",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-shortcircuit-0",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-shortcircuit-1",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "unicode-contract",
+      "frozenRequirement": {
+        "id": "unicode-contract",
+        "kind": "unicodeProfile",
+        "inputs": [
+          [
+            "length",
+            "Aé😀é"
+          ],
+          [
+            "substr",
+            "Aé😀Z",
+            "3",
+            "1"
+          ],
+          [
+            "length",
+            "\ud800"
+          ],
+          [
+            "length",
+            "\udc00"
+          ],
+          [
+            "+",
+            "a\u0000b"
+          ]
+        ],
+        "require": "Freeze actual declared product policy before candidate run: valid Unicode scalar-value profile counts 5, returns 😀; C-byte profile follows native UTF-8 byte argv receipts instead. Lone surrogates and NUL have no faithful native argv oracle here; require deterministic documented rejection or explicit conversion policy, bounded output, and separate intentional-profile reporting. Never claim replacement-character spawn output proves original surrogate behavior. Arbitrary invalid UTF-8 argv is NOT MEASURED because Node string spawn cannot encode it faithfully."
+      },
+      "status": "PROFILE_LIMIT",
+      "scope": "C.UTF-8 scalar and C byte controls pass; named en_US.UTF-8 frozen mismatches persist. Arbitrary invalid-byte argv unmeasured.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "unicode-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "unicode-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "unicode-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "unicode-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "unicode-4",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-absent",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-unmatched",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-empty",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-no-match",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-repeated",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "real-vfs-invalid-utf8-capture",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "no-host-effects",
+      "frozenRequirement": {
+        "id": "no-host-effects",
+        "kind": "safety",
+        "setup": "Use argv literal-shell-metacharacters with FS/invoke spies, audited imports, worker lifecycle accounting and explicit isolated VFS.",
+        "require": "No native product process spawning, host file access, ambient credentials, external network, argv eval or shell interpolation. Native oracles are harness-only. Proxy call counts alone are not a sandbox proof."
+      },
+      "status": "BOUNDED_AUDIT",
+      "scope": "Installed import graph and direct traps plus actual VFS; no general host-JavaScript sandbox claim.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-false-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "direct-zero-stdin-true-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-3",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "real-vfs-artifact-pipeline",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "real-vfs-invalid-utf8-capture",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "extension": [
+    {
+      "id": "P01-envelope-dispatch",
+      "frozenRequirement": {
+        "id": "P01-envelope-dispatch",
+        "group": "protocol",
+        "setup": "Inject each envelope mutation M01-M08 through the installed expr reply validator and real client worker receive path; pair a valid response for the same pending request.",
+        "expect": "Malformed expr reply rejects as PROTOCOL before output; old grep/rg/glob payload cannot satisfy expr request or vice versa. No all-refuse success.",
+        "kills": "Unconditional cast; unchecked id/discriminant; routing every result through legacy validateReply."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M01",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M02",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M03",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M04",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M05",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M06",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M07",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M08",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "M08-rg",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "M08-glob",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P02-result-shape",
+      "frozenRequirement": {
+        "id": "P02-result-shape",
+        "group": "protocol",
+        "setup": "Inject M09-M16 with all other fields valid; use result-shape binding receipt, not guesses about array versus object representation.",
+        "expect": "Missing/wrong result, metadata, span container and work types reject. Extra-property and request-side unknown-field policy separately classified if not declared; do not silently impose legacy tightening.",
+        "kills": "Trust structured clone shape; coerce booleans/numbers; accept legacy arrays as expr result."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M09",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M10",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M11",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M12",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M13",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M14",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M15",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M16",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-extra-property",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-negative-work",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-fractional-work",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-nan-work",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-0-M02",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-1-M03",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-2-M06",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-3-M09",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-4-M09",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-5-M11",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-6-M11",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-7-M12",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-8-M13",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-9-M14",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-10-M15",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-11-M15",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-12-M15",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-13-M16",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-14-M17",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-15-M18",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-16-M19",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-17-M20",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-18-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-19-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-20-M22",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-21-M22",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-22-M17",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-23-M18",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-24-M19",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-25-M20",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-26-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-27-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-28-M22",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-29-M22",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P03-span-validation",
+      "frozenRequirement": {
+        "id": "P03-span-validation",
+        "group": "protocol",
+        "setup": "Inject M17-M26 into both overall and participating capture where meaningful; use subject bytes 41c3a9f09f98805a.",
+        "expect": "Finite safe integral ordered in-range byte spans only; anchored overall start zero; capture contained within overall. UTF-8 scalar endpoints are actual boundaries. Partial UTF-8 endpoints remain valid in byte profile.",
+        "kills": "Only end-bound check; Number coercion; UTF-16 unit bounds; applying scalar boundary restriction to byte profile."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-absent",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-unmatched",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-empty",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-no-match",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-repeated",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M17",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M18",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M19",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M20",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M21",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M22",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M23",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M24",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M25",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M26",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M26-byte-positive",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-0-M02",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-1-M03",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-2-M06",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-3-M09",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-4-M09",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-5-M11",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-6-M11",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-7-M12",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-8-M13",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-9-M14",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-10-M15",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-11-M15",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-12-M15",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-13-M16",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-14-M17",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-15-M18",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-16-M19",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-17-M20",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-18-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-19-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-20-M22",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-21-M22",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-22-M17",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-23-M18",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-24-M19",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-25-M20",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-26-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-27-M21",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-28-M22",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "variant-29-M22",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P04-state-consistency",
+      "frozenRequirement": {
+        "id": "P04-state-consistency",
+        "group": "protocol",
+        "setup": "Inject M27-M32; also transport valid states absent capture, unmatched capture, participating empty capture, overall no-match, and repeated capture.",
+        "expect": "hasCapture is syntactic, not inferred from non-null capture; no-match has no spans; no group cannot have a first span; unmatched group can coexist with successful overall; participating empty span is retained.",
+        "kills": "Infer hasCapture from result truthiness; conflate null with [0,0]; capture equal to overall."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-absent",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-unmatched",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-empty",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-no-match",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-state-repeated",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M27",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M28",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M29",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M30",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M31",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M32",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P05-byte-span-roundtrip",
+      "frozenRequirement": {
+        "id": "P05-byte-span-roundtrip",
+        "group": "protocol",
+        "setup": "Execute the three encoding argv cases through worker in both declared profiles. For Aé😀Z, UTF-8 boundaries are [0,1,3,7,8], UTF-16 boundaries [0,1,2,4,5], scalar indices [0,1,2,3,4]. utf8-whole-prefix-span must return overall [0,7]; utf8-shifted-first-span overall [0,7], capture [3,7]. C-byte expectations come from native bytes, not scalar coercion.",
+        "expect": "Wire unit byte; match length converted according to declared profile; exact original output bytes including invalid UTF-8 preserved for byte profile. Combining input counts scalars, not graphemes. Internal span assertions are independently derived from literal input boundaries, not native wire observations.",
+        "kills": "Return [0,4]/[2,4] UTF-16 coordinates; decode/re-encode C partial bytes."
+      },
+      "status": "PROFILE_LIMIT",
+      "scope": "Byte/scalar wire spans and invalid-UTF8 VFS output pass; named en_US.UTF-8 CLI remains unsupported.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-byte",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-whole-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "wire-shifted-utf8-scalar",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "real-vfs-invalid-utf8-capture",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P06-owned-request-bytes",
+      "frozenRequirement": {
+        "id": "P06-owned-request-bytes",
+        "group": "protocol",
+        "setup": "Hold worker admission; mutate original subject and descriptor pattern Uint8Arrays after request acceptance. Include Buffer views; run a valid second request after first completion.",
+        "expect": "Admitted bytes are owned; mutation does not alter compiled pattern/result or contaminate successor. Do not assert arbitrary concurrent mutation safety before admission.",
+        "kills": "Retain caller view; copy subject but not new descriptor pattern."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Retained queued Buffer mutation isolation, not arbitrary concurrent mutation or leases.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-owned-bytes",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P07-cache-and-response-isolation",
+      "frozenRequirement": {
+        "id": "P07-cache-and-response-isolation",
+        "group": "protocol",
+        "setup": "On one reusable executor alternate byte/utf8-scalar expr descriptors and grep/rg/glob descriptors with similar text; duplicate, stale, wrong-kind and idle messages after first completion. Inspect active job ids and replacement worker ids.",
+        "expect": "Cache identity includes kind/profile/semantic options; wrong/stale reply cannot resolve successor; poisoned idle slot retires. Unrelated pending sessions keep correct outputs.",
+        "kills": "Cache only pattern; reuse old receive callback; late reply cross-talk."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "cache-and-response-isolation",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "P08-worker-request-rejection",
+      "frozenRequirement": {
+        "id": "P08-worker-request-rejection",
+        "group": "protocol",
+        "setup": "Send malformed request kind/id/subject/pattern/limits directly to the installed worker under outer containment. Use null, string id, missing subject, non-Uint8Array pattern, unsafe/negative/fractional limits; one valid following request in a fresh worker.",
+        "expect": "Bounded deterministic error or retirement, no main-thread compile, crash/hang or fabricated success. Precise request error category remains OPEN until declared; do not demand a new legacy-request validator.",
+        "kills": "Compile before validating limit/input type; negative unlimited work; worker dispatch falls through to legacy matcher."
+      },
+      "status": "EXECUTED_WITH_RETIREMENT",
+      "scope": "Eight malformed requests bounded by reply or isolated worker error/exit; each has fresh actual worker positive. Not all malformed inputs are graceful typed errors.",
+      "observations": [
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-null",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-id-string",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-missing-subject",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-pattern-string",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-limit-negative",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-limit-fractional",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-limit-unsafe",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "malformed-request-wrong-kind",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L01-zero-admission",
+      "frozenRequirement": {
+        "id": "L01-zero-admission",
+        "group": "lifecycle",
+        "extends": "original short-circuit-worker-admission",
+        "setup": "Run ORIGINAL or-skip-invalid-regex and and-skip-invalid-match plus evaluated counterparts with admission/worker/compile counters on actual expr CommandDefinition and Shell.",
+        "expect": "Skipped branches: exactly zero matchExpr requests, acquisitions, worker starts, compile/match calls. Syntax still checked. Positive counterparts must exercise actual worker.",
+        "kills": "Eager descriptor compilation; unconditional open that starts worker before evaluation."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shortcircuit-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shortcircuit-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-invalid",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-shortcircuit-0",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-shortcircuit-1",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L02-registration-order",
+      "frozenRequirement": {
+        "id": "L02-registration-order",
+        "group": "lifecycle",
+        "extends": "original cleanup-ownership",
+        "setup": "Record ordered events registerCleanup, open/acquire, request, workerStart, close, terminate, publicSettlement. registerCleanup synchronously invokes cleanup in one variant.",
+        "expect": "Registration before acquisition/admission; synchronous close prevents future admission. Same idempotent completion covers finally/registered cleanup/dispose overlap, including admitted work.",
+        "kills": "Register after open; ignore close-before-open; create distinct finally cleanup."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "registration-close",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-zero",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-error",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-undefined-native",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L03-registration-throw",
+      "frozenRequirement": {
+        "id": "L03-registration-throw",
+        "group": "lifecycle",
+        "setup": "registerCleanup synchronously throws Error sentinel, then primitive 0; use spies on acquisition and worker construction.",
+        "expect": "Zero acquisition/request/start; reject exact sentinel, no output or unhandled rejection. Pre-existing caller abort retains its contracted precedence.",
+        "kills": "Continue after failed registration; truthiness sentinel check; acquire in argument evaluation."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "registration-throw-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "registration-throw-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L04-late-acquisition-rejection",
+      "frozenRequirement": {
+        "id": "L04-late-acquisition-rejection",
+        "group": "lifecycle",
+        "setup": "Use supported acquisition seam or controlled worker-start promise. Admit before close, hold completion, abort then reject with distinct Error; install unhandledRejection listener. If API acquisition is strictly synchronous, exercise late startup failure and mark asynchronous acquisition subcase NOT APPLICABLE with source evidence, not pass.",
+        "expect": "No new admission after cleanup; admitted cooperative startup work tracked/reaped. Late opaque host rejection observed without requiring uncooperative work settlement. No sentinel leak to sibling.",
+        "kills": "Fire-and-forget startup; lost late rejection; promise registered only after await."
+      },
+      "status": "EXECUTED_WITH_NA",
+      "scope": "RegexExecutor.open is synchronous; async acquisition is not applicable. Late admitted startup rejection under held retirement is observed without unhandled rejection.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-late-startup-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L05-admission-budgets",
+      "frozenRequirement": {
+        "id": "L05-admission-budgets",
+        "group": "lifecycle",
+        "setup": "maxWorkers 1, maxQueuedRequests 1; hold first active, admit one queue entry and refuse third. Separately bind charged input bytes and test exact queue allowance B and B-1; include new pattern plus subject bytes. Abort queued request then admit a valid successor. Use at most four requests in each subcase.",
+        "expect": "QUEUE_EXHAUSTED before owned copies/admission where promised; queued byte/count released once on abort/dequeue; no worker beyond configured cap. Immediately runnable input and queue accounting distinguished, not invented global active byte cap.",
+        "kills": "New expr payload omitted from input accounting; leaked queued bytes; per-kind independent hidden pools."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-queue",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-owned-bytes",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-queue-byte-minus-one",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L06-startup-timeout",
+      "frozenRequirement": {
+        "id": "L06-startup-timeout",
+        "group": "lifecycle",
+        "setup": "Worker never posts ready; then ready after the 80ms startup deadline; keep sibling in a separate active slot.",
+        "expect": "STARTUP_TIMEOUT, no active job post before ready; awaited termination, replacement can succeed, sibling survives. Late ready does not resurrect retired slot. Use outer 2000ms containment.",
+        "kills": "Only active deadline; startup resets forever; global pool shutdown."
+      },
+      "status": "EXECUTED_CORRECTED_PROFILE",
+      "scope": "Target startup80ms unchanged; separately corrected held sibling request500ms. Original all80ms supplement failures remain historical.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-startup-timeout",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "replacement-startup-timeout",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L07-active-timeout",
+      "frozenRequirement": {
+        "id": "L07-active-timeout",
+        "group": "lifecycle",
+        "setup": "Ready worker holds response past 80ms; separate variant emits malformed response; run benign successor and sibling.",
+        "expect": "REQUEST_TIMEOUT or PROTOCOL respectively, worker retired/awaited, successor replacement works, sibling result intact. Timeout is not MATCH/syntax error or successful empty match.",
+        "kills": "Swallow timeout as no-match; recycle timed-out slot; close sibling worker."
+      },
+      "status": "EXECUTED_CORRECTED_PROFILE",
+      "scope": "Target active80ms unchanged; separately corrected sibling startup500ms with ready release. No unchanged all80ms claim.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-active-timeout",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-malformed",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "replacement-active-timeout",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "replacement-malformed",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L08-exact-abort-reasons",
+      "frozenRequirement": {
+        "id": "L08-exact-abort-reasons",
+        "group": "lifecycle",
+        "setup": "Abort before admission, queued, startup and active with numeric 0 and same Error object. Separately use AbortController.abort(undefined), recording actual signal.reason (normally a generated AbortError, NOT undefined). Inject Promise rejection undefined and, only where structurally supported, a signal-like reason undefined at the transport seam.",
+        "expect": "Native caller abort uses Object.is(rejection, signal.reason) and rejects, including 0. Synthetic undefined rejection remains rejected, not successful undefined result; unsupported synthetic signal is explicitly skipped without losing real AbortController(undefined) test. No falsy sentinel confusion or hanging exchange.",
+        "kills": "if (failure) reject; failure !== undefined used as rejection state; manufacture Error for 0."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Both old undefined failures now reject exact undefined. Independent strict EventTarget structural signal is direct-request only; native session run/matchExpr use native AbortSignal.any and preserve actual native AbortError,0,null,false,empty,Error. Author111 is separate overlapping regression replay.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-undefined-rejection",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-pre-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-startup-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-startup-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-startup-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-active-error",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-abort-active-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "synthetic-undefined-abort",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "typed-synthetic-undefined-pre",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "typed-synthetic-undefined-active",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L09-termination-latch",
+      "frozenRequirement": {
+        "id": "L09-termination-latch",
+        "group": "lifecycle",
+        "setup": "Hold owned worker termination completion after timeout/abort, call close twice and registered cleanup/finally concurrently; release latch.",
+        "expect": "Owned public exec/close settlement waits cooperative termination; overlap shares completion and does not double-release capacity. Opaque uncooperative host work is outside guarantee.",
+        "kills": "Fire-and-forget terminate; separate close promises completing early; decrement sessions twice."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "lifecycle-termination-latch",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-zero",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-error",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-undefined-native",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L10-callerabort-and-natural-close",
+      "frozenRequirement": {
+        "id": "L10-callerabort-and-natural-close",
+        "group": "lifecycle",
+        "setup": "Real Shell abort mid-match; then natural expr completion with last session, and natural completion while another session uses same executor. Dispose Shell with outstanding registered cleanup; direct host omits registerCleanup.",
+        "expect": "Owned cancellation/natural cleanup complete before contracted settlement; direct host finally remains effective; last-owned idle worker closes, live sibling not terminated. Count invocation ownership, not global worker-zero.",
+        "kills": "Cleanup only on abort; dispose bypasses registered cleanup; terminating all pool workers on any session.close."
+      },
+      "status": "PHASE_NOT_OBSERVED",
+      "scope": "Real forwarded worker request cancellation/retirement and fresh replacement pass; Shell real-worker termination latch/sibling and finally pass. Exact compiler-versus-matcher phase unknown.",
+      "observations": [
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "direct-finally-no-hook",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-zero",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-error",
+          "passed": true
+        },
+        {
+          "capture": "remaining-first/controls.json",
+          "id": "shell-lifecycle-undefined-native",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-legacy-active-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L11-work-and-error-categories",
+      "frozenRequirement": {
+        "id": "L11-work-and-error-categories",
+        "group": "lifecycle",
+        "setup": "Bind explicit compiler/state/search/work limits from installed declarations. Valid pattern below bound and same pattern at restrictive bound; multiple evaluated expr regex operators share remaining invocation work. Inject negative/fractional/over-allowance charged work. Invalid pattern against empty subject must still compile in worker.",
+        "expect": "Finite refusal before excessive work; typed syntax/unsupported versus resource categories retained; no reset per regex, no fabricated success; primary semantics uncertainty stays OPEN. Timeouts separately classified.",
+        "kills": "Skip compile for empty subject; always report zero work; reset allowance per call; coerce all worker errors to syntax."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "empty-subject-invalid-compiles",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-negative-work",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-fractional-work",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-nan-work",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "shared-work-remaining",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxPatternBytes",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxSubjectBytes",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxNodes",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxDepth",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxSteps",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxStates",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "worker-cap-maxAllocatedUnits",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-work-399505",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-work-399506",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-work-399507",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-large-positive",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "index-large-cancellation",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "L12-worker-only-compile",
+      "frozenRequirement": {
+        "id": "L12-worker-only-compile",
+        "group": "lifecycle",
+        "extends": "original required-regex-worker and bounded-redos",
+        "setup": "Audit installed import graph and instrument expr compiler/worker thread IDs including validation/cache paths. Reuse ORIGINAL four ReDoS inputs unchanged under required outer Worker with original limits, not native spawn.",
+        "expect": "All untrusted pattern parsing/compilation/matching worker-only (bounded nonregex protocol shape checks allowed); no product native process. Outer timeout is failure, never product safety success.",
+        "kills": "Compile/translate on main before postMessage; run regex in outer harness only; native fallback."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-positive",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-invalid",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-0",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-1",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-2",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "redos-original-3",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "R01-legacy-protocol-unchanged",
+      "frozenRequirement": {
+        "id": "R01-legacy-protocol-unchanged",
+        "group": "regression",
+        "setup": "Run baseline and candidate legacy validator/worker valid controls for grep, rg and glob plus existing regression tests listed in README. Keep baseline Float64Array results representation and byte offsets; do not apply expr scalar endpoint checks to legacy matches.",
+        "expect": "Same legacy accepted outputs/errors/profile; unexpected changes reported, never excused as extension cleanup. Baseline defects remain separate from new expr obligations.",
+        "kills": "Replace shared Reply union/validator; silently reinterpret old rows as expr subjects."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Installed baseline/fixed grep,rg,glob defaults/response equality;276 unchanged archived regression cases pass. Separate opt-in native aliases remain skipped when not configured.",
+      "observations": [
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-protocol-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-protocol-candidate",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "R02-installed-standalone",
+      "frozenRequirement": {
+        "id": "R02-installed-standalone",
+        "group": "distribution",
+        "setup": "Build immutable candidate archive, npm pack, install tarball without scripts into unique consumer, move consumer to another workspace-owned parent, remove original package staging, run bare virtual-bash public imports and installed standalone expr module plus its worker. Strict NodeNext declaration consumer has no paths/source alias and types resolves installed dist.",
+        "expect": "Success through actual moved installed module/worker and strict declarations, no src/.ts/tsx worker fallback. Missing public export is reported as absent (not invented); standalone dist proof is not bundled root API acceptance. No candidate source edits.",
+        "kills": "Worker URL resolves original checkout/dist; source-loader dependency; missing declarations/worker in tarball."
+      },
+      "status": "EXECUTED_STANDALONE_ONLY",
+      "scope": "distribution-27a77935/* plus independent-first/typecheck.json: offline archive/build/pack/install/move, strict skipLibCheck=false consumer and plainNode. No expr root/subpath/default export claim.",
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "evaluated-regex-positive",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-pre-error",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-undefined",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-zero",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-null",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-false",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-empty",
+          "passed": true
+        },
+        {
+          "capture": "independent-first/controls.json",
+          "id": "native-expr-active-error",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "R03-original-separate-denominators",
+      "frozenRequirement": {
+        "id": "R03-original-separate-denominators",
+        "group": "regression",
+        "setup": "Execute original 95 inputs/104 GNU observations using original inputs/runner/receipts unchanged, original16 safety and7 workflows including4 bounded ReDoS separately; then this 20-input/23-GNU extension cohort and these 24 controls. Compare exact bytes/status and preserve diagnostic column.",
+        "expect": "Separate reports, no deduplication that removes original cases or merging denominator into broad parity. Unsupported/open/unexecuted never pass. Apple 23 observations remain separate nonnormative evidence.",
+        "kills": "Rerun only extension successes; replace original oracle; label freeze verification product acceptance."
+      },
+      "status": "SEMANTIC_ACCEPTANCE_FAIL",
+      "scope": "Authoritative evidence acceptance-27a77935/* and native-27a77935/native-replay.json: original104 GNU97semantic/89strict; extension23 GNU20semantic/19strict; correction1/1. Apple remains separate.",
+      "observations": [],
+      "artifacts": [
+        "acceptance-27a77935/summary.json",
+        "native-27a77935/native-replay.json",
+        "frozen-comparators/original95-comparison.json",
+        "frozen-comparators/extension-original20-comparison.json"
+      ]
+    },
+    {
+      "id": "R04-installed-legacy-transcript",
+      "frozenRequirement": {
+        "id": "R04-installed-legacy-transcript",
+        "group": "regression",
+        "setup": "On actual moved installed Shell register inspected standardCommands and searchCommands once, not default aggregate plus duplicate families. Execute these literal scripts against memory VFS; compare baseline and candidate separately from native expr. Expected outputs derive from immutable commands.test.ts cases and simple no-match/fixed controls, not current author tests.",
+        "scripts": [
+          {
+            "script": "printf 'ab\\n' | grep -Eo 'a|ab'",
+            "stdout": "a\n",
+            "stderr": "",
+            "exitCode": 0
+          },
+          {
+            "script": "printf 'a.b\\naXb\\n' | grep -F 'a.b'",
+            "stdout": "a.b\n",
+            "stderr": "",
+            "exitCode": 0
+          },
+          {
+            "script": "printf 'éé\\n' | rg -o '(?<letter>é)' -",
+            "stdout": "é\né\n",
+            "stderr": "",
+            "exitCode": 0
+          },
+          {
+            "script": "printf 'x\\n' | rg absent -",
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        ],
+        "globControls": {
+          "baselinePath": "tests/commands/regex-execution/continuation/glob.test.ts",
+          "tuples": [
+            [
+              "?.ts",
+              "🙂.ts",
+              false
+            ],
+            [
+              "k.ts",
+              "K.ts",
+              true
+            ]
+          ],
+          "interpretation": "Tuples are pattern/path/insensitive; both expected true. Run through installed Glob/matchGlobs/session and also rg file-filter command `rg --files -g '*.txt' /review` with /review/a.txt, /review/b.txt, /review/c.log in memory VFS. Preserve exact baseline filename spelling/order as separate baseline receipt; it is OPEN until measured, not an invented frozen stdout."
+        },
+        "expect": "Legacy grep ordered alternative remains a, not expr POSIX-longest ab; fixed escaping, rg scalar captures and no-match status unchanged. Glob code-unit/insensitive contract not overwritten by expr profile. Source tests alone cannot satisfy installed controls.",
+        "kills": "Glob/grep dispatch accidentally routes expr matcher; installed package misses legacy worker imports; extension changes existing matching policy."
+      },
+      "status": "EXECUTED_BOUNDED",
+      "scope": "Concrete listed subcases passed; not universal semantics or a combined feature score.",
+      "observations": [
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-grep-ordered-alternative-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-grep-ordered-alternative-candidate",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-grep-fixed-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-grep-fixed-candidate",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-grep-no-match-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-grep-no-match-candidate",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-unicode-byte-offset-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-unicode-byte-offset-candidate",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-fixed-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-fixed-candidate",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-no-match-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-no-match-candidate",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-glob-baseline",
+          "passed": true
+        },
+        {
+          "capture": "supplement-27a77935/controls.json",
+          "id": "legacy-transcript-rg-glob-candidate",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "shellWorkflows": [
+    {
+      "id": "increment-capture-pipeline",
+      "frozenRequirement": {
+        "id": "increment-capture-pipeline",
+        "script": "build=41; next=$(expr \"$build\" + 1); printf '%s\\n' \"$next\" | cat",
+        "stdout": "42\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-increment-capture-pipeline",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "version-parse-pipeline",
+      "frozenRequirement": {
+        "id": "version-parse-pipeline",
+        "script": "expr 'v12.4.7' : 'v\\([0-9][0-9]*\\)\\.' | cat",
+        "stdout": "12\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-version-parse-pipeline",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "false-last-pipeline-status",
+      "frozenRequirement": {
+        "id": "false-last-pipeline-status",
+        "script": "printf unused | expr 0",
+        "stdout": "0\n",
+        "stderr": "",
+        "exitCode": 1
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-false-last-pipeline-status",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "false-upstream-default-status",
+      "frozenRequirement": {
+        "id": "false-upstream-default-status",
+        "script": "expr 0 | cat",
+        "stdout": "0\n",
+        "stderr": "",
+        "exitCode": 0
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-false-upstream-default-status",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "false-upstream-pipefail",
+      "frozenRequirement": {
+        "id": "false-upstream-pipefail",
+        "script": "set -o pipefail; expr 0 | cat",
+        "stdout": "0\n",
+        "stderr": "",
+        "exitCode": 1
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-false-upstream-pipefail",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "arithmetic-error-and-status",
+      "frozenRequirement": {
+        "id": "arithmetic-error-and-status",
+        "script": "expr 7 / 0; printf 'status=%s\\n' \"$?\"",
+        "stdout": "status=2\n",
+        "stderrFromGnuCase": "divide-zero",
+        "exitCode": 0
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-arithmetic-error-and-status",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "vfs-build-artifact",
+      "frozenRequirement": {
+        "id": "vfs-build-artifact",
+        "script": "expr 41 + 1 > /build-number; cat /build-number",
+        "stdout": "42\n",
+        "stderr": "",
+        "exitCode": 0,
+        "vfsFiles": {
+          "/build-number": "42\n"
+        }
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "shell-vfs-build-artifact",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "id": "M01",
+      "frozenRequirement": {
+        "id": "M01",
+        "change": "reply null",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M01",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M02",
+      "frozenRequirement": {
+        "id": "M02",
+        "change": "reply string or array instead of envelope",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M02",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M03",
+      "frozenRequirement": {
+        "id": "M03",
+        "change": "reply discriminant missing/wrong where expr API declares one",
+        "expect": "PROTOCOL; absent discriminant design requires equivalent request-bound separation"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M03",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M04",
+      "frozenRequirement": {
+        "id": "M04",
+        "change": "id 8 rather than 7",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M04",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M05",
+      "frozenRequirement": {
+        "id": "M05",
+        "change": "id string 7 rather than number 7",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M05",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M06",
+      "frozenRequirement": {
+        "id": "M06",
+        "change": "id NaN or fractional 7.5",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M06",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M07",
+      "frozenRequirement": {
+        "id": "M07",
+        "change": "legacy reply {id:7,results:[Float64Array([0,7])]} supplied to expr request",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M07",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M08",
+      "frozenRequirement": {
+        "id": "M08",
+        "change": "expr reply supplied to legacy grep/rg/glob pending request",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M08",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M09",
+      "frozenRequirement": {
+        "id": "M09",
+        "change": "required result omitted/null/array instead of declared result object",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M09",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M10",
+      "frozenRequirement": {
+        "id": "M10",
+        "change": "if rows/results array exists, missing/extra result count; otherwise inject legacy rows/results",
+        "expect": "PROTOCOL for wrong count; reject alternate legacy representation, not merely extra optional properties"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M10",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M11",
+      "frozenRequirement": {
+        "id": "M11",
+        "change": "offsetUnit utf16/scalar or missing rather than byte",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M11",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M12",
+      "frozenRequirement": {
+        "id": "M12",
+        "change": "matched string false or hasCapture numeric 1",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M12",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M13",
+      "frozenRequirement": {
+        "id": "M13",
+        "change": "overall or capture string instead of declared span object/tuple",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M13",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M14",
+      "frozenRequirement": {
+        "id": "M14",
+        "change": "tuple span odd/extra length, or declared object endpoint missing",
+        "expect": "PROTOCOL; exact binding decides tuple versus object"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M14",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M15",
+      "frozenRequirement": {
+        "id": "M15",
+        "change": "work NaN, negative, fractional or larger than requested allowance",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M15",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M16",
+      "frozenRequirement": {
+        "id": "M16",
+        "change": "error payload nonstring/wrong typed category under declared error schema",
+        "expect": "PROTOCOL; legitimate typed syntax/resource replies retain category"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M16",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M17",
+      "frozenRequirement": {
+        "id": "M17",
+        "change": "start -1",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M17",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M18",
+      "frozenRequirement": {
+        "id": "M18",
+        "change": "end 9 with 8-byte subject",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M18",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M19",
+      "frozenRequirement": {
+        "id": "M19",
+        "change": "start NaN",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M19",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M20",
+      "frozenRequirement": {
+        "id": "M20",
+        "change": "end positive Infinity",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M20",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M21",
+      "frozenRequirement": {
+        "id": "M21",
+        "change": "start 0.5 or end 7.5",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M21",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M22",
+      "frozenRequirement": {
+        "id": "M22",
+        "change": "start/end Number.MAX_SAFE_INTEGER+1",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M22",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M23",
+      "frozenRequirement": {
+        "id": "M23",
+        "change": "inverted capture [7,3]",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M23",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M24",
+      "frozenRequirement": {
+        "id": "M24",
+        "change": "overall [1,7] for anchored expr",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M24",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M25",
+      "frozenRequirement": {
+        "id": "M25",
+        "change": "capture [7,8] outside overall [0,7]",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M25",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M26",
+      "frozenRequirement": {
+        "id": "M26",
+        "change": "overall end 4 or capture start 2 in utf8-scalar; paired valid byte-profile partial span",
+        "expect": "PROTOCOL in scalar; valid bounded byte-profile span is NOT rejected for UTF-8 boundary"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M26",
+          "passed": true
+        },
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M26-byte-positive",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M27",
+      "frozenRequirement": {
+        "id": "M27",
+        "change": "matched false with nonnull overall",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M27",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M28",
+      "frozenRequirement": {
+        "id": "M28",
+        "change": "matched true with null overall",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M28",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M29",
+      "frozenRequirement": {
+        "id": "M29",
+        "change": "hasCapture false with nonnull first capture",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M29",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M30",
+      "frozenRequirement": {
+        "id": "M30",
+        "change": "matched false with nonnull first capture",
+        "expect": "PROTOCOL"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M30",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M31",
+      "frozenRequirement": {
+        "id": "M31",
+        "change": "valid unmatched syntactic first capture: matched true, hasCapture true, overall [0,1], capture null",
+        "expect": "ACCEPT; no invented participation requirement"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M31",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "id": "M32",
+      "frozenRequirement": {
+        "id": "M32",
+        "change": "valid participating empty first capture: matched true, hasCapture true, overall [0,1], capture [0,0]",
+        "expect": "ACCEPT; distinguish from unmatched null"
+      },
+      "observations": [
+        {
+          "capture": "controls-27a77935/controls.json",
+          "id": "protocol-M32",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "cohorts": [
+    {
+      "capture": "controls-27a77935/controls.json",
+      "rows": 146,
+      "failed": 0
+    },
+    {
+      "capture": "supplement-27a77935/controls.json",
+      "rows": 42,
+      "failed": 0
+    },
+    {
+      "capture": "remaining-first/controls.json",
+      "rows": 47,
+      "failed": 0
+    },
+    {
+      "capture": "independent-first/controls.json",
+      "rows": 31,
+      "failed": 0
+    }
+  ],
+  "archivedRegressionCounts": {
+    "legacy": {
+      "passed": 276,
+      "skipped": 0
+    },
+    "invocationCleanup": {
+      "passed": 30,
+      "skipped": 0
+    },
+    "authorAbort": {
+      "passed": 111,
+      "skipped": 0,
+      "independentHoldouts": false
+    },
+    "optionalNativeAliases": {
+      "passed": 50,
+      "skipped": 2
+    }
+  },
+  "counting": "32 frozen protocol specs include30 malformed and2 valid-state controls, each with paired positives in driver; not32 malformed cases. 7 workflows and4 ReDoS embedded in146 core rows. All row cohorts overlap semantics; do not add into a specification denominator. Author111 overlaps native/synthetic and lifecycle coverage, not independent acceptance."
+}

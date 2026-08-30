@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {join} from 'node:path';
+import {root,work,sha,save,manifest,drift} from './safe-bash-five-review-tools.mjs';
+const cwd=join(work,'snapshot'),before=manifest(cwd),liveBefore=manifest(root);
+const args=['--unhandled-rejections=strict','--import','tsx','--test','--test-name-pattern=^stat (prints|lstat/default|printf escapes|missing fields|limits,)','tests/commands/metadata/stat.test.ts'];
+const result=spawnSync(process.execPath,args,{cwd,env:{...process.env,TSX_DISABLE_CACHE:'1',TMPDIR:join(work,'runtime-temp')},encoding:'utf8',timeout:30000});
+save(join(work,'stat-original-author-profile-corrected.stdout'),result.stdout);save(join(work,'stat-original-author-profile-corrected.stderr'),result.stderr);
+assert.equal(result.status,1);assert.equal(result.signal,null);
+assert.match(result.stdout,/# pass 4\n/);assert.match(result.stdout,/# fail 1\n/);
+assert.doesNotMatch(result.stdout,/Subtest: stat common numeric metadata/);
+const after=manifest(cwd),liveAfter=manifest(root);assert.deepEqual(drift(before,after),[]);
+save(join(work,'profile-correction.json'),{at:new Date().toISOString(),name:'stat-original-author-profile-corrected',args,cwd,exitCode:result.status,signal:result.signal,error:result.error?.message??null,pass:4,fail:1,skipped:0,stdoutSha256:sha(result.stdout),stderrSha256:sha(result.stderr),snapshotDrift:drift(before,after),liveDrift:drift(liveBefore,liveAfter),incident:{initialName:'stat-original-author-profile',initialPass:5,initialFail:1,unintendedNativeInvocation:{executable:'/usr/bin/stat',args:['-f','%z:%N','file'],fixtureRoot:join(work,'runtime-temp'),scope:'One unchanged legacy numeric size/name author test; no human timestamp or patch oracle.'},cause:'The negative-lookahead name filter also matched the test-file ancestor, selecting all six tests. Explicit positive-name selection runs only the five intended tests.',disposition:'Initial raw output retained unchanged and not admitted as GNU acceptance. This incidental Apple invocation violates the requested execution restriction; do not claim zero Apple invocations. Exact-five engine/native replay and new human/quiet controls exclusively used pinned GNU utility expectations.'}});
+console.log(JSON.stringify({pass:4,fail:1,expectedConflict:'unchanged three-digit fixture',unintendedAppleInInitialRun:1,correctedAppleRuns:0}));

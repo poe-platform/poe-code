@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "runtimeStatus": 1,
+  "movedRuntimeStatus": 1,
+  "runtimeRecords": 12,
+  "reasonVariantsWithinH03": 7,
+  "independentObligations": 12,
+  "positiveBuildStatus": 0,
+  "malformedSignalDiagnostics": [
+    {
+      "line": 2,
+      "code": 2322
+    },
+    {
+      "line": 3,
+      "code": 2740
+    },
+    {
+      "line": 4,
+      "code": 2740
+    },
+    {
+      "line": 5,
+      "code": 2322
+    },
+    {
+      "line": 6,
+      "code": 2739
+    },
+    {
+      "line": 7,
+      "code": 2322
+    }
+  ],
+  "movedPositiveStatus": 0,
+  "movedNegativeStatus": 2,
+  "mutantKills": 3,
+  "mutantCount": 3,
+  "authorRuntimeRerun": false,
+  "publicRuntimeSeam": false,
+  "allNodeProcessesNatural": true
+}

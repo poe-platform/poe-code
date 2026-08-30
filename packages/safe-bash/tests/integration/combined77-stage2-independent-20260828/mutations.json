@@ -1,0 +1,5 @@
+[
+  {"id":"M01","file":"dist/shell/runtime.js","before":"prepareChildCancellation(this.cancellation, options, this.cancellationAdmission(childDepth))","after":"prepareChildCancellation(this.cancellation, undefined, this.cancellationAdmission(childDepth))","ids":["C02"],"meaning":"Remove invocation-local signal composition; test watchdog is containment, never a passing cancellation result"},
+  {"id":"M02","file":"dist/commands/which/which.js","before":"await this.context.fs.access(lookup, ACCESS_MODES.X_OK, { signal: this.context.signal });","after":"await Promise.resolve();","ids":["C06"],"meaning":"Skip delegated execute permission check"},
+  {"id":"M03","file":"dist/plugins/index.js","before":"const whichLimits = options.which?.limits;","after":"const whichLimits = undefined;","ids":["C10"],"meaning":"Drop aggregate WHICH limits"}
+]

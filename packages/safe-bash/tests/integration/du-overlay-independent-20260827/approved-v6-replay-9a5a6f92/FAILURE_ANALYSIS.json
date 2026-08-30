@@ -1,0 +1,1330 @@
+{
+  "schema": 1,
+  "source": "exact failed frozen source replay; derived without changing frozen assertions",
+  "raw": {
+    "stdout": {
+      "path": "replay-001/run-2026-08-27T194954111Z-c5e2bd/all-processes-raw/055.stdout",
+      "bytes": 1003923,
+      "sha256": "d4855b54732c332ad622733c018929a3dd4d9a43473a7a6b114017cc696fc157"
+    },
+    "stderr": {
+      "path": "replay-001/run-2026-08-27T194954111Z-c5e2bd/all-processes-raw/055.stderr",
+      "bytes": 2594,
+      "sha256": "21cea008d3c583b400f7851285a6347d8eb9d9e6e293bd8b52d7221556a6e2e0"
+    }
+  },
+  "summary": {
+    "total": 40,
+    "passed": 35,
+    "failed": 5,
+    "byCategory": {
+      "historical-frozen-derived": {
+        "total": 19,
+        "passed": 19,
+        "failed": 0
+      },
+      "holdout": {
+        "total": 6,
+        "passed": 2,
+        "failed": 4
+      },
+      "v5-observer-policy-control": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0
+      },
+      "negative-control": {
+        "total": 7,
+        "passed": 6,
+        "failed": 1
+      },
+      "v5-approved-addition": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "positive-control": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    "byLineage": {
+      "historical-frozen-derived": {
+        "total": 31,
+        "passed": 27,
+        "failed": 4
+      },
+      "v5-observer-policy-control": {
+        "total": 7,
+        "passed": 6,
+        "failed": 1
+      },
+      "postfreeze-lifecycle-addition": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0
+      }
+    }
+  },
+  "measuredPolicyRows": {
+    "count": 19,
+    "allPassed": true,
+    "allUnauthorizedDeltaListsEmpty": true,
+    "allExplicitMutationContentAndUnexpectedCountsZero": true,
+    "rows": [
+      {
+        "id": "V5-001",
+        "name": "direct stat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-002",
+        "name": "direct lstat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-003",
+        "name": "direct readdir v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "upper",
+            "layer": "upper",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199892,
+            "after": 1787860199893
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199892,
+            "after": 1787860199893
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-004",
+        "name": "direct du-metadata v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "upper",
+            "layer": "upper",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199897,
+            "after": 1787860199899
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199897,
+            "after": 1787860199899
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199897,
+            "after": 1787860199900
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-005",
+        "name": "direct du-pending v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199902,
+            "after": 1787860199904
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-006",
+        "name": "readonly stat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-007",
+        "name": "readonly lstat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-008",
+        "name": "readonly readdir v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "upper",
+            "layer": "upper",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199909,
+            "after": 1787860199910
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199909,
+            "after": 1787860199910
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-009",
+        "name": "readonly du-metadata v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199911,
+            "after": 1787860199912
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-010",
+        "name": "readonly du-pending v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199915,
+            "after": 1787860199916
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-011",
+        "name": "mount-over-overlay stat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-012",
+        "name": "mount-over-overlay lstat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-013",
+        "name": "mount-over-overlay readdir v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-014",
+        "name": "mount-over-overlay du-metadata v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199923,
+            "after": 1787860199924
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-015",
+        "name": "mount-over-overlay du-pending v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "upper",
+            "layer": "upper",
+            "path": "/",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199926,
+            "after": 1787860199927
+          },
+          {
+            "backing": "upper",
+            "layer": "upper",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199926,
+            "after": 1787860199927
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199926,
+            "after": 1787860199927
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199926,
+            "after": 1787860199927
+          },
+          {
+            "backing": "lower",
+            "layer": "lower",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199926,
+            "after": 1787860199927
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-016",
+        "name": "overlay-over-mount stat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-017",
+        "name": "overlay-over-mount lstat v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-018",
+        "name": "overlay-over-mount readdir v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      },
+      {
+        "id": "V5-019",
+        "name": "overlay-over-mount du-metadata v5 measured metadata contract",
+        "pass": true,
+        "statDeltas": [
+          {
+            "backing": "lowerMountedLayer",
+            "layer": "lower-mounted-layer",
+            "path": "/holdout/sub",
+            "type": "directory",
+            "field": "atimeMs",
+            "before": 1787860199938,
+            "after": 1787860199940
+          }
+        ],
+        "unauthorizedStatDeltas": [],
+        "mutationCallCount": 0,
+        "contentReadCallCount": 0,
+        "unexpectedCallCount": 0
+      }
+    ]
+  },
+  "failedCases": [
+    {
+      "id": "V5-020",
+      "name": "exact child lstat EIO suppresses incomplete total and retry is mutation-free",
+      "lineage": "historical-frozen-derived",
+      "category": "holdout",
+      "failedChecks": [
+        "retry leaves backing unchanged"
+      ],
+      "comparedSnapshots": [
+        "afterFailure",
+        "afterRetry"
+      ],
+      "assertionDeltas": [
+        {
+          "layer": "upper",
+          "path": "/",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "upper",
+          "path": "/.virtual-bash-overlay-a8dfcf17-0682-41f2-a868-b6eee831c3ad",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "upper",
+          "path": "/.virtual-bash-overlay-a8dfcf17-0682-41f2-a868-b6eee831c3ad/entry",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout/shared.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout/upper-only.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/lower-only.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/shared.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub/child.bin",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/whiteout.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199942,
+          "after": 1787860199943
+        }
+      ],
+      "equalAfterRemovingOnlyAtimeMs": true,
+      "classification": "frozen full-stat snapshot equality includes observer-caused atime changes and is outside the approved measured-window policy"
+    },
+    {
+      "id": "V5-024",
+      "name": "atime field scope rejects file-read listing mutant",
+      "lineage": "v5-observer-policy-control",
+      "category": "negative-control",
+      "failedChecks": [
+        "file atime is rejected while listed-directory atime remains authorized"
+      ],
+      "recordedDeltas": [],
+      "unauthorizedDeltas": [],
+      "actionCalls": [
+        {
+          "sequence": 0,
+          "layer": "real",
+          "method": "readFile",
+          "path": "/file.bin"
+        },
+        {
+          "sequence": 1,
+          "layer": "real",
+          "method": "readdir",
+          "path": "/"
+        }
+      ],
+      "classification": "frozen real-file-atime sensitivity control did not observe its required file-atime delta"
+    },
+    {
+      "id": "V5-029",
+      "name": "exact v2 mid-traversal reason is preserved",
+      "lineage": "historical-frozen-derived",
+      "category": "holdout",
+      "failedChecks": [
+        "backing unchanged"
+      ],
+      "comparedSnapshots": [
+        "before",
+        "after"
+      ],
+      "assertionDeltas": [
+        {
+          "layer": "upper",
+          "path": "/",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "upper",
+          "path": "/.virtual-bash-overlay-724a09da-6d0b-4099-8243-75df42b4d082/entry",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout/shared.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout/upper-only.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/lower-only.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/shared.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub/child.bin",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/whiteout.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199972,
+          "after": 1787860199973
+        }
+      ],
+      "equalAfterRemovingOnlyAtimeMs": true,
+      "classification": "frozen full-stat snapshot equality includes observer-caused atime changes and is outside the approved measured-window policy"
+    },
+    {
+      "id": "V5-030",
+      "name": "active mkdir-stage queues exactly one readdir read",
+      "lineage": "historical-frozen-derived",
+      "category": "holdout",
+      "failedChecks": [
+        "metadata phase leaves backing unchanged"
+      ],
+      "comparedSnapshots": [
+        "afterMutationBeforeMetadata",
+        "afterTraversal"
+      ],
+      "assertionDeltas": [
+        {
+          "layer": "upper",
+          "path": "/",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "upper",
+          "path": "/active-publish.bin",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout/shared.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "upper",
+          "path": "/holdout/upper-only.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "upper",
+          "path": "/pending-source.bin",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/lower-only.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/shared.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub/child.bin",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/whiteout.txt",
+          "type": "file",
+          "field": "atimeMs",
+          "before": 1787860199974,
+          "after": 1787860199975
+        }
+      ],
+      "equalAfterRemovingOnlyAtimeMs": true,
+      "classification": "frozen full-stat snapshot equality includes observer-caused atime changes and is outside the approved measured-window policy"
+    },
+    {
+      "id": "V5-031",
+      "name": "active mkdir-stage queues exactly one du read",
+      "lineage": "historical-frozen-derived",
+      "category": "holdout",
+      "failedChecks": [
+        "metadata phase leaves backing unchanged"
+      ],
+      "comparedSnapshots": [
+        "afterMutationBeforeMetadata",
+        "afterTraversal"
+      ],
+      "assertionDeltas": [
+        {
+          "layer": "upper",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199975,
+          "after": 1787860199976
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199975,
+          "after": 1787860199976
+        },
+        {
+          "layer": "lower",
+          "path": "/holdout/sub",
+          "type": "directory",
+          "field": "atimeMs",
+          "before": 1787860199975,
+          "after": 1787860199976
+        }
+      ],
+      "equalAfterRemovingOnlyAtimeMs": true,
+      "classification": "frozen full-stat snapshot equality includes observer-caused atime changes and is outside the approved measured-window policy"
+    }
+  ],
+  "literalEnvironmentTable": {
+    "recordId": "V5-032",
+    "pass": true,
+    "caseCount": 16,
+    "passed": 16,
+    "failed": 0,
+    "rows": [
+      {
+        "id": "no-env-default",
+        "selected": null,
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {},
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "du-block-size-valid-selected",
+        "selected": "DU_BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "3072",
+          "BLOCK_SIZE": "512",
+          "BLOCKSIZE": "256"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 1,
+          "stderr": ""
+        },
+        "expectedStdout": "1\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "1\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "du-block-size-invalid-fallback-default",
+        "selected": "DU_BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "invalid-value",
+          "BLOCK_SIZE": "3072",
+          "BLOCKSIZE": "512"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "du-block-size-empty-fallback-default",
+        "selected": "DU_BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "",
+          "BLOCK_SIZE": "3072",
+          "BLOCKSIZE": "512"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "du-block-size-explicit-valid-overrides",
+        "selected": "DU_BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "-B3072",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "invalid-value",
+          "BLOCK_SIZE": "512"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 1,
+          "stderr": ""
+        },
+        "expectedStdout": "1\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "1\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "du-block-size-explicit-invalid-strict",
+        "selected": "DU_BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "-B",
+          "invalid-value",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "DU_BLOCK_SIZE": "3072",
+          "BLOCK_SIZE": "512"
+        },
+        "expected": {
+          "statusClass": "failure",
+          "stdout": "",
+          "stderrClass": "invalid-block-size",
+          "filesystemCalls": 0
+        },
+        "expectedStdout": "",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size 'invalid-value'\n",
+        "filesystemCalls": [],
+        "pass": true
+      },
+      {
+        "id": "block-size-valid-selected",
+        "selected": "BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCK_SIZE": "3072",
+          "BLOCKSIZE": "512"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 1,
+          "stderr": ""
+        },
+        "expectedStdout": "1\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "1\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "block-size-invalid-fallback-default",
+        "selected": "BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCK_SIZE": "invalid-value",
+          "BLOCKSIZE": "3072"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "block-size-empty-fallback-default",
+        "selected": "BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCK_SIZE": "",
+          "BLOCKSIZE": "3072"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "block-size-explicit-valid-overrides",
+        "selected": "BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "-B3072",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCK_SIZE": "invalid-value",
+          "BLOCKSIZE": "512"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 1,
+          "stderr": ""
+        },
+        "expectedStdout": "1\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "1\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "block-size-explicit-invalid-strict",
+        "selected": "BLOCK_SIZE",
+        "args": [
+          "--apparent-size",
+          "-B",
+          "invalid-value",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCK_SIZE": "3072",
+          "BLOCKSIZE": "512"
+        },
+        "expected": {
+          "statusClass": "failure",
+          "stdout": "",
+          "stderrClass": "invalid-block-size",
+          "filesystemCalls": 0
+        },
+        "expectedStdout": "",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size 'invalid-value'\n",
+        "filesystemCalls": [],
+        "pass": true
+      },
+      {
+        "id": "blocksize-valid-selected",
+        "selected": "BLOCKSIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCKSIZE": "3072"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 1,
+          "stderr": ""
+        },
+        "expectedStdout": "1\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "1\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "blocksize-invalid-fallback-default",
+        "selected": "BLOCKSIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCKSIZE": "invalid-value"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "blocksize-empty-fallback-default",
+        "selected": "BLOCKSIZE",
+        "args": [
+          "--apparent-size",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCKSIZE": ""
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 2,
+          "stderr": ""
+        },
+        "expectedStdout": "2\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "2\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "blocksize-explicit-valid-overrides",
+        "selected": "BLOCKSIZE",
+        "args": [
+          "--apparent-size",
+          "-B3072",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCKSIZE": "invalid-value"
+        },
+        "expected": {
+          "statusClass": "success",
+          "units": 1,
+          "stderr": ""
+        },
+        "expectedStdout": "1\t/env-size-1500.bin\n",
+        "exitCode": 0,
+        "stdout": "1\t/env-size-1500.bin\n",
+        "stderr": "",
+        "filesystemCalls": [
+          {
+            "sequence": 0,
+            "layer": "env",
+            "method": "lstat",
+            "path": "/env-size-1500.bin"
+          }
+        ],
+        "pass": true
+      },
+      {
+        "id": "blocksize-explicit-invalid-strict",
+        "selected": "BLOCKSIZE",
+        "args": [
+          "--apparent-size",
+          "-B",
+          "invalid-value",
+          "/env-size-1500.bin"
+        ],
+        "env": {
+          "BLOCKSIZE": "3072"
+        },
+        "expected": {
+          "statusClass": "failure",
+          "stdout": "",
+          "stderrClass": "invalid-block-size",
+          "filesystemCalls": 0
+        },
+        "expectedStdout": "",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "du: invalid block size 'invalid-value'\n",
+        "filesystemCalls": [],
+        "pass": true
+      }
+    ]
+  },
+  "conclusion": "The exact replay cannot be accepted. Four failures are frozen observer/atime assertion defects and one is an untriggered frozen sensitivity control; none is evidence of a candidate product mutation or content read. A new frozen version is required before moved-package/native completion."
+}

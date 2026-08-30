@@ -1,0 +1,5 @@
+{
+  "baseUrl": "http://127.0.0.1:57396",
+  "permittedOrigin": "http://127.0.0.1:57396",
+  "explicitOptionalPlugin": true
+}

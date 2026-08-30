@@ -1,0 +1,184 @@
+{
+  "capturedRecords": 30,
+  "encodedSha256": "23a49e2ed9f0784a2916e2807d99fee39ef50253e87b842320d03855912694de",
+  "decodedSha256": "2207411e59a995b71ad79b9d3ceaf7e1c296eff029b802250fff803191f32ef3",
+  "encodedBytes": 2909573,
+  "decodedBytes": 24401717,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "packageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "childCount": 25,
+  "children": [
+    {
+      "pid": 183,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 594,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 595,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 1014,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 1035,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 1364,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 1375,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 1691,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 12961,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 13883,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 20509,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 20559,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 20877,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 20894,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 21877,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 21879,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 22381,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 22440,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 23601,
+      "code": 1,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 23615,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 23930,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 23939,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 24357,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 26799,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    },
+    {
+      "pid": 27157,
+      "code": 0,
+      "closeObserved": true,
+      "groupAbsent": true
+    }
+  ],
+  "finalStageEntries": 3688,
+  "originalCandidateTreesVerified": true,
+  "npmClosureVerified": true,
+  "unsafeStop": true,
+  "unsafeReason": "Declared mutant compiled bytes lacked final LF; apply_patch staged LF, exact admission refused before mutant load",
+  "mutatedModulesLoaded": 0,
+  "mutantKills": 0,
+  "results": {
+    "RESULT.json": "cfa98a0f8e14359cdd160fb316326d2ef88ada7cb2f096fa6bbd462868749dbc",
+    "MECHANISMS-RESULT.json": "61ffc6ed8a27d158dc920562d0ff9a530608ac69ab3a3d04f4f306f11a303d3f",
+    "layouts-v1/RESULT.json": "45d238f3c592c4aa9f7603a40c14de85daba71abfa0fd2e99e65c63a21377058",
+    "mutants-v1/RESULT.json": "622b5d570add05f1b2b5cb2ef0394d12bedf1638066c7e66b079ee3b4d778f8f"
+  },
+  "cleanup": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/observer-v2-run-HzBTcw",
+    "beforeCensusSha256": "bca43f59e7c012b66ffb91370a08aa96fa1e70b644c4eed75770e1bfd69b3d49",
+    "removed": true
+  }
+}

@@ -1,0 +1,33 @@
+[main 24971010] test: seal two same-authority Node loader diagnostic fixtures
+ 31 files changed, 11704 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/ACTIVATION.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/PREP-RESULT.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/PRIMARY.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/PROFILE.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/SOURCE-LOCATORS.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/SOURCE-PROOF.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/TOPOLOGY.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/git-0.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/git-0.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/git-1.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/git-1.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/precommit.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/precommit.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/prepare-events.jsonl
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/prepare.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/prepare.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/source-proof.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/capture/source-proof.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/fixture/entry.js.fixture
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/fixture/payload.js.fixture
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/outer.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/primary/lib__fs.js.txt
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/primary/lib__internal__modules__cjs__loader.js.txt
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/primary/lib__internal__modules__helpers.js.txt
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/primary/lib__internal__modules__run_main.js.txt
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/primary/src__node_file.cc.txt
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/primary/src__permission__fs_permission.cc.txt
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/probe.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/stage-a-loader/source-proof.mjs

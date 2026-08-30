@@ -1,0 +1,39 @@
+{
+  "schema": "p16-diagnosis-investigation-budget-v1",
+  "role": "SOURCE_DATA_ONLY",
+  "coordinationStartEpochMs": 1787950429458,
+  "hardEndpointEpochMs": 1787951029458,
+  "checkpointEpochMs": 1787950921851,
+  "elapsedFromCoordinationMs": 492393,
+  "limits": {
+    "directChildren": 12,
+    "peakControllerAndSequentialChild": 2,
+    "capturedChildOutputBytes": 33554432,
+    "newEvidenceBytes": 134217728
+  },
+  "completedMetadataChildren": 5,
+  "completedMetadataCapturedBytes": 48851,
+  "knownActiveChildren": 0,
+  "plannedRemainingOperations": [
+    "apply_patch new owned evidence",
+    "git add explicit owned paths",
+    "git commit --only explicit owned paths, hooks disabled",
+    "git show/status verification"
+  ],
+  "prohibitedExecutionCounts": {
+    "supervisors": 0,
+    "products": 0,
+    "workers": 0,
+    "npm": 0,
+    "compilers": 0,
+    "nativeOracles": 0,
+    "network": 0,
+    "privateRuntime": 0,
+    "comparators": 0
+  },
+  "allCompletedChildrenSettled": true,
+  "gitIndexAtStart": "empty",
+  "foreignEditsPerformed": 0,
+  "originalEscrowTransitions": 0,
+  "qualification": "Pre-finalization checkpoint; exact final sequential child count and commit/scope verification reported in handoff. No clock reset."
+}

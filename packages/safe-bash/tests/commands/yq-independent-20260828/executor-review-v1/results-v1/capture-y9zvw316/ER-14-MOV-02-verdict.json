@@ -1,0 +1,9 @@
+{
+  "family": "ER-14",
+  "name": "MOV-02",
+  "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-14-MOV-02-input.json",
+  "raw": "ER-14-MOV-02-raw.json"
+}

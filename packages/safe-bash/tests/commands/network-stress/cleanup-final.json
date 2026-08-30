@@ -1,0 +1,804 @@
+{
+  "schema": 1,
+  "mode": "cleanup-final",
+  "revision": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "tests/commands/network-stress/cleanup-selfcheck.ts"
+  ],
+  "environment": {
+    "CURL_VERIFY_AFTER_HANDOFF": "deab14d9f4b3b6f0d73f96587c74a9de23091300",
+    "CURL_VERIFY_SOURCE_REVISION": "aa2da57a5d1be8571f450a27c7b971245c1b7025",
+    "strictUnhandledRejections": true
+  },
+  "before": {
+    "at": "2026-08-26T23:05:21.624Z",
+    "head": "3a9177a7b8ddc1c20142720ffa96ea6f87f65e86",
+    "status": "M src/commands/diff-patch/patch-gnu-paths.ts\n M tests/commands/network-stress/capture-v2.mjs\n M tests/shell/remote-close.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch/pruning-consumer/\n?? tests/commands/network-policy-stress/\n?? tests/commands/network-stress/author-postfix.json\n?? tests/commands/network-stress/postfix18.json\n?? tests/commands/network-stress/postfix60.json\n?? tests/commands/network-stress/retry-lifecycle-v2.json\n?? tests/commands/network-stress/retry-lifecycle-v2.ts\n?? tests/commands/network-stress/retry-lifecycle.json\n?? tests/commands/network-stress/retry-lifecycle.ts\n?? tests/commands/network-stress/retry-product.json\n?? tests/commands/network-stress/types-postfix.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell/first-read-probe.ts",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+      "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "src/fs/overlay/README.md": "8733abc76fb9393a0928d85bfcbca715bb456f95697f66ac0d440e78c6939d79",
+      "src/fs/overlay/index.ts": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db",
+      "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+      "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+      "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture-v2.mjs": "906b9d65455ebfbe35dd6cc84cf5f4c8e295d839e7c9da83b426dfe8c1a4d414",
+      "tests/commands/network-stress/capture.mjs": "6f8b929e065ea7f21bf05ed1390dd55137f16b34f6b423ff15d0aa31636c2698",
+      "tests/commands/network-stress/cleanup-selfcheck.ts": "afb06a3b37b2f661e69588572aa9843caac46ba734744f86e897f75ac305199b",
+      "tests/commands/network-stress/close-resources.ts": "0924008f0bf372ef4f84448cdb4b2f223302797491717ed76f55aebeafad2ac3",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/harness-diagnostic.ts": "8ab4fe13a67b492ac24232a081ed2f6c6f69fde5194e9242c6ad0eb4a8ea43e5",
+      "tests/commands/network-stress/lab-v2.ts": "dc0797d8134c69b4a167875ccaad41a559c316de1c596be0639e6023bfe4a9ce",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product-v2.ts": "230c2a9188fe071b38a840fbb10c5a746ba2f2167f9c8fc216e1f590f33b83cf",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/retry-lifecycle-v2.ts": "02ac39b27fb5f12c1c3e7a4ce8371b3c5a022476608347860388f7cd406e4e93",
+      "tests/commands/network-stress/retry-lifecycle.ts": "47d9134a777134cce76581193b23c76bb85a190b61049fcd11016a4cc9d563aa",
+      "tests/commands/network-stress/retry-native-driver.ts": "8dc729782534044c3a4f915b19b00fce61c72f0238a8f5a2c4f23f2469ea0707",
+      "tests/commands/network-stress/retry-native.ts": "7dd09258045b364e003060a3e7ce7d389618661081873ca764111108743687c7",
+      "tests/commands/network-stress/retry-product.ts": "c57f0e184d2ac1af997a6dedf136087e19e5eaf1c6c76b7bea592bc292d50649",
+      "tests/commands/network-stress/retry-rows.ts": "527dc72f0eede1a2725288231d5ec2600b5de94a0933c26675070b7ccfb3916d",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/source-gate.ts": "86c2a372d03323f9553bcbe3895975b5baea8ddc56ca0682a31c1533bee8c285",
+      "tests/commands/network-stress/supplement-lab.ts": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "tests/commands/network-stress/supplement-rows.ts": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "tests/commands/network-stress/supplement-v2.ts": "47a37c1607c1d7e772aa16e83c1ff83d676b2a1123fae8a677a54ec5ef903e57",
+      "tests/commands/network-stress/supplement.ts": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1",
+      "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+      "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08"
+    },
+    "networkDigest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4",
+    "networkMatchesRevision": true
+  },
+  "after": {
+    "at": "2026-08-26T23:05:22.075Z",
+    "head": "3a9177a7b8ddc1c20142720ffa96ea6f87f65e86",
+    "status": "M src/commands/diff-patch/patch-gnu-paths.ts\n M tests/commands/network-stress/capture-v2.mjs\n M tests/shell/remote-close.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/diff-patch/pruning-consumer/\n?? tests/commands/network-policy-stress/\n?? tests/commands/network-stress/author-postfix.json\n?? tests/commands/network-stress/postfix18.json\n?? tests/commands/network-stress/postfix60.json\n?? tests/commands/network-stress/retry-lifecycle-v2.json\n?? tests/commands/network-stress/retry-lifecycle-v2.ts\n?? tests/commands/network-stress/retry-lifecycle.json\n?? tests/commands/network-stress/retry-lifecycle.ts\n?? tests/commands/network-stress/retry-product.json\n?? tests/commands/network-stress/types-postfix.json\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/shell/first-read-probe.ts",
+    "hashes": {
+      "package.json": "4ea795b3bcd32078f38f67f73f8c2b66ae2c3b4d4a6eb6cf1c312ddd6f039864",
+      "src/commands/network/README.md": "41e75f9ae587e63a61344df06b0cb518eae1f1d5eab155fd5892026c8c1ccb0f",
+      "src/commands/network/args.ts": "409dac8442c1151d4404d6ce05dd72ab35655aae80c9c0930743ff6af9ea1f4c",
+      "src/commands/network/body.ts": "29a8a744b043447eacc09d09ca651f2b0a34bdf08e08ddf3065729dbc486edbf",
+      "src/commands/network/curl.ts": "4859cc27a94d4ffe74ecadf20280d5d519d85babc50d24f55b9c51357c2dca42",
+      "src/commands/network/index.ts": "ffee94bffaaef2d96760a24cc164af04951bc30477bcbbdd101144abf4b8e329",
+      "src/commands/network/output.ts": "544488561b8ad360c7d41eeec7928659f3a94acd16f196af93ed3349c6a70bab",
+      "src/commands/network/shared.ts": "7adab18b67c7584b646b3a6508729d7ab0672e7a0808f512f74ae16464f8842f",
+      "src/commands/network/transport.ts": "b6246ceacc90c0451028755fdf9cbb795790968676f48c8e3f9258128286f844",
+      "src/commands/network/types.ts": "806dd2132dd4004404dbb5c21a421e84c53c161f750f6acc1aedd0f8054b5fe9",
+      "src/contracts/command.ts": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+      "src/contracts/errors.ts": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "src/contracts/filesystem.md": "90838dc4c536147dcd331a09387281192a15aab45df980e280df008d1333a52a",
+      "src/contracts/filesystem.ts": "97257525eaead7d90c4280ec8a14bd063e9dac507ffc9b30398a9c421dcb118a",
+      "src/contracts/index.ts": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/contracts/path.ts": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "src/contracts/plugin.ts": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "src/fs/memory/index.ts": "525b4e974b8ad0c0e08c00e78fa4b2239f789ef3922eb876fdf6e3ab79ef1d04",
+      "src/fs/mount/README.md": "02b79874b82b5de4859ef593b1beeac7481503962997f6a6254b43cb6c7bbfe9",
+      "src/fs/mount/index.ts": "1c4d36bf253f2c612b3be803e7c08720bd7d25d58d0dea7aefd3cca568a7d3e5",
+      "src/fs/overlay/README.md": "8733abc76fb9393a0928d85bfcbca715bb456f95697f66ac0d440e78c6939d79",
+      "src/fs/overlay/index.ts": "b68fb33939bbc3422c3f4e42533e1e8075dd4a01c3148847e4eef9ce0f6465db",
+      "src/fs/readonly/README.md": "380f87681b9a504e35a2737e0ecc1f52fce46353465021eb12f3bc80fbcd9ca2",
+      "src/fs/readonly/index.ts": "f5f3521e7292754ca44de3ef3a7fd0a04049b9279bbfd1a590434d211bcde696",
+      "src/fs/real/index.ts": "1789c31b585849839b5345faa86337cfc28b38ebbfa26ea302bddb48cf904111",
+      "src/fs/s3/README.md": "e729f6435238799d0309bf5f67f504e3c61375e19f7a904431db3c5787f2557d",
+      "src/fs/s3/filesystem.ts": "c1515263ae2f213548c236c84cf67bd8ff0651730228e4eed0285e878c9a34ce",
+      "src/fs/s3/index.ts": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "src/fs/s3/mock.ts": "d2356f3917fed36524bf1d944b67af70e3f19b0956064b306e8680b974bf8b6d",
+      "src/fs/s3/transport.ts": "df60945a4cd9e9416fe0fdd054460c16bab058d81831ce6526b9a88a0e150d8e",
+      "src/fs/webdav/PRODUCTION_CHECKPOINT.md": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "src/fs/webdav/README.md": "d4ee0ccb28c44c4749b0871fd84da1ee52d86eb0f1a0063f330f4a738db07672",
+      "src/fs/webdav/index.ts": "9a19fb0e61bf9ef07d97881bb93e30ba21491e580ef5e58ab0e80bb5f398d5e4",
+      "src/fs/webdav/webdav.ts": "b86c33a4b9f09bd3cf8120fbf12a462a38a106fe7682d5647f3ccf8942e4dbe6",
+      "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "src/index.ts": "d33bf4a8e89cf225ed47ba6d028a5aa7a879ec6c1399762534b05c7b40dc2f16",
+      "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "src/shell/input.ts": "c7492bb41555d865a0dcda9e3c7e8b2b3f5c5a1e73dc6e1bdb9b3fe6e7ed9a6d",
+      "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "src/shell/parser.ts": "73749cb5af6b6affe91014153aa4a6358bc8441807e8ad47fe09f74927c8c7b0",
+      "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "src/shell/runtime.ts": "0d4f6fd7c56702dd585d6838278d5b0184288446f95ee9cf5392acf8ee22e60d",
+      "src/shell/shell.ts": "ea1ae9136b6b5d2062a69c4307d6e31b6d4aada3947418c0e3dad66b13fcd127",
+      "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+      "tests/commands/network-stress/capture-v2.mjs": "906b9d65455ebfbe35dd6cc84cf5f4c8e295d839e7c9da83b426dfe8c1a4d414",
+      "tests/commands/network-stress/capture.mjs": "6f8b929e065ea7f21bf05ed1390dd55137f16b34f6b423ff15d0aa31636c2698",
+      "tests/commands/network-stress/cleanup-selfcheck.ts": "afb06a3b37b2f661e69588572aa9843caac46ba734744f86e897f75ac305199b",
+      "tests/commands/network-stress/close-resources.ts": "0924008f0bf372ef4f84448cdb4b2f223302797491717ed76f55aebeafad2ac3",
+      "tests/commands/network-stress/evidence.ts": "b8503c2457a2903320e415d90677e3480fe3632538ae87f6fd91fba2e2bd9b61",
+      "tests/commands/network-stress/freeze.ts": "1fc80c4cacd51b2d67d951e122dd2406fe44eb5a3bb515ab342985344e2a2ae3",
+      "tests/commands/network-stress/handoff.json": "b0e3c57ed75bfb86b3097670292486b39cfd5220ab09f999efce12669ef90e68",
+      "tests/commands/network-stress/harness-diagnostic.ts": "8ab4fe13a67b492ac24232a081ed2f6c6f69fde5194e9242c6ad0eb4a8ea43e5",
+      "tests/commands/network-stress/lab-v2.ts": "dc0797d8134c69b4a167875ccaad41a559c316de1c596be0639e6023bfe4a9ce",
+      "tests/commands/network-stress/lab.ts": "74b2220af6ff9e49c88bce83f8f6b56569b83f72f790ee9cf492c16995a8399d",
+      "tests/commands/network-stress/native.ts": "01d5293ba56dab50d55983c9dac5b90e0f83cf128922a4ddded17674d6e78129",
+      "tests/commands/network-stress/oracle.json": "b1b51398c3fb51a275ffb8f5d344c2c105fb077719674e44f297e7d66cdc21d7",
+      "tests/commands/network-stress/oracle.test.ts": "590100c6b0e53ad1e8cffd1c931f62b2811a615cd893f56dd15f5e5b1b283e82",
+      "tests/commands/network-stress/product-v2.ts": "230c2a9188fe071b38a840fbb10c5a746ba2f2167f9c8fc216e1f590f33b83cf",
+      "tests/commands/network-stress/product.ts": "02edbaa26c2a110af1195c3354d2d4112ccbcc0ac3d6f3d3182c76f3ca068d42",
+      "tests/commands/network-stress/retry-lifecycle-v2.ts": "02ac39b27fb5f12c1c3e7a4ce8371b3c5a022476608347860388f7cd406e4e93",
+      "tests/commands/network-stress/retry-lifecycle.ts": "47d9134a777134cce76581193b23c76bb85a190b61049fcd11016a4cc9d563aa",
+      "tests/commands/network-stress/retry-native-driver.ts": "8dc729782534044c3a4f915b19b00fce61c72f0238a8f5a2c4f23f2469ea0707",
+      "tests/commands/network-stress/retry-native.ts": "7dd09258045b364e003060a3e7ce7d389618661081873ca764111108743687c7",
+      "tests/commands/network-stress/retry-product.ts": "c57f0e184d2ac1af997a6dedf136087e19e5eaf1c6c76b7bea592bc292d50649",
+      "tests/commands/network-stress/retry-rows.ts": "527dc72f0eede1a2725288231d5ec2600b5de94a0933c26675070b7ccfb3916d",
+      "tests/commands/network-stress/rows.ts": "cae8a192fcfdf83d8f0b75ae7da516358eb6383c22aeabf1be90d70f617066e0",
+      "tests/commands/network-stress/source-gate.ts": "86c2a372d03323f9553bcbe3895975b5baea8ddc56ca0682a31c1533bee8c285",
+      "tests/commands/network-stress/supplement-lab.ts": "362e2322b9c422ab3bf01cd019f6335f1ad1db416d76116ff24c5c814964ee04",
+      "tests/commands/network-stress/supplement-rows.ts": "d6dbddcd52e223a55fd3c13c8c45e8d03959d148a669c47d8912be19f4bcd660",
+      "tests/commands/network-stress/supplement-v2.ts": "47a37c1607c1d7e772aa16e83c1ff83d676b2a1123fae8a677a54ec5ef903e57",
+      "tests/commands/network-stress/supplement.ts": "22d367ce6fb81f9ec5a5c93c7ec99d93280f71c9553d9a0adae2d16767844dfb",
+      "tests/commands/network-stress/transport.ts": "4384942fa9259718176ce981d83b7e6087cdade502de2dba120005da1cc17a69",
+      "tests/commands/network-stress/watchdog.mjs": "6a1643ba79904041e638a958536cc5fc9ad8096c8c02dab00594adec9c70bda1",
+      "tests/commands/network/tls/cert.pem": "073a4fb398e08fee1a757651f8de94b0e222b45073eb2bf5e0441679f020244d",
+      "tests/commands/network/tls/key.pem": "246b515a17d5940e973f46ffbb94f27e693e6411bc61c14b5467ade21ff9cc08"
+    },
+    "networkDigest": "886d7b03e4b280ab90bb1385f199f363c13349e3fe439fee0777bd274a1499a4",
+    "networkMatchesRevision": true
+  },
+  "changes": [],
+  "networkStable": true,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "stdout": "{\"selfchecks\":3,\"passed\":3,\"productExecutions\":0}\n{\"iteration\":0,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":1,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":2,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":3,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":4,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":5,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":6,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":7,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":8,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":9,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":10,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":11,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":12,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":13,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":14,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":15,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":16,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":17,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":18,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":19,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":20,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":21,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":22,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":23,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":24,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":25,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":26,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":27,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":28,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":29,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":30,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":31,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":32,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":33,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":34,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":35,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":36,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":37,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":38,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":39,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":40,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":41,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":42,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":43,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":44,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":45,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":46,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":47,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":48,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":49,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":50,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":51,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":52,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":53,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":54,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":55,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":56,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":57,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":58,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":59,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":60,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":61,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":62,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":63,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":64,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":65,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":66,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":67,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":68,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":69,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":70,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":71,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":72,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":73,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":74,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":75,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":76,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":77,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":78,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":79,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":80,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":81,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":82,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":83,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":84,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":85,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":86,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":87,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":88,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":89,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":90,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":91,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":92,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":93,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":94,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":95,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":96,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":97,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":98,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n{\"iteration\":99,\"passed\":true,\"requests\":0,\"productExecutions\":0}\n",
+  "stderr": "",
+  "records": [
+    {
+      "selfchecks": 3,
+      "passed": 3,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 0,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 1,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 2,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 3,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 4,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 5,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 6,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 7,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 8,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 9,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 10,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 11,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 12,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 13,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 14,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 15,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 16,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 17,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 18,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 19,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 20,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 21,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 22,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 23,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 24,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 25,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 26,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 27,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 28,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 29,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 30,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 31,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 32,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 33,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 34,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 35,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 36,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 37,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 38,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 39,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 40,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 41,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 42,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 43,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 44,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 45,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 46,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 47,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 48,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 49,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 50,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 51,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 52,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 53,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 54,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 55,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 56,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 57,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 58,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 59,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 60,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 61,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 62,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 63,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 64,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 65,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 66,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 67,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 68,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 69,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 70,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 71,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 72,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 73,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 74,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 75,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 76,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 77,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 78,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 79,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 80,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 81,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 82,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 83,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 84,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 85,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 86,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 87,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 88,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 89,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 90,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 91,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 92,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 93,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 94,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 95,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 96,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 97,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 98,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    },
+    {
+      "iteration": 99,
+      "passed": true,
+      "requests": 0,
+      "productExecutions": 0
+    }
+  ]
+}

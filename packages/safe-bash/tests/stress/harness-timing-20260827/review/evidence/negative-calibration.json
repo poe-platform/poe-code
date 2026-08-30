@@ -1,0 +1,264 @@
+{
+  "name": "calibration",
+  "mode": "complete",
+  "settings": {},
+  "expected": null,
+  "actualFailure": null,
+  "nativeHarnessError": false,
+  "durationMs": 45.4055,
+  "outerDueMs": 3000,
+  "ownOuterFired": false,
+  "evidence": {
+    "argv": [
+      "--no-config",
+      "--line-buffered",
+      "foo",
+      "-"
+    ],
+    "profile": "observed-prefix",
+    "pid": 88910,
+    "code": 0,
+    "signal": null,
+    "stdout": "foo\nbinary file matches (found \"\\0\" byte around offset 4)\n",
+    "stderr": "CONTROL_STARTED\n",
+    "events": [
+      {
+        "event": "launch",
+        "ms": 0.07333400000000267,
+        "detail": {
+          "argv": [
+            "--no-config",
+            "--line-buffered",
+            "foo",
+            "-"
+          ],
+          "profile": "observed-prefix",
+          "options": {
+            "lineBuffered": true,
+            "readinessMs": 1000,
+            "completionMs": 200,
+            "cleanupMs": 100
+          }
+        }
+      },
+      {
+        "event": "timer-armed",
+        "ms": 0.9342090000000098,
+        "detail": {
+          "timerId": 1,
+          "label": "readiness",
+          "milliseconds": 1000,
+          "armedMs": 0.9284170000000103,
+          "dueMs": 1000.928417
+        }
+      },
+      {
+        "event": "spawn",
+        "ms": 1.129792000000009,
+        "detail": {
+          "pid": 88910
+        }
+      },
+      {
+        "event": "write",
+        "ms": 1.1472499999999997,
+        "detail": {
+          "hex": "666f6f0a",
+          "end": false
+        }
+      },
+      {
+        "event": "stderr-data",
+        "ms": 40.484125000000006,
+        "detail": {
+          "hex": "434f4e54524f4c5f535441525445440a"
+        }
+      },
+      {
+        "event": "stdout-data",
+        "ms": 41.23804200000001,
+        "detail": {
+          "hex": "666f6f0a"
+        }
+      },
+      {
+        "event": "prefix-consumption-evidenced",
+        "ms": 41.264375,
+        "detail": "stdout is evidence of prior read; not a read syscall timestamp"
+      },
+      {
+        "event": "ready",
+        "ms": 41.266084000000006
+      },
+      {
+        "event": "timer-cleared",
+        "ms": 41.297416999999996,
+        "detail": {
+          "timerId": 1
+        }
+      },
+      {
+        "event": "timer-armed",
+        "ms": 41.307834000000014,
+        "detail": {
+          "timerId": 2,
+          "label": "completion",
+          "milliseconds": 200,
+          "armedMs": 41.30041700000001,
+          "dueMs": 241.300417
+        }
+      },
+      {
+        "event": "write",
+        "ms": 41.32775000000001,
+        "detail": {
+          "hex": "000a6e6f0a",
+          "end": true
+        }
+      },
+      {
+        "event": "stdin-close",
+        "ms": 41.652709000000016
+      },
+      {
+        "event": "stdout-data",
+        "ms": 41.77875,
+        "detail": {
+          "hex": "62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"
+        }
+      },
+      {
+        "event": "stderr-end",
+        "ms": 44.651375
+      },
+      {
+        "event": "stdout-end",
+        "ms": 44.71254200000001
+      },
+      {
+        "event": "stdout-close",
+        "ms": 44.77525
+      },
+      {
+        "event": "stderr-close",
+        "ms": 44.77920900000001
+      },
+      {
+        "event": "exit",
+        "ms": 44.83083400000001,
+        "detail": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "event": "timer-cleared",
+        "ms": 44.83979200000002,
+        "detail": {
+          "timerId": 2
+        }
+      },
+      {
+        "event": "timer-armed",
+        "ms": 44.84845899999999,
+        "detail": {
+          "timerId": 3,
+          "label": "cleanup",
+          "milliseconds": 100,
+          "armedMs": 44.846709000000004,
+          "dueMs": 144.846709
+        }
+      },
+      {
+        "event": "close",
+        "ms": 44.88750000000002,
+        "detail": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "event": "timer-cleared",
+        "ms": 44.890874999999994,
+        "detail": {
+          "timerId": 3
+        }
+      }
+    ],
+    "ready": true,
+    "actualClose": true,
+    "closeObserved": true,
+    "ownedListenersRemaining": 0,
+    "streamsDestroyed": [
+      true,
+      true,
+      true
+    ],
+    "activeTimers": 0
+  },
+  "independentlyClosedBeforeCleanup": true,
+  "independentlyRetired": {
+    "childMode": "complete",
+    "pid": 88910,
+    "closed": true,
+    "exitSeen": true,
+    "code": 0,
+    "signal": null,
+    "events": [
+      {
+        "event": "spawn",
+        "ms": 0.8945830000000115,
+        "pid": 88910,
+        "notInputConsumption": true
+      },
+      {
+        "event": "stderr-data",
+        "ms": 40.217749999999995,
+        "hex": "434f4e54524f4c5f535441525445440a"
+      },
+      {
+        "event": "stdout-data",
+        "ms": 40.902041999999994,
+        "hex": "666f6f0a"
+      },
+      {
+        "event": "stdin-close",
+        "ms": 41.42583300000001
+      },
+      {
+        "event": "stdout-data",
+        "ms": 41.554625000000016,
+        "hex": "62696e6172792066696c65206d6174636865732028666f756e6420225c302220627974652061726f756e64206f66667365742034290a"
+      },
+      {
+        "event": "stdout-close",
+        "ms": 44.54920799999999
+      },
+      {
+        "event": "stderr-close",
+        "ms": 44.557000000000016
+      },
+      {
+        "event": "exit",
+        "ms": 44.600042,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "event": "close",
+        "ms": 44.64708300000001,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "streamDestroyed": [
+      true,
+      true,
+      true
+    ],
+    "observerListenersRemaining": 0,
+    "additionalListeners": []
+  },
+  "assertionFailure": null,
+  "sentinelAlive": true
+}

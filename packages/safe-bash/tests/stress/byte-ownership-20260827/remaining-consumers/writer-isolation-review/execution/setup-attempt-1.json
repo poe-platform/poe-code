@@ -1,0 +1,8 @@
+{
+  "command": "node --unhandled-rejections=strict tests/stress/byte-ownership-20260827/remaining-consumers/writer-isolation-review/baseline.mjs",
+  "stage": "git archive b494675c34dc289f4ad4b10a9201e1211eb0a7d8",
+  "result": "ENOBUFS: archive exceeded 256 MiB child stdout buffer; no extraction or test executed",
+  "childPid": 71236,
+  "childSignal": "SIGTERM",
+  "correction": "Write compressed git archive to owned scratch file, then extract; no source or expectation changes"
+}

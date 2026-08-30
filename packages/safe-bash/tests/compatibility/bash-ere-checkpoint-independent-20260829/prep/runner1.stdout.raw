@@ -1,0 +1,168 @@
+1: import { open, lstat, readFile, writeFile, mkdir, copyFile, rename, readdir, chmod } from 'node:fs/promises';
+2: import { createReadStream } from 'node:fs';
+3: import { createHash } from 'node:crypto';
+4: import { spawn } from 'node:child_process';
+5: import { dirname, join, resolve, relative, basename } from 'node:path';
+6: import { fileURLToPath } from 'node:url';
+7: import assert from 'node:assert/strict';
+8: 
+9: const own = dirname(fileURLToPath(import.meta.url));
+10: const author = dirname(own); const repo = resolve(own, '../../../..');
+11: const [mode, label] = process.argv.slice(2);
+12: if (!['seal','run'].includes(mode) || !/^[A-Z0-9-]{1,40}$/.test(label ?? '')) throw new Error('explicit mode/unique label required');
+13: const started = Date.now(); const deadline = started + (mode === 'seal' ? 10 : 35) * 60000;
+14: const output = join(own, label); await mkdir(output);
+15: const outer = await open(join(output, 'outer.jsonl'), 'wx');
+16: let active = 0, count = 0, peak = 0, captureBytes = 0;
+17: const receipts = [];
+18: const event = value => outer.write(JSON.stringify({ at: new Date().toISOString(), elapsed: Date.now() - started, ...value }) + '\n');
+19: function time() { if (Date.now() >= deadline) throw new Error('SAFETY deadline'); }
+20: async function hash(path) {
+21:   time(); const stat = await lstat(path);
+22:   if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 128 * 1024 * 1024) throw new Error('SAFETY regular-file/size admission');
+23:   const digest = createHash('sha256'); for await (const buffer of createReadStream(path, { highWaterMark: 65536 })) { time(); digest.update(buffer); }
+24:   return { path, size: stat.size, mode: stat.mode & 0o777, sha256: digest.digest('hex') };
+25: }
+26: async function text(path) {
+27:   const record = await hash(path); if (record.size > 1048576) throw new Error('SAFETY text cap');
+28:   const bytes = await readFile(path); assert.equal(createHash('sha256').update(bytes).digest('hex'), record.sha256, 'SAFETY read drift');
+29:   return bytes.toString('utf8');
+30: }
+31: async function bound(entries) { for (const expected of entries) assert.deepEqual(await hash(expected.path), expected, 'SAFETY input binding'); }
+32: async function census(directory) {
+33:   const stat = await lstat(directory); assert.ok(stat.isDirectory() && !stat.isSymbolicLink(), 'SAFETY directory');
+34:   const entries = [];
+35:   for (const name of (await readdir(directory)).sort()) {
+36:     const path = join(directory, name); const stat = await lstat(path); assert.ok(!stat.isSymbolicLink(), 'SAFETY symlink');
+37:     if (stat.isDirectory()) entries.push(...await census(path)); else entries.push(await hash(path));
+38:   }
+39:   return entries;
+40: }
+41: async function child(role, args, cwd, timeout = 30000) {
+42:   time(); if (++count > 30 || active !== 0) throw new Error('SAFETY dispatch cap');
+43:   const prefix = `${String(count).padStart(2,'0')}-${role}`;
+44:   const out = await open(join(output, prefix + '.stdout'), 'wx'); const err = await open(join(output, prefix + '.stderr'), 'wx');
+45:   const chunks = { stdout: [], stderr: [] }; const writes = [];
+46:   let failure, timer; let size = 0;
+47:   const worker = spawn(process.execPath, args, { cwd, env: { PATH: '/usr/bin:/bin', LANG: 'C', LC_ALL: 'C', HOME: output }, stdio: ['ignore','pipe','pipe'] });
+48:   active++; peak = Math.max(peak, active);
+49:   const closed = new Promise(resolveClose => {
+50:     worker.once('error', error => { failure ??= error; });
+51:     worker.once('close', (code, signal) => { active--; clearTimeout(timer); resolveClose({ code, signal }); });
+52:   });
+53:   for (const [channel, handle] of [['stdout',out],['stderr',err]]) worker[channel].on('data', bytes => {
+54:     size += bytes.length; captureBytes += bytes.length;
+55:     if (size > 8 * 1024 * 1024 || captureBytes > 128 * 1024 * 1024) { failure ??= new Error('SAFETY capture cap'); worker.kill('SIGKILL'); return; }
+56:     chunks[channel].push(bytes); writes.push(handle.write(bytes).catch(error => { failure ??= error; worker.kill('SIGKILL'); }));
+57:   });
+58:   timer = setTimeout(() => { failure ??= new Error('SAFETY deadline/child timeout'); worker.kill('SIGKILL'); }, Math.min(timeout, Math.max(1, deadline - Date.now())));
+59:   try { await event({ event: 'spawn', role, pid: worker.pid ?? null, args, cwd }); } catch (error) { failure ??= error; worker.kill('SIGKILL'); }
+60:   const terminal = await closed; await Promise.all(writes); await out.close(); await err.close();
+61:   const receipt = { role, pid: worker.pid ?? null, args, ...terminal, size, retired: true }; receipts.push(receipt); await event({ event: 'close', ...receipt });
+62:   if (failure || terminal.signal) throw failure ?? new Error('SAFETY unexpected signal'); time();
+63:   return { ...receipt, stdout: Buffer.concat(chunks.stdout).toString('utf8'), stderr: Buffer.concat(chunks.stderr).toString('utf8') };
+64: }
+65: try {
+66:   await event({ event: 'start', mode, label, started, deadline, pid: process.pid, execPath: process.execPath, version: process.version });
+67:   if (mode === 'seal') {
+68:     const previous = JSON.parse(await text(join(author, 'SEAL-v3.json')));
+69:     await bound([previous.node, ...previous.tools]);
+70:     const sources = [];
+71:     const originals = [];
+72:     for (const entry of previous.sources) {
+73:       sources.push(await hash(entry.path));
+74:       const original = await hash(join(author, 'ACTUAL-03/work/source', basename(entry.path)));
+75:       assert.equal(original.sha256, entry.sha256); originals.push(original);
+76:       if (!['matcher.ts','syntax.ts'].includes(basename(entry.path))) assert.deepEqual(sources.at(-1), entry);
+77:     }
+78:     const fixtures = [];
+79:     for (const name of ['suite.mjs','cases.json','consumer.mts','negative.mts']) {
+80:       const row = await hash(join(author, name)); const expected = previous.inputs.find(entry => entry.path === row.path); assert.deepEqual(row, expected); fixtures.push(row);
+81:     }
+82:     const oldResult = JSON.parse(await text(join(author, 'ACTUAL-03/RESULT.json')));
+83:     const reversionInputs = oldResult.emittedBinding.filter(entry => /\/(syntax|matcher)\.js$/.test(entry.path)); await bound(reversionInputs);
+84:     const harness = []; for (const name of ['runner.mjs','checkpoints.mjs','RECIPE.md']) harness.push(await hash(join(own, name)));
+85:     const seal = { baseline: previous.baseline, engineBaseline: 'f97fd06024cb63edfd01873d81d84576a22189db', sources, originals, fixtures, reversionInputs, harness, node: previous.node, tools: previous.tools, tscFlags: previous.tscFlags, compiler: previous.compiler, noCompression: true, expectedChildren: 19, caseGroups: { author: 66, targeted: 8, layouts: 3 }, deadlineMs: 2100000 };
+86:     await writeFile(join(own, 'SEAL.json'), JSON.stringify(seal, null, 2) + '\n', { flag: 'wx' });
+87:     await event({ event: 'sealed', seal: await hash(join(own, 'SEAL.json')) });
+88:   } else {
+89:     const seal = JSON.parse(await text(join(own, 'SEAL.json')));
+90:     const inputs = [seal.node, ...seal.sources, ...seal.originals, ...seal.fixtures, ...seal.reversionInputs, ...seal.harness, ...seal.tools]; await bound(inputs);
+91:     const work = join(output, 'work'); await mkdir(work);
+92:     for (const entry of seal.tools) {{
+  "baseline": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "engineBaseline": "f97fd06024cb63edfd01873d81d84576a22189db",
+  "sources": {
+    "length": 5,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/src/commands/regex-execution/ere/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  },
+  "originals": {
+    "length": 5,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/source/types.ts",
+      "size": 1554,
+      "mode": 420,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  },
+  "fixtures": {
+    "length": 4,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/suite.mjs",
+      "size": 10900,
+      "mode": 420,
+      "sha256": "7ede0384b30d5e566b08fd16da747a1e9a731222bca64366ed1b2e7e9d3a3c78"
+    }
+  },
+  "reversionInputs": {
+    "length": 2,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/emitted/matcher.js",
+      "size": 8414,
+      "mode": 420,
+      "sha256": "5427606266eb6c0d25edba6a32f5097769aa11cb3e9825d0328d5995f07007b7"
+    }
+  },
+  "harness": {
+    "length": 3,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829/r02-v1/runner.mjs",
+      "size": 14319,
+      "mode": 420,
+      "sha256": "d8747bb76e6f90bb636f288c17dbd7183dd308f8cd1c41ff9a2ee99679b9ab5b"
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tools": {
+    "length": 241,
+    "first": {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "size": 6213092,
+      "mode": 420,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    }
+  },
+  "tscFlags": {
+    "length": 15,
+    "first": "--target"
+  },
+  "compiler": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+  "noCompression": true,
+  "expectedChildren": 19,
+  "caseGroups": {
+    "author": 66,
+    "targeted": 8,
+    "layouts": 3
+  },
+  "deadlineMs": 2100000
+}

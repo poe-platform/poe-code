@@ -1,0 +1,35 @@
+{
+  "id": "guard-mode",
+  "role": "guard",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/guard-control.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/guard",
+    "mode"
+  ],
+  "started": "2026-08-28T19:59:23.548Z",
+  "finished": "2026-08-28T19:59:23.615Z",
+  "startedElapsedMs": 5357.954875,
+  "finishedElapsedMs": 5424.845209,
+  "pid": 69263,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 239,
+  "fragments": [
+    {
+      "name": "005-guard-mode-stdout-0.json",
+      "bytes": 239,
+      "sha256": "0b3bea2024e1149f8b4197f5c7a628a790e2dcb91b5a71b5f62117c63d53e7c7"
+    }
+  ],
+  "stdoutSha256": "0b3bea2024e1149f8b4197f5c7a628a790e2dcb91b5a71b5f62117c63d53e7c7",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

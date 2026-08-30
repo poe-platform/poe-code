@@ -1,0 +1,49 @@
+{
+  "tool": "rg",
+  "phase": "after",
+  "utc": "2026-08-27T04:31:05.933Z",
+  "env": {
+    "LANG": "C",
+    "LC_ALL": "C",
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "execArgv": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=64",
+    "--max-semi-space-size=1",
+    "--stack-size=512"
+  ],
+  "paths": [
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/glob.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/matcher.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/options.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/output.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/rg.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/shared.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/commands/search/walk.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/command.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/errors.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/filesystem.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/index.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/io.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/path.js",
+    "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/js/contracts/plugin.js"
+  ],
+  "hashes": {
+    "js/commands/search/glob.js": "838092965fb606e4fc2c393d6da47f7b2912029dea77577ecf73e804450578d8",
+    "js/commands/search/matcher.js": "d8aed514b571f4ba398d98a11e3ed9076a19db5cc30101b993d909418571daab",
+    "js/commands/search/options.js": "5db69d1921aabf86b304d59c873fdb7bf2761dfe7b2a4a234f25f0322ddafe10",
+    "js/commands/search/output.js": "a6a91c34ccab39fa20f07cc2639bd865912358818dc631036e82fd1fd87f54ae",
+    "js/commands/search/rg.js": "25c8bec065a4fb9394903085c4dd039c34bb1a3a14b1a26730901f65afec3291",
+    "js/commands/search/shared.js": "789b6cd17db4cd7569afaecc6a06dd93c3a4cdb046079cdf8b93ce74e1bb3812",
+    "js/commands/search/walk.js": "a628bb72fbfb2fde9e222cd939cc1317480b9644494bc4b2572793568c35bb47",
+    "js/contracts/command.js": "2dfc699844400c28b96998571e4d40ba5b753536dfdb763931e8228d91e0475e",
+    "js/contracts/errors.js": "e36d1e444436bfb75b0c9e9dbcfd1e76859a6338984534a3804c0ad96b075a6e",
+    "js/contracts/filesystem.js": "5178c790903774b0c5e57caa40f638e0fa956166c7181617d37046a642836d50",
+    "js/contracts/index.js": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+    "js/contracts/io.js": "c6afd5bc282dd828d71d4ec32cd7b687cc1d779d7108d59e2a7321c58b9aeb0a",
+    "js/contracts/path.js": "c14e293f08164e8de78ba1c3dbcfd94358e122c92254d74ec0b003b324d5fafb",
+    "js/contracts/plugin.js": "69417d4b49af75a6f2045fea89768f2d7b6b7c05c454df279e6ad41c71b4d2a4"
+  },
+  "binding": "Fixed compiled entry import; complete static ESM import/export graph, validated during compilation; builtins excluded"
+}

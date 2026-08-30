@@ -1,0 +1,53 @@
+{
+  "schema": "BREADTH_V7_R2_SCOPED_AUTHOR_HANDOFF",
+  "date": "2026-08-28",
+  "status": "READY_FOR_DIFFERENT_FOCUSED_REVIEW_NOT_ADMISSION_ACCEPTANCE",
+  "candidateCommit": "5110550da057398fffd1fb77bf538121c67c731f",
+  "launcherCommit": "32581a276c50d73aab987880518ce04b77f5c631",
+  "bindings": {
+    "recipe": { "path": "SEAL.json", "bytes": 93967, "sha256": "b19d04354088d31ac387c82606aaa0a7ce64cf26efd0ffbebcfc4f4e5969a03c", "inputs": 359 },
+    "interface": { "path": "INTERFACE.json", "bytes": 10754, "sha256": "33e2c6ca9213f10645f2421e7390a2451d8e320d34cdfe3746366efffb1286b7" },
+    "authorizationTemplate": { "path": "AUTHORIZATION-TEMPLATE.data", "bytes": 3147, "sha256": "238f879d6e275f49d0d6bbcaea0d05443cbc0e1e23951072424212df3f7adf99", "issued": false },
+    "productCandidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "comparator": "pinned just-bash 3.4.2, not latest"
+  },
+  "execution": {
+    "runId": "affected-r2-01", "attempts": 1, "pass": 15, "fail": 0, "unrun": 0, "unsafe": false,
+    "composedFamilies": 10, "dataFamilies": 5,
+    "dataRejectionAssertions": { "A01": 163, "A02": 150, "A03": 45, "A04": 25, "A05": 4, "total": 387 },
+    "countsQualification": "387 assertions are not distinct workflow families. Synthetic positives do not confer production authority.",
+    "processes": { "runner": 1, "directlySupervised": 12, "nestedWorkers": 8, "synchronousMetadataStubs": 15, "totalExcludingLauncherHost": 36, "allReaped": true },
+    "metadataDispositionQualification": "spawnSync status/signal and exact PID/group absence, not fabricated asynchronous exit/close events",
+    "loadWitnesses": { "receipts": 36, "actualNextLoad": 603, "excludingRunner": 574, "runner": 29, "qualification": "Guard bootstrap and Node builtins are pre/post bound, not self-observed nextLoad." },
+    "runnerDisposition": { "exit": { "code": 0, "signal": null }, "close": { "code": 0, "signal": null }, "reaped": true, "supervisorFailures": [], "stdoutBytes": 223, "stderrBytes": 0, "recordBytes": 88 }
+  },
+  "evidence": {
+    "result": { "path": "runs/affected-r2-01/receipts/RESULT.json", "bytes": 23549, "sha256": "a7ec91429eb25ec8faae1e51b403be3a1a71a0515f83399129913b2a52874ee8" },
+    "launcherOutcome": { "path": "runs/launch-r2-01/evidence/OUTCOME.json", "bytes": 713, "sha256": "03edba1e2571b9a0c98dffdd1ed352624be003b28d96deb51ae4350f4ed14baa" },
+    "archiveManifest": { "path": "runs/evidence-r2-01/MANIFEST.json", "bytes": 43861, "sha256": "09cd677e0725d8ee1652bbdeeb00422db8a60f007ccfdda4355b60fb30e8c0ff" },
+    "archive": { "path": "runs/evidence-r2-01/raw-0000.gzpart", "bytes": 113011, "sha256": "001b7f89ddf156369490ffb79fed3da78f85ec065985005119ce6ec15b899217", "files": 211, "rawBytes": 6583082, "maximumPhysicalRawRecordBytes": 262144, "roundTrip": "ALL_RAW_BYTES_MODES_HASHES_VERIFIED" }
+  },
+  "qualifiedRepair": [
+    "Primitive commit/path/hash and complete finite own-data schemas at readAuthorization and authority/load boundaries; malformed/accessor/inherited/missing/extra/array and coercion countercontrols reject before reads or observers.",
+    "Typed exit/close dispositions and child-ledger/operation reconciliation, with explicit intentional C09-status and C09-deadline roles.",
+    "BOUNDED_TERMINAL_V3 reconciles all seven final report fields, child counts/reaping, and two ordered observed metadata references/receipts with the final artifact.",
+    "One shared config ceiling of 2097151 bytes including LF; actual writer/readers and two stub processes accept minus-one/exact, plus-one refuses. Separate STAGED ceiling remains 2097152."
+  ],
+  "unqualified": {
+    "realGitAuthority": 0, "realEngineImports": 0, "realPackageStaging": 0, "C11": 0, "admission": 0, "semanticCohort": 0, "native": 0,
+    "full248Plus8MiBBoundaries": "STATIC_ONLY",
+    "productionAuthorityAdapter": "Source-bound; actual Git authority/production worker not dynamically executed. Actual metadata stub processes exercise the same reference helper and composed observer/assessor.",
+    "deadlineDataPositive": "C09-deadline model only; C06 independently executes actual status7.",
+    "resourceQualifications": "256MiB old-space is not RSS; checked elapsed limits are not hard preemption; finite config tests do not qualify whole evidence quotas.",
+    "inheritedClosure": "Seven historical materialized paths are not reproducible from checkout alone; two external tools remain bound. Historical publisher-to-unbound-records edge outside active admission closure is not silently repaired."
+  },
+  "preserved": [
+    "Independent r1 composed30/30 plus1 supplemental; DATA7/8 A02 failure; fresh independent dynamicB16; F08 SIGKILL EPERM observed with later SIGTERM closure, host cause not established.",
+    "Original author31/33 and focused r1 2/2 plus12 negatives remain separate, never rescored.",
+    "V6 consumed grant and UNSAFE_STOP3/14; 359581 observed stdout bytes,65536 retained,294045 irrecoverable; oversized original artifacts unchanged.",
+    "V4 consumed1/14 and V5F1 histories; report-v1 original19/20 and corrected18qualified/2defects unchanged.",
+    "W07 comparator nonexecution UNQUALIFIED/UNCREDITED; historical13/54 versus47/54 unchanged;99semantic cohort held."
+  ],
+  "next": "Archimedes focused review of this complete successor, then a fresh explicit root grant. No old grant/token reuse, getter ordering/revocation change, permission/native-capability widening, admission release or full-gate claim."
+}

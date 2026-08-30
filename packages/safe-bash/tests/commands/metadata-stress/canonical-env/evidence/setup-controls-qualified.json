@@ -1,0 +1,391 @@
+{
+  "capturedAt": "2026-08-27T06:37:03.229Z",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--test",
+    "tests/commands/metadata-stress/canonical-env/setup.test.mjs"
+  ],
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "sourceSha256": "59b17e363a2368796c16d9ee759220ca98cb5c4d2bfeb589b2f4e523a942555f",
+  "result": {
+    "status": 0,
+    "signal": null,
+    "stdout": "TAP version 13\n# Subtest: existing pinned GNU9.7 Darwin setup verifies every source, archive and executable\nok 1 - existing pinned GNU9.7 Darwin setup verifies every source, archive and executable\n  ---\n  duration_ms: 42.122458\n  type: 'test'\n  ...\n# Subtest: missing primary cache is unavailable, never native/product pass or skip\nok 2 - missing primary cache is unavailable, never native/product pass or skip\n  ---\n  duration_ms: 0.541458\n  type: 'test'\n  ...\n# Subtest: wrong host profile refuses execution despite intact bytes\nok 3 - wrong host profile refuses execution despite intact bytes\n  ---\n  duration_ms: 4.083375\n  type: 'test'\n  ...\n# Subtest: Apple system stat is not a replacement for the second pinned GNU build\nok 4 - Apple system stat is not a replacement for the second pinned GNU build\n  ---\n  duration_ms: 4.218709\n  type: 'test'\n  ...\n# Subtest: native qualification does not inherit hostile locale or timezone variables\nok 5 - native qualification does not inherit hostile locale or timezone variables\n  ---\n  duration_ms: 39.315833\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 127.831458\n",
+    "stderr": ""
+  },
+  "missing": {
+    "profile": "GNU-coreutils-9.7-Darwin-arm64-pinned-local-builds",
+    "platform": "darwin",
+    "arch": "arm64",
+    "kernel": "25.4.0",
+    "node": "v22.22.2",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "assets": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils.tar.xz",
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/chmod.c",
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/stat.c",
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/mktemp.c",
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/lib/modechange.c",
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/comm.c",
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/doc/coreutils.texi",
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/chmod",
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "version": "chmod (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/stat",
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "version": "stat (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/mktemp",
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "version": "mktemp (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/paste",
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "version": "paste (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/comm",
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "version": "comm (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/join",
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "version": "join (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/touch",
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "version": "touch (GNU coreutils) 9.7"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "version": "stat (GNU coreutils) 9.7",
+        "actualSha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+      }
+    ],
+    "issues": [
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils.tar.xz",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/chmod.c",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/stat.c",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/mktemp.c",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/lib/modechange.c",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/comm.c",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/doc/coreutils.texi",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/chmod",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/stat",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/mktemp",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/paste",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/comm",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/join",
+        "code": "ENOENT"
+      },
+      {
+        "kind": "unavailable",
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/canonical-env/intentionally-absent-coreutils/src/touch",
+        "code": "ENOENT"
+      }
+    ],
+    "status": "setup-unavailable"
+  },
+  "wrongHost": {
+    "profile": "GNU-coreutils-9.7-Darwin-arm64-pinned-local-builds",
+    "platform": "linux",
+    "arch": "arm64",
+    "kernel": "25.4.0",
+    "node": "v22.22.2",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "assets": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "actualSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "actualSha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "actualSha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "actualSha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "actualSha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "actualSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "actualSha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "version": "chmod (GNU coreutils) 9.7",
+        "actualSha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "version": "stat (GNU coreutils) 9.7",
+        "actualSha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "version": "mktemp (GNU coreutils) 9.7",
+        "actualSha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "version": "paste (GNU coreutils) 9.7",
+        "actualSha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "version": "comm (GNU coreutils) 9.7",
+        "actualSha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "version": "join (GNU coreutils) 9.7",
+        "actualSha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "version": "touch (GNU coreutils) 9.7",
+        "actualSha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/stat",
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "version": "stat (GNU coreutils) 9.7",
+        "actualSha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860"
+      }
+    ],
+    "issues": [
+      {
+        "kind": "wrong-profile",
+        "expected": "darwin arm64",
+        "actual": "linux arm64"
+      }
+    ],
+    "status": "setup-unavailable"
+  },
+  "wrongBinary": {
+    "profile": "GNU-coreutils-9.7-Darwin-arm64-pinned-local-builds",
+    "platform": "darwin",
+    "arch": "arm64",
+    "kernel": "25.4.0",
+    "node": "v22.22.2",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "assets": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7.tar.xz",
+        "sha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf",
+        "actualSha256": "e8bb26ad0293f9b5a1fc43fb42ba970e312c66ce92c1b0b16713d7500db251bf"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod.c",
+        "sha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393",
+        "actualSha256": "9344f0799f8c50a10984d5cd708a6be41169b77bfd703f2640238618ccc51393"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat.c",
+        "sha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad",
+        "actualSha256": "32c77c3620837a73dc0ed72dc7ee874f8e52946c8c8c2c4b2255e4f41bea6bad"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp.c",
+        "sha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113",
+        "actualSha256": "176f2db23caa6cde6086d669d905d2c6ab0ba229e88f73aa853db76f2fa14113"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/lib/modechange.c",
+        "sha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db",
+        "actualSha256": "13bfe2cf140bc85b2630c3a2a6d1a9f6ae3e53f58c82e6976abd9a51aac723db"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm.c",
+        "sha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336",
+        "actualSha256": "3517b5f9e88bbb67ce93e3075811d0856647104ca83c40001f7fa2dcf07c7336"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+        "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+        "actualSha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+        "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+        "version": "chmod (GNU coreutils) 9.7",
+        "actualSha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/stat",
+        "sha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea",
+        "version": "stat (GNU coreutils) 9.7",
+        "actualSha256": "9bfc67687cc527eb69aa7a877c1551c22db6ea46ff910ad055015958924e1fea"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/mktemp",
+        "sha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d",
+        "version": "mktemp (GNU coreutils) 9.7",
+        "actualSha256": "47c9a287d363308748124c29dfd2e8f84e821a25d8279c042a54d8a4f0806d1d"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+        "sha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c",
+        "version": "paste (GNU coreutils) 9.7",
+        "actualSha256": "2386f4764d553fcd831e5bbe7a3a6b43110dd2d2cabd610115a3cc427acf323c"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+        "sha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3",
+        "version": "comm (GNU coreutils) 9.7",
+        "actualSha256": "86a541de8aa5d90c3404d5b88bc3646be9b2481736be5bafe5ee234522416fd3"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+        "sha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123",
+        "version": "join (GNU coreutils) 9.7",
+        "actualSha256": "70364217db6a709fb414718e3941f4dd40b4810f51f5b58047e58e1cb4f6e123"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/touch",
+        "sha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68",
+        "version": "touch (GNU coreutils) 9.7",
+        "actualSha256": "47fc9af399d94e27bc94c19eba754502b38dfb80fbad3d09c5f6b237698dbf68"
+      },
+      {
+        "path": "/usr/bin/stat",
+        "sha256": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "version": "stat (GNU coreutils) 9.7",
+        "actualSha256": "a1de52ec9a6c81a62e4a320d90d694e65a32976f51154e998199de7030afc263"
+      }
+    ],
+    "issues": [
+      {
+        "kind": "identity-mismatch",
+        "path": "/usr/bin/stat",
+        "expected": "bf6f8514f2a220a3c3743154e0530baeec864b9d1f20315cd9cb5832d28c9860",
+        "actual": "a1de52ec9a6c81a62e4a320d90d694e65a32976f51154e998199de7030afc263"
+      }
+    ],
+    "status": "setup-unavailable"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "sequence": 6,
+  "id": "P01",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--no-warnings",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs",
+    "nested",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01/MAIN-PRESEAL.json"
+  ],
+  "env": {
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/attempt-01",
+  "registeredAtMs": 568.8883340000001,
+  "pid": 58415,
+  "closeObserved": true,
+  "absent": true,
+  "code": 0,
+  "signal": null,
+  "fault": null,
+  "stdout": {
+    "file": "06-P01.stdout.raw",
+    "bytes": 266,
+    "sha256": "49a4ec9ddcd860dfa282f4c6bf66968209a543513f26d4631b19fd85ccf55a4e"
+  },
+  "stderr": {
+    "file": "06-P01.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "occupiedLeaseRefused": true,
+  "nestedDenial": {
+    "kind": "nested-refused",
+    "pid": 58415,
+    "ppid": 58392,
+    "code": "ERR_ACCESS_DENIED",
+    "permission": "ChildProcess"
+  },
+  "closedAtMs": 622.975625
+}

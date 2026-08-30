@@ -1,0 +1,95 @@
+{
+  "scope": "Offline verifier scripts only; no product/dependency imports, native oracles, 224/control/performance reruns",
+  "commands": [
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "benchmarks/reports/comparison-fairness-20260827/verification/audit-managed.mjs"
+      ],
+      "startedAt": "2026-08-27T05:26:36.192Z",
+      "finishedAt": "2026-08-27T05:26:36.217Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs"
+      ],
+      "startedAt": "2026-08-27T05:26:36.217Z",
+      "finishedAt": "2026-08-27T05:26:36.244Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "benchmarks/reports/comparison-fairness-20260827/verification/verify-complement.mjs"
+      ],
+      "startedAt": "2026-08-27T05:26:36.244Z",
+      "finishedAt": "2026-08-27T05:26:36.266Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "benchmarks/reports/comparison-fairness-20260827/verification/audit-profiles.mjs",
+        "--out",
+        "benchmarks/reports/comparison-fairness-20260827/verification/profile-delta-accepted.json"
+      ],
+      "startedAt": "2026-08-27T05:26:36.266Z",
+      "finishedAt": "2026-08-27T05:26:37.740Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "benchmarks/reports/comparison-fairness-20260827/verification/verify-replay.mjs",
+        "--ready",
+        "benchmarks/reports/comparison-fairness-20260827/verification/READY.json",
+        "--out",
+        "benchmarks/reports/comparison-fairness-20260827/verification/replay-review-final.json"
+      ],
+      "startedAt": "2026-08-27T05:26:37.740Z",
+      "finishedAt": "2026-08-27T05:26:39.402Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "benchmarks/reports/comparison-fairness-20260827/verification/verify-complement.mjs",
+        "--out",
+        "benchmarks/reports/comparison-fairness-20260827/verification/complement-final.json"
+      ],
+      "startedAt": "2026-08-27T05:26:39.402Z",
+      "finishedAt": "2026-08-27T05:26:39.924Z",
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scriptHashes": {
+    "offline.mjs": "d2f168943bc95cfdec3b7afc5665fbcfcea5933ed5135a44ccaf865c0cfebee0",
+    "audit-profiles.mjs": "f2f0eb693eca4f7ab06483ba897b6dc64360ca3d8998501ab814bfd0e8c533aa",
+    "verify-replay.mjs": "4ab8c6386e9bc07c0d70e0f804021d64655fa0c8a053356882c3b2e9cae00ad5",
+    "audit-managed.mjs": "f953230ac6b0537663969f319553d24422305dd0019777f02c2dcaaaeb31d4b4",
+    "verify-complement.mjs": "8ffad8ae7687af4c3e0239c985fdc4480978c64f929d544c848abed3db9935ea"
+  }
+}

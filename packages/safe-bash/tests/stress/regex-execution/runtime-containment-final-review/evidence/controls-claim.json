@@ -1,0 +1,8 @@
+{
+  "job": "controls",
+  "time": "2026-08-27T09:14:03.606Z",
+  "preparedSha256": "276b972c3334f0452d26e20fcd0256445f3cbc2dcd43d5b815cbd6d607b1b3b3",
+  "targetSlotsReserved": 0,
+  "pathologicalRequestsReserved": 0,
+  "noRetry": true
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "v8-fixture-only-source-seal",
+  "createdAt": "2026-08-28T21:50:10.956Z",
+  "discoveryPresealSha256": "89dda7ee6a84e37953c5736db6dedfce55df9f423db672c456743d4327c665ad",
+  "files": {
+    "PLAN.md": {
+      "bytes": 3102,
+      "mode": 420,
+      "sha256": "45467b8f24673b4219ad1716e1f35c5c0879d07aa23bdfcfd66b21722b6fda0e"
+    },
+    "PREPARATION-AUDIT.json": {
+      "bytes": 3049,
+      "mode": 420,
+      "sha256": "abf7ee2778f512cb29021e6f1cebd4ca60164edcb7b124a7ba017c1142c78be9"
+    },
+    "prepare.mjs": {
+      "bytes": 9875,
+      "mode": 420,
+      "sha256": "df94eb7613a67784da1c6f4e62235f454911292b951b6db8c56e9e74d42f8ab9"
+    },
+    "recipe/DISCOVERY-PRESEAL.json": {
+      "bytes": 26815,
+      "mode": 420,
+      "sha256": "89dda7ee6a84e37953c5736db6dedfce55df9f423db672c456743d4327c665ad"
+    },
+    "recipe/FIXTURES-v6.json": {
+      "bytes": 30950,
+      "mode": 420,
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837"
+    },
+    "recipe/INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "recipe/child.mjs": {
+      "bytes": 2269,
+      "mode": 420,
+      "sha256": "2d433819913e3d9559b03da65480a89c498b9203b885469ed4d0433d42a14f25"
+    },
+    "recipe/data-controls.mjs": {
+      "bytes": 9376,
+      "mode": 420,
+      "sha256": "15e4117972a0d9b4e7de79b77994ebd284d26755bd6102ca6fa5bbe2e46972b5"
+    },
+    "recipe/fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "recipe/owner.mjs": {
+      "bytes": 23853,
+      "mode": 420,
+      "sha256": "2286e394f873e96518199c1a3f4b5309856aa63dd4f4bf667eb16ce6ed47e9f9"
+    },
+    "recipe/primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    }
+  },
+  "unchangedFiles": 5,
+  "unchangedControls": 6,
+  "unchangedData": 4,
+  "unchangedStartupRefusals": true,
+  "permissionChange": "exact versioned paths only",
+  "sourceBindings": 56,
+  "syntaxChecks": 2,
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "binding": {
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      }
+    },
+    "git": {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "binding": {
+        "bytes": 7604272,
+        "mode": 493,
+        "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+      }
+    }
+  },
+  "qualificationRuns": 0
+}

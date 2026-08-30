@@ -1,0 +1,18 @@
+{
+  "returned": [
+    {
+      "name": "AssertionError",
+      "message": "Missing adapter binding, not a skipped PASS: WRK-26",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: Missing adapter binding, not a skipped PASS: WRK-26\n    at Module.materializeJobs (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/fixtures.mjs:85:5)\n    at fixtures.materializeDataRecipe.kind (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:185:45)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:185:171\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:183:9"
+    },
+    {
+      "name": "Error",
+      "message": "Unbound data recipe",
+      "code": null,
+      "stack": "Error: Unbound data recipe\n    at Module.materializeDataRecipe (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/fixtures.mjs:39:20)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:185:95\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:185:171\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:183:9"
+    }
+  ],
+  "rejected": null,
+  "activeChildren": []
+}

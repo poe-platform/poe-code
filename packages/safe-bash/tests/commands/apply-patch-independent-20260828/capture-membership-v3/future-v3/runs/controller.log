@@ -1,0 +1,30 @@
+{"id":"git-base-tree","role":"git","code":0,"bytes":5554546,"pid":69244,"closed":true,"groupAbsent":true,"elapsedMs":1958.27675}
+{"id":"git-authenticated-inputs","role":"git","code":0,"bytes":2475165,"pid":69251,"closed":true,"groupAbsent":true,"elapsedMs":3256.538417}
+{"id":"guard-hash","role":"guard","code":0,"bytes":387,"pid":69261,"closed":true,"groupAbsent":true,"elapsedMs":4608.735167}
+{"id":"guard-missing","role":"guard","code":0,"bytes":239,"pid":69262,"closed":true,"groupAbsent":true,"elapsedMs":5135.047125}
+{"id":"guard-mode","role":"guard","code":0,"bytes":239,"pid":69263,"closed":true,"groupAbsent":true,"elapsedMs":5625.875625}
+{"id":"supervisor-binary","role":"guard","code":0,"bytes":4,"pid":69265,"closed":true,"groupAbsent":true,"elapsedMs":6090.690834}
+{"id":"build-source","role":"build","code":0,"bytes":0,"pid":69267,"closed":true,"groupAbsent":true,"elapsedMs":10858.860792}
+BUILD_READY_COMMIT_RUNTIME_SEAL
+{"id":"git-runtime-seal","role":"git","code":0,"bytes":419736,"pid":71102,"closed":true,"groupAbsent":true,"elapsedMs":141246.089}
+{"id":"source-originals","role":"product","code":0,"bytes":141668,"pid":71111,"closed":true,"groupAbsent":true,"elapsedMs":142420.649959}
+{"id":"source-supplement-a","role":"product","code":0,"bytes":146956,"pid":71118,"closed":true,"groupAbsent":true,"elapsedMs":143676.004917}
+{"id":"source-supplement-b","role":"product","code":1,"bytes":166754,"pid":71120,"closed":true,"groupAbsent":true,"elapsedMs":144897.759}
+{"id":"types-source-positive","role":"type","code":0,"bytes":15323,"pid":71129,"closed":true,"groupAbsent":true,"elapsedMs":146849.204084}
+{"id":"types-source-bad-value","role":"type","code":2,"bytes":15418,"pid":71137,"closed":true,"groupAbsent":true,"elapsedMs":148901.430792}
+{"id":"types-source-bad-value-repair","role":"type","code":0,"bytes":15331,"pid":71149,"closed":true,"groupAbsent":true,"elapsedMs":150938.375167}
+{"id":"types-source-root-negative","role":"type","code":2,"bytes":27766,"pid":71174,"closed":true,"groupAbsent":true,"elapsedMs":152984.129667}
+{"id":"types-source-root-repair","role":"type","code":0,"bytes":15326,"pid":71179,"closed":true,"groupAbsent":true,"elapsedMs":154963.997584}
+{"id":"installed-originals","role":"product","code":0,"bytes":147932,"pid":71204,"closed":true,"groupAbsent":true,"elapsedMs":156468.611042}
+{"id":"installed-supplement-a","role":"product","code":0,"bytes":153220,"pid":71215,"closed":true,"groupAbsent":true,"elapsedMs":158171.990542}
+{"id":"installed-supplement-b","role":"product","code":1,"bytes":173018,"pid":71220,"closed":true,"groupAbsent":true,"elapsedMs":159988.5365}
+{"id":"types-installed-positive","role":"type","code":0,"bytes":15607,"pid":71228,"closed":true,"groupAbsent":true,"elapsedMs":162105.492084}
+{"id":"types-installed-bad-value","role":"type","code":2,"bytes":15702,"pid":71235,"closed":true,"groupAbsent":true,"elapsedMs":163972.31925}
+{"id":"types-installed-bad-value-repair","role":"type","code":0,"bytes":15615,"pid":71244,"closed":true,"groupAbsent":true,"elapsedMs":165838.550917}
+{"id":"types-installed-root-negative","role":"type","code":2,"bytes":30270,"pid":71254,"closed":true,"groupAbsent":true,"elapsedMs":167760.017292}
+{"id":"types-installed-root-repair","role":"type","code":0,"bytes":15610,"pid":71259,"closed":true,"groupAbsent":true,"elapsedMs":169771.779667}
+{"id":"moved-originals","role":"product","code":0,"bytes":149443,"pid":71332,"closed":true,"groupAbsent":true,"elapsedMs":171720.295209}
+{"id":"moved-supplement-a","role":"product","code":0,"bytes":154731,"pid":71910,"closed":true,"groupAbsent":true,"elapsedMs":173876.611917}
+{"id":"moved-supplement-b","role":"product","code":1,"bytes":174236,"pid":71942,"closed":true,"groupAbsent":true,"elapsedMs":176139.436209}
+{"UNSAFE_OR_ADMISSION_STOP":"EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/consumer-positive.mts'"}
+{"final":"/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/FINAL.json","stopped":{"name":"Error","message":"EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/consumer-positive.mts'","stack":"Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/.work-v2/physically-moved/consumer-positive.mts'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at put (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs:67:6)\n    at types (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs:213:68)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs:334:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"},"cleanup":{"ownedRootRemoved":true,"knownChildrenRetired":true}}

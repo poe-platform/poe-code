@@ -1,0 +1,45 @@
+{
+  "sequence": 2,
+  "id": "START-POSITIVE",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--no-warnings",
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+    "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/data-controls.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/primitives.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/fixture-data.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/INPUTS-v6.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/FIXTURES-v6.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01/MAIN-PRESEAL.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/child.mjs",
+    "positive",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01/MAIN-PRESEAL.json"
+  ],
+  "env": {
+    "__CF_USER_TEXT_ENCODING": "0x1F5:0x0:0x0"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+  "registeredAtMs": 265.850834,
+  "pid": 46985,
+  "closeObserved": true,
+  "absent": true,
+  "code": 1,
+  "signal": null,
+  "fault": null,
+  "stdout": {
+    "file": "02-START-POSITIVE.stdout.raw",
+    "bytes": 405,
+    "sha256": "ce1fb89fd3fab96cbc991e65665fffd46a7cc0547afab8fb99bcdd13bdcc0bfb"
+  },
+  "stderr": {
+    "file": "02-START-POSITIVE.stderr.raw",
+    "bytes": 648,
+    "sha256": "561a32ea914a67f7ab4d4429d3c30ef8b9f9ae7991d4986b6f209c1c00bdaf10"
+  },
+  "closedAtMs": 351.187
+}

@@ -1,0 +1,1578 @@
+337a5e4f9ab62c760aaea715fd026690d88bbf95 blob 2621
+{
+  "schema": "ere-capture-tool-approval-proposal-v1",
+  "status": "SOURCE_ONLY_NO_REQUEST_NO_ACTUAL_ENTRY_NO_GO",
+  "parameters": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/GO.json --grant-sha256 ROOT_APPROVED_GRANT_SHA256 >/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-ere-native-observations-20260829-v1/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only this fresh, independently reviewed 12-program Bash3.2.57 capture-observation cohort, with initial tool-shell startup trusted host outside child clean-env/raw capture; no containment, GNU5.3, native parity or product fallback claim?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  },
+  "prefixRule": "NONE",
+  "soleLaterMutableSlot": "ROOT_APPROVED_GRANT_SHA256",
+  "requiredBeforeResolution": [
+    "materialize and authenticate exact reviewed draft bodies and assets; create fresh runtime PRESEAL without GO/receipt/template cycles",
+    "independent accepted runtime receipt pinned to new PRESEAL/REQUESTS",
+    "ROOT fresh GO pins receipt/new PRESEAL/profile/limits/exact namespace/future absolute expiry",
+    "resolve sole SHA slot; separate DATA review of exact command then require_escalated tool approval"
+  ],
+  "initialToolShellStartup": {
+    "scope": "INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE",
+    "initialToolShell": "TRUSTED HOST/tool behavior before authenticated owned entry; outside child fresh-environment and owned raw-capture qualification. login:false does not suppress all startup. No user startup inspection or modification.",
+    "bashChildren": "Fresh exact six-key environment, owned HOME/TMPDIR and empty PATH, absent BASH_ENV/ENV/functions; --noprofile --norc. No expanded permission.",
+    "wrapperEvidence": "v2 independently qualified FD derivative does not qualify initial tool-shell startup."
+  },
+  "oldGrantReused": false
+}
+
+d29289ac5c4c3539b6fe8314c63aee515dd85015 blob 8501
+{
+  "schema": "ere-preexec-control-preseal-v2",
+  "role": "DATA_ONLY_NO_NATIVE_AUTHORITY",
+  "createdAt": "2026-08-29T09:33:52.229Z",
+  "grantStart": 1787995912053.47,
+  "deadline": 1787996632053.47,
+  "started": 1787996032129,
+  "files": [
+    {
+      "path": "preflight-v2/materialized/PRESEAL.json",
+      "bytes": 4527,
+      "mode": 384,
+      "sha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457"
+    },
+    {
+      "path": "preflight-v2/materialized/COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e"
+    },
+    {
+      "path": "preflight-v2/materialized/PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828"
+    },
+    {
+      "path": "preflight-v2/materialized/REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8"
+    },
+    {
+      "path": "preflight-v2/materialized/TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+    },
+    {
+      "path": "preflight-v2/materialized/admission.mjs",
+      "bytes": 9447,
+      "mode": 384,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    },
+    {
+      "path": "preflight-v2/materialized/capture.mjs",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "preflight-v2/materialized/entry.mjs",
+      "bytes": 6928,
+      "mode": 384,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e"
+    },
+    {
+      "path": "preflight-v2/materialized/group-observer.mjs",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "preflight-v2/materialized/lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "preflight-v2/materialized/observation.mjs",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13"
+    },
+    {
+      "path": "preflight-v2/materialized/observer-state.mjs",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8"
+    },
+    {
+      "path": "preflight-v2/materialized/state.mjs",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "preflight-v2/materialized/storage.mjs",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    },
+    {
+      "path": "preflight-v2/prepare.mjs",
+      "bytes": 8876,
+      "mode": 420,
+      "sha256": "e3344bc3b7fe684a1d867fd86cc10cd98f178fc0760c97d16263775515029343"
+    },
+    {
+      "path": "preflight-v2/controls.mjs",
+      "bytes": 19603,
+      "mode": 384,
+      "sha256": "df72c15c637b005a144460118069d2a4a40f060c5538478b940b544be3954f3b"
+    },
+    {
+      "path": "preflight-v2/C07.mjs.fragment.data",
+      "bytes": 3384,
+      "mode": 420,
+      "sha256": "b4bd4833880947cd54990a7e6d07c8ae37fb01549b4ee3ec393499ed9d3e7997"
+    },
+    {
+      "path": "preflight-v2/APPROVAL-PROPOSAL.template.json",
+      "bytes": 2621,
+      "mode": 384,
+      "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881"
+    },
+    {
+      "path": "preflight-v2/SOURCE-DELTA.json",
+      "bytes": 2020,
+      "mode": 384,
+      "sha256": "6b43cf7cab16a503cfa76c1ed10d1f2c15479c35bef2ec1cf905a6e5b77cdf30"
+    },
+    {
+      "path": "preflight-v2/node-fs-readSync-source.txt.data",
+      "bytes": 1026,
+      "mode": 384,
+      "sha256": "6f45e484cb5d59f604bb512278c0a7a4ede791a0ac251cab5e3389f7780fe675"
+    }
+  ],
+  "cases": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12"
+  ],
+  "fixtureChildren": 0,
+  "targetChildren": 0,
+  "controlProcessMs": 120000,
+  "rootPreparationCaps": {
+    "totalMs": 720000,
+    "knownStarts": 32,
+    "peak": 2,
+    "capture": 33554432,
+    "work": 134217728
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "observedAt": "2026-08-29T09:33:52.205Z"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "observedAt": "2026-08-29T09:33:52.208Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "observedAt": "2026-08-29T09:33:52.208Z"
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "observedAt": "2026-08-29T09:33:52.209Z"
+    }
+  ],
+  "readSourceRole": "actual pinned Node public fs.readSync implementation; not decoded executable bytes; native binding internals not inspected",
+  "C07": {
+    "fileContents": [
+      "",
+      "ABCDE"
+    ],
+    "openRoles": [
+      "readwrite",
+      "readonly",
+      "writeonly"
+    ],
+    "position": 0,
+    "length": 1,
+    "cursorCheck": "initial sequential A, admission positional read, next sequential B",
+    "preAdmissionNegatives": [
+      "wrong inode",
+      "wrong mode",
+      "nonregular",
+      "wrong path",
+      "refused descriptor"
+    ],
+    "oldUnrun": [
+      "unchanged file bytes",
+      "valid provision",
+      "missing provision parent"
+    ],
+    "newTopLevelCases": 0
+  },
+  "nativeStatus": "12_UNRUN"
+}
+
+a84f876fb79883381ba61acd9dc9c3c23549b09c blob 6993
+# ERE native-reference preflight v2 — author controls PASS
+
+Date: 2026-08-29. Ready for a DIFFERENT preexecution reviewer, **not native GO**.
+This is the narrow correction authorized after `0463adbc`; no product, native
+entry, fixture child, Worker, engine, version probe, or approval request ran.
+
+## Exact bindings
+
+| Artifact | SHA256 |
+|---|---|
+| Executable `materialized/PRESEAL.json` | `211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457` |
+| `CONTROL-PRESEAL.json` | `b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03` |
+| Corrected `materialized/admission.mjs` | `5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa` |
+| Parent executable preseal | `d002ec622f7668b0766216acd60d19330723d4552205f3049202898eccdbca2f` |
+| Parent publication | `4c176106d6730c33c087c2fcf31b375edf206c61dc073ffed638993778dd7c00` |
+
+Parent commit is `0463adbcee3601b2cdf43f44bf428eddc0cab2f1`. Every selected parent
+member was hash/mode/size authenticated before decode, with the parent's entire
+publication and control closures checked. All four tool identities were freshly
+stream-hashed before controls; no executable bytes were decoded. The final
+publication rechecks both new and historical selected inputs.
+
+## Single runtime-source correction
+
+Only `admission.mjs` differs among the nine runtime modules:
+
+```js
+operations.readSync(fd,Buffer.alloc(1),0,1,0);
+```
+
+It replaces the zero-length read at exactly one site. The existing regular-file,
+type, named-path/device/inode, single-link, 0600-mode and canonical-path checks run
+first. The file remains the owned capture bound to the expected descriptor; this
+does not introduce a new file/descriptor capability. The check does not infer
+read access from file permission bits. The positional read cannot advance the
+file-description cursor; bytes read are discarded and no payload is written.
+All eight other runtime modules and twelve Bash program files are byte-identical.
+The four runtime JSON inputs are unchanged, including zero fixtures/empty stdin.
+
+`SOURCE-DELTA.json` records exact transformations. The approval proposal changes
+only the two owned module-prefix paths in its command (entry and future GO) to
+this v2 materialization. It retains the sole unresolved grant-SHA slot, exact
+`require_escalated`, `login:false`, no prefix rule and trusted-host startup scope.
+No runtime GO or acceptance receipt is created. A new independent receipt and
+fresh root grant must bind this preseal, not the old one.
+
+## Exactly twelve controls, once
+
+**12 PASS / 0 FAIL; 196 successful assertions.** The runtime result schema retains
+its original `ere-preflight-controls-v1` format; the explicit control-seal SHA and
+versioned directory distinguish this execution. No original result is rescored.
+
+| ID | Result | Assertions | Scope |
+|---|---|---:|---|
+| C01 | PASS | 16 | Twelve identities/order/fixtures/program byte bindings |
+| C02 | PASS | 5 | Hash, argv, executable and stdin refusal |
+| C03 | PASS | 36 | Metadata/hash-before-decode, module imports and tool denial |
+| C04 | PASS | 7 | Exact receipt data, missing/wrong authority, cross-realm values |
+| C05 | PASS | 16 | Expiry/final deadline/late credit/false primary preservation |
+| C06 | PASS | 8 | Sole slot and command-field/prefix/permission refusal |
+| C07 | PASS | 48 | Real owned empty/nonempty descriptor matrix and old missing checks |
+| C08 | PASS | 19 | Flush/size/hash-read/close failures and independent cleanup |
+| C09 | PASS | 11 | Synthetic TERM/KILL timing, source linkage, exit/close/group gates |
+| C10 | PASS | 9 | Exact child environment and trusted-host startup scope |
+| C11 | PASS | 13 | Synthetic byte-exact NUL observation framing and refusal |
+| C12 | PASS | 8 | Namespace, ledger, storage and unknown-retirement refusal |
+
+C07's extensions were declared in `C07.mjs.fragment.data` and the control preseal
+before execution; no new top-level case was added. Six real owned file-descriptor
+combinations ran in the same DATA helper, not six child processes:
+
+- Empty and nonempty read-write files admit; observed reads return 0 (EOF) and 1.
+- Empty and nonempty write-only files reject with `EBADF` before the write check.
+- Empty and nonempty read-only files read successfully but reject the required
+  write check with `EBADF`; the capture contract still requires both capabilities.
+- Wrong inode, mode, nonregular named target, wrong canonical path and refused
+  descriptor reject before any read/write operation.
+- A sequential read consumes `A`; admission reads position 0; the next sequential
+  read is `B`. Files remain byte-identical. All descriptors close in `finally`.
+- All three previously unrun C07 checks complete: unchanged bytes, valid provision
+  and missing-parent refusal. The unchanged-bytes check now covers both files.
+
+## Source confirmation and limits
+
+`node-fs-readSync-source.txt.data` is bounded public-function source obtained from
+the freshly pinned Node executable, **not a decoded binary**. Its `length === 0`
+branch returns before `binding.read`; the nonzero call reaches that binding after
+argument validation. See `NODE-READ-SOURCE-ANALYSIS.md`. The actual descriptor
+matrix corroborates permission checking on this pinned Node/platform, without
+claiming inspection of the native C++/kernel implementation or all Node versions.
+
+The entry is syntax-parsed but never imported/executed. No child lifecycle pilot
+or wrapper execution was repeated: C09 remains DATA/source-linked, and inherited
+qualified lifecycle evidence retains its historical scope. The current helper
+does exercise real descriptor operations only inside its owned scratch directory.
+
+**N01–N12 remain 12 UNRUN.** Reference identity is historical local Bash 3.2.57,
+not GNU 5.3. R01 capture choice stays HOLD. Hidden native match spans and native
+nonparticipation cannot be inferred from identical empty strings. Initial tool-
+shell startup remains trusted host outside child fresh-env/raw-capture guarantees;
+`login:false` is not startup-file suppression. No startup files were inspected.
+
+## Next reviewer and authority boundary
+
+Review `SOURCE-DELTA.json`, both preseals, the 12-case result and raw captures,
+updated approval proposal, tool pins and actual Node source. The future setup must
+still bind fresh provisioning metadata and outer captures, then obtain a new
+independent receipt/root GO, sole-slot DATA review and explicit tool approval.
+This packet does not execute or qualify that future setup or native entry.
+
+The proposed actual 600-second / 40-known-start / 13-managed / peak-three budget
+and 32 MiB capture / 128 MiB work remain unchanged proposals, not this grant.
+No old37 grant, containment claim, native parity, GNU build/P2 or held scope resumes.
+
+Original v1 syntax refusal and 11-PASS/1-FAIL/three-unrun history remain immutable.
+Final source integrity passed; scratch is removed; all owned processes retired.
+See `PUBLICATION.json` and `PROCESS-ACCOUNTING.md` for exact captures/resources.
+
+670e002df127cf0b441b7081f8d42826cdf68368 blob 2020
+{
+  "parentCommit": "0463adbcee3601b2cdf43f44bf428eddc0cab2f1",
+  "deltas": [
+    {
+      "path": "admission.mjs",
+      "before": "operations.readSync(fd,Buffer.alloc(0),0,0,0);",
+      "after": "operations.readSync(fd,Buffer.alloc(1),0,1,0);",
+      "parentSha256": "2c0def3d37eff6eb6ce62d9724061a33f0c1a3bd7b0fad701964b0b85a331d98",
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    }
+  ],
+  "controls": {
+    "parentSha256": "8eae4be2dd0971fa1d8bba1433e9295577b7719e97397bd624486ed9cd10f69c",
+    "sha256": "df72c15c637b005a144460118069d2a4a40f060c5538478b940b544be3954f3b",
+    "changes": [
+      [
+        "own=root+'/preflight-v1',materialized=root+'/materialized'",
+        "own=root+'/preflight-v2',materialized=root+'/preflight-v2/materialized'"
+      ],
+      [
+        "item.path==='materialized/PRESEAL.json'",
+        "item.path==='preflight-v2/materialized/PRESEAL.json'"
+      ],
+      [
+        "root+'/APPROVAL-PROPOSAL.template.json'",
+        "own+'/APPROVAL-PROPOSAL.template.json'"
+      ],
+      [
+        "item.path==='APPROVAL-PROPOSAL.template.json'",
+        "item.path==='preflight-v2/APPROVAL-PROPOSAL.template.json'"
+      ]
+    ],
+    "importRewrite": {
+      "before": "../materialized/",
+      "after": "./materialized/",
+      "count": 5
+    },
+    "replacedControl": "C07",
+    "fragmentSha256": "b4bd4833880947cd54990a7e6d07c8ae37fb01549b4ee3ec393499ed9d3e7997"
+  },
+  "template": {
+    "parentSha256": "ac31d4d5e36efc135ac9f3a398c42ca6138175db8a51eb5b62bf3596a098c303",
+    "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881",
+    "onlyChange": "two owned materialized pathname prefixes in cmd",
+    "oldPrefix": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/materialized/",
+    "newPrefix": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/"
+  },
+  "programsUnchanged": 12,
+  "otherControlIDsUnchanged": 11
+}
+
+d0b09f5004ee83d9e980733ecdb27cd1d2b665a1 blob 13100
+{
+  "schema": "ere-capture-reference-v1",
+  "cases": [
+    {
+      "id": "N01",
+      "pattern": "(a(b)?)+",
+      "subject": "aba",
+      "maps": [
+        "I01-parent-optional-reset",
+        "author-E12"
+      ],
+      "purpose": "optional child omitted in final parent",
+      "program": "pattern='(a(b)?)+'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N01\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8",
+      "programBytes": 522,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N02",
+      "pattern": "((a)|(b))+",
+      "subject": "ab",
+      "maps": [
+        "I02-parent-alternative-reset"
+      ],
+      "purpose": "final alternative differs",
+      "program": "pattern='((a)|(b))+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N02\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6",
+      "programBytes": 523,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N03",
+      "pattern": "((a(b)?)c)+",
+      "subject": "abcac",
+      "maps": [
+        "I03-nested-parent-reset"
+      ],
+      "purpose": "nested grandchild omission",
+      "program": "pattern='((a(b)?)c)+'\nsubject='abcac'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N03\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb",
+      "programBytes": 527,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N04",
+      "pattern": "(ba(na)*s )*",
+      "subject": "bananas bas ",
+      "maps": [
+        "I04-manual-example"
+      ],
+      "purpose": "GNU manual reporting example",
+      "program": "pattern='(ba(na)*s )*'\nsubject='bananas bas '\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N04\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931",
+      "programBytes": 535,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N05",
+      "pattern": "(a(b)?){2}",
+      "subject": "aba",
+      "maps": [
+        "I05-finite-parent-reset"
+      ],
+      "purpose": "fixed parent repetition",
+      "program": "pattern='(a(b)?){2}'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N05\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b",
+      "programBytes": 524,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N06",
+      "pattern": "((a)?b){2}",
+      "subject": "abb",
+      "maps": [
+        "I06-parent-zero-iteration"
+      ],
+      "purpose": "optional inner zero iteration",
+      "program": "pattern='((a)?b){2}'\nsubject='abb'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N06\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce",
+      "programBytes": 524,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N07",
+      "pattern": "((a)|(b))+",
+      "subject": "ba",
+      "maps": [
+        "I23-finite-reset-property"
+      ],
+      "purpose": "one finite reverse-alternative witness, NOT all62 property inputs",
+      "program": "pattern='((a)|(b))+'\nsubject='ba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N07\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2",
+      "programBytes": 523,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N08",
+      "pattern": "(a(b)?)+",
+      "subject": "ab",
+      "maps": [],
+      "purpose": "final inner participation control",
+      "program": "pattern='(a(b)?)+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N08\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37",
+      "programBytes": 521,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N09",
+      "pattern": "(a)?b",
+      "subject": "b",
+      "maps": [],
+      "purpose": "optional omission shell-visible reporting control",
+      "program": "pattern='(a)?b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N09\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373",
+      "programBytes": 517,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N10",
+      "pattern": "(a*)b",
+      "subject": "b",
+      "maps": [],
+      "purpose": "empty captured string reporting control",
+      "program": "pattern='(a*)b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N10\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea",
+      "programBytes": 517,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N11",
+      "pattern": "(a)",
+      "subject": "b",
+      "maps": [],
+      "purpose": "nonmatch observation control",
+      "program": "pattern='(a)'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N11\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97",
+      "programBytes": 515,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    },
+    {
+      "id": "N12",
+      "pattern": "(",
+      "subject": "a",
+      "maps": [],
+      "purpose": "invalid ERE status observation control",
+      "program": "pattern='('\nsubject='a'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N12\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "programSha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8",
+      "programBytes": 513,
+      "stdinBase64": "",
+      "expectedNative": null,
+      "observation": "UNRUN",
+      "effectProfile": "no program filesystem operations",
+      "sourceInternalForkReservation": 0
+    }
+  ],
+  "fixtures": [],
+  "fixtureInventory": {
+    "count": 0,
+    "bytes": 0,
+    "paths": []
+  },
+  "nativeExecutions": 0,
+  "expectedNativeGoldens": false
+}
+
+30d563275b010281a606f421fa52ab60a002e416 blob 4527
+{
+  "schema": "ere-capture-executable-preseal-v1",
+  "role": "PREEXECUTION_V2_NOT_GO",
+  "parentCommit": "0463adbcee3601b2cdf43f44bf428eddc0cab2f1",
+  "parentPresealSha256": "d002ec622f7668b0766216acd60d19330723d4552205f3049202898eccdbca2f",
+  "files": [
+    {
+      "path": "COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 9447,
+      "mode": 384,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 6928,
+      "mode": 384,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e"
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "observation.mjs",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13"
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8"
+    },
+    {
+      "path": "programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6"
+    },
+    {
+      "path": "programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb"
+    },
+    {
+      "path": "programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931"
+    },
+    {
+      "path": "programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b"
+    },
+    {
+      "path": "programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce"
+    },
+    {
+      "path": "programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2"
+    },
+    {
+      "path": "programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37"
+    },
+    {
+      "path": "programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373"
+    },
+    {
+      "path": "programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea"
+    },
+    {
+      "path": "programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97"
+    },
+    {
+      "path": "programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8"
+    },
+    {
+      "path": "state.mjs",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "storage.mjs",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    }
+  ]
+}
+
+0338d65a14a6b254680a59d065dec8b7e1d6226a blob 1881
+{
+  "schema": "ere-capture-reference-v1",
+  "runRoot": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 13,
+    "knownPeakCeiling": 2,
+    "allKnownProcessProposalCeiling": 40,
+    "allKnownPeakProposalCeiling": 3,
+    "ownerStarts": 1,
+    "nativeStarts": 12,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 0,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "profile": "FUNCTIONAL_OBSERVATION_ONLY_NOT_CONTAINMENT",
+  "nativeGo": false,
+  "initialToolShellStartup": "TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_RAW_CAPTURE",
+  "bashChildren": "exact six-key env, fresh empty HOME/TMPDIR/PATH, --noprofile --norc, empty closed stdin; no BASH_ENV/ENV/SHELLOPTS/BASHOPTS/functions",
+  "output": {
+    "format": "EREOBS1 NUL id NUL regexStatus NUL cardinality NUL then four [index NUL shellSlotPresent NUL rawValue NUL] records",
+    "status": "process exit equals recorded regex status; nonzero is an observation, not automatic test failure",
+    "hiddenRegexecSpans": "UNOBSERVABLE",
+    "emptyVsNativeNonparticipation": "NOT inferred from identical empty strings; shell-slot presence is not C regmatch_t participation"
+  },
+  "publication": "inclusive final deadline before/after writes, terminal/flush/credit; cleanup attempted independently; late cleanup cannot qualify",
+  "authorization": "independent review plus fresh runtime receipt/GO and resolved-slot DATA review plus exact require_escalated tool approval; no old authority reuse"
+}
+
+3367a66cfbe13e3686e2af767e52a7eff4cf2422 blob 14844
+[
+  {
+    "id": "N01",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a(b)?)+'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N01\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N02",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a)|(b))+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N02\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N03",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a(b)?)c)+'\nsubject='abcac'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N03\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N04",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(ba(na)*s )*'\nsubject='bananas bas '\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N04\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N05",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a(b)?){2}'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N05\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N06",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a)?b){2}'\nsubject='abb'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N06\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N07",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a)|(b))+'\nsubject='ba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N07\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N08",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a(b)?)+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N08\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N09",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a)?b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N09\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N10",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a*)b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N10\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N11",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a)'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N11\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N12",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='('\nsubject='a'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N12\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  }
+]
+
+1e337cadb46f9454f0407cd3d98257908ac54df0 blob 3067
+{
+  "schema": "ere-reference-tools-v1",
+  "toolPins": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "environmentLauncher": {
+    "path": "/usr/bin/env",
+    "bytes": 102368,
+    "mode": 493,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+    "phase": "metadata-read-only-not-executed"
+  },
+  "wrapperTool": {
+    "schema": "functional-wrapper-tool-metadata-v2",
+    "path": "/bin/zsh",
+    "bytes": 1361216,
+    "mode": 493,
+    "regular": true,
+    "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+    "version": "NOT_PROBED",
+    "execution": "NONE_THIS_PHASE",
+    "scope": "platform tool wrapper only; not Bash reference",
+    "preexecutionRequired": true
+  },
+  "freshPins": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "observedAt": "2026-08-29T09:07:47.839Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "observedAt": "2026-08-29T09:07:47.845Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed",
+      "observedAt": "2026-08-29T09:07:47.846Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true,
+      "observedAt": "2026-08-29T09:07:47.850Z",
+      "operation": "metadata/stream-hash only"
+    }
+  ],
+  "bashLoadCommands": [
+    {
+      "path": "/bin/bash",
+      "architecture": "unspecified",
+      "rpaths": [],
+      "libraries": [
+        {
+          "name": "/usr/lib/libncurses.5.4.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        },
+        {
+          "name": "/usr/lib/libSystem.B.dylib",
+          "kind": "LC_LOAD_DYLIB"
+        }
+      ],
+      "dylinker": [
+        "/usr/lib/dyld"
+      ]
+    }
+  ],
+  "qualifiedRuntimeLoaderGraph": false,
+  "currentDyldCacheRehash": false,
+  "source": "frozen functional-v3 metadata; fresh executable stream hashes; no version execution"
+}
+
+9df90e0e0c95a649d79d9d074e3be5079239f9b9 blob 9447
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+export const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const requireValue=(value,message)=>{if(!value)throw Error(message);};
+const hex=value=>typeof value==='string'&&/^[0-9a-f]{64}$/.test(value);
+export const startupScope='INITIAL_TOOL_SHELL_TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_OWNED_RAW_CAPTURE';
+export function validateStartupScope(value){requireValue(value===startupScope,'STARTUP_SCOPE');return true;}
+export function exactKeys(value,keys){
+ requireValue(value!==null&&typeof value==='object'&&!Array.isArray(value),'OBJECT');
+ const actual=Reflect.ownKeys(value);requireValue(actual.length===keys.length&&actual.every((key,index)=>key===keys[index]),'KEYS');
+ for(const key of keys){const property=Object.getOwnPropertyDescriptor(value,key);requireValue(property&&Object.hasOwn(property,'value'),'DATA_PROPERTY');}
+ return true;
+}
+function metadata(stat,pin,maximum){requireValue(stat.isFile()&&stat.nlink===1&&Number.isSafeInteger(pin.bytes)&&pin.bytes>=0&&stat.size===pin.bytes&&stat.size<=maximum&&Number.isSafeInteger(pin.mode)&&(stat.mode&511)===pin.mode&&hex(pin.sha256),'PIN_METADATA');}
+export function pinned(filename,pin,{maximum=134217728}={}){
+ requireValue(path.isAbsolute(filename)&&fs.realpathSync(filename)===filename,'PIN_PATH');
+ const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+ try{const before=fs.fstatSync(descriptor);metadata(before,pin,maximum);const digest=createHash('sha256'),buffer=Buffer.alloc(Math.min(1048576,Math.max(1,before.size)));let total=0,count;while((count=fs.readSync(descriptor,buffer,0,buffer.length,null))>0){total+=count;requireValue(total<=before.size,'PIN_GROWTH');digest.update(buffer.subarray(0,count));}requireValue(total===before.size&&digest.digest('hex')===pin.sha256,'PIN_HASH');const after=fs.fstatSync(descriptor);requireValue(after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mtimeMs===before.mtimeMs,'PIN_RACE');}finally{fs.closeSync(descriptor);}return true;
+}
+export function small(filename,pin){
+ requireValue(path.isAbsolute(filename)&&fs.realpathSync(filename)===filename,'PIN_PATH');const descriptor=fs.openSync(filename,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+ try{const before=fs.fstatSync(descriptor);metadata(before,pin,1048576);const bytes=fs.readFileSync(descriptor),after=fs.fstatSync(descriptor);requireValue(bytes.length===before.size&&hash(bytes)===pin.sha256&&after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mtimeMs===before.mtimeMs,'PIN_BYTES_OR_RACE');return bytes;}finally{fs.closeSync(descriptor);}
+}
+export function validateReview(receipt,expected){
+ exactKeys(receipt,['schema','decision','profile','presealSha256','requestsSha256','reviewer','reviewCommit']);
+ requireValue(receipt.schema==='ere-capture-independent-acceptance-v1'&&receipt.decision==='ACCEPT'&&receipt.profile==='ere-capture-reference-v1'&&hex(receipt.presealSha256)&&hex(receipt.requestsSha256)&&receipt.presealSha256===expected.presealSha256&&receipt.requestsSha256===expected.requestsSha256&&typeof receipt.reviewer==='string'&&receipt.reviewer.length>0&&receipt.reviewer.length<=128&&typeof receipt.reviewCommit==='string'&&/^[0-9a-f]{40}$/.test(receipt.reviewCommit),'REVIEW_CONTENT');return true;
+}
+export function validateGrant(grant,now){
+ exactKeys(grant,['schema','decision','profile','deadlineEpochMs','startupScope','preseal','independentReviewReceipt','preprovision','limits']);
+ requireValue(grant.schema==='ere-capture-root-grant-v1'&&grant.decision==='GO'&&grant.profile==='ere-capture-reference-v1'&&Number.isSafeInteger(grant.deadlineEpochMs)&&grant.deadlineEpochMs>now,'GRANT_CONTENT');validateStartupScope(grant.startupScope);return true;
+}
+export function validateManifest(seal){
+ requireValue(seal.schema==='ere-capture-executable-preseal-v1'&&Array.isArray(seal.files)&&seal.files.length>9&&seal.files.length<=64,'SEAL');
+ const names=new Set();for(const item of seal.files){requireValue(typeof item.path==='string'&&/^(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+$/.test(item.path)&&!item.path.split('/').some(part=>part==='.'||part==='..')&&!names.has(item.path),'SEAL_PATH');names.add(item.path);}
+ for(const name of ['entry.mjs','admission.mjs','capture.mjs','lifecycle.mjs','group-observer.mjs','observer-state.mjs','state.mjs','storage.mjs','observation.mjs','REQUESTS.json','COHORT.json','PROTOCOL.json','TOOLS.json'])requireValue(names.has(name),'SEAL_MEMBER');
+ for(const name of ['GO.json','REVIEW-ACCEPTANCE.json','PREPROVISION.json','PRESEAL.json'])requireValue(!names.has(name),'SEAL_CYCLE');
+ return true;
+}
+export function validateCohort(audit,requests,root){
+ requireValue(Array.isArray(audit.cases)&&audit.cases.length===12&&Array.isArray(requests)&&requests.length===12&&Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'EXACT12');
+ for(let index=0;index<12;index++){
+  const literal=audit.cases[index],request=requests[index],id='N'+String(index+1).padStart(2,'0'),caseRoot=root+'/cases/'+id;
+  requireValue(literal.id===id&&request.id===id,'ID');
+  requireValue(typeof literal.program==='string'&&hash(Buffer.from(literal.program))===literal.programSha256&&JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'ere-capture-case'])&&request.executable==='/bin/bash','LITERAL_BINDING');
+  requireValue(literal.stdinBase64===''&&request.stdinBase64===''&&request.cwd===caseRoot+'/work'&&request.extraProcessReservation===0,'REQUEST_BINDING');
+  const expected={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};exactKeys(request.environment,Object.keys(expected));requireValue(JSON.stringify(request.environment)===JSON.stringify(expected),'ENVIRONMENT_BINDING');
+ }
+ return true;
+}
+export function validateOuter(root,name,fd,operations=fs){
+ requireValue((name==='stdout'&&fd===1)||(name==='stderr'&&fd===2),'OUTER_ROLE');
+ const filename=root+'/outer/bootstrap.'+name,stat=operations.fstatSync(fd),named=operations.lstatSync(filename);
+ requireValue(stat.isFile()&&named.isFile()&&!named.isSymbolicLink()&&stat.ino===named.ino&&stat.dev===named.dev&&stat.nlink===1&&(stat.mode&511)===384&&operations.realpathSync(filename)===filename,'OUTER_FD_BINDING');
+ operations.readSync(fd,Buffer.alloc(1),0,1,0);operations.writeSync(fd,Buffer.alloc(0),0,0,0);
+ return {name,fd,ino:stat.ino,path:filename};
+}
+export function validateProvision(provision,root,operations=fs){
+ exactKeys(provision,['parents']);const expected=[root,root+'/outer',root+'/cases',root+'/captures'];requireValue(Array.isArray(provision.parents)&&provision.parents.length===4,'PROVISION_MEMBERSHIP');
+ for(let index=0;index<4;index++){const parent=provision.parents[index];exactKeys(parent,['path','device','inode','mode']);requireValue(parent.path===expected[index]&&typeof parent.device==='string'&&/^\d+$/.test(parent.device)&&typeof parent.inode==='string'&&/^\d+$/.test(parent.inode)&&parent.mode===448,'PROVISION_ROLE');const stat=operations.lstatSync(parent.path,{bigint:true});requireValue(stat.isDirectory()&&!stat.isSymbolicLink()&&String(stat.dev)===parent.device&&String(stat.ino)===parent.inode&&Number(stat.mode&511n)===parent.mode&&operations.realpathSync(parent.path)===parent.path,'PREPROVISION_DRIFT');}
+ return true;
+}
+export function admit(directory,grantPath,grantSha256){
+ requireValue(grantPath===directory+'/GO.json'&&hex(grantSha256),'GRANT_PATH_OR_HASH');const stat=fs.lstatSync(grantPath),grantRaw=small(grantPath,{mode:384,bytes:stat.size,sha256:grantSha256}),grant=JSON.parse(grantRaw);validateGrant(grant,Date.now());
+ const sealRaw=small(directory+'/PRESEAL.json',grant.preseal),seal=JSON.parse(sealRaw);validateManifest(seal);for(const item of seal.files)pinned(directory+'/'+item.path,item,{maximum:1048576});
+ const requestsRaw=small(directory+'/REQUESTS.json',seal.files.find(item=>item.path==='REQUESTS.json'));
+ const reviewPin=grant.independentReviewReceipt;requireValue(reviewPin&&reviewPin.path===directory+'/REVIEW-ACCEPTANCE.json'&&reviewPin.mode===384&&Number.isSafeInteger(reviewPin.bytes)&&reviewPin.bytes>0&&reviewPin.bytes<=65536&&hex(reviewPin.sha256),'REVIEW_PIN');
+ const review=JSON.parse(small(reviewPin.path,reviewPin));validateReview(review,{presealSha256:hash(sealRaw),requestsSha256:hash(requestsRaw)});
+ const provisionPin=grant.preprovision;requireValue(provisionPin&&provisionPin.path===directory+'/PREPROVISION.json'&&provisionPin.mode===384&&Number.isSafeInteger(provisionPin.bytes)&&provisionPin.bytes>0&&provisionPin.bytes<=65536&&hex(provisionPin.sha256),'PROVISION_PIN');
+ const provision=JSON.parse(small(provisionPin.path,provisionPin));return {grant,seal,review,provision,requests:JSON.parse(requestsRaw)};
+}
+export function resolveApproval(template,resolved,grantSha256){
+ requireValue(hex(grantSha256),'GRANT_SHA');const token='ROOT_APPROVED_GRANT_SHA256';requireValue(template.parameters.cmd.split(token).length===2,'SLOT_COUNT');
+ const expected=structuredClone(template.parameters);expected.cmd=expected.cmd.replace(token,grantSha256);
+ exactKeys(resolved,Object.keys(expected));requireValue(JSON.stringify(resolved)===JSON.stringify(expected)&&resolved.login===false&&resolved.sandbox_permissions==='require_escalated'&&!Object.hasOwn(resolved,'prefix_rule'),'APPROVAL_DRIFT');return true;
+}
+
+c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1 blob 1888
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+export function finalizeCaptures(handles,maximum=65536,operations=fs){
+ const captures=[],errors=[];
+ for(const handle of handles){const result={name:handle.name,flush:false,size:false,hash:false,close:false,bytes:null,sha256:null,base64:null};
+  try{operations.fsyncSync(handle.fd);result.flush=true;}catch(error){errors.push({phase:'flush',name:handle.name,code:error.code??null,message:String(error.message).slice(0,128)});}
+  try{const stat=operations.fstatSync(handle.fd);result.bytes=stat.size;if(!stat.isFile()||stat.ino!==handle.ino||stat.nlink!==1||stat.size>maximum)throw Error('CAPTURE_IDENTITY_OR_SIZE');result.size=true;const bytes=Buffer.alloc(stat.size);let offset=0;while(offset<bytes.length){const amount=operations.readSync(handle.fd,bytes,offset,bytes.length-offset,offset);if(amount===0)throw Error('CAPTURE_SHORT_READ');offset+=amount;}const after=operations.fstatSync(handle.fd);if(after.size!==stat.size||after.ino!==stat.ino||after.mtimeMs!==stat.mtimeMs)throw Error('CAPTURE_CHANGED');result.sha256=createHash('sha256').update(bytes).digest('hex');result.base64=bytes.toString('base64');result.hash=true;}catch(error){errors.push({phase:'size-hash',name:handle.name,code:error.code??null,message:String(error.message).slice(0,128)});}
+  try{operations.closeSync(handle.fd);result.close=true;}catch(error){errors.push({phase:'close',name:handle.name,code:error.code??null,message:String(error.message).slice(0,128)});try{operations.closeSync(handle.fd);result.cleanupClose=true;}catch(secondary){result.cleanupClose=false;errors.push({phase:'close-cleanup',name:handle.name,code:secondary.code??null,message:String(secondary.message).slice(0,128)});}}
+  captures.push(result);
+ }
+ return {captures,errors,success:errors.length===0&&captures.every(row=>row.flush&&row.size&&row.hash&&row.close)};
+}
+
+4556632f1d7a84440482b3d99508b4af5df8e735 blob 6928
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import {fileURLToPath} from 'node:url';
+import {Storage} from './storage.mjs';
+import {ManagedLedger,deadlineAdmission,creditObservation} from './state.mjs';
+import {admit,small,pinned,hash,validateOuter,validateProvision,validateCohort} from './admission.mjs';
+import {runManaged} from './lifecycle.mjs';
+import {finalizeCaptures} from './capture.mjs';
+import {decodeObservation} from './observation.mjs';
+const directory=path.dirname(fileURLToPath(import.meta.url));
+const root='/private/tmp/safe-bash-ere-native-observations-20260829-v1';
+const started=Date.now();
+const ledger=new ManagedLedger(13,2);
+const storage=new Storage(root,{deadline:started+600000});
+const abort=new AbortController();
+const callerSignal=()=>abort.abort('OWNER_SIGNAL');
+process.on('SIGTERM',callerSignal);process.on('SIGINT',callerSignal);
+let completed=0,halted=false,outerHandles=[],finalizedOuter=false,publicationFailure=null;
+const rows=[];
+const assert=(value,message)=>{if(!value)throw Error(message);};
+function snapshot(caseRoot){const result=[];let total=0;function walk(absolute,relative){for(const name of fs.readdirSync(absolute).sort()){const filename=path.join(absolute,name),stat=fs.lstatSync(filename),rel=relative?relative+'/'+name:name;assert(result.length<32&&!stat.isSymbolicLink(),'SNAPSHOT_ENTRY');if(stat.isDirectory()){result.push({path:rel,type:'directory',mode:stat.mode&511});walk(filename,rel);}else{assert(stat.isFile()&&stat.nlink===1&&stat.size<=65536,'SNAPSHOT_FILE');const bytes=fs.readFileSync(filename);total+=bytes.length;assert(total<=262144,'SNAPSHOT_BYTES');result.push({path:rel,type:'file',mode:stat.mode&511,base64:bytes.toString('base64')});}}}walk(caseRoot,'');return result;}
+try{
+ assert(process.argv.length===6&&process.argv[2]==='--grant'&&process.argv[4]==='--grant-sha256','EXACT_ARGUMENTS');
+ for(const [name,fd] of [['stdout',1],['stderr',2]])outerHandles.push(validateOuter(root,name,fd));
+ const accepted=admit(directory,process.argv[3],process.argv[5]);
+ storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+600000);storage.checkTime();
+ validateProvision(accepted.provision,root);
+ storage.record({event:'AUTHENTICATED_START',pid:process.pid,started,externalCapture:'pre-opened regular descriptors before Node module loading'});
+ const protocol=JSON.parse(small(directory+'/PROTOCOL.json',accepted.seal.files.find(row=>row.path==='PROTOCOL.json')));
+ storage.deadline=Math.min(accepted.grant.deadlineEpochMs,started+protocol.limits.totalMs);assert(JSON.stringify(accepted.grant.limits)===JSON.stringify(protocol.limits),'GRANT_LIMITS');
+ const tools=JSON.parse(small(directory+'/TOOLS.json',accepted.seal.files.find(row=>row.path==='TOOLS.json')));for(const tool of [...tools.toolPins,tools.environmentLauncher])pinned(tool.path,tool);
+ assert(process.execPath===tools.toolPins.find(row=>row.path.includes('/node/')).path&&process.execArgv.length===0&&!process.env.NODE_OPTIONS,'OWNER_IDENTITY');
+ assert(Date.now()-started<=60000,'SETUP_DEADLINE');
+ const audit=JSON.parse(small(directory+'/COHORT.json',accepted.seal.files.find(row=>row.path==='COHORT.json')));
+ validateCohort(audit,accepted.requests,root);
+ for(const literal of audit.cases){const relative='programs/'+literal.id+'.bash.data';assert(small(directory+'/'+relative,accepted.seal.files.find(item=>item.path===relative)).equals(Buffer.from(literal.program)),'PROGRAM_FILE_BINDING');}
+ const expectedIds=audit.cases.map(row=>row.id);
+ assert(JSON.stringify(expectedIds)===JSON.stringify(accepted.requests.map(row=>row.id))&&expectedIds.length===12,'EXACT12');
+ process.umask(18);
+ for(const request of accepted.requests){
+  assert(!abort.signal.aborted&&deadlineAdmission(Date.now(),storage.deadline),'ADMISSION_DEADLINE');
+  const literal=audit.cases.find(row=>row.id===request.id),caseRoot=root+'/cases/'+request.id,captureRoot=root+'/captures/'+request.id;
+  assert(JSON.stringify(request.argv)===JSON.stringify(['--noprofile','--norc','-c',literal.program,'ere-capture-case'])&&hash(Buffer.from(literal.program))===literal.programSha256&&request.executable==='/bin/bash','LITERAL_BINDING');
+  assert(request.stdinBase64===literal.stdinBase64,'STDIN_BINDING');
+  assert(request.cwd===caseRoot+'/work','REQUEST_NAMESPACE_BINDING');
+  const env={LC_ALL:'C',LANG:'C',TZ:'UTC',HOME:caseRoot+'/home',TMPDIR:caseRoot+'/tmp',PATH:caseRoot+'/empty-path'};
+  assert(JSON.stringify(request.environment)===JSON.stringify(env),'ENVIRONMENT_BINDING');
+  fs.mkdirSync(caseRoot,{mode:448});fs.mkdirSync(captureRoot,{mode:448});for(const name of ['work','home','tmp','empty-path'])fs.mkdirSync(caseRoot+'/'+name,{mode:448});
+  assert(Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'NO_FIXTURES');
+  assert(fs.readdirSync(caseRoot+'/empty-path').length===0,'EMPTY_PATH');const before=snapshot(caseRoot);
+  ledger.sourceForkReservations+=request.extraProcessReservation;assert(request.extraProcessReservation===0&&ledger.sourceForkReservations===0,'SOURCE_RESERVATION_DRIFT');
+  const row=await runManaged({id:request.id,role:'case',executable:'/bin/bash',args:request.argv,env,cwd:caseRoot+'/work',stdin:Buffer.from(request.stdinBase64,'base64'),captureRoot},{storage,ledger,signal:abort.signal});
+  rows.push({id:row.id,status:row.status,stop:row.stop,retired:row.retired});
+  if(row.stop||row.errors.length||!row.regularCaptureCompletion){halted=true;break;}
+  row.filesBefore=before;row.filesAfter=snapshot(caseRoot);assert(JSON.stringify(row.filesAfter)===JSON.stringify(before),'UNEXPECTED_EFFECT');row.filesVerified=true;row.observation=decodeObservation(row);
+  storage.checkTime();storage.scan();storage.write(root+'/'+row.id+'.json',JSON.stringify(row)+'\n');row.receiptPublished=true;
+  completed=creditObservation(row,storage,completed);
+ }
+ storage.checkTime();storage.scan();
+ const outer=finalizeCaptures(outerHandles);finalizedOuter=true;assert(outer.success,'OUTER_CAPTURE_FINALIZATION');
+ storage.checkTime();storage.write(root+'/RESULTS.json',JSON.stringify({schema:'ere-native-capture-observations-v1',completed,halted,rows,ledger,outer:outer.captures,sourceForkCounts:'PLANNED_NOT_OBSERVED',osContainment:false,version:'Bash3.2.57',notStarted:expectedIds.slice(rows.length),deadline:storage.deadline})+'\n');storage.checkTime();storage.scan();
+ process.exitCode=halted?1:0;
+}catch(error){halted=true;try{storage.terminal({event:'HOLD_OR_STOP',message:String(error.message??error).slice(0,512),completed,ledger,at:Date.now()});}catch(secondary){publicationFailure={primary:error,secondary,terminal:storage.terminalState,late:Date.now()>storage.deadline};}
+ process.exitCode=1;
+}finally{process.removeListener('SIGTERM',callerSignal);process.removeListener('SIGINT',callerSignal);if(!finalizedOuter&&outerHandles.length){const result=finalizeCaptures(outerHandles);if(!result.success)process.exitCode=1;}}
+
+60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841 blob 759
+import {kill as trustedKill} from 'node:process';
+import {classifyGroup,errorFields} from './observer-state.mjs';
+export const binding=Object.freeze({module:'node:process',export:'kill',ambientProcessUsed:false});
+export function observeOwnedGroup(pid){if(!Number.isSafeInteger(pid)||pid<=1)return {state:'unknown',error:{kind:'INVALID_OWNED_PID'}};try{trustedKill(-pid,0);return classifyGroup(false);}catch(reason){return classifyGroup(true,reason);}}
+export function signalOwnedGroup(pid,signal){if(!Number.isSafeInteger(pid)||pid<=1||!['SIGTERM','SIGKILL'].includes(signal))return {sent:false,error:{kind:'SIGNAL_ARGUMENT_REFUSED'}};try{trustedKill(-pid,signal);return {sent:true,error:null};}catch(reason){return {sent:false,error:errorFields(reason)};}}
+
+d41176a15f26a0ee10a3759567a6b1d1c10d5634 blob 5280
+import fs from 'node:fs';
+import {spawn} from 'node:child_process';
+import {observeOwnedGroup,signalOwnedGroup} from './group-observer.mjs';
+import {cleanupTimes} from './state.mjs';
+import {finalizeCaptures} from './capture.mjs';
+const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+export async function runManaged(spec,{storage,ledger,signal,perCaseMs=3000,termMs=2000,killMs=1000}){
+ const row={id:spec.id,started:Date.now(),exit:false,close:false,status:null,signal:null,stop:null,errors:[],signals:[],groupObservations:[],group:{state:'unknown'},capture:[],filesVerified:false,receiptPublished:false,regularCaptureCompletion:false,streamEOF:null};
+ const handles=[];let child,firstStop=null,killSent=false,retired=false,enrolled=false;
+ const fault=(reason,error)=>{row.stop??=reason;if(error)row.errors.push({phase:reason,name:error.name,code:error.code??null,message:String(error.message??error).slice(0,128)});if(firstStop===null)firstStop=Date.now();};
+ const observe=()=>{const observed=child?.pid?observeOwnedGroup(child.pid):{state:'unknown',error:{kind:'NO_PID'}};row.group=observed;const previous=row.groupObservations.at(-1);if(!previous||previous.state!==observed.state||previous.afterKill!==killSent)row.groupObservations.push({...observed,at:Date.now(),afterKill:killSent});return observed;};
+ const send=kind=>{const at=Date.now();if(kind==='SIGTERM')row.termAttemptAt=at;const result=signalOwnedGroup(child.pid,kind);row.signals.push({signal:kind,at,...result});if(!result.sent&&result.error?.fields?.code?.value!=='ESRCH')fault('SIGNAL_ERROR');};
+ try{
+  storage.checkTime();storage.scan();for(const name of ['stdout','stderr']){const filename=spec.captureRoot+'/'+name;const descriptor=fs.openSync(filename,fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);const stat=fs.fstatSync(descriptor);handles.push({name,path:filename,fd:descriptor,ino:stat.ino});}
+  ledger.enter(spec.role);enrolled=true;storage.record({event:'CHILD_ENROLLED',id:spec.id,executable:spec.executable,args:spec.args,at:Date.now()});
+  child=spawn(spec.executable,spec.args,{env:spec.env,cwd:spec.cwd,detached:true,shell:false,stdio:['pipe',handles[0].fd,handles[1].fd]});
+  child.on('spawn',()=>{row.spawnObserved=true;ledger.confirm(spec.role);});
+  child.on('error',error=>fault('CHILD_ERROR',error));child.on('exit',(status,exitSignal)=>{row.exit=true;row.status=status;row.signal=exitSignal;if(exitSignal!==null)fault('SIGNALLED_EXIT');});child.on('close',()=>{row.close=true;});child.stdin.on('error',error=>{if(error.code==='EPIPE')row.stdinEpipe=true;else fault('STDIN_ERROR',error);});child.stdin.on('finish',()=>{row.stdinFinished=true;});row.pid=child.pid;child.stdin.end(spec.stdin??Buffer.alloc(0));
+  while(true){
+   const now=Date.now();if(signal?.aborted)fault('CALLER_ABORT');if(now>=row.started+perCaseMs)fault('CASE_DEADLINE');
+   try{storage.checkTime();for(const handle of handles){if(fs.fstatSync(handle.fd).size>65536)throw Error('PER_STREAM_CAPTURE_CAP');}storage.scan();}catch(error){fault('CAPTURE_OR_STORAGE',error);}
+   if(row.close){const group=observe();if(group.state==='absent'&&row.exit){retired=true;break;}fault(group.state==='unknown'?'UNKNOWN_GROUP':'RESIDUAL_GROUP');}
+   if(firstStop!==null){if(row.signals.length===0&&child.pid)send('SIGTERM');const times=cleanupTimes(row.termAttemptAt??firstStop,termMs,killMs);row.cleanupClock=times;if(!killSent&&now>=times.killAt){killSent=true;if(child.pid)send('SIGKILL');observe();}if(now>=times.endAt){observe();retired=row.exit&&row.close&&row.group.state==='absent';if(!retired)fault('UNKNOWN_RETIREMENT');break;}}
+   await pause(10);
+  }
+ }catch(error){fault('LAUNCH_OR_MONITOR',error);}
+ finally{
+  if(child&&!retired){if(firstStop===null)firstStop=Date.now();if(child.pid&&row.signals.length===0)send('SIGTERM');const times=cleanupTimes(row.termAttemptAt??firstStop,termMs,killMs);row.cleanupClock=times;
+   if(child.pid&&row.signals.length===0)send('SIGTERM');
+   while(Date.now()<times.endAt){if(row.close){const group=observe();if(row.exit&&group.state==='absent'){retired=true;break;}}if(!killSent&&Date.now()>=times.killAt){killSent=true;if(child.pid)send('SIGKILL');observe();}await pause(10);}
+   observe();retired=row.exit&&row.close&&row.group.state==='absent';if(!retired)fault('UNKNOWN_RETIREMENT');
+  }
+  if(!child&&enrolled){row.noProcessCreated=true;retired=true;}
+  if(child&&!row.close){child.stdin.destroy();child.unref();}
+  const finalized=finalizeCaptures(handles);row.capture=finalized.captures;row.errors.push(...finalized.errors);row.regularCaptureCompletion=finalized.success&&retired&&row.exit&&row.close;if(!finalized.success)fault('CAPTURE_FINALIZATION');
+  if(row.exit&&!row.spawnObserved)fault('MISSING_SPAWN_OBSERVER');if(enrolled&&retired)ledger.retire(row.spawnObserved===true);row.retired=retired;row.finished=Date.now();
+  try{storage.record({event:'CHILD_TERMINAL',row});}catch(error){fault('TERMINAL_PUBLICATION',error);try{storage.terminal({event:'TERMINAL_PUBLICATION_FAILED',id:row.id,stop:row.stop,exit:row.exit,close:row.close,group:row.group,retired,errors:row.errors});}catch(secondary){row.errors.push({phase:'EMERGENCY_PUBLICATION',message:String(secondary.message).slice(0,128)});}}
+ }
+ return row;
+}
+
+965d3bd1b43ec68f5066b9157eee8217b80a4053 blob 1763
+import {createHash} from 'node:crypto';
+export function decodeObservation(row){
+ const stdout=row.capture.find(item=>item.name==='stdout');
+ if(!stdout||!stdout.hash||typeof stdout.base64!=='string')throw Error('OBSERVATION_CAPTURE');
+ const bytes=Buffer.from(stdout.base64,'base64');
+ if(createHash('sha256').update(bytes).digest('hex')!==stdout.sha256)throw Error('OBSERVATION_HASH');
+ const fields=[];let start=0;
+ for(let offset=0;offset<bytes.length;offset++)if(bytes[offset]===0){fields.push(bytes.subarray(start,offset));start=offset+1;}
+ if(start!==bytes.length||fields.length!==16)throw Error('OBSERVATION_FRAMING');
+ const text=index=>{if([...fields[index]].some(code=>code>127))throw Error('OBSERVATION_HEADER_ASCII');return fields[index].toString('ascii');};
+ if(text(0)!=='EREOBS1'||text(1)!==row.id)throw Error('OBSERVATION_ID');
+ if(!/^(0|[1-9][0-9]{0,2})$/.test(text(2))||!/^[0-4]$/.test(text(3)))throw Error('OBSERVATION_NUMERIC');
+ const regexStatus=Number(text(2)),cardinality=Number(text(3));
+ if(regexStatus>255||regexStatus!==row.status)throw Error('OBSERVATION_EXIT_STATUS');
+ const slots=[];
+ for(let index=0;index<4;index++){
+  const base=4+index*3;if(text(base)!==String(index)||!['0','1'].includes(text(base+1)))throw Error('OBSERVATION_SLOT');
+  const present=text(base+1)==='1',value=fields[base+2];
+  if(!present&&value.length!==0)throw Error('OBSERVATION_UNSET_VALUE');
+  slots.push({index,shellSlotPresent:present,bytes:value.length,base64:value.toString('base64')});
+ }
+ if(slots.filter(slot=>slot.shellSlotPresent).length!==cardinality)throw Error('OBSERVATION_CARDINALITY');
+ return {regexStatus,cardinality,slots,stdoutSha256:stdout.sha256,hiddenNativeSpans:'UNOBSERVABLE',nativeParticipationFromEmptyString:'NOT_INFERRED'};
+}
+
+76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7 blob 1240
+export function errorFields(reason){
+ const result={thrownType:reason===null?'null':typeof reason,fields:{}};
+ for(const key of ['name','code','errno','syscall']){
+  let owner=reason,descriptor,depth=0;try{while(owner!==null&&(typeof owner==='object'||typeof owner==='function')&&depth++<4){descriptor=Object.getOwnPropertyDescriptor(owner,key);if(descriptor)break;owner=Object.getPrototypeOf(owner);}}catch{result.fields[key]={presence:'uninspectable'};continue;}
+  if(!descriptor){result.fields[key]={presence:'absent'};continue;}
+  if(!Object.hasOwn(descriptor,'value')){result.fields[key]={presence:'accessor-not-invoked'};continue;}
+  const value=descriptor.value;if(typeof value==='string'){result.fields[key]=value.length<=128?{presence:'value',value}:{presence:'over-limit',length:value.length};}else if(typeof value==='number'&&Number.isSafeInteger(value)){result.fields[key]={presence:'value',value};}else{result.fields[key]={presence:'unsupported',valueType:typeof value};}
+ }return result;
+}
+export function classifyGroup(threw,reason){if(!threw)return {state:'present',error:null};const error=errorFields(reason);return {state:error.fields.code.presence==='value'&&error.fields.code.value==='ESRCH'?'absent':'unknown',error};}
+
+89ab8168787f5246ee3e36e72a14bd577dfb11c5 blob 1824
+export function completion(row){return row.exit===true&&row.close===true&&row.group?.state==='absent'&&row.signal===null&&row.stop===null&&row.errors.length===0&&Array.isArray(row.capture)&&row.capture.length===2&&row.capture.every(item=>item.flush&&item.size&&item.hash&&item.close)&&row.filesVerified===true&&row.receiptPublished===true;}
+export function cleanupTimes(firstStop,termMs=2000,killMs=1000){return {termAt:firstStop,killAt:firstStop+termMs,endAt:firstStop+termMs+killMs};}
+export function deadlineAdmission(now,deadline,caseMs=3000,termMs=2000,killMs=1000,tailMs=60000){return now+caseMs+termMs+killMs+tailMs<=deadline;}
+export class ManagedLedger{
+ constructor(max=80,peak=6){this.max=max;this.peak=peak;this.starts=1;this.active=1;this.peakCharged=1;this.confirmedStarts=1;this.activeConfirmed=1;this.peakConfirmed=1;this.confirmedRoles={owner:1};this.roles={owner:1};this.sourceForkReservations=0;}
+ enter(role){if(!['case','control'].includes(role)||this.starts+1>this.max||this.active+1>this.peak)throw Error('MANAGED_ADMISSION_CAP');this.starts++;this.active++;this.roles[role]=(this.roles[role]??0)+1;this.peakCharged=Math.max(this.peakCharged,this.active);}
+ confirm(role){this.confirmedStarts++;this.activeConfirmed++;this.confirmedRoles[role]=(this.confirmedRoles[role]??0)+1;this.peakConfirmed=Math.max(this.peakConfirmed,this.activeConfirmed);if(this.confirmedStarts>this.starts)throw Error('UNADMITTED_SPAWN');}
+ retire(confirmed=false){if(this.active<2)throw Error('RETIREMENT_UNDERFLOW');this.active--;if(confirmed)this.activeConfirmed--; }
+}
+export function creditObservation(row,storage,completed){
+ if(!completion(row))throw Error('OBSERVATION_INELIGIBLE');
+ storage.checkTime();
+ storage.record({event:'OBSERVATION_READY_FOR_CREDIT',id:row.id});
+ storage.checkTime();
+ return completed+1;
+}
+
+6c84cd315be15174ecc45e2f36694d6ef25ff34b blob 3583
+import fs from 'node:fs';
+import path from 'node:path';
+export class Storage{
+ constructor(root,{capture=33554432,work=134217728,emergency=65536,deadline=Infinity}={}, {now=Date.now,terminalOperations=fs}={}){this.root=root;this.captureLimit=capture;this.workLimit=work;this.emergency=emergency;this.deadline=deadline;this.samples=[];this.emergencyUsed=false;this.now=now;this.terminalOperations=terminalOperations;this.terminalState=null;}
+ checkTime(){if(this.now()>this.deadline)throw Error('FINALIZATION_DEADLINE');}
+ scan(){let bytes=0,entries=0;const visit=directory=>{for(const name of fs.readdirSync(directory)){if(++entries>4096)throw Error('STORAGE_ENTRIES');const filename=path.join(directory,name),stat=fs.lstatSync(filename);if(stat.isSymbolicLink())throw Error('STORAGE_SYMLINK');if(stat.isDirectory())visit(filename);else{if(!stat.isFile())throw Error('STORAGE_FILE_TYPE');bytes+=stat.size;}}};visit(this.root);this.last={bytes,entries,at:this.now()};if(bytes>this.captureLimit||bytes>this.workLimit)throw Error('OBSERVED_STORAGE_CAP');return this.last;}
+ admit(bytes){this.checkTime();const sample=this.scan();if(!Number.isSafeInteger(bytes)||bytes<0||bytes>262144||sample.bytes+bytes+this.emergency>this.captureLimit||sample.bytes+bytes+this.emergency>this.workLimit)throw Error('BEFORE_WRITE_STORAGE_CAP');}
+ write(filename,value,{append=false}={}){const bytes=Buffer.isBuffer(value)?value:Buffer.from(value);if(!filename.startsWith(this.root+'/'))throw Error('WRITE_SCOPE');this.admit(bytes.length);this.checkTime();const descriptor=fs.openSync(filename,append?fs.constants.O_WRONLY|fs.constants.O_APPEND|fs.constants.O_NOFOLLOW:fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);let primary;try{this.checkTime();fs.writeFileSync(descriptor,bytes);this.checkTime();fs.fsyncSync(descriptor);}catch(error){primary=error;}finally{try{fs.closeSync(descriptor);}catch(error){primary??=error;}}if(primary)throw primary;this.checkTime();this.scan();}
+ record(value){this.write(path.join(this.root,'JOURNAL.jsonl'),JSON.stringify(value)+'\n',{append:true});}
+ terminal(value){
+  this.checkTime();
+  if(this.emergencyUsed)return false;
+  this.emergencyUsed=true;
+  const state=this.terminalState={qualified:false,opened:false,wrote:false,flushed:false,closed:false,late:false,primary:null,secondary:[]};
+  const operations=this.terminalOperations;
+  let descriptor;
+  const failure=(phase,error)=>{if(state.primary===null)state.primary={phase,error};else state.secondary.push({phase,error});};
+  try{
+   const bytes=Buffer.from(JSON.stringify(value)+'\n');
+   if(bytes.length>this.emergency)throw Error('EMERGENCY_SIZE');
+   this.checkTime();
+   descriptor=operations.openSync(path.join(this.root,'TERMINAL-STOP.json'),fs.constants.O_WRONLY|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
+   state.opened=true;
+   this.checkTime();operations.writeFileSync(descriptor,bytes);state.wrote=true;
+   this.checkTime();operations.fsyncSync(descriptor);state.flushed=true;
+   this.checkTime();
+  }catch(error){failure('PUBLICATION',error);}
+  finally{
+   if(descriptor!==undefined){
+    try{operations.closeSync(descriptor);state.closed=true;}
+    catch(error){failure('CLOSE',error);try{operations.closeSync(descriptor);state.closed=true;}catch(secondary){failure('CLOSE_CLEANUP',secondary);}}
+   }
+   state.late=this.now()>this.deadline;
+   try{this.checkTime();}catch(error){failure('FINAL_DEADLINE',error);}
+  }
+  if(state.primary!==null)throw state.primary.error;
+  state.qualified=true;
+  return true;
+ }
+}
+

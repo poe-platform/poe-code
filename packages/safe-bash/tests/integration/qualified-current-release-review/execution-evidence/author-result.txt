@@ -1,0 +1,26 @@
+Leaf qualified-current-release author result — 2026-08-27
+Status: implementation/evidence committed; normal exit, no delegation/watchers. Product qualification remains BLOCKED, not forced green.
+Commits (exact owned paths only):
+-966cfac fix(release): require current consumers and configured archive oracle
+-f12141d test(release): classify concurrent frozen time-env oracle without rescoring
+-5456730 fix(release): launch emitted consumers without test-runner authority escalation
+-02a78bf64c29dedcd69071551ed5848b0765c107 test(release): retain current qualified failures and native prerequisite evidence
+
+Exact tested candidate:5456730f1307f8c7fd3e8fcad342dc2eb6db2c27
+Outer npm run verify:release:qualified -- --source-commit 5456730f1307f8c7fd3e8fcad342dc2eb6db2c27 --native-assets-from "$PWD/tests/commands/metadata-stress/.oracle/coreutils-9.7" --archive-tar-from "$PWD/tests/commands/archive/.oracle/gnu-tar/1.35/bin/gtar"
+Exact argv/absolute paths/timestamps/raw stdout+stderr: tests/plugins/qualified-current-release/evidence/current-outer.json
+Result: outer exit1. Current consumer failure never waived by later passing phases.
+Source manifest:e7f64ecaa2cf5bce5fdebd3bfcca9e94d063d278b85ed9c263f742d104c32424
+Test manifest:d602edfbb0a07ae8b54bfa19980716eb13db8c294064d73cce1b9e8ec60dd1c8
+Harness manifest:1c0a4462bd7098e7f68088feba3bb1a34eb204f4b5865b064fe3df588aa1eb1c
+Archive:dcc98e7c17b050756d9039a006ce895191055d2f10df1eee18c4a58e48af4320
+
+Inventory156 tracked.mts:22 maintained current,129 frozen evidence,1 frozen time-env native oracle explicitly pinnedd904ca9,4 imported declarations. Dirac accepted aac345a0 canonical470/470+485/485 and historical standalone omissions11/30 remain intact, not allTS included. New paths fail closed. Current provider/research programs strict compile only; no deployed-service pass invented.
+Mandatory cold archive build and old selected-gnu strict build-first check pass. Current22 inputs in13 strict public groups pass; emitted runtime11/12 groups pass, including S3 constructor6/6. Unchanged WebDAV consumer12/13 fails mv-to-remote with EAGAIN utimes '/remote/target'; same without permission model. Exact root route: tests/fs/webdav/consumer/consumer.test.mts:38 and provider.mts:58/81; source src/fs/webdav/webdav.ts:981-1014 timestamp postcondition. No fixes to unowned fixture/source. Full original raw failure and repro path retained.
+Current archive native two unchanged files/support hashes match both exactcandidate and historicale36 bytes, but actual execution is current545 source,11/11 zero skips. Authenticated existing GNU1.35 binary staged safely at both hardcoded fixture path; no GNU_TAR fiction. BSD/gzip/gunzip profile authenticated. All15 metadata/stream prerequisite checks retained. Missing/wrong/unset explicit tar despite validGNU_TAR each78 with zero tests. Positive setup-only0 explicitly NOT release pass. Six scoped prerequisite tests pass.
+Metadata318/318 (22native rows) with owned nativeTMPDIR uid501/gid20/membergroup20/mode0700/umask0022; ACL/groups/pinned GNU chmod0644->02755 and06755 probes recorded, no normalization needed in measured run. No host/repo/pin chown. Original author318 and independent first316/318, historicalSGID6 untouched. Stream strict124/164+40stderr differences preserved; registry31/31, moved packed21/21; strict public negative7all rejected. Two offline packs byte-identical.
+Preserved first failures:966 inventory catches concurrently committed time-env oracle; f121 inappropriate --test discovery/child-process orchestration fixed by plain emitted Node WITHOUT granting child-process permission. Consumer/source/assertion bytes unchanged, first failures retained separately. Original e3c04127 same-e36 5pass6fail missing and11/11 configured unchanged; not substituted for current proof.
+Source includes regex01aa1bff/runtime4c16d9c5 beyond frozenb7; this does NOT independently close originalfive lifecycle failures. Later concurrent source commits beyond545 are not qualified by this run. Root to freeze new combined source after actual author closure and assign different reviewer.
+Durable report:tests/plugins/qualified-current-release/REPORT.md
+Raw outputs/manifests:tests/plugins/qualified-current-release/evidence/current-result.json, current-metadata.json, current-stream-results.json, current-stream-diagnostics.json, current-setup-controls.json; SHA256SUMS.json seals owned artifacts.
+Final owned paths clean/shared index empty. Foreign runtime/time-env/newcommand/provider/native artifacts preserved; holdout contents never read. No rootdist output, configs/exports/API/source/lock/dependency changes, no install/global changes. No fullpackage lifecycle/release-ready/superiority/fullgate/72hour claim.

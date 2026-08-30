@@ -1,0 +1,44 @@
+diff --git a/src/shell/conditional.ts b/src/shell/conditional.ts
+index 7dba3219..caab6172 100644
+--- a/src/shell/conditional.ts
++++ b/src/shell/conditional.ts
+@@ -1,5 +1,5 @@
+ import type { FileSystem } from "../contracts/index.js";
+-import { resolvePath } from "../contracts/index.js";
++import { isFsError, resolvePath } from "../contracts/index.js";
+ import type { Word } from "./parser.js";
+ import { matchesPattern } from "./pattern.js";
+ 
+@@ -94,14 +94,13 @@ async function integer(value: string, context: ConditionalContext): Promise<bigi
+   return BigInt.asIntN(64, result * sign);
+ }
+ 
+-function code(error: unknown): string | undefined {
+-  return error !== null && (typeof error === "object" || typeof error === "function") && "code" in error && typeof error.code === "string" ? error.code : undefined;
+-}
+-
+ async function unary(operator: string, value: string, context: ConditionalContext): Promise<boolean> {
+   if (operator === "-n") return value.length > 0;
+   if (operator === "-z") return value.length === 0;
+-  if (operator === "-v") return context.present(value);
++  if (operator === "-v") {
++    if (value.endsWith("[@]") || value.endsWith("[*]")) unsupported("aggregate variable selector");
++    return context.present(value);
++  }
+   if (operator === "-o") return context.option(value);
+   if (!["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
+   if (value === "") return false;
+@@ -122,9 +121,10 @@ async function unary(operator: string, value: string, context: ConditionalContex
+     return true;
+   } catch (error) {
+     context.signal.throwIfAborted();
+-    const errno = code(error);
+-    if (errno === "ENOENT" || errno === "ENOTDIR") return false;
+-    if (access && (errno === "EACCES" || errno === "EPERM" || errno === "EROFS")) return false;
++    if (!isFsError(error)) throw error;
++    const errno = error.code;
++    if (errno === "ENOENT" || errno === "ENOTDIR" || errno === "EACCES" || errno === "EPERM") return false;
++    if (access && errno === "EROFS") return false;
+     if (errno === "ENOTSUP" || errno === "EOPNOTSUPP" || errno === "ENOSYS") unsupported("filesystem capability");
+     throw error;
+   }

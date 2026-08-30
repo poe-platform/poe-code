@@ -1,0 +1,1414 @@
+TAP version 13
+# Subtest: unchanged GNU9.7 input and expectation: paste: uneven parallel
+ok 1 - unchanged GNU9.7 input and expectation: paste: uneven parallel
+  ---
+  duration_ms: 2.603834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial
+ok 2 - unchanged GNU9.7 input and expectation: paste: serial
+  ---
+  duration_ms: 0.449833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: repeated file independent cursors
+ok 3 - unchanged GNU9.7 input and expectation: paste: repeated file independent cursors
+  ---
+  duration_ms: 0.564
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters ","
+ok 4 - unchanged GNU9.7 input and expectation: paste: parallel delimiters ","
+  ---
+  duration_ms: 0.6295
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters ","
+ok 5 - unchanged GNU9.7 input and expectation: paste: serial delimiters ","
+  ---
+  duration_ms: 1.145458
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "%_"
+ok 6 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "%_"
+  ---
+  duration_ms: 0.374041
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "%_"
+ok 7 - unchanged GNU9.7 input and expectation: paste: serial delimiters "%_"
+  ---
+  duration_ms: 0.237833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters ""
+ok 8 - unchanged GNU9.7 input and expectation: paste: parallel delimiters ""
+  ---
+  duration_ms: 0.2205
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters ""
+ok 9 - unchanged GNU9.7 input and expectation: paste: serial delimiters ""
+  ---
+  duration_ms: 0.483916
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\0"
+ok 10 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\0"
+  ---
+  duration_ms: 0.455959
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\0"
+ok 11 - unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\0"
+  ---
+  duration_ms: 0.195166
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\n\\\\t"
+ok 12 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\n\\\\t"
+  ---
+  duration_ms: 0.246583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\n\\\\t"
+ok 13 - unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\n\\\\t"
+  ---
+  duration_ms: 0.179708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\b\\\\f\\\\r\\\\v"
+ok 14 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\b\\\\f\\\\r\\\\v"
+  ---
+  duration_ms: 0.232083
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\b\\\\f\\\\r\\\\v"
+ok 15 - unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\b\\\\f\\\\r\\\\v"
+  ---
+  duration_ms: 0.31625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\\\\\"
+ok 16 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\\\\\"
+  ---
+  duration_ms: 0.244417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\\\\\"
+ok 17 - unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\\\\\"
+  ---
+  duration_ms: 0.960916
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\q"
+ok 18 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "\\\\q"
+  ---
+  duration_ms: 0.285709
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\q"
+ok 19 - unchanged GNU9.7 input and expectation: paste: serial delimiters "\\\\q"
+  ---
+  duration_ms: 0.223542
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: parallel delimiters "é"
+ok 20 - unchanged GNU9.7 input and expectation: paste: parallel delimiters "é"
+  ---
+  duration_ms: 0.206791
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial delimiters "é"
+ok 21 - unchanged GNU9.7 input and expectation: paste: serial delimiters "é"
+  ---
+  duration_ms: 0.12325
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: shared stdin empty
+ok 22 - unchanged GNU9.7 input and expectation: paste: shared stdin empty
+  ---
+  duration_ms: 0.05675
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial stdin empty
+ok 23 - unchanged GNU9.7 input and expectation: paste: serial stdin empty
+  ---
+  duration_ms: 0.049125
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: shared stdin blank
+ok 24 - unchanged GNU9.7 input and expectation: paste: shared stdin blank
+  ---
+  duration_ms: 0.061292
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial stdin blank
+ok 25 - unchanged GNU9.7 input and expectation: paste: serial stdin blank
+  ---
+  duration_ms: 0.054708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: shared stdin incomplete
+ok 26 - unchanged GNU9.7 input and expectation: paste: shared stdin incomplete
+  ---
+  duration_ms: 0.065167
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial stdin incomplete
+ok 27 - unchanged GNU9.7 input and expectation: paste: serial stdin incomplete
+  ---
+  duration_ms: 0.064584
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: shared stdin carriage
+ok 28 - unchanged GNU9.7 input and expectation: paste: shared stdin carriage
+  ---
+  duration_ms: 0.070416
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial stdin carriage
+ok 29 - unchanged GNU9.7 input and expectation: paste: serial stdin carriage
+  ---
+  duration_ms: 0.062208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: shared stdin binary
+ok 30 - unchanged GNU9.7 input and expectation: paste: shared stdin binary
+  ---
+  duration_ms: 0.062375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial stdin binary
+ok 31 - unchanged GNU9.7 input and expectation: paste: serial stdin binary
+  ---
+  duration_ms: 0.065208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: shared stdin unicode
+ok 32 - unchanged GNU9.7 input and expectation: paste: shared stdin unicode
+  ---
+  duration_ms: 0.077584
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial stdin unicode
+ok 33 - unchanged GNU9.7 input and expectation: paste: serial stdin unicode
+  ---
+  duration_ms: 0.077708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: zero records
+ok 34 - unchanged GNU9.7 input and expectation: paste: zero records
+  ---
+  duration_ms: 0.108
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: serial zero records
+ok 35 - unchanged GNU9.7 input and expectation: paste: serial zero records
+  ---
+  duration_ms: 0.073667
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: default stdin
+ok 36 - unchanged GNU9.7 input and expectation: paste: default stdin
+  ---
+  duration_ms: 0.056917
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: mixed stdin cursor
+ok 37 - unchanged GNU9.7 input and expectation: paste: mixed stdin cursor
+  ---
+  duration_ms: 0.116834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: literal path
+ok 38 - unchanged GNU9.7 input and expectation: paste: literal path
+  ---
+  duration_ms: 0.063417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: missing parallel file
+ok 39 - unchanged GNU9.7 input and expectation: paste: missing parallel file
+  ---
+  duration_ms: 0.152416
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: missing serial file continues
+ok 40 - unchanged GNU9.7 input and expectation: paste: missing serial file continues
+  ---
+  duration_ms: 0.113417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: invalid trailing escape
+ok 41 - unchanged GNU9.7 input and expectation: paste: invalid trailing escape
+  ---
+  duration_ms: 0.049875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: invalid flag
+ok 42 - unchanged GNU9.7 input and expectation: paste: invalid flag
+  ---
+  duration_ms: 0.035458
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns all
+ok 43 - unchanged GNU9.7 input and expectation: comm: columns all
+  ---
+  duration_ms: 0.440417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals all
+ok 44 - unchanged GNU9.7 input and expectation: comm: totals all
+  ---
+  duration_ms: 0.308625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -1
+ok 45 - unchanged GNU9.7 input and expectation: comm: columns -1
+  ---
+  duration_ms: 0.194166
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -1
+ok 46 - unchanged GNU9.7 input and expectation: comm: totals -1
+  ---
+  duration_ms: 0.180333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -2
+ok 47 - unchanged GNU9.7 input and expectation: comm: columns -2
+  ---
+  duration_ms: 0.12425
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -2
+ok 48 - unchanged GNU9.7 input and expectation: comm: totals -2
+  ---
+  duration_ms: 0.759291
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -3
+ok 49 - unchanged GNU9.7 input and expectation: comm: columns -3
+  ---
+  duration_ms: 0.153833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -3
+ok 50 - unchanged GNU9.7 input and expectation: comm: totals -3
+  ---
+  duration_ms: 0.151708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -12
+ok 51 - unchanged GNU9.7 input and expectation: comm: columns -12
+  ---
+  duration_ms: 0.111042
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -12
+ok 52 - unchanged GNU9.7 input and expectation: comm: totals -12
+  ---
+  duration_ms: 0.131792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -13
+ok 53 - unchanged GNU9.7 input and expectation: comm: columns -13
+  ---
+  duration_ms: 0.106
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -13
+ok 54 - unchanged GNU9.7 input and expectation: comm: totals -13
+  ---
+  duration_ms: 0.137375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -23
+ok 55 - unchanged GNU9.7 input and expectation: comm: columns -23
+  ---
+  duration_ms: 0.100083
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -23
+ok 56 - unchanged GNU9.7 input and expectation: comm: totals -23
+  ---
+  duration_ms: 0.143416
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: columns -123
+ok 57 - unchanged GNU9.7 input and expectation: comm: columns -123
+  ---
+  duration_ms: 0.098875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: totals -123
+ok 58 - unchanged GNU9.7 input and expectation: comm: totals -123
+  ---
+  duration_ms: 0.114792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: output delimiter "|"
+ok 59 - unchanged GNU9.7 input and expectation: comm: output delimiter "|"
+  ---
+  duration_ms: 0.210166
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: output delimiter "::"
+ok 60 - unchanged GNU9.7 input and expectation: comm: output delimiter "::"
+  ---
+  duration_ms: 0.164042
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: output delimiter ""
+ok 61 - unchanged GNU9.7 input and expectation: comm: output delimiter ""
+  ---
+  duration_ms: 0.166292
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: output delimiter "é"
+ok 62 - unchanged GNU9.7 input and expectation: comm: output delimiter "é"
+  ---
+  duration_ms: 0.176875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: empty
+ok 63 - unchanged GNU9.7 input and expectation: comm: empty
+  ---
+  duration_ms: 0.070833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: tail
+ok 64 - unchanged GNU9.7 input and expectation: comm: tail
+  ---
+  duration_ms: 0.091167
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: blanks
+ok 65 - unchanged GNU9.7 input and expectation: comm: blanks
+  ---
+  duration_ms: 0.101334
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: binary
+ok 66 - unchanged GNU9.7 input and expectation: comm: binary
+  ---
+  duration_ms: 0.104
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: emptyLeft
+ok 67 - unchanged GNU9.7 input and expectation: comm: emptyLeft
+  ---
+  duration_ms: 0.089666
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: NUL records and totals
+ok 68 - unchanged GNU9.7 input and expectation: comm: NUL records and totals
+  ---
+  duration_ms: 0.160708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: stdin left
+ok 69 - unchanged GNU9.7 input and expectation: comm: stdin left
+  ---
+  duration_ms: 3.273375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: stdin right
+ok 70 - unchanged GNU9.7 input and expectation: comm: stdin right
+  ---
+  duration_ms: 0.202292
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: shared stdin
+ok 71 - unchanged GNU9.7 input and expectation: comm: shared stdin
+  ---
+  duration_ms: 0.13725
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted paired 
+ok 72 - unchanged GNU9.7 input and expectation: comm: unsorted paired 
+  ---
+  duration_ms: 0.11475
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted unpaired 
+ok 73 - unchanged GNU9.7 input and expectation: comm: unsorted unpaired 
+  ---
+  duration_ms: 0.122208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted empty side 
+ok 74 - unchanged GNU9.7 input and expectation: comm: unsorted empty side 
+  ---
+  duration_ms: 0.100375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted paired --check-order
+ok 75 - unchanged GNU9.7 input and expectation: comm: unsorted paired --check-order
+  ---
+  duration_ms: 0.262917
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted unpaired --check-order
+ok 76 - unchanged GNU9.7 input and expectation: comm: unsorted unpaired --check-order
+  ---
+  duration_ms: 0.10025
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted empty side --check-order
+ok 77 - unchanged GNU9.7 input and expectation: comm: unsorted empty side --check-order
+  ---
+  duration_ms: 0.089833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted paired --nocheck-order
+ok 78 - unchanged GNU9.7 input and expectation: comm: unsorted paired --nocheck-order
+  ---
+  duration_ms: 0.102959
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted unpaired --nocheck-order
+ok 79 - unchanged GNU9.7 input and expectation: comm: unsorted unpaired --nocheck-order
+  ---
+  duration_ms: 0.108291
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: unsorted empty side --nocheck-order
+ok 80 - unchanged GNU9.7 input and expectation: comm: unsorted empty side --nocheck-order
+  ---
+  duration_ms: 0.084916
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: literal files
+ok 81 - unchanged GNU9.7 input and expectation: comm: literal files
+  ---
+  duration_ms: 0.103167
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: missing file
+ok 82 - unchanged GNU9.7 input and expectation: comm: missing file
+  ---
+  duration_ms: 0.133459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: too few files
+ok 83 - unchanged GNU9.7 input and expectation: comm: too few files
+  ---
+  duration_ms: 0.053709
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability 
+ok 84 - unchanged GNU9.7 input and expectation: join: pairability 
+  ---
+  duration_ms: 0.570583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability -a1
+ok 85 - unchanged GNU9.7 input and expectation: join: pairability -a1
+  ---
+  duration_ms: 0.396375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability -a2
+ok 86 - unchanged GNU9.7 input and expectation: join: pairability -a2
+  ---
+  duration_ms: 0.2945
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability -a1,-a2
+ok 87 - unchanged GNU9.7 input and expectation: join: pairability -a1,-a2
+  ---
+  duration_ms: 0.252208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability -v1
+ok 88 - unchanged GNU9.7 input and expectation: join: pairability -v1
+  ---
+  duration_ms: 0.129625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability -v2
+ok 89 - unchanged GNU9.7 input and expectation: join: pairability -v2
+  ---
+  duration_ms: 0.13275
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: pairability -v1,-v2
+ok 90 - unchanged GNU9.7 input and expectation: join: pairability -v1,-v2
+  ---
+  duration_ms: 0.134834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: format 0
+ok 91 - unchanged GNU9.7 input and expectation: join: format 0
+  ---
+  duration_ms: 0.245334
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: format 1.2,2.2
+ok 92 - unchanged GNU9.7 input and expectation: join: format 1.2,2.2
+  ---
+  duration_ms: 0.2765
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: format 0,2.2,1.2
+ok 93 - unchanged GNU9.7 input and expectation: join: format 0,2.2,1.2
+  ---
+  duration_ms: 0.251459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: format 0 1.3 2.3
+ok 94 - unchanged GNU9.7 input and expectation: join: format 0 1.3 2.3
+  ---
+  duration_ms: 0.308125
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: format auto
+ok 95 - unchanged GNU9.7 input and expectation: join: format auto
+  ---
+  duration_ms: 0.28375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: alternate key fields
+ok 96 - unchanged GNU9.7 input and expectation: join: alternate key fields
+  ---
+  duration_ms: 0.15975
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: shared key field
+ok 97 - unchanged GNU9.7 input and expectation: join: shared key field
+  ---
+  duration_ms: 0.145
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: ASCII folded keys
+ok 98 - unchanged GNU9.7 input and expectation: join: ASCII folded keys
+  ---
+  duration_ms: 0.133625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: blank splitting
+ok 99 - unchanged GNU9.7 input and expectation: join: blank splitting
+  ---
+  duration_ms: 0.145042
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: empty lines and missing key
+ok 100 - unchanged GNU9.7 input and expectation: join: empty lines and missing key
+  ---
+  duration_ms: 0.125792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: missing second key
+ok 101 - unchanged GNU9.7 input and expectation: join: missing second key
+  ---
+  duration_ms: 0.11125
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: empty comma fields
+ok 102 - unchanged GNU9.7 input and expectation: join: empty comma fields
+  ---
+  duration_ms: 0.195459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: NUL fields
+ok 103 - unchanged GNU9.7 input and expectation: join: NUL fields
+  ---
+  duration_ms: 0.139583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: whole records
+ok 104 - unchanged GNU9.7 input and expectation: join: whole records
+  ---
+  duration_ms: 0.115708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: zero record whitespace
+ok 105 - unchanged GNU9.7 input and expectation: join: zero record whitespace
+  ---
+  duration_ms: 0.133084
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: zero records comma fields
+ok 106 - unchanged GNU9.7 input and expectation: join: zero records comma fields
+  ---
+  duration_ms: 0.139666
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: incomplete final records
+ok 107 - unchanged GNU9.7 input and expectation: join: incomplete final records
+  ---
+  duration_ms: 0.133917
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: UTF8 payload bytes
+ok 108 - unchanged GNU9.7 input and expectation: join: UTF8 payload bytes
+  ---
+  duration_ms: 0.137625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: stdin left
+ok 109 - unchanged GNU9.7 input and expectation: join: stdin left
+  ---
+  duration_ms: 0.218417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: stdin right
+ok 110 - unchanged GNU9.7 input and expectation: join: stdin right
+  ---
+  duration_ms: 0.275834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: both stdin invalid
+ok 111 - unchanged GNU9.7 input and expectation: join: both stdin invalid
+  ---
+  duration_ms: 0.044875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: header 
+ok 112 - unchanged GNU9.7 input and expectation: join: header 
+  ---
+  duration_ms: 3.561208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: header -oauto
+ok 113 - unchanged GNU9.7 input and expectation: join: header -oauto
+  ---
+  duration_ms: 0.28575
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: header -o,0,2.2,1.2
+ok 114 - unchanged GNU9.7 input and expectation: join: header -o,0,2.2,1.2
+  ---
+  duration_ms: 0.225833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: auto variable field lengths
+ok 115 - unchanged GNU9.7 input and expectation: join: auto variable field lengths
+  ---
+  duration_ms: 0.195959
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: header with empty right
+ok 116 - unchanged GNU9.7 input and expectation: join: header with empty right
+  ---
+  duration_ms: 0.10025
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted paired 
+ok 117 - unchanged GNU9.7 input and expectation: join: unsorted paired 
+  ---
+  duration_ms: 0.14175
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted unpaired 
+ok 118 - unchanged GNU9.7 input and expectation: join: unsorted unpaired 
+  ---
+  duration_ms: 0.125375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted empty side 
+ok 119 - unchanged GNU9.7 input and expectation: join: unsorted empty side 
+  ---
+  duration_ms: 0.095625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted paired --check-order
+ok 120 - unchanged GNU9.7 input and expectation: join: unsorted paired --check-order
+  ---
+  duration_ms: 0.105583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted unpaired --check-order
+ok 121 - unchanged GNU9.7 input and expectation: join: unsorted unpaired --check-order
+  ---
+  duration_ms: 0.122792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted empty side --check-order
+ok 122 - unchanged GNU9.7 input and expectation: join: unsorted empty side --check-order
+  ---
+  duration_ms: 0.094916
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted paired --nocheck-order
+ok 123 - unchanged GNU9.7 input and expectation: join: unsorted paired --nocheck-order
+  ---
+  duration_ms: 0.107167
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted unpaired --nocheck-order
+ok 124 - unchanged GNU9.7 input and expectation: join: unsorted unpaired --nocheck-order
+  ---
+  duration_ms: 0.114375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unsorted empty side --nocheck-order
+ok 125 - unchanged GNU9.7 input and expectation: join: unsorted empty side --nocheck-order
+  ---
+  duration_ms: 0.088459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: invalidField
+ok 126 - unchanged GNU9.7 input and expectation: join: invalidField
+  ---
+  duration_ms: 0.047375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: invalidOutput
+ok 127 - unchanged GNU9.7 input and expectation: join: invalidOutput
+  ---
+  duration_ms: 0.048667
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: invalidDelimiter
+ok 128 - unchanged GNU9.7 input and expectation: join: invalidDelimiter
+  ---
+  duration_ms: 0.041875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: missingArgument
+ok 129 - unchanged GNU9.7 input and expectation: join: missingArgument
+  ---
+  duration_ms: 0.039416
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: unknown
+ok 130 - unchanged GNU9.7 input and expectation: join: unknown
+  ---
+  duration_ms: 0.040667
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: literal files
+ok 131 - unchanged GNU9.7 input and expectation: join: literal files
+  ---
+  duration_ms: 0.0925
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 0
+ok 132 - unchanged GNU9.7 input and expectation: comm: seed 0
+  ---
+  duration_ms: 0.16
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 0
+ok 133 - unchanged GNU9.7 input and expectation: join: seed 0
+  ---
+  duration_ms: 0.225875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 0
+ok 134 - unchanged GNU9.7 input and expectation: paste: seed 0
+  ---
+  duration_ms: 0.160917
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 1
+ok 135 - unchanged GNU9.7 input and expectation: comm: seed 1
+  ---
+  duration_ms: 0.209917
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 1
+ok 136 - unchanged GNU9.7 input and expectation: join: seed 1
+  ---
+  duration_ms: 0.440209
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 1
+ok 137 - unchanged GNU9.7 input and expectation: paste: seed 1
+  ---
+  duration_ms: 0.231542
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 2
+ok 138 - unchanged GNU9.7 input and expectation: comm: seed 2
+  ---
+  duration_ms: 0.143875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 2
+ok 139 - unchanged GNU9.7 input and expectation: join: seed 2
+  ---
+  duration_ms: 0.823208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 2
+ok 140 - unchanged GNU9.7 input and expectation: paste: seed 2
+  ---
+  duration_ms: 0.336083
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 3
+ok 141 - unchanged GNU9.7 input and expectation: comm: seed 3
+  ---
+  duration_ms: 0.520875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 3
+ok 142 - unchanged GNU9.7 input and expectation: join: seed 3
+  ---
+  duration_ms: 3.239584
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 3
+ok 143 - unchanged GNU9.7 input and expectation: paste: seed 3
+  ---
+  duration_ms: 0.953916
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 4
+ok 144 - unchanged GNU9.7 input and expectation: comm: seed 4
+  ---
+  duration_ms: 0.537
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 4
+ok 145 - unchanged GNU9.7 input and expectation: join: seed 4
+  ---
+  duration_ms: 2.334333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 4
+ok 146 - unchanged GNU9.7 input and expectation: paste: seed 4
+  ---
+  duration_ms: 0.388167
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 5
+ok 147 - unchanged GNU9.7 input and expectation: comm: seed 5
+  ---
+  duration_ms: 0.329791
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 5
+ok 148 - unchanged GNU9.7 input and expectation: join: seed 5
+  ---
+  duration_ms: 0.597208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 5
+ok 149 - unchanged GNU9.7 input and expectation: paste: seed 5
+  ---
+  duration_ms: 0.250292
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 6
+ok 150 - unchanged GNU9.7 input and expectation: comm: seed 6
+  ---
+  duration_ms: 0.129333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 6
+ok 151 - unchanged GNU9.7 input and expectation: join: seed 6
+  ---
+  duration_ms: 0.586333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 6
+ok 152 - unchanged GNU9.7 input and expectation: paste: seed 6
+  ---
+  duration_ms: 0.236459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 7
+ok 153 - unchanged GNU9.7 input and expectation: comm: seed 7
+  ---
+  duration_ms: 0.235708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 7
+ok 154 - unchanged GNU9.7 input and expectation: join: seed 7
+  ---
+  duration_ms: 0.493875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 7
+ok 155 - unchanged GNU9.7 input and expectation: paste: seed 7
+  ---
+  duration_ms: 0.223334
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 8
+ok 156 - unchanged GNU9.7 input and expectation: comm: seed 8
+  ---
+  duration_ms: 0.092792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 8
+ok 157 - unchanged GNU9.7 input and expectation: join: seed 8
+  ---
+  duration_ms: 0.222208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 8
+ok 158 - unchanged GNU9.7 input and expectation: paste: seed 8
+  ---
+  duration_ms: 0.188792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 9
+ok 159 - unchanged GNU9.7 input and expectation: comm: seed 9
+  ---
+  duration_ms: 0.226
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 9
+ok 160 - unchanged GNU9.7 input and expectation: join: seed 9
+  ---
+  duration_ms: 0.5175
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 9
+ok 161 - unchanged GNU9.7 input and expectation: paste: seed 9
+  ---
+  duration_ms: 0.517583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 10
+ok 162 - unchanged GNU9.7 input and expectation: comm: seed 10
+  ---
+  duration_ms: 3.2525
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 10
+ok 163 - unchanged GNU9.7 input and expectation: join: seed 10
+  ---
+  duration_ms: 0.194333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 10
+ok 164 - unchanged GNU9.7 input and expectation: paste: seed 10
+  ---
+  duration_ms: 0.140916
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 11
+ok 165 - unchanged GNU9.7 input and expectation: comm: seed 11
+  ---
+  duration_ms: 0.182792
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 11
+ok 166 - unchanged GNU9.7 input and expectation: join: seed 11
+  ---
+  duration_ms: 0.373
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 11
+ok 167 - unchanged GNU9.7 input and expectation: paste: seed 11
+  ---
+  duration_ms: 0.277292
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 12
+ok 168 - unchanged GNU9.7 input and expectation: comm: seed 12
+  ---
+  duration_ms: 0.113833
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 12
+ok 169 - unchanged GNU9.7 input and expectation: join: seed 12
+  ---
+  duration_ms: 0.637
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 12
+ok 170 - unchanged GNU9.7 input and expectation: paste: seed 12
+  ---
+  duration_ms: 0.278667
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 13
+ok 171 - unchanged GNU9.7 input and expectation: comm: seed 13
+  ---
+  duration_ms: 0.184834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 13
+ok 172 - unchanged GNU9.7 input and expectation: join: seed 13
+  ---
+  duration_ms: 0.358
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 13
+ok 173 - unchanged GNU9.7 input and expectation: paste: seed 13
+  ---
+  duration_ms: 0.197875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 14
+ok 174 - unchanged GNU9.7 input and expectation: comm: seed 14
+  ---
+  duration_ms: 0.118625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 14
+ok 175 - unchanged GNU9.7 input and expectation: join: seed 14
+  ---
+  duration_ms: 0.292834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 14
+ok 176 - unchanged GNU9.7 input and expectation: paste: seed 14
+  ---
+  duration_ms: 0.190917
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 15
+ok 177 - unchanged GNU9.7 input and expectation: comm: seed 15
+  ---
+  duration_ms: 0.154375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 15
+ok 178 - unchanged GNU9.7 input and expectation: join: seed 15
+  ---
+  duration_ms: 0.37175
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 15
+ok 179 - unchanged GNU9.7 input and expectation: paste: seed 15
+  ---
+  duration_ms: 0.158542
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 16
+ok 180 - unchanged GNU9.7 input and expectation: comm: seed 16
+  ---
+  duration_ms: 0.142209
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 16
+ok 181 - unchanged GNU9.7 input and expectation: join: seed 16
+  ---
+  duration_ms: 1.976209
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 16
+ok 182 - unchanged GNU9.7 input and expectation: paste: seed 16
+  ---
+  duration_ms: 0.322459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 17
+ok 183 - unchanged GNU9.7 input and expectation: comm: seed 17
+  ---
+  duration_ms: 0.209417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 17
+ok 184 - unchanged GNU9.7 input and expectation: join: seed 17
+  ---
+  duration_ms: 0.291333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 17
+ok 185 - unchanged GNU9.7 input and expectation: paste: seed 17
+  ---
+  duration_ms: 0.144583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 18
+ok 186 - unchanged GNU9.7 input and expectation: comm: seed 18
+  ---
+  duration_ms: 0.096
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 18
+ok 187 - unchanged GNU9.7 input and expectation: join: seed 18
+  ---
+  duration_ms: 0.270875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 18
+ok 188 - unchanged GNU9.7 input and expectation: paste: seed 18
+  ---
+  duration_ms: 0.1455
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 19
+ok 189 - unchanged GNU9.7 input and expectation: comm: seed 19
+  ---
+  duration_ms: 0.123417
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 19
+ok 190 - unchanged GNU9.7 input and expectation: join: seed 19
+  ---
+  duration_ms: 0.206458
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 19
+ok 191 - unchanged GNU9.7 input and expectation: paste: seed 19
+  ---
+  duration_ms: 0.138708
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 20
+ok 192 - unchanged GNU9.7 input and expectation: comm: seed 20
+  ---
+  duration_ms: 0.126542
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 20
+ok 193 - unchanged GNU9.7 input and expectation: join: seed 20
+  ---
+  duration_ms: 0.367208
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 20
+ok 194 - unchanged GNU9.7 input and expectation: paste: seed 20
+  ---
+  duration_ms: 0.226459
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 21
+ok 195 - unchanged GNU9.7 input and expectation: comm: seed 21
+  ---
+  duration_ms: 0.166125
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 21
+ok 196 - unchanged GNU9.7 input and expectation: join: seed 21
+  ---
+  duration_ms: 0.280625
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 21
+ok 197 - unchanged GNU9.7 input and expectation: paste: seed 21
+  ---
+  duration_ms: 0.224875
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 22
+ok 198 - unchanged GNU9.7 input and expectation: comm: seed 22
+  ---
+  duration_ms: 0.142125
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 22
+ok 199 - unchanged GNU9.7 input and expectation: join: seed 22
+  ---
+  duration_ms: 3.855667
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 22
+ok 200 - unchanged GNU9.7 input and expectation: paste: seed 22
+  ---
+  duration_ms: 0.382375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: seed 23
+ok 201 - unchanged GNU9.7 input and expectation: comm: seed 23
+  ---
+  duration_ms: 0.236458
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: seed 23
+ok 202 - unchanged GNU9.7 input and expectation: join: seed 23
+  ---
+  duration_ms: 0.619791
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: seed 23
+ok 203 - unchanged GNU9.7 input and expectation: paste: seed 23
+  ---
+  duration_ms: 0.231084
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: whole record output list
+ok 204 - unchanged GNU9.7 input and expectation: join: whole record output list
+  ---
+  duration_ms: 0.123
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: repeated output lists
+ok 205 - unchanged GNU9.7 input and expectation: join: repeated output lists
+  ---
+  duration_ms: 0.132
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: auto then output list
+ok 206 - unchanged GNU9.7 input and expectation: join: auto then output list
+  ---
+  duration_ms: 0.159042
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: output list then auto
+ok 207 - unchanged GNU9.7 input and expectation: join: output list then auto
+  ---
+  duration_ms: 0.12675
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: incompatible delimiters
+ok 208 - unchanged GNU9.7 input and expectation: join: incompatible delimiters
+  ---
+  duration_ms: 0.068959
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: identical repeated delimiters
+ok 209 - unchanged GNU9.7 input and expectation: join: identical repeated delimiters
+  ---
+  duration_ms: 0.085583
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: header with empty left
+ok 210 - unchanged GNU9.7 input and expectation: join: header with empty left
+  ---
+  duration_ms: 0.08375
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: empty fields formatted replacement
+ok 211 - unchanged GNU9.7 input and expectation: join: empty fields formatted replacement
+  ---
+  duration_ms: 0.079667
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: large absent key
+ok 212 - unchanged GNU9.7 input and expectation: join: large absent key
+  ---
+  duration_ms: 0.083041
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: join: header empty fields
+ok 213 - unchanged GNU9.7 input and expectation: join: header empty fields
+  ---
+  duration_ms: 0.086292
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: incompatible delimiters
+ok 214 - unchanged GNU9.7 input and expectation: comm: incompatible delimiters
+  ---
+  duration_ms: 0.046834
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: comm: identical repeated delimiters
+ok 215 - unchanged GNU9.7 input and expectation: comm: identical repeated delimiters
+  ---
+  duration_ms: 0.110333
+  type: 'test'
+  ...
+# Subtest: unchanged GNU9.7 input and expectation: paste: repeated delimiters
+ok 216 - unchanged GNU9.7 input and expectation: paste: repeated delimiters
+  ---
+  duration_ms: 0.084541
+  type: 'test'
+  ...
+# Subtest: pinned GNU9.7 exact original216 native bytes
+ok 217 - pinned GNU9.7 exact original216 native bytes
+  ---
+  duration_ms: 1504.386959
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: comm: shared stdin
+ok 218 - pinned lifecycle: comm: shared stdin
+  ---
+  duration_ms: 10.018167
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: shared empty
+ok 219 - pinned lifecycle: shared empty
+  ---
+  duration_ms: 1.478958
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: shared incomplete record
+ok 220 - pinned lifecycle: shared incomplete record
+  ---
+  duration_ms: 2.963791
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: close precedes total
+ok 221 - pinned lifecycle: close precedes total
+  ---
+  duration_ms: 2.435583
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: suppression does not bypass close
+ok 222 - pinned lifecycle: suppression does not bypass close
+  ---
+  duration_ms: 1.474041
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: strict order precedes close
+ok 223 - pinned lifecycle: strict order precedes close
+  ---
+  duration_ms: 1.83775
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: disabled order still closes
+ok 224 - pinned lifecycle: disabled order still closes
+  ---
+  duration_ms: 1.991042
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: shared NUL invalid bytes
+ok 225 - pinned lifecycle: shared NUL invalid bytes
+  ---
+  duration_ms: 1.010459
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: single stdin left remains useful
+ok 226 - pinned lifecycle: single stdin left remains useful
+  ---
+  duration_ms: 1.639583
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: single stdin right remains useful
+ok 227 - pinned lifecycle: single stdin right remains useful
+  ---
+  duration_ms: 2.1825
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: same pathname separate opens
+ok 228 - pinned lifecycle: same pathname separate opens
+  ---
+  duration_ms: 0.965958
+  type: 'test'
+  ...
+# Subtest: pinned lifecycle: paste repeated stdin stays successful
+ok 229 - pinned lifecycle: paste repeated stdin stays successful
+  ---
+  duration_ms: 1.024875
+  type: 'test'
+  ...
+# Subtest: one shared cursor owns reused Buffer chunks until exhaustion
+ok 230 - one shared cursor owns reused Buffer chunks until exhaustion
+  ---
+  duration_ms: 0.229583
+  type: 'test'
+  ...
+# Subtest: producer failure wins over duplicate close
+ok 231 - producer failure wins over duplicate close
+  ---
+  duration_ms: 0.133084
+  type: 'test'
+  ...
+# Subtest: blocked shared read cancellation preserves exact errno-shaped reason
+ok 232 - blocked shared read cancellation preserves exact errno-shaped reason
+  ---
+  duration_ms: 3.963167
+  type: 'test'
+  ...
+# Subtest: blocked output applies backpressure and cancellation without duplicate-close masking
+ok 233 - blocked output applies backpressure and cancellation without duplicate-close masking
+  ---
+  duration_ms: 2.067375
+  type: 'test'
+  ...
+# Subtest: downstream EPIPE remains the actual failure
+ok 234 - downstream EPIPE remains the actual failure
+  ---
+  duration_ms: 0.30625
+  type: 'test'
+  ...
+1..234
+# tests 234
+# suites 0
+# pass 234
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1765.047166

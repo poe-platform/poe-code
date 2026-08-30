@@ -1,0 +1,232 @@
+{
+  "schema": "timeout-public-continuation-overlay/1",
+  "postCandidateInspection": true,
+  "priorRecipeSha256": "74ee8bb5c667f7b143cdbf637627f67d83eaacaa5f7cea802ed5f2e072747826",
+  "overlays": [
+    {
+      "name": "common.mjs",
+      "originalSha256": "403b7ad73caf5683fcd002b770ef4e5154e130656243e33f3ba1f2936b50e666",
+      "resultSha256": "317e7796a803443614b63e0191bfd8512f0a6b8cd8bf2b74162eae09d24fbb6e",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "  const supplemental = read(resolve(recipe, 'AUTHOR-BINDINGS.json'));",
+          "after": "  const supplemental = read(resolve(recipe, '../public-candidate-execution-v1/AUTHOR-BINDINGS.json'));\n  binding.protectedFiles.push(...read(resolve(recipe,'CONTINUATION.json')).protectedFiles);",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "admission.mjs",
+      "originalSha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6",
+      "resultSha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "preload.mjs",
+      "originalSha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18",
+      "resultSha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "supervisor.mjs",
+      "originalSha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155",
+      "resultSha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "archive.mjs",
+      "originalSha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772",
+      "resultSha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "legacy-adapter.mjs",
+      "originalSha256": "d8e830e89970e1d8bf38ee1c5468a7a747a46d9a4d1e2d5ab06a95b06275c158",
+      "resultSha256": "3ef48e5a018a90ae34fe837eb678c37e85d914d543d2379638b13a843dc64a85",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "import assert from 'node:assert/strict';",
+          "after": "import assert from 'node:assert/strict';\nimport { assertAdmission } from './boundaries.mjs';",
+          "count": 1
+        },
+        {
+          "before": "const encodeReason = value => ({ type: typeof value, text: String(value), name: value?.name, code: value?.code });",
+          "after": "const encodeReason = value => ({ type: typeof value, text: String(value), name: value?.name, code: value?.code, message:value?.message, stack:value?.stack });",
+          "count": 1
+        },
+        {
+          "before": "const waitFor = (promise, outcome, label) => Promise.race([promise, outcome.settled.then(value => assert.fail(`${label}: handler settled before required admission (${value.status})`))]);",
+          "after": "const waitFor = (promise, outcome, label) => {let admitted=false;return Promise.race([promise.then(value=>{admitted=true;return value;}),outcome.settled.then(value=>{if(!admitted)preserveDiagnostic('required-admission-settled',{label,outcome:diagnosticOutcome(value)});assert.fail(`${label}: handler settled before required admission (${value.status})`);})]);};",
+          "count": 1
+        },
+        {
+          "before": "function integrity() {",
+          "after": "const admissionRecords=[];\nasync function admitPublicPlugin(instance){\n  const record={ordinal:admissionRecords.length,script:'',markerEntered:0,sameRegistry:false,timeoutCallable:false,dispatch:[],clockBefore:clocks.map(value=>({records:value.records.length,live:value.live}))};\n  admissionRecords.push(record);let phase='setup';\n  instance.use(async(context,next)=>{record.dispatch.push({phase,command:context.command});return next();});\n  instance.use({name:'timeout-independent-public-admission-marker',setup(host){record.markerEntered++;record.sameRegistry=host.commands===instance.commands;record.timeoutCallable=typeof host.commands.get('timeout')?.execute==='function';}});\n  const outcome=await watch(instance.exec('')).settled;\n  record.outcome=diagnosticOutcome(outcome);record.clockAfter=clocks.map(value=>({records:value.records.length,live:value.live}));\n  preserveDiagnostic('plugin-admission-before-assertion',structuredClone(record));assertAdmission(record);phase='measured';return instance;\n}\n\nfunction integrity() {",
+          "count": 1
+        },
+        {
+          "before": "function returned(run, status) { assert.equal",
+          "after": "function returned(run, status) { preserveDiagnostic('handler-return-before-assertion',{expectedStatus:status,outcome:diagnosticOutcome(run.outcome)});assert.equal",
+          "count": 1
+        },
+        {
+          "before": "function rejected(run, reason) { assert.equal",
+          "after": "function rejected(run, reason) { preserveDiagnostic('handler-rejection-before-assertion',{outcome:diagnosticOutcome(run.outcome,reason)});assert.equal",
+          "count": 1
+        },
+        {
+          "before": "const instance = shell({}, timing), actual = instance.commands.get('timeout');",
+          "after": "const instance = await admitPublicPlugin(shell({}, timing)), actual = instance.commands.get('timeout');",
+          "count": 1
+        },
+        {
+          "before": "const instance = shell({}, timing); const actual = instance.commands.get('timeout');",
+          "after": "const instance = await admitPublicPlugin(shell({}, timing)); const actual = instance.commands.get('timeout');",
+          "count": 1
+        },
+        {
+          "before": "  rejected({ outcome: handler }, thrown); assert.equal(outcome.status, 'rejected');",
+          "after": "  preserveDiagnostic('PC02-shell-before-assertion',{handler:diagnosticOutcome(handler,thrown),outer:diagnosticOutcome(outcome,thrown),retirementEntered,sameSentinel:Object.is(thrown,observed),childClosed,resources:timing.live});\n  rejected({ outcome: handler }, thrown); assert.equal(outcome.status, 'rejected');",
+          "count": 1
+        },
+        {
+          "before": "export { config, receipt,",
+          "after": "export { admitPublicPlugin, admissionRecords, config, receipt,",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "runtime.mjs",
+      "originalSha256": "e86c5d64945a4158f7a2476e6eaa80063bf393f94868cbdda5fa194457d43a73",
+      "resultSha256": "f58097a631a3272e3cb6bb30df79497e94fdda74c7a7cfa3da22ce69a1749027",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "import assert from 'node:assert/strict';",
+          "after": "import assert from 'node:assert/strict';\nimport { rawInputProbe, shellInputProbe, assertRawInput, assertShellInput, assertPendingReturn } from './boundaries.mjs';",
+          "count": 1
+        },
+        {
+          "before": "import { config, receipt,",
+          "after": "import { admitPublicPlugin, admissionRecords, diagnosticOutcome, config, receipt,",
+          "count": 1
+        },
+        {
+          "before": "function exact(run, record) { returned",
+          "after": "function exact(run, record) { preserveDiagnostic('exact-raw-before-assertion',{outcome:diagnosticOutcome(run.outcome),stdoutBase64:run.stdout().toString('base64'),stderrBase64:run.stderr().toString('base64')});returned",
+          "count": 1
+        },
+        {
+          "before": "function shellExact(result, record) { assert.equal",
+          "after": "function shellExact(result, record) { preserveDiagnostic('exact-shell-before-assertion',{exitCode:result?.exitCode,stdout:result?.stdout,stderr:result?.stderr,stdoutBase64:result?.stdoutBytes===undefined?null:Buffer.from(result.stdoutBytes).toString('base64'),stderrBase64:result?.stderrBytes===undefined?null:Buffer.from(result.stderrBytes).toString('base64')});assert.equal",
+          "count": 1
+        },
+        {
+          "before": "    assertInventory(makeShell().commands.list().map(row => row.name));",
+          "after": "    assertInventory((await admitPublicPlugin(makeShell())).commands.list().map(row => row.name));",
+          "count": 1
+        },
+        {
+          "before": "handler=observeHandler(instance)",
+          "after": "handler=observeHandler(await admitPublicPlugin(instance))",
+          "count": 2
+        },
+        {
+          "before": "  async R12() {\n    for(const vector of frozenCases.find(row=>row.id==='R12').vectors){const timing=clock(),instance=makeShell({timeout:{scheduler:timing.scheduler,invoke:()=>assert.fail('fallback')}});instance.register({name:'child',execute:()=>assert.fail('invalid child')});const input={[Symbol.asyncIterator](){assert.fail('invalid stdin');}};\n      exact(await direct(aggregate({scheduler:timing.scheduler}),vector.argv,{stdin:input,invoke:()=>assert.fail('invalid invoke')}),records[vector.record]);shellExact(await instance.exec(['timeout',...vector.argv].join(' '),{stdin:input}),records[vector.record]);assert.equal(timing.records.length,0);\n      const failure={};rejected(await direct(aggregate({}),vector.argv,{stderr:{async write(){throw failure;}}}),failure);\n    }\n  },\n",
+          "after": "  async R12() {\n    const vectors=frozenCases.find(row=>row.id==='R12').vectors;\n    for(const [vectorIndex,vector] of vectors.entries()){\n      const timing=clock(),counts={child:0,fallback:0,rawInvoke:0},instance=makeShell({timeout:{scheduler:timing.scheduler,invoke:()=>{counts.fallback++;assert.fail('fallback');}}});\n      await admitPublicPlugin(instance);\n      instance.register({name:'child',execute:()=>{counts.child++;assert.fail('invalid child');}});\n      const rawProbe=rawInputProbe(),originalDefinition=aggregate({scheduler:timing.scheduler});\n      const definition=config.boundaryControl?.id==='B01'?{...originalDefinition,execute(context){context.stdin[Symbol.asyncIterator]();return originalDefinition.execute(context);}}:originalDefinition;\n      const raw=await direct(definition,vector.argv,{stdin:rawProbe.source,invoke:()=>{counts.rawInvoke++;assert.fail('invalid invoke');}});\n      preserveDiagnostic('R12-raw-before-assertion',{vectorIndex,argv:vector.argv,counts:structuredClone(rawProbe.counts),outcome:diagnosticOutcome(raw.outcome),stdoutBase64:raw.stdout().toString('base64'),stderrBase64:raw.stderr().toString('base64')});\n      assertRawInput(rawProbe.counts);exact(raw,records[vector.record]);\n      const gate=latch(),entered=latch(),probe=shellInputProbe({gate,entered,mutation:config.boundaryControl?.id});\n      if(config.boundaryControl?.id==='B02'){const original=instance.commands.get('timeout');instance.register({...original,async execute(context){await context.stdin[Symbol.asyncIterator]().next();return original.execute(context);}},{replace:true});}\n      const pending=watch(instance.exec(['timeout',...vector.argv].join(' '),{stdin:probe.source}));\n      try{await waitFor(entered.promise,pending,'STDIN_RETURN_NOT_ENTERED');}catch(error){preserveDiagnostic('R12-return-admission-failure',{vectorIndex,counts:structuredClone(probe.counts),outcome:diagnosticOutcome(pending.snapshot()),error:encodeReason(error)});throw error;}await tick();\n      preserveDiagnostic('R12-shell-before-release',{vectorIndex,argv:vector.argv,counts:structuredClone(probe.counts),outcome:diagnosticOutcome(pending.snapshot()),dispatchCounts:{...counts},timerEvents:timing.records.length});\n      assertShellInput(probe.counts);assertPendingReturn(pending.snapshot().status);assert.deepEqual(counts,{child:0,fallback:0,rawInvoke:0});assert.equal(timing.records.length,0);\n      gate.resolve();const completed=await pending.settled;\n      preserveDiagnostic('R12-shell-before-assertion',{vectorIndex,argv:vector.argv,counts:structuredClone(probe.counts),outcome:diagnosticOutcome(completed),dispatchCounts:{...counts},timerEvents:timing.records.length});\n      assert.equal(completed.status,'fulfilled');shellExact(completed.value,records[vector.record]);assertShellInput(probe.counts,{closed:true});assert.deepEqual(counts,{child:0,fallback:0,rawInvoke:0});assert.equal(timing.records.length,0);\n      const failure={},stderrProbe=rawInputProbe(),stderrRun=await direct(aggregate({}),vector.argv,{stdin:stderrProbe.source,stderr:{async write(){throw failure;}}});\n      preserveDiagnostic('R12-stderr-before-assertion',{vectorIndex,counts:structuredClone(stderrProbe.counts),outcome:diagnosticOutcome(stderrRun.outcome,failure)});assertRawInput(stderrProbe.counts);rejected(stderrRun,failure);\n      preserveDiagnostic('R12-vector-complete',{vectorIndex,argv:vector.argv,rawCounts:structuredClone(rawProbe.counts),stderrRawCounts:structuredClone(stderrProbe.counts),shellCounts:structuredClone(probe.counts),dispatchCounts:{...counts},timerEvents:timing.records.length});\n    }\n  },\n",
+          "count": 1
+        },
+        {
+          "before": "assert.ok(Object.hasOwn(cases,config.caseId));",
+          "after": "assert.ok(Object.hasOwn(cases,config.caseId));assert.ok([\"R01\",\"R12\",\"R21\",\"R23\",\"R24\",\"R25\",\"R28\",\"R29\"].includes(config.caseId),'NARROW_CONTINUATION_ONLY');",
+          "count": 1
+        },
+        {
+          "before": "await cases[config.caseId]();await tick();result.status='PASS';",
+          "after": "await cases[config.caseId]();preserveDiagnostic('continuation-family-tail',{id:config.caseId,completed:true});await tick();result.status='PASS';",
+          "count": 1
+        },
+        {
+          "before": "  result.integrity='UNCHANGED';",
+          "after": "  result.pluginAdmissions=admissionRecords;preserveDiagnostic('plugin-admissions-final',{records:admissionRecords});result.integrity='UNCHANGED';",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "execute.mjs",
+      "originalSha256": "f4460b3cf3b7040d09c0d800a9cc042b0afd032bc3d590366f5a90944fc85c85",
+      "resultSha256": "0f396dd1be979d0ab8741ee795c938c7b6e89a7977b2a062a11cd9bb81b83124",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "import { qualifyType } from './type-trace.mjs';\n",
+          "after": "",
+          "count": 1
+        },
+        {
+          "before": "import { consumers, compilerOptions } from '../public-integration-freeze-v1/types.mjs';\n",
+          "after": "",
+          "count": 1
+        },
+        {
+          "before": "import { freshControls, packageNegatives } from './negative-protocol.mjs';\n",
+          "after": "",
+          "count": 1
+        },
+        {
+          "before": "const boundAuthor=read(resolve(recipe,'AUTHOR-BINDINGS.json'));",
+          "after": "const boundAuthor=read(resolve(recipe,'../public-candidate-execution-v1/AUTHOR-BINDINGS.json'));",
+          "count": 1
+        },
+        {
+          "before": "const guarded=new Map();",
+          "after": "const continuation=read(resolve(recipe,'CONTINUATION.json'));assert.deepEqual(continuation.selected,[\"R01\",\"R12\",\"R21\",\"R23\",\"R24\",\"R25\",\"R28\",\"R29\"]);assert.equal(continuation.candidate,request.candidate);const selectedCases=runtimeCases.filter(row=>continuation.selected.includes(row.id));assert.equal(selectedCases.length,8);const priorResult=read(resolve(repository,continuation.priorResultPath));assert.equal(fileHash(resolve(repository,continuation.priorResultPath)),continuation.priorResultSha256);\nconst guarded=new Map();",
+          "count": 1
+        },
+        {
+          "before": "mutants:[],admission:[]",
+          "after": "mutants:[],boundaryControls:[],admission:[]",
+          "count": 1
+        },
+        {
+          "before": "async function runtime(profile,productRoot,consumer,caseId,mutation){",
+          "after": "async function runtime(profile,productRoot,consumer,caseId,mutation,boundaryControl){",
+          "count": 1
+        },
+        {
+          "before": "profile==='source'||mutation",
+          "after": "profile==='source'||mutation||boundaryControl",
+          "count": 2
+        },
+        {
+          "before": "...(mutation?{intentionalMutation:mutation}:{})",
+          "after": "...(mutation?{intentionalMutation:mutation}:{}),...(boundaryControl?{boundaryControl}:{})",
+          "count": 1
+        },
+        {
+          "before": "if(mutation.id==='M06')",
+          "after": "if(mutation.id==='M07'){const observation=captured.observations.find(row=>row.kind==='PC01-boundaries');assert.ok(observation);assert.deepEqual(observation.dispatch,{timeout:1,child:1,outer:0});assert.equal(observation.sameCallerSentinel,true);assert.equal(observation.sameHandlerSignalReason,true);assert.equal(observation.beforeRelease.handler.status,'pending');assert.equal(observation.beforeRelease.outer.status,'pending');assert.equal(observation.handler.status,'fulfilled');assert.equal(observation.handler.exitCode,124);assert.equal(observation.outer.status,'rejected');assert.equal(observation.outer.sameSentinel,true);assert.equal(observation.childClosed,true);assert.equal(observation.resources,0);}if(mutation.id==='M06')",
+          "count": 1
+        },
+        {
+          "before": "  else{assert.equal(result.code,captured.status==='PASS'?0:1);state.runtime.push(captured);}",
+          "after": "  else if(boundaryControl){const record={id:boundaryControl.id,status:'KILLED',caseId,result:captured};try{assert.equal(result.code,1);assert.equal(captured.status,'FAIL');assert.ok(captured.failure.text.includes(boundaryControl.failure),'WRONG_BOUNDARY_MUTANT_FAILURE');const observation=captured.observations.find(row=>row.kind===(boundaryControl.id==='B01'?'R12-raw-before-assertion':boundaryControl.id==='B03'?'R12-return-admission-failure':'R12-shell-before-release'));assert.ok(observation,'ACTUAL_BOUNDARY_OBSERVATION');if(boundaryControl.id==='B01'){assert.equal(observation.counts.acquire,1);assert.equal(observation.counts.next,0);}if(boundaryControl.id==='B02'){assert.equal(observation.counts.next,1);assert.equal(observation.counts.contentBytes,1);}if(boundaryControl.id==='B03'){assert.equal(observation.counts.acquire,1);assert.equal(observation.counts.returned,0);}if(boundaryControl.id==='B04'){assert.equal(observation.counts.returned,1);assert.equal(observation.counts.settled,1);}}catch(error){record.status='FAIL';record.failure=reason(error);}state.boundaryControls.push(record);}\n  else{assert.equal(result.code,captured.status==='PASS'?0:1);state.runtime.push(captured);}",
+          "count": 1
+        },
+        {
+          "before": "async function types(profile,consumer,packageRoot){\n  for(const spec of consumers){\n    const filename=resolve(consumer,'consumer.ts'),configPath=resolve(consumer,'tsconfig.json');\n    if(fs.existsSync(filename))fs.unlinkSync(filename);if(fs.existsSync(configPath))fs.unlinkSync(configPath);\n    write(filename,spec.source);save(configPath,{compilerOptions:{...compilerOptions,typeRoots:[resolve(work,'dependencies/node_modules/@types')]},files:['consumer.ts']});\n    const result=await tool(`${profile}-${spec.id}`,tools.compiler,['--pretty','false','-p',configPath],consumer,10000);\n    const record={id:spec.id,profile,status:'PASS',rawDirectory:relative(recipe,result.directory),exitCode:result.code};\n    try{record.trace=qualifyType(result,spec,{packageRoot,packageFiles:request.packageFiles,consumerPath:filename,configPath,configHash:fileHash(configPath),consumerPackagePath:resolve(consumer,'package.json'),consumerPackageHash:fileHash(resolve(consumer,'package.json')),toolMap:tools.toolMap,compilerHash:tools.toolMap[resolve(work,'tools/typescript/lib/_tsc.js')]});}catch(error){record.status='FAIL';record.failure=reason(error);if(/UNBOUND_TYPE_READ|DECLARATION_HASH|TYPE_NONDECLARATION_PRODUCT_READ/u.test(error.message)){save(resolve(raw,`${profile}-${spec.id}-TRACE-STOP.json`),record);throw error;}}\n    state.types.push(record);save(resolve(raw,`${profile}-${spec.id}-qualified.json`),record);\n  }\n}\n\ntry{\n  guard('BEFORE_ADMISSION');\n  const controlRoot=resolve(work,'fresh-controls');const controls=freshControls(controlRoot);state.admission.push({id:'A02',status:'PASS',controls});guarded.set(controlRoot,inventory(controlRoot));\n  source=resolve(work,'source');const materialized=materializeInputs(binding,request,source,state.git);state.admission.push({id:'A01',status:'PASS',...materialized.proof});\n  for(const row of materialized.inputs)sourceReadMap.set(resolve(source,row.path),row.sha256);\n  tools=materializeTools(binding,work);guarded.set(resolve(work,'tools'),inventory(resolve(work,'tools')));guarded.set(resolve(work,'dependencies'),inventory(resolve(work,'dependencies')));\n  save(resolve(raw,'PRE-RUN-BINDINGS.json'),{requestHash,preparationSha256:request.preparationSha256,inputs:materialized.inputs,tools:{regular:tools.regular,aliases:tools.aliases},pristineAndPatchedHashAuthenticated:true});\n  const build=await tool('build',tools.compiler,['-p','tsconfig.build.json','--typeRoots',resolve(work,'dependencies/node_modules/@types')],source);assert.equal(build.code,0);assert.equal(build.stderr,'');\n  sameInventory(inventory(source).filter(row=>!row.path.startsWith('dist/')),materialized.inputs);\n  const destination=resolve(work,'pack');fs.mkdirSync(destination);const packed=await tool('pack',tools.npm,['pack','--ignore-scripts','--json','--pack-destination',destination],source);assert.equal(packed.code,0);packFile=resolve(destination,safe(JSON.parse(packed.stdout)[0].filename));assert.equal(fileHash(packFile),request.pack.sha256,'EXACT_WHOLE_PACK_REPRODUCTION');\n  const members=tarEntries(fs.readFileSync(packFile),true).map(row=>{assert.ok(row.path.startsWith('package/'));return {...row,path:row.path.slice(8)};});sameInventory(members,request.packageFiles);state.admission.push({id:'A03',status:'PASS',wholePackSha256:fileHash(packFile),members:members.length});\n  guarded.set(source,inventory(source));\n  const installed=resolve(work,'installed');fs.mkdirSync(installed);save(resolve(installed,'package.json'),{private:true,type:'module'});\n  const installation=await tool('install',tools.npm,['install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--save-exact',packFile],installed);assert.equal(installation.code,0);\n  const packageRoot=resolve(installed,'node_modules/virtual-bash');sameInventory(inventory(packageRoot),request.packageFiles);guarded.set(packageRoot,inventory(packageRoot));\n  const sourceConsumer=resolve(work,'source-consumer');fs.mkdirSync(sourceConsumer);save(resolve(sourceConsumer,'package.json'),{private:true,type:'module'});\n  for(const row of runtimeCases)await runtime('source',source,sourceConsumer,row.id);\n  for(const row of runtimeCases)await runtime('installed',packageRoot,installed,row.id);await types('installed',installed,packageRoot);\n  const moved=resolve(work,'moved');guarded.delete(packageRoot);fs.renameSync(installed,moved);assert.equal(fs.existsSync(installed),false);const movedPackage=resolve(moved,'node_modules/virtual-bash');sameInventory(inventory(movedPackage),request.packageFiles);guarded.set(movedPackage,inventory(movedPackage));\n  for(const row of runtimeCases)await runtime('moved',movedPackage,moved,row.id);await types('moved',moved,movedPackage);\n  state.admission.push({id:'A04',status:'PASS',physicallyMoved:true,oldInstallAbsent:true});\n  state.negatives=await packageNegatives({work,raw,packageRoot:movedPackage,packageFiles:request.packageFiles,candidate:request.candidate,child,tool,compiler:tools.compiler,compilerTypeRoots:resolve(work,'dependencies/node_modules/@types'),toolMap:tools.toolMap,helperLoads,guarded});\n  state.admission.push({id:'A05',status:state.types.length===20&&state.types.every(row=>row.status==='PASS')?'PASS':'FAIL',typeOutcomes:state.types.length});\n  state.admission.push({id:'A06',status:state.negatives.length===7&&state.negatives.every(row=>row.status==='PASS')?'PASS':'FAIL',negativeOutcomes:state.negatives.length});\n  for(const mutation of request.mutants){\n    const mutant=resolve(work,mutation.id);fs.mkdirSync(mutant);for(const row of materialized.inputs){const target=resolve(mutant,row.path),original=materialized.bodies.get(row.path);write(target,row.path===mutation.path?applyMutant(original,mutation):original);fs.chmodSync(target,parseInt(row.mode,8)&511);}guarded.set(mutant,inventory(mutant));\n    const consumer=resolve(work,`${mutation.id}-consumer`);fs.mkdirSync(consumer);save(resolve(consumer,'package.json'),{private:true,type:'module'});await runtime(mutation.id,mutant,consumer,mutation.caseId,mutation);\n  }\n  state.admission.push({id:'A07',status:state.mutants.length===8&&state.mutants.every(row=>row.status==='KILLED')?'PASS':'FAIL',mutants:state.mutants.length});\n  state.admission.push({id:'A08',status:'PASS',allRecordedChildrenReaped:state.children.every(row=>row.reaped),perCaseClosure:true});\n  state.status=state.runtime.length===90&&state.runtime.every(row=>row.status==='PASS')&&state.admission.length===8&&state.admission.every(row=>row.status==='PASS')?'SCOPED_PUBLIC_TIMEOUT_PROOF_PASSED':'SCOPED_PUBLIC_TIMEOUT_FINDINGS';if(state.status!=='SCOPED_PUBLIC_TIMEOUT_PROOF_PASSED')process.exitCode=1;\n}catch(error){state.status='STOP_NO_RETRY';state.failure=reason(error);process.exitCode=1;}\nfinally{\n  try{guard('FINAL');for(const row of state.children)if(row.pid)absent(row.pid);state.allChildrenReaped=true;}catch(error){state.status='STOP_NO_RETRY';state.finalFailure=reason(error);process.exitCode=1;}\n  state.finishedAt=new Date().toISOString();state.unexecutedRuntime=['source','installed','moved'].flatMap(profile=>runtimeCases.filter(row=>!state.runtime.some(done=>done.profile===profile&&done.id===row.id)).map(row=>`${profile}:${row.id}`));state.unexecutedTypes=['installed','moved'].flatMap(profile=>consumers.filter(row=>!state.types.some(done=>done.profile===profile&&done.id===row.id)).map(row=>`${profile}:${row.id}`));\n  if(state.allChildrenReaped)try{state.archive=archiveEvidence({run,raw,work,children:state.children,remove:state.status!=='STOP_NO_RETRY'});}catch(error){state.status='STOP_NO_RETRY';state.archiveFailure=reason(error);process.exitCode=1;}\n  state.unexecutedAdmission=['A01','A02','A03','A04','A05','A06','A07','A08'].filter(id=>!state.admission.some(row=>row.id===id));state.unexecutedNegatives=['N01','N02','N03','N04','N05','N06','N07'].filter(id=>!state.negatives.some(row=>row.id===id));state.unexecutedMutants=request.mutants.filter(row=>!state.mutants.some(done=>done.id===row.id)).map(row=>row.id);\n  save(resolve(run,'RESULT.json'),state);console.log(JSON.stringify({status:state.status,runtime:state.runtime.length,types:state.types.length,mutants:state.mutants.length,reaped:state.allChildrenReaped,publicAcceptance:false}));\n}\n",
+          "after": "try{\n  guard('BEFORE_ADMISSION');\n  const focused=read(resolve(recipe,'FOCUSED-CONTROLS.json'));assert.equal(focused.manifestSha256,request.preparationSha256);assert.equal(focused.requestSha256,requestHash);assert.equal(focused.passed,18);assert.equal(focused.failed,0);\n  source=resolve(work,'source');const materialized=materializeInputs(binding,request,source,state.git);state.admission.push({id:'A01-fresh',status:'PASS',...materialized.proof});\n  for(const row of materialized.inputs)sourceReadMap.set(resolve(source,row.path),row.sha256);\n  tools=materializeTools(binding,work);guarded.set(resolve(work,'tools'),inventory(resolve(work,'tools')));guarded.set(resolve(work,'dependencies'),inventory(resolve(work,'dependencies')));\n  save(resolve(raw,'PRE-RUN-BINDINGS.json'),{requestHash,preparationSha256:request.preparationSha256,inputs:materialized.inputs,tools:{regular:tools.regular,aliases:tools.aliases},pristineAndPatchedHashAuthenticated:true,continuation});\n  const build=await tool('build',tools.compiler,['-p','tsconfig.build.json','--typeRoots',resolve(work,'dependencies/node_modules/@types')],source);assert.equal(build.code,0);assert.equal(build.stderr,'');\n  sameInventory(inventory(source).filter(row=>!row.path.startsWith('dist/')),materialized.inputs);\n  const destination=resolve(work,'pack');fs.mkdirSync(destination);const packed=await tool('pack',tools.npm,['pack','--ignore-scripts','--json','--pack-destination',destination],source);assert.equal(packed.code,0);packFile=resolve(destination,safe(JSON.parse(packed.stdout)[0].filename));assert.equal(fileHash(packFile),request.pack.sha256,'EXACT_WHOLE_PACK_REPRODUCTION');\n  const members=tarEntries(fs.readFileSync(packFile),true).map(row=>{assert.ok(row.path.startsWith('package/'));return {...row,path:row.path.slice(8)};});sameInventory(members,request.packageFiles);state.admission.push({id:'A03-fresh',status:'PASS',wholePackSha256:fileHash(packFile),members:members.length});\n  guarded.set(source,inventory(source));\n  const installed=resolve(work,'installed');fs.mkdirSync(installed);save(resolve(installed,'package.json'),{private:true,type:'module'});\n  const installation=await tool('install',tools.npm,['install','--offline','--ignore-scripts','--no-audit','--no-fund','--package-lock=false','--save-exact',packFile],installed);assert.equal(installation.code,0);\n  const packageRoot=resolve(installed,'node_modules/virtual-bash');sameInventory(inventory(packageRoot),request.packageFiles);guarded.set(packageRoot,inventory(packageRoot));\n  const sourceConsumer=resolve(work,'source-consumer');fs.mkdirSync(sourceConsumer);save(resolve(sourceConsumer,'package.json'),{private:true,type:'module'});\n  for(const row of selectedCases)await runtime('source',source,sourceConsumer,row.id);\n  for(const row of selectedCases)await runtime('installed',packageRoot,installed,row.id);\n  const moved=resolve(work,'moved');guarded.delete(packageRoot);fs.renameSync(installed,moved);assert.equal(fs.existsSync(installed),false);const movedPackage=resolve(moved,'node_modules/virtual-bash');sameInventory(inventory(movedPackage),request.packageFiles);guarded.set(movedPackage,inventory(movedPackage));\n  for(const row of selectedCases)await runtime('moved',movedPackage,moved,row.id);\n  state.admission.push({id:'A04-fresh',status:'PASS',physicallyMoved:true,oldInstallAbsent:true});\n  const mutation=request.mutants.find(row=>row.id==='M07');assert.deepEqual(mutation,continuation.productMutant);\n  const mutant=resolve(work,'M07');fs.mkdirSync(mutant);for(const row of materialized.inputs){const target=resolve(mutant,row.path),original=materialized.bodies.get(row.path);write(target,row.path===mutation.path?applyMutant(original,mutation):original);fs.chmodSync(target,parseInt(row.mode,8)&511);}guarded.set(mutant,inventory(mutant));\n  const mutantConsumer=resolve(work,'M07-consumer');fs.mkdirSync(mutantConsumer);save(resolve(mutantConsumer,'package.json'),{private:true,type:'module'});await runtime('M07',mutant,mutantConsumer,mutation.caseId,mutation);\n  for(const boundaryControl of continuation.boundaryControls){const consumer=resolve(work,`${boundaryControl.id}-consumer`);fs.mkdirSync(consumer);save(resolve(consumer,'package.json'),{private:true,type:'module'});await runtime(boundaryControl.id,source,consumer,'R12',undefined,boundaryControl);}\n  state.boundProof={priorEvidenceCommit:continuation.priorEvidenceCommit,priorResultSha256:continuation.priorResultSha256,runtimePerLayout:22,typeOutcomes:20,packageNegatives:7,freshControls:6,priorProductMutantKills:7,notRerun:true};\n  state.admission.push({id:'A07-composed',status:state.mutants.length===1&&state.mutants[0].status==='KILLED'?'PASS':'FAIL',boundPriorKills:7,newMutants:state.mutants.length});\n  state.admission.push({id:'A08-new',status:'PASS',allRecordedChildrenReaped:state.children.every(row=>row.reaped),perCaseClosure:true});\n  state.composedRuntime=Object.fromEntries(['source','installed','moved'].map(profile=>{const oldIds=priorResult.runtime.filter(row=>row.profile===profile&&row.status==='PASS').map(row=>row.id),newIds=state.runtime.filter(row=>row.profile===profile&&row.status==='PASS').map(row=>row.id);assert.equal(new Set([...oldIds,...newIds]).size,oldIds.length+newIds.length,'NO_OLD_RESCORE');return[profile,{bound:oldIds.length,newQualified:newIds.length,qualified:oldIds.length+newIds.length}];}));\n  state.status=state.runtime.length===24&&state.runtime.every(row=>row.status==='PASS')&&state.mutants.length===1&&state.mutants[0].status==='KILLED'&&state.boundaryControls.length===4&&state.boundaryControls.every(row=>row.status==='KILLED')?'COMPOSED_SCOPED_PUBLIC_TIMEOUT_PROOF_PASSED':'SCOPED_PUBLIC_TIMEOUT_CONTINUATION_FINDINGS';\n  if(state.status!=='COMPOSED_SCOPED_PUBLIC_TIMEOUT_PROOF_PASSED')process.exitCode=1;\n}catch(error){state.status='STOP_NO_RETRY';state.failure=reason(error);process.exitCode=1;}\nfinally{\n  try{guard('FINAL');for(const row of state.children)if(row.pid)absent(row.pid);state.allChildrenReaped=true;}catch(error){state.status='STOP_NO_RETRY';state.finalFailure=reason(error);process.exitCode=1;}\n  state.finishedAt=new Date().toISOString();state.unexecutedRuntime=['source','installed','moved'].flatMap(profile=>selectedCases.filter(row=>!state.runtime.some(done=>done.profile===profile&&done.id===row.id)).map(row=>`${profile}:${row.id}`));\n  state.typesNotRerun=20;state.priorSuccessfulRuntimeNotRerun=66;state.unexecutedMutants=state.mutants.length?[]:['M07'];state.unexecutedBoundaryControls=continuation.boundaryControls.filter(row=>!state.boundaryControls.some(done=>done.id===row.id)).map(row=>row.id);\n  if(state.allChildrenReaped)try{state.archive=archiveEvidence({run,raw,work,children:state.children,remove:state.status!=='STOP_NO_RETRY'});}catch(error){state.status='STOP_NO_RETRY';state.archiveFailure=reason(error);process.exitCode=1;}\n  save(resolve(run,'RESULT.json'),state);console.log(JSON.stringify({status:state.status,runtime:state.runtime.length,mutants:state.mutants.length,boundaryControls:state.boundaryControls.length,reaped:state.allChildrenReaped,publicAcceptance:false}));\n}\n",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

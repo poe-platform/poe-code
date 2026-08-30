@@ -1,0 +1,12 @@
+{
+  "id": "C02-v2-source",
+  "expected": "ACCEPT",
+  "value": {
+    "receiptHash": "0b2a4bb3f6e7ff878f6c17f2237363811376edc1fbcdd5aa7499759705ecd170",
+    "sourceFiles": 271,
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "packageFiles": null
+  },
+  "error": null,
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

@@ -1,0 +1,4 @@
+import { parentPort } from "node:worker_threads";
+await import("file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js");
+parentPort.postMessage({ authorPrerequisite: "import-complete", workerUrl: "file:///private/tmp/safe-bash-owned-output-built-legacy-a_x4yi9h/candidate/dist/commands/regex-execution/worker.js" });
+parentPort.close();

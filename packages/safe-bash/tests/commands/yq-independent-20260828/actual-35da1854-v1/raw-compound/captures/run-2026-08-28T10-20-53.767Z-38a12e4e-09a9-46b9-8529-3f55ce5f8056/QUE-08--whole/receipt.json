@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "jobId": "QUE-08--whole",
+  "outcome": "CAPTURED",
+  "proofRole": "direct-compiled-factory-handler-not-public-package",
+  "binding": {
+    "authorizationSha256": "3d9feb48d8c9b408a998ff3c4e5ede37164f7635a07bb1555411dbde86fe66ce",
+    "sealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+    "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "sourceTreeSha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+    "compiledEntrySha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+    "jobsSha256": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27"
+  },
+  "capture": {
+    "stdoutHex": "",
+    "stderrHex": "79713a2071756572793a2051554552595f52554e54494d455f4641494c4544206174203c737464696e3e0a",
+    "effects": {
+      "before": [],
+      "after": []
+    },
+    "events": [
+      {
+        "index": 0,
+        "kind": "command-call"
+      },
+      {
+        "index": 1,
+        "kind": "register-cleanup"
+      },
+      {
+        "index": 2,
+        "kind": "iterator-acquire",
+        "name": "<stdin>"
+      },
+      {
+        "index": 3,
+        "kind": "iterator-next",
+        "name": "<stdin>",
+        "offset": 0
+      },
+      {
+        "index": 4,
+        "kind": "iterator-next",
+        "name": "<stdin>",
+        "offset": 1
+      },
+      {
+        "index": 5,
+        "kind": "sink-write",
+        "name": "stderr",
+        "bytes": 43
+      },
+      {
+        "index": 6,
+        "kind": "command-return",
+        "status": 5
+      }
+    ],
+    "status": 5,
+    "rejected": false,
+    "rejection": null,
+    "cleanupErrors": []
+  }
+}

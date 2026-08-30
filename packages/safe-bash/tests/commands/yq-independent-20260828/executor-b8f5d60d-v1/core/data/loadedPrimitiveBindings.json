@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "role": "EXISTING_LOADED_CONTROL_PRIMITIVES_ONLY",
+  "recordF01Unaffected": true,
+  "originalPredicateSha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88",
+  "sourceCommit": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+  "witnesses": [
+    {
+      "id": "UTF-22--whole",
+      "sha256": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-02--single-byte",
+      "sha256": "400ed7ad2fb3e25654b6a1f3856db9771f849c559316e762dc3c9194f54ef716",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-03--whole",
+      "sha256": "7e4641b06cf5e451e25a966b06e3bc4d64568b46116a9ee24d85bca6c5601041",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-04--whole",
+      "sha256": "760421327aa9dcb1f18aff118df2b82d36cb55a3fe9edfdeb229cc7abb9800c0",
+      "fullRecordPass": false
+    }
+  ],
+  "scope": "Evaluate only already-declared primitive predicates for four presealed control witnesses after full v2 obligations receipt; UTF22 natural-language obligation remains INCOMPLETE, never runtime/full-record PASS. No changed expected bytes or extra invocation."
+}

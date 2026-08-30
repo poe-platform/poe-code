@@ -1,0 +1,40 @@
+{
+  "executable": "npm",
+  "args": [
+    "run",
+    "typecheck"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/source",
+  "pid": 95321,
+  "status": 2,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 4986,
+  "timeoutMs": 180000,
+  "outputBytes": 958,
+  "observed": [
+    {
+      "pid": 95321,
+      "parent": 94682,
+      "group": 95321,
+      "born": "Thu Aug 27 00:41:35 2026",
+      "command": "npm"
+    },
+    {
+      "pid": 95368,
+      "parent": 95321,
+      "group": 95321,
+      "born": "Thu Aug 27 00:41:35 2026",
+      "command": "/bin/sh /private/tmp/full-gate-execution-1tkDXu/source/node_modules/.bin/tsc --noEmit"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "typecheck",
+  "sourceChanges": []
+}

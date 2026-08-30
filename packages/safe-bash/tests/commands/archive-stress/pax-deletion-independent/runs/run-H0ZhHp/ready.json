@@ -1,0 +1,1098 @@
+{
+  "schema": 1,
+  "status": "READY",
+  "author": "01a0409f-da83-78f0-ab8c-8daa6f96e883",
+  "created": "2026-08-27T04:23:57.178Z",
+  "authorHandoff": "/tmp/safe-bash-pax-deletion-author-detail.txt; /tmp/safe-bash-pax-deletion-author-result.txt",
+  "rootAuthorization": "NARROW ROOTDISPOSITION+FINALRERUN authorized, sameownNEWpax-deletion-independent only; SOURCE/AUTHOR/HISTORYimmutable. Read /tmp/safe-bash-pax-deletion-oracle-question-detail.txt (differentprimaryresearchleaf completed). APPROVE D07 mutation8 ONLY oraclecorrection: no neweagerall-numeric-historypolicy. Currentapprovedeffective-onlynumericsemantics persists; POSIXdoesNOTmandateacceptanceofmalformedprevious1e3, but strictrejectionalsoNOTouragreedprofile; BOTHbaselineandpatchacceptshadowed1e3 butrejecteffective1e3 measuredbyyou. Replace ONLY universalrejection expectation withpositive finaltombstone check deterministicnormaltime+exactbytes/namespace/sentinel+no archivedrestoration. Retain/addexplicit effective1e3 rejection, allframing/UTF8/NUL/unknowncriticalempty/BINARYshadowed/unsafe-effective/sizebudget vectors. Preservefirst5/7rawOPENREPORT, appendfinaldifferentdoc; D04non-octal correctionapproved withvalidFF=-1controlifcheap. No sourcechanges. Approve runnerguard correction ONLYexplicitgeneratedinput/outputsplit: actualcompiler52distdeclarations maybecurrentcountdifferent; derivevalidatedbuildoutDir/config, recordexactinitialgeneratedtypedinputset/hashes, checkALLnongeneratedinputsunchanged andfullinputsunchangedBEFOREbuild, allowbuildphase mutateONLYdeclaredoutputpaths withbef/aftfullhashset andlabeloutputchangesnotallinputsstable. DoNOTignorearbitrarydrift orfakeglobalinputequivalence; keepinitialdriverexit1/5changeddeclarations/1859stablehistory. Runactualglobaltypecheck prebuild AND postbuild ifneededtodistinguishstaleoutputs; preservebothactualstatuses. UnownedTS2769 shelltestremainsOPENifpresent; DONOTfixorwaive/fullgreenclaim. Ifnewlivefixed capturethatotherownerfiledeltaandnewfreezeexplicitly, neverbackdatefirstsnapshot. Source10authorhashesunchanged; rerunFULLfrozencorrected177+12+7 andliterallegacy/historical/built4/scoped/global/build asplanned. Need finalcohortall7 executeincludinglaterD07vectors. Ifglobalalonefails, report OWNEDARCHIVEACCEPTED/GLOBALOPEN withdriverexit1—notallgatesgreen; rootcancommitcoherentownedfixafterhonestscopedtestpasses withouttouchingglobaltest. No morebreadth/native research. PreservecurrentOPENREPORT/runs andrawinitial5/7; append FINAL-REVIEW/ACCEPTANCE withexactprofilecounts/seals/hashes/guardtypes; copytinyprimaryquestionreportdurablyifhelpful. Finalrootreviewreadysourceandownedpathmanifestforcommit, no stage/commituntilapproval; return /tmp/safe-bash-pax-deletion-verifier-acceptance-detail.txt and concise earlycheckpoint. Boundedfinish afterthisrerun, no moreunrelatedcaptureinvestigation. No sourcefixunlessactualnewrepro reportroot.",
+  "head": "29351b3a0554ac08b2514c97548d7171afce7355",
+  "gitState": {
+    "head": "29351b3a0554ac08b2514c97548d7171afce7355",
+    "status": "M src/commands/archive/README.md\n M src/commands/archive/extract.ts\n M src/commands/archive/format.ts\n M tests/commands/archive/options.test.ts\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/STATIC.md\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/common.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation-common.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/correction-audit.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/publisher-probe.txt\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/after.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/before.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/harness/common.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/harness/replay.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/publication-failure.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/alias-positive.baseline.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/alias-positive.ours.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/builtin-positive.baseline.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/builtin-positive.ours.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/curl-positive.baseline.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/curl-positive.ours.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/printf-positive.baseline.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/printf-positive.ours.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/terminal-byte-control.baseline.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/terminal-byte-control.ours.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/vfs-census-control.baseline.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/raw/vfs-census-control.ours.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/replay/results.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/report.mjs\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/static-attempt-001.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/static-attempt-002.json\n?? benchmarks/reports/baseline-only-20260827/coverage-review/measured/static-audit.mjs\n?? tests/commands/archive-stress/pax-deletion-evidence/README.md\n?? tests/commands/archive-stress/pax-deletion-evidence/options.original.ts.txt\n?? tests/commands/archive-stress/pax-deletion-evidence/run.mjs\n?? tests/commands/archive-stress/pax-deletion-evidence/runs.json\n?? tests/commands/archive-stress/pax-deletion-evidence/tsconfig.scope.json\n?? tests/commands/archive-stress/pax-deletion-independent/README.md\n?? tests/commands/archive-stress/pax-deletion-independent/REPORT.md\n?? tests/commands/archive-stress/pax-deletion-independent/controls.test.ts\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/d04-corrected.json\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/diagnostics.json\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/native-profiles.json\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/native-profiles.mjs\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/oracle-question-detail.txt\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/postflight.json\n?? tests/commands/archive-stress/pax-deletion-independent/evidence/primary-source-manifest.json\n?? tests/commands/archive-stress/pax-deletion-independent/helpers.ts\n?? tests/commands/archive-stress/pax-deletion-independent/reproduce.mjs\n?? tests/commands/archive-stress/pax-deletion-independent/run.mjs\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/author-new-deletion/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/author-new-deletion/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-mtime-profile-control.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-mtime-profile-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-mtime-profile-times.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-gzip-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-gzip-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-plain-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-plain-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-plain-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-plain-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-mtime-profile-control.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-mtime-profile-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-mtime-profile-times.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-BSD-fixed.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-BSD-sidecar.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-GNU-fixed.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-GNU-sidecar.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-independent.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-independent.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-in.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-out.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-in.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-out.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-author128/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-author128/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-wiring1/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-wiring1/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/bsd-version/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/bsd-version/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/built4/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/built4/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-mtime-profile-control.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-mtime-profile-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-mtime-profile-times.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-gzip-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-gzip-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-plain-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-plain-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-gzip-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-gzip-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-plain-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-plain-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-mtime-profile-control.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-mtime-profile-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-mtime-profile-times.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-BSD-fixed.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-BSD-sidecar.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-GNU-fixed.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-GNU-sidecar.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-independent.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-native.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-independent.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-native.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-BSD-in.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-BSD-out.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-GNU-in.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-GNU-out.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-author128/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-author128/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-wiring1/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-wiring1/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/evidence.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-build/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-build/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-frozen-before.stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-frozen-before.stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-live-before.stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-live-before.stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-typecheck/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-typecheck/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/gnu-version/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/gnu-version/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/historical-observation-control/resolved-imports.jsonl\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/historical-observation-control/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/historical-observation-control/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/independent-new-deletion7/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/independent-new-deletion7/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-mtime-profile-control.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-mtime-profile-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-mtime-profile-times.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-gzip-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-gzip-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-plain-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-plain-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-plain-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-plain-presentation-control.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-default-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-default-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-pax-gzip.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-pax-plain.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-mtime-profile-control.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-mtime-profile-observations.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-mtime-profile-times.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-BSD-fixed.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-BSD-sidecar.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-GNU-fixed.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-GNU-sidecar.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-independent.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-independent.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-in.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-out.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-in.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-out.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-author128/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-author128/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-wiring1/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-wiring1/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/ready.json\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/scoped-types/stderr.log\n?? tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/scoped-types/stdout.log\n?? tests/commands/archive-stress/pax-deletion-independent/tsconfig.scope.json\n?? tests/commands/archive/pax-deletion.test.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/search-stress/.native-1m4O1e/input",
+    "index": ""
+  },
+  "authorTests": [
+    "tests/commands/archive/pax-deletion.test.ts"
+  ],
+  "authorNames": [
+    "D01 local deletion suppresses global and raw time for exactly one member",
+    "D02 global tombstones persist per keyword until explicit reintroduction",
+    "D03 duplicate deletion and reintroduction use the last per-key record",
+    "D04 local state is consumed by excluded members without mutating global deletion",
+    "D05 deleted required path rejects before effects and cannot resurrect GNU names",
+    "D06 deleted regular size fails even when excluded and reintroduction preserves alignment",
+    "D07 link deletion blocks raw and GNU targets while restored hardlinks share identity",
+    "D08 deleted mtime preserves deterministic file and deferred-directory backend state",
+    "D09 paired timestamp restoration preserves the missing counterpart and propagates errors",
+    "D10 effective PAX and GNU paths mask only unselected raw semantic fields",
+    "D11 selected numeric PAX values bypass malformed raw numbers but retain effective validation",
+    "D12 tombstones retain structural, framing, critical-layout and resource guards"
+  ],
+  "authorTap": {
+    "path": "tests/commands/archive-stress/pax-deletion-evidence/runs.json",
+    "sha256": "fae0a1c9a1d4e01faa990bb0dd0fd1f4e1a34556c1bcd8f99894acfc8fe034cf",
+    "snapshot": "h4nGkc",
+    "label": "targets12",
+    "stdoutSha256": "ae720b8e020b06488cf6b65ced53fbdfdf86e42c15776c60f115924778c74397",
+    "names": [
+      "D01 local deletion suppresses global and raw time for exactly one member",
+      "D02 global tombstones persist per keyword until explicit reintroduction",
+      "D03 duplicate deletion and reintroduction use the last per-key record",
+      "D04 local state is consumed by excluded members without mutating global deletion",
+      "D05 deleted required path rejects before effects and cannot resurrect GNU names",
+      "D06 deleted regular size fails even when excluded and reintroduction preserves alignment",
+      "D07 link deletion blocks raw and GNU targets while restored hardlinks share identity",
+      "D08 deleted mtime preserves deterministic file and deferred-directory backend state",
+      "D09 paired timestamp restoration preserves the missing counterpart and propagates errors",
+      "D10 effective PAX and GNU paths mask only unselected raw semantic fields",
+      "D11 selected numeric PAX values bypass malformed raw numbers but retain effective validation",
+      "D12 tombstones retain structural, framing, critical-layout and resource guards"
+    ]
+  },
+  "authorManifest": {
+    "count": 10,
+    "entries": [
+      {
+        "path": "src/commands/archive/format.ts",
+        "sha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac"
+      },
+      {
+        "path": "src/commands/archive/extract.ts",
+        "sha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536"
+      },
+      {
+        "path": "src/commands/archive/README.md",
+        "sha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822"
+      },
+      {
+        "path": "tests/commands/archive/options.test.ts",
+        "sha256": "4c69757278c40d65e037018a867daa5f416c0dfb824aa6230a6769788a4b266d"
+      },
+      {
+        "path": "tests/commands/archive/pax-deletion.test.ts",
+        "sha256": "eccb2c24690a7d77bc6f1b50f8f5dd216ca45b133b2548486dd030cf3ba98513"
+      },
+      {
+        "path": "tests/commands/archive-stress/pax-deletion-evidence/options.original.ts.txt",
+        "sha256": "34e3aa6ac71cc7078371502255c7880994ef0644ecf00dc8da351e785532d66f"
+      },
+      {
+        "path": "tests/commands/archive-stress/pax-deletion-evidence/run.mjs",
+        "sha256": "907ba99256c9645804aa3901cdd0f45b82b6f0fb22eeca778bab16eaea70287e"
+      },
+      {
+        "path": "tests/commands/archive-stress/pax-deletion-evidence/tsconfig.scope.json",
+        "sha256": "48be20f52329c273dcc10b38e8a764f6b024cd377d60d593c06bdec410a700d3"
+      },
+      {
+        "path": "tests/commands/archive-stress/pax-deletion-evidence/runs.json",
+        "sha256": "fae0a1c9a1d4e01faa990bb0dd0fd1f4e1a34556c1bcd8f99894acfc8fe034cf"
+      },
+      {
+        "path": "tests/commands/archive-stress/pax-deletion-evidence/README.md",
+        "sha256": "43a12263b3e2605372da7c82e1123040de7aa6842fcb822ce0164f84b5a5e81f"
+      }
+    ],
+    "source": "completed author handoff"
+  },
+  "inputs": {
+    "src/commands/archive/format.ts": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac",
+    "src/commands/archive/extract.ts": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536",
+    "src/commands/archive/README.md": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822",
+    "tests/commands/archive/options.test.ts": "4c69757278c40d65e037018a867daa5f416c0dfb824aa6230a6769788a4b266d",
+    "tests/commands/archive/pax-deletion.test.ts": "eccb2c24690a7d77bc6f1b50f8f5dd216ca45b133b2548486dd030cf3ba98513",
+    "tests/commands/archive-stress/pax-deletion-evidence/options.original.ts.txt": "34e3aa6ac71cc7078371502255c7880994ef0644ecf00dc8da351e785532d66f",
+    "tests/commands/archive-stress/pax-deletion-evidence/run.mjs": "907ba99256c9645804aa3901cdd0f45b82b6f0fb22eeca778bab16eaea70287e",
+    "tests/commands/archive-stress/pax-deletion-evidence/tsconfig.scope.json": "48be20f52329c273dcc10b38e8a764f6b024cd377d60d593c06bdec410a700d3",
+    "tests/commands/archive-stress/pax-deletion-evidence/runs.json": "fae0a1c9a1d4e01faa990bb0dd0fd1f4e1a34556c1bcd8f99894acfc8fe034cf",
+    "tests/commands/archive-stress/pax-deletion-evidence/README.md": "43a12263b3e2605372da7c82e1123040de7aa6842fcb822ce0164f84b5a5e81f",
+    "package.json": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "tsconfig.json": "21c3c30b8995b180e079fa8516150f889950d648528de116a32f254f892301cd",
+    "tsconfig.build.json": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+    "tests/commands/archive-stress/limits-effects.test.ts": "7bedea0eddefcf40feb216fe41a600d2af429ff10813ed8a64df2e2d63329efe",
+    "tests/commands/archive-stress/native.test.ts": "8637e372c0955286bbec9fc1aa9b9465740e212fdbdabb4e31cb272154a10431",
+    "tests/commands/archive-stress/pax-extensibility.test.ts": "6be4fac35f4d4ee65e25dce8a605839d02527f3129bdcd22d2dd3b640bee3951",
+    "tests/commands/archive-stress/pax-native.test.ts": "571d416be1d62e9d853d9128fdaa753a2472b0df4798c20fd4cae46d5f17aea4",
+    "src/commands/archive/create.ts": "cdddce8ccd1d53987fa1a314cdc6e04d48246fa59fd0880fb444c66bdca7199c",
+    "src/commands/archive/index.ts": "6f23a98dbe89bb37f44799f47c365fb430e910f87363c50291f7b44293e416d0",
+    "src/commands/archive/internal.ts": "6e9a204384490607973f7e1109c51a082319b6eed2fecb8f410d9d51711367d9",
+    "src/commands/archive/options.ts": "1c2dc4e57c80901b402f8f08b1a5638b7acad9f882aca67ae4f9be73295bf956",
+    "src/commands/archive/stream.ts": "31a3b70bf7ce89f81e287cac09c6816637bd06dc398010dd82386ce5d93ceba4",
+    "tests/commands/archive-stress/pax-deletion-independent/run.mjs": "e0d662a5616ffc206be95be9daf98d538923116c5bab06afc28c8ab817666e37",
+    "tests/commands/archive-stress/pax-deletion-independent/helpers.ts": "894c06174de621704733e785271b84e8bbeeffc96bdf40af18fea1cbdc74e165",
+    "tests/commands/archive-stress/pax-deletion-independent/controls.test.ts": "05138bcda815f419012525cec0f7514d84b26a839b2ca3a16dd1028fc5604bc2",
+    "tests/commands/archive-stress/pax-deletion-independent/tsconfig.scope.json": "971f717d5623f33a281cf018c41143a8d598ddf19661531db9614407c44ef540",
+    "tests/commands/archive-stress/pax-deletion-independent/README.md": "88036123ae35c2e344064f44fda3ca4bfaa7ffb4dbccd1eebf71b177c929a744",
+    "tests/commands/archive-stress/pax-deletion-independent/evidence/primary-source-manifest.json": "f13b5ddce9c225b9ae3c1803d1a1ff76e3d219e882b11fcc9f2047e6c8c0992e",
+    "tests/commands/archive-stress/pax-deletion-independent/evidence/native-profiles.json": "bc055d5449cc943a9283c8f3b40fd8a19ca2803b3c2d14bc171e30b08f2ac82e",
+    "tests/commands/archive-stress/pax-deletion-independent/evidence/native-profiles.mjs": "4601e1a0d8c86088429876bebee85482cecea1dee4bc1229495d76624c0b5ff6",
+    "tests/commands/archive-stress/pax-independent/fixtures.ts": "3abeb1283fe401794383d366087e29589fbe38f8bef22164933785ba82d87673",
+    "tests/commands/archive-stress/pax-independent/controls.test.ts": "1e64cbc1953b50846b5af1448cbe2dcb3d578b82d124e6e8e0967dd938befa56",
+    "tests/commands/archive-stress/pax-independent/historical-control.mjs": "e66a136e1f53e52dd6216d09d945f71f881f38ec3a3ddb86f4a22a4915bba17e",
+    "tests/commands/archive-stress/pax-independent/observation-control.mjs": "6bd2e01d72e0bd887ecb3db22a0c989db49efdb89d3d7f96695d923c6c4500c7",
+    "tests/commands/archive-stress/pax-deletion-independent/REPORT.md": "23d17d3ead5bb79446f5b01f35e2cfb8f72f495a00f1299e8556cf969cd40edc",
+    "tests/commands/archive-stress/pax-deletion-independent/reproduce.mjs": "7d53e2e7ccf742b6b680764787bb2944f14b0058d2ec72f79a74f79397486f6f",
+    "tests/commands/archive-stress/pax-deletion-independent/evidence/oracle-question-detail.txt": "1d53b0b9c2c43dc771ee819d7dbb7c88fe1086e16edf81ce543ae659b6dc0e4a",
+    "tests/shell/diagnostic-context-bounds.test.ts": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648"
+  },
+  "previousReady": {
+    "path": "/tmp/safe-bash-pax-deletion-ready-01.json",
+    "sha256": "ef6c5a5cd1399605fb92ac7384a242aa0d9728382ee01e24d3f0053f9aab79bc"
+  },
+  "harnessRevision": "Root-approved D07 mutation8 positive final tombstone; explicit effective numeric/UTF8/NUL rejection, valid FF=-1 control; derived exact TS output set with before-build full immutability and post-build non-output/phase guards; actual global types before and after build.",
+  "b02": {
+    "status": "READY",
+    "fixtureSha256": "7bedea0eddefcf40feb216fe41a600d2af429ff10813ed8a64df2e2d63329efe",
+    "result": {
+      "path": "/tmp/safe-bash-pax-b02-fix-result.txt",
+      "sha256": "9006b8f5a6070adf438012724429b4d3bbf513abf7b7cfddb25d150619970c4f"
+    },
+    "detail": {
+      "path": "/tmp/safe-bash-pax-b02-fix-detail.txt",
+      "sha256": "aa064cf8cd32352227277339d244b0a5680eea8f25b76e409631d5dea29cb13b"
+    },
+    "authoritativeReport": {
+      "path": "tests/commands/archive-stress/b02-observation-evidence/REPORT.md",
+      "sha256": "01b68001e11989141e08cc48a640ede6915ff4d68b92e7ae337e71279b0762d6"
+    },
+    "reviewedPaths": {
+      "tests/commands/archive-stress/limits-effects.test.ts": "7bedea0eddefcf40feb216fe41a600d2af429ff10813ed8a64df2e2d63329efe",
+      "tests/commands/archive-stress/b02-observation-evidence/control.mjs": "33d23e73ab9bd99d38058adb802a2e8b002f2aeb587beac323149f3ab0598d23",
+      "tests/commands/archive-stress/b02-observation-evidence/run.mjs": "fc0df1eccec04a76fd873431dfd0bd349e236580369db5221405c15c7ad25322",
+      "tests/commands/archive-stress/b02-observation-evidence/evidence.json": "39bca153ea4498750f955b27e10400b72efce06991a752600564ee697382b45f",
+      "tests/commands/archive-stress/b02-observation-evidence/recheck.json": "73ebfc2e182f453e59ce9127c5245964d33e9a085f6c93a66bdae0e5db4982b8",
+      "tests/commands/archive-stress/b02-observation-evidence/REPORT.md": "01b68001e11989141e08cc48a640ede6915ff4d68b92e7ae337e71279b0762d6"
+    },
+    "assertionDelta": "Only original unbound writeStream restoration after count assertions in over-limit branch; add exact fullstat equality before reads. No removed assertion or PAX source change."
+  },
+  "historicalControl": {
+    "profile": "memory-intact-57a6148",
+    "root": "/tmp/safe-bash-pax-independent-YKSbHc/tree",
+    "evidencePath": "tests/commands/archive-stress/pax-independent/runs/run-0N6uc7/evidence.json",
+    "evidenceSha256": "6273a1e84302b08153b83131c0e7b24a66fb7d6f8adf7c64e61cdba4b787eb1b",
+    "inputCount": 1629,
+    "closureSha256": "0e384ea33290a09c255ee29b6db6d4831cfaf2113377be703ff9498ce473f3f9",
+    "memorySha256": "57a6148aec90c7a1db058e59bd2586e7c162c74498309e7173443096cb8906ad",
+    "controlSha256": "6bd2e01d72e0bd887ecb3db22a0c989db49efdb89d3d7f96695d923c6c4500c7",
+    "tsxLoaderSha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+  },
+  "deletionHandoff": {
+    "status": "READY",
+    "path": "/tmp/safe-bash-pax-deletion-author-detail.txt",
+    "sha256": "516ba87b626d1e2ff7d625afd7bab27607ee19762212d0faf0170d316a07c142",
+    "resultPath": "/tmp/safe-bash-pax-deletion-author-result.txt",
+    "resultSha256": "922962cdac4bc3bbbf62bc99c718044328dd8c48e7bc674227a665483e891566"
+  },
+  "authorEvidence": [
+    {
+      "path": "src/commands/archive/format.ts",
+      "sha256": "05445d1d80023bbd5a59ff3a47b14bcea038f1f8476835fd973a01ee89fd19ac"
+    },
+    {
+      "path": "src/commands/archive/extract.ts",
+      "sha256": "fc2f8a4151ca7c5398cd64fe4a55156f2a1ac6feb75404cfb96c8f5b6d4a1536"
+    },
+    {
+      "path": "src/commands/archive/README.md",
+      "sha256": "37ea45ddd30ea605f36194c83b1ea05873bb26a6ebca7a104c037ef1f236a822"
+    },
+    {
+      "path": "tests/commands/archive/options.test.ts",
+      "sha256": "4c69757278c40d65e037018a867daa5f416c0dfb824aa6230a6769788a4b266d"
+    },
+    {
+      "path": "tests/commands/archive/pax-deletion.test.ts",
+      "sha256": "eccb2c24690a7d77bc6f1b50f8f5dd216ca45b133b2548486dd030cf3ba98513"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-evidence/options.original.ts.txt",
+      "sha256": "34e3aa6ac71cc7078371502255c7880994ef0644ecf00dc8da351e785532d66f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-evidence/run.mjs",
+      "sha256": "907ba99256c9645804aa3901cdd0f45b82b6f0fb22eeca778bab16eaea70287e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-evidence/tsconfig.scope.json",
+      "sha256": "48be20f52329c273dcc10b38e8a764f6b024cd377d60d593c06bdec410a700d3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-evidence/runs.json",
+      "sha256": "fae0a1c9a1d4e01faa990bb0dd0fd1f4e1a34556c1bcd8f99894acfc8fe034cf"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-evidence/README.md",
+      "sha256": "43a12263b3e2605372da7c82e1123040de7aa6842fcb822ce0164f84b5a5e81f"
+    }
+  ],
+  "legacyCorrection": {
+    "reviewed": true,
+    "before": "34e3aa6ac71cc7078371502255c7880994ef0644ecf00dc8da351e785532d66f",
+    "after": "4c69757278c40d65e037018a867daa5f416c0dfb824aa6230a6769788a4b266d",
+    "identity": "PAX global/local precedence, deletion and embedded newline",
+    "transport": "tests/commands/archive/options.legacy.mts",
+    "delta": "Only add faithful post-write normal backend clock hook for /out/original atime1600000006250/mtime1600000007125 and replace original line108 expected raw mtime; all other asserts and archive bytes unchanged. New author D01/D08/D09 and independent controls check restoration intent."
+  },
+  "research": {
+    "detailSha256": "f45b65178bddf4f63c970dd0bac4a02067b9e6fc3d33afa9b8518f87d30808b2",
+    "sourceManifestSha256": "f13b5ddce9c225b9ae3c1803d1a1ff76e3d219e882b11fcc9f2047e6c8c0992e",
+    "nativeProfileSha256": "bc055d5449cc943a9283c8f3b40fd8a19ca2803b3c2d14bc171e30b08f2ac82e",
+    "nativeReproducerSha256": "4601e1a0d8c86088429876bebee85482cecea1dee4bc1229495d76624c0b5ff6",
+    "notProductTests": true
+  },
+  "baseline": {
+    "root": "/tmp/safe-bash-pax-independent-hTKEus/tree",
+    "evidenceSha256": "3f283022c42a1f0fef7a734daa2fabf5ceae3daa9387a66030ac8c33344e7a70",
+    "classification": "historically matched full accepted root, not source-only causal isolation of patched current FS/shell"
+  },
+  "inputChangesSinceFirstReady": [
+    {
+      "path": "package.json",
+      "before": "216554f6115e7254b471b1e3b91319e516a80682b59a0b7fe6d8df16b2cb164b",
+      "after": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/run.mjs",
+      "before": "bac855f0846e8717a6b8bdb552f356c471ba20e85c3d930f450fb36017bbd333",
+      "after": "e0d662a5616ffc206be95be9daf98d538923116c5bab06afc28c8ab817666e37"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/controls.test.ts",
+      "before": "c28db0169c9b3d1d7677eaac9bb2485c0bd019a90c519cdf5a0dcbdf689d6cea",
+      "after": "05138bcda815f419012525cec0f7514d84b26a839b2ca3a16dd1028fc5604bc2"
+    }
+  ],
+  "externalOwnerDelta": {
+    "path": "tests/shell/diagnostic-context-bounds.test.ts",
+    "firstFrozenSha256": "99e43b4d3d3dd50aefe6dac7894fa452edcb97a87c0337178a6ec7aada9da35e",
+    "currentSha256": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648",
+    "description": "Other owner moves detached/timeout/maxBuffer object literal into options variable; no verifier edit; new snapshot only, not backdated."
+  },
+  "priorIndependentEvidence": [
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/REPORT.md",
+      "sha256": "23d17d3ead5bb79446f5b01f35e2cfb8f72f495a00f1299e8556cf969cd40edc"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/author-new-deletion/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/author-new-deletion/stdout.log",
+      "sha256": "68add2e37e1b7d13036e1e90395a5b366b23660ea4ed4ebb13b3b3cae840dd8f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-default-gzip.tar.gz",
+      "sha256": "c4a6075e264c7f209250ec1332b31b4c8178f9a1ac4d7c981f500af22494cf33"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-default-plain.tar",
+      "sha256": "c5a13127291e96a81a639f51bde0a14d5c5baac43b2003e23984ed11ad1a3cc8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-observations.json",
+      "sha256": "640e7b138d6df65fb8b6316992f92d1f12391d584c990c592346e232876a64b2"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-pax-gzip.tar.gz",
+      "sha256": "2737b4f8ddc1f654ef96beffa20c25ef9d5b7b1fce0d7298d90d6ea5a715a9fe"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-pax-plain.tar",
+      "sha256": "1046e7a9491099303ad77cca33420e1912ffbefeacbe7345a69f44c9615e26ba"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-default-gzip.tar.gz",
+      "sha256": "8e966c0ac0b2cb5af95c9a696b7d821f0cd4a7d411ea77e6413d52635d6d52b2"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-default-plain.tar",
+      "sha256": "4bb5105ff0158565dc0f5360722b0f3339b1803e10039c134bba2de0b94a947b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-pax-gzip.tar.gz",
+      "sha256": "50399987ba84b5f40b916eca7576f6497f2a99a0876c4dbf60b15d4feb0ed35d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-crossread-virtual-pax-plain.tar",
+      "sha256": "80e855888f3610accc296e623b82eeaf174d34c75b3420a93aa944ad226b7550"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-mtime-profile-control.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-mtime-profile-observations.json",
+      "sha256": "e6e9544c22f0c584789ef8003d541f72295feb09262bea2df783f13346cb1fa7"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/BSD-mtime-profile-times.json",
+      "sha256": "03cba635ca90a7894d2eb6e0186cd5613a42ca71c849ca10bcbb1fdd9af31d68"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-gzip-observations.json",
+      "sha256": "f1e22e794c027dd885a215614e2fcd7dfb0d78f88f35dd4c4eddcf58162e6b6a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-gzip-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-plain-observations.json",
+      "sha256": "8ea958ca31947be9c76f6c24b28499167d8a297417b9eb1f90fe2a09ce378671"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-default-plain-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-observations.json",
+      "sha256": "f68da69bff77254e664c51502da7be9584f2df8d863b563c115eb5aa5090017d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-plain-observations.json",
+      "sha256": "66e04be925242b7da1bac754b75ebf2c8f8cb10537801acbc253a65a35926808"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-BSD-raw-pax-plain-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-default-gzip.tar.gz",
+      "sha256": "56d5ef073830334e40ac01db36286ae426cee0aff0d4aff69ed09d41465b0d6f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-default-plain.tar",
+      "sha256": "f4be8e59e4eafcd37db4b53cb238543836b87fd80fcd345aef7d9f4cd4d19a66"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-observations.json",
+      "sha256": "a8b02c5e3a1ca45560c640563bd637dee20a6f758399ebff571753fd6dd0ca3b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-pax-gzip.tar.gz",
+      "sha256": "14177b80ed20de424e8c922f7c37e35d2044e084b0251806264c6b446376457d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-pax-plain.tar",
+      "sha256": "47619c09f38bdfad8aca15790b0cbf12b33b913781773ef0d11eec220fd73838"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-default-gzip.tar.gz",
+      "sha256": "0a72ee279ed4994b508c168a3cd65596341834951944a8ab6cf23fdd1a354d55"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-default-plain.tar",
+      "sha256": "2cac92b5f7cb606bbcb078d9d258f602b6ec19e4c65b1db523becba59ab32d49"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-pax-gzip.tar.gz",
+      "sha256": "4a4b330a78d9af598b666d2cd1c537f97f39e98003d607436c309835df931c51"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-crossread-virtual-pax-plain.tar",
+      "sha256": "74fc9508c545542e73e9e0d54d2bef66cc54081df0a7120635b8e29ed6b7cd75"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-mtime-profile-control.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-mtime-profile-observations.json",
+      "sha256": "7a0b76b05388c29bce68dbf1193172f60fb51a5961a8b9778081ed542f25cfc1"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/GNU-mtime-profile-times.json",
+      "sha256": "382f6f6fe77c68b1e6b2c9e4a284c766eebc9c09ef0a3bb9c9751c10e194cb65"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-author12/stdout.log",
+      "sha256": "a6d2c703c8a4e0c04f3b7bab06edbabd51497a25d22fca4db3bc077104fb0cd6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-BSD-fixed.tar",
+      "sha256": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-BSD-sidecar.tar",
+      "sha256": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-GNU-fixed.tar",
+      "sha256": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/independent-GNU-sidecar.tar",
+      "sha256": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-accepted-independent6/stdout.log",
+      "sha256": "32b5152ffc59bb4a24d3cef51277073efe70722cebef8b7c5f2a79c58d6611df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-independent.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar",
+      "sha256": "ebe68bdad3680300a9a66ffd9fd2c61aa642ec5c19a58401d84bb0e30fa533e3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz",
+      "sha256": "c2b329fc35423f71c2e3d0da94b51036d8e55d46d4eb544fd03127f7a8b3d171"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar",
+      "sha256": "0b98cdef1c265cb848c859d68907530ddbf62b2abe7ae84291950099ed1d0a14"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz",
+      "sha256": "d842019379e4040ff35d9aa8984aed27428f0367ede5e11bd90cfbcb77c290e8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-independent.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar",
+      "sha256": "3ec461232219955de67e988f59cb518aa60e4b06b68719aa66545b562f08bd90"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz",
+      "sha256": "7ce864cb4f1ff94ec74af0a756d9acbceb20ccd50068b9f4a592bd3f34f97b07"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar",
+      "sha256": "043f0f8a4e35d6210d5ef0b64b58ab094735f983288eff147f7270a03f15ebb8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz",
+      "sha256": "5494ca5aab2ac5b7cc25b2ca4e4aec3b4f866ee1566212b597c68a6cd3131001"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-in.json",
+      "sha256": "e6d0768e8294ac11aba92fb1d97b21352b13c7a480a5c6f291c51f156454723d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-out.json",
+      "sha256": "15238ab805cfc0accb3b70bb965f50a0701fb20163f699ea7843f59b76f08df6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-in.json",
+      "sha256": "3ddc0d6844b7f5145f61178c2e0ef24d102df429c44ae24cf373a02577a588a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-out.json",
+      "sha256": "55003a32f078659fa20917864be10d2701758dcb2b53756621c062ffb0d35a37"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-native-profile-b02-observation-refactored-stress30/stdout.log",
+      "sha256": "0bd0506464f7a81a6b858f6c14b26f06a52c04101cc18b0c3d6d99d2b5516293"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-author128/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-author128/stdout.log",
+      "sha256": "7ea0af544c2c4b96efeb90a98f64e9aa7ad68e4673b25833daa7d5edd485f0a2"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-wiring1/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/baseline-literal177-original-wiring1/stdout.log",
+      "sha256": "f9e38732b09837ba15aee9db56834170af1e50cb4f1f633abbf165f492a0f1fc"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/bsd-version/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/bsd-version/stdout.log",
+      "sha256": "e7cce3d387120ee09a085cb3cafba70e9031c5f497229c6d60846a7b2c1e4241"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/built4/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/built4/stdout.log",
+      "sha256": "550083dc4cf861bf2f2791cdacafb909fd69ee11f26cf596fa99839c8de1fe05"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-default-gzip.tar.gz",
+      "sha256": "32c51f7174be2f31b767c94369f5d776bb07283856abfd1298f751cc79a5ac53"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-default-plain.tar",
+      "sha256": "82da14ca82948e86086119b0a3dcb92973e7513e22ecfa6940c84bce91069992"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-observations.json",
+      "sha256": "a712304f125693cd864587bdeda4383f291d6299475ea0e8d6a780c560ae0040"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-pax-gzip.tar.gz",
+      "sha256": "b099ebfef9030ef00a556d16c506b11cfc5f460e588eded69eeaef8583937d6f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-pax-plain.tar",
+      "sha256": "1be306c60188d9928905b8534f5efbfe347e11ebe205ca203550401828b91863"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-default-gzip.tar.gz",
+      "sha256": "5c599bfe1b45a134b9f5dc2fc5fde98081e31ade04d506f7d9b5597344c727ba"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-default-plain.tar",
+      "sha256": "cd26ad9d9ff489481e56e9244c58e2da2cbb11043a48cc661b01a4742c1307f7"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-pax-gzip.tar.gz",
+      "sha256": "839cba7e19d74dfb10972001dc5e9c41f7f14b92d65d317aec160be301374f81"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-crossread-virtual-pax-plain.tar",
+      "sha256": "43a54003bf4f7f7c37c86e20fdfcd61eb913ba27ce6f0c35d2fa845bf96e52de"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-mtime-profile-control.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-mtime-profile-observations.json",
+      "sha256": "fa6d5cfba3c821aec3d9d3d436ed997649ccd5201c185064b1fc0f8b6a087f94"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/BSD-mtime-profile-times.json",
+      "sha256": "03cba635ca90a7894d2eb6e0186cd5613a42ca71c849ca10bcbb1fdd9af31d68"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-gzip-observations.json",
+      "sha256": "d9ba4c2b273dcd24058aec7b03768ca7973e5a953656320984fc603ea6733d14"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-gzip-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-plain-observations.json",
+      "sha256": "46bef62d4fc5ad5af4f24ec3365fe62656441a9c6894d890627d3accbb031b6f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-default-plain-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-gzip-observations.json",
+      "sha256": "2114cc7e91bb2b15a33930872e30da9c641dc35cd062c56468cdead2f0c5a65a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-gzip-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-plain-observations.json",
+      "sha256": "a4a793207c6afe3b0dc00016681efc937adee90a54da66f3777ca344f31c5bfd"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-BSD-raw-pax-plain-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-default-gzip.tar.gz",
+      "sha256": "c933d81728d8776c3fdb56967b18ff677cf96a0df01745d654aa71ce92bcdc36"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-default-plain.tar",
+      "sha256": "d73097d468d5dce4c2c4caf3065ed36378c66b426f6b067d73e5c1b4330676fc"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-observations.json",
+      "sha256": "90b3bef67bc9ef67e69fed299c90eb7036a1f19f0d9f5ab640ceb766379d862d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-pax-gzip.tar.gz",
+      "sha256": "03e10c6df3429f66114087e723caf87b65b550a4a0928c5c5252e4466af285bf"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-pax-plain.tar",
+      "sha256": "12274ec301639c958904317e35a433faf1128df8ac7f79fbdb08d5b938167b5f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-default-gzip.tar.gz",
+      "sha256": "5f7773f4aeb8dcbac67ab011714605d567fedc6ab7da14ae77e9e4fdbb1ed072"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-default-plain.tar",
+      "sha256": "f19e61a802368d235c826dce9cd24829923a8de1bf1c523891d7651e16b055da"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-pax-gzip.tar.gz",
+      "sha256": "67ed4e148c8c92501aa01bec30e319afe95c6a46aae1c348612ca670ba6462c4"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-crossread-virtual-pax-plain.tar",
+      "sha256": "89c09c6f613b392230359b356b69a98a81ad7cdef4fae023be89ebec70e2e508"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-mtime-profile-control.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-mtime-profile-observations.json",
+      "sha256": "a66b2f97f1c8ddfd0be3ca1f696442c406a6842bc6e66ddaeadc2abce229e77b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/GNU-mtime-profile-times.json",
+      "sha256": "382f6f6fe77c68b1e6b2c9e4a284c766eebc9c09ef0a3bb9c9751c10e194cb65"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-author12/stdout.log",
+      "sha256": "5049179ff77ce885aaff868be5e01643adf7dae5ea2d6749541539cf8eaa7a16"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-BSD-fixed.tar",
+      "sha256": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-BSD-sidecar.tar",
+      "sha256": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-GNU-fixed.tar",
+      "sha256": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/independent-GNU-sidecar.tar",
+      "sha256": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-accepted-independent6/stdout.log",
+      "sha256": "c946e146d625511cd6c242d9b667afa04a9f41f4dd2dc1a8840921c0da11f3f0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-independent.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-native.tar",
+      "sha256": "1eebcebb9f8503c4acfbf86444253fd2168b4dffb727b18ae3bea790df455aba"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz",
+      "sha256": "a03fae5f08e149dd73553282292b6b652d706b7b769bd62dbf6cb5bdade6ad8e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar",
+      "sha256": "9a75897d236b91af5e4f402a6f9b546df233721b457b4a6f7fc879a772ee40c6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz",
+      "sha256": "b5ba8653d578e298953e9d359c97e82fbbfd7566d4eb5afa32a9e1ba1008e6e2"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-independent.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-native.tar",
+      "sha256": "f4f63b336645273dce2da16a28c47363fa72445907b85e75a2b0ba1b0380afbd"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz",
+      "sha256": "b806af2823652346ebac5f0fc2b4d27ce7bffeabf7af7e5ead0edec4cfbf5045"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar",
+      "sha256": "95ecc3acb6c58dad8077665619d1dc0ce6c497e8105741b4527b34d64945cad8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz",
+      "sha256": "5be1fbaf0b2e8c374f7f1a4c31ad94a8671f9bc694d163350baa187c2c582d91"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-BSD-in.json",
+      "sha256": "68d93b84e95e7fc7deca496d4a72acd8c1f5b8657620679757a8cbc61e67ea43"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-BSD-out.json",
+      "sha256": "a74b9ee350373964d2d7acf6ff7328bd599463c6a7a13f71d5f39866ab9ad973"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-GNU-in.json",
+      "sha256": "2e28a310a3b1bc2f7d059e1e0743fc2b3338697e46511ea017223fbb062f21a6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/native-GNU-out.json",
+      "sha256": "a64aa0cdbbe18ee8282181505a7aeffff84270bf0d67cf849b7e7f2ae9fe1314"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-native-profile-b02-observation-refactored-stress30/stdout.log",
+      "sha256": "66e21ef5f645259db843d78272f6643784b169aeace44557ec0c0eeb61540053"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-author128/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-author128/stdout.log",
+      "sha256": "98baa58b8a0da496485aa4b880bdecc7dd96066d8c68156dc1f425d33292556c"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-wiring1/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/corrected177-original-wiring1/stdout.log",
+      "sha256": "df8c790454357c6d3bd9786ab1a7e05c00248a597d719572e31a8d2bc8f5ffd3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/evidence.json",
+      "sha256": "96e8be34a76f5741fb9b92e83cea0b126e581a22f365775c0615e63e9b2bf72f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-build/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-build/stdout.log",
+      "sha256": "192358b3fd3475b4bb505c07ba0b5608c6e4aa06624198bba950fe56e278e6f0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-frozen-before.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-frozen-before.stdout.log",
+      "sha256": "7e3f821a274636097fa06cf881eb78da6bb2bf49133d79c03cf2afe0bbc6f7b0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-live-before.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-inputs-live-before.stdout.log",
+      "sha256": "a692ad5b0b85eb99e52327ee6f85875312420e61e269dcb494b1514abb8ddfd3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-typecheck/stderr.log",
+      "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/global-typecheck/stdout.log",
+      "sha256": "3fcad83f35aa7949e30e8e03342f4f896ea07e49d9978f90ccd3932db508a21e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/gnu-version/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/gnu-version/stdout.log",
+      "sha256": "b112e5578260c103cafae7150e33b8fe1b5d0720a158d88be5ea8f6d9d26f478"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/historical-observation-control/resolved-imports.jsonl",
+      "sha256": "6be3a068e01f8c3bfc2732f7344097e1d4c2f5f4be1a0622b24bf73c05a02f9c"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/historical-observation-control/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/historical-observation-control/stdout.log",
+      "sha256": "9209e9f5d7aeb974d8c3cf2be034f792bd91d6fbbb57812425333054e18818bc"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/independent-new-deletion7/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/independent-new-deletion7/stdout.log",
+      "sha256": "92a42e6cf882cb485f6c4f47e0adad57f7db26b140356c09a6ff7ce402a09f2e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-default-gzip.tar.gz",
+      "sha256": "afbc8a4607510ac8af091e7516ec4ad2ee8a39e9d5935e4e8f2d485fd9116d27"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-default-plain.tar",
+      "sha256": "7fb81541374eb53c6afff9099678abcc0ac37906f931f5f32a202813a6efb16c"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-observations.json",
+      "sha256": "54266c8863eead271042be38ce64fca08d081d2b8c8e53c764d995311e699014"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-pax-gzip.tar.gz",
+      "sha256": "6049af3b708e91ee0a5d5c13618c39aeb001f7798018395934f68c3bb83fcab0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-pax-plain.tar",
+      "sha256": "24ae1e5f1afc429b90a41c750553264311f6bc63a4f1b2f966b433aa6d747c07"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-default-gzip.tar.gz",
+      "sha256": "8b6abc125a075696659145e9254871790c8fec2dd093abe7865df9a130b58d8f"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-default-plain.tar",
+      "sha256": "c3a1368202372cdd916787d0f4dc5c9bd34e6f8f8386df151f27bd0f4e97e59b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-pax-gzip.tar.gz",
+      "sha256": "d25f196dee80abb0494b4c29655e1191b971790532b22c1a8a32432b25098a81"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-crossread-virtual-pax-plain.tar",
+      "sha256": "39652ed49185a9e37b8bac0f2d6a7b508552bd1970ccc8c6001f03dd6fb73900"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-mtime-profile-control.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-mtime-profile-observations.json",
+      "sha256": "b691c4e9be8ce76007b315edfddeb16dedbeb7b67009f9a3c0ef04f60a607419"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/BSD-mtime-profile-times.json",
+      "sha256": "03cba635ca90a7894d2eb6e0186cd5613a42ca71c849ca10bcbb1fdd9af31d68"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-gzip-observations.json",
+      "sha256": "afd779950e8845ccb0441a414eddcc0b0da4fd7160f92690aecb07c143c92695"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-gzip-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-plain-observations.json",
+      "sha256": "c5b6a8c3a2f57a855650a9d46d0de7af522ded131ee8acfb6f5de72f5c75c75a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-default-plain-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-observations.json",
+      "sha256": "b4fc7e95f0630855a6ae662021630517e054446cdaa617202487af38c37df9d6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-gzip-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-plain-observations.json",
+      "sha256": "586f5f8fb6e9a7c7ba274cec7b7be08bdf3268eb36b56828a95353d22e20d342"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-BSD-raw-pax-plain-presentation-control.json",
+      "sha256": "7fedf45bfdf3398298e65f2d3902694a802d36477c70cb26025f901c74e9e1df"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-default-gzip.tar.gz",
+      "sha256": "8a0fdea48634d143892dbf8c7aceff2a6c26bd7f03ef01b3a2ae04e0630ad3c0"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-default-plain.tar",
+      "sha256": "80a0a3481bbdeccb4181f3c37458f35467c0669e789b3d4d9b8a091b1ecd8cf8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-observations.json",
+      "sha256": "302771f0e1a7adcdaa0f833872d0746f2fbf0700974dd7650cc5ff11099de57a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-pax-gzip.tar.gz",
+      "sha256": "c9e56ec649a3af21cb05b7507b0f7b3fed01097a5a849a0a533d2b05c891ff5e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-pax-plain.tar",
+      "sha256": "e3a12e093ecdd40c06bb0a296891b431ca63695a616ab44d84fd7dc94007cf76"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-default-gzip.tar.gz",
+      "sha256": "4b6c1400f434bae299ed0dbc0b41a5acdef914b8c1711bd1f0337e6c6038ee82"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-default-plain.tar",
+      "sha256": "1f4abf7ca7560bba6b2f8582feb828dee3126eda118602828d7e1524f4a46269"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-pax-gzip.tar.gz",
+      "sha256": "c8e84dd41f3e03ad2af90bd8c41f2fddc3ada5bd20eaa4c0d898c5f3e794095a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-crossread-virtual-pax-plain.tar",
+      "sha256": "bf7966b93332f59fc254e2f39fcc769ade421e41d26ce93fd18c6b3b369541f2"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-mtime-profile-control.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-mtime-profile-observations.json",
+      "sha256": "9a96a4129a1c2ad8511f5cf14e008a6f53df58c2f404411f116385ca929da10a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/GNU-mtime-profile-times.json",
+      "sha256": "382f6f6fe77c68b1e6b2c9e4a284c766eebc9c09ef0a3bb9c9751c10e194cb65"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-author12/stdout.log",
+      "sha256": "61397ff02e4ace549f4ec409415c2ba1a69e82a1981f1b2992b557349ea29cfd"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-BSD-fixed.tar",
+      "sha256": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-BSD-sidecar.tar",
+      "sha256": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-GNU-fixed.tar",
+      "sha256": "259f156dd7cd11fe320d1569a8598afcda3900653982018bc3c41460dde9f5ee"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/independent-GNU-sidecar.tar",
+      "sha256": "8404daf3a152880fa1bc3521a786ce051566fb418feb40017d0104dd46cfbde8"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-accepted-independent6/stdout.log",
+      "sha256": "21e7d4582e3e168eb45dbf5392428961aafd4d54b2a5e47f61d204c970ca37e6"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-independent.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar",
+      "sha256": "f552cddabbd12a0122abc7fc21319adc5f67dea51a34a4bb523b479c0710d3ae"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-native.tar.gz",
+      "sha256": "002295c0a44c93f8e9c5235e7004c480259c3df4c7b9e1ba4362e8189b8ccf9e"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar",
+      "sha256": "5ff5426c3309d6b1dff05b67785f7d519d830e2732a062e7d904150681f2696d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/BSD-virtual.tar.gz",
+      "sha256": "519257c894cedae09e48508f948188cc757a186037223956221664c336563bdd"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-independent.tar",
+      "sha256": "28e1526d121588f69d80a07392d066bd89bd79f80d95713144fb733a137d03a3"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar",
+      "sha256": "8270f5295146ab77d848219f89b7f3b703d78ca4a2b755652a0b7133061fdf34"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-native.tar.gz",
+      "sha256": "388a89a4922bfeea3571a2f1c10377b5afa82e33809452f6786c342461dc4bfd"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar",
+      "sha256": "59ccd0cb1c94d1f6841b69d51ba4bb53d0eec24fb74c3d0a0cd71d3e51e9455b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/GNU-virtual.tar.gz",
+      "sha256": "4fbe7cc6dcc02dcc9f4ecdce4cc909cca6ad0edb4118235a9f738d6d8eb6a65a"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-in.json",
+      "sha256": "fa995aaf362abecdcf43f4d3d0f1ff6cb10ad90084cdb63a6046691d3e88ea7c"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-BSD-out.json",
+      "sha256": "e801f0b7cab0099f06f7cf232f8973a75be34edf1935dfac8cf3383a8908ecbb"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-in.json",
+      "sha256": "b6d67017abb6d1c4ec1426c3e3169e6ee5fac068959d0a992d7a78fd6c9aec00"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/native-GNU-out.json",
+      "sha256": "7285ac4b96fea6381e9c8dc4c5d1e5ca39527b00bd763205cea3dc76100c6e3d"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-native-profile-b02-observation-refactored-stress30/stdout.log",
+      "sha256": "4ad21312a91c04d0c255298ebbea7d8e5171a0e41b41b6277ed9f5f57fb5ea81"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-author128/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-author128/stdout.log",
+      "sha256": "113d7438706835c126bc2b1e16715b8a56d0d0eb618221782c32b7f35e73b4b9"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-wiring1/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/patched-literal177-original-wiring1/stdout.log",
+      "sha256": "80892fc4570f84f554796682a94141d6f4ecbd762fcc1c3ba1fd00f961b6502b"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/ready.json",
+      "sha256": "ef6c5a5cd1399605fb92ac7384a242aa0d9728382ee01e24d3f0053f9aab79bc"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/scoped-types/stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/archive-stress/pax-deletion-independent/runs/run-sUC9Tn/scoped-types/stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

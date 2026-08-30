@@ -1,0 +1,96 @@
+{
+  "schema": "FRESH_ROOT_ACTUAL_V7_R3_AUTHORITY",
+  "date": "2026-08-29",
+  "authorityType": "Current explicit user instruction, not a synthesized other root approval",
+  "authorityMessage": "ROOT ACTUAL V7-r3 ADMISSION GO, exactlyONEfreshattempt admission-20260829-v7r3-01, contingentunusednamespace andunchangedpinnedpreflight. Differentouterreview ff2cd02f +ROOT scopedadjudication ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae; receipt tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json SHA5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f. 25/25+7/8N02FAIL retained; acceptonlyobservedfailclosed/counterrelationship, nounknown718tailinference/rescore/universallosslessness. AUTH.review REMAINS d27fd914 originalreview receiptSHA203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293; outerrootaddendum separatelybound persealedmetadata. Authorize writing/atomiccommitting exact fresh ROOTgrant/AUTH usinginactivepresealedtemplates, recordingthisinstruction asauthority (don'tinventotherrootapproval), then execute exact sealed outer-adapter-v1/owner.mjs fromd32cc4d1/88036591 withseal2c53f792... +fullf7/fe803701/d306b837 composition. Dedicatedowner DIRECT or exec-replaced shell route, noextraownedwaitingparent/CLIagent; 55plannedallprocesses bound, cap128ALLownedOSprocesses,peak5inclcaptureowner. NEWprospective ACTUAL totalelapsedcap90min inclpreflight/publication/cleanup: existing75minowner/admissionwindowUNCHANGED plus15minadministrationreserve; notretroactiveextension ofanyoldphase. Overallcapture257MiBpartitioninner248+8=256UNCHANGED +outer512KiB +publicationadmin512KiB; working768MiB, nodeoldspace256MiBnotRSS. Worker30s+TERM2/KILL1,metadata10s64KiB; 14PLANNEDadmissionworkers, legacycap27NOTextraattemptpermission, concurrency1. Explicitlyauthorize theTWOpresealed C11EMPTYSETUPS, no99semanticcohort/benchmark/timing. Target67eab12e315054907ef4ef435c6bbca2f59e0c36/full8586608d255..., comparatorpinned3.4.2 only; no80/Node/HEADsubstitution. Exactpresealedofflinepayloadstaging/load/admission andmetadataops only, no newnetwork/acquisition/private/nativeoracle/XAN/npmproduct/unlistedinstallscript. Authenticateactualrealpayloadprojections/modes/loadroots; noharmlessfixturebootstrap/metadatastubs substituted. OuterrawcapturebeforeANYfalliblelauncher/auth; childenrollment/listenersbeforehelpers, preserveprimarypresenceinclundefined/allcleanupfaults; observed==retained requiredforqualifiedactualcaptures. STOPanyunexpectedcaptureloss/integrity/fencebreach/unknownretirement/resource/deadline failure; noautomaticretry/rephrase/adapterswidening. Expectednegativecontrols onlyaspresealed, notgeneralwaivers. Preserveallconsumedhistoricalgrants/HOLDs/V6lost294045 andN02loss. Reportexactcompleted/unrunoperations/Worker+OSretirements/loadbindings/bytes/counterqualifications; noactualsemantic/winnerclaim. Ifpreflightcensuscannotfit, HOLDbeforeactivationnotguess. Ownexplicitpaths/atomiccommits preserveforeignstaging.",
+  "authorityMessageSha256": "d628fca33925a8002544ef38e787011f3daa29e4ffd2f706a2a9b1352405aafe",
+  "outerAdjudication": {
+    "commit": "ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae",
+    "path": "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json",
+    "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f"
+  },
+  "outerSource": {
+    "commit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+    "evidence": "88036591c32067ffe86a5950198f9f73fbb5cb63",
+    "sealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4"
+  },
+  "composition": {
+    "repair": "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+    "preparation": "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+    "seal": "d306b837da24fa970ded9ca6a0a99fe7a76ae342",
+    "evidence": "9b6c8a04d0e3227ead7d055253b80fec7479f04b"
+  },
+  "grantRawSha256": "e44e3eb38c338bbc2ff64aca9755f4d9876b6f844ef0fb8d7897cf9710f0be0e",
+  "duration": {
+    "prospectiveTotalMs": 5400000,
+    "unchangedOwnerMs": 4500000,
+    "administrationReserveMs": 900000,
+    "preflightStartedAt": "2026-08-29T03:21:50.007Z"
+  },
+  "capture": {
+    "overall": 269484032,
+    "inner": 268435456,
+    "body": 260046848,
+    "innerCollector": 8388608,
+    "outer": 524288,
+    "publicationAdministration": 524288,
+    "outerPartitions": {
+      "stdout": 65536,
+      "stderr": 65536,
+      "fd3": 262144,
+      "intent": 16384,
+      "events": 49152,
+      "receipt": 65536
+    }
+  },
+  "workingBytes": 805306368,
+  "census": {
+    "schema": "ACTUAL_V7_R3_CONCRETE_LAUNCH_CENSUS",
+    "runtime": 47,
+    "administration": 8,
+    "totalPlanned": 55,
+    "allOwnedProcessCap": 128,
+    "peak": 5,
+    "runtimeBreakdown": {
+      "dedicatedOwner": 1,
+      "launcher": 1,
+      "coordinator": 1,
+      "admissionWorkers": 14,
+      "coordinatorGit": 2,
+      "workerGit": 28
+    },
+    "administrationBreakdown": {
+      "gitStatus": 1,
+      "gitAddGrant": 1,
+      "gitCommitGrant": 1,
+      "gitAddAuth": 1,
+      "gitCommitAuth": 1,
+      "gitAddEvidence": 1,
+      "gitCommitEvidence": 1,
+      "applyPatchGrantPacket": 1
+    },
+    "administrationReconciliation": "Use core.abbrev=40 commit receipts rather than extra rev-parse children; actual coordinator/workers retain all30 unchanged real Git review/grant authority reads. Commit AUTH separately before launch. No additional metadata probe or final git status child is planned.",
+    "launchRoute": "Direct exec tool /bin/sh non-login noninteractive; exec -c replaces that same PID with sealed Node owner. No owned waiting shell, Node administrative child wrapper or CLI agent surrounds the owner.",
+    "launchShell": {
+      "path": "/bin/sh",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    },
+    "globalHostCountClaim": false,
+    "toolControlPlane": "Pre-existing agent/tool services are not experiment-launched OS children; no Node REPL child-process wrapper is used for owner launch.",
+    "semanticCalls": 0,
+    "C11EmptySetups": 2
+  },
+  "history": {
+    "original25of25": true,
+    "novel7of8": true,
+    "N02": "FAIL retained;718 observed-unretained bytes; content/cause unknown",
+    "V6IrrecoverableBytes": 294045,
+    "W07": "UNQUALIFIED",
+    "oldBudgetRetroactiveCompliance": false
+  },
+  "semanticCallsAuthorized": 0,
+  "C11EmptySetupsAuthorized": 2,
+  "attempts": 1
+}

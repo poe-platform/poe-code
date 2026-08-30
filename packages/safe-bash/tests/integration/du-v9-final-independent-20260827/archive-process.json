@@ -1,0 +1,46 @@
+{
+  "command": "/usr/bin/bsdtar",
+  "args": [
+    "--format=ustar",
+    "-cf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827/retained-scratch.tar.data",
+    "-C",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827",
+    "replay-once/bootstrap-scratch",
+    "replay-once/work-wzQubu",
+    "temporary"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-v9-final-independent-20260827",
+  "status": 0,
+  "signal": null,
+  "pid": 54398,
+  "pgid": 54398,
+  "timedOut": false,
+  "termination": {
+    "termSent": false,
+    "killSent": false,
+    "groupGone": true
+  },
+  "closure": {
+    "descendantGroupDetected": false,
+    "rootPidGone": true,
+    "groupGone": true
+  },
+  "timeoutMs": 120000,
+  "startedAt": "2026-08-27T20:58:52.289Z",
+  "finishedAt": "2026-08-27T20:58:52.643Z",
+  "durationMs": 353.5745,
+  "stdout": "",
+  "stderr": "",
+  "archiveClosure": {
+    "spawnedRootPids": [
+      54398
+    ],
+    "spawnedProcessGroups": [
+      54398
+    ],
+    "everyRootPidGone": true,
+    "everyOwnedGroupGone": true,
+    "active": []
+  }
+}

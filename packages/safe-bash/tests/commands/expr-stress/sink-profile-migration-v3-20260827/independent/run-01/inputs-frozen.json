@@ -1,0 +1,101 @@
+{
+  "frozenAt": "2026-08-27T21:32:04.573Z",
+  "records": [
+    {
+      "path": "tests/commands/expr/contracts.test.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197"
+    },
+    {
+      "path": "tests/commands/expr/abort-reason-regression.test.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "24dd22bba16f3072b4d3c4209e5384b46695e38a532eaba146fdad1f76cf34e3"
+    },
+    {
+      "path": "tests/commands/expr/regex-lifecycle.test.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "b93f0556799a4ee48e86af05ca5d4b9c051967e2dfdd7dde6b71307b412c8ed3"
+    },
+    {
+      "path": "tests/commands/expr/regex-limits.test.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "4b938f201b7ffffcb317734f7784d7b88cf5a95aacbad53a5e4df957d3f9c2a8"
+    },
+    {
+      "path": "tests/commands/expr/regex-protocol.test.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "465fb777d2d35df56c736d4accfbb502f63b690ec9f3b98a4a32d45410f34bc5"
+    },
+    {
+      "path": "tests/commands/expr/grammar.test.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "0de1d7042f5f0a1a7ad75a540096bdb07cdf28a2137b6927b2e8177091d64919"
+    },
+    {
+      "path": "tests/commands/expr/helpers.ts",
+      "commit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+      "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-bound.mjs",
+      "commit": "beba7b00",
+      "sha256": "ea789c6fde5f09a85a84504e772451e44ca04e3acf88c4f90024f1c3bcd388d1"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-bindings.mjs",
+      "commit": "beba7b00",
+      "sha256": "01124b41833a2d156957a446cae0761850c0080b1081cac688b8a197bd22a928"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-binding-deltas.json",
+      "commit": "beba7b00",
+      "sha256": "9ea5e46827d867d828c12a65c47e922fd502b3c31efbdb7c93e0d31803274b2a"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-drivers/runtime-driver.mjs",
+      "commit": "beba7b00",
+      "sha256": "5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-drivers/protocol-driver.mjs",
+      "commit": "beba7b00",
+      "sha256": "3f87c282e60a67388e64bf6fdd0b2b445778171fbb93c0190a237c53f2fc77bc"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-drivers/lifecycle-driver.mjs",
+      "commit": "beba7b00",
+      "sha256": "1246aa9d53aabb47b825133634b458a9f2ce958f3d32c758c28e7c76668c2e37"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-final-review-v2-20260827/core-drivers/watchdog.mjs",
+      "commit": "beba7b00",
+      "sha256": "bef0f71905b37dbfd461f211214760ffc2ba8ae9039859f5736c3234309a92ee"
+    },
+    {
+      "path": "tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/cases.mjs",
+      "commit": "beba7b00",
+      "sha256": "5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086"
+    },
+    {
+      "path": "tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/probe.mjs",
+      "commit": "beba7b00",
+      "sha256": "1d017229ad1f8e09c740d49d0396c888fdf5a8255657275141ba9435d54ad1b1"
+    },
+    {
+      "path": "tests/commands/expr-stress/output-quota-independent-v2-20260827/old47/common.mjs",
+      "commit": "beba7b00",
+      "sha256": "12cc409e46a55c16c640d00916a24d4bea43f03c57b4695743ad2ed16456ee5f"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-independent-v2-20260827/nearby-driver.mjs",
+      "commit": "beba7b00",
+      "sha256": "a0c00b680f4d4c35ee11edc16313feb6a4f7428684bb78eaab1f774e7c88ccbe"
+    },
+    {
+      "path": "tests/commands/expr-stress/encounter-independent-v2-20260827/freeze/controls.json",
+      "commit": "beba7b00",
+      "sha256": "055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764"
+    }
+  ],
+  "controlFreeze": "5964fd2659109ba5ffd4efc22f1a525d9ccbc937dca6e97d092e2fe4fa8f82f0"
+}

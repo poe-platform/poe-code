@@ -1,0 +1,24 @@
+(node:86077) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/internal-loader-repair-v1/tiny-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+node:internal/worker:217
+    this[kHandle] = new WorkerImpl(url,
+                    ^
+
+Error: Access to this API has been restricted. Use --allow-worker to manage permissions.
+    at new Worker (node:internal/worker:217:21)
+    at new InternalWorker (node:internal/worker:560:5)
+    at new HooksProxy (node:internal/modules/esm/hooks:506:20)
+    at getHooksProxy (node:internal/modules/esm/loader:995:18)
+    at new CustomizedModuleLoader (node:internal/modules/esm/loader:887:5)
+    at createModuleLoader (node:internal/modules/esm/loader:980:24)
+    at Object.getOrInitializeCascadedLoader (node:internal/modules/esm/loader:1014:22)
+    at asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:106:65)
+    at runEntryPointWithESMLoader (node:internal/modules/run_main:139:19)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:176:5) {
+  code: 'ERR_ACCESS_DENIED',
+  permission: 'WorkerThreads',
+  resource: ''
+}
+
+Node.js v22.22.2

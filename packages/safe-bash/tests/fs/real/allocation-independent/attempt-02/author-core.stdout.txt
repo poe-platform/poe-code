@@ -1,0 +1,65 @@
+TAP version 13
+# Subtest: allocatedBytes is an optional readonly number on the existing FileStat
+ok 1 - allocatedBytes is an optional readonly number on the existing FileStat
+  ---
+  duration_ms: 0.506042
+  type: 'test'
+  ...
+# Subtest: legacy stats and filesystem stat implementations need no allocation metadata
+ok 2 - legacy stats and filesystem stat implementations need no allocation metadata
+  ---
+  duration_ms: 0.145334
+  type: 'test'
+  ...
+# Subtest: known zero and known allocation are distinct from absent unknown metadata
+ok 3 - known zero and known allocation are distinct from absent unknown metadata
+  ---
+  duration_ms: 0.0955
+  type: 'test'
+  ...
+# Subtest: darwin: validates block count and byte-product boundaries without coercion
+ok 4 - darwin: validates block count and byte-product boundaries without coercion
+  ---
+  duration_ms: 0.632417
+  type: 'test'
+  ...
+# Subtest: linux: validates block count and byte-product boundaries without coercion
+ok 5 - linux: validates block count and byte-product boundaries without coercion
+  ---
+  duration_ms: 0.133667
+  type: 'test'
+  ...
+# Subtest: undocumented platforms omit allocation, including otherwise valid reported zero
+ok 6 - undocumented platforms omit allocation, including otherwise valid reported zero
+  ---
+  duration_ms: 0.117459
+  type: 'test'
+  ...
+# Subtest: Real stat/lstat report native allocation for owned empty, dense, sparse, hardlink, directory and symlink entries
+ok 7 - Real stat/lstat report native allocation for owned empty, dense, sparse, hardlink, directory and symlink entries
+  ---
+  duration_ms: 12.804875
+  type: 'test'
+  ...
+# {"node":"v22.22.2","platform":"darwin","arch":"arm64","uv":"1.51.0","filesystemType":26,"observations":[{"name":"empty","method":"stat","type":"file","size":0,"blocks":"0","allocatedBytes":0},{"name":"empty","method":"lstat","type":"file","size":0,"blocks":"0","allocatedBytes":0},{"name":"dense","method":"stat","type":"file","size":65536,"blocks":"128","allocatedBytes":65536},{"name":"dense","method":"lstat","type":"file","size":65536,"blocks":"128","allocatedBytes":65536},{"name":"sparse","method":"stat","type":"file","size":4194304,"blocks":"0","allocatedBytes":0},{"name":"sparse","method":"lstat","type":"file","size":4194304,"blocks":"0","allocatedBytes":0},{"name":"hole-written","method":"stat","type":"file","size":4194304,"blocks":"8192","allocatedBytes":4194304},{"name":"hole-written","method":"lstat","type":"file","size":4194304,"blocks":"8192","allocatedBytes":4194304},{"name":"hardlink","method":"stat","type":"file","size":65536,"blocks":"128","allocatedBytes":65536},{"name":"hardlink","method":"lstat","type":"file","size":65536,"blocks":"128","allocatedBytes":65536},{"name":"directory","method":"stat","type":"directory","size":64,"blocks":"0","allocatedBytes":0},{"name":"directory","method":"lstat","type":"directory","size":64,"blocks":"0","allocatedBytes":0},{"name":"symlink","method":"stat","type":"file","size":65536,"blocks":"128","allocatedBytes":65536},{"name":"symlink","method":"lstat","type":"symlink","size":5,"blocks":"0","allocatedBytes":0}]}
+# Subtest: Real stat/lstat retain typed missing-path errors rather than unknown-allocation successes
+ok 8 - Real stat/lstat retain typed missing-path errors rather than unknown-allocation successes
+  ---
+  duration_ms: 2.911125
+  type: 'test'
+  ...
+# Subtest: Real stat/lstat preserve pre-aborted reasons including errno-shaped cancellation
+ok 9 - Real stat/lstat preserve pre-aborted reasons including errno-shaped cancellation
+  ---
+  duration_ms: 3.436458
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 394.337125

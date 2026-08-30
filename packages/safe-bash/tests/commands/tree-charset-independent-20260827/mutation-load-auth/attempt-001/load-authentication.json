@@ -1,0 +1,300 @@
+{
+  "baseline": [
+    {
+      "caseId": "baseline",
+      "targetModule": "dist/commands/tree/charset.js",
+      "onDiskBeforeSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "onDiskAfterSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "onDiskAfterWorkerSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "expectedMutationSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "baselineLoadedSourceSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "actualLoadedSourceSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "onDiskAtLoadSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+      "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/charset.js",
+      "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/charset.js",
+      "sourceBytes": 1373,
+      "format": "module",
+      "actualLoadedHashEqualsAfterHash": true,
+      "actualLoadedHashDiffersFromBaselineHash": false,
+      "baselineCase": true,
+      "declaration": "actualLoadedSourceSha256 == onDiskBeforeSha256 == onDiskAfterSha256"
+    },
+    {
+      "caseId": "baseline",
+      "targetModule": "dist/commands/tree/arguments.js",
+      "onDiskBeforeSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "onDiskAfterSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "onDiskAfterWorkerSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "expectedMutationSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "baselineLoadedSourceSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "actualLoadedSourceSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "onDiskAtLoadSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+      "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/arguments.js",
+      "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/arguments.js",
+      "sourceBytes": 5258,
+      "format": "module",
+      "actualLoadedHashEqualsAfterHash": true,
+      "actualLoadedHashDiffersFromBaselineHash": false,
+      "baselineCase": true,
+      "declaration": "actualLoadedSourceSha256 == onDiskBeforeSha256 == onDiskAfterSha256"
+    },
+    {
+      "caseId": "baseline",
+      "targetModule": "dist/commands/tree/tree.js",
+      "onDiskBeforeSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "onDiskAfterSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "onDiskAfterWorkerSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "expectedMutationSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "baselineLoadedSourceSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "actualLoadedSourceSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "onDiskAtLoadSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+      "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/tree.js",
+      "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/tree.js",
+      "sourceBytes": 11619,
+      "format": "module",
+      "actualLoadedHashEqualsAfterHash": true,
+      "actualLoadedHashDiffersFromBaselineHash": false,
+      "baselineCase": true,
+      "declaration": "actualLoadedSourceSha256 == onDiskBeforeSha256 == onDiskAfterSha256"
+    },
+    {
+      "caseId": "baseline",
+      "targetModule": "dist/commands/tree/io.js",
+      "onDiskBeforeSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "onDiskAfterSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "onDiskAfterWorkerSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "expectedMutationSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "baselineLoadedSourceSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "actualLoadedSourceSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "onDiskAtLoadSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+      "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/io.js",
+      "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/baseline-consumer/node_modules/virtual-bash/dist/commands/tree/io.js",
+      "sourceBytes": 3733,
+      "format": "module",
+      "actualLoadedHashEqualsAfterHash": true,
+      "actualLoadedHashDiffersFromBaselineHash": false,
+      "baselineCase": true,
+      "declaration": "actualLoadedSourceSha256 == onDiskBeforeSha256 == onDiskAfterSha256"
+    }
+  ],
+  "mutants": [
+    {
+      "caseId": "environment-always-ascii",
+      "targetCheck": "environment-selection",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "environment-always-ascii",
+        "targetModule": "dist/commands/tree/charset.js",
+        "onDiskBeforeSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "onDiskAfterSha256": "1218c26fe9277b890ceb56dc0dcc6557c68500e865e64ff35941f9965abb8f68",
+        "onDiskAfterWorkerSha256": "1218c26fe9277b890ceb56dc0dcc6557c68500e865e64ff35941f9965abb8f68",
+        "expectedMutationSha256": "1218c26fe9277b890ceb56dc0dcc6557c68500e865e64ff35941f9965abb8f68",
+        "baselineLoadedSourceSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "actualLoadedSourceSha256": "1218c26fe9277b890ceb56dc0dcc6557c68500e865e64ff35941f9965abb8f68",
+        "onDiskAtLoadSha256": "1218c26fe9277b890ceb56dc0dcc6557c68500e865e64ff35941f9965abb8f68",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/environment-always-ascii/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/environment-always-ascii/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "sourceBytes": 1313,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "explicit-precedence-ignored",
+      "targetCheck": "explicit-precedence",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "explicit-precedence-ignored",
+        "targetModule": "dist/commands/tree/arguments.js",
+        "onDiskBeforeSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+        "onDiskAfterSha256": "4d41ef886a775532a419eb47baff6aeafc519158cada831b725692e2959beefa",
+        "onDiskAfterWorkerSha256": "4d41ef886a775532a419eb47baff6aeafc519158cada831b725692e2959beefa",
+        "expectedMutationSha256": "4d41ef886a775532a419eb47baff6aeafc519158cada831b725692e2959beefa",
+        "baselineLoadedSourceSha256": "1f8f6de091863922a2201ee4c49e808e11aefd59b23739c4cf4498f7a8789d69",
+        "actualLoadedSourceSha256": "4d41ef886a775532a419eb47baff6aeafc519158cada831b725692e2959beefa",
+        "onDiskAtLoadSha256": "4d41ef886a775532a419eb47baff6aeafc519158cada831b725692e2959beefa",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/explicit-precedence-ignored/node_modules/virtual-bash/dist/commands/tree/arguments.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/explicit-precedence-ignored/node_modules/virtual-bash/dist/commands/tree/arguments.js",
+        "sourceBytes": 5235,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "ambient-host-environment",
+      "targetCheck": "ambient-host-isolation",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "ambient-host-environment",
+        "targetModule": "dist/commands/tree/charset.js",
+        "onDiskBeforeSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "onDiskAfterSha256": "098923419fe9b899eb66930d2443b73727ca94b1bd8630aae956cdf8d8503877",
+        "onDiskAfterWorkerSha256": "098923419fe9b899eb66930d2443b73727ca94b1bd8630aae956cdf8d8503877",
+        "expectedMutationSha256": "098923419fe9b899eb66930d2443b73727ca94b1bd8630aae956cdf8d8503877",
+        "baselineLoadedSourceSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "actualLoadedSourceSha256": "098923419fe9b899eb66930d2443b73727ca94b1bd8630aae956cdf8d8503877",
+        "onDiskAtLoadSha256": "098923419fe9b899eb66930d2443b73727ca94b1bd8630aae956cdf8d8503877",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/ambient-host-environment/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/ambient-host-environment/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "sourceBytes": 1366,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "inherited-key-lookup",
+      "targetCheck": "inherited-key-isolation",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "inherited-key-lookup",
+        "targetModule": "dist/commands/tree/charset.js",
+        "onDiskBeforeSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "onDiskAfterSha256": "334e8fe3827dce67283d2cc7aba51b68e169aa1a732c4871afe6fe5d4c809fc1",
+        "onDiskAfterWorkerSha256": "334e8fe3827dce67283d2cc7aba51b68e169aa1a732c4871afe6fe5d4c809fc1",
+        "expectedMutationSha256": "334e8fe3827dce67283d2cc7aba51b68e169aa1a732c4871afe6fe5d4c809fc1",
+        "baselineLoadedSourceSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "actualLoadedSourceSha256": "334e8fe3827dce67283d2cc7aba51b68e169aa1a732c4871afe6fe5d4c809fc1",
+        "onDiskAtLoadSha256": "334e8fe3827dce67283d2cc7aba51b68e169aa1a732c4871afe6fe5d4c809fc1",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/inherited-key-lookup/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/inherited-key-lookup/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "sourceBytes": 1362,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "filename-unescaped",
+      "targetCheck": "filename-escaping",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "filename-unescaped",
+        "targetModule": "dist/commands/tree/tree.js",
+        "onDiskBeforeSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+        "onDiskAfterSha256": "8bc3cc2b8f5164d1a980e5831804367361e304aec9c46f1790d2462b8c768cef",
+        "onDiskAfterWorkerSha256": "8bc3cc2b8f5164d1a980e5831804367361e304aec9c46f1790d2462b8c768cef",
+        "expectedMutationSha256": "8bc3cc2b8f5164d1a980e5831804367361e304aec9c46f1790d2462b8c768cef",
+        "baselineLoadedSourceSha256": "cc2b539597b03dc6dca5c1fc31e27d771aeb49bc5ade318587ea934f99f8ec89",
+        "actualLoadedSourceSha256": "8bc3cc2b8f5164d1a980e5831804367361e304aec9c46f1790d2462b8c768cef",
+        "onDiskAtLoadSha256": "8bc3cc2b8f5164d1a980e5831804367361e304aec9c46f1790d2462b8c768cef",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/filename-unescaped/node_modules/virtual-bash/dist/commands/tree/tree.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/filename-unescaped/node_modules/virtual-bash/dist/commands/tree/tree.js",
+        "sourceBytes": 11597,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "output-code-units-not-utf8-bytes",
+      "targetCheck": "utf8-output-byte-cap",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "output-code-units-not-utf8-bytes",
+        "targetModule": "dist/commands/tree/io.js",
+        "onDiskBeforeSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+        "onDiskAfterSha256": "42718209a997300ca59c37685cd208dbeaae7f7c75098b7a6e4914be58c0925b",
+        "onDiskAfterWorkerSha256": "42718209a997300ca59c37685cd208dbeaae7f7c75098b7a6e4914be58c0925b",
+        "expectedMutationSha256": "42718209a997300ca59c37685cd208dbeaae7f7c75098b7a6e4914be58c0925b",
+        "baselineLoadedSourceSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+        "actualLoadedSourceSha256": "42718209a997300ca59c37685cd208dbeaae7f7c75098b7a6e4914be58c0925b",
+        "onDiskAtLoadSha256": "42718209a997300ca59c37685cd208dbeaae7f7c75098b7a6e4914be58c0925b",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/io.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/output-code-units-not-utf8-bytes/node_modules/virtual-bash/dist/commands/tree/io.js",
+        "sourceBytes": 3721,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "environment-work-undercharged",
+      "targetCheck": "environment-work-cap",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "environment-work-undercharged",
+        "targetModule": "dist/commands/tree/charset.js",
+        "onDiskBeforeSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "onDiskAfterSha256": "17ce2b43c05761c32ad24136d31cc062856b61cbc75e6bd554a53387b0659510",
+        "onDiskAfterWorkerSha256": "17ce2b43c05761c32ad24136d31cc062856b61cbc75e6bd554a53387b0659510",
+        "expectedMutationSha256": "17ce2b43c05761c32ad24136d31cc062856b61cbc75e6bd554a53387b0659510",
+        "baselineLoadedSourceSha256": "695c5dd1d6321510799dd2293b56553190876904873ebbc2193bc5fa4de6af5b",
+        "actualLoadedSourceSha256": "17ce2b43c05761c32ad24136d31cc062856b61cbc75e6bd554a53387b0659510",
+        "onDiskAtLoadSha256": "17ce2b43c05761c32ad24136d31cc062856b61cbc75e6bd554a53387b0659510",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/environment-work-undercharged/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/environment-work-undercharged/node_modules/virtual-bash/dist/commands/tree/charset.js",
+        "sourceBytes": 1358,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    },
+    {
+      "caseId": "sink-write-not-awaited",
+      "targetCheck": "awaited-backpressure",
+      "mappedFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION"
+      },
+      "attestation": {
+        "caseId": "sink-write-not-awaited",
+        "targetModule": "dist/commands/tree/io.js",
+        "onDiskBeforeSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+        "onDiskAfterSha256": "5c7fe0105f8ff2f78631b967725aa5e1c4e0d072c95a708c10fceaf67854b6c3",
+        "onDiskAfterWorkerSha256": "5c7fe0105f8ff2f78631b967725aa5e1c4e0d072c95a708c10fceaf67854b6c3",
+        "expectedMutationSha256": "5c7fe0105f8ff2f78631b967725aa5e1c4e0d072c95a708c10fceaf67854b6c3",
+        "baselineLoadedSourceSha256": "3059aeb5ba8fdab1eff69bf8c8f15aa190f4659030e060cc2b56e5c92194c5c6",
+        "actualLoadedSourceSha256": "5c7fe0105f8ff2f78631b967725aa5e1c4e0d072c95a708c10fceaf67854b6c3",
+        "onDiskAtLoadSha256": "5c7fe0105f8ff2f78631b967725aa5e1c4e0d072c95a708c10fceaf67854b6c3",
+        "targetURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/sink-write-not-awaited/node_modules/virtual-bash/dist/commands/tree/io.js",
+        "resolvedCanonicalURL": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/tree-charset-independent-20260827/mutation-load-auth/.work/attempt-001/variants/sink-write-not-awaited/node_modules/virtual-bash/dist/commands/tree/io.js",
+        "sourceBytes": 3732,
+        "format": "module",
+        "actualLoadedHashEqualsAfterHash": true,
+        "actualLoadedHashDiffersFromBaselineHash": true,
+        "baselineCase": false,
+        "declaration": "actualLoadedSourceSha256 == onDiskAfterSha256 != baselineLoadedSourceSha256"
+      }
+    }
+  ],
+  "allMutantsLoadedDeclaredAfterHash": true,
+  "allMutantLoadedHashesDifferFromBaseline": true
+}

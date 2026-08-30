@@ -1,0 +1,121 @@
+{
+  "identifier": "F03",
+  "status": "PASS",
+  "checks": 40,
+  "observation": {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/evidence-01/seed/runs/synthetic",
+    "publication": {
+      "status": "ADMISSION_ACCEPTED",
+      "unsafe": false,
+      "exitCode": 0,
+      "reference": {
+        "path": "RESULT.json",
+        "bytes": 5191,
+        "sha256": "6185d36d233c1d0599d0db5683ad258379396bc2aaf3946a9f2b419c11f100db",
+        "mode": 420
+      },
+      "selectedPrimary": {
+        "present": false
+      },
+      "failures": [],
+      "accounting": {
+        "enrolled": 2,
+        "attempted": 2,
+        "launched": 2,
+        "closed": 2,
+        "unknownAcquisitions": 0,
+        "allChildrenReaped": true,
+        "unsafe": false
+      },
+      "children": [
+        {
+          "ordinal": 1,
+          "pid": 96736,
+          "group": -96736,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "close": {
+            "code": 0,
+            "signal": null
+          },
+          "reaped": true,
+          "persisted": true
+        },
+        {
+          "ordinal": 2,
+          "pid": 96737,
+          "group": -96737,
+          "exit": {
+            "code": 7,
+            "signal": null
+          },
+          "close": {
+            "code": 7,
+            "signal": null
+          },
+          "reaped": true,
+          "persisted": true
+        }
+      ]
+    },
+    "actualLedger": [
+      {
+        "ordinal": 1,
+        "kind": "probe",
+        "state": "PERSISTED",
+        "launchAttempted": true,
+        "pid": 96736,
+        "group": -96736,
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "close": {
+          "code": 0,
+          "signal": null
+        },
+        "reaped": true,
+        "persisted": true,
+        "errors": [],
+        "operationId": "independent-probe",
+        "operationOrdinal": 1,
+        "configSha": "e09df719ce8ddf6801242261f54a5705bc34f41d8cef9334f9f08b717309c810",
+        "natural": true,
+        "failures": [],
+        "signals": [],
+        "receiptSha": "fdc0f8a8bb85a6a21876d85e4048e3765e5b81a9041e15956d4d486a32c8eb7e"
+      },
+      {
+        "ordinal": 2,
+        "kind": "control",
+        "state": "PERSISTED",
+        "launchAttempted": true,
+        "pid": 96737,
+        "group": -96737,
+        "exit": {
+          "code": 7,
+          "signal": null
+        },
+        "close": {
+          "code": 7,
+          "signal": null
+        },
+        "reaped": true,
+        "persisted": true,
+        "errors": [],
+        "operationId": "C09-status",
+        "operationOrdinal": 2,
+        "configSha": "c22391213b821d09d229128c016a42d5ac36cbdbe4cdc8b8a031096c4d9e0fd8",
+        "natural": false,
+        "failures": [],
+        "signals": [],
+        "receiptSha": "66cc3184e5edb50b9f6cfef1b6c42232112ff51c5b63cc5376aded4ca07714ed"
+      }
+    ],
+    "fd3Sha256": "5a8639ae66ef7304ff900e000368b8ed760efb6b86ee0f7e2d5f0cfdfcbd6b8c",
+    "terminalSha256": "51f2b64c6b8ddd7bf38a0a65d7b4a395f8d767c503071e2d5964240e855c1751",
+    "qualifications": "LITERAL_DRIVER_CONTROLS_NOT_PRODUCTION_ADMISSION"
+  }
+}

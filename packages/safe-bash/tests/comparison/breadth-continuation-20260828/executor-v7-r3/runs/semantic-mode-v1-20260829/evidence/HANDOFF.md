@@ -1,0 +1,13 @@
+# Semantic mode v1 — ready for different preexecution review
+
+Candidate/preseal commit 428cb8c0ec1c3aa1737c4138198bedce300ebea5; seal SHA 357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d. Original admission launcher/assessor/evidence remain unchanged. Actual GO is withheld.
+
+One presealed invocation: **18/18 new controls +3/3 retained admission-DATA controls**, zero failed/unrun, exit0/close0 and no capture failures. S01/S02 model99receipts each through the actual successor coordinator/publisher/assessor, with198synthetic rows total. **No real engines, Workers, C11, semantic programs, package staging, build, network, native or private execution.** Synthetic metadata/load events/PIDs are not production-authority/load/retirement evidence.
+
+Separate cohort authority and semantic terminal schemas bind the successor seal; full99operation/config/receipt/authority/load/bootstrap/cleanup reconciliation reruns unchanged qualifiers. Fresh99semantic+66empty=165calls;C11zero. Ordinary mismatches may complete with exactcoordinator1, while launcher0 means protocolcompletion only and exposes failed/unqualified counts. All-pass-count/nonzero refuses; unsafe captures/retirement/integrity/publication stop. W07comparator remains uncredited;W03telemetry partial.
+
+Prospective topology:302runtime+20admin+14slack within336ALLprocesscap,peak5, no waiting parent or retry permission.75minowner+15admin;worker30s+TERM2/KILL1;metadata10s/64KiB;257MiBpartition unchanged.580.5MiB theoretical per-child maxima are not guaranteed tofit; exhaustion failsclosed.768MiBworking;oldspace256MiB is notRSS/hardpreemption/performance proof.
+
+Source delta: SOURCE-DELTA.patch.data plus sealed SOURCE-MAP.json.23successor and38inherited bindings unchanged post-run. Complete817owned synthetic evidence files (72540826bytes) are retained byte-for-byte in SYNTHETIC-RECEIPTS.ndjson.gz, SHA cac2e2e5b2aad8bac330903cc221b1586c6ed798867f5853067bc633c70772a3; archive verified, then only those files/31emptyowned directories cleaned. Cumulative evidence+archive about100.1MB remains below128MiB prep cap.
+
+Archimedes: review the new authority/report contract, complete semantic assessment/reconciliation, worker-parent/load bindings, protocol-vs-semantic exit semantics, wrapper source and budget topology. Exact future review receipt is the three-key template in HANDOFF.json with recipeSha256=357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d. Require fresh root grant/AUTH/rawhash and real-payload preflight after acceptance; inactive templates are not authority. Historical scores/HOLDs/losses and consumed grants remain unchanged.

@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import {readPinned,pinExecutable,publish,errorRecord,Primary} from './auth.mjs';
+import {collect} from './collector-core.mjs';
+import {preauthRecord} from './preauth.mjs';
+import {validateActivation} from './activation.mjs';
+import {selectChild,inheritWindow,ownerOutcome} from './qualification.mjs';
+const packet="/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2",work="/private/tmp/safe-bash-k08-preexec-v2-1O68JM/future",started=Date.now(),primary=new Primary();
+let time,child,outcome,summary,ownerResultPin;const secondary=[];let descendantSettlement='UNKNOWN';
+try{
+ const seal=JSON.parse(readPinned(packet+'/SEAL.json',{bytes:Number(process.env.K08_SEAL_BYTES),sha256:process.env.K08_SEAL_SHA256}));for(const [name,pin]of Object.entries(seal.files))readPinned(packet+'/'+name,pin);pinExecutable(seal.node);
+ const readAuth=(name,digest)=>{const stat=fs.lstatSync(packet+'/'+name);return JSON.parse(readPinned(packet+'/'+name,{bytes:stat.size,sha256:digest},65536));};
+ const grant=readAuth('GO.json',process.env.K08_GRANT_SHA256),review=readAuth('REVIEW.json',process.env.K08_REVIEW_SHA256);time=validateActivation(grant,review,{preseal:process.env.K08_SEAL_SHA256,work,limits:seal.limits,roles:seal.roles,started,now:Date.now()});
+ const inherited=inheritWindow(started,time.finalDeadline,grant,seal.limits,Date.now());
+ const ledger={starts:1,maximum:2,active:0,stopped:false,captureBytes:0,captureMaximum:131072,rows:[]};
+ const env={HOME:work+'/home',TMPDIR:work+'/tmp',PATH:work+'/empty-path',LC_ALL:'C',LANG:'C',TZ:'UTC',K08_SEAL_BYTES:process.env.K08_SEAL_BYTES,K08_SEAL_SHA256:process.env.K08_SEAL_SHA256,K08_GRANT_SHA256:process.env.K08_GRANT_SHA256,K08_REVIEW_SHA256:process.env.K08_REVIEW_SHA256,K08_OUTER_STARTED:String(started),K08_OUTER_DEADLINE:String(time.finalDeadline)};
+ child=await collect({id:'author-owner',node:seal.node,args:[packet+'/target-owner.mjs'],cwd:work,env,capture:work+'/future-capture/owner',timeoutMs:Math.max(1,inherited.collectorRetirementDeadline-Date.now()),bodyDeadline:inherited.collectorRetirementDeadline,finalDeadline:time.finalDeadline},ledger);
+ const selected=selectChild(child,row=>publish(work+'/future-capture/OWNER-LIFECYCLE.json',Buffer.from(JSON.stringify({ledger,ownerLifecycle:row})+'\n'),time.finalDeadline));
+ if(selected.present)primary.fail(selected.reason);secondary.push(...selected.secondary.map(row=>({phase:'owner-lifecycle-publication',present:true,reason:errorRecord(row.reason)})));
+ if(!primary.present){
+  const stdout=child.row.captures.find(row=>row.kind==='stdout');summary=JSON.parse(Buffer.from(stdout.base64,'base64').toString());
+  ownerResultPin=summary.resultPublication;if(!ownerResultPin?.qualified||!Number.isSafeInteger(ownerResultPin.bytes)||ownerResultPin.bytes<1||ownerResultPin.bytes>16777216||typeof ownerResultPin.sha256!=='string'||!/^[a-f0-9]{64}$/.test(ownerResultPin.sha256))throw Error('OWNER_PUBLICATION_PIN');
+  const report=JSON.parse(readPinned(work+'/future-capture/TARGET-RESULT.json',ownerResultPin,16777216));
+  const data=JSON.parse(readPinned(packet+'/CASES.json',seal.files['CASES.json']));const layouts=['source-built','installed','physically-moved'];
+  outcome=ownerOutcome(report,summary,{started,finalDeadline:time.finalDeadline,observations:layouts.flatMap(layout=>data.rows.map(row=>'case-'+layout+'-'+row.id)),helpers:layouts.map(layout=>'helpers-'+layout)});
+  if(summary.knownOwnedRetired!==true||child.row.status!==(outcome.accepted?0:2))throw Error('OWNER_EXIT_RESULT_DISAGREEMENT');descendantSettlement='DECLARED_KNOWN_ROLES_RETIRED';
+ }
+}catch(reason){primary.fail(reason);}
+const receipt={status:primary.present?'STOP':outcome?.accepted?'COLLECTOR_COMPLETED':'COLLECTOR_ASSERTION_FAILURES',started,finalDeadline:time?.finalDeadline,primaryPresent:primary.present,primary:primary.present?errorRecord(primary.reason):undefined,secondary:[...primary.secondary,...secondary],ownerResultPin,outcome,descendantSettlement,ownerLifecycle:child?.row};
+if(time){try{publish(work+'/future-capture/COLLECTOR.json',Buffer.from(JSON.stringify(receipt)+'\n'),time.finalDeadline);}catch(reason){primary.fail(reason);}}
+process[primary.present?'stderr':'stdout'].write(JSON.stringify(primary.present?{...preauthRecord(true,primary.reason),secondary:[...primary.secondary,...secondary],descendantSettlement}:receipt)+'\n');if(primary.present)process.exitCode=1;else if(!outcome?.accepted)process.exitCode=2;

@@ -1,0 +1,78 @@
+{
+  "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+  "parserNotes": [
+    {
+      "line": 22,
+      "text": "  try { return { source, tree: parseArithmetic(source) }; }",
+      "next": [
+        "  catch (error) {",
+        "    if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;",
+        "    return { source, error };"
+      ]
+    },
+    {
+      "line": 55,
+      "text": "export function parseArithmetic(source: string, offset = 0): Arithmetic {",
+      "next": [
+        "  const tokens: { value: string; offset: number }[] = [];",
+        "  let position = 0;",
+        "  while (position < source.length) {"
+      ]
+    },
+    {
+      "line": 115,
+      "text": "  if (!tokens.length) return { kind: \"literal\", value: 0n };",
+      "next": [
+        "  const tree = expression();",
+        "  if (cursor < tokens.length) error(\"Unexpected arithmetic token\");",
+        "  return tree;"
+      ]
+    },
+    {
+      "line": 117,
+      "text": "  if (cursor < tokens.length) error(\"Unexpected arithmetic token\");",
+      "next": [
+        "  return tree;",
+        "}",
+        ""
+      ]
+    },
+    {
+      "line": 177,
+      "text": "      try { return evaluate(parseArithmetic(variables[node.name] ?? \"0\")); }",
+      "next": [
+        "      finally { visiting.delete(node.name); }",
+        "    }",
+        "    if (node.kind === \"conditional\") return evaluate(evaluate(node.condition) ? node.yes : node.no);"
+      ]
+    },
+    {
+      "line": 209,
+      "text": "    if (error instanceof ArithmeticFailure) throw new Error(`${program.source.trimStart()}: ${error.message} (error token is \"${program.source.slice(error.offset)}\")`);",
+      "next": [
+        "    if (error instanceof ShellSyntaxError) {",
+        "      const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;",
+        "      const reason = error.reason === \"Invalid arithmetic operand\" ? \"arithmetic syntax error: operand expected\" : \"arithmetic syntax error in expression\";"
+      ]
+    },
+    {
+      "line": 211,
+      "text": "      const offset = error.offset >= program.source.trimEnd().length ? Math.max(0, program.source.trimEnd().length - 1) : error.offset;",
+      "next": [
+        "      const reason = error.reason === \"Invalid arithmetic operand\" ? \"arithmetic syntax error: operand expected\" : \"arithmetic syntax error in expression\";",
+        "      throw new Error(`${program.source.trimStart()}: ${reason} (error token is \"${program.source.slice(offset)}\")`);",
+        "    }"
+      ]
+    },
+    {
+      "line": 213,
+      "text": "      throw new Error(`${program.source.trimStart()}: ${reason} (error token is \"${program.source.slice(offset)}\")`);",
+      "next": [
+        "    }",
+        "    throw error;",
+        "  }"
+      ]
+    }
+  ],
+  "execution": "UNRUN"
+}

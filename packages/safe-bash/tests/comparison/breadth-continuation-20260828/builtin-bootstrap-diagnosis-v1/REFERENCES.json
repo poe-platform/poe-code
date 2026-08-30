@@ -1,0 +1,10 @@
+{
+  "scope": "Primary documentation only; no package or runtime download",
+  "pages": [
+    "https://nodejs.org/download/release/v22.12.0/docs/api/process.html",
+    "https://nodejs.org/download/release/v22.18.0/docs/api/module.html",
+    "https://nodejs.org/download/release/v22.15.0/docs/api/modules.html"
+  ],
+  "exactVersionRequests": "v22.22.2 process/module/modules pages yielded no usable body; not claimed verified",
+  "localAuthority": "Pinned source bytes and retained V6 records, not documentation of another version"
+}

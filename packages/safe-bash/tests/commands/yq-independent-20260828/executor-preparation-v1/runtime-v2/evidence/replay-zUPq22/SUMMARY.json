@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 2,
+  "classification": "SYNTHETIC_FRAMEWORK_ONLY",
+  "sourceCommit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+  "presealSha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64",
+  "recipeTreeSha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878",
+  "recipeSealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "observations": 47,
+  "matched": 47,
+  "failures": [],
+  "controls": [
+    {
+      "id": "inventory",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "inventory-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F01-original-reproduced",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "F01-original-reproduced-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F01-corrected-continuation",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "F01-corrected-continuation-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-empty",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-empty-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-natural-language",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-natural-language-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-null",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-null-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-string",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-string-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-object",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-object-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-unknown-field",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-unknown-field-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-private-count",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-private-count-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-legacy-alias",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-legacy-alias-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-frozen-missing",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-frozen-missing-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-partial",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-partial-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-inactive-documents",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-inactive-documents-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-unknown-effect",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-unknown-effect-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-reads",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-malformed-reads-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-diagnostic",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-malformed-diagnostic-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-bytes",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-malformed-bytes-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-missing-status",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-missing-status-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "obligation-malformed-status",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "obligation-malformed-status-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "projection-wrong-bytes",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "projection-wrong-bytes-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "projection-wrong-status",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "projection-wrong-status-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "raw-before-assertion",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "raw-before-assertion-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F02-identities-v1",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "F02-identities-v1-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "F02-identities-v2",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "F02-identities-v2-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "identity-scope-boundary",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "identity-scope-boundary-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-nonzero",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "host-nonzero-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-signal",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "host-signal-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-timeout",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "host-timeout-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-overflow",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "host-overflow-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-malformed",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "host-malformed-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "host-wrong-job",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "host-wrong-job-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-content",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "integrity-content-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-mode",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "integrity-mode-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-file",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "integrity-file-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-directory",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "integrity-directory-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "reap-proof-stop",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "reap-proof-stop-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "integrity-and-reap-stop",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "integrity-and-reap-stop-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "fence-static-v1",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "fence-static-v1-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "fence-static-v2",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "fence-static-v2-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "fence-denials",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "fence-denials-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "actual-child-timers",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "actual-child-timers-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "actual-child-rejection-cleanup",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "actual-child-rejection-cleanup-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "authorization-selected-pin",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "authorization-selected-pin-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "authorization-missing",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "authorization-missing-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "recipe-no-clobber",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "recipe-no-clobber-raw.json",
+      "semanticPasses": 0
+    },
+    {
+      "id": "recipe-new-entry-refusal",
+      "classification": "SYNTHETIC_FRAMEWORK_CONTROL",
+      "outcome": "MATCH",
+      "failure": null,
+      "raw": "recipe-new-entry-refusal-raw.json",
+      "semanticPasses": 0
+    }
+  ],
+  "roleCounts": {
+    "command-semantic-runtime": 111,
+    "admission-error-boundary": 34,
+    "source-static-counterproof": 23,
+    "lifecycle-cooperative": 11,
+    "materialized-package-infrastructure": 4,
+    "type-consumer": 5,
+    "negative-control": 6
+  },
+  "originalFindingsPreserved": true,
+  "activeChildren": [],
+  "originalInputsAuthenticatedBeforeAfter": true,
+  "recipeMembershipIncludingAdditionsChecked": true,
+  "wholeRepositoryAppendProof": false,
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "nativeYaml": 0,
+  "privateImports": 0,
+  "semanticPasses": 0,
+  "grantsGO": false,
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh",
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22"
+}

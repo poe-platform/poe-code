@@ -1,0 +1,20 @@
+{
+  "id": "novel",
+  "openedBeforeAdmission": true,
+  "pid": null,
+  "exit": null,
+  "close": null,
+  "observed": {
+    "stdout": 0,
+    "stderr": 0,
+    "fd3": 0
+  },
+  "retained": {
+    "stdout": 0,
+    "stderr": 0,
+    "fd3": 0
+  },
+  "failures": [],
+  "globalAbsenceClaim": false,
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+}

@@ -1,0 +1,7 @@
+import { createDuCommands, type AgentCommandsOptions, type DuCommandsOptions } from "virtual-bash";
+import { duCommands } from "virtual-bash/commands/du";
+const nested: AgentCommandsOptions = { du: { replace: true } };
+const wrong: DuCommandsOptions = { limits: { maxEntries: "wrong" } };
+duCommands({ limits: { unknownLimit: 1 } });
+createDuCommands().push({ name: "wrong", execute: () => ({ exitCode: 0 }) });
+void [nested, wrong];

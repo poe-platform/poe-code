@@ -1,0 +1,339 @@
+{
+  "candidateCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "wholeRepositoryGitTree": "7d573d3214404f98f9664c79c16f1d7e9ce5d05e",
+  "wholeProductScopeEntries": 301,
+  "scope": [
+    "src",
+    "README.md",
+    "package.json",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "selectedProjectionEntries": 271,
+  "sameAsSelectedProjection": false,
+  "extraPaths": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b72a4cf5b45eaaa51cb5345030d5519f3bd50724",
+      "path": "src/commands/timeout/README.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "ffb713e6f0fd379697f7c564ab014f9fb14a8b07",
+      "path": "src/commands/timeout/duration.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "d6cb9e9797c6cae524ec7228877de4788c7c57ab",
+      "path": "src/commands/timeout/index.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+      "path": "src/commands/timeout/scheduler.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "5c888078c45d57942137447380b51fbae48d79a0",
+      "path": "src/commands/xan/DESIGN.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a8774ea64111f377aed5147d02989037c8a04e5c",
+      "path": "src/commands/xan/README.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "d5076ba89e7a515173bbe69a33c0c72de20fc8c7",
+      "path": "src/commands/xan/argv.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b6d5b6233182f558358648e158dcfccbcc9158cb",
+      "path": "src/commands/xan/budget.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9d1bb493d04b2490233d7a74bcaf50f29ce32610",
+      "path": "src/commands/xan/commands.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "11b7d8ba194fb888795279a5f2d883ad124a1366",
+      "path": "src/commands/xan/csv.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "73655f192ad63b9891145596694c2767a62b6568",
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "8eb7ff4812b7bcda3fd42b0f9fea6a560698e02e",
+      "path": "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "2b2847c403a84f31a02e0e8879d726544ed04039",
+      "path": "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "48f51d27e1a0d49a93f50e92fcd822b9b5dec347",
+      "path": "src/commands/xan/design-evidence/HANDOFF-V2.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "82308e800bbd9593511325adac24ba473a9b9862",
+      "path": "src/commands/xan/design-evidence/HANDOFF-V3.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "fe66050f532c0b299ea27c1b394f510628a21480",
+      "path": "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "e1d2c1214ef8f0b93724f97986db2ea14b03915d",
+      "path": "src/commands/xan/design-evidence/PROFILE-V2.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6b845ecb307bd8d397cee809ff92fc1c9d3d45bf",
+      "path": "src/commands/xan/design-evidence/PROFILE-V3.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "a9ce24e46503e8f672fc75ed75db0762198ae10a",
+      "path": "src/commands/xan/design-evidence/RECEIPT.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "e49e627c63935359d6d6d8ee18375a5ced83b1c5",
+      "path": "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "be5b94a279d6a1e1ede86e2fb0cf96f0cadb98ad",
+      "path": "src/commands/xan/design-evidence/SELECTOR-BINDING-V4.json",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c86f1fdfcd4e23beb8370dc1125c526cfbe447f0",
+      "path": "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "b0b17396596a22744b67a602539059c36fdbf7b0",
+      "path": "src/commands/xan/design-evidence/SOURCE-MAP.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "e9d5a3eeb15860413fa19696841088fbbdc93f87",
+      "path": "src/commands/xan/index.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "6709ea821e1fb5919f9130871f90062163575d9e",
+      "path": "src/commands/xan/io.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "25555618b17a210c3f66e609940df5bb5d023063",
+      "path": "src/commands/xan/options.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "57f61dbe8fd77a1dc9da89f9097ccc53e205292d",
+      "path": "src/commands/xan/selector.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9177e370e7eb7919290192e82c0beea834b723bc",
+      "path": "src/commands/xan/sort.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "9308fa2ebef473213f158f4be130c1bda2ee9260",
+      "path": "src/commands/xan/writer.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "412950cddd31e11f0bf5ee30a8b0c1492f360929",
+      "path": "src/commands/yq/DESIGN.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    }
+  ],
+  "changedSelectedPaths": [
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "2d0e55d7cc614fb712a027ed44ba9d5f19c5026a",
+      "path": "README.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3",
+      "path": "package.json",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+      "path": "src/fs/webdav/README.md",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+      "path": "src/fs/webdav/webdav.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "f54199ce30c02eaa15a6956434df3ff0163d17c4",
+      "path": "src/index.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "1741b55650062b6ae282d410d20969cac283fa8e",
+      "path": "src/plugins/index.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+      "path": "src/shell/runtime.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    },
+    {
+      "mode": "100644",
+      "type": "blob",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "path": "src/shell/shell.ts",
+      "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3"
+    }
+  ],
+  "sourceCommitWriteSet": [
+    "M\tsrc/commands/structured/query-core.ts",
+    "M\tsrc/commands/yq/accounting.ts",
+    "M\tsrc/commands/yq/encoder.ts",
+    "M\tsrc/commands/yq/index.ts",
+    "M\tsrc/commands/yq/parser.ts",
+    "M\ttests/commands/yq-author-20260828/repair-allocation-v1/PROTOCOL.md",
+    "M\ttests/commands/yq-author-20260828/repair-allocation-v1/repair.test.ts"
+  ],
+  "evidenceWriteSet": [
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPORT.json",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPRODUCIBILITY.json",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE-MANIFEST.json",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/build.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/build.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/installed-runtime.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/installed-runtime.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/installed-types.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/installed-types.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/moved-runtime.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/moved-runtime.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/moved-types.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/moved-types.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/npm-pack.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/npm-pack.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/offline-install.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/offline-install.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/original-author-runtime.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/original-author-runtime.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/package-list.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/package-list.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/repair-runtime.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/repair-runtime.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/repair-types.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/repair-types.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/scoped-types.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/scoped-types.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/selected-parent-jq.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/selected-parent-jq.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/source-archive-list.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/source-archive-list.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/source-archive-second.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/source-archive-second.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/source-archive.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/source-archive.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/wrong-module-hash-negative.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/wrong-module-hash-negative.stdout.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/wrong-source-negative.stderr.txt",
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/raw/wrong-source-negative.stdout.txt"
+  ],
+  "handoffWriteSet": [
+    "A\ttests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "mode": "baseline",
+  "commit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "archiveSha256": "5115e79451135626f36fdf12e1712808ca4e242589100f60d5171c099b3f18d9",
+  "overlays": {
+    "tests/commands/core-sort/single-numeric-key-cache.test.ts": "efe3c6f31c85b64b406cc5b551cc81b1a0b1e5b206bc9b8e8573762af38b8f61"
+  },
+  "node": "v22.22.2",
+  "loadBefore": [
+    4.3359375,
+    5.1455078125,
+    5.56591796875
+  ],
+  "receipts": [
+    {
+      "label": "extract",
+      "executable": "/usr/bin/tar",
+      "args": [
+        "-xf",
+        "/tmp/sort-key-author-check-2ZBnOS/archive.tar",
+        "-C",
+        "/tmp/sort-key-author-check-2ZBnOS/tree"
+      ],
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    },
+    {
+      "label": "tests",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/commands/core-sort/single-numeric-key-cache.test.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "childClosed": true
+    }
+  ],
+  "success": true,
+  "scratchRemoved": true,
+  "remainingOwnedChildren": 0,
+  "loadAfter": [
+    4.3359375,
+    5.1455078125,
+    5.56591796875
+  ]
+}

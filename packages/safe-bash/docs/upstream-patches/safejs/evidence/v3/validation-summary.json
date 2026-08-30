@@ -1,0 +1,113 @@
+{
+  "artifactRevision": "v3-canonical-abort-message-proposal",
+  "approval": "NOT APPROVED; separate review pending",
+  "patchSha256": "5a12e79d07fc9379c9a6a67897f8aa72767467cc775fac5ea88e55a5bcde95d3",
+  "sourceRoot": "/private/tmp/safe-bash-safejs-isolated-gnP0gu/baseline",
+  "snapshot": "/tmp/safe-bash-safejs-isolated-ZicyG4",
+  "verifierExit": 1,
+  "passed": false,
+  "expectedAcceptance": {
+    "tests": 10,
+    "pass": 10,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "results": {
+    "baseline-acceptance": {
+      "tests": 10,
+      "pass": 0,
+      "fail": 10,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "patched-acceptance": {
+      "tests": 10,
+      "pass": 9,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "baseline-invariants": {
+      "tests": 9,
+      "pass": 0,
+      "fail": 9,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "patched-invariants": {
+      "tests": 9,
+      "pass": 8,
+      "fail": 1,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "baseline-reason-safety": {
+      "tests": 18,
+      "pass": 0,
+      "fail": 18,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "patched-reason-safety": {
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    }
+  },
+  "targeted": {
+    "files": 3,
+    "tests": 109,
+    "passed": 109,
+    "failed": 0,
+    "skipped": 0,
+    "rawPath": "/tmp/safe-bash-safejs-isolated-wt42MU/v3-targeted.json",
+    "rawSha256": "3900b571572bb6b5bb143901f35eb1087cf2b40cba35912a8c21db02a2884657"
+  },
+  "privateComparison": {
+    "engineUnchanged": true,
+    "revisionUnchanged": true,
+    "statusUnchanged": true,
+    "indexUnchanged": true,
+    "licenseUnchanged": true
+  },
+  "postTestSourceHashesMatch": true,
+  "currentPrivateRebaseTested": false,
+  "guards": {
+    "pass": 2,
+    "fail": 0
+  },
+  "typecheck": {
+    "baselineExit": 2,
+    "patchedExit": 2,
+    "diagnostics": 8,
+    "outputsEqual": true,
+    "limitation": "unbuilt workspace declarations; not passing"
+  },
+  "actualImports": {
+    "run.ts": {
+      "path": "/private/tmp/safe-bash-safejs-isolated-ZicyG4/patched/packages/safejs/src/run.ts",
+      "sha256": "c786130717eab346135766190f005fa025b5e290b9d5220ad913f21da304e3c1"
+    },
+    "interp/interpreter.ts": {
+      "path": "/private/tmp/safe-bash-safejs-isolated-ZicyG4/patched/packages/safejs/src/interp/interpreter.ts",
+      "sha256": "9144707a43315e80cd75ff6dfdf650760d196c2b9fc09f5876b86ff551a3338d"
+    }
+  },
+  "versions": {
+    "node": "v22.22.2",
+    "safeBashTsx": "4.23.12",
+    "copied_vitest": "3.2.6",
+    "copied_vite": "6.4.3",
+    "copied_typescript": "5.9.3",
+    "copied_tsx": "4.22.4"
+  },
+  "oracle": {
+    "source": "fresh native AbortSignal.abort().reason.message, captured before engine import; unchanged upstream literal expectations",
+    "message": "This operation was aborted",
+    "fixtureSha256": "83ec16e7e559d8fcf7a24c72b6e278cf1cbb1a2c733d8fd58c8640a0609a7560",
+    "originalNineSha256": "7f8ebc44fdb3cc313439ec1f3a88c7df3dd3d894b8557daec6c0367fcb7611ab"
+  }
+}

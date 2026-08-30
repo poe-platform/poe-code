@@ -1,0 +1,644 @@
+{
+  "schema": 1,
+  "status": "QUALIFIED_SCOPED_RESOLVED_WRITES_ARCHIVE_AND_A10_PROVEN; COMPLETE_BINDING_HOLD",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "additionalControls": "65bb898d17af8e674842e060ddd7ea61f91ff5bc",
+  "evidence": "62593a89afb0ee9db82341cf073229c555d3e2bc",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "policySha256": "0c131a44099205aa3cf85adf4836738b41b111616fae0d8f7c7f198277c04d6e",
+  "packet": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-os-fence-v1/HANDOFF.md",
+    "sha256": "9826999f88df78f85c8569e42ef2a26efc68be65c934d6a5e9c2091471589395"
+  },
+  "matrix": [
+    {
+      "id": "R01",
+      "status": "PASS",
+      "scope": "inert file/directory links positive; resolved outside write/append/truncate/new-child deny, bytes/inodes/entries unchanged"
+    },
+    {
+      "id": "R02",
+      "status": "PASS",
+      "scope": "relative/renamed/chained/tmp aliases deny outside effects; contained link/output/literal POSIX backslash positives"
+    },
+    {
+      "id": "R03",
+      "status": "PASS",
+      "scope": "fresh instruction targets and ASCII case variants through alias/chain/rename create/append deny; direct instruction-name link deny; no existing protected file setup"
+    },
+    {
+      "id": "R04",
+      "status": "PASS",
+      "scope": "outside regular inode hardlink/direct+directory-alias and physical directory rename/tmp-alias deny; unfenced ordinary capability positives"
+    },
+    {
+      "id": "R05",
+      "status": "PASS_SCOPED",
+      "scope": "cleared-env Node/native descendants enforce writes, shipping foreign-canary FD absent, three separately grouped sentinels survive then controller termination"
+    },
+    {
+      "id": "R06",
+      "status": "PASS_CORRECTED_COHORT",
+      "scope": "real historical native Git/tar denial; original target succeeded but worker receipt-name collision exit1 preserved"
+    },
+    {
+      "id": "R07",
+      "status": "PASS_SCOPED",
+      "scope": "actual frozen full projected A10 and actual second compiler duplicate audit refusal; not fullgate or runtime consumer acceptance"
+    }
+  ],
+  "cohorts": {
+    "safety": {
+      "phasePass": 5,
+      "phaseFail": 0
+    },
+    "historicalInitial": {
+      "target": 0,
+      "tar": 1,
+      "worker": 1,
+      "reason": "APFS case-insensitive report filename collision after target; retained"
+    },
+    "historicalFollowup": {
+      "target": 0,
+      "tar": 1,
+      "worker": 0
+    },
+    "a10": {
+      "cold": 78,
+      "typecheckAll": 0,
+      "positiveBuilds": 1,
+      "expectedCompilerInvocations": 32,
+      "maintainedGroups": 23,
+      "sourceGroups": 3,
+      "negativeGroups": [
+        {
+          "name": "env-split-invalid-binding",
+          "status": "pass",
+          "diagnostics": 1
+        },
+        {
+          "name": "time-env-public-negative",
+          "status": "pass",
+          "diagnostics": 2
+        },
+        {
+          "name": "time-env-leaf-negative",
+          "status": "pass",
+          "diagnostics": 5
+        }
+      ],
+      "runtimeExecutions": 0,
+      "emitted": 832,
+      "declarations": 208,
+      "candidateBinding": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+      "emitManifestSha256": "3760c3b33307ffc7e4ed26c34073cda665d48a742cd3cc69f1894f6ee50e72fc"
+    },
+    "duplicate": {
+      "compiler": 0,
+      "refusal": {
+        "message": "unexpected duplicate driver production build",
+        "code": "ERR_ASSERTION"
+      },
+      "realCompilerPids": [
+        58623,
+        63177
+      ],
+      "emittedUnchanged": true,
+      "qualification": "One extra real compiler is the explicit negative only; not permission for two positive driver builds"
+    }
+  },
+  "attempts": {
+    "independentInstructionOperations": 11,
+    "denied": 11,
+    "nativeArchiveMemberAttempts": 2,
+    "nativeArchiveMembersDenied": 2,
+    "unexpectedPhysicalInstructionFiles": 0,
+    "qualification": "Operation/member counts, not an invented syscall count; both historical archive cohorts retained. A10 projection metadata omissions are not write attempts."
+  },
+  "fullCandidate": {
+    "logical": {
+      "count": 37397,
+      "bytes": 2382440321
+    },
+    "physical": 37392,
+    "candidateMetadataOnly": [
+      {
+        "path": "AGENTS.md",
+        "mode": "100644",
+        "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+        "bytes": 12424,
+        "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ],
+    "originalDependencyProjection": [
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "logical": {
+          "files": 3497,
+          "bytes": 75292558,
+          "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [
+          {
+            "role": "benchmark",
+            "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+            "path": "just-bash/dist/AGENTS.md",
+            "mode": "100644",
+            "bytes": 9231,
+            "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+          }
+        ],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      }
+    ],
+    "secondHopProjection": [
+      {
+        "origin": "/private/tmp/unified76-independent-write-v9-Tel2Zh/repository/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      {
+        "origin": "/private/tmp/unified76-independent-write-v9-Tel2Zh/repository/benchmarks/node_modules",
+        "logical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      }
+    ],
+    "compositePhysicalHashesMatch": true,
+    "opaqueHistory": {
+      "revisions": [
+        "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+        "6699804ace9f5522aa67be6a017a8008bfc09f30",
+        "656ee2b04aa91b1cc40da865173be1b472a2c4ce"
+      ],
+      "bytes": 480921521,
+      "sha256": "3bbe8ca53ee0f901c8d783d65811e7969296908516b3d8e22735713478bbb6c6",
+      "lifecycle": [
+        {
+          "pid": 50323,
+          "status": 0,
+          "signal": null
+        },
+        {
+          "pid": 50324,
+          "status": 0,
+          "signal": null
+        }
+      ],
+      "logs": {
+        "0": {
+          "pid": 50323,
+          "stderr": "",
+          "stdout": ""
+        },
+        "1": {
+          "pid": 50324,
+          "stderr": "",
+          "stdout": "pack\tabcef2d21d4ce981ba7b522b8b67880fadd1f772\n"
+        }
+      },
+      "checkout": false,
+      "alternates": false,
+      "instructionPolicy": "Original opaque objects only; no instruction file materialized"
+    },
+    "assembly": {
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+      "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+      "paths": 4
+    },
+    "qualification": "Original object stream480921521 bytes, no checkout/alternates. Full candidate reconstructed with frozen cat-file transport, not typing-only selection; no fresh whole-candidate tar claim. Exact5 candidate plus1 benchmark omissions composed across two authenticated dependency hops."
+  },
+  "historical": {
+    "revision": "656ee2b04aa91b1cc40da865173be1b472a2c4ce",
+    "instruction": {
+      "path": "AGENTS.md",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "c6842fcf96700eb14d2292f7907a33c335ac8eaf",
+      "bytes": 10300,
+      "sha256": "938b306e73310b2d9b99270dc9f95a25b69985a30a2b87f2bf03d43702504104"
+    },
+    "archive": {
+      "bytes": 2181120,
+      "sha256": "34d4bf578ae39593025e39866a5d87771aab8ba8b5a4d07c848bbc8b8d98433a",
+      "stored": false
+    },
+    "ordinaryPublished": 216,
+    "tarExit": 1,
+    "instructionTargetAbsent": true
+  },
+  "tools": {
+    "external": {
+      "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+      "tools": 61,
+      "directories": [
+        "main",
+        "benchmarks",
+        "npm",
+        "gitCore"
+      ],
+      "native": 51,
+      "systemBoundary": {
+        "systemReferences": [
+          [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+          ],
+          [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+          ],
+          [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/usr/lib/libc++.1.dylib"
+          ],
+          [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+            "/usr/lib/libSystem.B.dylib"
+          ],
+          [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+          ],
+          [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "/usr/lib/libz.1.dylib"
+          ],
+          [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "/usr/lib/libiconv.2.dylib"
+          ],
+          [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "/usr/lib/libSystem.B.dylib"
+          ],
+          [
+            "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+            "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+          ],
+          [
+            "/usr/bin/tar",
+            "/usr/lib/libarchive.2.dylib"
+          ],
+          [
+            "/usr/bin/tar",
+            "/usr/lib/libSystem.B.dylib"
+          ]
+        ],
+        "host": {
+          "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+          "stderr": "",
+          "platform": "darwin",
+          "arch": "arm64"
+        },
+        "qualification": "Explicit trusted macOS26.4.1/build25E253 boundary for exactly these eleven sampled references only. No readable-file hash, full OS attestation, complete process-image enumeration or broader library exception."
+      },
+      "readableBindingsVerified": true,
+      "osInstructionFence": {
+        "manifestSha256": "fe1a7f720959472bdd8e39b4cb3c9e80e27a9be43961dd5558d69bb61560096f",
+        "binary": {
+          "path": "/usr/bin/sandbox-exec",
+          "bytes": 102560,
+          "mode": 493,
+          "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+        },
+        "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "systemReferences": [
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libsandbox.1.dylib"
+          ],
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libSystem.B.dylib"
+          ]
+        ],
+        "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception."
+      }
+    },
+    "extraObservedPrerequisiteBindingsNeeded": [
+      {
+        "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild",
+        "observed": true,
+        "declaredExternalTool": false,
+        "postRunSha256": "d508f0e1901151843804e4af512d4587ad0e422039e43e14abf22792360ad3d4",
+        "bytes": 100528,
+        "mode": 493,
+        "qualification": "Post-run identity only; not asserted to have been hash-admitted before execution. Add explicit launcher prerequisite binding or eliminate shim route in rebound packet."
+      }
+    ],
+    "qualification": "Read-only original dependency/tool closure admitted by frozen verifier. Extra Xcode shim process observed without explicit pre-run EXTERNAL tool binding; complete tool-chain closure remains HOLD, no new OS metadata exception."
+  },
+  "provenance": {
+    "sourceFileHashes": {
+      "DRIVER.json": {
+        "sha256": "ca169cb66ecaabde53d5e9a7132e95c12e67aacf58682c867d4c9cf65097aea9",
+        "gitBlob": "68db491de26992e9b6378e61953ae834b0f63b64",
+        "bytes": 4057
+      },
+      "CANDIDATE.json": {
+        "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+        "gitBlob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+        "bytes": 4663
+      },
+      "PROFILE.json.gz.base64": {
+        "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+        "gitBlob": "3a662ce727c931a5cdd3065a8d95d3ff4e1e02d6",
+        "bytes": 1409701
+      },
+      "PROFILE-RECEIPT.json": {
+        "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+        "gitBlob": "cc0049a0568f3924b47fd705651fb705dfeecd81",
+        "bytes": 976
+      },
+      "CLEANUP.json": {
+        "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+        "gitBlob": "161431a7a7ac90755bb895f3ff9c1fc3f5124626",
+        "bytes": 27233
+      },
+      "EXTERNAL.json.gz.base64": {
+        "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+        "gitBlob": "cb03f3cab771028df57fe70aade72574d2b3921b",
+        "bytes": 476241
+      },
+      "EXTERNAL-RECEIPT.json": {
+        "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+        "gitBlob": "4cbafbae57d48d1fd4b1aae515005f6b2eeb46bf",
+        "bytes": 592
+      },
+      "common.mjs": {
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+        "gitBlob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "bytes": 6427
+      },
+      "profile.mjs": {
+        "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+        "gitBlob": "a5a31d596998be0e801a0aaa4107fd17e4cded12",
+        "bytes": 8384
+      },
+      "admission.mjs": {
+        "sha256": "c5b5c5933b55782eb3fa2943a470ce212ee4595de8ad65e4b35fc4065d1cd5c3",
+        "gitBlob": "31b295c9a5e261bb4b3eaea7c25f4bcc4686700a",
+        "bytes": 4465
+      },
+      "inventory.mjs": {
+        "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+        "gitBlob": "429b8c73aba142c18d510e93d91ff6a765978b45",
+        "bytes": 5911
+      },
+      "run.mjs": {
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2",
+        "gitBlob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "bytes": 2811
+      },
+      "worker.mjs": {
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a",
+        "gitBlob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "bytes": 537
+      },
+      "supervise.mjs": {
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+        "gitBlob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "bytes": 6047
+      },
+      "execute.mjs": {
+        "sha256": "73bf29dcc718f13c8d023fd6d2d978e351ae4d8126798b42f30c5b0f33d35a8c",
+        "gitBlob": "91cc182efbcc6a3386dccaf65329d64aad4d2e2e",
+        "bytes": 20470
+      },
+      "policy.mjs": {
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+        "gitBlob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "bytes": 4441
+      },
+      "transport.mjs": {
+        "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646",
+        "gitBlob": "f00563f5583154e494b8f97605141f0a28ab0bfb",
+        "bytes": 9553
+      },
+      "external.mjs": {
+        "sha256": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+        "gitBlob": "1d6f68d61e1587dda956c4a5bf0daa9eeaf1f787",
+        "bytes": 6129
+      },
+      "external-admission.mjs": {
+        "sha256": "e9afb0327083c93537c3987ed45713c9666e2794ead146d912d18b9730d4f6c3",
+        "gitBlob": "0f6b7daf45f0ef1b398da81157ddb0a3eef03053",
+        "bytes": 4962
+      },
+      "built-consumers.mjs": {
+        "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+        "gitBlob": "4a712e0a36261c6c1a73aa1df65354841d4e4e1a",
+        "bytes": 2958
+      },
+      "consumer-admission.mjs": {
+        "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+        "gitBlob": "95e05dd5d3c689c68d6c4c108b18e41aebdb8d76",
+        "bytes": 1940
+      },
+      "tap.mjs": {
+        "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+        "gitBlob": "4913ccc42598b861b6bf0f9e34238901d5e8ebcd",
+        "bytes": 3405
+      },
+      "public.mjs": {
+        "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+        "gitBlob": "13aaed92eec7fd29db226c194202f862b0a96942",
+        "bytes": 2892
+      },
+      "consumer.mts.fixture": {
+        "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+        "gitBlob": "212a6cb22f7c70b72a9106431a642a250e3fddef",
+        "bytes": 840
+      },
+      "negative.mts.fixture": {
+        "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+        "gitBlob": "ea76b2f6ead1689fe8f751ffdda0b25a0ec6a491",
+        "bytes": 250
+      },
+      "build-audit.mjs": {
+        "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+        "gitBlob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+        "bytes": 1239
+      },
+      "build-types.mjs": {
+        "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+        "gitBlob": "f9cf36f20696032c607910df66922a0674ec300d",
+        "bytes": 4115
+      },
+      "phase-runner.mjs": {
+        "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88",
+        "gitBlob": "2a5bdddcd55867219f0b405edea6e84b4217ead9",
+        "bytes": 2528
+      },
+      "process-observer.mjs": {
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+        "gitBlob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "bytes": 3667
+      },
+      "review-build-types.mjs": {
+        "sha256": "00964e3b51f25b6c5025b8ad9b9fa3f9336ed950056096680e0e1546dc3b5554",
+        "gitBlob": "54dc41f4347a88fea5c71b5fe7e59952c3d77c17",
+        "bytes": 9380
+      },
+      "review-build-types-worker.mjs": {
+        "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295",
+        "gitBlob": "17fc149caf58eaa4a8e12399720bb8cbe9c60320",
+        "bytes": 351
+      },
+      "projection.mjs": {
+        "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+        "gitBlob": "e1ecc3bda2e4313fa40281e1a6b97cbe38b05a82",
+        "bytes": 5765
+      },
+      "INSTRUCTION-PROJECTION.json": {
+        "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+        "gitBlob": "b3954b6ade7d6eaedde0a4284e95694cf9abbd4c",
+        "bytes": 2542
+      },
+      "os-instruction-fence.mjs": {
+        "sha256": "0be2d726ef3bb3092b0fb02c8bcb1c2837b2d9a782bb75b5ea88b1cd53921d06",
+        "gitBlob": "27874ce680f8ab31c38e4f9ee98e366ce05d58f2",
+        "bytes": 6010
+      },
+      "fenced-supervisor.mjs": {
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+        "gitBlob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "bytes": 7580
+      },
+      "OS-INSTRUCTION-FENCE.json": {
+        "sha256": "a1c31703c7434c114fbc34d0702196ae631d448625cde73984289f80b83a0a5c",
+        "gitBlob": "59b73da6cb1ff8579ad9bcb331bdbe82cdaed47b",
+        "bytes": 1101
+      }
+    },
+    "osProfiles": [
+      "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+      "fbcb8b32faa64adf80047cfcd76c66bed7ed157fabc49e3ba6ab84475c44bc3a",
+      "3d6ceedac3a090c40648530fc4d348ddb49fda8023456cf1d064c1892a92ff5c",
+      "5c1e3e1c7710a82239399df598bcffec24146c9cc45193e667a7ce361c36380a"
+    ],
+    "priorArtifactsUnchanged": 329,
+    "qualification": "Actual frozen shipping phaseRunner/outer OS launch used; no independent write interceptor. Parent source imports authenticated by full source guards; phase hook traces retained, not exhaustive process-image tracing."
+  },
+  "sevenNew76Proofs": [
+    {
+      "id": "binding-complete",
+      "status": "HOLD_AUTHOR_REBOUND_TOOL_CHAIN_BINDING_NEW_ROOT_RELEASE_AND_FULLGATE_UNEXECUTED"
+    },
+    {
+      "id": "binding-pending-template",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-mutable-head",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-asset",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-classification",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-cleanup-manifest",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-skipped-case",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    }
+  ],
+  "history": "Old v8 2PASS/1FAIL plus safe2/9denials, missing-compiler and seal-alias failures, e5848/A10/13observer,21+1 original22 history, stopped0/14 and forbidden-copy incident unchanged. No old rescore or author outcomes counted.",
+  "package": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "freshPack": false,
+    "qualification": "Carried identical candidate/source/emit lineage; no new tarball reproduction"
+  },
+  "publicPrerequisites": "Root HTML/DU/Expr accepted",
+  "rootRelease": "ABSENT",
+  "fullGateLaunched": false,
+  "privateAccess": false,
+  "limitations": [
+    "Existing protected-file precondition not introduced; all instruction targets fresh and absent",
+    "Known hostile external writable-FD provider limitation carried, not retested as extra score; shipping r+ foreign canary closure reconfirmed",
+    "No new network firewall/secrecy or malicious-host-JS certificate; no private engine/native semantic cohort",
+    "Foreign sentinel/natural phase closure exercised, no new forced-leak corpus",
+    "Frozen phaseRunner1800000ms/256MiB caps remain; parent40minute watchdog and source transport bounds; cooperative disk sample not kernel disk/RSS cap",
+    "No new author packet/root release accepted; observed Xcode helper binding gap requires explicit rebound prerequisite, not blanket trusted-OS expansion"
+  ]
+}

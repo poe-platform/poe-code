@@ -1,0 +1,24 @@
+{
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/execute.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/execute-positive/authorization.json",
+    "498b1d7714ad4dad0db3f014c0df0d44332f3f2d421179947d3342ce0b1eb259",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/RECIPE-SEAL.json",
+    "2fce675f035a2ad39c2e2e2ee9d54e2762a531383e70507149993268acedb7e8"
+  ],
+  "stdoutBase64": "eyJhZ2dyZWdhdGUiOiJQQVNTIiwiZXZpZGVuY2UiOiIvcHJpdmF0ZS92YXIvZm9sZGVycy9ydy9zNGN5NzZobjZ2NTVxcnAwZGhjYnRwbGMwMDAwZ24vVC95cS1pbmRlcGVuZGVudC1mcmFtZXdvcmstaW5mYjlieW4vaG9zdC1ldmlkZW5jZS9ydW4tMjAyNi0wOC0yOFQwOC01Ni00My4wMTdaLWEwZTMyMjdkLTM3OWUtNDQ5Zi04YmQyLTE1MGY1MTkzN2NlYSIsImFkbWl0dGVkUHJvamVjdGlvbnMiOjEsInNlbWFudGljRnVsbFJlY29yZFBhc3NlcyI6Ik5vdCBjb21wdXRlZCBieSBwcm9qZWN0aW9uIHJ1bm5lcjsgaW52ZW50b3J5IG1pc3NpbmcgYmluZGluZ3MgYW5kIGFsbCB2YXJpYW50cyBnb3Zlcm4gZWxpZ2liaWxpdHkuIn0K",
+  "stderrBase64": "",
+  "metadata": {
+    "pid": 62810,
+    "group": 62810,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 645
+  }
+}

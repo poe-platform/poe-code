@@ -1,0 +1,10 @@
+import { agentCommands, createStreamFormatCommands, createSplitCommands } from "virtual-bash";
+import { streamFormatCommands } from "virtual-bash/commands/stream-format";
+import { splitCommands } from "virtual-bash/commands/split";
+agentCommands({ streamFormat: { replace: true } });
+agentCommands({ split: { replace: true } });
+agentCommands({ streamInspection: { limits: { maxNumericDigits: 2 } } });
+createStreamFormatCommands({ limits: { maxBufferBytes: 3 } });
+createSplitCommands({ limits: { maxNumericDigits: 3 } });
+streamFormatCommands({ limits: { maxInputBytes: "wrong" } });
+splitCommands({ limits: { maxFiles: "wrong" } });

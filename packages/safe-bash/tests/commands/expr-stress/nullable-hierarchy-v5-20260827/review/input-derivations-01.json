@@ -1,0 +1,4041 @@
+{
+  "schema": 1,
+  "controlsSha256": "af00f1e794152e8f69bfa1641c87cb1e78e9844a768b8220dd79333b45fdf409",
+  "candidateCodeInspected": false,
+  "histories": 31,
+  "newHistories": 5,
+  "cases": 17,
+  "scope": "Independent byte/AST/reference derivation, no model import or native execution, not a comparator or parser-equivalence proof.",
+  "derivations": [
+    {
+      "id": "P4",
+      "ast": "P",
+      "subject": "aaaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 2,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  0
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 2,
+              "end": 4
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                2,
+                4
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  0
+                ]
+              },
+              "capture": [
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 3,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  2
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                2,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 3,
+              "end": 4
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                3,
+                4
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  2
+                ]
+              },
+              "capture": [
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "index": 2,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 1,
+              "end": 2,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                2,
+                3
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              },
+              "capture": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            2
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 1,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  0
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 1,
+              "end": 2
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                1,
+                2
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  0
+                ]
+              },
+              "capture": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "ast": "P",
+      "subject": "aaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 1,
+              "end": 2,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                2,
+                3
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              },
+              "capture": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-empty",
+              "start": 3,
+              "end": 3,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0,
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 3,
+              "end": 3
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                3,
+                3
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              },
+              "capture": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prefix",
+      "ast": "prefix",
+      "subject": "aaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-empty",
+              "start": 3,
+              "end": 3,
+              "origin": {
+                "path": "r.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "group",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 3,
+              "origin": {
+                "path": "r.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 2,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 1,
+              "end": 3,
+              "origin": {
+                "path": "r.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "group",
+              "start": 1,
+              "end": 3
+            },
+            {
+              "path": "r.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 1,
+              "end": 3
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "boundedPrefix",
+      "ast": "boundedPrefix",
+      "subject": "aaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 3,
+              "origin": {
+                "path": "r.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 3,
+              "origin": {
+                "path": "r.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "nestedPrefix",
+      "ast": "nestedPrefix",
+      "subject": "aaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 3,
+              "origin": {
+                "path": "r",
+                "context": []
+              }
+            },
+            "2": {
+              "state": "completed-empty",
+              "start": 3,
+              "end": 3,
+              "origin": {
+                "path": "r.0.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.1",
+              "context": [],
+              "kind": "group",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.0.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 3,
+              "origin": {
+                "path": "r",
+                "context": []
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 3,
+              "origin": {
+                "path": "r.0.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.1",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.1.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.1.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.1.0.0",
+              "context": [
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "emptyBody",
+      "ast": "emptyBody",
+      "subject": "",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            0
+          ],
+          "captures": {},
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            0
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-empty",
+              "start": 0,
+              "end": 0,
+              "origin": {
+                "path": "r.0",
+                "context": [
+                  0
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 2,
+          "classification": "new-supplied-history",
+          "whole": [
+            0,
+            0
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-empty",
+              "start": 0,
+              "end": 0,
+              "origin": {
+                "path": "r.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "Q0",
+      "ast": "Q",
+      "subject": "",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            0
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-empty",
+              "start": 0,
+              "end": 0,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 0,
+              "end": 0
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                0,
+                0
+              ],
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              },
+              "capture": [
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "requiredChild",
+      "ast": "requiredChild",
+      "subject": "aa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            2
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 1,
+              "end": 2,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-empty",
+              "start": 2,
+              "end": 2,
+              "origin": {
+                "path": "r.0.0.0.1.0",
+                "context": [
+                  1,
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                1,
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                1,
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 2,
+              "end": 2
+            }
+          ],
+          "references": [
+            {
+              "group": 2,
+              "consumed": [
+                2,
+                2
+              ],
+              "origin": {
+                "path": "r.0.0.0.1.0",
+                "context": [
+                  1,
+                  1
+                ]
+              },
+              "capture": [
+                2,
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "requiredPrefix",
+      "ast": "requiredPrefix",
+      "subject": "a",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            1
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-empty",
+              "start": 1,
+              "end": 1,
+              "origin": {
+                "path": "r.1.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.1.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.1.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.1.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.2",
+              "context": [],
+              "kind": "ref",
+              "start": 1,
+              "end": 1
+            }
+          ],
+          "references": [
+            {
+              "group": 1,
+              "consumed": [
+                1,
+                1
+              ],
+              "origin": {
+                "path": "r.1.0",
+                "context": [
+                  1
+                ]
+              },
+              "capture": [
+                1,
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "W3",
+      "ast": "emptyBody",
+      "subject": "aaaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                2
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0",
+                "context": [
+                  2
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                2,
+                0
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "W4",
+      "ast": "W4",
+      "subject": "aaaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.1.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.1.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                1,
+                1
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0",
+                "context": [
+                  2
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0",
+                "context": [
+                  2
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                2
+              ],
+              "kind": "cat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                2,
+                0
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.1",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "W4bare",
+      "ast": "W4bare",
+      "subject": "aaaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "new-supplied-history",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {},
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.1.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.1.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1,
+                1
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "new-supplied-history",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {},
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [
+                2
+              ],
+              "kind": "cat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                2,
+                0
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.1",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "W4wrapped",
+      "ast": "W4wrapped",
+      "subject": "aaaa",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "new-supplied-history",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "3": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 4,
+              "origin": {
+                "path": "r",
+                "context": []
+              }
+            },
+            "4": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "5": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0.0.0.0",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 0
+            },
+            {
+              "path": "r.0.0.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.1.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0.1.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0.0",
+              "context": [
+                1,
+                1
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "references": []
+        },
+        {
+          "index": 1,
+          "classification": "new-supplied-history",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  2
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0.0.0",
+                "context": [
+                  2
+                ]
+              }
+            },
+            "3": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 4,
+              "origin": {
+                "path": "r",
+                "context": []
+              }
+            },
+            "4": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0",
+                "context": [
+                  2
+                ]
+              }
+            },
+            "5": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0.0.0.0",
+                "context": [
+                  2
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0.0",
+              "context": [
+                0,
+                1
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "cat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.0.0.0.0",
+              "context": [
+                2,
+                0
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0.1",
+              "context": [
+                2
+              ],
+              "kind": "repeat",
+              "start": 4,
+              "end": 4
+            }
+          ],
+          "references": []
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "ast": "D",
+      "subject": "abab",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            4
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 3,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 1,
+              "end": 2,
+              "origin": {
+                "path": "r.0.0.0.1.0",
+                "context": [
+                  0,
+                  0
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 3,
+              "end": 4
+            }
+          ],
+          "references": [
+            {
+              "group": 2,
+              "consumed": [
+                3,
+                4
+              ],
+              "origin": {
+                "path": "r.0.0.0.1.0",
+                "context": [
+                  0,
+                  0
+                ]
+              },
+              "capture": [
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Dreentry",
+      "ast": "D",
+      "subject": "ababb",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            5
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-nonempty",
+              "start": 3,
+              "end": 4,
+              "origin": {
+                "path": "r.0.0.0.1.0",
+                "context": [
+                  1,
+                  0
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 5
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 4
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                1,
+                0
+              ],
+              "kind": "byte",
+              "start": 3,
+              "end": 4
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 4,
+              "end": 5
+            }
+          ],
+          "references": [
+            {
+              "group": 2,
+              "consumed": [
+                4,
+                5
+              ],
+              "origin": {
+                "path": "r.0.0.0.1.0",
+                "context": [
+                  1,
+                  0
+                ]
+              },
+              "capture": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "ast": "E",
+      "subject": "aba",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            3
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 2,
+              "end": 3,
+              "origin": {
+                "path": "r.0.0",
+                "context": [
+                  1
+                ]
+              }
+            },
+            "2": {
+              "state": "completed-empty",
+              "start": 3,
+              "end": 3,
+              "origin": {
+                "path": "r.0.0.0.1",
+                "context": [
+                  1
+                ]
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 3
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "cat",
+              "start": 0,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                0
+              ],
+              "kind": "group",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                0
+              ],
+              "kind": "repeat",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0.0.1.0.0",
+              "context": [
+                0,
+                0
+              ],
+              "kind": "byte",
+              "start": 1,
+              "end": 2
+            },
+            {
+              "path": "r.0.0",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "cat",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.0",
+              "context": [
+                1
+              ],
+              "kind": "byte",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.1",
+              "context": [
+                1
+              ],
+              "kind": "group",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.0.0.0.1.0",
+              "context": [
+                1
+              ],
+              "kind": "repeat",
+              "start": 3,
+              "end": 3
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "ref",
+              "start": 3,
+              "end": 3
+            }
+          ],
+          "references": [
+            {
+              "group": 2,
+              "consumed": [
+                3,
+                3
+              ],
+              "origin": {
+                "path": "r.0.0.0.1",
+                "context": [
+                  1
+                ]
+              },
+              "capture": [
+                3,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "emptyRef",
+      "ast": "emptyRef",
+      "subject": "a",
+      "histories": [
+        {
+          "index": 0,
+          "classification": "reused-v4-or-independent32-plan",
+          "whole": [
+            0,
+            1
+          ],
+          "captures": {
+            "1": {
+              "state": "completed-nonempty",
+              "start": 0,
+              "end": 1,
+              "origin": {
+                "path": "r.0",
+                "context": []
+              }
+            },
+            "2": {
+              "state": "completed-empty",
+              "start": 1,
+              "end": 1,
+              "origin": {
+                "path": "r.1",
+                "context": []
+              }
+            }
+          },
+          "occurrences": [
+            {
+              "path": "r",
+              "context": [],
+              "kind": "cat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0",
+              "context": [],
+              "kind": "group",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.0.0.0",
+              "context": [
+                0
+              ],
+              "kind": "byte",
+              "start": 0,
+              "end": 1
+            },
+            {
+              "path": "r.1",
+              "context": [],
+              "kind": "group",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.1.0",
+              "context": [],
+              "kind": "repeat",
+              "start": 1,
+              "end": 1
+            },
+            {
+              "path": "r.2",
+              "context": [],
+              "kind": "ref",
+              "start": 1,
+              "end": 1
+            }
+          ],
+          "references": [
+            {
+              "group": 2,
+              "consumed": [
+                1,
+                1
+              ],
+              "origin": {
+                "path": "r.1",
+                "context": []
+              },
+              "capture": [
+                1,
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

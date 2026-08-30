@@ -1,0 +1,25 @@
+{
+  "frozenAt": "2026-08-27T05:46:14.559Z",
+  "authorSourceExposed": false,
+  "productExecuted": false,
+  "files": {
+    "corpus.mjs": "7b3886e8249d599c970e7ad89900b60aa10f067a239a24960ec090d3ac4f3fc6",
+    "capture-native.mjs": "a4011f37df616d40624f99ba3d3b9eb4ae60a7ae7722a52c55c7d49a20032481",
+    "frozen/native.json": "55c1d647f08699a6020d1f8a7afbedf397f534d0a8f0386a7ea0eda0bd1bbe30"
+  },
+  "counts": { "distinctCommandInputs": 82, "gnuDarwinControls": 71, "appleControls": 82, "mixedProfileWorkflows": 3, "nativeExecutionFaults": 0 },
+  "primaryProfiles": { "seq": "gnu-darwin", "nl": "gnu-darwin", "rev": "apple", "unexpand": "gnu-darwin", "split": "gnu-darwin" },
+  "comparison": {
+    "strict": "Exact stdout bytes, stderr bytes, exit status and sorted namespace/type/content/symlink-target effects. Native argv and environment remain raw, including absolute executable paths in diagnostics.",
+    "selectedSemantic": "Still require exact stdout/status/namespace effects. Success requires exact stderr. For rows with a nonzero native status AND a frozen diagnostic word list, require both native and product stderr nonempty and matching at least one frozen meaning word (case-insensitive). This selected diagnostic profile is separately counted, never strict parity.",
+    "secondaryApple": "All captured Apple outcomes remain independent profile observations, including successful destructive-alias differences and GNU-option rejection. Do not substitute them for primary GNU expected outcomes.",
+    "sourceContracts": "Separate denominator: safety limits, chunk ownership, cancellation, shared budgets and injected VFS faults have contract expectations, not invented native parity."
+  },
+  "knownNativeProfileObservations": [
+    "The nl-invalid-blank-count label is an input-design assumption, not a negative oracle: both native runtimes accept -l 0. Original id and actual successful outcomes retained; never assert failure by its name.",
+    "Apple malformed/truncated UTF8 rev emits its valid initial A plus newline before exit 1, while C rev preserves high bytes in reversed order. Env-cleared Apple behavior differs from explicit UTF8.",
+    "Apple split may modify same-input/output aliases that GNU rejects; those Apple bytes/effects are preserved, not adopted as safe product requirements.",
+    "GNU native diagnostic help lines include absolute reference paths; strict wording mismatches remain strict mismatches, no raw-log normalization.",
+    "All native commands completed without timeout/spawn/maxBuffer faults; this is capture availability, not a product pass."
+  ]
+}

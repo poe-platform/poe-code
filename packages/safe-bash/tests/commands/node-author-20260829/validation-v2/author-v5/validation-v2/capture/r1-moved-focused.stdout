@@ -1,0 +1,13 @@
+{"role":"case-receipt-v1","id":"F01","pass":true,"observation":{"rescue":0,"aborted":true,"parentClosed":true,"retirements":1}}
+{"role":"case-receipt-v1","id":"F02","pass":true}
+{"role":"case-receipt-v1","id":"F03","pass":true}
+{"role":"case-receipt-v1","id":"F04","pass":true}
+{"role":"case-receipt-v1","id":"F05","pass":true}
+{"role":"case-receipt-v1","id":"F06","pass":true}
+{"role":"case-receipt-v1","id":"F10","pass":true}
+{"role":"case-receipt-v1","id":"F16-v2","pass":true}
+{"role":"case-receipt-v1","id":"F17-v2","pass":true}
+{"role":"case-receipt-v1","id":"F28","pass":true}
+{"role":"case-receipt-v1","id":"F33","pass":true,"observation":{"rescue":0,"aborted":true,"parentClosed":true,"retirements":1,"role":"inert-provider-parent-job"}}
+{"role":"case-receipt-v1","id":"F34","pass":true,"observation":{"rescue":0,"aborted":true,"parentClosed":true,"retirements":1,"role":"inert-provider-parent-job"}}
+{"role":"focused-summary","pass":true,"count":12}

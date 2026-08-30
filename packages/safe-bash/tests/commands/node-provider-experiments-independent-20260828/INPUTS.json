@@ -1,0 +1,881 @@
+{
+  "schema": "node-abi-independent-input-authentication-v1",
+  "date": "2026-08-28",
+  "classification": "STATIC_DATA_SOURCE_AUTHENTICATION_NOT_RUNTIME_LOAD_PROOF",
+  "manifestSha256": "c163bcd7cc0686dc7d4ab67ba24429fe4900c68c244cdf46799bff5b12b4e213",
+  "executionCommit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+  "contractCommit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+  "inputs": [
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/CONTROL.json",
+      "bytes": 2353,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366",
+      "gitBlob": "e5f608e1c03ab6fae425bbea505052810ea75600",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/FROZEN-EXPERIMENTS.json",
+      "bytes": 11607,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+      "gitBlob": "5be2819f112020677c574aae83189ccddbf66688",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/GRANT.template.json",
+      "bytes": 1213,
+      "sha256": "9edd6342e08b7d8660fdbf0d1e7f5f455fe67be753d71c926d504737f5dab7bd",
+      "gitBlob": "fd4ce1cd58d3a662a5347012e4e14ec44e110385",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/INHERITED.json",
+      "bytes": 3330,
+      "sha256": "f2a484cad8a1338962e420904e8cf7fce46711f801f4b6e6f8bf4cbd460a6346",
+      "gitBlob": "4fb1dd898a63b5ff14f8fc90f2340b237d836f34",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/MECHANISM.json",
+      "bytes": 2620,
+      "sha256": "d073965757070b9b9642aaf36fc812819470be2725b96cfb42c3268ae549809f",
+      "gitBlob": "33d557ff081e7bec2cbfab96c332163c9a96b85e",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+      "bytes": 338073,
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+      "gitBlob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/README.md",
+      "bytes": 8580,
+      "sha256": "3bcef9b0c59be13fb00a765d9f034af7755739e3ae94d3f723d32a410e14577f",
+      "gitBlob": "853312897542187b5d3b888b4c612b19726b5488",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/REUSE.json",
+      "bytes": 1892,
+      "sha256": "306f20cb34d27bc5a85b1fdcf04e057a33b8486bb149ad680befba477585ce44",
+      "gitBlob": "0d87f9427bd35585aecf53bc909671b598b620f8",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/REVIEW.template.json",
+      "bytes": 247,
+      "sha256": "441204146ae7e796a17ad03581cf9ceddb43dcd34fd21cc535c238e101c2a4e2",
+      "gitBlob": "ec306e2136242c42b92d31d454d1bf8016e9b7e0",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+      "bytes": 35893,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+      "gitBlob": "79f60f34950eba448a17394d1146841b8c428aa1",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/TOOLS.json",
+      "bytes": 2312,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+      "gitBlob": "43144c5c774a76dfd23f6e4de21d5834a599f11e",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/child.mjs.data",
+      "bytes": 17273,
+      "sha256": "8ee806cbcc01f4a520fad781d081affc92188000b4b0b9f36d7526c639353f72",
+      "gitBlob": "4eeca0d2db5cacba2c84a9b2c2e3da8f10fc0c09",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/loader.mjs.data",
+      "bytes": 7297,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+      "gitBlob": "0781c8eb2bf1092ce477010c72ca8f3fd6d02586",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/reference-entry.mjs.data",
+      "bytes": 2018,
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168",
+      "gitBlob": "4e690e66ba01f82e6aa6e1b5913deb8417cdc0aa",
+      "mode": 420
+    },
+    {
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "path": "tests/commands/node-provider-experiments-20260828/supervisor.mjs.data",
+      "bytes": 26682,
+      "sha256": "986d9c3f06e9341a6dc577d03984092a7c046617386c56bc9569d21d1255891f",
+      "gitBlob": "cee246578bf660d0a2253d274cb9d1710770b82e",
+      "mode": 420
+    },
+    {
+      "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+      "path": "tests/commands/node-design-20260828/np1-cjs-v1/CONTRACT.md",
+      "bytes": 16806,
+      "sha256": "ba1b0cb0c0f6b08d29ad6d33a138343140159ef8a73675fdbd2873816605ed9b",
+      "gitBlob": "165212e29329b6cd6a1764d4d9b373dce8d1f0fe",
+      "mode": 420
+    },
+    {
+      "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+      "path": "tests/commands/node-design-20260828/np1-cjs-v1/BINDINGS.json",
+      "bytes": 39030,
+      "sha256": "35502753a94b84e970323f205d21dcfc34d5a9320c7be26814fc0b143f38295a",
+      "gitBlob": "d23420ca6fab772d1528e5123aa5835ad8bb7f00",
+      "mode": 420
+    },
+    {
+      "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+      "path": "tests/commands/node-design-20260828/np1-cjs-v1/CASE-MAPPING.json",
+      "bytes": 38328,
+      "sha256": "b20b63cf8415366d063d2f34682f69398b02405cedb529cbd7f209003e5eab20",
+      "gitBlob": "338e6c4f9497b7f58daedbc91321150edb78bc16",
+      "mode": 420
+    },
+    {
+      "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+      "path": "tests/commands/node-design-20260828/np1-cjs-v1/REVIEW-RESPONSE.md",
+      "bytes": 7824,
+      "sha256": "d30e98cdff88b743162c245bcc2c59fd95652eacad811a3efaa1263112b4d8a7",
+      "gitBlob": "c0e77a2df3164d074725858ae68021e6b6e25a44",
+      "mode": 420
+    },
+    {
+      "commit": "5aeb915c39612a0e04021818af1251e8f3d78973",
+      "path": "tests/commands/node-provider-experiments-20260828/RAMAN_HANDOFF.md",
+      "bytes": 7561,
+      "sha256": "5b8196c989e6b78387dca0756616ecdfed1918ee7daf13f4cb6e2ae3efaad472",
+      "gitBlob": "753e7902656a6aa2d2ec7090c409c99fa6c6f214",
+      "mode": 420
+    },
+    {
+      "commit": "5aeb915c39612a0e04021818af1251e8f3d78973",
+      "path": "tests/commands/node-provider-experiments-20260828/VALIDATION.json",
+      "bytes": 3751,
+      "sha256": "649a2d7dccc42e83392f411d5fcaad8f473cf7e8ee5aafc433bfcc6977737e94",
+      "gitBlob": "c6118903fb851869576dd1cb24549fcce983d73e",
+      "mode": 420
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+      "bytes": 9112572,
+      "mode": 420,
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+      "bytes": 3620,
+      "mode": 420,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  ],
+  "publicSourceProof": {
+    "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "engineTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "packageTree": "1d6076301241aa299043359fc1b9f9e0ce58a633",
+    "decodedArchiveBytes": 1073919,
+    "authenticatedTreeCount": 13,
+    "selectedFiles": 66,
+    "feasibilitySourceBindingsMatched": 18,
+    "sourceRecords": [
+      {
+        "path": "package.json",
+        "mode": 420,
+        "bytes": 1330,
+        "sha256": "ce6b3ad3b8a3dc6ed3814274fa2169898b44802c31f3d7a853e26c54100ee99a",
+        "gitBlob": "94e9526e903010bb6458aee4c4863f0b2bfa1afa",
+        "role": "authenticated-source-only",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/package.json"
+      },
+      {
+        "path": "src/core.ts",
+        "mode": 420,
+        "bytes": 396,
+        "sha256": "8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a",
+        "gitBlob": "14821488bbc1eb8b0bb18e4ca2be442f320e9161",
+        "role": "authenticated-source-only",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/core.ts"
+      },
+      {
+        "path": "src/error-codes.ts",
+        "mode": 420,
+        "bytes": 470,
+        "sha256": "276480f5fc5e9b536fbf976b46c09aed159c0465c32cb8cb448f8fd7137ab51b",
+        "gitBlob": "50b4f952c66610ac7c412f6b92baec42cd8e22fb",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/error-codes.ts",
+        "emittedSha256": "8ef9f6c15ab94c4545e81e33ab7f56cef4604f3035c85b344e11e0e1f410edac"
+      },
+      {
+        "path": "src/error/shape.ts",
+        "mode": 420,
+        "bytes": 5240,
+        "sha256": "8505bc4cc4b78f98acb039c949c0686f83de6fc8b7de7fabb31b2e64d703144d",
+        "gitBlob": "6e99828475c534af445bf986aa9532f90a5b93a7",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/error/shape.ts",
+        "emittedSha256": "5276a36e63131f7fa270188ede06a491230204de323c9e39f4e8874dbab9eacb"
+      },
+      {
+        "path": "src/graph-depth.ts",
+        "mode": 420,
+        "bytes": 3383,
+        "sha256": "36b5f0e3a978f73583d086fd3df38303ce7694947c1c55028b9bfb3831391346",
+        "gitBlob": "c63a7cc1aa575ac5562594e48616172e08c70777",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/graph-depth.ts",
+        "emittedSha256": "16996539c9612405dc544b9cf9ac21c50fb588c4445f8956fea46aa0962b355b"
+      },
+      {
+        "path": "src/index.ts",
+        "mode": 420,
+        "bytes": 3030,
+        "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+        "gitBlob": "2a17cf5247c33fa0ea47732f9d320a962f97019c",
+        "role": "authenticated-source-only",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/index.ts"
+      },
+      {
+        "path": "src/interp/arguments.ts",
+        "mode": 420,
+        "bytes": 2210,
+        "sha256": "5eab3d8f1e094babdb96b1ac0031a6aed89279341d88e1b01ef0e31ef77bd186",
+        "gitBlob": "a3e5810fc2155f4abf4bb30d2b672f21cd2fa492",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/arguments.ts",
+        "emittedSha256": "a946254930385dbd83a6d49a53ab703ff6f56ad834663d38f8ee0f2a021c7349"
+      },
+      {
+        "path": "src/interp/async.ts",
+        "mode": 420,
+        "bytes": 12403,
+        "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb",
+        "gitBlob": "4feb1a05dad236daa18f05692a7d811f58a6e586",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/async.ts",
+        "emittedSha256": "c92b7c688b5ad18d341bebfa6edd44beff9814043146a3a0cead022fa1a9e7f1"
+      },
+      {
+        "path": "src/interp/budget.ts",
+        "mode": 420,
+        "bytes": 9007,
+        "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+        "gitBlob": "2f69c852a87f134470acfcac7e0be37c6e3d0412",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/budget.ts",
+        "emittedSha256": "5379c5240faa9310253a22820229996f5c3e47865e509f99bece5fdc5dcf942a"
+      },
+      {
+        "path": "src/interp/cancel.ts",
+        "mode": 420,
+        "bytes": 6588,
+        "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+        "gitBlob": "03f38bbee5e0cfb8aee2ef032606a75efa506ac4",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/cancel.ts",
+        "emittedSha256": "e234c1bf27c6c0618d7dd234cb1e9eda20c461b3f206329cb6b834fda96a1068"
+      },
+      {
+        "path": "src/interp/exceptions.ts",
+        "mode": 420,
+        "bytes": 19651,
+        "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+        "gitBlob": "94a7e5d191435c599c8a8ebbcc1acb8fe43d7519",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/exceptions.ts",
+        "emittedSha256": "715f84492770f063a4e568572996c01783e622439b1a13e2e066a49fb36fd970"
+      },
+      {
+        "path": "src/interp/generator.ts",
+        "mode": 420,
+        "bytes": 5508,
+        "sha256": "73e839e516d042d3ea6893ee95b54731b4e3ab23df28baf61f66ac400b4fc59b",
+        "gitBlob": "afddd819298db7d0d70e714d0c739ad18904357d",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/generator.ts",
+        "emittedSha256": "82048a59fe3e45bbc091ab4f32391ac630335861ab9beb21416997330892c26e"
+      },
+      {
+        "path": "src/interp/globals/collections.ts",
+        "mode": 420,
+        "bytes": 4271,
+        "sha256": "6cb56413e215814b76d01782dc7d8a5b66b0afccf5c16f8fca56b9e55788c089",
+        "gitBlob": "7d2c5347901aac8ffe7e4b1b5768634e699c3816",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/collections.ts",
+        "emittedSha256": "88ef1edce943130e884a7751b9200f6a5d215a11795e6a8a5f8660e7c5f3a349"
+      },
+      {
+        "path": "src/interp/globals/console-json.ts",
+        "mode": 420,
+        "bytes": 10644,
+        "sha256": "2b4e345e75d0f3647e53daa588dc71d1b3e363b3a55fd0381e5ada37e8a93b43",
+        "gitBlob": "23363392746d1189027f7ea6058f6a47cb633106",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/console-json.ts",
+        "emittedSha256": "bcdfe5d0651a04a9d3344afe0eb1ede780ba0d56486b6f60ca7c1f5f9d87aae6"
+      },
+      {
+        "path": "src/interp/globals/error.ts",
+        "mode": 420,
+        "bytes": 2740,
+        "sha256": "6d32795654371c6748f785d96b9b4d37002f245c436ce56572752f23a598f47b",
+        "gitBlob": "8a5f598095227b49b8522e0c3b0450d49e92312d",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/error.ts",
+        "emittedSha256": "5ec3d6755ede676a3af142a5ac2bbedfb851793321b182845b724e4335a51028"
+      },
+      {
+        "path": "src/interp/globals/math.ts",
+        "mode": 420,
+        "bytes": 2338,
+        "sha256": "2ea73d09944ff3d81fa10821ae52966edae87a46bdfc02ef1142523330d96502",
+        "gitBlob": "897a1669cce78b7478e3c1737ab81a8acd88ea7b",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/math.ts",
+        "emittedSha256": "1a102f3b7d6c67c9ea222e72f5304f1baaa62d14f550789e0449d18ff997a260"
+      },
+      {
+        "path": "src/interp/globals/misc.ts",
+        "mode": 420,
+        "bytes": 2360,
+        "sha256": "e6f15902c7e2dfaa6f8e2bf43fe8e1f25b79f1b863c8ee8df00ee4242bc00781",
+        "gitBlob": "ff2b4589cd8cf3f749dd822e11c5c1505ab5a840",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/misc.ts",
+        "emittedSha256": "9655ed0db25a7e2be99c6f7d25e1cf5e03c18cc56b832ba77d18e89664683035"
+      },
+      {
+        "path": "src/interp/globals/object-array.ts",
+        "mode": 420,
+        "bytes": 9891,
+        "sha256": "b9103764b650f0b193450145694f1618673be159272ce6a5524511605b8cbad9",
+        "gitBlob": "8e8c22d730ab26948007cdfa2aa59202ddd498d8",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/object-array.ts",
+        "emittedSha256": "db28b89e56fe3e8ca148fa8c906b7eb9b5c0b28f5a302141410662bb6f87bf5d"
+      },
+      {
+        "path": "src/interp/globals/regex.ts",
+        "mode": 420,
+        "bytes": 409,
+        "sha256": "5b7322f1e633c89e7677ff9f1397ae356a5a0a3dac229553f43c1554439ca6be",
+        "gitBlob": "2d150cdb2828dca38d44fdae4af41886ce32bdd7",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/globals/regex.ts",
+        "emittedSha256": "1fea1fe74bd7d445b397234b1f649cda37fa3c4b11aee3438772dd575825211c"
+      },
+      {
+        "path": "src/interp/host-bridge.ts",
+        "mode": 420,
+        "bytes": 30852,
+        "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+        "gitBlob": "5e1a6ef3b90912c190d0f4a849c1b1e91f845b1c",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/host-bridge.ts",
+        "emittedSha256": "98f2b35425f7a20963bcea068cc56070c318f0014a2db0e2bdf8eb678a633d5f"
+      },
+      {
+        "path": "src/interp/host-call.ts",
+        "mode": 420,
+        "bytes": 24833,
+        "sha256": "7f5d5bbc6888f12c268dd9680d3a255c074d81c16f0843fa3ff0c8202aa1e4c5",
+        "gitBlob": "076c704be6fafccfe0bdb8339af010e1572183b7",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/host-call.ts",
+        "emittedSha256": "82db5e6798c72bf08fe1d2030be86670212012b89b6322de6db56297d4009784"
+      },
+      {
+        "path": "src/interp/interpreter.ts",
+        "mode": 420,
+        "bytes": 97921,
+        "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+        "gitBlob": "07f5c623d88a7799dfa45028fdd0393ab589dd8e",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/interpreter.ts",
+        "emittedSha256": "0ecad2fa480d92672d5a2bf5d719a43fc1e8e6d2adf71efdefe1b85ab2b5d177"
+      },
+      {
+        "path": "src/interp/iteration.ts",
+        "mode": 420,
+        "bytes": 2798,
+        "sha256": "dd71ba305822701e19deaa7c2bf643bb67c17fcfe7ce9c6f089224fedb2c965d",
+        "gitBlob": "e7a0285bc2f5688171847addb0d03040483f3541",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/iteration.ts",
+        "emittedSha256": "38210e280e8096201f9c8140eceaf0f7ea139a289447e88f860929493ce1eee9"
+      },
+      {
+        "path": "src/interp/jobs.ts",
+        "mode": 420,
+        "bytes": 2737,
+        "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e",
+        "gitBlob": "33a67b3fe4b50dea7d1934781aa19b5ef0c03eea",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/jobs.ts",
+        "emittedSha256": "99eb5ef2405fe14d17d50b354ee4a0bfbf1826d33ccdb9523aa02cc6e0b710c4"
+      },
+      {
+        "path": "src/interp/methods/array.ts",
+        "mode": 420,
+        "bytes": 22610,
+        "sha256": "ea2f2b887081c4c1af790c8154068ca7c693915abaa1a59cfa991f649ba23587",
+        "gitBlob": "5139e8418db2eb5ed4ec4be0b17adeb88a707886",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/array.ts",
+        "emittedSha256": "bece3129fb223b52a88c69dee9244c9c4ce6a3806dfacda852449e1b05623cf3"
+      },
+      {
+        "path": "src/interp/methods/function.ts",
+        "mode": 420,
+        "bytes": 1942,
+        "sha256": "3a5482d6c00b84356f02a0d56817ab0e1cdc993c24541ce5989cc3832c7dadcb",
+        "gitBlob": "6d1f9f8fea4e8726fae6c43958791374a4b4d258",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/function.ts",
+        "emittedSha256": "5b86a98e4bd0ce1ae6f9969682553f8acaf618df568cd043da325d679acdc7fb"
+      },
+      {
+        "path": "src/interp/methods/generator.ts",
+        "mode": 420,
+        "bytes": 987,
+        "sha256": "5da82dde9a05bbbf833ba320389033325fe8cf781496cce8bda1009d75ec2657",
+        "gitBlob": "8af8e5185eb81da4b874bceb712b5737f848d7f9",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/generator.ts",
+        "emittedSha256": "8186701b9918ce484d58ec84a2cd9bf1aa4406f4a58292d8569b4a484770db3c"
+      },
+      {
+        "path": "src/interp/methods/map.ts",
+        "mode": 420,
+        "bytes": 3192,
+        "sha256": "681c1e044f4ec0c5f780c1c36978de2c14b37d19323a73552ea22a3fd417b446",
+        "gitBlob": "3a6901351292b780659fd175e41629ac0672c1c2",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/map.ts",
+        "emittedSha256": "57a1525ef623ddb9c249594012a76453888f9cf2760c52e5fada4c7e1ae02137"
+      },
+      {
+        "path": "src/interp/methods/number.ts",
+        "mode": 420,
+        "bytes": 2913,
+        "sha256": "22a78b6782766bbd79d98ebf487721276a4b0fd064aa7d4a61a5d35d9c759a49",
+        "gitBlob": "0e017a4c205e02c2c9b9baded4c06a435c97489b",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/number.ts",
+        "emittedSha256": "78a16c357a7b4ce2d2cdcda3313b1aaefb3c78c0b97a469deeea1bb11200f971"
+      },
+      {
+        "path": "src/interp/methods/regex.ts",
+        "mode": 420,
+        "bytes": 2094,
+        "sha256": "a80b629e850f6d0a934da14e57c8926a691d6ba132d0667c6a1514972bb4171e",
+        "gitBlob": "3f5e36e732b8754e10ad8fb4c781ac2b0fcc1826",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/regex.ts",
+        "emittedSha256": "01368bb129c97ade13af1ec43a6764f1fc02bc810ac2391785d6b2d1ba46f2bf"
+      },
+      {
+        "path": "src/interp/methods/set.ts",
+        "mode": 420,
+        "bytes": 2985,
+        "sha256": "755828aac63a296b9df4e107c5ef046681dc4cc3d93e9e54710419f24096653d",
+        "gitBlob": "ad620194b53173c23453f5d7c41048aa1e07a8bd",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/set.ts",
+        "emittedSha256": "c74586e2137d5e3e0e312807659d5090f8ff25cba994767a4549f52190971565"
+      },
+      {
+        "path": "src/interp/methods/string.ts",
+        "mode": 420,
+        "bytes": 12789,
+        "sha256": "25b7eb646e115ce55b5fe02cc5d480109587fb6dab93d70b51cdb5e42a2b19a3",
+        "gitBlob": "85832f75686a1ad2d13b74bf7728aacc08a2c583",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/methods/string.ts",
+        "emittedSha256": "3d884cc93092f828424dc634a4ae2f893982c8e11f46fa7b0d540824047694c3"
+      },
+      {
+        "path": "src/interp/patterns.ts",
+        "mode": 420,
+        "bytes": 9354,
+        "sha256": "ea2c4b76ec48549eb82025bbf05777b72d1965e497deee5c3c7de73c80b39010",
+        "gitBlob": "68a343738d35e986771e54006ba92e48a16f23bc",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/patterns.ts",
+        "emittedSha256": "72c07adb4ba16c788230b0e696726e5728f4da96b1589e22847fe4f0eff7f053"
+      },
+      {
+        "path": "src/interp/promise-replay.ts",
+        "mode": 420,
+        "bytes": 15538,
+        "sha256": "12113e684793316e0c476589a6c2e54cba4a7d86a95025e601f6585db0b3a127",
+        "gitBlob": "3687c8821478d47322b7a4e38a50ecb952db6629",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise-replay.ts",
+        "emittedSha256": "2c812f3f6a2eaca50a287307645200b50f837ec5b02f4a5929c2762b34101707"
+      },
+      {
+        "path": "src/interp/promise-tracker.ts",
+        "mode": 420,
+        "bytes": 2427,
+        "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581",
+        "gitBlob": "0f7d921e02c9caf03cb2203b9d958f377c3872ae",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise-tracker.ts",
+        "emittedSha256": "c5f9facc771b3c2efd6512593ad395039e424666e8ab40b054036f0c0c7f2669"
+      },
+      {
+        "path": "src/interp/promise.ts",
+        "mode": 420,
+        "bytes": 15619,
+        "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c",
+        "gitBlob": "a07cedbbe3ebe8ca86604cb42307fc33a94f97df",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise.ts",
+        "emittedSha256": "ac237249c6a10fc82ed21f29b06db62fbf2ad0d343603608a7c53155eea49887"
+      },
+      {
+        "path": "src/interp/regex/engine.ts",
+        "mode": 420,
+        "bytes": 9631,
+        "sha256": "b12b0efa3760b5395a13474d0ce7313f063e2978cdb0e7a97f6e581bd6613118",
+        "gitBlob": "3dfddf7308165871ef8e952ddd0ce537dfb58223",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/regex/engine.ts",
+        "emittedSha256": "693d2758fe6d278ac38751cde19ecb4bf8a050daa42d0e24e056eae190367c02"
+      },
+      {
+        "path": "src/interp/regex/parse.ts",
+        "mode": 420,
+        "bytes": 11403,
+        "sha256": "86d0c5fa8a8269e5eb40aaccae36160dd09f51358e0f619ac9e4335aa0617e15",
+        "gitBlob": "6d2dcb958e62011c4f4e1695758f02f1e4ac657d",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/regex/parse.ts",
+        "emittedSha256": "bc5cd67be005150637d5fe657f846f5dd62b0c8d0c36dadc88960f456f2015d8"
+      },
+      {
+        "path": "src/interp/running-state.ts",
+        "mode": 420,
+        "bytes": 1254,
+        "sha256": "a930536ee55df896b62c77c6c9dfc0ff597f56da7d5bf12b7269c0836cfac041",
+        "gitBlob": "6c556a713def73a14e34e7a72f1b063cc48cd336",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/running-state.ts",
+        "emittedSha256": "e6cfc8f3e42d1422b0d8aa28c97e10d545250bb2a4c07bc9fd541cf30496cb5e"
+      },
+      {
+        "path": "src/interp/scope.ts",
+        "mode": 420,
+        "bytes": 7749,
+        "sha256": "148723026726511c7b444f7c1dd02cb955d8eb22d9aea9891928ef60b326eb6e",
+        "gitBlob": "dcaae5316fc77236636178475c5b05d62a4f3a89",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/scope.ts",
+        "emittedSha256": "c1d4780c0ff46255077c0db3e63633932a6611c80e31741d466c213a352490ff"
+      },
+      {
+        "path": "src/interp/values.ts",
+        "mode": 420,
+        "bytes": 24602,
+        "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+        "gitBlob": "7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/values.ts",
+        "emittedSha256": "14ac4863e70632692a291518993eadaa834694f7288a90494bb6efd416b636eb"
+      },
+      {
+        "path": "src/interp/var-hoist.ts",
+        "mode": 420,
+        "bytes": 5008,
+        "sha256": "ae52756a61821f2ae5fc828bcca66c51826121076f043b1a9036c1d23e033aee",
+        "gitBlob": "4d3458cdb6193f9b57c1764c82f14561808c7f3b",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/var-hoist.ts",
+        "emittedSha256": "e4f19a664dd9ee5921e271a29b2518861e751c7ef20ef24d1643e9ba2b549a20"
+      },
+      {
+        "path": "src/modules/canonical-path.ts",
+        "mode": 420,
+        "bytes": 8572,
+        "sha256": "380aee25cc6a2ac6ace9c67927d930b6159fdda75670bc238d4517b2cafb525a",
+        "gitBlob": "6200ec3ead6193e46106cdd908f05408649b4205",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/modules/canonical-path.ts",
+        "emittedSha256": "a7d2777f4e52e33ee60974aadf92c08ed67776e57cad7da26b1b2f5117f6cf76"
+      },
+      {
+        "path": "src/modules/fs.ts",
+        "mode": 420,
+        "bytes": 31730,
+        "sha256": "99fc3a501ce906aa2021f298ef8803b63d2272de5f412dfcdf3714757510b142",
+        "gitBlob": "eb47329a1056c80c5af26431934371d2b2651b6b",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/modules/fs.ts",
+        "emittedSha256": "3e7ffc7dc8267190668683ff5536bcb79f39a21748da38bd7317173c8a557513"
+      },
+      {
+        "path": "src/modules/registry.ts",
+        "mode": 420,
+        "bytes": 6478,
+        "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+        "gitBlob": "8d7d52115b27822446540edf9267beb20e58688b",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/modules/registry.ts",
+        "emittedSha256": "48a85e3fe6045e4df49c90eebb59e65502249f7b97115a3af71c58ff57a834a0"
+      },
+      {
+        "path": "src/observability/otel.ts",
+        "mode": 420,
+        "bytes": 3224,
+        "sha256": "14679c70249ccce8e0dbe86a9e158a82b0fffd7b0dce169e0ba6e37bb28d9a02",
+        "gitBlob": "4c6e45c30bab388917c60d0358839cd5710b27b9",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/observability/otel.ts",
+        "emittedSha256": "207fcb25c59c7da36bc8e993c9306ca714e7ad46d5fdd60d2f5f7f21299d0b9c"
+      },
+      {
+        "path": "src/parse/assign-ids.ts",
+        "mode": 420,
+        "bytes": 3144,
+        "sha256": "c52cb05ef02c866bf5ceea51ac70a1daf235d2cf946568b384da324553b8ee8e",
+        "gitBlob": "9c723da347ae80109b5bd0f9b4c5a641e894449d",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/assign-ids.ts",
+        "emittedSha256": "8079e0f14c170b1f1aeedf49568c841772ffd60014b04491a55ebd45c63784bf"
+      },
+      {
+        "path": "src/parse/format-error.ts",
+        "mode": 420,
+        "bytes": 7669,
+        "sha256": "f473ea99ac4c6f47a692d1daa105d54084bf5ce0873735e34e6d7a3ad9a08d53",
+        "gitBlob": "7ab20190b99b23dbffb691090d094d07742b5e29",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/format-error.ts",
+        "emittedSha256": "34208a971171e4c3b5878f7db8295288053d5db221668a6877c44de441bdeae3"
+      },
+      {
+        "path": "src/parse/hash.ts",
+        "mode": 420,
+        "bytes": 2717,
+        "sha256": "2c8dc1624946ec70722878e792367c8f506560eae62705e60e84d36114bf2cf2",
+        "gitBlob": "45ae666945a300bdf2e21e22bf42f582bc1aa26a",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/hash.ts",
+        "emittedSha256": "4a778ac7e62e5593dcf491968ea8905a331f680edd7a5254531a9847627d9be3"
+      },
+      {
+        "path": "src/parse/parse-export.ts",
+        "mode": 420,
+        "bytes": 3164,
+        "sha256": "ba7d304b6fa4b02f9d13f625808bcf7e0a4e3685f4088ec142094a9a7bb8eee6",
+        "gitBlob": "4bd2caff645411db26e5ccdc61a0f43029dff7bf",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/parse-export.ts",
+        "emittedSha256": "77d80fe4763e3975bab687b773c8976d4fe7e7eaff73debdf10c275585f427b8"
+      },
+      {
+        "path": "src/parse/parse-import-meta.ts",
+        "mode": 420,
+        "bytes": 1105,
+        "sha256": "84ae4c6087918353e0e3c5499cf5031bacafb7a272afb28fa772c85d04278b6b",
+        "gitBlob": "91a4cfaab1372d008d13f136cf3167bdb3a54452",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/parse-import-meta.ts",
+        "emittedSha256": "07d443545ea0b2c6687b33aad3f5d6908f1d768742cc5671b07545aaed5898dc"
+      },
+      {
+        "path": "src/parse/parser.ts",
+        "mode": 420,
+        "bytes": 133783,
+        "sha256": "cf69c4192e77a65b019de8661079da3276582958361a9b446d488214051957b3",
+        "gitBlob": "6a9a1bd6eca9b036951de8c11985d73f880bc297",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/parser.ts",
+        "emittedSha256": "8e001fe6a9ef7f3d42ededbf5a6e75f6c633dd7a0757e5218365f39bd5115436"
+      },
+      {
+        "path": "src/parse/tokenizer.ts",
+        "mode": 420,
+        "bytes": 29344,
+        "sha256": "dff80493fc5e1d5aa9a27bfb9526d816dd6b2d8a6705c92ce9c575663b4227ec",
+        "gitBlob": "56f3e8483b14f925530b1bba00873ac9e8059b16",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/parse/tokenizer.ts",
+        "emittedSha256": "33d268af0338dde0abe423eea1078b93cf2f28611e008b0f207f7becacc0b8cf"
+      },
+      {
+        "path": "src/random.ts",
+        "mode": 420,
+        "bytes": 1199,
+        "sha256": "717f65f8d80823f6fa31a7bcab7cdb0c6a68997b378a1f55f83322e464dbece4",
+        "gitBlob": "ff7f57c46ebad4809bbf4067e1455c28d35171d1",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/random.ts",
+        "emittedSha256": "9710011b510a74a5ff991f03cff32bfdbf2e1e83937d3228aa68512b2cd2596b"
+      },
+      {
+        "path": "src/restore.ts",
+        "mode": 420,
+        "bytes": 2031,
+        "sha256": "ef418d071df149b3878a02042a2944faec1a37dba8f894897fef41976e0b7428",
+        "gitBlob": "7a45c954457038156930661bcb3ee8af8d0da970",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/restore.ts",
+        "emittedSha256": "5fd183f9716e1fe796ec6e6375605fe1e7810cda957652615ef70b9f5b076016"
+      },
+      {
+        "path": "src/run.ts",
+        "mode": 420,
+        "bytes": 25016,
+        "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+        "gitBlob": "2f829e27c65da9421001772f2db2233adc5edfe0",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/run.ts",
+        "emittedSha256": "b84386db6ece3057f6399bb4dced4f6b9cdb94c24300e64910d15f8fad07e5c8"
+      },
+      {
+        "path": "src/snapshot/arguments.ts",
+        "mode": 420,
+        "bytes": 1860,
+        "sha256": "4d34751c3c4f4792029a005e069fab23fb9d4984301168c79a5b024ad2ed9e47",
+        "gitBlob": "2b1ad9207d27e47940be96a0ca48397464d5e7bc",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/arguments.ts",
+        "emittedSha256": "c2f9617cdb99204dd05817379f68ad149e3c2cb6f552a2aa64d1fb1c036fe475"
+      },
+      {
+        "path": "src/snapshot/backend.ts",
+        "mode": 420,
+        "bytes": 5893,
+        "sha256": "55fe58a47a8a623a957d3cdcc40ed922db35d2cdede0f97d38e3eba34ebe70f1",
+        "gitBlob": "832490086261dabe8c3466935c1b333d2c954a13",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/backend.ts",
+        "emittedSha256": "cda3010afe820fbba8265197097b33270837b422f6900d9497914ed1bd09e83a"
+      },
+      {
+        "path": "src/snapshot/dump-format.ts",
+        "mode": 420,
+        "bytes": 7860,
+        "sha256": "27af4f306a4e616deed470b85c8a0491945dd55da5a025498f4f52f4df2b0c14",
+        "gitBlob": "bf1fb39daa13ddeb062739a1f0d91c7ee60aeef8",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/dump-format.ts",
+        "emittedSha256": "2a3041a933418152dfbf3a1335b216ac9a8fe27304c105539baf2398b05b4dca"
+      },
+      {
+        "path": "src/snapshot/dump.ts",
+        "mode": 420,
+        "bytes": 6335,
+        "sha256": "2f0a4f144c6496214b81ee128c8f9605fc548c0638bdec9a6de1d28cc5017ad5",
+        "gitBlob": "c766d4e7415b8f4bc63799d586f6c72663a21007",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/dump.ts",
+        "emittedSha256": "897b4206d49228f08ce251f97bb952ffbe1cc14dd83a68206c6a145e166ecd6b"
+      },
+      {
+        "path": "src/snapshot/policy.ts",
+        "mode": 420,
+        "bytes": 6813,
+        "sha256": "7306c1f3c1170a0bdde41fb56ac943e07dffa1a69fed46faec538f459ae56a33",
+        "gitBlob": "8b8600e397e25661b0e3b7e2229c5d2f0f6ee416",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/policy.ts",
+        "emittedSha256": "6220531e03288996671b95777d32005c19342167d0c766057b177204b619a75b"
+      },
+      {
+        "path": "src/snapshot/replay-data.ts",
+        "mode": 420,
+        "bytes": 13196,
+        "sha256": "0130544934e8aa02404eb9e4aa41a835dad7416435decff4dcfd5a119ea576e6",
+        "gitBlob": "2bce008be6a53bbef6d93f4ef31cab984e3971c5",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/replay-data.ts",
+        "emittedSha256": "9f9ee485da0c1d55da210bec46451b76902fac5c6aab52a436925a01da2cb7e5"
+      },
+      {
+        "path": "src/snapshot/replay-inputs.ts",
+        "mode": 420,
+        "bytes": 5007,
+        "sha256": "d23eeb791eeb9ac5610f5fdc014df38d8d5bd9fb4c00b2dfcfbe109bfc5f58d5",
+        "gitBlob": "957f1fda14da52e6ebc37b3502efb00071b7d642",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/replay-inputs.ts",
+        "emittedSha256": "32a77265b9824363873ff0c009e6441c754fa415c7c9d069edf4f6e356ceafea"
+      },
+      {
+        "path": "src/snapshot/scheduler.ts",
+        "mode": 420,
+        "bytes": 2787,
+        "sha256": "616c06660d9ee884f3b79c5d0843a255376e1fa441620a803205eb680e28c2fc",
+        "gitBlob": "f6ac537aaf343a6585a60da3e8bf6b15df418092",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/scheduler.ts",
+        "emittedSha256": "fdd379446ff76b1493877f27f9750b0a2aab210604e7b5fcfce387d09d7013dc"
+      },
+      {
+        "path": "src/snapshot/serialize.ts",
+        "mode": 420,
+        "bytes": 15993,
+        "sha256": "ec5744b807c279928036f65c48bbed55c7ba8d563e25b292fb3ef7c4bc732bd6",
+        "gitBlob": "7403050c26f8d8673c291ec31fe68b05baaa615e",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/serialize.ts",
+        "emittedSha256": "3ddfb04918ae25a3e556960dced20a894ab807bfe877649f970fd4589fa7d913"
+      },
+      {
+        "path": "src/snapshot/validation.ts",
+        "mode": 420,
+        "bytes": 29061,
+        "sha256": "20b30c5a18aec5624c048bd17e07cb0a55f9c90d144c663d388d5ae12a76681c",
+        "gitBlob": "2c9b634615886cffa8ba4332c3938fb04f99c84e",
+        "role": "engine-runtime-candidate",
+        "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/snapshot/validation.ts",
+        "emittedSha256": "5c6c1451e2bc10ed16440fadba6fc1949eab94268f6ff330801b4a6bbccd37ca"
+      }
+    ],
+    "qualification": "Selected Git-tree paths authenticated from bounded public archive data in memory; no full-history, compiler, engine load or fresh emission proof."
+  },
+  "engineEvaluations": 0,
+  "sourceMaterializations": 0,
+  "privateAccess": false,
+  "inspectionPreparationError": {
+    "command": "jq attempted .closureAdditions[] as case objects",
+    "error": "Cannot index number with string id",
+    "qualification": "Read-only jq query shape error; corrected selector .closureAdditions.cases; not an engine/test failure or case rescore."
+  }
+}

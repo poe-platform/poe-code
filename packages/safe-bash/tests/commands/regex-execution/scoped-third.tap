@@ -1,0 +1,4318 @@
+TAP version 13
+# Subtest: grep ordered alternatives
+ok 1 - grep ordered alternatives
+  ---
+  duration_ms: 24.831666
+  type: 'test'
+  ...
+# Subtest: grep numeric backreference capture
+ok 2 - grep numeric backreference capture
+  ---
+  duration_ms: 21.026958
+  type: 'test'
+  ...
+# Subtest: grep pattern ordering longest same-start
+ok 3 - grep pattern ordering longest same-start
+  ---
+  duration_ms: 23.089583
+  type: 'test'
+  ...
+# Subtest: grep byte dot
+ok 4 - grep byte dot
+  ---
+  duration_ms: 18.926125
+  type: 'test'
+  ...
+# Subtest: grep word filter before early return
+ok 5 - grep word filter before early return
+  ---
+  duration_ms: 19.705167
+  type: 'test'
+  ...
+# Subtest: grep empty match selection no output
+ok 6 - grep empty match selection no output
+  ---
+  duration_ms: 20.878042
+  type: 'test'
+  ...
+# Subtest: grep NUL byte records
+ok 7 - grep NUL byte records
+  ---
+  duration_ms: 20.362834
+  type: 'test'
+  ...
+# Subtest: rg Unicode folding
+ok 8 - rg Unicode folding
+  ---
+  duration_ms: 20.565083
+  type: 'test'
+  ...
+# Subtest: rg Unicode words
+ok 9 - rg Unicode words
+  ---
+  duration_ms: 21.234209
+  type: 'test'
+  ...
+# Subtest: rg Unicode capture
+ok 10 - rg Unicode capture
+  ---
+  duration_ms: 20.325667
+  type: 'test'
+  ...
+# Subtest: rg current named backreference
+ok 11 - rg current named backreference
+  ---
+  duration_ms: 20.625875
+  type: 'test'
+  ...
+# Subtest: rg fragments do not invent starts
+ok 12 - rg fragments do not invent starts
+  ---
+  duration_ms: 20.582167
+  type: 'test'
+  ...
+# Subtest: rg fragments do not invent ends
+ok 13 - rg fragments do not invent ends
+  ---
+  duration_ms: 19.654375
+  type: 'test'
+  ...
+# Subtest: rg fragments preserve byte offsets
+ok 14 - rg fragments preserve byte offsets
+  ---
+  duration_ms: 20.959416
+  type: 'test'
+  ...
+# Subtest: rg JS digit selection
+ok 15 - rg JS digit selection
+  ---
+  duration_ms: 20.505166
+  type: 'test'
+  ...
+# Subtest: rg empty byte count
+ok 16 - rg empty byte count
+  ---
+  duration_ms: 20.279166
+  type: 'test'
+  ...
+# Subtest: rg empty unterminated byte count
+ok 17 - rg empty unterminated byte count
+  ---
+  duration_ms: 19.398417
+  type: 'test'
+  ...
+# Subtest: rg previous-end zero-width suppression
+ok 18 - rg previous-end zero-width suppression
+  ---
+  duration_ms: 19.444708
+  type: 'test'
+  ...
+# Subtest: rg CRLF whole record
+ok 19 - rg CRLF whole record
+  ---
+  duration_ms: 19.161417
+  type: 'test'
+  ...
+# Subtest: grep validation and fragment matching never construct host RegExp
+ok 20 - grep validation and fragment matching never construct host RegExp
+  ---
+  duration_ms: 37.26175
+  type: 'test'
+  ...
+# Subtest: grep preabort avoids source and worker dispatch
+ok 21 - grep preabort avoids source and worker dispatch
+  ---
+  duration_ms: 0.564583
+  type: 'test'
+  ...
+# Subtest: grep batches available rows without reading a feedback-dependent chunk
+ok 22 - grep batches available rows without reading a feedback-dependent chunk
+  ---
+  duration_ms: 35.659208
+  type: 'test'
+  ...
+# Subtest: grep releases request capacity before paused sink and VFS reads
+ok 23 - grep releases request capacity before paused sink and VFS reads
+  ---
+  duration_ms: 17.848708
+  type: 'test'
+  ...
+# Subtest: grep quiet closes source without reading another chunk
+ok 24 - grep quiet closes source without reading another chunk
+  ---
+  duration_ms: 14.260542
+  type: 'test'
+  ...
+# Subtest: rg validation and fragment matching never construct host RegExp
+ok 25 - rg validation and fragment matching never construct host RegExp
+  ---
+  duration_ms: 27.826709
+  type: 'test'
+  ...
+# Subtest: rg preabort avoids source and worker dispatch
+ok 26 - rg preabort avoids source and worker dispatch
+  ---
+  duration_ms: 0.087833
+  type: 'test'
+  ...
+# Subtest: rg batches available rows without reading a feedback-dependent chunk
+ok 27 - rg batches available rows without reading a feedback-dependent chunk
+  ---
+  duration_ms: 19.047708
+  type: 'test'
+  ...
+# Subtest: rg releases request capacity before paused sink and VFS reads
+ok 28 - rg releases request capacity before paused sink and VFS reads
+  ---
+  duration_ms: 15.11275
+  type: 'test'
+  ...
+# Subtest: rg quiet closes source without reading another chunk
+ok 29 - rg quiet closes source without reading another chunk
+  ---
+  duration_ms: 17.029958
+  type: 'test'
+  ...
+# Subtest: actual Shell pipeline composes public grep/rg options
+ok 30 - actual Shell pipeline composes public grep/rg options
+  ---
+  duration_ms: 22.846375
+  type: 'test'
+  ...
+# Subtest: defaults are active-request policy, not prototype cumulative caps
+ok 31 - defaults are active-request policy, not prototype cumulative caps
+  ---
+  duration_ms: 0.9095
+  type: 'test'
+  ...
+# Subtest: preabort creates no worker or listener
+ok 32 - preabort creates no worker or listener
+  ---
+  duration_ms: 0.198458
+  type: 'test'
+  ...
+# Subtest: one worker handles validation, batches and more than 1024 calls
+ok 33 - one worker handles validation, batches and more than 1024 calls
+  ---
+  duration_ms: 159.703375
+  type: 'test'
+  ...
+# Subtest: pattern, hit, transport and invocation sizes do not inherit prototype caps
+ok 34 - pattern, hit, transport and invocation sizes do not inherit prototype caps
+  ---
+  duration_ms: 46.877875
+  type: 'test'
+  ...
+# Subtest: rg retains its 100000-hit limit and grep accepts over 8MiB input
+ok 35 - rg retains its 100000-hit limit and grep accepts over 8MiB input
+  ---
+  duration_ms: 39.022041
+  type: 'test'
+  ...
+# Subtest: FIFO queue removes aborted waiter and rejects count overflow
+ok 36 - FIFO queue removes aborted waiter and rejects count overflow
+  ---
+  duration_ms: 21.032834
+  type: 'test'
+  ...
+# Subtest: queue input accounting includes descriptors and bytes; executors are independent
+ok 37 - queue input accounting includes descriptors and bytes; executors are independent
+  ---
+  duration_ms: 37.371666
+  type: 'test'
+  ...
+# Subtest: active abort awaits exact cleanup without cross-caller cancellation
+ok 38 - active abort awaits exact cleanup without cross-caller cancellation
+  ---
+  duration_ms: 42.13875
+  type: 'test'
+  ...
+# Subtest: startup abort does not dispatch matching and awaits cleanup
+ok 39 - startup abort does not dispatch matching and awaits cleanup
+  ---
+  duration_ms: 4.3385
+  type: 'test'
+  ...
+# Subtest: benign stalled reply hits short explicit request deadline and cleans worker
+ok 40 - benign stalled reply hits short explicit request deadline and cleans worker
+  ---
+  duration_ms: 45.509458
+  type: 'test'
+  ...
+# Subtest: malformed replies and natural exact-worker exit settle after cleanup
+ok 41 - malformed replies and natural exact-worker exit settle after cleanup
+  ---
+  duration_ms: 37.907958
+  type: 'test'
+  ...
+# Subtest: idle retirement is automatic with an open invocation and removes listeners
+ok 42 - idle retirement is automatic with an open invocation and removes listeners
+  ---
+  duration_ms: 60.699084
+  type: 'test'
+  ...
+# Subtest: dispose rejects queued and active work, observes late handlers and is idempotent
+ok 43 - dispose rejects queued and active work, observes late handlers and is idempotent
+  ---
+  duration_ms: 3.594375
+  type: 'test'
+  ...
+# Subtest: reply validation rejects bounds, ordering and first-result amplification
+ok 44 - reply validation rejects bounds, ordering and first-result amplification
+  ---
+  duration_ms: 0.135834
+  type: 'test'
+  ...
+# Subtest: matrix ["foo"]
+ok 45 - matrix ["foo"]
+  ---
+  duration_ms: 16.754375
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-n"]
+ok 46 - matrix ["foo","-n"]
+  ---
+  duration_ms: 11.072667
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-nbo"]
+ok 47 - matrix ["foo","-nbo"]
+  ---
+  duration_ms: 9.328209
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-vc"]
+ok 48 - matrix ["foo","-vc"]
+  ---
+  duration_ms: 9.66775
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-vo"]
+ok 49 - matrix ["foo","-vo"]
+  ---
+  duration_ms: 9.986792
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-oi"]
+ok 50 - matrix ["foo","-oi"]
+  ---
+  duration_ms: 10.121875
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-w"]
+ok 51 - matrix ["foo","-w"]
+  ---
+  duration_ms: 9.931334
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-x"]
+ok 52 - matrix ["foo","-x"]
+  ---
+  duration_ms: 10.140875
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-C1"]
+ok 53 - matrix ["foo","-C1"]
+  ---
+  duration_ms: 9.252917
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-oC1"]
+ok 54 - matrix ["foo","-oC1"]
+  ---
+  duration_ms: 9.160375
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","--column","-C1"]
+ok 55 - matrix ["foo","--column","-C1"]
+  ---
+  duration_ms: 9.163292
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-m1","-A2"]
+ok 56 - matrix ["foo","-m1","-A2"]
+  ---
+  duration_ms: 8.885875
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","--count-matches","-m2"]
+ok 57 - matrix ["foo","--count-matches","-m2"]
+  ---
+  duration_ms: 8.052458
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","--json","-C1"]
+ok 58 - matrix ["foo","--json","-C1"]
+  ---
+  duration_ms: 7.909792
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","--json","-v","-C1"]
+ok 59 - matrix ["foo","--json","-v","-C1"]
+  ---
+  duration_ms: 7.842334
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-c","--include-zero"]
+ok 60 - matrix ["foo","-c","--include-zero"]
+  ---
+  duration_ms: 7.743792
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","--files-without-match"]
+ok 61 - matrix ["foo","--files-without-match"]
+  ---
+  duration_ms: 7.514
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-l0"]
+ok 62 - matrix ["foo","-l0"]
+  ---
+  duration_ms: 7.18825
+  type: 'test'
+  ...
+# Subtest: matrix ["foo","-q"]
+ok 63 - matrix ["foo","-q"]
+  ---
+  duration_ms: 7.232583
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo"]
+ok 64 - matrix ["^foo"]
+  ---
+  duration_ms: 7.7305
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-n"]
+ok 65 - matrix ["^foo","-n"]
+  ---
+  duration_ms: 7.586292
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-nbo"]
+ok 66 - matrix ["^foo","-nbo"]
+  ---
+  duration_ms: 7.479417
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-vc"]
+ok 67 - matrix ["^foo","-vc"]
+  ---
+  duration_ms: 7.412208
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-vo"]
+ok 68 - matrix ["^foo","-vo"]
+  ---
+  duration_ms: 7.78875
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-oi"]
+ok 69 - matrix ["^foo","-oi"]
+  ---
+  duration_ms: 7.626125
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-w"]
+ok 70 - matrix ["^foo","-w"]
+  ---
+  duration_ms: 7.374417
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-x"]
+ok 71 - matrix ["^foo","-x"]
+  ---
+  duration_ms: 7.136333
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-C1"]
+ok 72 - matrix ["^foo","-C1"]
+  ---
+  duration_ms: 8.0885
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-oC1"]
+ok 73 - matrix ["^foo","-oC1"]
+  ---
+  duration_ms: 8.337625
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","--column","-C1"]
+ok 74 - matrix ["^foo","--column","-C1"]
+  ---
+  duration_ms: 7.242458
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-m1","-A2"]
+ok 75 - matrix ["^foo","-m1","-A2"]
+  ---
+  duration_ms: 7.699208
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","--count-matches","-m2"]
+ok 76 - matrix ["^foo","--count-matches","-m2"]
+  ---
+  duration_ms: 7.924375
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","--json","-C1"]
+ok 77 - matrix ["^foo","--json","-C1"]
+  ---
+  duration_ms: 7.96175
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","--json","-v","-C1"]
+ok 78 - matrix ["^foo","--json","-v","-C1"]
+  ---
+  duration_ms: 7.688833
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-c","--include-zero"]
+ok 79 - matrix ["^foo","-c","--include-zero"]
+  ---
+  duration_ms: 7.750834
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","--files-without-match"]
+ok 80 - matrix ["^foo","--files-without-match"]
+  ---
+  duration_ms: 7.688166
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-l0"]
+ok 81 - matrix ["^foo","-l0"]
+  ---
+  duration_ms: 7.448375
+  type: 'test'
+  ...
+# Subtest: matrix ["^foo","-q"]
+ok 82 - matrix ["^foo","-q"]
+  ---
+  duration_ms: 7.603083
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other"]
+ok 83 - matrix ["foo|other"]
+  ---
+  duration_ms: 7.2335
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-n"]
+ok 84 - matrix ["foo|other","-n"]
+  ---
+  duration_ms: 7.153417
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-nbo"]
+ok 85 - matrix ["foo|other","-nbo"]
+  ---
+  duration_ms: 7.368875
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-vc"]
+ok 86 - matrix ["foo|other","-vc"]
+  ---
+  duration_ms: 7.729875
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-vo"]
+ok 87 - matrix ["foo|other","-vo"]
+  ---
+  duration_ms: 7.525
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-oi"]
+ok 88 - matrix ["foo|other","-oi"]
+  ---
+  duration_ms: 7.362
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-w"]
+ok 89 - matrix ["foo|other","-w"]
+  ---
+  duration_ms: 7.491542
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-x"]
+ok 90 - matrix ["foo|other","-x"]
+  ---
+  duration_ms: 7.673292
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-C1"]
+ok 91 - matrix ["foo|other","-C1"]
+  ---
+  duration_ms: 7.187125
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-oC1"]
+ok 92 - matrix ["foo|other","-oC1"]
+  ---
+  duration_ms: 7.432166
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","--column","-C1"]
+ok 93 - matrix ["foo|other","--column","-C1"]
+  ---
+  duration_ms: 7.49575
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-m1","-A2"]
+ok 94 - matrix ["foo|other","-m1","-A2"]
+  ---
+  duration_ms: 7.2095
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","--count-matches","-m2"]
+ok 95 - matrix ["foo|other","--count-matches","-m2"]
+  ---
+  duration_ms: 7.630792
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","--json","-C1"]
+ok 96 - matrix ["foo|other","--json","-C1"]
+  ---
+  duration_ms: 7.582125
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","--json","-v","-C1"]
+ok 97 - matrix ["foo|other","--json","-v","-C1"]
+  ---
+  duration_ms: 7.528167
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-c","--include-zero"]
+ok 98 - matrix ["foo|other","-c","--include-zero"]
+  ---
+  duration_ms: 7.649625
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","--files-without-match"]
+ok 99 - matrix ["foo|other","--files-without-match"]
+  ---
+  duration_ms: 7.413583
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-l0"]
+ok 100 - matrix ["foo|other","-l0"]
+  ---
+  duration_ms: 7.404833
+  type: 'test'
+  ...
+# Subtest: matrix ["foo|other","-q"]
+ok 101 - matrix ["foo|other","-q"]
+  ---
+  duration_ms: 7.983416
+  type: 'test'
+  ...
+# Subtest: matrix [""]
+ok 102 - matrix [""]
+  ---
+  duration_ms: 7.4975
+  type: 'test'
+  ...
+# Subtest: matrix ["","-n"]
+ok 103 - matrix ["","-n"]
+  ---
+  duration_ms: 7.300584
+  type: 'test'
+  ...
+# Subtest: matrix ["","-nbo"]
+ok 104 - matrix ["","-nbo"]
+  ---
+  duration_ms: 7.737792
+  type: 'test'
+  ...
+# Subtest: matrix ["","-vc"]
+ok 105 - matrix ["","-vc"]
+  ---
+  duration_ms: 7.708041
+  type: 'test'
+  ...
+# Subtest: matrix ["","-vo"]
+ok 106 - matrix ["","-vo"]
+  ---
+  duration_ms: 7.502083
+  type: 'test'
+  ...
+# Subtest: matrix ["","-oi"]
+ok 107 - matrix ["","-oi"]
+  ---
+  duration_ms: 7.39675
+  type: 'test'
+  ...
+# Subtest: matrix ["","-w"]
+ok 108 - matrix ["","-w"]
+  ---
+  duration_ms: 7.710834
+  type: 'test'
+  ...
+# Subtest: matrix ["","-x"]
+ok 109 - matrix ["","-x"]
+  ---
+  duration_ms: 7.570459
+  type: 'test'
+  ...
+# Subtest: matrix ["","-C1"]
+ok 110 - matrix ["","-C1"]
+  ---
+  duration_ms: 7.297875
+  type: 'test'
+  ...
+# Subtest: matrix ["","-oC1"]
+ok 111 - matrix ["","-oC1"]
+  ---
+  duration_ms: 7.706125
+  type: 'test'
+  ...
+# Subtest: matrix ["","--column","-C1"]
+ok 112 - matrix ["","--column","-C1"]
+  ---
+  duration_ms: 7.399417
+  type: 'test'
+  ...
+# Subtest: matrix ["","-m1","-A2"]
+ok 113 - matrix ["","-m1","-A2"]
+  ---
+  duration_ms: 7.416667
+  type: 'test'
+  ...
+# Subtest: matrix ["","--count-matches","-m2"]
+ok 114 - matrix ["","--count-matches","-m2"]
+  ---
+  duration_ms: 8.385667
+  type: 'test'
+  ...
+# Subtest: matrix ["","--json","-C1"]
+ok 115 - matrix ["","--json","-C1"]
+  ---
+  duration_ms: 7.099334
+  type: 'test'
+  ...
+# Subtest: matrix ["","--json","-v","-C1"]
+ok 116 - matrix ["","--json","-v","-C1"]
+  ---
+  duration_ms: 7.48525
+  type: 'test'
+  ...
+# Subtest: matrix ["","-c","--include-zero"]
+ok 117 - matrix ["","-c","--include-zero"]
+  ---
+  duration_ms: 7.362666
+  type: 'test'
+  ...
+# Subtest: matrix ["","--files-without-match"]
+ok 118 - matrix ["","--files-without-match"]
+  ---
+  duration_ms: 7.577417
+  type: 'test'
+  ...
+# Subtest: matrix ["","-l0"]
+ok 119 - matrix ["","-l0"]
+  ---
+  duration_ms: 7.433083
+  type: 'test'
+  ...
+# Subtest: matrix ["","-q"]
+ok 120 - matrix ["","-q"]
+  ---
+  duration_ms: 7.129125
+  type: 'test'
+  ...
+# Subtest: matrix ["o+"]
+ok 121 - matrix ["o+"]
+  ---
+  duration_ms: 7.4935
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-n"]
+ok 122 - matrix ["o+","-n"]
+  ---
+  duration_ms: 7.121333
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-nbo"]
+ok 123 - matrix ["o+","-nbo"]
+  ---
+  duration_ms: 7.652125
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-vc"]
+ok 124 - matrix ["o+","-vc"]
+  ---
+  duration_ms: 7.530292
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-vo"]
+ok 125 - matrix ["o+","-vo"]
+  ---
+  duration_ms: 7.460791
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-oi"]
+ok 126 - matrix ["o+","-oi"]
+  ---
+  duration_ms: 7.533833
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-w"]
+ok 127 - matrix ["o+","-w"]
+  ---
+  duration_ms: 7.5145
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-x"]
+ok 128 - matrix ["o+","-x"]
+  ---
+  duration_ms: 8.207583
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-C1"]
+ok 129 - matrix ["o+","-C1"]
+  ---
+  duration_ms: 7.792042
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-oC1"]
+ok 130 - matrix ["o+","-oC1"]
+  ---
+  duration_ms: 7.726375
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","--column","-C1"]
+ok 131 - matrix ["o+","--column","-C1"]
+  ---
+  duration_ms: 7.358625
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-m1","-A2"]
+ok 132 - matrix ["o+","-m1","-A2"]
+  ---
+  duration_ms: 7.401791
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","--count-matches","-m2"]
+ok 133 - matrix ["o+","--count-matches","-m2"]
+  ---
+  duration_ms: 7.258542
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","--json","-C1"]
+ok 134 - matrix ["o+","--json","-C1"]
+  ---
+  duration_ms: 8.222792
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","--json","-v","-C1"]
+ok 135 - matrix ["o+","--json","-v","-C1"]
+  ---
+  duration_ms: 7.240625
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-c","--include-zero"]
+ok 136 - matrix ["o+","-c","--include-zero"]
+  ---
+  duration_ms: 6.779625
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","--files-without-match"]
+ok 137 - matrix ["o+","--files-without-match"]
+  ---
+  duration_ms: 7.97775
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-l0"]
+ok 138 - matrix ["o+","-l0"]
+  ---
+  duration_ms: 7.353167
+  type: 'test'
+  ...
+# Subtest: matrix ["o+","-q"]
+ok 139 - matrix ["o+","-q"]
+  ---
+  duration_ms: 7.206833
+  type: 'test'
+  ...
+# Subtest: matrix ["missing"]
+ok 140 - matrix ["missing"]
+  ---
+  duration_ms: 6.965792
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-n"]
+ok 141 - matrix ["missing","-n"]
+  ---
+  duration_ms: 7.419584
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-nbo"]
+ok 142 - matrix ["missing","-nbo"]
+  ---
+  duration_ms: 7.415167
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-vc"]
+ok 143 - matrix ["missing","-vc"]
+  ---
+  duration_ms: 6.721583
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-vo"]
+ok 144 - matrix ["missing","-vo"]
+  ---
+  duration_ms: 7.732209
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-oi"]
+ok 145 - matrix ["missing","-oi"]
+  ---
+  duration_ms: 7.523125
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-w"]
+ok 146 - matrix ["missing","-w"]
+  ---
+  duration_ms: 7.531125
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-x"]
+ok 147 - matrix ["missing","-x"]
+  ---
+  duration_ms: 7.489959
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-C1"]
+ok 148 - matrix ["missing","-C1"]
+  ---
+  duration_ms: 7.48675
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-oC1"]
+ok 149 - matrix ["missing","-oC1"]
+  ---
+  duration_ms: 7.374833
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","--column","-C1"]
+ok 150 - matrix ["missing","--column","-C1"]
+  ---
+  duration_ms: 7.41525
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-m1","-A2"]
+ok 151 - matrix ["missing","-m1","-A2"]
+  ---
+  duration_ms: 7.1915
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","--count-matches","-m2"]
+ok 152 - matrix ["missing","--count-matches","-m2"]
+  ---
+  duration_ms: 8.0325
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","--json","-C1"]
+ok 153 - matrix ["missing","--json","-C1"]
+  ---
+  duration_ms: 7.72225
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","--json","-v","-C1"]
+ok 154 - matrix ["missing","--json","-v","-C1"]
+  ---
+  duration_ms: 7.776042
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-c","--include-zero"]
+ok 155 - matrix ["missing","-c","--include-zero"]
+  ---
+  duration_ms: 7.404042
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","--files-without-match"]
+ok 156 - matrix ["missing","--files-without-match"]
+  ---
+  duration_ms: 7.341875
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-l0"]
+ok 157 - matrix ["missing","-l0"]
+  ---
+  duration_ms: 7.932958
+  type: 'test'
+  ...
+# Subtest: matrix ["missing","-q"]
+ok 158 - matrix ["missing","-q"]
+  ---
+  duration_ms: 7.928125
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","-nbo"] "foo\\r\\nFOO\\r\\nfoo\\r"
+ok 159 - bytes ["--crlf","-nbo"] "foo\\r\\nFOO\\r\\nfoo\\r"
+  ---
+  duration_ms: 6.937416
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","-nbo"] "éfoo🙂foo\\n"
+ok 160 - bytes ["--crlf","-nbo"] "éfoo🙂foo\\n"
+  ---
+  duration_ms: 7.2335
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","-nbo"] "foo\\u0000other\\u0000foo"
+ok 161 - bytes ["--crlf","-nbo"] "foo\\u0000other\\u0000foo"
+  ---
+  duration_ms: 7.603958
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","-nbo"] [255,102,111,111,10,195,102,111,111]
+ok 162 - bytes ["--crlf","-nbo"] [255,102,111,111,10,195,102,111,111]
+  ---
+  duration_ms: 7.114792
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","--json"] "foo\\r\\nFOO\\r\\nfoo\\r"
+ok 163 - bytes ["--crlf","--json"] "foo\\r\\nFOO\\r\\nfoo\\r"
+  ---
+  duration_ms: 6.930333
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","--json"] "éfoo🙂foo\\n"
+ok 164 - bytes ["--crlf","--json"] "éfoo🙂foo\\n"
+  ---
+  duration_ms: 7.479041
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","--json"] "foo\\u0000other\\u0000foo"
+ok 165 - bytes ["--crlf","--json"] "foo\\u0000other\\u0000foo"
+  ---
+  duration_ms: 7.257333
+  type: 'test'
+  ...
+# Subtest: bytes ["--crlf","--json"] [255,102,111,111,10,195,102,111,111]
+ok 166 - bytes ["--crlf","--json"] [255,102,111,111,10,195,102,111,111]
+  ---
+  duration_ms: 7.166042
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","-nbo"] "foo\\r\\nFOO\\r\\nfoo\\r"
+ok 167 - bytes ["--null-data","-nbo"] "foo\\r\\nFOO\\r\\nfoo\\r"
+  ---
+  duration_ms: 7.370791
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","-nbo"] "éfoo🙂foo\\n"
+ok 168 - bytes ["--null-data","-nbo"] "éfoo🙂foo\\n"
+  ---
+  duration_ms: 7.286292
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","-nbo"] "foo\\u0000other\\u0000foo"
+ok 169 - bytes ["--null-data","-nbo"] "foo\\u0000other\\u0000foo"
+  ---
+  duration_ms: 7.16925
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","-nbo"] [255,102,111,111,10,195,102,111,111]
+ok 170 - bytes ["--null-data","-nbo"] [255,102,111,111,10,195,102,111,111]
+  ---
+  duration_ms: 7.466584
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","--json"] "foo\\r\\nFOO\\r\\nfoo\\r"
+ok 171 - bytes ["--null-data","--json"] "foo\\r\\nFOO\\r\\nfoo\\r"
+  ---
+  duration_ms: 7.790333
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","--json"] "éfoo🙂foo\\n"
+ok 172 - bytes ["--null-data","--json"] "éfoo🙂foo\\n"
+  ---
+  duration_ms: 8.321
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","--json"] "foo\\u0000other\\u0000foo"
+ok 173 - bytes ["--null-data","--json"] "foo\\u0000other\\u0000foo"
+  ---
+  duration_ms: 7.538625
+  type: 'test'
+  ...
+# Subtest: bytes ["--null-data","--json"] [255,102,111,111,10,195,102,111,111]
+ok 174 - bytes ["--null-data","--json"] [255,102,111,111,10,195,102,111,111]
+  ---
+  duration_ms: 7.375084
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","--json"] "foo\\r\\nFOO\\r\\nfoo\\r"
+ok 175 - bytes ["-a","--json"] "foo\\r\\nFOO\\r\\nfoo\\r"
+  ---
+  duration_ms: 7.739
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","--json"] "éfoo🙂foo\\n"
+ok 176 - bytes ["-a","--json"] "éfoo🙂foo\\n"
+  ---
+  duration_ms: 7.855542
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","--json"] "foo\\u0000other\\u0000foo"
+ok 177 - bytes ["-a","--json"] "foo\\u0000other\\u0000foo"
+  ---
+  duration_ms: 7.443708
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","--json"] [255,102,111,111,10,195,102,111,111]
+ok 178 - bytes ["-a","--json"] [255,102,111,111,10,195,102,111,111]
+  ---
+  duration_ms: 7.746875
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","-nbo"] "foo\\r\\nFOO\\r\\nfoo\\r"
+ok 179 - bytes ["-a","-nbo"] "foo\\r\\nFOO\\r\\nfoo\\r"
+  ---
+  duration_ms: 7.491541
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","-nbo"] "éfoo🙂foo\\n"
+ok 180 - bytes ["-a","-nbo"] "éfoo🙂foo\\n"
+  ---
+  duration_ms: 7.708875
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","-nbo"] "foo\\u0000other\\u0000foo"
+ok 181 - bytes ["-a","-nbo"] "foo\\u0000other\\u0000foo"
+  ---
+  duration_ms: 7.325166
+  type: 'test'
+  ...
+# Subtest: bytes ["-a","-nbo"] [255,102,111,111,10,195,102,111,111]
+ok 182 - bytes ["-a","-nbo"] [255,102,111,111,10,195,102,111,111]
+  ---
+  duration_ms: 7.602375
+  type: 'test'
+  ...
+# Subtest: glob *.txt 
+ok 183 - glob *.txt 
+  ---
+  duration_ms: 10.782333
+  type: 'test'
+  ...
+# Subtest: glob *.txt --hidden
+ok 184 - glob *.txt --hidden
+  ---
+  duration_ms: 11.268417
+  type: 'test'
+  ...
+# Subtest: glob *.txt -g !src/**
+ok 185 - glob *.txt -g !src/**
+  ---
+  duration_ms: 11.408
+  type: 'test'
+  ...
+# Subtest: glob !*.txt 
+ok 186 - glob !*.txt 
+  ---
+  duration_ms: 9.769041
+  type: 'test'
+  ...
+# Subtest: glob !*.txt --hidden
+ok 187 - glob !*.txt --hidden
+  ---
+  duration_ms: 9.813833
+  type: 'test'
+  ...
+# Subtest: glob !*.txt -g !src/**
+ok 188 - glob !*.txt -g !src/**
+  ---
+  duration_ms: 10.293459
+  type: 'test'
+  ...
+# Subtest: glob src/ 
+ok 189 - glob src/ 
+  ---
+  duration_ms: 9.598583
+  type: 'test'
+  ...
+# Subtest: glob src/ --hidden
+ok 190 - glob src/ --hidden
+  ---
+  duration_ms: 9.859791
+  type: 'test'
+  ...
+# Subtest: glob src/ -g !src/**
+ok 191 - glob src/ -g !src/**
+  ---
+  duration_ms: 10.599791
+  type: 'test'
+  ...
+# Subtest: glob !src/ 
+ok 192 - glob !src/ 
+  ---
+  duration_ms: 10.4
+  type: 'test'
+  ...
+# Subtest: glob !src/ --hidden
+ok 193 - glob !src/ --hidden
+  ---
+  duration_ms: 9.175792
+  type: 'test'
+  ...
+# Subtest: glob !src/ -g !src/**
+ok 194 - glob !src/ -g !src/**
+  ---
+  duration_ms: 9.991542
+  type: 'test'
+  ...
+# Subtest: glob src/** 
+ok 195 - glob src/** 
+  ---
+  duration_ms: 9.924208
+  type: 'test'
+  ...
+# Subtest: glob src/** --hidden
+ok 196 - glob src/** --hidden
+  ---
+  duration_ms: 9.996333
+  type: 'test'
+  ...
+# Subtest: glob src/** -g !src/**
+ok 197 - glob src/** -g !src/**
+  ---
+  duration_ms: 9.344792
+  type: 'test'
+  ...
+# Subtest: glob **/a.txt 
+ok 198 - glob **/a.txt 
+  ---
+  duration_ms: 9.855208
+  type: 'test'
+  ...
+# Subtest: glob **/a.txt --hidden
+ok 199 - glob **/a.txt --hidden
+  ---
+  duration_ms: 10.186667
+  type: 'test'
+  ...
+# Subtest: glob **/a.txt -g !src/**
+ok 200 - glob **/a.txt -g !src/**
+  ---
+  duration_ms: 14.523333
+  type: 'test'
+  ...
+# Subtest: glob /src/*.txt 
+ok 201 - glob /src/*.txt 
+  ---
+  duration_ms: 14.192208
+  type: 'test'
+  ...
+# Subtest: glob /src/*.txt --hidden
+ok 202 - glob /src/*.txt --hidden
+  ---
+  duration_ms: 11.502458
+  type: 'test'
+  ...
+# Subtest: glob /src/*.txt -g !src/**
+ok 203 - glob /src/*.txt -g !src/**
+  ---
+  duration_ms: 10.640042
+  type: 'test'
+  ...
+# Subtest: glob !**/deep/** 
+ok 204 - glob !**/deep/** 
+  ---
+  duration_ms: 9.399292
+  type: 'test'
+  ...
+# Subtest: glob !**/deep/** --hidden
+ok 205 - glob !**/deep/** --hidden
+  ---
+  duration_ms: 10.001209
+  type: 'test'
+  ...
+# Subtest: glob !**/deep/** -g !src/**
+ok 206 - glob !**/deep/** -g !src/**
+  ---
+  duration_ms: 11.166875
+  type: 'test'
+  ...
+# Subtest: glob {src,build}/** 
+ok 207 - glob {src,build}/** 
+  ---
+  duration_ms: 11.548959
+  type: 'test'
+  ...
+# Subtest: glob {src,build}/** --hidden
+ok 208 - glob {src,build}/** --hidden
+  ---
+  duration_ms: 12.284333
+  type: 'test'
+  ...
+# Subtest: glob {src,build}/** -g !src/**
+ok 209 - glob {src,build}/** -g !src/**
+  ---
+  duration_ms: 10.282
+  type: 'test'
+  ...
+# Subtest: glob [ab].* 
+ok 210 - glob [ab].* 
+  ---
+  duration_ms: 9.984084
+  type: 'test'
+  ...
+# Subtest: glob [ab].* --hidden
+ok 211 - glob [ab].* --hidden
+  ---
+  duration_ms: 9.624084
+  type: 'test'
+  ...
+# Subtest: glob [ab].* -g !src/**
+ok 212 - glob [ab].* -g !src/**
+  ---
+  duration_ms: 9.206458
+  type: 'test'
+  ...
+# Subtest: glob * 
+ok 213 - glob * 
+  ---
+  duration_ms: 10.562708
+  type: 'test'
+  ...
+# Subtest: glob * --hidden
+ok 214 - glob * --hidden
+  ---
+  duration_ms: 10.386542
+  type: 'test'
+  ...
+# Subtest: glob * -g !src/**
+ok 215 - glob * -g !src/**
+  ---
+  duration_ms: 10.655875
+  type: 'test'
+  ...
+# Subtest: glob ** 
+ok 216 - glob ** 
+  ---
+  duration_ms: 10.415583
+  type: 'test'
+  ...
+# Subtest: glob ** --hidden
+ok 217 - glob ** --hidden
+  ---
+  duration_ms: 9.058667
+  type: 'test'
+  ...
+# Subtest: glob ** -g !src/**
+ok 218 - glob ** -g !src/**
+  ---
+  duration_ms: 10.316542
+  type: 'test'
+  ...
+# Subtest: glob .hidden/** 
+ok 219 - glob .hidden/** 
+  ---
+  duration_ms: 9.952875
+  type: 'test'
+  ...
+# Subtest: glob .hidden/** --hidden
+ok 220 - glob .hidden/** --hidden
+  ---
+  duration_ms: 9.800709
+  type: 'test'
+  ...
+# Subtest: glob .hidden/** -g !src/**
+ok 221 - glob .hidden/** -g !src/**
+  ---
+  duration_ms: 9.420834
+  type: 'test'
+  ...
+# Subtest: ignore "*.txt\\n!src/a.txt\\n" 
+ok 222 - ignore "*.txt\\n!src/a.txt\\n" 
+  ---
+  duration_ms: 9.283
+  type: 'test'
+  ...
+# Subtest: ignore "*.txt\\n!src/a.txt\\n" --hidden
+ok 223 - ignore "*.txt\\n!src/a.txt\\n" --hidden
+  ---
+  duration_ms: 10.526916
+  type: 'test'
+  ...
+# Subtest: ignore "*.txt\\n!src/a.txt\\n" -g *.txt
+ok 224 - ignore "*.txt\\n!src/a.txt\\n" -g *.txt
+  ---
+  duration_ms: 10.817875
+  type: 'test'
+  ...
+# Subtest: ignore "*.txt\\n!src/a.txt\\n" --no-ignore
+ok 225 - ignore "*.txt\\n!src/a.txt\\n" --no-ignore
+  ---
+  duration_ms: 10.09525
+  type: 'test'
+  ...
+# Subtest: ignore "src/\\n!src/a.txt\\n" 
+ok 226 - ignore "src/\\n!src/a.txt\\n" 
+  ---
+  duration_ms: 10.203417
+  type: 'test'
+  ...
+# Subtest: ignore "src/\\n!src/a.txt\\n" --hidden
+ok 227 - ignore "src/\\n!src/a.txt\\n" --hidden
+  ---
+  duration_ms: 10.566708
+  type: 'test'
+  ...
+# Subtest: ignore "src/\\n!src/a.txt\\n" -g *.txt
+ok 228 - ignore "src/\\n!src/a.txt\\n" -g *.txt
+  ---
+  duration_ms: 12.043042
+  type: 'test'
+  ...
+# Subtest: ignore "src/\\n!src/a.txt\\n" --no-ignore
+ok 229 - ignore "src/\\n!src/a.txt\\n" --no-ignore
+  ---
+  duration_ms: 9.81
+  type: 'test'
+  ...
+# Subtest: ignore "src/*\\n!src/deep/\\n" 
+ok 230 - ignore "src/*\\n!src/deep/\\n" 
+  ---
+  duration_ms: 10.197833
+  type: 'test'
+  ...
+# Subtest: ignore "src/*\\n!src/deep/\\n" --hidden
+ok 231 - ignore "src/*\\n!src/deep/\\n" --hidden
+  ---
+  duration_ms: 10.347916
+  type: 'test'
+  ...
+# Subtest: ignore "src/*\\n!src/deep/\\n" -g *.txt
+ok 232 - ignore "src/*\\n!src/deep/\\n" -g *.txt
+  ---
+  duration_ms: 10.649666
+  type: 'test'
+  ...
+# Subtest: ignore "src/*\\n!src/deep/\\n" --no-ignore
+ok 233 - ignore "src/*\\n!src/deep/\\n" --no-ignore
+  ---
+  duration_ms: 9.560208
+  type: 'test'
+  ...
+# Subtest: ignore "**/a.txt\\n" 
+ok 234 - ignore "**/a.txt\\n" 
+  ---
+  duration_ms: 10.69675
+  type: 'test'
+  ...
+# Subtest: ignore "**/a.txt\\n" --hidden
+ok 235 - ignore "**/a.txt\\n" --hidden
+  ---
+  duration_ms: 10.025917
+  type: 'test'
+  ...
+# Subtest: ignore "**/a.txt\\n" -g *.txt
+ok 236 - ignore "**/a.txt\\n" -g *.txt
+  ---
+  duration_ms: 9.482792
+  type: 'test'
+  ...
+# Subtest: ignore "**/a.txt\\n" --no-ignore
+ok 237 - ignore "**/a.txt\\n" --no-ignore
+  ---
+  duration_ms: 10.133416
+  type: 'test'
+  ...
+# Subtest: ignore "[ab].*\\n" 
+ok 238 - ignore "[ab].*\\n" 
+  ---
+  duration_ms: 10.278041
+  type: 'test'
+  ...
+# Subtest: ignore "[ab].*\\n" --hidden
+ok 239 - ignore "[ab].*\\n" --hidden
+  ---
+  duration_ms: 9.5445
+  type: 'test'
+  ...
+# Subtest: ignore "[ab].*\\n" -g *.txt
+ok 240 - ignore "[ab].*\\n" -g *.txt
+  ---
+  duration_ms: 9.230791
+  type: 'test'
+  ...
+# Subtest: ignore "[ab].*\\n" --no-ignore
+ok 241 - ignore "[ab].*\\n" --no-ignore
+  ---
+  duration_ms: 10.660417
+  type: 'test'
+  ...
+# Subtest: ignore "!.*\\n" 
+ok 242 - ignore "!.*\\n" 
+  ---
+  duration_ms: 10.725834
+  type: 'test'
+  ...
+# Subtest: ignore "!.*\\n" --hidden
+ok 243 - ignore "!.*\\n" --hidden
+  ---
+  duration_ms: 9.206333
+  type: 'test'
+  ...
+# Subtest: ignore "!.*\\n" -g *.txt
+ok 244 - ignore "!.*\\n" -g *.txt
+  ---
+  duration_ms: 9.492042
+  type: 'test'
+  ...
+# Subtest: ignore "!.*\\n" --no-ignore
+ok 245 - ignore "!.*\\n" --no-ignore
+  ---
+  duration_ms: 10.024917
+  type: 'test'
+  ...
+# Subtest: ignore "build/**\\n" 
+ok 246 - ignore "build/**\\n" 
+  ---
+  duration_ms: 9.986958
+  type: 'test'
+  ...
+# Subtest: ignore "build/**\\n" --hidden
+ok 247 - ignore "build/**\\n" --hidden
+  ---
+  duration_ms: 9.955375
+  type: 'test'
+  ...
+# Subtest: ignore "build/**\\n" -g *.txt
+ok 248 - ignore "build/**\\n" -g *.txt
+  ---
+  duration_ms: 9.721167
+  type: 'test'
+  ...
+# Subtest: ignore "build/**\\n" --no-ignore
+ok 249 - ignore "build/**\\n" --no-ignore
+  ---
+  duration_ms: 9.180042
+  type: 'test'
+  ...
+# Subtest: ignore "src\\n!src/\\n" 
+ok 250 - ignore "src\\n!src/\\n" 
+  ---
+  duration_ms: 9.922208
+  type: 'test'
+  ...
+# Subtest: ignore "src\\n!src/\\n" --hidden
+ok 251 - ignore "src\\n!src/\\n" --hidden
+  ---
+  duration_ms: 9.271292
+  type: 'test'
+  ...
+# Subtest: ignore "src\\n!src/\\n" -g *.txt
+ok 252 - ignore "src\\n!src/\\n" -g *.txt
+  ---
+  duration_ms: 9.669875
+  type: 'test'
+  ...
+# Subtest: ignore "src\\n!src/\\n" --no-ignore
+ok 253 - ignore "src\\n!src/\\n" --no-ignore
+  ---
+  duration_ms: 9.122208
+  type: 'test'
+  ...
+# Subtest: ignore "*.log\\n!b.log\\n" 
+ok 254 - ignore "*.log\\n!b.log\\n" 
+  ---
+  duration_ms: 8.777917
+  type: 'test'
+  ...
+# Subtest: ignore "*.log\\n!b.log\\n" --hidden
+ok 255 - ignore "*.log\\n!b.log\\n" --hidden
+  ---
+  duration_ms: 10.584958
+  type: 'test'
+  ...
+# Subtest: ignore "*.log\\n!b.log\\n" -g *.txt
+ok 256 - ignore "*.log\\n!b.log\\n" -g *.txt
+  ---
+  duration_ms: 11.000375
+  type: 'test'
+  ...
+# Subtest: ignore "*.log\\n!b.log\\n" --no-ignore
+ok 257 - ignore "*.log\\n!b.log\\n" --no-ignore
+  ---
+  duration_ms: 10.29675
+  type: 'test'
+  ...
+# Subtest: links 
+ok 258 - links 
+  ---
+  duration_ms: 9.442417
+  type: 'test'
+  ...
+# Subtest: links -L
+ok 259 - links -L
+  ---
+  duration_ms: 12.226667
+  type: 'test'
+  ...
+# Subtest: links -L --max-depth 1
+ok 260 - links -L --max-depth 1
+  ---
+  duration_ms: 9.724625
+  type: 'test'
+  ...
+# Subtest: links -L -g *.txt
+ok 261 - links -L -g *.txt
+  ---
+  duration_ms: 9.80625
+  type: 'test'
+  ...
+# Subtest: precedence -c -l
+ok 262 - precedence -c -l
+  ---
+  duration_ms: 6.738041
+  type: 'test'
+  ...
+# Subtest: precedence -l -c
+ok 263 - precedence -l -c
+  ---
+  duration_ms: 7.919667
+  type: 'test'
+  ...
+# Subtest: precedence -v --count-matches
+ok 264 - precedence -v --count-matches
+  ---
+  duration_ms: 7.663958
+  type: 'test'
+  ...
+# Subtest: precedence -o --count-matches
+ok 265 - precedence -o --count-matches
+  ---
+  duration_ms: 7.921834
+  type: 'test'
+  ...
+# Subtest: precedence --column -N
+ok 266 - precedence --column -N
+  ---
+  duration_ms: 9.151
+  type: 'test'
+  ...
+# Subtest: precedence -N --column
+ok 267 - precedence -N --column
+  ---
+  duration_ms: 8.710792
+  type: 'test'
+  ...
+# Subtest: precedence -w -x
+ok 268 - precedence -w -x
+  ---
+  duration_ms: 7.922584
+  type: 'test'
+  ...
+# Subtest: precedence -x -w
+ok 269 - precedence -x -w
+  ---
+  duration_ms: 8.334834
+  type: 'test'
+  ...
+# Subtest: precedence --json -q
+ok 270 - precedence --json -q
+  ---
+  duration_ms: 7.660375
+  type: 'test'
+  ...
+# Subtest: seeded 0 --json -m2 -C2
+ok 271 - seeded 0 --json -m2 -C2
+  ---
+  duration_ms: 8.044334
+  type: 'test'
+  ...
+# Subtest: seeded 0 --json -v -m2 -C2
+ok 272 - seeded 0 --json -v -m2 -C2
+  ---
+  duration_ms: 7.4555
+  type: 'test'
+  ...
+# Subtest: seeded 0 -nbo -C2
+ok 273 - seeded 0 -nbo -C2
+  ---
+  duration_ms: 6.36225
+  type: 'test'
+  ...
+# Subtest: seeded 0 --column -v -C2
+ok 274 - seeded 0 --column -v -C2
+  ---
+  duration_ms: 7.4705
+  type: 'test'
+  ...
+# Subtest: seeded 0 -c -o -i
+ok 275 - seeded 0 -c -o -i
+  ---
+  duration_ms: 7.486625
+  type: 'test'
+  ...
+# Subtest: seeded 0 -H --heading -C1
+ok 276 - seeded 0 -H --heading -C1
+  ---
+  duration_ms: 7.163334
+  type: 'test'
+  ...
+# Subtest: seeded 1 --json -m2 -C2
+ok 277 - seeded 1 --json -m2 -C2
+  ---
+  duration_ms: 7.571625
+  type: 'test'
+  ...
+# Subtest: seeded 1 --json -v -m2 -C2
+ok 278 - seeded 1 --json -v -m2 -C2
+  ---
+  duration_ms: 7.385333
+  type: 'test'
+  ...
+# Subtest: seeded 1 -nbo -C2
+ok 279 - seeded 1 -nbo -C2
+  ---
+  duration_ms: 7.967917
+  type: 'test'
+  ...
+# Subtest: seeded 1 --column -v -C2
+ok 280 - seeded 1 --column -v -C2
+  ---
+  duration_ms: 7.293083
+  type: 'test'
+  ...
+# Subtest: seeded 1 -c -o -i
+ok 281 - seeded 1 -c -o -i
+  ---
+  duration_ms: 7.242209
+  type: 'test'
+  ...
+# Subtest: seeded 1 -H --heading -C1
+ok 282 - seeded 1 -H --heading -C1
+  ---
+  duration_ms: 7.362584
+  type: 'test'
+  ...
+# Subtest: seeded 2 --json -m2 -C2
+ok 283 - seeded 2 --json -m2 -C2
+  ---
+  duration_ms: 7.389084
+  type: 'test'
+  ...
+# Subtest: seeded 2 --json -v -m2 -C2
+ok 284 - seeded 2 --json -v -m2 -C2
+  ---
+  duration_ms: 9.645417
+  type: 'test'
+  ...
+# Subtest: seeded 2 -nbo -C2
+ok 285 - seeded 2 -nbo -C2
+  ---
+  duration_ms: 10.480708
+  type: 'test'
+  ...
+# Subtest: seeded 2 --column -v -C2
+ok 286 - seeded 2 --column -v -C2
+  ---
+  duration_ms: 10.217958
+  type: 'test'
+  ...
+# Subtest: seeded 2 -c -o -i
+ok 287 - seeded 2 -c -o -i
+  ---
+  duration_ms: 8.621334
+  type: 'test'
+  ...
+# Subtest: seeded 2 -H --heading -C1
+ok 288 - seeded 2 -H --heading -C1
+  ---
+  duration_ms: 8.325333
+  type: 'test'
+  ...
+# Subtest: seeded 3 --json -m2 -C2
+ok 289 - seeded 3 --json -m2 -C2
+  ---
+  duration_ms: 8.383167
+  type: 'test'
+  ...
+# Subtest: seeded 3 --json -v -m2 -C2
+ok 290 - seeded 3 --json -v -m2 -C2
+  ---
+  duration_ms: 8.254291
+  type: 'test'
+  ...
+# Subtest: seeded 3 -nbo -C2
+ok 291 - seeded 3 -nbo -C2
+  ---
+  duration_ms: 8.599834
+  type: 'test'
+  ...
+# Subtest: seeded 3 --column -v -C2
+ok 292 - seeded 3 --column -v -C2
+  ---
+  duration_ms: 8.434459
+  type: 'test'
+  ...
+# Subtest: seeded 3 -c -o -i
+ok 293 - seeded 3 -c -o -i
+  ---
+  duration_ms: 7.895958
+  type: 'test'
+  ...
+# Subtest: seeded 3 -H --heading -C1
+ok 294 - seeded 3 -H --heading -C1
+  ---
+  duration_ms: 7.627084
+  type: 'test'
+  ...
+# Subtest: seeded 4 --json -m2 -C2
+ok 295 - seeded 4 --json -m2 -C2
+  ---
+  duration_ms: 7.647541
+  type: 'test'
+  ...
+# Subtest: seeded 4 --json -v -m2 -C2
+ok 296 - seeded 4 --json -v -m2 -C2
+  ---
+  duration_ms: 9.098083
+  type: 'test'
+  ...
+# Subtest: seeded 4 -nbo -C2
+ok 297 - seeded 4 -nbo -C2
+  ---
+  duration_ms: 8.465125
+  type: 'test'
+  ...
+# Subtest: seeded 4 --column -v -C2
+ok 298 - seeded 4 --column -v -C2
+  ---
+  duration_ms: 7.762583
+  type: 'test'
+  ...
+# Subtest: seeded 4 -c -o -i
+ok 299 - seeded 4 -c -o -i
+  ---
+  duration_ms: 8.024417
+  type: 'test'
+  ...
+# Subtest: seeded 4 -H --heading -C1
+ok 300 - seeded 4 -H --heading -C1
+  ---
+  duration_ms: 7.992083
+  type: 'test'
+  ...
+# Subtest: seeded 5 --json -m2 -C2
+ok 301 - seeded 5 --json -m2 -C2
+  ---
+  duration_ms: 8.604
+  type: 'test'
+  ...
+# Subtest: seeded 5 --json -v -m2 -C2
+ok 302 - seeded 5 --json -v -m2 -C2
+  ---
+  duration_ms: 8.449583
+  type: 'test'
+  ...
+# Subtest: seeded 5 -nbo -C2
+ok 303 - seeded 5 -nbo -C2
+  ---
+  duration_ms: 7.7485
+  type: 'test'
+  ...
+# Subtest: seeded 5 --column -v -C2
+ok 304 - seeded 5 --column -v -C2
+  ---
+  duration_ms: 7.671667
+  type: 'test'
+  ...
+# Subtest: seeded 5 -c -o -i
+ok 305 - seeded 5 -c -o -i
+  ---
+  duration_ms: 8.066959
+  type: 'test'
+  ...
+# Subtest: seeded 5 -H --heading -C1
+ok 306 - seeded 5 -H --heading -C1
+  ---
+  duration_ms: 8.704375
+  type: 'test'
+  ...
+# Subtest: seeded 6 --json -m2 -C2
+ok 307 - seeded 6 --json -m2 -C2
+  ---
+  duration_ms: 7.936166
+  type: 'test'
+  ...
+# Subtest: seeded 6 --json -v -m2 -C2
+ok 308 - seeded 6 --json -v -m2 -C2
+  ---
+  duration_ms: 7.668042
+  type: 'test'
+  ...
+# Subtest: seeded 6 -nbo -C2
+ok 309 - seeded 6 -nbo -C2
+  ---
+  duration_ms: 7.767917
+  type: 'test'
+  ...
+# Subtest: seeded 6 --column -v -C2
+ok 310 - seeded 6 --column -v -C2
+  ---
+  duration_ms: 8.252209
+  type: 'test'
+  ...
+# Subtest: seeded 6 -c -o -i
+ok 311 - seeded 6 -c -o -i
+  ---
+  duration_ms: 8.008167
+  type: 'test'
+  ...
+# Subtest: seeded 6 -H --heading -C1
+ok 312 - seeded 6 -H --heading -C1
+  ---
+  duration_ms: 7.873375
+  type: 'test'
+  ...
+# Subtest: seeded 7 --json -m2 -C2
+ok 313 - seeded 7 --json -m2 -C2
+  ---
+  duration_ms: 7.52075
+  type: 'test'
+  ...
+# Subtest: seeded 7 --json -v -m2 -C2
+ok 314 - seeded 7 --json -v -m2 -C2
+  ---
+  duration_ms: 8.032791
+  type: 'test'
+  ...
+# Subtest: seeded 7 -nbo -C2
+ok 315 - seeded 7 -nbo -C2
+  ---
+  duration_ms: 7.721167
+  type: 'test'
+  ...
+# Subtest: seeded 7 --column -v -C2
+ok 316 - seeded 7 --column -v -C2
+  ---
+  duration_ms: 8.2035
+  type: 'test'
+  ...
+# Subtest: seeded 7 -c -o -i
+ok 317 - seeded 7 -c -o -i
+  ---
+  duration_ms: 8.184667
+  type: 'test'
+  ...
+# Subtest: seeded 7 -H --heading -C1
+ok 318 - seeded 7 -H --heading -C1
+  ---
+  duration_ms: 8.386583
+  type: 'test'
+  ...
+# Subtest: seeded 8 --json -m2 -C2
+ok 319 - seeded 8 --json -m2 -C2
+  ---
+  duration_ms: 8.057167
+  type: 'test'
+  ...
+# Subtest: seeded 8 --json -v -m2 -C2
+ok 320 - seeded 8 --json -v -m2 -C2
+  ---
+  duration_ms: 15.095334
+  type: 'test'
+  ...
+# Subtest: seeded 8 -nbo -C2
+ok 321 - seeded 8 -nbo -C2
+  ---
+  duration_ms: 11.142666
+  type: 'test'
+  ...
+# Subtest: seeded 8 --column -v -C2
+ok 322 - seeded 8 --column -v -C2
+  ---
+  duration_ms: 8.491459
+  type: 'test'
+  ...
+# Subtest: seeded 8 -c -o -i
+ok 323 - seeded 8 -c -o -i
+  ---
+  duration_ms: 8.524125
+  type: 'test'
+  ...
+# Subtest: seeded 8 -H --heading -C1
+ok 324 - seeded 8 -H --heading -C1
+  ---
+  duration_ms: 8.03225
+  type: 'test'
+  ...
+# Subtest: seeded 9 --json -m2 -C2
+ok 325 - seeded 9 --json -m2 -C2
+  ---
+  duration_ms: 7.987916
+  type: 'test'
+  ...
+# Subtest: seeded 9 --json -v -m2 -C2
+ok 326 - seeded 9 --json -v -m2 -C2
+  ---
+  duration_ms: 8.577583
+  type: 'test'
+  ...
+# Subtest: seeded 9 -nbo -C2
+ok 327 - seeded 9 -nbo -C2
+  ---
+  duration_ms: 8.298958
+  type: 'test'
+  ...
+# Subtest: seeded 9 --column -v -C2
+ok 328 - seeded 9 --column -v -C2
+  ---
+  duration_ms: 8.351083
+  type: 'test'
+  ...
+# Subtest: seeded 9 -c -o -i
+ok 329 - seeded 9 -c -o -i
+  ---
+  duration_ms: 9.564666
+  type: 'test'
+  ...
+# Subtest: seeded 9 -H --heading -C1
+ok 330 - seeded 9 -H --heading -C1
+  ---
+  duration_ms: 8.333583
+  type: 'test'
+  ...
+# Subtest: seeded 10 --json -m2 -C2
+ok 331 - seeded 10 --json -m2 -C2
+  ---
+  duration_ms: 8.123125
+  type: 'test'
+  ...
+# Subtest: seeded 10 --json -v -m2 -C2
+ok 332 - seeded 10 --json -v -m2 -C2
+  ---
+  duration_ms: 7.918542
+  type: 'test'
+  ...
+# Subtest: seeded 10 -nbo -C2
+ok 333 - seeded 10 -nbo -C2
+  ---
+  duration_ms: 8.890917
+  type: 'test'
+  ...
+# Subtest: seeded 10 --column -v -C2
+ok 334 - seeded 10 --column -v -C2
+  ---
+  duration_ms: 8.715375
+  type: 'test'
+  ...
+# Subtest: seeded 10 -c -o -i
+ok 335 - seeded 10 -c -o -i
+  ---
+  duration_ms: 8.134709
+  type: 'test'
+  ...
+# Subtest: seeded 10 -H --heading -C1
+ok 336 - seeded 10 -H --heading -C1
+  ---
+  duration_ms: 8.143708
+  type: 'test'
+  ...
+# Subtest: seeded 11 --json -m2 -C2
+ok 337 - seeded 11 --json -m2 -C2
+  ---
+  duration_ms: 8.141166
+  type: 'test'
+  ...
+# Subtest: seeded 11 --json -v -m2 -C2
+ok 338 - seeded 11 --json -v -m2 -C2
+  ---
+  duration_ms: 7.880833
+  type: 'test'
+  ...
+# Subtest: seeded 11 -nbo -C2
+ok 339 - seeded 11 -nbo -C2
+  ---
+  duration_ms: 7.644417
+  type: 'test'
+  ...
+# Subtest: seeded 11 --column -v -C2
+ok 340 - seeded 11 --column -v -C2
+  ---
+  duration_ms: 6.691042
+  type: 'test'
+  ...
+# Subtest: seeded 11 -c -o -i
+ok 341 - seeded 11 -c -o -i
+  ---
+  duration_ms: 8.195792
+  type: 'test'
+  ...
+# Subtest: seeded 11 -H --heading -C1
+ok 342 - seeded 11 -H --heading -C1
+  ---
+  duration_ms: 7.480375
+  type: 'test'
+  ...
+# Subtest: binary  12 foo
+ok 343 - binary  12 foo
+  ---
+  duration_ms: 7.482541
+  type: 'test'
+  ...
+# Subtest: binary  11 no\\n
+ok 344 - binary  11 no\\n
+  ---
+  duration_ms: 7.207375
+  type: 'test'
+  ...
+# Subtest: binary  7 no 
+ok 345 - binary  7 no 
+  ---
+  duration_ms: 7.254375
+  type: 'test'
+  ...
+# Subtest: binary  7 no 
+ok 346 - binary  7 no 
+  ---
+  duration_ms: 7.064208
+  type: 'test'
+  ...
+# Subtest: binary  70009 foo
+ok 347 - binary  70009 foo
+  ---
+  duration_ms: 7.567375
+  type: 'test'
+  ...
+# Subtest: binary -a 12 foo
+ok 348 - binary -a 12 foo
+  ---
+  duration_ms: 7.645666
+  type: 'test'
+  ...
+# Subtest: binary -a 11 no\\n
+ok 349 - binary -a 11 no\\n
+  ---
+  duration_ms: 7.282583
+  type: 'test'
+  ...
+# Subtest: binary -a 7 no 
+ok 350 - binary -a 7 no 
+  ---
+  duration_ms: 7.135292
+  type: 'test'
+  ...
+# Subtest: binary -a 7 no 
+ok 351 - binary -a 7 no 
+  ---
+  duration_ms: 7.376125
+  type: 'test'
+  ...
+# Subtest: binary -a 70009 foo
+ok 352 - binary -a 70009 foo
+  ---
+  duration_ms: 7.414291
+  type: 'test'
+  ...
+# Subtest: binary --binary 12 foo
+ok 353 - binary --binary 12 foo
+  ---
+  duration_ms: 7.30225
+  type: 'test'
+  ...
+# Subtest: binary --binary 11 no\\n
+ok 354 - binary --binary 11 no\\n
+  ---
+  duration_ms: 7.006542
+  type: 'test'
+  ...
+# Subtest: binary --binary 7 no 
+ok 355 - binary --binary 7 no 
+  ---
+  duration_ms: 7.450083
+  type: 'test'
+  ...
+# Subtest: binary --binary 7 no 
+ok 356 - binary --binary 7 no 
+  ---
+  duration_ms: 7.767292
+  type: 'test'
+  ...
+# Subtest: binary --binary 70009 foo
+ok 357 - binary --binary 70009 foo
+  ---
+  duration_ms: 6.624125
+  type: 'test'
+  ...
+# Subtest: binary --json 12 foo
+ok 358 - binary --json 12 foo
+  ---
+  duration_ms: 8.357625
+  type: 'test'
+  ...
+# Subtest: binary --json 11 no\\n
+ok 359 - binary --json 11 no\\n
+  ---
+  duration_ms: 8.570291
+  type: 'test'
+  ...
+# Subtest: binary --json 7 no 
+ok 360 - binary --json 7 no 
+  ---
+  duration_ms: 7.593083
+  type: 'test'
+  ...
+# Subtest: binary --json 7 no 
+ok 361 - binary --json 7 no 
+  ---
+  duration_ms: 7.705541
+  type: 'test'
+  ...
+# Subtest: binary --json 70009 foo
+ok 362 - binary --json 70009 foo
+  ---
+  duration_ms: 7.545083
+  type: 'test'
+  ...
+# Subtest: binary -c 12 foo
+ok 363 - binary -c 12 foo
+  ---
+  duration_ms: 9.155791
+  type: 'test'
+  ...
+# Subtest: binary -c 11 no\\n
+ok 364 - binary -c 11 no\\n
+  ---
+  duration_ms: 8.776833
+  type: 'test'
+  ...
+# Subtest: binary -c 7 no 
+ok 365 - binary -c 7 no 
+  ---
+  duration_ms: 7.6685
+  type: 'test'
+  ...
+# Subtest: binary -c 7 no 
+ok 366 - binary -c 7 no 
+  ---
+  duration_ms: 7.778167
+  type: 'test'
+  ...
+# Subtest: binary -c 70009 foo
+ok 367 - binary -c 70009 foo
+  ---
+  duration_ms: 7.313084
+  type: 'test'
+  ...
+# Subtest: binary --count-matches 12 foo
+ok 368 - binary --count-matches 12 foo
+  ---
+  duration_ms: 7.253375
+  type: 'test'
+  ...
+# Subtest: binary --count-matches 11 no\\n
+ok 369 - binary --count-matches 11 no\\n
+  ---
+  duration_ms: 7.48975
+  type: 'test'
+  ...
+# Subtest: binary --count-matches 7 no 
+ok 370 - binary --count-matches 7 no 
+  ---
+  duration_ms: 7.385792
+  type: 'test'
+  ...
+# Subtest: binary --count-matches 7 no 
+ok 371 - binary --count-matches 7 no 
+  ---
+  duration_ms: 6.668208
+  type: 'test'
+  ...
+# Subtest: binary --count-matches 70009 foo
+ok 372 - binary --count-matches 70009 foo
+  ---
+  duration_ms: 7.3115
+  type: 'test'
+  ...
+# Subtest: binary -l 12 foo
+ok 373 - binary -l 12 foo
+  ---
+  duration_ms: 7.404375
+  type: 'test'
+  ...
+# Subtest: binary -l 11 no\\n
+ok 374 - binary -l 11 no\\n
+  ---
+  duration_ms: 7.442333
+  type: 'test'
+  ...
+# Subtest: binary -l 7 no 
+ok 375 - binary -l 7 no 
+  ---
+  duration_ms: 7.59225
+  type: 'test'
+  ...
+# Subtest: binary -l 7 no 
+ok 376 - binary -l 7 no 
+  ---
+  duration_ms: 7.630916
+  type: 'test'
+  ...
+# Subtest: binary -l 70009 foo
+ok 377 - binary -l 70009 foo
+  ---
+  duration_ms: 7.602333
+  type: 'test'
+  ...
+# Subtest: binary --files-without-match 12 foo
+ok 378 - binary --files-without-match 12 foo
+  ---
+  duration_ms: 7.46225
+  type: 'test'
+  ...
+# Subtest: binary --files-without-match 11 no\\n
+ok 379 - binary --files-without-match 11 no\\n
+  ---
+  duration_ms: 7.746458
+  type: 'test'
+  ...
+# Subtest: binary --files-without-match 7 no 
+ok 380 - binary --files-without-match 7 no 
+  ---
+  duration_ms: 8.798833
+  type: 'test'
+  ...
+# Subtest: binary --files-without-match 7 no 
+ok 381 - binary --files-without-match 7 no 
+  ---
+  duration_ms: 7.665417
+  type: 'test'
+  ...
+# Subtest: binary --files-without-match 70009 foo
+ok 382 - binary --files-without-match 70009 foo
+  ---
+  duration_ms: 7.628791
+  type: 'test'
+  ...
+# Subtest: binary -q 12 foo
+ok 383 - binary -q 12 foo
+  ---
+  duration_ms: 7.79725
+  type: 'test'
+  ...
+# Subtest: binary -q 11 no\\n
+ok 384 - binary -q 11 no\\n
+  ---
+  duration_ms: 7.619375
+  type: 'test'
+  ...
+# Subtest: binary -q 7 no 
+ok 385 - binary -q 7 no 
+  ---
+  duration_ms: 7.622542
+  type: 'test'
+  ...
+# Subtest: binary -q 7 no 
+ok 386 - binary -q 7 no 
+  ---
+  duration_ms: 7.832
+  type: 'test'
+  ...
+# Subtest: binary -q 70009 foo
+ok 387 - binary -q 70009 foo
+  ---
+  duration_ms: 7.881667
+  type: 'test'
+  ...
+# Subtest: binary --json -q 12 foo
+ok 388 - binary --json -q 12 foo
+  ---
+  duration_ms: 7.499625
+  type: 'test'
+  ...
+# Subtest: binary --json -q 11 no\\n
+ok 389 - binary --json -q 11 no\\n
+  ---
+  duration_ms: 8.095917
+  type: 'test'
+  ...
+# Subtest: binary --json -q 7 no 
+ok 390 - binary --json -q 7 no 
+  ---
+  duration_ms: 9.826167
+  type: 'test'
+  ...
+# Subtest: binary --json -q 7 no 
+ok 391 - binary --json -q 7 no 
+  ---
+  duration_ms: 7.503334
+  type: 'test'
+  ...
+# Subtest: binary --json -q 70009 foo
+ok 392 - binary --json -q 70009 foo
+  ---
+  duration_ms: 8.296625
+  type: 'test'
+  ...
+# Subtest: chunks 1 -nbo
+ok 393 - chunks 1 -nbo
+  ---
+  duration_ms: 7.695125
+  type: 'test'
+  ...
+# Subtest: chunks 1 --json -C1
+ok 394 - chunks 1 --json -C1
+  ---
+  duration_ms: 8.62875
+  type: 'test'
+  ...
+# Subtest: chunks 1 --null-data -nbo
+ok 395 - chunks 1 --null-data -nbo
+  ---
+  duration_ms: 7.223709
+  type: 'test'
+  ...
+# Subtest: chunks 1 --crlf --json
+ok 396 - chunks 1 --crlf --json
+  ---
+  duration_ms: 7.079791
+  type: 'test'
+  ...
+# Subtest: chunks 2 -nbo
+ok 397 - chunks 2 -nbo
+  ---
+  duration_ms: 6.815625
+  type: 'test'
+  ...
+# Subtest: chunks 2 --json -C1
+ok 398 - chunks 2 --json -C1
+  ---
+  duration_ms: 7.670833
+  type: 'test'
+  ...
+# Subtest: chunks 2 --null-data -nbo
+ok 399 - chunks 2 --null-data -nbo
+  ---
+  duration_ms: 7.767125
+  type: 'test'
+  ...
+# Subtest: chunks 2 --crlf --json
+ok 400 - chunks 2 --crlf --json
+  ---
+  duration_ms: 7.767166
+  type: 'test'
+  ...
+# Subtest: chunks 7 -nbo
+ok 401 - chunks 7 -nbo
+  ---
+  duration_ms: 6.764
+  type: 'test'
+  ...
+# Subtest: chunks 7 --json -C1
+ok 402 - chunks 7 --json -C1
+  ---
+  duration_ms: 7.512708
+  type: 'test'
+  ...
+# Subtest: chunks 7 --null-data -nbo
+ok 403 - chunks 7 --null-data -nbo
+  ---
+  duration_ms: 7.944834
+  type: 'test'
+  ...
+# Subtest: chunks 7 --crlf --json
+ok 404 - chunks 7 --crlf --json
+  ---
+  duration_ms: 7.565208
+  type: 'test'
+  ...
+# Subtest: extra precedence --column --no-column
+ok 405 - extra precedence --column --no-column
+  ---
+  duration_ms: 7.556583
+  type: 'test'
+  ...
+# Subtest: extra precedence --crlf --null-data -o
+ok 406 - extra precedence --crlf --null-data -o
+  ---
+  duration_ms: 7.337208
+  type: 'test'
+  ...
+# Subtest: extra precedence -A1 -C2
+ok 407 - extra precedence -A1 -C2
+  ---
+  duration_ms: 7.415125
+  type: 'test'
+  ...
+# Subtest: extra precedence -C2 -A1
+ok 408 - extra precedence -C2 -A1
+  ---
+  duration_ms: 7.6055
+  type: 'test'
+  ...
+# Subtest: extra precedence -B1 -C2
+ok 409 - extra precedence -B1 -C2
+  ---
+  duration_ms: 6.837667
+  type: 'test'
+  ...
+# Subtest: extra precedence --heading -n -C1
+ok 410 - extra precedence --heading -n -C1
+  ---
+  duration_ms: 7.437583
+  type: 'test'
+  ...
+# Subtest: extra precedence --null -n -C1
+ok 411 - extra precedence --null -n -C1
+  ---
+  duration_ms: 7.753958
+  type: 'test'
+  ...
+# Subtest: extra precedence --json -q -m1
+ok 412 - extra precedence --json -q -m1
+  ---
+  duration_ms: 7.528625
+  type: 'test'
+  ...
+# Subtest: status  missing good
+ok 413 - status  missing good
+  ---
+  duration_ms: 7.737542
+  type: 'test'
+  ...
+# Subtest: status  good missing
+ok 414 - status  good missing
+  ---
+  duration_ms: 8.715542
+  type: 'test'
+  ...
+# Subtest: status -q missing good
+ok 415 - status -q missing good
+  ---
+  duration_ms: 8.451833
+  type: 'test'
+  ...
+# Subtest: status -q good missing
+ok 416 - status -q good missing
+  ---
+  duration_ms: 7.114375
+  type: 'test'
+  ...
+# Subtest: status -l missing good
+ok 417 - status -l missing good
+  ---
+  duration_ms: 8.006834
+  type: 'test'
+  ...
+# Subtest: status -l good missing
+ok 418 - status -l good missing
+  ---
+  duration_ms: 7.606
+  type: 'test'
+  ...
+# Subtest: status -c missing good
+ok 419 - status -c missing good
+  ---
+  duration_ms: 8.438
+  type: 'test'
+  ...
+# Subtest: status -c good missing
+ok 420 - status -c good missing
+  ---
+  duration_ms: 7.480083
+  type: 'test'
+  ...
+# Subtest: status --files-without-match missing good
+ok 421 - status --files-without-match missing good
+  ---
+  duration_ms: 7.305667
+  type: 'test'
+  ...
+# Subtest: status --files-without-match good missing
+ok 422 - status --files-without-match good missing
+  ---
+  duration_ms: 7.601459
+  type: 'test'
+  ...
+# Subtest: status --json missing good
+ok 423 - status --json missing good
+  ---
+  duration_ms: 7.403625
+  type: 'test'
+  ...
+# Subtest: status --json good missing
+ok 424 - status --json good missing
+  ---
+  duration_ms: 8.26075
+  type: 'test'
+  ...
+# Subtest: status --json -q missing good
+ok 425 - status --json -q missing good
+  ---
+  duration_ms: 7.901625
+  type: 'test'
+  ...
+# Subtest: status --json -q good missing
+ok 426 - status --json -q good missing
+  ---
+  duration_ms: 7.597084
+  type: 'test'
+  ...
+# Subtest: loop continuation 
+ok 427 - loop continuation 
+  ---
+  duration_ms: 9.629917
+  type: 'test'
+  ...
+# Subtest: loop continuation -q
+ok 428 - loop continuation -q
+  ---
+  duration_ms: 9.016458
+  type: 'test'
+  ...
+# Subtest: loop continuation --files
+ok 429 - loop continuation --files
+  ---
+  duration_ms: 7.818917
+  type: 'test'
+  ...
+# Subtest: loop continuation -g !loop
+ok 430 - loop continuation -g !loop
+  ---
+  duration_ms: 8.818667
+  type: 'test'
+  ...
+# Subtest: loop continuation --max-depth 1
+ok 431 - loop continuation --max-depth 1
+  ---
+  duration_ms: 8.516541
+  type: 'test'
+  ...
+# Subtest: ignore precedence 
+ok 432 - ignore precedence 
+  ---
+  duration_ms: 12.694417
+  type: 'test'
+  ...
+# Subtest: ignore precedence --hidden
+ok 433 - ignore precedence --hidden
+  ---
+  duration_ms: 11.677709
+  type: 'test'
+  ...
+# Subtest: ignore precedence --no-ignore-dot
+ok 434 - ignore precedence --no-ignore-dot
+  ---
+  duration_ms: 10.026416
+  type: 'test'
+  ...
+# Subtest: ignore precedence --no-ignore-vcs
+ok 435 - ignore precedence --no-ignore-vcs
+  ---
+  duration_ms: 11.162833
+  type: 'test'
+  ...
+# Subtest: ignore precedence -g *.txt
+ok 436 - ignore precedence -g *.txt
+  ---
+  duration_ms: 11.361875
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\ny\\n" 
+ok 437 - limited context ending "foo\\nx\\ny\\n" 
+  ---
+  duration_ms: 7.544459
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\ny\\n" -v
+ok 438 - limited context ending "foo\\nx\\ny\\n" -v
+  ---
+  duration_ms: 7.169083
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\ny" 
+ok 439 - limited context ending "foo\\nx\\ny" 
+  ---
+  duration_ms: 7.1425
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\ny" -v
+ok 440 - limited context ending "foo\\nx\\ny" -v
+  ---
+  duration_ms: 7.474916
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\n" 
+ok 441 - limited context ending "foo\\nx\\n" 
+  ---
+  duration_ms: 7.316959
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\n" -v
+ok 442 - limited context ending "foo\\nx\\n" -v
+  ---
+  duration_ms: 7.056542
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\nfoo\\n" 
+ok 443 - limited context ending "foo\\nx\\nfoo\\n" 
+  ---
+  duration_ms: 7.199333
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\nfoo\\n" -v
+ok 444 - limited context ending "foo\\nx\\nfoo\\n" -v
+  ---
+  duration_ms: 7.141334
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\nfoo" 
+ok 445 - limited context ending "foo\\nx\\nfoo" 
+  ---
+  duration_ms: 7.143125
+  type: 'test'
+  ...
+# Subtest: limited context ending "foo\\nx\\nfoo" -v
+ok 446 - limited context ending "foo\\nx\\nfoo" -v
+  ---
+  duration_ms: 7.1265
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 . 255,102,111,111,10
+ok 447 - invalid UTF8 . 255,102,111,111,10
+  ---
+  duration_ms: 7.008333
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 . 102,111,111,255,10
+ok 448 - invalid UTF8 . 102,111,111,255,10
+  ---
+  duration_ms: 7.375583
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 . 195,102,111,111,10
+ok 449 - invalid UTF8 . 195,102,111,111,10
+  ---
+  duration_ms: 7.679958
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 . 239,191,189,102,111,111,10
+ok 450 - invalid UTF8 . 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.183958
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 . 226,130,102,111,111,255,10
+ok 451 - invalid UTF8 . 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.243875
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 . 255,255,10
+ok 452 - invalid UTF8 . 255,255,10
+  ---
+  duration_ms: 7.231333
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 � 255,102,111,111,10
+ok 453 - invalid UTF8 � 255,102,111,111,10
+  ---
+  duration_ms: 7.007625
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 � 102,111,111,255,10
+ok 454 - invalid UTF8 � 102,111,111,255,10
+  ---
+  duration_ms: 7.065458
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 � 195,102,111,111,10
+ok 455 - invalid UTF8 � 195,102,111,111,10
+  ---
+  duration_ms: 7.037833
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 � 239,191,189,102,111,111,10
+ok 456 - invalid UTF8 � 239,191,189,102,111,111,10
+  ---
+  duration_ms: 6.773584
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 � 226,130,102,111,111,255,10
+ok 457 - invalid UTF8 � 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.095292
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 � 255,255,10
+ok 458 - invalid UTF8 � 255,255,10
+  ---
+  duration_ms: 7.002
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 .*foo 255,102,111,111,10
+ok 459 - invalid UTF8 .*foo 255,102,111,111,10
+  ---
+  duration_ms: 6.982125
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 .*foo 102,111,111,255,10
+ok 460 - invalid UTF8 .*foo 102,111,111,255,10
+  ---
+  duration_ms: 7.260416
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 .*foo 195,102,111,111,10
+ok 461 - invalid UTF8 .*foo 195,102,111,111,10
+  ---
+  duration_ms: 7.471542
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 .*foo 239,191,189,102,111,111,10
+ok 462 - invalid UTF8 .*foo 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.184875
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 .*foo 226,130,102,111,111,255,10
+ok 463 - invalid UTF8 .*foo 226,130,102,111,111,255,10
+  ---
+  duration_ms: 8.579833
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 .*foo 255,255,10
+ok 464 - invalid UTF8 .*foo 255,255,10
+  ---
+  duration_ms: 7.354042
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo.* 255,102,111,111,10
+ok 465 - invalid UTF8 foo.* 255,102,111,111,10
+  ---
+  duration_ms: 7.340167
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo.* 102,111,111,255,10
+ok 466 - invalid UTF8 foo.* 102,111,111,255,10
+  ---
+  duration_ms: 7.823916
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo.* 195,102,111,111,10
+ok 467 - invalid UTF8 foo.* 195,102,111,111,10
+  ---
+  duration_ms: 7.154833
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo.* 239,191,189,102,111,111,10
+ok 468 - invalid UTF8 foo.* 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.783333
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo.* 226,130,102,111,111,255,10
+ok 469 - invalid UTF8 foo.* 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.344917
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo.* 255,255,10
+ok 470 - invalid UTF8 foo.* 255,255,10
+  ---
+  duration_ms: 7.238917
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 ^foo 255,102,111,111,10
+ok 471 - invalid UTF8 ^foo 255,102,111,111,10
+  ---
+  duration_ms: 8.057292
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 ^foo 102,111,111,255,10
+ok 472 - invalid UTF8 ^foo 102,111,111,255,10
+  ---
+  duration_ms: 7.472542
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 ^foo 195,102,111,111,10
+ok 473 - invalid UTF8 ^foo 195,102,111,111,10
+  ---
+  duration_ms: 7.850333
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 ^foo 239,191,189,102,111,111,10
+ok 474 - invalid UTF8 ^foo 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.76375
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 ^foo 226,130,102,111,111,255,10
+ok 475 - invalid UTF8 ^foo 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.523458
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 ^foo 255,255,10
+ok 476 - invalid UTF8 ^foo 255,255,10
+  ---
+  duration_ms: 7.378167
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo$ 255,102,111,111,10
+ok 477 - invalid UTF8 foo$ 255,102,111,111,10
+  ---
+  duration_ms: 7.340042
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo$ 102,111,111,255,10
+ok 478 - invalid UTF8 foo$ 102,111,111,255,10
+  ---
+  duration_ms: 7.070792
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo$ 195,102,111,111,10
+ok 479 - invalid UTF8 foo$ 195,102,111,111,10
+  ---
+  duration_ms: 7.203333
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo$ 239,191,189,102,111,111,10
+ok 480 - invalid UTF8 foo$ 239,191,189,102,111,111,10
+  ---
+  duration_ms: 6.836292
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo$ 226,130,102,111,111,255,10
+ok 481 - invalid UTF8 foo$ 226,130,102,111,111,255,10
+  ---
+  duration_ms: 6.844084
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo$ 255,255,10
+ok 482 - invalid UTF8 foo$ 255,255,10
+  ---
+  duration_ms: 7.0195
+  type: 'test'
+  ...
+# Subtest: invalid UTF8  255,102,111,111,10
+ok 483 - invalid UTF8  255,102,111,111,10
+  ---
+  duration_ms: 6.88325
+  type: 'test'
+  ...
+# Subtest: invalid UTF8  102,111,111,255,10
+ok 484 - invalid UTF8  102,111,111,255,10
+  ---
+  duration_ms: 7.279791
+  type: 'test'
+  ...
+# Subtest: invalid UTF8  195,102,111,111,10
+ok 485 - invalid UTF8  195,102,111,111,10
+  ---
+  duration_ms: 6.880167
+  type: 'test'
+  ...
+# Subtest: invalid UTF8  239,191,189,102,111,111,10
+ok 486 - invalid UTF8  239,191,189,102,111,111,10
+  ---
+  duration_ms: 6.786375
+  type: 'test'
+  ...
+# Subtest: invalid UTF8  226,130,102,111,111,255,10
+ok 487 - invalid UTF8  226,130,102,111,111,255,10
+  ---
+  duration_ms: 8.632042
+  type: 'test'
+  ...
+# Subtest: invalid UTF8  255,255,10
+ok 488 - invalid UTF8  255,255,10
+  ---
+  duration_ms: 6.569083
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [^x] 255,102,111,111,10
+ok 489 - invalid UTF8 [^x] 255,102,111,111,10
+  ---
+  duration_ms: 6.950708
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [^x] 102,111,111,255,10
+ok 490 - invalid UTF8 [^x] 102,111,111,255,10
+  ---
+  duration_ms: 6.81975
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [^x] 195,102,111,111,10
+ok 491 - invalid UTF8 [^x] 195,102,111,111,10
+  ---
+  duration_ms: 6.905084
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [^x] 239,191,189,102,111,111,10
+ok 492 - invalid UTF8 [^x] 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.057459
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [^x] 226,130,102,111,111,255,10
+ok 493 - invalid UTF8 [^x] 226,130,102,111,111,255,10
+  ---
+  duration_ms: 6.782958
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [^x] 255,255,10
+ok 494 - invalid UTF8 [^x] 255,255,10
+  ---
+  duration_ms: 6.889625
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\s 255,102,111,111,10
+ok 495 - invalid UTF8 \\s 255,102,111,111,10
+  ---
+  duration_ms: 7.420542
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\s 102,111,111,255,10
+ok 496 - invalid UTF8 \\s 102,111,111,255,10
+  ---
+  duration_ms: 7.168833
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\s 195,102,111,111,10
+ok 497 - invalid UTF8 \\s 195,102,111,111,10
+  ---
+  duration_ms: 7.267125
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\s 239,191,189,102,111,111,10
+ok 498 - invalid UTF8 \\s 239,191,189,102,111,111,10
+  ---
+  duration_ms: 8.351375
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\s 226,130,102,111,111,255,10
+ok 499 - invalid UTF8 \\s 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.652417
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\s 255,255,10
+ok 500 - invalid UTF8 \\s 255,255,10
+  ---
+  duration_ms: 7.064834
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo|^foo 255,102,111,111,10
+ok 501 - invalid UTF8 foo|^foo 255,102,111,111,10
+  ---
+  duration_ms: 7.45425
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo|^foo 102,111,111,255,10
+ok 502 - invalid UTF8 foo|^foo 102,111,111,255,10
+  ---
+  duration_ms: 7.535459
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo|^foo 195,102,111,111,10
+ok 503 - invalid UTF8 foo|^foo 195,102,111,111,10
+  ---
+  duration_ms: 7.60475
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo|^foo 239,191,189,102,111,111,10
+ok 504 - invalid UTF8 foo|^foo 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.090708
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo|^foo 226,130,102,111,111,255,10
+ok 505 - invalid UTF8 foo|^foo 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.394167
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 foo|^foo 255,255,10
+ok 506 - invalid UTF8 foo|^foo 255,255,10
+  ---
+  duration_ms: 7.402584
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\$|foo 255,102,111,111,10
+ok 507 - invalid UTF8 \\$|foo 255,102,111,111,10
+  ---
+  duration_ms: 7.442542
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\$|foo 102,111,111,255,10
+ok 508 - invalid UTF8 \\$|foo 102,111,111,255,10
+  ---
+  duration_ms: 6.922583
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\$|foo 195,102,111,111,10
+ok 509 - invalid UTF8 \\$|foo 195,102,111,111,10
+  ---
+  duration_ms: 7.137291
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\$|foo 239,191,189,102,111,111,10
+ok 510 - invalid UTF8 \\$|foo 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.23175
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\$|foo 226,130,102,111,111,255,10
+ok 511 - invalid UTF8 \\$|foo 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.183958
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 \\$|foo 255,255,10
+ok 512 - invalid UTF8 \\$|foo 255,255,10
+  ---
+  duration_ms: 7.052041
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [\\^$]|foo 255,102,111,111,10
+ok 513 - invalid UTF8 [\\^$]|foo 255,102,111,111,10
+  ---
+  duration_ms: 7.263042
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [\\^$]|foo 102,111,111,255,10
+ok 514 - invalid UTF8 [\\^$]|foo 102,111,111,255,10
+  ---
+  duration_ms: 7.0285
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [\\^$]|foo 195,102,111,111,10
+ok 515 - invalid UTF8 [\\^$]|foo 195,102,111,111,10
+  ---
+  duration_ms: 7.069584
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [\\^$]|foo 239,191,189,102,111,111,10
+ok 516 - invalid UTF8 [\\^$]|foo 239,191,189,102,111,111,10
+  ---
+  duration_ms: 7.753875
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [\\^$]|foo 226,130,102,111,111,255,10
+ok 517 - invalid UTF8 [\\^$]|foo 226,130,102,111,111,255,10
+  ---
+  duration_ms: 7.234625
+  type: 'test'
+  ...
+# Subtest: invalid UTF8 [\\^$]|foo 255,255,10
+ok 518 - invalid UTF8 [\\^$]|foo 255,255,10
+  ---
+  duration_ms: 7.653375
+  type: 'test'
+  ...
+# Subtest: empty byte matches "🙂é" -nbo
+ok 519 - empty byte matches "🙂é" -nbo
+  ---
+  duration_ms: 7.222292
+  type: 'test'
+  ...
+# Subtest: empty byte matches "🙂é" --json
+ok 520 - empty byte matches "🙂é" --json
+  ---
+  duration_ms: 7.166583
+  type: 'test'
+  ...
+# Subtest: empty byte matches "🙂é" --count-matches
+ok 521 - empty byte matches "🙂é" --count-matches
+  ---
+  duration_ms: 7.229792
+  type: 'test'
+  ...
+# Subtest: empty byte matches "🙂é\\n" -nbo
+ok 522 - empty byte matches "🙂é\\n" -nbo
+  ---
+  duration_ms: 6.850458
+  type: 'test'
+  ...
+# Subtest: empty byte matches "🙂é\\n" --json
+ok 523 - empty byte matches "🙂é\\n" --json
+  ---
+  duration_ms: 7.08775
+  type: 'test'
+  ...
+# Subtest: empty byte matches "🙂é\\n" --count-matches
+ok 524 - empty byte matches "🙂é\\n" --count-matches
+  ---
+  duration_ms: 7.22775
+  type: 'test'
+  ...
+# Subtest: empty byte matches "foo" -nbo
+ok 525 - empty byte matches "foo" -nbo
+  ---
+  duration_ms: 7.087667
+  type: 'test'
+  ...
+# Subtest: empty byte matches "foo" --json
+ok 526 - empty byte matches "foo" --json
+  ---
+  duration_ms: 7.069709
+  type: 'test'
+  ...
+# Subtest: empty byte matches "foo" --count-matches
+ok 527 - empty byte matches "foo" --count-matches
+  ---
+  duration_ms: 7.008791
+  type: 'test'
+  ...
+# Subtest: empty byte matches "foo\\n" -nbo
+ok 528 - empty byte matches "foo\\n" -nbo
+  ---
+  duration_ms: 7.354208
+  type: 'test'
+  ...
+# Subtest: empty byte matches "foo\\n" --json
+ok 529 - empty byte matches "foo\\n" --json
+  ---
+  duration_ms: 7.105625
+  type: 'test'
+  ...
+# Subtest: empty byte matches "foo\\n" --count-matches
+ok 530 - empty byte matches "foo\\n" --count-matches
+  ---
+  duration_ms: 7.454625
+  type: 'test'
+  ...
+# Subtest: pipeline rg -n TODO src | cut -d: -f1 | sort -u | tee report
+ok 531 - pipeline rg -n TODO src | cut -d: -f1 | sort -u | tee report
+  ---
+  duration_ms: 22.478583
+  type: 'test'
+  ...
+# Subtest: pipeline rg -l0 TODO src | xargs -0 cat | rg -n TODO
+ok 532 - pipeline rg -l0 TODO src | xargs -0 cat | rg -n TODO
+  ---
+  duration_ms: 24.877459
+  type: 'test'
+  ...
+# Subtest: pipeline rg --files -g '*.ts' src | sort | rg 'space|a.ts'
+ok 533 - pipeline rg --files -g '*.ts' src | sort | rg 'space|a.ts'
+  ---
+  duration_ms: 20.21175
+  type: 'test'
+  ...
+# Subtest: pipeline cat input | rg -nbo foo | cut -d: -f1 | sort -u
+ok 534 - pipeline cat input | rg -nbo foo | cut -d: -f1 | sort -u
+  ---
+  duration_ms: 18.781459
+  type: 'test'
+  ...
+# Subtest: pipeline rg -q MISSING src || printf 'clean\\n'
+ok 535 - pipeline rg -q MISSING src || printf 'clean\\n'
+  ---
+  duration_ms: 17.441208
+  type: 'test'
+  ...
+# Subtest: pipeline rg -c TODO src | sort
+ok 536 - pipeline rg -c TODO src | sort
+  ---
+  duration_ms: 18.22625
+  type: 'test'
+  ...
+# Subtest: pipeline rg --json TODO src | rg -c '"type":"match"'
+ok 537 - pipeline rg --json TODO src | rg -c '"type":"match"'
+  ---
+  duration_ms: 17.150125
+  type: 'test'
+  ...
+# Subtest: pipeline printf 'foo\\nother\\nfoo\\n' | rg -m1 -A2 -n foo
+ok 538 - pipeline printf 'foo\\nother\\nfoo\\n' | rg -m1 -A2 -n foo
+  ---
+  duration_ms: 15.905166
+  type: 'test'
+  ...
+# Subtest: pipeline printf '' | rg foo -; printf '%s\\n' $?
+ok 539 - pipeline printf '' | rg foo -; printf '%s\\n' $?
+  ---
+  duration_ms: 15.813875
+  type: 'test'
+  ...
+# Subtest: pipeline printf 'foo\\n' | rg foo | rg -q foo && printf 'found\\n'
+ok 540 - pipeline printf 'foo\\n' | rg foo | rg -q foo && printf 'found\\n'
+  ---
+  duration_ms: 17.303917
+  type: 'test'
+  ...
+# Subtest: review directory negation does not rescue excluded children
+ok 541 - review directory negation does not rescue excluded children
+  ---
+  duration_ms: 13.142667
+  type: 'test'
+  ...
+# Subtest: review unclosed ignore bracket remains literal and retains later rules
+ok 542 - review unclosed ignore bracket remains literal and retains later rules
+  ---
+  duration_ms: 11.041458
+  type: 'test'
+  ...
+# Subtest: review nested repository resets parent VCS ignores
+ok 543 - review nested repository resets parent VCS ignores
+  ---
+  duration_ms: 13.193875
+  type: 'test'
+  ...
+# Subtest: review ignored followed cycle still reports native error
+ok 544 - review ignored followed cycle still reports native error
+  ---
+  duration_ms: 11.666375
+  type: 'test'
+  ...
+# Subtest: review before context stops binary no-match search
+ok 545 - review before context stops binary no-match search
+  ---
+  duration_ms: 10.426
+  type: 'test'
+  ...
+# Subtest: review fragmented before context stops binary no-match search
+ok 546 - review fragmented before context stops binary no-match search
+  ---
+  duration_ms: 9.339458
+  type: 'test'
+  ...
+# Subtest: review single-write binary warning after early match
+ok 547 - review single-write binary warning after early match
+  ---
+  duration_ms: 11.499125
+  type: 'test'
+  ...
+# Subtest: review summary JSON member order after timing-only normalization
+ok 548 - review summary JSON member order after timing-only normalization
+  ---
+  duration_ms: 11.97925
+  type: 'test'
+  ...
+# Subtest: back-to-back virtual chunks retain prior output, not a whole-write oracle
+ok 549 - back-to-back virtual chunks retain prior output, not a whole-write oracle
+  ---
+  duration_ms: 184.769875
+  type: 'test'
+  ...
+# Subtest: direct default metadata discovers cwd without acquiring stdin
+ok 550 - direct default metadata discovers cwd without acquiring stdin
+  ---
+  duration_ms: 26.487417
+  type: 'test'
+  ...
+# Subtest: direct legacy unknown metadata discovers cwd without acquiring stdin
+ok 551 - direct legacy unknown metadata discovers cwd without acquiring stdin
+  ---
+  duration_ms: 23.334916
+  type: 'test'
+  ...
+# Subtest: legacy unknown metadata does not infer provenance from nonempty bytes
+ok 552 - legacy unknown metadata does not infer provenance from nonempty bytes
+  ---
+  duration_ms: 24.971167
+  type: 'test'
+  ...
+# Subtest: direct nondefault empty string never discovers cwd
+ok 553 - direct nondefault empty string never discovers cwd
+  ---
+  duration_ms: 22.045
+  type: 'test'
+  ...
+# Subtest: direct nondefault empty bytes never discovers cwd
+ok 554 - direct nondefault empty bytes never discovers cwd
+  ---
+  duration_ms: 21.832459
+  type: 'test'
+  ...
+# Subtest: direct nondefault empty iterator never discovers cwd
+ok 555 - direct nondefault empty iterator never discovers cwd
+  ---
+  duration_ms: 23.173542
+  type: 'test'
+  ...
+# Subtest: exhausted nondefault input remains stdin
+ok 556 - exhausted nondefault input remains stdin
+  ---
+  duration_ms: 18.8925
+  type: 'test'
+  ...
+# Subtest: zero-length chunks before data are consumed once as nondefault stdin
+ok 557 - zero-length chunks before data are consumed once as nondefault stdin
+  ---
+  duration_ms: 19.602917
+  type: 'test'
+  ...
+# Subtest: cwd override ignores connected stdin without acquisition
+ok 558 - cwd override ignores connected stdin without acquisition
+  ---
+  duration_ms: 21.27075
+  type: 'test'
+  ...
+# Subtest: stdin override supersedes true metadata
+ok 559 - stdin override supersedes true metadata
+  ---
+  duration_ms: 20.223042
+  type: 'test'
+  ...
+# Subtest: stdin override supersedes undefined metadata
+ok 560 - stdin override supersedes undefined metadata
+  ---
+  duration_ms: 19.166542
+  type: 'test'
+  ...
+# Subtest: explicit file overrides connected stdin and configured input default
+ok 561 - explicit file overrides connected stdin and configured input default
+  ---
+  duration_ms: 19.898417
+  type: 'test'
+  ...
+# Subtest: explicit dash overrides default metadata and cwd configuration
+ok 562 - explicit dash overrides default metadata and cwd configuration
+  ---
+  duration_ms: 18.627375
+  type: 'test'
+  ...
+# Subtest: files mode inventories cwd without acquiring connected stdin
+ok 563 - files mode inventories cwd without acquiring connected stdin
+  ---
+  duration_ms: 0.630209
+  type: 'test'
+  ...
+# Subtest: pattern option -e retains connected-empty stdin selection
+ok 564 - pattern option -e retains connected-empty stdin selection
+  ---
+  duration_ms: 19.032083
+  type: 'test'
+  ...
+# Subtest: pattern option -f retains connected-empty stdin selection
+ok 565 - pattern option -f retains connected-empty stdin selection
+  ---
+  duration_ms: 19.263417
+  type: 'test'
+  ...
+# Subtest: pattern stdin reserves input and searches cwd with auto configuration
+ok 566 - pattern stdin reserves input and searches cwd with auto configuration
+  ---
+  duration_ms: 20.674375
+  type: 'test'
+  ...
+# Subtest: pattern stdin reserves input and searches cwd with stdin configuration
+ok 567 - pattern stdin reserves input and searches cwd with stdin configuration
+  ---
+  duration_ms: 20.481917
+  type: 'test'
+  ...
+# Subtest: pattern stdin with explicit data file preserves literal operands
+ok 568 - pattern stdin with explicit data file preserves literal operands
+  ---
+  duration_ms: 21.015666
+  type: 'test'
+  ...
+# Subtest: simultaneous pattern and data stdin is rejected before acquisition
+ok 569 - simultaneous pattern and data stdin is rejected before acquisition
+  ---
+  duration_ms: 0.256333
+  type: 'test'
+  ...
+# Subtest: files mode does not consume an unused pattern-stdin flag
+ok 570 - files mode does not consume an unused pattern-stdin flag
+  ---
+  duration_ms: 0.25675
+  type: 'test'
+  ...
+# Subtest: stdin shell ordinary default filesystem
+ok 571 - stdin shell ordinary default filesystem
+  ---
+  duration_ms: 31.174375
+  type: 'test'
+  ...
+# Subtest: stdin shell documented empty pipeline
+ok 572 - stdin shell documented empty pipeline
+  ---
+  duration_ms: 28.901375
+  type: 'test'
+  ...
+# Subtest: stdin shell documented empty redirection
+ok 573 - stdin shell documented empty redirection
+  ---
+  duration_ms: 22.277583
+  type: 'test'
+  ...
+# Subtest: stdin shell documented empty heredoc
+ok 574 - stdin shell documented empty heredoc
+  ---
+  duration_ms: 21.455708
+  type: 'test'
+  ...
+# Subtest: stdin shell nonempty pipeline
+ok 575 - stdin shell nonempty pipeline
+  ---
+  duration_ms: 26.625
+  type: 'test'
+  ...
+# Subtest: stdin shell descriptor captures empty file
+ok 576 - stdin shell descriptor captures empty file
+  ---
+  duration_ms: 21.677917
+  type: 'test'
+  ...
+# Subtest: stdin shell descriptor restores original default
+ok 577 - stdin shell descriptor restores original default
+  ---
+  duration_ms: 19.424958
+  type: 'test'
+  ...
+# Subtest: stdin shell reversed descriptor setup keeps empty input
+ok 578 - stdin shell reversed descriptor setup keeps empty input
+  ---
+  duration_ms: 20.520334
+  type: 'test'
+  ...
+# Subtest: stdin shell output-only redirection preserves default
+ok 579 - stdin shell output-only redirection preserves default
+  ---
+  duration_ms: 22.568333
+  type: 'test'
+  ...
+# Subtest: stdin shell output redirection preserves empty pipe
+ok 580 - stdin shell output redirection preserves empty pipe
+  ---
+  duration_ms: 20.830041
+  type: 'test'
+  ...
+# Subtest: stdin shell explicit file ignores connected empty stdin
+ok 581 - stdin shell explicit file ignores connected empty stdin
+  ---
+  duration_ms: 21.132375
+  type: 'test'
+  ...
+# Subtest: stdin shell explicit dash selects default empty stdin
+ok 582 - stdin shell explicit dash selects default empty stdin
+  ---
+  duration_ms: 18.535584
+  type: 'test'
+  ...
+# Subtest: stdin shell regexp flag preserves empty stdin
+ok 583 - stdin shell regexp flag preserves empty stdin
+  ---
+  duration_ms: 19.644042
+  type: 'test'
+  ...
+# Subtest: stdin shell pattern file preserves empty stdin
+ok 584 - stdin shell pattern file preserves empty stdin
+  ---
+  duration_ms: 18.562125
+  type: 'test'
+  ...
+# Subtest: stdin shell pattern stdin selects filesystem
+ok 585 - stdin shell pattern stdin selects filesystem
+  ---
+  duration_ms: 21.591584
+  type: 'test'
+  ...
+# Subtest: stdin shell files mode ignores connected empty input
+ok 586 - stdin shell files mode ignores connected empty input
+  ---
+  duration_ms: 1.143458
+  type: 'test'
+  ...
+# Subtest: stdin shell env forwards default metadata
+ok 587 - stdin shell env forwards default metadata
+  ---
+  duration_ms: 20.419208
+  type: 'test'
+  ...
+# Subtest: stdin shell nested env forwards default metadata
+ok 588 - stdin shell nested env forwards default metadata
+  ---
+  duration_ms: 20.941292
+  type: 'test'
+  ...
+# Subtest: stdin shell nested env forwards empty pipe metadata
+ok 589 - stdin shell nested env forwards empty pipe metadata
+  ---
+  duration_ms: 20.361291
+  type: 'test'
+  ...
+# Subtest: stdin shell nested env forwards nonempty pipe metadata
+ok 590 - stdin shell nested env forwards nonempty pipe metadata
+  ---
+  duration_ms: 20.004916
+  type: 'test'
+  ...
+# Subtest: stdin shell custom invoke inherits default
+ok 591 - stdin shell custom invoke inherits default
+  ---
+  duration_ms: 19.736
+  type: 'test'
+  ...
+# Subtest: stdin shell custom invoke inherits empty pipe
+ok 592 - stdin shell custom invoke inherits empty pipe
+  ---
+  duration_ms: 19.300375
+  type: 'test'
+  ...
+# Subtest: stdin shell custom invoke replacement is nondefault
+ok 593 - stdin shell custom invoke replacement is nondefault
+  ---
+  duration_ms: 19.415375
+  type: 'test'
+  ...
+# Subtest: stdin shell custom transparent invoke forwards default
+ok 594 - stdin shell custom transparent invoke forwards default
+  ---
+  duration_ms: 18.209125
+  type: 'test'
+  ...
+# Subtest: stdin shell custom transparent invoke forwards empty pipe
+ok 595 - stdin shell custom transparent invoke forwards empty pipe
+  ---
+  duration_ms: 19.321084
+  type: 'test'
+  ...
+# Subtest: stdin shell explicit replacement metadata is honored
+ok 596 - stdin shell explicit replacement metadata is honored
+  ---
+  duration_ms: 18.342167
+  type: 'test'
+  ...
+# Subtest: stdin shell metadata without replacement does not override inheritance
+ok 597 - stdin shell metadata without replacement does not override inheritance
+  ---
+  duration_ms: 18.607625
+  type: 'test'
+  ...
+# Subtest: stdin shell group retains redirected stdin
+ok 598 - stdin shell group retains redirected stdin
+  ---
+  duration_ms: 15.519458
+  type: 'test'
+  ...
+# Subtest: stdin shell function retains pipeline stdin
+ok 599 - stdin shell function retains pipeline stdin
+  ---
+  duration_ms: 14.537334
+  type: 'test'
+  ...
+# Subtest: stdin shell substitution retains redirected stdin
+ok 600 - stdin shell substitution retains redirected stdin
+  ---
+  duration_ms: 13.914291
+  type: 'test'
+  ...
+# Subtest: stdin shell explicit empty string
+ok 601 - stdin shell explicit empty string
+  ---
+  duration_ms: 13.887
+  type: 'test'
+  ...
+# Subtest: stdin shell explicit empty bytes
+ok 602 - stdin shell explicit empty bytes
+  ---
+  duration_ms: 14.5915
+  type: 'test'
+  ...
+# Subtest: stdin shell explicit empty source
+ok 603 - stdin shell explicit empty source
+  ---
+  duration_ms: 15.553833
+  type: 'test'
+  ...
+# Subtest: stdin shell exhausted source does not revert to filesystem discovery
+ok 604 - stdin shell exhausted source does not revert to filesystem discovery
+  ---
+  duration_ms: 15.605167
+  type: 'test'
+  ...
+# Subtest: stdin shell zero chunks before data retain nondefault metadata
+ok 605 - stdin shell zero chunks before data retain nondefault metadata
+  ---
+  duration_ms: 15.173666
+  type: 'test'
+  ...
+# Subtest: custom invoke forwards literal argv without shell interpolation
+ok 606 - custom invoke forwards literal argv without shell interpolation
+  ---
+  duration_ms: 14.357166
+  type: 'test'
+  ...
+# Subtest: isolated matched-delivery, whole-write and backpressure regressions
+ok 607 - isolated matched-delivery, whole-write and backpressure regressions
+  ---
+  duration_ms: 1018.883708
+  type: 'test'
+  ...
+# Subtest: grep handles fixed/basic/extended patterns, case, line numbers and counts
+ok 608 - grep handles fixed/basic/extended patterns, case, line numbers and counts
+  ---
+  duration_ms: 161.45725
+  type: 'test'
+  ...
+# Subtest: grep supports repeated/pattern-file expressions, word/whole-line and only-match selection
+ok 609 - grep supports repeated/pattern-file expressions, word/whole-line and only-match selection
+  ---
+  duration_ms: 99.533
+  type: 'test'
+  ...
+# Subtest: grep uses match/no-match/error statuses and honors filename, quiet and max-count flags
+ok 610 - grep uses match/no-match/error statuses and honors filename, quiet and max-count flags
+  ---
+  duration_ms: 159.644334
+  type: 'test'
+  ...
+# Subtest: test and bracket support strings, integers, boolean operators, filesystem predicates and syntax errors
+ok 611 - test and bracket support strings, integers, boolean operators, filesystem predicates and syntax errors
+  ---
+  duration_ms: 1.34675
+  type: 'test'
+  ...
+# Subtest: agent finds TODO locations and derives sorted source file list
+ok 612 - agent finds TODO locations and derives sorted source file list
+  ---
+  duration_ms: 39.075833
+  type: 'test'
+  ...
+# Subtest: NUL file lists feed xargs without splitting spaces
+ok 613 - NUL file lists feed xargs without splitting spaces
+  ---
+  duration_ms: 32.151375
+  type: 'test'
+  ...
+# Subtest: file inventory and missing matches drive shell conditions
+ok 614 - file inventory and missing matches drive shell conditions
+  ---
+  duration_ms: 25.302709
+  type: 'test'
+  ...
+# Subtest: negative globs preserve repository ignore rules in file inventory pipelines
+ok 615 - negative globs preserve repository ignore rules in file inventory pipelines
+  ---
+  duration_ms: 1.830583
+  type: 'test'
+  ...
+# Subtest: rg native differential: stdin line numbers
+ok 616 - rg native differential: stdin line numbers
+  ---
+  duration_ms: 42.361167
+  type: 'test'
+  ...
+# Subtest: rg native differential: piped stdin inferred
+ok 617 - rg native differential: piped stdin inferred
+  ---
+  duration_ms: 33.4245
+  type: 'test'
+  ...
+# Subtest: rg native differential: single file omits filename
+ok 618 - rg native differential: single file omits filename
+  ---
+  duration_ms: 37.630459
+  type: 'test'
+  ...
+# Subtest: rg native differential: multiple files prefix names
+ok 619 - rg native differential: multiple files prefix names
+  ---
+  duration_ms: 38.573792
+  type: 'test'
+  ...
+# Subtest: rg native differential: recursive sorted traversal
+ok 620 - rg native differential: recursive sorted traversal
+  ---
+  duration_ms: 35.596041
+  type: 'test'
+  ...
+# Subtest: rg native differential: subdirectory preserves spelling
+ok 621 - rg native differential: subdirectory preserves spelling
+  ---
+  duration_ms: 34.752916
+  type: 'test'
+  ...
+# Subtest: rg native differential: combined flags
+ok 622 - rg native differential: combined flags
+  ---
+  duration_ms: 30.672666
+  type: 'test'
+  ...
+# Subtest: rg native differential: negative line selection
+ok 623 - rg native differential: negative line selection
+  ---
+  duration_ms: 32.7985
+  type: 'test'
+  ...
+# Subtest: rg native differential: whole lines
+ok 624 - rg native differential: whole lines
+  ---
+  duration_ms: 32.408542
+  type: 'test'
+  ...
+# Subtest: rg native differential: word boundaries Unicode
+ok 625 - rg native differential: word boundaries Unicode
+  ---
+  duration_ms: 29.765375
+  type: 'test'
+  ...
+# Subtest: rg native differential: fixed metacharacters
+ok 626 - rg native differential: fixed metacharacters
+  ---
+  duration_ms: 27.278167
+  type: 'test'
+  ...
+# Subtest: rg native differential: multiple patterns
+ok 627 - rg native differential: multiple patterns
+  ---
+  duration_ms: 32.821416
+  type: 'test'
+  ...
+# Subtest: rg native differential: attached pattern options
+ok 628 - rg native differential: attached pattern options
+  ---
+  duration_ms: 31.762459
+  type: 'test'
+  ...
+# Subtest: rg native differential: pattern files
+ok 629 - rg native differential: pattern files
+  ---
+  duration_ms: 30.218167
+  type: 'test'
+  ...
+# Subtest: rg native differential: patterns from stdin
+ok 630 - rg native differential: patterns from stdin
+  ---
+  duration_ms: 30.440125
+  type: 'test'
+  ...
+# Subtest: rg native differential: empty pattern file never matches
+ok 631 - rg native differential: empty pattern file never matches
+  ---
+  duration_ms: 29.152625
+  type: 'test'
+  ...
+# Subtest: rg native differential: empty pattern file inverted
+ok 632 - rg native differential: empty pattern file inverted
+  ---
+  duration_ms: 29.089875
+  type: 'test'
+  ...
+# Subtest: rg native differential: empty pattern matches empty lines
+ok 633 - rg native differential: empty pattern matches empty lines
+  ---
+  duration_ms: 21.61975
+  type: 'test'
+  ...
+# Subtest: rg native differential: smart case lowercase
+ok 634 - rg native differential: smart case lowercase
+  ---
+  duration_ms: 20.344625
+  type: 'test'
+  ...
+# Subtest: rg native differential: smart case uppercase
+ok 635 - rg native differential: smart case uppercase
+  ---
+  duration_ms: 20.890417
+  type: 'test'
+  ...
+# Subtest: rg native differential: case flag last wins
+ok 636 - rg native differential: case flag last wins
+  ---
+  duration_ms: 21.967458
+  type: 'test'
+  ...
+# Subtest: rg native differential: only matches and columns
+ok 637 - rg native differential: only matches and columns
+  ---
+  duration_ms: 24.6485
+  type: 'test'
+  ...
+# Subtest: rg native differential: byte offsets Unicode
+ok 638 - rg native differential: byte offsets Unicode
+  ---
+  duration_ms: 20.752541
+  type: 'test'
+  ...
+# Subtest: rg native differential: inverted only matching prints selected lines
+ok 639 - rg native differential: inverted only matching prints selected lines
+  ---
+  duration_ms: 21.704625
+  type: 'test'
+  ...
+# Subtest: rg native differential: matching filename list
+ok 640 - rg native differential: matching filename list
+  ---
+  duration_ms: 22.019875
+  type: 'test'
+  ...
+# Subtest: rg native differential: nonmatching filename list
+ok 641 - rg native differential: nonmatching filename list
+  ---
+  duration_ms: 21.367916
+  type: 'test'
+  ...
+# Subtest: rg native differential: nonmatching files exit one if absent
+ok 642 - rg native differential: nonmatching files exit one if absent
+  ---
+  duration_ms: 21.789333
+  type: 'test'
+  ...
+# Subtest: rg native differential: count lines suppresses zero
+ok 643 - rg native differential: count lines suppresses zero
+  ---
+  duration_ms: 20.341167
+  type: 'test'
+  ...
+# Subtest: rg native differential: count occurrences
+ok 644 - rg native differential: count occurrences
+  ---
+  duration_ms: 20.646625
+  type: 'test'
+  ...
+# Subtest: rg native differential: count plus only matching counts occurrences
+ok 645 - rg native differential: count plus only matching counts occurrences
+  ---
+  duration_ms: 21.229125
+  type: 'test'
+  ...
+# Subtest: rg native differential: count include zero
+ok 646 - rg native differential: count include zero
+  ---
+  duration_ms: 20.358
+  type: 'test'
+  ...
+# Subtest: rg native differential: count inverted
+ok 647 - rg native differential: count inverted
+  ---
+  duration_ms: 20.868875
+  type: 'test'
+  ...
+# Subtest: rg native differential: count matches inverted counts selected lines
+ok 648 - rg native differential: count matches inverted counts selected lines
+  ---
+  duration_ms: 28.882208
+  type: 'test'
+  ...
+# Subtest: rg native differential: quiet without-match uses file selection status
+ok 649 - rg native differential: quiet without-match uses file selection status
+  ---
+  duration_ms: 21.103458
+  type: 'test'
+  ...
+# Subtest: rg native differential: quiet match
+ok 650 - rg native differential: quiet match
+  ---
+  duration_ms: 24.193583
+  type: 'test'
+  ...
+# Subtest: rg native differential: quiet miss
+ok 651 - rg native differential: quiet miss
+  ---
+  duration_ms: 22.196208
+  type: 'test'
+  ...
+# Subtest: rg native differential: max count
+ok 652 - rg native differential: max count
+  ---
+  duration_ms: 20.397834
+  type: 'test'
+  ...
+# Subtest: rg native differential: context adjacent groups merge
+ok 653 - rg native differential: context adjacent groups merge
+  ---
+  duration_ms: 20.057875
+  type: 'test'
+  ...
+# Subtest: rg native differential: context disjoint separator
+ok 654 - rg native differential: context disjoint separator
+  ---
+  duration_ms: 18.725541
+  type: 'test'
+  ...
+# Subtest: rg native differential: after context with match limit
+ok 655 - rg native differential: after context with match limit
+  ---
+  duration_ms: 24.041667
+  type: 'test'
+  ...
+# Subtest: rg native differential: custom separator
+ok 656 - rg native differential: custom separator
+  ---
+  duration_ms: 21.346083
+  type: 'test'
+  ...
+# Subtest: rg native differential: null filename list
+ok 657 - rg native differential: null filename list
+  ---
+  duration_ms: 24.851833
+  type: 'test'
+  ...
+# Subtest: rg native differential: null path prefix with line numbers
+ok 658 - rg native differential: null path prefix with line numbers
+  ---
+  duration_ms: 25.031
+  type: 'test'
+  ...
+# Subtest: rg native differential: null data records
+ok 659 - rg native differential: null data records
+  ---
+  duration_ms: 19.533583
+  type: 'test'
+  ...
+# Subtest: rg native differential: CRLF mode
+ok 660 - rg native differential: CRLF mode
+  ---
+  duration_ms: 21.396584
+  type: 'test'
+  ...
+# Subtest: rg native differential: file listing ignores content
+ok 661 - rg native differential: file listing ignores content
+  ---
+  duration_ms: 10.306583
+  type: 'test'
+  ...
+# Subtest: rg native differential: file list with glob brace expansion
+ok 662 - rg native differential: file list with glob brace expansion
+  ---
+  duration_ms: 8.212125
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob positive plus negative
+ok 663 - rg native differential: glob positive plus negative
+  ---
+  duration_ms: 21.63175
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob last wins
+ok 664 - rg native differential: glob last wins
+  ---
+  duration_ms: 7.853166
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob insensitive
+ok 665 - rg native differential: glob insensitive
+  ---
+  duration_ms: 7.905334
+  type: 'test'
+  ...
+# Subtest: rg native differential: glob stars across nested paths
+ok 666 - rg native differential: glob stars across nested paths
+  ---
+  duration_ms: 8.58
+  type: 'test'
+  ...
+# Subtest: rg native differential: hidden default
+ok 667 - rg native differential: hidden default
+  ---
+  duration_ms: 8.457333
+  type: 'test'
+  ...
+# Subtest: rg native differential: hidden option
+ok 668 - rg native differential: hidden option
+  ---
+  duration_ms: 9.752583
+  type: 'test'
+  ...
+# Subtest: rg native differential: positive glob overrides hidden
+ok 669 - rg native differential: positive glob overrides hidden
+  ---
+  duration_ms: 8.27625
+  type: 'test'
+  ...
+# Subtest: rg native differential: positive glob overrides matching file ignore
+ok 670 - rg native differential: positive glob overrides matching file ignore
+  ---
+  duration_ms: 8.096625
+  type: 'test'
+  ...
+# Subtest: rg native differential: gitignore repository detection
+ok 671 - rg native differential: gitignore repository detection
+  ---
+  duration_ms: 7.929833
+  type: 'test'
+  ...
+# Subtest: rg native differential: gitignore requires git by default
+ok 672 - rg native differential: gitignore requires git by default
+  ---
+  duration_ms: 7.545042
+  type: 'test'
+  ...
+# Subtest: rg native differential: no require git
+ok 673 - rg native differential: no require git
+  ---
+  duration_ms: 7.941542
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignore negation
+ok 674 - rg native differential: ignore negation
+  ---
+  duration_ms: 7.800209
+  type: 'test'
+  ...
+# Subtest: rg native differential: nested ignore negation
+ok 675 - rg native differential: nested ignore negation
+  ---
+  duration_ms: 9.240875
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignored parent prevents child reinclude
+ok 676 - rg native differential: ignored parent prevents child reinclude
+  ---
+  duration_ms: 8.029209
+  type: 'test'
+  ...
+# Subtest: rg native differential: explicit parent reinclude
+ok 677 - rg native differential: explicit parent reinclude
+  ---
+  duration_ms: 8.447792
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignore file precedence
+ok 678 - rg native differential: ignore file precedence
+  ---
+  duration_ms: 8.732208
+  type: 'test'
+  ...
+# Subtest: rg native differential: ignore escaped hash bang and spaces
+ok 679 - rg native differential: ignore escaped hash bang and spaces
+  ---
+  duration_ms: 7.220584
+  type: 'test'
+  ...
+# Subtest: rg native differential: explicit path overrides ignore and glob
+ok 680 - rg native differential: explicit path overrides ignore and glob
+  ---
+  duration_ms: 20.879125
+  type: 'test'
+  ...
+# Subtest: rg native differential: no ignore preserves hidden filtering
+ok 681 - rg native differential: no ignore preserves hidden filtering
+  ---
+  duration_ms: 11.136666
+  type: 'test'
+  ...
+# Subtest: rg native differential: two unrestricted flags include hidden
+ok 682 - rg native differential: two unrestricted flags include hidden
+  ---
+  duration_ms: 10.291
+  type: 'test'
+  ...
+# Subtest: rg native differential: maximum directory depth
+ok 683 - rg native differential: maximum directory depth
+  ---
+  duration_ms: 9.290333
+  type: 'test'
+  ...
+# Subtest: rg native differential: symlinks skipped recursively
+ok 684 - rg native differential: symlinks skipped recursively
+  ---
+  duration_ms: 7.550542
+  type: 'test'
+  ...
+# Subtest: rg native differential: follow symlinks
+ok 685 - rg native differential: follow symlinks
+  ---
+  duration_ms: 7.252208
+  type: 'test'
+  ...
+# Subtest: rg native differential: explicit symlink follows without L
+ok 686 - rg native differential: explicit symlink follows without L
+  ---
+  duration_ms: 21.127583
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary skipped recursively
+ok 687 - rg native differential: binary skipped recursively
+  ---
+  duration_ms: 23.203708
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary explicit reports match
+ok 688 - rg native differential: binary explicit reports match
+  ---
+  duration_ms: 20.073458
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary mode recursive reports match
+ok 689 - rg native differential: binary mode recursive reports match
+  ---
+  duration_ms: 22.665292
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary forced text preserves bytes
+ok 690 - rg native differential: binary forced text preserves bytes
+  ---
+  duration_ms: 23.105916
+  type: 'test'
+  ...
+# Subtest: rg native differential: binary count
+ok 691 - rg native differential: binary count
+  ---
+  duration_ms: 23.350375
+  type: 'test'
+  ...
+# Subtest: rg native differential: Unicode fixed matching
+ok 692 - rg native differential: Unicode fixed matching
+  ---
+  duration_ms: 24.075083
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON match offsets and totals
+ok 693 - rg native differential: JSON match offsets and totals
+  ---
+  duration_ms: 27.027458
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON context
+ok 694 - rg native differential: JSON context
+  ---
+  duration_ms: 26.422666
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON no matches only summary
+ok 695 - rg native differential: JSON no matches only summary
+  ---
+  duration_ms: 27.165
+  type: 'test'
+  ...
+# Subtest: rg native differential: zero max-count suppresses even JSON summary
+ok 696 - rg native differential: zero max-count suppresses even JSON summary
+  ---
+  duration_ms: 23.3255
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON inverted selection
+ok 697 - rg native differential: JSON inverted selection
+  ---
+  duration_ms: 23.780542
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON binary record splitting
+ok 698 - rg native differential: JSON binary record splitting
+  ---
+  duration_ms: 23.184125
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON invalid UTF8 uses base64
+ok 699 - rg native differential: JSON invalid UTF8 uses base64
+  ---
+  duration_ms: 21.892958
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON Unicode byte submatches
+ok 700 - rg native differential: JSON Unicode byte submatches
+  ---
+  duration_ms: 19.520083
+  type: 'test'
+  ...
+# Subtest: rg native differential: JSON overridden by filename mode
+ok 701 - rg native differential: JSON overridden by filename mode
+  ---
+  duration_ms: 19.971541
+  type: 'test'
+  ...
+# Subtest: deterministic virtual results do not depend on native rg availability
+ok 702 - deterministic virtual results do not depend on native rg availability
+  ---
+  duration_ms: 13.069708
+  type: 'test'
+  ...
+# Subtest: JSON schema uses original invalid bytes and byte offsets
+ok 703 - JSON schema uses original invalid bytes and byte offsets
+  ---
+  duration_ms: 12.724208
+  type: 'test'
+  ...
+# Subtest: plugin installs rg and rejects collisions without replacement
+ok 704 - plugin installs rg and rejects collisions without replacement
+  ---
+  duration_ms: 1.064292
+  type: 'test'
+  ...
+# Subtest: invalid options and regexes fail before stdin consumption or stdout
+ok 705 - invalid options and regexes fail before stdin consumption or stdout
+  ---
+  duration_ms: 89.858458
+  type: 'test'
+  ...
+# Subtest: native invalid syntax also returns two without output
+ok 706 - native invalid syntax also returns two without output
+  ---
+  duration_ms: 26.392
+  type: 'test'
+  ...
+# Subtest: no-match status is distinct from an error and quiet success wins prior errors
+ok 707 - no-match status is distinct from an error and quiet success wins prior errors
+  ---
+  duration_ms: 89.019792
+  type: 'test'
+  ...
+# Subtest: metadata selects supplied empty stdin while default input and overrides remain explicit
+ok 708 - metadata selects supplied empty stdin while default input and overrides remain explicit
+  ---
+  duration_ms: 97.689417
+  type: 'test'
+  ...
+# Subtest: nested explicit roots respect virtual ancestor ignore files
+ok 709 - nested explicit roots respect virtual ancestor ignore files
+  ---
+  duration_ms: 1.719042
+  type: 'test'
+  ...
+# Subtest: symlink loops and broken followed links are errors rather than infinite recursion
+ok 710 - symlink loops and broken followed links are errors rather than infinite recursion
+  ---
+  duration_ms: 0.868416
+  type: 'test'
+  ...
+# Subtest: input, line, filesystem-entry and output quotas fail predictably
+ok 711 - input, line, filesystem-entry and output quotas fail predictably
+  ---
+  duration_ms: 59.952791
+  type: 'test'
+  ...
+# Subtest: one-byte chunks retain UTF8 matches and offsets
+ok 712 - one-byte chunks retain UTF8 matches and offsets
+  ---
+  duration_ms: 20.491958
+  type: 'test'
+  ...
+# Subtest: rg cancels uncooperative stdin
+ok 713 - rg cancels uncooperative stdin
+  ---
+  duration_ms: 14.308625
+  type: 'test'
+  ...
+# Subtest: rg cancels uncooperative stdout
+ok 714 - rg cancels uncooperative stdout
+  ---
+  duration_ms: 14.015625
+  type: 'test'
+  ...
+# Subtest: rg cancels uncooperative stderr
+ok 715 - rg cancels uncooperative stderr
+  ---
+  duration_ms: 12.349583
+  type: 'test'
+  ...
+# Subtest: long ordinary record streams yield so timer cancellation can run
+ok 716 - long ordinary record streams yield so timer cancellation can run
+  ---
+  duration_ms: 12.898584
+  type: 'test'
+  ...
+# Subtest: quiet matching closes streaming input without draining it
+ok 717 - quiet matching closes streaming input without draining it
+  ---
+  duration_ms: 20.326
+  type: 'test'
+  ...
+# Subtest: explicit paths do not consume unrelated stdin
+ok 718 - explicit paths do not consume unrelated stdin
+  ---
+  duration_ms: 37.869584
+  type: 'test'
+  ...
+1..718
+# tests 718
+# suites 0
+# pass 718
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9752.342

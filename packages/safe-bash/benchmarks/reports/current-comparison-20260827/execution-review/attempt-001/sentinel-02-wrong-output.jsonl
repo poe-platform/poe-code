@@ -1,0 +1,16 @@
+{"atMs":0.499,"kind":"group-admitted","pid":96120,"pgid":96120,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"root":"/private/tmp/safe-bash-independent-bridge-BBhHqv","cwd":"/private/tmp/safe-bash-independent-bridge-BBhHqv","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-independent-bridge-BBhHqv","TMPDIR":"/private/tmp/safe-bash-independent-bridge-BBhHqv","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":35.783,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"engine-spawn","pid":96140,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":86.568,"kind":"request-start","absoluteDeadlineMs":1486.5602079999999}
+{"atMs":86.57,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"ready"}
+{"atMs":87.269,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"phase","phase":"exec-start"}
+{"atMs":87.449,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"phase","phase":"exec-settled"}
+{"atMs":87.652,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"phase","phase":"snapshot-complete"}
+{"atMs":87.724,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"phase","phase":"dispose-start"}
+{"atMs":87.914,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"phase","phase":"dispose-settled"}
+{"atMs":88.536,"kind":"result-received","sha256":"0a2ef289a61fe9405c45695e352127271f29aa1448116da0894870388d48f6e7","absoluteTotalUnchangedMs":4500}
+{"atMs":91.065,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"engine-exit","code":0,"signal":null}
+{"atMs":91.128,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"engine-close","code":0,"signal":null}
+{"atMs":91.189,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"fixture-close","closed":true,"sockets":0,"requests":[]}
+{"atMs":91.252,"id":"independent/wrong-output","nonce":"78eddd8f-2a8d-4bd7-98bd-fee074725454","kind":"session-complete"}
+{"atMs":94.019,"kind":"coordinator-exit","code":0,"signal":null}
+{"atMs":94.025,"kind":"coordinator-close","code":0,"signal":null}

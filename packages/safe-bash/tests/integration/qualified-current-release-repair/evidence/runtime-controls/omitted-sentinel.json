@@ -1,0 +1,13 @@
+{
+  "mode": "omitted-sentinel",
+  "rejected": true,
+  "error": "AssertionError [ERR_ASSERTION]: mandatory canonical runtime missing: tests/fs/webdav/release-timestamp-independent/independent.test.mts\n    at validateRuntimeCoverage (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-runtime-controls-cB361V/omitted-sentinel/snapshot/tests/plugins/qualified-current-release/runtime-coverage.mjs:14:14)\n    at currentConsumers (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-release-runtime-controls-cB361V/omitted-sentinel/snapshot/scripts/verify-current-consumers.mjs:12:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-repair/runtime-controls.mjs:40:11",
+  "beforeWork": true,
+  "source": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+  "originalFixture": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+  "fixtureSha256": "162d67e5880942d6c5b45015725f606173d087013d5ddeb8805201948d2fc3c2",
+  "originalRunner": "e70df901920bf461801f523a701572910aa72a5f91f25c9b13cb09f7d39d22c9",
+  "runnerSha256": "e70df901920bf461801f523a701572910aa72a5f91f25c9b13cb09f7d39d22c9",
+  "steps": [],
+  "scope": "actual frozen runner bounded to one group; intentional test/harness mutations only in regular-file copy; other18 groups and negative types exercised unchanged separately"
+}

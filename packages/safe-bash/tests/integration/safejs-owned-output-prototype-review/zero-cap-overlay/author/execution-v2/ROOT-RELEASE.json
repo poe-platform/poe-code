@@ -1,0 +1,25 @@
+{
+  "sourceManifestSha256": "2dc95c3abd7656de60d10a2f339a80d14d31ecc2b6d1a8f037769826cc8479f1",
+  "candidateManifestSha256": "a7333f1942956f73a0cf7d16a35685f23a81186df18d89e55fe07e5a94b32b4a",
+  "compiledManifestSha256": "65dda12bcf3536eefb49745037b468e7ecbf424626d1d5db137a84e12bd9298e",
+  "packageManifestSha256": "e207a231248d81156b6fc7b608785eb7f27cda4d34263dbee088210a19c9d010",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "independentReviewCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "independentReviewPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/admission-v1/ADMISSION.json",
+  "rootAuthorized": true,
+  "rootAuthorization": "ROOT RELEASES AUTHOR second ONE actualattempt after independentstatusreview. Date2026-08-27. Own only tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/author/** andregularTMP; product/privateREADONLY. Exact statusbinding71abbafc8a9adadf98ed8921b4cc549ae90399ff qualified by differentreview758880944964ed1bb9f9cbb524dfeb14e88b3047 at tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/status-review-v1/ADMISSION.json. Readyreceipt /tmp/safe-bash-owned-output-zero-overlay-independent-status-admitted.txt. Reviewer now independentlypreparingownactualattempt; doNOTwait/read their actualresults. Original source/fixturefreezea61e63bc46e8389e59c0d8fdc1d424003f62c769 and88367sourceadmission unchanged. GuardfreezeSHA2d3f9fb25ad60f0b11e3d38f122249b0c7eab972267e0d5f95b904f713cc26d0;privateprofileSHA5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7. ONLYtwoexplicitstatuslines refreshed, historicalsource/allothermetadata strict andfreshbeforeafterfullstate exact. NO arbitraryignore orsourcechange.\n\nCreate fresh separatelycommitted ROOTrelease descriptor under own NEW executionscope OUTSIDEsealedstatus-binding-v2directory as required schema. Bind exact758880review+71abbfreeze+allsource/packagehashes+authoredoutputpath. ExplicitthisROOTauthorizationtext. Do not fabricate expectedreviewer/dummyadmission; useactualGitrecord. Then ONE newattempt8surface11lifecycle6controls only exact frozen guardrevision38+original88, samepublic/guest/case/score/signal/limits/budgets/timer/cleanupassertions. AuthorreservedemptyregularTMP/raw canbeusedpersealedprofile; neverreuseconsumedexecution-v1output. Priorrefusal06426all25blocked/noNode remainsimmutable. No new source/livezerooverlay/privatewrites. PrivatepercohortfreshbeforeafterGIT_OPTIONAL_LOCKS=0/corefsmonitorfalse; pinnedNode22.22.2 andactualcopiedsourcehooks/importauth; no CLI/barrel/installedprivatepackageclaim. No privateinstall/build/worktree/symlink orprivatebytescommitted.\n\nSurface8unconditionalboundedcontinuation; lifecycle/controlfirstnonpass stops+matched/openprereqs; no latercohortsafterguardfailure. If validfailedprobe ornewbindingfailure, preserve rawandcloseguards thenSTOPnoautomaticretry/noassertionrelaxation. Distinguish observedfailures vsblocked/unproved. Positivezero workflow mustreallystart/cleanup:exact1auth1transport/streambeforeEOF/reusedbufferbytes/noredirectretryuploadreplayevenCLI+RetryAfter/headersbody+stderr/status/cleanupbeforenestedandpublicsettlement. Other approvedcorrectionsunchanged; Surface07dialectonly/08awaitedrejection/L05newselectedrejection/L06newsourceprofileoriginalworkflow notoldS1rescore. No privateplancontents/creatorinference orcleanup. Runtime actualpercohortguards must compareexpectedstatus exact2newlines, notdynamicactualgolden.\n\nSeal owned evidence/signature/bytecopies/firstattemptdiagnostics/provenance withatomiccommit--only/apply_patch preservingforeignstaging. Report any author-wrapperpreparationfailuresseparately. No sourcepromotion/parity/globalsecurity claims. Final /tmp/safe-bash-owned-output-zero-overlay-author-replayed-v2.txt exactfreeze/release/evidencecommits/counts/events/privateclosure/limitations/remaininghandles; STOPnaturally no waiting/pollingotherworkers. Prospectiveproductionwrite-setplanning now handledseparateREADONLYleaf atuserrequest; don'tduplicateorstartlivework/getopts. ROOTwillconsolidate.\n",
+  "bindingPreparationCommit": "71abbafc8a9adadf98ed8921b4cc549ae90399ff",
+  "bindingFreezeSha256": "2d3f9fb25ad60f0b11e3d38f122249b0c7eab972267e0d5f95b904f713cc26d0",
+  "privateStatusProfileSha256": "5633dad0df72d6a0305bb665665eb768482f90fadcae88b46305fa8a417747c7",
+  "bindingReviewCommit": "758880944964ed1bb9f9cbb524dfeb14e88b3047",
+  "bindingReviewPath": "tests/integration/safejs-owned-output-prototype-review/zero-cap-overlay/independent/status-review-v1/ADMISSION.json",
+  "allowedCohorts": [
+    "surface",
+    "lifecycle",
+    "controls"
+  ],
+  "candidateRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/candidate",
+  "packageRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/package",
+  "outputRoot": "/private/tmp/safe-bash-zero-status-binding-v2-5b3t7ehd/raw",
+  "noPromotion": true
+}

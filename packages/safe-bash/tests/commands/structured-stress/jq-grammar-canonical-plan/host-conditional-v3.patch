@@ -1,0 +1,21 @@
+diff --git a/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts b/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts
+index 62f3c69..149d87b 100644
+--- a/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts
++++ b/tests/commands/structured-stress/jq-42-author-20260827/safety.test.ts
+@@ -35,9 +35,13 @@ for (const error of [new FsError("EPIPE"), new JqError("host sink failure")]) te
+     try { reads++; yield Buffer.from("1\n"); reads++; yield Buffer.from("2\n"); }
+     finally { closed = true; }
+   })();
+-  const running = executeBytes(["-c", "."], source, {}, { stdout: { async write() { writes++; throw error; } } });
+-  if (error instanceof FsError) await assert.rejects(running, failure => failure === error);
+-  else assert.equal((await running).status, 5);
++  let stderrWrites = 0;
++  const running = executeBytes(["-c", "."], source, {}, {
++    stdout: { async write() { writes++; throw error; } },
++    ...(error instanceof JqError ? { stderr: { async write() { stderrWrites++; } } } : {}),
++  });
++  await assert.rejects(running, failure => failure === error);
++  if (error instanceof JqError) assert.equal(stderrWrites, 0);
+   assert.equal(writes, 1);
+   assert.equal(reads, 1);
+   assert.ok(closed);

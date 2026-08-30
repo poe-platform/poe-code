@@ -1,0 +1,109 @@
+{
+  "classification": "preparation-checks-not-product-tests",
+  "results": [
+    {
+      "name": "fixtures-syntax",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/fixtures.mjs"
+      ],
+      "pid": 60317,
+      "started": "2026-08-27T10:19:04.870Z",
+      "finished": "2026-08-27T10:19:04.894Z",
+      "expectedExit": 0,
+      "code": 0,
+      "signal": null,
+      "guard": null,
+      "reaped": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcome": true
+    },
+    {
+      "name": "driver-syntax",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--check",
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/driver.mjs"
+      ],
+      "pid": 60318,
+      "started": "2026-08-27T10:19:04.895Z",
+      "finished": "2026-08-27T10:19:04.918Z",
+      "expectedExit": 0,
+      "code": 0,
+      "signal": null,
+      "guard": null,
+      "reaped": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcome": true
+    },
+    {
+      "name": "node-preflight-corrected",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/driver.mjs",
+        "--evidence-dir",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-v2"
+      ],
+      "pid": 60319,
+      "started": "2026-08-27T10:19:04.918Z",
+      "finished": "2026-08-27T10:19:04.950Z",
+      "expectedExit": 0,
+      "code": 0,
+      "signal": null,
+      "guard": null,
+      "reaped": true,
+      "stdoutSha256": "966044b286014f7c6b2611e79cf790e3cc7bbc6f1e2cf61d0990fc4493c03014",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcome": true
+    },
+    {
+      "name": "fixtures-self-check",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/driver.mjs",
+        "--evidence-dir",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-v2",
+        "--command",
+        "self-check"
+      ],
+      "pid": 60320,
+      "started": "2026-08-27T10:19:04.950Z",
+      "finished": "2026-08-27T10:19:04.982Z",
+      "expectedExit": 0,
+      "code": 0,
+      "signal": null,
+      "guard": null,
+      "reaped": true,
+      "stdoutSha256": "e7b33edaa9f4b02eb74c501ab91308cde92164fc3ccc162114e22681592d97aa",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcome": true
+    },
+    {
+      "name": "run-refusal",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/driver.mjs",
+        "--evidence-dir",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-v2",
+        "--command",
+        "run",
+        "--compiled-import",
+        "/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I/NOT-RESTORED/dist/index.js"
+      ],
+      "pid": 60321,
+      "started": "2026-08-27T10:19:04.982Z",
+      "finished": "2026-08-27T10:19:05.014Z",
+      "expectedExit": 2,
+      "code": 2,
+      "signal": null,
+      "guard": null,
+      "reaped": true,
+      "stdoutSha256": "64da3e588e424018df406c45a5344c2657f4b0234d51ced89307bd16d33addea",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcome": true
+    }
+  ]
+}

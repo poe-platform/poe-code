@@ -1,0 +1,702 @@
+{
+  "version": "zero-policy-controls-v1",
+  "status": "UNRUN_RELEASE_REQUIRED",
+  "logicalWorkflows": 1,
+  "executionRows": 6,
+  "executionOrder": [
+    "Z01-open",
+    "Z01-closed",
+    "Z02-open",
+    "Z02-closed",
+    "Z03-open",
+    "Z03-closed"
+  ],
+  "defaultSafeJsLimits": {
+    "maxSourceBytes": 16384,
+    "maxInputBytes": 65536,
+    "maxOutputBytes": 65536,
+    "timeoutMs": 3500,
+    "maxSteps": 200000,
+    "maxCallDepth": 64,
+    "stringLength": 65536,
+    "arrayLength": 8192,
+    "dataSize": 1048576
+  },
+  "containment": {
+    "caseChildrenAtOnce": 1,
+    "childDeadlineMs": 7000,
+    "supervisorDeadlineMs": 9000,
+    "wholeCohortDeadlineMs": 120000,
+    "heapMb": 256,
+    "childOutputMaxBytes": 1048576,
+    "eventMaxCount": 4096,
+    "unexpectedWorkersAllowed": 0,
+    "unexpectedSubprocessesAllowed": 0,
+    "socketsAllowed": 0,
+    "acceptanceAfterContainment": false,
+    "automaticRetries": 0
+  },
+  "commonInputs": {
+    "cwd": "/work",
+    "env": {},
+    "stdinHex": "",
+    "publicShellCommand": "owned-guest",
+    "nestedInvokeName": "safejs",
+    "nestedInvokeArgs": [
+      "-e",
+      "EXACT_GUEST_FILE_BYTES",
+      "--",
+      "EXACT_ROW_GUEST_ARGS"
+    ],
+    "printFlag": false,
+    "runtimeHooks": [
+      "run",
+      "createBudget",
+      "makeFsModule",
+      "declareHostOperation"
+    ],
+    "guestModules": [
+      "fs",
+      "stdio",
+      "command"
+    ],
+    "bridgeRowsExtraModule": "shell",
+    "newGuestControlModules": []
+  },
+  "rows": [
+    {
+      "id": "Z01-open",
+      "workflow": "L06",
+      "guest": "guests/curl.ajs.data",
+      "guestArgs": [],
+      "route": "shell-module",
+      "schedule": "cli-override-positive",
+      "closeCurlConsumer": false,
+      "expect": {
+        "publicKind": "result",
+        "exitCode": 0,
+        "stdout": "200|0|0|6|12|0\ncurl:0\n",
+        "stderr": "independent-stderr\n",
+        "curlStatus": 0,
+        "writeoutAccountedCalls": 1,
+        "transportSignalAbortedByConsumer": false,
+        "responseBodyStarts": 1,
+        "responseBodyChunks": 2,
+        "uploadSourceStarts": 1,
+        "retryDelay1000msRequests": 0
+      },
+      "initialFiles": {
+        "/work/body.bin": "zero-body-sentinel\n",
+        "/work/headers.txt": "zero-header-sentinel\n"
+      },
+      "curlInputs": {
+        "registryName": "curl",
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "--retry-delay",
+          "0",
+          "https://owned.invalid/upload"
+        ],
+        "authorizedUrl": "https://owned.invalid/upload",
+        "method": "PUT",
+        "redirects": 0,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "responseStatus": 200,
+        "responseStatusText": "OK",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [
+          [
+            "Content-Type",
+            "application/octet-stream"
+          ],
+          [
+            "Content-Length",
+            "12"
+          ]
+        ],
+        "responseChunksHex": [
+          "626f6479300a",
+          "626f6479310a"
+        ],
+        "requiredFiles": {
+          "/work/body.bin": "body0\nbody1\n",
+          "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 0,
+          "maxRetries": 0,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+      },
+      "qualification": "Virtual public SafeJS facade + explicit injected transport only. Both-zero policy with finite CLI override9; Retry-After1 is finite. Error wins over closed-output141. Error body sentinel must remain exact, headers must publish, diagnostics remain required; no native parity claim."
+    },
+    {
+      "id": "Z01-closed",
+      "workflow": "L06",
+      "guest": "guests/curl.ajs.data",
+      "guestArgs": [],
+      "route": "shell-module",
+      "schedule": "cli-override-positive",
+      "closeCurlConsumer": true,
+      "requiresPositive": "Z01-open",
+      "expect": {
+        "publicKind": "result",
+        "exitCode": 141,
+        "stdout": "curl:141\n",
+        "stderr": "independent-stderr\n",
+        "curlStatus": 141,
+        "writeoutAccountedCalls": 0,
+        "transportSignalAbortedByConsumer": false,
+        "responseBodyStarts": 1,
+        "responseBodyChunks": 2,
+        "uploadSourceStarts": 1,
+        "retryDelay1000msRequests": 0
+      },
+      "qualification": "Virtual public SafeJS facade + explicit injected transport only. Both-zero policy with finite CLI override9; Retry-After1 is finite. Error wins over closed-output141. Error body sentinel must remain exact, headers must publish, diagnostics remain required; no native parity claim.",
+      "initialFiles": {
+        "/work/body.bin": "zero-body-sentinel\n",
+        "/work/headers.txt": "zero-header-sentinel\n"
+      },
+      "requiresMatchedOpen": "Z01-open",
+      "curlInputs": {
+        "registryName": "curl",
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "--retry-delay",
+          "0",
+          "https://owned.invalid/upload"
+        ],
+        "authorizedUrl": "https://owned.invalid/upload",
+        "method": "PUT",
+        "redirects": 0,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "responseStatus": 200,
+        "responseStatusText": "OK",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [
+          [
+            "Content-Type",
+            "application/octet-stream"
+          ],
+          [
+            "Content-Length",
+            "12"
+          ]
+        ],
+        "responseChunksHex": [
+          "626f6479300a",
+          "626f6479310a"
+        ],
+        "requiredFiles": {
+          "/work/body.bin": "body0\nbody1\n",
+          "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 0,
+          "maxRetries": 0,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+      }
+    },
+    {
+      "id": "Z02-open",
+      "workflow": "L06",
+      "guest": "guests/curl.ajs.data",
+      "guestArgs": [],
+      "route": "shell-module",
+      "schedule": "retry-after-fail-sentinel",
+      "closeCurlConsumer": false,
+      "expect": {
+        "publicKind": "result",
+        "exitCode": 22,
+        "stdout": "503|0|0|6|0|22\ncurl:22\n",
+        "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n",
+        "curlStatus": 22,
+        "writeoutAccountedCalls": 1,
+        "transportSignalAbortedByConsumer": false,
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "retryDelay1000msRequests": 0
+      },
+      "initialFiles": {
+        "/work/body.bin": "zero-body-sentinel\n",
+        "/work/headers.txt": "zero-header-sentinel\n"
+      },
+      "curlInputs": {
+        "registryName": "curl",
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "--retry-delay",
+          "0",
+          "--fail",
+          "https://owned.invalid/upload"
+        ],
+        "authorizedUrl": "https://owned.invalid/upload",
+        "method": "PUT",
+        "redirects": 0,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "responseStatus": 503,
+        "responseStatusText": "Service Unavailable",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [
+          [
+            "Content-Type",
+            "application/octet-stream"
+          ],
+          [
+            "Content-Length",
+            "12"
+          ],
+          [
+            "Retry-After",
+            "1"
+          ]
+        ],
+        "responseChunksHex": [
+          "626f6479300a",
+          "626f6479310a"
+        ],
+        "requiredFiles": {
+          "/work/body.bin": "zero-body-sentinel\n",
+          "/work/headers.txt": "HTTP/1.1 503 Service Unavailable\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\nRetry-After: 1\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 0,
+          "maxRetries": 0,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+      },
+      "qualification": "Virtual public SafeJS facade + explicit injected transport only. Both-zero policy with finite CLI override9; Retry-After1 is finite. Error wins over closed-output141. Error body sentinel must remain exact, headers must publish, diagnostics remain required; no native parity claim."
+    },
+    {
+      "id": "Z02-closed",
+      "workflow": "L06",
+      "guest": "guests/curl.ajs.data",
+      "guestArgs": [],
+      "route": "shell-module",
+      "schedule": "retry-after-fail-sentinel",
+      "closeCurlConsumer": true,
+      "requiresPositive": "Z01-open",
+      "expect": {
+        "publicKind": "result",
+        "exitCode": 22,
+        "stdout": "curl:22\n",
+        "stderr": "curl: (22) HTTP response status 503\nindependent-stderr\n",
+        "curlStatus": 22,
+        "writeoutAccountedCalls": 0,
+        "transportSignalAbortedByConsumer": false,
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "retryDelay1000msRequests": 0
+      },
+      "qualification": "Virtual public SafeJS facade + explicit injected transport only. Both-zero policy with finite CLI override9; Retry-After1 is finite. Error wins over closed-output141. Error body sentinel must remain exact, headers must publish, diagnostics remain required; no native parity claim.",
+      "initialFiles": {
+        "/work/body.bin": "zero-body-sentinel\n",
+        "/work/headers.txt": "zero-header-sentinel\n"
+      },
+      "requiresMatchedOpen": "Z02-open",
+      "curlInputs": {
+        "registryName": "curl",
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "--retry-delay",
+          "0",
+          "--fail",
+          "https://owned.invalid/upload"
+        ],
+        "authorizedUrl": "https://owned.invalid/upload",
+        "method": "PUT",
+        "redirects": 0,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "responseStatus": 503,
+        "responseStatusText": "Service Unavailable",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [
+          [
+            "Content-Type",
+            "application/octet-stream"
+          ],
+          [
+            "Content-Length",
+            "12"
+          ],
+          [
+            "Retry-After",
+            "1"
+          ]
+        ],
+        "responseChunksHex": [
+          "626f6479300a",
+          "626f6479310a"
+        ],
+        "requiredFiles": {
+          "/work/body.bin": "zero-body-sentinel\n",
+          "/work/headers.txt": "HTTP/1.1 503 Service Unavailable\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\nRetry-After: 1\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 0,
+          "maxRetries": 0,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+      }
+    },
+    {
+      "id": "Z03-open",
+      "workflow": "L06",
+      "guest": "guests/curl.ajs.data",
+      "guestArgs": [],
+      "route": "shell-module",
+      "schedule": "redirect-refusal-sentinel",
+      "closeCurlConsumer": false,
+      "expect": {
+        "publicKind": "result",
+        "exitCode": 47,
+        "stdout": "307|0|0|6|0|47\ncurl:47\n",
+        "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n",
+        "curlStatus": 47,
+        "writeoutAccountedCalls": 1,
+        "transportSignalAbortedByConsumer": false,
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "retryDelay1000msRequests": 0
+      },
+      "initialFiles": {
+        "/work/body.bin": "zero-body-sentinel\n",
+        "/work/headers.txt": "zero-header-sentinel\n"
+      },
+      "curlInputs": {
+        "registryName": "curl",
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "--retry-delay",
+          "0",
+          "https://owned.invalid/upload"
+        ],
+        "authorizedUrl": "https://owned.invalid/upload",
+        "method": "PUT",
+        "redirects": 0,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "responseStatus": 307,
+        "responseStatusText": "Temporary Redirect",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [
+          [
+            "Content-Type",
+            "application/octet-stream"
+          ],
+          [
+            "Content-Length",
+            "12"
+          ],
+          [
+            "Location",
+            "/next"
+          ]
+        ],
+        "responseChunksHex": [
+          "626f6479300a",
+          "626f6479310a"
+        ],
+        "requiredFiles": {
+          "/work/body.bin": "zero-body-sentinel\n",
+          "/work/headers.txt": "HTTP/1.1 307 Temporary Redirect\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\nLocation: /next\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 0,
+          "maxRetries": 0,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+      },
+      "qualification": "Virtual public SafeJS facade + explicit injected transport only. Both-zero policy with finite CLI override9; Retry-After1 is finite. Error wins over closed-output141. Error body sentinel must remain exact, headers must publish, diagnostics remain required; no native parity claim."
+    },
+    {
+      "id": "Z03-closed",
+      "workflow": "L06",
+      "guest": "guests/curl.ajs.data",
+      "guestArgs": [],
+      "route": "shell-module",
+      "schedule": "redirect-refusal-sentinel",
+      "closeCurlConsumer": true,
+      "requiresPositive": "Z01-open",
+      "expect": {
+        "publicKind": "result",
+        "exitCode": 47,
+        "stdout": "curl:47\n",
+        "stderr": "curl: (47) Maximum redirects exceeded\nindependent-stderr\n",
+        "curlStatus": 47,
+        "writeoutAccountedCalls": 0,
+        "transportSignalAbortedByConsumer": false,
+        "responseBodyStarts": 0,
+        "responseBodyChunks": 0,
+        "uploadSourceStarts": 1,
+        "retryDelay1000msRequests": 0
+      },
+      "qualification": "Virtual public SafeJS facade + explicit injected transport only. Both-zero policy with finite CLI override9; Retry-After1 is finite. Error wins over closed-output141. Error body sentinel must remain exact, headers must publish, diagnostics remain required; no native parity claim.",
+      "initialFiles": {
+        "/work/body.bin": "zero-body-sentinel\n",
+        "/work/headers.txt": "zero-header-sentinel\n"
+      },
+      "requiresMatchedOpen": "Z03-open",
+      "curlInputs": {
+        "registryName": "curl",
+        "args": [
+          "-sS",
+          "-T",
+          "-",
+          "-o",
+          "/work/body.bin",
+          "-D",
+          "/work/headers.txt",
+          "-w",
+          "%{http_code}|%{num_redirects}|%{num_retries}|%{size_upload}|%{size_download}|%{exitcode}\n",
+          "-L",
+          "--max-redirs",
+          "9",
+          "--retry",
+          "9",
+          "--retry-delay",
+          "0",
+          "https://owned.invalid/upload"
+        ],
+        "authorizedUrl": "https://owned.invalid/upload",
+        "method": "PUT",
+        "redirects": 0,
+        "uploadChunksHex": [
+          "41300a",
+          "42310a"
+        ],
+        "responseStatus": 307,
+        "responseStatusText": "Temporary Redirect",
+        "responseHttpVersion": "1.1",
+        "responseHeaders": [
+          [
+            "Content-Type",
+            "application/octet-stream"
+          ],
+          [
+            "Content-Length",
+            "12"
+          ],
+          [
+            "Location",
+            "/next"
+          ]
+        ],
+        "responseChunksHex": [
+          "626f6479300a",
+          "626f6479310a"
+        ],
+        "requiredFiles": {
+          "/work/body.bin": "zero-body-sentinel\n",
+          "/work/headers.txt": "HTTP/1.1 307 Temporary Redirect\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\nLocation: /next\r\n\r\n"
+        },
+        "independentStderr": "independent-stderr\n",
+        "limits": {
+          "maxUploadBytes": 1024,
+          "maxDownloadBytes": 1024,
+          "maxBufferBytes": 4096,
+          "maxHeaderBytes": 4096,
+          "maxRedirects": 0,
+          "maxRetries": 0,
+          "maxUrls": 1,
+          "maxTimeMs": 2500
+        },
+        "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+      }
+    }
+  ],
+  "errors": {
+    "callerError": {
+      "constructor": "Error",
+      "message": "caller:L05-caller-error"
+    },
+    "executionError": {
+      "constructor": "Error",
+      "messageTemplate": "execution:ROW_ID"
+    },
+    "cleanupError": {
+      "constructor": "Error",
+      "messageTemplate": "cleanup:ROW_ID"
+    },
+    "curlConsumerError": {
+      "constructor": "Error",
+      "message": "consumer:L06-curl-consumer-closed",
+      "ownCode": "EPIPE"
+    },
+    "identityRule": "Construct once in each child; compare references before serialization. No wrapping, truthiness classification or expected-reason coercion.",
+    "undefinedRule": "No synthetic literal-undefined caller row. Native abort() and abort(undefined) produce the actual default AbortError; capture signal.reason, never assert literal undefined."
+  },
+  "curlInputs": {
+    "registryName": "curl",
+    "args": [
+      "-sS",
+      "-T",
+      "-",
+      "-o",
+      "/work/body.bin",
+      "-D",
+      "/work/headers.txt",
+      "-w",
+      "%{http_code}\n",
+      "https://owned.invalid/upload"
+    ],
+    "authorizedUrl": "https://owned.invalid/upload",
+    "method": "PUT",
+    "redirects": 0,
+    "uploadChunksHex": [
+      "41300a",
+      "42310a"
+    ],
+    "responseStatus": 200,
+    "responseStatusText": "OK",
+    "responseHttpVersion": "1.1",
+    "responseHeaders": [
+      [
+        "Content-Type",
+        "application/octet-stream"
+      ],
+      [
+        "Content-Length",
+        "12"
+      ]
+    ],
+    "responseChunksHex": [
+      "626f6479300a",
+      "626f6479310a"
+    ],
+    "requiredFiles": {
+      "/work/body.bin": "body0\nbody1\n",
+      "/work/headers.txt": "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 12\r\n\r\n"
+    },
+    "independentStderr": "independent-stderr\n",
+    "limits": {
+      "maxUploadBytes": 1024,
+      "maxDownloadBytes": 1024,
+      "maxBufferBytes": 4096,
+      "maxHeaderBytes": 4096,
+      "maxRedirects": 0,
+      "maxRetries": 0,
+      "maxUrls": 1,
+      "maxTimeMs": 2500
+    },
+    "transport": "Explicit host-supplied HttpTransport; no socket, DNS, NodeHttpTransport, native curl, external network or ambient credentials."
+  }
+}

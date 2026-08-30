@@ -1,0 +1,898 @@
+{
+  "schema": "unified76-chmod-eligibility-source-diagnosis/1",
+  "at": "2026-08-28T11:19:48.070Z",
+  "questionCommit": "05b549529e7f8cd4b21af1635c5e62542e10decb",
+  "verdict": "STRICT_ATTEMPT_HOLD; TWO_NATIVE_ELIGIBILITY_FAILURES; ROOT_DECIDES_PROSPECTIVE_PROFILE",
+  "authorization": {
+    "consumed": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+    "attempt": "55db52a45e583017fba50c02ad64bddce2feb251",
+    "packet": "52e83606dc41297a20cbeb3e0fc4ecf703bb242d",
+    "priorMetadataAcceptance": "7ecfe4538beb1cbdc2beef7e7b6d055b187ea580",
+    "priorRepairAcceptance": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+    "attempts": 1,
+    "retryAuthorized": false,
+    "newReviewExecutionAuthorized": false
+  },
+  "bindings": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "implementation": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+    "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+    "driverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+    "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "helperSha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "assessorSha256": "052dc58ece76f3136ad03212b9f938502cf2f0ca5ebfd03876c3be9ea11eaf39",
+    "harnessSha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd",
+    "renderedOsFenceSha256": "9fa2711b789d1f8d7cbc83b78a182eb3f83b6644aa1f8bba2568055d24a53faf",
+    "rawAuthorizationSha256": "6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d",
+    "rawCaptures": [
+      {
+        "source": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2/ADMISSION.json",
+        "capture": "raw-v1/inner-ADMISSION.json.gz",
+        "sourceBytes": 46554,
+        "sourceSha256": "3f67f58fbbd6dde4396d5699beb83b0c3823e4d72f71c457cdc375ad4a897013",
+        "compressedBytes": 6908,
+        "compressedSha256": "698e716151c697b59107eb510726084dd7fca9c9b725a06c97d0c712ac94e5e8",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2/REPORT.json",
+        "capture": "raw-v1/inner-REPORT.json.gz",
+        "sourceBytes": 18882746,
+        "sourceSha256": "5cd864aea5ac8d192670ba50763549c578f7b1a87b202a1a6b4db7d75a6b202f",
+        "compressedBytes": 3489694,
+        "compressedSha256": "8bb0febd3454b19f1803c07aa20f72d8a6d2fb6c9e76a26599d497702fc22b5c",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/OS-FENCE-RESULT.json",
+        "capture": "raw-v1/outer-OS-FENCE-RESULT.json.gz",
+        "sourceBytes": 33521,
+        "sourceSha256": "a19eea2a7e405db52cf8d6d6c17fc57533ac2c4138dfb3439ab007b5f32043b4",
+        "compressedBytes": 3662,
+        "compressedSha256": "06e90a906e2e317865d454d8133bbdd7131a45d63680b0cc0c74f022ff913f98",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/OS-FENCE.json",
+        "capture": "raw-v1/outer-OS-FENCE.json.gz",
+        "sourceBytes": 4043,
+        "sourceSha256": "9865a0e94e32590f20896b874aa0828f330e7e0f8c8ac54ad4ab17426b344b12",
+        "compressedBytes": 1344,
+        "compressedSha256": "9bf074bf054524d006026dc490c076ca7de0aca3ebf5a00efb0bfb0db7361658",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/REPORT.json",
+        "capture": "raw-v1/outer-REPORT.json.gz",
+        "sourceBytes": 59989,
+        "sourceSha256": "83db343675254fdf7c7e7db19276977a8cafc47e796b62804c69dc4fd1c513a4",
+        "compressedBytes": 4921,
+        "compressedSha256": "83700aa02508fa6204cab09a6965b1c0e7e7c6117c89e9bf6368439f9aadf49a",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/stdout",
+        "capture": "raw-v1/outer-stdout.gz",
+        "sourceBytes": 27760,
+        "sourceSha256": "ba32071dd60304926f3110211a1428da4bedf64674f4ba79e3f66456e7d6c237",
+        "compressedBytes": 5272,
+        "compressedSha256": "c98e951022234c2d937dc7d9a6f7b0f3ad68dd60a46bb4b7b868dcbf6547d0f0",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB/stderr",
+        "capture": "raw-v1/outer-stderr.gz",
+        "sourceBytes": 0,
+        "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "compressedBytes": 20,
+        "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      },
+      {
+        "source": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-fixture-authority.json",
+        "capture": "raw-v1/native-fixture-authority.json.gz",
+        "sourceBytes": 6659,
+        "sourceSha256": "9f018b4e8bae9f4ce0df48d65c25ecd4693b3b0929687a02f40c3b441ee21cb9",
+        "compressedBytes": 895,
+        "compressedSha256": "bb9902f69536f9dfd1b8fe69247fbc3c146536cd40a15bf1af2950017bde8600",
+        "roundtripVerified": true,
+        "independentlyVerified": true
+      }
+    ],
+    "rawTotalBytes": 19061272
+  },
+  "completed": {
+    "recordedIdentityAssets": 51,
+    "nativeIdentityIssues": [],
+    "preflightStatus": "preflight-admitted-not-product-acceptance",
+    "semanticProbeAttempts": 2,
+    "semanticProbeFailures": 2,
+    "stagedNativeExecutableCopies": 36,
+    "scopeLogicalEntries": 37397,
+    "scopePhysicalEntries": 37392,
+    "logicalBytes": 2382440321,
+    "historyBytes": 452180499,
+    "earlierChecks": "Metadata/table and archive setup assertions precede line40; their success follows control flow, not separately retained complete per-command result tables.",
+    "notA49Of51Result": true
+  },
+  "stop": {
+    "assertion": "mandatory native fixture authority profile unavailable",
+    "stack": [
+      "    at Module.prerequisites (file:///private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs:40:10)",
+      "    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+      "    at async Object.run (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs:263:21)",
+      "    at async execute (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs:74:24)",
+      "    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs:8:67"
+    ],
+    "helperLine": 40,
+    "phases": [
+      {
+        "name": "safejs-availability",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "cold-typecheck",
+        "expectedStatus": 78,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "typecheck-all",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "benchmark-types",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "env-source-binding",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "canonical",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "current-consumers",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "pack",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "public-runtime",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "public-types",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "negative-types",
+        "expectedStatus": 2,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "missing-root",
+        "expectedStatus": 1,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "missing-contracts",
+        "expectedStatus": 1,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      },
+      {
+        "name": "final-sweep",
+        "expectedStatus": 0,
+        "outcome": "NOT_EXECUTED",
+        "reason": "mandatory native fixture authority setup failed before first phase"
+      }
+    ],
+    "builds": 0,
+    "canonicalTestsExecuted": 0,
+    "packageRebuilt": false,
+    "privateBeforeOrAfterReached": false,
+    "aggregateBindingComplete": false,
+    "guardsPassed": false,
+    "cleanupComplete": false,
+    "qualification": "One actual consumed gate launcher/worker attempt, despite inner fullGateLaunched:false meaning no phase launch. No virtual command assertion reached."
+  },
+  "probes": [
+    {
+      "sourceIdentifier": {
+        "kind": "native-fixture-authority",
+        "mode": "2755"
+      },
+      "proposedVersionedId": "native-fixture-authority:2755",
+      "original": {
+        "mode": "2755",
+        "before": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        },
+        "execution": {
+          "command": [
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+            "2755",
+            "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755': Operation not permitted\n"
+        },
+        "after": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        }
+      },
+      "sourceRecordErrorField": "Absent in JSON because error?.message undefined; no recorded errno/syscall/native PID. Status1/signalnull and native stderr are retained.",
+      "futureClassification": "ENVIRONMENT_UNSUPPORTED_OR_UNQUALIFIED only by prospective root profile; original attempt remains FAILURE"
+    },
+    {
+      "sourceIdentifier": {
+        "kind": "native-fixture-authority",
+        "mode": "6755"
+      },
+      "proposedVersionedId": "native-fixture-authority:6755",
+      "original": {
+        "mode": "6755",
+        "before": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        },
+        "execution": {
+          "command": [
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+            "6755",
+            "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755': Operation not permitted\n"
+        },
+        "after": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        }
+      },
+      "sourceRecordErrorField": "Absent in JSON because error?.message undefined; no recorded errno/syscall/native PID. Status1/signalnull and native stderr are retained.",
+      "futureClassification": "ENVIRONMENT_UNSUPPORTED_OR_UNQUALIFIED only by prospective root profile; original attempt remains FAILURE"
+    }
+  ],
+  "nativeContext": {
+    "identity": {
+      "name": "chmod",
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "sha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+      "executable": true,
+      "target": "snapshot:tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+      "authority": "prior metadata/table native preflight capture",
+      "actualSha256": "3b7a9b5819dd93eff18b25dfbbac1c1d17e2ccd419368da90b366653b1b1cbd2",
+      "mode": 493
+    },
+    "cwd": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source",
+    "requestedCommandIsAbsolute": true,
+    "kernelExecTrace": false,
+    "environment": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    },
+    "environmentEvidence": "Source-defined explicit env at stream-five-public/harness.mjs:10,14; not serialized in each probe. This replaces inherited routing env for this native call; no bare-name resolution required.",
+    "timeoutMs": 180000,
+    "maxBufferBytes": 33554432,
+    "uid": 501,
+    "gid": 20,
+    "groups": [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      701,
+      33,
+      98,
+      100,
+      204,
+      250,
+      395,
+      398,
+      400
+    ],
+    "umask": "22",
+    "parent": {
+      "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7",
+      "uid": 501,
+      "gid": 0,
+      "mode": "700",
+      "directory": true,
+      "symlink": false
+    },
+    "nativeTmpBefore": {
+      "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp",
+      "uid": 501,
+      "gid": 0,
+      "mode": "700",
+      "directory": true,
+      "symlink": false
+    },
+    "nativeTmpAfter": {
+      "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp",
+      "uid": 501,
+      "gid": 20,
+      "mode": "700",
+      "directory": true,
+      "symlink": false
+    },
+    "groupNormalized": true,
+    "acl": {
+      "command": [
+        "/bin/ls",
+        "-lde",
+        "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7",
+        "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp"
+      ],
+      "cwd": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source",
+      "status": 0,
+      "signal": null,
+      "stdout": "drwx------@ 13 kjopek  wheel  416 Aug 28 11:02 /private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7\ndrwx------@  2 kjopek  staff   64 Aug 28 11:02 /private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp\n",
+      "stderr": ""
+    },
+    "fence": {
+      "executable": "/usr/bin/sandbox-exec",
+      "profileText": "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-HzSPPY\") (subpath \"/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+      "profileSha256": "9fa2711b789d1f8d7cbc83b78a182eb3f83b6644aa1f8bba2568055d24a53faf",
+      "node": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "worker": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+      "workerArgs": {
+        "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "execute": true,
+        "output": "/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+        "release": "/tmp/unified76-release-f5-scopedenv-20260828-r2.json"
+      },
+      "workerPid": 67506,
+      "setupNodePermissionFlagPresent": false
+    }
+  },
+  "cause": {
+    "proved": "Two absolute admitted GNU chmod commands returned1 with Operation not permitted, files owned uid501/gid20 remained0644 before/after. Native process outcome, not prior bare-git spawn failure or product assertion.",
+    "notProved": [
+      "Responsible sandbox operation/rule or lower filesystem/host policy",
+      "Underlying syscall and numeric errno",
+      "Kernel resolved-executable event or per-probe PID",
+      "Equivalent outcome for directories, Node chmod, other modes or arbitrary paths",
+      "No transient metadata effect between captured endpoints"
+    ],
+    "policyTrace": "Shipping rendered policy allows ordinary file-write* in the exact owned root; denies writes elsewhere/instruction names and selector exec. Both target paths are inside the root and not instruction names. No explicit2755/6755/setid rule identifies a unique denial reason. No policy/syscall denial trace retained. Do not infer capability grant or fence bug from this string alone.",
+    "noPrivilegeProposal": true
+  },
+  "dependencies": {
+    "eligibilityProbeRows": 2,
+    "oneExecutable": true,
+    "directRuntimeCaller": {
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "line": 39,
+      "assertLine": 40,
+      "effect": "All14 phases blocked by one global prerequisite;51 identity assets are not independent tests."
+    },
+    "otherDirectCallers": [
+      {
+        "path": "tests/integration/full-gate-20260827/combined-b494675c/prerequisites.mjs",
+        "line": 39,
+        "role": "historical opt-in helper, not shipping import"
+      },
+      {
+        "path": "scripts/verify-qualified-release.mjs",
+        "line": 59,
+        "role": "issues aggregated at60; unavailable at62 prevents its entire release branch"
+      },
+      {
+        "path": "tests/plugins/qualified-current-release/prerequisites.test.mjs",
+        "line": 62,
+        "role": "one top-level test re-invokes both probes; NOT in632 canonicalFiles"
+      }
+    ],
+    "canonicalSensitive": [
+      {
+        "path": "tests/commands/metadata-stress/chmod-controls.test.ts",
+        "line": 10,
+        "name": "GNU chmod directory setid controls compare actual host preservation",
+        "topLevelCases": 1,
+        "staticRows": 48,
+        "role": "directory setid initial states/transitions; includes ordinary rows in same monolithic test"
+      },
+      {
+        "path": "tests/commands/metadata-stress/native-differential.test.ts",
+        "line": 10,
+        "name": "GNU chmod seeded symbolic/numeric differential: 384 mode transitions",
+        "topLevelCases": 1,
+        "staticRows": 384,
+        "role": "32 declared setid-setting mode vectors within384; measured expectedMode local at32, no authority-result import"
+      },
+      {
+        "path": "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+        "line": 8,
+        "name": "member-group fixture qualification precedes exact setid modes and permits genuine SGID success",
+        "topLevelCases": 1,
+        "staticRows": 4,
+        "role": "two target kinds × creation/preservation native operations, plus exact Node initial-mode setup"
+      }
+    ],
+    "canonicalSensitiveCount": 3,
+    "qualification": "Three identified semantically capability-sensitive canonical groups, not direct probe consumers or a measured/exhaustive failure count. Two regular-file probes do not establish directory/Node behavior. No central per-probe dependency registry exists.",
+    "historicalRegistry": {
+      "path": "tests/commands/metadata-stress/canonical-env/original.json",
+      "selector": "snapshots[].path / failures[classification=native-prerequisite]",
+      "selectedPaths": 11,
+      "expectedTopLevelCases": 318,
+      "nativePrerequisiteRows": 22,
+      "identifiedSetidSensitiveRegistryRows": 2,
+      "otherRegistryRows": 20,
+      "qualifiedPredicate": "runner.mjs:109 requires318/318,22/22 and zero skips; no unsupported branch"
+    },
+    "independentControls": {
+      "path": "tests/commands/metadata-stress/permission-profile-independent/review.test.ts",
+      "declaredTopLevelCases": 7,
+      "kind": "static/history or simulated fixture checks; no live setid-success dependency",
+      "separateNativeScript": "permission-profile-independent/native-profile.mjs is opt-in, not canonical; four member-group operations plus other historical cases, exactNode22 profile"
+    },
+    "otherLimits": [
+      "Two darwin-profile.test.ts characterization cases require Node22.22.2/libuv1.51.0, not current Node24, and are independent old profile prerequisites, not newly measured failures.",
+      "Existing expectedMode values are per-test filesystem readback or old captured data; no global expectedMode derived from the two authority records.",
+      "Affected tests have strict assertions, no environment skip/unsupported-return route. Entire canonical expected paths/zero-skip policy remains fixed.",
+      "Overall dependent dynamic-case cardinality across632 canonical paths is not established by this bounded static trace. No claim exactly two product tests or all remaining groups eligible."
+    ]
+  },
+  "proposal": {
+    "optionStrict": "Keep consumed current strict gate nonzero/HOLD; no further gate under old authorization.",
+    "optionVersioned": "Root may approve a separately named environment-qualified profile with exactly two native eligibility rows retaining original mode/argv/tool/fence/status/stderr/effects and ENVIRONMENT_UNSUPPORTED/UNQUALIFIED;51 identity results remain a separate passed-identity table.",
+    "dependentResults": "Keep dependent cases NOT_EXECUTED_DEPENDENCY/UNQUALIFIED with explicit names/vector cardinalities and references to eligibility rows, not extra fake native failures or passes. Separately report actually run unaffected assertions; never blanket-drop chmod/stat/mktemp or rewriteexpectedMode.",
+    "necessaryOwnerChange": "Shipping execute.mjs:74 awaits monolithic frozen prerequisites, which asserts at40 before returning. Catch-and-ignore does not complete later byte/SafeJS prerequisites. Maintained owner must author/reseal an additive setup/profile orchestration entry separating original exported fixtureAuthority result from independently required remaining stages, without editing frozen helper, clearing issues, spoofing subprocess status or interpreting nonexistent result.safejs as success.",
+    "mechanism": "fixtureAuthority already returns structured issues/probes and persists JSON before caller assertion; use exact bound original export/evidence as the eligibility component, plus a separately reviewed manifest of downstream requirements/selection. No execution now; future attempts need distinct root GO.",
+    "aggregation": "Old policy.mjs gateVerdict insists14 phases, complete bindings/guards and zero skipped/todo/cancelled. New partial profile cannot report old QUALIFIED_ZERO_SKIP_GATE or49/51. Retain strict nonzero/HOLD and an explicitly limited unaffected-results table.",
+    "policyChoices": [
+      "Keep strict HOLD only, or authorize authoring a named partial environment-qualified profile.",
+      "Choose exact dependent-case selection/blocked ledger and reporting semantics prospectively; no grant of setid capability, widened OS/Node permissions, privileged helper or out-of-fence reroute."
+    ],
+    "notGuaranteed": "Unrelated canonical/type/package/native work may be structurally separable, but is not presently runnable through frozen monolith after this failure; remaining private/setup/historical profile guards still need independently satisfied prerequisites. No all-unrelated-pass claim."
+  },
+  "cleanup": {
+    "recorded": {
+      "workerPid": 67506,
+      "workerClosed": true,
+      "workerProcessClean": true,
+      "signals": [],
+      "survivors": [],
+      "observerSurvivors": [],
+      "completedSupervisedPhases": 0,
+      "phaseProtocolClean": false,
+      "aggregateFenceClean": false,
+      "qualification": "Natural worker/observed owned closure; overall phase/final-sweep completeness false. No hard-kernel/all-background-drain claim."
+    },
+    "workerStatus": 1,
+    "elapsedMs": 71302,
+    "observedProcessRows": 131,
+    "probePidCaptured": false,
+    "retained": {
+      "output": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+      "outer": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB",
+      "workRoot": {
+        "path": "/private/tmp/unified76-os-write-HzSPPY",
+        "device": 16777232,
+        "inode": 181438673,
+        "mode": 448,
+        "uid": 501
+      },
+      "temporary": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7",
+      "rawFiles": 8,
+      "rawBytes": 19061272,
+      "rootsRemoved": false,
+      "qualification": "New failed roots and raw artifacts retained; no old attempt mutation or duplicate full snapshot."
+    },
+    "metadataAt": "2026-08-28T11:19:48.102Z",
+    "retainedMetadata": [
+      {
+        "path": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+        "exists": true,
+        "device": 16777232,
+        "inode": 181438674,
+        "uid": 501,
+        "gid": 0,
+        "mode": "700",
+        "bytes": 128,
+        "kind": "directory"
+      },
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB",
+        "exists": true,
+        "device": 16777232,
+        "inode": 181438672,
+        "uid": 501,
+        "gid": 20,
+        "mode": "700",
+        "bytes": 224,
+        "kind": "directory"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY",
+        "exists": true,
+        "device": 16777232,
+        "inode": 181438673,
+        "uid": 501,
+        "gid": 0,
+        "mode": "700",
+        "bytes": 128,
+        "kind": "directory"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7",
+        "exists": true,
+        "device": 16777232,
+        "inode": 181438816,
+        "uid": 501,
+        "gid": 0,
+        "mode": "700",
+        "bytes": 448,
+        "kind": "directory"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755",
+        "exists": true,
+        "device": 16777232,
+        "inode": 181484102,
+        "uid": 501,
+        "gid": 20,
+        "mode": "644",
+        "bytes": 16,
+        "kind": "regular"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755",
+        "exists": true,
+        "device": 16777232,
+        "inode": 181484103,
+        "uid": 501,
+        "gid": 20,
+        "mode": "644",
+        "bytes": 16,
+        "kind": "regular"
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2/SETUP-COMPLETE.json",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/safejs-engine",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/AGENTS.md",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "exists": false
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+        "exists": false
+      }
+    ],
+    "privateAndInstruction": "Would-copy metadata admission reached; no privateBefore/privateAfter/engine copy/finalguards. Six omitted paths absent at recorded capture and current lstat; absence is not universal no-copy history or clean private postguard.",
+    "reviewerCleanups": 0,
+    "reviewerSignals": 0,
+    "reviewerRuntimeWorkers": 0
+  },
+  "preservation": {
+    "firstConsumed": "8e6b40ecd2cec2b6dcaf2ce80c0cff477d39e6eb / df89d474bb863b3815f6e81f81917dcef4227779 unchanged; original EPERM target UNKNOWN",
+    "v1": "99684045 retains30PASS2harnessFAIL1UNEXECUTED",
+    "v2": "5bec6231 retains14PASS continuation separately;E03.3unsupported",
+    "a10PackageProtection": "Prior bound evidence only, not rerun or rescored"
+  },
+  "verification": {
+    "method": "Read-only pinned Git/source/JSON, bounded gzip/SHA256 and exact retained-path lstat; no candidate code imported/evaluated, no native/helper/test/probe/build/A10/private operation.",
+    "rawCapturesVerified": 8,
+    "sourceInputs": [
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/RAW-INDEX.json",
+        "bytes": 3646,
+        "sha256": "354cb1e6a2386c613722ee3dbe09890d0f77b9df2da508897f1de797ab835244"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/TERMINAL.json",
+        "bytes": 21528,
+        "sha256": "98aa520d58b708f0e0be0b79392aa2be38ce21999b0c63b47ed4aaf80d625b22"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/LAUNCH-OBSERVATION.json",
+        "bytes": 1283,
+        "sha256": "8623995b6ac105e5930a87b5b8f0df9e2855b6dde26d34658b7495bb9b5a0490"
+      },
+      {
+        "commit": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/ROOT-AUTHORIZATION.json",
+        "bytes": 31061,
+        "sha256": "6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d"
+      },
+      {
+        "commit": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/AUTHENTICATION.json",
+        "bytes": 736,
+        "sha256": "c453768703ee9a3e6c9b06e0ad97aa112cacaff32f1d42416a1cbaaed97b6726"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/inner-ADMISSION.json.gz",
+        "bytes": 6908,
+        "sha256": "698e716151c697b59107eb510726084dd7fca9c9b725a06c97d0c712ac94e5e8"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/inner-REPORT.json.gz",
+        "bytes": 3489694,
+        "sha256": "8bb0febd3454b19f1803c07aa20f72d8a6d2fb6c9e76a26599d497702fc22b5c"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/outer-OS-FENCE-RESULT.json.gz",
+        "bytes": 3662,
+        "sha256": "06e90a906e2e317865d454d8133bbdd7131a45d63680b0cc0c74f022ff913f98"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/outer-OS-FENCE.json.gz",
+        "bytes": 1344,
+        "sha256": "9bf074bf054524d006026dc490c076ca7de0aca3ebf5a00efb0bfb0db7361658"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/outer-REPORT.json.gz",
+        "bytes": 4921,
+        "sha256": "83700aa02508fa6204cab09a6965b1c0e7e7c6117c89e9bf6368439f9aadf49a"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/outer-stdout.gz",
+        "bytes": 5272,
+        "sha256": "c98e951022234c2d937dc7d9a6f7b0f3ad68dd60a46bb4b7b868dcbf6547d0f0"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/outer-stderr.gz",
+        "bytes": 20,
+        "sha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+      },
+      {
+        "commit": "55db52a45e583017fba50c02ad64bddce2feb251",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/raw-v1/native-fixture-authority.json.gz",
+        "bytes": 895,
+        "sha256": "bb9902f69536f9dfd1b8fe69247fbc3c146536cd40a15bf1af2950017bde8600"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/canonical-env/runner.mjs",
+        "bytes": 8968,
+        "sha256": "696509306241865d645965277df7b485b160f252f12039e5f25e3ca467d7e40c"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/plugins/stream-five-public/harness.mjs",
+        "bytes": 5539,
+        "sha256": "bc1c0ba95a0b928b6f35bfc6de40ec60006707b162c97b49474ba33ad8ae55dd"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/native-differential.test.ts",
+        "bytes": 6698,
+        "sha256": "eb0c185f1ccef217971faeac4394150695b8f47c4906d01c0367f7094b16b999"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/chmod-controls.test.ts",
+        "bytes": 3737,
+        "sha256": "f93d92ce384307a5226ad85b27cdf74da1d2026125d14e575109e661eb56c02c"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/permission-profile/fixtures.ts",
+        "bytes": 4232,
+        "sha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+        "bytes": 5012,
+        "sha256": "182f4e56f18a20414811589d91d4cd25db7196101d063353942df38158c50084"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/permission-profile-independent/review.test.ts",
+        "bytes": 14829,
+        "sha256": "8cb950148f04f94cbc9c2027c6438b893483a1a0a170fddc503f75cc5e413b83"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/plugins/qualified-current-release/prerequisites.test.mjs",
+        "bytes": 3208,
+        "sha256": "4c7688d503a3b9f66931e5d959af941aad1078f2df892b575487592c30ad32da"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/permission-profile-independent/native-profile.mjs",
+        "bytes": 9909,
+        "sha256": "a84c9ddd10768cd6550bbac53a8ee0810afad349b424ab9952d2c41dd30c96d0"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts",
+        "bytes": 8581,
+        "sha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "scripts/verify-qualified-release.mjs",
+        "bytes": 9955,
+        "sha256": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/helpers.ts",
+        "bytes": 3161,
+        "sha256": "cb70e69c261db9e634ce5afe6b6661139f63dbe489c1044853a083ba2020acd2"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+        "bytes": 1409701,
+        "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/canonical-env/original.json",
+        "bytes": 545266,
+        "sha256": "cef593bf27f33d395116e7c18aab1d1ea8544d7e89dbbe3750260e2b7182de27"
+      },
+      {
+        "commit": "52e83606dc41297a20cbeb3e0fc4ecf703bb242d",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/release-packet-v3-inherited-routes/PACKET.json",
+        "bytes": 100535,
+        "sha256": "ece6ddcb0756c7aba1a5ca32ce81ee5644228ec5b67d3c2524acfa7595cca032"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+        "bytes": 4332,
+        "sha256": "acbb37f19f8d83c2c068520f4eb25edffe5841cb99eb9c3a2a7d2bbf7211ee5b"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "bytes": 21106,
+        "sha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+        "bytes": 16268,
+        "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/os-instruction-fence.mjs",
+        "bytes": 6239,
+        "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+        "bytes": 4441,
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+      },
+      {
+        "commit": "96daebc077381fb63ab6447a26ab707ce790ff25",
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/phase-runner.mjs",
+        "bytes": 2528,
+        "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+        "bytes": 5589,
+        "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/plugins/qualified-current-release/prerequisites.mjs",
+        "bytes": 6197,
+        "sha256": "052dc58ece76f3136ad03212b9f938502cf2f0ca5ebfd03876c3be9ea11eaf39"
+      },
+      {
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "path": "tests/commands/metadata-stress/permission-profile/author-qualified-v2/vectors.json.data",
+        "bytes": 76407,
+        "sha256": "5d636767b0059332d8ec507baeee3012bc940cc18251a90a599827617c5bbab5"
+      }
+    ],
+    "readerNote": "One read-only git grep command used an unquoted shell path glob and was rejected before grep; repeated with quoted Git pathspec. No runtime probe or evidence mutation."
+  }
+}

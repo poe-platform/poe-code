@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "date": "2026-08-28",
+  "mode": "DATA_SYNTHETIC_ONLY",
+  "nativeAuthorized": false,
+  "realNodeChildrenAuthorized": false,
+  "productImportsAuthorized": false,
+  "plannedModules": [
+    "admission.mjs",
+    "storage.mjs",
+    "lifecycle.mjs",
+    "observer.mjs",
+    "node-driver.mjs",
+    "cli.mjs",
+    "synthetic.mjs"
+  ],
+  "controls": [
+    "natural-zero",
+    "native-nonzero-observation",
+    "sync-spawn-throw-no-close",
+    "async-spawn-error-no-close",
+    "missing-close-hard-terminal",
+    "surviving-group-hard-terminal",
+    "output-overflow",
+    "aggregate-output-overflow",
+    "late-stream-error-handled",
+    "post-spawn-receipt-failure-accounted",
+    "mkdir-after-acquisition-inspection-failure",
+    "replaced-directory-not-deleted",
+    "new-fixture-entry-refused",
+    "final-module-drift",
+    "final-authorization-drift",
+    "final-config-drift",
+    "final-seal-drift",
+    "final-row-input-drift",
+    "extra-module-refused",
+    "bad-binary-hash",
+    "missing-root-go",
+    "wrong-go-seal",
+    "unselected-row-refused",
+    "whole-deadline-before-launch",
+    "outside-receipt-refused",
+    "cleanup-failure-refused",
+    "stdin-write-error",
+    "empty-cohort-refused"
+  ],
+  "originalPacketCommit": "1fe588eeba0cdb09adfb948eeded681d15d134f2",
+  "differentReview": [
+    "848a8eaa",
+    "959eff75"
+  ],
+  "requiredFixes": [
+    "ownership registered before mkdir/identity inspection",
+    "terminal deadline without close or group disappearance",
+    "full final control/module/auth/config/row byte authentication",
+    "launched accounting independent of receipt persistence",
+    "spawn throw/error never fabricates close"
+  ],
+  "limits": {
+    "syntheticScenarios": 28,
+    "modelEventsPerScenario": 4096,
+    "virtualMillisecondsPerScenario": 150001,
+    "retainedSyntheticReportBytes": 2097152,
+    "actualChildProcesses": 0,
+    "nativeProcesses": 0
+  },
+  "qualification": "Concrete modules not yet written at this preseal. Finite dependency model tests will exercise whole imported modules, not certify OS behavior."
+}

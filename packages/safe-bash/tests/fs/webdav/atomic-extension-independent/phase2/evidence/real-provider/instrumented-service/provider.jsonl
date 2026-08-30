@@ -1,0 +1,242 @@
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-empty/"}
+{"event": "native-rmdir", "path": "/ind-empty/"}
+{"event": "native-removed", "path": "/ind-empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-auth-second-principal/", "principal": "other"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-nonempty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-nonempty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-nonempty/"}
+{"event": "native-rmdir", "path": "/ind-nonempty/"}
+{"event": "native-error", "path": "/ind-nonempty/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-native-race/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-native-race/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-native-race/"}
+{"event": "native-rmdir", "path": "/ind-native-race/"}
+{"event": "native-error", "path": "/ind-native-race/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-token/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-token/", "principal": "fixture"}
+{"event": "actual-lock-manager-rejected", "path": "/ind-token/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-token/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-token/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-token/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-token/"}
+{"event": "native-rmdir", "path": "/ind-token/"}
+{"event": "native-removed", "path": "/ind-token/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-other-lock/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-0/empty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-0/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-parent-0/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-parent-0/empty/"}
+{"event": "native-rmdir", "path": "/ind-parent-0/empty/"}
+{"event": "native-removed", "path": "/ind-parent-0/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-infinity/empty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-infinity/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-parent-infinity/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-parent-infinity/empty/"}
+{"event": "native-rmdir", "path": "/ind-parent-infinity/empty/"}
+{"event": "native-removed", "path": "/ind-parent-infinity/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-descendant/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-descendant/", "principal": "fixture"}
+{"event": "actual-lock-manager-rejected", "path": "/ind-descendant/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-expired/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-expired/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-expired/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-expired/"}
+{"event": "native-rmdir", "path": "/ind-expired/"}
+{"event": "native-removed", "path": "/ind-expired/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-serialize/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-serialize/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-serialize/"}
+{"event": "native-rmdir", "path": "/ind-serialize/"}
+{"event": "native-error", "path": "/ind-serialize/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-expiry-parent/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-expiry-parent/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-expiry-parent/empty/"}
+{"event": "native-rmdir", "path": "/ind-expiry-parent/empty/"}
+{"event": "native-removed", "path": "/ind-expiry-parent/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-refresh/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-refresh/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-refresh/empty/"}
+{"event": "native-rmdir", "path": "/ind-refresh/empty/"}
+{"event": "native-removed", "path": "/ind-refresh/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-unlock/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-unlock/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-unlock/empty/"}
+{"event": "native-rmdir", "path": "/ind-unlock/empty/"}
+{"event": "native-removed", "path": "/ind-unlock/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-put-race/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-put-race/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-put-race/"}
+{"event": "native-rmdir", "path": "/ind-put-race/"}
+{"event": "native-removed", "path": "/ind-put-race/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-root-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-receipt/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-receipt/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-receipt/"}
+{"event": "native-rmdir", "path": "/ind-receipt/"}
+{"event": "native-removed", "path": "/ind-receipt/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-cancel-before-native/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-cancel-before-native/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-cancel-before-native/"}
+{"event": "native-rmdir", "path": "/ind-cancel-before-native/"}
+{"event": "native-removed", "path": "/ind-cancel-before-native/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-cancel-after-native/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-cancel-after-native/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-cancel-after-native/"}
+{"event": "native-rmdir", "path": "/ind-cancel-after-native/"}
+{"event": "native-removed", "path": "/ind-cancel-after-native/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/mut-recursive/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/mut-recursive/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/mut-recursive/"}
+{"event": "native-rmdir", "path": "/mut-recursive/"}
+{"event": "native-removed", "path": "/mut-recursive/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/mut-lock/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/mut-lock/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/mut-lock/"}
+{"event": "native-rmdir", "path": "/mut-lock/"}
+{"event": "native-removed", "path": "/mut-lock/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/mut-auth/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/mut-auth/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/mut-auth/"}
+{"event": "native-rmdir", "path": "/mut-auth/"}
+{"event": "native-removed", "path": "/mut-auth/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-empty/"}
+{"event": "native-rmdir", "path": "/ind-empty/"}
+{"event": "native-removed", "path": "/ind-empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-auth-second-principal/", "principal": "other"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-nonempty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-nonempty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-nonempty/"}
+{"event": "native-rmdir", "path": "/ind-nonempty/"}
+{"event": "native-error", "path": "/ind-nonempty/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-native-race/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-native-race/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-native-race/"}
+{"event": "native-rmdir", "path": "/ind-native-race/"}
+{"event": "native-error", "path": "/ind-native-race/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-token/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-token/", "principal": "fixture"}
+{"event": "actual-lock-manager-rejected", "path": "/ind-token/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-token/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-token/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-token/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-token/"}
+{"event": "native-rmdir", "path": "/ind-token/"}
+{"event": "native-removed", "path": "/ind-token/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-other-lock/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-0/empty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-0/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-parent-0/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-parent-0/empty/"}
+{"event": "native-rmdir", "path": "/ind-parent-0/empty/"}
+{"event": "native-removed", "path": "/ind-parent-0/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-infinity/empty/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-parent-infinity/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-parent-infinity/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-parent-infinity/empty/"}
+{"event": "native-rmdir", "path": "/ind-parent-infinity/empty/"}
+{"event": "native-removed", "path": "/ind-parent-infinity/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-descendant/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-descendant/", "principal": "fixture"}
+{"event": "actual-lock-manager-rejected", "path": "/ind-descendant/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-expired/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-expired/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-expired/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-expired/"}
+{"event": "native-rmdir", "path": "/ind-expired/"}
+{"event": "native-removed", "path": "/ind-expired/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-serialize/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-serialize/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-serialize/"}
+{"event": "native-rmdir", "path": "/ind-serialize/"}
+{"event": "native-error", "path": "/ind-serialize/", "code": "ENOTEMPTY"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-expiry-parent/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-expiry-parent/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-expiry-parent/empty/"}
+{"event": "native-rmdir", "path": "/ind-expiry-parent/empty/"}
+{"event": "native-removed", "path": "/ind-expiry-parent/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-refresh/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-refresh/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-refresh/empty/"}
+{"event": "native-rmdir", "path": "/ind-refresh/empty/"}
+{"event": "native-removed", "path": "/ind-refresh/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-unlock/empty/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-unlock/empty/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-unlock/empty/"}
+{"event": "native-rmdir", "path": "/ind-unlock/empty/"}
+{"event": "native-removed", "path": "/ind-unlock/empty/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-put-race/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-put-race/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-put-race/"}
+{"event": "native-rmdir", "path": "/ind-put-race/"}
+{"event": "native-removed", "path": "/ind-put-race/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-root-binding/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-receipt/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-receipt/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-receipt/"}
+{"event": "native-rmdir", "path": "/ind-receipt/"}
+{"event": "native-removed", "path": "/ind-receipt/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-cancel-before-native/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-cancel-before-native/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-cancel-before-native/"}
+{"event": "native-rmdir", "path": "/ind-cancel-before-native/"}
+{"event": "native-removed", "path": "/ind-cancel-before-native/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/ind-cancel-after-native/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/ind-cancel-after-native/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/ind-cancel-after-native/"}
+{"event": "native-rmdir", "path": "/ind-cancel-after-native/"}
+{"event": "native-removed", "path": "/ind-cancel-after-native/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/mut-recursive/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/mut-recursive/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/mut-recursive/"}
+{"event": "native-rmdir", "path": "/mut-recursive/"}
+{"event": "native-removed", "path": "/mut-recursive/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/mut-lock/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/mut-lock/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/mut-lock/"}
+{"event": "native-rmdir", "path": "/mut-lock/"}
+{"event": "native-removed", "path": "/mut-lock/"}
+{"event": "authenticated-extension-request", "method": "DELETE", "path": "/mut-auth/", "principal": "fixture"}
+{"event": "hook-after-standard-parent-check", "path": "/mut-auth/", "principal": "fixture"}
+{"event": "actual-lock-manager-approved", "path": "/mut-auth/"}
+{"event": "native-rmdir", "path": "/mut-auth/"}
+{"event": "native-removed", "path": "/mut-auth/"}
+{"event": "authenticated-extension-request", "method": "OPTIONS", "path": "/", "principal": "fixture"}

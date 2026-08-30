@@ -1,0 +1,62 @@
+{
+  "schema": "bash-readiness-publication-checkpoint-v1",
+  "at": 1787984318067,
+  "phaseStarted": 1787983607671,
+  "deadline": 1787984807671,
+  "limits": {
+    "allProcesses": 40,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "registeredAdministrativeAndControllerChildren": 18,
+  "observedTargetChildren": 1,
+  "totalKnownStarts": 19,
+  "registeredActive": 0,
+  "knownExitCloseEOF": true,
+  "newTargetGroup": "ABSENT_ESRCH_AT_SINGLE_OBSERVATION",
+  "historicalGroup": "UNKNOWN_UNCHANGED",
+  "primary": "TARGET_SIGNAL",
+  "targetAdmission": "CLOSED",
+  "reservedTargets": 1,
+  "rawAdminAndControllerStreams": 14755,
+  "caseEffects": [
+    {
+      "path": "case/home",
+      "entries": []
+    },
+    {
+      "path": "case/tmp",
+      "entries": []
+    },
+    {
+      "path": "case/empty-path",
+      "entries": []
+    },
+    {
+      "path": "case/work",
+      "entries": []
+    }
+  ],
+  "postProfileSha256": "17d2628a44e52c4fe245021ccdca8cc8ae7202b123800a3659a7fd79eee2c037",
+  "ownedLogicalBytes": {
+    "repositoryScope": {
+      "bytes": 110429,
+      "files": 17
+    },
+    "outer": {
+      "bytes": 173521,
+      "files": 58
+    },
+    "target": {
+      "bytes": 15014,
+      "files": 6
+    }
+  },
+  "publicationTail": "Only this receipt and explicit Git evidence publication/status remain; final actual metadata child counts are captured separately in outer FINAL-CLOSED.json. No target re-admission.",
+  "limitations": [
+    "Known-child/stream and one group observation, not kernel-wide descendant census",
+    "Logical sampled regular-file caps, not hard filesize/RSS bound",
+    "No actual crash-image or denied-permission attribution"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "state": "STATIC_COMPOSITION_PREPARATION_ONLY",
+  "allowedOperations": [
+    "Git object and index reads",
+    "Standard filesystem data read/copy/rename/hash/mode/membership checks",
+    "apply_patch new-owned source/data authoring",
+    "Node syntax-only --check",
+    "write-spec structural checker"
+  ],
+  "failedPreparationAttempts": [
+    {
+      "step": "Specification structural checker",
+      "observed": "2 errors: required Conformance Criteria missing; Implemented Through metadata had explanatory suffix",
+      "resolution": "Corrected owned prose and reran checker with0warnings; no code execution"
+    },
+    {
+      "step": "Static build-tool layout comparison",
+      "observed": {
+        "recipeSha256": "f1ee46b9d19d54f7193297847bc4c16362a9fb86116358a5848aed4a24d3c7cb",
+        "assemblySealSha256": "e76d298984d9f930e8fa506ee1eb79a40787f616be6ed0a2c789b6dbaa305548",
+        "toolDataCopySha256": "9144c41918a19d89b1d05899aed19bb14857964cc33d731f58b9cd8c20c52c0c",
+        "cause": "Static exact-build-layout comparison failed: sealed build-plan tools.typescript.relativePath is typescript, not node_modules/typescript. No executable or candidate was run; final preparation corrected before commit/GO."
+      },
+      "resolution": "Corrected standard-data TypeScript destination to exact sealed build relativePath typescript; regenerated affected uncommitted composition seals and recipe; six build postimages unchanged"
+    },
+    {
+      "step": "Final static metadata tree walk",
+      "observed": "Canonical path equality rejected a trailing slash in the inspection argument before final seal creation",
+      "resolution": "Used path.resolve for this data-only inspection; no artifact/executor/candidate execution"
+    }
+  ],
+  "staticRefinements": [
+    "Disjoint0755 scratch and exact248-file compiler subtree required by completed build/type interfaces",
+    "Parent build artifact adoption interval recorded and constrained to existing slot deadline/raw budget",
+    "CLI explicitly sets umask0022 after authorization; no preauthorization global change"
+  ],
+  "sourceCopyObservation": "File content/mode/size identities checked before/after each ordinary copy; complete source tool memberships additionally rechecked after copy; no transaction/change-and-restore guarantee",
+  "counts": {
+    "syntaxFiles": 31,
+    "productImports": 0,
+    "authoredModuleEvaluation": 0,
+    "compilerExecutions": 0,
+    "loaderCalls": 0,
+    "workerExecutions": 0,
+    "coordinatorExecutions": 0,
+    "controlPredicateExecutions": 0,
+    "authoredMaterializerExecutions": 0,
+    "copiedToolExecutions": 0,
+    "candidateMaterializations": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "historyPreserved": true,
+  "RootGOCreated": false
+}

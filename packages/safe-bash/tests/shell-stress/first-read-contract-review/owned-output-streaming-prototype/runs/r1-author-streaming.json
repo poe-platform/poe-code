@@ -1,0 +1,37 @@
+{
+  "label": "r1-author-streaming",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/shell/owned-output-streaming-author.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-streaming-prototype-work-C7rt0j/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T11:09:36.129Z",
+  "finishedAt": "2026-08-27T11:09:36.430Z",
+  "durationMs": 300.452667,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 83906,
+  "initialIdentity": "83906 83762 83906 Thu Aug 27 06:09:36 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 tests/shell/owned-output-streaming-author.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: S1 streaming/backpressure and retained reused binary replay\nok 1 - S1 streaming/backpressure and retained reused binary replay\n  ---\n  duration_ms: 5.330834\n  type: 'test'\n  ...\n# {\"profile\":\"bounded-stream\",\"status\":0,\"beforeEof\":true,\"producedAtBackpressure\":1,\"uploadBytes\":[17010],\"events\":[\"request\",\"first-body-write\",\"eof\"]}\n# {\"profile\":\"replay\",\"status\":0,\"beforeEof\":true,\"producedAtBackpressure\":1,\"uploadBytes\":[17010,17010],\"events\":[\"request\",\"first-body-write\",\"eof\",\"request\"]}\n# Subtest: S2 loopback streaming upload cancels only owned transfer\nok 2 - S2 loopback streaming upload cancels only owned transfer\n  ---\n  duration_ms: 19.627459\n  type: 'test'\n  ...\n# {\"publicStatus\":141,\"operationAborted\":true,\"cooperativeTransportClosed\":1,\"stageAbortedBeforeReturn\":false,\"receivedBeforeEof\":32768,\"reads\":2,\"topLevelOwnerReturns\":1}\n# Subtest: S3 actual invoke borrows live owner while opaque next settles late\nok 3 - S3 actual invoke borrows live owner while opaque next settles late\n  ---\n  duration_ms: 6.778083\n  type: 'test'\n  ...\n# {\"late\":\"fulfill\",\"binding\":\"custom\",\"publicStatus\":0,\"childStatus\":141,\"operationClosed\":true,\"stageAborted\":false,\"ownerLiveDuringCheck\":true,\"borrowedReturnsWhileOwnerLive\":0,\"topLevelOwnerReturns\":1,\"noHandbackAssertion\":true}\n# {\"late\":\"fulfill\",\"binding\":\"curl\",\"publicStatus\":0,\"childStatus\":141,\"operationClosed\":true,\"stageAborted\":false,\"ownerLiveDuringCheck\":true,\"borrowedReturnsWhileOwnerLive\":0,\"topLevelOwnerReturns\":1,\"noHandbackAssertion\":true}\n# {\"late\":\"reject\",\"binding\":\"custom\",\"publicStatus\":0,\"childStatus\":141,\"operationClosed\":true,\"stageAborted\":false,\"ownerLiveDuringCheck\":true,\"borrowedReturnsWhileOwnerLive\":0,\"topLevelOwnerReturns\":1,\"noHandbackAssertion\":true}\n# {\"late\":\"reject\",\"binding\":\"curl\",\"publicStatus\":0,\"childStatus\":141,\"operationClosed\":true,\"stageAborted\":false,\"ownerLiveDuringCheck\":true,\"borrowedReturnsWhileOwnerLive\":0,\"topLevelOwnerReturns\":1,\"noHandbackAssertion\":true}\n# Subtest: S4 mixed required files headers writeout stderr and sibling lifetimes\nok 4 - S4 mixed required files headers writeout stderr and sibling lifetimes\n  ---\n  duration_ms: 8.877292\n  type: 'test'\n  ...\n# {\"profile\":\"body-file\",\"publicStatus\":141,\"childStatus\":141,\"stageAborted\":false,\"requestAbortedBeforeResponse\":false,\"uploaded\":11,\"stdout\":\"\",\"stderr\":\"diagnostic-kept\\\\n\"}\n# {\"profile\":\"header-file\",\"publicStatus\":141,\"childStatus\":141,\"stageAborted\":false,\"requestAbortedBeforeResponse\":false,\"uploaded\":11,\"stdout\":\"\",\"stderr\":\"diagnostic-kept\\\\n\"}\n# {\"profile\":\"healthy-writeout\",\"publicStatus\":0,\"childStatus\":0,\"stageAborted\":false,\"requestAbortedBeforeResponse\":false,\"uploaded\":11,\"stdout\":\"200\",\"stderr\":\"diagnostic-kept\\\\n\"}\n# Subtest: S5 explicit children synchronous admission and cooperative cleanup\nok 5 - S5 explicit children synchronous admission and cooperative cleanup\n  ---\n  duration_ms: 0.684125\n  type: 'test'\n  ...\n# {\"normalCloseNoAbort\":true,\"childRelease\":1,\"refusedLateAdmission\":true,\"cooperativeGrandchildCleanup\":1,\"firstReasonPreserved\":true,\"opaqueReleasedAfterClose\":true}\n# Subtest: S6 caller public precedence cleanup errors genuine status pipefail\nok 6 - S6 caller public precedence cleanup errors genuine status pipefail\n  ---\n  duration_ms: 2.210333\n  type: 'test'\n  ...\n# {\"callerIdentity\":true,\"operationFirstReasonEPIPE\":true,\"cleanupCompleted\":true,\"singleCleanupIdentity\":true,\"aggregateOrder\":true,\"alreadyAbortedCallerWins\":true,\"genuineStatusDefault\":0,\"genuineStatusPipefail\":7}\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 265.147875\n",
+  "stderr": ""
+}

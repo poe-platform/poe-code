@@ -1,0 +1,259 @@
+{
+  "at": "2026-08-27T06:32:55.616Z",
+  "scope": "Owned records and source hashes only; no launch, approval gate, package/closure execution or network",
+  "priorNamedCopies": [
+    {
+      "path": "prior-candidate-v2/representative.mjs",
+      "sha256": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/observe-process.mjs",
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/observe-load.mjs",
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/representative-plan-v2.json",
+      "sha256": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/handoff-manifest.json",
+      "sha256": "17776da9868967eddcce038984ef5dcf5a8418f0901045d97ccba33d6d4dfc65",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/REPORT.md",
+      "sha256": "cfe2a7dc2d7b378012a9591195b1afa56c4acb3a701291a6ee07017c884c5adb",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/text-plan.txt",
+      "sha256": "527ac740058732c25d70ccadfae006a66b3ee9d5a7622af51e8e6429d4a64225",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/preflight-detail.txt",
+      "sha256": "59aba77819dc28f224fafc9691588a43a81410872a4e5eeef00ba95877150e4b",
+      "byteExact": true
+    },
+    {
+      "path": "prior-candidate-v2/PREFLIGHT.md",
+      "sha256": "e6ded1b2e674bfc94d2d081a3c9c4eb3818be6afeefa23ed179ffc4139cdf9e4",
+      "byteExact": true
+    }
+  ],
+  "oldSealedFiles": [
+    {
+      "originalPath": "REPORT.md",
+      "checkedPath": "REPORT.md",
+      "sha256": "cfe2a7dc2d7b378012a9591195b1afa56c4acb3a701291a6ee07017c884c5adb",
+      "unchanged": true
+    },
+    {
+      "originalPath": "compare.mjs",
+      "checkedPath": "compare.mjs",
+      "sha256": "c7a06ab0e3fc411b080cd230727237b50b2bcf48fcd62035650b3440ee39dbda",
+      "unchanged": true
+    },
+    {
+      "originalPath": "dependency-tree-comparison.json",
+      "checkedPath": "dependency-tree-comparison.json",
+      "sha256": "82a6e2146ca62f1d3538c054981046fe3fea1b9d1e80804132ee386248b55f57",
+      "unchanged": true
+    },
+    {
+      "originalPath": "download.json",
+      "checkedPath": "download.json",
+      "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0",
+      "unchanged": true
+    },
+    {
+      "originalPath": "download.mjs",
+      "checkedPath": "download.mjs",
+      "sha256": "9d51078a6fdee8182dc832b41b971dfd77b23229d572447647866d1600c15b0f",
+      "unchanged": true
+    },
+    {
+      "originalPath": "execution-closure.json",
+      "checkedPath": "execution-closure.json",
+      "sha256": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821",
+      "unchanged": true
+    },
+    {
+      "originalPath": "extract.py",
+      "checkedPath": "extract.py",
+      "sha256": "08d8b148a845459ff59391ec5d0a24399d32e47ef37d9fc3f6ed26a712e804f4",
+      "unchanged": true
+    },
+    {
+      "originalPath": "extraction-guards.json",
+      "checkedPath": "extraction-guards.json",
+      "sha256": "acc8286ac614e5ae3df908af0bc9cd68ea418fb904240f2dc3da0754b13e286a",
+      "unchanged": true
+    },
+    {
+      "originalPath": "extraction-guards.py",
+      "checkedPath": "extraction-guards.py",
+      "sha256": "c2595c9378b1401f6056131b43e60cac8c8ad91a9af324fd4d0ac351d22aeb10",
+      "unchanged": true
+    },
+    {
+      "originalPath": "final-offline-check.json",
+      "checkedPath": "final-offline-check.json",
+      "sha256": "1769ade8c49ec902a86222724f02fe44c84d522894e6b110039f33080e5aa6b4",
+      "unchanged": true
+    },
+    {
+      "originalPath": "final-offline-check.mjs",
+      "checkedPath": "final-offline-check.mjs",
+      "sha256": "a6f525102a8f9dcd68c72b83551439ecb20d3c2c27aefc572f572e3a68fdac12",
+      "unchanged": true
+    },
+    {
+      "originalPath": "guarded-reextraction.json",
+      "checkedPath": "guarded-reextraction.json",
+      "sha256": "2ec049d91143515feddb62df6e9c6901cea9e670b06bdedbd321a171f4514ce5",
+      "unchanged": true
+    },
+    {
+      "originalPath": "historical-import-authentication.json",
+      "checkedPath": "historical-import-authentication.json",
+      "sha256": "e0389ee7fb9d8579f9d9f46af361a7051075c166ee01c374ae5deafa3e8062b9",
+      "unchanged": true
+    },
+    {
+      "originalPath": "lock-graph-check.json",
+      "checkedPath": "lock-graph-check.json",
+      "sha256": "4f08c966b7ec57dff1b9412045eefff1ef59e34e020ff7301608d021ef18c602",
+      "unchanged": true
+    },
+    {
+      "originalPath": "manifest-lock-entry.json",
+      "checkedPath": "manifest-lock-entry.json",
+      "sha256": "c5c972804d9e0a2f44de85fe95e74c2403b899f9f515a73a66ddebf0a8d8e5a4",
+      "unchanged": true
+    },
+    {
+      "originalPath": "observe-load.mjs",
+      "checkedPath": "observe-load.mjs",
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "unchanged": true
+    },
+    {
+      "originalPath": "observe-process.mjs",
+      "checkedPath": "observe-process.mjs",
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "unchanged": true
+    },
+    {
+      "originalPath": "offline-attempt-001.json",
+      "checkedPath": "offline-attempt-001.json",
+      "sha256": "3e709a4859dc4b718a31803197676278bbf6722e6e8e97bd7d0c08ec3cbfdb14",
+      "unchanged": true
+    },
+    {
+      "originalPath": "offline-attempt-002.json",
+      "checkedPath": "offline-attempt-002.json",
+      "sha256": "258f155a665de98f92f1bff190fac904d78baaeccb794e3244f0c658d3fc14bb",
+      "unchanged": true
+    },
+    {
+      "originalPath": "offline-attempt-003.json",
+      "checkedPath": "offline-attempt-003.json",
+      "sha256": "4cbeba3c360117fffce431ce04d01ef47739a1bfe8016c7f3610a4b1c08a33b6",
+      "unchanged": true
+    },
+    {
+      "originalPath": "package-comparison.json",
+      "checkedPath": "package-comparison.json",
+      "sha256": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e",
+      "unchanged": true
+    },
+    {
+      "originalPath": "preflight-attempt-001.json",
+      "checkedPath": "preflight-attempt-001.json",
+      "sha256": "9cb4268f3ac3fc9cef4050f54d93c6aa15c494eee5cd3da0319de7032833a1c3",
+      "unchanged": true
+    },
+    {
+      "originalPath": "published-files.json",
+      "checkedPath": "published-files.json",
+      "sha256": "75347f6df092ddf527dff58da2c1d3d58071764b20b3f1e5f55048101c4a4c9d",
+      "unchanged": true
+    },
+    {
+      "originalPath": "registry-metadata.raw.json",
+      "checkedPath": "registry-metadata.raw.json",
+      "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+      "unchanged": true
+    },
+    {
+      "originalPath": "representative-plan-v2.json",
+      "checkedPath": "representative-plan-v2.json",
+      "sha256": "f13ec98a0187d9cb286385fbc32ef488b987071ca19f567e70b4ce0aff8aac99",
+      "unchanged": true
+    },
+    {
+      "originalPath": "representative-plan.json",
+      "checkedPath": "representative-plan.json",
+      "sha256": "2df47077dd42adae50821cf94c839abfde0b63ce3e1b90a198234556d8f1471e",
+      "unchanged": true
+    },
+    {
+      "originalPath": "representative.mjs",
+      "checkedPath": "prior-candidate-v2/representative.mjs",
+      "sha256": "f7d3ed67e685a2e89e6daf5d5920cf36b5f3dd030b8998489264109983ab75ce",
+      "unchanged": true
+    },
+    {
+      "originalPath": "setup-review.json",
+      "checkedPath": "setup-review.json",
+      "sha256": "b8201f1a9ac43b18e9b6108f8c60ab6c8592919aefbf63eb9d661f8b7a341da7",
+      "unchanged": true
+    },
+    {
+      "originalPath": "setup-review.mjs",
+      "checkedPath": "setup-review.mjs",
+      "sha256": "56076c26bc5ad8d1879ed3a0960375fc95ac4ccc060535967e6f80089512dae8",
+      "unchanged": true
+    }
+  ],
+  "oldDriverPreservedNotOverwrittenInHistory": true,
+  "oldPreflightAndReportUnchanged": true,
+  "rowsExactlyEqualPriorV2": true,
+  "distinctIds": 7,
+  "plannedObservations": 8,
+  "actualNodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "actualNodePath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "currentRuntimeFilesMatchRetainedSyntaxChecks": true,
+  "helperCasesPass": 8,
+  "nonProductCheckProcessAccounting": {
+    "attempt1": {
+      "syntax": 7,
+      "helper": 1,
+      "individualStatusesUnavailable": true
+    },
+    "attempt2": {
+      "syntax": 7,
+      "helper": 1
+    },
+    "attempt3": {
+      "syntax": 2,
+      "helper": 0
+    },
+    "total": {
+      "syntax": 16,
+      "helper": 2,
+      "product": 0
+    }
+  },
+  "representativeResultDirectoryAbsent": true,
+  "observerClosureAdditionsNotStaged": true,
+  "executionApproved": false
+}

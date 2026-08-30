@@ -1,0 +1,25 @@
+{
+  "classification": "Targeted verifier-fixture correction only; no replacement of the original7 raw result or full frozen gate",
+  "source": "tests/commands/archive-stress/pax-deletion-independent/controls.test.ts",
+  "sourceSha256": "43ff3bcb19deb2fb6cc9892569744bad3a4edbd64837b8cff0a5c96c101bfb7f",
+  "variant": "/tmp/safe-bash-pax-deletion-d04-corrected.mts",
+  "variantSha256": "50b3ebdac928b9db981a7e06476d69cdc7bab06e1ce3f4d2837d0d7648b7a58f",
+  "helper": "/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/tests/commands/archive-stress/pax-deletion-independent/helpers.ts",
+  "helperSha256": "894c06174de621704733e785271b84e8bbeeffc96bdf40af18fea1cbdc74e165",
+  "transport": "Only helper import redirected to the exact frozen helper; original snapshot and product unchanged",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/tmp/safe-bash-pax-deletion-independent-FEprCU/tree/node_modules/tsx/dist/loader.mjs",
+    "--test",
+    "--test-timeout=15000",
+    "--test-name-pattern=^D04 ",
+    "/tmp/safe-bash-pax-deletion-d04-corrected.mts"
+  ],
+  "cwd": "/tmp/safe-bash-pax-deletion-independent-FEprCU/tree",
+  "status": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: D04 only effective raw fields are decoded and effective sizes preserve following framing\nok 1 - D04 only effective raw fields are decoded and effective sizes preserve following framing\n  ---\n  duration_ms: 13.663459\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 173.889042\n",
+  "stderr": ""
+}

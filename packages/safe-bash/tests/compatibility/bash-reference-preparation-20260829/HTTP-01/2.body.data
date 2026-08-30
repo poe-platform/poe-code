@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+ <head>
+  <title>Index of /gnu/bash/bash-5.3-patches</title>
+ </head>
+ <body>
+<h1>Index of /gnu/bash/bash-5.3-patches</h1>
+  <table>
+   <tr><th valign="top"><img src="/icons/blank.gif" alt="[ICO]"></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th><th><a href="?C=D;O=A">Description</a></th></tr>
+   <tr><th colspan="5"><hr></th></tr>
+<tr><td valign="top"><img src="/icons/back.gif" alt="[PARENTDIR]"></td><td><a href="/gnu/bash/">Parent Directory</a></td><td>&nbsp;</td><td align="right">  - </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-001">bash53-001</a></td><td align="right">2025-07-23 11:23  </td><td align="right">1.5K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-001.sig">bash53-001.sig</a></td><td align="right">2025-07-23 11:23  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-002">bash53-002</a></td><td align="right">2025-07-23 11:23  </td><td align="right">2.6K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-002.sig">bash53-002.sig</a></td><td align="right">2025-07-23 11:23  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-003">bash53-003</a></td><td align="right">2025-07-23 11:23  </td><td align="right">2.6K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-003.sig">bash53-003.sig</a></td><td align="right">2025-07-23 11:23  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-004">bash53-004</a></td><td align="right">2025-11-26 12:37  </td><td align="right">1.2K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-004.sig">bash53-004.sig</a></td><td align="right">2025-11-26 12:37  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-005">bash53-005</a></td><td align="right">2025-11-26 12:37  </td><td align="right">1.0K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-005.sig">bash53-005.sig</a></td><td align="right">2025-11-26 12:37  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-006">bash53-006</a></td><td align="right">2025-11-26 12:37  </td><td align="right">1.3K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-006.sig">bash53-006.sig</a></td><td align="right">2025-11-26 12:37  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-007">bash53-007</a></td><td align="right">2025-11-26 12:38  </td><td align="right">1.4K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-007.sig">bash53-007.sig</a></td><td align="right">2025-11-26 12:38  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-008">bash53-008</a></td><td align="right">2025-11-26 12:38  </td><td align="right">5.6K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-008.sig">bash53-008.sig</a></td><td align="right">2025-11-26 12:38  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-009">bash53-009</a></td><td align="right">2025-12-10 11:17  </td><td align="right">2.4K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-009.sig">bash53-009.sig</a></td><td align="right">2025-12-10 11:17  </td><td align="right"> 95 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-010">bash53-010</a></td><td align="right">2026-06-02 16:14  </td><td align="right">1.4K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-010.sig">bash53-010.sig</a></td><td align="right">2026-06-02 16:14  </td><td align="right">123 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-011">bash53-011</a></td><td align="right">2026-06-02 16:14  </td><td align="right">2.2K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-011.sig">bash53-011.sig</a></td><td align="right">2026-06-02 16:14  </td><td align="right">123 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-012">bash53-012</a></td><td align="right">2026-06-02 16:15  </td><td align="right">2.3K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-012.sig">bash53-012.sig</a></td><td align="right">2026-06-02 16:15  </td><td align="right">123 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-013">bash53-013</a></td><td align="right">2026-06-09 10:49  </td><td align="right">1.4K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-013.sig">bash53-013.sig</a></td><td align="right">2026-06-09 10:49  </td><td align="right">123 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-014">bash53-014</a></td><td align="right">2026-06-09 10:50  </td><td align="right">2.2K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-014.sig">bash53-014.sig</a></td><td align="right">2026-06-09 10:50  </td><td align="right">123 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-015">bash53-015</a></td><td align="right">2026-06-09 10:50  </td><td align="right">2.1K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="bash53-015.sig">bash53-015.sig</a></td><td align="right">2026-06-09 10:50  </td><td align="right">123 </td><td>&nbsp;</td></tr>
+   <tr><th colspan="5"><hr></th></tr>
+</table>
+<address>Apache/2.4.52 (Trisquel_GNU/Linux) Server at ftp.gnu.org Port 443</address>
+</body></html>

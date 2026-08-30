@@ -1,0 +1,295 @@
+{
+  "schema": "o6-source-composition-final-seal-v3",
+  "status": "O6_COMPLETE",
+  "rebindAssessment": "ACCEPTED_REBIND",
+  "scope": "metadata/source binding only with qualified prior results; no target execution GO",
+  "presealCommit": "9a936b46da99b48b3e3c4a087d5c6243b6d7dbc8",
+  "priorPartialCommit": "76395fa65b9b7723ea5d96c161bb42c5db925353",
+  "authority": {
+    "accepted": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+    "author": "803be45d68b3c6e0593c8e36ca45dda75ffc766d",
+    "diagnosis": "ea7e18739c8bcd3d99c803b94a2c5c730d71a156",
+    "packet": "7ef6e6b816ccc6b2449605c7950ab825d148a529",
+    "sourceAuthorization": "a52819daa6ff2c867187b01a7a5bbbb189f0da02",
+    "rebindingEvidence": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9"
+  },
+  "root": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "rootSha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520",
+  "rootBytes": 449,
+  "rolemapSha256": "4fbb5cbb00877bae74e0d0109cd4814f9d3c0db35eeda0cd33aa409d2a6d1f33",
+  "proofSha256": "e5c4931fbd8293d75d97d403503a25b2ebe463f5f0d53833f8c265bf9edd932e",
+  "recipeSha256": "c1809bad831367e96c5cad43b8cc390b00136ebdc4119f2d5ca6f2bd94cfa5ba",
+  "sourceInputs": 268,
+  "originMembership": 268,
+  "composedMembership": 268,
+  "unresolved": [],
+  "storedCommits": 4,
+  "storedAncestorTrees": 56,
+  "overlays": 5,
+  "documents": 7,
+  "sourceMetadataQueries": 335,
+  "sourceChildren": [
+    {
+      "ordinal": 1,
+      "administrative": false,
+      "argv": [
+        "--no-optional-locks",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgSign=false",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "user.name=Codex",
+        "-c",
+        "user.email=codex@openai.com",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 92023,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 239414,
+      "stderrBytes": 0,
+      "stdoutSha256": "cdfc5de2e5f239572cbc83d5d9b26da6fcdb0b8dcf7d12eabb272c3cbf2b63d1",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsedMs": 24.17200000002049,
+      "parentElapsedMs": 66.01241700001992
+    },
+    {
+      "ordinal": 2,
+      "administrative": false,
+      "argv": [
+        "--no-optional-locks",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgSign=false",
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "maintenance.auto=false",
+        "-c",
+        "gc.auto=0",
+        "-c",
+        "user.name=Codex",
+        "-c",
+        "user.email=codex@openai.com",
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 92024,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 2461226,
+      "stderrBytes": 0,
+      "stdoutSha256": "99d9a02bdc47e2dd0bdd239d0c60cb0e8569194324404c6c91df59d6bdb9b6bc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsedMs": 108.6062910000328,
+      "parentElapsedMs": 199.79249999998137
+    }
+  ],
+  "administrativePatch": {
+    "ordinal": 3,
+    "role": "administrative report apply_patch",
+    "startedElapsedMs": 70086.48275000008,
+    "status": 0,
+    "pid": 92665,
+    "signal": null,
+    "error": null,
+    "completed": true,
+    "endedElapsedMs": 211985.60970899998,
+    "stdout": "__OWNED_PID__=92665\nSuccess. Updated the following files:\nA tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/REVIEW.md\n",
+    "stderr": "",
+    "toolReceipt": "db08f8"
+  },
+  "captureBytesBeforeGitFinalization": 2700812,
+  "wallOrigin": "2026-08-28T20:24:12.501Z",
+  "elapsedBeforeGitFinalizationMs": 212006.3833750001,
+  "caps": {
+    "wallMs": 600000,
+    "sourceMs": 360000,
+    "childMs": 60000,
+    "children": 16,
+    "captureBytes": 33554432,
+    "workBytes": 134217728
+  },
+  "files": [
+    {
+      "path": "ADMINISTRATIVE-PATCH.json",
+      "mode": 420,
+      "bytes": 468,
+      "sha256": "ff8b2481c3e5b9dece372cc7450a4843be49f66363aa020747fc25e52341dfcb"
+    },
+    {
+      "path": "COMPOSED-ROOT.tree.data",
+      "mode": 420,
+      "bytes": 449,
+      "sha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520"
+    },
+    {
+      "path": "DEPENDENCIES.json",
+      "mode": 420,
+      "bytes": 2876,
+      "sha256": "f123bc947f881fcb9ce21a006b7ead75873e622bb406b28291208a6e5fcfb4bc"
+    },
+    {
+      "path": "GENERATED-TREES.json",
+      "mode": 420,
+      "bytes": 16469,
+      "sha256": "fd19d923722c996a860894c1f532390c33e889938c45f7b81f8fe9ed45ffbab9"
+    },
+    {
+      "path": "MEMBERSHIP-268.json",
+      "mode": 420,
+      "bytes": 509186,
+      "sha256": "0dfbb2e93a672d40cab0e79004f1c7dcab53bf773d99952be0158e411b8b5750"
+    },
+    {
+      "path": "RECIPE.md",
+      "mode": 420,
+      "bytes": 7942,
+      "sha256": "c1809bad831367e96c5cad43b8cc390b00136ebdc4119f2d5ca6f2bd94cfa5ba"
+    },
+    {
+      "path": "RESULTS.json",
+      "mode": 420,
+      "bytes": 5096,
+      "sha256": "4faa7c24a62d4377a5999b8262ff1d13dda012292dfeb00f1e1a75104db9ba94"
+    },
+    {
+      "path": "REVIEW.md",
+      "mode": 420,
+      "bytes": 5942,
+      "sha256": "2b8b3d6be93122b45d8f885c8f3c116a9946a25eaa95516574b9b3db9bb9cf09"
+    },
+    {
+      "path": "ROLEMAP.json",
+      "mode": 420,
+      "bytes": 131350,
+      "sha256": "4fbb5cbb00877bae74e0d0109cd4814f9d3c0db35eeda0cd33aa409d2a6d1f33"
+    },
+    {
+      "path": "preparation/RECEIPT.json",
+      "mode": 420,
+      "bytes": 1187,
+      "sha256": "1eb6048ba9170a5d20ace71c1068f4286d3467c2ce56a825c4b0ec82a1b8e362"
+    },
+    {
+      "path": "preparation/ROLEMAP-PATCH-RECEIPT.json",
+      "mode": 420,
+      "bytes": 299,
+      "sha256": "df03bbe48d102ba32f84e5fa5df7a48160104bf7058d63ee274125f2a14713eb"
+    },
+    {
+      "path": "preparation/SOURCE-PATH-RECEIPT.json",
+      "mode": 420,
+      "bytes": 4409,
+      "sha256": "12c326498399c6eb81a69e79318a1ed9e9b551087d4c18aac94d73fa0ef794d8"
+    },
+    {
+      "path": "preparation/catalog.stderr",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preparation/catalog.stdout",
+      "mode": 420,
+      "bytes": 218446,
+      "sha256": "b9d1c90ce2cc77bd79ae1475625e10fd79eec19b36edca570a9b03df7b38b8b4"
+    },
+    {
+      "path": "preparation/source-path-catalog.stderr",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "preparation/source-path-catalog.stdout",
+      "mode": 420,
+      "bytes": 40514,
+      "sha256": "08fe0123dd64a807f2129cbca87865f87a8fced81f7c9a8a4dd9fb37f5515354"
+    },
+    {
+      "path": "proof.mjs",
+      "mode": 420,
+      "bytes": 22889,
+      "sha256": "e5c4931fbd8293d75d97d403503a25b2ebe463f5f0d53833f8c265bf9edd932e"
+    },
+    {
+      "path": "raw/01.json",
+      "mode": 420,
+      "bytes": 740,
+      "sha256": "8ab34c11caf819cdfed01423f05ff427a48b0a4e2bf1d3b517d6e2ae94204f38"
+    },
+    {
+      "path": "raw/01.stderr",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/01.stdin",
+      "mode": 420,
+      "bytes": 1007,
+      "sha256": "9572cd32b911f1e91b476d99e1908fafb4da925666938ccc56a3f32631a53cee"
+    },
+    {
+      "path": "raw/01.stdout",
+      "mode": 420,
+      "bytes": 239414,
+      "sha256": "cdfc5de2e5f239572cbc83d5d9b26da6fcdb0b8dcf7d12eabb272c3cbf2b63d1"
+    },
+    {
+      "path": "raw/02.json",
+      "mode": 420,
+      "bytes": 742,
+      "sha256": "5e2d47a40f2c69c57df56bfb8e4a7b87b3de59684e61de942ee97acc4cb86778"
+    },
+    {
+      "path": "raw/02.stderr",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/02.stdin",
+      "mode": 420,
+      "bytes": 22493,
+      "sha256": "14f2f82357b3bb681bf50dfdaf239734dd849805fc6ef262337818b2868fafbf"
+    },
+    {
+      "path": "raw/02.stdout",
+      "mode": 420,
+      "bytes": 2461226,
+      "sha256": "99d9a02bdc47e2dd0bdd239d0c60cb0e8569194324404c6c91df59d6bdb9b6bc"
+    },
+    {
+      "path": "raw/ORIGIN.json",
+      "mode": 420,
+      "bytes": 241,
+      "sha256": "9d19d81ea72e3bb158c51d49b4c3879c311a78b306db802d63746b9cf68c2f28"
+    }
+  ],
+  "administrativeTail": "/tmp/npm-pin-o6-v3-final.txt",
+  "guardScope": "Fresh exact regular path/mode/size/hash for all fixed preseal inputs and the inspector; complete owned membership below, including new evidence. Current product/tool-tree state is not consulted.",
+  "preparationQualification": "Separate preseal catalog preparation, including preserved bootstrap --verify command-form exit128, is not a proof pass or target finding.",
+  "proofAttempts": 1,
+  "priorRoleControlsReplayed": 0,
+  "authorControlsReplayed": 0,
+  "fullSource314CohortsReplayed": 0,
+  "inventory2039CohortsReplayed": 0,
+  "workflowExecutions": 0,
+  "workflowUnrun": 93,
+  "reservationActions": 0,
+  "executionGo": false,
+  "authorTimingQualification": "516115ms is the ROOT-relayed conservative prior charge INCLUDING60000ms allowance, not independently measured initial startup or a new closure timestamp. This newly authorized O6 clock does not renew any old deadline."
+}

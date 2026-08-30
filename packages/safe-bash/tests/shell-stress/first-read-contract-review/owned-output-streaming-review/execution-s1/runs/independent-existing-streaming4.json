@@ -1,0 +1,38 @@
+{
+  "label": "independent-existing-streaming4",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches",
+    "tests/shell/streaming.test.ts"
+  ],
+  "cwd": "/tmp/safe-bash-owned-output-streaming-execution-restore-J93UJO/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T11:40:00.283Z",
+  "finishedAt": "2026-08-27T11:40:00.462Z",
+  "durationMs": 178.933,
+  "timeoutMs": 30000,
+  "maxBytes": 1048576,
+  "pid": 70681,
+  "initialIdentity": "70681 70275 70681 Thu Aug 27 06:40:00 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --import tsx --test --test-concurrency=1 --test-name-pattern=pipes preserve|early downstream|pipeline redirects|AbortSignal reaches tests/shell/streaming.test.ts",
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "signals": [],
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "TAP version 13\n# Subtest: pipes preserve bytes and launch downstream before upstream completes\nok 1 - pipes preserve bytes and launch downstream before upstream completes\n  ---\n  duration_ms: 6.209292\n  type: 'test'\n  ...\n# Subtest: early downstream exit and unused pipeline input do not deadlock\nok 2 - early downstream exit and unused pipeline input do not deadlock\n  ---\n  duration_ms: 3.71475\n  type: 'test'\n  ...\n# Subtest: pipeline redirects replace endpoints without leaving blocked writers\nok 3 - pipeline redirects replace endpoints without leaving blocked writers\n  ---\n  duration_ms: 1.73825\n  type: 'test'\n  ...\n# Subtest: AbortSignal reaches commands and releases blocked pipelines\nok 4 - AbortSignal reaches commands and releases blocked pipelines\n  ---\n  duration_ms: 0.83375\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 145.305917\n",
+  "stderr": ""
+}

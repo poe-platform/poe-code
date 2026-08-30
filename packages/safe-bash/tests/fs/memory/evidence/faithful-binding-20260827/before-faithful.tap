@@ -1,0 +1,298 @@
+TAP version 13
+# Subtest: faithful Memory bound preserves scope and s3 copy as source
+not ok 1 - faithful Memory bound preserves scope and s3 copy as source
+  ---
+  duration_ms: 4.69475
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# {"style":"bound","kind":"s3","direction":"source","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory bound preserves scope and s3 copy as target
+not ok 2 - faithful Memory bound preserves scope and s3 copy as target
+  ---
+  duration_ms: 1.961792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"bound","kind":"s3","direction":"target","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory bound preserves scope and webdav copy as source
+not ok 3 - faithful Memory bound preserves scope and webdav copy as source
+  ---
+  duration_ms: 15.707125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"bound","kind":"webdav","direction":"source","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory bound preserves scope and webdav copy as target
+not ok 4 - faithful Memory bound preserves scope and webdav copy as target
+  ---
+  duration_ms: 2.218666
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"bound","kind":"webdav","direction":"target","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory decorator preserves scope and s3 copy as source
+not ok 5 - faithful Memory decorator preserves scope and s3 copy as source
+  ---
+  duration_ms: 1.168125
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"decorator","kind":"s3","direction":"source","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory decorator preserves scope and s3 copy as target
+not ok 6 - faithful Memory decorator preserves scope and s3 copy as target
+  ---
+  duration_ms: 1.806208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"decorator","kind":"s3","direction":"target","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory decorator preserves scope and webdav copy as source
+not ok 7 - faithful Memory decorator preserves scope and webdav copy as source
+  ---
+  duration_ms: 1.950334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"decorator","kind":"webdav","direction":"source","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory decorator preserves scope and webdav copy as target
+not ok 8 - faithful Memory decorator preserves scope and webdav copy as target
+  ---
+  duration_ms: 1.431875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"decorator","kind":"webdav","direction":"target","scopePresent":false,"scopePreserved":false,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory subclass preserves scope and s3 copy as source
+not ok 9 - faithful Memory subclass preserves scope and s3 copy as source
+  ---
+  duration_ms: 1.730959
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"subclass","kind":"s3","direction":"source","scopePresent":false,"scopePreserved":true,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory subclass preserves scope and s3 copy as target
+not ok 10 - faithful Memory subclass preserves scope and s3 copy as target
+  ---
+  duration_ms: 0.800167
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"subclass","kind":"s3","direction":"target","scopePresent":false,"scopePreserved":true,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory subclass preserves scope and webdav copy as source
+not ok 11 - faithful Memory subclass preserves scope and webdav copy as source
+  ---
+  duration_ms: 1.393334
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"subclass","kind":"webdav","direction":"source","scopePresent":false,"scopePreserved":true,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful Memory subclass preserves scope and webdav copy as target
+not ok 12 - faithful Memory subclass preserves scope and webdav copy as target
+  ---
+  duration_ms: 1.195625
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:2456'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected "actual" to be strictly unequal to:
+    
+    undefined
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'notStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:76:16)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"style":"subclass","kind":"webdav","direction":"target","scopePresent":false,"scopePreserved":true,"relation":"unknown","error":"ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/target'","source":[1,0,255],"target":[9,8]}
+# Subtest: faithful bound Memory preserves known hardlink/symlink aliases and readonly denial
+not ok 13 - faithful bound Memory preserves known hardlink/symlink aliases and readonly denial
+  ---
+  duration_ms: 0.9765
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:1:4011'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'ENOTSUP'
+    -   code: 'EINVAL'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'EINVAL'
+  actual:
+  error: "ENOTSUP: operation not supported, copyFile '/left/source' -> '/right/hardlink'"
+  stack: |-
+    MountFileSystem.error (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:144:12)
+    MountFileSystem.operation (/Users/kjopek/Workspace/safe-bash/src/fs/mount/index.ts:159:18)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:98:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/memory/faithful-binding.test.ts:98:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: truthful unknown Memory-backed alias stays unknown before content effects
+ok 14 - truthful unknown Memory-backed alias stays unknown before content effects
+  ---
+  duration_ms: 0.227334
+  type: 'test'
+  ...
+# Subtest: faithful Memory still requires original FS/path/stat observations
+ok 15 - faithful Memory still requires original FS/path/stat observations
+  ---
+  duration_ms: 1.032959
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 2
+# fail 13
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 192.608542

@@ -1,0 +1,87 @@
+{
+  "schema": "NO_INITIALIZATION_SOURCE_PARSE_PRESEAL",
+  "at": "2026-08-29T09:01:29.227Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/capture.mjs",
+      "bytes": 3580,
+      "mode": 420,
+      "sha256": "bec2c39e33cc328501f81da286cba3282abc0eb703d8648fd6064b4f986f8d38"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/case.mjs",
+      "bytes": 15599,
+      "mode": 420,
+      "sha256": "1f7f2cbb27ef68a2679aea45bea147a7ca74baf39e6bd5e2e98a016c38d11d48"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/common.mjs",
+      "bytes": 10720,
+      "mode": 420,
+      "sha256": "aaeed65d783719a6609c29f46b8776080e3844bae048523a2ebbb72a7ad3305d"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/guarded-operation.mjs",
+      "bytes": 1711,
+      "mode": 420,
+      "sha256": "b588c5e26d9b557c0232fce6f0772bbdcf04bc572caf9b658bdbe4dc3a9ce313"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/observer.mjs",
+      "bytes": 9629,
+      "mode": 420,
+      "sha256": "12174c7e402ff9e43fb411b198e0abbf6967f3f9f5ffb97531198facc534c360"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/policy.mjs",
+      "bytes": 3091,
+      "mode": 420,
+      "sha256": "50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/preload.mjs",
+      "bytes": 4915,
+      "mode": 420,
+      "sha256": "5af703bfd041f2a9e1edcc956ea44ff1ec6b110b30ccf8d91f45ecec71d69bb1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/supervisor.mjs",
+      "bytes": 12190,
+      "mode": 420,
+      "sha256": "bceb296c7dd1b7074d3b7bb051714802c619f3cb8d1d00cc4b5eee7ee547ba1e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/owned-writer.mjs",
+      "bytes": 6072,
+      "mode": 420,
+      "sha256": "d7c1e0e5bc1f23d0e19da793ffefaf32ef55f6900b572d419f510febd414f67c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/mutation.mjs",
+      "bytes": 2304,
+      "mode": 420,
+      "sha256": "5add883bc3dbab654652a52f73610db2206c06aca9d9e4697a6a86b5a0aeb8e8"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/writer-controls.mjs",
+      "bytes": 5485,
+      "mode": 420,
+      "sha256": "8b9227ce3b133e64cb58ed65f3f538d839480dbca45a96144f5ff5dba5a23015"
+    }
+  ],
+  "argv": [
+    "--check",
+    "EXACT_FILE"
+  ],
+  "maximumChildren": 16,
+  "perStreamBytes": 65536,
+  "perChildMilliseconds": 10000,
+  "imports": false,
+  "Workers": false
+}

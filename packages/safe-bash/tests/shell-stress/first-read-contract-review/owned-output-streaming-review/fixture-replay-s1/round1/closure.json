@@ -1,0 +1,566 @@
+{
+  "at": "2026-08-27T12:00:13.990Z",
+  "directRecordChildren": 25,
+  "acceptanceChildren": 20,
+  "originalFiveChildren": 5,
+  "childChecks": [
+    {
+      "cohort": "acceptance",
+      "id": "S01",
+      "parameter": "original-local-pending-source",
+      "pid": 95432,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S02",
+      "parameter": "original-mock-s3-pending-source",
+      "pid": 95436,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S03",
+      "parameter": "original-loopback-body-withheld",
+      "pid": 95438,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S04",
+      "parameter": "original-loopback-body-withheld",
+      "pid": 95440,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S05",
+      "parameter": "original-loopback-headers-withheld",
+      "pid": 95449,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S06",
+      "parameter": "upload-before-eof",
+      "pid": 95452,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S06",
+      "parameter": "retained-reused-buffer",
+      "pid": 95453,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S06",
+      "parameter": "awaited-write-backpressure",
+      "pid": 95454,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S07",
+      "parameter": "stdout-only-request",
+      "pid": 95455,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S07",
+      "parameter": "stdout-only-streaming-upload",
+      "pid": 95456,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S08",
+      "parameter": "required-body-file-and-stdout-writeout",
+      "pid": 95473,
+      "exitCode": 2,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S08",
+      "parameter": "stdout-body-and-required-header-file",
+      "pid": 95474,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S08",
+      "parameter": "required-files-writeout-and-independent-stderr",
+      "pid": 95476,
+      "exitCode": 2,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S09",
+      "parameter": "three-level-overlapping-cleanup-and-late-admission",
+      "pid": 95483,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S10",
+      "parameter": "close-child-then-parent-with-live-sibling-effects",
+      "pid": 95484,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S11",
+      "parameter": "caller-reason-zero",
+      "pid": 95497,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S11",
+      "parameter": "io-error-before-caller-abort",
+      "pid": 95498,
+      "exitCode": 2,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S11",
+      "parameter": "caller-abort-before-late-io-rejection",
+      "pid": 95499,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S12",
+      "parameter": "opaque-read-late-resolve",
+      "pid": 95501,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "acceptance",
+      "id": "S12",
+      "parameter": "opaque-read-late-reject",
+      "pid": 95512,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "cohort": "original-five",
+      "id": "S01",
+      "parameter": "original-local-pending-source",
+      "pid": 96290,
+      "exitCode": 1,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": null
+    },
+    {
+      "cohort": "original-five",
+      "id": "S02",
+      "parameter": "original-mock-s3-pending-source",
+      "pid": 96297,
+      "exitCode": 0,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": null
+    },
+    {
+      "cohort": "original-five",
+      "id": "S03",
+      "parameter": "original-loopback-body-withheld",
+      "pid": 96305,
+      "exitCode": 1,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": null
+    },
+    {
+      "cohort": "original-five",
+      "id": "S04",
+      "parameter": "original-loopback-body-withheld",
+      "pid": 96307,
+      "exitCode": 1,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": null
+    },
+    {
+      "cohort": "original-five",
+      "id": "S05",
+      "parameter": "original-loopback-headers-withheld",
+      "pid": 96310,
+      "exitCode": 1,
+      "reaped": true,
+      "processGroupAbsentAtFinalCheck": true,
+      "fixtureCleanup": null
+    }
+  ],
+  "supervisors": [
+    {
+      "mode": "qualify",
+      "startedAt": "2026-08-27T11:54:33.940Z",
+      "finishedAt": "2026-08-27T11:54:34.461Z",
+      "pid": 94589,
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+        "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/qualify.mjs"
+      ],
+      "timeout": 10000,
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "reapedDirectChild": true,
+      "groupPresentAfterClose": false,
+      "environment": {
+        "TMPDIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TEMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp/tsx"
+      }
+    },
+    {
+      "mode": "acceptance",
+      "startedAt": "2026-08-27T11:56:53.345Z",
+      "finishedAt": "2026-08-27T11:57:00.462Z",
+      "pid": 95429,
+      "args": [
+        "--unhandled-rejections=strict",
+        "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-r1.mjs",
+        "--execute",
+        "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/execution-inputs.json"
+      ],
+      "timeout": 75000,
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "reapedDirectChild": true,
+      "groupPresentAfterClose": false,
+      "environment": {
+        "TMPDIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TEMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp/tsx"
+      }
+    },
+    {
+      "mode": "history",
+      "startedAt": "2026-08-27T11:57:24.526Z",
+      "finishedAt": "2026-08-27T11:57:26.892Z",
+      "pid": 96287,
+      "args": [
+        "--unhandled-rejections=strict",
+        "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/driver-r1.mjs",
+        "--historical-five",
+        "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/execution-inputs.json"
+      ],
+      "timeout": 20000,
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "oversized": false,
+      "reapedDirectChild": true,
+      "groupPresentAfterClose": false,
+      "environment": {
+        "TMPDIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TEMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+        "TSX_DISABLE_CACHE": "1",
+        "TSX_CACHE_DIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp/tsx"
+      }
+    }
+  ],
+  "fixtureOnlyWitnesses": [
+    {
+      "version": "original",
+      "cleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "version": "r1",
+      "cleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    }
+  ],
+  "allTrackedGroupsAbsent": true,
+  "all20AcceptanceFixturesResourcesZero": true,
+  "opaqueFixturesExplicitlyReleased": [
+    {
+      "parameter": "opaque-read-late-resolve",
+      "before": {
+        "opaqueRead": "pending",
+        "nestedPublicResult": "pending",
+        "operationAborted": true,
+        "operationReason": {
+          "name": "Error",
+          "message": "binding destination consumer closed",
+          "code": "EPIPE"
+        },
+        "registeredCleanupCount": 1,
+        "borrowedReturns": 0,
+        "ownerAlive": true,
+        "stages": [
+          {
+            "command": "opaque-owner",
+            "aborted": false,
+            "reason": null
+          },
+          {
+            "command": "opaque-reader",
+            "aborted": false,
+            "reason": null
+          }
+        ]
+      },
+      "after": {
+        "opaqueRead": "resolved",
+        "nestedPublicResult": "value",
+        "borrowedReturns": 0
+      },
+      "cleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    },
+    {
+      "parameter": "opaque-read-late-reject",
+      "before": {
+        "opaqueRead": "pending",
+        "nestedPublicResult": "pending",
+        "operationAborted": true,
+        "operationReason": {
+          "name": "Error",
+          "message": "binding destination consumer closed",
+          "code": "EPIPE"
+        },
+        "registeredCleanupCount": 1,
+        "borrowedReturns": 0,
+        "ownerAlive": true,
+        "stages": [
+          {
+            "command": "opaque-owner",
+            "aborted": false,
+            "reason": null
+          },
+          {
+            "command": "opaque-reader",
+            "aborted": false,
+            "reason": null
+          }
+        ]
+      },
+      "after": {
+        "opaqueRead": "rejected",
+        "nestedPublicResult": "value",
+        "borrowedReturns": 0
+      },
+      "cleanup": {
+        "failures": [],
+        "timers": 0,
+        "sockets": 0,
+        "tasks": 0,
+        "children": 0
+      }
+    }
+  ],
+  "originalFailureCountersArePreteardownSnapshotsNotCurrentProcessLeaks": true,
+  "currentLeafExitNotAttested": "root must observe actual normal return"
+}

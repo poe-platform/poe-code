@@ -1,0 +1,8 @@
+[
+  "(9,24): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+  "(11,15): error TS2353: Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'.",
+  "(13,20): error TS2322: Type 'number' is not assignable to type 'string'.",
+  "(15,21): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'.",
+  "(17,30): error TS2353: Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'.",
+  "(19,15): error TS2353: Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+]

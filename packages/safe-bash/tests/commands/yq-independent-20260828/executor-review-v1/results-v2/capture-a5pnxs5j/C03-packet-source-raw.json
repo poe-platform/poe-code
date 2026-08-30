@@ -1,0 +1,12 @@
+{
+  "id": "C03-packet-source",
+  "expected": "ACCEPT",
+  "value": {
+    "receiptHash": "cd0e2b94ea15e8199399d2cb589aee61a6c014785146dfec6b664ac0967130c9",
+    "sourceFiles": 271,
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "packageFiles": null
+  },
+  "error": null,
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

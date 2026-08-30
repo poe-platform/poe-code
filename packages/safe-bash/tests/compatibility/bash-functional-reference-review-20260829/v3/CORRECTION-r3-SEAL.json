@@ -1,0 +1,16 @@
+{
+  "beforeSha256": "d61cad4992f97f35d15179f714fc25098445f4fc723fc349fffcd02a2189e3aa",
+  "afterSha256": "04985b6c6c4a85d9c8456c6cb1fc841d78ff4212596a60f6ba6e9f72c9fb8196",
+  "exactEnvelopeRepair": {
+    "needle": "const author=runDataControls();assert(author.length===6&&author.every(row=>row.matched),'AUTHOR_CONTROLS');",
+    "replacement": "const authorEnvelope=runDataControls();log({event:'AUTHOR_RETURNED',value:authorEnvelope});assert(JSON.stringify(Object.keys(authorEnvelope))===JSON.stringify(['schema','identities','matched','actualChildStarts','entryImported','qualification'])&&authorEnvelope.schema==='functional-reference-v3-data-results'&&authorEnvelope.matched===6&&authorEnvelope.actualChildStarts===0&&authorEnvelope.entryImported===false&&authorEnvelope.qualification==='SYNTHETIC_CLOCK_AND_IO_NOT_NATIVE_OR_LIFECYCLE_ACCEPTANCE','AUTHOR_ENVELOPE');const author=authorEnvelope.identities;assert(Array.isArray(author)&&author.length===6&&author.every(row=>row.matched),'AUTHOR_CONTROLS');"
+  },
+  "pathRebindings": [
+    "modules-r3",
+    "REVIEW-r3.capture.data",
+    "review-r3.mjs",
+    "RESULT-r3.json",
+    "CONTROL-SEAL-r3.json"
+  ],
+  "children": 0
+}

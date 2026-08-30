@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "verdict": "ACCEPTED_NATIVE_ONLY_VERSIONED_QUALIFICATION",
+  "overlayCommit": "d71d0789410a907107a8ab75d15cf93ddd8fe0e5",
+  "baseFreeze": "1b2ddea9e38b25cc91134a2f35a318e27f4d7c29",
+  "candidateContext": "9a5a6f922beb1bc6ba84a0cd32ea7a12f8ce985d",
+  "manifestIdentity": {
+    "path": "manifest.json",
+    "bytes": 7831,
+    "sha256": "ce61095905fab76d6da9086f51ec61dc930d7d06261053033d4a16fe7d67dc7e",
+    "gitBlob": "cf8d62a9693fd54dca1d840be8a8feeded41600f"
+  },
+  "baseNative": {
+    "path": "native-env.mjs",
+    "bytes": 6204,
+    "sha256": "e537055e0b7516e2a2ddcd520f5197625334d2493b1b238d82b99edc94fd7def",
+    "gitBlob": "894f6b7aae57e800d8e5eb603a9ea33cb665a38f"
+  },
+  "patchedNative": {
+    "path": "native-env.mjs",
+    "bytes": 6212,
+    "sha256": "e7c62a3c7976163c684f68f63efd2a95f0b7ea43481a887a5bcd32832b35b9eb",
+    "gitBlob": "308191c598157e2aa0e7fbb652ccceef8064d236"
+  },
+  "diagnostic": {
+    "jsonEscaped": "du: invalid -B argument 'invalid-value'\n",
+    "hex": "64753a20696e76616c6964202d4220617267756d656e742027696e76616c69642d76616c7565270a",
+    "bytes": 40,
+    "sha256": "927dbaaabbcd6f07c69e90d54e68af1d9f353275c4455837191ea77460d77009",
+    "sameForAllBoundRows": true
+  },
+  "exactlyOneNativeReplay": true,
+  "native": {
+    "total": 16,
+    "matched": 16,
+    "mismatched": 0
+  },
+  "classifications": {
+    "literal-match": 13,
+    "expected-strict-rejection": 3
+  },
+  "focused": {
+    "passed": 14,
+    "total": 14,
+    "capturedPositives": 3,
+    "rejectedNegatives": 11
+  },
+  "allRowInputsEnvironmentOrderStatusAndStdoutIndependentlyChecked": true,
+  "nativeOracle": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+    "sha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b",
+    "version": "du (GNU coreutils) 9.7"
+  },
+  "historicalNativeSummaryUnchanged": {
+    "total": 16,
+    "matched": 13,
+    "mismatched": 3
+  },
+  "historicalSuccessOnlyTailExecuted": false,
+  "sourcePackageTypeRegressionOrFullCohortsRerun": false,
+  "aggregateOldFullGateSuccessClaimed": false,
+  "publicDefaultDuClaimed": false,
+  "modulePurityAcceptance": "previously accepted by root on d53b003b; not rerun or expanded by this native-only qualification",
+  "scope": "GNU-9.7-single-file-apparent-size-environment-precedence-only",
+  "remainingBlockerForThisNativeQualification": null,
+  "naturalClosure": {
+    "nativeOracleProcesses": 17,
+    "nativeDriver": 1,
+    "focusedDriver": 1,
+    "totalRootsAndGroups": 19,
+    "noTimeoutOrForcedTermination": true,
+    "processes": [
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53310,
+        "pgid": 53310,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53311,
+        "pgid": 53311,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53312,
+        "pgid": 53312,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53313,
+        "pgid": 53313,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53314,
+        "pgid": 53314,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53315,
+        "pgid": 53315,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53316,
+        "pgid": 53316,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53317,
+        "pgid": 53317,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53318,
+        "pgid": 53318,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53319,
+        "pgid": 53319,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53320,
+        "pgid": 53320,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53321,
+        "pgid": 53321,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53322,
+        "pgid": 53322,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53323,
+        "pgid": 53323,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53324,
+        "pgid": 53324,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53325,
+        "pgid": 53325,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-version-and-rows",
+        "pid": 53326,
+        "pgid": 53326,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "native-driver",
+        "pid": 53309,
+        "pgid": 53309,
+        "rootAndGroupAbsent": true
+      },
+      {
+        "phase": "focused-controls",
+        "pid": 53176,
+        "pgid": 53176,
+        "rootAndGroupAbsent": true
+      }
+    ]
+  },
+  "cleanup": {
+    "removed": [
+      {
+        "root": "runtime",
+        "actualPostCleanupStat": "ENOENT"
+      },
+      {
+        "root": "native-scratch",
+        "actualPostCleanupStat": "ENOENT"
+      },
+      {
+        "root": "temporary",
+        "actualPostCleanupStat": "ENOENT"
+      }
+    ],
+    "archive": {
+      "path": "runtime-and-scratch.json.gz.data",
+      "bytes": 10025,
+      "sha256": "3c3ddd9b02bc7ee15a7bfdac8a0aed97cfcec593dc05a5c940cf4b43c7525f23",
+      "gitBlob": "5b811f3da6bbbdcb238e7a9a4e6dc80be93680cd"
+    },
+    "payloadFiles": 5,
+    "everyPayloadVerified": true,
+    "looseTypeScriptOrAgents": 0
+  },
+  "unexecutedThisTurn": [
+    "source cohorts",
+    "pack/install/move",
+    "strict consumer",
+    "scoped 128 regressions",
+    "full recipe",
+    "historical success-only tail"
+  ],
+  "preservedLimits": {
+    "O060": "deferred/profile gap/deterministic ordering",
+    "v2ToV3Delta": "permanently unproved",
+    "originalV9FortyMarkers": "rejected exit 1, never rescored"
+  }
+}

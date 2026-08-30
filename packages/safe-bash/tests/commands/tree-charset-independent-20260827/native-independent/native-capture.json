@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-27T17:32:48.856Z",
+  "chronology": "independent-post-source-commit-freeze",
+  "candidateMetadataOnly": {
+    "commit": "f1a90436c45208ca248e058a039893233c608daa",
+    "tree": "c5cdfff66e64bb4d68926c4f93a7620eb89e7dcd",
+    "parent": "643439ad70b0ada46eef2c073aceeba3246866ad",
+    "committedAt": "2026-08-27T12:05:58-05:00",
+    "subject": "feat(tree): select bounded branch charset from virtual environment"
+  },
+  "oracle": {
+    "path": "/tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree",
+    "realpath": "/private/tmp/safe-bash-tree-oracle-MlUjmM/unix-tree-2.2.1/tree",
+    "sha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a",
+    "file": "Mach-O 64-bit executable arm64",
+    "version": "tree v2.2.1 (c) 1996 - 2024 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro",
+    "platform": {
+      "uname": "Darwin m5mb-kjopek 25.4.0 Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050 arm64",
+      "productName": "macOS",
+      "productVersion": "26.4.1",
+      "buildVersion": "25E253"
+    }
+  },
+  "capture": {
+    "cwd": "fixture",
+    "argumentPath": ".",
+    "stdin": "ignored",
+    "baseEnvironment": { "PATH": "/usr/bin:/bin" },
+    "deadlineMilliseconds": 3000,
+    "stdoutByteCap": 65536,
+    "stderrByteCap": 65536,
+    "fixtureEntries": [
+      "alpha.txt",
+      "empty",
+      "nest",
+      "nest/beta.txt",
+      "nest/deep",
+      "nest/deep/gamma.txt"
+    ]
+  },
+  "rawArtifacts": {
+    "ascii": {
+      "path": "raw/stdout-ascii.txt",
+      "bytes": 111,
+      "sha256": "da63c74ffd4d15d623975e36a3671fa3ad6b3a7c202cac6b11f8a57e553bcb6d",
+      "base64": "Lgp8LS0gYWxwaGEudHh0CnwtLSBlbXB0eQpgLS0gbmVzdAogICAgfC0tIGJldGEudHh0CiAgICBgLS0gZGVlcAogICAgICAgIGAtLSBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK"
+    },
+    "utf8": {
+      "path": "raw/stdout-utf8.txt",
+      "bytes": 147,
+      "sha256": "83174713a2bb5adec7ff99e530b8691a37e7c89217058015ddfbcf622efa4426",
+      "base64": "LgrilJzilIDilIAgYWxwaGEudHh0CuKUnOKUgOKUgCBlbXB0eQrilJTilIDilIAgbmVzdAogICAg4pSc4pSA4pSAIGJldGEudHh0CiAgICDilJTilIDilIAgZGVlcAogICAgICAgIOKUlOKUgOKUgCBnYW1tYS50eHQKCjQgZGlyZWN0b3JpZXMsIDMgZmlsZXMK"
+    },
+    "stderr": { "path": "raw/stderr-empty.txt", "bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "base64": "" }
+  },
+  "commonObservedResult": {
+    "closeEventObserved": true,
+    "close": { "code": 0, "signal": null },
+    "deadlineExceeded": false,
+    "capExceeded": null,
+    "spawnError": null,
+    "stderr": "stderr"
+  },
+  "cases": [
+    { "id": "ascii_fallback_minimal_env", "args": ["."], "env": {}, "stdout": "ascii", "classification": "native-parity-literal" },
+    { "id": "cli_ascii_over_tree_utf8_and_locale_utf8", "args": ["--charset", "ASCII", "."], "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-parity-literal" },
+    { "id": "cli_utf8_over_tree_ascii_and_locale_c", "args": ["--charset", "UTF-8", "."], "env": { "TREE_CHARSET": "ASCII", "LC_ALL": "C" }, "stdout": "utf8", "classification": "native-parity-literal" },
+    { "id": "tree_ascii_over_locale_utf8", "args": ["."], "env": { "TREE_CHARSET": "ASCII", "LC_ALL": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-parity-literal" },
+    { "id": "tree_utf8_over_locale_c", "args": ["."], "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "C" }, "stdout": "utf8", "classification": "native-parity-literal" },
+    { "id": "lc_all_c_over_ctype_and_lang_utf8", "args": ["."], "env": { "LC_ALL": "C", "LC_CTYPE": "en_US.UTF-8", "LANG": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-parity-literal" },
+    { "id": "lc_ctype_c_over_lang_utf8", "args": ["."], "env": { "LC_CTYPE": "C", "LANG": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-parity-literal" },
+    { "id": "lc_ctype_utf8_over_lang_c", "args": ["."], "env": { "LC_CTYPE": "en_US.UTF-8", "LANG": "C" }, "stdout": "utf8", "classification": "native-parity-literal" },
+    { "id": "lang_utf8", "args": ["."], "env": { "LANG": "en_US.UTF-8" }, "stdout": "utf8", "classification": "native-parity-literal" },
+    { "id": "native_lowercase_dot_utf8_locale", "args": ["."], "env": { "LANG": "en_US.utf8" }, "stdout": "ascii", "classification": "native-only-not-virtual-parity" },
+    { "id": "empty_tree_charset_over_locale_utf8", "args": ["."], "env": { "TREE_CHARSET": "", "LC_ALL": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-only-observation" },
+    { "id": "unknown_tree_charset_over_locale_utf8", "args": ["."], "env": { "TREE_CHARSET": "X-NOT-A-CHARSET", "LC_ALL": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-only-observation" },
+    { "id": "empty_cli_charset_over_tree_and_locale_utf8", "args": ["--charset", "", "."], "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-only-observation" },
+    { "id": "unknown_cli_charset_over_tree_and_locale_utf8", "args": ["--charset", "X-NOT-A-CHARSET", "."], "env": { "TREE_CHARSET": "UTF-8", "LC_ALL": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-only-observation" },
+    { "id": "empty_lc_all_defers_to_ctype_utf8", "args": ["."], "env": { "LC_ALL": "", "LC_CTYPE": "en_US.UTF-8", "LANG": "C" }, "stdout": "utf8", "classification": "native-only-observation" },
+    { "id": "empty_lc_ctype_defers_to_lang_utf8", "args": ["."], "env": { "LC_CTYPE": "", "LANG": "en_US.UTF-8" }, "stdout": "utf8", "classification": "native-only-observation" },
+    { "id": "empty_lang_ascii_fallback", "args": ["."], "env": { "LANG": "" }, "stdout": "ascii", "classification": "native-only-observation" },
+    { "id": "unknown_lc_all_native_fallback", "args": ["."], "env": { "LC_ALL": "xx_YY.NOT-A-CHARSET", "LC_CTYPE": "en_US.UTF-8", "LANG": "en_US.UTF-8" }, "stdout": "ascii", "classification": "native-only-observation" },
+    { "id": "cli_compact_utf8_alias_over_c", "args": ["--charset", "UTF8", "."], "env": { "LC_ALL": "C" }, "stdout": "utf8", "classification": "native-parity-literal" },
+    { "id": "cli_lowercase_utf8_alias_over_c", "args": ["--charset", "utf8", "."], "env": { "LC_ALL": "C" }, "stdout": "utf8", "classification": "native-parity-literal" }
+  ]
+}

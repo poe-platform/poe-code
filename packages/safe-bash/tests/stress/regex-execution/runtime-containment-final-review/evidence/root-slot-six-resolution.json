@@ -1,0 +1,18 @@
+{
+  "authority": "ROOT_RESOLVES_REVIEWER_OWNERSHIP_AMBIGUITY_ONLY",
+  "decision": "No product failure established; authorize the single unused benign rg-queued-abort slot after prior execution leaf closes and commits",
+  "independentAdjudicationPath": "/tmp/regex-queued-abort-independent-adjudication.md",
+  "independentAdjudicationSha256": "d3f90bb6403389be6f2d5d8a54b1835afa82ddbfaff5e6c48e40fa16e0d414f4",
+  "reviewedSlotFiveResultSha256": "572f59ca68457ae070a8bba059a14776e28b8446d119a338a831df4868ff94c5",
+  "originalGateSha256": "f0979bf95c009526e30db02b9c402867bbe176fef5816c70003d89e824431092",
+  "allowedJob": "rg-queued-abort",
+  "totalTargetBudget": 6,
+  "alreadyConsumedTargetSlots": 5,
+  "remainingTargetLaunches": 1,
+  "alreadyConsumedPathologicalRequests": 4,
+  "additionalPathologicalRequests": 0,
+  "preservation": "Preserve original committed STOP, five-slot inspection and audit bytes in an explicitly dated archive before changing only continuation-gate metadata. No result or assertion rewrites; no product/frozen harness edits. Retain the original stop and independent resolution in final evidence.",
+  "execution": "Use unchanged static guard/child/observer, original valid source/package-bound gate, claim and fsynced journal before one exact child. No retries, reruns, budget reset or new patterns. Stop and report any substantive failure.",
+  "review": "Raw queue pass alone is insufficient. Independently inspect queued-target exact reason/zero owned work and untouched siblings, then last-closer public settlement with awaited pool retirement. Constructor labels are not lease ownership; final zero alone is insufficient.",
+  "expiresAt": "2026-08-27T11:20:45.477Z"
+}

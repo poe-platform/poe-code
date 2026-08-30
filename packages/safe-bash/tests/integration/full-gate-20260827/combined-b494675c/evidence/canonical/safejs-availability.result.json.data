@@ -1,0 +1,43 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--input-type=module",
+    "-e",
+    "import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import{join}from'node:path';const module=await import(pathToFileURL(join(process.env.SAFEJS_LOCAL_ROOT,'src/run.ts')).href);assert.equal(typeof module.run,'function');const result=await module.run('1+2');assert.equal(result.ok,true);console.log(JSON.stringify({actualCopiedEngine:true,result}));"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-BtyW8C/source",
+  "pid": 89344,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 537,
+  "timeoutMs": 180000,
+  "outputBytes": 4211,
+  "observed": [
+    {
+      "pid": 89344,
+      "parent": 88888,
+      "group": 89344,
+      "born": "Thu Aug 27 06:14:12 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --input-type=module -e import assert from 'node:assert/strict';import {pathToFileURL} from 'node:url';import{join}from'node:path';const module=await import(pathToFileURL(join(process.env.SAFEJS_LOCAL_ROOT,'src/run.ts')).href);assert.equal(typeof module.run,'function');const result=await module.run('1+2');assert.equal(result.ok,true);console.log(JSON.stringify({actualCopiedEngine:true,result}));"
+    },
+    {
+      "pid": 89347,
+      "parent": 89344,
+      "group": 89344,
+      "born": "Thu Aug 27 06:14:12 2026",
+      "command": "/private/tmp/full-gate-execution-BtyW8C/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "safejs-availability",
+  "sourceChanges": []
+}

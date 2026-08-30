@@ -1,0 +1,506 @@
+{
+  "capturedAt": "2026-08-27T02:55:13.548Z",
+  "headAtFreeze": "954f2302e4b2f42f90cb5ffd5670d1936f47390c",
+  "headAtArchive": "5f151860a937fd5d085e46a9fd384c730345271f",
+  "frozenSourceAggregate": "d8f5651ef44b39e42df5bdc8a627197479304c60eeb3fdc7b2f317bc00a2f64a",
+  "liveSourceAggregate": "0e14ac10a79da428659d58ae0c2510b659cfcc34789d92779426aa3c77b98a37",
+  "sourceDrift": [
+    {
+      "path": "src/commands/table-text/README.md",
+      "before": {
+        "sha256": "96a3fc81954835657dcb7a88dbb073999aa12d857bdf5fb1228d00a77e4a2d66",
+        "bytes": 4982,
+        "mode": 420
+      },
+      "after": {
+        "sha256": "f47536847f3cadb6e87d6fecbc55f4c8496772ec95421d5fc720d2dd4671bce8",
+        "bytes": 6188,
+        "mode": 420
+      }
+    },
+    {
+      "path": "src/commands/table-text/comm.ts",
+      "before": {
+        "sha256": "7a9a3d591dd3fda338748019b8c3e6eeb7e77db2f15f18bf20e041a80b894b4f",
+        "bytes": 3788,
+        "mode": 420
+      },
+      "after": {
+        "sha256": "34df22e9b6e1ca23ec14e83003aa9758c7d9fc1b1473828429e2ae713e4219cd",
+        "bytes": 3885,
+        "mode": 420
+      }
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "before": {
+        "sha256": "fc43999fdddaccb282e2a6bb868421c395804092076ecf2645554a80f9a3b7a8",
+        "bytes": 8159,
+        "mode": 420
+      },
+      "after": {
+        "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+        "bytes": 8443,
+        "mode": 420
+      }
+    },
+    {
+      "path": "src/fs/s3/COMPARISON.md",
+      "before": {
+        "sha256": "3732efbce0d3ded5a76a3ccd5063d39baa167e49c9dab347bb7fcba0712d176f",
+        "bytes": 9446,
+        "mode": 420
+      },
+      "after": {
+        "sha256": "14c40b551fa385942884476899c36a72dafef7a619d70513d67a2735391f01f8",
+        "bytes": 9733,
+        "mode": 420
+      }
+    },
+    {
+      "path": "src/fs/s3/SDK_COMPARISON.md",
+      "before": null,
+      "after": {
+        "sha256": "6f8125e02896b74b13c97e3cce94f6a19b37d995071781fd3c7ef0f6d72b7b14",
+        "bytes": 5629,
+        "mode": 420
+      }
+    }
+  ],
+  "otherInputDrift": [],
+  "acceptedCurrent": {
+    "src/commands/diff-patch/GNU-DIFF.md": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "actual": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "current": "e0e1f1f8e27bc68c991dee2a9e80a230896a6140fa4408e9b7379713dc8b81cb",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/GNU-PATCH.md": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "actual": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "current": "5e194d1b6dd8481fb7631f56ca3c81fd1e98eb35988d0ea5b1ed7ddde1909605",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/PARSER.md": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "actual": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "current": "5d92f96bb67fdf4a284f6e2e7c802eeeb99d86cf0e4e71fb793c2f5405d66fa6",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/README.md": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "actual": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "current": "26745f4ccdb86bd9de6f3c7265fe46704974ef88dd037db39a92c4ff5cce8454",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/diff-format.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "actual": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "current": "e7d66d54d65e28d152fc451d63aae1813eddf450001c0dd4dcb15ca67c941e24",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/diff.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "actual": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "current": "c3eb090a70a590992cd165486911aec51fa5dbac0e746453dbc0809fe76bc06e",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/index.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "actual": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "current": "82465ab079aac196a8cf99231fc9d9e7f4f60135f862802e02d2e523d0bebf17",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/patch-envelope.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "actual": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "current": "f6a15e78d7cea41d503f5352206efeb9fa950871c820af730cf27ea06ade99e8",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/patch-formats.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "actual": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "current": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/patch-gnu-paths.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "actual": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "current": "3a06d5b33d3c0df12ff83b0bbf4396d90906d6fd61e3ca1bd5537f508c4282af",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/patch-gnu-reject.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "actual": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "current": "5df12efd994c0187998f0112a5fac595f376142f2cd187a5e0b40738f7b6cf02",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/patch-path.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "actual": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "current": "053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/patch.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "actual": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "current": "72bfb60c502ac5bcaf2efa3e0f044b0ab1d89a54293f829d62f011e7c10e82d7",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/shared.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "actual": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "current": "81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e",
+      "stillEqualAccepted": true
+    },
+    "src/commands/diff-patch/unified.ts": {
+      "commit": "96564fe99fdfb36392fbbb3afd1cf070cd608201",
+      "expected": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "actual": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "current": "a8659f40aeb9d1cac3548ffd24950e652eeace92cef1339de9e3a5e5ed7e10fb",
+      "stillEqualAccepted": true
+    },
+    "src/commands/metadata/README.md": {
+      "commit": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+      "expected": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+      "actual": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+      "current": "36e299c06fc251233f0e46d994ac8bfe1d8607d10382d834ed4f1aeae83eb1ce",
+      "stillEqualAccepted": true
+    },
+    "src/commands/metadata/chmod.ts": {
+      "commit": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+      "expected": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "actual": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "current": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "stillEqualAccepted": true
+    },
+    "src/commands/metadata/index.ts": {
+      "commit": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+      "expected": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "actual": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "current": "bc4ad8e3fb5474796ff326b1f53b8c1b84cf45647640f8246d4ccfb3b61d467e",
+      "stillEqualAccepted": true
+    },
+    "src/commands/metadata/internal.ts": {
+      "commit": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+      "expected": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "actual": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "current": "bd26d6f4a098c565ce38da6bc269503469638837d3dce47e21ac9c1604a45cd7",
+      "stillEqualAccepted": true
+    },
+    "src/commands/metadata/mktemp.ts": {
+      "commit": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+      "expected": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "actual": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "current": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "stillEqualAccepted": true
+    },
+    "src/commands/metadata/stat.ts": {
+      "commit": "386196bc39bedd61910abf42b044cab7a2a83cdc",
+      "expected": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "actual": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "current": "fab291cc4e5668526fc1247e155f5878e1235d9d95a5096d34bcfa9f022d7f3b",
+      "stillEqualAccepted": true
+    }
+  },
+  "five": {
+    "results": [
+      {
+        "name": "corrected-current",
+        "rows": 5,
+        "exact": 5,
+        "nativeFrozenExact": 5,
+        "streamsStatus": 5,
+        "closure": {
+          "code": 0,
+          "signal": null,
+          "method": "IPC disconnect; natural exit; no signals"
+        }
+      },
+      {
+        "name": "original-current-replay",
+        "rows": 5,
+        "exact": 4,
+        "nativeFrozenExact": 5,
+        "streamsStatus": 5,
+        "closure": {
+          "code": 0,
+          "signal": null,
+          "method": "IPC disconnect; natural exit; no signals"
+        }
+      }
+    ],
+    "delta": [
+      {
+        "id": "command/patch/apply",
+        "nativeFieldsChanged": [],
+        "productFieldsChanged": [],
+        "nativeNamespaceDelta": []
+      },
+      {
+        "id": "command/patch/dry-run",
+        "nativeFieldsChanged": [
+          "entries"
+        ],
+        "productFieldsChanged": [],
+        "nativeNamespaceDelta": [
+          {
+            "path": "tmp",
+            "before": {
+              "type": "directory"
+            },
+            "after": null
+          }
+        ]
+      },
+      {
+        "id": "command/patch/reverse",
+        "nativeFieldsChanged": [],
+        "productFieldsChanged": [],
+        "nativeNamespaceDelta": []
+      },
+      {
+        "id": "command/stat/timestamp",
+        "nativeFieldsChanged": [],
+        "productFieldsChanged": [],
+        "nativeNamespaceDelta": []
+      },
+      {
+        "id": "composition/patch-hash/patch-hash",
+        "nativeFieldsChanged": [],
+        "productFieldsChanged": [],
+        "nativeNamespaceDelta": []
+      }
+    ],
+    "unchangedSnapshot": true,
+    "unchangedDependencies": true,
+    "oldHistoricalFive": "4/5 retained unchanged; original-current-replay is a separate new run",
+    "eighteen": "frozen eighteen failures remain historical, not rerun or corrected"
+  },
+  "full": {
+    "cohorts": [
+      {
+        "name": "revised",
+        "totals": {
+          "tests": 3758,
+          "pass": 3758,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0,
+          "todo": 0
+        },
+        "rawAggregateExitCode": 0
+      },
+      {
+        "name": "original-current-replay",
+        "totals": {
+          "tests": 3758,
+          "pass": 3750,
+          "fail": 8,
+          "skipped": 0,
+          "cancelled": 0,
+          "todo": 0
+        },
+        "rawAggregateExitCode": 1
+      }
+    ],
+    "unchangedTestNames": true,
+    "original70HashesUnchanged": true,
+    "original237HashesUnchanged": true,
+    "revisedDelta": [
+      {
+        "name": "quoted-path security: quoted ancestor symlink",
+        "file": "tests/commands/diff-patch-stress/editflows/quoted-safety.test.ts",
+        "originalFileSha256": "cca653100a9d18de485e26ed8ed33c2b820cbb6c60ffbdf2b741efa537c40d75",
+        "revisedFileSha256": "6e9efa710d489ad09226e1aeacc973f103c49c4d2de983c00272731968f44c96",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  assert.equal(result.status, 2, result.stderr.toString());\n  assert.deepEqual(result.stdout, Buffer.alloc(0));\n  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(files));\n  assert.deepEqual(await filesystem.lstat(linkPath), originalLink);",
+        "afterAssertions": "  assert.equal(result.status, name === \"quoted ancestor symlink\" ? 0 : 2, result.stderr.toString());\n  assert.deepEqual(result.stdout, name === \"quoted ancestor symlink\" ? Buffer.from(\"patching file first\\npatching file target\\n\") : Buffer.alloc(0));\n  assert.deepEqual(await fileBytes(filesystem, Object.keys(files)), expectedBytes(name === \"quoted ancestor symlink\" ? { ...files, first: \"new\\n\", target: \"new\\n\" } : files));\n  assert.deepEqual(await filesystem.lstat(linkPath), originalLink);",
+        "proofRecordSha256": "1b62c3dc79c978dc6f0bc37744daee937e0bb61f133ecfaa56d01c2a4a097857"
+      },
+      {
+        "name": "atomic extension malformed backward-second-hunk is not swallowed after a valid file section",
+        "file": "tests/commands/diff-patch-stress/fuzz/edits.test.ts",
+        "originalFileSha256": "18d204a74b8c8783eb807859e3a1f10d7fa7f2fea8c6387f71a7deedcf27ff0f",
+        "revisedFileSha256": "d30d2188f408ac65653a3523fb079d9718763c9966476005e6fcbad9329ac4c5",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  assert.equal(result.exitCode, 2, result.stderr);\n  assert.equal(await contents(filesystem, \"first\"), \"keep\\n\");",
+        "afterAssertions": "  assert.equal(result.exitCode, name === \"backward-second-hunk\" ? 1 : 2, result.stderr);\n  assert.equal(await contents(filesystem, \"first\"), \"keep\\n\");",
+        "proofRecordSha256": "ae3376f4b4abb8c0c729513bf19ffef8f294772901571afe9b627ce9df169199"
+      },
+      {
+        "name": "GNU default: normal/-E/apply",
+        "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+        "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+        "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+        "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+        "proofRecordSha256": "f07822f9060165692c6c555b10f6d541992434ee47fc3b58ad1fbad958f40745"
+      },
+      {
+        "name": "GNU default: normal/--remove-empty-files/apply",
+        "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+        "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+        "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+        "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+        "proofRecordSha256": "9084d97b002514d70eaf8310b69e2a62743ca913b264a4eb679c1c85fe888a48"
+      },
+      {
+        "name": "GNU default: context/-E/apply",
+        "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+        "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+        "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+        "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+        "proofRecordSha256": "1a8c8c44ac598f4a700d17132cf81aef3958c1ef3d4916f0de16711c806c4fa7"
+      },
+      {
+        "name": "GNU default: context/--remove-empty-files/apply",
+        "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+        "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+        "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+        "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+        "proofRecordSha256": "78cb9449bbd06c8b2c8e2301145aa3ec266ecda14e920cc47bc3e672982c4ee9"
+      },
+      {
+        "name": "GNU default: unified/-E/apply",
+        "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+        "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+        "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+        "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+        "proofRecordSha256": "20aa1459db7b0905ca1af713dd804a6682c25217288859f8c0ea0f845c1bfdd3"
+      },
+      {
+        "name": "GNU default: unified/--remove-empty-files/apply",
+        "file": "tests/commands/diff-patch-stress/emptyfile-delta/emptyfile.test.ts",
+        "originalFileSha256": "ecc0a342be9bc6a8a47fe8a216ea46dfcd6a8c7d349474e419ca0cf17ba25571",
+        "revisedFileSha256": "4a8df779884129b16dc0b021105b0f584f9ed78b69e45c287f61a2f707792bb0",
+        "deltaFileSha256": "dab23166e15d2bc9bbb59ba0441ef7989221ff7e302a994a56c1a5ff5cfba8dc",
+        "beforeAssertions": "  if (prunedParent) delete before[\"/authorized\"];\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }, ...(prunedParent ? [{ method: \"rm\", path: \"/authorized\" }] : [])]);",
+        "afterAssertions": "  if (prunedParent) {\n    delete before[\"/authorized\"];\n    const root = before[\"/\"];\n    assert(root !== null && typeof root === \"object\" && \"nlink\" in root && typeof root.nlink === \"number\");\n    root.nlink -= 1;\n  }\n  assert.deepEqual(after, before, \"no decoys, reject files, backup files, or unrelated paths changed\");\n  if (vector.args.includes(\"--dry-run\") || vector.status !== 0) assert.deepEqual(observed.mutations, []);\n  else assert.deepEqual(observed.mutations.map(({ method, path }) => ({ method, path })),\n    [{ method: vector.expected === null ? \"rm\" : \"writeFile\", path: target(vector) }]);",
+        "proofRecordSha256": "fef5535ce11b8969da885e44ff7e46c434b7490c128309dc7bc810338efecd76"
+      }
+    ],
+    "pinsStable": true,
+    "historicalOriginal": {
+      "tests": 3758,
+      "pass": 3750,
+      "fail": 8
+    },
+    "historicalRevised": {
+      "tests": 3758,
+      "pass": 3758,
+      "fail": 0
+    },
+    "sgidResolution": false,
+    "unsupportedRemoteUnchanged": "S3/WebDAV ENOTSUP remains safe refusal, not support",
+    "overlayOutsideContractUnchanged": {
+      "pass": 0,
+      "fail": 3,
+      "rerun": false
+    }
+  },
+  "validation": {
+    "scopedNoEmit": 0,
+    "isolatedBuild": 0,
+    "outputAggregate": "203189fd7f3a8fe8d27282b1f98c35eb841872c511365644432dc339819b7d14",
+    "wholeRepositoryNoEmitRun": false
+  },
+  "initialCaptureFailure": {
+    "first": "/private/tmp/safe-bash-quiet-postfix-review-TtTTqc",
+    "reason": "Verifier omitted seven benchmark dependencies from first snapshot",
+    "previousAttempt": {
+      "suite": "absolute-target",
+      "tests": 3,
+      "pass": 2,
+      "fail": 1,
+      "acceptance3758": false
+    },
+    "added": {
+      "benchmarks/engines.ts": {
+        "sha256": "23054e009e49fccc1821c023116cb2c2b630b92311f1ea07eacc5dd084229da7",
+        "bytes": 9364,
+        "mode": 420
+      },
+      "benchmarks/model.ts": {
+        "sha256": "2edbc7b628208c56b84550664358c79f9d0489ecda0e641247c9636c9371df98",
+        "bytes": 6625,
+        "mode": 420
+      },
+      "benchmarks/plugin-fixtures.ts": {
+        "sha256": "08fec2c9dc01a073f3be09510885506946e2f912936701f05574457144a25418",
+        "bytes": 2082,
+        "mode": 420
+      },
+      "benchmarks/probes.ts": {
+        "sha256": "73f144bc950c2d6500facbc812e59d96c89e6c91ba511b353f2f2ee5dd5d38a7",
+        "bytes": 6778,
+        "mode": 420
+      },
+      "benchmarks/session.ts": {
+        "sha256": "bb0368fb7d0f80ca6057084ea9508942a703785a4abe3b4b8c0d389858ec6464",
+        "bytes": 2368,
+        "mode": 420
+      },
+      "benchmarks/worker-bootstrap.mjs": {
+        "sha256": "8966a0de3427a1bbf205f581b6570f42d96c6e5099b93362de40e31190de9e68",
+        "bytes": 82,
+        "mode": 420
+      },
+      "benchmarks/worker.ts": {
+        "sha256": "147ea77c18aeb2361c31494ab3a8013319f8c41188b07a066105eb4c44a71902",
+        "bytes": 1867,
+        "mode": 420
+      }
+    },
+    "allAddedEqualAcceptedReview": "5ce557d",
+    "sourceAndDependencyBytesUnchanged": true
+  },
+  "ownership": {
+    "directory": "tests/commands/diff-patch-stress/quiet-postfix-review",
+    "productionEdited": false,
+    "existingTestsEdited": false,
+    "benchmarksEdited": false,
+    "historicalEvidenceEdited": false,
+    "dependenciesAdded": false,
+    "unrelatedNativeArtifactsTouched": false,
+    "tableCorpusRun": false,
+    "newTools": false,
+    "rootDistEmission": false,
+    "workersClosedNormally": true,
+    "signalsSentByVerifier": false
+  },
+  "archive": {
+    "members": 788,
+    "uncompressedBytes": 21389015,
+    "gzipPayloadBytes": 2571477,
+    "excludes": [
+      "native executable binaries",
+      "native temporary fixture trees",
+      "node_modules binaries (manifest only)",
+      "generated build binaries (manifest only)"
+    ]
+  }
+}

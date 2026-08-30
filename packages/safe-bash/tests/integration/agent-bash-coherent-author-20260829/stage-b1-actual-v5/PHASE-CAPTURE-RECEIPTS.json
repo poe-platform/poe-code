@@ -1,0 +1,37 @@
+[
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/00-offline-install.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/00-offline-install.stdout",
+    "bytes": 24,
+    "sha256": "b12eb4c187ec2feb8132fe1152aa73b1437bd6caf53ae5a3d331f1d1e7a19ccd"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/01-workflow-source-built.stderr",
+    "bytes": 151755,
+    "sha256": "a76c5faa0ac639bd255cd51ea9a2b6dec08152b0a3f82a60f77c3afb8174a087"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/01-workflow-source-built.stdout",
+    "bytes": 3553,
+    "sha256": "c76edc51f8bc695b44412b11986354c1b1b00714d9d84290480aa3f672937c07"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/02-workflow-installed.stderr",
+    "bytes": 149802,
+    "sha256": "d11498badc30eb0d9fab2b1c7500ad7f3e725842c4df19ed01aa6df63cee3a3b"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/02-workflow-installed.stdout",
+    "bytes": 3550,
+    "sha256": "11562337ba59bfb753e3c1b55e107c7196aab783c6549365ab7520fd3c6a3edb"
+  },
+  {
+    "path": "/private/tmp/safe-bash-coherent-b1-public15-20260829-r2/capture/events.jsonl",
+    "bytes": 6537,
+    "sha256": "053bedf99a86c7ee041e5ef1fd8fbc28ebee0638440fe94817d30b1e40be7560"
+  }
+]

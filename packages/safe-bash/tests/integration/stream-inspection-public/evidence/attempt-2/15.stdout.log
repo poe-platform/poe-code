@@ -1,0 +1,216 @@
+{
+  "node": "v22.22.2",
+  "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "cwd": "/private/tmp/safe-bash-stream-public-independent.p8j8em/final-attempt-2/consumer",
+  "imports": {
+    "virtual-bash": "file:///private/tmp/safe-bash-stream-public-independent.p8j8em/final-attempt-2/consumer/node_modules/virtual-bash/dist/index.js",
+    "virtual-bash/commands/stream-inspection": "file:///private/tmp/safe-bash-stream-public-independent.p8j8em/final-attempt-2/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js",
+    "virtual-bash/commands/network": "file:///private/tmp/safe-bash-stream-public-independent.p8j8em/final-attempt-2/consumer/node_modules/virtual-bash/dist/commands/network/index.js"
+  },
+  "results": [
+    {
+      "name": "offline effective TCP listen/connect denial",
+      "status": "pass",
+      "milliseconds": 4
+    },
+    {
+      "name": "root/subpath exports and explicit optional availability",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "default registry measured unique60 optional absent",
+      "status": "pass",
+      "milliseconds": 4
+    },
+    {
+      "name": "tac-default-binary",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "expand-default-binary",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "fold-byte-boundary",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "strings-default-binary",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "all-four-binary-pipeline",
+      "status": "pass",
+      "milliseconds": 3
+    },
+    {
+      "name": "binary-producer-consumer",
+      "status": "pass",
+      "milliseconds": 2
+    },
+    {
+      "name": "vfs-redirection-readback",
+      "status": "pass",
+      "milliseconds": 2
+    },
+    {
+      "name": "long-reused-chunks",
+      "status": "pass",
+      "milliseconds": 2
+    },
+    {
+      "name": "empty-default",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "explicit RealFS root binary redirection readback",
+      "status": "pass",
+      "milliseconds": 6
+    },
+    {
+      "name": "public plugin collision preflight and replacement",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "BytePipe awaited writes own reused buffer and backpressure",
+      "status": "pass",
+      "milliseconds": 22
+    },
+    {
+      "name": "BytePipe blocked write cancellation preserves reason",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "default pipeline delayed sink owns 128KiB reused chunks",
+      "status": "pass",
+      "milliseconds": 38
+    },
+    {
+      "name": "actual Shell mid-write cancellation preserves reason",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "shared output budget exact positive boundary",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "shared stdout stderr output budget rejects exact limit",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "actual invoke shared command budget 2",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "actual invoke shared command budget 3",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "public family maxInputBytes 2 boundary",
+      "status": "pass",
+      "milliseconds": 1
+    },
+    {
+      "name": "public family maxInputBytes 3 boundary",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "public family maxOutputBytes 2 boundary",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "public family maxOutputBytes 3 boundary",
+      "status": "pass",
+      "milliseconds": 0
+    },
+    {
+      "name": "resolver rejects external source and nonexported subpath",
+      "status": "pass",
+      "milliseconds": 1
+    }
+  ],
+  "network": {
+    "listening": "EPERM",
+    "connecting": "EPERM"
+  },
+  "defaultNames": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "comm",
+    "cp",
+    "cut",
+    "diff",
+    "dirname",
+    "echo",
+    "env",
+    "expand",
+    "false",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "od",
+    "paste",
+    "patch",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "sha1sum",
+    "sha256sum",
+    "sort",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "touch",
+    "tr",
+    "true",
+    "uniq",
+    "wc",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "defaultCount": 60,
+  "passed": 27,
+  "failed": 0
+}

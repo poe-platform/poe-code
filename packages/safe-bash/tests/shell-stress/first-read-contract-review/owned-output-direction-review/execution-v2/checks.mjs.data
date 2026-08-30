@@ -1,0 +1,48 @@
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
+const directory = '/tmp/safe-bash-owned-output-direction-review-execution-m7eh4I';
+const owned = '/Users/kjopek/Workspace/safe-bash/tests/shell-stress/first-read-contract-review/owned-output-direction-review/execution-v2';
+const round = process.argv[2];
+if (!['initial', 'corrected'].includes(round)) throw new Error('Choose initial or corrected check round');
+const commands = round === 'initial' ? [
+  ['node-preflight-initial', process.execPath, [path.join(directory, 'driver.mjs'), '--evidence-dir', owned], 0]
+] : [
+  ['fixtures-syntax', process.execPath, ['--check', path.join(directory, 'fixtures.mjs')], 0],
+  ['driver-syntax', process.execPath, ['--check', path.join(directory, 'driver.mjs')], 0],
+  ['node-preflight-corrected', process.execPath, [path.join(directory, 'driver.mjs'), '--evidence-dir', owned], 0],
+  ['fixtures-self-check', process.execPath, [path.join(directory, 'driver.mjs'), '--evidence-dir', owned, '--command', 'self-check'], 0],
+  ['run-refusal', process.execPath, [path.join(directory, 'driver.mjs'), '--evidence-dir', owned, '--command', 'run', '--compiled-import', path.join(directory, 'NOT-RESTORED', 'dist', 'index.js')], 2]
+];
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+const results = [];
+if (round === 'initial') await writeFile(path.join(owned, 'binding.initial-invalid.json.data'), await readFile(path.join(owned, 'binding.json')), { flag: 'wx' });
+for (const [name, executable, args, expectedExit] of commands) {
+  const started = new Date().toISOString();
+  const child = spawn(executable, args, { cwd: directory, stdio: ['ignore', 'pipe', 'pipe'] });
+  const stdout = [];
+  const stderr = [];
+  let total = 0;
+  let guard = null;
+  const timer = setTimeout(() => { guard = 'processMs=5000'; child.kill('SIGKILL'); }, 5000);
+  for (const [stream, destination] of [[child.stdout, stdout], [child.stderr, stderr]]) {
+    stream.on('data', chunk => {
+      total += chunk.length;
+      if (total <= 262144) destination.push(chunk);
+      else { guard = 'maxCombinedOutputBytes=262144'; child.kill('SIGKILL'); }
+    });
+  }
+  const outcome = await new Promise((resolve, reject) => {
+    child.once('error', reject);
+    child.once('close', (code, signal) => resolve({ code, signal }));
+  }).finally(() => clearTimeout(timer));
+  const output = Buffer.concat(stdout);
+  const errors = Buffer.concat(stderr);
+  await writeFile(path.join(owned, `${name}.stdout.data`), output, { flag: 'wx' });
+  await writeFile(path.join(owned, `${name}.stderr.data`), errors, { flag: 'wx' });
+  results.push({ name, executable, args, pid: child.pid, started, finished: new Date().toISOString(), expectedExit, ...outcome, guard, reaped: true, stdoutSha256: hash(output), stderrSha256: hash(errors), expectedOutcome: outcome.code === expectedExit && outcome.signal === null && guard === null });
+}
+await writeFile(path.join(owned, `checks-${round}.json`), `${JSON.stringify({ classification: 'preparation-checks-not-product-tests', results }, null, 2)}\n`, { flag: 'wx' });
+console.log(JSON.stringify(results, null, 2));

@@ -1,0 +1,178 @@
+TAP version 13
+# Subtest: encounter-order v2 ["7","/","0","late"]
+ok 1 - encounter-order v2 ["7","/","0","late"]
+  ---
+  duration_ms: 3.897958
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["7","%","0","+"]
+ok 2 - encounter-order v2 ["7","%","0","+"]
+  ---
+  duration_ms: 0.763792
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["bad","*","2","+","length"]
+ok 3 - encounter-order v2 ["bad","*","2","+","length"]
+  ---
+  duration_ms: 0.677208
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["(","7","/","0"]
+ok 4 - encounter-order v2 ["(","7","/","0"]
+  ---
+  duration_ms: 1.687416
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["length","(","7","/","0",")","late"]
+ok 5 - encounter-order v2 ["length","(","7","/","0",")","late"]
+  ---
+  duration_ms: 1.154292
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["substr","abc","(","7","/","0",")"]
+ok 6 - encounter-order v2 ["substr","abc","(","7","/","0",")"]
+  ---
+  duration_ms: 0.526167
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["7","/","(","0","late",")"]
+ok 7 - encounter-order v2 ["7","/","(","0","late",")"]
+  ---
+  duration_ms: 0.601042
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["7","/","0",":"]
+ok 8 - encounter-order v2 ["7","/","0",":"]
+  ---
+  duration_ms: 0.497292
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["bad","+","length"]
+ok 9 - encounter-order v2 ["bad","+","length"]
+  ---
+  duration_ms: 0.956584
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["bad","+","7","/","0"]
+ok 10 - encounter-order v2 ["bad","+","7","/","0"]
+  ---
+  duration_ms: 0.867417
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["a",":","[","late"]
+ok 11 - encounter-order v2 ["a",":","[","late"]
+  ---
+  duration_ms: 33.65225
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["(","a",":","["]
+ok 12 - encounter-order v2 ["(","a",":","["]
+  ---
+  duration_ms: 31.248916
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["index","match","a","["]
+ok 13 - encounter-order v2 ["index","match","a","["]
+  ---
+  duration_ms: 27.503708
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["a",":","a","late"]
+ok 14 - encounter-order v2 ["a",":","a","late"]
+  ---
+  duration_ms: 32.550667
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["(","a",":","a"]
+ok 15 - encounter-order v2 ["(","a",":","a"]
+  ---
+  duration_ms: 30.335791
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["match","(","a",":","a",")","("]
+ok 16 - encounter-order v2 ["match","(","a",":","a",")","("]
+  ---
+  duration_ms: 31.728875
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 ["a",":","(","[","late",")"]
+ok 17 - encounter-order v2 ["a",":","(","[","late",")"]
+  ---
+  duration_ms: 0.452
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 inactive values absent ["HIDDEN","+","999"]
+ok 18 - encounter-order v2 inactive values absent ["HIDDEN","+","999"]
+  ---
+  duration_ms: 0.428166
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 inactive values absent ["HIDDEN",":","["]
+ok 19 - encounter-order v2 inactive values absent ["HIDDEN",":","["]
+  ---
+  duration_ms: 0.485334
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 inactive values absent ["length","HIDDEN"]
+ok 20 - encounter-order v2 inactive values absent ["length","HIDDEN"]
+  ---
+  duration_ms: 0.617708
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 inactive values absent ["index","HIDDEN","Z"]
+ok 21 - encounter-order v2 inactive values absent ["index","HIDDEN","Z"]
+  ---
+  duration_ms: 0.655375
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 inactive values absent ["substr","HIDDEN","999","888"]
+ok 22 - encounter-order v2 inactive values absent ["substr","HIDDEN","999","888"]
+  ---
+  duration_ms: 0.541667
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 inactive values absent ["match","HIDDEN","["]
+ok 23 - encounter-order v2 inactive values absent ["match","HIDDEN","["]
+  ---
+  duration_ms: 0.434
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 sequential jobs cross logical and arithmetic boundaries once
+ok 24 - encounter-order v2 sequential jobs cross logical and arithmetic boundaries once
+  ---
+  duration_ms: 29.890625
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 global argv admission precedes active evaluation
+ok 25 - encounter-order v2 global argv admission precedes active evaluation
+  ---
+  duration_ms: 0.43775
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 skipped structural nodes remain bounded without encoding
+ok 26 - encounter-order v2 skipped structural nodes remain bounded without encoding
+  ---
+  duration_ms: 0.419625
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 forced tokens and left associativity retain grammar
+ok 27 - encounter-order v2 forced tokens and left associativity retain grammar
+  ---
+  duration_ms: 30.3975
+  type: 'test'
+  ...
+# Subtest: encounter-order v2 actual Shell invocation retains earlier error and completed job
+ok 28 - encounter-order v2 actual Shell invocation retains earlier error and completed job
+  ---
+  duration_ms: 28.174875
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 588.626

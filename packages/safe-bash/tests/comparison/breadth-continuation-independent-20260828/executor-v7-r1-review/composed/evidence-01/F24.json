@@ -1,0 +1,32 @@
+{
+  "id": "F24",
+  "expected": "Actual loader rejects incorrect expected0644 against literal0444 before factory.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.807Z",
+  "finished": "2026-08-28T15:01:02.858Z",
+  "detail": {
+    "mode": "bad-mode",
+    "nativeCalls": 0,
+    "factoryCalls": 0,
+    "revokedBeforeReturn": true,
+    "snapshot": {
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "opened": true,
+      "revoked": true,
+      "consumed": 0,
+      "nativeDelegations": 0,
+      "violations": [],
+      "callerAuthenticated": false,
+      "stockNodeCapabilities": false
+    },
+    "events": [
+      {
+        "kind": "load-denied",
+        "code": "LOAD_METADATA",
+        "url": "file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/fixtures/ordered.mjs"
+      }
+    ],
+    "identityPreserved": true,
+    "loaderClosed": true
+  }
+}

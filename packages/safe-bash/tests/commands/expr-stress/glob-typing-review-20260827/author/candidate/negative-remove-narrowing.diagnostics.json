@@ -1,0 +1,20 @@
+[
+  {
+    "code": 2339,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 3257,
+    "message": "Property 'patterns' does not exist on type 'Descriptor | ExprMatchDescriptor'.\n  Property 'patterns' does not exist on type 'ExprMatchDescriptor'."
+  },
+  {
+    "code": 2345,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 3311,
+    "message": "Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n  Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.\n    Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions"
+  },
+  {
+    "code": 2769,
+    "file": "tests/commands/regex-execution/continuation/glob.test.ts",
+    "start": 3361,
+    "message": "No overload matches this call.\n  Overload 1 of 2, '(descriptor: Descriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<Match[][]>', gave the following error.\n    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'Descriptor'.\n      Type 'ExprMatchDescriptor' is not assignable to type 'Descriptor'.\n        Type 'ExprMatchDescriptor' is missing the following properties from type 'GlobDescriptor': patterns, globOptions\n  Overload 2 of 2, '(descriptor: ExprMatchDescriptor, rows: readonly Row[], signal: AbortSignal, retirements?: Set<Promise<void>> | undefined): Promise<...>', gave the following error.\n    Argument of type 'Descriptor | ExprMatchDescriptor' is not assignable to parameter of type 'ExprMatchDescriptor'.\n      Type 'GrepDescriptor' is missing the following properties from type 'ExprMatchDescriptor': pattern, profile, limits"
+  }
+]

@@ -1,0 +1,792 @@
+{
+  "schema": "expr-composed-provenance/1",
+  "authorizationDate": "2026-08-28",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "integrationSource": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+  "acceptedEngine": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "originalFreeze": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+  "addendumCommit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+  "addendumSha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7",
+  "handoff": {
+    "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+    "path": "tests/plugins/expr-public-author/evidence-v1/REVIEW-HANDOFF.json",
+    "sha256": "23934ad85743186b91adc772b459e78d46c802091f1b2d2aac8357480dbf8be1"
+  },
+  "authorArchive": {
+    "location": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-public-author-Lbj5md/candidate.tar",
+    "bytes": 9195520,
+    "sha256": "75b2561e942e654399297d70e9d9206e18805c13aacde9acb379f182751f9cea",
+    "qualification": "BOUND admission-era read-only author archive hash; no new full archive stream/extraction/build. Independent P01 uses selected Git objects, not this archive."
+  },
+  "sourceProfile": {
+    "selectedGitInputs": 357,
+    "inventoryPath": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+    "inventorySha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+    "independentFullCandidateArchive": false,
+    "sourceScope": "The full package includes separately authored private shell/cancellation.ts differing from DU75; not approved by this integration and not loaded in recorded public contexts. Nine expr/shared-regex TS sources remain accepted c3 bytes."
+  },
+  "P01": {
+    "status": "BOUND_ACCEPTED_PROOF",
+    "accepted": true,
+    "independentlyBuiltIn": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+    "recipe": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "buildExecuted": false,
+    "packExecuted": false,
+    "independentInputsBound": 357,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526,
+    "members": 834,
+    "manifestSha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+    "authorpackFallback": false
+  },
+  "refs": {
+    "v5": {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "folder": "component-execution-v5",
+      "manifest": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1",
+      "seal": "0a37b5795ac594f1a1e587786295bb0dd21019162b3c76cfff3607fec6c232b1"
+    },
+    "targeted": {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "folder": "r21-n04-reconciliation-v1",
+      "manifest": "e89be0a522712f0fc51555d5b8a34b6d96b71365a735de1e7732c1e9f3a8c466",
+      "seal": "6202ffd8c2f8dad281c4355fc8c7ca9f6ade3e52ce4d857a0737567550e57e34"
+    },
+    "du": {
+      "commit": "be0222a375613cf37e6e3eb5e5a7da0886905a20",
+      "folder": "accepted-du75-binding-v1",
+      "manifest": "e1d36287b8fbfc706869a1ea9683df12b6f6d2942c1b5dd936ef27576dc6d863"
+    }
+  },
+  "histories": [
+    {
+      "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v1",
+      "files": 31,
+      "entriesSha256": "3caf5972b88f1def6400abbb72bdd9d9550bd5da8b1aabcd435c411a8028ab22"
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v2",
+      "files": 5,
+      "entriesSha256": "50a5d4c38d540e58636e42900ec263a8ca4949561a994c81f18f133cbfc91e47"
+    },
+    {
+      "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v3",
+      "files": 25,
+      "entriesSha256": "73b17ac278497cee6e49d8118875755a2c521a1ec804fc2ca780c682170dea17"
+    },
+    {
+      "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v3-blocker",
+      "files": 2,
+      "entriesSha256": "f6f794c3d4ab31353232f8f44129c4f15f8cdf868f20efd0da81416e6b5e20a6"
+    },
+    {
+      "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v4",
+      "files": 29,
+      "entriesSha256": "25c9d5d6ad0a4527179bc9bfcc9851cdcd12d6fe50c79f29a98c08d701519949"
+    },
+    {
+      "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v4-blocker",
+      "files": 2,
+      "entriesSha256": "7be6eebdcb995f74107f348fa156de837c139f4bef383712d88ddd1dd4f8f957"
+    },
+    {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v5",
+      "files": 32,
+      "entriesSha256": "bf6fca2cfec34f1411924dd6787c15a5d2bcb1460f80e8223750abb9b5089aab"
+    },
+    {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v5-result",
+      "files": 2,
+      "entriesSha256": "15f4573c2712b9c85c3631ac4061679be9db026bd045103ee9417d9939b31bc0"
+    },
+    {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v5",
+      "files": 32,
+      "entriesSha256": "bf6fca2cfec34f1411924dd6787c15a5d2bcb1460f80e8223750abb9b5089aab"
+    },
+    {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "prefix": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1",
+      "files": 42,
+      "entriesSha256": "aefb12f6ef12b6b603592c0d4660d074b30ec47950dfa7c552ce21dc8f1637d2"
+    },
+    {
+      "commit": "be0222a375613cf37e6e3eb5e5a7da0886905a20",
+      "prefix": "tests/integration/expr-public-independent-20260827/accepted-du75-binding-v1",
+      "files": 5,
+      "entriesSha256": "b8bd12d5e88c07711e55dec317f9daddd2e8073030a408e3e1a9210fd0807856"
+    },
+    {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "prefix": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1-result",
+      "files": 1,
+      "entriesSha256": "23109d8b38a1700efb3795c7995a252ec2a0b814d34ae945c2d3e5817e9575cf"
+    }
+  ],
+  "archives": [
+    {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "status": "pass",
+      "entries": 993,
+      "bytes": 220703859,
+      "archive": {
+        "path": "RAW.jsonl.gz",
+        "bytes": 10154080,
+        "sha256": "5a6b881110cd9f68d3b7fbd567d7a4588dfeb0be791a20850d5e3cc33ddab9ed"
+      }
+    },
+    {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "status": "pass",
+      "entries": 255,
+      "bytes": 24911320,
+      "archive": {
+        "path": "RAW.jsonl.gz",
+        "bytes": 3005742,
+        "sha256": "b16d258a28abfe70cfbb6039deb1bbcad6b7fe532efb20d3b39bf3b810c216c4"
+      }
+    }
+  ],
+  "retained": [
+    {
+      "label": "installed-node22",
+      "runtime": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "types": [
+        "positive",
+        "negative",
+        "N01",
+        "N02",
+        "N03",
+        "N05",
+        "N06",
+        "broken-declaration"
+      ],
+      "amendedTypes": [
+        {
+          "label": "installed-node22",
+          "id": "N04",
+          "status": "pass",
+          "executed": true,
+          "receipt": "installed-node22-type-N04",
+          "diagnostics": [
+            "installed-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+          ]
+        },
+        {
+          "label": "installed-node22",
+          "id": "combined",
+          "status": "pass",
+          "executed": true,
+          "receipt": "installed-node22-type-combined",
+          "diagnostics": [
+            "installed-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "installed-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "installed-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "installed-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+            "installed-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "installed-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+          ]
+        }
+      ]
+    },
+    {
+      "label": "installed-node24",
+      "runtime": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "types": [
+        "positive",
+        "negative",
+        "N01",
+        "N02",
+        "N03",
+        "N05",
+        "N06",
+        "broken-declaration"
+      ],
+      "amendedTypes": [
+        {
+          "label": "installed-node24",
+          "id": "N04",
+          "status": "pass",
+          "executed": true,
+          "receipt": "installed-node24-type-N04",
+          "diagnostics": [
+            "installed-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+          ]
+        },
+        {
+          "label": "installed-node24",
+          "id": "combined",
+          "status": "pass",
+          "executed": true,
+          "receipt": "installed-node24-type-combined",
+          "diagnostics": [
+            "installed-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "installed-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "installed-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "installed-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+            "installed-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "installed-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+          ]
+        }
+      ]
+    },
+    {
+      "label": "moved-node22",
+      "runtime": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "types": [
+        "positive",
+        "negative",
+        "N01",
+        "N02",
+        "N03",
+        "N05",
+        "N06",
+        "broken-declaration"
+      ],
+      "amendedTypes": [
+        {
+          "label": "moved-node22",
+          "id": "N04",
+          "status": "pass",
+          "executed": true,
+          "receipt": "moved-node22-type-N04",
+          "diagnostics": [
+            "moved-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+          ]
+        },
+        {
+          "label": "moved-node22",
+          "id": "combined",
+          "status": "pass",
+          "executed": true,
+          "receipt": "moved-node22-type-combined",
+          "diagnostics": [
+            "moved-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "moved-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "moved-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "moved-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+            "moved-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "moved-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+          ]
+        }
+      ]
+    },
+    {
+      "label": "moved-node24",
+      "runtime": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "types": [
+        "positive",
+        "negative",
+        "N01",
+        "N02",
+        "N03",
+        "N05",
+        "N06",
+        "broken-declaration"
+      ],
+      "amendedTypes": [
+        {
+          "label": "moved-node24",
+          "id": "N04",
+          "status": "pass",
+          "executed": true,
+          "receipt": "moved-node24-type-N04",
+          "diagnostics": [
+            "moved-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+          ]
+        },
+        {
+          "label": "moved-node24",
+          "id": "combined",
+          "status": "pass",
+          "executed": true,
+          "receipt": "moved-node24-type-combined",
+          "diagnostics": [
+            "moved-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "moved-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+            "moved-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "moved-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+            "moved-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+            "moved-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+          ]
+        }
+      ]
+    }
+  ],
+  "retainedRecipes": [
+    {
+      "evidenceCommit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "recipeCommit": "94b040e35d2a2c40ee006e65062a42f8f46292ff",
+      "recipeManifestSha256": "c2e3b0b966f055883ccdd9a92a4abe398f842943574f031edbbc56cdf685ee69"
+    },
+    {
+      "evidenceCommit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "recipeCommit": "0efeb43ece20f2dd55ae1cd5328c6dd3abc5ca08",
+      "recipeManifestSha256": "f7fa8110f3141acf6c99cabae2414c449035289de043a5d23023b66cdaa44d51"
+    }
+  ],
+  "declarationBindings": [
+    {
+      "path": "dist/index.d.ts",
+      "sha256": "b7bdb352517afe01f596d69b4ebbfaa3359b418c93a19ce23f7761d6eac3c249",
+      "status": "package bytes bound; actual type resolution retained from v5/targeted TRACE, not new type execution"
+    },
+    {
+      "path": "dist/commands/expr/index.d.ts",
+      "sha256": "bc5ad271ac3d86ed7fe5ed04b59b2541578f52c91695b3288a369d3d1cd2af44",
+      "status": "package bytes bound; actual type resolution retained from v5/targeted TRACE, not new type execution"
+    }
+  ],
+  "acceptedEngineBindings": [
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "gitBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "gitBlob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d"
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840"
+    },
+    {
+      "path": "src/commands/expr/syntax.ts",
+      "gitBlob": "352e8d330bfb54427844451711d56b7959a4d147",
+      "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "gitBlob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "gitBlob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "gitBlob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6"
+    }
+  ],
+  "DU": {
+    "status": "ROOT_ACCEPTED_BOUND_NOT_EXECUTED",
+    "evidence": {
+      "commit": "be0222a375613cf37e6e3eb5e5a7da0886905a20",
+      "folder": "accepted-du75-binding-v1",
+      "manifest": "e1d36287b8fbfc706869a1ea9683df12b6f6d2942c1b5dd936ef27576dc6d863"
+    },
+    "selectedBase": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+    "freeze": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+    "pack": {
+      "sha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "bytes": 726693,
+      "members": 834
+    },
+    "composition": {
+      "originalQualified": 22,
+      "continuationQualified": 7,
+      "total": 29,
+      "sourceRuntime": 19,
+      "movedRuntime": 19,
+      "continuationIds": [
+        "T03",
+        "T04",
+        "T05",
+        "P03",
+        "P04",
+        "P05",
+        "P06"
+      ],
+      "focusedControls": 22,
+      "packageGuardExpectedRejects": 23,
+      "T03": "TS2322, DU leaf declaration proof",
+      "T04T05": "root declaration proof",
+      "originalT03Rejection": "UNCHANGED_UNRESCORED",
+      "originalNeverExecuted": [
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "T04",
+        "T05"
+      ],
+      "runtimeReruns": 0
+    },
+    "sources": {
+      "duOriginalManifest": {
+        "commit": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/EVIDENCE-MANIFEST.json",
+        "sha256": "c1c45fd86a7d9e24f8d31271a09c511a234723f69bb3169025ac8e0b9ae29f51",
+        "bytes": 3626
+      },
+      "duOriginalReport": {
+        "commit": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/REPORT.json",
+        "sha256": "bfcd8be74232cee91b1129cf93897b2f8ea398a9c57b22d826b1e73c17a2de26",
+        "bytes": 4804
+      },
+      "duContinuationManifest": {
+        "commit": "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/EVIDENCE-MANIFEST.json",
+        "sha256": "f94e69b43982da8afe0ac7791ffd070338d887939306d6b48230e14aa5e2c2d3",
+        "bytes": 2747
+      },
+      "duContinuationReport": {
+        "commit": "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/REPORT.json",
+        "sha256": "6aeaf4f1f6aae2915d0cdc064e4c5a50943bfbc8141f7c936fd68adba1dbc821",
+        "bytes": 11834
+      },
+      "duContinuationRecipe": {
+        "commit": "84e7f5fa7a77b9b4692578c1cfe4687a3b5f991d",
+        "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/MANIFEST.json",
+        "sha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea",
+        "bytes": 1970
+      },
+      "exprAdmission": {
+        "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+        "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+        "sha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e",
+        "bytes": 20548
+      },
+      "exprInputs": {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+        "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+        "bytes": 816134
+      },
+      "exprV4Manifest": {
+        "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/MANIFEST.json",
+        "sha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+        "bytes": 19117
+      },
+      "exprV5Manifest": {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/MANIFEST.json",
+        "sha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1",
+        "bytes": 190988
+      },
+      "exprV5Report": {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/REPORT.json",
+        "sha256": "c927fe9fb51c3c1ae5f423de13b0dbed4d817213449556e5b24597b4d0363e0c",
+        "bytes": 912466
+      },
+      "r21N04Recipe": {
+        "commit": "0efeb43ece20f2dd55ae1cd5328c6dd3abc5ca08",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/RECIPE-SEAL.json",
+        "sha256": "f7fa8110f3141acf6c99cabae2414c449035289de043a5d23023b66cdaa44d51",
+        "bytes": 5444
+      },
+      "r21N04Manifest": {
+        "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/MANIFEST.json",
+        "sha256": "e89be0a522712f0fc51555d5b8a34b6d96b71365a735de1e7732c1e9f3a8c466",
+        "bytes": 50123
+      },
+      "r21N04Seal": {
+        "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/EVIDENCE-SEAL.json",
+        "sha256": "6202ffd8c2f8dad281c4355fc8c7ca9f6ade3e52ce4d857a0737567550e57e34",
+        "bytes": 3985
+      },
+      "r21N04Checkpoint": {
+        "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+        "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1-result/CHECKPOINT.md",
+        "sha256": "7177e5cb82fb9a32a22d2b967af1906b6d8239c443cc531ff58e3eca7453f1ed",
+        "bytes": 10694
+      },
+      "originalConsumer": {
+        "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+        "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+        "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+        "bytes": 8827
+      },
+      "componentAdapter": {
+        "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+        "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/consumer-component.mjs",
+        "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e",
+        "bytes": 8853
+      }
+    },
+    "boundFullPackReproduction": {
+      "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+      "recipe": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+      "manifestSha256": "d369aa59e1e92c4dde6140bd22f230239e93a24b1d81f69f8ba6627511463489",
+      "fullPackReproduced": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "selectedInputs": 771,
+      "members": 834,
+      "profile": "scoped-committed-archive-not-full-history"
+    },
+    "archiveScope": "Bound DU receipts declare scoped committed archive, not full-history archive; no independent DU archive build/hash claim added here"
+  },
+  "originalR21": {
+    "id": "R21",
+    "kind": "expression",
+    "args": [
+      "bad\u0000arg"
+    ],
+    "exitCode": 2,
+    "stdout": "",
+    "diagnostic": "expr-single-line",
+    "variants": [
+      {
+        "args": [
+          "\ud800"
+        ],
+        "exitCode": 2,
+        "stdout": "",
+        "diagnostic": "expr-single-line"
+      }
+    ]
+  },
+  "sourceTrace": [
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+      "gitBlob": "b826b1f3d8cb8a0f3703c949bda5003cce06f326"
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342"
+    },
+    {
+      "path": "src/commands/expr/README.md",
+      "sha256": "b2f840d827573709df3cd6a8f900a07e2ce1d391a4c7185700e7a329c105f482",
+      "gitBlob": "6778b9e71ec49bc318568ad2fb32ba066456ba76"
+    }
+  ],
+  "runtimes": [
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "version": "v22.22.2",
+      "permissionFlag": "--permission"
+    },
+    {
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "version": "v24.11.1",
+      "permissionFlag": "--permission"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "bytes": 7604272,
+      "mode": 493,
+      "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  ],
+  "previous": {
+    "v5": {
+      "plannedRuntimeContexts": 4,
+      "plannedRuntimeAssertions": 104,
+      "executed": 104,
+      "pass": 100,
+      "fail": 4,
+      "unrun": 0,
+      "controlsExecuted": 36,
+      "controlsPass": 36,
+      "typeInvocations": 40,
+      "typePass": 32,
+      "typeFail": 8,
+      "typeUnrun": 0,
+      "controlsFail": 0,
+      "controlsUnrun": 0
+    },
+    "targeted": {
+      "observations": 16,
+      "targetExecuted": 8,
+      "targetPass": 8,
+      "targetFail": 0,
+      "controlsPass": 72,
+      "controlsFail": 0,
+      "children": 48,
+      "naturalChildren": 48,
+      "forcedChildren": 0,
+      "workers": 0,
+      "checks": 98,
+      "targetUnrun": 0,
+      "observationsUnrun": 0,
+      "controlsUnrun": 0
+    },
+    "workers": 80,
+    "traceControls": {
+      "planned": 38,
+      "pass": 38,
+      "fail": 0,
+      "unrun": 0
+    },
+    "reader": {
+      "status": "qualified-evidence-reused",
+      "controls": 16,
+      "newControls": 0,
+      "evidence": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+      "semanticsChanged": false
+    },
+    "repair": {
+      "status": "qualified-evidence-reused",
+      "pass": 28,
+      "planned": 28,
+      "newControls": 0,
+      "evidence": "1ec1912001db43f803af46bb5dea89a7e397b83b"
+    }
+  },
+  "exclusions": [
+    "No original104/40 all-green replay or rescore",
+    "No new N04/types/P01/R25/R26/DU/HTML/engine execution",
+    "Original failures/raw/acceptedBeforeRun unchanged",
+    "No76-command behavior/fullgate/release/Dirac certification",
+    "The full package includes separately authored private shell/cancellation.ts differing from DU75; not approved by this integration and not loaded in recorded public contexts. Nine expr/shared-regex TS sources remain accepted c3 bytes."
+  ]
+}

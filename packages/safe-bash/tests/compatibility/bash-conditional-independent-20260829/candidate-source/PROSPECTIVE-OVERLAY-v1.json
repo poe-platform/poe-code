@@ -1,0 +1,120 @@
+{
+  "schema": "conditional-independent-root-overlay-v1",
+  "date": "2026-08-29",
+  "role": "PROSPECTIVE_SOURCE_DATA_ONLY_NOT_ACTUAL_EXECUTION_PRESEAL",
+  "authority": "Latest ROOT message in this thread after 584677f0; no invented grant commit.",
+  "preserves": {
+    "precode": "d9e466af6212a35fe190ee7ca8636f0e491df628",
+    "adjudication": "584677f0876b0cb5a31c8f1e8c500e0ecfe53d9e",
+    "originalH02Failures": 3,
+    "originalProviderLaterFinalization": "UNOBSERVED",
+    "candidate": "6fde455bcc103117a6424b95156b152721f5735f",
+    "candidateExecution": 0,
+    "originalFilesUnchanged": true
+  },
+  "H02": {
+    "rootDecision": "Original immediate-finalizer assertion is stronger than existing explicit-owned-cleanup contract; no ownership product fix.",
+    "future": "Controlled-release opaque-provider observer plus separate existing registered-cleanup control; retain exact caller identity and actual terminal observations.",
+    "originalDisposal": "Fulfillment does not establish later provider finalization, leak, or no leak.",
+    "status": "WAIT_FOR_AUTHOR_SUCCESSOR"
+  },
+  "variablePresence": {
+    "accepted": "Scalar names and canonical numeric indices only.",
+    "reachedAggregates": {
+      "selectors": [
+        "a[@]",
+        "a[*]"
+      ],
+      "exitCode": 2,
+      "stdout": "",
+      "stderr": "Budgeted unsupported-profile diagnostic; exact bytes bind successor fixture before actual execution."
+    },
+    "noGeneralArrayPresenceGuess": true,
+    "prospectiveVariants": [
+      {
+        "mapsTo": "existing N12 presence coverage",
+        "script": "a=(); a[3]=; [[ -v 'a[@]' ]]",
+        "status": 2
+      },
+      {
+        "mapsTo": "existing N12 presence coverage",
+        "script": "a=(); a[3]=; [[ -v 'a[*]' ]]",
+        "status": 2
+      },
+      {
+        "mapsTo": "existing H03 skipped-branch coverage",
+        "script": "[[ x || -v 'a[@]' ]]",
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "mapsTo": "existing N12 unchanged canonical-index behavior",
+        "script": "a=(); a[3]=; [[ -v 'a[3]' && ! -v 'a[0]' ]]",
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "countQualification": "Prospective variants, not four executed cases or new N13+ identities. Existing frozen N12 bytes remain unchanged. Final finite variant census requires successor binding and fresh authorization."
+  },
+  "filesystem": {
+    "metadataFalse": {
+      "errorAuthority": "Genuine FsError supplied by the authenticated executing package, not arbitrary objects exposing code.",
+      "codes": [
+        "ENOENT",
+        "ENOTDIR",
+        "EACCES",
+        "EPERM"
+      ],
+      "conditionalStatus": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "accessFalse": "Documented actual access denial; no extra errno inferred by this overlay.",
+    "unsupported": "Unsupported/unobservable capability => status2 with budgeted diagnostic; do not infer unsupported from arbitrary duck-typed code fields.",
+    "propagate": [
+      "unexpected provider rejection",
+      "caller reason by exact identity",
+      "ShellLimitError",
+      "sink failure",
+      "registered cleanup failure"
+    ],
+    "prospectiveNegativeControls": [
+      {
+        "reason": {
+          "code": "ENOENT"
+        },
+        "expected": "Unexpected provider rejection, not metadata false; retain actual public rejection identity."
+      },
+      {
+        "reason": {
+          "code": "EACCES"
+        },
+        "expected": "Unexpected provider rejection, not documented access-denial authority."
+      },
+      {
+        "reason": {
+          "code": "ENOTSUP"
+        },
+        "expected": "Not automatic unsupported-status2 classification based only on a code field."
+      }
+    ],
+    "qualification": "Error authority is a source-plus-future-dynamic obligation; no cross-package/cross-realm instanceof guarantee or hostile-host sandbox claim added. No other errno or GNU all-error parity inferred."
+  },
+  "executionHold": {
+    "authorSuccessorRequired": true,
+    "actualPresealBeforeSuccessor": false,
+    "actualProduct": false,
+    "compiler": false,
+    "native": false,
+    "worker": false,
+    "sourceFix": false,
+    "existingGrantNotExtended": true
+  },
+  "futureMutantRefinements": {
+    "M05": "Activate genuine FsError missing/denied false vs structurally similar unrelated rejection; no catch-all false.",
+    "M06": "Keep caller identity separate from cleanup registration/terminal observation.",
+    "originalFamiliesUnchanged": true
+  }
+}

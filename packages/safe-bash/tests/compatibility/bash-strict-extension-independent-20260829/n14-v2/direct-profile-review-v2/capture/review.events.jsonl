@@ -1,0 +1,2 @@
+{"child":{"args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/controls.mjs","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/AUTHOR-REPEAT-SEAL.json","7fcff853f88a2e2bb5108fc63d0cbdfe7251fabedace3514e83a557b0c089ee7","/private/tmp/direct-profile-independent-v2-bShSbp"],"exit":true,"close":true,"signals":[],"pid":47420,"status":0,"signal":null}}
+{"terminal":"SCOPED_CONTROLS_PASS","reasonPresent":false}

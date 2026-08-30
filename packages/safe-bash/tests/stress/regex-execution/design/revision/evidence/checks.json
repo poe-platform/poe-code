@@ -1,0 +1,17 @@
+{
+  "scope": "author revision only",
+  "harnessFreeze": "960f3b909c1de34f0e525e0ce97d286a8e981003",
+  "codeCommit": "398143a253ada226340c05a8028add4df78d00ae",
+  "scopedCompileExitCode": 0,
+  "syntaxCheckExitCodes": { "child.mjs": 0, "prepare.mjs": 0, "run.mjs": 0, "audit.mjs": 0, "cleanup.mjs": 0 },
+  "frozenBenignRunExitCode": 0,
+  "identityAuditExitCode": 0,
+  "exactBuildCleanupExitCode": 0,
+  "sourceDiffCheckExitCode": 0,
+  "authorRiskUsed": 0,
+  "authorRiskMaximum": 2,
+  "originalRiskArchived": 12,
+  "broadTestsRun": false,
+  "benchmarkRun": false,
+  "approvalRefusal": false
+}

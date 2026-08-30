@@ -1,0 +1,25 @@
+[main 9cbb83c9d3491cd38cb8db818adb9f319d52d57a] test: preseal prospective N14 package admission ordering
+ 23 files changed, 6425 insertions(+)
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/ARTIFACT.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EXPECTED-MEMBERS.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/PRESEAL.sha256
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/controls.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/ordering-mutant.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/outer.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/package-admission.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/parse-manifest.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/START.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/git-status.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/git-status.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/metadata.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/metadata.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/prepare.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/prepare.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/prepare.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prep/stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/prepare.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/restored-admission.mjs

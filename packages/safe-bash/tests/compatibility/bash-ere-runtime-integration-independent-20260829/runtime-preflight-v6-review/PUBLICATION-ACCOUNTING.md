@@ -1,0 +1,9 @@
+# Known-role accounting
+
+14 scoped capture-first metadata reader roles; initial apply_patch1; preparation owner+Git2; preseal owner+Git add/commit3; replay owner+control+two harmless children+novel5; three diagnosis/source readers3; obligations reader1; report patch1; final DATA publication helper1; this documentation correction patch1 =32 known roles before final publication. Final publication owner+three sequential Git children reserves4, giving36 on successful publication, within48. Peak3 is replay owner/control/harmless-child. No subagent, native, Worker, compiler, build or product process.
+
+SOURCE-SUMMARY.json correctly records31 roles through its own helper and a then-projected35 after publication. This subsequent line-anchor/accounting correction adds one role; the prior projection is not rewritten as an observation. Publication's actual exit/close records and tool session establish the final36 only after success. Git internal helpers/transitive OS behavior are not independently enumerated; no universal census claim.
+
+Novel helper exit1 and outer composition exit1 remain. Its zero/partial/cap probes did not execute; the capture issue is SOURCE-only. No retry consumed extra control-helper slots. All replay controls used exact pinned Node22 and new physical scratch, with two known harmless children closed0/7. No stale PID probes or old fixture-root cleanup.
+
+Completed raw startup/metadata/control/novel/Git captures are retained under raw/ and supervision/. Current final publication tail remains at the externally captured /tmp location returned by the publisher. The immutable snapshot declares its prepublication owned-root/scratch domain and does not claim final/peak disk, Git-object storage, RSS or global descendants. All work remains on the original20-minute clock; no budget renewal or historical v4/v5 rescore.

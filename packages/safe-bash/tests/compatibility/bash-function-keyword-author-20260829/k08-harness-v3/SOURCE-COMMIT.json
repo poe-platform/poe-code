@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "6dfff45db6b24d0118721a905ca7f7a058a7c3ec",
+  "seal": {
+    "bytes": 200923,
+    "sha256": "db262c234c02526f2864ef66d8e137e9cd9817645431d944ff3459ad3c89d9d9"
+  },
+  "productSourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "productArchive": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "decodedBytes": 5803008,
+    "shippingMembers": 1006
+  },
+  "activation": "PENDING"
+}

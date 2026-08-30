@@ -1,0 +1,95 @@
+{
+  "checked": "2026-08-27T08:18:57.143Z",
+  "fixtureCommit": "10273352f8d65d929cbf5a23e69119414dacee60",
+  "files": [
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/REPORT.md",
+      "sha256": "7fde49e0c0e2f9a084d0c744224d82144bd19ec0f656d7f5e5575eee57c7792d"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/replay.mjs",
+      "sha256": "4286f3770c475e6290fcf0a38f55e7cdd5955f61fedc883cffbbe066bba5906e"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/adjudication-11.json",
+      "sha256": "c9ea4095c6e27a642fe8d33fc4296241eed2b9ca010c2a201c1b97245b715081"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/before.json",
+      "sha256": "26df48e924d620e10d24643af8258590fdf9d40a179d992eeb0e7e096658bb81"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/build.json",
+      "sha256": "23874230e9230eb3e32110abbf7bf2e20e6202345af7713dafb87d666ec15ce6"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/cohort-101.json",
+      "sha256": "84c5aaf8519148aa7b2038ca5de62514b1fa6169fea0c533464e3dc09696e0bd"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/finish.json",
+      "sha256": "b8c9a75b23efb802334f0eae9c5ab8dc5acedc2fd78a81db9143bedfc5302ef1"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/fixture-control-types.json",
+      "sha256": "427a426aaa5d65ce403997004d0884706efaf9d468b643ed0b3403226dc7d9f9"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/fixture.json",
+      "sha256": "d68550d748f57971711f5a6f170f84865a546feb4f0346bd9513eaacb8ba5b23"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/historical-types.json",
+      "sha256": "25a9f40f88a7e9d7654287cf6a6a2e28de70d0294a2a10011ddedbbec1d7a8aa"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/mapping.json",
+      "sha256": "25847855ac178339db7fe063e3b104feaf60f126b6db8e5d6c2d8359850a4dca"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/original-messageerror.test.ts.txt",
+      "sha256": "29b38d1603829e8f914410463b0537752aa585444a990e204b96948b92d14214"
+    },
+    {
+      "path": "tests/stress/regex-execution/queued-close-adjudication/migration/evidence/replay-freeze.json",
+      "sha256": "ef7c80844dc113c4ab2a11fd539663edec606e933b207ab8b7a19a0f72f53e08"
+    }
+  ],
+  "children": [
+    {
+      "label": "build",
+      "pid": 68296,
+      "processAndGroupAbsent": true
+    },
+    {
+      "label": "historical-types",
+      "pid": 68307,
+      "processAndGroupAbsent": true
+    },
+    {
+      "label": "fixture-control-types",
+      "pid": 68309,
+      "processAndGroupAbsent": true
+    },
+    {
+      "label": "cohort-101",
+      "pid": 68319,
+      "processAndGroupAbsent": true
+    },
+    {
+      "label": "adjudication-11",
+      "pid": 68339,
+      "processAndGroupAbsent": true
+    }
+  ],
+  "historicalFilesUnchanged": 71,
+  "frozenClientUnchanged": true,
+  "fixtureCommitOnlyCanonical": true,
+  "reviewPathsExcluded": true,
+  "remainingOwnedTemporaryDirectories": [],
+  "limitations": {
+    "runtimeAcceptance": false,
+    "riskyProbes": 0,
+    "independentVariantsRun": 0
+  }
+}

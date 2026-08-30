@@ -1,0 +1,16 @@
+# Fresh v4 fixture/mechanism preseal
+
+Source7a5c620005fb04518d44bb284f4e99284e4a7c33 / derived74dfe69135a3fc5ba89396b20dd32d9c9daae131 / full954 package SHA46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09 are unchanged. Reuse authenticated prior build/emits; no new build/compiler, no831 replay. Old grant39/40 is closed; this fresh grant starts2026-08-29T07:07:31.819Z and includes preparation/publication within30min.
+
+Exact original N01,N10,N11 scripts and expected bytes unchanged. V4 awaits readFile():Promise<Uint8Array>, checks expectedUTF8 length<=4096, checks actual length and every byte, then bounded fatal UTF8 decode only for reporting. No trimming/newline/diagnostic normalization. Observed file names are captured before unchanged name assertion for precise M04 counterexample; no expected hash rewrites.
+
+M04: old original byte restoration/source load was proved, but semantic restore ended in the bad reader. New isolated M04 mutation must load changed runtime.js and fail specifically because observedNames=[] rather than['out']; then same-path byte restoration AND fresh loaded N10 file-byte pass are required.
+
+M06: H01 preabort exits owner.activate catch before modified owner.finish selected-reason line. Old load never proved activation. New unchanged H02-v4 baseline passes; under exact M06 mutation H01 must still pass (no-activation countercontrol), H02-v4 must fail exact reason comparison containing lost caller identity/during:true with closed provider/shell cleanup, then same-path original bytes plus new H02-v4 semantic restore must pass. All M06 provider releases occur in existing fixture finally; observer assertion cannot skip that. No added API/injected counters.
+
+Plan: nine corrected observations in source-existing-emits/offline-installed/physically-moved-original-absent; six mechanism observations (four positive, two expected negative); two targeted binding refusals. Twelve direct children including one offline scripts-disabled install; eleven fixed loader admissions, zero selected RegexWorkers. New grant max72 allknownOS/peak4/128MiB capture/768MiB work; loadermax20/Regexmax4. Run narrower body caps in PRESEAL; serial dispatch. Case30s/tool120s, all-inclusive original fresh-start clock.
+
+Every admin starts through captured direct spawn with PID/close receipts; no reserved count labeled observed. Actual launch uses literal exec Node command, so shell exec-replaces outer PID. Outer capture before admission; enroll coordinator/children before fallible publication. Actual loader and full package/source/tool/app closures authenticated before/after; namespacefresh, no old staging cleanup. Byte ordering remains admitted ASCII physical full paths, including moved space; virtual filenames follow existing fixture semantics.
+
+Ordinary fully captured retired assertion/helper errors aggregate or version only under grant; safety/capture/integrity/unknown-retirement/cap stops dependents. Exact mutant expected cause, not any nonzero, required. Old source H02 failures, all reader/import failures and M06 survival remain unchanged. No native/private/network/engine/XAN/P2/Nodeintegration/Unit4/globalgate activity; no RSS/global OS descendant/hardpreemption claim.
+

@@ -1,0 +1,165 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { toByteSource, type ByteSource } from "../../../src/contracts/index.js";
+import { type HttpResponse, type HttpTransport, type NetworkLimits } from "../../../src/commands/network/index.js";
+import { run } from "./helpers.js";
+
+function response(status: number): HttpResponse {
+  return { status, statusText: status === 503 ? "Unavailable" : "OK", headers: [], body: toByteSource(""), async dispose() {} };
+}
+
+async function replay(source: ByteSource, limits: Partial<NetworkLimits> = {}, upload = false) {
+  const uploads: Buffer[] = [];
+  const attempts: number[] = [];
+  let disposed = 0;
+  const transport: HttpTransport = async request => {
+    assert.ok(request.body);
+    const chunks: Buffer[] = [];
+    uploads.push(Buffer.alloc(0));
+    try { for await (const chunk of request.body) chunks.push(Buffer.from(chunk)); }
+    finally { uploads[uploads.length - 1] = Buffer.concat(chunks); }
+    return { ...response(uploads.length === 1 ? 503 : 200), async dispose() { disposed++; } };
+  };
+  const result = await run([...(upload ? ["-T", "-"] : ["--data-binary", "@-"]),
+    "--retry", "1", "--retry-delay", "0.001", "http://127.0.0.1/replay"], {
+    stdin: source, options: { transport, limits, authorize(request) { attempts.push(request.attempt); return true; } },
+  });
+  return { ...result, uploads, attempts, disposed };
+}
+
+for (const kind of ["Buffer", "Uint8Array"] as const) {
+  test(`curl retries exact ragged offset ${kind} bytes after reuse and finalization`, async () => {
+    const backing = kind === "Buffer" ? Buffer.alloc(17020, 0x7e) : new Uint8Array(17020).fill(0x7e);
+    const fragments = [Buffer.alloc(17001, 0xa5), Buffer.alloc(0), Buffer.from([0, 255, 128]), Buffer.from("last\r\n")];
+    let closed = false;
+    const source = (async function* (): ByteSource {
+      try {
+        for (const fragment of fragments) {
+          backing.fill(0x7e);
+          backing.set(fragment, 7);
+          const expected = Uint8Array.from(backing);
+          yield backing.subarray(7, 7 + fragment.length);
+          assert.deepEqual(Uint8Array.from(backing), expected);
+        }
+      } finally { backing.fill(0x78); closed = true; }
+    })();
+    const result = await replay(source);
+    assert.equal(closed, true);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.attempts, [0, 1]);
+    assert.equal(result.disposed, 2);
+    assert.equal(result.uploads.length, 2);
+    for (const [attempt, bytes] of result.uploads.entries()) {
+      assert.equal(bytes.equals(Buffer.concat(fragments)), true, `upload attempt ${attempt} differs from original bytes`);
+    }
+  });
+
+  test(`curl -T replays a final ${kind} offset view after finalizer mutation`, async () => {
+    const backing = kind === "Buffer" ? Buffer.from([90, 0, 255, 13, 10, 91]) : Uint8Array.from([90, 0, 255, 13, 10, 91]);
+    let closed = false;
+    const source = (async function* (): ByteSource {
+      try { yield backing.subarray(1, 5); } finally { backing.fill(0x78); closed = true; }
+    })();
+    const result = await replay(source, {}, true);
+    assert.equal(closed, true);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.uploads, [Buffer.from([0, 255, 13, 10]), Buffer.from([0, 255, 13, 10])]);
+  });
+}
+
+test("curl replay leaves stable Buffer input and surrounding sentinels unchanged", async () => {
+  const backing = Buffer.from("beforePAYLOADafter");
+  const expected = Buffer.from(backing);
+  const source = (async function* (): ByteSource { yield backing.subarray(6, 13); })();
+  const result = await replay(source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.uploads, [Buffer.from("PAYLOAD"), Buffer.from("PAYLOAD")]);
+  assert.deepEqual(backing, expected);
+});
+
+test("curl replay budget accepts its exact boundary and refuses overflow without a partial replay", async () => {
+  for (const maximum of [256, 255]) {
+    const source = (async function* (): ByteSource { yield Buffer.alloc(128, 0x61); yield Buffer.alloc(128, 0x62); })();
+    const result = await replay(source, { maxBufferBytes: maximum });
+    const expected = Buffer.concat([Buffer.alloc(128, 0x61), Buffer.alloc(128, 0x62)]);
+    assert.equal(result.exitCode, maximum === 256 ? 0 : 65, result.stderr.toString());
+    assert.deepEqual(result.uploads, [expected, maximum === 256 ? expected : Buffer.alloc(0)]);
+    if (maximum === 255) assert.match(result.stderr.toString(), /Cannot replay stdin upload within the host buffer limit/);
+  }
+});
+
+test("curl upload limit stops before publishing an overflowing retained fragment", async () => {
+  let closed = false;
+  let afterOverflow = false;
+  const source = (async function* (): ByteSource {
+    try { yield Buffer.from("ab"); yield Buffer.from("cd"); afterOverflow = true; }
+    finally { closed = true; }
+  })();
+  const result = await replay(source, { maxUploadBytes: 3 });
+  assert.equal(result.exitCode, 63);
+  assert.match(result.stderr.toString(), /Upload exceeds host byte limit/);
+  assert.deepEqual(result.uploads, [Buffer.from("ab")]);
+  assert.deepEqual(result.attempts, [0]);
+  assert.equal(closed, true);
+  assert.equal(afterOverflow, false);
+});
+
+test("curl cancellation preserves the caller reason and closes retained source storage", async () => {
+  const controller = new AbortController();
+  const reason = new Error("stop upload read");
+  const backing = Buffer.from("ab");
+  let closed = false;
+  let finished!: () => void;
+  const settled = new Promise<void>(resolve => { finished = resolve; });
+  const sent: Buffer[] = [];
+  const source = (async function* (): ByteSource {
+    try { yield backing; controller.abort(reason); yield backing.subarray(0, 0); }
+    finally { backing.fill(0); closed = true; }
+  })();
+  const transport: HttpTransport = async request => {
+    assert.ok(request.body);
+    try { for await (const chunk of request.body) sent.push(Buffer.from(chunk)); }
+    finally { finished(); }
+    return response(200);
+  };
+  await assert.rejects(run(["-T", "-", "http://127.0.0.1/cancel"], {
+    stdin: source, signal: controller.signal, options: { transport },
+  }), error => error === reason);
+  await settled;
+  assert.equal(closed, true);
+  assert.deepEqual(sent, [Buffer.from("ab")]);
+});
+
+test("curl first upload remains transient and pull-driven while its replay is owned", async () => {
+  const backing = Buffer.from("xxfirstyy");
+  let advanced = false;
+  let calls = 0;
+  const source = (async function* (): ByteSource {
+    try { yield backing.subarray(2, 7); advanced = true; }
+    finally { backing.fill(0x78); }
+  })();
+  const transport: HttpTransport = async request => {
+    assert.ok(request.body);
+    const iterator = request.body[Symbol.asyncIterator]();
+    try {
+      const first = await iterator.next();
+      assert.equal(first.done, false);
+      assert.deepEqual(Buffer.from(first.value!), Buffer.from("first"));
+      if (++calls === 1) {
+        assert.equal(first.value!.buffer, backing.buffer);
+        assert.equal(first.value!.byteOffset, backing.byteOffset + 2);
+        await Promise.resolve();
+        assert.equal(advanced, false);
+        assert.deepEqual(backing, Buffer.from("xxfirstyy"));
+      } else assert.notEqual(first.value!.buffer, backing.buffer);
+      assert.equal((await iterator.next()).done, true);
+    } finally { await iterator.return?.(); }
+    return response(calls === 1 ? 503 : 200);
+  };
+  const result = await run(["-T", "-", "--retry", "1", "--retry-delay", "0.001", "http://127.0.0.1/pressure"], {
+    stdin: source, options: { transport },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(calls, 2);
+  assert.equal(advanced, true);
+});

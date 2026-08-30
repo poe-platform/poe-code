@@ -1,0 +1,260 @@
+{
+  "rows": [
+    {
+      "name": "public export absence is a capability gap, not public leaf acceptance",
+      "scope": "public-root-boundary",
+      "timeEnvRootExport": false,
+      "subpathError": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+      "names": [
+        "[",
+        "awk",
+        "base32",
+        "base64",
+        "basename",
+        "cat",
+        "chmod",
+        "cksum",
+        "comm",
+        "cp",
+        "cut",
+        "diff",
+        "dirname",
+        "echo",
+        "env",
+        "expand",
+        "false",
+        "find",
+        "fold",
+        "grep",
+        "gunzip",
+        "gzip",
+        "head",
+        "join",
+        "jq",
+        "ln",
+        "ls",
+        "md5sum",
+        "mkdir",
+        "mktemp",
+        "mv",
+        "nl",
+        "od",
+        "paste",
+        "patch",
+        "printf",
+        "pwd",
+        "readlink",
+        "realpath",
+        "rev",
+        "rg",
+        "rm",
+        "rmdir",
+        "sed",
+        "seq",
+        "sha1sum",
+        "sha256sum",
+        "sort",
+        "split",
+        "stat",
+        "strings",
+        "tac",
+        "tail",
+        "tar",
+        "tee",
+        "test",
+        "touch",
+        "tr",
+        "true",
+        "unexpand",
+        "uniq",
+        "wc",
+        "xargs",
+        "xxd",
+        "zcat"
+      ],
+      "missingCommand": {
+        "status": 127,
+        "stdoutHex": "",
+        "stderrHex": "7368656c6c3a206c696e6520313a20646174653a20636f6d6d616e64206e6f7420666f756e640a"
+      },
+      "result": "pass"
+    },
+    {
+      "name": "public Shell counts repeated identical byte writes without deduplication",
+      "scope": "public-root-limits",
+      "error": {
+        "name": "ShellLimitError",
+        "message": "Shell limit exceeded: maxOutputBytes"
+      },
+      "result": "pass"
+    },
+    {
+      "name": "public registry rejects collisions without partial family registration",
+      "scope": "public-root-with-internal-leaf",
+      "names": [
+        "sleep"
+      ],
+      "result": "pass"
+    },
+    {
+      "name": "runtime invalid clock, scheduler and limit definitions reject",
+      "scope": "internal-packed-leaf",
+      "errors": [
+        "Invalid date clock",
+        "Invalid sleep scheduler",
+        "Invalid time-env limit: maxOutputBytes",
+        "Invalid time-env limit: maxFormatWidth",
+        "maxTimerMilliseconds must be between1 and2147483647"
+      ],
+      "result": "pass"
+    },
+    {
+      "name": "clock milliseconds are sampled once; explicit fraction samples zero times",
+      "scope": "internal-packed-leaf-host",
+      "now": {
+        "status": 0,
+        "stdoutHex": "3132333030303030307c31323330303030303030303030303030307c3132330a",
+        "stderrHex": ""
+      },
+      "explicit": {
+        "status": 0,
+        "stdoutHex": "3132333435363738397c3132333435363738390a",
+        "stderrHex": ""
+      },
+      "samples": 1,
+      "result": "pass"
+    },
+    {
+      "name": "width-default-rejection",
+      "scope": "internal-packed-leaf-limits",
+      "actual": {
+        "thrown": {
+          "name": "FsError",
+          "message": "EFBIG: time-env format width limit exceeded",
+          "code": "EFBIG"
+        },
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "result": "pass"
+    },
+    {
+      "name": "width-admitted-but-output-rejected",
+      "scope": "internal-packed-leaf-limits",
+      "actual": {
+        "thrown": {
+          "name": "FsError",
+          "message": "EFBIG: time-env output limit exceeded",
+          "code": "EFBIG"
+        },
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "result": "pass"
+    },
+    {
+      "name": "UTF8-and-newline-budget",
+      "scope": "internal-packed-leaf-limits",
+      "actual": {
+        "thrown": {
+          "name": "FsError",
+          "message": "EFBIG: time-env output limit exceeded",
+          "code": "EFBIG"
+        },
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "result": "pass"
+    },
+    {
+      "name": "repeated-fractions-budget",
+      "scope": "internal-packed-leaf-limits",
+      "actual": {
+        "thrown": {
+          "name": "FsError",
+          "message": "EFBIG: time-env output limit exceeded",
+          "code": "EFBIG"
+        },
+        "stdoutHex": "",
+        "stderrHex": ""
+      },
+      "result": "pass"
+    },
+    {
+      "name": "output budget exact positive boundary",
+      "scope": "internal-packed-leaf-limits",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "e99baa3132337c3132333030300a",
+        "stderrHex": ""
+      },
+      "result": "pass"
+    },
+    {
+      "name": "clock setting and invalid grammar refuse without clock access",
+      "scope": "internal-packed-leaf-capability",
+      "samples": 0,
+      "outcomes": [
+        {
+          "args": [
+            "--set=@0"
+          ],
+          "actual": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "646174653a2073657474696e6720636c6f636b7320697320756e737570706f727465640a"
+          }
+        },
+        {
+          "args": [
+            "-d@0",
+            "+%EN"
+          ],
+          "actual": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "646174653a20756e737570706f72746564206461746520666f726d6174206d6f6469666965723a2025454e0a"
+          }
+        },
+        {
+          "args": [
+            "--unknown-option"
+          ],
+          "actual": {
+            "status": 1,
+            "stdoutHex": "",
+            "stderrHex": "646174653a20756e737570706f72746564206f7074696f6e3a202d2d756e6b6e6f776e2d6f7074696f6e0a"
+          }
+        }
+      ],
+      "result": "pass"
+    },
+    {
+      "name": "preabort precedes clock sampling and sink publication",
+      "scope": "internal-packed-leaf-cancellation",
+      "samples": 0,
+      "writes": 0,
+      "result": "pass"
+    },
+    {
+      "name": "public Shell cancellation removes injected sleep timer and listeners",
+      "scope": "public-root-with-internal-leaf",
+      "pending": 0,
+      "listeners": [
+        0
+      ],
+      "result": "pass"
+    },
+    {
+      "name": "host environment and Date.now binding are unchanged",
+      "scope": "host-isolation",
+      "hostTZ": "Pacific/Honolulu",
+      "actual": {
+        "status": 0,
+        "stdoutHex": "30303a30303a3030202b303030300a",
+        "stderrHex": ""
+      },
+      "result": "pass"
+    }
+  ]
+}

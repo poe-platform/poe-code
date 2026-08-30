@@ -1,0 +1,14 @@
+{
+  "version": "quota direct-identity followup",
+  "product": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+  "initialIndependentCommit": "0219616f7e2dc2f13aebc155933fd52fe1dfac9e",
+  "reason": "Author followup found String(outcome.error) marker collision in initial quota comparator. Initial report acceptance is qualified; raw initial results stay immutable.",
+  "inspectedBeforeThisFreeze": "Author HANDOFF appended followup and exact one-line assertion hunk; this is a post-review corrective control freeze, not blinded pre-candidate evidence.",
+  "newMutations": [
+    {"id":"literal-sink-marker", "rejection":"literal string sink", "expectedInitial":"false positive", "expectedCorrected":"named direct-identity assertion failure"},
+    {"id":"object-sink-marker", "rejection":"different object with toString returning sink", "expectedInitial":"false positive", "expectedCorrected":"named direct-identity assertion failure"}
+  ],
+  "replay": "Only original47, initial revised47 and corrected revised47; canonical237/core146/nearby16 unchanged and already verified. Rebuild/pack same exact c3 archive and require every compiled file and packed artifact hash to match prior binding, then physically move offline consumer again.",
+  "sensitivity": "Four positives across initial/corrected marker variants plus all original five mutation classes on corrected target, and exact one-line delta structural negatives. Preserve false positives; no forcegreen.",
+  "scope": "Test-oracle defect; no demonstrated product defect. No original sealed files or author files modified."
+}

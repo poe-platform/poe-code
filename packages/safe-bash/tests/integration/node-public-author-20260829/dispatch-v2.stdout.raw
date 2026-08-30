@@ -1,0 +1,11 @@
+Success. Updated the following files:
+A tests/integration/node-public-author-20260829/run-v3.mjs
+A tests/integration/node-public-author-20260829/launch-v3.py
+A tests/integration/node-public-author-20260829/EXECUTOR-v3.json
+A tests/integration/node-public-author-20260829/CORRECTION-v3.json
+[main 1197789e] test(node): bind exact public engine support emission
+ 4 files changed, 911 insertions(+)
+ create mode 100644 tests/integration/node-public-author-20260829/CORRECTION-v3.json
+ create mode 100644 tests/integration/node-public-author-20260829/EXECUTOR-v3.json
+ create mode 100644 tests/integration/node-public-author-20260829/launch-v3.py
+ create mode 100644 tests/integration/node-public-author-20260829/run-v3.mjs

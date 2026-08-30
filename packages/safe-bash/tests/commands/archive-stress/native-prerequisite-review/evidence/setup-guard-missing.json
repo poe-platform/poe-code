@@ -1,0 +1,19 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "tests/commands/archive-stress/native-prerequisite-review/runner.mjs",
+    "check-tools"
+  ],
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "GNU_TAR": "/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/absent-gtar"
+  },
+  "timeout": 10000,
+  "startedAt": "2026-08-27T07:38:29.569Z",
+  "endedAt": "2026-08-27T07:38:29.600Z",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "Error: ENOENT: no such file or directory, lstat '/tmp/safe-bash-archive-prerequisites-e36dab2-20260827/absent-gtar'\n    at lstatSync (node:fs:1722:25)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:33:15\n    at Array.map (<anonymous>)\n    at profile (file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:32:51)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/archive-stress/native-prerequisite-review/runner.mjs:247:58\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\n"
+}

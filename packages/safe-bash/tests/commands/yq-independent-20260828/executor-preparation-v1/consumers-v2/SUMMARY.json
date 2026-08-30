@@ -1,0 +1,59 @@
+{
+  "schema": 2,
+  "presealCommit": "61cec1d71bf1121234de8ee727da990ff29c54e8",
+  "status": "AUTHOR_CORRECTION_SEALED_REVIEW_PENDING",
+  "confirmedDefect": "v1 guards.mjs:200/208 compares the whole candidate commit scope against selected composition",
+  "rawV1": "raw-v1/REFUSAL.json",
+  "admissionControls": {
+    "matched": 17,
+    "total": 17
+  },
+  "originalSyntheticControls": {
+    "matched": 36,
+    "total": 36
+  },
+  "v1RecipeUnchanged": true,
+  "sourceOrigins": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "newSources": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "evidence": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "handoff": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "guardEntries": 271
+  },
+  "artifacts": {
+    "role": "IMMUTABLE_ARTIFACT_DATA_AUTHENTICATION_NOT_PRODUCT_OR_MATERIALIZATION_EXECUTION",
+    "sourceArchiveSha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+    "sourceArchiveMembers": 273,
+    "sourceGuardMembers": 271,
+    "separateSourceMaterializationGap": [
+      "package-lock.json",
+      "scripts/typecheck.mjs"
+    ],
+    "packageSha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "packageMembers": 870,
+    "baselineMembers": 846,
+    "authorizedPackageAdditions": 24,
+    "readme": {
+      "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+      "bytes": 36273,
+      "mode": 420
+    },
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+  },
+  "unchangedInterfaces": "v1 schema 1; guards/type-worker signatures unchanged; fixtureRoot added for immutable data plumbing",
+  "remaining": [
+    "Separate framework review/root integration",
+    "Public export gap",
+    "Full 273-source-archive materialization exceeds unchanged 271 scope by package-lock.json and scripts/typecheck.mjs; requires separate approval",
+    "Runtime fence changes outside scope",
+    "Actual runtime/compiler/build/source-to-output validation"
+  ],
+  "productExecutions": 0,
+  "productImports": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "packageReplays": 0,
+  "semanticResults": []
+}

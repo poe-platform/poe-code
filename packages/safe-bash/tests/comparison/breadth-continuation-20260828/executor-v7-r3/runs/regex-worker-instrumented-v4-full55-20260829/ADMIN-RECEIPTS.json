@@ -1,0 +1,183 @@
+{
+  "start": "2026-08-29T09:48:14.919Z",
+  "at": "2026-08-29T09:55:38.358Z",
+  "directProcesses": 12,
+  "admin": [
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=no"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTHORITY.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CONTROL-ASSUMPTIONS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/INSTRUMENTATION.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PLAN.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PRIOR-BINDINGS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/README.md\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SMALL-FIXTURE-PLAN.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-CHECKS.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-DELTA.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/capture.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/case.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/common.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/controls.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/deferred-collector.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/early-record.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-child.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-parent.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixtures.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/guarded-operation.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/mutation.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/observer.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/owned-writer.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/package.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/policy.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/preload.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/supervisor.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/writer-controls.mjs\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ACTIVATION.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ROOT-AUTHORITY.txt\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/REVIEW-BINDING.json\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CAMPAIGN-README.md\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "cat-file",
+        "-s",
+        "131a898c3edb25edc34e2d26dfdcd28b74e7c015:tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SEAL.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "6170\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "cat-file",
+        "blob",
+        "131a898c3edb25edc34e2d26dfdcd28b74e7c015:tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-20260829/SEAL.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "{\n  \"schema\": \"REGEX_DEFERRED_V4_SOURCE_SEAL\",\n  \"at\": \"2026-08-29T09:29:04.859Z\",\n  \"node\": {\n    \"path\": \"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\n    \"bytes\": 112989184,\n    \"mode\": 493,\n    \"sha256\": \"5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011\"\n  },\n  \"git\": {\n    \"path\": \"/Applications/Xcode.app/Contents/Developer/usr/bin/git\",\n    \"bytes\": 3704880,\n    \"mode\": 493,\n    \"sha256\": \"10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9\"\n  },\n  \"files\": [\n    {\n      \"path\": \"AUTHORITY.json\",\n      \"bytes\": 1139,\n      \"mode\": 420,\n      \"sha256\": \"81b79972ec55422244ba20cfcad8a4971954ba80a47081942c87a9b2aa601dc5\"\n    },\n    {\n      \"path\": \"CONTROL-ASSUMPTIONS.json\",\n      \"bytes\": 29781,\n      \"mode\": 420,\n      \"sha256\": \"65a5dbca1c01090c1f17571e1f2b750b775d55a353f2c0fbcf6dcb030286d856\"\n    },\n    {\n      \"path\": \"INSTRUMENTATION.json\",\n      \"bytes\": 3052,\n      \"mode\": 420,\n      \"sha256\": \"df96ef895f772d0a77a687cab1c14e90b18e026906de7fafce5c4567dcbfef91\"\n    },\n    {\n      \"path\": \"PLAN.json\",\n      \"bytes\": 619,\n      \"mode\": 420,\n      \"sha256\": \"b3ded5e25c81e331c704a44877811977f121889be13fce1a7822d5ab958545de\"\n    },\n    {\n      \"path\": \"PRIOR-BINDINGS.json\",\n      \"bytes\": 8738,\n      \"mode\": 420,\n      \"sha256\": \"a2a0dfe0bcf9e2fb187839f2cacf2a9aee95ef73db8a2cfaf32d87c5ed7f6c10\"\n    },\n    {\n      \"path\": \"README.md\",\n      \"bytes\": 3998,\n      \"mode\": 420,\n      \"sha256\": \"b7dcd6b801b4a37cc320335b8dce224c79d8c3d4841ef4ed0be136f63cdb79cc\"\n    },\n    {\n      \"path\": \"SMALL-FIXTURE-PLAN.json\",\n      \"bytes\": 1337,\n      \"mode\": 420,\n      \"sha256\": \"fa72786f4a13904fa73ac40a67207d373f3c848e7a68c9bdccf1abad1e1365ca\"\n    },\n    {\n      \"path\": \"SOURCE-CHECKS.json\",\n      \"bytes\": 1685,\n      \"mode\": 420,\n      \"sha256\": \"77a7c8f4959e585458a32c5721e637780512f4bc5739be1644cebda0425cd447\"\n    },\n    {\n      \"path\": \"SOURCE-DELTA.json\",\n      \"bytes\": 1296,\n      \"mode\": 420,\n      \"sha256\": \"3d85bb3174e5a6a0fe69a285a60cb0326783e3f7c037efdf432a4bf85ce79562\"\n    },\n    {\n      \"path\": \"capture.mjs\",\n      \"bytes\": 3584,\n      \"mode\": 420,\n      \"sha256\": \"c7abca46b349dfdd6c7c12f0a2e3ffedca847e49422465c299719da841943e94\"\n    },\n    {\n      \"path\": \"case.mjs\",\n      \"bytes\": 17176,\n      \"mode\": 420,\n      \"sha256\": \"3c9550100d50305327e37481791bce870f5d9fcfd1aed64436bd83ced40be853\"\n    },\n    {\n      \"path\": \"common.mjs\",\n      \"bytes\": 10720,\n      \"mode\": 420,\n      \"sha256\": \"770bf4e109beddbda4f3fb9fea06e5a62939afbf9637f4856edbeecfa18fcb40\"\n    },\n    {\n      \"path\": \"controls.json\",\n      \"bytes\": 3022,\n      \"mode\": 420,\n      \"sha256\": \"8c287c074fdef8e9e468d29e751310cef78df7d0380918cb3b4d97812fd0bb5e\"\n    },\n    {\n      \"path\": \"deferred-collector.mjs\",\n      \"bytes\": 5178,\n      \"mode\": 420,\n      \"sha256\": \"0d878c7daa5d79d8ebbf42618846c0f6b7074f7c1ba91859b8b4d1830af2add1\"\n    },\n    {\n      \"path\": \"early-record.mjs\",\n      \"bytes\": 3335,\n      \"mode\": 420,\n      \"sha256\": \"5fe5b1c34460d0fc88c24e5de16b7a6aefc03655599165e03a1c78c33df6f476\"\n    },\n    {\n      \"path\": \"fixture-child.mjs\",\n      \"bytes\": 2320,\n      \"mode\": 420,\n      \"sha256\": \"6ae3606508eb322206c1910e5e4634d850f3cbad062f5cbcc823c4d30bad638d\"\n    },\n    {\n      \"path\": \"fixture-parent.mjs\",\n      \"bytes\": 5982,\n      \"mode\": 420,\n      \"sha256\": \"1d1cd3595959aae467f3e02b910b05dad289df2ee75c053bbd576066abd71df2\"\n    },\n    {\n      \"path\": \"fixtures.json\",\n      \"bytes\": 1162,\n      \"mode\": 420,\n      \"sha256\": \"5ce1402b14d52c489b075b8fe6cc71b74d7d6172afa9996a35269c40883437a1\"\n    },\n    {\n      \"path\": \"guarded-operation.mjs\",\n      \"bytes\": 1909,\n      \"mode\": 420,\n      \"sha256\": \"cec7a090eef7d0c352b8a8acf3dda354bae9ba0f407f7198c711771d8e7df0b5\"\n    },\n    {\n      \"path\": \"mutation.mjs\",\n      \"bytes\": 2304,\n      \"mode\": 420,\n      \"sha256\": \"5add883bc3dbab654652a52f73610db2206c06aca9d9e4697a6a86b5a0aeb8e8\"\n    },\n    {\n      \"path\": \"observer.mjs\",\n      \"bytes\": 9629,\n      \"mode\": 420,\n      \"sha256\": \"12174c7e402ff9e43fb411b198e0abbf6967f3f9f5ffb97531198facc534c360\"\n    },\n    {\n      \"path\": \"owned-writer.mjs\",\n      \"bytes\": 6731,\n      \"mode\": 420,\n      \"sha256\": \"4f15b45d511d94a1234273c976b30c76ba711f9d24ea28d51f13f573679fae41\"\n    },\n    {\n      \"path\": \"package.json\",\n      \"bytes\": 74,\n      \"mode\": 420,\n      \"sha256\": \"ace4d0c30cd0af4d6433293b02d31872d821d730c6a3ab5c1bbd974c78620218\"\n    },\n    {\n      \"path\": \"policy.mjs\",\n      \"bytes\": 3091,\n      \"mode\": 420,\n      \"sha256\": \"50fd78a5295d4a028694ddc3ce883240b54d37476825a58edd4d2e78e34e3ee7\"\n    },\n    {\n      \"path\": \"preload.mjs\",\n      \"bytes\": 4915,\n      \"mode\": 420,\n      \"sha256\": \"5af703bfd041f2a9e1edcc956ea44ff1ec6b110b30ccf8d91f45ecec71d69bb1\"\n    },\n    {\n      \"path\": \"supervisor.mjs\",\n      \"bytes\": 13934,\n      \"mode\": 420,\n      \"sha256\": \"c01825382d730bb43a05776ed812d6adf90c4c373cd782d95af3f111cc5b6c01\"\n    },\n    {\n      \"path\": \"writer-controls.mjs\",\n      \"bytes\": 5497,\n      \"mode\": 420,\n      \"sha256\": \"31c804923abe0b833f37d5b872a704cc4a08a2ed11ffc63f6013d42fba30e5b7\"\n    }\n  ],\n  \"inherited\": [\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs\",\n      \"bytes\": 8590,\n      \"mode\": 420,\n      \"sha256\": \"a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs\",\n      \"bytes\": 3012,\n      \"mode\": 420,\n      \"sha256\": \"056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913\"\n    },\n    {\n      \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs\",\n      \"bytes\": 999,\n      \"mode\": 420,\n      \"sha256\": \"9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb\"\n    }\n  ],\n  \"priorSealSha256\": \"68f824801932f77b07fed4de0597e6c39d6463e304a02d24b179978d36d6421f\",\n  \"scope\": \"TWO_RETIRED_CHILD_PUBLICATION_FIXTURES\",\n  \"fixtureStarts\": 4,\n  \"Workers\": 0,\n  \"full55\": \"HELD\",\n  \"rootAuthoritySha256\": \"81b79972ec55422244ba20cfcad8a4971954ba80a47081942c87a9b2aa601dc5\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "exe": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PREFLIGHT.json\n",
+      "stderr": ""
+    },
+    {
+      "exe": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SEAL.json\n",
+      "stderr": ""
+    },
+    {
+      "exe": "apply_patch",
+      "status": 0,
+      "signal": null,
+      "stdout": "Success. Updated the following files:\nA tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTH.json\n",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "add",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ACTIVATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTHORITY.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CAMPAIGN-README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CONTROL-ASSUMPTIONS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/INSTRUMENTATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PREFLIGHT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PRIOR-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/REVIEW-BINDING.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ROOT-AUTHORITY.txt",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SMALL-FIXTURE-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-CHECKS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-DELTA.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/capture.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/case.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/common.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/controls.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/deferred-collector.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/early-record.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-child.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-parent.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixtures.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/guarded-operation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/mutation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/observer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/owned-writer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/package.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/policy.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/preload.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/supervisor.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/writer-controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "exe": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "args": [
+        "-c",
+        "core.hooksPath=/dev/null",
+        "-c",
+        "commit.gpgsign=false",
+        "-c",
+        "core.abbrev=40",
+        "commit",
+        "--only",
+        "-m",
+        "test: activate reviewed V4 harmless55 campaign with fresh authority",
+        "--",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ACTIVATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTH.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTHORITY.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CAMPAIGN-README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CONTROL-ASSUMPTIONS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/INSTRUMENTATION.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PREFLIGHT.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PRIOR-BINDINGS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/README.md",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/REVIEW-BINDING.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ROOT-AUTHORITY.txt",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SEAL.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SMALL-FIXTURE-PLAN.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-CHECKS.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-DELTA.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/capture.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/case.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/common.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/controls.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/deferred-collector.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/early-record.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-child.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-parent.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixtures.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/guarded-operation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/mutation.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/observer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/owned-writer.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/package.json",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/policy.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/preload.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/supervisor.mjs",
+        "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/writer-controls.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "[main 0f5f83ef98dc38e25be87cac4a8c8cbf1545ef69] test: activate reviewed V4 harmless55 campaign with fresh authority\n 34 files changed, 2879 insertions(+)\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ACTIVATION.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTH.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/AUTHORITY.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CAMPAIGN-README.md\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/CONTROL-ASSUMPTIONS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/INSTRUMENTATION.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PLAN.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PREFLIGHT.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/PRIOR-BINDINGS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/README.md\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/REVIEW-BINDING.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/ROOT-AUTHORITY.txt\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SEAL.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SMALL-FIXTURE-PLAN.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-CHECKS.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/SOURCE-DELTA.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/capture.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/case.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/common.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/controls.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/deferred-collector.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/early-record.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-child.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixture-parent.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/fixtures.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/guarded-operation.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/mutation.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/observer.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/owned-writer.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/package.json\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/policy.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/preload.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/supervisor.mjs\n create mode 100644 tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v4-full55-20260829/writer-controls.mjs\n",
+      "stderr": ""
+    }
+  ],
+  "publicationPreparationFailure": {
+    "kind": "REPL_PARSE_ERROR",
+    "message": "[28:27-28:28]: Unexpected token: ')'",
+    "OSChildrenStarted": 0,
+    "codeExecuted": false,
+    "qualification": "publication preparation only; no runtime retry"
+  },
+  "exec": {
+    "id": "ee3c43",
+    "status": 1,
+    "stdout": "{\"closed\":true,\"qualified\":true,\"status\":1,\"observed\":[104,0],\"retained\":[104,0]}\n"
+  },
+  "noRetry": true
+}

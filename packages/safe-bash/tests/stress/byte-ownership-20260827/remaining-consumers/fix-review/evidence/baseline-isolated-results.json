@@ -1,0 +1,2075 @@
+{
+  "count": 34,
+  "passed": 26,
+  "failed": 8,
+  "results": [
+    {
+      "id": "curl-307-buffer-stdin",
+      "vector": {
+        "id": "curl-307-buffer-stdin",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "stdin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-307-buffer-mixed",
+      "vector": {
+        "id": "curl-307-buffer-mixed",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n\n    at curlCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:111:77)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "expected": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b"
+      }
+    },
+    {
+      "id": "curl-307-native-stdin",
+      "vector": {
+        "id": "curl-307-native-stdin",
+        "family": "curl",
+        "status": 307,
+        "kind": "native",
+        "input": "stdin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-307-native-mixed",
+      "vector": {
+        "id": "curl-307-native-mixed",
+        "family": "curl",
+        "status": 307,
+        "kind": "native",
+        "input": "mixed",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-308-buffer-stdin",
+      "vector": {
+        "id": "curl-308-buffer-stdin",
+        "family": "curl",
+        "status": 308,
+        "kind": "buffer",
+        "input": "stdin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-308-buffer-mixed",
+      "vector": {
+        "id": "curl-308-buffer-mixed",
+        "family": "curl",
+        "status": 308,
+        "kind": "buffer",
+        "input": "mixed",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n\n    at curlCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:111:77)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "expected": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b"
+      }
+    },
+    {
+      "id": "curl-308-native-stdin",
+      "vector": {
+        "id": "curl-308-native-stdin",
+        "family": "curl",
+        "status": 308,
+        "kind": "native",
+        "input": "stdin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-308-native-mixed",
+      "vector": {
+        "id": "curl-308-native-mixed",
+        "family": "curl",
+        "status": 308,
+        "kind": "native",
+        "input": "mixed",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-503-buffer-stdin",
+      "vector": {
+        "id": "curl-503-buffer-stdin",
+        "family": "curl",
+        "status": 503,
+        "kind": "buffer",
+        "input": "stdin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 1
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-503-buffer-mixed",
+      "vector": {
+        "id": "curl-503-buffer-mixed",
+        "family": "curl",
+        "status": 503,
+        "kind": "buffer",
+        "input": "mixed",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 1
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n\n    at curlCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:111:77)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "expected": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b"
+      }
+    },
+    {
+      "id": "curl-503-native-stdin",
+      "vector": {
+        "id": "curl-503-native-stdin",
+        "family": "curl",
+        "status": 503,
+        "kind": "native",
+        "input": "stdin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 1
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a7",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-503-native-mixed",
+      "vector": {
+        "id": "curl-503-native-mixed",
+        "family": "curl",
+        "status": 503,
+        "kind": "native",
+        "input": "mixed",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 1
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-deny-hop",
+      "vector": {
+        "id": "curl-deny-hop",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "deny-hop",
+        "expect": 7
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "curl: (7) Network access denied by host policy\n"
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-cross-origin",
+      "vector": {
+        "id": "curl-cross-origin",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "cross-origin",
+        "expect": 0
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://beta.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ],
+            [
+              "Authorization",
+              "Basic YWxpY2U6c2VjcmV0"
+            ],
+            [
+              "X-Private",
+              "hidden"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://beta.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0,
+        1
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "accepted\n",
+        "stderr": ""
+      },
+      "active": 0,
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'\n- '134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b'\n\n    at curlCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:111:77)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a726000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "expected": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b"
+      }
+    },
+    {
+      "id": "curl-downgrade",
+      "vector": {
+        "id": "curl-downgrade",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "downgrade",
+        "expect": 1
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "curl: (1) HTTPS-to-HTTP redirects are disabled\n"
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-userinfo",
+      "vector": {
+        "id": "curl-userinfo",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "userinfo",
+        "expect": 3
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "curl: (3) Redirect URLs may not supply credentials\n"
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-replay-limit",
+      "vector": {
+        "id": "curl-replay-limit",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "replay-limit",
+        "expect": 65
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "attempt": 0,
+          "redirectFrom": "https://alpha.invalid/start"
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        },
+        {
+          "url": "https://alpha.invalid/next",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "",
+          "complete": false
+        }
+      ],
+      "disposed": [
+        0
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "curl: (65) Cannot replay stdin upload within the host buffer limit\n"
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-upload-limit",
+      "vector": {
+        "id": "curl-upload-limit",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "upload-limit",
+        "expect": 63
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d7063564",
+          "complete": false
+        }
+      ],
+      "disposed": [],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 13,
+        "empty": 5
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "curl: (63) Upload exceeds host byte limit\n"
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-retry-deny",
+      "vector": {
+        "id": "curl-retry-deny",
+        "family": "curl",
+        "status": 503,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "retry-deny",
+        "expect": 7
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        },
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 1
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271a0cffe2d5c8bbae9184776a5d403326190bfee1d4c7baad908376695c4f3225180afde0d3c6b9ac9f8275685b4e31241709fcefd2c5b8ab9e8174675a4d30231608fbeed1c4b7aa9d807366594c3f221507faedd0c3b6a99c8f7265584b3e211406f9ecdfc2b5a89b8e7164574a3d201305f8ebdec1b4a79a8d706356493c2f1204f7eaddc0b3a6998c7f6255483b2e1103f6e9dccfb2a5988b7e6154473a2d1002f5e8dbceb1a4978a72689a6c3e0fd1a3754718eabc8e5021f3c597693b0cdea0724415e7b98b5d2ef0c294663809dbad7f4112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734516e8ba8c5e2ff1c39567390adcae704213e5b7895b2cfec092643607d9ab7d4f10e2b4865829fbcd9f613304d6a87a4c1defb1835526f8ca9c6e3001d3a577491aecbe805223f5c7996b3d0ed0a2744617e9bb8d5f20f2c496683a0bddaf714314e6b88a5c2dffc193653708daac7e4011e3b",
+          "complete": true
+        }
+      ],
+      "disposed": [
+        0
+      ],
+      "fileState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 22,
+        "empty": 8
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 17,
+        "empty": 6
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "curl: (7) Network access denied by host policy\n"
+      },
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "curl-abort",
+      "vector": {
+        "id": "curl-abort",
+        "family": "curl",
+        "status": 307,
+        "kind": "buffer",
+        "input": "mixed",
+        "guard": "abort",
+        "expect": "abort"
+      },
+      "auth": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "attempt": 0
+        }
+      ],
+      "requests": [
+        {
+          "url": "https://alpha.invalid/start",
+          "method": "POST",
+          "headers": [
+            [
+              "Accept",
+              "*/*"
+            ],
+            [
+              "User-Agent",
+              "virtual-bash-curl/0.0"
+            ],
+            [
+              "Content-Type",
+              "application/x-www-form-urlencoded"
+            ]
+          ],
+          "hex": "134271",
+          "complete": false
+        }
+      ],
+      "disposed": [],
+      "fileState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "stdinState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 1,
+        "empty": 1
+      },
+      "caught": "independent-curl-abort",
+      "active": 0,
+      "pass": true
+    },
+    {
+      "id": "jq-json-buffer",
+      "vector": {
+        "id": "jq-json-buffer",
+        "family": "jq",
+        "profile": "json",
+        "kind": "buffer",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "jq: unexpected character at offset 0\n"
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n3 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 0\n\n    at jqCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:158:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": 3,
+        "expected": 0
+      }
+    },
+    {
+      "id": "jq-json-native",
+      "vector": {
+        "id": "jq-json-native",
+        "family": "jq",
+        "profile": "json",
+        "kind": "native",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "42\n",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-raw-buffer",
+      "vector": {
+        "id": "jq-raw-buffer",
+        "family": "jq",
+        "profile": "raw",
+        "kind": "buffer",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "jq: unexpected character at offset 0\n"
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n3 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 0\n\n    at jqCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:158:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": 3,
+        "expected": 0
+      }
+    },
+    {
+      "id": "jq-raw-native",
+      "vector": {
+        "id": "jq-raw-native",
+        "family": "jq",
+        "profile": "raw",
+        "kind": "native",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "red!\nblue!\n",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-null-buffer",
+      "vector": {
+        "id": "jq-null-buffer",
+        "family": "jq",
+        "profile": "null",
+        "kind": "buffer",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "jq: unexpected character at offset 0\n"
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n3 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 0\n\n    at jqCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:158:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": 3,
+        "expected": 0
+      }
+    },
+    {
+      "id": "jq-null-native",
+      "vector": {
+        "id": "jq-null-native",
+        "family": "jq",
+        "profile": "null",
+        "kind": "native",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "43\n",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-pipeline-buffer",
+      "vector": {
+        "id": "jq-pipeline-buffer",
+        "family": "jq",
+        "profile": "pipeline",
+        "kind": "buffer",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "result": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "jq: unexpected character at offset 0\n"
+      },
+      "pass": false,
+      "failure": {
+        "message": "Expected values to be strictly equal:\n\n3 !== 0\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n3 !== 0\n\n    at jqCase (file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:158:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/stress/byte-ownership-20260827/remaining-consumers/fix-review/.work/baseline-isolated/moved-consumer/matrix.mjs:174:9",
+        "actual": 3,
+        "expected": 0
+      }
+    },
+    {
+      "id": "jq-pipeline-native",
+      "vector": {
+        "id": "jq-pipeline-native",
+        "family": "jq",
+        "profile": "pipeline",
+        "kind": "native",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "42\n",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-source-exact",
+      "vector": {
+        "id": "jq-source-exact",
+        "family": "jq",
+        "profile": "source-exact",
+        "kind": "native",
+        "expect": 0
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "result": {
+        "exitCode": 0,
+        "stdout": "42\n",
+        "stderr": ""
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-source-excess",
+      "vector": {
+        "id": "jq-source-excess",
+        "family": "jq",
+        "profile": "source-excess",
+        "kind": "native",
+        "expect": 5
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 5,
+        "stdout": "",
+        "stderr": "jq: maxSourceBytes limit exceeded\n"
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-reader-error",
+      "vector": {
+        "id": "jq-reader-error",
+        "family": "jq",
+        "profile": "reader-error",
+        "kind": "native",
+        "expect": 2
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 2,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 2,
+        "stdout": "",
+        "stderr": "jq: EIO: input/output error, read '/filter'\n"
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-utf8",
+      "vector": {
+        "id": "jq-utf8",
+        "family": "jq",
+        "profile": "utf8",
+        "kind": "native",
+        "expect": 3
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 1,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "result": {
+        "exitCode": 3,
+        "stdout": "",
+        "stderr": "jq: program file is not valid UTF-8\n"
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-input-limit",
+      "vector": {
+        "id": "jq-input-limit",
+        "family": "jq",
+        "profile": "input-limit",
+        "kind": "native",
+        "expect": 5
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 1,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 4,
+        "empty": 2
+      },
+      "result": {
+        "exitCode": 5,
+        "stdout": "",
+        "stderr": "jq: maxInputBytes limit exceeded\n"
+      },
+      "pass": true
+    },
+    {
+      "id": "jq-abort",
+      "vector": {
+        "id": "jq-abort",
+        "family": "jq",
+        "profile": "abort",
+        "kind": "native",
+        "expect": "abort"
+      },
+      "programState": {
+        "opened": 1,
+        "closed": 1,
+        "yields": 1,
+        "empty": 1
+      },
+      "inputState": {
+        "opened": 0,
+        "closed": 0,
+        "yields": 0,
+        "empty": 0
+      },
+      "caught": "independent-jq-abort",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+AUTHOR v3 candidate handoff — frozen expectations ready; replay evidence pending.
+Product: c3e40f8bd721da5e496f3b3abfd51aee45db5a84 (including c25 quota); NEVER use new HEAD product.
+Canonical test-only atomic commit: 860967af44b20918e3096230f6c7445d4c9cf133
+Author root: /Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/author
+MANIFEST.json sha256: d56c505a01e29a25707173d7ff31ee39fa042748b0f7758427b98a27cc034bb3
+FREEZE.json sha256: 181ed1873e06a1c2848d57d5a14dd20b73e73b605387d87a701e7efab4e5618a
+canonical:
+  original/canonical/contracts.test.ts.data sha256=6b03867e5349278eb5e6562b8ab14b12da6b03be9d26ebf48a0c645aa1f56197
+  revised/canonical/contracts.test.ts.data sha256=ce900757c3d61c85e76960260f54e90fa4ae1edb0d71b070b8bf639b9a2326b7
+core:
+  original/core/runtime-driver.mjs sha256=5ae25ca13f47fcf2715ca0336149b41faf3d70fafa83ef42c667c9be054ca686
+  revised/core/runtime-driver.mjs sha256=1ecb6e435f0fd42956836b593de9c4015a94e90788d7a832e9504449586a94f5
+quota:
+  original/quota/cases.mjs sha256=5b3a3fbffdd25eaaa9bb931d680b0da19be61e2e2335dc45ac4a664691879086
+  revised/quota/cases.mjs sha256=95b43097e3d7685504fc11db5b90f6fa59988b34daf5ee236e679ca8b8b3ea40
+nearby:
+  original/nearby/controls.json sha256=055ec3d97e09ac77bbc97c0534175a02bf886ac8c6dea2454bf2d4ffb0e5e764
+  revised/nearby/controls.json sha256=8842bd8d8542757a64cca37306491903233cb43e41fe9b37d0801feba6816fda
+Exact old/revised input files are independently named; all originals remain immutable.
+Quota/nearby identity comparators already use === original sinkReason: no assertion plumbing changed.
+Core only reason first and writes [stdout]; core-bound unchanged from beba. Core-bindings has three disclosed path/hash-source-only replacements.
+Canonical later [] diagnostic sink identical-reason assertions remain byte-identical.
+Historical 145/146, 236/237, 15/16, 46/47 and author 558/559 retained separately, not rescored.
+Verifier may start now using exact c3 archive plus revised canonical file only. Original/revised core/quota/nearby inputs are ready.
+No new product/root/package/config edits, budget increases, exclusions, native-oracle changes, or nullable-backreference guard changes.
+Final source/cohort integrity and cleanup qualifications will follow in author REPORT.md and a separate evidence commit.

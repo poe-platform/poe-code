@@ -1,0 +1,13 @@
+[main c3c3a2784] Preseal bounded L02 method-source diagnosis without Worker acquisition
+ 11 files changed, 111 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/.gitignore
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/SOURCE-READS.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/add-source.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/add-source.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/patch-source.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/patch-source.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/preparation.jsonl
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/status-initial.stderr
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/capture/status-initial.stdout
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-diagnosis-v1/inspect-method.mjs

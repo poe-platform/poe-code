@@ -1,0 +1,101 @@
+{
+  "proofCommit": "064f3381edd14669528d15c89c71284a0f24694c",
+  "path": "tests/commands/expr-stress/output-emergency-review-20260827/run02/results.json",
+  "sha256": "5b13bbe631ec7b0e349584fbb32d27f858eba7afef3dab3ed5d5f05980e37559",
+  "sourceHashesMatchReplayedCandidate": true,
+  "passed": 36,
+  "total": 47,
+  "division": {
+    "input": {
+      "id": "division-cap-1",
+      "argv": [
+        "1",
+        "/",
+        "0"
+      ],
+      "cap": 1,
+      "expected": {
+        "status": 3,
+        "stdout": "",
+        "stderr": "expr: output bytes limit exceeded\n",
+        "jobs": 0
+      }
+    },
+    "events": [
+      "register-cleanup",
+      "session-open",
+      "stderr-entered",
+      "stderr-completed",
+      "session-close",
+      "settled"
+    ],
+    "jobs": [],
+    "attempts": [
+      {
+        "channel": "stderr",
+        "bytes": 23,
+        "hex": "657870723a206469766973696f6e206279207a65726f0a",
+        "text": "expr: division by zero\n"
+      }
+    ],
+    "checks": [
+      {
+        "name": "postsettlement cleanup shares promise",
+        "passed": true
+      },
+      {
+        "name": "exact result and rejection identity",
+        "passed": false
+      },
+      {
+        "name": "exact worker job count",
+        "passed": true
+      },
+      {
+        "name": "worker count bounded without duplicate acquisition",
+        "passed": true
+      },
+      {
+        "name": "no duplicate termination",
+        "passed": true
+      },
+      {
+        "name": "no owned workers at settlement or cleanup",
+        "passed": true
+      },
+      {
+        "name": "at most one exact constant emergency attempt",
+        "passed": true
+      },
+      {
+        "name": "normal attempted bytes obey normal quota",
+        "passed": false
+      },
+      {
+        "name": "one registration and session close or none when preaborted",
+        "passed": true
+      },
+      {
+        "name": "registration precedes session acquisition",
+        "passed": true
+      },
+      {
+        "name": "at most one stderr attempt",
+        "passed": true
+      }
+    ],
+    "activeAtSettlement": 0,
+    "actual": {
+      "status": 2,
+      "stdout": "",
+      "stderr": "expr: division by zero\n",
+      "stdoutHex": "",
+      "stderrHex": "657870723a206469766973696f6e206279207a65726f0a",
+      "rejection": null
+    },
+    "activeAfterCleanup": 0,
+    "passed": false
+  },
+  "ownership": "Evidence inspected, not re-executed or authored by this verifier.",
+  "requiredPolicy": "All normal writes obey normal quota; at most one fixed separate emergency diagnostic, awaited. Revised 12/12 is insufficient."
+}

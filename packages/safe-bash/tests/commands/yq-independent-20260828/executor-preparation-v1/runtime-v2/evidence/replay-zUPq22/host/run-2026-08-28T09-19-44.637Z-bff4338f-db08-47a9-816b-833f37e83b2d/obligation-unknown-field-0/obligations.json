@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.unboundIndependentField","value":true,"reason":"No assertion adapter bound"}],"semanticFullRecordPass":false}

@@ -1,0 +1,54 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  {
+    exitCode: 0,
+    stderr: '',
++   stderrBytes: Uint8Array(0) [],
+    stdout: '.\n└── file\n',
++   stdoutBytes: Uint8Array(17) [
++     46,
++     10,
++     226,
++     148,
++     148,
++     226,
++     148,
++     128,
++     226,
++     148,
++     128,
++     32,
++     102,
++     105,
++     108,
++     101,
++     10
++   ]
+  }
+
+    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-validation-chain-nxH4Gh/consumerB-moved/runtime-probe.mjs:36:10 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: {
+    stdout: '.\n└── file\n',
+    stderr: '',
+    stdoutBytes: Uint8Array(17) [
+       46,  10, 226, 148, 148,
+      226, 148, 128, 226, 148,
+      128,  32, 102, 105, 108,
+      101,  10
+    ],
+    stderrBytes: Uint8Array(0) [],
+    exitCode: 0
+  },
+  expected: { exitCode: 0, stdout: '.\n└── file\n', stderr: '' },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

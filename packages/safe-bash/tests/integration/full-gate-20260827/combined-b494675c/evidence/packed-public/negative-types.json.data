@@ -1,0 +1,14 @@
+{
+  "name": "negative-types",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "negative.json"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-filesystem-inspection-public-7szCnu/moved/consumer",
+  "status": 2,
+  "signal": null,
+  "stdout": "negative.mts(2,25): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<TreeCommandsOptions, \"replace\">'.\nnegative.mts(3,25): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<FileCommandsOptions, \"replace\">'.\nnegative.mts(4,26): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(5,26): error TS2322: Type 'string' is not assignable to type 'number'.\nnegative.mts(6,21): error TS2353: Object literal may only specify known properties, and 'maximumDepth' does not exist in type 'TreeCommandsOptions'.\nnegative.mts(7,31): error TS2353: Object literal may only specify known properties, and 'unknownLimit' does not exist in type 'Partial<FileLimits>'.\n",
+  "stderr": ""
+}

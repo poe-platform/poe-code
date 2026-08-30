@@ -1,0 +1,22 @@
+{
+  "finished": "2026-08-29T11:04:14.626Z",
+  "elapsedFromFirstHelperSeconds": 496.023,
+  "knownStartsConservativeIncludingFinalPublication": 47,
+  "peakExplicitDispatchChain": 3,
+  "workingBytes": 237091,
+  "files": 51,
+  "productImports": 0,
+  "harmlessControllerChildren": 0,
+  "regexWorkers": 0,
+  "internalLoaders": 0,
+  "guestEngineCalls": 0,
+  "semanticCalls": 0,
+  "controlRole": "SIX_DATA_ASSERTIONS_ONLY",
+  "retirement": "Synchronous preparation commands returned; no independent transitive/PGID observer claim",
+  "historicalHelperFailures": [
+    "prepare.mjs undefined tuples after successful input admission",
+    "seal.mjs ENOENT PREP-DATA.json after prepare failure"
+  ],
+  "oldLocatorStop": "7dc15196 unchanged",
+  "runtimeAuthorization": false
+}

@@ -1,0 +1,15 @@
+{
+  "name": "adjacent-inspection-consumer.mts",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-0EbEWb/moved/consumer",
+    "emitted/inspection-consumer.mjs"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-0EbEWb/moved/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\"rootResolution\":\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-0EbEWb/moved/consumer/node_modules/virtual-bash/dist/index.js\",\"subpathResolution\":\"file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-time-env-public-0EbEWb/moved/consumer/node_modules/virtual-bash/dist/commands/stream-inspection/index.js\",\"count\":68,\"unique\":68,\"names\":[\"true\",\"false\",\"echo\",\"pwd\",\"basename\",\"dirname\",\"printf\",\"mkdir\",\"touch\",\"cp\",\"mv\",\"rm\",\"rmdir\",\"ln\",\"readlink\",\"realpath\",\"ls\",\"cat\",\"head\",\"tail\",\"wc\",\"tee\",\"tr\",\"sort\",\"uniq\",\"cut\",\"grep\",\"test\",\"[\",\"env\",\"xargs\",\"find\",\"sed\",\"awk\",\"jq\",\"rg\",\"base64\",\"base32\",\"xxd\",\"od\",\"sha256sum\",\"sha1sum\",\"md5sum\",\"cksum\",\"gzip\",\"gunzip\",\"zcat\",\"diff\",\"patch\",\"chmod\",\"stat\",\"mktemp\",\"tar\",\"paste\",\"comm\",\"join\",\"tac\",\"expand\",\"fold\",\"strings\",\"seq\",\"nl\",\"rev\",\"unexpand\",\"split\",\"date\",\"sleep\",\"printenv\"],\"optionalAbsent\":true,\"results\":[{\"mode\":\"plugin\",\"command\":\"tac\",\"stdoutHex\":\"6e65770a6f6c640a\"},{\"mode\":\"plugin\",\"command\":\"expand -4\",\"stdoutHex\":\"61202020620a\"},{\"mode\":\"plugin\",\"command\":\"fold -3\",\"stdoutHex\":\"6162630a6465660a67\"},{\"mode\":\"plugin\",\"command\":\"strings -5\",\"stdoutHex\":\"66697665730a656e64696e670a\"},{\"mode\":\"factory\",\"command\":\"tac\",\"stdoutHex\":\"6e65770a6f6c640a\"},{\"mode\":\"factory\",\"command\":\"expand -4\",\"stdoutHex\":\"61202020620a\"},{\"mode\":\"factory\",\"command\":\"fold -3\",\"stdoutHex\":\"6162630a6465660a67\"},{\"mode\":\"factory\",\"command\":\"strings -5\",\"stdoutHex\":\"66697665730a656e64696e670a\"},{\"mode\":\"standalone\",\"command\":\"tac\",\"stdoutHex\":\"6e65770a6f6c640a\"},{\"mode\":\"standalone\",\"command\":\"expand -4\",\"stdoutHex\":\"61202020620a\"},{\"mode\":\"standalone\",\"command\":\"fold -3\",\"stdoutHex\":\"6162630a6465660a67\"},{\"mode\":\"standalone\",\"command\":\"strings -5\",\"stdoutHex\":\"66697665730a656e64696e670a\"}],\"aggregatePipelineModes\":2}\n",
+  "stderr": ""
+}

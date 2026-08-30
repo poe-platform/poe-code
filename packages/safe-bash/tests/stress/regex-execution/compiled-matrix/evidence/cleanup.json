@@ -1,0 +1,10 @@
+{
+  "utc": "2026-08-27T04:31:40.864Z",
+  "removed": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/compiled-matrix/.build/",
+  "owner": {
+    "namespace": "compiled-matrix",
+    "sourceBundle": "45b5b80804116c02ac5be9f78c43d603c139b0ce46ba7133441156b2bfd14568"
+  },
+  "activechildren": 0,
+  "tempBuildClean": true
+}

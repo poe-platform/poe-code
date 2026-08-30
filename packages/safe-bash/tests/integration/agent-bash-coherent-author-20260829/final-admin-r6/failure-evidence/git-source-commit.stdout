@@ -1,0 +1,27 @@
+[main de5d77814] Bind startup reservation to exact authenticated stream capacities
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 12 files changed, 1253 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/COMMAND.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/FINAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-BINDING.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/PUBLICATION-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/launch-preparation.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/launch.sh
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/prepare.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/publish.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-author-20260829/final-admin-r6/startup-policy.mjs

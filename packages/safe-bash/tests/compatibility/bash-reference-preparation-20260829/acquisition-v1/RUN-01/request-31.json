@@ -1,0 +1,21 @@
+{
+  "url": "https://ftp.gnu.org/gnu/bash/bash-5.3-patches/bash53-015",
+  "name": "bash53-015",
+  "maxBytes": 65536,
+  "role": "OPAQUE_SOURCE",
+  "startedAt": "2026-08-29T04:42:42.066Z",
+  "bytes": 2151,
+  "status": 200,
+  "headers": {
+    "date": "Sat, 29 Aug 2026 04:42:41 GMT",
+    "last-modified": "Tue, 09 Jun 2026 14:50:23 GMT",
+    "etag": "\"867-653d33f31b8e0\"",
+    "content-length": "2151",
+    "content-type": null,
+    "location": null
+  },
+  "sha256": "55b79ceee2fc27f6767eed697e939a7eb2fe2a28c01556bd75f18d581014f46e",
+  "path": "downloads/bash53-015.data",
+  "disposition": "OPAQUE_ACQUIRED_NOT_SIGNATURE_VERIFIED",
+  "endedAt": "2026-08-29T04:42:42.183Z"
+}

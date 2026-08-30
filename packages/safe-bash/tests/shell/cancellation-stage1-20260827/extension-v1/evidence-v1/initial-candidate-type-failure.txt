@@ -1,0 +1,25 @@
+Initial candidate controls after the first source edit; no implicit retries.
+
+Runtime command:
+node --import tsx --test tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts
+Exit: 0; tests 22, pass 22, fail 0.
+
+Strict command:
+./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.strict.json
+Exit: 2
+src/shell/cancellation.ts(541,36): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'AbortSignal | undefined'.
+
+Negative-type command:
+./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.type-negative.json
+Exit: 2
+src/shell/cancellation.ts(541,36): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'AbortSignal | undefined'.
+
+Isolated build command:
+./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.build.json
+Exit: 2
+src/shell/cancellation.ts(541,36): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'AbortSignal | undefined'.
+
+The source-only correction changed the validated local variable from `unknown`
+to `AbortSignal | undefined`; no frozen fixture changed. Each final control was
+then run explicitly and is recorded in checks.json.
+

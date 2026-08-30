@@ -1,0 +1,17 @@
+{
+  "metadata": {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/metadata.mjs 77a629c48547d75e791a5def6a0ac83bf3618d0861c7f3f6c9e5f0fb18cb2ae7 COMPOSITION-01",
+    "coordinatorExitCode": 0,
+    "stdout": {"receipt":{"path":"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/METADATA-COMPOSITION-01/records/FINAL.json","sha256":"cb86f88addad63113d2bfde8af752551cde01e72b8d6058b5d230015dfadd0e4"},"accepted":true,"unsafeStop":false,"elapsedBeforeAnnouncementMs":38969.571125,"work":"/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/METADATA-COMPOSITION-01","childrenRetired":true,"requiresZeroCoordinatorExit":true}
+  },
+  "synthetic": {
+    "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/synthetic.mjs 77a629c48547d75e791a5def6a0ac83bf3618d0861c7f3f6c9e5f0fb18cb2ae7 COMPOSITION-01 CONTROLS-01",
+    "coordinatorExitCode": 0,
+    "stdout": {"accepted":true,"cases":36,"passed":36,"loadedMutants":3,"killed":3,"positiveAfter":true,"captureSha256":"82360d678410777fba199f4dd7399131b2ca5a037a2e8b486bf271bfb8f5fbb2","failures":[]}
+  },
+  "actualCandidateDispatches": 0,
+  "builds": 0,
+  "compilers": 0,
+  "nativeOracleCalls": 0,
+  "instructionBlobReads": 0
+}

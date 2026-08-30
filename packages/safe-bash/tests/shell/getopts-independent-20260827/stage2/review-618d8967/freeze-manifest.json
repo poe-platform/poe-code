@@ -1,0 +1,68 @@
+{
+  "format": "independent-getopts-correction-review-freeze-manifest-v1",
+  "createdAt": "2026-08-27T21:20:59.316Z",
+  "files": {
+    "FREEZE.md": {
+      "bytes": 8815,
+      "sha256": "841b9feccf33fa372001ee1e1802396d97f32a1e3496f67868b5abf919624695"
+    },
+    "INPUTS.json": {
+      "bytes": 19032,
+      "sha256": "a3c2588fb7c620c28aae86793bb9744729c7cdda6e3a8b36bf260b3ffa904443"
+    },
+    "REVIEW-PROCEDURE.md": {
+      "bytes": 11530,
+      "sha256": "56da926fc3c244d27ca3f14a5558a2f2659e5d69d3152b3551ff58991a2d3b2d"
+    },
+    "VALIDATION.json": {
+      "bytes": 5685,
+      "sha256": "9b36b31b0dde5cf64bee58baed1d8a0b9cb18b98135438884e30cf3aeb4e221b"
+    },
+    "native-corrections-v1.json": {
+      "bytes": 6062,
+      "sha256": "108bf1e739272f02e45cca8a5e670fc5fae2f72fc3284cc57376d6261ae3ca24"
+    },
+    "verify-freeze.mjs": {
+      "bytes": 10215,
+      "sha256": "a2f34ddddb2fce850e0076f01cb8d7763f6af42c1d5055ad62e98db3c67266d6"
+    }
+  },
+  "selfBinding": "The explicit final Git freeze commit binds this manifest; no circular self-hash.",
+  "boundary": {
+    "phase1": {
+      "commit": "4f84fdfd41134710cdb68fab3f5970cb14e54da3",
+      "excludeOnlySubtree": "stage2",
+      "files": 179,
+      "entries": 182
+    },
+    "stage2": {
+      "commit": "592c864ef62f5a29b1f126c83b6ac532357fb599",
+      "excludeOnlyFiles": [
+        "POLICY-v2.md",
+        "policy-invariants-v2.json",
+        "policy-v2-manifest.json"
+      ],
+      "excludeOnlySubtree": "review-618d8967",
+      "files": 23,
+      "entries": 25
+    },
+    "policy": {
+      "commit": "bf3bfd63204ddd8fc5dbfa7308b77444de51d6f7",
+      "separatelyBound": true
+    },
+    "review": {
+      "exactMembers": [
+        "FREEZE.md",
+        "INPUTS.json",
+        "REVIEW-PROCEDURE.md",
+        "VALIDATION.json",
+        "freeze-manifest.json",
+        "native-corrections-v1.json",
+        "verify-freeze.mjs"
+      ],
+      "unexpectedEntriesFail": true,
+      "futureAppendRequiresSeparateSeal": true
+    }
+  },
+  "scope": "Pre-candidate-inspection freeze only; STOP until root resume."
+}

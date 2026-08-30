@@ -1,0 +1,887 @@
+{
+  "startedAt": "2026-08-28T08:39:50.023Z",
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "policySha256": "fdf9f1598407d12075ad0861ef1209fe361ef7373dc7d2f680fd1246000433ab",
+  "preconditions": {
+    "hardlink": true,
+    "directoryRename": true
+  },
+  "canary": {
+    "path": "/private/tmp/unified76-independent-tool-v10-zUUgKh/outside-canary",
+    "parentDescriptor": 12,
+    "before": "89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d",
+    "after": "89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d"
+  },
+  "sentinel": {
+    "pid": 28609,
+    "survived": true,
+    "close": {
+      "code": null,
+      "signal": "SIGTERM"
+    }
+  },
+  "controls": [
+    {
+      "id": "finite-git",
+      "status": 0,
+      "stdout": "{\"label\":\"finite-git\",\"status\":\"PASS\",\"records\":[{\"file\":\"git\",\"args\":[\"--version\"],\"env\":{\"PATH\":\"/private/tmp/unified76-os-write-64KdHt/tool-bin\",\"GIT_EXEC_PATH\":\"/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core\",\"HOME\":\"/private/tmp/unified76-os-write-64KdHt/home\",\"LANG\":\"C\",\"LC_ALL\":\"C\",\"GIT_CONFIG_GLOBAL\":\"/dev/null\",\"GIT_CONFIG_NOSYSTEM\":\"1\",\"GIT_NO_REPLACE_OBJECTS\":\"1\"},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"git version 2.50.1 (Apple Git-155)\\n\",\"stderr\":\"\"},{\"file\":\"/Applications/Xcode.app/Contents/Developer/usr/bin/git\",\"args\":[\"--version\"],\"env\":{},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"git version 2.50.1 (Apple Git-155)\\n\",\"stderr\":\"\"},{\"file\":\"/bin/sh\",\"args\":[\"-c\",\"printf native-empty-env\"],\"env\":{},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"native-empty-env\",\"stderr\":\"\"},{\"file\":\"independent-unlisted-tool\",\"args\":[],\"env\":{\"PATH\":\"/private/tmp/unified76-os-write-64KdHt/tool-bin\",\"GIT_EXEC_PATH\":\"/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core\",\"HOME\":\"/private/tmp/unified76-os-write-64KdHt/home\",\"LANG\":\"C\",\"LC_ALL\":\"C\",\"GIT_CONFIG_GLOBAL\":\"/dev/null\",\"GIT_CONFIG_NOSYSTEM\":\"1\",\"GIT_NO_REPLACE_OBJECTS\":\"1\"},\"status\":null,\"signal\":null,\"error\":{\"code\":\"ENOENT\",\"message\":\"spawnSync independent-unlisted-tool ENOENT\"}},{\"file\":\"git\",\"args\":[\"init\",\"--quiet\",\"--template=\",\"/private/tmp/unified76-os-write-64KdHt/benign-git\"],\"env\":{\"PATH\":\"/private/tmp/unified76-os-write-64KdHt/tool-bin\",\"GIT_EXEC_PATH\":\"/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core\",\"HOME\":\"/private/tmp/unified76-os-write-64KdHt/home\",\"LANG\":\"C\",\"LC_ALL\":\"C\",\"GIT_CONFIG_GLOBAL\":\"/dev/null\",\"GIT_CONFIG_NOSYSTEM\":\"1\",\"GIT_NO_REPLACE_OBJECTS\":\"1\"},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"\",\"stderr\":\"\"},{\"file\":\"git\",\"args\":[\"-C\",\"/private/tmp/unified76-os-write-64KdHt/benign-git\",\"ls-files\",\"-z\"],\"env\":{\"PATH\":\"/private/tmp/unified76-os-write-64KdHt/tool-bin\",\"GIT_EXEC_PATH\":\"/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core\",\"HOME\":\"/private/tmp/unified76-os-write-64KdHt/home\",\"LANG\":\"C\",\"LC_ALL\":\"C\",\"GIT_CONFIG_GLOBAL\":\"/dev/null\",\"GIT_CONFIG_NOSYSTEM\":\"1\",\"GIT_NO_REPLACE_OBJECTS\":\"1\"},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"\",\"stderr\":\"\"}]}\n",
+      "stderr": ""
+    },
+    {
+      "id": "selectors",
+      "status": 0,
+      "stdout": "{\"label\":\"selectors\",\"status\":\"PASS\",\"records\":[{\"file\":\"/usr/bin/otool\",\"args\":[\"--version\"],\"env\":{},\"status\":null,\"signal\":null,\"error\":{\"code\":\"EPERM\",\"message\":\"spawnSync /usr/bin/otool EPERM\"}},{\"file\":\"/usr/bin/git\",\"args\":[\"--version\"],\"env\":{},\"status\":null,\"signal\":null,\"error\":{\"code\":\"EPERM\",\"message\":\"spawnSync /usr/bin/git EPERM\"}},{\"file\":\"/usr/bin/xcrun\",\"args\":[\"--version\"],\"env\":{},\"status\":null,\"signal\":null,\"error\":{\"code\":\"EPERM\",\"message\":\"spawnSync /usr/bin/xcrun EPERM\"}},{\"file\":\"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\",\"args\":[\"--version\"],\"env\":{},\"status\":null,\"signal\":null,\"error\":{\"code\":\"EPERM\",\"message\":\"spawnSync /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild EPERM\"}},{\"file\":\"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\",\"args\":[\"--version\"],\"env\":{},\"status\":null,\"signal\":null,\"error\":{\"code\":\"EPERM\",\"message\":\"spawnSync /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool EPERM\"}},{\"file\":\"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\",\"args\":[\"--version\"],\"env\":{},\"status\":null,\"signal\":null,\"error\":{\"code\":\"EPERM\",\"message\":\"spawnSync /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool EPERM\"}},{\"file\":\"/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node\",\"args\":[\"-e\",\"const {spawnSync}=require('node:child_process');const result=spawnSync(process.argv[1],['--version'],{env:{}});console.log(JSON.stringify({error:result.error?.code,status:result.status}));if(result.error?.code!=='EPERM')process.exit(91);\",\"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"],\"env\":{},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"{\\\"error\\\":\\\"EPERM\\\",\\\"status\\\":null}\\n\",\"stderr\":\"\"}]}\n",
+      "stderr": ""
+    },
+    {
+      "id": "resolved-boundary",
+      "status": 0,
+      "stdout": "{\"label\":\"resolved-boundary\",\"status\":\"PASS\",\"records\":[{\"name\":\"resolved-outside-append\",\"error\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-64KdHt/renamed-chain'\"}},{\"name\":\"resolved-outside-child\",\"error\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-64KdHt/outside-directory/new-child'\"}},{\"name\":\"fresh-protected-alias\",\"error\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-64KdHt/instruction-alias'\"}},{\"name\":\"outside-inode-import\",\"error\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, link '/private/tmp/unified76-independent-tool-v10-zUUgKh/outside-canary' -> '/private/tmp/unified76-os-write-64KdHt/imported-inode'\"}},{\"name\":\"outside-physical-directory-import\",\"error\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, rename '/private/tmp/unified76-independent-tool-v10-zUUgKh/outside-directory' -> '/private/tmp/unified76-os-write-64KdHt/imported-directory'\"}},{\"file\":\"/bin/sh\",\"args\":[\"-c\",\"printf native > \\\"$1\\\"; printf bad >> \\\"$2\\\"; outside=$?; printf benign > \\\"$3\\\"; protected=$?; printf \\\"outside=%s protected=%s\\\\n\\\" \\\"$outside\\\" \\\"$protected\\\"; test \\\"$outside\\\" -ne 0 && test \\\"$protected\\\" -ne 0\",\"independent\",\"/private/tmp/unified76-os-write-64KdHt/native-ordinary\",\"/private/tmp/unified76-os-write-64KdHt/renamed-chain\",\"/private/tmp/unified76-os-write-64KdHt/instruction-alias\"],\"env\":{},\"status\":0,\"signal\":null,\"error\":null,\"stdout\":\"outside=1 protected=1\\n\",\"stderr\":\"independent: /private/tmp/unified76-os-write-64KdHt/renamed-chain: Operation not permitted\\nindependent: /private/tmp/unified76-os-write-64KdHt/instruction-alias: Operation not permitted\\n\"},{\"outsideUnchanged\":{\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\",\"inode\":180931299,\"links\":1,\"directory\":[\"benign\"]},\"inertLinksCreated\":true,\"protectedTargetAbsent\":true}]}\n",
+      "stderr": ""
+    }
+  ],
+  "fullGate": false,
+  "shipping": {
+    "envelope": {
+      "schema": "unified76-os-instruction-fence/1",
+      "createdAt": "2026-08-28T08:39:50.067Z",
+      "launcherPid": 28607,
+      "roots": [
+        {
+          "path": "/private/tmp/unified76-os-write-64KdHt",
+          "device": 16777232,
+          "inode": 180931354,
+          "mode": 448,
+          "uid": 501
+        },
+        {
+          "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+          "device": 16777232,
+          "inode": 180931355,
+          "mode": 448,
+          "uid": 501
+        }
+      ],
+      "output": "/tmp/unified76-build-types-review-tool-routes-v10-28607",
+      "external": {
+        "manifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+        "binary": {
+          "path": "/usr/bin/sandbox-exec",
+          "bytes": 102560,
+          "mode": 493,
+          "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+        },
+        "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "systemReferences": [
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libsandbox.1.dylib"
+          ],
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libSystem.B.dylib"
+          ]
+        ],
+        "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception.",
+        "inspection": {
+          "stdout": "/usr/bin/sandbox-exec:\n\t/usr/lib/libsandbox.1.dylib (compatibility version 1.0.0, current version 1.0.0)\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+          "stderr": "",
+          "status": 0,
+          "pid": 28611,
+          "signal": null,
+          "invocation": {
+            "executable": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+            "args": [
+              "-L",
+              "/usr/bin/sandbox-exec"
+            ],
+            "env": {
+              "PATH": "/dev/null",
+              "LANG": "C",
+              "LC_ALL": "C",
+              "TZ": "UTC"
+            },
+            "receipt": {
+              "binary": {
+                "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                "bytes": 472320,
+                "mode": 493,
+                "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+              },
+              "references": [
+                {
+                  "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                  "path": "/usr/lib/libc++.1.dylib",
+                  "error": "ENOENT"
+                },
+                {
+                  "tool": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+                  "path": "/usr/lib/libSystem.B.dylib",
+                  "error": "ENOENT"
+                }
+              ],
+              "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+              "environment": {
+                "PATH": "/dev/null",
+                "LANG": "C",
+                "LC_ALL": "C",
+                "TZ": "UTC"
+              },
+              "qualification": "Exact root-approved OS-metadata pairs; no library-file hash or full dynamic-image attestation.",
+              "target": {
+                "path": "/usr/bin/sandbox-exec",
+                "bytes": 102560,
+                "mode": 493,
+                "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+                "origin": "/usr/bin/sandbox-exec",
+                "physical": "/usr/bin/sandbox-exec"
+              },
+              "admittedAt": "2026-08-28T08:39:50.056Z",
+              "admittedBeforeExecution": true
+            }
+          }
+        }
+      },
+      "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+      "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06"
+    },
+    "result": {
+      "executable": "/usr/bin/sandbox-exec",
+      "args": [
+        "-p",
+        "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-64KdHt\") (subpath \"/private/tmp/unified76-build-types-review-tool-routes-v10-28607\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/worker.mjs",
+        "/private/tmp/unified76-independent-tool-v10-zUUgKh/input.json"
+      ],
+      "cwd": "/private/tmp/unified76-independent-tool-v10-zUUgKh",
+      "pid": 28616,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": true,
+      "elapsedMs": 3665,
+      "timeoutMs": 180000,
+      "outputBytes": 0,
+      "observed": [
+        {
+          "pid": 28616,
+          "parent": 28607,
+          "group": 28616,
+          "born": "Fri Aug 28 08:39:50 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/worker.mjs /private/tmp/unified76-independent-tool-v10-zUUgKh/input.json"
+        }
+      ],
+      "signals": [],
+      "survivors": [],
+      "listeners": [],
+      "cleanupRequired": false,
+      "clean": true
+    },
+    "phaseReceipt": {
+      "root": {
+        "pid": 28616,
+        "parent": 28607,
+        "group": 28616,
+        "born": "Fri Aug 28 08:39:50 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/worker.mjs /private/tmp/unified76-independent-tool-v10-zUUgKh/input.json"
+      },
+      "events": [
+        {
+          "label": "finite-git",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-64KdHt\") (subpath \"/private/tmp/unified76-build-types-review-tool-routes-v10-28607\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-64KdHt/probe.mjs",
+              "/private/tmp/unified76-os-write-64KdHt/input.json",
+              "finite-git"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-64KdHt",
+            "pid": 28633,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 457,
+            "timeoutMs": 20000,
+            "outputBytes": 2253,
+            "observed": [
+              {
+                "pid": 28633,
+                "parent": 28607,
+                "group": 28633,
+                "born": "Fri Aug 28 08:39:51 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-64KdHt/probe.mjs /private/tmp/unified76-os-write-64KdHt/input.json finite-git"
+              },
+              {
+                "pid": 28643,
+                "parent": 28633,
+                "group": 28633,
+                "born": "Fri Aug 28 08:39:51 2026",
+                "command": "(git)"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-64KdHt",
+                "device": 16777232,
+                "inode": 180931354,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+                "device": 16777232,
+                "inode": 180931355,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        },
+        {
+          "label": "selectors",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-64KdHt\") (subpath \"/private/tmp/unified76-build-types-review-tool-routes-v10-28607\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-64KdHt/probe.mjs",
+              "/private/tmp/unified76-os-write-64KdHt/input.json",
+              "selectors"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-64KdHt",
+            "pid": 28670,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 403,
+            "timeoutMs": 20000,
+            "outputBytes": 1864,
+            "observed": [
+              {
+                "pid": 28670,
+                "parent": 28607,
+                "group": 28670,
+                "born": "Fri Aug 28 08:39:52 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-64KdHt/probe.mjs /private/tmp/unified76-os-write-64KdHt/input.json selectors"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-64KdHt",
+                "device": 16777232,
+                "inode": 180931354,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+                "device": 16777232,
+                "inode": 180931355,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        },
+        {
+          "label": "resolved-boundary",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-64KdHt\") (subpath \"/private/tmp/unified76-build-types-review-tool-routes-v10-28607\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n(deny process-exec (literal \"/usr/bin/otool\"))\n(deny process-exec (literal \"/usr/bin/git\"))\n(deny process-exec (literal \"/usr/bin/xcrun\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool\"))\n(deny process-exec (literal \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-otool\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-64KdHt/probe.mjs",
+              "/private/tmp/unified76-os-write-64KdHt/input.json",
+              "resolved-boundary"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-64KdHt",
+            "pid": 28707,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 469,
+            "timeoutMs": 20000,
+            "outputBytes": 1975,
+            "observed": [
+              {
+                "pid": 28707,
+                "parent": 28607,
+                "group": 28707,
+                "born": "Fri Aug 28 08:39:52 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-64KdHt/probe.mjs /private/tmp/unified76-os-write-64KdHt/input.json resolved-boundary"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-64KdHt",
+                "device": 16777232,
+                "inode": 180931354,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+                "device": 16777232,
+                "inode": 180931355,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        }
+      ],
+      "expectedPhases": [
+        "finite-git",
+        "selectors",
+        "resolved-boundary"
+      ],
+      "completed": 3,
+      "clean": true
+    },
+    "observerReceipt": {
+      "root": {
+        "pid": 28616,
+        "parent": 28607,
+        "group": 28616,
+        "born": "Fri Aug 28 08:39:50 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/worker.mjs /private/tmp/unified76-independent-tool-v10-zUUgKh/input.json"
+      },
+      "groups": [],
+      "events": [],
+      "survivors": [],
+      "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+    },
+    "clean": true,
+    "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+  },
+  "worker": {
+    "report": {
+      "phases": [
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-64KdHt/probe.mjs",
+            "/private/tmp/unified76-os-write-64KdHt/input.json",
+            "finite-git"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-64KdHt",
+          "pid": 28633,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 457,
+          "timeoutMs": 20000,
+          "outputBytes": 2253,
+          "observed": [
+            {
+              "pid": 28633,
+              "parent": 28607,
+              "group": 28633,
+              "born": "Fri Aug 28 08:39:51 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-64KdHt/probe.mjs /private/tmp/unified76-os-write-64KdHt/input.json finite-git"
+            },
+            {
+              "pid": 28643,
+              "parent": 28633,
+              "group": 28633,
+              "born": "Fri Aug 28 08:39:51 2026",
+              "command": "(git)"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-64KdHt",
+                "device": 16777232,
+                "inode": 180931354,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+                "device": 16777232,
+                "inode": 180931355,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "finite-git",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        },
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-64KdHt/probe.mjs",
+            "/private/tmp/unified76-os-write-64KdHt/input.json",
+            "selectors"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-64KdHt",
+          "pid": 28670,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 403,
+          "timeoutMs": 20000,
+          "outputBytes": 1864,
+          "observed": [
+            {
+              "pid": 28670,
+              "parent": 28607,
+              "group": 28670,
+              "born": "Fri Aug 28 08:39:52 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-64KdHt/probe.mjs /private/tmp/unified76-os-write-64KdHt/input.json selectors"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-64KdHt",
+                "device": 16777232,
+                "inode": 180931354,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+                "device": 16777232,
+                "inode": 180931355,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "selectors",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        },
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-64KdHt/probe.mjs",
+            "/private/tmp/unified76-os-write-64KdHt/input.json",
+            "resolved-boundary"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-64KdHt",
+          "pid": 28707,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 469,
+          "timeoutMs": 20000,
+          "outputBytes": 1975,
+          "observed": [
+            {
+              "pid": 28707,
+              "parent": 28607,
+              "group": 28707,
+              "born": "Fri Aug 28 08:39:52 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-64KdHt/probe.mjs /private/tmp/unified76-os-write-64KdHt/input.json resolved-boundary"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-64KdHt",
+                "device": 16777232,
+                "inode": 180931354,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-tool-routes-v10-28607",
+                "device": 16777232,
+                "inode": 180931355,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "resolved-boundary",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        }
+      ]
+    },
+    "descriptors": [
+      {
+        "descriptor": 0,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      },
+      {
+        "descriptor": 1,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2132950
+      },
+      {
+        "descriptor": 2,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2132951
+      },
+      {
+        "descriptor": 3,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2133024
+      },
+      {
+        "descriptor": 4,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 5,
+        "regular": false,
+        "device": 0,
+        "inode": 12509495157919480000
+      },
+      {
+        "descriptor": 6,
+        "regular": false,
+        "device": 0,
+        "inode": 2785539436771976700
+      },
+      {
+        "descriptor": 7,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 8,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 9,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 10,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 11,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 12,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      }
+    ],
+    "toolPath": {
+      "path": "/private/tmp/unified76-os-write-64KdHt/tool-bin",
+      "device": 16777232,
+      "inode": 180931746,
+      "aliases": [
+        {
+          "name": "node",
+          "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "bytes": 117591472,
+          "mode": 493,
+          "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+        },
+        {
+          "name": "git",
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        },
+        {
+          "name": "sh",
+          "origin": "/bin/sh",
+          "physical": "/bin/sh",
+          "bytes": 101232,
+          "mode": 493,
+          "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+        },
+        {
+          "name": "tar",
+          "origin": "/usr/bin/tar",
+          "physical": "/usr/bin/bsdtar",
+          "bytes": 275344,
+          "mode": 493,
+          "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+        },
+        {
+          "name": "ps",
+          "origin": "/bin/ps",
+          "physical": "/bin/ps",
+          "bytes": 170816,
+          "mode": 493,
+          "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+        },
+        {
+          "name": "lsof",
+          "origin": "/usr/sbin/lsof",
+          "physical": "/usr/sbin/lsof",
+          "bytes": 307600,
+          "mode": 493,
+          "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456"
+        },
+        {
+          "name": "sw_vers",
+          "origin": "/usr/bin/sw_vers",
+          "physical": "/usr/bin/sw_vers",
+          "bytes": 135536,
+          "mode": 493,
+          "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+        },
+        {
+          "name": "bsdtar",
+          "origin": "/usr/bin/bsdtar",
+          "physical": "/usr/bin/bsdtar",
+          "bytes": 275344,
+          "mode": 493,
+          "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+        },
+        {
+          "name": "gzip",
+          "origin": "/usr/bin/gzip",
+          "physical": "/usr/bin/gzip",
+          "bytes": 171712,
+          "mode": 493,
+          "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3"
+        },
+        {
+          "name": "gunzip",
+          "origin": "/usr/bin/gunzip",
+          "physical": "/usr/bin/gunzip",
+          "bytes": 197504,
+          "mode": 493,
+          "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73"
+        },
+        {
+          "name": "bash",
+          "origin": "/bin/bash",
+          "physical": "/bin/bash",
+          "bytes": 1293840,
+          "mode": 365,
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+        },
+        {
+          "name": "sed",
+          "origin": "/usr/bin/sed",
+          "physical": "/usr/bin/sed",
+          "bytes": 170336,
+          "mode": 493,
+          "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+        },
+        {
+          "name": "awk",
+          "origin": "/usr/bin/awk",
+          "physical": "/usr/bin/awk",
+          "bytes": 302368,
+          "mode": 493,
+          "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+        },
+        {
+          "name": "jq",
+          "origin": "/usr/bin/jq",
+          "physical": "/usr/bin/jq",
+          "bytes": 1492208,
+          "mode": 493,
+          "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+        },
+        {
+          "name": "curl",
+          "origin": "/usr/bin/curl",
+          "physical": "/usr/bin/curl",
+          "bytes": 552624,
+          "mode": 493,
+          "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+        },
+        {
+          "name": "rev",
+          "origin": "/usr/bin/rev",
+          "physical": "/usr/bin/rev",
+          "bytes": 101328,
+          "mode": 493,
+          "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247"
+        },
+        {
+          "name": "expand",
+          "origin": "/usr/bin/expand",
+          "physical": "/usr/bin/expand",
+          "bytes": 101616,
+          "mode": 493,
+          "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78"
+        },
+        {
+          "name": "fold",
+          "origin": "/usr/bin/fold",
+          "physical": "/usr/bin/fold",
+          "bytes": 101808,
+          "mode": 493,
+          "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+        }
+      ],
+      "gitCore": {
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "entries": 197,
+        "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+      },
+      "qualification": "Finite declared aliases only; no ambient/system/developer-directory PATH fallback."
+    },
+    "shadows": [
+      {
+        "kind": "regular",
+        "refusal": {
+          "message": "unbound native PATH entry: git",
+          "code": "ERR_ASSERTION"
+        },
+        "markerAbsent": true
+      },
+      {
+        "kind": "symlink",
+        "refusal": {
+          "message": "native PATH entries must not become aliases",
+          "code": "ERR_ASSERTION"
+        },
+        "markerAbsent": true
+      },
+      {
+        "kind": "changed-alias",
+        "refusal": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '/usr/bin/git'\n- '/Applications/Xcode.app/Contents/Developer/usr/bin/git'\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "componentOnly": true,
+    "fullGate": false
+  },
+  "status": "SCOPED_RESOLVED_WRITE_SAFETY_PASS",
+  "finishedAt": "2026-08-28T08:39:53.851Z"
+}

@@ -1,0 +1,5 @@
+
+> virtual-bash@0.0.0 typecheck
+> node scripts/typecheck.mjs --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/raw-followup/cold-types
+
+{"status":"build-prerequisite-required","builds":0,"currentConsumerGroups":0,"runtimeExecutions":0,"cleaned":true}

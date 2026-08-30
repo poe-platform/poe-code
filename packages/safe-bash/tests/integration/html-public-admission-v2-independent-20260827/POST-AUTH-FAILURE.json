@@ -1,0 +1,5 @@
+{
+  "at": "2026-08-27T22:50:17.359Z",
+  "message": "indexSha256\n+ actual - expected\n\n+ 'a7e4993c5dda91669be4de108bf3a34f619d96db5462fb559345a2a2a33fe361'\n- 'bc57ce64b31c8778917fe9a4b8f4beebb25e7f2d9eb65e55a40dad860af75a3e'\n",
+  "stack": "AssertionError [ERR_ASSERTION]: indexSha256\n+ actual - expected\n\n+ 'a7e4993c5dda91669be4de108bf3a34f619d96db5462fb559345a2a2a33fe361'\n- 'bc57ce64b31c8778917fe9a4b8f4beebb25e7f2d9eb65e55a40dad860af75a3e'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs:142:118\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+}

@@ -1,0 +1,65 @@
+{
+  "authentication": {
+    "at": "2026-08-27T23:58:08.845Z",
+    "freeze": "2461f905416b7260ff02742af87fba8bc31c2977",
+    "manifestSha256": "0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3",
+    "tools": {
+      "node": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "git": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "ps": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    "sources": {
+      "v2-seal": "82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7",
+      "v2-core": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+      "v2-producer": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+      "v2-controls": "f060af44af319af2a9f808857c2018d19e0c1d5ce52aae2fcbbdf89775261016",
+      "diagnosis": "e44cf29f08c9d5fef8fbc377e929a1c4e6bc8039a4a419f1f28656ab6db94e6b",
+      "diagnosis-manifest": "499314cd3672714796aed5244cea61d996cb654ea9b267374e15c540bb16c9a9",
+      "independent-supervisor": "f61f1d9ab315e984cfd6da3d9b398e02c56741b881d936441dd93240a30061a6",
+      "v3-recipe-PIN.json": "04e113086b826ffacce1920b64146395b1a160c79939858080428e31033f31cb",
+      "v3-recipe-RECIPE.data": "42585180518254b68a734649ac72082811a7eea8cb0467537cd159d29dbaa186",
+      "v3-recipe-STATIC-CHECKS.json": "aef3a7194def4b3dab1e12a2a1ae35938a7732df218a41b9af288c952c301c72",
+      "v3-recipe-STATIC-FAILURE-01.data": "2435bfed475a280f86f956082c845f62c40b19918e1639ed9aa8796089efc5c5",
+      "v3-recipe-authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+      "v3-recipe-coordinator.mjs": "b14647986c684491dd4107f6457cdda2843cc2edd99e4b174a74b478a4be5674",
+      "v3-recipe-core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+      "v3-recipe-producer-observer.mjs": "77e9d5c70d02f7422fbb17292aa15ab8ccd797a306bf437a428f3e63c1c5cf85",
+      "v3-recipe-stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+      "v3-recipe-telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+      "v3-recipe-worker.mjs": "12a85db40f94cc175d40bb495cefa007ced2ae51f56754d60c7bd268937c0a5a",
+      "v3-recipe-MANIFEST.json": "35b2bc609846404b62ebcdd41dd3e3f57fe9a4d35940ea85d604e4f99495b037",
+      "v3-evidence-MANIFEST.json": "0399f7e288c22a52447383684a1d3d790d066171041e299bf41eb042e783454c",
+      "v3-evidence-REPORT.data": "ebb46fb5ea509ef4368243af9f4ccf55a45e1aaf8415b40f5a8928d6da9fa12b",
+      "v3-evidence-execution-01/SUMMARY.json": "de167072d6b7957405528e21c325e5cbaf9830b72e56a4fe8489ce43e24f9985",
+      "v3-evidence-execution-01/03-consumer-failure/RAW-RECEIPT.json": "b80a621534ab1d730ffa0ecb5f15696bf96cb7cb03a6f675bb94905d81a974ff",
+      "v3-evidence-execution-01/03-consumer-failure/consumer.receipt.json": "53a7813fc8dad47dff87e428c349517b8a5a2dd9085eedadd18b0b6ec9e8881e",
+      "v3-evidence-execution-01/03-consumer-failure/supervisor.events.jsonl": "3e7f3c1e0542776833399000190fdfb92fff958f44ee27c563dfe9f9df8dd0dc"
+    },
+    "recipeInventory": {
+      "files": {
+        "AMENDMENT.json": "8eeae2c05fd39ce4332ed728340657b463757225f5b6d3e0731a9c45da99116e",
+        "MANIFEST.json": "0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3",
+        "PIN.json": "10a7426689ce09863e1db949826b9b7f3b7872ecc43cd0b9d173187cc4487c69",
+        "RECIPE.data": "a175bcabd14f51a50196e1e1ca3029264fd5edc9daa2479dd4337172eb4075cd",
+        "STATIC-CHECKS.json": "09d97bcb18055caa03b57ac69a24a629b106c706b6a73a48ae15af4dddf67c35",
+        "STATIC-FINAL.json": "702871e46da2a066047b24f93e05b78bd0c9aa5742b39e9c672bfbb3029838ac",
+        "STATIC-MISTAKE-01.json": "dd2653ee5212b20a9a68d7ef22c67721fd5c9a297ef0c3d0e8bbc19d5298720a",
+        "SYNTHETIC-CASES.json": "9031bea4a7bcb6a06866b378c71b55042a22d86a933ab8217aa6a545169169bd",
+        "authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+        "consumer-observation.mjs": "bf45931f2e5b6ad7d5b90140444fadc010f3df58dfc6805fbb34a078ba51e977",
+        "coordinator.mjs": "ea67c3b73e5af666c660a0d8bb76ac8a02bfd59b35d2d4eb17d35bfda91988ff",
+        "core.mjs": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+        "producer-observer.mjs": "5394054ac87d331a327ef31a3e57fc3c00dd3213b69438f4160c269e734c3ca0",
+        "stream-fixture.mjs": "74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c",
+        "synthetic-controls.mjs": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202",
+        "telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+        "terminal-predicate.mjs": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf",
+        "worker.mjs": "7cbf5454c97b20033515147934eff2b2e57e4e711612806fc9b81a1358449eb0"
+      },
+      "directories": []
+    },
+    "candidateRuntime": 0,
+    "archiveReplay": false
+  },
+  "error": null
+}

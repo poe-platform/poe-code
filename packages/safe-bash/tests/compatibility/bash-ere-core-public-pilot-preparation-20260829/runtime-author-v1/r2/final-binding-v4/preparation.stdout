@@ -1,0 +1,65 @@
+{
+  "status": "CONDITIONAL_ROOT_GO_CHECKS_PASS_COMMIT_REQUIRED_BEFORE_ACTUAL",
+  "issuedAt": "2026-08-29T17:47:02.990Z",
+  "latestStart": "2026-08-29T17:57:02.990Z",
+  "expiresAt": "2026-08-29T18:07:02.990Z",
+  "outerStarted": 269035121,
+  "grant": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v4/PENDING-GRANT.json",
+    "bytes": 667,
+    "sha256": "993c5ea238dbf3a07c197da4cc89e7c25fe690207a2512e283dcf1a3bbefffe2",
+    "fields": 18
+  },
+  "command": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v4/RESOLVED-COMMAND.txt",
+    "bytes": 995,
+    "sha256": "05f243889f7f54a3988cea59210252267b516b9bf368859f30fe1dd46b2550ad"
+  },
+  "owner": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v4/actual-owner.mjs",
+    "bytes": 10776,
+    "sha256": "5928489fd37345770f64646197d93a00ffe0df68901ed546e57bb1ae553b38f0",
+    "templatePath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v2/actual-owner.mjs",
+    "templateSha256": "5ae7e2cfc1353c03d2b752110634e421c0ca26caf6c1ff7eae0d102c78f94ea2",
+    "normalizedExactlyEqual": true,
+    "substitutions": [
+      {
+        "before": "tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v2",
+        "after": "tests/compatibility/bash-ere-core-public-pilot-preparation-20260829/runtime-author-v1/r2/final-binding-v4",
+        "occurrences": 1
+      },
+      {
+        "before": "1bef3edb200f9a67c7c27260d33ff850e0d1f85fff0f80022cda2636c6ac3adf",
+        "after": "993c5ea238dbf3a07c197da4cc89e7c25fe690207a2512e283dcf1a3bbefffe2",
+        "occurrences": 1
+      },
+      {
+        "before": "47a843889d997ee006b3f66c03015eb88bc477cee98ad1accb1d47e36851e721",
+        "after": "05f243889f7f54a3988cea59210252267b516b9bf368859f30fe1dd46b2550ad",
+        "occurrences": 1
+      },
+      {
+        "before": "267531292",
+        "after": "269035121",
+        "occurrences": 4
+      }
+    ]
+  },
+  "controls": [
+    "owner exact inverse normalization PASS",
+    "unapproved trailing logic rejected by normalization PASS",
+    "command exact inverse normalization PASS",
+    "18-field grant non-time policy unchanged PASS"
+  ],
+  "checkedFiles": 5378,
+  "unusedSlots": 76,
+  "clock": {
+    "source": "Number(process.hrtime.bigint() / 1000000n)",
+    "adjacentWallAndMonoSamplesNotAtomic": true,
+    "sampledUtc": "2026-08-29T17:47:03.971Z",
+    "sampledMonotonic": 269036102,
+    "remainingMs": 1199019,
+    "publicationReservedMs": 180000,
+    "noResetOnGo": true
+  }
+}

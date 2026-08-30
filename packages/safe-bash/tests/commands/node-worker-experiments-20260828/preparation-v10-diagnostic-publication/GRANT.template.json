@@ -1,0 +1,28 @@
+{
+  "authorized": false,
+  "phase": "worker",
+  "oneShot": true,
+  "runId": "RUN-WRQ-CONTINUATION-V10-01",
+  "retries": 0,
+  "profileSha256": null,
+  "caseSha256": null,
+  "moduleSha256": null,
+  "toolSha256": null,
+  "sourceSha256": null,
+  "reviewCommit": null,
+  "reviewDecision": null,
+  "compiler": false,
+  "selectedInstances": [
+    "WRQ02-L02-repeat-v10",
+    "WRQ03-L03-v3",
+    "WRQ04-L04-v3",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "sourceCommit": null
+}

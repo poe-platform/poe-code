@@ -1,0 +1,21 @@
+{
+  "name": "archive",
+  "binary": "git",
+  "args": [
+    "archive",
+    "--format=tar",
+    "--output=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-inspection-independent-obpIZ1/source.tar",
+    "79316dfe792d9342eda2cedff503f98f431778c4",
+    "src",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

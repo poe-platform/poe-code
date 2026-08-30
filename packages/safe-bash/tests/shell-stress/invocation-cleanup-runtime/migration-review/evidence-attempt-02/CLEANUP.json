@@ -1,0 +1,13 @@
+{
+  "time": "2026-08-27T12:59:53.521Z",
+  "accepted": true,
+  "ownScratch": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-cleanup-runtime/migration-review/.work-attempt-02",
+  "removed": true,
+  "nestedBeforeFinalRemoval": [
+    "node-compile-cache"
+  ],
+  "synchronousChildWaitsReturned": 9,
+  "allRecordedChildrenNatural": true,
+  "noBroadKill": true,
+  "removedOnlyOwnedScratch": true
+}

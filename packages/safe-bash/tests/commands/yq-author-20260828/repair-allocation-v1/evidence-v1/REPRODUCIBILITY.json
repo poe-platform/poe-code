@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "driverCommit": "cdda087ab17a4a16d526144ce516560c479bf260",
+  "firstCapture": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v1",
+  "secondCapture": "isolated out-of-tree replay",
+  "byteIdentical": {
+    "SOURCE.tar": true,
+    "package/virtual-bash-0.0.0.tgz": true
+  },
+  "artifacts": {
+    "SOURCE.tar": {
+      "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878"
+    },
+    "package/virtual-bash-0.0.0.tgz": {
+      "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca"
+    }
+  },
+  "qualification": "The reports contain invocation-specific temporary paths and are not asserted byte-identical. Both selected binary artifacts are byte-identical across complete isolated reconstruction runs."
+}

@@ -1,0 +1,17 @@
+diff --git a/tsconfig.json b/tsconfig.json
+index cc967cb4..b4c8915b 100644
+--- a/tsconfig.json
++++ b/tsconfig.json
+@@ -17,6 +17,11 @@
+     "dist",
+     "node_modules",
+     "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+-    "tests/commands/regex-execution/continuation/artifacts/native"
++    "tests/commands/regex-execution/continuation/artifacts/native",
++    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
++    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
++    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
++    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
++    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts"
+   ]
+ }

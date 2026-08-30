@@ -1,0 +1,45 @@
+{
+  "source": "c3fbda6279028fd2bde9f6d967970870ff7546aa",
+  "originalHarnessSha256": "6b8ad8a01f40824743408a904c7c846f9129da481910eaa118f40240c510298e",
+  "startedAt": "2026-08-27T10:48:54.959Z",
+  "cases": [
+    {
+      "mode": "declared-sentinel",
+      "rejected": true,
+      "beforeWork": false,
+      "guardMutationDetected": false,
+      "scope": "positive coverage guard"
+    },
+    {
+      "mode": "omitted-sentinel",
+      "rejected": true,
+      "beforeWork": true,
+      "guardMutationDetected": false,
+      "scope": "positive coverage guard"
+    },
+    {
+      "mode": "missing-result",
+      "rejected": true,
+      "beforeWork": false,
+      "guardMutationDetected": false,
+      "scope": "positive coverage guard"
+    },
+    {
+      "mode": "remove-before-guard",
+      "rejected": true,
+      "beforeWork": false,
+      "guardMutationDetected": true,
+      "scope": "known bad harness mutation detected by missing prework/record enforcement, not consumer acceptance"
+    },
+    {
+      "mode": "remove-after-guard",
+      "rejected": false,
+      "beforeWork": false,
+      "guardMutationDetected": true,
+      "scope": "known bad harness mutation detected by missing prework/record enforcement, not consumer acceptance"
+    }
+  ],
+  "status": "passed-three-runtime-guards-and-two-guard-mutations",
+  "cleaned": true,
+  "finishedAt": "2026-08-27T10:49:14.994Z"
+}

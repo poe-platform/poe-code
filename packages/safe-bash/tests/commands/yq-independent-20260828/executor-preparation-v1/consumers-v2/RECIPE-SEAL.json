@@ -1,0 +1,152 @@
+{
+  "schema": 2,
+  "date": "2026-08-28",
+  "role": "SELECTED_SOURCE_CORRECTION_AUTHOR_RECIPE_REVIEW_PENDING",
+  "rootMode": 493,
+  "selfExcludedExactPath": "RECIPE-SEAL.json",
+  "originalV1RecipeSha256": "24e28a529cec877b82835d81ba3f274702a28d43ab5285754b7bd1ef0b82f98d",
+  "entries": {
+    "CONTROLS.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 2837,
+      "sha256": "2146780878299d22d2328a70820f242046099cdd098c5d2012dd53bdac06b52c"
+    },
+    "DIFF-STATUS.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 414,
+      "sha256": "13201c5cbbfa2d8a7707c6c27238edcc17297de6dd205bb7fbf9c50aeb1b22ed"
+    },
+    "GLOBAL-TREE-BOUNDARY.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 4010,
+      "sha256": "7fa6d5379d6e318ea4bfcced60fb318c2fafd8fe42f7655d5874dfe05407df00"
+    },
+    "PRESEAL.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 610,
+      "sha256": "37081de89b2720f3c77f4031d3f88630506186081819adcdb077919949d6fec0"
+    },
+    "PROTOCOL.md": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 7182,
+      "sha256": "31c92fcf00ff57aa84bc65081d22d54e4e25ce70ed405880f53eb10163c423b9"
+    },
+    "README.md": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 6918,
+      "sha256": "105724c098d41c73ba20387908624c65bda40bf20863bbbbb800a09625059621"
+    },
+    "SOURCE-AUTHORITY.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 3682,
+      "sha256": "718253db9c04fdcd459283362d00d80766c9b5ad3264b931ac127cb9aaa5db5d"
+    },
+    "SOURCE-RECEIPT.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 1408,
+      "sha256": "0b2a4bb3f6e7ff878f6c17f2237363811376edc1fbcdd5aa7499759705ecd170"
+    },
+    "SUMMARY.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 2319,
+      "sha256": "4db3a4395e5903dfca3df2e1ab5b71b49e7ab4be80801cfe334c2c48c6d6832e"
+    },
+    "V1-V2.diff": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 16225,
+      "sha256": "276629c947ff96e9468b6afc5439367dca91e4321b2e44da32759825958c41db"
+    },
+    "VALIDATION-PRESEAL.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 1394,
+      "sha256": "87dd336fd269d4055865d529a3c5dd6f38f89dae4d83610e05a0def32939391d"
+    },
+    "evidence": {
+      "type": "directory",
+      "mode": 493
+    },
+    "evidence/admission-4lTtwy": {
+      "type": "directory",
+      "mode": 448
+    },
+    "evidence/admission-4lTtwy/RESULTS.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 6461,
+      "sha256": "838ab909382b1dffe9f89bb0fff2ce47ff4cf4f97020a6fb385f055d49274983"
+    },
+    "evidence/synthetic-POfhb4": {
+      "type": "directory",
+      "mode": 448
+    },
+    "evidence/synthetic-POfhb4/RESULTS.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 10708,
+      "sha256": "ca56ea12c1603fad744243eb7f7eb3ab6c4a150de855277c1dd19c4c09357157"
+    },
+    "frozen-v1.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 838,
+      "sha256": "b62e446129ed8936edf381548465bc8cd89660658e5a720cd52a5bd7cc7d2576"
+    },
+    "guards.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 24545,
+      "sha256": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a"
+    },
+    "raw-v1": {
+      "type": "directory",
+      "mode": 493
+    },
+    "raw-v1/REFUSAL.json": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 1377,
+      "sha256": "fa67294ee35da2ae61ed0607d702c4dc6a81eac8feb59de1be50ceb7c9289eb9"
+    },
+    "reproduce-v1.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 1549,
+      "sha256": "eb364fb853e8b980862b1eb5cb5171653ab39fedd6f58d4df4755944accd6750"
+    },
+    "synthetic-check.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 14489,
+      "sha256": "fdf8310e09557ebedebfa0808d2aa0b563d20509831950792ce63c162406bd0d"
+    },
+    "type-worker.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 9932,
+      "sha256": "5570bd8a754880a7aef0da8f2c48b6524869b46d08f28478f89be296aa53152f"
+    },
+    "validate.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 14172,
+      "sha256": "058622619690642f842281b04eeafa64d305ab659fc4ce653923ea27b5c09096"
+    },
+    "verify-recipe.mjs": {
+      "type": "file",
+      "mode": 420,
+      "bytes": 2723,
+      "sha256": "a4f2bb661d91505a22fa414b83cbba26dd6d4f63fcd5bc08d648e0368b97bba1"
+    }
+  }
+}

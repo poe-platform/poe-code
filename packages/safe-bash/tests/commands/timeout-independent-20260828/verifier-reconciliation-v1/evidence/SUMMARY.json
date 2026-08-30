@@ -1,0 +1,589 @@
+{
+  "schema": "timeout-independent-verifier-reconciliation-disposition/1",
+  "recipeCommit": "7e6a0b781a2d0cb9e1bc7b0dd02ee973cd857504",
+  "candidate": "9ed9a0f14d12758713a8dc42be1ff75f0c87a36f",
+  "startedAt": "2026-08-28T03:47:59.870Z",
+  "finishedAt": "2026-08-28T03:48:19.008Z",
+  "attempts": 1,
+  "retries": 0,
+  "originalResultStatus": "RECONCILIATION_COMPLETE_PC01_BOUNDARY_REVIEW_REQUIRED",
+  "originalResultSha256": "2ab62e33dc01028c1205783482ee78754fba73ab6458cdad8e397930c68f4e11",
+  "focusedControls": {
+    "passed": 28,
+    "total": 28,
+    "exactRoot": 13,
+    "strictLoadDenial": 10,
+    "publicSubpathDenial": 5
+  },
+  "rootTypes": {
+    "passed": 2,
+    "total": 2,
+    "diagnostic": "TS2724",
+    "location": "consumer.ts(1,10)",
+    "compilerExit": 2,
+    "declarationsPerLayout": 85
+  },
+  "diagnosticProfiles": [
+    {
+      "profile": "source",
+      "originalAssertionOutcome": "FAIL",
+      "failure": "AssertionError [ERR_ASSERTION]: OUTER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+      "numericVectorsExecuted": 0,
+      "actualModuleLoads": 215,
+      "productLoads": 210,
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        },
+        {
+          "kind": "PC01-boundaries",
+          "route": "borrowed-outer-invoke",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 1
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "fulfilled",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBase64": "",
+            "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg=="
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "cleanup": {
+        "tracked": 5,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 2,
+        "disposalRejections": [],
+        "unhandled": []
+      }
+    },
+    {
+      "profile": "moved",
+      "originalAssertionOutcome": "FAIL",
+      "failure": "AssertionError [ERR_ASSERTION]: OUTER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+      "numericVectorsExecuted": 0,
+      "actualModuleLoads": 215,
+      "productLoads": 210,
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        },
+        {
+          "kind": "PC01-boundaries",
+          "route": "borrowed-outer-invoke",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 1
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "rawInvoke": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "outer": {
+            "status": "fulfilled",
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBase64": "",
+            "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg=="
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "cleanup": {
+        "tracked": 5,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 2,
+        "disposalRejections": [],
+        "unhandled": []
+      }
+    },
+    {
+      "profile": "M01",
+      "originalAssertionOutcome": "FAIL",
+      "failure": "AssertionError [ERR_ASSERTION]: HANDLER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+      "numericVectorsExecuted": 0,
+      "actualModuleLoads": 215,
+      "productLoads": 210,
+      "observations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "fulfilled",
+            "exitCode": 124,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ],
+      "cleanup": {
+        "tracked": 2,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      }
+    },
+    {
+      "profile": "M02",
+      "originalAssertionOutcome": "FAIL",
+      "failure": "AssertionError [ERR_ASSERTION]: RETIREMENT_MAPPED_TO_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+      "numericVectorsExecuted": 0,
+      "actualModuleLoads": 215,
+      "productLoads": 210,
+      "observations": [
+        {
+          "kind": "PC02-direct-retirement",
+          "entered": true,
+          "threw": true,
+          "sameSentinel": true,
+          "before": {
+            "status": "pending"
+          },
+          "handler": {
+            "status": "fulfilled",
+            "exitCode": 124,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "childClosed": true,
+          "resources": 0,
+          "registeredCleanupRejections": 1
+        }
+      ],
+      "cleanup": {
+        "tracked": 1,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 0,
+        "disposalRejections": [],
+        "unhandled": []
+      }
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "A09-new-targeted-diagnosis",
+      "status": "PASS",
+      "kind": "unbound-source",
+      "target": "/Users/kjopek/Workspace/safe-bash/src/index.ts",
+      "childCode": 0,
+      "trace": [
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/node_modules/work/physically-moved/consumer/A09-new-targeted-diagnosis.mjs",
+          "sha256": "a5aa187cb86828f2120b0e02fb5cd9a0b0bbd614227defe97db541c0f98d02ce",
+          "bytes": 719,
+          "transformedSha256": null
+        },
+        {
+          "kind": "strict-load-allowlist-denial",
+          "path": "/Users/kjopek/Workspace/safe-bash/src/index.ts",
+          "guard": "Object.hasOwn(config.loads,path)",
+          "beforeProductLoad": true
+        }
+      ],
+      "observed": {
+        "classification": "new-targeted-import-diagnosis",
+        "target": "/Users/kjopek/Workspace/safe-bash/src/index.ts",
+        "caught": true,
+        "productAcceptance": false,
+        "error": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "UNBOUND_MODULE:/Users/kjopek/Workspace/safe-bash/src/index.ts",
+          "stack": "AssertionError [ERR_ASSERTION]: UNBOUND_MODULE:/Users/kjopek/Workspace/safe-bash/src/index.ts\n    at bound (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/preload.mjs:15:252)\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/preload.mjs:23:42)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)\n    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)\n    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)",
+          "actual": false,
+          "expected": true,
+          "operator": "==",
+          "generatedMessage": false,
+          "ownPropertyNames": [
+            "stack",
+            "message",
+            "generatedMessage",
+            "name",
+            "code",
+            "actual",
+            "expected",
+            "operator",
+            "diff"
+          ]
+        }
+      }
+    },
+    {
+      "id": "A10-public-subpath",
+      "status": "PASS",
+      "kind": "public-subpath",
+      "target": "virtual-bash/commands/timeout",
+      "childCode": 0,
+      "trace": [
+        {
+          "kind": "actual-module-load",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/node_modules/work/physically-moved/consumer/A10-public-subpath.mjs",
+          "sha256": "a5aa187cb86828f2120b0e02fb5cd9a0b0bbd614227defe97db541c0f98d02ce",
+          "bytes": 719,
+          "transformedSha256": null
+        }
+      ],
+      "observed": {
+        "classification": "new-targeted-import-diagnosis",
+        "target": "virtual-bash/commands/timeout",
+        "caught": true,
+        "productAcceptance": false,
+        "error": {
+          "name": "Error",
+          "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+          "message": "Package subpath './commands/timeout' is not defined by \"exports\" in /Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/package.json imported from /Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/node_modules/work/physically-moved/consumer/A10-public-subpath.mjs",
+          "stack": "Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './commands/timeout' is not defined by \"exports\" in /Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/package.json imported from /Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/node_modules/work/physically-moved/consumer/A10-public-subpath.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:661:9)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:855:18)\n    at defaultResolve (node:internal/modules/esm/resolve:985:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:731:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:767:38)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/preload.mjs:22:19)\n    at nextStep (node:internal/modules/customization_hooks:189:26)",
+          "ownPropertyNames": [
+            "stack",
+            "code",
+            "message"
+          ]
+        }
+      }
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M01",
+      "status": "PASS",
+      "actualModuleSha256": "29d23b1cca04d25ffa8758305b335d7b1588519d5ad54ecb23a7d197511f1abe",
+      "expectedFailure": "HANDLER_RETURNED_STATUS",
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: HANDLER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: HANDLER_RETURNED_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n\n    at assertCallerCollision (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/review-preparation-v1/recipe/support.mjs:34:10)\n    at callerCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/cases.mjs:335:18)\n    at async Object.PC01 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/cases.mjs:291:18)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/cases.mjs:352:11"
+      },
+      "cleanup": {
+        "tracked": 2,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 1,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "loads": {
+        "actualModuleLoads": 215,
+        "publicEntryClaim": false,
+        "profile": "source"
+      },
+      "diagnosticObservations": [
+        {
+          "kind": "PC01-boundaries",
+          "route": "root-caller",
+          "dispatch": {
+            "timeout": 1,
+            "child": 1,
+            "outer": 0
+          },
+          "observedOwnReason": {
+            "type": "object",
+            "text": "[object Object]"
+          },
+          "callerAborted": true,
+          "sameCallerSentinel": true,
+          "handlerSignalAborted": true,
+          "sameHandlerSignalReason": true,
+          "beforeRelease": {
+            "handler": {
+              "status": "pending"
+            },
+            "outer": {
+              "status": "pending"
+            }
+          },
+          "handler": {
+            "status": "fulfilled",
+            "exitCode": 124,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "rawInvoke": null,
+          "outer": {
+            "status": "rejected",
+            "sameSentinel": true,
+            "reason": {
+              "type": "object",
+              "text": "[object Object]"
+            }
+          },
+          "childClosed": true,
+          "resources": 0
+        }
+      ]
+    },
+    {
+      "id": "M02",
+      "status": "PASS",
+      "actualModuleSha256": "779a000aaa0e8ca560426fc88602a6ec6d6da5b182e83a10056f2bc8bd3690a0",
+      "expectedFailure": "RETIREMENT_MAPPED_TO_STATUS",
+      "actualFailure": {
+        "type": "object",
+        "text": "AssertionError [ERR_ASSERTION]: RETIREMENT_MAPPED_TO_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n",
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: RETIREMENT_MAPPED_TO_STATUS\n+ actual - expected\n\n+ 'fulfilled'\n- 'rejected'\n\n    at assertDirectRetirementCollision (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/review-preparation-v1/recipe/support.mjs:52:10)\n    at Object.PC02 (file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/cases.mjs:297:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/verifier-reconciliation-v1/recipe/cases.mjs:352:11"
+      },
+      "cleanup": {
+        "tracked": 1,
+        "pending": 0,
+        "schedulerLive": 0,
+        "shells": 0,
+        "disposalRejections": [],
+        "unhandled": []
+      },
+      "loads": {
+        "actualModuleLoads": 215,
+        "publicEntryClaim": false,
+        "profile": "source"
+      },
+      "diagnosticObservations": [
+        {
+          "kind": "PC02-direct-retirement",
+          "entered": true,
+          "threw": true,
+          "sameSentinel": true,
+          "before": {
+            "status": "pending"
+          },
+          "handler": {
+            "status": "fulfilled",
+            "exitCode": 124,
+            "stdoutBase64": null,
+            "stderrBase64": null
+          },
+          "childClosed": true,
+          "resources": 0,
+          "registeredCleanupRejections": 1
+        }
+      ]
+    }
+  ],
+  "children": {
+    "asynchronous": 9,
+    "natural": 9,
+    "forced": 0,
+    "reaped": true,
+    "synchronousGitNaturalReturns": 284
+  },
+  "guards": {
+    "supervisor": 16,
+    "perCasePost": 4,
+    "final": "PASS"
+  },
+  "toolLoads": {
+    "actualCompiles": 556,
+    "actualReads": 1095
+  },
+  "rawPreservation": {
+    "rawFiles": 74,
+    "rawBytes": 1100851,
+    "retainedWorkFiles": 571,
+    "archiveBytes": 2629085,
+    "sha256": "da35af5b92f27f628ce94579bc2fec6839b1ff94a7ab699f38fd0b97529a0fb3"
+  },
+  "currentDeclaredTailUnexecuted": [],
+  "native": 0,
+  "safeJS": 0,
+  "remaining": [
+    "Root decision on PC01 exact borrowed-boundary proposal before semantic amendment",
+    "Separate new F22 candidate authentication/review/execution including previously unexecuted F22 resource/resolver assertions"
+  ],
+  "nonClaims": [
+    "Original31/34 and7/8 and A09 stop unchanged",
+    "No original missing bytes recovered",
+    "No full-cohort rerun",
+    "No public/default/whole-gate/private-helper approval",
+    "New F22 source is only root-announced, not authenticated or inspected here"
+  ]
+}

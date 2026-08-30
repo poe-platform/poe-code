@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "routing": "Root must authenticate this file and final seal from this worker commit and independently supply receipt hashes; embedded self-hashes alone authorize nothing",
+  "result": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json",
+    "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3",
+    "bytes": 21870,
+    "mode": 420
+  },
+  "sourceReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/SOURCE-RECEIPT.json",
+    "sha256": "cd0e2b94ea15e8199399d2cb589aee61a6c014785146dfec6b664ac0967130c9",
+    "bytes": 1408,
+    "mode": 420
+  },
+  "fullReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+    "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+    "bytes": 7441,
+    "mode": 420
+  },
+  "authorBuild": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/BOUND-AUTHOR-BUILD.json",
+    "sha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d",
+    "bytes": 1052,
+    "mode": 420
+  },
+  "runtimeBindings": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RUNTIME-BINDINGS.PENDING.json",
+    "sha256": "2ea30c9a50d563de97b8c1cbd0c8e45fe4f6c3a565e82727c76e14a291757d6f",
+    "bytes": 3995,
+    "mode": 420
+  },
+  "maps": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/MAPS.json",
+    "sha256": "4759a03c95d51330176a196ba6d10bc7724d1a8f964071de4efc1f4bd3993506",
+    "bytes": 504342,
+    "mode": 420
+  },
+  "movements": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/MATERIALIZATION.json",
+    "sha256": "044abc684e8d3755837dcf038e23f9ec79a54f2da59db1fb8f8ad87e41a9210a",
+    "bytes": 5585,
+    "mode": 420
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--experimental-permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/plugins/qualified-current-release/.runs/qualified-LFeAHL/consumer",
+    "--allow-worker",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/plugins/qualified-current-release/.runs/qualified-LFeAHL/consumer/s3-constructor/emitted/consumer.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/qualified-current-release-review/.execution-work/launcher/tests/plugins/qualified-current-release/.runs/qualified-LFeAHL/consumer",
+  "status": 0,
+  "signal": null,
+  "stdout": "TAP version 13\n# Subtest: public built package: serialized SDK cp, authority true\nok 1 - public built package: serialized SDK cp, authority true\n  ---\n  duration_ms: 17.717667\n  type: 'test'\n  ...\n# Subtest: public built package: serialized SDK cp, authority false\nok 2 - public built package: serialized SDK cp, authority false\n  ---\n  duration_ms: 4.998625\n  type: 'test'\n  ...\n# Subtest: public built package: serialized SDK mv, authority true\nok 3 - public built package: serialized SDK mv, authority true\n  ---\n  duration_ms: 6.152708\n  type: 'test'\n  ...\n# Subtest: public built package: serialized SDK mv, authority false\nok 4 - public built package: serialized SDK mv, authority false\n  ---\n  duration_ms: 3.055458\n  type: 'test'\n  ...\n# Subtest: public built package: overlapping SDK views and actual Memory backing remain aliases\nok 5 - public built package: overlapping SDK views and actual Memory backing remain aliases\n  ---\n  duration_ms: 6.65325\n  type: 'test'\n  ...\n# Subtest: public built package: resolver leaves an unregistered backing relationship unknown\nok 6 - public built package: resolver leaves an unregistered backing relationship unknown\n  ---\n  duration_ms: 0.455334\n  type: 'test'\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 6\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 42.440833\n",
+  "stderr": "(node:90791) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+}

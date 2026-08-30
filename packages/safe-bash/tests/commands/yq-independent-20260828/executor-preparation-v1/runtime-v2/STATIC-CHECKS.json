@@ -1,0 +1,39 @@
+{
+  "classification": "SUPPLEMENTAL_STATIC_ARTIFACT_AUDIT_NOT_ADDITIONAL_SYNTHETIC_CONTROLS",
+  "sourceCommit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+  "presealSha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64",
+  "exactDiffReplay": [
+    {
+      "path": "assert-capture.mjs",
+      "sha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd"
+    },
+    {
+      "path": "authorization.mjs",
+      "sha256": "075c713eb1dde7f0a50553d3a0f9f297813ab01dd40edee1802720627d1a1efb"
+    },
+    {
+      "path": "context.mjs",
+      "sha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821"
+    },
+    {
+      "path": "import-fence.mjs",
+      "sha256": "2ad9cd5aaf7f36f440b525679494152ceb71fbe4a5cb5457bbdb0d9dfa60cb5c"
+    }
+  ],
+  "harnessOnlySyntaxChecks": [
+    "assert-capture.mjs",
+    "authorization.mjs",
+    "child.mjs",
+    "context.mjs",
+    "execute.mjs",
+    "fixtures.mjs",
+    "host.mjs",
+    "import-fence.mjs",
+    "integrity.mjs"
+  ],
+  "specChecker": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/PROTOCOL.md (0 warning(s))",
+  "productImports": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "semanticPasses": 0
+}

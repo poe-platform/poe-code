@@ -1,0 +1,4870 @@
+{
+  "provider": "wsgidav",
+  "rows": [
+    {
+      "name": "root/subpath constructors and declared capabilities agree",
+      "boundary": "public-package",
+      "result": "pass",
+      "events": [],
+      "witnesses": {}
+    },
+    {
+      "name": "default copyFile preserves binary output using actual backing authority",
+      "boundary": "public-positive",
+      "result": "fail",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-1-target'",
+        "stack": "FsError: EIO: WebDAV transport or response failure, LOCK '/ind-1-target'\n    at WebDavFileSystem.requestStream (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:313:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.request (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:229:26)\n    at async WebDavFileSystem.withDestinationLock (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:933:13)\n    at async WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:913:9)\n    at async WebDavFileSystem.copyFile (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:982:9)\n    at async file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/out/independent.mjs:85:9\n    at async row (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/out/independent.mjs:83:5"
+      },
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-1-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "508",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0xe8bdb9fb15d3b3c892ac497a5cf60036e241332f190d5453147b50cbd4f3db80",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-1-source": {
+          "dev": 16777232,
+          "ino": 171529751,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-1-target": {
+          "dev": 16777232,
+          "ino": 171529752,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "copyFile unknown authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-2-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-2-source": {
+          "dev": 16777232,
+          "ino": 171529753,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-2-target": {
+          "dev": 16777232,
+          "ino": 171529754,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "copyFile same authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-3-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-3-source": {
+          "dev": 16777232,
+          "ino": 171529755,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-3-target": {
+          "dev": 16777232,
+          "ino": 171529756,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "copyFile throw authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-4-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-4-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-4-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-4-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-4-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-4-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-4-source": {
+          "dev": 16777232,
+          "ino": 171529757,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-4-target": {
+          "dev": 16777232,
+          "ino": 171529758,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "copyFile abort authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-5-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-5-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-5-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-5-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-5-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-5-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-5-source": {
+          "dev": 16777232,
+          "ino": 171529759,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-5-target": {
+          "dev": 16777232,
+          "ino": 171529760,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "default rename preserves binary output using actual backing authority",
+      "boundary": "public-positive",
+      "result": "fail",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-6-target'",
+        "stack": "FsError: EIO: WebDAV transport or response failure, LOCK '/ind-6-target'\n    at WebDavFileSystem.requestStream (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:313:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async WebDavFileSystem.request (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:229:26)\n    at async WebDavFileSystem.withDestinationLock (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:933:13)\n    at async WebDavFileSystem.transfer (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:913:9)\n    at async WebDavFileSystem.rename (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/webdav.js:979:9)\n    at async file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/out/independent.mjs:85:9\n    at async row (file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/out/independent.mjs:67:9)\n    at async file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/out/independent.mjs:83:5"
+      },
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-6-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "508",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x70e8d6f7852343f114d0d4632198087deae626202cfb8b35f9eb0fa7fd3ee832",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-6-source": {
+          "dev": 16777232,
+          "ino": 171529761,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-6-target": {
+          "dev": 16777232,
+          "ino": 171529762,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "rename unknown authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-7-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-7-source": {
+          "dev": 16777232,
+          "ino": 171529763,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-7-target": {
+          "dev": 16777232,
+          "ino": 171529764,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "rename same authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-8-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "111",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 111,
+          "downloadedBytes": 275,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "275",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-8-source": {
+          "dev": 16777232,
+          "ino": 171529765,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-8-target": {
+          "dev": 16777232,
+          "ino": 171529766,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "rename throw authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-9-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-9-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-9-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-9-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-9-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-9-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 646,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "646",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-9-source": {
+          "dev": 16777232,
+          "ino": 171529767,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-9-target": {
+          "dev": 16777232,
+          "ino": 171529768,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "rename abort authority has no destructive request",
+      "boundary": "public-authority",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-10-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-10-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-10-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-10-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-10-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-10-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-10-source": {
+          "dev": 16777232,
+          "ino": 171529769,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-10-target": {
+          "dev": 16777232,
+          "ino": 171529770,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: unchanged valid body control",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-11-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-11-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-11-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x76b6a1842e03a23b3bb60305ddae872f1b264366d10c74ce4af2842770e99c15",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-11-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x76b6a1842e03a23b3bb60305ddae872f1b264366d10c74ce4af2842770e99c15>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-11-source": {
+          "dev": 16777232,
+          "ino": 171529771,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-11-target": {
+          "dev": 16777232,
+          "ino": 171529772,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: contradictory shared and exclusive scope",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-12-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-12-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-12-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0xf46232892cecf712f3167a07398453fa4ac985bc8e3b7c3fc2cab492801aefe7",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-12-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0xf46232892cecf712f3167a07398453fa4ac985bc8e3b7c3fc2cab492801aefe7>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-12-source": {
+          "dev": 16777232,
+          "ino": 171529773,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-12-target": {
+          "dev": 16777232,
+          "ino": 171529774,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: unknown read element preserves recognized write extension control",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-13-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-13-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-13-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 508,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "508",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x51ed5089f9a94289d15d8a819384e0c7d8139721235674c31f3f55f5a3aee53",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-13-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x51ed5089f9a94289d15d8a819384e0c7d8139721235674c31f3f55f5a3aee53>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-13-source": {
+          "dev": 16777232,
+          "ino": 171529775,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-13-target": {
+          "dev": 16777232,
+          "ino": 171529776,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: contradictory shared before exclusive scope",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-14-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-14-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-14-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x4bf3bec263262bee45fe1121ac3497540bf1187ef6bc08bedf4e1061278d6869",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-14-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x4bf3bec263262bee45fe1121ac3497540bf1187ef6bc08bedf4e1061278d6869>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-14-source": {
+          "dev": 16777232,
+          "ino": 171529779,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-14-target": {
+          "dev": 16777232,
+          "ino": 171529780,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: contradictory scope on MOVE",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-15-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-15-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-15-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x35889560e984ffdda6283b4c5a64bcbefc67efa45efa35a56fcbf30c7168d9c6",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-15-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x35889560e984ffdda6283b4c5a64bcbefc67efa45efa35a56fcbf30c7168d9c6>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-15-source": {
+          "dev": 16777232,
+          "ino": 171529781,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-15-target": {
+          "dev": 16777232,
+          "ino": 171529782,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: duplicate active grants",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-16-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-16-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-16-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0xd9145421a581d72d5524b29109096d9bb2720be8f854f80f025e5375caf3a9a2",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-16-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0xd9145421a581d72d5524b29109096d9bb2720be8f854f80f025e5375caf3a9a2>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-16-source": {
+          "dev": 16777232,
+          "ino": 171529783,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-16-target": {
+          "dev": 16777232,
+          "ino": 171529784,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: wrong explicit root with encoded slash",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-17-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-17-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-17-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x39a83c9c82ed5c23318e36376a200d9b9769c3e45d8ce7b941ecf49c20ec6230",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-17-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x39a83c9c82ed5c23318e36376a200d9b9769c3e45d8ce7b941ecf49c20ec6230>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-17-source": {
+          "dev": 16777232,
+          "ino": 171529785,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-17-target": {
+          "dev": 16777232,
+          "ino": 171529786,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: empty explicit root cannot be legacy absence",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-18-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-18-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-18-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x83262c467d42512c5599ea8689fb20a5ee2738572658f26dfaa1d1fa3d202f6c",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-18-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x83262c467d42512c5599ea8689fb20a5ee2738572658f26dfaa1d1fa3d202f6c>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-18-source": {
+          "dev": 16777232,
+          "ino": 171529787,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-18-target": {
+          "dev": 16777232,
+          "ino": 171529788,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: finite timeout overflow",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-19-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-19-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-19-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0x7d7a08d5c2465c25598c67d804463602ffe8760fbc7624643ae42dd5d6ad50c7",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-19-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0x7d7a08d5c2465c25598c67d804463602ffe8760fbc7624643ae42dd5d6ad50c7>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-19-source": {
+          "dev": 16777232,
+          "ino": 171529789,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-19-target": {
+          "dev": 16777232,
+          "ino": 171529790,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "malformed real LOCK: zero depth",
+      "boundary": "injected-server-grant",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-20-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-20-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-20-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0xf55f2ab36547a3773e7e32d878c9e15d11425744ff02310dfb3fdd5ce9ef6c7d",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-20-target",
+          "method": "UNLOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "lock-token": "<opaquelocktoken:0xf55f2ab36547a3773e7e32d878c9e15d11425744ff02310dfb3fdd5ce9ef6c7d>"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 204,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "0",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-20-source": {
+          "dev": 16777232,
+          "ino": 171529791,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-20-target": {
+          "dev": 16777232,
+          "ino": 171529792,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "raw COPY changed source validator preserves both native entries",
+      "boundary": "server-conditional",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-21-source",
+          "method": "GET",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ="
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "accept-ranges": "bytes",
+            "connection": "close",
+            "content-length": "9",
+            "content-type": "application/octet-stream",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "etag": "\"171529793-1787812797-9\"",
+            "last-modified": "Thu, 27 Aug 2026 06:39:57 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-21-source",
+          "method": "COPY",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "destination": "https://127.0.0.1:50858/dav/ind-21-target",
+            "if-match": "\"171529793-1787812797-9\"",
+            "overwrite": "T"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 442,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 412,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "442",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-21-source": {
+          "dev": 16777232,
+          "ino": 171529793,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65,
+            99,
+            100,
+            101
+          ],
+          "size": 12,
+          "sha256": "47f48dca9d5a5b3633fea4331ea27e7b402514d61c3594cbca25a8005a4c21d4"
+        },
+        "/ind-21-target": {
+          "dev": 16777232,
+          "ino": 171529794,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "raw MOVE changed source validator preserves both native entries",
+      "boundary": "server-conditional",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-22-source",
+          "method": "GET",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ="
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "accept-ranges": "bytes",
+            "connection": "close",
+            "content-length": "9",
+            "content-type": "application/octet-stream",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "etag": "\"171529795-1787812797-9\"",
+            "last-modified": "Thu, 27 Aug 2026 06:39:57 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-22-source",
+          "method": "MOVE",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "destination": "https://127.0.0.1:50858/dav/ind-22-target",
+            "if-match": "\"171529795-1787812797-9\"",
+            "overwrite": "T"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 442,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 412,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "442",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-22-source": {
+          "dev": 16777232,
+          "ino": 171529795,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65,
+            99,
+            100,
+            101
+          ],
+          "size": 12,
+          "sha256": "47f48dca9d5a5b3633fea4331ea27e7b402514d61c3594cbca25a8005a4c21d4"
+        },
+        "/ind-22-target": {
+          "dev": 16777232,
+          "ino": 171529796,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "wrong authentication cannot mutate native target",
+      "boundary": "server-auth",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-23-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTppbnZhbGlk",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 401,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "139",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2",
+            "www-authenticate": "Basic realm=\"/dav\""
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-23-source": {
+          "dev": 16777232,
+          "ino": 171529797,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-23-target": {
+          "dev": 16777232,
+          "ino": 171529798,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "exclusive creation cannot replace native target",
+      "boundary": "public-conditional",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-24-target",
+          "method": "PUT",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "9",
+            "content-type": "application/octet-stream",
+            "if-none-match": "*"
+          },
+          "uploadedBytes": 9,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 412,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "447",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-24-source": {
+          "dev": 16777232,
+          "ino": 171529799,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-24-target": {
+          "dev": 16777232,
+          "ino": 171529800,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "preabort does not contact service or consume upload",
+      "boundary": "public-cancel",
+      "result": "pass",
+      "events": [],
+      "witnesses": {
+        "/ind-25-source": {
+          "dev": 16777232,
+          "ino": 171529801,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-25-target": {
+          "dev": 16777232,
+          "ino": 171529802,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "abort during acquired LOCK body cancels and releases before transfer",
+      "boundary": "public-cancel",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-26-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-26-target",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-26-target",
+          "method": "LOCK",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "116",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "infinity",
+            "if-match": "*",
+            "timeout": "Second-60"
+          },
+          "uploadedBytes": 116,
+          "downloadedBytes": 509,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 200,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "509",
+            "content-type": "application; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "lock-token": "opaquelocktoken:0xff3fca10013a537c07f2b4a3d4c289a3f8d43b5fb73454bca53150440d44348b",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-26-source": {
+          "dev": 16777232,
+          "ino": 171529803,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-26-target": {
+          "dev": 16777232,
+          "ino": 171529804,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "binary range and early close stop actual HTTP body",
+      "boundary": "public-stream",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-27-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 659,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "659",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-27-source",
+          "method": "GET",
+          "requestHeaders": {
+            "accept-encoding": "identity",
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 8192,
+          "pulls": 1,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "accept-ranges": "bytes",
+            "connection": "close",
+            "content-length": "2097152",
+            "content-type": "application/octet-stream",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "etag": "\"171529805-1787812807-2097152\"",
+            "last-modified": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-27-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 659,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "659",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-27-source",
+          "method": "GET",
+          "requestHeaders": {
+            "accept-encoding": "identity",
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 8192,
+          "pulls": 1,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "accept-ranges": "bytes",
+            "connection": "close",
+            "content-length": "2097152",
+            "content-type": "application/octet-stream",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "etag": "\"171529805-1787812807-2097152\"",
+            "last-modified": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-27-source": {
+          "dev": 16777232,
+          "ino": 171529805,
+          "nlink": 1,
+          "size": 2097152,
+          "sha256": "1e075c8d478ad21844e33e830a695ef03a4d2488b69ee275bd8947618bb1be1e"
+        },
+        "/ind-27-target": {
+          "dev": 16777232,
+          "ino": 171529806,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "inflight download abort closes HTTP body without source mutation",
+      "boundary": "public-cancel",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-28-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 659,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "659",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-28-source",
+          "method": "GET",
+          "requestHeaders": {
+            "accept-encoding": "identity",
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 8192,
+          "pulls": 1,
+          "drains": 0,
+          "aborted": true,
+          "cancelled": false,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "accept-ranges": "bytes",
+            "connection": "close",
+            "content-length": "2097152",
+            "content-type": "application/octet-stream",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "etag": "\"171529807-1787812807-2097152\"",
+            "last-modified": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-28-source": {
+          "dev": 16777232,
+          "ino": 171529807,
+          "nlink": 1,
+          "size": 2097152,
+          "sha256": "4d533c422abcd527d389af930151ba7d684381215332693837370531c513d6d2"
+        },
+        "/ind-28-target": {
+          "dev": 16777232,
+          "ino": 171529808,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "response quota rejects instead of returning a prefix",
+      "boundary": "public-quota",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-29-source",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 647,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "647",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-29-source",
+          "method": "GET",
+          "requestHeaders": {
+            "accept-encoding": "identity",
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache"
+          },
+          "uploadedBytes": 0,
+          "downloadedBytes": 0,
+          "pulls": 0,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": true,
+          "ended": false,
+          "status": 200,
+          "responseHeaders": {
+            "accept-ranges": "bytes",
+            "connection": "close",
+            "content-length": "9",
+            "content-type": "application/octet-stream",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "etag": "\"171529809-1787812797-9\"",
+            "last-modified": "Thu, 27 Aug 2026 06:39:57 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-29-source": {
+          "dev": 16777232,
+          "ino": 171529809,
+          "nlink": 1,
+          "bytes": [
+            0,
+            255,
+            128,
+            195,
+            169,
+            13,
+            10,
+            0,
+            65
+          ],
+          "size": 9,
+          "sha256": "bd32e25515157da5f92b8254a4af89cb8251e4e09a856de9ab10d96417643612"
+        },
+        "/ind-29-target": {
+          "dev": 16777232,
+          "ino": 171529810,
+          "nlink": 1,
+          "bytes": [
+            79,
+            76,
+            68
+          ],
+          "size": 3,
+          "sha256": "099d90cbee62f89e6478e153eb3240efcbe4ac2231bedc3e84549bbeaaba87e8"
+        }
+      }
+    },
+    {
+      "name": "first directory timestamp never reports unretained success",
+      "boundary": "public-timestamp-postcondition",
+      "result": "pass",
+      "events": [
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-directory-30",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 630,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "630",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        },
+        {
+          "url": "https://127.0.0.1:50858/dav/ind-directory-30",
+          "method": "PROPFIND",
+          "requestHeaders": {
+            "authorization": "Basic Zml4dHVyZTpmaXh0dXJlLW9ubHktcGFzc3dvcmQ=",
+            "cache-control": "no-cache",
+            "content-length": "233",
+            "content-type": "application/xml; charset=utf-8",
+            "depth": "0"
+          },
+          "uploadedBytes": 233,
+          "downloadedBytes": 630,
+          "pulls": 2,
+          "drains": 0,
+          "aborted": false,
+          "cancelled": false,
+          "ended": true,
+          "status": 207,
+          "responseHeaders": {
+            "connection": "close",
+            "content-length": "630",
+            "content-type": "application/xml; charset=utf-8",
+            "date": "Thu, 27 Aug 2026 06:40:07 GMT",
+            "server": "Cheroot/11.1.2"
+          }
+        }
+      ],
+      "witnesses": {
+        "/ind-directory-30": {
+          "error": "EISDIR"
+        }
+      }
+    }
+  ],
+  "observations": [
+    {
+      "kind": "grant-mutation",
+      "name": "unchanged valid body control",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x76b6a1842e03a23b3bb60305ddae872f1b264366d10c74ce4af2842770e99c15</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-11-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x76b6a1842e03a23b3bb60305ddae872f1b264366d10c74ce4af2842770e99c15</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-11-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x76b6a1842e03a23b3bb60305ddae872f1b264366d10c74ce4af2842770e99c15",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "unchanged valid body control",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-11-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-11-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "contradictory shared and exclusive scope",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xf46232892cecf712f3167a07398453fa4ac985bc8e3b7c3fc2cab492801aefe7</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-12-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /><ns0:shared/></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xf46232892cecf712f3167a07398453fa4ac985bc8e3b7c3fc2cab492801aefe7</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-12-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0xf46232892cecf712f3167a07398453fa4ac985bc8e3b7c3fc2cab492801aefe7",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "contradictory shared and exclusive scope",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-12-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-12-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "unknown read element preserves recognized write extension control",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x51ed5089f9a94289d15d8a819384e0c7d8139721235674c31f3f55f5a3aee53</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-13-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /><ns0:read/></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x51ed5089f9a94289d15d8a819384e0c7d8139721235674c31f3f55f5a3aee53</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-13-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x51ed5089f9a94289d15d8a819384e0c7d8139721235674c31f3f55f5a3aee53",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "unknown read element preserves recognized write extension control",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-13-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-13-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "contradictory shared before exclusive scope",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x4bf3bec263262bee45fe1121ac3497540bf1187ef6bc08bedf4e1061278d6869</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-14-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:shared/><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x4bf3bec263262bee45fe1121ac3497540bf1187ef6bc08bedf4e1061278d6869</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-14-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x4bf3bec263262bee45fe1121ac3497540bf1187ef6bc08bedf4e1061278d6869",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "contradictory shared before exclusive scope",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-14-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-14-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "contradictory scope on MOVE",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x35889560e984ffdda6283b4c5a64bcbefc67efa45efa35a56fcbf30c7168d9c6</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-15-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /><ns0:shared/></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x35889560e984ffdda6283b4c5a64bcbefc67efa45efa35a56fcbf30c7168d9c6</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-15-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x35889560e984ffdda6283b4c5a64bcbefc67efa45efa35a56fcbf30c7168d9c6",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "contradictory scope on MOVE",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-15-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-15-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "duplicate active grants",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xd9145421a581d72d5524b29109096d9bb2720be8f854f80f025e5375caf3a9a2</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-16-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xd9145421a581d72d5524b29109096d9bb2720be8f854f80f025e5375caf3a9a2</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-16-target</ns0:href></ns0:lockroot></ns0:activelock><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xd9145421a581d72d5524b29109096d9bb2720be8f854f80f025e5375caf3a9a2</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-16-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0xd9145421a581d72d5524b29109096d9bb2720be8f854f80f025e5375caf3a9a2",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "duplicate active grants",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-16-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-16-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "wrong explicit root with encoded slash",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x39a83c9c82ed5c23318e36376a200d9b9769c3e45d8ce7b941ecf49c20ec6230</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-17-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x39a83c9c82ed5c23318e36376a200d9b9769c3e45d8ce7b941ecf49c20ec6230</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-17-target</ns0:href></ns0:lockroot><ns0:lockroot><ns0:href>https://127.0.0.1:50858/dav/ind-17-target%2fother</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x39a83c9c82ed5c23318e36376a200d9b9769c3e45d8ce7b941ecf49c20ec6230",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "wrong explicit root with encoded slash",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-17-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-17-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "empty explicit root cannot be legacy absence",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x83262c467d42512c5599ea8689fb20a5ee2738572658f26dfaa1d1fa3d202f6c</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-18-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x83262c467d42512c5599ea8689fb20a5ee2738572658f26dfaa1d1fa3d202f6c</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-18-target</ns0:href></ns0:lockroot><ns0:lockroot></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x83262c467d42512c5599ea8689fb20a5ee2738572658f26dfaa1d1fa3d202f6c",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "empty explicit root cannot be legacy absence",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-18-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-18-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "finite timeout overflow",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x7d7a08d5c2465c25598c67d804463602ffe8760fbc7624643ae42dd5d6ad50c7</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-19-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-4294967296</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0x7d7a08d5c2465c25598c67d804463602ffe8760fbc7624643ae42dd5d6ad50c7</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-19-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0x7d7a08d5c2465c25598c67d804463602ffe8760fbc7624643ae42dd5d6ad50c7",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "finite timeout overflow",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-19-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-19-target",
+      "status": 204
+    },
+    {
+      "kind": "grant-mutation",
+      "name": "zero depth",
+      "original": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>infinity</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xf55f2ab36547a3773e7e32d878c9e15d11425744ff02310dfb3fdd5ce9ef6c7d</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-20-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "modified": "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n<ns0:prop xmlns:ns0=\"DAV:\"><ns0:lockdiscovery><ns0:activelock><ns0:locktype><ns0:write /></ns0:locktype><ns0:lockscope><ns0:exclusive /></ns0:lockscope><ns0:depth>0</ns0:depth><ns0:timeout>Second-59</ns0:timeout><ns0:locktoken><ns0:href>opaquelocktoken:0xf55f2ab36547a3773e7e32d878c9e15d11425744ff02310dfb3fdd5ce9ef6c7d</ns0:href></ns0:locktoken><ns0:lockroot><ns0:href>/dav/ind-20-target</ns0:href></ns0:lockroot></ns0:activelock></ns0:lockdiscovery></ns0:prop>",
+      "token": "opaquelocktoken:0xf55f2ab36547a3773e7e32d878c9e15d11425744ff02310dfb3fdd5ce9ef6c7d",
+      "tokenCodedValid": false,
+      "status": 200
+    },
+    {
+      "kind": "grant-result",
+      "name": "zero depth",
+      "error": {
+        "name": "FsError",
+        "message": "EIO: WebDAV transport or response failure, LOCK '/ind-20-target'",
+        "code": "EIO"
+      }
+    },
+    {
+      "kind": "test-cleanup-only",
+      "target": "/ind-20-target",
+      "status": 204
+    },
+    {
+      "kind": "changed-source",
+      "method": "COPY",
+      "validator": "\"171529793-1787812797-9\"",
+      "status": 412,
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 01:40:07.375551\n</body></html>"
+    },
+    {
+      "kind": "changed-source",
+      "method": "MOVE",
+      "validator": "\"171529795-1787812797-9\"",
+      "status": 412,
+      "body": "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01//EN' 'http://www.w3.org/TR/html4/strict.dtd'>\n<html><head>\n  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>\n  <title>412 Precondition Failed</title>\n</head><body>\n  <h1>412 Precondition Failed</h1>\n  <p>412 Precondition Failed: If-Match header condition failed</p>\n<hr/>\n<a href='https://github.com/mar10/wsgidav/'>WsgiDAV/4.3.5</a> - 2026-08-27 01:40:07.381895\n</body></html>"
+    },
+    {
+      "kind": "timestamp",
+      "requested": 1700000000123,
+      "observed": {
+        "type": "directory",
+        "size": 0,
+        "mode": 16895,
+        "mtimeMs": 1787812797000,
+        "atimeMs": 0,
+        "ctimeMs": 0,
+        "birthtimeMs": 1787812807000
+      },
+      "error": "ENOTSUP"
+    }
+  ],
+  "imports": {
+    "root": "file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/index.js",
+    "webdav": "file:///private/tmp/safe-bash-webdav-review-9z2en0/fixtures/.work-mKhkuL/consumer/node_modules/virtual-bash/dist/fs/webdav/index.js"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "action": "AWAITING_FRESH_ROOT_RELEASE",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "public74": true,
+  "public75": true,
+  "public76": true,
+  "independentDriverAccepted": true,
+  "authorization": "",
+  "independentEvidence": "97c081ec7c7f180889d3640c29d1cd5fd1b10752:tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/HANDOFF.md",
+  "qualification": "Deliberately invalid release template. Root must explicitly authorize this exact packet after its acceptance; prior GO is not inherited."
+}

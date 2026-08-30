@@ -1,0 +1,28 @@
+{
+  "verdict": "HOLD_BARE_NODE_TYPE_REFERENCE_CLASSIFICATION",
+  "finalCommit": "937f1d9317256c18066d9f74c0ae0bb21842bfaa",
+  "freezeCommit": "ab46a006a0f324a42c563542e4545ce80de49731",
+  "archiveBytes": 974493,
+  "archiveSha256": "de8741c1be9c870650e92944020fa2785114b7046ef1774af2c27ea79238e17a",
+  "completed": {
+    "patternControls": "3/3",
+    "sameBufferHashBeforeInflate": true,
+    "shippingMembers": 1070,
+    "emits": 1068,
+    "frozenSourceInputs": 323,
+    "publicExportPatternResolution": true,
+    "privateAssets": 48,
+    "privateAssetsNotPubliclyExported": true
+  },
+  "stop": "The edge validator accepts only node:-prefixed nonrelative targets. It stopped at dist/commands/internal.d.ts import(\"util\"). Source/DATA inspection also identifies a second util type reference and dist/contracts/path.d.ts import(\"path\"). No product defect established.",
+  "authorMetadataQualification": "CLOSURE.json labels these three builtin:false and does not place them in unresolved. Declaration-only bare Node type references need separate precise classification, not an arbitrary bare-module allowance.",
+  "notCompleted": [
+    "all1259-edge loop completion and WorkerURL total",
+    "source-map verification loop",
+    "final comprehensive postguards"
+  ],
+  "helperExit": 1,
+  "runtimeOrWorkers": 0,
+  "rerun": false,
+  "prior52891ffeAndSixControls": "preserved; not rescored"
+}

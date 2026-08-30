@@ -1,0 +1,1 @@
+Node-author-only fresh validation-v1 output namespace; no historical run reuse.

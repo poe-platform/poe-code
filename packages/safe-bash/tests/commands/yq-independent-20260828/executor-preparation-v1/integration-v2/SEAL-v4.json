@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "kind": "YQ_COMPOUND_INTEGRATION_V2_PRESEAL",
+  "date": "2026-08-28",
+  "sourceCommitBinding": "Exact source commit is routed independently in handoff; no self-referential commit",
+  "state": "PRESEALED_SYNTHETIC_ONLY_NO_GO",
+  "coreTreeSha256": "2804eef75ba4dd094deed68b240b92497145f5ae8af68b53e9a06fcad9986f8e",
+  "entries": [
+    {
+      "path": ".",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "COMPONENTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8649,
+      "sha256": "b5ede57be63a39918d2037dd12284df1596e2e14fea9ad6aceb776c4c6ed8e36"
+    },
+    {
+      "path": "DATA-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 888,
+      "sha256": "c1acb570c332425e1da1945a78b5d1c15545922e92a1a1bb5ca9e88234d3834b"
+    },
+    {
+      "path": "RECIPE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 48754,
+      "sha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158"
+    },
+    {
+      "path": "SYNTHETIC.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 949,
+      "sha256": "55195098d059ce21b7bc60872ad757b4a61df6913f9181d7be13bc6747f876a6"
+    },
+    {
+      "path": "binding.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8443,
+      "sha256": "e9850cafbb4d2cca31cca098408f5ce65ad7cac1d1d700d85855032f9fbef542"
+    },
+    {
+      "path": "check.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12620,
+      "sha256": "254bbcbf2a060f3455d56bdaf0585910df771f36d49e047ca8b464a354b670ed"
+    },
+    {
+      "path": "components.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5103,
+      "sha256": "b2da6eac27533d2bb223b10385a2b2c8bb74e2d4cd502828006b59c0255dd25f"
+    },
+    {
+      "path": "data-check.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12086,
+      "sha256": "179133edf6558e195f9d736d5d325ad7d64fa7409e481c1e9db0349669cc660f"
+    },
+    {
+      "path": "materialize-runtime.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1095,
+      "sha256": "b0e665f5f6d455e33dcfbba99c9feba06773f46264e30514a9f6726e0205a25c"
+    },
+    {
+      "path": "prepare-runtime.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3456,
+      "sha256": "52848cddbc3a34f7724c87a63bff075455aeb95d76de215fa87b5cf4e55b6671"
+    },
+    {
+      "path": "run.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9665,
+      "sha256": "46f5a026659e99bd3c54c3d9bcc189622d141adba035fb0b79e9ed9e72ec5346"
+    },
+    {
+      "path": "translation.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6681,
+      "sha256": "61188fffbd45445e4ad199f80e531637a0b16d50e97a1e5e0703bad10981b8f6"
+    },
+    {
+      "path": "worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4556,
+      "sha256": "a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1"
+    }
+  ],
+  "documentation": [
+    {
+      "path": "PROTOCOL.md",
+      "sha256": "f68b949239704b945a4703c4f8d0b950912f38e3584104395455887d022e9975"
+    },
+    {
+      "path": "README.md",
+      "sha256": "29acf8aa201d6c2b8d9e7e965270fee6da58705df57b7f1a884f0bace8d1afc8"
+    },
+    {
+      "path": "V1-INPUTS.json",
+      "sha256": "714c59023c5ad1939d2afbd1180acea4f25d84a153f87eeb54dadef4c3598496"
+    }
+  ],
+  "recipeSha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158",
+  "runtimeRecipeSealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "consumerRecipeSealSha256": "69dfaf2aa833590312d80515a62d1dcc544952e55f9844aea73a3a8c2d90330b",
+  "candidateExecutionAuthorized": false,
+  "productImports": 0,
+  "independentAcceptance": false,
+  "previousPreseal": {
+    "commit": "a3ab157b65421ddc0e4abf64348b5c8ebe1a46dc",
+    "path": "SEAL-v3.json",
+    "sha256": "fa3399ea20b407de7c16f5c1137d945d9b214df5d5abf3cd636cebc59690d7ce",
+    "reason": "Use declared regular runtime source bindings, not ignored scratch as a committed source tree"
+  }
+}

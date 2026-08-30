@@ -1,0 +1,43 @@
+M	src/shell/runtime.ts
+A	tests/shell/pipestatus-author-20260829/local-a-v1/BASE.stderr
+A	tests/shell/pipestatus-author-20260829/local-a-v1/PREPARATION.stderr
+A	tests/shell/pipestatus-author-20260829/local-a-v1/PREPARATION.stdout
+A	tests/shell/pipestatus-author-20260829/local-a-v1/PRESEAL.md
+A	tests/shell/pipestatus-author-20260829/local-a-v1/SEAL.json
+A	tests/shell/pipestatus-author-20260829/local-a-v1/cases.json
+A	tests/shell/pipestatus-author-20260829/local-a-v1/prepare.mjs
+A	tests/shell/pipestatus-author-20260829/local-a-v1/pure.mjs
+A	tests/shell/pipestatus-author-20260829/local-a-v1/runtime-base.data
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json:4754:      "path": "src/shell/locale.ts",
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json:4860:      "path": "tsconfig.build.json",
+tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json:4875:      "path": "tsconfig.json",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:2694:      "path": "src/shell/locale.ts",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:2748:      "path": "tsconfig.build.json",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:2757:      "path": "tsconfig.json",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7011:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7014:          "target": "node_modules/@npmcli/arborist/bin/index.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7020:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7023:          "target": "node_modules/cssesc/bin/cssesc",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7029:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7032:          "target": "node_modules/glob/dist/esm/bin.mjs",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7038:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7041:          "target": "node_modules/@npmcli/installed-package-contents/bin/index.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7047:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7050:          "target": "node_modules/node-gyp/bin/node-gyp.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7056:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7059:          "target": "node_modules/which/bin/which.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7065:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7068:          "target": "node_modules/nopt/bin/nopt.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7074:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7077:          "target": "node_modules/pacote/bin/index.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7083:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7086:          "target": "node_modules/qrcode-terminal/bin/qrcode-terminal.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7092:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7095:          "target": "node_modules/semver/bin/semver.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7303:          "path": "node_modules/@isaacs/string-locale-compare/LICENSE",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7310:          "path": "node_modules/@isaacs/string-locale-compare/index.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:7317:          "path": "node_modules/@isaacs/string-locale-compare/package.json",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:8200:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:8203:          "target": "node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:10372:          "kind": "link",
+tests/compatibility/bash-ere-core-transport-rebind-20260829/COMPOSITION.json:10375:          "target": "node_modules/cross-spawn/node_modules/which/bin/node-which",

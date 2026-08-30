@@ -1,0 +1,28 @@
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createGitCommand, createGitCommands, gitCommands, type AgentCommandsOptions, type GitCommandsOptions } from "virtual-bash";
+import { createGitCommand as subpath, type GitCommandsOptions as LeafOptions } from "virtual-bash/commands/git";
+const direct: GitCommandsOptions = { replace: true, discoveryBoundary: "/repo" };
+const leaf: LeafOptions = direct;
+const aggregate: AgentCommandsOptions = { git: { discoveryBoundary: "/repo" }, replace: true };
+new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(aggregate));
+createAgentCommands(aggregate); createGitCommand(direct); createGitCommands(leaf); gitCommands(direct); subpath(leaf);
+// removed directive aggregate replacement belongs to the top-level policy
+agentCommands({ git: { replace: true } });
+// removed directive there are no numeric Git limit overrides
+gitCommands({ limits: { maxReadBytes: 1 } });
+// removed directive discovery is a VFS pathname
+createGitCommand({ discoveryBoundary: 3 });
+// removed directive native process fallback is absent
+createGitCommands({ spawn: true });
+// removed directive aggregate limits cannot be added
+createAgentCommands({ git: { maxPackBytes: 100 } });
+// removed directive full host Git is not an injected command option
+gitCommands({ executable: "/usr/bin/git" });
+
+import { parseShell as parseConditionalSource } from "virtual-bash";
+const conditionalNode = parseConditionalSource("[[ x ]]").lists[0]!.pipelines[0]!.commands[0]!;
+if (conditionalNode.kind === "conditional") { const expression = conditionalNode.expression; void expression;
+// removed directive
+const invalid: string = conditionalNode.expression;
+// removed directive
+conditionalNode.notAProperty;
+}

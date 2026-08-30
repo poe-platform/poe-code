@@ -1,0 +1,479 @@
+{
+  "kind": "READONLY_V4_PROVENANCE_NOT_NEW_ARCHIVE_AUTHENTICATION",
+  "capturedAt": "2026-08-28T11:47:32.758Z",
+  "head": "37f55dcf1310b54563e7180ca0767f1e37dd92db",
+  "recipe": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "failure": "d40af0d52381a138f2dabb415d343526ad015722",
+  "priorReview": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+  "priorPreseal": "b1b1d5d16f4f24e486f3170caed0db6132b5cbd6",
+  "target": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "baseline": [
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/worker.mjs",
+      "bytes": 8549,
+      "sha256": "b736984578823a0e471f68774343988ba95ce2d1cc15cbc6a92c88f66f976fde",
+      "gitEntry": "100644 blob e196302ce0e4e776cccdeaf3a60b16236470bd33\ttests/comparison/breadth-continuation-20260828/executor-v4/worker.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs",
+      "bytes": 11997,
+      "sha256": "491c8bf14b81b2e6318075a2a8618ff7e67858328376decb3b7a6dd06af94e94",
+      "gitEntry": "100644 blob ea87c6c644d1fa709a8222f18c0e27a8abc9ab84\ttests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/supervisor.mjs",
+      "bytes": 4012,
+      "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069",
+      "gitEntry": "100644 blob 1e0f03176f90405c89b9af3cdc9966826a8ffc53\ttests/comparison/breadth-continuation-20260828/executor-v4/supervisor.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2",
+      "gitEntry": "100644 blob 34e0da051e8c80428f9f2f0eaff2ba6fae7f2b1e\ttests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/authorization.mjs",
+      "bytes": 3389,
+      "sha256": "ab3886a11b687df1396fccde02581a685d6193c780aef0cbde82134c4bea685d",
+      "gitEntry": "100644 blob dd12bfbc9c5957fae38958c353376d4c19fee756\ttests/comparison/breadth-continuation-20260828/executor-v4/authorization.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741",
+      "gitEntry": "100644 blob 21f12140e846197e01484349762f64a71a13bfd5\ttests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/SEAL.json",
+      "bytes": 41744,
+      "sha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+      "gitEntry": "100644 blob 82e09ea87093f52729e903fe36b5b9a15c6f8219\ttests/comparison/breadth-continuation-20260828/executor-v4/SEAL.json"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs",
+      "bytes": 2755,
+      "sha256": "23a22e044fec40f8408a1af33adfab3e3d2817fb053c132b816591f4da4af3db",
+      "gitEntry": "100644 blob 9706c9f7489f9bc1d3def10bfd2c9984e86ce054\ttests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "gitEntry": "100644 blob ccae6e7bbb6a3880ebda9e6ae48538304b3ea959\ttests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "gitEntry": "100644 blob 539d756f7378259cfc8dda9bc42ffa7a835c19f0\ttests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json",
+      "bytes": 812576,
+      "sha256": "f4061034b88d36ff4fbed942a11447a6f690320c0cf13630c5910322a2e9bbcb",
+      "gitEntry": "100644 blob ed4070c87d87b6a4fba1c3710022d1c9dbc460c4\ttests/comparison/breadth-continuation-20260828/executor-v3/PROJECTION.json"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs",
+      "bytes": 5460,
+      "sha256": "f7f526ae092091164f166bd233e7fccafb2b561820a020ac6884b05f045d95b2",
+      "gitEntry": "100644 blob 85525d1b0494e24c9716681a724d7b7d22adf7a0\ttests/comparison/breadth-continuation-20260828/executor-preparation-v1/core.mjs"
+    },
+    {
+      "commit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+      "path": "package.json",
+      "bytes": 4979,
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "gitEntry": "100644 blob c4a95d039e69a7c437b559f28a8e14204c0ecda3\tpackage.json"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/RESULT.json",
+      "bytes": 36970,
+      "sha256": "4847ea6e321a5c6bdfb4140ca8359cdc0102bbe64c5e7a38988ed9c884ef62c4",
+      "gitEntry": "100644 blob b2c1b26ededf1d1236232395ff13f4ddf9735afa\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/RESULT.json"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.receipt.json",
+      "bytes": 4657,
+      "sha256": "feda0ba4cf43c906875f08931530d9ab8a2a7e8ebd98cfa5fb20e320bc802aa2",
+      "gitEntry": "100644 blob f8608075e36ec35bf1c76fa7eed1b9575f259139\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.receipt.json"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/AUTHORIZATION.json",
+      "bytes": 844,
+      "sha256": "27325f1b0cc231d4a837e443c470efb1e4dc8266eefb2f53d580fc9c80f93535",
+      "gitEntry": "100644 blob 4131983fe467beef77178477bfda340d03926491\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/AUTHORIZATION.json"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/HANDOFF.md",
+      "bytes": 5199,
+      "sha256": "6c5e6f04a642c3b53550466cd3e52e3656147448fc5f13c750e6fb4b1c8ae6d9",
+      "gitEntry": "100644 blob b7f15e96b6d15fd9228840a7ec2d1aa928f416b4\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/HANDOFF.md"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/POST-AUDIT.json",
+      "bytes": 5592,
+      "sha256": "d05fe0d64bd438e89e3b9fc407c30a6f1febcf9c2b8de5ad3cacc26c78b98807",
+      "gitEntry": "100644 blob 453ace6c6dc518969e5c0c5f438dd06f769ab983\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/POST-AUDIT.json"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/LAUNCH-RECEIPT.json",
+      "bytes": 1171,
+      "sha256": "2908aaa1173f3c4a28265d924151197fe0dd48979a20437f0339b300f13c3a8c",
+      "gitEntry": "100644 blob eb5254cc0f88e43d5062cb68b8356a8e7c15c3df\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/LAUNCH-RECEIPT.json"
+    },
+    {
+      "commit": "d40af0d52381a138f2dabb415d343526ad015722",
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/EVIDENCE-MANIFEST.json",
+      "bytes": 5514,
+      "sha256": "118257bb65d159920e25f463805872e7a20932cfe36104ec06d230d24b7d8d1e",
+      "gitEntry": "100644 blob 0b30b050c7a25b10024d1fe69cb05b8c1bd14524\ttests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/EVIDENCE-MANIFEST.json"
+    },
+    {
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/README.md",
+      "bytes": 11578,
+      "sha256": "c7466c0375eff5085376c4f64a175fb57c4cbf9fd5ac38a9f14e0bfe6da2bad3",
+      "gitEntry": "100644 blob 938e02d1e7dfc3312542612ee407316f8a39f05e\ttests/comparison/breadth-continuation-independent-20260828/executor-v4-review/README.md"
+    },
+    {
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/ADMISSION-INTERFACE.json",
+      "bytes": 5766,
+      "sha256": "51256f8574d0df670e8c5ee846595efa21858ef69a2366754654f3e27d4d1978",
+      "gitEntry": "100644 blob eb94c6aee1109f1b536dbaf0ec767058bfa1e3eb\ttests/comparison/breadth-continuation-independent-20260828/executor-v4-review/ADMISSION-INTERFACE.json"
+    }
+  ],
+  "observedFailure": {
+    "status": "UNSAFE_STOP",
+    "setupCalls": 0,
+    "productCohortCalls": 0,
+    "launchAccounting": {
+      "enrolled": 1,
+      "attempted": 1,
+      "launched": 1,
+      "closed": 1,
+      "unknownAcquisitions": 0,
+      "allChildrenReaped": true,
+      "unsafe": false
+    },
+    "plannedOperations": [
+      {
+        "id": "probe-1",
+        "launch": 1
+      },
+      {
+        "id": "probe-2",
+        "launch": null
+      },
+      {
+        "id": "probe-3",
+        "launch": null
+      },
+      {
+        "id": "C03-esm",
+        "launch": null
+      },
+      {
+        "id": "C03-cjs",
+        "launch": null
+      },
+      {
+        "id": "C03-require",
+        "launch": null
+      },
+      {
+        "id": "C03-wrong-hash",
+        "launch": null
+      },
+      {
+        "id": "C04-unbound",
+        "launch": null
+      },
+      {
+        "id": "C04-offline",
+        "launch": null
+      },
+      {
+        "id": "C09-status",
+        "launch": null
+      },
+      {
+        "id": "C09-deadline",
+        "launch": null
+      },
+      {
+        "id": "C11-positive",
+        "launch": null
+      },
+      {
+        "id": "C11-rejected",
+        "launch": null
+      },
+      {
+        "id": "C12-loaded-noop",
+        "launch": null
+      }
+    ],
+    "probe": {
+      "pid": 4869,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true,
+      "natural": false,
+      "failures": [],
+      "signals": [],
+      "captureBytes": {
+        "stdout": 0,
+        "stderr": 0,
+        "records": 1892
+      },
+      "records": [
+        {
+          "sequence": 0,
+          "kind": "asset-read",
+          "path": "consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c"
+        },
+        {
+          "sequence": 1,
+          "kind": "nextLoad",
+          "path": "consumer.mjs",
+          "format": "module",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "evaluationProven": false,
+          "origin": "actual-nextLoad-source"
+        },
+        {
+          "sequence": 2,
+          "kind": "load-denied",
+          "code": "UNBOUND_MODULE",
+          "specifier": "virtual-bash"
+        },
+        {
+          "sequence": 3,
+          "kind": "final",
+          "report": null,
+          "fatal": {
+            "name": "Error",
+            "code": "UNBOUND_MODULE",
+            "message": "UNBOUND_MODULE: {\"specifier\":\"virtual-bash\",\"parent\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed/consumer.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/dist/index.js\"}",
+            "stack": "Error: UNBOUND_MODULE: {\"specifier\":\"virtual-bash\",\"parent\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed/consumer.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/dist/index.js\"}\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:11:39)\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs:31:9)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:182:49)",
+            "original": null
+          },
+          "late": []
+        }
+      ]
+    },
+    "postAudit": {
+      "views": [
+        {
+          "name": "target-installed",
+          "census": {
+            "files": 859,
+            "omittedMetadataOnly": 0,
+            "entries": 904,
+            "complete": true
+          },
+          "oldOriginAbsent": null,
+          "contentsSha256": "93a3c1168dffbc47d59a15626feb36f3f083f79002a37fdf2501a3fb1a10b2d1",
+          "runtimeQualified": false
+        },
+        {
+          "name": "target-moved",
+          "census": {
+            "files": 859,
+            "omittedMetadataOnly": 0,
+            "entries": 904,
+            "complete": true
+          },
+          "oldOriginAbsent": true,
+          "contentsSha256": "93a3c1168dffbc47d59a15626feb36f3f083f79002a37fdf2501a3fb1a10b2d1",
+          "runtimeQualified": false
+        },
+        {
+          "name": "baseline-installed",
+          "census": {
+            "files": 3844,
+            "omittedMetadataOnly": 0,
+            "entries": 4275,
+            "complete": true
+          },
+          "oldOriginAbsent": null,
+          "contentsSha256": "0f7133d243c06bee333d7d59135da595442b52dba60cfbe3be92ad0611f869db",
+          "runtimeQualified": false
+        }
+      ],
+      "baseline": {
+        "files": 3843,
+        "omittedMetadataOnly": 1,
+        "entries": 4275,
+        "complete": true
+      },
+      "processes": [
+        {
+          "pid": 4809,
+          "pidAbsent": true,
+          "groupAbsent": true
+        },
+        {
+          "pid": 4869,
+          "pidAbsent": true,
+          "groupAbsent": true
+        }
+      ],
+      "loads": {
+        "attemptedBareProductImport": 1,
+        "returnedSourceWitnesses": [
+          {
+            "sequence": 1,
+            "kind": "nextLoad",
+            "path": "consumer.mjs",
+            "format": "module",
+            "bytes": 61,
+            "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          }
+        ],
+        "denied": [
+          {
+            "sequence": 2,
+            "kind": "load-denied",
+            "code": "UNBOUND_MODULE",
+            "specifier": "virtual-bash"
+          }
+        ],
+        "productModuleSourceWitnesses": 0,
+        "comparatorModuleSourceWitnesses": 0,
+        "exportEvaluation": false
+      },
+      "resolutionDiagnosis": {
+        "observation": {
+          "name": "Error",
+          "code": "UNBOUND_MODULE",
+          "message": "UNBOUND_MODULE: {\"specifier\":\"virtual-bash\",\"parent\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed/consumer.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/dist/index.js\"}",
+          "stack": "Error: UNBOUND_MODULE: {\"specifier\":\"virtual-bash\",\"parent\":\"file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed/consumer.mjs\",\"url\":\"file:///Users/kjopek/Workspace/safe-bash/dist/index.js\"}\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:11:39)\n    at resolve (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/loader.mjs:31:9)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at resolveWithHooks (node:internal/modules/customization_hooks:395:10)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:787:14)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:703:19)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:182:49)",
+          "original": null
+        },
+        "classification": "Harness consumer package-scope/self-reference contamination; loader denied ambient source before load",
+        "rootPackageMetadata": {
+          "path": "/Users/kjopek/Workspace/safe-bash/package.json",
+          "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+          "name": "virtual-bash",
+          "exportsRoot": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+          }
+        },
+        "targetConsumerPackageBoundaryMissing": true,
+        "staticInference": "Consumer beneath the repository has no own package.json boundary; the containing virtual-bash package self-reference wins before its staged node_modules package. Observed URL is repository dist/index.js.",
+        "recommendation": "Root route minimal versioned projection repair adding exact hash-bound non-virtual-bash consumer package scope(s), with bare-export/moved/no-fallback negatives and different freeze before any fresh grant. Do not alias imports or weaken loader allowlist.",
+        "notProductFailure": true
+      }
+    }
+  },
+  "originalArtifacts": {
+    "config": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.json",
+      "sha256": "82e6b7f440db7f2687851bb13519d2a6013d94d7bf9b1d29ab8761dbb6b4ad20",
+      "committedSha256": "82e6b7f440db7f2687851bb13519d2a6013d94d7bf9b1d29ab8761dbb6b4ad20",
+      "view": {
+        "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/target-installed",
+        "consumerPath": "consumer.mjs",
+        "rootPackageIncluded": false
+      }
+    },
+    "stage": {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/STAGED.json",
+      "sha256": "14737f05c24f0908e456e1bca8759ef62e8acaa66007a07176cccdec7cb78f13",
+      "committedSha256": "14737f05c24f0908e456e1bca8759ef62e8acaa66007a07176cccdec7cb78f13"
+    }
+  },
+  "rootMetadata": {
+    "path": "package.json",
+    "bytes": 4979,
+    "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+    "name": "virtual-bash",
+    "rootExports": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "projectionMetadata": {
+    "targetPack": {
+      "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "bytes": 749907,
+      "mode": 420,
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+    },
+    "targetFiles": 858,
+    "targetPackage": {
+      "path": "package.json",
+      "mode": 420,
+      "bytes": 4979,
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    },
+    "comparatorVersion": "3.4.2",
+    "closureRegularFiles": 3843,
+    "instructionMetadataOnly": [
+      {
+        "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+        "bytes": 9231,
+        "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+        "mode": 292
+      }
+    ],
+    "scopeFiles": [
+      {
+        "path": "benchmarks/node_modules/just-bash/package.json",
+        "bytes": 7757,
+        "sha256": "b49c28900fe0640b12b9f9e9bb45feebbfa1e94b1a03b0ba7e076a0cb548f3fd",
+        "mode": 292
+      },
+      {
+        "path": "benchmarks/package.json",
+        "bytes": 266,
+        "sha256": "acd6d0930859b5fb4bd6d4d34a066bbde720d8629e10778989214a7bf61a6dc4",
+        "mode": 292
+      },
+      {
+        "path": "package.json",
+        "bytes": 2327,
+        "sha256": "b183a9d2d451b5888b951a4e84656f6c18a94f09e7bd97e0a6af89ac48657e9b",
+        "mode": 292
+      }
+    ]
+  },
+  "archiveBytesRead": false,
+  "archiveInstructionPlaintextRead": false,
+  "successorContentsRead": false
+}

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>snapshot/guard</Key><BucketName>safe-bash-interop</BucketName><Resource>/safe-bash-interop/snapshot/guard</Resource><RequestId>18CF989FE5F3FA10</RequestId><HostId>1ebc4b3f08743f5ca14137ca559c8660a1de1bb26adcfc2d0ad8f62d9c5968e2</HostId></Error>

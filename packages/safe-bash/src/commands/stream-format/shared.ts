@@ -1,0 +1,201 @@
+import { FsError, readBytes, resolvePath, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { diagnostic } from "../internal.js";
+
+export interface StreamFormatLimits {
+  readonly maxInputBytes: number;
+  readonly maxOutputBytes: number;
+  readonly maxRecordBytes: number;
+  readonly maxChunkBytes: number;
+  readonly maxFiles: number;
+  readonly maxSteps: number;
+  readonly maxArgumentBytes: number;
+  readonly maxNumericDigits: number;
+}
+
+export interface StreamFormatCommandsOptions {
+  readonly replace?: boolean;
+  readonly limits?: Partial<StreamFormatLimits>;
+}
+
+export function settings(options: StreamFormatCommandsOptions): StreamFormatLimits {
+  const limits = {
+    maxInputBytes: 32 * 1024 * 1024, maxOutputBytes: 64 * 1024 * 1024,
+    maxRecordBytes: 8 * 1024 * 1024, maxChunkBytes: 1024 * 1024,
+    maxFiles: 64, maxSteps: 256 * 1024 * 1024, maxArgumentBytes: 65536,
+    maxNumericDigits: 4096, ...options.limits,
+  };
+  for (const [name, value] of Object.entries(limits)) {
+    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid stream-format limit: ${name}`);
+  }
+  return limits;
+}
+
+class InputFailure extends Error {
+  constructor(readonly original: unknown) { super("input failed"); }
+}
+
+export class Session {
+  private inputBytes = 0;
+  private outputBytes = 0;
+  private steps = 0;
+  private untilYield = 4096;
+  private stdin: AsyncIterator<Uint8Array> | undefined;
+  private readonly controller = new AbortController();
+  readonly signal: AbortSignal;
+  failed = false;
+
+  constructor(readonly context: CommandContext, readonly limits: StreamFormatLimits) {
+    this.signal = AbortSignal.any([context.signal, this.controller.signal]);
+    this.check(context.args.reduce((size, argument) => size + Buffer.byteLength(argument), 0), limits.maxArgumentBytes, "argument");
+  }
+
+  check(size: number, maximum: number, label: string): void {
+    if (!Number.isSafeInteger(size) || size > maximum) throw new FsError("EFBIG", { message: `stream-format ${label} limit exceeded` });
+  }
+
+  charge(count = 1): void {
+    this.signal.throwIfAborted();
+    this.steps += count;
+    this.check(this.steps, this.limits.maxSteps, "step");
+    this.untilYield -= count;
+  }
+
+  async step(count = 1): Promise<void> {
+    this.charge(count);
+    if (this.untilYield <= 0) {
+      this.untilYield = 4096;
+      await new Promise<void>(resolve => setImmediate(resolve));
+      this.signal.throwIfAborted();
+    }
+  }
+
+  async output(bytes: Uint8Array): Promise<void> {
+    this.check(this.outputBytes + bytes.length, this.limits.maxOutputBytes, "output");
+    this.outputBytes += bytes.length;
+    const width = Math.min(16384, this.limits.maxChunkBytes);
+    for (let offset = 0; offset < bytes.length; offset += width) {
+      await this.step();
+      await writeBytes(this.context.stdout, new Uint8Array(bytes.subarray(offset, offset + width)), this.signal);
+    }
+  }
+
+  async text(text: string): Promise<void> { await this.output(Buffer.from(text)); }
+
+  names(operands: readonly string[]): readonly string[] {
+    const names = operands.length ? operands : ["-"];
+    this.check(names.length, this.limits.maxFiles, "file");
+    return names;
+  }
+
+  private async *read(name: string): ByteSource {
+    const controller = new AbortController();
+    const signal = AbortSignal.any([this.signal, controller.signal]);
+    let reader: AsyncGenerator<Uint8Array> | undefined;
+    try {
+      const session = this;
+      const source = (async function* (): ByteSource {
+        if (name === "-") {
+          session.stdin ??= session.context.stdin[Symbol.asyncIterator]();
+          const cursor = session.stdin;
+          yield* { [Symbol.asyncIterator]() { return { next: () => cursor.next() }; } };
+        } else {
+          if (!name) throw new FsError("ENOENT", { path: name });
+          const path = resolvePath(session.context.cwd, name);
+          const stat = await session.context.fs.stat(path, { signal });
+          signal.throwIfAborted();
+          if (stat.type === "directory") throw new FsError("EISDIR", { path });
+          if (session.context.fs.readStream) yield* session.context.fs.readStream(path, { signal });
+          else yield await session.context.fs.readFile(path, { signal, maxBytes: Math.min(session.limits.maxChunkBytes, session.limits.maxInputBytes - session.inputBytes) });
+        }
+      })();
+      reader = readBytes(source, signal);
+      while (true) {
+        await this.step();
+        let item: IteratorResult<Uint8Array>;
+        try { item = await reader.next(); }
+        catch (error) { this.signal.throwIfAborted(); throw new InputFailure(error); }
+        if (item.done) break;
+        this.check(item.value.length, this.limits.maxChunkBytes, "chunk");
+        this.inputBytes += item.value.length;
+        this.check(this.inputBytes, this.limits.maxInputBytes, "input");
+        yield item.value;
+      }
+    } finally {
+      controller.abort(new FsError("EPIPE", { message: "stream-format input transfer ended" }));
+      if (reader) await reader.return(undefined).catch(() => {});
+    }
+  }
+
+  async files(names: readonly string[], process: (source: ByteSource, name: string) => Promise<void>): Promise<void> {
+    for (const name of names) {
+      try { await process(this.read(name), name); }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof InputFailure)) throw error;
+        await diagnostic(this.context, error.original);
+        this.failed = true;
+      }
+    }
+  }
+
+  async close(): Promise<void> {
+    this.controller.abort(new FsError("EPIPE", { message: "stream-format command ended" }));
+    if (this.stdin?.return) {
+      const cleanup = Promise.resolve().then(() => this.stdin!.return!());
+      void cleanup.catch(() => {});
+    }
+  }
+}
+
+export function command(name: string, limits: StreamFormatLimits, run: (session: Session) => Promise<void>): CommandDefinition {
+  return { name, async execute(context) {
+    context.signal.throwIfAborted();
+    let session: Session | undefined;
+    try {
+      session = new Session(context, limits);
+      await run(session);
+      context.signal.throwIfAborted();
+      return { exitCode: session.failed ? 1 : 0 };
+    } catch (error) {
+      context.signal.throwIfAborted();
+      await diagnostic(context, error);
+      return { exitCode: 1 };
+    } finally { await session?.close(); }
+  } };
+}
+
+export async function* records(source: ByteSource, session: Session): AsyncGenerator<Uint8Array> {
+  let buffer = new Uint8Array(Math.min(1024, session.limits.maxRecordBytes));
+  let size = 0;
+  for await (const chunk of source) {
+    for (const byte of chunk) {
+      await session.step();
+      if (byte === 10) {
+        yield buffer.slice(0, size);
+        size = 0;
+      } else {
+        session.check(size + 1, session.limits.maxRecordBytes, "record");
+        if (size === buffer.length) {
+          const grown = new Uint8Array(Math.min(buffer.length * 2, session.limits.maxRecordBytes));
+          grown.set(buffer); buffer = grown;
+        }
+        buffer[size++] = byte;
+      }
+    }
+  }
+  if (size) yield buffer.slice(0, size);
+}
+
+export class ByteOutput {
+  private readonly bytes: Uint8Array;
+  private size = 0;
+  constructor(readonly session: Session) { this.bytes = new Uint8Array(Math.min(16384, session.limits.maxChunkBytes)); }
+  async byte(value: number): Promise<void> {
+    this.bytes[this.size++] = value;
+    if (this.size === this.bytes.length) await this.flush();
+  }
+  async flush(): Promise<void> {
+    if (this.size) await this.session.output(this.bytes.subarray(0, this.size));
+    this.size = 0;
+  }
+}

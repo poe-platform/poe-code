@@ -1,0 +1,1791 @@
+{
+  "timestamp": "2026-08-27T01:32:52.080Z",
+  "outcome": "RED: 31/34 new holdouts; no complete closure acceptance or source/eval breadth",
+  "startHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+  "endObservedHead": "7bce86ade313ed53ffc740087db236256d5c0a00",
+  "sourceCommits": [
+    "7e69fe19521d806782f135f4d1827052ef6b8976",
+    "6370e717c0f540991fb980a10b36725f301e2f3c",
+    "3aa3a4110c09fbab48d9aa8a8d762f48c8ce56cc",
+    "abdc741c22a3c974f3f3ec00ed8a5caa9f2cf6ac"
+  ],
+  "shellHashes": {
+    "src/shell/arithmetic.ts": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+    "src/shell/display.ts": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+    "src/shell/index.ts": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+    "src/shell/input.ts": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+    "src/shell/locale.ts": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+    "src/shell/parser.ts": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+    "src/shell/pattern.ts": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+    "src/shell/runtime.ts": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+    "src/shell/shell.ts": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+    "src/shell/types.ts": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+  },
+  "phases": [
+    {
+      "file": "post-ready-new.json",
+      "label": "new 34 holdouts",
+      "stage": "new",
+      "beforeHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "afterHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "code": 1,
+      "totals": {
+        "tests": 34,
+        "pass": 31,
+        "fail": 3,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 34,
+      "startingListedInputs": 915,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "75d743507152e60c839fa3c5cabb9c4d699f6e16ad217d5c253cbb12f456a6e4",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/s3/authority.ts",
+          "tested": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+          "current": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "tests/shell-stress/script-entrypoint/cases.ts",
+          "tested": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+          "current": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-legacy.json",
+      "label": "unchanged 72",
+      "stage": "legacy",
+      "beforeHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "afterHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "code": 0,
+      "totals": {
+        "tests": 72,
+        "pass": 72,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 34,
+      "startingListedInputs": 915,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "tests/shell-stress/script-entrypoint/cases.ts",
+          "tested": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+          "current": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-legacy.json",
+      "label": "unchanged 132",
+      "stage": "legacy",
+      "beforeHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "afterHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "code": 0,
+      "totals": {
+        "tests": 132,
+        "pass": 132,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 34,
+      "startingListedInputs": 915,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "tests/shell-stress/script-entrypoint/cases.ts",
+          "tested": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+          "current": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-author.json",
+      "label": "new author 211",
+      "stage": "author",
+      "beforeHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "afterHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "code": 0,
+      "totals": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 34,
+      "startingListedInputs": 915,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "tests/shell-stress/script-entrypoint/cases.ts",
+          "tested": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+          "current": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-previous-original.json",
+      "label": "previous file 58",
+      "stage": "previous",
+      "beforeHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "afterHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "code": 1,
+      "totals": {
+        "tests": 58,
+        "pass": 57,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 22,
+      "startingListedInputs": 915,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "tests/shell-stress/script-entrypoint/cases.ts",
+          "tested": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+          "current": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-previous-original.json",
+      "label": "selected regressions",
+      "stage": "previous",
+      "beforeHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "afterHead": "319299e7d24be17bed990242d605a4fc37d0d305",
+      "code": 0,
+      "totals": {
+        "tests": 173,
+        "pass": 173,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 42,
+      "startingListedInputs": 915,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "tests/shell-stress/script-entrypoint/cases.ts",
+          "tested": "992ced088fb4b572a071097bee876ec343506b17ab13ddd1cf862b16bdbcd281",
+          "current": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-previous-revised.json",
+      "label": "revised prior file 58",
+      "stage": "precedence",
+      "beforeHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "afterHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "code": 0,
+      "totals": {
+        "tests": 58,
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "actualImports": 22,
+      "startingListedInputs": 916,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/memory/index.ts",
+          "tested": "3203c1e4396cb69fb181a4636df061e3e4bcf8350b72d724440d66bb5dbe607d",
+          "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+        },
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-types.json",
+      "label": "global noEmit",
+      "stage": "types",
+      "beforeHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "afterHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "code": 0,
+      "totals": {},
+      "actualImports": 916,
+      "startingListedInputs": 916,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "src/fs/webdav/webdav.ts",
+          "tested": "b207b9949d0f824632362dd4bdab5718c182c021e7bcf4e143dc5c7c18e6c23c",
+          "current": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a"
+        },
+        {
+          "path": "tests/fs/webdav/operation-authority.test.ts",
+          "tested": "322cbbe676e111d48a9e1f0eea07d3a58cb58590a7d77fec9090bfa5bd3a7b80",
+          "current": "2c73713fae33736d0bca4c7cbfc45e0086000d707306745cb9a47489098272e9"
+        },
+        {
+          "path": "tests/shell-stress/invocation-closure/precedence-native.ts",
+          "tested": "7e626316bc3147299b360fd98e7f07003ee71571dbe40746edd59c094ce34d12",
+          "current": "b6689ef888610d75980a637b8930e5121e8510da4de2412a17004c725340524c"
+        },
+        {
+          "path": "tests/shell-stress/invocation-closure/verify.ts",
+          "tested": "0ded1742f20ce551663f80f07ca045f392c43d200175292f8aa4b4f8a2c8ba88",
+          "current": "fae6a5ee65dd3f9bd35a80ea9bd8eb5f57542813dcbf9f5ce6d079eb1d4ea7ac"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-types.json",
+      "label": "build noEmit",
+      "stage": "types",
+      "beforeHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "afterHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "code": 0,
+      "totals": {},
+      "actualImports": 296,
+      "startingListedInputs": 296,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "src/fs/webdav/webdav.ts",
+          "tested": "b207b9949d0f824632362dd4bdab5718c182c021e7bcf4e143dc5c7c18e6c23c",
+          "current": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-types.json",
+      "label": "benchmark noEmit",
+      "stage": "types",
+      "beforeHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "afterHead": "781f272b33288d9ffcd898d5399996a646e3c3fd",
+      "code": 0,
+      "totals": {},
+      "actualImports": 411,
+      "startingListedInputs": 411,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "src/fs/webdav/webdav.ts",
+          "tested": "b207b9949d0f824632362dd4bdab5718c182c021e7bcf4e143dc5c7c18e6c23c",
+          "current": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a"
+        }
+      ]
+    },
+    {
+      "file": "post-ready-final-scoped-types.json",
+      "label": "owned preparation types",
+      "stage": "prepare",
+      "beforeHead": "37edad87db8050de8f57db2e17e31fe000b5dcb1",
+      "afterHead": "37edad87db8050de8f57db2e17e31fe000b5dcb1",
+      "code": 0,
+      "totals": {},
+      "actualImports": 205,
+      "startingListedInputs": 205,
+      "stableDuringRun": true,
+      "sourceChangesDuringRun": [],
+      "endInputChanges": [
+        {
+          "path": "src/fs/webdav/resource-id.ts",
+          "tested": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+        },
+        {
+          "path": "src/fs/webdav/webdav.ts",
+          "tested": "b207b9949d0f824632362dd4bdab5718c182c021e7bcf4e143dc5c7c18e6c23c",
+          "current": "3c4c14ecf9f789794d44ea50ca3a1880a859745f7ccf69ee9caeefd96d310f6a"
+        }
+      ]
+    }
+  ],
+  "importedDependencies": {
+    "src/commands/basic.ts": {
+      "versions": [
+        {
+          "hash": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f"
+    },
+    "src/commands/copy-identity.ts": {
+      "versions": [
+        {
+          "hash": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe"
+    },
+    "src/commands/execution.ts": {
+      "versions": [
+        {
+          "hash": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "b156ba98bd7cbd100ad3b3fab3f0c42612ffda30039fded8f6951c12776539de"
+    },
+    "src/commands/filesystem.ts": {
+      "versions": [
+        {
+          "hash": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "393ea36b78c2cc142633c0eb631bf4d316767b3992c0d5f0724135ca4f01403a"
+    },
+    "src/commands/find.ts": {
+      "versions": [
+        {
+          "hash": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2"
+    },
+    "src/commands/grep.ts": {
+      "versions": [
+        {
+          "hash": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "5e5255a1cce15bfa57f1ba4ffd46e5b4ff7810c37aba8522fd50cdb482edba3d"
+    },
+    "src/commands/index.ts": {
+      "versions": [
+        {
+          "hash": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "052a905512a3f1e27304de90366600f9ea79c26f60f0a3598619453f408530e2"
+    },
+    "src/commands/internal.ts": {
+      "versions": [
+        {
+          "hash": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5"
+    },
+    "src/commands/move.ts": {
+      "versions": [
+        {
+          "hash": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042"
+    },
+    "src/commands/predicates.ts": {
+      "versions": [
+        {
+          "hash": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347"
+    },
+    "src/commands/streams.ts": {
+      "versions": [
+        {
+          "hash": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "0b49e7f14ae8a399fcbea5454c48e930f047472f8631c2d5fe3ca385d14437d5"
+    },
+    "src/commands/text.ts": {
+      "versions": [
+        {
+          "hash": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "d9411fd868ad8ef04749937024c0f0ff77267c5db5a2cece1f0cdf80c9b48490"
+    },
+    "src/contracts/command.ts": {
+      "versions": [
+        {
+          "hash": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "997422b9774ba15d385a1ff10156540a3f562f5a42607ae56c6186d78ff500cd"
+    },
+    "src/contracts/errors.ts": {
+      "versions": [
+        {
+          "hash": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    "src/contracts/filesystem.ts": {
+      "versions": [
+        {
+          "hash": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "7c72ddef5660c9a1bd62910d3155a4278ce8d7607f811b32d27cf21149be4009"
+    },
+    "src/contracts/index.ts": {
+      "versions": [
+        {
+          "hash": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50"
+    },
+    "src/contracts/io.ts": {
+      "versions": [
+        {
+          "hash": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    "src/contracts/path.ts": {
+      "versions": [
+        {
+          "hash": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    "src/contracts/plugin.ts": {
+      "versions": [
+        {
+          "hash": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    "src/fs/memory/index.ts": {
+      "versions": [
+        {
+          "hash": "75d743507152e60c839fa3c5cabb9c4d699f6e16ad217d5c253cbb12f456a6e4",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts"
+          ]
+        },
+        {
+          "hash": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+          "phases": [
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        },
+        {
+          "hash": "3203c1e4396cb69fb181a4636df061e3e4bcf8350b72d724440d66bb5dbe607d",
+          "phases": [
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+    },
+    "src/fs/mount/comparison.ts": {
+      "versions": [
+        {
+          "hash": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c"
+    },
+    "src/fs/mount/identity.ts": {
+      "versions": [
+        {
+          "hash": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2"
+    },
+    "src/fs/s3/authority.ts": {
+      "versions": [
+        {
+          "hash": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts"
+          ]
+        },
+        {
+          "hash": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4",
+          "phases": [
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4"
+    },
+    "src/fs/webdav/resource-id.ts": {
+      "versions": [
+        {
+          "hash": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+    },
+    "src/shell/arithmetic.ts": {
+      "versions": [
+        {
+          "hash": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    "src/shell/display.ts": {
+      "versions": [
+        {
+          "hash": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+    },
+    "src/shell/index.ts": {
+      "versions": [
+        {
+          "hash": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    "src/shell/input.ts": {
+      "versions": [
+        {
+          "hash": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4"
+    },
+    "src/shell/locale.ts": {
+      "versions": [
+        {
+          "hash": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    "src/shell/parser.ts": {
+      "versions": [
+        {
+          "hash": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "cd31afa92e6e54a3e3fceb328064e1e2421e0461529c354794d7b7198c80e4ec"
+    },
+    "src/shell/pattern.ts": {
+      "versions": [
+        {
+          "hash": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    "src/shell/runtime.ts": {
+      "versions": [
+        {
+          "hash": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "8af9bb685fee68e6f199e1ebf9613ac8da50572f357fd98599e570d30810e820"
+    },
+    "src/shell/shell.ts": {
+      "versions": [
+        {
+          "hash": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "4ac91162195c150848793c92b8b1e90f15a36e67b5ae8a2652fe7ed9dcf4fb5e"
+    },
+    "src/shell/types.ts": {
+      "versions": [
+        {
+          "hash": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874",
+          "phases": [
+            "post-ready-new.json: new 34 holdouts",
+            "post-ready-legacy.json: unchanged 72",
+            "post-ready-legacy.json: unchanged 132",
+            "post-ready-author.json: new author 211",
+            "post-ready-previous-original.json: previous file 58",
+            "post-ready-previous-original.json: selected regressions",
+            "post-ready-previous-revised.json: revised prior file 58"
+          ]
+        }
+      ],
+      "current": "b9296121d42efacae31078336cf046f27ed19c2407c837a4cc86250d8d372874"
+    },
+    "src/commands/search/glob.ts": {
+      "versions": [
+        {
+          "hash": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "d6fc574fbfde82b459426875801a36aaaf5ec9536ce25d1f5876215396094425"
+    },
+    "src/commands/search/index.ts": {
+      "versions": [
+        {
+          "hash": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "5efc7444e51bd6c8fce07529808d847c89dd7e6d50e34966875a030a90ee77bf"
+    },
+    "src/commands/search/matcher.ts": {
+      "versions": [
+        {
+          "hash": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "499848186cde72bd696cba1fc7d53af39354ba74ea63c42acd92d5eb1cda1cfb"
+    },
+    "src/commands/search/options.ts": {
+      "versions": [
+        {
+          "hash": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "828d97d930dc615089a29efd3fe463293d4f61bf4dd33c81c2ceb6b910eb6ef8"
+    },
+    "src/commands/search/output.ts": {
+      "versions": [
+        {
+          "hash": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "6a9ebaed985637a62b89978d32a7424c5756104f4b6c2f286106150a819cbcd1"
+    },
+    "src/commands/search/rg.ts": {
+      "versions": [
+        {
+          "hash": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "c677f831e8e9dcc5051713d894d277ffa9646d2de358c1970b2dd0a9dfb44417"
+    },
+    "src/commands/search/shared.ts": {
+      "versions": [
+        {
+          "hash": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "83d436b5d602cb45cf31bdf6124e4d4696532b67c1d7737712c00e632eb3e724"
+    },
+    "src/commands/search/walk.ts": {
+      "versions": [
+        {
+          "hash": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a",
+          "phases": [
+            "post-ready-previous-original.json: selected regressions"
+          ]
+        }
+      ],
+      "current": "474b87aa10e7daf0506edd7408d3a1b48c2bf7e644e8f585f1f5930bb658686a"
+    }
+  },
+  "endRuntimeDependencyChanges": [
+    [
+      "src/fs/memory/index.ts",
+      {
+        "versions": [
+          {
+            "hash": "75d743507152e60c839fa3c5cabb9c4d699f6e16ad217d5c253cbb12f456a6e4",
+            "phases": [
+              "post-ready-new.json: new 34 holdouts"
+            ]
+          },
+          {
+            "hash": "a017abfe3fb8b8f330c0c41bf93000dc3dbeed3e353b880da5a9d3006d781d7e",
+            "phases": [
+              "post-ready-legacy.json: unchanged 72",
+              "post-ready-legacy.json: unchanged 132",
+              "post-ready-author.json: new author 211",
+              "post-ready-previous-original.json: previous file 58",
+              "post-ready-previous-original.json: selected regressions"
+            ]
+          },
+          {
+            "hash": "3203c1e4396cb69fb181a4636df061e3e4bcf8350b72d724440d66bb5dbe607d",
+            "phases": [
+              "post-ready-previous-revised.json: revised prior file 58"
+            ]
+          }
+        ],
+        "current": "d1b0a082ece95555f740419b276d5565757fe3c3c3ba1555b927e9640dbcc62d"
+      }
+    ],
+    [
+      "src/fs/s3/authority.ts",
+      {
+        "versions": [
+          {
+            "hash": "2487b9daba77d7c0a560b5d719508055c427e1c0a0befa05b5d894990ac72b49",
+            "phases": [
+              "post-ready-new.json: new 34 holdouts"
+            ]
+          },
+          {
+            "hash": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4",
+            "phases": [
+              "post-ready-legacy.json: unchanged 72",
+              "post-ready-legacy.json: unchanged 132",
+              "post-ready-author.json: new author 211",
+              "post-ready-previous-original.json: previous file 58",
+              "post-ready-previous-original.json: selected regressions",
+              "post-ready-previous-revised.json: revised prior file 58"
+            ]
+          }
+        ],
+        "current": "0e12d26f2882f31cb2f33476c0bd18aed250404f8e3624d67aff1c3e5e7853a4"
+      }
+    ],
+    [
+      "src/fs/webdav/resource-id.ts",
+      {
+        "versions": [
+          {
+            "hash": "a85c9f8dc58496a0cfa4d65d60e3998a61a79f1f2a889e710bb0bf0d1d5b440f",
+            "phases": [
+              "post-ready-new.json: new 34 holdouts",
+              "post-ready-legacy.json: unchanged 72",
+              "post-ready-legacy.json: unchanged 132",
+              "post-ready-author.json: new author 211",
+              "post-ready-previous-original.json: previous file 58",
+              "post-ready-previous-original.json: selected regressions",
+              "post-ready-previous-revised.json: revised prior file 58"
+            ]
+          }
+        ],
+        "current": "869e5f4ea8210f9c088f32906f063a373da2e36392b9a1d95f4f5e2193c2d7fc"
+      }
+    ]
+  ],
+  "frozenInputs": {
+    "tests/shell-stress/invocation-closure/cases.ts": "1f5ac63adbfa9e13d70ab79e2cf991efa6cb7d70d6f2463d2bef0ed4d14c6aef",
+    "tests/shell-stress/invocation-closure/probe.ts": "d9d956718c93d15243d6e026ee6dbefbc05ec4ef2a2a6b818a3915fbad139464",
+    "tests/shell-stress/invocation-closure/holdout.test.ts": "8a9deddf284de912e4ec9fc5137110c507106b5f0ac4dcdb6a85a94bcc2c07ff",
+    "tests/shell-stress/invocation-modes/cases.ts": "788539627f6f5d8a8b31702ec3b9c7a6477efe8878fa88fa7fd0ae955553ed3b",
+    "tests/shell-stress/invocation-modes/holdout.test.ts": "7190d5a6611b7baafe2801505ce0df32b6cb476257b1b533f6032642a5721a12",
+    "tests/shell/invocation-modes.test.ts": "1c78a0f3438c5b91e77fd9a26cd8e961ba9c71e0d0b8b7c17b903da9ab867a46"
+  },
+  "oldScopesUnchanged": true,
+  "newNativeOracleUnchanged": true,
+  "nativeProfiles": [
+    {
+      "id": "gnu-5.3",
+      "executable": "/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "id": "historical-3.2",
+      "executable": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    }
+  ],
+  "comparisons": {
+    "legacy57": [
+      {
+        "profile": "gnu-5.3",
+        "passed": 51,
+        "total": 57,
+        "failures": [
+          {
+            "id": "path-only-denied-126",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-missing-127",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-headerless-policy",
+            "fields": [
+              "status",
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-unsupported-shebang-policy",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-binary-policy",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-invalid-utf8-policy",
+            "fields": [
+              "status",
+              "stderr bytes"
+            ]
+          }
+        ]
+      },
+      {
+        "profile": "historical-3.2",
+        "passed": 49,
+        "total": 57,
+        "failures": [
+          {
+            "id": "stdin-eof-syntax-prior-effects",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "child-environment-isolation",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-only-denied-126",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-missing-127",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-headerless-policy",
+            "fields": [
+              "status",
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-unsupported-shebang-policy",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-binary-policy",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "path-invalid-utf8-policy",
+            "fields": [
+              "status",
+              "stderr bytes"
+            ]
+          }
+        ]
+      }
+    ],
+    "new26": [
+      {
+        "profile": "gnu-5.3",
+        "passed": 23,
+        "total": 26,
+        "failures": [
+          {
+            "id": "query-V-verbose",
+            "fields": [
+              "stdout bytes"
+            ]
+          },
+          {
+            "id": "type-multiple-status",
+            "fields": [
+              "stdout bytes"
+            ]
+          },
+          {
+            "id": "query-empty-and-unsupported-option",
+            "fields": [
+              "stderr bytes"
+            ]
+          }
+        ]
+      },
+      {
+        "profile": "historical-3.2",
+        "passed": 12,
+        "total": 26,
+        "failures": [
+          {
+            "id": "query-V-verbose",
+            "fields": [
+              "stdout bytes"
+            ]
+          },
+          {
+            "id": "type-multiple-status",
+            "fields": [
+              "stdout bytes"
+            ]
+          },
+          {
+            "id": "query-empty-and-unsupported-option",
+            "fields": [
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-character-count-en_US.UTF-8",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-character-count-C",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-delimiter-vs-n",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-skips-nul-data",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-nul-delimiter",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-no-ifs-split",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-backslash-raw",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-zero-invalid",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-eof-partial",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "read-N-stdin-source-cursor",
+            "fields": [
+              "stdout bytes",
+              "stderr bytes"
+            ]
+          },
+          {
+            "id": "sh-special-ordinary-function",
+            "fields": [
+              "stdout bytes"
+            ]
+          }
+        ]
+      }
+    ],
+    "legacyNativeChanges": [
+      {
+        "profile": "gnu-5.3",
+        "total": 57,
+        "changed": []
+      },
+      {
+        "profile": "historical-3.2",
+        "total": 57,
+        "changed": []
+      }
+    ]
+  },
+  "failures": [
+    {
+      "id": "query-V-verbose",
+      "source": "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+      "role": "bash",
+      "args": [
+        "-c",
+        "closurefn() { :; }; PATH=tools; command -V printf closurefn closuretool",
+        "bash"
+      ],
+      "inputHex": "",
+      "fields": [
+        "stdout bytes"
+      ],
+      "actual": {
+        "status": 0,
+        "stdoutHex": "7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265666e20697320612066756e6374696f6e0a636c6f73757265666e202829200a7b200a202020203a0a7d0a636c6f73757265746f6f6c206973202f55736572732f6b6a6f70656b2f576f726b73706163652f736166652d626173682f74657374732f7368656c6c2d7374726573732f696e766f636174696f6e2d636c6f737572652f2e6e61746976652d4271764c364b2f746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": "",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-BqvL6K"
+      }
+    },
+    {
+      "id": "type-multiple-status",
+      "source": "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+      "role": "bash",
+      "args": [
+        "-c",
+        "closurefn() { :; }; PATH=tools; type -t printf closurefn closuretool closure_missing; printf \"mixed:%s\\n\" \"$?\"; type printf closuretool",
+        "bash"
+      ],
+      "inputHex": "",
+      "fields": [
+        "stdout bytes"
+      ],
+      "actual": {
+        "status": 0,
+        "stdoutHex": "636f6d6d616e640a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207265676973746572656420636f6d6d616e640a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": ""
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "6275696c74696e0a66756e6374696f6e0a66696c650a6d697865643a310a7072696e74662069732061207368656c6c206275696c74696e0a636c6f73757265746f6f6c20697320746f6f6c732f636c6f73757265746f6f6c0a",
+        "stderrHex": "",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-TOHGYu"
+      }
+    },
+    {
+      "id": "query-empty-and-unsupported-option",
+      "source": "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+      "role": "bash",
+      "args": [
+        "-c",
+        "command; printf \"empty:%s\\n\" \"$?\"; command -z printf; printf \"bad:%s\\n\" \"$?\"",
+        "bash"
+      ],
+      "inputHex": "",
+      "fields": [
+        "stderr bytes"
+      ],
+      "actual": {
+        "status": 0,
+        "stdoutHex": "656d7074793a300a6261643a320a",
+        "stderrHex": "636f6d6d616e643a202d7a3a20756e737570706f72746564206f7074696f6e0a"
+      },
+      "native": {
+        "status": 0,
+        "stdoutHex": "656d7074793a300a6261643a320a",
+        "stderrHex": "626173683a206c696e6520313a20636f6d6d616e643a202d7a3a20696e76616c6964206f7074696f6e0a636f6d6d616e643a2075736167653a20636f6d6d616e64205b2d7056765d20636f6d6d616e64205b617267202e2e2e5d0a",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell-stress/invocation-closure/.native-W9XcRm"
+      }
+    }
+  ],
+  "classifications": {
+    "query-V-verbose": "Native command -V absolute path versus virtual relative path: narrow output discrepancy routed to root. Separate registered printf label honestly reflects its implementation, not false availability.",
+    "type-multiple-status": "Registered printf command kind differs from native builtin; modern mixed-name status matches. Frozen expectation stays red; do not fabricate builtin availability.",
+    "query-empty-and-unsupported-option": "Correct empty/invalid-option statuses and stdout; unsupported-option wording differs from frozen invalid-option diagnostic assertion. Kept red."
+  },
+  "priorTargets": {
+    "beforeIndependent": "69/72",
+    "nowIndependent": "72/72",
+    "closedIndependent": [
+      "sh-posix-special-assignment",
+      "path-command-v",
+      "path-type"
+    ],
+    "beforeAuthor": "130/132",
+    "nowAuthor": "132/132",
+    "closedAuthor": [
+      "exact primary 5.3: bash stdin-read-one-byte",
+      "exact primary 5.3: sh stdin-read-one-byte"
+    ]
+  },
+  "precedenceCommit": "da549ff",
+  "precedenceProof": "precedence-native.json / precedence-review.json / PRECEDENCE_REVIEW.md",
+  "cleanup": {
+    "checkedProcessAndGroupIds": [
+      42504,
+      42509,
+      42519,
+      42534,
+      42535,
+      42536,
+      42537,
+      42538,
+      42539,
+      42540,
+      42545,
+      42549,
+      42550,
+      42551,
+      42552,
+      42553,
+      42554,
+      42557,
+      42563,
+      42564,
+      42565,
+      42566,
+      42567,
+      42568,
+      42570,
+      42571,
+      42572,
+      42573,
+      42574,
+      42575,
+      42576,
+      42577,
+      42578,
+      42588,
+      42589,
+      42506,
+      44055,
+      44056,
+      44189,
+      44190,
+      47594,
+      47596,
+      44267,
+      44268,
+      44946,
+      45098,
+      51685,
+      51906,
+      55402,
+      55548,
+      55767,
+      55769,
+      55801,
+      55802,
+      57176,
+      57177,
+      42603,
+      42604,
+      42605,
+      42607,
+      42609,
+      42611,
+      42613,
+      42615,
+      42617,
+      42620,
+      42622,
+      42624,
+      42626,
+      42628,
+      42630,
+      42632,
+      42634,
+      42636,
+      42638,
+      42640,
+      42642,
+      42644,
+      42646,
+      42648,
+      42650,
+      42652,
+      42654,
+      42656,
+      42660,
+      42662,
+      42665,
+      42668,
+      42671,
+      42674,
+      42684,
+      42688,
+      42690,
+      42697,
+      42699,
+      42701,
+      42706,
+      42708,
+      42712,
+      42713,
+      42715,
+      42716,
+      42722,
+      42723,
+      42724,
+      42725,
+      42726,
+      42727,
+      42728,
+      42729,
+      42730,
+      42731,
+      42732,
+      42733,
+      42734,
+      42736,
+      42737,
+      42738,
+      42740,
+      42742,
+      42744,
+      42746,
+      42748,
+      42750,
+      42753,
+      42755,
+      42757,
+      42759,
+      42761,
+      42763,
+      42765,
+      42767,
+      42769,
+      42771,
+      42773,
+      42775,
+      42777,
+      42779,
+      42781,
+      42783,
+      42785,
+      42787,
+      42789,
+      42792,
+      42794,
+      42797,
+      42799,
+      42801,
+      42803,
+      42806,
+      42808,
+      42811,
+      42818,
+      42822,
+      42824,
+      42832,
+      42834,
+      42837,
+      42839,
+      42842,
+      42844,
+      42846,
+      42848,
+      42850,
+      42852,
+      42854,
+      42856,
+      42858,
+      42859,
+      42861,
+      42863,
+      42868,
+      42870,
+      42876,
+      89672,
+      89673,
+      48557,
+      48560,
+      89722,
+      89723,
+      48565,
+      48569,
+      44058,
+      44060,
+      44061,
+      44062,
+      44063,
+      44064,
+      44066,
+      44067,
+      44068,
+      44072,
+      44077,
+      44078,
+      44079,
+      44080,
+      44081,
+      44082,
+      44083,
+      44084,
+      44085,
+      44086,
+      44087,
+      44089,
+      44090,
+      44091,
+      44092,
+      44093,
+      44094,
+      44095,
+      44096,
+      44097,
+      44098,
+      44099,
+      44100,
+      44101,
+      44104,
+      44111,
+      44112,
+      44113,
+      44114,
+      44115,
+      44116,
+      44117,
+      44118,
+      44119,
+      44120,
+      44121,
+      44122,
+      44123,
+      44124,
+      44125,
+      44126,
+      44128,
+      44133,
+      44138,
+      44139,
+      44140,
+      44141,
+      44142,
+      44143,
+      44144,
+      44148,
+      44153,
+      44154,
+      44155,
+      44156,
+      44158,
+      44159,
+      44160,
+      44161,
+      44162,
+      44163,
+      44164
+    ],
+    "remaining": [],
+    "temporaryDirectories": [],
+    "watchers": []
+  },
+  "regressionNativeReferences": {
+    "executable": "/bin/bash",
+    "profile": "historical3.2 only",
+    "count": 61,
+    "descriptor": 17,
+    "readOptions": 19,
+    "readFields": 15,
+    "variableScope": 10,
+    "helper": "tests/shell/bash-bugfix-helpers.ts",
+    "limit": "Existing synchronous helper has 2-second timeout and 256KiB capture, not per-reference detached group metadata. All test parents completed. Includes existing read delimiter/NUL and cancellation controls, not the paused NUL cohort or known five pending first-read cases."
+  },
+  "finalTrackedStatus": " M src/fs/memory/index.ts\n M src/fs/mount/COMPARISON.md\n M tests/fs/mount/comparison.test.ts\n M tests/fs/mount/identity-authority-review/implementation/capture.mjs\n M tests/fs/mount/mutation-identity.probe.ts\n M tests/shell-stress/invocation-closure/verify.ts\n",
+  "evidenceHashes": {
+    "post-ready-new.json": "62122136be8458985926753ab8f2b22c7fb3dc3ee6d08fe6088458db1a8fea11",
+    "post-ready-legacy.json": "85fbc5e2b1612a3c65b49dff76590ee03405ae07f5128ccdd418aa026a36ea71",
+    "post-ready-author.json": "27f3d644c6ce29590898bed14418a1629523473ab24b8b8b431d7d171939f371",
+    "post-ready-previous-original.json": "bab6685b519a80025ebffe284b419957356a660e6d42292bc17ab1c854f73386",
+    "post-ready-previous-revised.json": "b5f9c024485513a0c661c8f7b49c569d3bddd48ecfc3e7a8d6cd10843977f163",
+    "post-ready-types.json": "071d898f093bdc8988eb8d89625a7b63d642e6397316d171eea1aa283303b3f5",
+    "post-ready-final-scoped-types.json": "f597eecd32cd0aa00233c38a1ee4de59ea2b1377485c36cad3cbdae3c90ebecd",
+    "post-ready-legacy-native.json": "29859046be395e3893d24856d399e30da8740860b002e0a0eda32727c5bb0405",
+    "post-ready-new-comparison.json": "0bf653e2340183b687fe160ee5e49d36e5e666e3f151f681c530381cabf14fbc",
+    "post-ready-legacy-comparison.json": "b81e8c9972a1ebe6bc8e6ff9c3028241c6c3086b2d56fd77d56c753f627d6d1a",
+    "precedence-native.json": "383fda8278ebb33549ed40bacc3d43d6f731f6b61561ffd5c9098f1c6b76cd63"
+  }
+}

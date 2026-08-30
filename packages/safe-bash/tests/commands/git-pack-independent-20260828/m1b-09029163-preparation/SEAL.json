@@ -1,0 +1,146 @@
+{
+  "schema": "m1b-09029163-independent-preparation-seal-v1",
+  "date": "2026-08-28",
+  "role": "PREPARATION_SEAL_NOT_EXECUTION_GO",
+  "candidate": "090291636fba5b4003e5ad9771e83ad9da9e0c03",
+  "authorEvidence": "c74cc2a62875afc85f265431e6e6207c9e44f90c",
+  "status": "SOURCE_REVIEW_WITH_S01_BLOCKER_AND_EXPLICIT_FUTURE_PREREQUISITES",
+  "files": [
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/CASE-PLAN.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 73318,
+      "sha256": "d457ccd8160816230a11b9966d814973ff5d48376ffdb8eadb37b76ad0da7a02",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/FINDINGS.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 3544,
+      "sha256": "e3f38dd353cafeb417c3fb3726c15ee64dee9e6475b4ccc668f637ba77ca1ef7",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/FUTURE-RECIPE.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 10207,
+      "sha256": "0a52f1829b121c438ea15d8c5cd7e3b037d8019169e90454f455b18585252cc9",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/LOADED-MUTANTS.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 6297,
+      "sha256": "162e5fc8a2b627f25a3cf78e328a6d572817c54e3c2e45c293dcb0d14f716f49",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/REVIEW.md",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 11924,
+      "sha256": "fb1f5a09715c5bd86c7a54b68f064dddbe71b10ea77191e3c30b8cb000e1fbf6",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/SOURCE-AUTH.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 48555,
+      "sha256": "dcb8d10c5ae97ef98d641760c1dbcec51ffcf1f1a90e3901b76f38f18631e5bf",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/TYPE-PLAN.json",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 5799,
+      "sha256": "6f780d011c131ef1058de488420e474c811233a385c811f10e81e0a8bd255ff9",
+      "role": "SOURCE_REVIEW_OR_FUTURE_PROPOSAL_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/types/T01-positive.mts.data",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 460,
+      "sha256": "c31d31f589ea3c923be1e4b70630cb8c94a86320d2a288fdbbfa94bf0af26cd5",
+      "role": "DEFERRED_TYPE_DATA_NEVER_COMPILED"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/types/T02-limits.mts.data",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 84,
+      "sha256": "74db8bee8a71490437b8857041423fba674cdd23211f938e12681b36d696d058",
+      "role": "DEFERRED_TYPE_DATA_NEVER_COMPILED"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/types/T03-spawn.mts.data",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 86,
+      "sha256": "3c7b02c308b1a99cf8a8874ce67a71fe059c35a19ec49f6a3c9d6ebc0535c668",
+      "role": "DEFERRED_TYPE_DATA_NEVER_COMPILED"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/types/T04-boundary.mts.data",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 96,
+      "sha256": "9d90ba44f8598b763c8ff0e03d2f36ee2335cdc2a2991a27365dfd8e832a8aff",
+      "role": "DEFERRED_TYPE_DATA_NEVER_COMPILED"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/types/T05-replace.mts.data",
+      "mode": 420,
+      "gitMode": "100644",
+      "bytes": 78,
+      "sha256": "ba3ddb82b49dc2676d151cfbd55381f772bde481f20016290abe401272d56fc7",
+      "role": "DEFERRED_TYPE_DATA_NEVER_COMPILED"
+    }
+  ],
+  "self": "SEAL.json excluded from its own inventory; final Git commit and seal SHA256 reported in external handoffs.",
+  "staticDataChecks": {
+    "jsonDocuments": 5,
+    "regularOwnedFilesBeforeSeal": 12,
+    "allFreshOwnedModes0644": true,
+    "planArithmetic": {
+      "formatRows": 38,
+      "formatVariants": 116,
+      "resourceRows": 32,
+      "resourceVariants": 108,
+      "outerSlots": 168,
+      "wallSeconds": 6840
+    },
+    "sourceSelectedInputIdentities": 282,
+    "tarMemberIdentities": 910,
+    "embeddedRawHashes": 111,
+    "limits": 24,
+    "sourceSpineRecomputed": true,
+    "role": "DATA_IDENTITY_AND_DOCUMENT_ARITHMETIC_NOT_SEMANTIC_CASE_PASSES"
+  },
+  "inspectionDiagnosticsPreserved": "SOURCE-AUTH.json#/inspectionDiagnostics; no clean all-checks-pass or execution claim",
+  "executionCounts": {
+    "product": 0,
+    "compiler": 0,
+    "authoredModuleImports": 0,
+    "syntheticControls": 0,
+    "loadedControls": 0,
+    "nativeOracle": 0,
+    "network": 0
+  },
+  "futureReady": false,
+  "missing": "Fresh ROOT scope/budget/GO, S01 disposition, M1B H09 observer qualification, exact nonoriginal fixture/output/diagnostic bytes, executable supervisor/worker/import/tool/materializer/reap seals, exact loaded witness bytes and dedicated authorization, fresh tool/emission projections; A12 author attribution addendum pending.",
+  "foreignStagingBefore": {
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "processes": {
+    "activeOwnedBackground": 0,
+    "retirement": "Synchronous metadata reads ended; no product child, scratch runtime or logical capacity reservation."
+  }
+}

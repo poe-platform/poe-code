@@ -1,0 +1,26 @@
+{
+  "schema": "expr-component-v3-preexecution/1",
+  "observedAt": "2026-08-28T01:35:25.502Z",
+  "authorizationDate": "2026-08-28",
+  "ownership": "Only tests/integration/expr-public-independent-20260827/**; leaf reviewer performs all work locally",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "checkpoint": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+  "selectedGitInputs": 357,
+  "pinnedCatalogEntries": 397,
+  "layouts": 18,
+  "syntaxChecks": 10,
+  "readerControlsExecuted": 0,
+  "candidateBuilds": 0,
+  "packageInvocations": 0,
+  "runtimeAssertions": 0,
+  "types": 0,
+  "notes": [
+    "V2 retained unchanged; new v3 source, no inherited qualification.",
+    "Read-only historical inspection had terminal truncation; structured bounded inspection followed; no product inference from truncated output.",
+    "Pinned tools and authenticated authorpack checked before preparation; this is no P01/runtime pass.",
+    "No active DU/TAP candidate runner observed in immediate process inspection at 2026-08-28T01:34Z; DU remains separately owned; no cross-owner execution authorized.",
+    "LAYOUTS transport and JSON retention are distinct; exact 4644868-byte artifact, no old limit increase.",
+    "No TypeScript snapshots/giant source archives copied; only recipe code and compact catalog.",
+    "Kernel/system dynamic libraries are host dependencies, not a claim of hermetic OS provenance."
+  ]
+}

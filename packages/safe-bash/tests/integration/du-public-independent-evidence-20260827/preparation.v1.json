@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "state": "preparation-only",
+  "date": "2026-08-27",
+  "mode": "scoped-committed-archive",
+  "admitted": false,
+  "actualDuCasesExecuted": 0,
+  "heldDuCases": 29,
+  "fullHistoryArchiveProof": false,
+  "oldFreeze": {
+    "commit": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+    "directory": "tests/integration/du-public-independent-20260827",
+    "files": 15,
+    "manifestSha256": "b180b9a384bdc3d257b243d315027a59ae792865a572b877dbe547f99149f6ff",
+    "treeRecordsSha256": "4b777133cd9749b83441fb3653e0fd507d137b9659834ec7336c05aa194d837d"
+  },
+  "sourceCommit": "b2b4604f09f351d8130c0f2a3349e85f4b4c45e1",
+  "candidateCommit": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "handoff": {
+    "commit": "f397901033d47537a5671bfc202cd8111902b526",
+    "path": "tests/plugins/du-public-author/evidence-v1/REVIEW-HANDOFF.json",
+    "mode": "100644",
+    "gitBlob": "0f9032145036186cb1326574197395840b6cd37b",
+    "sha256": "1ff91fcf815f57a895bf46d4aeca8e5da488971d918009dbb1d24b356e7f5b8a"
+  },
+  "inventory": {
+    "reference": "handoff",
+    "pointer": "/sourceInventory",
+    "count": 771,
+    "jsonEncoding": "UTF-8 JSON.stringify(array), original order, no newline",
+    "jsonSha256": "c0f955c78776711e6d12d05a45c91326318ae6f8b4ce774d7f87fd6d82e57dbe"
+  },
+  "selectors": [
+    "src",
+    "scripts",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "tsconfig.json",
+    "tsconfig.build.json",
+    "tests/plugins/du-public-author",
+    "tests/commands/du",
+    "tests/fs/webdav/mock.ts",
+    "tests/plugins/html-to-markdown-public-author/lifecycle.test.ts",
+    "tests/commands/html-to-markdown/helpers.ts",
+    "tests/plugins/agent-commands.test.ts",
+    "tests/plugins/stream-five-fixture-migration",
+    "tests/plugins/qualified-current-release",
+    "tests/plugins/stream-five-public",
+    "tests/integration/stream-inspection-public-author/consumer.mts"
+  ],
+  "productSelectors": [
+    "src",
+    "scripts",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "tsconfig.json",
+    "tsconfig.build.json"
+  ],
+  "references": [
+    {
+      "commit": "f397901033d47537a5671bfc202cd8111902b526",
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "mode": "100644",
+      "gitBlob": "1be5483f9eeece2eb2a2d64c5e9a51b8445bb8ac",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4"
+    },
+    {
+      "commit": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+      "path": "tests/plugins/du-public-author/verify-public.mjs",
+      "mode": "100644",
+      "gitBlob": "aa981a6fb2c6b19e1eaa045728c047395d1c347a",
+      "sha256": "51e7eaa8c00840694b89c503989d28e75b7a1a8ed6b45fd0bc68856128486d98"
+    },
+    {
+      "commit": "f397901033d47537a5671bfc202cd8111902b526",
+      "path": "tests/plugins/html-to-markdown-public-author/capture.mjs",
+      "mode": "100644",
+      "gitBlob": "5c3bcde237bbecb79bcf1bb76eb558ae703f4988",
+      "sha256": "530d9532ae7c547b6360284b471fa3601c4745b2552b9449e8c605079ab68872"
+    }
+  ],
+  "fixedScope": {
+    "package": "virtual-bash",
+    "subpath": "virtual-bash/commands/du",
+    "defaultPluginCount": 75,
+    "htmlCheckpointPluginCount": 74,
+    "getoptsIsBuiltinNotPlugin": true,
+    "htmlRequired": true,
+    "curlAndSafejsOptional": true,
+    "exprDefault": false,
+    "physicalStorageClaims": false,
+    "wholeGate": false
+  },
+  "bindingMapping": {
+    "candidateCommit": {
+      "prepared": "candidateCommit",
+      "role": "executed candidate; sourceCommit is separately bound"
+    },
+    "freezeCommit": {
+      "prepared": "oldFreeze.commit"
+    },
+    "freezeManifestSha256": {
+      "prepared": "oldFreeze.manifestSha256"
+    },
+    "sourceInventory": {
+      "handoffPointer": "/sourceInventory",
+      "role": "all771 committed selected entries, authenticated not materialized"
+    },
+    "html74Checkpoint": {
+      "handoffPointer": "/html74Checkpoint",
+      "status": "author-only; acceptedHTML74 unresolved"
+    },
+    "approved75Inventory": {
+      "handoffPointer": "/declared75Inventory",
+      "status": "declaration only; root approval unresolved"
+    },
+    "sourcePathsAndPolicy": {
+      "handoffPointer": "/sourcePathsAndPolicy",
+      "status": "author policy authenticated; root acceptance unresolved"
+    },
+    "aggregateDuOptions": {
+      "handoffPointer": "/aggregateDuOptions",
+      "status": "AgentCommandsOptions.du declaration only; root acceptance unresolved"
+    },
+    "diagnostics": {
+      "handoffPointer": "/diagnostics",
+      "status": "exact author diagnostics only; root acceptance unresolved"
+    },
+    "outputOperationIntegration": {
+      "handoffPointer": "/outputOperationIntegration",
+      "status": "eight exact policy sections, not approved/executed mappings"
+    },
+    "supervisorIdentity": {
+      "handoffPointer": "/authorSupervisor",
+      "status": "reference only; independent supervisor unresolved; do not execute"
+    },
+    "toolIdentities": {
+      "handoffPointers": [
+        "/tools",
+        "/tooling",
+        "/captureTool"
+      ],
+      "status": "author fingerprints only; complete future closure unresolved; staticTools binds inspector tools separately"
+    },
+    "admissionPolicy": {
+      "prepared": "mode",
+      "document": "ADMISSION-ADDENDUM.v1.md",
+      "postRunDetectsNewEntries": true,
+      "status": "new literal; no old-validator adapter"
+    },
+    "replayAuthorization": {
+      "handoffPointer": "/rootReplayAuthorization",
+      "status": "null; root authorization unresolved"
+    }
+  },
+  "lifecycleMapping": {
+    "path": "tests/plugins/du-public-author/POLICY.md",
+    "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+    "headZero": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "headZero"
+    },
+    "firstReadCancel": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "firstReadCancel"
+    },
+    "validationAndStderr": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "validationAndStderr"
+    },
+    "admissionObservation": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "admissionObservation"
+    },
+    "accountedWrites": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "accountedWrites"
+    },
+    "execSettlement": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "execSettlement"
+    },
+    "disposeOverlap": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "disposeOverlap"
+    },
+    "isolationAndOpaqueBoundary": {
+      "path": "tests/plugins/du-public-author/POLICY.md",
+      "sha256": "3114c4ad8189094c68f68e9beb0f36f7b2002458d81dbc9641cc6c96c38ed4c4",
+      "section": "isolationAndOpaqueBoundary"
+    }
+  },
+  "fullPack": {
+    "sha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+    "reference": "handoff",
+    "packageCensusPointer": "/packageFiles",
+    "packageFiles": 834,
+    "emittedCensusPointer": "/emittedFiles",
+    "emittedFiles": 832,
+    "authorArtifactPathIsNotAvailabilityProof": true,
+    "requireWholeTarballByteEquality": true,
+    "reproductionExecuted": false
+  },
+  "staticTools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "version": "v22.22.2"
+    },
+    {
+      "role": "git",
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "version": "git version 2.50.1 (Apple Git-155)"
+    }
+  ],
+  "unresolved": {
+    "acceptedHtml74": null,
+    "rootApproved75": null,
+    "rootPolicyAndEightMappingsApproval": null,
+    "independentSupervisorAndRemainingExecutors": null,
+    "completeToolAndDependencyClosure": null,
+    "exactPackAvailabilityAndReproduction": null,
+    "writeIsolationBinding": null,
+    "futureAdmissionImplementation": null,
+    "rootReplayAuthorization": null
+  }
+}

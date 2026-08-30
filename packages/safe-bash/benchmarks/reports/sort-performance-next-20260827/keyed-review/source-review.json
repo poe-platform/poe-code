@@ -1,0 +1,97 @@
+{
+  "baselineCommit": "08a26051438f5c6bdde100a4fe724dbb84f6fca4",
+  "candidateCommit": "b4fe4c7868b7ab7067599c6f5d10e99d143aea54",
+  "sourceHashes": {
+    "baseline": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+    "candidate": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895"
+  },
+  "unchanged": [
+    {
+      "name": "exactNumericAndExtraction",
+      "sha256": "4ad8437a96d61929fb88daf8295594497410ab742e66b7a75001ff5aceaf898c",
+      "bytes": 3185,
+      "unchanged": true
+    },
+    {
+      "name": "collectionOwnership",
+      "sha256": "437f09be93ba06a916731e5b98b9d43c81df0059fe3fe09a05022064d89ada27",
+      "bytes": 993,
+      "unchanged": true
+    },
+    {
+      "name": "acceptedUnkeyedCache",
+      "sha256": "a0c395f74cdeeb4880ed25588a25bb1562682971f2c72aea81fee3871aa0fe2e",
+      "bytes": 908,
+      "unchanged": true
+    },
+    {
+      "name": "recordCollectionAndEmission",
+      "sha256": "752dc8f2ff0e8d105ef91b555c879dc4242b4decc5dae09449a9381afd37d1f2",
+      "bytes": 2785,
+      "unchanged": true
+    }
+  ],
+  "unchangedContractsAndExports": [
+    {
+      "path": "package.json",
+      "sha256": "2127bbfed020aeb7873462ae65224e6ee73069425c878aa2ceee9816b2191245"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "05af12d657d7d485958ffe22499181993de98c729dadbb9dac347a822fca863e"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d"
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654"
+    }
+  ],
+  "actualSnapshotDeltas": [
+    {
+      "path": "src/commands/column/column.ts",
+      "baselineSha256": "ee0bed1acee7ea61499eaa1cc4f033e14be787916b473dd3d34eee68c8e96d4a",
+      "candidateSha256": "3caf0b12b21d0cdbcaafd6cdc88098023b0a3808ddc1f59ba9f5c9aa7c9dc267",
+      "intendedSortStage": false
+    },
+    {
+      "path": "src/commands/column/internal.ts",
+      "baselineSha256": "8f1c51f49df48d6409c5f9a364ac4a91d4e336bddc05ad5229d1a660d808c97f",
+      "candidateSha256": "ff4d9b868423abbeedf64e02ec47b41bd78b55dc0e2e637fd99b50b9bc391c2f",
+      "intendedSortStage": false
+    },
+    {
+      "path": "src/commands/text.ts",
+      "baselineSha256": "dfc9baed56564395bf90472fd505ea56a8eb5820712c0a5096d95ef2e2db47cc",
+      "candidateSha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+      "intendedSortStage": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "baselineSha256": "10c962649d4486f564aee7362a2913af86ad4dfdb3a5b3ecc0cb49f482d40243",
+      "candidateSha256": "4e937b71df3135d1262a616924b4173e982f236dd86415e0e75895eac9c85e06",
+      "intendedSortStage": false
+    }
+  ],
+  "cache": {
+    "admission": "One effective numeric key, excluding effective b/f and global c. Empty key-local flags inherit global flags; nonempty key-local flags replace them. Map construction is inside guard.",
+    "ownership": "collectSortRecords copies retained complete records and pending fragments before producer advancement/finalization; concatenation yields owned records. Existing records remain retained by records array for sorting/output. Map key is the same owned record reference, not a new extracted view.",
+    "extraction": "keyBytes returns transient Uint8Array.subarray(record). parseNumeric Buffer.from(bytes) copies exactly selected bytes, Latin1-decodes those bytes, and returns whole/fraction strings plus boolean. No selected view or decoded full record is stored in the keyed map.",
+    "retainedBound": "16384 entries; 1048576 logical retained-string bytes. Each admitted descriptor conservatively charged 6 * selected key byte length + 2. Decoded backing plus normalized strings accounted at two bytes per code unit, with extra zero fallback. Full nonnumeric key suffix included; normalized prefix-only charge rejected.",
+    "wholeRecordBound": "Unchanged sort bufferLimit=32*1024*1024 counts each owned record payload plus one delimiter; line buffer same limit. Map merely adds existing-record references. Huge unrelated record suffix remains here, not a second new retained-string charge.",
+    "excludedCosts": "Logical bound is not V8 heap/RSS proof. Map/object overhead, input array/object overhead and transient parsing/folding/field arrays are not charged as retained strings. Entry cap bounds descriptor count. No peak-memory or wallclock measurement.",
+    "fallback": "At entry saturation or insufficient retained charge, selected bytes are parsed uncached. Prior cache retained unchanged, no eviction and no arbitrary fallback value. parseNumeric exact grammar and compareNumericValues unchanged.",
+    "cancellationAndEffects": "Existing pre-read/collection/output signal checks and FsError/diagnostic paths unchanged; keyed miss adds throwIfAborted before extraction. Synchronous sorting does not claim interruptibility by an asynchronous event while JS is executing. No cancellation rollback guarantee."
+  },
+  "qualification": "Unrelated committed column/runtime changes included faithfully in actual candidate archive, not overlaid. Sort source delta isolated for operation attribution only. No whole-tree speed attribution or full gate."
+}

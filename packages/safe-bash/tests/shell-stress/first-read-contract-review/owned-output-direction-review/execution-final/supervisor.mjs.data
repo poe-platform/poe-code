@@ -1,0 +1,25 @@
+import {spawn, spawnSync, execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+export const owned = fileURLToPath(new URL('.', import.meta.url)).replace(/\/$/, '');
+export const candidate = `${owned}/candidate`;
+export const cleanEnv = {PATH: '/usr/bin:/bin', LC_ALL: 'C', LANG: 'C', TZ: 'UTC', TSX_DISABLE_CACHE: '1'};
+export const put = (path, value) => execFileSync('apply_patch', [], {input: `*** Begin Patch\n*** Add File: ${path}\n${value.replace(/\n$/, '').split('\n').map(line => '+' + line).join('\n')}\n*** End Patch\n`, encoding: 'utf8'});
+const identity = pid => spawnSync('/bin/ps', ['-p', String(pid), '-o', 'pid=,ppid=,pgid=,lstart=,command='], {encoding: 'utf8', timeout: 1000}).stdout.trim();
+export async function capture(label, command, args, {cwd = candidate, timeoutMs = 5000, maxBytes = 262144, env = cleanEnv} = {}) {
+  const startedAt = new Date().toISOString(); const start = performance.now();
+  const child = spawn(command, args, {cwd, env, detached: true, stdio: ['ignore', 'pipe', 'pipe']});
+  const initialIdentity = identity(child.pid); const stdout = [], stderr = [], signals = []; let total = 0, timedOut = false, oversized = false;
+  const stop = reason => {if (identity(child.pid) !== initialIdentity || !initialIdentity) throw new Error('owned PID identity changed'); signals.push({reason, signal: 'SIGKILL'}); process.kill(-child.pid, 'SIGKILL');};
+  const append = target => chunk => {total += chunk.length; if (total > maxBytes) {if (!oversized) {oversized = true; stop('output bound');}} else target.push(chunk);};
+  child.stdout.on('data', append(stdout)); child.stderr.on('data', append(stderr));
+  const timer = setTimeout(() => {timedOut = true; stop('deadline');}, timeoutMs);
+  const result = await new Promise((resolve, reject) => {child.once('error', reject); child.once('close', (status, signal) => resolve({status, signal}));}).finally(() => clearTimeout(timer));
+  let groupExistsAfterClose = false; try {process.kill(-child.pid, 0); groupExistsAfterClose = true;} catch (error) {if (error.code !== 'ESRCH') throw error;}
+  const record = {label, command, args, cwd, env, startedAt, finishedAt: new Date().toISOString(), durationMs: performance.now() - start, timeoutMs, maxBytes, pid: child.pid, initialIdentity, ...result, signals, timedOut, oversized, closeEventObserved: true, pidAfterClose: identity(child.pid), groupExistsAfterClose, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString()};
+  put(`${owned}/final-runs/${label}.json`, JSON.stringify(record, null, 2) + '\n');
+  put(`${owned}/final-runs/${label}.stdout.data`, record.stdout); put(`${owned}/final-runs/${label}.stderr.data`, record.stderr);
+  console.log(JSON.stringify({label, status: record.status, durationMs: record.durationMs, timedOut, oversized, groupExistsAfterClose}));
+  if (groupExistsAfterClose || record.pidAfterClose) throw new Error('unreaped owned child');
+  return record;
+}

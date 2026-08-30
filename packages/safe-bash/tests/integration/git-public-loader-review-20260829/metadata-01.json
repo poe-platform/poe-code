@@ -1,0 +1,11 @@
+{
+  "args": [
+    "rev-parse",
+    "--verify",
+    "7b2a72e98c50d43fe4d06ded0773ca857e5d233a^{commit}"
+  ],
+  "pid": 99816,
+  "closed": true,
+  "code": 0,
+  "signal": null
+}

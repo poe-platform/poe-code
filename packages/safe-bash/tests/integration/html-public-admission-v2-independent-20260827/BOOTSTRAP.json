@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-27T22:42:19.898Z",
+  "helper": "tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs",
+  "sha256": "2c6a9eb4214dd34a230324f30075517feef84f1780371eb9007db79975d7d08a",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/html-public-admission-v2-independent-20260827/authenticate.mjs",
+    "PRE"
+  ],
+  "scope": "authentication only; no author semantic code imported or executed"
+}

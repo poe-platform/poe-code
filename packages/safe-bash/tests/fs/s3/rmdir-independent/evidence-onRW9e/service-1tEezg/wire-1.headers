@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Accept-Ranges: bytes
+Content-Length: 0
+Location: /safe-bash-interop
+Server: MinIO
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+Vary: Origin
+Vary: Accept-Encoding
+X-Amz-Id-2: b15f25204a595b8914321e0e258db45d013fe9a07cd80645df86585e9aae6d2f
+X-Amz-Request-Id: 18CF9A1B95E63DA8
+X-Content-Type-Options: nosniff
+X-Ratelimit-Limit: 1507
+X-Ratelimit-Remaining: 1507
+X-Xss-Protection: 1; mode=block
+Date: Thu, 27 Aug 2026 07:50:20 GMT
+

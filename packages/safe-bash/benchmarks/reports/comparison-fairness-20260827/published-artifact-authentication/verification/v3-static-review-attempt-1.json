@@ -1,0 +1,279 @@
+{
+  "kind": "V3_OFFLINE_HASH_AND_SELECTION_REVIEW",
+  "startedAt": "2026-08-27T06:35:35.682Z",
+  "productExecutions": 0,
+  "authorModuleImports": 0,
+  "helperExecutions": 0,
+  "networkRequests": 0,
+  "before": {
+    "supervise-representative.mjs": {
+      "sha256": "33ab65aa4a08e4d25cd5fcf23e82b5c7385f47f14615efe845485e6cc90ff311",
+      "bytes": 7145,
+      "mode": 420
+    },
+    "representative.mjs": {
+      "sha256": "521c2a5ccc8818093c16641fa9b4f13b6323fda9df13a906b56beb320d1a86e5",
+      "bytes": 12488,
+      "mode": 420
+    },
+    "launch-seal.mjs": {
+      "sha256": "00bd30ae42cbdebdb28a1f3c7a258dfcb1fc906897c33037b934f6a8dddcec2b",
+      "bytes": 6115,
+      "mode": 420
+    },
+    "driver-lifecycle.mjs": {
+      "sha256": "0de8d75a0492f6bbc633301eb93a8b9a06abd79d7bfa961242d1224f255301b6",
+      "bytes": 6362,
+      "mode": 420
+    },
+    "observe-process.mjs": {
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "bytes": 1017,
+      "mode": 420
+    },
+    "observe-load.mjs": {
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "bytes": 1523,
+      "mode": 420
+    },
+    "representative-plan-v3.json": {
+      "sha256": "6fa2285192516a5969821645daed2f4bb2f1d48b1bd96f70108dd7a60e2193dc",
+      "bytes": 14791,
+      "mode": 420
+    },
+    "execution-closure.json": {
+      "sha256": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821",
+      "bytes": 1083717,
+      "mode": 420
+    },
+    "download.json": {
+      "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0",
+      "bytes": 9220,
+      "mode": 420
+    },
+    "package-comparison.json": {
+      "sha256": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e",
+      "bytes": 562114,
+      "mode": 420
+    }
+  },
+  "blockers": [],
+  "after": {
+    "supervise-representative.mjs": {
+      "sha256": "33ab65aa4a08e4d25cd5fcf23e82b5c7385f47f14615efe845485e6cc90ff311",
+      "bytes": 7145,
+      "mode": 420
+    },
+    "representative.mjs": {
+      "sha256": "521c2a5ccc8818093c16641fa9b4f13b6323fda9df13a906b56beb320d1a86e5",
+      "bytes": 12488,
+      "mode": 420
+    },
+    "launch-seal.mjs": {
+      "sha256": "00bd30ae42cbdebdb28a1f3c7a258dfcb1fc906897c33037b934f6a8dddcec2b",
+      "bytes": 6115,
+      "mode": 420
+    },
+    "driver-lifecycle.mjs": {
+      "sha256": "0de8d75a0492f6bbc633301eb93a8b9a06abd79d7bfa961242d1224f255301b6",
+      "bytes": 6362,
+      "mode": 420
+    },
+    "observe-process.mjs": {
+      "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+      "bytes": 1017,
+      "mode": 420
+    },
+    "observe-load.mjs": {
+      "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+      "bytes": 1523,
+      "mode": 420
+    },
+    "representative-plan-v3.json": {
+      "sha256": "6fa2285192516a5969821645daed2f4bb2f1d48b1bd96f70108dd7a60e2193dc",
+      "bytes": 14791,
+      "mode": 420
+    },
+    "execution-closure.json": {
+      "sha256": "8770fa09f562363a43f4d538965b4afc0663e09807466509ba4464b6e8568821",
+      "bytes": 1083717,
+      "mode": 420
+    },
+    "download.json": {
+      "sha256": "9d01415e5daec76721543de5a41597f42e158eea2dff6229bcd2d9be3ef937e0",
+      "bytes": 9220,
+      "mode": 420
+    },
+    "package-comparison.json": {
+      "sha256": "393d8d78a26e521594f1ac33953b9f6dd76a5dd936f82f4fe66de4af3829aa9e",
+      "bytes": 562114,
+      "mode": 420
+    }
+  },
+  "textPlanSha256": "e219c827254eaa68fed589e1766b658500a1a067f74932eb481f36baff9b3ce9",
+  "preservedHistoryEntries": 9,
+  "closure": {
+    "filesBeforeStaging": 3842,
+    "bytes": 135300567,
+    "authenticatedPackageFiles": 955,
+    "observerAdditions": [
+      {
+        "path": "auth-observer/observe-process.mjs",
+        "source": "observe-process.mjs",
+        "sha256": "7986a7e8730b7c022e97f42d6d5bb497cc46455304af617541e5fe0d41c5b10c",
+        "bytes": 1017,
+        "mode": 292
+      },
+      {
+        "path": "auth-observer/observe-load.mjs",
+        "source": "observe-load.mjs",
+        "sha256": "bb1d9e856b1a056f19deaad325568a3092354221ccc8731a25cea42eb94b9b9d",
+        "bytes": 1523,
+        "mode": 292
+      }
+    ],
+    "expectedFilesAfterStaging": 3844
+  },
+  "budget": {
+    "distinctIds": 7,
+    "resultBearingBashExecCalls": 8,
+    "freshEngineChildren": 8,
+    "coordinatorProcesses": 1,
+    "maxConcurrentOsProcesses": 3,
+    "warmups": 0,
+    "neutralityCalls": 0,
+    "transportControls": 0,
+    "inventoryConstructions": 0,
+    "oursInitializationCalls": 0,
+    "retries": 0,
+    "totalMs": 150000,
+    "startupMs": 15000,
+    "requestMs": 10000,
+    "guestMs": 5000,
+    "supervisorProcesses": 1,
+    "totalNodeProcesses": 10,
+    "coordinatorSoftMs": 140000,
+    "supervisorTermMs": 146000,
+    "supervisorKillMs": 148000,
+    "supervisorFinalizeMs": 150000,
+    "ipcDisconnectGraceMs": 2000,
+    "termGraceMs": 2000,
+    "killGraceMs": 2000,
+    "serverCloseMs": 2500
+  },
+  "rows": [
+    {
+      "sequence": 1,
+      "profile": "original",
+      "id": "command/echo/multiple",
+      "recipeSha256": "ed63640b5870c37b935aa9330981537aba5c09a9a916ceca5435e6438eef4bba",
+      "oldBaselineStatus": "pass"
+    },
+    {
+      "sequence": 2,
+      "profile": "original",
+      "id": "composition/archive-hash/archive-hash",
+      "recipeSha256": "b5618bdd26ea3e32c4fdf478581a8b3c684f7fd0b8aae2f4825222d0f7b5769c",
+      "oldBaselineStatus": "pass"
+    },
+    {
+      "sequence": 3,
+      "profile": "original",
+      "id": "command/cat/binary-stdin",
+      "recipeSha256": "232d53a341e8c9c97fdfe2f7028e8fff048bd61f38d156960d991480729f01fd",
+      "oldBaselineStatus": "fail"
+    },
+    {
+      "sequence": 4,
+      "profile": "original",
+      "id": "network/curl/get",
+      "recipeSha256": "4131258c9e582bb26ef0512c85e713c56c2bd773d7238f7611f4f526d478d42a",
+      "oldBaselineStatus": "fail"
+    },
+    {
+      "sequence": 5,
+      "profile": "original",
+      "id": "network/curl/output",
+      "recipeSha256": "3f4a00a19881d35ffba9a668f28fcf376e408c1e17e5b27f7ae15e44e43d9695",
+      "oldBaselineStatus": "pass"
+    },
+    {
+      "sequence": 6,
+      "profile": "original",
+      "id": "kernel/type/type",
+      "recipeSha256": "fd3481c4d97f57a6b3b63fd9a5afb5a35a47ed70e2c74888c79b6feb9678f6a7",
+      "oldBaselineStatus": "pass"
+    },
+    {
+      "sequence": 7,
+      "profile": "original",
+      "id": "command/patch/dry-run",
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "oldBaselineStatus": "fail"
+    },
+    {
+      "sequence": 8,
+      "profile": "scratch-aligned",
+      "id": "command/patch/dry-run",
+      "recipeSha256": "5af4a01664e02e3dd83853d2a9bee8f8f0162296793276989eb99c26633d2182",
+      "oldBaselineStatus": "fail"
+    }
+  ],
+  "launch": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "environment": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+      "HOME": "/private/tmp/safe-bash-published-auth-JydnQ4/home",
+      "TMPDIR": "/private/tmp/safe-bash-published-auth-JydnQ4/tmp",
+      "npm_config_cache": "/private/tmp/safe-bash-published-auth-JydnQ4/npm-cache",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  "authorChecks": {
+    "helperCases": [
+      {
+        "name": "B3 normal settlement, actual event counts and duplicate fencing",
+        "pass": true
+      },
+      {
+        "name": "B3 startup timeout cannot dispatch on late ready",
+        "pass": true
+      },
+      {
+        "name": "B3 request timeout retains late raw response without resettling",
+        "pass": true
+      },
+      {
+        "name": "B3 child error fences late ready",
+        "pass": true
+      },
+      {
+        "name": "B3 explicit closing and publication-abort fences",
+        "pass": true
+      },
+      {
+        "name": "B3 failed callback and synchronous send throw counted separately",
+        "pass": true
+      },
+      {
+        "name": "B1 bound byte hashes and exact two-addition membership",
+        "pass": true
+      },
+      {
+        "name": "B2 throwing cleanup and timed-out close still attempt evidence",
+        "pass": true
+      }
+    ],
+    "helperProductCalls": 0,
+    "finalSyntaxFiles": [
+      "supervise-representative.mjs",
+      "representative.mjs"
+    ],
+    "limitation": "Read retained author evidence; this verifier did not import or execute these helpers."
+  },
+  "result": "STATIC_V3_IDENTITIES_PASS_CONDITIONAL_REVIEW_NOT_ROOT_APPROVAL",
+  "finishedAt": "2026-08-27T06:35:36.259Z"
+}

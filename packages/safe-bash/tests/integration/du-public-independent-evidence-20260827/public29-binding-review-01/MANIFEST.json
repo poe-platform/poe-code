@@ -1,0 +1,16 @@
+{
+  "schema": "du29-binding-review-envelope/1",
+  "status": "PRE_EXECUTION_ROOT_MAPPING_HOLD",
+  "files": {
+    "REPORT.json": {
+      "sha256": "19aa50145210c3b89689b80e6db1d195eebd95c2bd279a18d603628a35798718",
+      "bytes": 4723
+    },
+    "HANDOFF.md": {
+      "sha256": "d08a42031bcfa598763164760f3cf9cd6cbf3edb730bd8ffc7655049ee95f391",
+      "bytes": 1252
+    }
+  },
+  "actualDuCases": 0,
+  "actualAttemptStarted": false
+}

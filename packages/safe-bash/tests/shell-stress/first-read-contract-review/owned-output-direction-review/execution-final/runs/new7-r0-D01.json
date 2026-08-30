@@ -1,0 +1,34 @@
+{
+  "label": "new7-r0-D01",
+  "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs",
+    "D01"
+  ],
+  "cwd": "/private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/candidate",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "TSX_DISABLE_CACHE": "1"
+  },
+  "startedAt": "2026-08-27T10:38:00.593Z",
+  "finishedAt": "2026-08-27T10:38:00.697Z",
+  "durationMs": 104.10149999999999,
+  "timeoutMs": 5000,
+  "maxBytes": 262144,
+  "pid": 5013,
+  "initialIdentity": "5013  4804  5013 Thu Aug 27 05:38:00 2026     /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict /private/tmp/safe-bash-owned-output-direction-review-final-replay-Uqm6aX/driver.mjs D01",
+  "status": 1,
+  "signal": null,
+  "signals": [],
+  "timedOut": false,
+  "oversized": false,
+  "closeEventObserved": true,
+  "pidAfterClose": "",
+  "groupExistsAfterClose": false,
+  "stdout": "{\"id\":\"D01\",\"passed\":false,\"records\":[{\"event\":\"stdout.closed\",\"stageAborted\":false,\"callerAborted\":false,\"writes\":0},{\"event\":\"pending.snapshot\",\"next\":2,\"active\":1,\"requests\":0},{\"event\":\"curl.result\",\"result\":{\"exitCode\":0,\"stdout\":\"\",\"stderr\":\"\"},\"statuses\":[141],\"reads\":5,\"requests\":0},{\"event\":\"cursor.accounting\",\"delivered\":[0,1,2,3],\"curlDelivered\":[0,1,2,3],\"committed\":\"\",\"sibling\":\"\",\"owner\":\"\",\"handbackApi\":false},{\"event\":\"network.before-teardown\",\"requests\":[],\"sockets\":0,\"borrowed\":{\"next\":7,\"returns\":0,\"cancel\":0,\"close\":0,\"active\":0,\"maxActive\":1,\"delivered\":[0,1,2,3]}},{\"event\":\"server.cleanup\",\"sockets\":0}],\"failures\":[{\"label\":\"exact positive sibling remainder\",\"actual\":\"\",\"expected\":\"sibling-after\\n\"},{\"label\":\"exact positive owner remainder\",\"actual\":\"\",\"expected\":\"owner-after\\n\"},{\"label\":\"no curl theft of suffix\",\"actual\":[0,1,2,3],\"expected\":[0,1]},{\"label\":\"prefix and late committed or public handback\",\"actual\":\"\",\"expected\":\"curl-prefix\\ncurl-late\\n\"}],\"unhandled\":[]}\n",
+  "stderr": ""
+}

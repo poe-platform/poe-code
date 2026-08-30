@@ -1,0 +1,3 @@
+{"event":"outer-capture-before-admission","at":1787988611372,"grant":"ROOT conditional actual strict-extension","presealCommit":"b4b1f490b217dadfe01b215d9295fc0c89ed1ce1","executionSeal":"2bc4c4a68efa8649b40f2421941f1c6ce9a6e33d8604487d5af0cded3d0e12c6"}
+{"event":"enrolled-dispatch-before-exec","roles":["exec-shell","outerPython","coordinator"],"at":1787988611375}
+{"event":"exec-tool-session-closed","session":87968,"code":1,"at":1787988689292,"terminalHash":"d11c0c453a76361b35dd33406a364a2fc0e1b3776fb333f9112eda6d2f854f2f"}

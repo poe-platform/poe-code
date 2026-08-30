@@ -1,0 +1,12 @@
+{"atMs":0.342,"kind":"group-admitted","pid":58825,"pgid":58825,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/session.mjs","--synthetic"],"host":{"cwd":"/private/tmp/safe-bash-execution-author-3bLn2Q","env":{"PATH":"/usr/bin:/bin","HOME":"/private/tmp/safe-bash-execution-author-3bLn2Q","TMPDIR":"/private/tmp/safe-bash-execution-author-3bLn2Q","LANG":"C","LC_ALL":"C","TZ":"UTC"}}}
+{"atMs":41.955,"id":"synthetic/binding-mutated","nonce":"4bfffd1c-400e-4d7d-8f53-a83bcc6edb23","kind":"engine-spawn","pid":58826,"argv":["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--experimental-import-meta-resolve","--max-old-space-size=128","/Users/kjopek/Workspace/safe-bash/benchmarks/reports/current-comparison-20260827/execution/engine-child.mjs","--synthetic"]}
+{"atMs":98,"kind":"sticky-failure","reason":"{\"name\":\"AssertionError\",\"message\":\"bound length changed\\n\\n7 !== 8\\n\",\"code\":\"ERR_ASSERTION\"}"}
+{"atMs":98.027,"id":"synthetic/binding-mutated","nonce":"4bfffd1c-400e-4d7d-8f53-a83bcc6edb23","kind":"failure","error":{"name":"AssertionError","message":"bound length changed\n\n7 !== 8\n","code":"ERR_ASSERTION"}}
+{"atMs":100.567,"kind":"sticky-failure","reason":"engine crash/forced exit"}
+{"atMs":100.57,"id":"synthetic/binding-mutated","nonce":"4bfffd1c-400e-4d7d-8f53-a83bcc6edb23","kind":"engine-exit","code":1,"signal":null}
+{"atMs":100.616,"id":"synthetic/binding-mutated","nonce":"4bfffd1c-400e-4d7d-8f53-a83bcc6edb23","kind":"engine-close","code":1,"signal":null}
+{"atMs":100.687,"kind":"signal","signal":"SIGTERM","pgid":58825}
+{"atMs":101.811,"kind":"sticky-failure","reason":"capture: AssertionError [ERR_ASSERTION]: partial frame at EOF"}
+{"atMs":101.882,"kind":"coordinator-exit","code":null,"signal":"SIGTERM"}
+{"atMs":101.882,"kind":"sticky-failure","reason":"coordinator crash/forced exit"}
+{"atMs":101.885,"kind":"coordinator-close","code":null,"signal":"SIGTERM"}

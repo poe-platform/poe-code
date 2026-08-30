@@ -1,0 +1,12 @@
+{"at":"2026-08-27T09:28:23.616Z","kind":"case-start","id":"F36"}
+{"at":"2026-08-27T09:28:23.617Z","kind":"execute-start","invocation":1,"args":["--mime","/denied","/picture"],"signal":{"present":true,"signalId":1,"aborted":false}}
+{"at":"2026-08-27T09:28:23.618Z","kind":"fs-call","invocation":1,"method":"lstat","path":"/denied","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T09:28:23.618Z","kind":"sink-write","invocation":1,"stream":"stderr","bytes":58,"base64":"ZmlsZTogL2RlbmllZDogRUFDQ0VTOiBwZXJtaXNzaW9uIGRlbmllZCwgbHN0YXQgJy9kZW5pZWQnCg=="}
+{"at":"2026-08-27T09:28:23.618Z","kind":"sink-resolved","invocation":1,"stream":"stderr"}
+{"at":"2026-08-27T09:28:23.618Z","kind":"fs-call","invocation":1,"method":"lstat","path":"/picture","options":{"signal":{"present":true,"signalId":2,"aborted":false}}}
+{"at":"2026-08-27T09:28:23.619Z","kind":"fs-call","invocation":1,"method":"readStream","path":"/picture","options":{"start":0,"endExclusive":65536,"chunkSize":16384,"signal":{"present":true,"signalId":3,"aborted":false}}}
+{"at":"2026-08-27T09:28:23.619Z","kind":"signal-abort","signalId":3,"reason":{"name":"FsError","message":"EPIPE: file prefix inspection ended","code":"EPIPE","stack":"FsError: EPIPE: file prefix inspection ended\n    at inspect (file:///private/tmp/safe-bash-file-final-replay.y7kWSKhw/candidate/dist/commands/file/index.js:133:30)\n    at async Object.execute (file:///private/tmp/safe-bash-file-final-replay.y7kWSKhw/candidate/dist/commands/file/index.js:172:36)\n    at async Object.execute (file:///private/tmp/safe-bash-file-final-replay.y7kWSKhw/child.mjs:60:22)"}}
+{"at":"2026-08-27T09:28:23.619Z","kind":"sink-write","invocation":1,"stream":"stdout","bytes":36,"base64":"L3BpY3R1cmU6IGltYWdlL3BuZzsgY2hhcnNldD1iaW5hcnkK"}
+{"at":"2026-08-27T09:28:23.619Z","kind":"sink-resolved","invocation":1,"stream":"stdout"}
+{"at":"2026-08-27T09:28:23.619Z","kind":"execute-result","invocation":1,"result":{"exitCode":1}}
+{"at":"2026-08-27T09:28:23.620Z","kind":"case-finished","id":"F36","semanticStatus":"pass","nativeStatus":"not-run"}

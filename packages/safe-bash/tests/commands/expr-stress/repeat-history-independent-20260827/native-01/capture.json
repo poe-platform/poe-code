@@ -1,0 +1,1024 @@
+{
+  "started": "2026-08-27T19:28:16.110Z",
+  "casesSha256": "8e2017cd35508eab72be745ab82f9354109e6bcd5932bab192fe525b75c1982d",
+  "regressionsSha256": "201ee3f9a415f1e4792fd2331c40342dc3c63808933be166dc1583691a6c9e2f",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "LANGUAGE": "C",
+    "TZ": "UTC"
+  },
+  "profiles": {
+    "gnu": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "profile": "GNU 9.7 Darwin, not GNU/Linux",
+      "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr"
+    },
+    "apple": {
+      "path": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "profile": "Apple expr Darwin C, separate comparator",
+      "filename": "/bin/expr"
+    }
+  },
+  "anchorsBefore": [
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/original-eight.json",
+      "sha256": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477",
+      "actual": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/REPORT.md",
+      "sha256": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae",
+      "actual": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/summary.json",
+      "sha256": "f48b1206f0dc634d767c5eaeb36b575023d7a31e94207793d0a419f7fb981a73",
+      "actual": "f48b1206f0dc634d767c5eaeb36b575023d7a31e94207793d0a419f7fb981a73"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-capture-review/manifest.json",
+      "sha256": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423",
+      "actual": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423"
+    },
+    {
+      "path": "tests/commands/expr-stress/c-profile-gap-review/frozen/CASE_MATRIX.json",
+      "sha256": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2",
+      "actual": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/REPORT.md",
+      "sha256": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf",
+      "actual": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/CASES.json",
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0",
+      "actual": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/capture.json",
+      "sha256": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d",
+      "actual": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d"
+    }
+  ],
+  "rows": [
+    {
+      "id": "original/empty",
+      "subject": "",
+      "pattern": "\\(a*\\)*\\1",
+      "gnu": {
+        "argv": [
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "original/a",
+      "subject": "a",
+      "pattern": "\\(a*\\)*\\1",
+      "gnu": {
+        "argv": [
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "a",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "original/aa",
+      "subject": "aa",
+      "pattern": "\\(a*\\)*\\1",
+      "gnu": {
+        "argv": [
+          "aa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "original/aaa",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*\\1",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "original/no-reference",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "original/not-repeated",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\1",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "original/nonnullable",
+      "subject": "aaa",
+      "pattern": "\\(a\\)*\\1",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "original/mandatory-empty",
+      "subject": "",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "gnu": {
+        "argv": [
+          "",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "history-four",
+      "subject": "aaaa",
+      "pattern": "\\(a*\\)*\\1",
+      "gnu": {
+        "argv": [
+          "aaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "61610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "history-six",
+      "subject": "aaaaaa",
+      "pattern": "\\(a*\\)*\\1",
+      "gnu": {
+        "argv": [
+          "aaaaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaaaaa",
+          ":",
+          "\\(a*\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "mandatory-nonempty",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}\\1",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "mandatory-no-reference",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "bounded-history",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{1,3\\}\\1",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{1,3\\}\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{1,3\\}\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "alternation-longest",
+      "subject": "aaa",
+      "pattern": "\\(a\\|aa\\)*",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\|aa\\)*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\|aa\\)*"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "300a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "nested-nullable",
+      "subject": "aaaa",
+      "pattern": "\\(\\(a*\\)*\\)*\\2",
+      "gnu": {
+        "argv": [
+          "aaaa",
+          ":",
+          "\\(\\(a*\\)*\\)*\\2"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaaa",
+          ":",
+          "\\(\\(a*\\)*\\)*\\2"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "6161610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "nested-reference",
+      "subject": "aaaa",
+      "pattern": "\\(\\(a*\\)\\2\\)*\\1",
+      "gnu": {
+        "argv": [
+          "aaaa",
+          ":",
+          "\\(\\(a*\\)\\2\\)*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "616161610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaaa",
+          ":",
+          "\\(\\(a*\\)\\2\\)*\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "descendant-retention",
+      "subject": "abaab",
+      "pattern": "\\(a\\(b\\)*\\)*\\2",
+      "gnu": {
+        "argv": [
+          "abaab",
+          ":",
+          "\\(a\\(b\\)*\\)*\\2"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "abaab",
+          ":",
+          "\\(a\\(b\\)*\\)*\\2"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "nested-mandatory-empty",
+      "subject": "",
+      "pattern": "\\(\\(a*\\)\\{2\\}\\)\\{2\\}\\2",
+      "gnu": {
+        "argv": [
+          "",
+          ":",
+          "\\(\\(a*\\)\\{2\\}\\)\\{2\\}\\2"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "",
+          ":",
+          "\\(\\(a*\\)\\{2\\}\\)\\{2\\}\\2"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "optional-child-empty",
+      "subject": "aaa",
+      "pattern": "\\(a\\(b*\\)\\)*\\2",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\(b*\\)\\)*\\2"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\(b*\\)\\)*\\2"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "branch-isolation-forward",
+      "subject": "aa",
+      "pattern": "\\(a\\|ab\\)\\1",
+      "gnu": {
+        "argv": [
+          "aa",
+          ":",
+          "\\(a\\|ab\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aa",
+          ":",
+          "\\(a\\|ab\\)\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "branch-isolation-reversed",
+      "subject": "aa",
+      "pattern": "\\(ab\\|a\\)\\1",
+      "gnu": {
+        "argv": [
+          "aa",
+          ":",
+          "\\(ab\\|a\\)\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aa",
+          ":",
+          "\\(ab\\|a\\)\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "branch-absent-reference",
+      "subject": "bb",
+      "pattern": "\\(a\\)\\|b\\1",
+      "gnu": {
+        "argv": [
+          "bb",
+          ":",
+          "\\(a\\)\\|b\\1"
+        ],
+        "status": 2,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "",
+        "stderrHex": "657870723a20496e76616c6964206261636b207265666572656e63650a"
+      },
+      "apple": {
+        "argv": [
+          "bb",
+          ":",
+          "\\(a\\)\\|b\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "nonparticipation",
+      "subject": "",
+      "pattern": "\\(a\\)\\{0\\}\\1",
+      "gnu": {
+        "argv": [
+          "",
+          ":",
+          "\\(a\\)\\{0\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "",
+          ":",
+          "\\(a\\)\\{0\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "required-three-empty",
+      "subject": "",
+      "pattern": "\\(a*\\)\\{3\\}\\1",
+      "gnu": {
+        "argv": [
+          "",
+          ":",
+          "\\(a*\\)\\{3\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "",
+          ":",
+          "\\(a*\\)\\{3\\}\\1"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "target-end-anchor",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)*\\1$",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1$"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)*\\1$"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "target-suffix",
+      "subject": "aaab",
+      "pattern": "\\(a*\\)*\\1b",
+      "gnu": {
+        "argv": [
+          "aaab",
+          ":",
+          "\\(a*\\)*\\1b"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaab",
+          ":",
+          "\\(a*\\)*\\1b"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "byte-span",
+      "subject": "éé",
+      "pattern": "\\(.\\).*\\1",
+      "gnu": {
+        "argv": [
+          "éé",
+          ":",
+          "\\(.\\).*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "c30a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "éé",
+          ":",
+          "\\(.\\).*\\1"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "c30a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    },
+    {
+      "id": "historical/alternation-longest",
+      "subject": "aaa",
+      "pattern": "\\(a\\|aa\\)a*",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\|aa\\)a*"
+        ],
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "610a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a\\|aa\\)a*"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": false
+    },
+    {
+      "id": "historical/mandatory-no-reference",
+      "subject": "aaa",
+      "pattern": "\\(a*\\)\\{2\\}",
+      "gnu": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "apple": {
+        "argv": [
+          "aaa",
+          ":",
+          "\\(a*\\)\\{2\\}"
+        ],
+        "status": 1,
+        "signal": null,
+        "error": null,
+        "stdoutHex": "0a",
+        "stderrHex": ""
+      },
+      "profilesAgree": true
+    }
+  ],
+  "profilesAfter": {
+    "gnu": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "sha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c",
+      "profile": "GNU 9.7 Darwin, not GNU/Linux",
+      "filename": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr"
+    },
+    "apple": {
+      "path": "/bin/expr",
+      "sha256": "584ea6af503bdb3cc647c128a16a1aa9d22d3eeab136671f746a209bfef7db9f",
+      "profile": "Apple expr Darwin C, separate comparator",
+      "filename": "/bin/expr"
+    }
+  },
+  "anchorsAfter": [
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/original-eight.json",
+      "sha256": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477",
+      "actual": "bde325d00025d2df3a31b5fcb43f049359c5779def8d3a3a5226d68a3fa77477"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/REPORT.md",
+      "sha256": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae",
+      "actual": "4e43292153b3200fdfdc604c51490bdd105d58e6021792bfad5dcf30d5848dae"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-design-review/capture-final/summary.json",
+      "sha256": "f48b1206f0dc634d767c5eaeb36b575023d7a31e94207793d0a419f7fb981a73",
+      "actual": "f48b1206f0dc634d767c5eaeb36b575023d7a31e94207793d0a419f7fb981a73"
+    },
+    {
+      "path": "tests/commands/expr-stress/nullable-capture-review/manifest.json",
+      "sha256": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423",
+      "actual": "adb8a9dfc589846c194eae73f0c6580f76d5944ff7237b1b75125b54e3e48423"
+    },
+    {
+      "path": "tests/commands/expr-stress/c-profile-gap-review/frozen/CASE_MATRIX.json",
+      "sha256": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2",
+      "actual": "ae334dcecc459d59e89d0183067b828ae4848ef48db300391dbe0971ec6046d2"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/REPORT.md",
+      "sha256": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf",
+      "actual": "307a8a377a28c9c611ff73e8ad4b5d84c6eb253a12782cdf733e39cfc7fe33cf"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/CASES.json",
+      "sha256": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0",
+      "actual": "b65207be5ea2b3fd5f6fe9dd33f0f9f21be538d8d4fb060df96cf997a67071d0"
+    },
+    {
+      "path": "tests/commands/expr-stress/posix-semantics-independent-20260827/capture.json",
+      "sha256": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d",
+      "actual": "8cb70c60aedad21a5d5ec5350429afc0889e9fdf407d9e54de2edae92185837d"
+    }
+  ],
+  "finished": "2026-08-27T19:28:16.405Z",
+  "cleanup": {
+    "activeOwnedChildren": 0,
+    "method": "Every native spawnSync settles before continuing; each invocation has a 2s SIGKILL deadline and 64KiB output bound."
+  },
+  "counts": {
+    "cases": 29,
+    "nativeObservations": 58,
+    "agreements": 15,
+    "differences": [
+      "original/aaa",
+      "history-four",
+      "history-six",
+      "mandatory-nonempty",
+      "alternation-longest",
+      "nested-nullable",
+      "nested-reference",
+      "descendant-retention",
+      "branch-isolation-forward",
+      "branch-isolation-reversed",
+      "branch-absent-reference",
+      "target-end-anchor",
+      "target-suffix",
+      "historical/alternation-longest"
+    ],
+    "candidateExecutions": 0,
+    "candidateAcceptances": 0
+  }
+}

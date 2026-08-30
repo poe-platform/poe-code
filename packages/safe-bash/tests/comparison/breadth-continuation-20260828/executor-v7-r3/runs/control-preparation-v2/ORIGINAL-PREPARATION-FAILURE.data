@@ -1,0 +1,19 @@
+Command: /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --unhandled-rejections=strict --max-old-space-size=256 tests/comparison/breadth-continuation-20260828/executor-v7-r3/prepare-controls.mjs
+Exit code: 1
+file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:9
+const fail = code => { throw Object.assign(new Error(code), { code }); };
+                                           ^
+
+Error: SHARED_EVIDENCE_BUDGET_REQUIRED
+    at fail (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:9:44)
+    at createStore (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:71:16)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/prepare-controls.mjs:16:15
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  code: 'SHARED_EVIDENCE_BUDGET_REQUIRED'
+}
+
+Node.js v22.22.2
+
+Qualification: retained tool output, not invented raw process receipt. Eight harmless fixture trees were created before this store-construction failure. No worker, metadata stub, real engine, real authority or control case executed. Original trees remain untouched; no score exists to rescore.

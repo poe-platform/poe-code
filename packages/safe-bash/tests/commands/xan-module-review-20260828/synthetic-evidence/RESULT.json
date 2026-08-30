@@ -1,0 +1,602 @@
+{
+  "classification": "SYNTHETIC_QUALIFICATION_ONLY",
+  "started": "2026-08-28T04:53:57.428Z",
+  "ended": "2026-08-28T04:54:05.216Z",
+  "recipeCommit": "9c8855b806bd963ccc1f1209e454ffc582b16e1b",
+  "results": [
+    {
+      "id": "bindings",
+      "families": [
+        "F01",
+        "F05",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "candidate-absent-before-load",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "candidate-incomplete-before-load",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "byte-typeguard",
+      "families": [
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "all-frozen-chunk-schedules",
+      "families": [
+        "F02"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "borrowed-copy-finalization",
+      "families": [
+        "F03",
+        "F07"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "owned-finalizer-mutation",
+      "families": [
+        "F03",
+        "F07"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "poison-acquisition",
+      "families": [
+        "F04",
+        "F06"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "poison-metadata",
+      "families": [
+        "F06",
+        "F10"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "gated-backpressure",
+      "families": [
+        "F09"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cleanup-register-before-admit",
+      "families": [
+        "F08"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cleanup-late-acquire-overlap",
+      "families": [
+        "F08"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cleanup-failure-drains-sibling",
+      "families": [
+        "F08"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "caller-errno-identity",
+      "families": [
+        "F08",
+        "F10"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "wx-race-preserves-creator",
+      "families": [
+        "F10"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "wx-unsupported-no-fallback",
+      "families": [
+        "F10"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "alias-identity",
+      "families": [
+        "F10"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "stream-fallback-same-flags",
+      "families": [
+        "F09",
+        "F10"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "partial-publication-no-rollback",
+      "families": [
+        "F09"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "csv-cr-bom-quote-vectors",
+      "families": [
+        "F02",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "csv-invalid-raw-cr",
+      "families": [
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxArgs",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxArgumentBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxInputFiles",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxInputBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxChunks",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxChunkBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxRecordBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxCellBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxColumns",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxRecords",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxSelectorBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxSelectorNodes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxSelectorDepth",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxSelectedColumns",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxLastRows",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxWork",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxOutputBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cap-maxRetainedBytes",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "fallback-old-new-capacity",
+      "families": [
+        "F09",
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "ordinary-failure-aggregation",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "cleanup-fatal-stops-dependent",
+      "families": [
+        "F08"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "integrity-fatal-stops-dependent",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "executor-receipt-before-assertion",
+      "families": [
+        "F01",
+        "F07"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "semantic-no-substring-waiver",
+      "families": [
+        "F05",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "installed-physically-moved",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-generic-module-executor",
+      "families": [
+        "F01",
+        "F07"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-valid",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-denyload",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-sourcefallback",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-builtin",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-ambient",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-eval",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-ordinary",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-overflow",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "SOURCE-timeout",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-generic-module-executor",
+      "families": [
+        "F01",
+        "F07"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-valid",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-denyload",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-sourcefallback",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-builtin",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-ambient",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-eval",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-ordinary",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-overflow",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "INSTALLED_MOVED-timeout",
+      "families": [
+        "F01",
+        "F08",
+        "F12"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "finite-trace-over-four-mib",
+      "families": [
+        "F11"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "append-proof-integrity",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "mode-integrity",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "traversal-rejection",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "symlink-rejection",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "hash-diagnostic-identity",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "missing-input-rejection",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    },
+    {
+      "id": "empty-directory-append-rejection",
+      "families": [
+        "F01"
+      ],
+      "status": "QUALIFIED_HELPER_ONLY"
+    }
+  ],
+  "planned": 74,
+  "unrun": [],
+  "qualified": 74,
+  "failed": 0,
+  "interrupted": false,
+  "familiesWithPartialHelperControls": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10",
+    "F11",
+    "F12"
+  ],
+  "genericCapCountersQualified": 18,
+  "product": 0,
+  "implementationInspection": 0,
+  "nativeOracle": 0,
+  "defaultScaleProductCaps": 0,
+  "publicSettlementProof": false,
+  "noRetry": true
+}

@@ -1,0 +1,11 @@
+file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/read-review.mjs:17
+if(git('review-type',['cat-file','-t',commit]).toString('utf8')!=='commit\n')throw Error('REVIEW_TYPE');
+                                                                                   ^
+
+Error: REVIEW_TYPE
+    at file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/activation-v1/read-review.mjs:17:84
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2

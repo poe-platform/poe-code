@@ -1,0 +1,1499 @@
+{
+  "schema": "node-independent-candidate-binding-preparation-v1",
+  "source": "c10d338331d56e1f293970010c7015fa602b6a8d",
+  "authorPreseal": "ee150ba1d2c9165118310d78de8d6453020b9271",
+  "originalMatrix": {
+    "spec": "797aa13996f04a332f37a84888d151f2352efee9:tests/commands/node-independent-20260829/preparation-v2/MATRIX.json",
+    "sha256": "823384752a1d7d48b457875744129fd9910591d38fecad1d649a2ef7150c34e3"
+  },
+  "baseline": {
+    "derived": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "acceptedInputs": 278,
+    "fullPackageMembers": 898,
+    "fullPackageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+    "proof": "inherited preparation-v2; not freshly rebuilt/replayed"
+  },
+  "sourceComposition": {
+    "onlyAdditions": [
+      {
+        "path": "src/commands/node/README.md",
+        "mode": "100644",
+        "oid": "f0699874752420545c973d5075a638b8a82d6392",
+        "sha256": "9db0ad82fedbb1c03319027dce9053e139a993080b91be34bc1f78b6a60f38f3",
+        "bytes": 4832
+      },
+      {
+        "path": "src/commands/node/admission.ts",
+        "mode": "100644",
+        "oid": "4bf32489d6367538af1c2427d4b8da24f500991f",
+        "sha256": "946dc675c8423a809cc7b27f9e1364a83f4c9a6b15687a165e66b9eabc238a31",
+        "bytes": 15660
+      },
+      {
+        "path": "src/commands/node/channel.ts",
+        "mode": "100644",
+        "oid": "48bf256cf0f6da57f2c31ccaeb80d59c7a2e8cc4",
+        "sha256": "2e9badd57919fc8ac78f2e2bea11768d2ce2c473ac20571f2ef7876aaa69e3b4",
+        "bytes": 3877
+      },
+      {
+        "path": "src/commands/node/cli.ts",
+        "mode": "100644",
+        "oid": "5f13fd04b6dcbcf658c370c34b440fd864ed6001",
+        "sha256": "989ccbf7e5d44660ef1b842501c0bc4529de244d8415be952bc536eb5e4ac45d",
+        "bytes": 2797
+      },
+      {
+        "path": "src/commands/node/diagnostics.ts",
+        "mode": "100644",
+        "oid": "455f946434ca7adb39e5bebac630854e138eb6a0",
+        "sha256": "db2a5229f32a10cdea69c39ca00669d03f20c17648797739ed896224d3f65a15",
+        "bytes": 2034
+      },
+      {
+        "path": "src/commands/node/host.ts",
+        "mode": "100644",
+        "oid": "0de6f7fe1de0d6953a1de13d5c155cd1fdfc1589",
+        "sha256": "13b00c8cd62b13479176932a30dbbd5176b58bea1baf76e87c2e6eed5e159db6",
+        "bytes": 17891
+      },
+      {
+        "path": "src/commands/node/index.ts",
+        "mode": "100644",
+        "oid": "102dddceb0c997a2cd9b0f15018c724749a8a1f6",
+        "sha256": "edbb91bcd6928f0358c299f5c66a85aa76d5c23b41953b5ab271c7d04daa366d",
+        "bytes": 7887
+      },
+      {
+        "path": "src/commands/node/lifecycle.ts",
+        "mode": "100644",
+        "oid": "f1e3f12a556e371e07fec714518a7573f5c36f14",
+        "sha256": "98534d1c15ed1dd61b87167f55560588092fcc67fc35a1e36899a116b44250fb",
+        "bytes": 8106
+      },
+      {
+        "path": "src/commands/node/lower.ts",
+        "mode": "100644",
+        "oid": "9790bcda552a84806e1b44c7fe9de87c7eb02a1a",
+        "sha256": "8b9572ff30e286d18be5f60d18ef4ab0e54a4dbbf3335419508d6f2929ba96f2",
+        "bytes": 15050
+      },
+      {
+        "path": "src/commands/node/program.ts",
+        "mode": "100644",
+        "oid": "c21ad0637acaaee25e5cb9c019ec4b75b76de353",
+        "sha256": "dfc91dbda976f7b2b8a7a5857525e15b8b031a9fa72e826b34aeb9baeb2f3831",
+        "bytes": 13151
+      },
+      {
+        "path": "src/commands/node/rules.ts",
+        "mode": "100644",
+        "oid": "9b4f37f72420bae2df60f4866677a0bc5fac7d3b",
+        "sha256": "ec5ac3cf6fa083ac1a800d4af8ef1d22d1ce0b30cda69ced9babdf6a9ef0631e",
+        "bytes": 9963
+      },
+      {
+        "path": "src/commands/node/types.ts",
+        "mode": "100644",
+        "oid": "ed236673232fb52a69051772a2f112554b94f50a",
+        "sha256": "2c1ec0caa22d9dd580cae47c0de7549e9a591083c167a55a5f3ee62ec6160bbb",
+        "bytes": 4197
+      },
+      {
+        "path": "src/commands/node/values.ts",
+        "mode": "100644",
+        "oid": "70653a8e5622ab16b4bbaf2c73f0dc4dcf7a7761",
+        "sha256": "5b5a13fb321da4731adee82f8e3536092f0ec09525be1d09e0109a9ed12f4677",
+        "bytes": 5778
+      },
+      {
+        "path": "src/commands/node/worker-main.ts",
+        "mode": "100644",
+        "oid": "428847a00026b903c9eeb41442860a3e9dd6dac1",
+        "sha256": "0bb959239ce64246ad4bb1f9b3aa29c7b912a69bc4a9570fca22bda7cf435d25",
+        "bytes": 8500
+      },
+      {
+        "path": "src/commands/node/worker-provider.ts",
+        "mode": "100644",
+        "oid": "a27a5c1bec3acd0b9da76e0ed005602d412a0cff",
+        "sha256": "5a57002fb148953d2b5f5da002d1acd3ec333b7e67ccdde4ccc771d5a55548fc",
+        "bytes": 16680
+      },
+      {
+        "path": "src/commands/node/worker-types.ts",
+        "mode": "100644",
+        "oid": "005b64d8c40ed8e1652d02961c18ca22e04d98a5",
+        "sha256": "40d3c97783a323e9c29d984d1c9300f7c3ff060148b2038a45c1af2830c72aa0",
+        "bytes": 1190
+      }
+    ],
+    "totalSelectedInputs": 294,
+    "pendingOtherCoreChangesExcluded": true
+  },
+  "candidateArtifacts": {
+    "fullPackageSha256": null,
+    "observedPackageMembers": null,
+    "expectedMembers": 958,
+    "strictBuild": "NOT_RUN",
+    "actualLoadManifest": null,
+    "actualExecutionGrant": null
+  },
+  "api": {
+    "command": "createNodeCommand",
+    "provider": "createNodeWorkerProvider",
+    "profile": "NP1-CJS-WRQ-L-SYNC-1",
+    "abi": "NP1-ENGINE-PUBLIC-SYNC-1",
+    "internalEntry": "dist/commands/node/index.js",
+    "rootExport": false,
+    "defaultCommands": 79,
+    "services": [
+      "signal",
+      "request",
+      "delivered",
+      "reserve",
+      "cutoff",
+      "fail"
+    ],
+    "callbacks": [
+      "start",
+      "cancel",
+      "retire"
+    ],
+    "authority": "seven boolean grants over supplied VFS namespace, not perpath allowlists"
+  },
+  "semantics": [
+    {
+      "id": "N01",
+      "original": {
+        "id": "N01",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "edit",
+        "arrange": "/work/main.cjs contains edit; explicit sourceRead/dataRead/dataWrite/stdout authority in configured VFS",
+        "expect": "exit0; stdout 3\\n; result.json exactly {\"count\":3}; input unchanged; no external IO",
+        "negative": "omit dataWrite: result absent; root or native fallback cannot rescue",
+        "bindings": [
+          "B01",
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "2323e41cf885c1f2ee9dceeb0bef5aee1559292a4265937b46efbd307eb26802",
+      "anchors": [
+        "src/commands/node/index.ts:53",
+        "src/commands/node/host.ts:122",
+        "src/commands/node/program.ts:70",
+        "src/commands/node/worker-main.ts:36"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N02",
+      "original": {
+        "id": "N02",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "cwd",
+        "arrange": "eval at cwd /work with an explicitly exported fixture env and literal argument tail",
+        "expect": "exit0, stdout /work\\n; parent env/cwd unaffected; no source-file or stdin acquisition",
+        "negative": "provider substitutes host cwd/env or rewrites argv => reject observation",
+        "bindings": [
+          "B01",
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "82683dc22a9f41360123ee8298b221a5246d1395019db30756808dc0d09a6357",
+      "anchors": [
+        "src/commands/node/cli.ts:1",
+        "src/commands/node/index.ts:54",
+        "src/commands/node/program.ts:1",
+        "src/commands/node/lower.ts:151"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N03",
+      "original": {
+        "id": "N03",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "primitive-p expressions: undefined, null, false, 0, -0, \"é\"; separate {} and function value controls",
+        "expect": "primitive exact stdout: undefined\\n/null\\n/false\\n/0\\n/0\\n/é\\n; objects/functions refuse without invoking coercion",
+        "negative": "object with user coercion must not cause a write or output; no eval host fallback",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "cf096229105375b8fdd3df0d9ff265b25b9bb3ebd74b4bc1ed938e90f263bdc9",
+      "anchors": [
+        "src/commands/node/cli.ts:1",
+        "src/commands/node/program.ts:1",
+        "src/commands/node/worker-main.ts:44"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N04",
+      "original": {
+        "id": "N04",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "stdinSource",
+        "arrange": "stdin source bytes are exactly stdinSource; source+stdinRead+stdout authorized",
+        "expect": "exit0 stdout 0\\n after source EOF; no replay of script bytes as data stdin; producer return rules traced separately",
+        "negative": "replay source or pull a second source iterator => fail",
+        "bindings": [
+          "B02",
+          "B06"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "29c103eb700e17d91b786eb6a2df7d2ac7328133d1b08b55f632f6b98c2d5cdb",
+      "anchors": [
+        "src/commands/node/host.ts:94",
+        "src/commands/node/host.ts:122"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N05",
+      "original": {
+        "id": "N05",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "argv each: --inspect; -e with missing value; -p with missing value; --input-type=module",
+        "expect": "nonzero usage/profile refusal; zero builtin stdin next, zero source FS calls, zero provider start",
+        "negative": "poison stdin next/source read/start each raises distinct sentinel to prove no acquisition",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "dd345e09a784384aeb01749523bbc92f145a27a5b4313228c6416e00b825112e",
+      "anchors": [
+        "src/commands/node/cli.ts:1",
+        "src/commands/node/index.ts:40"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N06",
+      "original": {
+        "id": "N06",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "entry operands /work/main.js, /work/main.mjs, /work/main, /work/main.cjs/",
+        "expect": "refuse before source/stat/package lookup and guest start, no outputs except bounded diagnostic",
+        "negative": "place valid text at rejected suffix to kill acceptance-by-content",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "62b7d523bd3a1bd91b4608395a160c704b8a48de336598dddaa4f466f3a34ae0",
+      "anchors": [
+        "src/commands/node/cli.ts:1",
+        "src/commands/node/index.ts:63"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N07",
+      "original": {
+        "id": "N07",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "authorized /work/main.cjs is directory; separate missing and EACCES observations",
+        "expect": "preserve actual typed source error classification; no guest entry; no fabricated success or package search",
+        "negative": "provider returns directory-like source without authorized observation => reject",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "4a8f11e6e1ece73e8e5e9e10df49b5a9b558c1a99a73de480a5e9486a364890d",
+      "anchors": [
+        "src/commands/node/host.ts:122",
+        "src/commands/node/lifecycle.ts:110"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N08",
+      "original": {
+        "id": "N08",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "syntax",
+        "arrange": "eval entire malformed source; stdout/sources/write counters enabled",
+        "expect": "nonzero; zero guest-visible effects and no must-not-print; whole-source preflight before entry",
+        "negative": "delete final syntax check or run prefix before parse => fail",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "4e7f054041107506968fec5db299871fe308372458031f4df09da40443897f3a",
+      "anchors": [
+        "src/commands/node/admission.ts:1",
+        "src/commands/node/index.ts:69",
+        "src/commands/node/lower.ts:169"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N09",
+      "original": {
+        "id": "N09",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "literalDenied",
+        "arrange": "literalDenied and computedDenied run separately with stdout grant",
+        "expect": "literal unsupported target refuses before must-not-print; computed target may preserve before\\n then refuse at call; no subprocess",
+        "negative": "substring scan wrongly rejects a benign quoted child_process string; whitelist bypass must not import host",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "07bf9295e38893e3ef0c8ae7525e770444266e1635f604ec9ecfe242c8277488",
+      "anchors": [
+        "src/commands/node/admission.ts:1",
+        "src/commands/node/program.ts:1",
+        "src/commands/node/host.ts:144"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N10",
+      "original": {
+        "id": "N10",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "separate literal sources: import x from \"x\"; await 1; Function(\"return 1\")(); eval(\"1\"); require(\"./other.cjs\"); require(\"fs/promises\"); process.exit(0)",
+        "expect": "explicit unsupported profile; no packages, ESM/TLA/async-fs/exit/native fallback; no forbidden operation effects",
+        "negative": "unsupported branches not counted as useful positive commands",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "16bf58562f3a28f62b5231967d8fd3a54c06265ff63e93172d9902a0a1fcc54a",
+      "anchors": [
+        "src/commands/node/admission.ts:1",
+        "src/commands/node/lower.ts:10",
+        "src/commands/node/rules.ts:36"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N11",
+      "original": {
+        "id": "N11",
+        "roles": [
+          "E"
+        ],
+        "fixture": "promiseConstructor",
+        "arrange": "execute the preserved constructor-negative fixture",
+        "expect": "non-success/refusal in restricted profile; no constructor or polyfill parity claim",
+        "negative": "do not change source to Promise.race and call old constructor a pass",
+        "bindings": [
+          "B02"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "7ac549c568acbbe38e9c81a06e856887066f491c701df7fc22e7d92d1b8d3ed6",
+      "anchors": [
+        "src/commands/node/admission.ts:1",
+        "src/commands/node/program.ts:1"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N12",
+      "original": {
+        "id": "N12",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "pendingStatic",
+        "arrange": "unawaited supported Promise.race([]) then entry-return print",
+        "expect": "exit0 exact entry-return\\n, normal L cutoff and actual ownership retirement; pending race is NOT proven settled",
+        "negative": "deadline is a different nonpass, not accepted alternate success",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "149be97e3971814cc0e72beb0c18675f73252dd0fa6e0216e93f3c459f51ec69",
+      "anchors": [
+        "src/commands/node/program.ts:1",
+        "src/commands/node/worker-main.ts:40",
+        "src/commands/node/worker-provider.ts:132"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N13",
+      "original": {
+        "id": "N13",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "deniedRead",
+        "arrange": "only stdout authority; data grants absent; repeat deniedWrite separately",
+        "expect": "each catch prints ERR_VNODE_DENIED\\n with exit0; no data file read/write; denied.txt absent",
+        "negative": "sourceRead alone must not imply dataRead; permission mode cannot grant missing authority",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "fb94aa72a8e9667f31015abeb67ccd76a399627675f4f65aa1e54308241d2e0e",
+      "anchors": [
+        "src/commands/node/values.ts:1",
+        "src/commands/node/host.ts:141"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N14",
+      "original": {
+        "id": "N14",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "readText",
+        "arrange": "finite authorized namespace /data; allowed read; independent write-disabled and out-of-namespace controls",
+        "expect": "allowed bytes exactly Aé😀\\n plus console LF; denied operations no IO/effects; permissions do not expand grants",
+        "negative": "legitimate alias/symlink into outside backing cannot pass a lexical prefix test",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "2205d2066778beb6e69bdcb335bd08aa75108b8422a337e9433e2f361743ddcb",
+      "anchors": [
+        "src/commands/node/host.ts:82",
+        "src/commands/node/host.ts:174"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N15",
+      "original": {
+        "id": "N15",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "write",
+        "arrange": "explicit dataWrite; absent result.txt then existing result.txt; exclusive fixture against existing text.txt",
+        "expect": "write creates then overwrites with exact UTF8 c3a9f09f9880; wx refuses EEXIST or provider honest ENOTSUP before alteration",
+        "negative": "check-then-write wx overwrite mutation must fail source-data preservation",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "144c9d1dac4fdb92e45876ead857a9453bc47ceaec637d8b58e3d078040faa7f",
+      "anchors": [
+        "src/commands/node/host.ts:197"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N16",
+      "original": {
+        "id": "N16",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "write",
+        "arrange": "granted write through ReadonlyFileSystem of the same initialized VFS",
+        "expect": "actual FsError EROFS, bytes/namespace unchanged; not ERR_VNODE_DENIED and no grant override",
+        "negative": "typed-looking ordinary error cannot be used as FS authority",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "d49ecdbfa8487b6848449d2bb692e47ef8f5adfaf82351bf8955f2d44616afd9",
+      "anchors": [
+        "src/commands/node/host.ts:197",
+        "src/commands/node/host.ts:247"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N17",
+      "original": {
+        "id": "N17",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "missing",
+        "arrange": "genuine missing read; scripted genuine FsError variants EACCES/ELOOP and optional own undefined fields; stack accessor is never read",
+        "expect": "guest missing fields name/code/path produce FsError:ENOENT:/missing\\n; actual error transport only on FS-origin route; optional absence/undefined and empty strings distinct",
+        "negative": "shape-only FsError from sink/control or getter field must not be serialized as genuine FS error",
+        "bindings": [
+          "B01",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "84f49a58586ed3d6dae6301ec675ebc30fd2ca01adaa941fc586d052e89b6048",
+      "anchors": [
+        "src/commands/node/host.ts:9",
+        "src/commands/node/host.ts:247",
+        "src/commands/node/program.ts:44"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N18",
+      "original": {
+        "id": "N18",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "stdout",
+        "arrange": "each frozen reason token thrown by stdout, stderr and control separately; independent raw identity registry",
+        "expect": "preserve present=true and same raw value, not truthiness/equality-origin inference; public boundary follows existing mapping, not automatically every caught handler error becomes rejection",
+        "negative": "JSON text alone cannot certify raw object identity or undefined presence",
+        "bindings": [
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "9defd28c5cc50c4c9fa1de5dc14cc121d78d653b71a47c94ebf20fce891fb73a",
+      "anchors": [
+        "src/commands/node/lifecycle.ts:110",
+        "src/commands/node/index.ts:116",
+        "src/commands/node/worker-provider.ts:48"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N19",
+      "original": {
+        "id": "N19",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "readText",
+        "arrange": "valid UTF8 vector at all frozen splits; BOM/invalid/incomplete/NUL vectors separate",
+        "expect": "valid exact decoded string, raw bytes charged before decoding; no split corruption; malformed/BOM outcomes bind B04 rather than guessing fatal/replacement",
+        "negative": "count UTF16 units as UTF8 or discard carry/EOF bytes => fail",
+        "bindings": [
+          "B04",
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "af0812aadb4c0fe16b41601a23ba2b239c74fadfca0113df49dc661a769facc6",
+      "anchors": [
+        "src/commands/node/host.ts:94",
+        "src/commands/node/host.ts:189",
+        "src/commands/node/worker-main.ts:78",
+        "src/commands/node/program.ts:17"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N20",
+      "original": {
+        "id": "N20",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "stdin",
+        "arrange": "eval data stdin with shared reusable byte buffer and multiple chunks; later repeated fd0 read",
+        "expect": "retained chunks copied before advancing producer; no replay; no borrowed producer premature return; owned acquisition cleanup exactly once",
+        "negative": "return borrowed Shell iterator on first command settlement or retain Buffer.subarray => fail",
+        "bindings": [
+          "B06"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "71caa95344492044fa7301838b6c221b51dd130ca61061aaa9617913bbbdfa44",
+      "anchors": [
+        "src/commands/node/host.ts:94",
+        "src/commands/node/program.ts:71"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N21",
+      "original": {
+        "id": "N21",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "cache",
+        "arrange": "first/second/third JSON require as literal fixture; separate fsAlias; second fresh invocation",
+        "expect": "first prints true:true:7\\n while VFS input becomes {\"count\":99}; fsAlias true\\n; new invocation cache sees99 not7",
+        "negative": "host fresh copy per cache hit or cross-invocation object sharing => fail",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "134699fe47b5353a079945e593ad460fa15b2289de448f77841ab885e51c7a24",
+      "anchors": [
+        "src/commands/node/program.ts:1",
+        "src/commands/node/host.ts:164"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N22",
+      "original": {
+        "id": "N22",
+        "roles": [
+          "P",
+          "E"
+        ],
+        "fixture": "cache",
+        "arrange": "revoke authority between first read and later hit; change bound backing before read completion",
+        "expect": "every hit reauthorized; no unvalidated late cache installation; namespaces are authority not fake disjoint identity",
+        "negative": "constant per-client token or retained authorization bypass => fail",
+        "bindings": [
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "b677828a75c091452b0be53a54632c4b29a2dd0c7f32e76ab9528a543cc3a6bb",
+      "anchors": [
+        "src/commands/node/host.ts:164",
+        "src/commands/node/host.ts:177"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N23",
+      "original": {
+        "id": "N23",
+        "roles": [
+          "E",
+          "S"
+        ],
+        "fixture": "keys",
+        "arrange": "own __proto__/constructor/toString JSON values and malformed JSON followed by corrected backing",
+        "expect": "exact inert data roundtrip; no prototype mutation; failed parse installs no cached result",
+        "negative": "compare via prototype identity or accept accessor-shaped DTO => fail",
+        "bindings": [
+          "B01",
+          "B03"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "d41a3f11bfbd616aa341ea9b9f0f0077d17d7b6c6ce8d074588901daf62a3957",
+      "anchors": [
+        "src/commands/node/program.ts:1",
+        "src/commands/node/rules.ts:18"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N24",
+      "original": {
+        "id": "N24",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "boundary recipes source/path/operationText at L-1/L/L+1 after B05 binding",
+        "expect": "at inclusive admitted bounds useful operation; over bound refuses before prohibited allocation/acquisition/effect; shared counters never reset",
+        "negative": "lower byte accounting or per-frame resets must fail; memory profile remains logical not RSS",
+        "bindings": [
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "bf606eacb1154d16c56d9cd908572fc9d528f5b10ade886aee29c1f312f97a2f",
+      "anchors": [
+        "src/commands/node/types.ts:4",
+        "src/commands/node/values.ts:1",
+        "src/commands/node/worker-provider.ts:91",
+        "src/commands/node/worker-provider.ts:124"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N25",
+      "original": {
+        "id": "N25",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "stdout",
+        "arrange": "public Shell maxOutputBytes2; node stdout AB then E on stderr; separate diagnostic sink refusal",
+        "expect": "same existing ShellLimitError limit maxOutputBytes; no third byte, diagnostic budget bypass or output refund; cleanup barrier still honored",
+        "negative": "fresh sink budget or exempt diagnostic would incorrectly succeed",
+        "bindings": [
+          "B05",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "46f5afd09c0ae8888e8eaaabc24efe310c670e2c195ef8537c2a677a2db35e6f",
+      "anchors": [
+        "src/commands/node/host.ts:213",
+        "src/commands/node/index.ts:39"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N26",
+      "original": {
+        "id": "N26",
+        "roles": [
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "script node -e \"\"; node -e \"\"; node -e \"\" with maxCommands2 and explicitly enabled module",
+        "expect": "third dispatch fails existing ShellLimitError maxCommands; at most two node starts; no new Shell/global budget reset",
+        "negative": "internal creation of new Shell or guest-byte-as-command charging => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "ac4670b6654c89865ae6f26b1d6a69e8a57c88b2cad6340471a4f54e14dcf714",
+      "anchors": [
+        "src/commands/node/index.ts:30"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N27",
+      "original": {
+        "id": "N27",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "preaborted root before command admission; native delivered false/null/0/empty/object; exact undefined only synthetic own-data/preaborted branch",
+        "expect": "exact caller identity, zero source/provider acquisition, all registrations retired; no claim native abort(undefined) yields raw undefined",
+        "negative": "errno-shaped caller reason must not be mistaken for guest FsError",
+        "bindings": [
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "8744581a6453cd881e665d2f399f716af69ae2b9ab8f5e4138afd53703c01d90",
+      "anchors": [
+        "src/commands/node/lifecycle.ts:50",
+        "src/commands/node/index.ts:116"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N28",
+      "original": {
+        "id": "N28",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "nested context.invoke local signal cancels one blocked child, sibling completes; parent caller remains live",
+        "expect": "child reason exact; sibling stdout ok\\n; parent remains usable; env/getopts/state not poisoned; no shared cursor/cache aliases",
+        "negative": "child controller aborting caller or shared Worker of sibling => fail",
+        "bindings": [
+          "B01",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "94a9686e2508b07dbddb62ffa34a84d421dcb3dadc7f84272943debb527e1230",
+      "anchors": [
+        "src/commands/node/lifecycle.ts:24",
+        "src/commands/node/host.ts:213"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N29",
+      "original": {
+        "id": "N29",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "inert prepared session; trace registration, startup admission, acquisition, exit and parent job cleanup",
+        "expect": "registerCleanup before any possible startup/acquisition; same idempotent promise finally/runtime close; actual Worker exit AND job cleanup before public settlement",
+        "negative": "prepared-session constructor starts Worker before registered owner => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "acdc6b6cf4d4df14eabd2845e8cdd7e2daa1e1d1d3f0bbacf57057f48deed824",
+      "anchors": [
+        "src/commands/node/index.ts:39",
+        "src/commands/node/lifecycle.ts:76",
+        "src/commands/node/worker-provider.ts:165"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N30",
+      "original": {
+        "id": "N30",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "proven-none setup rejection, constructor throw unconfirmed, late handle, failed cleanup registration; release finite cooperative holds explicitly",
+        "expect": "no fake exit; late acquired owner listened/retired once; unconfirmed acquisition cannot report clean success; all admitted jobs observed",
+        "negative": "eventual booleans without valid chronology or resolved numeric result despite unknown retirement => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "29601a5b13ff23a741c32883c5f75d090b25249d9b73f7060944266d159e8f85",
+      "anchors": [
+        "src/commands/node/worker-provider.ts:175",
+        "src/commands/node/worker-provider.ts:198",
+        "src/commands/node/index.ts:39"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N31",
+      "original": {
+        "id": "N31",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "entryRead",
+        "arrange": "actual blocked parent read; cancel child; hold cleanup until after observed Worker exit; separate already-committed write",
+        "expect": "wakes blocked sync; public unsettled until parent cleanup; admitted committed bytes survive, no rollback; no later unadmitted effects",
+        "negative": "terminate() resolution/ACK alone used as exit+cleanup proof => fail",
+        "bindings": [
+          "B01",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "6d354c617fab61fec22a4b2f1fa8ce69837401537decabf7607c8b3c913c5eff",
+      "anchors": [
+        "src/commands/node/host.ts:182",
+        "src/commands/node/lifecycle.ts:110",
+        "src/commands/node/worker-provider.ts:188"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N32",
+      "original": {
+        "id": "N32",
+        "roles": [
+          "P",
+          "E",
+          "S"
+        ],
+        "fixture": "stdout",
+        "arrange": "hold awaited sink; then release; separate enrolled output pipeline node | head -n 1 with cooperative operation",
+        "expect": "no uncontrolled production while write pending; operation closes before public settlement, caller/sibling remain live; already-written bytes retained",
+        "negative": "whole caller abort or no-input-acquisition shortcut cannot substitute operation cleanup",
+        "bindings": [
+          "B06",
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "365302d6e0330481bc9d2134d43d3eafbb69db2bba38a7f01122f98d650c9adf",
+      "anchors": [
+        "src/commands/node/host.ts:213",
+        "src/commands/node/worker-provider.ts:121"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N33",
+      "original": {
+        "id": "N33",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "inject a real parent-owned diagnostic publication failure with each raw reason token after actual provider failure; stdout and stderr sink faults recorded separately",
+        "expect": "publication failure retained by actual owner, no catch-and-discard; serialized text never substitutes raw failure presence; public priority follows accepted contract",
+        "negative": "publishing helper returns {fault} but caller ignores it => fail; if no production route exists B08 must resolve explicitly",
+        "bindings": [
+          "B07",
+          "B08"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "d5f0878d37e8a2467995e7c3effa6b62a226bc6b22efca856b433eb4c5c36f01",
+      "anchors": [
+        "src/commands/node/diagnostics.ts:26",
+        "src/commands/node/worker-provider.ts:44",
+        "src/commands/node/worker-main.ts:86"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N34",
+      "original": {
+        "id": "N34",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": "hello",
+        "arrange": "numeric0 and numeric1 plus sole cleanup rejection; caller override; escaping execution rejection + cleanup; late losing handler mapped separately",
+        "expect": "caller > actual escaping execution rejection > cleanup > numeric; no status??0, no escalation of an already-mapped caught handler error; all failures observed",
+        "negative": "falsy cleanup discarded or nonzero numeric hides cleanup => fail",
+        "bindings": [
+          "B07"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "ead8d81e497f0e9ccd624c0e5319bb773a35354f6c0a3585d4f267cb358f6dd6",
+      "anchors": [
+        "src/commands/node/lifecycle.ts:123",
+        "src/commands/node/index.ts:116"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N35",
+      "original": {
+        "id": "N35",
+        "roles": [
+          "P",
+          "E"
+        ],
+        "fixture": null,
+        "arrange": "instrumented cutoff before complete payload versus after admitted effect; 5s admission from ownership enrollment before startup",
+        "expect": "no new effects after cutoff; already admitted normal work drains without false abort/rollback; elapsed5s is not cleanup deadline; retirement L not Q",
+        "negative": "reset admission clock at READY/ACK or claim all Promise jobs settled => fail",
+        "bindings": [
+          "B01",
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "4a201cdbad4c84b429c160ea74f4206a44599bcee082cbfac476bf90725b8936",
+      "anchors": [
+        "src/commands/node/lifecycle.ts:50",
+        "src/commands/node/worker-main.ts:40",
+        "src/commands/node/worker-provider.ts:132"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N36",
+      "original": {
+        "id": "N36",
+        "roles": [
+          "P"
+        ],
+        "fixture": null,
+        "arrange": "finite exact-own-data protocol controls: missing/extra/accessor/hole fields, metadata-only FINAL_ACK, stale sequence/session, zero payload",
+        "expect": "invalid messages refuse before next operation; operation closure and actual guest delivery are separate; preserve original raw protocol fault",
+        "negative": "prototype-sensitive deep equality rejects valid cross-realm record; ACK counted as postcopy delivery => fail",
+        "bindings": [
+          "B01"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "278798d38e4e669a1dd7e634226ca32fc906decca8e605fbdedf0825f3bfcd92",
+      "anchors": [
+        "src/commands/node/host.ts:36",
+        "src/commands/node/channel.ts:13",
+        "src/commands/node/worker-main.ts:30",
+        "src/commands/node/worker-provider.ts:81"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N37",
+      "original": {
+        "id": "N37",
+        "roles": [
+          "P",
+          "E"
+        ],
+        "fixture": null,
+        "arrange": "bound trusted static Worker entry/public98->95 closure; ledger/SAB/V8 configuration observed at actual owner boundary",
+        "expect": "197056 SAB and 16777216 named ledger; admitted ownership only; worker exited and parentjobs cleaned; reused heap proof not a new guest/RSS proof",
+        "negative": "missing terminal or unknown exit cannot be converted to status0; no unseen work cleanup claims",
+        "bindings": [
+          "B01",
+          "B05"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "9823dc8d00ee54da5d2a14e66aa0d591261ea13cea5d4b0fb3a5812d7c0b3b32",
+      "anchors": [
+        "src/commands/node/worker-provider.ts:165",
+        "src/commands/node/worker-main.ts:91",
+        "src/commands/node/types.ts:4"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "E"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    },
+    {
+      "id": "N38",
+      "original": {
+        "id": "N38",
+        "roles": [
+          "P",
+          "S"
+        ],
+        "fixture": null,
+        "arrange": "provider absent; invalid provider; explicitly supplied qualifying provider; source/engine entry identities fixed before launch",
+        "expect": "no implicit engine discovery/native fallback; module-only registration does not change aggregate79; explicit registration creates node only in that registry",
+        "negative": "root/subpath/default wiring absent is not a module defect; native engine path guess is a defect",
+        "bindings": [
+          "B01",
+          "B09"
+        ],
+        "status": "PREPARED_UNEXECUTED"
+      },
+      "originalSha256": "70e95457faa93aa1d00f2ea4b7df2bbb2abcb28cbbbdb608e32874969738db03",
+      "anchors": [
+        "src/commands/node/index.ts:18",
+        "src/commands/node/worker-provider.ts:223"
+      ],
+      "status": "BOUND_SOURCE_UNEXECUTED",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "countUnit": "family; expand variant rows before actual GO"
+    }
+  ],
+  "types": [
+    {
+      "original": {
+        "id": "T01",
+        "title": "Factory roles",
+        "expect": "Candidate-defined single definition/list/plugin roles match existing CommandDefinition/VirtualShellPlugin, no guessed export identifiers.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "createNodeCommand returns CommandDefinition; no list/plugin factory",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T02",
+        "title": "Old context compatibility",
+        "expect": "Existing structural CommandContext without optional cleanup/invoke stays valid; optional invoke signal undefined accepted as before.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "unchanged accepted CommandContext/io/invoke declarations",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T03",
+        "title": "Provider configuration",
+        "expect": "Explicit qualifying provider accepted; incompatible/missing required provider members receive exact diagnostics; no auto-runtime overload implied.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "NodeRuntimeProvider and NodeWorkerProviderOptions",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T04",
+        "title": "Finite grants",
+        "expect": "Declared grant types accept valid finite data and reject unrecognized keys/wrong scalar types; own undefined behavior bound B03.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "NodeGrants exact optional booleans",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T05",
+        "title": "Lifecycle types",
+        "expect": "Inert prepared session and retirement outcome require typed ownership/cleanup obligations; no unsafe cast hiding async completion or optional receiver errors.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "NodeSession/NodeCompletion/NodeRetirement/NodeHostServices",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T06",
+        "title": "Sync text I/O",
+        "expect": "Declared Node-local request/result types keep guest text distinct from underlying Uint8Array; reject unsupported FD/encoding/request variants.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "NodeHostRequest/NodeHostResponse/NodeBridge text scalars",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T07",
+        "title": "Unknown reasons",
+        "expect": "Raw error/control fields can represent present undefined and arbitrary unknown without Error-only or nonnullable narrowing.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "NodeReason present:true,value:unknown",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    },
+    {
+      "original": {
+        "id": "T08",
+        "title": "No shared API edits",
+        "expect": "Accepted command/io/output/Shell declarations remain compatible; module phase adds only owned Node-local types; installed/moved declaration routes authenticated.",
+        "status": "UNBOUND_TYPES_NOT_COMPILED"
+      },
+      "bind": "accepted declarations plus only Node-local additions",
+      "expectedIdentitiesPerLayout": 2,
+      "status": "NOT_COMPILED"
+    }
+  ],
+  "loads": [
+    {
+      "original": {
+        "id": "A01",
+        "title": "Full composition",
+        "expect": "Accepted baseline constituents plus only exact candidate-owned files; complete new package identity and additions, not sparse projection/current HEAD.",
+        "status": "PREPARED_NOT_EXECUTED"
+      },
+      "status": "PENDING_ACTUAL_ARTIFACTS"
+    },
+    {
+      "original": {
+        "id": "A02",
+        "title": "Source/installed/moved",
+        "expect": "Actual loaded paths and hashes, complete pre/post namespace inventory including new entries; physically moved imports no source fallback.",
+        "status": "PREPARED_NOT_EXECUTED"
+      },
+      "status": "PENDING_ACTUAL_ARTIFACTS"
+    },
+    {
+      "original": {
+        "id": "A03",
+        "title": "Changed/missing module",
+        "expect": "One admitted edited-byte and one missing-file control refuse before guest; restores authenticated separately.",
+        "status": "PREPARED_NOT_EXECUTED"
+      },
+      "status": "PENDING_ACTUAL_ARTIFACTS"
+    },
+    {
+      "original": {
+        "id": "A04",
+        "title": "Declaration route",
+        "expect": "Strict public declared module path routes to exact installed/moved .d.ts; no fallback to repo root or live source.",
+        "status": "PREPARED_NOT_EXECUTED"
+      },
+      "status": "PENDING_ACTUAL_ARTIFACTS"
+    },
+    {
+      "original": {
+        "id": "A05",
+        "title": "Static entry/builtin boundary",
+        "expect": "Trusted entry and exact host-builtin importer edges; no global host-import allowlist, ambient fs/process/SAB exposure to guest.",
+        "status": "PREPARED_NOT_EXECUTED"
+      },
+      "status": "PENDING_ACTUAL_ARTIFACTS"
+    },
+    {
+      "original": {
+        "id": "A06",
+        "title": "Public engine closure",
+        "expect": "Test-only existing PUBLIC98 sources/PUBLIC95 emissions complete hashes; same emitter metadata != strict typecheck; no private/deep import/vendor/install guess.",
+        "status": "PREPARED_NOT_EXECUTED"
+      },
+      "status": "PENDING_ACTUAL_ARTIFACTS"
+    }
+  ],
+  "preparedRaw": {
+    "path": "raw-controls.mjs.data",
+    "sha256": "a220a9a77e615d94a884e4590a098015a1b7207527bdd8691d140805ce2939a4",
+    "ids": [
+      "R01-invalid-flag",
+      "R02-escaping-parent-job",
+      "R03-profile-parent-job",
+      "R04-lookalike",
+      "R05-cause-stack-unread",
+      "R06-extra-field",
+      "R07-private-class-escaping",
+      "R08-profile-completion",
+      "R09-async-publisher",
+      "R10-publisher-undefined",
+      "R11-cleanup-undefined",
+      "R12-prepare-registration"
+    ],
+    "roles": [
+      "P-parent/helper",
+      "P-fake-provider"
+    ],
+    "invocationsPerLayout": 12,
+    "proposedLayouts": 3,
+    "proposedRawExecutions": 36,
+    "actualWorkers": 0,
+    "actualGuestProofs": 0,
+    "actualExecutions": 0
+  },
+  "futureFamilyRoles": {
+    "E": "actual static Worker plus pinned PUBLIC95; real guest/exit/load witnesses required",
+    "P": "fake provider/parent helper/instrumentation; never engine or real-exit proof",
+    "S": "actual public Shell, actual VFS/stdio and existing shared Budget; independent from direct execute",
+    "SOURCE": "invariants and counted source checks, not runtime measurements"
+  },
+  "remaining": [
+    "successor fixes/adjudication of V2-F01/V2-F02 and observe completion policy",
+    "final accepted Node candidate source and full emitted package",
+    "38-family E/S variant expansion and executable dispatcher",
+    "exact PUBLIC98/95/tool/declaration/load/capture/owner identities",
+    "finite actual resource and process grant with every rescue/cleanup branch sealed"
+  ]
+}

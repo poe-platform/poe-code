@@ -1,0 +1,37 @@
+{
+  "candidate": "f1a90436c45208ca248e058a039893233c608daa",
+  "baseline": "45baf7647124282bf52cd843656b6e190746580a",
+  "parent": "643439ad70b0ada46eef2c073aceeba3246866ad",
+  "baselineToParentSelectedInputDifferences": 0,
+  "exactSourceWriteSet": [
+    "src/commands/tree/README.md",
+    "src/commands/tree/arguments.ts",
+    "src/commands/tree/charset.ts",
+    "tests/commands/tree/charset-selection.test.ts",
+    "tests/commands/tree/report-counts.test.ts"
+  ],
+  "preservedFiles": 36,
+  "unchangedInputsAndNativeOutputs": 34,
+  "beforeMatches": 26,
+  "beforeDifferences": 8,
+  "candidateMatches": 31,
+  "candidateDifferences": 3,
+  "closed": [
+    "charset-utf8-all",
+    "charset-utf8-lang",
+    "charset-ctype-precedence",
+    "charset-empty-all",
+    "charset-tree-utf8"
+  ],
+  "countTotalsMatched": 15,
+  "oldStrictShellOutputUnchanged": true,
+  "reversibleDriverRebinding": true,
+  "beforeTests": 77,
+  "candidateTests": 139,
+  "newTests": 62,
+  "skips": 0,
+  "scopedTypesAndSourceBuild": "both revisions pass",
+  "driverSha256": "c71033d3b7dbf47f04524b12a3aa0008a143d278a168124ba47a49fc1aa37825",
+  "originalDriverSha256": "145fb5756eb379eff2f3b0f3d351c44772e50313fcd8e3121b3a2070f4d3dcbc",
+  "noProductFallbackOrFullGateClaim": true
+}

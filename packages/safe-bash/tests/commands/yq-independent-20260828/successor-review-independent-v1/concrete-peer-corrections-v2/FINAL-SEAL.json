@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_STATIC_REVIEW_EVIDENCE_SEAL_NOT_EXECUTION_AUTHORITY",
+  "criteriaCommit": "671b49f0d3aa71aba7c3d97fa19ed4edb9d24e72",
+  "scope": "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-peer-corrections-v2",
+  "files": [
+    {
+      "path": "ASSEMBLY-AUDIT.json",
+      "sha256": "b5fead52a68ea6d85374a561e1f888881a7129aa04753a273956b5d0adb806d3",
+      "bytes": 27886,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "AUTHENTICATION.json",
+      "sha256": "513c678159e4eb3974d1a48a72d14dcd98e8bcd7706841f3916b4c4ad12bf28a",
+      "bytes": 19156,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "CRITERIA.md",
+      "sha256": "4a8c10bb3b0e8a0d5cb19c86a7dbcf27f2c18d884738fdb9d343c8209162c853",
+      "bytes": 4526,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "FINAL-CHECKS.json",
+      "sha256": "e55761ca74f96cfad1dac7835d96c5e7e0b2927589c183e14c29e41a01fe750a",
+      "bytes": 2649,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "bc886fd47d4b4cd42978715fd7536857e6b59406956dd78ced78ab08e10b40d0",
+      "bytes": 1921,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "OVERLAY-DELTAS.diff",
+      "sha256": "dc044a2c3d7955131f038519b8019fb65bbbc0fbf069d101b2cfc275fb1ffe8b",
+      "bytes": 6878,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "REPORT.md",
+      "sha256": "109cc04e06b5ccbb35b3432b6261298c7683ee3a54cb8db7aaadcd769f60b29d",
+      "bytes": 11038,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "SYNTAX-CHECKS.json",
+      "sha256": "cbe3dd8803b3dfcd3176edc46c8254ac25d9d425ac218b90d3fe4be25545cec5",
+      "bytes": 4190,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "TOOL-BINDINGS.json",
+      "sha256": "80e669b9d14cc28f0dd3d815a0c47b15634b1c7fb3881b63171e49dba35de326",
+      "bytes": 1900,
+      "currentMode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "VERDICT.json",
+      "sha256": "c4b80408e8ca4d0abea6dddda948f3aa2e6c56a2315f1c4bc4169ba940fc9e66",
+      "bytes": 4954,
+      "currentMode": 420,
+      "kind": "file"
+    }
+  ],
+  "selfExcluded": true,
+  "currentModeQualification": "Modes observed for this new review evidence only; no historical or future materialization mode proof.",
+  "report": "REPORT.md",
+  "verdict": "VERDICT.json",
+  "rootGO": false,
+  "readyToRun": false,
+  "candidateExecutions": 0,
+  "controlPasses": 0,
+  "runtimePasses": 0,
+  "validationQualification": "Five syntax parses and criteria-spec shape check succeed; two data-enumerator exit1 attempts and audit-report spec-shape exit1 remain retained, not rescored."
+}

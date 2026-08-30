@@ -1,0 +1,15 @@
+{
+  "freeze": "1c6d0983760d81c6dad2303b8cba96ccd74ac709",
+  "captureSha256": "2b0948fe9874356d9947f22e6938f6733c34771b008931fea3fd0c872901a527",
+  "captureBytes": 1013588,
+  "passed": 30,
+  "total": 31,
+  "declared": 49,
+  "exitCode": 90,
+  "realObserverChildren": 0,
+  "beforeAfterOriginalHashesAndNewEntryCensus": false,
+  "safetyFailure": {
+    "name": "TypeError",
+    "message": "net.Socket is not a constructor"
+  }
+}

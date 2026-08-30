@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "role": "literal DATA, never executed during preparation",
+  "cwd": "/work",
+  "directories": [
+    "/work",
+    "/data"
+  ],
+  "initialFiles": {
+    "/data/input.json": "{\"count\":2}",
+    "/data/text.txt": "Aé😀\n",
+    "/data/bad.json": "{\"count\":",
+    "/data/keys.json": "{\"__proto__\":{\"safe\":1},\"constructor\":7,\"toString\":\"data\"}"
+  },
+  "programs": {
+    "edit": "const fs = require('fs'); const value = JSON.parse(fs.readFileSync('/data/input.json', 'utf8')); value.count = value.count + 1; fs.writeFileSync('/data/result.json', JSON.stringify(value), 'utf8'); console.log(value.count);",
+    "cwd": "console.log(process.cwd());",
+    "hello": "console.log('ok');",
+    "stdin": "const fs = require('fs'); console.log(fs.readFileSync(0, 'utf8'));",
+    "stdinSource": "const fs = require('fs'); console.log(fs.readFileSync(0, 'utf8').length);",
+    "syntax": "console.log('must-not-print'); const = ;",
+    "literalDenied": "console.log('must-not-print'); require('child_process');",
+    "computedDenied": "const target = 'child_process'; console.log('before'); require(target);",
+    "promiseConstructor": "new Promise(function () {});",
+    "pendingStatic": "Promise.race([]); console.log('entry-return');",
+    "deniedRead": "const fs = require('fs'); try { fs.readFileSync('/data/input.json', 'utf8'); } catch (error) { console.log(error.code); }",
+    "deniedWrite": "const fs = require('fs'); try { fs.writeFileSync('/data/denied.txt', 'X', 'utf8'); } catch (error) { console.log(error.code); }",
+    "readText": "console.log(require('fs').readFileSync('/data/text.txt', 'utf8'));",
+    "write": "require('fs').writeFileSync('/data/result.txt', 'é😀', 'utf8');",
+    "exclusive": "require('fs').writeFileSync('/data/text.txt', 'lost', {encoding:'utf8',flag:'wx'});",
+    "missing": "try { require('fs').readFileSync('/missing', 'utf8'); } catch (error) { console.log(error.name + ':' + error.code + ':' + error.path); }",
+    "cache": "const first = require('/data/input.json'); const second = require('/data/./input.json'); first.count = 7; require('fs').writeFileSync('/data/input.json', '{\"count\":99}', 'utf8'); const third = require('/data/input.json'); console.log((first === second) + ':' + (first === third) + ':' + third.count);",
+    "fsAlias": "console.log(require('fs') === require('node:fs'));",
+    "keys": "console.log(JSON.stringify(require('/data/keys.json')));",
+    "invalidJson": "try { require('/data/bad.json'); } catch (error) { console.log('bad'); }",
+    "stdout": "process.stdout.write('AB');",
+    "stderr": "process.stderr.write('E');",
+    "exitForbidden": "process.exit(0);",
+    "asyncFsForbidden": "require('fs/promises');",
+    "unsupportedGlobal": "console.log(typeof Buffer + ':' + typeof Worker + ':' + typeof SharedArrayBuffer);",
+    "entryRead": "require('fs').readFileSync('/data/text.txt', 'utf8'); console.log('after');",
+    "argv": "console.log(JSON.stringify(process.argv)); console.log(process.cwd());",
+    "benignForbiddenString": "console.log('child_process');",
+    "outputBudget": "process.stdout.write('AB'); process.stderr.write('E');",
+    "cacheFresh": "console.log(require('/data/input.json').count);"
+  },
+  "utf8Vectors": [
+    {
+      "id": "valid",
+      "hex": "41c3a9f09f98800a",
+      "decoded": "Aé😀\n",
+      "splitOffsets": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": "bom",
+      "hex": "efbbbf41",
+      "decodedReplacementData": "﻿A",
+      "sourceBomPolicy": "B04 binding required"
+    },
+    {
+      "id": "invalid",
+      "hex": "c328",
+      "replacementCandidate": "�(",
+      "policy": "B04 binding required"
+    },
+    {
+      "id": "incomplete",
+      "hex": "f09f98",
+      "replacementCandidate": "�",
+      "policy": "B04 binding required"
+    },
+    {
+      "id": "nul",
+      "hex": "410042",
+      "decoded": "A\u0000B"
+    }
+  ],
+  "reasonTokens": [
+    {
+      "id": "undefined",
+      "kind": "undefined"
+    },
+    {
+      "id": "false",
+      "kind": "boolean",
+      "value": false
+    },
+    {
+      "id": "null",
+      "kind": "null"
+    },
+    {
+      "id": "zero",
+      "kind": "number",
+      "value": 0
+    },
+    {
+      "id": "empty",
+      "kind": "string",
+      "value": ""
+    },
+    {
+      "id": "object",
+      "kind": "fresh-object",
+      "fields": {
+        "tag": "caller"
+      }
+    },
+    {
+      "id": "errnoShape",
+      "kind": "fresh-object",
+      "fields": {
+        "name": "FsError",
+        "code": "EACCES",
+        "path": "/data/text.txt"
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "source",
+      "recipe": "ASCII spaces then literal hello, total UTF8 bytes L-1, L, L+1; source bytes counted before decode",
+      "proposedL": 262144,
+      "authority": "historical v3 named cap; module confirmation B05 required"
+    },
+    {
+      "id": "path",
+      "recipe": "slash + ASCII a repeated L-1; target represented by scripted VFS, not Memory component limit",
+      "proposedL": 1024,
+      "authority": "historical v3 named cap; B05"
+    },
+    {
+      "id": "operationText",
+      "recipe": "repeat U+00E9; add ASCII suffix to exact UTF8 L-1/L/L+1; split inside multibyte encoding",
+      "proposedL": 1048576,
+      "authority": "historical v3 named cap; B05"
+    },
+    {
+      "id": "sharedOutput",
+      "recipe": "stdout AB then stderr E; total3 bytes against Shell maxOutputBytes2",
+      "L": 2,
+      "authority": "accepted Budget.sink; exact public failing limit maxOutputBytes"
+    },
+    {
+      "id": "ledger",
+      "recipe": "declared simultaneous charges below/at/above 16777216; include staging, final copy and retained cache, no ACK refund before ownership ends",
+      "L": 16777216,
+      "authority": "root current profile; instrumented/source role, not RSS"
+    },
+    {
+      "id": "sourceFraming",
+      "recipe": "all split offsets in valid vector; retain producer reused Uint8Array before next pull; no Buffer-view alias",
+      "authority": "accepted IO ownership"
+    }
+  ],
+  "shellScripts": {
+    "sharedCommandBudget": "node -e \"\"; node -e \"\"; node -e \"\"",
+    "getoptsPreservation": "set -- -a; getopts a opt; printf \"before:%s:%s\\n\" \"$OPTIND\" \"$opt\"; node -e \"\"; printf \"after:%s:%s\\n\" \"$OPTIND\" \"$opt\"",
+    "ownedPipeline": "node -e \"let n = 0; while (n < 64) { console.log('line'); n = n + 1; }\" | head -n 1"
+  },
+  "expectedBytes": {
+    "N01": {
+      "exitCode": 0,
+      "stdoutHex": "330a",
+      "newFiles": {
+        "/data/result.json": "7b22636f756e74223a337d"
+      }
+    },
+    "N02": {
+      "exitCode": 0,
+      "stdoutHex": "2f776f726b0a"
+    },
+    "N03": [
+      {
+        "source": "undefined",
+        "stdoutHex": "756e646566696e65640a",
+        "exitCode": 0
+      },
+      {
+        "source": "null",
+        "stdoutHex": "6e756c6c0a",
+        "exitCode": 0
+      },
+      {
+        "source": "false",
+        "stdoutHex": "66616c73650a",
+        "exitCode": 0
+      },
+      {
+        "source": "0",
+        "stdoutHex": "300a",
+        "exitCode": 0
+      },
+      {
+        "source": "-0",
+        "stdoutHex": "300a",
+        "exitCode": 0
+      },
+      {
+        "source": "\"é\"",
+        "stdoutHex": "c3a90a",
+        "exitCode": 0
+      }
+    ],
+    "N04": {
+      "exitCode": 0,
+      "stdoutHex": "300a"
+    },
+    "N09": {
+      "literalStdoutHex": "",
+      "computedStdoutHex": "6265666f72650a",
+      "benignStdoutHex": "6368696c645f70726f636573730a"
+    },
+    "N12": {
+      "exitCode": 0,
+      "stdoutHex": "656e7472792d72657475726e0a"
+    },
+    "N13": {
+      "exitCode": 0,
+      "stdoutHex": "4552525f564e4f44455f44454e4945440a"
+    },
+    "N14": {
+      "exitCode": 0,
+      "stdoutHex": "41c3a9f09f98800a0a"
+    },
+    "N15": {
+      "exitCode": 0,
+      "fileHex": "c3a9f09f9880"
+    },
+    "N17": {
+      "exitCode": 0,
+      "stdoutHex": "46734572726f723a454e4f454e543a2f6d697373696e670a"
+    },
+    "N21": {
+      "exitCode": 0,
+      "stdoutHex": "747275653a747275653a370a",
+      "fsAliasStdoutHex": "747275650a",
+      "freshStdoutHex": "39390a"
+    },
+    "N23": {
+      "exitCode": 0,
+      "stdoutHex": "7b225f5f70726f746f5f5f223a7b2273616665223a317d2c22636f6e7374727563746f72223a372c22746f537472696e67223a2264617461227d0a"
+    },
+    "N32": {
+      "stdoutHex": "6c696e650a"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { preflight, preparation, readCaps, report } from "./gate.mjs";
+import { createReader } from "./reader.mjs";
+
+const repository = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
+const argumentsList = process.argv.slice(2);
+const mode = argumentsList.shift();
+let result;
+try {
+  if (mode === "PREPARE" && argumentsList.length === 0) {
+    result = preparation();
+  } else if (mode === "PREFLIGHT") {
+    const allowed = ["manifest", "root-receipt", "root-receipt-sha256"];
+    const options = Object.create(null);
+    while (argumentsList.length) {
+      const flag = argumentsList.shift();
+      const value = argumentsList.shift();
+      if (!flag.startsWith("--") || !allowed.includes(flag.slice(2)) || !value || value.startsWith("--") || Object.hasOwn(options, flag.slice(2))) throw new Error("Unknown, duplicate or incomplete argument");
+      options[flag.slice(2)] = value;
+    }
+    const missing = allowed.filter(name => !options[name]);
+    if (missing.length) result = report("WAITING_ROOT", missing.map(name => `Missing ROOT input: --${name}`));
+    else {
+      const reader = createReader(repository);
+      result = await preflight({
+        manifestBytes: reader.readJsonInput(options.manifest, readCaps.manifestBytes),
+        rootReceiptBytes: reader.readJsonInput(options["root-receipt"], readCaps.receiptBytes),
+        rootReceiptSha256: options["root-receipt-sha256"],
+        inspectArtifact: reader.inspectArtifact,
+      });
+    }
+  } else throw new Error("Only PREPARE and PREFLIGHT exist; EXECUTE/RUN/TIMING are not implemented");
+} catch (error) {
+  result = report(error.code === "ENOENT" ? "WAITING_ROOT" : "FAIL_PREFLIGHT", [String(error.message ?? error)]);
+}
+console.log(JSON.stringify(result, null, 2));
+process.exitCode = result.status === "WAITING_ROOT" ? 2 : result.status === "FAIL_PREFLIGHT" ? 1 : 0;

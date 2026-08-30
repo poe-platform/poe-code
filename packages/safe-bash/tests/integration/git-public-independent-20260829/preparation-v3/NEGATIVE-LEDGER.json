@@ -1,0 +1,79 @@
+{
+  "role": "HISTORY_PRESERVED_NOT_RESCORED",
+  "records": [
+    {
+      "scope": "initial preparation",
+      "commit": "71f189a3bf39c53071ac1ca7170f5def2da3edb3",
+      "status": "NONCOMPLIANT",
+      "conservativeSlotsThroughInspection": 36,
+      "publicationOutsideAllowance": true,
+      "captureQualification": "initial exception incomplete; tool-transcript-only segments; instruction prefix intentionally removed",
+      "instructionRemoval": {
+        "originalBytes": 16027,
+        "removedBytes": 15724,
+        "retainedBytes": 303,
+        "removedSha256": "1203dc173bfc5f008b5adba473b9ef50c5f21b1a9dda953fddb7ed4af9a60789",
+        "recreated": false
+      }
+    },
+    {
+      "scope": "preparation-v2",
+      "commit": "710b2902a2eadc2095afa209c1af81831cde2ed7",
+      "status": "HOLD",
+      "failure": "guessed nonexistent baseline standalone tar locator; before Git dispatch",
+      "conservativeSlots": 25,
+      "productExecuted": false
+    },
+    {
+      "scope": "preparation-v3 before finish grant",
+      "status": "ORDERLY_PREPARATION_CAP_STOP",
+      "committedAtStop": false,
+      "conservativeSlots": 60,
+      "elapsedAtReserveStopSeconds": 2384.983656,
+      "productExecuted": false,
+      "ordinaryFailuresPreserved": [
+        "sparse witness mistaken for complete inventory",
+        "worker dependency subtree too narrow",
+        "worker builtin set too narrow",
+        "three-field symlink tool row unpack",
+        "wrong author source transform anchor",
+        "unsupported numbered apply_patch hunk header",
+        "untracked PREPARED names locator absent from committed inventory",
+        "elapsed preparation reserve guards"
+      ]
+    },
+    {
+      "scope": "finish preparation grant",
+      "status": "RECORDED_VERSION_CORRECTIONS",
+      "failures": [
+        {
+          "reason": "ReferenceError: process is not defined",
+          "stage": "pre-spawn environment construction",
+          "actualChildren": 0
+        },
+        {
+          "reason": "ReferenceError: process is not defined",
+          "stage": "old lexical wrapper retained earlier function",
+          "actualChildren": 0
+        }
+      ],
+      "counterQualification": "First primitive count fields had lexical snapshots; actual closed event membership plus two pre-spawn reservations and one kernel reservation replaces them. Original events preserved.",
+      "productExecuted": false
+    }
+  ],
+  "historicalPublic79": {
+    "maintainedPass": 79,
+    "total": 83,
+    "workerDeniedFailures": 4,
+    "rescored": false
+  },
+  "historicalPublic80Author": {
+    "m1aPassPerLayout": 139,
+    "totalPerLayout": 140,
+    "layouts": 3,
+    "reason": "old module-only missing-root-export fixture",
+    "fixtureV2": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+    "runtimeReplayed": false
+  },
+  "newActualProductExecutions": 0
+}

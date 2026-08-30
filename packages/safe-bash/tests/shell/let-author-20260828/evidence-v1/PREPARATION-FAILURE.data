@@ -1,0 +1,14 @@
+Preparation attempt 1, before build/product/native execution, exited 1.
+Observed tool output:
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  assert(stat.isFile())
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/prepare.mjs:83:37
+Node.js v22.22.2
+
+Follow-up metadata inspection identified /usr/bin/tar -> bsdtar (symlink).
+/usr/bin/bsdtar is a regular file. Node and Git were regular files.
+No unknown alias is followed or copied. Versioned preparer now binds and invokes
+the explicit regular /usr/bin/bsdtar. Original preparer bytes retained separately.
+--resume-regular-tar verifies every existing selected byte/mode rather than
+overwriting or silently reusing partial materialization. No candidate input,
+expectation, product code or budget was changed by this harness correction.

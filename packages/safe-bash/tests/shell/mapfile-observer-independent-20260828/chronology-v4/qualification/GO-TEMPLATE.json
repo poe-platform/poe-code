@@ -1,0 +1,15 @@
+{
+  "kind": "NOT_AUTHORIZED",
+  "qualificationCommit": null,
+  "inputManifestSha256": null,
+  "archiveRoot": null,
+  "evidenceRoot": null,
+  "caseIds": ["D01", "D02", "D03", "H01", "H02", "H03", "H04", "H05"],
+  "runtime": null,
+  "binary": null,
+  "approvedAtMs": null,
+  "expiresAtMs": null,
+  "zeroNetwork": true,
+  "archiveAuthenticatedAgainstCommit": false,
+  "externalWatchdog": "NOT_ARMED"
+}

@@ -1,0 +1,67 @@
+{
+  "status": "PROPOSED_UNRUN",
+  "cases": [
+    {
+      "id": "C01",
+      "purpose": "exact12 program membership/zero fixtures; reject added N13 or old fixture",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C02",
+      "purpose": "program SHA/argv drift, file operand or external command substitution rejected",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C03",
+      "purpose": "draft module/mode/import closure drift and wrong tool identity denied",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C04",
+      "purpose": "missing/wrong independent receipt/profile/hash denied before child",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C05",
+      "purpose": "expired GO and inclusive final deadline; no terminal/observation credit late",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C06",
+      "purpose": "one grant-SHA slot replacement only; reject other command drift or prefix rule",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C07",
+      "purpose": "outer FD mode/inode/path/regular/read-write mismatch denied",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C08",
+      "purpose": "fsync/size/hash/close failures; independent cleanup and no credit",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C09",
+      "purpose": "synthetic actual-TERM timestamp plus2s KILL and1s final group observation; old real-child derivative remains separately qualified",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C10",
+      "purpose": "exact child environment/empty PATH and no ambient startup variables; no user startup inspection",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C11",
+      "purpose": "NUL protocol roundtrip raw empty/set/unset values and status0/1/2; reject malformed framing/cardinality without expected native tuples",
+      "status": "UNRUN"
+    },
+    {
+      "id": "C12",
+      "purpose": "before/after namespace set changes, process ledger and storage caps; refuse credit on unverified retirement",
+      "status": "UNRUN"
+    }
+  ],
+  "realChildProposal": 0,
+  "engineOrNativeExecutions": 0
+}

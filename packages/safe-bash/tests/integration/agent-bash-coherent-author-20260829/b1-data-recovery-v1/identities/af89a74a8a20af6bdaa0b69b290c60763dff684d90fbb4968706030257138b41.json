@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/source-built/source-built-workers.jsonl",
+    "bytes": 1033,
+    "sha256": "85fe5c7c771999914c4808ef60661651b8f7e10896cfddb3c936b0d45d61439d",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190026916,
+    "mtimeMs": 1788021741050.743,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/source-built/source-built-workers.jsonl"
+    },
+    "role": "layout-source-built-workers.jsonl"
+  },
+  "dataPath": "data/af89a74a8a20af6bdaa0b69b290c60763dff684d90fbb4968706030257138b41.raw",
+  "identityPath": "identities/af89a74a8a20af6bdaa0b69b290c60763dff684d90fbb4968706030257138b41.json",
+  "copiedBytes": 1033,
+  "copiedMode": 420,
+  "copiedSha256": "85fe5c7c771999914c4808ef60661651b8f7e10896cfddb3c936b0d45d61439d"
+}

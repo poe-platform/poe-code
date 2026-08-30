@@ -1,0 +1,1181 @@
+{
+  "pidBound": [
+    {
+      "pid": 15381,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "metadata",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:50:31.792Z"
+        }
+      ]
+    },
+    {
+      "pid": 15382,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "metadata",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 15383,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "metadata",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 15384,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "metadata",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 15577,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "inspect-runner-types-launch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:50:56.228Z"
+        }
+      ]
+    },
+    {
+      "pid": 16465,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "write-versioned-fixture",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:51:46.421Z"
+        }
+      ]
+    },
+    {
+      "pid": 16468,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "apply_patch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 19738,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "write-versioned-dispatch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:52:59.809Z"
+        }
+      ]
+    },
+    {
+      "pid": 19741,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "apply_patch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 24292,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "seal-v2",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:07.993Z"
+        },
+        {
+          "origin": "data-failure-one",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:07.986Z"
+        }
+      ]
+    },
+    {
+      "pid": 24563,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "data-only-trailing-newline-correction",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:28.099Z"
+        }
+      ]
+    },
+    {
+      "pid": 24565,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "apply_patch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 24686,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "seal-v2",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:35.180Z"
+        },
+        {
+          "origin": "data-failure-two",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:35.178Z"
+        }
+      ]
+    },
+    {
+      "pid": 26430,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "scope-data-mutants-to-X10",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:59.649Z"
+        }
+      ]
+    },
+    {
+      "pid": 26433,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "apply_patch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 26435,
+      "origin": "prep/admin.jsonl",
+      "phase": "PREP",
+      "action": "seal-v2",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:59.856Z"
+        },
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        },
+        {
+          "origin": "seal",
+          "phase": "PREP",
+          "started": "2026-08-29T06:55:59.838Z"
+        }
+      ]
+    },
+    {
+      "pid": 27143,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "commit-exact-v2-preseal",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:21.422Z"
+        }
+      ]
+    },
+    {
+      "pid": 27147,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27149,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27151,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27158,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27873,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "read-v2-milestone",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:12.770Z"
+        }
+      ]
+    },
+    {
+      "pid": 28443,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "continuation-source-data-binding",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:58:12.377Z"
+        }
+      ]
+    },
+    {
+      "pid": 28628,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "read-staging-seams",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:58:26.303Z"
+        }
+      ]
+    },
+    {
+      "pid": 29135,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "author-unrun-tail-continuation",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:59:27.127Z"
+        }
+      ]
+    },
+    {
+      "pid": 29137,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "apply_patch",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 29786,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "seal-tail-v2",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:00:38.270Z"
+        },
+        {
+          "origin": "tail-seal",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:00:38.269Z"
+        }
+      ]
+    },
+    {
+      "pid": 30369,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "commit-unrun-tail",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:02.365Z"
+        }
+      ]
+    },
+    {
+      "pid": 30371,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30373,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30382,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "/usr/bin/git",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 31220,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "read-final-v2-result",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:02:09.029Z"
+        }
+      ]
+    },
+    {
+      "pid": 31587,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "read-observation-schema",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:02:35.872Z"
+        }
+      ]
+    },
+    {
+      "pid": 34435,
+      "origin": "prep/admin.jsonl",
+      "phase": "ACTUAL",
+      "action": "publish-v2",
+      "observations": [
+        {
+          "origin": "prep/admin.jsonl",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:05:11.420Z"
+        }
+      ]
+    },
+    {
+      "pid": 26438,
+      "origin": "seal",
+      "phase": "PREP",
+      "action": "node --check",
+      "observations": [
+        {
+          "origin": "seal",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 26441,
+      "origin": "seal",
+      "phase": "PREP",
+      "action": "node --check",
+      "observations": [
+        {
+          "origin": "seal",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 26465,
+      "origin": "seal",
+      "phase": "PREP",
+      "action": "node --check",
+      "observations": [
+        {
+          "origin": "seal",
+          "phase": "PREP",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 29788,
+      "origin": "tail-seal",
+      "phase": "ACTUAL",
+      "action": "syntax-only",
+      "observations": [
+        {
+          "origin": "tail-seal",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 29789,
+      "origin": "tail-seal",
+      "phase": "ACTUAL",
+      "action": "syntax-only",
+      "observations": [
+        {
+          "origin": "tail-seal",
+          "phase": "ACTUAL",
+          "status": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27454,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "development-blobs",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:38.232Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27507,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "production-build-once",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:40.954Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27551,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "offline-pack",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:46.067Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27557,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "source-redirections-v3",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:48.407Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27566,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "source-strict",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:49.254Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27568,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "source-conditional",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:50.063Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27569,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "source-extension",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:50.861Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27575,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "source-arrays",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:51.633Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27584,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "types-source-false",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:52.261Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27598,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "types-source-true",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:53.223Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27601,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "offline-install",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:54.173Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27611,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "installed-redirections-v3",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:56.460Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27613,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "installed-strict",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:57.363Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27626,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "installed-conditional",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:58.274Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27630,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "installed-extension",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:56:59.159Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27632,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "installed-arrays",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:00.031Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27688,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "types-installed-false",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:00.777Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27709,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "types-installed-true",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:01.952Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27725,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "moved-redirections-v3",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:03.249Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27756,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "moved-strict",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:04.287Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27763,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "moved-conditional",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:05.403Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27766,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "moved-extension",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T06:57:06.477Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30411,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "moved-arrays-tail",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:10.195Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30419,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "types-moved-false",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:11.029Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30443,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "types-moved-true",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:12.356Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30490,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "missing-read-zero",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:14.428Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30530,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "missing-read-zero-restored",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:15.493Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30538,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "read-assignment-lhs",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:16.485Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30545,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "read-assignment-lhs-restored",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:17.435Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30558,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "let-recast",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:18.402Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30567,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "let-recast-restored",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:19.384Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30575,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "rollback-prefix",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:20.332Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30600,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "rollback-prefix-restored",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:21.322Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30608,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "swallow-parameter-sink",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:22.326Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30626,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "swallow-parameter-sink-restored",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:23.346Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30641,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "false-option-state",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:24.346Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30695,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "false-option-state-restored",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:25.455Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30712,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "binding-missing",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:26.586Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 30725,
+      "origin": "runner",
+      "phase": "ACTUAL",
+      "action": "binding-changed",
+      "observations": [
+        {
+          "origin": "runner",
+          "phase": "ACTUAL",
+          "started": "2026-08-29T07:01:27.415Z",
+          "signal": null
+        }
+      ]
+    },
+    {
+      "pid": 27448,
+      "origin": "outer",
+      "phase": "ACTUAL",
+      "action": "initial-outer",
+      "observations": [
+        {
+          "origin": "outer",
+          "phase": "ACTUAL"
+        }
+      ]
+    },
+    {
+      "pid": 27449,
+      "origin": "outer",
+      "phase": "ACTUAL",
+      "action": "initial-runner",
+      "observations": [
+        {
+          "origin": "outer",
+          "phase": "ACTUAL"
+        }
+      ]
+    },
+    {
+      "pid": 30400,
+      "origin": "outer",
+      "phase": "ACTUAL",
+      "action": "tail-outer",
+      "observations": [
+        {
+          "origin": "outer",
+          "phase": "ACTUAL"
+        }
+      ]
+    },
+    {
+      "pid": 30401,
+      "origin": "outer",
+      "phase": "ACTUAL",
+      "action": "tail-runner",
+      "observations": [
+        {
+          "origin": "outer",
+          "phase": "ACTUAL"
+        }
+      ]
+    }
+  ],
+  "unnumberedExplicitCommandStarts": [
+    {
+      "phase": "PREP",
+      "role": "two context-only instruction dispatches and their cat/sed commands",
+      "maximumDistinctKnownStarts": 4
+    },
+    {
+      "phase": "PREP",
+      "role": "direct apply_patch PLAN/seal dispatch shell and patch command",
+      "maximumDistinctKnownStarts": 2
+    },
+    {
+      "phase": "PREP",
+      "role": "apply_patch before first exec seal; Node PID separately known",
+      "maximumDistinctKnownStarts": 1
+    },
+    {
+      "phase": "ACTUAL",
+      "role": "apply_patch before exec tail seal; Node PID separately known",
+      "maximumDistinctKnownStarts": 1
+    },
+    {
+      "phase": "ACTUAL",
+      "role": "publication-script apply_patch dispatch shell and command",
+      "maximumDistinctKnownStarts": 2
+    }
+  ],
+  "prepPidBound": 19,
+  "actualPidBound": 63,
+  "qualification": "PID-bound observations plus conservative upper count for explicit admin commands without PID receipts. Not a full transitive descendant census, not PGID absence. Parent PIDs not counted as owned. Loader/Worker reservations not OS births."
+}

@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-29T11:54:27.891Z",
+  "deadline": "2026-08-29T12:09:27.891Z",
+  "budget": {
+    "knownOS": 32,
+    "peak": 3,
+    "capture": 50331648,
+    "work": 201326592
+  },
+  "scope": "DATA re-adjudication; no product/native execution"
+}

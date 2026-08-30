@@ -1,0 +1,18 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: unique mutation anchor: mount scoped alias guard removed
+
+3 !== 2
+
+    at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/fs/mount/mutation-identity.probe.ts:70:12) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 3,
+  expected: 2,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

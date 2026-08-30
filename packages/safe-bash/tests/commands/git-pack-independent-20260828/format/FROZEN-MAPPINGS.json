@@ -1,0 +1,353 @@
+{
+  "schema": 1,
+  "role": "FROZEN_DATA_ALL_WORKFLOWS_UNRUN",
+  "originalFamilies": [
+    "| B01 | F/P | Same neutral graph packed nondelta in pack v2 and v3/idxv2, loose copies removed; qualify A01–A06 unchanged under packed representation (D16). |",
+    "| B02 | F/P | OFS delta to earlier exact entry; distance128 multi-byte encoding; distance0, before-header and middle-of-entry references refuse (D16). |",
+    "| B03 | F/P | REF delta whose in-pack base occurs earlier then later; mixed REF/OFS chain; resolve type/body without recursion overflow (D16). |",
+    "| B04 | F/P | Delta-program size differs from result size; validate both, base-length mismatch and result under/overrun independently (D16). |",
+    "| B05 | F/P | Copy0x80 size-default65536 with sufficiently large base; partial offset-byte masks, insert1/127, opcode0 and truncated instruction; exact output or refusal (D16). |",
+    "| B06 | F/P | SHA1 pack/idx trailer corruption and mismatch; isolated entry CRC corruption including base/header bytes; checksums over correct domains, never POSIX cksum (D16). |",
+    "| B07 | F/P | Nonmonotone fanout, wrong bucket totals, unordered/duplicate OID, count mismatch, missing pack/idx; refuse before unsafe count-driven allocation (D16). |",
+    "| B08 | F/P | Large-offset index outside table, unsafe 64-bit offset, overlapping/duplicate/out-of-file offsets, trailing pack bytes; entry boundaries and limits before conversion/materialization (D16). |",
+    "| B09 | F/P | REF cycle, missing base and external thin base present only loose/other pack; explicit self-contained-pack profile refusal, never fetch or false missing-clean (D16). |",
+    "| B10 | P | Delta depth32/33, repeated shared bases/cache eviction, result-copy expansion beyond cumulative inflated/resident/work caps; no recharge omission or per-object reset. |",
+    "| B11 | F/P | Multiple valid packs with duplicate OIDs, acceleration-only MIDX/rev/bitmap alongside them, pack count8/9 and bytes33554432/+1; complete census or explicit refusal, not missed packed objects. |",
+    "| B12 | P | Packed reads with chunk reuse, truncation, cancellation and slow/closed output; reuse A54–A57 obligations, verify final OID before raw publication and drain owned resources. |"
+  ],
+  "workflowTransformation": {
+    "removeExactly": [
+      ".git/objects/ce/013625030ba8dba906f756967f9e9ca394464a",
+      ".git/objects/56/71f837b11e71420ad6d8da84ba07569e3961b1",
+      ".git/objects/df/967b96a579e45a18b8251732d16804b2e56a55",
+      ".git/objects/f7/19efd430d52bcfc8566a43b2eb655688d38871",
+      ".git/objects/28/6c5f5776916d7d7d5849988ca9d83e722cf9c2",
+      ".git/objects/82/14f2a3867e2bcbe05172f870629f24ebd0048e",
+      ".git/objects/72/02976aee2fe6822ad399e62d81746506a10c8e",
+      ".git/objects/d6/933c40519b4db4904e71cf3b7ec5c50e09000f",
+      ".git/objects/b1/7f2aba562322af347fa8aa023d9d0e571a4369",
+      ".git/objects/dd/e68226091aa6adddca45e02370c5127430e55a",
+      ".git/objects/1c/ec77171d8321d533b3aa50b7a1a9df02b10816"
+    ],
+    "addFixture": [
+      "P01",
+      "P02"
+    ],
+    "preserveOtherFiles": true
+  },
+  "workflows": [
+    {
+      "id": "W01",
+      "originalId": "A01",
+      "family": "B01",
+      "expected": {
+        "args": [
+          "status",
+          "--porcelain=v1",
+          "--no-renames",
+          "-uall"
+        ],
+        "exitCode": 0,
+        "stdout": "M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n"
+      },
+      "state": "UNRUN_PRODUCT_AND_NATIVE",
+      "sha256": "6b8eb0960ccb099c7b866321547f406e3eb38194dc8881e49f6e2d5b61d4b276"
+    },
+    {
+      "id": "W02",
+      "originalId": "A02",
+      "family": "B01",
+      "expected": {
+        "args": [
+          "diff",
+          "--name-only"
+        ],
+        "exitCode": 0,
+        "stdout": "src/app.txt\n"
+      },
+      "state": "UNRUN_PRODUCT_AND_NATIVE",
+      "sha256": "bff3bc86c6635a1fb46cdf9a09cdcacbc1c0e21992b6e7597f956e972aa82c85"
+    },
+    {
+      "id": "W03",
+      "originalId": "A03",
+      "family": "B01",
+      "expected": {
+        "args": [
+          "diff",
+          "--cached",
+          "--name-only"
+        ],
+        "exitCode": 0,
+        "stdout": "README.md\nobsolete.txt\n"
+      },
+      "state": "UNRUN_PRODUCT_AND_NATIVE",
+      "sha256": "16d148699312ad00a261d3e9a52ea407070f5f02513858498721eb71d121181f"
+    },
+    {
+      "id": "W04",
+      "originalId": "A04",
+      "family": "B01",
+      "expected": {
+        "args": [
+          "show",
+          "HEAD:src/app.txt"
+        ],
+        "exitCode": 0,
+        "stdout": "two\n"
+      },
+      "state": "UNRUN_PRODUCT_AND_NATIVE",
+      "sha256": "055b460570c979e1c6007352ea30d8cd2c6b5ea43f8b4e1c2896fbed09c563d9"
+    },
+    {
+      "id": "W05",
+      "originalId": "A05",
+      "family": "B01",
+      "expected": {
+        "args": [
+          "log",
+          "--first-parent",
+          "--format=%H %s",
+          "-n",
+          "2"
+        ],
+        "exitCode": 0,
+        "stdout": "1cec77171d8321d533b3aa50b7a1a9df02b10816 Second\ndde68226091aa6adddca45e02370c5127430e55a Initial\n"
+      },
+      "state": "UNRUN_PRODUCT_AND_NATIVE",
+      "sha256": "81d0f6da272e49718a6ec23c572e851844d01e3ad0cc252859faf089260e8dea"
+    },
+    {
+      "id": "W06",
+      "originalId": "A06",
+      "family": "B01",
+      "expected": {
+        "args": [
+          "ls-files",
+          "-z"
+        ],
+        "exitCode": 0,
+        "stdout": "README.md\u0000src/app.txt\u0000"
+      },
+      "state": "UNRUN_PRODUCT_AND_NATIVE",
+      "sha256": "bd733c5535813d9454567cbcd43d229b960e0fd1b6bd437241040025e310c874"
+    }
+  ],
+  "fixtureMetadata": [
+    {
+      "id": "P01",
+      "description": "Original eleven-object graph as direct pack2 entries",
+      "version": 2,
+      "count": 11,
+      "maxDepth": 0,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "df1dfca0375f7abeb30124a3e7109223f58ac132",
+      "packSha256": "3387e06c0801727c5cdafe3ffc94b0e247c200ccc366ae429994e8634f54d077",
+      "indexSha256": "ba34b4b994ee3836ff2fc98cd3a1127bd8207c3476ae718a154308f8b86192e4",
+      "packBytes": 709,
+      "indexBytes": 1380,
+      "declaredEntries": 11
+    },
+    {
+      "id": "P02",
+      "description": "Same exact graph in pack3",
+      "version": 3,
+      "count": 11,
+      "maxDepth": 0,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "b602bb645f32a1ae5a4553a2cecd979e62f76529",
+      "packSha256": "6528cea54672819edb2f23354310aa3239df7bd032c95411b15b49b3e0033c52",
+      "indexSha256": "50593a31a4108ab00ac9e4185bd3273850efe73f37e54303d2dfc73b0858a640",
+      "packBytes": 709,
+      "indexBytes": 1380,
+      "declaredEntries": 11
+    },
+    {
+      "id": "P03",
+      "description": "OFS distance128 literal8000",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "b8e2585da9bb1dcde70f12d031aad6285a8141f0",
+      "packSha256": "4db46aa30feca59b360e74b8cb78c47a2e9b82c47b2f6eea299956c9deb36723",
+      "indexSha256": "f653c9bfe88a3650f17aa3bb2e400220d193329bf65e21e40af3e4badd348956",
+      "packBytes": 177,
+      "indexBytes": 1128,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P04",
+      "description": "Backward REF",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "ff78ce31e753c6d3c2f3511c59487cca0f408550",
+      "packSha256": "bfcc4167d1e7da119b77f7a30714d561f23bd3d1334e69a40c28acfba2da6ff3",
+      "indexSha256": "cc03a060b5e2e586426fcb5bb84f28f7acd5120fbf179e7b31969050b9508b11",
+      "packBytes": 85,
+      "indexBytes": 1128,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P05",
+      "description": "Forward REF, same objects different order",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "fd3a7bd27d746ca243b9918a852fa9d6edabad62",
+      "packSha256": "e916a3caebf71f9e44922159790139bbb174f84cc897e74870cd0298a165d065",
+      "indexSha256": "fb26c1a9b9e2800ef5c51f35352aa976b5c0d767a3bb1b79fa61c995a6959feb",
+      "packBytes": 85,
+      "indexBytes": 1128,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P06",
+      "description": "Mixed REF then OFS depth2",
+      "version": 2,
+      "count": 3,
+      "maxDepth": 2,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "6be46a61c9170e10906b7038eb84c6a0fcbabcf6",
+      "packSha256": "99c56b10a0903e4ee5a4e7021874b7d76967c2abeec16503a59ea367182af631",
+      "indexSha256": "5974a42fc0f67dfbaf3c903410fdcee62432ec5ce49212236fd4d41b02bc6f4c",
+      "packBytes": 106,
+      "indexBytes": 1156,
+      "declaredEntries": 3
+    },
+    {
+      "id": "P07",
+      "description": "Copy opcode80 implies65536 then literal",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "7bdc69db4ec4e0fc08c5073ae85bfb96cf31963d",
+      "packSha256": "7a5f91c9a3222d845cc893f74e12e723a8b653854cb3b13e669b4d6f69135a9c",
+      "indexSha256": "30d34d780a13f77a399bd635c50e39c1b1afe358a2a2abf9a9b2a1e4b9b0b319",
+      "packBytes": 139,
+      "indexBytes": 1128,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P08",
+      "description": "Copy offset bytes0/2 retain their positions",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "d66fa4c78bce3be9d07fe1a90dd37bd1e2fc3eb2",
+      "packSha256": "dbf83ff33dc0153b9384b067bbbd0cf846bb471cf74a497d092232cfacb4e3e5",
+      "indexSha256": "39234c63075dd461696da37d150e587eb334dd6727dd29e4114989b53dff5f4c",
+      "packBytes": 633,
+      "indexBytes": 1128,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P09",
+      "description": "Empty base then insert127 and insert1",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "6e7220ea47de1af39e8e7dbd77a070ce777bcafd",
+      "packSha256": "f691a73c0ad26d6cae81bb53be8a99238efb29162a4982de5336689bc30254a2",
+      "indexSha256": "c02633a354795c3f2d929b675ebeba411bb6b4ad9eea462baf4de1d2d449a143",
+      "packBytes": 61,
+      "indexBytes": 1128,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P10",
+      "description": "Empty valid pack/index",
+      "version": 2,
+      "count": 0,
+      "maxDepth": 0,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "029d08823bd8a8eab510ad6ac75c823cfd3ed31e",
+      "packSha256": "e3b8709ac0e404ee2b5e926088a63875f243a0607ba0bffbc228a642c64be702",
+      "indexSha256": "26e1086437f55d7dfc3972d35654bc1c2497083d3bde3d8040fede8d06e07a97",
+      "packBytes": 32,
+      "indexBytes": 1072,
+      "declaredEntries": 0
+    },
+    {
+      "id": "P11",
+      "description": "Small actual offset via64-bit table",
+      "version": 2,
+      "count": 2,
+      "maxDepth": 1,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "ff78ce31e753c6d3c2f3511c59487cca0f408550",
+      "packSha256": "bfcc4167d1e7da119b77f7a30714d561f23bd3d1334e69a40c28acfba2da6ff3",
+      "indexSha256": "8fdd5ffd27fc844dab59e602be3c7b875c2b5a52859786fcefd263aa0738489f",
+      "packBytes": 85,
+      "indexBytes": 1136,
+      "declaredEntries": 2
+    },
+    {
+      "id": "P12",
+      "description": "Exactly32 delta edges",
+      "version": 2,
+      "count": 33,
+      "maxDepth": 32,
+      "profile": "PROPOSED_PROFILE_DATA",
+      "expectedStage": null,
+      "packSha1": "209974b86a8c01d7f66ebbfa186adfe5a7cfad7d",
+      "packSha256": "83735d5a54c3bb1a359c211cb83d1ef2de39b332646785539a8745f7e3680902",
+      "indexSha256": "9e70ec68cf045e008f815e663dde3c87c139c59a3802f44676fd91185603cb00",
+      "packBytes": 554,
+      "indexBytes": 1996,
+      "declaredEntries": 33
+    },
+    {
+      "id": "P13",
+      "description": "Valid format33 edges; proposed profile refuses",
+      "version": 2,
+      "count": 34,
+      "maxDepth": 33,
+      "profile": "FORMAT_VALID_PROFILE_DEPTH_REFUSAL",
+      "expectedStage": null,
+      "packSha1": "8dabbffe14545781a43939cb3e35c38bc2177aa9",
+      "packSha256": "a04153d08db466789fdac756027d8243bdc74c35f7793a36cebe86a47dac2729",
+      "indexSha256": "7388aa5243eabcdfda3be27655b1b152769c980932e1afa6fc7467548a9d495b",
+      "packBytes": 570,
+      "indexBytes": 2024,
+      "declaredEntries": 34
+    }
+  ],
+  "negativeIds": [
+    "D01",
+    "D02",
+    "D03",
+    "N01",
+    "N02",
+    "N03",
+    "N04",
+    "N05",
+    "N06",
+    "N07",
+    "N08",
+    "N09",
+    "N10",
+    "N11",
+    "N12",
+    "N13",
+    "N14",
+    "N15"
+  ]
+}

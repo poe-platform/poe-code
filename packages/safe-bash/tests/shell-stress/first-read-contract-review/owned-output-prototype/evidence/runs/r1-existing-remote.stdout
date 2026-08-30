@@ -1,0 +1,143 @@
+TAP version 13
+# Subtest: hard-deadline pipeline close: transport
+ok 1 - hard-deadline pipeline close: transport
+  ---
+  duration_ms: 131.34775
+  type: 'test'
+  ...
+# {"scenario":"transport","pid":87731,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: pipefail
+ok 2 - hard-deadline pipeline close: pipefail
+  ---
+  duration_ms: 128.107084
+  type: 'test'
+  ...
+# {"scenario":"pipefail","pid":87733,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle
+ok 3 - hard-deadline pipeline close: middle
+  ---
+  duration_ms: 131.965375
+  type: 'test'
+  ...
+# {"scenario":"middle","pid":87735,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle-status
+ok 4 - hard-deadline pipeline close: middle-status
+  ---
+  duration_ms: 130.514625
+  type: 'test'
+  ...
+# {"scenario":"middle-status","pid":87737,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: nested-invoke
+ok 5 - hard-deadline pipeline close: nested-invoke
+  ---
+  duration_ms: 133.059291
+  type: 'test'
+  ...
+# {"scenario":"nested-invoke","pid":87739,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: redirect
+ok 6 - hard-deadline pipeline close: redirect
+  ---
+  duration_ms: 132.562334
+  type: 'test'
+  ...
+# {"scenario":"redirect","pid":87741,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: group
+ok 7 - hard-deadline pipeline close: group
+  ---
+  duration_ms: 129.972916
+  type: 'test'
+  ...
+# {"scenario":"group","pid":87743,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-rejection
+ok 8 - hard-deadline pipeline close: consumer-rejection
+  ---
+  duration_ms: 136.861958
+  type: 'test'
+  ...
+# {"scenario":"consumer-rejection","pid":87745,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-status
+ok 9 - hard-deadline pipeline close: consumer-status
+  ---
+  duration_ms: 133.644792
+  type: 'test'
+  ...
+# {"scenario":"consumer-status","pid":87748,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: late-read-rejection
+ok 10 - hard-deadline pipeline close: late-read-rejection
+  ---
+  duration_ms: 136.022
+  type: 'test'
+  ...
+# {"scenario":"late-read-rejection","pid":87750,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: iterator-return
+ok 11 - hard-deadline pipeline close: iterator-return
+  ---
+  duration_ms: 136.20575
+  type: 'test'
+  ...
+# {"scenario":"iterator-return","pid":87753,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: caller-abort
+ok 12 - hard-deadline pipeline close: caller-abort
+  ---
+  duration_ms: 129.6955
+  type: 'test'
+  ...
+# {"scenario":"caller-abort","pid":87755,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: budget-abort
+ok 13 - hard-deadline pipeline close: budget-abort
+  ---
+  duration_ms: 136.565333
+  type: 'test'
+  ...
+# {"scenario":"budget-abort","pid":87758,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-success
+ok 14 - hard-deadline pipeline close: completed-success
+  ---
+  duration_ms: 131.068125
+  type: 'test'
+  ...
+# {"scenario":"completed-success","pid":87766,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-failure
+ok 15 - hard-deadline pipeline close: completed-failure
+  ---
+  duration_ms: 142.381
+  type: 'test'
+  ...
+# {"scenario":"completed-failure","pid":87768,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-rejection
+ok 16 - hard-deadline pipeline close: completed-rejection
+  ---
+  duration_ms: 132.566709
+  type: 'test'
+  ...
+# {"scenario":"completed-rejection","pid":87770,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: delayed-no-write
+ok 17 - hard-deadline pipeline close: delayed-no-write
+  ---
+  duration_ms: 141.638583
+  type: 'test'
+  ...
+# {"scenario":"delayed-no-write","pid":87772,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: closed-before-write
+ok 18 - hard-deadline pipeline close: closed-before-write
+  ---
+  duration_ms: 131.774875
+  type: 'test'
+  ...
+# {"scenario":"closed-before-write","pid":87779,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: zero-byte-no-write
+ok 19 - hard-deadline pipeline close: zero-byte-no-write
+  ---
+  duration_ms: 132.893417
+  type: 'test'
+  ...
+# {"scenario":"zero-byte-no-write","pid":87781,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2638.270917

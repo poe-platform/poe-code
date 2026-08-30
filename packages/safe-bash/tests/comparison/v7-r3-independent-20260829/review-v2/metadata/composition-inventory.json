@@ -1,0 +1,25 @@
+{
+  "id": "composition-inventory",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "9b6c8a04d0e3227ead7d055253b80fec7479f04b",
+    "--",
+    "tests/comparison/breadth-continuation-20260828",
+    "tests/comparison/AGENTS.md",
+    "tests/AGENTS.md"
+  ],
+  "pid": 56154,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 66989,
+  "stdoutSha256": "9179dbd1a7a179db0f9f262889617259310447d29bc30d2f345918309dedd3ce",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

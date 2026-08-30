@@ -1,0 +1,1629 @@
+{
+  "version": 1,
+  "kind": "prepared-adapters-not-product-verified",
+  "originalCounts": {
+    "rows": 138,
+    "invariants": 24,
+    "positiveTypes": 8,
+    "negativeTypes": 8,
+    "mutationFamilies": 16,
+    "importNegativeFamilies": 6
+  },
+  "statusCounts": {
+    "prepared": 124,
+    "gaps": 14
+  },
+  "cases": [
+    {
+      "id": "B01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B10",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B11",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B12",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B13",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B14",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B15",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B16",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B17",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B18",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "B19",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "rawTarget": "I17"
+      },
+      "gap": null
+    },
+    {
+      "id": "B20",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G10",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G11",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G12",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G13",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G14",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G15",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G16",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G17",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G18",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G19",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G20",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G21",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G22",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G23",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G24",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G25",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G26",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G27",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G28",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G29",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G30",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G31",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G32",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G33",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G34",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G35",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G36",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G37",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G38",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G39",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G40",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G41",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "G42",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "D10",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "fresh-execs",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "fresh-execs",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S10",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S11",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S12",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S13",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "S14",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "M01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "stackCwdPublication": "I05"
+      },
+      "gap": null
+    },
+    {
+      "id": "M02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "stackCwdPublication": "I05"
+      },
+      "gap": null
+    },
+    {
+      "id": "M03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "sameForwardedPathPreserved": "I06"
+      },
+      "gap": null
+    },
+    {
+      "id": "M04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "laterOrdinaryCdCannotEraseStackStamp": "I06"
+      },
+      "gap": null
+    },
+    {
+      "id": "M05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "ordinaryCdOnlyRestorationUnchanged": "I06"
+      },
+      "gap": null
+    },
+    {
+      "id": "M06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "M07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "noStackCwdPublication": "I05"
+      },
+      "gap": null
+    },
+    {
+      "id": "M08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "childStampCannotPreserveBorrowedParentCwd": "I06"
+      },
+      "gap": null
+    },
+    {
+      "id": "F01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "noLaterExports": "I17"
+      },
+      "gap": null
+    },
+    {
+      "id": "F07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "tailInsertion": "I17",
+        "automaticDisplay": "I17"
+      },
+      "gap": null
+    },
+    {
+      "id": "F09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "tailRemoval": "I17",
+        "automaticDisplay": "I17"
+      },
+      "gap": null
+    },
+    {
+      "id": "F10",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "rollback": "I17"
+      },
+      "gap": null
+    },
+    {
+      "id": "F11",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "F12",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "L01",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "4096-entry public setup admission and count-before-missing-OLDPWD witness not implemented; no private State injection"
+    },
+    {
+      "id": "L02",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "4095-entry public setup, exact cumulative output/command accounting not implemented"
+    },
+    {
+      "id": "L03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "tailBytes": "I07"
+      },
+      "gap": null
+    },
+    {
+      "id": "L04",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "L05",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "tailBytes": "I07"
+      },
+      "gap": null
+    },
+    {
+      "id": "L06",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "tailBytes": "I07",
+        "originalRawStringRetained": "I07"
+      },
+      "gap": null
+    },
+    {
+      "id": "L07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "unusedHomeNotScanned": "I10"
+      },
+      "gap": null
+    },
+    {
+      "id": "L08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "L09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "L10",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "L11",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "ignoredArgumentNotScanned": "I10"
+      },
+      "gap": null
+    },
+    {
+      "id": "L12",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "ignoredArgumentNotScanned": "I10"
+      },
+      "gap": null
+    },
+    {
+      "id": "L13",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "oversize initial cwd and seed publication despite display failure require separately presealed truthful scripted provider"
+    },
+    {
+      "id": "L14",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "4MiB public tail construction/reachability through possible work failures not implemented"
+    },
+    {
+      "id": "L15",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "exact4194303-byte public seed and inserted-cwd pre-admission witness not implemented"
+    },
+    {
+      "id": "L16",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "four grouped inert-family schedules against readonly bindings and throwing-on-all-methods host require dedicated adapter"
+    },
+    {
+      "id": "C01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "direct-boundary",
+      "sourceOnly": {
+        "noStackPublication": "I17"
+      },
+      "gap": null
+    },
+    {
+      "id": "C02",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "stat-admission/abort/late-rejection barrier and exact reason witness not yet integrated with actual Shell"
+    },
+    {
+      "id": "C03",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "pre-abort public observation of pre-cd tail publication requires separately bound observation schedule; no getter"
+    },
+    {
+      "id": "C04",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {
+        "tailInsertion": "I17"
+      },
+      "gap": "required-print abort with separately enrolled cooperative owner and settlement trace not integrated"
+    },
+    {
+      "id": "C05",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "registered cleanup failure/root-abort-before-settlement schedule not integrated"
+    },
+    {
+      "id": "C06",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "equal-valued root/escaping/local provenance and concurrent sibling schedules require versioned host adapter"
+    },
+    {
+      "id": "C07",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "C08",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "C09",
+      "status": "adapter-prepared-unexecuted",
+      "route": "direct-boundary",
+      "sourceOnly": {
+        "publishedFull": "I17",
+        "noNewPrivateLimitKey": "I22",
+        "noReset": "I19"
+      },
+      "gap": null
+    },
+    {
+      "id": "C10",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "destination-owned stdout close versus separately owned file/header/stderr scopes requires versioned enrollment fixture"
+    },
+    {
+      "id": "C11",
+      "status": "adapter-prepared-unexecuted",
+      "route": "direct-boundary",
+      "sourceOnly": {
+        "noHiddenCdDispatchTick": "I19",
+        "sharedBudgetMonotonic": "I19"
+      },
+      "gap": null
+    },
+    {
+      "id": "C12",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "public scheduling witness does not identify exact private work/final-flush boundary; source I08 or presealed instrumentation"
+    },
+    {
+      "id": "A01",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "registryInventoryUnchanged": "I22"
+      },
+      "gap": null
+    },
+    {
+      "id": "A02",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {},
+      "gap": null
+    },
+    {
+      "id": "A03",
+      "status": "adapter-prepared-unexecuted",
+      "route": "same-exec-public",
+      "sourceOnly": {
+        "literalArgv": "I21"
+      },
+      "gap": null
+    },
+    {
+      "id": "A04",
+      "status": "bounded-adapter-gap",
+      "route": null,
+      "sourceOnly": {},
+      "gap": "exact accepted-CD+LET independently declared public keys/default registry inventory not supplied"
+    }
+  ],
+  "invariants": [
+    {
+      "id": "I01",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U01",
+        "U16"
+      ]
+    },
+    {
+      "id": "I02",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U01"
+      ]
+    },
+    {
+      "id": "I03",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U02"
+      ]
+    },
+    {
+      "id": "I04",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U03"
+      ]
+    },
+    {
+      "id": "I05",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U04",
+        "U05"
+      ]
+    },
+    {
+      "id": "I06",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U04",
+        "U05"
+      ]
+    },
+    {
+      "id": "I07",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U02",
+        "U09"
+      ]
+    },
+    {
+      "id": "I08",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U10",
+        "U11"
+      ]
+    },
+    {
+      "id": "I09",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U10"
+      ]
+    },
+    {
+      "id": "I10",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U12"
+      ]
+    },
+    {
+      "id": "I11",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U09"
+      ]
+    },
+    {
+      "id": "I12",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U13"
+      ]
+    },
+    {
+      "id": "I13",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U12"
+      ]
+    },
+    {
+      "id": "I14",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U08"
+      ]
+    },
+    {
+      "id": "I15",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U14"
+      ]
+    },
+    {
+      "id": "I16",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U15"
+      ]
+    },
+    {
+      "id": "I17",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U06",
+        "U07",
+        "U16"
+      ]
+    },
+    {
+      "id": "I18",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U14"
+      ]
+    },
+    {
+      "id": "I19",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U10",
+        "U16"
+      ]
+    },
+    {
+      "id": "I20",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U12",
+        "U16"
+      ]
+    },
+    {
+      "id": "I21",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U02"
+      ]
+    },
+    {
+      "id": "I22",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U16"
+      ]
+    },
+    {
+      "id": "I23",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U06",
+        "U07"
+      ]
+    },
+    {
+      "id": "I24",
+      "role": "pinned-source-proof-pending-exact-candidate",
+      "dynamicMeasurement": false,
+      "instrumentation": "separately-presealed-version-only-if-needed",
+      "controls": [
+        "U08",
+        "U09",
+        "U10",
+        "U11",
+        "U15"
+      ]
+    }
+  ],
+  "types": {
+    "positive": "types-positive.mts.fixture",
+    "negative": "types-negative.mts.fixture",
+    "positiveIds": [
+      "TP01",
+      "TP02",
+      "TP03",
+      "TP04",
+      "TP05",
+      "TP06",
+      "TP07",
+      "TP08"
+    ],
+    "negativeSites": [
+      {
+        "id": "TN01",
+        "line": 5,
+        "code": 2353,
+        "token": "directoryStack",
+        "from": "{ fs, directoryStack: [] }",
+        "to": "{ fs }"
+      },
+      {
+        "id": "TN02",
+        "line": 6,
+        "code": 2353,
+        "token": "directoryStack",
+        "from": "{ directoryStack: [] }",
+        "to": "{}"
+      },
+      {
+        "id": "TN03",
+        "line": 7,
+        "code": 2353,
+        "token": "directoryStack",
+        "from": "{ directoryStack: [] }",
+        "to": "{}"
+      },
+      {
+        "id": "TN04",
+        "line": 8,
+        "code": 2353,
+        "token": "directoryStackCwdPublication",
+        "from": "{ directoryStackCwdPublication: Symbol() }",
+        "to": "{}"
+      },
+      {
+        "id": "TN05",
+        "line": 9,
+        "code": 2353,
+        "token": "maxDirectoryStackEntries",
+        "from": "{ maxDirectoryStackEntries: 4096 }",
+        "to": "{}"
+      },
+      {
+        "id": "TN06",
+        "line": 10,
+        "code": 2339,
+        "token": "directoryStack",
+        "from": "result.directoryStack",
+        "to": "result.stdoutBytes"
+      },
+      {
+        "id": "TN07",
+        "line": 11,
+        "code": 2339,
+        "token": "directoryStack",
+        "from": "context.directoryStack",
+        "to": "context.cwd"
+      },
+      {
+        "id": "TN08",
+        "line": 12,
+        "code": 2322,
+        "token": "signal",
+        "from": "{ signal: \"abort\" }",
+        "to": "{ signal: new AbortController().signal }"
+      }
+    ],
+    "productCompilation": "gated-unrun",
+    "syntaxOnlyIsNotTypeAcceptance": true
+  },
+  "mutations": [
+    {
+      "id": "U01",
+      "witnesses": [
+        "S02",
+        "S03",
+        "S12",
+        "S13"
+      ],
+      "role": "future valid compiled semantic mutant; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U02",
+      "witnesses": [
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "I03"
+      ],
+      "role": "future public semantic rows plus pinned source alias proof; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U03",
+      "witnesses": [
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "role": "future semantic mutant; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U04",
+      "witnesses": [
+        "M03",
+        "M04",
+        "M06",
+        "I05",
+        "I06"
+      ],
+      "role": "future semantic mutant; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U05",
+      "witnesses": [
+        "M01",
+        "M02",
+        "M07",
+        "M08"
+      ],
+      "role": "future semantic mutant; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U06",
+      "witnesses": [
+        "F02",
+        "F03",
+        "F05"
+      ],
+      "role": "future semantic mutant; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U07",
+      "witnesses": [
+        "F08",
+        "F09"
+      ],
+      "role": "future semantic mutant; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U08",
+      "witnesses": [
+        "I14",
+        "I24"
+      ],
+      "role": "future source-control or explicitly instrumented mutation; no unmasked public witness claimed",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": true,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U09",
+      "witnesses": [
+        "L01",
+        "L13",
+        "L15",
+        "I07",
+        "I11"
+      ],
+      "role": "future public reachable rows plus source boundary proof; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U10",
+      "witnesses": [
+        "I07",
+        "I08",
+        "I09",
+        "I19",
+        "I24"
+      ],
+      "role": "future source-control/instrumented variant only; not dynamic private-counter claim",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": true,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U11",
+      "witnesses": [
+        "I08",
+        "I24"
+      ],
+      "role": "future pinned-source control or explicitly instrumented schedule; public cancellation alone insufficient",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": true,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U12",
+      "witnesses": [
+        "B10",
+        "D07",
+        "L07",
+        "L09",
+        "L10",
+        "L11",
+        "L12",
+        "L16"
+      ],
+      "role": "future distinct bounded variants; grouped mutation family, not eight counted kills",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U13",
+      "witnesses": [
+        "G01",
+        "G09",
+        "G14",
+        "G15",
+        "G23",
+        "G24",
+        "G29",
+        "G30",
+        "G32"
+      ],
+      "role": "future distinct grammar variants, frozen family count only; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U14",
+      "witnesses": [
+        "C04",
+        "C07",
+        "C08",
+        "C10",
+        "I15",
+        "I18"
+      ],
+      "role": "future output/ownership semantic controls; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U15",
+      "witnesses": [
+        "I16",
+        "I24"
+      ],
+      "role": "future source proof plus presealed public diagnostic-boundary witness; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": true,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    },
+    {
+      "id": "U16",
+      "witnesses": [
+        "A01",
+        "A02",
+        "A04",
+        "C11",
+        "I01",
+        "I17",
+        "I22",
+        "TN01",
+        "TN05"
+      ],
+      "role": "future distinct valid variants/type inversions; not run",
+      "status": "infrastructure-only-exact-transformation-and-passing-candidate-receipt-pending",
+      "sourceOnlyFamily": false,
+      "candidateSpecificPredicateTiming": "future-postsource-binding-never-retroclaimed-precode"
+    }
+  ],
+  "importControls": [
+    {
+      "id": "Q01",
+      "status": "plumbing-prepared-product-unexecuted",
+      "entry": "actualImportControl",
+      "boundary": "actual dynamic import attempt plus authenticated guard outcome"
+    },
+    {
+      "id": "Q02",
+      "status": "plumbing-prepared-product-unexecuted",
+      "entry": "actualImportControl",
+      "boundary": "actual dynamic import attempt plus authenticated guard outcome"
+    },
+    {
+      "id": "Q03",
+      "status": "plumbing-prepared-product-unexecuted",
+      "entry": "actualImportControl",
+      "boundary": "actual dynamic import attempt plus authenticated guard outcome"
+    },
+    {
+      "id": "Q04",
+      "status": "plumbing-prepared-product-unexecuted",
+      "entry": "actualImportControl",
+      "boundary": "actual dynamic import attempt plus authenticated guard outcome"
+    },
+    {
+      "id": "Q05",
+      "status": "plumbing-prepared-product-unexecuted",
+      "entry": "admissionRefusalControl",
+      "boundary": "pre-build/pre-import by original contract"
+    },
+    {
+      "id": "Q06",
+      "status": "plumbing-prepared-product-unexecuted",
+      "entry": "typeHarnessRefusalControl",
+      "boundary": "actual positive type harness fails missing public module, not negative type pass"
+    }
+  ],
+  "runtimeGates": {
+    "acceptedLet": null,
+    "exactCdLetBase": null,
+    "exactStackCandidate": null,
+    "rootStackGo": false,
+    "stackWindowReleased": false,
+    "toolchainAndPackageClosure": null
+  },
+  "integrationGaps": [
+    "remaining14 adapters",
+    "actual product validation of124 prepared adapters",
+    "candidate-passing receipts and all16 transformation/source-control bindings",
+    "all24 pinned candidate source proofs",
+    "strict declaration compilation and8 inversions each layout",
+    "source tsx/load-hook ordering with pinned toolchain",
+    "main-thread ESM scope and no unadmitted worker/CJS paths",
+    "exact independently declared public/default inventory",
+    "actual CD/LET/getopts/invoke/owned-output regression runner and receipts"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "strict-packed-canonical",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.json",
+    "--listFiles"
+  ],
+  "cwd": "consumer",
+  "startedAt": "2026-08-27T10:04:00.237Z",
+  "durationMs": 449.0836670000008,
+  "status": 0,
+  "signal": null
+}

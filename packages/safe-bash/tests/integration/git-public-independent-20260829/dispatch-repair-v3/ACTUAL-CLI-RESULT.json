@@ -1,0 +1,78 @@
+{
+  "toolExit": 1,
+  "toolSignal": null,
+  "toolResult": "8f42d8",
+  "session": 25210,
+  "sourceSupplement": "d469a6e7bf75c8dbc2e50ebeca24a86dcb76bbe8",
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP",
+  "entryDirs": [
+    "entry-w0cjeh8i"
+  ],
+  "coordinatorStatus": "INDEPENDENT_ASSERTION_FAILURES",
+  "failures": [
+    {
+      "label": "source-novel",
+      "cases": [
+        {
+          "id": "I03-standalone",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/__consumer/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/__consumer/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/source/__consumer/novel.mjs:22:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    {
+      "label": "installed-novel",
+      "cases": [
+        {
+          "id": "I03-standalone",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/installed/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/installed/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/installed/novel.mjs:22:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    },
+    {
+      "label": "moved-novel",
+      "cases": [
+        {
+          "id": "I03-standalone",
+          "pass": false,
+          "error": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:22:252\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async record (file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:15:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2/scratch/work-x0BAYP/moved%20package/novel.mjs:22:1",
+          "created": 1,
+          "disposed": 1,
+          "cleanupFailure": false
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "directChildren": 43,
+    "observedProductWorkers": 4,
+    "internalLoaderAdmissions": 32,
+    "internalWorkerExitEventsObserved": false,
+    "boundedOwnedTotal": 79,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true
+  },
+  "outerTerminal": [
+    {
+      "ownedPidAndGroup": 26066
+    },
+    {
+      "naturalClose": true,
+      "returncode": 1,
+      "capturedBytes": 517,
+      "elapsedSeconds": 69.43400929198833
+    },
+    {
+      "ownedGroupAbsentAfterCleanup": 26066
+    }
+  ],
+  "elapsedSecondsFromActivation": 97.955
+}

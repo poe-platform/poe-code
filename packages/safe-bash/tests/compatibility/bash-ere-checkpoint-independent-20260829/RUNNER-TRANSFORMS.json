@@ -1,0 +1,33 @@
+{
+  "sourceSha256": "d8747bb76e6f90bb636f288c17dbd7183dd308f8cd1c41ff9a2ee99679b9ab5b",
+  "transforms": [
+    {
+      "before": "const author = dirname(own); const repo = resolve(own, '../../../..');",
+      "after": "const author = \"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-engine-author-20260829\"; const repo = \"/Users/kjopek/Workspace/safe-bash\";"
+    },
+    {
+      "before": "if (!['seal','run'].includes(mode)",
+      "after": "if (!['run'].includes(mode)"
+    },
+    {
+      "before": "const seal = JSON.parse(await text(join(own, 'SEAL.json')));",
+      "after": "const seal = JSON.parse(await text(join(own, 'AUTHOR-SEAL.json')));\n    await bound(JSON.parse(await text(join(own, 'EXECUTOR.json'))).files);"
+    },
+    {
+      "before": "const script = target ? join(own, 'checkpoints.mjs') : join(author, 'suite.mjs');",
+      "after": "const script = target === 'novel' ? join(own, 'novel.mjs') : target ? join(author, 'r02-v1/checkpoints.mjs') : join(author, 'suite.mjs');"
+    },
+    {
+      "before": "rows.push({ role, mutated, exitCode: result.code, observed, loaded }); return observed;",
+      "after": "assert.equal(observed.rows.length, selection !== 'all' ? 1 : target === 'novel' ? 6 : target ? 8 : 66, 'SAFETY exact membership');\n      rows.push({ role, mutated, exitCode: result.code, observed, loaded }); return observed;"
+    },
+    {
+      "before": "await runCases(`${layout}-author66`,directory); await runCases(`${layout}-checkpoints8`,directory,true);",
+      "after": "await runCases(`${layout}-author66`,directory); await runCases(`${layout}-checkpoints8`,directory,true); await runCases(`${layout}-novel6`,directory,'novel');"
+    },
+    {
+      "before": "negative.code===2 && JSON.stringify(diagnostics)==='[2345,2339,2322]'",
+      "after": "negative.code!==0 && JSON.stringify(diagnostics)==='[2345,2339,2322]' && negative.stdout.includes('negative.mts(4,') && negative.stdout.includes('negative.mts(6,') && negative.stdout.includes('negative.mts(7,')"
+    }
+  ]
+}

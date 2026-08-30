@@ -1,0 +1,7 @@
+# Narrow capture repair v7
+
+ROOT conditional authority, 2026-08-28. Poincare review f4e92bb14ff75cc68da136a9a7253d9f2917165e identified SOURCE-only partial-open/sequential-close/short-write defects; no historical actual leak is asserted. No capsule or guest expectation changes in this repair.
+
+capture-owner.mjs enrolls descriptor ownership before opening either stream; failed acquisition closes every acquired descriptor. Close attempts are independent and idempotent. Primary presence is explicit, so undefined/false are preserved by identity; cleanup secondary reasons remain in memory, while serializable receipts record presence/origin rather than pretending JSON preserves reason identity. Short writes continue only up to64 calls per chunk; zero/invalid/error fails capture. Seen versus persisted bytes are separate under the existing1MiB aggregate cap. Raw reason records are returned by the actual owner, not inferred from equal messages.
+
+The actual future owner delegates all capture open/write/close actions to this helper, starts its cleanup scope before first acquisition, and retains TERM then2s KILL plus awaited child close. Nine finite fault controls exercise the same helper, not mocked Worker events or native descriptor exhaustion. Existing124 capsule inputs/95 emissions/93 reachable modules/seven new trusted builtin edges remain unchanged. No compiler retry, private read, engine or Worker execution in these controls.

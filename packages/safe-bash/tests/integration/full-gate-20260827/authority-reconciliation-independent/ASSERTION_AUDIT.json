@@ -1,0 +1,571 @@
+{
+  "recordedAt": "2026-08-27T06:49:45.016Z",
+  "source": "26e40698176bbbfc0e5891439ee74885aafb96be",
+  "canonical": "92e41185d0f44971998d8324f6775b8c5f71cb8f",
+  "evidence": "9122522174ce104c4a58d6cc4284dd3398b57154",
+  "contract": "cd8b5c8",
+  "original": {
+    "tests": 83,
+    "pass": 58,
+    "fail": 25,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "revised": {
+    "tests": 85,
+    "pass": 85,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "retainedOriginalPassNames": [
+    "s3: negotiated authority permits same-view and separate-client ordinary overwrites",
+    "s3: shared storage through distinct clients/endpoint aliases rejects before body IO",
+    "s3: unregistered peer stays unknown despite distinct client and equal metadata",
+    "s3: missing unknown target uses real exclusive creation; existing exclusive target rejects",
+    "webdav: negotiated authority permits same-view and separate-client ordinary overwrites",
+    "webdav: shared storage through distinct clients/endpoint aliases rejects before body IO",
+    "webdav: unregistered peer stays unknown despite distinct client and equal metadata",
+    "webdav: missing unknown target uses real exclusive creation; existing exclusive target rejects",
+    "S3 native same-path copy is successful no-op, not the proposed guardedCopy rejection",
+    "S3 actual conditional CopyObject preserves a raced exclusive destination",
+    "WebDAV actual native COPY uses Overwrite F against a raced missing target",
+    "WebDAV native COPY plus ETags is not an alias-safe guard in an alias-routing mock",
+    "different authority objects remain unknown until the owner certifies genuinely disjoint stores",
+    "read-only forwarding preserves backing aliases without granting destination writes",
+    "overlay comparison re-observes selected backing after copy-up, not a wrapper-local token",
+    "contradictory authoritative answers fail before source acquisition",
+    "failed metadata and pre-cancel do not become missing targets",
+    "a raced generic exclusive target is preserved",
+    "move: source failure never removes source (partial destination is disclosed)",
+    "move: target failure never removes source (partial destination is disclosed)",
+    "move: cancel failure never removes source (partial destination is disclosed)",
+    "move: alias and unknown are not successful no-op receipts; distinct copy completes before remove",
+    "observation-time comparison is not a lease: post-comparison alias replacement can destroy source",
+    "generic move rm has no incarnation condition: source ABA after copy deletes replacement",
+    "S3 native copy source failure is not a successful move receipt",
+    "S3 negotiated overlapping prefix views compare effective keys, not local paths",
+    "fresh comparison observes pre-call rebinding instead of reusing old metadata",
+    "cancellation during authority resolution is forwarded and precedes content reads",
+    "memory harmless subclass inherited: preserve real qualified workflows and explicit authority",
+    "memory harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority",
+    "memory harmless subclass explicit-denial: preserve real qualified workflows and explicit authority",
+    "s3 harmless subclass inherited: preserve real qualified workflows and explicit authority",
+    "s3 harmless subclass explicit-distinct: preserve real qualified workflows and explicit authority",
+    "s3 harmless subclass explicit-denial: preserve real qualified workflows and explicit authority",
+    "memory post-construction explicit comparison error is not hidden by cached authority",
+    "s3 post-construction explicit comparison error is not hidden by cached authority",
+    "webdav post-construction explicit comparison error is not hidden by cached authority",
+    "S3 actual shared store through different clients/prefixes: aliases and qualified copies",
+    "independent private S3 stores are distinct without per-client invented identity tuples",
+    "qualified distinct S3 copy preserves source on source failure",
+    "qualified distinct S3 copy preserves source on target failure",
+    "qualified distinct S3 copy preserves source on cancel failure",
+    "S3 metadata NoSuchKey propagates through public comparison with no content operations",
+    "S3 metadata AccessDenied propagates through public comparison with no content operations",
+    "S3 metadata InternalError propagates through public comparison with no content operations",
+    "WebDAV actual provider metadata: endpoint aliases, equal ETags, and qualified nested-wrapper copies",
+    "WebDAV protocol identity survives Response cloning without private mock provenance",
+    "WebDAV mock identity is stable through PUT/MOVE/COPY overwrite, fresh for COPY creation and recreation",
+    "WebDAV cancellation after first protocol identity query prevents the peer query",
+    "WebDAV identity multistatus missing is not a distinctness shortcut",
+    "WebDAV identity multistatus foreign-namespace is not a distinctness shortcut",
+    "WebDAV identity multistatus property-404 is not a distinctness shortcut",
+    "WebDAV identity multistatus duplicate-property is not a distinctness shortcut",
+    "WebDAV identity multistatus duplicate-response is not a distinctness shortcut",
+    "WebDAV identity multistatus wrong-response-href is not a distinctness shortcut",
+    "WebDAV identity multistatus invalid-uri is not a distinctness shortcut",
+    "WebDAV identity multistatus property-403 is not a distinctness shortcut",
+    "WebDAV identity multistatus resource-404 is not a distinctness shortcut"
+  ],
+  "additionalCases": [
+    "memory honest path remapper omits changed authority and refuses an unproven existing-target overwrite",
+    "s3 honest path remapper omits changed authority and refuses an unproven existing-target overwrite"
+  ],
+  "classificationCounts": {
+    "obsolete-helper-property-augmentation": 1,
+    "obsolete-content-method-screening": 18,
+    "noncompliant-provider-binding-assumption": 6
+  },
+  "compliantProviderBugsReproduced": 0,
+  "scope": "canonical fixture reconciliation only; malicious binding violations are not safety passes",
+  "rows": [
+    {
+      "number": 1,
+      "originalName": "WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs",
+      "path": "tests/fs/mount/identity-authority-review/authority.test.ts",
+      "originalSourceLine": 463,
+      "originalStatus": "fail",
+      "classification": "obsolete-helper-property-augmentation",
+      "replacementName": "WebDAV resource-id protocol fixture supports pairwise proof without content or numeric inode IDs",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The current MockDav already emits one DAV:resource-id. The old fixture appends another, so its unchanged exact-one resolver properly returns unknown. Replace the known helper property before injecting the fixture map; retain successful distinct copies, alias rejection, missing-property refusal and a new deliberate duplicate-property refusal.",
+      "historicalInputSha256": "057d277547da6733b49ee82148fadf39c5b3c986256c6c54bec04c326bec8882",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "eed3c1129a9a90c5775dd224b38c7a97c73bc4c5137ba64a3dca2afc942c927d",
+      "audit": {
+        "inputChange": "Replace the helper-owned DAV:resource-id rather than appending a second property.",
+        "retainedChecks": "Exactly one controlled identifier; same-entry EINVAL; missing/duplicate ENOTSUP; only PROPFIND on refused copies; source/target bytes.",
+        "limit": "Test-only proposal proofCopy/resolver, not a new public cp/mv or provider workflow."
+      }
+    },
+    {
+      "number": 2,
+      "originalName": "memory subclass-before buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory subclass-before buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 3,
+      "originalName": "memory prototype-before buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory prototype-before buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 4,
+      "originalName": "memory own-after buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory own-after buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 5,
+      "originalName": "memory prototype-after buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory prototype-after buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 6,
+      "originalName": "memory subclass-before streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory subclass-before streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 7,
+      "originalName": "memory prototype-before streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory prototype-before streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 8,
+      "originalName": "memory own-after streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory own-after streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 9,
+      "originalName": "memory prototype-after streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory prototype-after streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 10,
+      "originalName": "s3 subclass-before buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 subclass-before buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 11,
+      "originalName": "s3 prototype-before buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 prototype-before buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 12,
+      "originalName": "s3 own-after buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 own-after buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 13,
+      "originalName": "s3 prototype-after buffered: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 prototype-after buffered: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 14,
+      "originalName": "s3 subclass-before streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 subclass-before streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 15,
+      "originalName": "s3 prototype-before streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 prototype-before streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 16,
+      "originalName": "s3 own-after streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 own-after streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 17,
+      "originalName": "s3 prototype-after streamed: changed writer cannot redirect qualified target into source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 85,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 prototype-after streamed: faithful writer preserves qualified copy and alias rejection",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host writer retains native/provider authority but writes to another backing resource. No method-table sandbox is promised. The replacement forwards the actual writer with the same receiver/arguments, requires exact source/target bytes and one writer call, then rejects a readonly-view alias without another write.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Malicious wrong-backing writer becomes a same-receiver/same-arguments forwarding decorator at the same interception point.",
+        "retainedChecks": "Successful exact-byte copy, one write, source namespace unchanged, readonly-view alias EINVAL without second write.",
+        "limit": "Original host-induced damage remains recorded; method-table sandboxing is not promised."
+      }
+    },
+    {
+      "number": 18,
+      "originalName": "memory changed content acquisition invalidates authority before opening source or target",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 111,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "memory faithful content acquisition retains authority without reading during comparison",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old readStream returns unrelated target bytes under source identity. The replacement forwards the actual stream, requires zero acquisitions for comparison, exactly one acquisition for copy, and exact source/target bytes.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Unrelated target-byte stream becomes faithful delegated source stream.",
+        "retainedChecks": "No content acquisition during comparison, one acquisition during copy, exact source and target bytes.",
+        "limit": "No claim that a forged content binding becomes safe."
+      }
+    },
+    {
+      "number": 19,
+      "originalName": "s3 changed content acquisition invalidates authority before opening source or target",
+      "path": "tests/fs/mount/identity-authority-review/implementation/adapter-binding.test.ts",
+      "originalSourceLine": 111,
+      "originalStatus": "fail",
+      "classification": "obsolete-content-method-screening",
+      "replacementName": "s3 faithful content acquisition retains authority without reading during comparison",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old readStream returns unrelated target bytes under source identity. The replacement forwards the actual stream, requires zero acquisitions for comparison, exactly one acquisition for copy, and exact source/target bytes.",
+      "historicalInputSha256": "f90f1da067ec03ed467aeaa39d50114d9e03a4e13da8fb5548a2f49e1fdac712",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "0d70e4e06dcbef3e337aad75317032cd1908956f9cce14032a99a656ebd5aeb0",
+      "audit": {
+        "inputChange": "Unrelated target-byte stream becomes faithful delegated source stream.",
+        "retainedChecks": "No content acquisition during comparison, one acquisition during copy, exact source and target bytes.",
+        "limit": "No claim that a forged content binding becomes safe."
+      }
+    },
+    {
+      "number": 20,
+      "originalName": "S3 unrecognized custom transport aliasing local memory remains unknown before destructive copy",
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "originalSourceLine": 88,
+      "originalStatus": "fail",
+      "classification": "noncompliant-provider-binding-assumption",
+      "replacementName": "S3 honest local-data remapper strips unrelated HEAD authority before destructive copy",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host forwards another store's authority while routing data into shared local memory. The replacement omits changed identity at the HEAD/Response/public-FS boundary and retains unknown/ENOTSUP, zero content effects and source preservation. A host violating that omission can still damage source; those old failures are retained, not safety passes.",
+      "historicalInputSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+      "audit": {
+        "inputChange": "Unrelated HEAD result is copied to omit private fresh provenance; streaming flags match the controlled buffered remap.",
+        "retainedChecks": "Unknown answer, ENOTSUP before read/write effects, original shared-memory source bytes.",
+        "limit": "Content trap need not be safe when directly invoked; this fixture asserts omission and before-effects refusal only."
+      }
+    },
+    {
+      "number": 21,
+      "originalName": "S3 metadata-forwarding client with unrelated data routing cannot inherit private-store authority",
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "originalSourceLine": 107,
+      "originalStatus": "fail",
+      "classification": "noncompliant-provider-binding-assumption",
+      "replacementName": "S3 faithful subclass and late content decorator retain fresh backing authority",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old client combines private HEAD authority with unrelated local data routing, then changes PUT binding. The replacement preserves all actual backing operations through subclass/late decorators, requires a successful existing-target copy, and still rejects a shared-store alias.",
+      "historicalInputSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+      "audit": {
+        "inputChange": "Wrong-backing subclass/late writer becomes a faithful getObject subclass and delegated late putObject.",
+        "retainedChecks": "Distinct stores copy successfully; canonical shared-store alias stays same and rejects without a second write.",
+        "limit": "Explicit positive replacement, not original remapper rejection now passing."
+      }
+    },
+    {
+      "number": 22,
+      "originalName": "S3 two custom clients returning private mock metadata cannot claim distinctness for shared local data",
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "originalSourceLine": 135,
+      "originalStatus": "fail",
+      "classification": "noncompliant-provider-binding-assumption",
+      "replacementName": "S3 two honest clients omit unrelated mock authority for shared local data",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host forwards another store's authority while routing data into shared local memory. The replacement omits changed identity at the HEAD/Response/public-FS boundary and retains unknown/ENOTSUP, zero content effects and source preservation. A host violating that omission can still damage source; those old failures are retained, not safety passes.",
+      "historicalInputSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+      "audit": {
+        "inputChange": "Unrelated HEAD result is copied to omit private fresh provenance; streaming flags match the controlled buffered remap.",
+        "retainedChecks": "Unknown answer, ENOTSUP before read/write effects, original shared-memory source bytes.",
+        "limit": "Content trap need not be safe when directly invoked; this fixture asserts omission and before-effects refusal only."
+      }
+    },
+    {
+      "number": 23,
+      "originalName": "WebDAV custom fetch returning genuine MockDav metadata but local data is unrecognized, not disjoint",
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "originalSourceLine": 304,
+      "originalStatus": "fail",
+      "classification": "noncompliant-provider-binding-assumption",
+      "replacementName": "WebDAV honest local-data fetch omits unrelated private and protocol identity",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host forwards another store's authority while routing data into shared local memory. The replacement omits changed identity at the HEAD/Response/public-FS boundary and retains unknown/ENOTSUP, zero content effects and source preservation. A host violating that omission can still damage source; those old failures are retained, not safety passes.",
+      "historicalInputSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+      "audit": {
+        "inputChange": "Clone returned Response to remove private provenance and strip unrelated protocol resource-id.",
+        "retainedChecks": "Unknown/ENOTSUP, zero GET/PUT, unchanged local source bytes.",
+        "limit": "Both identity channels must be omitted; retaining either stale host assertion is not a safety pass."
+      }
+    },
+    {
+      "number": 24,
+      "originalName": "WebDAV mixed metadata/data transport cannot authorize truncating an aliased local source",
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "originalSourceLine": 314,
+      "originalStatus": "fail",
+      "classification": "noncompliant-provider-binding-assumption",
+      "replacementName": "WebDAV honest remapper cannot authorize truncating an unproven aliased local source",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host forwards another store's authority while routing data into shared local memory. The replacement omits changed identity at the HEAD/Response/public-FS boundary and retains unknown/ENOTSUP, zero content effects and source preservation. A host violating that omission can still damage source; those old failures are retained, not safety passes.",
+      "historicalInputSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+      "audit": {
+        "inputChange": "Clone returned Response to remove private provenance and strip unrelated protocol resource-id.",
+        "retainedChecks": "Unknown/ENOTSUP, zero GET/PUT, unchanged local source bytes.",
+        "limit": "Both identity channels must be omitted; retaining either stale host assertion is not a safety pass."
+      }
+    },
+    {
+      "number": 25,
+      "originalName": "WebDAV pre-construction data-method overrides cannot inherit resource authority over another backing store",
+      "path": "tests/fs/mount/identity-authority-review/implementation/remote-comparison.test.ts",
+      "originalSourceLine": 339,
+      "originalStatus": "fail",
+      "classification": "noncompliant-provider-binding-assumption",
+      "replacementName": "WebDAV data-method remapper strips inherited authority at its public filesystem view",
+      "replacementStatus": "pass-with-explicit-fixture-input-delta-not-original-acceptance",
+      "reason": "The old host forwards another store's authority while routing data into shared local memory. The replacement omits changed identity at the HEAD/Response/public-FS boundary and retains unknown/ENOTSUP, zero content effects and source preservation. A host violating that omission can still damage source; those old failures are retained, not safety passes.",
+      "historicalInputSha256": "039cce5f0fc93b4e2e96a61448ac104e20aa5aaf767db4c33c53263598cb7660",
+      "review": "accepted explicit input reconciliation, not unchanged-input acceptance",
+      "canonicalInputSha256": "b6d138103a371d6cb187412389365916f89bfc7e1cbc8b6918f572e9d3f556cf",
+      "audit": {
+        "inputChange": "Data view maps metadata/content to its actual memory backing and an opaque public view omits identity and compareEntry.",
+        "retainedChecks": "Unknown comparison, ENOTSUP before content, source bytes retained across two remapped views.",
+        "limit": "No inherited DAV authority may describe different content; no claim of hostile subclass confinement."
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "captured": "2026-08-27",
+  "phase": "AUTHOR native-only safety characterization; no source behavior changed from this capture",
+  "command": "node --import tsx tests/commands/archive/capture-safety.ts",
+  "nativeBehaviorInvocations": 8,
+  "gnuSha256": "49a0bd353ad67347674d00a7b3eeb171da58728f7e4577c9b320d8ab1e7bba66",
+  "observations": [
+    { "name": "missing-terminators", "args": ["-tf", "input.tar"], "status": 0, "stdout": "file\n", "stderr": "", "effects": { "rootEntries": "" } },
+    { "name": "trailing-data", "args": ["-tf", "input.tar"], "status": 0, "stdout": "file\n", "stderr": "", "effects": { "rootEntries": "" } },
+    { "name": "safe-symlink-ancestor", "args": ["-xf", "input.tar", "-C", "output"], "status": 0, "stdout": "", "stderr": "", "effects": { "rootEntries": "link,safe", "linkType": "symlink" } },
+    { "name": "duplicate-hardlink", "args": ["-xf", "input.tar", "-C", "output"], "status": 0, "stdout": "", "stderr": "", "effects": { "rootEntries": "file,hard", "hard": "old", "file": "new" } },
+    { "name": "absolute-member", "args": ["-xf", "input.tar", "-C", "output"], "status": 0, "stdout": "", "stderr": "<GNU>: Removing leading `/' from member names\n", "effects": { "rootEntries": "absolute" } },
+    { "name": "parent-component", "args": ["-xf", "input.tar", "-C", "output"], "status": 2, "stdout": "", "stderr": "<GNU>: Removing leading `a/../' from member names\n<GNU>: a/../safe: Member name contains '..'\n<GNU>: Exiting with failure status due to previous errors\n", "effects": { "rootEntries": "" } },
+    { "name": "excluded-parent", "args": ["-xf", "input.tar", "-C", "output", "--exclude=*"], "status": 0, "stdout": "", "stderr": "", "effects": { "rootEntries": "" } },
+    { "name": "preexisting-hardlink-target", "args": ["-xf", "input.tar", "-C", "output"], "status": 0, "stdout": "", "stderr": "", "effects": { "rootEntries": "existing,hard", "hard": "old" } }
+  ]
+}

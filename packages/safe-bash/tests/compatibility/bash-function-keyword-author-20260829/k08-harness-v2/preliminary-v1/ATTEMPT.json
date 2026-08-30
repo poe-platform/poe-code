@@ -1,0 +1,11 @@
+{
+  "schema": "k08-v2-control-attempt1",
+  "classification": "ordinary captured syntax defect; zero groups executed",
+  "result": {
+    "code": 1,
+    "signal": null,
+    "stdout": "",
+    "stderr": "file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2/controls.mjs:29\nassert.equal(rows.length,16);process.stdout.write(JSON.stringify({schema:'k08-harness-v2-data-results',groups:rows,syntaxOnlyFiles:Object.keys(seal.files).filter(name=>name.endsWith('.mjs')),productCalls:0,harmlessLifecycleFixtures:0,qualification:'PURE DATA/syntax, not actual child timing or product execution'})+'\n                                                                                                                                                                                                                                                                                                                           ^\n\nSyntaxError: Invalid or unexpected token\n    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:107:18)\n    at #translate (node:internal/modules/esm/loader:546:20)\n    at afterLoad (node:internal/modules/esm/loader:596:29)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:601:12)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25)\n\nNode.js v22.22.2\n"
+  },
+  "productCalls": 0
+}

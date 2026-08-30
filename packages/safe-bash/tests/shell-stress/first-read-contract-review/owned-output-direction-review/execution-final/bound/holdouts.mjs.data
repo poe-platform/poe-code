@@ -1,0 +1,313 @@
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { once } from 'node:events';
+import { setImmediate as turn } from 'node:timers/promises';
+import { Shell, MemoryFileSystem, agentCommands, networkCommands, createOutputOperation, createBytePipe, writeBytes, readBytes } from './candidate/dist/index.js';
+import { deferred, makeTrace, within, assertOwnedFirstRead, assertSharedRemainder, assertIndependentEffects, assertMixedCurlFiles } from './support.mjs';
+import { runLocalSeparationProbe } from './binding.mjs';
+
+const id = process.argv[2];
+const bytes = value => new TextEncoder().encode(value);
+const text = value => new TextDecoder().decode(value);
+const records = [];
+const unhandled = [];
+const onUnhandled = reason => unhandled.push(reason);
+process.on('unhandledRejection', onUnhandled);
+const resultShape = (result, stdout = '', stderr = '', exitCode = 0) => {
+  assert.equal(result.stdout, stdout); assert.equal(result.stderr, stderr); assert.equal(result.exitCode, exitCode);
+  assert.deepEqual(result.stdoutBytes, bytes(stdout)); assert.deepEqual(result.stderrBytes, bytes(stderr));
+};
+const outcome = promise => Promise.resolve(promise).then(value => ({value}), error => ({error}));
+const aborted = signal => signal.aborted ? Promise.reject(signal.reason) : new Promise((accept, reject) => signal.addEventListener('abort', () => reject(signal.reason), {once: true}));
+const closed = signal => signal.aborted ? Promise.resolve() : new Promise(resolve => signal.addEventListener('abort', resolve, {once: true}));
+const pendingCheck = async (promise, label) => {
+  let settled = false; void promise.then(() => {settled = true;}, () => {settled = true;});
+  await turn(); await turn(); assert.equal(settled, false, label);
+};
+async function fixture(run) {
+  const fs = new MemoryFileSystem(); await fs.mkdir('/owned-review', {recursive: true});
+  const shell = new Shell({fs}); shell.use(agentCommands());
+  const caller = new AbortController(); const releases = [];
+  try { return await run({fs, shell, caller, releases}); }
+  finally { for (const release of releases) release(); caller.abort(new Error('fixture teardown, not acceptance')); await within(shell.dispose(), 'fixture disposal'); }
+}
+async function subruns(entries, run) {
+  const failures = [];
+  for (const entry of entries) {
+    try { await run(entry); records.push({subrun: entry, passed: true}); }
+    catch (error) { records.push({subrun: entry, passed: false, error: String(error), stack: error?.stack}); failures.push(error); }
+  }
+  if (failures.length) throw new AggregateError(failures, `${id}: ${failures.length} failed subruns`);
+}
+
+async function separation() {
+  await fixture(async ({fs, shell, caller}) => {
+    const trace = makeTrace(); const startedBarrier = deferred();
+    const state = {trace, startedBarrier, callerSignal: caller.signal, started: 0, returned: 0, active: 0,
+      afterCancel: async context => {
+        await context.fs.writeFile('/owned-review/after', bytes('kept\n'), {signal: context.signal});
+        await writeBytes(context.stderr, bytes('independent\n'), context.signal);
+      }};
+    let firstWrites = 0;
+    shell.register({name: 'producer', execute: context => runLocalSeparationProbe(createOutputOperation, context, state)});
+    shell.use(async (context, next) => {
+      if (context.command === 'producer') {
+        const owned = context.stdout.ownedOutput; assert.ok(owned);
+        const write = owned.write.bind(owned); owned.write = async chunk => { firstWrites++; await write(chunk); };
+      }
+      if (context.command === 'head') { await startedBarrier.promise; const result = await next(); trace.record('downstream.completed'); return result; }
+      return next();
+    });
+    const result = await within(shell.exec('producer | head -n 0; true', {signal: caller.signal}), 'H01 separation');
+    trace.record('exec.settled');
+    const observation = {...state, firstWrites, operationAborted: state.operation.signal.aborted, operationReason: state.operation.signal.reason,
+      cleanupCompletedBeforeSettlement: state.returned === 1, events: trace.events, unhandled};
+    records.push({kind: 'separation', firstWrites, started: state.started, returned: state.returned, active: state.active, events: trace.events,
+      operationAborted: observation.operationAborted, stageAbortedAtClose: state.stageAbortedAtClose, callerAbortedAtClose: state.callerAbortedAtClose});
+    assertOwnedFirstRead(observation);
+    resultShape(result, '', 'independent\n', 0);
+    assertIndependentEffects({fileBytes: Buffer.from(await fs.readFile('/owned-review/after')), stderrBytes: Buffer.from(result.stderrBytes), stageAbortedAtEffect: state.stageAbortedAtClose, exitCode: result.exitCode});
+  });
+}
+
+async function shared() {
+  await fixture(async ({shell, caller}) => {
+    let position = 0; let returns = 0; let returnedBeforeOwnerTeardown; let firstBytes; let stage;
+    const chunks = ['first\n', 'second\nthird\n']; const firstRead = deferred();
+    const stdin = {[Symbol.asyncIterator]() {return {async next() { const value = chunks[position++]; return value === undefined ? {done: true} : {done: false, value: bytes(value)}; }, async return() {returns++; return {done: true};}};}};
+    shell.register({name: 'grab', async execute(context) {
+      stage = context.signal; const first = await context.stdin[Symbol.asyncIterator]().next(); firstBytes = Buffer.from(first.value);
+      firstRead.resolve(); await closed(context.stdout.ownedOutput.consumerClosed);
+      assert.equal(stage.aborted, false); return {exitCode: 0};
+    }});
+    shell.register({name: 'remainder', async execute(context) {
+      returnedBeforeOwnerTeardown = returns;
+      for await (const chunk of readBytes(context.stdin, context.signal)) await writeBytes(context.stdout, chunk, context.signal);
+      return {exitCode: 0};
+    }});
+    shell.register({name: 'outer-first', execute: context => context.invoke('grab', [])});
+    shell.register({name: 'outer-rest', execute: context => context.invoke('remainder', [])});
+    shell.use(async (context, next) => {if (context.command === 'head') await firstRead.promise; return next();});
+    const result = await within(shell.exec('outer-first | head -n 0; outer-rest', {stdin, signal: caller.signal}), id);
+    records.push({first: firstBytes?.toString(), remainder: result.stdout, position, returnedBeforeOwnerTeardown, returns, stageAborted: stage.aborted});
+    assertSharedRemainder({firstBytes, remainingBytes: Buffer.from(result.stdoutBytes), returnedBeforeOwnerTeardown, returnedAfterOwnerTeardown: returns, stageAborted: stage.aborted, callerAborted: caller.signal.aborted});
+    resultShape(result, 'second\nthird\n');
+  });
+}
+
+async function independent() {
+  await subruns(['effect', 'empty', 'failure-default', 'failure-pipefail', 'attempted-write'], mode => fixture(async ({shell, fs, caller}) => {
+    let live = false;
+    shell.register({name: 'producer', async execute(context) {
+      await closed(context.stdout.ownedOutput.consumerClosed); live = !context.signal.aborted;
+      if (mode === 'effect') { await fs.writeFile('/owned-review/after', bytes('kept\n'), {signal: context.signal}); await writeBytes(context.stderr, bytes('independent\n'), context.signal); }
+      if (mode.startsWith('failure')) { await turn(); await writeBytes(context.stderr, bytes('delayed-error\n'), context.signal); return {exitCode: 7}; }
+      if (mode === 'attempted-write') { await writeBytes(context.stderr, bytes('diagnostic\n'), context.signal); await writeBytes(context.stdout, bytes('kept\n'), context.signal); }
+      return {exitCode: 0};
+    }});
+    const pipefail = mode === 'failure-pipefail' || mode === 'attempted-write';
+    const result = await within(shell.exec(`${pipefail ? 'set -o pipefail; ' : ''}producer | head -n 0`, {signal: caller.signal}), mode);
+    records.push({mode, result, live}); assert.equal(live, true); assert.equal(caller.signal.aborted, false);
+    const stderr = mode === 'effect' ? 'independent\n' : mode.startsWith('failure') ? 'delayed-error\n' : mode === 'attempted-write' ? 'diagnostic\n' : '';
+    resultShape(result, '', stderr, mode === 'failure-pipefail' ? 7 : mode === 'attempted-write' ? 141 : 0);
+    if (mode === 'effect') assert.equal(text(await fs.readFile('/owned-review/after')), 'kept\n');
+  }));
+}
+
+async function nested() {
+  await fixture(async ({shell, fs, caller}) => {
+    const started = deferred(); const events = []; let returnedOut = 0; let returnedOther = 0; let parentSignal;
+    shell.register({name: 'nested', async execute(context) {
+      const ownerContext = {...context, registerCleanup(cleanup) {events.push('registered'); context.registerCleanup(cleanup);}};
+      const output = createOutputOperation(ownerContext, context.stdout);
+      const other = createOutputOperation(ownerContext, context.stderr);
+      await other.acquire(() => {events.push('other.admitted'); return {};}, () => {returnedOther++;});
+      try {
+        await output.acquire(() => {events.push('stdout.admitted'); return {};}, () => {returnedOut++;});
+        const pending = aborted(output.signal); started.resolve();
+        await assert.rejects(pending, error => error === output.signal.reason && error?.code === 'EPIPE');
+        assert.equal(context.signal.aborted, false); assert.equal(parentSignal.aborted, false); assert.equal(other.signal.aborted, false); assert.equal(caller.signal.aborted, false);
+        await writeBytes(other.output, bytes('independent\n'), other.signal);
+        await fs.writeFile('/owned-review/after', bytes('kept\n'), {signal: other.signal});
+        return {exitCode: 0};
+      } finally {await Promise.all([output.close(), other.close()]);}
+    }});
+    shell.register({name: 'producer', async execute(context) {parentSignal = context.signal; return context.invoke('nested', []);}});
+    shell.use(async (context, next) => {if (context.command === 'head') await started.promise; return next();});
+    const result = await within(shell.exec('producer | head -n 0', {signal: caller.signal}), id);
+    records.push({events, returnedOut, returnedOther, result}); resultShape(result, '', 'independent\n');
+    assert.equal(text(await fs.readFile('/owned-review/after')), 'kept\n'); assert.equal(returnedOut, 1); assert.equal(returnedOther, 1);
+    assert.deepEqual(events, ['registered', 'registered', 'other.admitted', 'stdout.admitted']);
+  });
+}
+
+async function mixed() {
+  await subruns([false, true], pipefail => fixture(async ({shell, fs, caller, releases}) => {
+    const started = deferred(); const releaseResponse = deferred(); releases.push(() => releaseResponse.resolve());
+    const sockets = new Set(); const events = []; let requestsStarted = 0; let stage; let requestSignal; let producerStatus; let stageLiveAtClose; let callerLiveAtClose;
+    const server = createServer(async (request, response) => {
+      requestsStarted++; events.push('request.started'); started.resolve(); response.sendDate = false;
+      response.once('close', () => events.push('response.closed'));
+      await releaseResponse.promise;
+      if (!response.destroyed) {response.writeHead(200, {'X-Owned-Review': 'fixed', 'Content-Length': '18', 'Connection': 'close'}); response.end('body-one\nbody-two\n'); events.push('response.sent');}
+    });
+    server.on('connection', socket => {sockets.add(socket); socket.once('close', () => sockets.delete(socket));});
+    server.listen(0, '127.0.0.1'); await once(server, 'listening');
+    const url = `http://127.0.0.1:${server.address().port}/`;
+    shell.use(networkCommands({authorize: request => {requestSignal = request.signal; return request.url === url && request.method === 'GET';}}));
+    shell.use(async (context, next) => {
+      if (context.command === 'curl') {
+        stage = context.signal;
+        context.stdout.ownedOutput.consumerClosed.addEventListener('abort', () => {
+          events.push('stdout.closed'); stageLiveAtClose = !stage.aborted; callerLiveAtClose = !caller.signal.aborted;
+          records.push({pipefail, beforeResponseRequestAborted: requestSignal.aborted});
+          releaseResponse.resolve();
+        }, {once: true});
+        const result = await next(); producerStatus = result.exitCode; return result;
+      }
+      if (context.command === 'head') await started.promise;
+      return next();
+    });
+    const args = id === 'H09' ? '-D - -o /owned-review/body' : id === 'H10' ? '-D /owned-review/headers' : "-o /owned-review/body -D /owned-review/headers --write-out 'done:%{http_code}\n'";
+    try {
+      const result = await within(shell.exec(`${pipefail ? 'set -o pipefail; ' : ''}curl ${args} ${url} | head -n 0`, {signal: caller.signal}), `${id} mixed`);
+      const body = id !== 'H10' ? Buffer.from(await fs.readFile('/owned-review/body')) : undefined;
+      const headers = id !== 'H09' ? Buffer.from(await fs.readFile('/owned-review/headers')) : undefined;
+      const expectedHeaderBytes = Buffer.from('HTTP/1.1 200 OK\r\nX-Owned-Review: fixed\r\nContent-Length: 18\r\nConnection: close\r\n\r\n');
+      records.push({pipefail, result, producerStatus, body: body?.toString(), headers: headers?.toString(), expectedHeaders: expectedHeaderBytes.toString(), events, stageLiveAtClose, callerLiveAtClose});
+      assertMixedCurlFiles({requestsStarted, requestCanceledBeforeRequiredFiles: records.some(record => record.pipefail === pipefail && record.beforeResponseRequestAborted), stdoutBytes: Buffer.from(result.stdoutBytes), stderrBytes: Buffer.from(result.stderrBytes), stageAbortedAtOutputClose: !stageLiveAtClose, callerAbortedAtOutputClose: !callerLiveAtClose, bodyBytes: body, headerBytes: headers, expectedHeaderBytes, producerStatus, pipelineStatus: result.exitCode, pipefail}, {body: id !== 'H10', headers: id !== 'H09'});
+      assert.ok(events.indexOf('request.started') < events.indexOf('stdout.closed')); assert.ok(events.indexOf('stdout.closed') < events.indexOf('response.sent'));
+    } finally {
+      releaseResponse.resolve(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await turn();
+      records.push({pipefail, socketsAfterClose: sockets.size}); assert.equal(sockets.size, 0);
+    }
+  }));
+}
+
+async function precedence() {
+  await subruns(['caller-object', 'caller-zero', 'execution-and-cleanup', 'sole-cleanup', 'two-cleanups'], mode => fixture(async ({shell, caller, releases}) => {
+    const started = deferred(); const cleanupEntered = deferred(); const cleanupGate = deferred(); releases.push(() => cleanupGate.resolve());
+    const first = {failure: 'cleanup-one'}; const second = {failure: 'cleanup-two'}; const executionFailure = {failure: 'execution'};
+    const reason = mode === 'caller-zero' ? 0 : {code: 'EPIPE', source: 'caller'};
+    let cleanups = 0; let operation; let stage;
+    shell.register({name: 'producer', async execute(context) {
+      stage = context.signal; operation = createOutputOperation(context, context.stdout);
+      operation.registerCleanup(async () => {cleanups++; cleanupEntered.resolve(); await cleanupGate.promise; throw first;});
+      if (mode === 'two-cleanups') operation.registerCleanup(async () => {cleanups++; await cleanupGate.promise; throw second;});
+      const wait = aborted(operation.signal); started.resolve(); await outcome(wait); return {exitCode: 7};
+    }});
+    shell.use(async (context, next) => {
+      if (context.command === 'head') await started.promise;
+      const result = await next();
+      if (context.command === 'producer' && mode === 'execution-and-cleanup') throw executionFailure;
+      return result;
+    });
+    const pending = shell.exec('set -o pipefail; producer | head -n 0', {signal: caller.signal}); const observed = outcome(pending);
+    await within(cleanupEntered.promise, 'cleanup entered');
+    assert.equal(operation.signal.reason.code, 'EPIPE'); assert.equal(stage.aborted, false); assert.equal(caller.signal.aborted, false);
+    await pendingCheck(observed, 'exec awaits cooperative cleanup');
+    if (mode.startsWith('caller')) caller.abort(reason);
+    cleanupGate.resolve(); const actual = await within(observed, mode);
+    records.push({mode, cleanups, rejection: actual.error, value: actual.value, operationReasonCode: operation.signal.reason.code});
+    if (mode.startsWith('caller')) assert.equal(actual.error, reason);
+    else if (mode === 'execution-and-cleanup') assert.equal(actual.error, executionFailure);
+    else if (mode === 'sole-cleanup') assert.equal(actual.error, first);
+    else { assert.ok(actual.error instanceof AggregateError); assert.deepEqual(actual.error.errors, [first, second]); }
+    assert.equal(cleanups, mode === 'two-cleanups' ? 2 : 1);
+  }));
+}
+
+async function late() {
+  await subruns(['dispose', 'caller'], mode => fixture(async ({shell, caller, releases}) => {
+    const started = deferred(); const cleanupEntered = deferred(); const cleanupGate = deferred(); const opaque = deferred(); const commandExit = deferred();
+    releases.push(() => {cleanupGate.resolve(); commandExit.resolve(); opaque.reject(new Error('teardown opaque rejection'));});
+    const events = []; let operation; let contextSaved; let acquired = 0; let returned = 0; let lateStarts = 0; let dispatched = 0; let finallyClose;
+    shell.register({name: 'late-child', async execute() {dispatched++; return {exitCode: 0};}});
+    shell.register({name: 'producer', async execute(context) {
+      contextSaved = context;
+      operation = createOutputOperation({...context, registerCleanup(cleanup) {events.push('registered'); context.registerCleanup(cleanup);}}, context.stdout);
+      await operation.acquire(() => {events.push('admitted'); acquired++; return {};}, async () => {returned++; cleanupEntered.resolve(); await cleanupGate.promise;});
+      void outcome(operation.acquire(() => opaque.promise, () => {throw new Error('opaque resource must not fulfill');}));
+      started.resolve(); await outcome(aborted(operation.signal));
+      try {await commandExit.promise; return {exitCode: 0};} finally {finallyClose = operation.close(); await finallyClose;}
+    }});
+    shell.use(async (context, next) => {if (context.command === 'head') await started.promise; return next();});
+    const pending = shell.exec('producer | head -n 0', {signal: caller.signal}); const executed = outcome(pending);
+    await within(cleanupEntered.promise, 'owned cleanup entered');
+    assert.equal(operation.signal.reason.code, 'EPIPE');
+    assert.throws(() => operation.registerCleanup(() => {}), error => error === operation.signal.reason);
+    await assert.rejects(operation.acquire(() => {lateStarts++; return {};}, () => {}), error => error === operation.signal.reason);
+    const reason = {caller: 'late-admission'}; if (mode === 'caller') caller.abort(reason);
+    const disposalOne = shell.dispose(); const disposalTwo = shell.dispose(); const disposed = outcome(Promise.all([disposalOne, disposalTwo]));
+    await turn();
+    const invoked = await outcome(contextSaved.invoke('late-child', [])); assert.ok(Object.hasOwn(invoked, 'error'));
+    if (mode === 'caller') assert.equal(invoked.error, reason);
+    const closeOne = operation.close(); const closeTwo = operation.close(); assert.equal(closeOne, closeTwo);
+    commandExit.resolve(); await turn();
+    await pendingCheck(executed, 'exec remains pending'); await pendingCheck(disposed, 'both disposals remain pending');
+    cleanupGate.resolve(); const actual = await within(executed, 'exec after release'); await within(disposed, 'dispose after release');
+    if (mode === 'caller') assert.equal(actual.error, reason);
+    assert.equal(finallyClose, closeOne); assert.equal(acquired, 1); assert.equal(returned, 1); assert.equal(lateStarts, 0); assert.equal(dispatched, 0);
+    opaque.reject({late: 'opaque rejection after exec/dispose'}); await turn(); await turn();
+    records.push({mode, events, acquired, returned, lateStarts, dispatched, actual, opaqueSettledOnlyAfterPublicSettlement: true});
+    assert.deepEqual(events, ['registered', 'admitted']);
+  }));
+}
+
+async function normal() {
+  await subruns(['empty', 'payload', 'failure'], mode => fixture(async ({shell, caller}) => {
+    const completed = deferred(); let operation; let stage; let released = 0;
+    shell.register({name: 'producer', async execute(context) {
+      stage = context.signal; operation = createOutputOperation(context, context.stdout);
+      operation.registerCleanup(() => {released++;});
+      try {if (mode === 'payload') await writeBytes(operation.output, bytes('kept\n'), operation.signal); return {exitCode: mode === 'failure' ? 7 : 0};}
+      finally {await operation.close(); completed.resolve();}
+    }});
+    shell.use(async (context, next) => {if (context.command === 'head' && mode === 'failure') await completed.promise; return next();});
+    const result = await within(shell.exec(`set -o pipefail; producer | ${mode === 'failure' ? 'head -n 0' : 'cat'}`, {signal: caller.signal}), mode);
+    records.push({mode, result, released, operationAborted: operation.signal.aborted, stageAborted: stage.aborted});
+    resultShape(result, mode === 'payload' ? 'kept\n' : '', '', mode === 'failure' ? 7 : 0);
+    assert.equal(operation.signal.aborted, false); assert.equal(stage.aborted, false); assert.equal(caller.signal.aborted, false); assert.equal(released, 1);
+  }));
+}
+
+async function unsupported() {
+  await fixture(async ({shell, caller}) => {
+    const sinkChunks = []; const started = deferred(); const observations = [];
+    shell.register({name: 'producer', async execute(context) {
+      const supported = context.stdout.ownedOutput !== undefined;
+      const operation = createOutputOperation(context, context.stdout); let returned = 0;
+      operation.registerCleanup(() => {returned++;});
+      try {
+        if (!supported) {await writeBytes(context.stdout, bytes('kept\n'), context.signal); assert.equal(operation.signal.aborted, false);}
+        else {await operation.acquire(() => {started.resolve(); return {};}, () => {}); await assert.rejects(aborted(operation.signal), error => error?.code === 'EPIPE'); assert.equal(context.signal.aborted, false);}
+        return {exitCode: 0};
+      } finally {await operation.close(); observations.push({supported, returned, aborted: operation.signal.aborted});}
+    }});
+    shell.use(async (context, next) => {if (context.command === 'head') await started.promise; return next();});
+    const ordinary = await within(shell.exec('producer', {signal: caller.signal, stdout: {async write(chunk) {sinkChunks.push(Buffer.from(chunk));}}}), 'plain ByteSink');
+    resultShape(ordinary, 'kept\n'); assert.equal(Buffer.concat(sinkChunks).toString(), 'kept\n');
+    const piped = await within(shell.exec('producer | head -n 0', {signal: caller.signal}), 'supported BytePipe'); resultShape(piped);
+    records.push({observations}); assert.deepEqual(observations, [{supported: false, returned: 1, aborted: false}, {supported: true, returned: 1, aborted: true}]);
+  });
+}
+
+async function boundedQueue() {
+  const controller = new AbortController(); const reason = {unique: 'queue-caller-reason'};
+  const pipe = createBytePipe({highWaterMark: 1, signal: controller.signal});
+  const first = bytes('A'); await within(pipe.writable.write(first), 'first acceptance without demand');
+  first[0] = 90;
+  const second = pipe.writable.write(bytes('B')); const observed = outcome(second);
+  await pendingCheck(observed, 'second byte backpressured'); controller.abort(reason);
+  assert.equal((await within(observed, 'pending write cancellation')).error, reason);
+  const iterator = pipe.readable[Symbol.asyncIterator](); await assert.rejects(iterator.next(), error => error === reason); await iterator.return?.();
+  const ownership = createBytePipe({highWaterMark: 1}); const source = bytes('A'); await ownership.writable.write(source); source[0] = 90;
+  const reader = ownership.readable[Symbol.asyncIterator](); assert.deepEqual((await reader.next()).value, bytes('A')); await ownership.close(); assert.equal((await reader.next()).done, true);
+  records.push({firstAcceptedWithoutRead: true, secondBackpressured: true, exactCallerReason: true, ownedChunkCopy: true});
+  await separation();
+}
+
+const cases = {H01: separation, H06: shared, H07: independent, H08: nested, H09: mixed, H10: mixed, H11: mixed, H12: precedence, H13: late, H14: normal, H15: unsupported, H16: boundedQueue};
+try { assert.equal(typeof cases[id], 'function'); await cases[id](); await turn(); assert.deepEqual(unhandled, []); console.log(JSON.stringify({id, verdict: 'PASS', records})); }
+catch (error) {console.log(JSON.stringify({id, verdict: 'FAIL', records, error: String(error), stack: error?.stack, errors: error?.errors?.map(entry => ({message: String(entry), stack: entry?.stack})), unhandled})); process.exitCode = 1;}
+finally {process.removeListener('unhandledRejection', onUnhandled);}

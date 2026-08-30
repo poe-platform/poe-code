@@ -1,0 +1,357 @@
+{
+  "captured": "2026-08-27T08:14:59.481Z",
+  "method": "Node V8 coverage actual file URLs, SHA256 before/after; owned tests only",
+  "sourceCount": 51,
+  "ownedSourceCount": 6,
+  "stable": true,
+  "rows": [
+    {
+      "path": "src/commands/basic.ts",
+      "before": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "after": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "stable": true
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "before": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "after": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "stable": true
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "before": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+      "after": "1d084ab203dc59a510e39e5c71743b755ba9bdb5d4b018658398ed96c3dff700",
+      "stable": true
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "before": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "after": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "stable": true
+    },
+    {
+      "path": "src/commands/find.ts",
+      "before": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "after": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "stable": true
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "before": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "after": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "stable": true
+    },
+    {
+      "path": "src/commands/index.ts",
+      "before": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "after": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "stable": true
+    },
+    {
+      "path": "src/commands/internal.ts",
+      "before": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "after": "28d83d91d5086b39b50494ea1130d34c3b48b22a15dc04c2912ee2503a7536d5",
+      "stable": true
+    },
+    {
+      "path": "src/commands/move.ts",
+      "before": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "after": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "stable": true
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "before": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "after": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "stable": true
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "before": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "after": "1638d492d11d466875b98451a59bace4e60e71fcd5468d671182187549922bca",
+      "stable": true
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "before": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "after": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "stable": true
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "before": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+      "after": "8966dd770c11731e5256a1e42aaec4b07ae7f0508a3e89a3efc956d27109098d",
+      "stable": true
+    },
+    {
+      "path": "src/commands/text.ts",
+      "before": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+      "after": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+      "stable": true
+    },
+    {
+      "path": "src/commands/tree/arguments.ts",
+      "before": "0b3d8ef78852d0d7623eb0286202bcfec44590906a9fa8892bc51376904bfce3",
+      "after": "0b3d8ef78852d0d7623eb0286202bcfec44590906a9fa8892bc51376904bfce3",
+      "stable": true
+    },
+    {
+      "path": "src/commands/tree/index.ts",
+      "before": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+      "after": "cdd900d8e489736ec860aa55dfc7013e01c3dba797cbe51ec1a4366120b9cefc",
+      "stable": true
+    },
+    {
+      "path": "src/commands/tree/io.ts",
+      "before": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153",
+      "after": "ab76f076d122d27d6bfb04d623551c88f28fdd3f9408c06ae2dc3769462ba153",
+      "stable": true
+    },
+    {
+      "path": "src/commands/tree/options.ts",
+      "before": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+      "after": "8eefe8b28a9341af79e22714ab9898abf07d04fb0a5f99773c822a4432369483",
+      "stable": true
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "before": "6209978bbd3cbfd171eab7cd63aca95414b757ebc2151317835f8ee4166d0121",
+      "after": "6209978bbd3cbfd171eab7cd63aca95414b757ebc2151317835f8ee4166d0121",
+      "stable": true
+    },
+    {
+      "path": "src/commands/tree/tree.ts",
+      "before": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a",
+      "after": "449536d5ef259a44308d253c1f5af4bf7af7bed128deff688f9fb8df8bb4c44a",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "before": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "after": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "before": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "after": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "before": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "after": "a11b016e6bac06e6e8cd26fabb3b56a30788c8f75091513f6bf01ab7d016909d",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "before": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "after": "fb9a434deb34dbad631166a689b02641c0e1acdbac691f6956a7c76e20729f50",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "before": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "after": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "before": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "after": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "stable": true
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "before": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "after": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "stable": true
+    },
+    {
+      "path": "src/fs/memory/index.ts",
+      "before": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "after": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "stable": true
+    },
+    {
+      "path": "src/fs/mount/comparison.ts",
+      "before": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "after": "cedfd2b4a586ddf85eaac30e1ce7797b290b712b744498e84df5036c89f64a2c",
+      "stable": true
+    },
+    {
+      "path": "src/fs/mount/identity.ts",
+      "before": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "after": "a561928d082232d034c436a89a63b85e5f137c82879281adc9f6aacfcb54d2d2",
+      "stable": true
+    },
+    {
+      "path": "src/fs/mount/index.ts",
+      "before": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d",
+      "after": "a2be203c4bb0a1c979e9ff2ab3672f7aa7a1f441cc4c57cddcca7e4807a1881d",
+      "stable": true
+    },
+    {
+      "path": "src/fs/overlay/index.ts",
+      "before": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be",
+      "after": "e14936876292b4900e1f2d4298ae5ec41509c5772d5afc63bf143d36c85662be",
+      "stable": true
+    },
+    {
+      "path": "src/fs/readonly/index.ts",
+      "before": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "after": "384f940196dc572f677541daa9c420da2e013324d66576004c1a2730e7899067",
+      "stable": true
+    },
+    {
+      "path": "src/fs/real/index.ts",
+      "before": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "after": "d3e79b80a5a48984e1f7f7dd9a79254c2db1faf8142e287a43792180874f77da",
+      "stable": true
+    },
+    {
+      "path": "src/fs/s3/authority.ts",
+      "before": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "after": "1a95f7a28904b8607948673db3e99d3d4a49b2a3839d980143fe13c25e1af344",
+      "stable": true
+    },
+    {
+      "path": "src/fs/s3/filesystem.ts",
+      "before": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "after": "9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833",
+      "stable": true
+    },
+    {
+      "path": "src/fs/s3/index.ts",
+      "before": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "after": "731b0141a614ec0be82885c8f608ea9c07bbe4fc96cdc01a04f90bb77f93bf49",
+      "stable": true
+    },
+    {
+      "path": "src/fs/s3/mock.ts",
+      "before": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "after": "99655664c7a52c595dc1ec4e5d461e4c002a0c9ba60d222ded078e5b9780841e",
+      "stable": true
+    },
+    {
+      "path": "src/fs/s3/transport.ts",
+      "before": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "after": "185895f1b939370903c9a896df47a1066647a50eb3022e1d0387918996ccd51c",
+      "stable": true
+    },
+    {
+      "path": "src/fs/webdav/resource-id.ts",
+      "before": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "after": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "stable": true
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "before": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "after": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "stable": true
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "before": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "after": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "stable": true
+    },
+    {
+      "path": "src/shell/display.ts",
+      "before": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "after": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "stable": true
+    },
+    {
+      "path": "src/shell/index.ts",
+      "before": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "after": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "stable": true
+    },
+    {
+      "path": "src/shell/input.ts",
+      "before": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "after": "7af2dac6dfd6290e9f189590e9190b2e0703dcd99998212e471378063cd9a7b4",
+      "stable": true
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "before": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "after": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "stable": true
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "before": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "after": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "stable": true
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "before": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "after": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "stable": true
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "before": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "after": "2223ef9e02565d163ded042d933553a1efae502ce7531fe83bba5611d959c84b",
+      "stable": true
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "before": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "after": "0e1d1396490970bf8db4d74ab07115d73e8303d29d7b748e145a06b13b316fee",
+      "stable": true
+    },
+    {
+      "path": "src/shell/types.ts",
+      "before": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "after": "fc4133f1fb41283b0586aa7597c766d393d4f91067b613f4777e5adbef230a6d",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/backends.test.ts",
+      "before": "bbab1a41cd6accf67f0dfc0cd63c3bbb63634b94ead62b025a2b9342be805d6b",
+      "after": "bbab1a41cd6accf67f0dfc0cd63c3bbb63634b94ead62b025a2b9342be805d6b",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/behavior.test.ts",
+      "before": "07953af35a492d22959273e2123277ab3c4e774331c1bc06126c7e1a43cbc812",
+      "after": "07953af35a492d22959273e2123277ab3c4e774331c1bc06126c7e1a43cbc812",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/capture-native.ts",
+      "before": "bccf1e24afd3d29e6ced88a1d85255e20fafc9baf4f1cd9023c1d27ecb5023a1",
+      "after": "bccf1e24afd3d29e6ced88a1d85255e20fafc9baf4f1cd9023c1d27ecb5023a1",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/helpers.ts",
+      "before": "a44e5cc1ca447d8065d7c3b8078693d148e974ce227bf3b20ece736f5f618abc",
+      "after": "a44e5cc1ca447d8065d7c3b8078693d148e974ce227bf3b20ece736f5f618abc",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/native-cases.ts",
+      "before": "8e286b57230315523a37f93534112a1717d517b854c3013e75e119633a10c78e",
+      "after": "8e286b57230315523a37f93534112a1717d517b854c3013e75e119633a10c78e",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/oracle.test.ts",
+      "before": "04e70eb25c4f07e17998bb2ef0b31b9f33c4f9a56e13bf675062415d37a95351",
+      "after": "04e70eb25c4f07e17998bb2ef0b31b9f33c4f9a56e13bf675062415d37a95351",
+      "stable": true
+    },
+    {
+      "path": "tests/commands/tree/safety.test.ts",
+      "before": "15cc5d6ac49fca8d33e814e06af63b6fad8f677888a0439a1d5696704abcee59",
+      "after": "15cc5d6ac49fca8d33e814e06af63b6fad8f677888a0439a1d5696704abcee59",
+      "stable": true
+    }
+  ]
+}

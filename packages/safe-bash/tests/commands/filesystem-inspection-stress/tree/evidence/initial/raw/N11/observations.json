@@ -1,0 +1,82 @@
+{
+  "candidate": "/private/tmp/safe-bash-tree-initial-run-NN3E3X/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "controls"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "Y29udHJvbHMK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIC1sZWFkaW5nCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGJhY2tcXHNsYXNoCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGNhcnJpYWdlXHJyZXR1cm4K",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGVzY2FwZVwwMzNbMzFtCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIGxpbmVcbmJyZWFrLnR4dAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHF1b3RlIm5hbWUK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHRhYlx0bmFtZQo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIHotbGFzdAo=",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIFwzMDNcMjUxY2xhaXIudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "fC0tIFwzNTFcMjMzXDI1Mi50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YC0tIFwzNjBcMjM3XDIzMFwyMDAudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "CjEgZGlyZWN0b3J5LCAxMSBmaWxlcwo=",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T08:28:20.892Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T08:28:20.893Z"
+    }
+  ],
+  "shells": []
+}

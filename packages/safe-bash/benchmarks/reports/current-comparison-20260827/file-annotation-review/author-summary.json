@@ -1,0 +1,90 @@
+{
+  "revision": "21049bedb7d086c68952153a82a0add91aadd570",
+  "fixture": "tests/commands/file/text-bound.test.ts",
+  "results": {
+    "before": {
+      "typeStatus": 2,
+      "diagnostics": [
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 67,
+          "column": 72,
+          "code": "TS2749",
+          "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+        },
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 79,
+          "column": 72,
+          "code": "TS2749",
+          "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+        },
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 136,
+          "column": 72,
+          "code": "TS2749",
+          "message": "'TextEncoder' refers to a value, but is being used as a type here. Did you mean 'typeof TextEncoder'?"
+        }
+      ],
+      "runtime": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "archiveSha256": "8de74d52620242fc1b393d45503915ef8632301ef803ce28a158ca64fad1b76f",
+      "candidateInputDigest": "eb4330e7faf36c980543e83c789779b91f6b7e52c451430fa67d44bc294d0170",
+      "emittedSha256": "bfcd49d6bcfc3a7d57dc76dcba07a6b224f9d9001b6c8adca71ca8c8500b5ff2"
+    },
+    "negative": {
+      "args": [
+        "/private/tmp/safe-bash-file-types-mkV0z0/after/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "tsconfig.scoped.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/private/tmp/safe-bash-file-types-mkV0z0/after",
+      "status": 2,
+      "signal": null,
+      "error": null,
+      "diagnostics": [
+        {
+          "path": "tests/commands/file/text-bound.test.ts",
+          "line": 187,
+          "column": 26,
+          "code": "TS2345",
+          "message": "Argument of type 'number' is not assignable to parameter of type 'string'."
+        }
+      ],
+      "counts": {},
+      "stdoutSha256": "16247dbdbe02ccda85967ada776e5fa142e4e058164c4165ef9798e1ec06f89f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "after": {
+      "typeStatus": 0,
+      "diagnostics": [],
+      "runtime": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "archiveSha256": "8de74d52620242fc1b393d45503915ef8632301ef803ce28a158ca64fad1b76f",
+      "candidateInputDigest": "ebfc7ec31b0558891ac90607e3090f4f500933b15701280a0aa09fff48c5b973",
+      "emittedSha256": "bfcd49d6bcfc3a7d57dc76dcba07a6b224f9d9001b6c8adca71ca8c8500b5ff2"
+    }
+  },
+  "runtimeJavaScriptByteIdentical": true,
+  "candidateDelta": "One aliased type-only node:util import and exactly three callback type annotations; no runtime statement/assertion/vector changed",
+  "actualCanonicalTestsPerVariant": 17,
+  "noProductOrConfigChanges": true,
+  "rootLauncherUnchanged": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+  "finishedAt": "2026-08-27T11:58:49.918Z"
+}

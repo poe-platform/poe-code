@@ -1,0 +1,32 @@
+[main baf16563a] test: materialize B2 packet and seal definition-only controls
+ 30 files changed, 15249 insertions(+)
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/CONTROLS.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/DEFINITION-PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/HANDOFF.md
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/HARMLESS-CAPTURE-MANIFEST.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/PACKET-SEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/SOURCE-QUALIFICATION.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/06-add-preseal.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/07-commit-preseal.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/07-commit-preseal.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/07-commit-preseal.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/08-prepare.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/08-prepare.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/08-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/09-controls.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/09-controls.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/09-role.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/10-add-definition.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/capture/10-add-definition.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/definition-controls.mjs
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/00-type-valid.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/00-type-valid.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/01-type-wrong.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/01-type-wrong.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/02-mutant.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/02-mutant.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/03-restore.stderr
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/03-restore.stdout
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/events.jsonl
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/evidence/harmless/harmless-controls/fixture.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r6/staged/PACKET.json

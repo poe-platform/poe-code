@@ -1,0 +1,26 @@
+{
+  "mode": "qualify",
+  "startedAt": "2026-08-27T11:54:33.940Z",
+  "finishedAt": "2026-08-27T11:54:34.461Z",
+  "pid": 94589,
+  "args": [
+    "--unhandled-rejections=strict",
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+    "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/qualify.mjs"
+  ],
+  "timeout": 10000,
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "oversized": false,
+  "reapedDirectChild": true,
+  "groupPresentAfterClose": false,
+  "environment": {
+    "TMPDIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+    "TMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+    "TEMP": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp",
+    "TSX_DISABLE_CACHE": "1",
+    "TSX_CACHE_DIR": "/private/tmp/safe-bash-owned-output-streaming-fixture-replay-mcBOK1/tmp/tsx"
+  }
+}

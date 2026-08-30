@@ -1,0 +1,142 @@
+[
+  {
+    "row": "raw native: file-unicode:-Rc",
+    "id": "file-unicode:-Rc",
+    "expectedHex": "22efbfbdefbfbdefbfbd220a",
+    "mutantHex": "2280efbfbdefbfbd220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: file-unicode:-Rsc",
+    "id": "file-unicode:-Rsc",
+    "expectedHex": "22efbfbdefbfbdefbfbd5c6e220a",
+    "mutantHex": "2280efbfbdefbfbd5c6e220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:0:-Rc",
+    "id": "invalid:0:-Rc",
+    "expectedHex": "226f6b220a22efbfbdefbfbd220a",
+    "mutantHex": "226f6b220a2280efbfbd220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:0:-Rsc",
+    "id": "invalid:0:-Rsc",
+    "expectedHex": "226f6b5c6eefbfbdefbfbd220a",
+    "mutantHex": "226f6b5c6e80efbfbd220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:1:-Rc",
+    "id": "invalid:1:-Rc",
+    "expectedHex": "226f6b220a22efbfbd220a",
+    "mutantHex": "226f6b220a2280220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:1:-Rsc",
+    "id": "invalid:1:-Rsc",
+    "expectedHex": "226f6b5c6eefbfbd220a",
+    "mutantHex": "226f6b5c6e80220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:2:-Rc",
+    "id": "invalid:2:-Rc",
+    "expectedHex": "226f6b220a22efbfbd220a",
+    "mutantHex": "226f6b220a2280220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:2:-Rsc",
+    "id": "invalid:2:-Rsc",
+    "expectedHex": "226f6b5c6eefbfbd220a",
+    "mutantHex": "226f6b5c6e80220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:3:-Rc",
+    "id": "invalid:3:-Rc",
+    "expectedHex": "226f6b220a22efbfbd220a",
+    "mutantHex": "226f6b220a2280220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:3:-Rsc",
+    "id": "invalid:3:-Rsc",
+    "expectedHex": "226f6b5c6eefbfbd220a",
+    "mutantHex": "226f6b5c6e80220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:4:-Rc",
+    "id": "invalid:4:-Rc",
+    "expectedHex": "226f6b220a22efbfbd220a",
+    "mutantHex": "226f6b220a2280220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "raw native: invalid:4:-Rsc",
+    "id": "invalid:4:-Rsc",
+    "expectedHex": "226f6b5c6eefbfbd220a",
+    "mutantHex": "226f6b5c6e80220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "strict malformed JSON 14 across chunk boundaries",
+    "id": "malformed-14",
+    "expectedHex": "22efbfbd220a",
+    "mutantHex": "2280220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  },
+  {
+    "row": "valid large decimals survive while malformed JSON and division by zero fail",
+    "id": "resource-json-4",
+    "expectedHex": "22efbfbd220a",
+    "mutantHex": "2280220a",
+    "proposedDecodedStringAssertionPasses": true,
+    "actualByteEqualityPasses": false,
+    "plannedCanonicalCallbackRejects": true,
+    "rawByteAssertionRejects": true
+  }
+]

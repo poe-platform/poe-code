@@ -1,0 +1,17 @@
+{
+  "nativeBefore": [],
+  "nativeAfter": [],
+  "tmpBefore": [],
+  "tmpAfter": [],
+  "allChildExecutionsSettled": true,
+  "matchingExecutedProfileRoots": [
+    {
+      "path": "/private/tmp/virtual-bash-permission-profile-RIJ4wG",
+      "absent": true
+    },
+    {
+      "path": "/private/tmp/virtual-bash-permission-profile-5vIwD8",
+      "absent": true
+    }
+  ]
+}

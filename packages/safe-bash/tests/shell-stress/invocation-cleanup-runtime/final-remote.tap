@@ -1,0 +1,151 @@
+TAP version 13
+# Subtest: hard-deadline pipeline close: transport
+ok 1 - hard-deadline pipeline close: transport
+  ---
+  duration_ms: 124.908375
+  type: 'test'
+  ...
+# {"scenario":"transport","pid":17307,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: pipefail
+ok 2 - hard-deadline pipeline close: pipefail
+  ---
+  duration_ms: 127.474917
+  type: 'test'
+  ...
+# {"scenario":"pipefail","pid":17308,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle
+ok 3 - hard-deadline pipeline close: middle
+  ---
+  duration_ms: 122.348333
+  type: 'test'
+  ...
+# {"scenario":"middle","pid":17312,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle-status
+ok 4 - hard-deadline pipeline close: middle-status
+  ---
+  duration_ms: 125.374667
+  type: 'test'
+  ...
+# {"scenario":"middle-status","pid":17317,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: nested-invoke
+ok 5 - hard-deadline pipeline close: nested-invoke
+  ---
+  duration_ms: 127.317292
+  type: 'test'
+  ...
+# {"scenario":"nested-invoke","pid":17318,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: redirect
+ok 6 - hard-deadline pipeline close: redirect
+  ---
+  duration_ms: 129.692333
+  type: 'test'
+  ...
+# {"scenario":"redirect","pid":17319,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: group
+ok 7 - hard-deadline pipeline close: group
+  ---
+  duration_ms: 126.476167
+  type: 'test'
+  ...
+# {"scenario":"group","pid":17320,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-rejection
+ok 8 - hard-deadline pipeline close: consumer-rejection
+  ---
+  duration_ms: 126.406083
+  type: 'test'
+  ...
+# {"scenario":"consumer-rejection","pid":17321,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-status
+ok 9 - hard-deadline pipeline close: consumer-status
+  ---
+  duration_ms: 124.419875
+  type: 'test'
+  ...
+# {"scenario":"consumer-status","pid":17322,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: late-read-rejection
+ok 10 - hard-deadline pipeline close: late-read-rejection
+  ---
+  duration_ms: 129.811041
+  type: 'test'
+  ...
+# {"scenario":"late-read-rejection","pid":17323,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: iterator-return
+ok 11 - hard-deadline pipeline close: iterator-return
+  ---
+  duration_ms: 133.268708
+  type: 'test'
+  ...
+# {"scenario":"iterator-return","pid":17324,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: caller-abort
+ok 12 - hard-deadline pipeline close: caller-abort
+  ---
+  duration_ms: 121.688916
+  type: 'test'
+  ...
+# {"scenario":"caller-abort","pid":17325,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: budget-abort
+ok 13 - hard-deadline pipeline close: budget-abort
+  ---
+  duration_ms: 118.417334
+  type: 'test'
+  ...
+# {"scenario":"budget-abort","pid":17326,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-success
+ok 14 - hard-deadline pipeline close: completed-success
+  ---
+  duration_ms: 129.295542
+  type: 'test'
+  ...
+# {"scenario":"completed-success","pid":17327,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-failure
+ok 15 - hard-deadline pipeline close: completed-failure
+  ---
+  duration_ms: 126.978333
+  type: 'test'
+  ...
+# {"scenario":"completed-failure","pid":17329,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-rejection
+ok 16 - hard-deadline pipeline close: completed-rejection
+  ---
+  duration_ms: 131.224125
+  type: 'test'
+  ...
+# {"scenario":"completed-rejection","pid":17330,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: delayed-no-write
+ok 17 - hard-deadline pipeline close: delayed-no-write
+  ---
+  duration_ms: 130.903583
+  type: 'test'
+  ...
+# {"scenario":"delayed-no-write","pid":17331,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: closed-before-write
+ok 18 - hard-deadline pipeline close: closed-before-write
+  ---
+  duration_ms: 126.202291
+  type: 'test'
+  ...
+# {"scenario":"closed-before-write","pid":17332,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: zero-byte-no-write
+ok 19 - hard-deadline pipeline close: zero-byte-no-write
+  ---
+  duration_ms: 125.254416
+  type: 'test'
+  ...
+# {"scenario":"zero-byte-no-write","pid":17333,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: first-read-head-zero
+ok 20 - hard-deadline pipeline close: first-read-head-zero
+  ---
+  duration_ms: 171.719792
+  type: 'test'
+  ...
+# {"scenario":"first-read-head-zero","pid":17334,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"first-read-head-zero: passed\\n{\\"scenario\\":\\"first-read-head-zero\\",\\"active\\":0,\\"reads\\":0,\\"returned\\":1,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"command.settled:head:0\\"]}\\n","stderr":""}
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2690.951375
+{"code":0,"signal":null,"deadlineMs":20000}

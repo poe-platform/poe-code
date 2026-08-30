@@ -1,0 +1,7 @@
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/prepare-version.mjs
+{"typeClosure":{"packages":[{"name":"@types/node","version":"22.20.1","dependencies":{"undici-types":"~6.21.0"},"types":"index.d.ts","typesVersions":{"<=5.6":{"*":["ts5.6/*"]}},"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/@types/node","isolatedCopy":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types/node"},{"name":"undici-types","version":"6.21.0","dependencies":{},"types":"index.d.ts","typesVersions":null,"origin":"/Users/kjopek/Workspace/safe-bash/node_modules/undici-types","isolatedCopy":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/undici-types"}],"files":115,"bytes":2522132,"allOriginalPinsMatched":true},"generatedVersionPatch":"/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/version.patch"}
+Success. Updated the following files:
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/producer.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/io.mjs
+A /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/bindings.mjs

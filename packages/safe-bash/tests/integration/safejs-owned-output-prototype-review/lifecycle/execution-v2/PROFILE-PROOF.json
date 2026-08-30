@@ -1,0 +1,141 @@
+{
+  "originalEvidence": "19da254941847de60e80ea18407332bbe10b5265",
+  "originalRunner": "91464989ff4c563195330cc3a7cacc4500c0bad0",
+  "originalProposal": "37b89260c16e51dbf3f825f111d5f5b3c5ea32e8",
+  "originalFiles": 74,
+  "originalInventorySha256": "fe11af4532b8ed6658198b3a38e601f1b4dd32c9af359f5dd5f3a2bf681f59b2",
+  "proposalFiles": 5,
+  "proposalInventorySha256": "2a3bed9f691cefc640620e3921f0543ef99b06fe9ade11adbb534f717621b83f",
+  "signed": [
+    {
+      "commit": "65a887ac7aa0e361216b827f9fedee20389bc609",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/SIGNATURE.json",
+      "sha256": "382deee2f3a1a656ef3057dde33505e0d71dbb79d6674897c10fe9e759a06284"
+    },
+    {
+      "commit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/phase2/REPORT.md",
+      "sha256": "bee19aa27d5ce91e1aaa222a99ad476ba72b13a734859320f86745dff4a5c326"
+    },
+    {
+      "commit": "bbb7f807f70c4db7014eee1f151a0ff51ee2a8a2",
+      "path": "tests/integration/safejs-owned-output-prototype-review/validity-independent/phase2/SIGNATURE.json",
+      "sha256": "e5aded9a598edf429d8e30eb37ff48f209571e86729c09a6b1d7195fa78acd45"
+    }
+  ],
+  "unchangedControls": [
+    {
+      "id": "L01-aliases",
+      "sha256": "01ded278056ad45d3d7018b9559b02a24108b32a61d4cae0368d99caca1979c7"
+    },
+    {
+      "id": "L02-budget-positive",
+      "sha256": "e04c34392f8f18468258864769086184137ae6fcb2707abed7e96631158bbf6c"
+    },
+    {
+      "id": "L02-budget-exhausted",
+      "sha256": "151c128c02e7724ff81dd511c9f5affc34d1ab0400f242451d77616d561195eb"
+    },
+    {
+      "id": "L03-callback-live",
+      "sha256": "3f8a24600af116a382564dad7cae8c802855db4f458c5fbf0980e5a4b360c8c3"
+    },
+    {
+      "id": "L03-callback-after-lifetime",
+      "sha256": "e73d1903da6027417ec1e050a6993d737109deeb7ea07bc7f1a6e4a1a8246c78"
+    },
+    {
+      "id": "L04-explicit-children",
+      "sha256": "f7b5f09636def6de057fa3b798e9f8573f909e0f3488f1b531f26bfe021d92e7"
+    },
+    {
+      "id": "L05-caller-error",
+      "sha256": "21d3c12b3ad449dcf8b87058c51bace3cc9853cc6ce5d6dafb1655cd0a48f1cb"
+    },
+    {
+      "id": "L05-cleanup-error",
+      "sha256": "cef12c990714be5d7ad56bc5901602c9d22df71f8f2e85994e216db996e6d3b5"
+    }
+  ],
+  "allElevenOriginalRowObjectsAndExpectationsIdentical": true,
+  "onlyCasesByteDelta": [
+    "maxRedirects: 0 -> 1",
+    "maxRetries: 0 -> 1"
+  ],
+  "originalSections": [
+    {
+      "start": "const deferred = () => {",
+      "end": "try {\n  const product = await import(\"virtual-bash\");",
+      "bytes": 2077,
+      "sha256": "28a1aa91161969cb490cfde192868bb34bc7078bef9574f4554df79a3ef15dba"
+    },
+    {
+      "start": "try {\n  const product = await import(\"virtual-bash\");",
+      "end": "  outer.commands.register({ name: \"owned-guest\"",
+      "bytes": 3368,
+      "sha256": "2758572c23645d03027637711f0aa37dc2389a3fa1d81a02d6a0437679bfe852"
+    },
+    {
+      "start": "  outer.commands.register({ name: \"owned-guest\"",
+      "end": "      if (row.workflow === \"L06\") {",
+      "bytes": 6611,
+      "sha256": "a8f528df52cd1bdd46e83a8464b4a5c808c01a13dc532ac0e400a59b9adc6782"
+    },
+    {
+      "start": "        inner.commands.register({ name: \"owned-curl\"",
+      "end": "  const publicStdout = {",
+      "bytes": 2178,
+      "sha256": "2d402cac1e1a274408761c329fc758a52e8cfc824eba62735c7f1453e875bdbb"
+    },
+    {
+      "start": "  const publicStdout = {",
+      "end": "  const publicStderr = {",
+      "bytes": 566,
+      "sha256": "6a13d4fa3e3417717ba5a7c47c16d2bb0bdcecdb977f9786aa494955af80538d"
+    },
+    {
+      "start": "  check(\"actual engine and supported helper admission\"",
+      "end": "  report.classification = report.assertions.every",
+      "bytes": 5510,
+      "sha256": "1f2dc15d7d999e429d2a5dacf06e2e0e3eb11db1ac5c788acd57e39b66a993b0"
+    }
+  ],
+  "guests": [
+    {
+      "path": "guests/aliases.ajs.data",
+      "bytes": 287,
+      "sha256": "0bd9972ad3287df00cb92f66727de788255ce9b7af9a4e1aee9bbac6ec57cd0c"
+    },
+    {
+      "path": "guests/budget-callback.ajs.data",
+      "bytes": 322,
+      "sha256": "e1657c2e8201b754ca2203a611c48f71bbeda66957628dd5dbef75307e8dafd8"
+    },
+    {
+      "path": "guests/lifetime-callback.ajs.data",
+      "bytes": 462,
+      "sha256": "21cb95c43780bd27b185ff1f21c6b921722de39aa269062cb7fba77a4e0b6063"
+    },
+    {
+      "path": "guests/children.ajs.data",
+      "bytes": 406,
+      "sha256": "c740c72d5d4d91786b597897287f8679809f5262676017a53bf8768f9dc6dfda"
+    },
+    {
+      "path": "guests/precedence.ajs.data",
+      "bytes": 170,
+      "sha256": "d08209d733eac4792eb3bd4033c2a8fa7c92eae25accdcb99a1b7e6cf90bb69c"
+    },
+    {
+      "path": "guests/curl.ajs.data",
+      "bytes": 355,
+      "sha256": "75da33a2321c9d19efe15ccb64a31b7a309b8d8b6b11abef7464f5ec88a18363"
+    }
+  ],
+  "rowBranchIdsUnchanged": true,
+  "errorConstructionUnchanged": true,
+  "revisionSha256": "ffce4c0170d9ea49d471a231cb7cb67216ed6f007122f5cda02366e3da6f8313",
+  "casesSha256": "01d2172b48cfc2f340f085755549e4288da99f76ceddd8770e19c2da096de6b5",
+  "runtimeOrPrivateExecutionDuringThisVerification": false,
+  "noPromotion": true
+}

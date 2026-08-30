@@ -1,0 +1,874 @@
+{
+  "capturedAt": "2026-08-27T09:13:52.441Z",
+  "sourceDeltaAccepted": true,
+  "integrated": true,
+  "overallSuperiority": false,
+  "integrationCommit": "7ba5301d43345c2eb621b7df95a452a87b74e909",
+  "prototypeSource": "6e99656dd9d6e285b33fb3cf99ed5fef19146a48",
+  "currentIntegrationSource": "cd37ce07c1f41f3797e19e0f701b662823338843",
+  "proposal": {
+    "liveApplied": false,
+    "sourceRevision": "6e99656dd9d6e285b33fb3cf99ed5fef19146a48",
+    "path": "src/commands/text.ts",
+    "beforeSha256": "17a4c60061bdeeca1000499ae9b433f7e3e58c768e1c855e81e7c5338f8998d2",
+    "candidateSha256": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+    "patchSha256": "f13d6c89a6b43962c0b7794510d15a3fdc7b33f9113db09747c1f5484ce29811",
+    "scope": "sort-local owned record collection only; comparator, output, check mode, env and root exports unchanged"
+  },
+  "assessment": {
+    "capturedAt": "2026-08-27T09:12:37.187Z",
+    "timingStartedAt": "2026-08-27T09:05:16.242Z",
+    "timingFinishedAt": "2026-08-27T09:05:51.931Z",
+    "measuredRows": 720,
+    "warmupExecutions": 450,
+    "sourceDeltaAccepted": true,
+    "overallSuperiority": false,
+    "independentGate": "exact candidate plus matched-output representative material gains; not universal speedup",
+    "workloads": [
+      {
+        "workload": "historical-sort-uniq-5000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 6.360666499999979
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 5.868312500000002
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 3.6396670000000313
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.0945702845452774,
+            "fasterPairs": 13,
+            "medianReductionPercent": 7.74060391312733,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 19.779604499999998,
+                "medianWallMs": 127.48820849999993
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 18.71314600000001,
+                "medianWallMs": 133.34458300000097
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 15.786896000000002,
+                "medianWallMs": 95.66493749999972
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.0809051252545503,
+            "fasterPairs": 4,
+            "medianReductionPercent": 5.391707908011956,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "plain-5000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 3.2376665000000457
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 2.152520999999979
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 4.091062500000021
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.3875462589401768,
+            "fasterPairs": 16,
+            "medianReductionPercent": 33.516284027402186,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 8.227562999999996,
+                "medianWallMs": 107.51889599999777
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 6.310583000000001,
+                "medianWallMs": 109.7729789999994
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 13.443749999999994,
+                "medianWallMs": 95.86449949999951
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.296775972738629,
+            "fasterPairs": 6,
+            "medianReductionPercent": 23.299487345159143,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "unique-paths-20000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 16.149562500000002
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 12.426020499999822
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 35.760333500000115
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.2871098759037904,
+            "fasterPairs": 17,
+            "medianReductionPercent": 23.05661221472829,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 23.765583499999998,
+                "medianWallMs": 126.76552099999935
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 17.739500500000005,
+                "medianWallMs": 121.31995850000021
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 45.873042,
+                "medianWallMs": 142.62085399999887
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.325409168647837,
+            "fasterPairs": 6,
+            "medianReductionPercent": 25.356343554535464,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "reverse-logs-12000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 8.940562499999487
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 7.013063000000329
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 21.17629150000039
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.336412806387429,
+            "fasterPairs": 18,
+            "medianReductionPercent": 21.559040608454648,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 15.667042000000002,
+                "medianWallMs": 116.39645850000124
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 11.646291499999997,
+                "medianWallMs": 114.82202100000177
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 32.440937500000004,
+                "medianWallMs": 125.61345849999816
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.3565603298120017,
+            "fasterPairs": 6,
+            "medianReductionPercent": 25.663750055690183,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "unicode-8000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 5.354416500000298
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 3.674895500000275
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 0,
+                "medianMs": 9.667333500000495
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.3396343562608894,
+            "fasterPairs": 17,
+            "medianReductionPercent": 31.367021971487073,
+            "baselineComparisonEligible": false
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 10.692896000000005,
+                "medianWallMs": 109.7242084999998
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 8.352854,
+                "medianWallMs": 109.06864600000154
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 0,
+                "medianMs": 18.8395625,
+                "medianWallMs": 100.20549949999986
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.2337856573450652,
+            "fasterPairs": 6,
+            "medianReductionPercent": 21.884080795324323,
+            "baselineComparisonEligible": false
+          }
+        }
+      },
+      {
+        "workload": "numeric-stable-8000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 31.16314599999987
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 29.950666499999897
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 13.694083000000319
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.0344879465990382,
+            "fasterPairs": 12,
+            "medianReductionPercent": 3.89074806503803,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 40.900229499999995,
+                "medianWallMs": 140.5369580000006
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 38.86564549999999,
+                "medianWallMs": 138.7690834999994
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 23.362583500000003,
+                "medianWallMs": 107.42416650000087
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.0464698348799073,
+            "fasterPairs": 5,
+            "medianReductionPercent": 4.974505094158466,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "numeric-key-8000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 34.721708500000204
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 33.890104000000065
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 29.799520999999913
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.0089000225706086,
+            "fasterPairs": 10,
+            "medianReductionPercent": 2.3950563953387682,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 44.971625,
+                "medianWallMs": 146.5304789999991
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 42.9432295,
+                "medianWallMs": 140.997374999999
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 46.9206875,
+                "medianWallMs": 132.0713330000017
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.042921271121422,
+            "fasterPairs": 6,
+            "medianReductionPercent": 4.51038960677983,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "in-place-5000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 3.233083500000248
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 2.155354500001522
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 3.851416500000596
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.4335748714398586,
+            "fasterPairs": 17,
+            "medianReductionPercent": 33.334400426052824,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 8.4289585,
+                "medianWallMs": 108.421875
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 6.877208499999995,
+                "medianWallMs": 106.35627049999857
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 15.935562500000003,
+                "medianWallMs": 98.78410399999848
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.2266372959413299,
+            "fasterPairs": 6,
+            "medianReductionPercent": 18.40974777607466,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "tiny-32",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 0.13500000000021828
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 0.13785399999960646
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 0.23491650000050868
+              }
+            },
+            "pairedMedianBaseOverCandidate": 0.9496573834743274,
+            "fasterPairs": 6,
+            "medianReductionPercent": -2.1140740736174557,
+            "baselineComparisonEligible": true
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 2.3428544999999943,
+                "medianWallMs": 101.75097949999872
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 2.2849794999999986,
+                "medianWallMs": 99.03291650000028
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 6.800666999999997,
+                "medianWallMs": 86.8392294999976
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.0254952016201284,
+            "fasterPairs": 4,
+            "medianReductionPercent": 2.470277176836877,
+            "baselineComparisonEligible": true
+          }
+        }
+      },
+      {
+        "workload": "invalid-bytes-8000",
+        "phases": {
+          "warm": {
+            "variants": {
+              "base": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 4.133146000000124
+              },
+              "candidate": {
+                "total": 18,
+                "matched": 18,
+                "medianMs": 2.5490205000005517
+              },
+              "baseline": {
+                "total": 18,
+                "matched": 0,
+                "medianMs": 7.312457999999424
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.5380841939463572,
+            "fasterPairs": 18,
+            "medianReductionPercent": 38.32735403006632,
+            "baselineComparisonEligible": false
+          },
+          "cold": {
+            "variants": {
+              "base": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 9.605978999999998,
+                "medianWallMs": 108.3155209999968
+              },
+              "candidate": {
+                "total": 6,
+                "matched": 6,
+                "medianMs": 7.277875000000002,
+                "medianWallMs": 107.2130625000027
+              },
+              "baseline": {
+                "total": 6,
+                "matched": 0,
+                "medianMs": 16.139104,
+                "medianWallMs": 98.80114600000161
+              }
+            },
+            "pairedMedianBaseOverCandidate": 1.3245858240560007,
+            "fasterPairs": 6,
+            "medianReductionPercent": 24.235988856523594,
+            "baselineComparisonEligible": false
+          }
+        }
+      }
+    ],
+    "loadOneMinuteRange": [
+      4.96875,
+      5.29150390625
+    ],
+    "matchedCounts": {
+      "base": {
+        "total": 240,
+        "matched": 240
+      },
+      "candidate": {
+        "total": 240,
+        "matched": 240
+      },
+      "baseline": {
+        "total": 240,
+        "matched": 192
+      }
+    },
+    "cleanup": {
+      "timingChildren": 183,
+      "allExited": true,
+      "forced": 0
+    },
+    "memory": "before/after and process-lifetime RSS observations only; no per-command peak or hard bound"
+  },
+  "committedFiles": {
+    "src/commands/text.ts": "08a27afc45d2f5a48b082cc2c979e3a13d01fbef42129bc0e72d5477d56a074d",
+    "tests/commands/core-sort/borrowed-buffer.test.ts": "8539cd88cea3e79a03d984febbba56afe7c2837dac0d3e54e948efacc05b8e81"
+  },
+  "reviewerInputs": {
+    "README.md": "5e2de105adc5cbe6f50d0b64a660e7e8da626aa615e8e44b49ffaf2c0a2d3639",
+    "hidden.mjs": "16f99c817b651ca6e7264fef89863f856f2282e7f321b5b2049e2a79ba165621",
+    "validate.mjs": "17cf59f5ea5dd3fbbf0dfd05500fe57871d08e342bae2ba7c77c0fc11ab41ea1",
+    "fixtures.mjs": "d524b1e642a34f35674e92dfd08058711619a89e5199a2acbc96f594275bf0d4",
+    "assess.mjs": "43465a4cc6cb3ef0496fa88222f27d9e696f2248ed7e60faf0c4804d6ba9f0bd",
+    "apply-exact.mjs": "e2e704c7ef36f4d1984b05ffd567f8a933a7667dd89b5774d865b8557d98f15e",
+    "validate-live.mjs": "4af916d5e9d369c98d9f5c15cff60fe326b8357b13db976b44b7418db1cfb337",
+    "seal.mjs": "5753f29f856bee0c71ebbb93aef28ee7919a6058b13dcf9e2699fac724be401d"
+  },
+  "authorHarnessInputs": {
+    "prepare.mjs": "78d51174fe2e81ec860e1555b177821f00a618229ed1cfb2b97a506d089ad5e1",
+    "apply-prototype.mjs": "1b42dcb585649570e556bdc4a4b42705d54d0350f5ea1ce9069e037a9b4455a4",
+    "validate.mjs": "4d022846fc589a8c5e7bbd4971c43f0778f226429c462b980f6746e4d5a66495",
+    "holdouts.mjs": "8a6bbe220e07b45390c7c4f6ccdb4c39f8b9b1efc085a00a4cdf72e7a84c1044",
+    "mutants.mjs": "29d45f6465ef5072a4b8ecae36f40158ada0ec0bca41fb0ae2d816c7b12272b6",
+    "workloads.mjs": "ced7d47cf2a34d296f432a9c1a743cbd3acb48083befb6b280ac6428fb53431b",
+    "worker.mjs": "c82bcfb18b6bcfd21f49a488ca223ef7cc7816f58f638058511414eedca6ac9b",
+    "session.mjs": "f89f61238a4379ea34d2422a08e049c1da1f4c8e27fab93de9c0be10f298f696",
+    "measure.mjs": "238f2cce2c7e0841ad4dd204d4e87b0061800cf5ca9b1a3b3aba1c6a9ac6baf2",
+    "summarize.mjs": "47ac5ef71cf06f09d91b281eb0d9cb66f50bc689425afcd8a9d752e6b306145e",
+    "finish.mjs": "69e9425869fe92bfceecd2edad93f493bb200d35217d55ca1feccbe87b2a1f80",
+    "prototypes/candidate.patch": "f13d6c89a6b43962c0b7794510d15a3fdc7b33f9113db09747c1f5484ce29811"
+  },
+  "originalCohorts": [
+    {
+      "variant": "base",
+      "label": "build",
+      "args": [
+        "/tmp/safe-bash-sort-performance-dXHa3m/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 60234,
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "variant": "base",
+      "label": "unchanged-core100",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "tests/commands/core-regression-stress/native.test.ts",
+        "tests/commands/core-regression-stress/resources.test.ts",
+        "tests/commands/core-regression-stress/runtime.test.ts"
+      ],
+      "pid": 60269,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 100,
+        "pass": 100,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "variant": "base",
+      "label": "adjacent-sort-expanded",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "tests/commands/core-sort/regressions.test.ts",
+        "tests/commands/core-expanded/regressions.test.ts"
+      ],
+      "pid": 60283,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 65,
+        "pass": 65,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "variant": "base",
+      "label": "fresh-heldouts",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "/tmp/safe-bash-sort-performance-dXHa3m/harness/holdouts.mjs"
+      ],
+      "pid": 60289,
+      "status": 1,
+      "signal": null,
+      "counts": {
+        "tests": 26,
+        "pass": 25,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "variant": "candidate",
+      "label": "build",
+      "args": [
+        "/tmp/safe-bash-sort-performance-dXHa3m/node_modules/typescript/bin/tsc",
+        "-p",
+        "tsconfig.build.json"
+      ],
+      "pid": 60354,
+      "status": 0,
+      "signal": null,
+      "counts": {}
+    },
+    {
+      "variant": "candidate",
+      "label": "unchanged-core100",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "tests/commands/core-regression-stress/native.test.ts",
+        "tests/commands/core-regression-stress/resources.test.ts",
+        "tests/commands/core-regression-stress/runtime.test.ts"
+      ],
+      "pid": 60372,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 100,
+        "pass": 100,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "variant": "candidate",
+      "label": "adjacent-sort-expanded",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "tests/commands/core-sort/regressions.test.ts",
+        "tests/commands/core-expanded/regressions.test.ts"
+      ],
+      "pid": 60387,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 65,
+        "pass": 65,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    {
+      "variant": "candidate",
+      "label": "fresh-heldouts",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--test",
+        "--test-concurrency=1",
+        "--test-timeout=30000",
+        "/tmp/safe-bash-sort-performance-dXHa3m/harness/holdouts.mjs"
+      ],
+      "pid": 60392,
+      "status": 0,
+      "signal": null,
+      "counts": {
+        "tests": 26,
+        "pass": 26,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "independentHiddenInitial": [
+    {
+      "counts": {
+        "tests": 30,
+        "pass": 20,
+        "fail": 10,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "hidden borrowed byteOffset source Buffer=true width=1",
+        "hidden borrowed byteOffset source Buffer=true width=2",
+        "hidden borrowed byteOffset source Buffer=true width=5",
+        "hidden borrowed byteOffset source Buffer=true width=17",
+        "hidden public named VFS borrowed Buffer ",
+        "hidden public named VFS borrowed Buffer -z",
+        "hidden public named VFS borrowed Buffer -n,-s",
+        "hidden public named VFS borrowed Buffer -u",
+        "hidden public named VFS borrowed Buffer -o,/work/output",
+        "hidden exact total-byte limit boundary excess=1"
+      ]
+    },
+    {
+      "counts": {
+        "tests": 30,
+        "pass": 29,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "hidden exact total-byte limit boundary excess=1"
+      ]
+    }
+  ],
+  "independentHiddenCorrected": [
+    {
+      "counts": {
+        "tests": 30,
+        "pass": 21,
+        "fail": 9,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": [
+        "hidden borrowed byteOffset source Buffer=true width=1",
+        "hidden borrowed byteOffset source Buffer=true width=2",
+        "hidden borrowed byteOffset source Buffer=true width=5",
+        "hidden borrowed byteOffset source Buffer=true width=17",
+        "hidden public named VFS borrowed Buffer ",
+        "hidden public named VFS borrowed Buffer -z",
+        "hidden public named VFS borrowed Buffer -n,-s",
+        "hidden public named VFS borrowed Buffer -u",
+        "hidden public named VFS borrowed Buffer -o,/work/output"
+      ]
+    },
+    {
+      "counts": {
+        "tests": 30,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failures": []
+    }
+  ],
+  "cleanup": {
+    "timingWorkers": 183,
+    "allExited": true,
+    "forced": 0,
+    "ownedScratchRemoved": true
+  },
+  "scope": "Exact32-line candidate plus2 public regressions; no root/config/shared helper/other author changes"
+}

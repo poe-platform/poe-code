@@ -63,6 +63,34 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}
+      - name: Check release tree admission
+        id: release-admission
+        uses: ./.github/actions/release-tree-admission
+        with:
+          paths: |
+            packages/toolcraft
+            packages/toolcraft-design
+            packages/toolcraft-schema
+            packages/toolcraft-openapi
+            packages/agent-defs
+            packages/agent-human-in-loop
+            packages/agent-mcp-config
+            packages/auth-store
+            packages/config-mutations
+            packages/frontmatter
+            packages/mcp-oauth
+            packages/mcp-oauth-server
+            packages/process-runner
+            packages/task-list
+            packages/tiny-http-mcp-server
+            packages/tiny-mcp-client
+            scripts/toolcraft-standalone-bundle.mjs
+            scripts/manage-bundled-workspace-deps.mjs
+            scripts/prepare-published-workspace-version.mjs
+            scripts/verify-toolcraft-cli-bundle.mjs
+            scripts/verify-toolcraft-standalone.mjs
+            scripts/verify-toolcraft-published-sdk-types.mjs
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
@@ -113,6 +141,7 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Wait for toolcraft-schema registry availability
         run: |
           for _ in {1..12}; do
@@ -122,6 +151,7 @@ jobs:
             sleep 5
           done
           npm view "toolcraft-schema@${{ steps.version.outputs.next }}" version
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Verify packed Toolcraft signatures
         run: |
           PACK_DIR=$(mktemp -d)
@@ -130,6 +160,7 @@ jobs:
           printf '%s\n' '{"name":"toolcraft-packed-signature-audit","private":true}' > "$AUDIT_DIR/package.json"
           npm install --ignore-scripts --prefix "$AUDIT_DIR" "$PACK_DIR/$TARBALL"
           npm audit signatures --omit=optional --prefix "$AUDIT_DIR"
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Publish toolcraft
         working-directory: packages/toolcraft
         run: |
@@ -137,6 +168,7 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Publish toolcraft-openapi
         working-directory: packages/toolcraft-openapi
         run: |
@@ -144,6 +176,7 @@ jobs:
             exit 0
           fi
           npm publish --provenance --access public
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Wait for Toolcraft registry availability
         run: |
           for _ in {1..12}; do
@@ -155,6 +188,7 @@ jobs:
           done
           npm view "toolcraft@${{ steps.version.outputs.next }}" version
           npm view "toolcraft-openapi@${{ steps.version.outputs.next }}" version
+        if: steps.release-admission.outputs.publish == 'true'
       - name: Verify installed Toolcraft signatures
         run: |
           AUDIT_DIR=$(mktemp -d)
@@ -162,3 +196,4 @@ jobs:
           cd "$AUDIT_DIR"
           npm install "toolcraft@${{ steps.version.outputs.next }}"
           npm audit signatures --omit=optional
+        if: steps.release-admission.outputs.publish == 'true'

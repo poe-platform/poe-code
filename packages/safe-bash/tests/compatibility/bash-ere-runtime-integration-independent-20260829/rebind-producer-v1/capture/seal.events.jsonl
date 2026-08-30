@@ -1,0 +1,12 @@
+{"at":"2026-08-29T12:32:28.630Z","event":"owner-start","mode":"seal","pid":15384}
+{"at":"2026-08-29T12:32:28.640Z","event":"capture-open","label":"stage-preseal"}
+{"at":"2026-08-29T12:32:28.647Z","event":"enrolled","label":"stage-preseal","pid":15385,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","add","--","tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1"]}
+{"at":"2026-08-29T12:32:28.790Z","event":"exit","label":"stage-preseal","pid":15385,"code":0,"signal":null}
+{"at":"2026-08-29T12:32:28.795Z","event":"close","label":"stage-preseal","pid":15385,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:32:28.799Z","event":"capture-closed","label":"stage-preseal"}
+{"at":"2026-08-29T12:32:28.803Z","event":"capture-open","label":"commit-preseal"}
+{"at":"2026-08-29T12:32:28.808Z","event":"enrolled","label":"commit-preseal","pid":15386,"exe":"/usr/bin/git","args":["-c","gc.auto=0","-c","maintenance.auto=false","-c","core.hooksPath=/dev/null","-c","commit.gpgsign=false","-c","core.abbrev=40","commit","--only","-m","test: preseal ERE producer-only independent audit","--","tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1"]}
+{"at":"2026-08-29T12:32:29.130Z","event":"exit","label":"commit-preseal","pid":15386,"code":0,"signal":null}
+{"at":"2026-08-29T12:32:29.140Z","event":"close","label":"commit-preseal","pid":15386,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:32:29.143Z","event":"capture-closed","label":"commit-preseal"}
+{"at":"2026-08-29T12:32:29.148Z","event":"owner-complete","mode":"seal","pid":15384,"code":0}

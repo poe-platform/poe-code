@@ -1,0 +1,972 @@
+{
+  "status": "RAW_RESULTS_CLASSIFIED",
+  "checkedAt": "2026-08-29T17:39:00.340Z",
+  "retained": 672,
+  "types": 6,
+  "diagnostics": 24,
+  "mutants": 7,
+  "restores": 7,
+  "bindings": 2,
+  "traces": 34,
+  "traceRecords": 8025,
+  "traceBytes": 2254280,
+  "stdoutBytes": 304439,
+  "stderrBytes": 39891,
+  "children": 41,
+  "combinedChildBytes": 344330,
+  "rows": [
+    {
+      "role": "retained-source-built-redirections-v3",
+      "kind": "retained",
+      "layout": "source-built",
+      "pid": 99909,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3854,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 48
+      },
+      "trace": {
+        "bytes": 70256,
+        "sha256": "c554e0ae0082c66a2863de7978a52370180ba7e3b98eadab1025c1570097ea99",
+        "records": 250
+      }
+    },
+    {
+      "role": "retained-source-built-strict",
+      "kind": "retained",
+      "layout": "source-built",
+      "pid": 99911,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 8809,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 50
+      },
+      "trace": {
+        "bytes": 70012,
+        "sha256": "ecf99728dcba88a4a910251fe04946628ea77ffe6d73f261716fb35882d6448f",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-source-built-conditional",
+      "kind": "retained",
+      "layout": "source-built",
+      "pid": 99912,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 11346,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 67
+      },
+      "trace": {
+        "bytes": 70022,
+        "sha256": "b40b739399e365eac5c9b78526b4ee424f317e3168a17c0c2b053389f6838234",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-source-built-extension",
+      "kind": "retained",
+      "layout": "source-built",
+      "pid": 99913,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 20384,
+      "stderrBytes": 1405,
+      "classification": {
+        "accepted": true,
+        "cases": 35
+      },
+      "trace": {
+        "bytes": 70018,
+        "sha256": "2ae3baec54990ea366662246347c92d3bc00088d15f4dc275b62e14e99ea978d",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-source-built-arrays",
+      "kind": "retained",
+      "layout": "source-built",
+      "pid": 99920,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3818,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 12
+      },
+      "trace": {
+        "bytes": 70012,
+        "sha256": "976a242a03d259d8460c723574ec88f72eba9b9a6ac16a62a1b644dc0d86d81e",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-source-built-n14",
+      "kind": "retained",
+      "layout": "source-built",
+      "pid": 99923,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3526,
+      "stderrBytes": 3647,
+      "classification": {
+        "accepted": true,
+        "cases": 12
+      },
+      "trace": {
+        "bytes": 70006,
+        "sha256": "d8b004c34f46aea22635a0f1edeecc00cfc818a44f45eda2ae21f7a7bbd16bb0",
+        "records": 249
+      }
+    },
+    {
+      "role": "types-source-built-positive",
+      "kind": "type",
+      "layout": "source-built",
+      "pid": 99924,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 22208,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "negative": false,
+        "diagnostics": []
+      }
+    },
+    {
+      "role": "types-source-built-negative",
+      "kind": "type",
+      "layout": "source-built",
+      "pid": 99926,
+      "exitCode": 2,
+      "closeCode": 2,
+      "signal": null,
+      "stdoutBytes": 23618,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "negative": true,
+        "diagnostics": [
+          {
+            "line": 9,
+            "column": 24,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+          },
+          {
+            "line": 11,
+            "column": 15,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 13,
+            "column": 20,
+            "code": 2322,
+            "message": "Type 'number' is not assignable to type 'string'."
+          },
+          {
+            "line": 15,
+            "column": 21,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 17,
+            "column": 30,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+          },
+          {
+            "line": 19,
+            "column": 15,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 25,
+            "column": 7,
+            "code": 2322,
+            "message": "Type 'ConditionalExpression' is not assignable to type 'string'."
+          },
+          {
+            "line": 27,
+            "column": 17,
+            "code": 2339,
+            "message": "Property 'notAProperty' does not exist on type '{ kind: \"conditional\"; expression: ConditionalExpression; source: string; } & { redirects: Redirect[]; line?: number; sourceName?: string; }'."
+          }
+        ]
+      }
+    },
+    {
+      "role": "offline-install",
+      "kind": "install",
+      "pid": 99928,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 23,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "stdout": "\nadded 1 package in 3s\n",
+        "profile": "offline scripts disabled"
+      }
+    },
+    {
+      "role": "retained-installed-redirections-v3",
+      "kind": "retained",
+      "layout": "installed",
+      "pid": 99942,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3854,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 48
+      },
+      "trace": {
+        "bytes": 69506,
+        "sha256": "5afc9cdb48b64bf2a2554cf3060fa73925034ffa4703d81753ad6ac56ecaf0a7",
+        "records": 250
+      }
+    },
+    {
+      "role": "retained-installed-strict",
+      "kind": "retained",
+      "layout": "installed",
+      "pid": 99943,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 8809,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 50
+      },
+      "trace": {
+        "bytes": 69265,
+        "sha256": "4fc2b6a3f956c9ca0a7eeffac69ac013c2427ba27f789cfcc47343d3a0e35cb8",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-installed-conditional",
+      "kind": "retained",
+      "layout": "installed",
+      "pid": 99944,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 11346,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 67
+      },
+      "trace": {
+        "bytes": 69275,
+        "sha256": "f2eb0d92fe674bfc5cd35360cbc262d9ef8fd0e01282ba86e65586d667d8c3c7",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-installed-extension",
+      "kind": "retained",
+      "layout": "installed",
+      "pid": 99947,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 20384,
+      "stderrBytes": 1405,
+      "classification": {
+        "accepted": true,
+        "cases": 35
+      },
+      "trace": {
+        "bytes": 69271,
+        "sha256": "1297fcae09d17880f2188526b43d4fd4add9e563116d5a3b949f08436052c932",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-installed-arrays",
+      "kind": "retained",
+      "layout": "installed",
+      "pid": 99954,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3818,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 12
+      },
+      "trace": {
+        "bytes": 69265,
+        "sha256": "b7cf01a2ba22d4f3535d1d7a321b6836994de20a021f09a63eccadd92af6218f",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-installed-n14",
+      "kind": "retained",
+      "layout": "installed",
+      "pid": 99955,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3526,
+      "stderrBytes": 3647,
+      "classification": {
+        "accepted": true,
+        "cases": 12
+      },
+      "trace": {
+        "bytes": 69259,
+        "sha256": "3fa45a4f9f75ecfb5a69550f2a37ed8cba31615b5af40352e9dc8c0531e1c9c9",
+        "records": 249
+      }
+    },
+    {
+      "role": "types-installed-positive",
+      "kind": "type",
+      "layout": "installed",
+      "pid": 99957,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 21920,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "negative": false,
+        "diagnostics": []
+      }
+    },
+    {
+      "role": "types-installed-negative",
+      "kind": "type",
+      "layout": "installed",
+      "pid": 99959,
+      "exitCode": 2,
+      "closeCode": 2,
+      "signal": null,
+      "stdoutBytes": 23330,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "negative": true,
+        "diagnostics": [
+          {
+            "line": 9,
+            "column": 24,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+          },
+          {
+            "line": 11,
+            "column": 15,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 13,
+            "column": 20,
+            "code": 2322,
+            "message": "Type 'number' is not assignable to type 'string'."
+          },
+          {
+            "line": 15,
+            "column": 21,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 17,
+            "column": 30,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+          },
+          {
+            "line": 19,
+            "column": 15,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 25,
+            "column": 7,
+            "code": 2322,
+            "message": "Type 'ConditionalExpression' is not assignable to type 'string'."
+          },
+          {
+            "line": 27,
+            "column": 17,
+            "code": 2339,
+            "message": "Property 'notAProperty' does not exist on type '{ kind: \"conditional\"; expression: ConditionalExpression; source: string; } & { redirects: Redirect[]; line?: number; sourceName?: string; }'."
+          }
+        ]
+      }
+    },
+    {
+      "role": "retained-physically-moved-redirections-v3",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "pid": 99960,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3854,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 48
+      },
+      "trace": {
+        "bytes": 71256,
+        "sha256": "86960483c5eb3af97bb4bd1cf103da6cb9d77ae839df8bf2c9b333c3e3059a16",
+        "records": 250
+      }
+    },
+    {
+      "role": "retained-physically-moved-strict",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "pid": 99965,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 8809,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 50
+      },
+      "trace": {
+        "bytes": 71008,
+        "sha256": "38200356f0e6749558879609217cafb06423e3c12853a888cd60d5dc8b385856",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-physically-moved-conditional",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "pid": 99977,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 11346,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 67
+      },
+      "trace": {
+        "bytes": 71018,
+        "sha256": "41760563cf24c321fbbecf7199f618c9ce4de65f74d52cd92ed8e4c9a3a880b1",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-physically-moved-extension",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "pid": 99983,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 20384,
+      "stderrBytes": 1405,
+      "classification": {
+        "accepted": true,
+        "cases": 35
+      },
+      "trace": {
+        "bytes": 71014,
+        "sha256": "1b9d92114bef498eb41728dd14d2df57b91becbf669631d5bddfefffd783c0a3",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-physically-moved-arrays",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "pid": 99984,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3818,
+      "stderrBytes": 807,
+      "classification": {
+        "accepted": true,
+        "cases": 12
+      },
+      "trace": {
+        "bytes": 71008,
+        "sha256": "451b3d3b656b58ea7ab587afb6323d15824a37bf0519d0e0be32da65c1b76feb",
+        "records": 249
+      }
+    },
+    {
+      "role": "retained-physically-moved-n14",
+      "kind": "retained",
+      "layout": "physically-moved",
+      "pid": 99992,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 3526,
+      "stderrBytes": 3647,
+      "classification": {
+        "accepted": true,
+        "cases": 12
+      },
+      "trace": {
+        "bytes": 71002,
+        "sha256": "4f34e48d8bd691e85466f385c756c15ad2150967e18682167d7cfd65a7ddfeb3",
+        "records": 249
+      }
+    },
+    {
+      "role": "types-physically-moved-positive",
+      "kind": "type",
+      "layout": "physically-moved",
+      "pid": 99998,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 22592,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "negative": false,
+        "diagnostics": []
+      }
+    },
+    {
+      "role": "types-physically-moved-negative",
+      "kind": "type",
+      "layout": "physically-moved",
+      "pid": 101,
+      "exitCode": 2,
+      "closeCode": 2,
+      "signal": null,
+      "stdoutBytes": 24002,
+      "stderrBytes": 0,
+      "classification": {
+        "accepted": true,
+        "negative": true,
+        "diagnostics": [
+          {
+            "line": 9,
+            "column": 24,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+          },
+          {
+            "line": 11,
+            "column": 15,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 13,
+            "column": 20,
+            "code": 2322,
+            "message": "Type 'number' is not assignable to type 'string'."
+          },
+          {
+            "line": 15,
+            "column": 21,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 17,
+            "column": 30,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+          },
+          {
+            "line": 19,
+            "column": 15,
+            "code": 2353,
+            "message": "Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+          },
+          {
+            "line": 25,
+            "column": 7,
+            "code": 2322,
+            "message": "Type 'ConditionalExpression' is not assignable to type 'string'."
+          },
+          {
+            "line": 27,
+            "column": 17,
+            "code": 2339,
+            "message": "Property 'notAProperty' does not exist on type '{ kind: \"conditional\"; expression: ConditionalExpression; source: string; } & { redirects: Redirect[]; line?: number; sourceName?: string; }'."
+          }
+        ]
+      }
+    },
+    {
+      "role": "mutant-n14-drop-provenance",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 123,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 731,
+      "stderrBytes": 1084,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "n14-drop-provenance",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69757,
+        "sha256": "3053e1518344f4680c5551341f73d060ae25aa0add9039c47c01c2b5907e56de",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-n14-drop-provenance",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 124,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 323,
+      "stderrBytes": 1044,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "n14-drop-provenance"
+      },
+      "trace": {
+        "bytes": 69757,
+        "sha256": "f3ba44499cf8fa3bcc26188024140307bfc492191ae04c929c3af37a4e8b2193",
+        "records": 249
+      }
+    },
+    {
+      "role": "mutant-missing-read-zero",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 125,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 727,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "missing-read-zero",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "9b6f6077a8d072e9b2fda505f1e107ac144b1dfa30f6b82fb1a121f95dcac08b",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-missing-read-zero",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 127,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 646,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "missing-read-zero"
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "b1589fa7a012bc1e6052583fdc47b099fca9e397302be5a7bd1289caddbabc6d",
+        "records": 249
+      }
+    },
+    {
+      "role": "mutant-read-assignment-lhs",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 128,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 1044,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "read-assignment-lhs",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "4257711d51f85e756a7cb713ae3716537c646dd45c60024b28d0c3dae3302bd2",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-read-assignment-lhs",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 129,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 276,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "read-assignment-lhs"
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "c1bbe84ce57105457ec9ecb8258124b7422e1d57dc2a25f1071a397c5c222a51",
+        "records": 249
+      }
+    },
+    {
+      "role": "mutant-let-recast",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 137,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 1144,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "let-recast",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "1634d425436d25fcaa3febcfdaa2d5e1c5150cf3aec240bdc3a2c3b3579b4714",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-let-recast",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 139,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 646,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "let-recast"
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "4896448c6f646c5933e4e96bcb092845627db2c9b08d5b029d213f3a1efadfdd",
+        "records": 249
+      }
+    },
+    {
+      "role": "mutant-rollback-prefix",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 142,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 855,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "rollback-prefix",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "3617bb172531e0749d8fdc98833f76b46debd9bf42daee3067afeb3c03da141f",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-rollback-prefix",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 143,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 2121,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "rollback-prefix"
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "0739f0616b2e76193a932423394c8a4a3dcb7169bbefc5a80212ab7663ccfeed",
+        "records": 249
+      }
+    },
+    {
+      "role": "mutant-swallow-parameter-sink",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 144,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 612,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "swallow-parameter-sink",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "4d7689ba1ac23a1b1f444baa4198f6bda0e84759edb5f39b381e8c6a0cc15d67",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-swallow-parameter-sink",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 145,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 199,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "swallow-parameter-sink"
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "1e2c6c4e5a37be50e59079d103b47519bbd29b4f6e96620dd8d808aebc8de198",
+        "records": 249
+      }
+    },
+    {
+      "role": "mutant-false-option-state",
+      "kind": "mutant",
+      "layout": "mutant-copy",
+      "pid": 146,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 1394,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "loadedMutant": "false-option-state",
+        "expectedAssertionKill": true
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "a92497e0c9b70d1a2673e2d9d1a81ff4fddf00e835df929c1f384fab0667a0df",
+        "records": 249
+      }
+    },
+    {
+      "role": "restore-false-option-state",
+      "kind": "restore",
+      "layout": "mutant-copy",
+      "pid": 148,
+      "exitCode": 0,
+      "closeCode": 0,
+      "signal": null,
+      "stdoutBytes": 817,
+      "stderrBytes": 801,
+      "classification": {
+        "accepted": true,
+        "cases": 1,
+        "loadedRestore": "false-option-state"
+      },
+      "trace": {
+        "bytes": 69769,
+        "sha256": "86bfe9298c9fc6031767106166c7b5b973ddce61b488198d6cecf46812ec0c47",
+        "records": 249
+      }
+    },
+    {
+      "role": "binding-missing",
+      "kind": "binding",
+      "layout": "physically-moved",
+      "pid": 151,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 1652,
+      "classification": {
+        "accepted": true,
+        "expectedRefusal": "B2_BINDING_REFUSAL:missing:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/index.js"
+      },
+      "trace": {
+        "bytes": 554,
+        "sha256": "8ba6bde825a7ca16011811aac289e209ae5f89a8af7c937f39a7916f8ffa462c",
+        "records": 2
+      }
+    },
+    {
+      "role": "binding-changed",
+      "kind": "binding",
+      "layout": "physically-moved",
+      "pid": 157,
+      "exitCode": 1,
+      "closeCode": 1,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stderrBytes": 1659,
+      "classification": {
+        "accepted": true,
+        "expectedRefusal": "B2_BINDING_REFUSAL:changed:/private/tmp/safe-bash-b2-runtime-r9/physically-moved/node_modules/virtual-bash/dist/shell/parser.js"
+      },
+      "trace": {
+        "bytes": 14511,
+        "sha256": "d5d3b18510222fd1658de6152dc7c938ff707c9e2f86f0d57623befabb6e8a52",
+        "records": 52
+      }
+    }
+  ],
+  "readerCorrection": "Parsed JSONL records, exact kind type and original layout cwd; no changed runtime inputs or rerun"
+}

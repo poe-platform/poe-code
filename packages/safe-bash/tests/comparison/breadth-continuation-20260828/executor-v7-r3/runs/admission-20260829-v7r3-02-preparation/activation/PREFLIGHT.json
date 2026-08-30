@@ -1,0 +1,203 @@
+{
+  "schema": "FRESH_REAL_PREFLIGHT_ATTEMPT02",
+  "startedAt": "2026-08-29T04:17:29.815Z",
+  "completedAt": "2026-08-29T04:18:11.852Z",
+  "sourceBindings": {
+    "count": 416,
+    "observedRowsSha256": "a95841a9d82392d5cf71c04832d165ada56493379caa33696ff296914c8a968e",
+    "expectedSource": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/SOURCE-AUTH.json",
+      "bytes": 194476,
+      "mode": 420,
+      "sha256": "fb0748ae771446d0f8bdb922ddda1b5b81fabd1fdf5aa368692cd2dfdad41ed0"
+    }
+  },
+  "repairBindings": {
+    "count": 80,
+    "observedRowsSha256": "522f177f4532297bcd9618a5452af9de0475e074d9e79689796b62903e94b8e8",
+    "seal": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/REPAIR-SEAL.json",
+      "bytes": 26027,
+      "mode": 420,
+      "sha256": "00f8ad274e9f1b47c842bdc775db6c80d989634525c227a15aac20f18e4fdd46"
+    }
+  },
+  "archives": [
+    {
+      "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+      "bytes": 749907,
+      "mode": 420,
+      "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+    },
+    {
+      "path": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "mode": 292,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+    }
+  ],
+  "closure": {
+    "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/offline/just-bash",
+    "regularBodies": 3843,
+    "metadataOnly": [
+      {
+        "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+        "bytes": 9231,
+        "mode": 292,
+        "read": false
+      }
+    ],
+    "directories": 431,
+    "totalEntries": 4275,
+    "noUnexpectedEntries": true,
+    "noSymlinks": true,
+    "materialized": false
+  },
+  "inventory": {
+    "file": "OFFLINE-INVENTORY.json.gz.base64",
+    "decodedJsonBytes": 2147901,
+    "decodedJsonSha256": "feab81a66599db1271ebe4c77166186955800a1edca88791f3ef77a5b1d26f0a",
+    "gzipBytes": 528609,
+    "gzipSha256": "7e2cd4d8a167f4ceb9ea055d2cf3c236014947c4c690641df042b7ed2cc85d6b",
+    "encodedBytes": 704813,
+    "encodedSha256": "b9c117c7c37cab8d6f363fc4f9741282632a128823ac65d203070fa408014495",
+    "content": "metadata/hash rows only; no package bodies or instruction plaintext"
+  },
+  "namespaces": [
+    {
+      "path": ".",
+      "entries": 37,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "qualified": true
+    },
+    {
+      "path": "../executor-v7-r2",
+      "entries": 33,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "qualified": true
+    },
+    {
+      "path": "../executor-v7-r1",
+      "entries": 28,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "qualified": true
+    },
+    {
+      "path": "../executor-v7",
+      "entries": 30,
+      "excludedDescendants": [
+        "runs"
+      ],
+      "qualified": true
+    }
+  ],
+  "projectedViews": [
+    {
+      "name": "target-installed",
+      "fileCount": 860,
+      "totalFileBytes": 4149191,
+      "oldProjectionSha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe",
+      "actual02Root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-installed",
+      "qualification": "All source payloads available/authenticated; physical stage and actual loads require unchanged admission execution"
+    },
+    {
+      "name": "target-moved",
+      "fileCount": 860,
+      "totalFileBytes": 4149191,
+      "oldProjectionSha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe",
+      "actual02Root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/target-moved",
+      "qualification": "All source payloads available/authenticated; physical stage and actual loads require unchanged admission execution"
+    },
+    {
+      "name": "baseline-installed",
+      "fileCount": 3845,
+      "totalFileBytes": 135294007,
+      "oldProjectionSha256": "c15fbd5c26cc131f3c4ede940ebc352c78f3ea328891079bb68b9e3e2d7e5c2d",
+      "actual02Root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/baseline-installed",
+      "qualification": "All source payloads available/authenticated; physical stage and actual loads require unchanged admission execution"
+    }
+  ],
+  "gitObjects": [
+    {
+      "request": "d27fd9145ef27fa1f03e273fe0d4954e7680b147:tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+      "oid": "e66badb36e339aaa5e59b8416a107071dd76a982",
+      "kind": "blob",
+      "bytes": 159,
+      "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+    },
+    {
+      "request": "409623ac5fc6b0da78ba6788a6f92f5e466e251c:tests/comparison/v7-r3-independent-20260829/attempt02-source-review/REVIEW-RECEIPT.json",
+      "oid": "fcecbbb20c06f7e66ab68daecd70a8b462f5031a",
+      "kind": "blob",
+      "bytes": 4247,
+      "sha256": "22fde49753f7935f6fcede52e4aec56cae855b752a23b2b13d535fe09c09813a"
+    },
+    {
+      "request": "ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae:tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json",
+      "oid": "a5e665c72850c6b367e14a83ca992276945edb27",
+      "kind": "blob",
+      "bytes": 6484,
+      "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f"
+    },
+    {
+      "request": "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+      "oid": "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+      "kind": "commit",
+      "bytes": 281,
+      "sha256": "e35aa67d08195fd44d42f5926bb9bf0d1fb2bdbbdeaabd8c4cb5907a5d754d53"
+    },
+    {
+      "request": "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+      "oid": "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+      "kind": "commit",
+      "bytes": 284,
+      "sha256": "1923e451aae3cf9ff5fcba5c881c871e678ccbd5bdc1ef263d59605756adfeb0"
+    },
+    {
+      "request": "d306b837da24fa970ded9ca6a0a99fe7a76ae342",
+      "oid": "d306b837da24fa970ded9ca6a0a99fe7a76ae342",
+      "kind": "commit",
+      "bytes": 277,
+      "sha256": "bdbf3b344e482e50ad55474f375b8a5fe91897e7070a655e1e601036b551974c"
+    },
+    {
+      "request": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "oid": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "kind": "commit",
+      "bytes": 306,
+      "sha256": "4876a3b710d351cd746fdc7d8074a291952262d749d1614ce8ed509a6cf92591"
+    }
+  ],
+  "review": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/attempt02-source-review/REVIEW-RECEIPT.json",
+    "bytes": 4247,
+    "mode": 420,
+    "sha256": "22fde49753f7935f6fcede52e4aec56cae855b752a23b2b13d535fe09c09813a"
+  },
+  "adjudication": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1/ROOT-ADJUDICATION.json",
+    "bytes": 6484,
+    "mode": 420,
+    "sha256": "5cc6ceb4251ac87a7cfdc462489d73feb489cb5187db7ac0d9cdf9a12401d60f"
+  },
+  "actualStaging": false,
+  "productLoads": 0,
+  "qualification": "Fresh all-real input authentication, not disk-identity substituted load proof. Unchanged admission must execute physical staging and load/cleanup predicates.",
+  "resourceCensus": {
+    "runtimePlanned": 47,
+    "administrationPlannedIncludingTwoWrapperHelpers": 20,
+    "totalPlanned": 67,
+    "peak": 5,
+    "cap": 128,
+    "metadataCallsSoFar": 2,
+    "semanticCalls": 0,
+    "plannedAdmissionWorkers": 14,
+    "plannedC11EmptySetups": 2
+  }
+}

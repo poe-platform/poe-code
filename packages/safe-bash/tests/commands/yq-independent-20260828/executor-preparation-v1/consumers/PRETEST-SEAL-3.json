@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "phase": "BEFORE_FINAL_SYNTHETIC_EXECUTION",
+  "date": "2026-08-28",
+  "priorEvidence": [
+    "evidence/synthetic-haZ8gs/RESULTS.json",
+    "evidence/synthetic-sJmXGN/RESULTS.json"
+  ],
+  "changesSinceSecondRun": [
+    "Expose complete immutable sourceFiles plus assertSourceMaterialization for before/after future root-owned builds; no build implementation or execution.",
+    "Recheck pinned Node executable around every future compiler subprocess.",
+    "Document exact interfaces; preserve prior pretest seals and captures."
+  ],
+  "files": {
+    "PRESEAL.json": "96f51db6ea5641d181a4213fd8716d712154d1bba4809d34e0e31cba93bdfdd2",
+    "PRETEST-CLARIFICATIONS.md": "e8b680ed25d4c45f9165ec5a4218f5d4fb123b9f4f6398c9ea7d3af586346ee1",
+    "PRETEST-SOURCE-ADMISSION.md": "8b815d265483f4b0ceca809ab0e07cec05fc0a6c61cccc8ca861498a1bbf811b",
+    "guards.mjs": "47715566b179d65b5bd9501d667634c8957ba7a5e29b43246fa77824f5d4cd91",
+    "type-worker.mjs": "4693cba528b03fd8dfebe44837b57c443712a6e95f9383d1f6c7404fb9db81bd",
+    "synthetic-check.mjs": "f57e491d21ec87d8f292aa9290b768d7dd4482c13613d1f4260e395a0c680f64",
+    "README.md": "869adc2667d35ddb3e344c1d2457c119cc78e629ef974feed770663f28a5a156",
+    "verify-recipe.mjs": "a4f2bb661d91505a22fa414b83cbba26dd6d4f63fcd5bc08d648e0368b97bba1"
+  },
+  "executions": {
+    "priorSyntheticRuns": 2,
+    "product": 0,
+    "build": 0,
+    "typeCompile": 0,
+    "import": 0,
+    "packReplay": 0
+  }
+}

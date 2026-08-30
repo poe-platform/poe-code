@@ -1,0 +1,2738 @@
+TAP version 13
+# Subtest: decoder baseline: empty
+ok 1 - decoder baseline: empty
+  ---
+  duration_ms: 0.939375
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: empty
+ok 2 - stdout byte fields and external sink: empty
+  ---
+  duration_ms: 3.275166
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: empty
+ok 3 - stdout preserves decoded text: empty
+  ---
+  duration_ms: 0.794709
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: empty
+ok 4 - stderr byte fields and external sink: empty
+  ---
+  duration_ms: 2.54575
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: empty
+ok 5 - stderr preserves decoded text: empty
+  ---
+  duration_ms: 0.737166
+  type: 'test'
+  ...
+# Subtest: decoder baseline: BOM alone
+ok 6 - decoder baseline: BOM alone
+  ---
+  duration_ms: 0.138
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: BOM alone
+ok 7 - stdout byte fields and external sink: BOM alone
+  ---
+  duration_ms: 0.570959
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: BOM alone
+ok 8 - stdout preserves decoded text: BOM alone
+  ---
+  duration_ms: 0.409667
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: BOM alone
+ok 9 - stderr byte fields and external sink: BOM alone
+  ---
+  duration_ms: 0.486667
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: BOM alone
+ok 10 - stderr preserves decoded text: BOM alone
+  ---
+  duration_ms: 0.995
+  type: 'test'
+  ...
+# Subtest: decoder baseline: BOM plus ASCII
+ok 11 - decoder baseline: BOM plus ASCII
+  ---
+  duration_ms: 0.109416
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: BOM plus ASCII
+ok 12 - stdout byte fields and external sink: BOM plus ASCII
+  ---
+  duration_ms: 1.271209
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: BOM plus ASCII
+ok 13 - stdout preserves decoded text: BOM plus ASCII
+  ---
+  duration_ms: 0.452458
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: BOM plus ASCII
+ok 14 - stderr byte fields and external sink: BOM plus ASCII
+  ---
+  duration_ms: 0.364458
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: BOM plus ASCII
+ok 15 - stderr preserves decoded text: BOM plus ASCII
+  ---
+  duration_ms: 0.31075
+  type: 'test'
+  ...
+# Subtest: decoder baseline: BOM plus UTF8
+ok 16 - decoder baseline: BOM plus UTF8
+  ---
+  duration_ms: 0.055458
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: BOM plus UTF8
+ok 17 - stdout byte fields and external sink: BOM plus UTF8
+  ---
+  duration_ms: 0.286833
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: BOM plus UTF8
+ok 18 - stdout preserves decoded text: BOM plus UTF8
+  ---
+  duration_ms: 0.269875
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: BOM plus UTF8
+ok 19 - stderr byte fields and external sink: BOM plus UTF8
+  ---
+  duration_ms: 0.248459
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: BOM plus UTF8
+ok 20 - stderr preserves decoded text: BOM plus UTF8
+  ---
+  duration_ms: 0.558209
+  type: 'test'
+  ...
+# Subtest: decoder baseline: interior BOM
+ok 21 - decoder baseline: interior BOM
+  ---
+  duration_ms: 0.065917
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: interior BOM
+ok 22 - stdout byte fields and external sink: interior BOM
+  ---
+  duration_ms: 0.350333
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: interior BOM
+ok 23 - stdout preserves decoded text: interior BOM
+  ---
+  duration_ms: 0.247875
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: interior BOM
+ok 24 - stderr byte fields and external sink: interior BOM
+  ---
+  duration_ms: 0.28475
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: interior BOM
+ok 25 - stderr preserves decoded text: interior BOM
+  ---
+  duration_ms: 0.241375
+  type: 'test'
+  ...
+# Subtest: decoder baseline: split BOM and UTF8
+ok 26 - decoder baseline: split BOM and UTF8
+  ---
+  duration_ms: 0.110792
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: split BOM and UTF8
+ok 27 - stdout byte fields and external sink: split BOM and UTF8
+  ---
+  duration_ms: 0.358958
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: split BOM and UTF8
+ok 28 - stdout preserves decoded text: split BOM and UTF8
+  ---
+  duration_ms: 0.349375
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: split BOM and UTF8
+ok 29 - stderr byte fields and external sink: split BOM and UTF8
+  ---
+  duration_ms: 2.238292
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: split BOM and UTF8
+ok 30 - stderr preserves decoded text: split BOM and UTF8
+  ---
+  duration_ms: 0.56825
+  type: 'test'
+  ...
+# Subtest: decoder baseline: repeated BOM chunks
+ok 31 - decoder baseline: repeated BOM chunks
+  ---
+  duration_ms: 0.057792
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: repeated BOM chunks
+ok 32 - stdout byte fields and external sink: repeated BOM chunks
+  ---
+  duration_ms: 0.480667
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: repeated BOM chunks
+ok 33 - stdout preserves decoded text: repeated BOM chunks
+  ---
+  duration_ms: 0.48575
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: repeated BOM chunks
+ok 34 - stderr byte fields and external sink: repeated BOM chunks
+  ---
+  duration_ms: 0.217792
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: repeated BOM chunks
+ok 35 - stderr preserves decoded text: repeated BOM chunks
+  ---
+  duration_ms: 0.192458
+  type: 'test'
+  ...
+# Subtest: decoder baseline: invalid UTF8 replacement
+ok 36 - decoder baseline: invalid UTF8 replacement
+  ---
+  duration_ms: 0.038042
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: invalid UTF8 replacement
+ok 37 - stdout byte fields and external sink: invalid UTF8 replacement
+  ---
+  duration_ms: 0.268625
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: invalid UTF8 replacement
+ok 38 - stdout preserves decoded text: invalid UTF8 replacement
+  ---
+  duration_ms: 0.313209
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: invalid UTF8 replacement
+ok 39 - stderr byte fields and external sink: invalid UTF8 replacement
+  ---
+  duration_ms: 0.360916
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: invalid UTF8 replacement
+ok 40 - stderr preserves decoded text: invalid UTF8 replacement
+  ---
+  duration_ms: 0.291084
+  type: 'test'
+  ...
+# Subtest: decoder baseline: BOM then invalid UTF8
+ok 41 - decoder baseline: BOM then invalid UTF8
+  ---
+  duration_ms: 0.048625
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: BOM then invalid UTF8
+ok 42 - stdout byte fields and external sink: BOM then invalid UTF8
+  ---
+  duration_ms: 0.260875
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: BOM then invalid UTF8
+ok 43 - stdout preserves decoded text: BOM then invalid UTF8
+  ---
+  duration_ms: 0.262333
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: BOM then invalid UTF8
+ok 44 - stderr byte fields and external sink: BOM then invalid UTF8
+  ---
+  duration_ms: 0.365917
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: BOM then invalid UTF8
+ok 45 - stderr preserves decoded text: BOM then invalid UTF8
+  ---
+  duration_ms: 0.282208
+  type: 'test'
+  ...
+# Subtest: decoder baseline: literal non-BOM binary
+ok 46 - decoder baseline: literal non-BOM binary
+  ---
+  duration_ms: 0.046791
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: literal non-BOM binary
+ok 47 - stdout byte fields and external sink: literal non-BOM binary
+  ---
+  duration_ms: 0.234583
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: literal non-BOM binary
+ok 48 - stdout preserves decoded text: literal non-BOM binary
+  ---
+  duration_ms: 0.225458
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: literal non-BOM binary
+ok 49 - stderr byte fields and external sink: literal non-BOM binary
+  ---
+  duration_ms: 0.192084
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: literal non-BOM binary
+ok 50 - stderr preserves decoded text: literal non-BOM binary
+  ---
+  duration_ms: 0.176667
+  type: 'test'
+  ...
+# Subtest: decoder baseline: incomplete BOM prefix
+ok 51 - decoder baseline: incomplete BOM prefix
+  ---
+  duration_ms: 0.032791
+  type: 'test'
+  ...
+# Subtest: stdout byte fields and external sink: incomplete BOM prefix
+ok 52 - stdout byte fields and external sink: incomplete BOM prefix
+  ---
+  duration_ms: 0.182125
+  type: 'test'
+  ...
+# Subtest: stdout preserves decoded text: incomplete BOM prefix
+ok 53 - stdout preserves decoded text: incomplete BOM prefix
+  ---
+  duration_ms: 0.198333
+  type: 'test'
+  ...
+# Subtest: stderr byte fields and external sink: incomplete BOM prefix
+ok 54 - stderr byte fields and external sink: incomplete BOM prefix
+  ---
+  duration_ms: 0.182
+  type: 'test'
+  ...
+# Subtest: stderr preserves decoded text: incomplete BOM prefix
+ok 55 - stderr preserves decoded text: incomplete BOM prefix
+  ---
+  duration_ms: 0.186
+  type: 'test'
+  ...
+# Subtest: stdout repeated execs preserve independent BOMs
+ok 56 - stdout repeated execs preserve independent BOMs
+  ---
+  duration_ms: 0.817541
+  type: 'test'
+  ...
+# Subtest: stdout string and byte stdin retain the same decoded BOM
+ok 57 - stdout string and byte stdin retain the same decoded BOM
+  ---
+  duration_ms: 2.140291
+  type: 'test'
+  ...
+# Subtest: stderr repeated execs preserve independent BOMs
+ok 58 - stderr repeated execs preserve independent BOMs
+  ---
+  duration_ms: 0.55625
+  type: 'test'
+  ...
+# Subtest: stderr string and byte stdin retain the same decoded BOM
+ok 59 - stderr string and byte stdin retain the same decoded BOM
+  ---
+  duration_ms: 0.421416
+  type: 'test'
+  ...
+# Subtest: combined output cap counts all six BOM bytes: cap=5
+ok 60 - combined output cap counts all six BOM bytes: cap=5
+  ---
+  duration_ms: 0.605792
+  type: 'test'
+  ...
+# Subtest: combined output cap counts all six BOM bytes: cap=6
+ok 61 - combined output cap counts all six BOM bytes: cap=6
+  ---
+  duration_ms: 0.207875
+  type: 'test'
+  ...
+# Subtest: pre-aborted capture does not enter the command or external sinks
+ok 62 - pre-aborted capture does not enter the command or external sinks
+  ---
+  duration_ms: 0.138875
+  type: 'test'
+  ...
+# Subtest: JSON.parse control distinguishes parser input from decoder BOM policy
+ok 63 - JSON.parse control distinguishes parser input from decoder BOM policy
+  ---
+  duration_ms: 0.073666
+  type: 'test'
+  ...
+# Subtest: existing jq plugin retains its own JSON input decoding
+ok 64 - existing jq plugin retains its own JSON input decoding
+  ---
+  duration_ms: 4.219334
+  type: 'test'
+  ...
+# Subtest: hard-bounded replacement budgets, cancellation, cursor and errors
+ok 65 - hard-bounded replacement budgets, cancellation, cursor and errors
+  ---
+  duration_ms: 474.660375
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A
+ok 66 - real agent pipeline: env -i A=1 B=2 env -u A
+  ---
+  duration_ms: 7.072208
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A | cat
+ok 67 - real agent pipeline: env -i A=1 B=2 env -u A | cat
+  ---
+  duration_ms: 5.767834
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i A=1 B=2 env -u A env
+ok 68 - real agent pipeline: env -i A=1 B=2 env -u A env
+  ---
+  duration_ms: 1.41875
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: TEMP=prefix env -i env
+ok 69 - real agent pipeline: TEMP=prefix env -i env
+  ---
+  duration_ms: 1.333875
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i
+ok 70 - real agent pipeline: env -i
+  ---
+  duration_ms: 0.73125
+  type: 'test'
+  ...
+# Subtest: real agent pipeline: env -i EMPTY= VALUE=a=b env
+ok 71 - real agent pipeline: env -i EMPTY= VALUE=a=b env
+  ---
+  duration_ms: 0.974958
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -u PUBLIC report
+ok 72 - exact exported map: env -u PUBLIC report
+  ---
+  duration_ms: 1.295292
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i report
+ok 73 - exact exported map: env -i report
+  ---
+  duration_ms: 0.984625
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i -C /other PWD=caller report
+ok 74 - exact exported map: env -i -C /other PWD=caller report
+  ---
+  duration_ms: 1.319292
+  type: 'test'
+  ...
+# Subtest: exact exported map: env -i -C /other report
+ok 75 - exact exported map: env -i -C /other report
+  ---
+  duration_ms: 0.896167
+  type: 'test'
+  ...
+# Subtest: private/exported separation at bash startup
+ok 76 - private/exported separation at bash startup
+  ---
+  duration_ms: 8.349917
+  type: 'test'
+  ...
+# Subtest: private/exported separation at sh startup
+ok 77 - private/exported separation at sh startup
+  ---
+  duration_ms: 2.567042
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=false
+ok 78 - literal invoke replace=undefined supplied=false
+  ---
+  duration_ms: 0.704334
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=undefined supplied=true
+ok 79 - literal invoke replace=undefined supplied=true
+  ---
+  duration_ms: 0.567834
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=false
+ok 80 - literal invoke replace=false supplied=false
+  ---
+  duration_ms: 2.019209
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=false supplied=true
+ok 81 - literal invoke replace=false supplied=true
+  ---
+  duration_ms: 0.577
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=false
+ok 82 - literal invoke replace=true supplied=false
+  ---
+  duration_ms: 0.538083
+  type: 'test'
+  ...
+# Subtest: literal invoke replace=true supplied=true
+ok 83 - literal invoke replace=true supplied=true
+  ---
+  duration_ms: 0.480792
+  type: 'test'
+  ...
+# Subtest: shell-local type mirrors the approved contract without casts
+ok 84 - shell-local type mirrors the approved contract without casts
+  ---
+  duration_ms: 0.058459
+  type: 'test'
+  ...
+# Subtest: replacement does not impose a lineage policy on later default invocation
+ok 85 - replacement does not impose a lineage policy on later default invocation
+  ---
+  duration_ms: 0.652542
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad=name":"value"}
+ok 86 - validation before entry {"bad=name":"value"}
+  ---
+  duration_ms: 0.634584
+  type: 'test'
+  ...
+# Subtest: validation before entry {"bad\\u0000name":"value"}
+ok 87 - validation before entry {"bad\\u0000name":"value"}
+  ---
+  duration_ms: 0.350167
+  type: 'test'
+  ...
+# Subtest: validation before entry {"GOOD":"bad\\u0000value"}
+ok 88 - validation before entry {"GOOD":"bad\\u0000value"}
+  ---
+  duration_ms: 0.320458
+  type: 'test'
+  ...
+# Subtest: parent function locals, exports, cwd survive replacement and child status
+ok 89 - parent function locals, exports, cwd survive replacement and child status
+  ---
+  duration_ms: 2.598
+  type: 'test'
+  ...
+# Subtest: private clone remains private until explicit export; no global lineage reset
+ok 90 - private clone remains private until explicit export; no global lineage reset
+  ---
+  duration_ms: 0.871417
+  type: 'test'
+  ...
+# Subtest: middleware sees exact child map; caller map is copied
+ok 91 - middleware sees exact child map; caller map is copied
+  ---
+  duration_ms: 0.720333
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor undefined
+ok 92 - origin and binary cursor undefined
+  ---
+  duration_ms: 0.900375
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor 
+ok 93 - origin and binary cursor 
+  ---
+  duration_ms: 0.954833
+  type: 'test'
+  ...
+# Subtest: origin and binary cursor 0,255,195,169,10
+ok 94 - origin and binary cursor 0,255,195,169,10
+  ---
+  duration_ms: 1.028833
+  type: 'test'
+  ...
+# Subtest: read consumes only its prefix before nested replacement
+ok 95 - read consumes only its prefix before nested replacement
+  ---
+  duration_ms: 0.902
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/set-dash-positionals
+ok 96 - errexit adjacent bash/set-dash-positionals
+  ---
+  duration_ms: 9.057
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/set-dash-no-positionals
+ok 97 - errexit adjacent bash/set-dash-no-positionals
+  ---
+  duration_ms: 2.714416
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/group-redirection-failure
+ok 98 - errexit adjacent bash/group-redirection-failure
+  ---
+  duration_ms: 3.178125
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/tested-while-function
+ok 99 - errexit adjacent bash/tested-while-function
+  ---
+  duration_ms: 2.701958
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/read-eof
+ok 100 - errexit adjacent bash/read-eof
+  ---
+  duration_ms: 1.645708
+  type: 'test'
+  ...
+# Subtest: errexit adjacent bash/empty-c
+ok 101 - errexit adjacent bash/empty-c
+  ---
+  duration_ms: 1.17775
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/set-dash-positionals
+ok 102 - errexit adjacent sh/set-dash-positionals
+  ---
+  duration_ms: 2.101042
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/set-dash-no-positionals
+ok 103 - errexit adjacent sh/set-dash-no-positionals
+  ---
+  duration_ms: 2.9745
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/group-redirection-failure
+ok 104 - errexit adjacent sh/group-redirection-failure
+  ---
+  duration_ms: 2.573792
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/tested-while-function
+ok 105 - errexit adjacent sh/tested-while-function
+  ---
+  duration_ms: 3.714125
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/read-eof
+ok 106 - errexit adjacent sh/read-eof
+  ---
+  duration_ms: 3.405833
+  type: 'test'
+  ...
+# Subtest: errexit adjacent sh/empty-c
+ok 107 - errexit adjacent sh/empty-c
+  ---
+  duration_ms: 0.787416
+  type: 'test'
+  ...
+# Subtest: literal invoke returns nonzero to its custom caller
+ok 108 - literal invoke returns nonzero to its custom caller
+  ---
+  duration_ms: 7.723375
+  type: 'test'
+  ...
+# Subtest: literal invoke child interpreter honors its own option in tested parent
+ok 109 - literal invoke child interpreter honors its own option in tested parent
+  ---
+  duration_ms: 2.672417
+  type: 'test'
+  ...
+# Subtest: e presence only, state isolation across exec and nested child
+ok 110 - e presence only, state isolation across exec and nested child
+  ---
+  duration_ms: 3.24
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared commands budget
+ok 111 - errexit never swallows shared commands budget
+  ---
+  duration_ms: 1.504209
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared source budget
+ok 112 - errexit never swallows shared source budget
+  ---
+  duration_ms: 0.986042
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared depth budget
+ok 113 - errexit never swallows shared depth budget
+  ---
+  duration_ms: 1.22325
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared loops budget
+ok 114 - errexit never swallows shared loops budget
+  ---
+  duration_ms: 6.924959
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared expansion budget
+ok 115 - errexit never swallows shared expansion budget
+  ---
+  duration_ms: 0.944542
+  type: 'test'
+  ...
+# Subtest: errexit never swallows shared output budget
+ok 116 - errexit never swallows shared output budget
+  ---
+  duration_ms: 5.435625
+  type: 'test'
+  ...
+# Subtest: pipeline succeeds at unchanged producer plus consumer byte budget
+ok 117 - pipeline succeeds at unchanged producer plus consumer byte budget
+  ---
+  duration_ms: 2.241792
+  type: 'test'
+  ...
+# Subtest: parent cancellation identity survives tested context
+ok 118 - parent cancellation identity survives tested context
+  ---
+  duration_ms: 0.721584
+  type: 'test'
+  ...
+# Subtest: cancellation during delayed command observes late rejection
+ok 119 - cancellation during delayed command observes late rejection
+  ---
+  duration_ms: 49.197541
+  type: 'test'
+  ...
+# Subtest: delayed pipeline consumer drains before aggregate exit
+ok 120 - delayed pipeline consumer drains before aggregate exit
+  ---
+  duration_ms: 5.111041
+  type: 'test'
+  ...
+# Subtest: failed redirected group stops but earlier file effect is retained
+ok 121 - failed redirected group stops but earlier file effect is retained
+  ---
+  duration_ms: 1.416875
+  type: 'test'
+  ...
+# Subtest: source cleanup after errexit preserves parent literal caller
+ok 122 - source cleanup after errexit preserves parent literal caller
+  ---
+  duration_ms: 1.335542
+  type: 'test'
+  ...
+# Subtest: binary stdin and default origin survive nested literal invocation
+ok 123 - binary stdin and default origin survive nested literal invocation
+  ---
+  duration_ms: 1.026791
+  type: 'test'
+  ...
+# Subtest: single optional shebang argument \#!/bin/bash -e
+ok 124 - single optional shebang argument \#!/bin/bash -e
+  ---
+  duration_ms: 1.255541
+  type: 'test'
+  ...
+# Subtest: single optional shebang argument \#!/usr/bin/bash -ee
+ok 125 - single optional shebang argument \#!/usr/bin/bash -ee
+  ---
+  duration_ms: 2.636834
+  type: 'test'
+  ...
+# Subtest: explicit interpreter does not apply file header option twice
+ok 126 - explicit interpreter does not apply file header option twice
+  ---
+  duration_ms: 0.989792
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env bash -e
+ok 127 - literal shebang refusal \#!/usr/bin/env bash -e
+  ---
+  duration_ms: 0.50975
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/usr/bin/env -S bash -e
+ok 128 - literal shebang refusal \#!/usr/bin/env -S bash -e
+  ---
+  duration_ms: 0.449084
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -e -e
+ok 129 - literal shebang refusal \#!/bin/bash -e -e
+  ---
+  duration_ms: 0.537541
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash -c
+ok 130 - literal shebang refusal \#!/bin/bash -c
+  ---
+  duration_ms: 0.56775
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/bin/bash '-e'
+ok 131 - literal shebang refusal \#!/bin/bash '-e'
+  ---
+  duration_ms: 0.416667
+  type: 'test'
+  ...
+# Subtest: literal shebang refusal \#!/unknown -e
+ok 132 - literal shebang refusal \#!/unknown -e
+  ---
+  duration_ms: 0.402541
+  type: 'test'
+  ...
+# Subtest: direct permission and invalid UTF8 refusals remain
+ok 133 - direct permission and invalid UTF8 refusals remain
+  ---
+  duration_ms: 0.66275
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash -u -c true
+ok 134 - unimplemented switch stays rejected bash -u -c true
+  ---
+  duration_ms: 0.305125
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected bash +c true
+ok 135 - unimplemented switch stays rejected bash +c true
+  ---
+  duration_ms: 0.276
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -u
+ok 136 - unimplemented switch stays rejected set -u
+  ---
+  duration_ms: 2.577541
+  type: 'test'
+  ...
+# Subtest: unimplemented switch stays rejected set -o inherit_errexit
+ok 137 - unimplemented switch stays rejected set -o inherit_errexit
+  ---
+  duration_ms: 0.43375
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves undefined identity
+ok 138 - sole cleanup rejection preserves undefined identity
+  ---
+  duration_ms: 3.651708
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves null identity
+ok 139 - sole cleanup rejection preserves null identity
+  ---
+  duration_ms: 0.832459
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves Error: cleanup only identity
+ok 140 - sole cleanup rejection preserves Error: cleanup only identity
+  ---
+  duration_ms: 0.514709
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: null
+ok 141 - caller abort during drain wins over execution and cleanup: null
+  ---
+  duration_ms: 1.441708
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: 0
+ok 142 - caller abort during drain wins over execution and cleanup: 0
+  ---
+  duration_ms: 0.587708
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: cancel
+ok 143 - caller abort during drain wins over execution and cleanup: cancel
+  ---
+  duration_ms: 0.388333
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: [object Object]
+ok 144 - caller abort during drain wins over execution and cleanup: [object Object]
+  ---
+  duration_ms: 0.316083
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: Error: caller
+ok 145 - caller abort during drain wins over execution and cleanup: Error: caller
+  ---
+  duration_ms: 0.821875
+  type: 'test'
+  ...
+# Subtest: execution rejection wins while every delayed cleanup failure is observed
+ok 146 - execution rejection wins while every delayed cleanup failure is observed
+  ---
+  duration_ms: 18.192958
+  type: 'test'
+  ...
+# Subtest: ordinary command throw keeps its diagnostic and status after cleanup
+ok 147 - ordinary command throw keeps its diagnostic and status after cleanup
+  ---
+  duration_ms: 17.121291
+  type: 'test'
+  ...
+# Subtest: noncallable registration and cleanup-time registration fail synchronously
+ok 148 - noncallable registration and cleanup-time registration fail synchronously
+  ---
+  duration_ms: 0.9535
+  type: 'test'
+  ...
+# Subtest: all hooks start while an earlier hook is pending; finally shares the owned close
+ok 149 - all hooks start while an earlier hook is pending; finally shares the owned close
+  ---
+  duration_ms: 1.053375
+  type: 'test'
+  ...
+# Subtest: normal parent closure seals detached descendants before iterator or FS acquisition
+ok 150 - normal parent closure seals detached descendants before iterator or FS acquisition
+  ---
+  duration_ms: 1.443083
+  type: 'test'
+  ...
+# Subtest: caller-aborted saved capabilities preserve exact admission reason
+ok 151 - caller-aborted saved capabilities preserve exact admission reason
+  ---
+  duration_ms: 0.692417
+  type: 'test'
+  ...
+# Subtest: late opaque rejection is observed after owned cleanup and public settlement
+ok 152 - late opaque rejection is observed after owned cleanup and public settlement
+  ---
+  duration_ms: 17.313875
+  type: 'test'
+  ...
+# Subtest: nested middleware overlays keep their cleanup closure and exact replacement environment
+ok 153 - nested middleware overlays keep their cleanup closure and exact replacement environment
+  ---
+  duration_ms: 0.817875
+  type: 'test'
+  ...
+# Subtest: dispose and cancellation isolate concurrent execs and another shell sharing an owner
+ok 154 - dispose and cancellation isolate concurrent execs and another shell sharing an owner
+  ---
+  duration_ms: 50.178375
+  type: 'test'
+  ...
+# Subtest: reentrant dispose returns the identical barrier and starts plugin disposal once
+ok 155 - reentrant dispose returns the identical barrier and starts plugin disposal once
+  ---
+  duration_ms: 16.459375
+  type: 'test'
+  ...
+# Subtest: dispose drains every owned failure before reverse plugin disposal
+ok 156 - dispose drains every owned failure before reverse plugin disposal
+  ---
+  duration_ms: 15.834792
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 157 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 37.765208
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 158 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 34.273541
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 159 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 34.801208
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 160 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 36.278416
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 161 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 19.984125
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 162 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 18.604708
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 163 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 32.23475
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 164 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 19.553042
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 165 - registered cleanup follows (owned)
+  ---
+  duration_ms: 18.741417
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 166 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 18.729208
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 167 - registered cleanup follows eval owned
+  ---
+  duration_ms: 16.810625
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 168 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 17.169625
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 169 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 15.339792
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 170 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 18.411875
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 171 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 18.181792
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 172 - registered cleanup follows command owned
+  ---
+  duration_ms: 19.571125
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 173 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 33.664209
+  type: 'test'
+  ...
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+ok 174 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 5.604542
+  type: 'test'
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+ok 175 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 1.856625
+  type: 'test'
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+ok 176 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 0.839375
+  type: 'test'
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+ok 177 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 0.875334
+  type: 'test'
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+ok 178 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 1.681792
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: builtin discovery
+ok 179 - discovery native primary bash: builtin discovery
+  ---
+  duration_ms: 7.792584
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: verbose discovery
+ok 180 - discovery native primary bash: verbose discovery
+  ---
+  duration_ms: 1.976125
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: mixed status
+ok 181 - discovery native primary bash: mixed status
+  ---
+  duration_ms: 5.030583
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: missing verbose
+ok 182 - discovery native primary bash: missing verbose
+  ---
+  duration_ms: 1.381917
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: empty invocations
+ok 183 - discovery native primary bash: empty invocations
+  ---
+  duration_ms: 3.343959
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: function precedence
+ok 184 - discovery native primary bash: function precedence
+  ---
+  duration_ms: 3.278667
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: function definition
+ok 185 - discovery native primary bash: function definition
+  ---
+  duration_ms: 1.627375
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: function bypass
+ok 186 - discovery native primary bash: function bypass
+  ---
+  duration_ms: 4.089291
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: type options
+ok 187 - discovery native primary bash: type options
+  ---
+  duration_ms: 1.867041
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: option ordering
+ok 188 - discovery native primary bash: option ordering
+  ---
+  duration_ms: 1.677625
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: literal terminator
+ok 189 - discovery native primary bash: literal terminator
+  ---
+  duration_ms: 1.289333
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: command assignment isolation
+ok 190 - discovery native primary bash: command assignment isolation
+  ---
+  duration_ms: 2.057125
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: path candidate
+ok 191 - discovery native primary bash: path candidate
+  ---
+  duration_ms: 4.243167
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: spaces and empty path
+ok 192 - discovery native primary bash: spaces and empty path
+  ---
+  duration_ms: 1.732416
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: multiple paths
+ok 193 - discovery native primary bash: multiple paths
+  ---
+  duration_ms: 1.674541
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: prefix path
+ok 194 - discovery native primary bash: prefix path
+  ---
+  duration_ms: 1.373042
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: local path
+ok 195 - discovery native primary bash: local path
+  ---
+  duration_ms: 1.841708
+  type: 'test'
+  ...
+# Subtest: discovery native primary bash: cwd refresh
+ok 196 - discovery native primary bash: cwd refresh
+  ---
+  duration_ms: 1.944167
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: builtin discovery
+ok 197 - discovery native primary sh: builtin discovery
+  ---
+  duration_ms: 0.922459
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: verbose discovery
+ok 198 - discovery native primary sh: verbose discovery
+  ---
+  duration_ms: 1.042167
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: mixed status
+ok 199 - discovery native primary sh: mixed status
+  ---
+  duration_ms: 1.544084
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: missing verbose
+ok 200 - discovery native primary sh: missing verbose
+  ---
+  duration_ms: 0.771125
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: empty invocations
+ok 201 - discovery native primary sh: empty invocations
+  ---
+  duration_ms: 0.802083
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: function precedence
+ok 202 - discovery native primary sh: function precedence
+  ---
+  duration_ms: 0.910959
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: function definition
+ok 203 - discovery native primary sh: function definition
+  ---
+  duration_ms: 1.690333
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: function bypass
+ok 204 - discovery native primary sh: function bypass
+  ---
+  duration_ms: 1.966959
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: type options
+ok 205 - discovery native primary sh: type options
+  ---
+  duration_ms: 1.789083
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: option ordering
+ok 206 - discovery native primary sh: option ordering
+  ---
+  duration_ms: 0.819625
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: literal terminator
+ok 207 - discovery native primary sh: literal terminator
+  ---
+  duration_ms: 1.676875
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: command assignment isolation
+ok 208 - discovery native primary sh: command assignment isolation
+  ---
+  duration_ms: 1.0885
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: path candidate
+ok 209 - discovery native primary sh: path candidate
+  ---
+  duration_ms: 2.052917
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: spaces and empty path
+ok 210 - discovery native primary sh: spaces and empty path
+  ---
+  duration_ms: 1.553167
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: multiple paths
+ok 211 - discovery native primary sh: multiple paths
+  ---
+  duration_ms: 1.941375
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: prefix path
+ok 212 - discovery native primary sh: prefix path
+  ---
+  duration_ms: 3.375
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: local path
+ok 213 - discovery native primary sh: local path
+  ---
+  duration_ms: 1.910833
+  type: 'test'
+  ...
+# Subtest: discovery native primary sh: cwd refresh
+ok 214 - discovery native primary sh: cwd refresh
+  ---
+  duration_ms: 1.580959
+  type: 'test'
+  ...
+# Subtest: registry and virtual interpreters are real, not imaginary native builtins
+ok 215 - registry and virtual interpreters are real, not imaginary native builtins
+  ---
+  duration_ms: 5.4495
+  type: 'test'
+  ...
+# Subtest: command bypasses functions but not registry, middleware or input origin
+ok 216 - command bypasses functions but not registry, middleware or input origin
+  ---
+  duration_ms: 0.566709
+  type: 'test'
+  ...
+# Subtest: discovery and dispatch refresh permissions, symlinks and cwd
+ok 217 - discovery and dispatch refresh permissions, symlinks and cwd
+  ---
+  duration_ms: 13.128041
+  type: 'test'
+  ...
+# Subtest: unknown permission capability never advertises executable availability
+ok 218 - unknown permission capability never advertises executable availability
+  ---
+  duration_ms: 0.42075
+  type: 'test'
+  ...
+# Subtest: unsupported discovery options do not silently dispatch
+ok 219 - unsupported discovery options do not silently dispatch
+  ---
+  duration_ms: 0.489667
+  type: 'test'
+  ...
+# Subtest: resolver cancellation retains errno-shaped reason identity
+ok 220 - resolver cancellation retains errno-shaped reason identity
+  ---
+  duration_ms: 0.586208
+  type: 'test'
+  ...
+# Subtest: bounded discovery probe: command-depth
+ok 221 - bounded discovery probe: command-depth
+  ---
+  duration_ms: 174.460208
+  type: 'test'
+  ...
+# Subtest: bounded discovery probe: command-count
+ok 222 - bounded discovery probe: command-count
+  ---
+  duration_ms: 147.658209
+  type: 'test'
+  ...
+# Subtest: bounded discovery probe: command-output
+ok 223 - bounded discovery probe: command-output
+  ---
+  duration_ms: 122.364458
+  type: 'test'
+  ...
+# Subtest: bounded discovery probe: command-loop
+ok 224 - bounded discovery probe: command-loop
+  ---
+  duration_ms: 124.183167
+  type: 'test'
+  ...
+# Subtest: bounded discovery probe: command-source
+ok 225 - bounded discovery probe: command-source
+  ---
+  duration_ms: 117.719208
+  type: 'test'
+  ...
+# Subtest: bounded discovery probe: lookup-late-rejection
+ok 226 - bounded discovery probe: lookup-late-rejection
+  ---
+  duration_ms: 166.426542
+  type: 'test'
+  ...
+# Subtest: command declaration arguments preserve assignment expansion
+ok 227 - command declaration arguments preserve assignment expansion
+  ---
+  duration_ms: 0.543875
+  type: 'test'
+  ...
+# Subtest: type -ap requires a real file even when a builtin exists
+ok 228 - type -ap requires a real file even when a builtin exists
+  ---
+  duration_ms: 0.196083
+  type: 'test'
+  ...
+# Subtest: invoke preserves literal argv and uses fresh middleware resolution
+ok 229 - invoke preserves literal argv and uses fresh middleware resolution
+  ---
+  duration_ms: 4.665834
+  type: 'test'
+  ...
+# Subtest: invoke inherits stdin and supports byte sink overrides
+ok 230 - invoke inherits stdin and supports byte sink overrides
+  ---
+  duration_ms: 2.3735
+  type: 'test'
+  ...
+# Subtest: invoke isolates child cwd, environment, functions and exit flow
+ok 231 - invoke isolates child cwd, environment, functions and exit flow
+  ---
+  duration_ms: 4.620666
+  type: 'test'
+  ...
+# Subtest: invoke shares command and output budgets
+ok 232 - invoke shares command and output budgets
+  ---
+  duration_ms: 2.942708
+  type: 'test'
+  ...
+# Subtest: invoke propagates cancellation through nested commands
+ok 233 - invoke propagates cancellation through nested commands
+  ---
+  duration_ms: 0.7965
+  type: 'test'
+  ...
+# Subtest: invoke unknown commands and recursive hooks use normal statuses and limits
+ok 234 - invoke unknown commands and recursive hooks use normal statuses and limits
+  ---
+  duration_ms: 1.778583
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: cleanup-abort
+ok 235 - hard-timeout lifecycle regression: cleanup-abort
+  ---
+  duration_ms: 344.243
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: cleanup-late-rejection
+ok 236 - hard-timeout lifecycle regression: cleanup-late-rejection
+  ---
+  duration_ms: 223.988041
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-delayed-generator
+ok 237 - hard-timeout lifecycle regression: shared-delayed-generator
+  ---
+  duration_ms: 166.563541
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-serialized
+ok 238 - hard-timeout lifecycle regression: shared-serialized
+  ---
+  duration_ms: 174.975625
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-repeated-cancellation
+ok 239 - hard-timeout lifecycle regression: shared-repeated-cancellation
+  ---
+  duration_ms: 171.53725
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-abandoned-rejection
+ok 240 - hard-timeout lifecycle regression: shared-abandoned-rejection
+  ---
+  duration_ms: 222.623833
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: shared-retained-rejection
+ok 241 - hard-timeout lifecycle regression: shared-retained-rejection
+  ---
+  duration_ms: 217.559208
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: owned-cleanup-abort
+ok 242 - hard-timeout lifecycle regression: owned-cleanup-abort
+  ---
+  duration_ms: 148.239583
+  type: 'test'
+  ...
+# Subtest: hard-timeout lifecycle regression: busy-loop-abort
+ok 243 - hard-timeout lifecycle regression: busy-loop-abort
+  ---
+  duration_ms: 151.227417
+  type: 'test'
+  ...
+# Subtest: write-only redirects never read and retain independent/duplicated offsets
+ok 244 - write-only redirects never read and retain independent/duplicated offsets
+  ---
+  duration_ms: 5.084709
+  type: 'test'
+  ...
+# Subtest: offset and append descriptors interleave correctly without reading files
+ok 245 - offset and append descriptors interleave correctly without reading files
+  ---
+  duration_ms: 3.157292
+  type: 'test'
+  ...
+# Subtest: cancelled queued readers cannot bypass an active shared read
+ok 246 - cancelled queued readers cannot bypass an active shared read
+  ---
+  duration_ms: 0.688542
+  type: 'test'
+  ...
+# Subtest: input errors still close their owned iterator exactly once
+ok 247 - input errors still close their owned iterator exactly once
+  ---
+  duration_ms: 0.446125
+  type: 'test'
+  ...
+# Subtest: hard-bounded cancellation, ownership and precharge precedence
+ok 248 - hard-bounded cancellation, ownership and precharge precedence
+  ---
+  duration_ms: 469.482583
+  type: 'test'
+  ...
+# Subtest: actual command printf 1234 limit 4
+ok 249 - actual command printf 1234 limit 4
+  ---
+  duration_ms: 6.897458
+  type: 'test'
+  ...
+# Subtest: actual command printf 1234 limit 3
+ok 250 - actual command printf 1234 limit 3
+  ---
+  duration_ms: 1.422542
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 limit 4
+ok 251 - actual command env -i printf 1234 limit 4
+  ---
+  duration_ms: 1.517458
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 limit 3
+ok 252 - actual command env -i printf 1234 limit 3
+  ---
+  duration_ms: 1.053709
+  type: 'test'
+  ...
+# Subtest: actual command bridge limit 4
+ok 253 - actual command bridge limit 4
+  ---
+  duration_ms: 1.252208
+  type: 'test'
+  ...
+# Subtest: actual command bridge limit 3
+ok 254 - actual command bridge limit 3
+  ---
+  duration_ms: 1.403084
+  type: 'test'
+  ...
+# Subtest: actual command outer limit 4
+ok 255 - actual command outer limit 4
+  ---
+  duration_ms: 1.076292
+  type: 'test'
+  ...
+# Subtest: actual command outer limit 3
+ok 256 - actual command outer limit 3
+  ---
+  duration_ms: 1.211125
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 | cat limit 8
+ok 257 - actual command env -i printf 1234 | cat limit 8
+  ---
+  duration_ms: 5.861791
+  type: 'test'
+  ...
+# Subtest: actual command env -i printf 1234 | cat limit 7
+ok 258 - actual command env -i printf 1234 | cat limit 7
+  ---
+  duration_ms: 2.038417
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=undefined explicit=false
+ok 259 - nested forwarding flag=undefined explicit=false
+  ---
+  duration_ms: 3.736875
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=undefined explicit=true
+ok 260 - nested forwarding flag=undefined explicit=true
+  ---
+  duration_ms: 0.967
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=false explicit=false
+ok 261 - nested forwarding flag=false explicit=false
+  ---
+  duration_ms: 0.615667
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=false explicit=true
+ok 262 - nested forwarding flag=false explicit=true
+  ---
+  duration_ms: 0.737041
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=true explicit=false
+ok 263 - nested forwarding flag=true explicit=false
+  ---
+  duration_ms: 0.836375
+  type: 'test'
+  ...
+# Subtest: nested forwarding flag=true explicit=true
+ok 264 - nested forwarding flag=true explicit=true
+  ---
+  duration_ms: 5.0305
+  type: 'test'
+  ...
+# Subtest: same buffer remains distinct writes stdout,stdout
+ok 265 - same buffer remains distinct writes stdout,stdout
+  ---
+  duration_ms: 0.910083
+  type: 'test'
+  ...
+# Subtest: same buffer remains distinct writes stderr,stderr
+ok 266 - same buffer remains distinct writes stderr,stderr
+  ---
+  duration_ms: 0.805
+  type: 'test'
+  ...
+# Subtest: same buffer remains distinct writes stdout,stderr
+ok 267 - same buffer remains distinct writes stdout,stderr
+  ---
+  duration_ms: 0.731417
+  type: 'test'
+  ...
+# Subtest: known contextual alias stdout-to-stderr
+ok 268 - known contextual alias stdout-to-stderr
+  ---
+  duration_ms: 0.522
+  type: 'test'
+  ...
+# Subtest: known contextual alias stderr-to-stdout
+ok 269 - known contextual alias stderr-to-stdout
+  ---
+  duration_ms: 0.407667
+  type: 'test'
+  ...
+# Subtest: known contextual alias both-to-stdout
+ok 270 - known contextual alias both-to-stdout
+  ---
+  duration_ms: 0.372167
+  type: 'test'
+  ...
+# Subtest: new external sink limit 3
+ok 271 - new external sink limit 3
+  ---
+  duration_ms: 0.73425
+  type: 'test'
+  ...
+# Subtest: new external sink limit 4
+ok 272 - new external sink limit 4
+  ---
+  duration_ms: 0.441583
+  type: 'test'
+  ...
+# Subtest: middleware replacement of contextual sink cannot bypass accounting
+ok 273 - middleware replacement of contextual sink cannot bypass accounting
+  ---
+  duration_ms: 0.658583
+  type: 'test'
+  ...
+# Subtest: unknown host proxy is not blindly unwrapped
+ok 274 - unknown host proxy is not blindly unwrapped
+  ---
+  duration_ms: 0.633875
+  type: 'test'
+  ...
+# Subtest: mutating an owned sink write cannot retain its accounting exemption
+ok 275 - mutating an owned sink write cannot retain its accounting exemption
+  ---
+  duration_ms: 0.601834
+  type: 'test'
+  ...
+# Subtest: concurrent same-buffer writes reserve budget before effects
+ok 276 - concurrent same-buffer writes reserve budget before effects
+  ---
+  duration_ms: 5.522166
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: { :; : >after; } | :
+ok 277 - pipeline completion preserves independent producer effects: { :; : >after; } | :
+  ---
+  duration_ms: 35.645291
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: { :; : >after; } | : | :
+ok 278 - pipeline completion preserves independent producer effects: { :; : >after; } | : | :
+  ---
+  duration_ms: 20.798875
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: printf abc >out | true
+ok 279 - pipeline completion preserves independent producer effects: printf abc >out | true
+  ---
+  duration_ms: 16.0835
+  type: 'test'
+  ...
+# Subtest: pipeline completion preserves independent producer effects: set -o pipefail; { true; false; } | true
+ok 280 - pipeline completion preserves independent producer effects: set -o pipefail; { true; false; } | true
+  ---
+  duration_ms: 14.358667
+  type: 'test'
+  ...
+# Subtest: downstream exit does not interrupt an upstream asynchronous effect
+ok 281 - downstream exit does not interrupt an upstream asynchronous effect
+  ---
+  duration_ms: 3.442708
+  type: 'test'
+  ...
+# Subtest: a producer that writes a broken pipe cannot continue later effects
+ok 282 - a producer that writes a broken pipe cannot continue later effects
+  ---
+  duration_ms: 3.367041
+  type: 'test'
+  ...
+# Subtest: hard-deadline pipeline close: transport
+ok 283 - hard-deadline pipeline close: transport
+  ---
+  duration_ms: 200.116834
+  type: 'test'
+  ...
+# {"scenario":"transport","pid":5201,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: pipefail
+ok 284 - hard-deadline pipeline close: pipefail
+  ---
+  duration_ms: 138.262917
+  type: 'test'
+  ...
+# {"scenario":"pipefail","pid":5213,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle
+ok 285 - hard-deadline pipeline close: middle
+  ---
+  duration_ms: 135.109708
+  type: 'test'
+  ...
+# {"scenario":"middle","pid":5215,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: middle-status
+ok 286 - hard-deadline pipeline close: middle-status
+  ---
+  duration_ms: 126.745125
+  type: 'test'
+  ...
+# {"scenario":"middle-status","pid":5219,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: nested-invoke
+not ok 287 - hard-deadline pipeline close: nested-invoke
+  ---
+  duration_ms: 125.18325
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    nested-invoke: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected "actual" to be reference-equal to "expected":
+    + actual - expected
+    ... Skipped lines
+    
+      AbortSignal {
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kAborted)]: true,
+        [Symbol(kComposite)]: true,
+    -   [Symbol(kDependantSignals)]: SafeSet(0) {},
+        [Symbol(kEvents)]: SafeMap(1) {
+          'abort' => {
+            next: undefined,
+            resistStopPropagation: false,
+            size: 0
+    ...
+        },
+    +   [Symbol(kSourceSignals)]: SafeSet(7) {
+    -   [Symbol(kSourceSignals)]: SafeSet(5) {
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+    +     SafeWeakRef {},
+    +     SafeWeakRef {}
+        }
+      }
+    
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:141:12) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: AbortSignal {
+        [Symbol(kEvents)]: SafeMap(1) {
+          'abort' => { size: 0, next: undefined, resistStopPropagation: false }
+        },
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kAborted)]: true,
+        [Symbol(kReason)]: PipelineClosed [Error]: Pipeline consumer exited
+            at Immediate.<anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:363:99)
+            at process.processImmediate (node:internal/timers:484:21) {
+          code: 'EPIPE'
+        },
+        [Symbol(kComposite)]: true,
+        [Symbol(kSourceSignals)]: SafeSet(7) {
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {}
+        }
+      },
+      expected: AbortSignal {
+        [Symbol(kEvents)]: SafeMap(1) {
+          'abort' => { size: 0, next: undefined, resistStopPropagation: false }
+        },
+        [Symbol(events.maxEventTargetListeners)]: 0,
+        [Symbol(events.maxEventTargetListenersWarned)]: false,
+        [Symbol(kHandlers)]: SafeMap(0) {},
+        [Symbol(kAborted)]: true,
+        [Symbol(kReason)]: PipelineClosed [Error]: Pipeline consumer exited
+            at Immediate.<anonymous> (/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts:363:99)
+            at process.processImmediate (node:internal/timers:484:21) {
+          code: 'EPIPE'
+        },
+        [Symbol(kComposite)]: true,
+        [Symbol(kSourceSignals)]: SafeSet(5) {
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {},
+          SafeWeakRef {}
+        },
+        [Symbol(kDependantSignals)]: SafeSet(0) {}
+      },
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:141:12) {
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"nested-invoke","pid":5222,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: redirect
+ok 288 - hard-deadline pipeline close: redirect
+  ---
+  duration_ms: 121.702416
+  type: 'test'
+  ...
+# {"scenario":"redirect","pid":5225,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: group
+ok 289 - hard-deadline pipeline close: group
+  ---
+  duration_ms: 129.105
+  type: 'test'
+  ...
+# {"scenario":"group","pid":5226,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-rejection
+ok 290 - hard-deadline pipeline close: consumer-rejection
+  ---
+  duration_ms: 120.179542
+  type: 'test'
+  ...
+# {"scenario":"consumer-rejection","pid":5230,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: consumer-status
+ok 291 - hard-deadline pipeline close: consumer-status
+  ---
+  duration_ms: 122.599
+  type: 'test'
+  ...
+# {"scenario":"consumer-status","pid":5231,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: late-read-rejection
+ok 292 - hard-deadline pipeline close: late-read-rejection
+  ---
+  duration_ms: 122.173834
+  type: 'test'
+  ...
+# {"scenario":"late-read-rejection","pid":5233,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: iterator-return
+ok 293 - hard-deadline pipeline close: iterator-return
+  ---
+  duration_ms: 134.7205
+  type: 'test'
+  ...
+# {"scenario":"iterator-return","pid":5235,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: caller-abort
+ok 294 - hard-deadline pipeline close: caller-abort
+  ---
+  duration_ms: 131.281834
+  type: 'test'
+  ...
+# {"scenario":"caller-abort","pid":5236,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: budget-abort
+ok 295 - hard-deadline pipeline close: budget-abort
+  ---
+  duration_ms: 123.92325
+  type: 'test'
+  ...
+# {"scenario":"budget-abort","pid":5238,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-success
+not ok 296 - hard-deadline pipeline close: completed-success
+  ---
+  duration_ms: 130.416792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    completed-success: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'EPIPE'
+    
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:135:17) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: undefined,
+      expected: 'EPIPE',
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:135:17) {
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"completed-success","pid":5239,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-failure
+not ok 297 - hard-deadline pipeline close: completed-failure
+  ---
+  duration_ms: 145.692208
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    completed-failure: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'EPIPE'
+    
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:135:17) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: undefined,
+      expected: 'EPIPE',
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:135:17) {
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"completed-failure","pid":5241,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: completed-rejection
+not ok 298 - hard-deadline pipeline close: completed-rejection
+  ---
+  duration_ms: 120.207458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    completed-rejection: node:internal/modules/run_main:123
+        triggerUncaughtException(
+        ^
+    
+    AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'EPIPE'
+    
+        at <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:135:17) {
+      generatedMessage: true,
+      code: 'ERR_ASSERTION',
+      actual: undefined,
+      expected: 'EPIPE',
+      operator: 'strictEqual',
+      diff: 'simple'
+    }
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    <anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close-probe.ts:135:17) {
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"completed-rejection","pid":5248,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: delayed-no-write
+ok 299 - hard-deadline pipeline close: delayed-no-write
+  ---
+  duration_ms: 128.90225
+  type: 'test'
+  ...
+# {"scenario":"delayed-no-write","pid":5249,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: closed-before-write
+ok 300 - hard-deadline pipeline close: closed-before-write
+  ---
+  duration_ms: 127.83525
+  type: 'test'
+  ...
+# {"scenario":"closed-before-write","pid":5250,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: zero-byte-no-write
+ok 301 - hard-deadline pipeline close: zero-byte-no-write
+  ---
+  duration_ms: 126.319125
+  type: 'test'
+  ...
+# {"scenario":"zero-byte-no-write","pid":5252,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false}
+# Subtest: hard-deadline pipeline close: first-read-head-zero
+ok 302 - hard-deadline pipeline close: first-read-head-zero
+  ---
+  duration_ms: 178.013166
+  type: 'test'
+  ...
+# {"scenario":"first-read-head-zero","pid":5260,"status":0,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"first-read-head-zero: passed\\n{\\"scenario\\":\\"first-read-head-zero\\",\\"active\\":0,\\"reads\\":0,\\"returned\\":1,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"command.settled:head:0\\"]}\\n","stderr":""}
+# Subtest: hard-deadline pipeline close: first-read-local
+not ok 303 - hard-deadline pipeline close: first-read-local
+  ---
+  duration_ms: 1370.260833
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-local: /Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-local (1200ms)
+        at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-local","pid":5263,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-local\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"source.next:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-local (1200ms)\\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-s3
+not ok 304 - hard-deadline pipeline close: first-read-s3
+  ---
+  duration_ms: 1393.08675
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-s3: /Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-s3 (1200ms)
+        at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-s3","pid":5266,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-s3\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\",\\"op:S3.headObject:input:callerAborted=false:signal=live\\",\\"op:S3.headObject:input/:callerAborted=false:signal=live\\",\\"op:S3.listObjectsV2:list:callerAborted=false:signal=live\\",\\"op:S3.getObjectStream:input:callerAborted=false:signal=live\\",\\"source.next:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-s3 (1200ms)\\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-webdav
+not ok 305 - hard-deadline pipeline close: first-read-webdav
+  ---
+  duration_ms: 1396.690458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-webdav: /Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-webdav (1200ms)
+        at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-webdav","pid":5276,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-webdav\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"op:DAV.PROPFIND:/dav/input:callerAborted=false:signal=live\\",\\"http.socket.open\\",\\"http.request:PROPFIND:/dav/input\\",\\"http.response.close:PROPFIND:finished=true\\",\\"op:DAV.GET:/dav/input:callerAborted=false:signal=live\\",\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-webdav (1200ms)\\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-curl-body
+not ok 306 - hard-deadline pipeline close: first-read-curl-body
+  ---
+  duration_ms: 1401.742375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-curl-body: /Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-curl-body (1200ms)
+        at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-curl-body","pid":5292,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-curl-body\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-curl-body (1200ms)\\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: hard-deadline pipeline close: first-read-curl-headers
+not ok 307 - hard-deadline pipeline close: first-read-curl-headers
+  ---
+  duration_ms: 1401.321583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:1:723'
+  failureType: 'testCodeFailure'
+  error: |-
+    first-read-curl-headers: /Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29
+          timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);
+                                          ^
+    
+    Error: DEADLINE: first-read-curl-headers (1200ms)
+        at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+        at listOnTimeout (node:internal/timers:585:17)
+        at process.processTimers (node:internal/timers:521:7)
+    
+    Node.js v22.22.2
+    
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)
+    listOnTimeout (node:internal/timers:585:17)
+    process.processTimers (node:internal/timers:521:7)
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/shell/remote-close.test.ts:56:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# {"scenario":"first-read-curl-headers","pid":5293,"status":1,"signal":null,"timedOut":false,"oversized":false,"residual":false,"stdout":"{\\"scenario\\":\\"first-read-curl-headers\\",\\"active\\":1,\\"reads\\":1,\\"returned\\":0,\\"abortedBeforeTeardown\\":false,\\"events\\":[\\"http.socket.open\\",\\"http.request:GET:/dav/input\\",\\"http.GET:pending-before-first-byte\\",\\"command.settled:head:0\\"]}\\n","stderr":"/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29\\n      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);\\n                                      ^\\n\\nError: DEADLINE: first-read-curl-headers (1200ms)\\n    at Timeout.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/stress/remote-cancellation/helpers.ts:29:39)\\n    at listOnTimeout (node:internal/timers:585:17)\\n    at process.processTimers (node:internal/timers:521:7)\\n\\nNode.js v22.22.2\\n"}
+# Subtest: signal-only upstream remains pending until the caller cancels
+ok 308 - signal-only upstream remains pending until the caller cancels
+  ---
+  duration_ms: 13.494375
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 0
+ok 309 - cooperative yielding preserves exact command budget 0
+  ---
+  duration_ms: 1.032833
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 127
+ok 310 - cooperative yielding preserves exact command budget 127
+  ---
+  duration_ms: 13.577625
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 128
+ok 311 - cooperative yielding preserves exact command budget 128
+  ---
+  duration_ms: 12.157958
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 129
+ok 312 - cooperative yielding preserves exact command budget 129
+  ---
+  duration_ms: 15.247375
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves exact command budget 256
+ok 313 - cooperative yielding preserves exact command budget 256
+  ---
+  duration_ms: 15.736875
+  type: 'test'
+  ...
+# Subtest: cooperative yielding preserves the loop iteration budget
+ok 314 - cooperative yielding preserves the loop iteration budget
+  ---
+  duration_ms: 37.518417
+  type: 'test'
+  ...
+# Subtest: cancelling an active input view preserves its pending byte for the next reader
+ok 315 - cancelling an active input view preserves its pending byte for the next reader
+  ---
+  duration_ms: 0.4515
+  type: 'test'
+  ...
+# Subtest: cancelled active input late rejection stays observed, retained=false
+ok 316 - cancelled active input late rejection stays observed, retained=false
+  ---
+  duration_ms: 0.799458
+  type: 'test'
+  ...
+# Subtest: cancelled active input late rejection stays observed, retained=true
+ok 317 - cancelled active input late rejection stays observed, retained=true
+  ---
+  duration_ms: 0.683209
+  type: 'test'
+  ...
+# Subtest: bounded eval shared budgets, export, byte cursor and cancellation
+ok 318 - bounded eval shared budgets, export, byte cursor and cancellation
+  ---
+  duration_ms: 185.551916
+  type: 'test'
+  ...
+# Subtest: bounded source shared budgets, cursor, export, symlinks and cancellation
+ok 319 - bounded source shared budgets, cursor, export, symlinks and cancellation
+  ---
+  duration_ms: 220.742417
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec omitted
+ok 320 - stdin origin: exec omitted
+  ---
+  duration_ms: 5.745167
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty string
+ok 321 - stdin origin: exec empty string
+  ---
+  duration_ms: 0.924375
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty bytes
+ok 322 - stdin origin: exec empty bytes
+  ---
+  duration_ms: 0.460459
+  type: 'test'
+  ...
+# Subtest: stdin origin: exec empty stream
+ok 323 - stdin origin: exec empty stream
+  ---
+  duration_ms: 0.729792
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin | pass
+ok 324 - stdin origin: origin | pass
+  ---
+  duration_ms: 4.633666
+  type: 'test'
+  ...
+# Subtest: stdin origin: : | origin
+ok 325 - stdin origin: : | origin
+  ---
+  duration_ms: 2.250458
+  type: 'test'
+  ...
+# Subtest: stdin origin: : | pass | origin
+ok 326 - stdin origin: : | pass | origin
+  ---
+  duration_ms: 2.299541
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <empty
+ok 327 - stdin origin: origin <empty
+  ---
+  duration_ms: 0.9395
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<END\\nEND
+ok 328 - stdin origin: origin <<END\\nEND
+  ---
+  duration_ms: 1.045416
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<'END'\\nEND
+ok 329 - stdin origin: origin <<'END'\\nEND
+  ---
+  duration_ms: 0.711083
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <<< ''
+ok 330 - stdin origin: origin <<< ''
+  ---
+  duration_ms: 0.566
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<empty 0<&3
+ok 331 - stdin origin: origin 3<empty 0<&3
+  ---
+  duration_ms: 1.782292
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<&0 <empty 0<&3
+ok 332 - stdin origin: origin 3<&0 <empty 0<&3
+  ---
+  duration_ms: 4.386833
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin <empty 3<&0 0<&3
+ok 333 - stdin origin: origin <empty 3<&0 0<&3
+  ---
+  duration_ms: 0.406
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<&0 0<&- 0<&3
+ok 334 - stdin origin: origin 3<&0 0<&- 0<&3
+  ---
+  duration_ms: 0.261125
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 3<empty 0<&3 3<&-
+ok 335 - stdin origin: origin 3<empty 0<&3 3<&-
+  ---
+  duration_ms: 0.2535
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 0<&-
+ok 336 - stdin origin: origin 0<&-
+  ---
+  duration_ms: 0.192458
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 0>out
+ok 337 - stdin origin: origin 0>out
+  ---
+  duration_ms: 6.204584
+  type: 'test'
+  ...
+# Subtest: stdin origin: origin 2>out 3>other
+ok 338 - stdin origin: origin 2>out 3>other
+  ---
+  duration_ms: 0.614042
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; }; (origin)
+ok 339 - stdin origin: { origin; }; (origin)
+  ---
+  duration_ms: 0.434708
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; } <empty; origin
+ok 340 - stdin origin: { origin; } <empty; origin
+  ---
+  duration_ms: 0.336542
+  type: 'test'
+  ...
+# Subtest: stdin origin: (origin) <empty
+ok 341 - stdin origin: (origin) <empty
+  ---
+  duration_ms: 0.333958
+  type: 'test'
+  ...
+# Subtest: stdin origin: func() { origin; }; func; func <empty; origin
+ok 342 - stdin origin: func() { origin; }; func; func <empty; origin
+  ---
+  duration_ms: 0.802625
+  type: 'test'
+  ...
+# Subtest: stdin origin: func() { origin; }; : | func
+ok 343 - stdin origin: func() { origin; }; : | func
+  ---
+  duration_ms: 0.783166
+  type: 'test'
+  ...
+# Subtest: stdin origin: say "$(origin)"
+ok 344 - stdin origin: say "$(origin)"
+  ---
+  duration_ms: 0.768959
+  type: 'test'
+  ...
+# Subtest: stdin origin: { say "$(origin)"; } <empty
+ok 345 - stdin origin: { say "$(origin)"; } <empty
+  ---
+  duration_ms: 0.544334
+  type: 'test'
+  ...
+# Subtest: stdin origin: say "$(origin <empty)"; origin
+ok 346 - stdin origin: say "$(origin <empty)"; origin
+  ---
+  duration_ms: 5.553833
+  type: 'test'
+  ...
+# Subtest: stdin origin: { : | origin 0<&3; } 3<&0
+ok 347 - stdin origin: { : | origin 0<&3; } 3<&0
+  ---
+  duration_ms: 0.716333
+  type: 'test'
+  ...
+# Subtest: stdin origin: { : | origin 0<&3; } 3<empty
+ok 348 - stdin origin: { : | origin 0<&3; } 3<empty
+  ---
+  duration_ms: 0.725584
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin <&3; } 3<<END\\nEND
+ok 349 - stdin origin: { origin <&3; } 3<<END\\nEND
+  ---
+  duration_ms: 0.311458
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin <&3; } 3<<< ''
+ok 350 - stdin origin: { origin <&3; } 3<<< ''
+  ---
+  duration_ms: 0.264792
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin 0<&3; } 3<&0 <empty
+ok 351 - stdin origin: { origin 0<&3; } 3<&0 <empty
+  ---
+  duration_ms: 0.261917
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin 0<&3; } <empty 3<&0
+ok 352 - stdin origin: { origin 0<&3; } <empty 3<&0
+  ---
+  duration_ms: 0.2425
+  type: 'test'
+  ...
+# Subtest: stdin origin: { drain <&3; origin <&3; origin; } 3<empty
+ok 353 - stdin origin: { drain <&3; origin <&3; origin; } 3<empty
+  ---
+  duration_ms: 0.517042
+  type: 'test'
+  ...
+# Subtest: stdin origin: { origin; } 0<&-
+ok 354 - stdin origin: { origin; } 0<&-
+  ---
+  duration_ms: 0.208875
+  type: 'test'
+  ...
+# Subtest: stdin origin: detection never reads supplied input
+ok 355 - stdin origin: detection never reads supplied input
+  ---
+  duration_ms: 0.69275
+  type: 'test'
+  ...
+# Subtest: stdin origin: zero chunks and EOF never change explicit origin
+ok 356 - stdin origin: zero chunks and EOF never change explicit origin
+  ---
+  duration_ms: 0.724208
+  type: 'test'
+  ...
+# Subtest: stdin origin: externally exhausted stream remains explicit
+ok 357 - stdin origin: externally exhausted stream remains explicit
+  ---
+  duration_ms: 0.596334
+  type: 'test'
+  ...
+# Subtest: stdin origin: duplicated descriptors share cursor without changing origin
+ok 358 - stdin origin: duplicated descriptors share cursor without changing origin
+  ---
+  duration_ms: 1.117792
+  type: 'test'
+  ...
+# Subtest: stdin origin: closed input retains bad-descriptor failures
+ok 359 - stdin origin: closed input retains bad-descriptor failures
+  ---
+  duration_ms: 4.470292
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested invocation from default=true
+ok 360 - stdin origin: nested invocation from default=true
+  ---
+  duration_ms: 1.628875
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested invocation from default=false
+ok 361 - stdin origin: nested invocation from default=false
+  ---
+  duration_ms: 0.904625
+  type: 'test'
+  ...
+# Subtest: stdin origin: nested functions preserve saved descriptors and replacement origin
+ok 362 - stdin origin: nested functions preserve saved descriptors and replacement origin
+  ---
+  duration_ms: 0.483333
+  type: 'test'
+  ...
+# Subtest: stdin origin: middleware and transparent clones retain provenance
+ok 363 - stdin origin: middleware and transparent clones retain provenance
+  ---
+  duration_ms: 1.438292
+  type: 'test'
+  ...
+# Subtest: stdin origin: forwarding changed clones requires explicit invocation options
+ok 364 - stdin origin: forwarding changed clones requires explicit invocation options
+  ---
+  duration_ms: 0.633959
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=false
+ok 365 - stdin origin: rg integration rg match supplied=false
+  ---
+  duration_ms: 23.891833
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 366 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 19.745
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 367 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 19.497916
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match supplied=true
+ok 368 - stdin origin: rg integration rg match supplied=true
+  ---
+  duration_ms: 16.848833
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match supplied=false
+ok 369 - stdin origin: rg integration printf '' | rg match supplied=false
+  ---
+  duration_ms: 16.333375
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg -e match supplied=false
+ok 370 - stdin origin: rg integration printf '' | rg -e match supplied=false
+  ---
+  duration_ms: 16.316417
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false
+ok 371 - stdin origin: rg integration printf '' | rg -f .patterns/patterns supplied=false
+  ---
+  duration_ms: 16.34725
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match - supplied=false
+ok 372 - stdin origin: rg integration printf '' | rg match - supplied=false
+  ---
+  duration_ms: 14.076166
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <empty supplied=false
+ok 373 - stdin origin: rg integration rg match <empty supplied=false
+  ---
+  duration_ms: 15.4795
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <<END\\nEND supplied=false
+ok 374 - stdin origin: rg integration rg match <<END\\nEND supplied=false
+  ---
+  duration_ms: 14.874292
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <<< '' supplied=false
+ok 375 - stdin origin: rg integration rg match <<< '' supplied=false
+  ---
+  duration_ms: 14.878916
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match 3<empty 0<&3 supplied=false
+ok 376 - stdin origin: rg integration rg match 3<empty 0<&3 supplied=false
+  ---
+  duration_ms: 14.117292
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false
+ok 377 - stdin origin: rg integration rg match 3<&0 <empty 0<&3 supplied=false
+  ---
+  duration_ms: 16.988625
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false
+ok 378 - stdin origin: rg integration rg match <empty 3<&0 0<&3 supplied=false
+  ---
+  duration_ms: 15.08625
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration env rg match supplied=false
+ok 379 - stdin origin: rg integration env rg match supplied=false
+  ---
+  duration_ms: 15.915958
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | env rg match supplied=false
+ok 380 - stdin origin: rg integration printf '' | env rg match supplied=false
+  ---
+  duration_ms: 17.4055
+  type: 'test'
+  ...
+# Subtest: stdin origin: rg integration printf '' | rg match matched supplied=false
+ok 381 - stdin origin: rg integration printf '' | rg match matched supplied=false
+  ---
+  duration_ms: 16.70525
+  type: 'test'
+  ...
+# Subtest: pipes preserve bytes and launch downstream before upstream completes
+ok 382 - pipes preserve bytes and launch downstream before upstream completes
+  ---
+  duration_ms: 8.621542
+  type: 'test'
+  ...
+# Subtest: early downstream exit and unused pipeline input do not deadlock
+ok 383 - early downstream exit and unused pipeline input do not deadlock
+  ---
+  duration_ms: 5.016959
+  type: 'test'
+  ...
+# Subtest: pipeline redirects replace endpoints without leaving blocked writers
+ok 384 - pipeline redirects replace endpoints without leaving blocked writers
+  ---
+  duration_ms: 3.944125
+  type: 'test'
+  ...
+# Subtest: streaming external sinks receive exact bytes and results retain captures
+ok 385 - streaming external sinks receive exact bytes and results retain captures
+  ---
+  duration_ms: 1.355458
+  type: 'test'
+  ...
+# Subtest: AbortSignal reaches commands and releases blocked pipelines
+ok 386 - AbortSignal reaches commands and releases blocked pipelines
+  ---
+  duration_ms: 3.074667
+  type: 'test'
+  ...
+# Subtest: output, command, loop, source and expansion budgets reject deterministically
+ok 387 - output, command, loop, source and expansion budgets reject deterministically
+  ---
+  duration_ms: 10.182834
+  type: 'test'
+  ...
+# Subtest: middleware, asynchronous plugins and filesystem factories compose
+ok 388 - middleware, asynchronous plugins and filesystem factories compose
+  ---
+  duration_ms: 0.660875
+  type: 'test'
+  ...
+# Subtest: parallel exec calls cannot leak environment, cwd or status
+ok 389 - parallel exec calls cannot leak environment, cwd or status
+  ---
+  duration_ms: 9.65975
+  type: 'test'
+  ...
+1..389
+# tests 389
+# suites 0
+# pass 380
+# fail 9
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10161.177167
+{"code":1,"signal":null,"deadlineMs":60000}

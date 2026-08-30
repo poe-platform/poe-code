@@ -1,0 +1,20 @@
+{
+  "schema": "B2_R6_ONE_ACTUAL_ATTEMPT",
+  "recorded": "2026-08-29T15:05:03.026Z",
+  "preexec": "bab8cae4da9bdb780ad26c4123451df2549cc1c6",
+  "finalSlot": "a64cee5b0df3d4e2608a8753bc4fd0f06130f226",
+  "finalReceipt": "1c284b8b8b1d98f8f819a8d1b91cd835738ab7ea34ec799c316bd5e26bc48518",
+  "notBefore": "2026-08-29T15:15:12.109Z",
+  "externalLatest": "2026-08-29T15:20:12.109Z",
+  "activeEnd": "2026-08-29T15:42:12.109Z",
+  "publicationEnd": "2026-08-29T15:45:12.109Z",
+  "knownOS": 64,
+  "adminMaximum": 22,
+  "childrenMaximum": 41,
+  "peak": 3,
+  "captureBytes": 100663296,
+  "workBytes": 536870912,
+  "loaderAdmissions": 34,
+  "oneAttempt": true,
+  "noRetry": true
+}

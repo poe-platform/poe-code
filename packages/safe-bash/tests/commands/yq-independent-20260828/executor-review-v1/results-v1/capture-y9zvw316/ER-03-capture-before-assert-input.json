@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "jobId": "job0",
+  "outcome": "CAPTURED",
+  "capture": {
+    "stdoutHex": "7261772d6f7574",
+    "stderrHex": "7261772d657272",
+    "status": 7,
+    "rejected": false,
+    "rejection": null,
+    "cleanupErrors": [],
+    "effects": {
+      "before": [],
+      "after": []
+    },
+    "events": [
+      {
+        "kind": "synthetic-event",
+        "reason": {
+          "kind": "null"
+        }
+      }
+    ]
+  }
+}

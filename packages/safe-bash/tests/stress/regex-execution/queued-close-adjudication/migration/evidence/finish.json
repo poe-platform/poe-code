@@ -1,0 +1,103 @@
+{
+  "finished": "2026-08-27T08:16:32.916Z",
+  "unchangedHistory": true,
+  "unchangedHistoricalInputs": true,
+  "frozenClientUnchanged": true,
+  "fixtureUnchanged": true,
+  "exactSnapshotRemoved": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/queued-close-adjudication/migration/.replay-UsW1Zh",
+  "snapshotAbsent": true,
+  "unexpectedRemainingGroups": [],
+  "children": [
+    {
+      "label": "build",
+      "pid": 68296,
+      "code": 0,
+      "signal": null,
+      "killed": false,
+      "pidAbsent": true,
+      "processGroupAbsent": true,
+      "events": [
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "label": "historical-types",
+      "pid": 68307,
+      "code": 0,
+      "signal": null,
+      "killed": false,
+      "pidAbsent": true,
+      "processGroupAbsent": true,
+      "events": [
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "label": "fixture-control-types",
+      "pid": 68309,
+      "code": 0,
+      "signal": null,
+      "killed": false,
+      "pidAbsent": true,
+      "processGroupAbsent": true,
+      "events": [
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "label": "cohort-101",
+      "pid": 68319,
+      "code": 0,
+      "signal": null,
+      "killed": false,
+      "pidAbsent": true,
+      "processGroupAbsent": true,
+      "events": [
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ]
+    },
+    {
+      "label": "adjudication-11",
+      "pid": 68339,
+      "code": 0,
+      "signal": null,
+      "killed": false,
+      "pidAbsent": true,
+      "processGroupAbsent": true,
+      "events": [
+        "stdout-close",
+        "stderr-close",
+        {
+          "exit": 0,
+          "signal": null
+        }
+      ]
+    }
+  ],
+  "statusAfter": " M src/commands/time-env/README.md\n M src/commands/time-env/format.ts\n M src/commands/time-env/sleep.ts\n?? src/commands/tree/\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/filesystem-inspection-stress/file/\n?? tests/commands/filesystem-inspection-stress/tree/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/time-env/fix-review/\n?? tests/commands/time-env/format-regressions.test.ts\n?? tests/commands/time-env/sleep-regressions.test.ts\n?? tests/commands/tree/\n?? tests/fs/webdav/atomic-extension/consumer.mts\n?? tests/fs/webdav/atomic-extension/dependencies.json\n?? tests/fs/webdav/atomic-extension/example.mts\n?? tests/fs/webdav/atomic-extension/https.mts\n?? tests/fs/webdav/atomic-extension/openssl.cnf\n?? tests/fs/webdav/atomic-extension/server.py\n?? tests/stress/regex-execution/queued-close-adjudication/migration/\n",
+  "indexAfterSha256": "32887bcb5df444fe94eb0a6ad69c517788dd232aa2879778ffb7ddc84aa7499d",
+  "strictUnhandled": true,
+  "riskyProbes": 0,
+  "publicFiveRerun": false,
+  "runtimeAcceptance": false
+}

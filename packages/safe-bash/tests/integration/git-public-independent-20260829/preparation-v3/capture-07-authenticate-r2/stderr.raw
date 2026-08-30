@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v3/authenticate-r2.py", line 279, in <module>
+    main()
+    ~~~~^^
+  File "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/preparation-v3/authenticate-r2.py", line 262, in main
+    assert resolved.startswith('dist/commands/regex-execution/')
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

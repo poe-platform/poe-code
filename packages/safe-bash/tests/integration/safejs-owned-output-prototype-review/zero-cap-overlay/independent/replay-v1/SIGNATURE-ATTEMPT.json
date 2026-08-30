@@ -1,0 +1,48 @@
+{
+  "date": "2026-08-27",
+  "reviewerIdentity": "Codex Independent Leaf Verifier; thread 01a043dd-cfc3-7f93-8f3b-70e2d7b1d2a4",
+  "authorFreezeCommit": "a61e63bc46e8389e59c0d8fdc1d424003f62c769",
+  "admissionCommit": "88367f70feb90b589a3aa2651700ba187b1336dc",
+  "independentRunnerFreeze": "326ca8e758ac0ac4167ba09418e7b7667d6ee5e1",
+  "outcome": "BLOCKED_PRE_RUNTIME_AUTHENTICATION",
+  "files": [
+    {
+      "path": "CLOSURE.json",
+      "bytes": 1784,
+      "sha256": "b767ac71627bd3729665e12de4af030c527cc861ac77d425f3de3024cd82eb6b"
+    },
+    {
+      "path": "COUNTS.json",
+      "bytes": 5898,
+      "sha256": "f2d93bc9bd82d023322901a83e44c039cc23ac02196efe1bb4c3e3cc8fcc60d3"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 7469,
+      "sha256": "faafe3f7f06f0b0489285fe03ad5b74497456000916cbd0f6f888dd657302a58"
+    },
+    {
+      "path": "attempt-01/preflight/DIAGNOSTIC.json",
+      "bytes": 1412,
+      "sha256": "f98ad5de09af2eeafcc794aba80dee7b6964e7ce44cbc69bd1f8ab1caa16978a"
+    },
+    {
+      "path": "attempt-01/preflight/INVOCATION.json",
+      "bytes": 1142,
+      "sha256": "2de3a753c213f080df97e6b724eaf55cfc51cabe23ca7e04bd3fd3faf483ff8f"
+    },
+    {
+      "path": "attempt-01/preflight/attempt-once.json",
+      "bytes": 144,
+      "sha256": "90fa380e4bca720c52b4152c2d896ad6d058564d52ed452d8fd422f5693966bf"
+    },
+    {
+      "path": "attempt-01/preflight/outer.stderr.txt",
+      "bytes": 787,
+      "sha256": "b7a97f3bdcad4ca7ca37532406f69af1f17616a97291526de780688b601a191a"
+    }
+  ],
+  "manifestSha256": "30b51739cafb946680ffb4cb0aa28b64e508c9d0d3cbc7eb18ac517aa6fe5435",
+  "attestation": "Different independent verifier: the single committed invocation refused whole-author-tree identity before private access or runtime. Subsequent static diagnosis found appended author paths with original88 unchanged. No retry, guard weakening or source/assertion change. This SHA-256 attestation binds evidence bytes, not a cryptographic personal identity.",
+  "noPromotion": true
+}

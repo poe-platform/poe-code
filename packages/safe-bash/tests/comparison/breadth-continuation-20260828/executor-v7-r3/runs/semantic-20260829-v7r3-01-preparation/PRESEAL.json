@@ -1,0 +1,117 @@
+{
+  "schema": "SEMANTIC_PREPARATION_PREEXECUTION_SEAL_V1",
+  "date": "2026-08-29",
+  "phase": "SOURCE_DATA_PREPARATION_ONLY",
+  "actualAuthorized": false,
+  "files": [
+    {
+      "path": "AUTH.TEMPLATE.json",
+      "bytes": 1868,
+      "mode": 420,
+      "sha256": "202ed28aa0b8921441710da20163d1839c523b55de5e248209ddb6ec7b1366f4"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 16018,
+      "mode": 420,
+      "sha256": "db1efafd81bd6efb8e4bd96e73d62992775e44baa1c0c8e404a23c7c1997ab73"
+    },
+    {
+      "path": "CENSUS-AND-LIMITS.json",
+      "bytes": 50381,
+      "mode": 420,
+      "sha256": "cb897c926cf7c39bd4726bc54888f71fca818c27b44cf126291933707a4bf5ba"
+    },
+    {
+      "path": "CONTROL-PLAN.json",
+      "bytes": 2794,
+      "mode": 420,
+      "sha256": "14dfddf49c7b7d6b11ffad45c861949cdf55b4accb99baf94cdc4c9719f91e2f"
+    },
+    {
+      "path": "FAIRNESS.json",
+      "bytes": 12362,
+      "mode": 420,
+      "sha256": "492b112d2338ec1f58576310149ae9b86c59e6aec513b81a89b7436f0a60d079"
+    },
+    {
+      "path": "OWNER-LITERAL-MAP.json",
+      "bytes": 1249,
+      "mode": 420,
+      "sha256": "dc7dbf7a3e83b748544cb622001c37518c84bee22f4bf44c09232d2cec2168e2"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6911,
+      "mode": 420,
+      "sha256": "e7dbf1c8be5b800c37a342a0d626e887bfa1f7a760eb7642d96a56de6fa48fdc"
+    },
+    {
+      "path": "ROOT-ACCEPTANCE.json",
+      "bytes": 1148,
+      "mode": 420,
+      "sha256": "d1cc67cf925f0e76717ecd0d1c4dd52c9e0d06b8dcc6706abd44ca2267181515"
+    },
+    {
+      "path": "ROOT-GRANT.TEMPLATE.json",
+      "bytes": 1810,
+      "mode": 420,
+      "sha256": "018ab66d52d9007740d9abc7b70572cdcd3cb44fab23d7f55c1497b411e8a362"
+    },
+    {
+      "path": "SEMANTIC-PLAN.json",
+      "bytes": 55320,
+      "mode": 420,
+      "sha256": "599ba0869866a2f2184aa270ee64bc0693f7af3dd8165c8a042264108053e27b"
+    },
+    {
+      "path": "SOURCE-BRANCHES.json",
+      "bytes": 4253,
+      "mode": 420,
+      "sha256": "6a27f13b28e28a1ddb8bcfd58b96e69f7d0a4b7020290ac1f63308a964c60b71"
+    },
+    {
+      "path": "data-controls.mjs",
+      "bytes": 9634,
+      "mode": 420,
+      "sha256": "9ec08f985c663f49b1f403e1d75e9c828528929b6b0d99eba846826ece01f89a"
+    },
+    {
+      "path": "owner-proposed.mjs.data",
+      "bytes": 7176,
+      "mode": 420,
+      "sha256": "e85b2ee59e4ae60b690cdf4cbfdcce5d23b953ced2c5d764c8b27dbd16d8013c"
+    }
+  ],
+  "controls": 12,
+  "attempts": 1,
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "path": "/bin/sh",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    }
+  ],
+  "sourceTiming": "After accepted admission; before any semantic execution; no pre-source claim",
+  "limits": {
+    "milliseconds": 1800000,
+    "allChildren": 64,
+    "peak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912
+  },
+  "scope": "No actual runtime/capture repair; no engine imports, staging, Workers, C11 or semantics"
+}

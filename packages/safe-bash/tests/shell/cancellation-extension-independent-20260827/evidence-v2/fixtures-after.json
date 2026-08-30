@@ -1,0 +1,60 @@
+{
+  ".": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "extension-v1.mjs": {
+    "kind": "file",
+    "mode": 420,
+    "size": 18684,
+    "sha256": "4f4499b6ff9fca5f8a354056c8af6483b707ef2e2d07ccd2d2c8dcf5e7106dbc"
+  },
+  "load-guard-v1.mjs": {
+    "kind": "file",
+    "mode": 420,
+    "size": 1333,
+    "sha256": "0e2735900984aeaa1a449e47568f0d5fcf45a3c887ef265146e7b56d898250ab"
+  },
+  "nearby4.mjs": {
+    "kind": "file",
+    "mode": 420,
+    "size": 9258,
+    "sha256": "f71d8ff006545946f8c4aea9c5775ffec2b70ab19381e9d802ba81b36d773f2d"
+  },
+  "negative-v1.ts.data": {
+    "kind": "file",
+    "mode": 420,
+    "size": 908,
+    "sha256": "2a5c400b3e8332b847b601935e1bca64d6b16b6155ed7b0289fe5a620d30f72e"
+  },
+  "old-negative.ts.data": {
+    "kind": "file",
+    "mode": 420,
+    "size": 683,
+    "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+  },
+  "old-positive.ts.data": {
+    "kind": "file",
+    "mode": 420,
+    "size": 1315,
+    "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+  },
+  "original12.mjs": {
+    "kind": "file",
+    "mode": 420,
+    "size": 15971,
+    "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+  },
+  "positive-v1.ts.data": {
+    "kind": "file",
+    "mode": 420,
+    "size": 1779,
+    "sha256": "49211525cd597eaae6502fc35a06df95af513eded429f9cf48b54d43a119bc62"
+  },
+  "register-guard-v1.mjs": {
+    "kind": "file",
+    "mode": 420,
+    "size": 90,
+    "sha256": "f7fc611137e760ee5fc9483e3d6e539bfd2c1d059ae827a934ad88bead84eb7e"
+  }
+}

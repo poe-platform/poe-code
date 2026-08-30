@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "classification": "independent-preparation-provenance-not-candidate-results",
+  "preparedAt": "2026-08-27T14:26:50.728Z",
+  "threadId": "01a04392-fd24-7870-a9d4-abfdce728e4d",
+  "repository": "/Users/kjopek/Workspace/safe-bash",
+  "observedInitialHead": "b871222100d0453a570b80fa7b41b1181be8eb67",
+  "initialState": "Dirty, concurrently active author/root workers; initial index empty; untracked author, other worker and native temporary paths preserved",
+  "ownership": "tests/commands/grep-aliases-stress/** and exact isolated verifier temp only",
+  "forbiddenTreesRead": [],
+  "productImports": 0,
+  "candidateExecutions": 0,
+  "productBuilds": 0,
+  "wholeGates": 0,
+  "dependencyInstalls": 0,
+  "candidateCommit": null,
+  "candidateSourceTransfer": null,
+  "publicAliasExportsClaimed": false,
+  "processState": "All capture spawnSync children reaped. No verifier worker, native child or candidate process intentionally left running.",
+  "sourceBoundary": {
+    "proposal": {
+      "path": "/tmp/safe-bash-alias-api.txt",
+      "snapshot": "docs/alias-api-proposal.txt",
+      "sha256": "20f3408fcf03e1e3ce0589fcf03253c6db236ee9c7664dea381bfa6ec50a7d9c",
+      "includes": "Native prerequisite update received through the permitted proposal; not author expected outputs"
+    },
+    "parentRulesSha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7",
+    "repositoryRulesSha256": "264c248ebbc68c5850a4081fc8ad2baf81356219c156eb79109c6e334bfe945f",
+    "sharedContracts": {
+      "src/contracts/command.md": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "src/contracts/io.ts": "e925ab08a5ad41862d3f5c031164cc7310bc28397455b11b37b75b55a9dbacdb",
+      "src/commands/regex-execution/protocol.ts": "0b4f9fac518cd31f403c1c0f49e4c7772f783e32df7cfe83ee5d4906426133e6",
+      "src/commands/grep.ts": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1"
+    },
+    "sharedReadScope": "Command and stream contracts; RegexExecutionOptions declaration; shared grep option/pattern and conflict contract. An initial shared regex client header slice also included existing session-cleanup implementation; not alias author code. No alias implementation/tests/goldens inspected."
+  },
+  "inputFreeze": {
+    "beforeNativeSemanticRun": true,
+    "observedAt": "2026-08-27T14:22:47Z",
+    "corpusSha256": "a745efbc79d4c48d31b6a5e3e5e5fe51de0bd19f1a51dd66d984abc24f7161a8",
+    "safetyHoldoutsSha256": "4d596e745df702040c0aa6975abc64b0d6db22ab6384eab28659fe2ec8aac2bc",
+    "fixtureCount": 17,
+    "nativeCaseCount": 26,
+    "safetyCaseCount": 12,
+    "topLevelHoldoutCount": 38
+  },
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.22.2",
+    "macOS": "26.4.1",
+    "macOSBuild": "25E253",
+    "darwin": "25.4.0",
+    "kernel": "Darwin Kernel Version 25.4.0: Thu Mar 19 19:33:50 PDT 2026; root:xnu-12377.101.15~1/RELEASE_ARM64_T6050",
+    "caveat": "Darwin C-locale native executable behavior; no GNU/Linux or cross-libc inference"
+  },
+  "native": {
+    "profile": "apple-bsd-grep-2.6.0-freebsd-darwin25.4-arm64-c-locale",
+    "identities": {
+      "egrep": {
+        "path": "/usr/bin/egrep",
+        "sha256": "468ff46a0b9f0e88de268ce12640bfa37610d585f968127cf32cf4e86d5c70ab",
+        "realpath": "/usr/bin/egrep",
+        "version": {
+          "executable": "/usr/bin/egrep",
+          "argv": [
+            "--version"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE",
+          "stdinHex": "",
+          "stdoutHex": "6567726570202842534420677265702c20474e5520636f6d70617469626c652920322e362e302d467265654253440a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null
+        }
+      },
+      "fgrep": {
+        "path": "/usr/bin/fgrep",
+        "sha256": "2146bcefd5e202919805f0b47701e4216ba636b994f272447301918267460062",
+        "realpath": "/usr/bin/fgrep",
+        "version": {
+          "executable": "/usr/bin/fgrep",
+          "argv": [
+            "--version"
+          ],
+          "cwd": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE",
+          "stdinHex": "",
+          "stdoutHex": "6667726570202842534420677265702c20474e5520636f6d70617469626c652920322e362e302d467265654253440a",
+          "stderrHex": "",
+          "status": 0,
+          "signal": null,
+          "launchError": null
+        }
+      }
+    },
+    "capturedSemanticInvocations": 52,
+    "capturedVersionInvocations": 2,
+    "preliminaryUncapturedVersionProbes": 2,
+    "captureHelperChildren": 54,
+    "allAliasExecutableInvocationsThisPreparation": 56,
+    "rows": 26,
+    "repeatsPerRow": 2,
+    "repeatComparison": "Exact status/stdoutHex/stderrHex equality; all before/after file snapshots unchanged",
+    "warningsObserved": "No obsolescence warning in captured BSD rows; four raw error-diagnostic rows remain nonempty",
+    "nativeCaptureSha256": "94b27c706612c9471901467b05297d5e5d16c6fa859d637fa1f15aa0bb0d7717",
+    "captureSourceSha256": "47cdfb91de9f2b9e5f441b0fca8e8d2eae47f8f47eced6bebd913a0eb054e769",
+    "bounds": {
+      "timeoutMs": 2000,
+      "killSignal": "SIGKILL",
+      "maxBufferBytes": 65536,
+      "nativeChildrenAtOnce": 1
+    },
+    "nativeRoot": "/tmp/safe-bash-grep-aliases-verifier.VIG08c/native-GzcyIE",
+    "exactOwnedNativeRootRemoved": true,
+    "performanceEvidence": false
+  },
+  "gnuAvailability": {
+    "status": "unavailable-in-bounded-search",
+    "nativeInvocations": 0,
+    "searchScope": [
+      "PATH command lookup: egrep, fgrep, grep, ggrep",
+      "/opt/homebrew/opt/grep, /usr/local/opt/grep and /opt/homebrew/Cellar/grep: absent",
+      "/tmp directory names filtered for gnu, devtool, native, oracle, toolchain; directory entries only, no private data read",
+      "Depth-four executable/name search in /tmp/safe-bash-gnu-oracle.Yg2F0W, /tmp/safe-bash-gnu-bash-5.3.Ua5t02, /tmp/safe-bash-gnu-sed-4.9.oqztSn, /tmp/safe-bash-gnu-strings-20260827-YJqPHf; no grep/egrep/fgrep found",
+      "/Users/kjopek/.cache/safe-bash, /Users/kjopek/.local/share/safe-bash, /tmp/safe-bash-devtools, /tmp/virtual-bash-devtools: absent",
+      "Repository and parent directory names checked for isolated tooling directories; no private checkout contents read"
+    ],
+    "excluded": "No broad filesystem search, private checkout, old comparison contents, package installs or runtime dependency changes",
+    "caveat": "Not proof of global absence; external pinned GNU tools may be supplied later",
+    "documentation": {
+      "url": "https://www.gnu.org/software/grep/manual/html_node/Usage.html",
+      "consultedDate": "2026-08-27",
+      "observedHeading": "Usage (GNU Grep 3.12)",
+      "location": "Question 17",
+      "summary": "The primary manual documents alias obsolescence and warnings starting in GNU Grep 3.8; this is documentation, not native executable evidence.",
+      "latestVersionClaim": false
+    }
+  },
+  "resume": {
+    "state": "STOP-before-candidate-runs",
+    "requires": [
+      "Explicit root resume",
+      "Author frozen commit",
+      "Authenticated source transfer"
+    ],
+    "executionPlan": "Offline packed standalone consumer; public root Shell and verified packed internal alias module URL until real root/subpath exports are added and inspected",
+    "sharedDefectRouting": "Root; no shared grep/regex/runtime-owned-output edits",
+    "retainedArtifactPolicy": "Append future evidence or preserve original revision; never silently replace frozen inputs or native captures"
+  }
+}

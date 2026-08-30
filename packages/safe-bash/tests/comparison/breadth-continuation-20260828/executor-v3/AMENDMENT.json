@@ -1,0 +1,49 @@
+{
+  "schema": "additive-executor-v3-amendment",
+  "date": "2026-08-28",
+  "priorReview": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46",
+  "originalManifest": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+  "unchanged": {
+    "selectedLegacy": 23,
+    "unselectedLegacy": 31,
+    "newWorkflows": 10,
+    "controlFamilies": 12,
+    "semanticExecutions": 99,
+    "targetSetupExecutions": 66,
+    "controlSetupExecutions": 2,
+    "historical": [
+      {
+        "passed": 400,
+        "total": 402,
+        "failed": 2
+      },
+      {
+        "passed": 391,
+        "total": 394,
+        "failed": 3
+      }
+    ],
+    "scores": {
+      "target": "13/54",
+      "baseline": "47/54"
+    }
+  },
+  "adapter": {
+    "fromSha256": "e2c3900dc4f3738074521e7302b45e08386e8c93161d9169e1c5eea7f52022a9",
+    "toSha256": "a9a387381e2baf573f486d9f58115712916012ecfb527b64608bdc35409199b3",
+    "changes": [
+      "settle emitter/dispose/primary and phase error retention",
+      "setup moves after fixture construction: same empty exec, added zero-dispatch and census equality",
+      "semantic-phase W07 VFS receiver-preserving observers",
+      "snapshot metadata cap",
+      "worker-held authorization translated only after actual grant checks"
+    ],
+    "byteIdenticalCases": true
+  },
+  "controlImplementation": "new versioned executable controls; not byte-identical v2 runner",
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "readiness": "different freeze then separate root admission GO required",
+  "runtimeAuthority": null,
+  "provenance": "preexecution code and controls; pinned candidate and static bundle source inspected earlier, not pre-source freeze"
+}

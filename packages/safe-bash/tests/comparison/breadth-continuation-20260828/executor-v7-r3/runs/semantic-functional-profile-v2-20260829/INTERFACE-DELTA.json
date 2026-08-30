@@ -1,0 +1,143 @@
+{
+  "schema": "SEMANTIC_FUNCTIONAL_INTERFACE_V2",
+  "date": "2026-08-29",
+  "status": "PREEXECUTION_ONLY",
+  "originalInterfaceSha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+  "originalAdmissionBehavior": "UNCHANGED; original launcher/assessor remain immutable and separate",
+  "phase": "cohort",
+  "runId": "semantic-functional-20260829-v2-01",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "comparator": "just-bash3.4.2 pinned not latest",
+  "command": {
+    "entry": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-functional-profile-v2-20260829/FUTURE-LAUNCH.sh.data",
+    "invocation": [
+      "/bin/sh",
+      "FUTURE-LAUNCH.sh.data",
+      "AUTH_RAW_SHA256",
+      "SUCCESSOR_SEAL_SHA256"
+    ],
+    "route": [
+      "exec-replaced wrapper/owner",
+      "successor launch.mjs cohort",
+      "successor coordinator.mjs",
+      "99 successor worker.mjs case operations"
+    ],
+    "waitingParent": false,
+    "engineCalls": {
+      "semantic": 99,
+      "emptySetup": 66,
+      "C11": 0,
+      "total": 165
+    }
+  },
+  "authorization": {
+    "envelopeKeys": [
+      "review",
+      "grant"
+    ],
+    "referenceKeys": [
+      "commit",
+      "path",
+      "sha256"
+    ],
+    "reviewKeys": [
+      "role",
+      "verdict",
+      "recipeSha256"
+    ],
+    "reviewRole": "different-reviewer",
+    "reviewVerdict": "PREEXECUTION_ACCEPTED",
+    "recipe": "SUCCESSOR_SEAL_RAW_SHA256 not original recipe hash",
+    "grantKeys": [
+      "role",
+      "phase",
+      "attempts",
+      "runId",
+      "outputRoot",
+      "recipeSha256",
+      "reviewSha256",
+      "planSha256",
+      "bootstrapProfile",
+      "reportProtocol",
+      "candidate",
+      "packSha256",
+      "command",
+      "acceptedAdmission",
+      "functionalProfile"
+    ],
+    "reportProtocol": "BOUNDED_SEMANTIC_TERMINAL_V2",
+    "planSha256": "9c8a87408a8769f1151cb937a3e5409140e17186da13a592af34e18ba770e736",
+    "attempts": 1,
+    "rootGrantActive": false,
+    "actualRootMessageRequired": true,
+    "functionalProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1_DID_FALSE_FUNCTIONAL_V2"
+  },
+  "assessment": {
+    "schema": "BOUNDED_SEMANTIC_TERMINAL_V2",
+    "artifactSchema": "SEMANTIC_RESULT_V2",
+    "full99ConfigReceiptReconciliation": true,
+    "qualifier": "Unchanged executor-v4 qualify applied again to each actual captured worker report",
+    "ordinaryMismatch": "Coordinator exactexit1 iff authenticated failed count>0; launcher exit0 only for complete qualified protocol, not semantic success. Capture owner remains capture-only.",
+    "allPassExitNonzero": "REJECT",
+    "W07": "Baseline null/uncredited, never pass inferred from bytes",
+    "C11": "No repeat or countcredit",
+    "authority": "200 fresh real Git children and matching coordinator+worker observations required",
+    "syntheticQualification": "Controls only use syntheticOnly=true with explicitly synthetic metadata; actual launcher uses defaultfalse",
+    "invocationAccounting": "Separate attempted/fulfilled/rejected/unresolved; dispatch attempt is not callee entry or semantic credit; completed-only legacy fields retained."
+  },
+  "limits": {
+    "allProcesses": 336,
+    "plannedRuntime": 302,
+    "plannedAdministration": 20,
+    "slack": 14,
+    "peak": 5,
+    "concurrency": 1,
+    "ownerMs": 4500000,
+    "adminMs": 900000,
+    "totalMs": 5400000,
+    "workerMs": 30000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "metadataMs": 10000,
+    "metadataBytes": 65536,
+    "captureBytes": 269484032,
+    "bodyBytes": 260046848,
+    "collectorBytes": 8388608,
+    "outerBytes": 524288,
+    "adminBytes": 524288,
+    "recordBytes": 262144,
+    "documentBytes": 33554432,
+    "newStdoutBytes": 65536,
+    "newStderrBytes": 65536,
+    "legacyCombinedBytes": 8388608,
+    "workerFD3Bytes": 262144,
+    "workingBytes": 805306368,
+    "oldSpaceMiB": 256,
+    "RSSClaim": false,
+    "hardPreemptionClaim": false,
+    "full99FitsAggregateGuarantee": false
+  },
+  "fairness": [
+    "Public defenseInDepth:false; functional-only not default-security/stock-Node/performance or overall superiority. Socket object origin remains unknown.",
+    "nonstock unavailable bootstrap module then worker_threads, zero native delegation, wrappers revoked before factory",
+    "W03 shared bytes/status/FS retained; unsupported telemetry unqualified",
+    "W07 comparator unqualified/uncredited",
+    "No optional network/SafeJS/fault adapter equivalence",
+    "580.5MiB per-child raw maxima exceed257MiBglobal; exhaustion failsclosed, no limit increase",
+    "No speed/superiority claim"
+  ],
+  "functionalProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1_DID_FALSE_FUNCTIONAL_V2",
+  "telemetryBudget": {
+    "newProcesses": 0,
+    "eventMaxBytesIncludingLF": 2048,
+    "maxEventsPerWorker": 4,
+    "maxSnapshotBytes": 2048,
+    "maxProfileEventBytes": 512,
+    "conservativeAdditionalWorkerFD3Bytes": 11264,
+    "chargedWithinExistingFD3": true,
+    "globalExhaustionFailsClosed": true,
+    "fullScheduleFitsGuarantee": false
+  }
+}
+

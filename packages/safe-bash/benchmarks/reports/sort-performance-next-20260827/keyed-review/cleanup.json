@@ -1,0 +1,16 @@
+{
+  "roots": [
+    {
+      "root": "/private/tmp/sort-key-review-baseline-0SmidY",
+      "removed": true
+    },
+    {
+      "root": "/private/tmp/sort-key-review-candidate-8vQChD",
+      "removed": true
+    }
+  ],
+  "childHandlesClosed": 29,
+  "globalKillUsed": false,
+  "nativeOracleRuns": 0,
+  "markerRetention": "Root coordination, frozen-ready, findings and final-ready handoff files intentionally remain; no product or foreign paths removed."
+}

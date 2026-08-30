@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "outcome": "HOLD_ATTEMPT_SPENT",
+  "source": {
+    "engine": "72187e5abc1179883f85a63e1ef558f2e141c542",
+    "transport": "46611a5b67ad7af276154421ac7f50dd536ec570",
+    "executionPresealSha256": "8cfe3fc49116f9db553fa85a23683e711bc6766574780e6e33c25f5a6bf0e74a",
+    "grantSha256": "72ef43c2659d4fc33f4d12721e34e523c2704075b1d72035a1d809a2351b0bef"
+  },
+  "started": "2026-08-29T14:30:28.405Z",
+  "summaryFinished": "2026-08-29T14:30:34.945Z",
+  "throughStopMilliseconds": 6540,
+  "ownerPid": 89928,
+  "outerExitCode": 2,
+  "cells": {
+    "planned": 135,
+    "pass": 75,
+    "nonpass": 1,
+    "unrun": 59,
+    "qualifiedIdentities": 25,
+    "perLayout": {
+      "built": {
+        "pass": 25,
+        "nonpass": 1,
+        "unrun": 19
+      },
+      "installed": {
+        "pass": 25,
+        "nonpass": 0,
+        "unrun": 20
+      },
+      "moved": {
+        "pass": 25,
+        "nonpass": 0,
+        "unrun": 20
+      }
+    }
+  },
+  "processes": {
+    "caseSpawns": 76,
+    "caseCloses": 76,
+    "caseExit0": 75,
+    "caseExit13": 1,
+    "caseSignals": 0,
+    "termRequests": 0,
+    "killRequests": 0,
+    "casePipePairsClosed": 76
+  },
+  "qualifiedReceiptCounters": {
+    "WorkerAttempts": 60,
+    "WorkerStarts": 60,
+    "WorkerOnline": 60,
+    "WorkerExits": 60,
+    "WorkerRetired": 60,
+    "stdoutDrained": 60,
+    "stderrDrained": 60,
+    "unknownAcquisitions": 0,
+    "unknownRetirements": 0,
+    "requests": 60,
+    "postedRequests": 60,
+    "testRescues": 0
+  },
+  "qualification": "Counters cover75 complete receipts ONLY; cell76 Worker acquisition/exit/drain/retirement and requests are UNKNOWN, not0 or inferred1. Process exit/close is independently observed; missing Worker telemetry is not a whole-cohort clean claim.",
+  "loads": {
+    "parentLoadRows": 600,
+    "requestTraceEvents": 723,
+    "methods": {
+      "REAL_WORKER": 60,
+      "PURE": 9,
+      "NO_WORKER": 6
+    },
+    "workersWithUnmodifiedStaticEntry": 18,
+    "workersWithOwnedLiteralOverlay": 42,
+    "a03CellsRun": 0,
+    "nestedLoads": "NOT_OBSERVED for completed receipts; A03 remains UNRUN"
+  },
+  "capture": {
+    "supervisorReportedCaptureBytes": 290339,
+    "archivedStreamBytes": 67675,
+    "finalOwnerStdoutBytes": 60514,
+    "outerStdoutBytes": 0,
+    "outerStderrBytes": 0,
+    "stopStderrBytes": 1003,
+    "stopStderrSha256": "47e046590150cf2906e0150c137779643bfe79574a8301df206c27b1f1f14398"
+  },
+  "archive": {
+    "compressedBytes": 5657653,
+    "sha256": "d6b6acd6490baf4735ce22716b13a4fdfc61275d0042370b7771b1b62236a093",
+    "decodedBytes": 21499087,
+    "decodedSha256": "7be6313132bd20eb31f011487c63ccad756f96ba209fcc541187b833868fddf6",
+    "entries": 4421,
+    "originalInputFiles": 4191,
+    "originalFileBytesMatched": true,
+    "modeQualification": "Archive has no mode field; original mode checks qualified by supervisor for75 completed cells only.",
+    "rawFileBytes": 15511403,
+    "producerOutcome": "HOLD",
+    "alreadyProducedBeforePostrunInspection": true,
+    "newArchiveConstructed": false,
+    "caseRootsRemoved": false
+  },
+  "stop": {
+    "cell": 76,
+    "id": "L02/handler-setup-throws",
+    "layout": "built",
+    "actual": "Warning: Detected unsettled top-level await at case-runner.mjs:28; child exit13, no RESULT.json.",
+    "supervisorPrimary": "present object; intentionally abbreviated, raw value/message not published",
+    "sourceHypothesis": "No exit listener + rejecting terminate path leaves owner #exited pending; instrumented once(exit) hook can affect termination. This branch was NOT diagnosed by actual receipt; no blanket engine defect claim.",
+    "runtimeContinuationAuthorized": false
+  },
+  "all60Accepted": false,
+  "deferred": {
+    "nonpublic": 6,
+    "public": 7
+  },
+  "noRetry": true
+}

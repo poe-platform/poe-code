@@ -1,0 +1,47 @@
+{
+  "destination": "/tmp/safe-bash-adapter-replay-check-J4abVj",
+  "pin": "b2d202a7a2c8831df9c2d143bc43c74d1a099b14",
+  "checks": [
+    {
+      "phase": "00-original-fixed-runner",
+      "filesVerified": 174,
+      "exactReplay": true
+    },
+    {
+      "phase": "00-original",
+      "filesVerified": 174,
+      "exactReplay": true
+    },
+    {
+      "phase": "01-truncate-fixed-runner",
+      "filesVerified": 175,
+      "exactReplay": true
+    },
+    {
+      "phase": "01-truncate",
+      "filesVerified": 175,
+      "exactReplay": true
+    },
+    {
+      "phase": "02-rename",
+      "filesVerified": 176,
+      "exactReplay": true
+    },
+    {
+      "phase": "03-webdav-corrected",
+      "filesVerified": 177,
+      "exactReplay": true
+    },
+    {
+      "phase": "03-webdav",
+      "filesVerified": 177,
+      "exactReplay": true
+    },
+    {
+      "phase": "04-final",
+      "filesVerified": 178,
+      "exactReplay": true
+    }
+  ],
+  "executedTests": false
+}

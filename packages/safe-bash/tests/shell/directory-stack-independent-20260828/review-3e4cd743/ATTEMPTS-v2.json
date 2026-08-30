@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "prior": "ATTEMPTS-v1.json",
+  "failures": [
+    {
+      "id": "TOOLS-02",
+      "exitStatus": 1,
+      "error": "AssertionError [ERR_ASSERTION]: symlink refused: node_modules/.bin/arborist",
+      "role": "tool metadata preparation; no product run or output files",
+      "correction": "prepare-v2 explicitly binds npm internal symlink targets within npm root and materializes their exact bytes as regular files; no link copied, no exclusion or boundary bypass"
+    }
+  ]
+}

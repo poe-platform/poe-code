@@ -1,0 +1,47 @@
+{
+  "schema": "v7-presealed-data-stub-protocol",
+  "runId": "synthetic-v7-01",
+  "attempts": 1,
+  "permission": "DATA_AND_OWN_STUB_ONLY_NO_REAL_ENGINES_OR_C11",
+  "gateFamilies": [
+    ["G01", "detached ordered undefined results, zero delegation, revoke before factory"],
+    ["G02", "aliases/order/arity/types denied and caught violation sticky"],
+    ["G03", "captured and Proxy wrappers remain revoked after second slot"],
+    ["G04", "rejection null/undefined identity and descriptor restoration before later phase"],
+    ["G05", "observer failure/reentrancy revokes and never delegates"],
+    ["G06", "pre-open/reopen and incomplete import reject"],
+    ["G07", "late caught query fails shared close qualification"],
+    ["G08", "exact historical source-only authentication and wrong parent/entry/engine/hash denies"]
+  ],
+  "recordFamilies": [
+    ["D01", "shared budget across stores and external claims, aggregate overflow denies"],
+    ["D02", "multipart roundtrip, wrong descriptor/part hash and missing part deny"],
+    ["D03", "oversize/cycle/accessor serialization deny without getter execution"],
+    ["D04", "partial persistence preserves selected undefined plus close failure and closure"],
+    ["D05", "malformed exact-own-data supervisor/terminal variants refuse without accessors or escapes"],
+    ["D06", "source-only historical RESULT size and retained-prefix accounting unchanged"],
+    ["D07", "aggregate unlisted/out-of-store file, mode/hash/symlink/instruction-name guards"],
+    ["D08", "publication preparation, cyclic fatal, ledger failure and two-output failure remain bounded unsafe"],
+    ["D09", "auth input exact hash/finite own-data schema rejects wrong hash/extra keys/oversize without authority execution"]
+  ],
+  "bodyFamilies": [
+    ["B01", "positive", 1, "synthetic qualification only; real-policy assessor false; multipart config and actual stub load"],
+    ["B02", "configuration", 0, "unsafe pre-report configuration failure retained"],
+    ["B03", "authorization-null", 0, "null primary preserved with later cleanup zero"],
+    ["B04", "spawn-callback", 1, "known child PID/group retained and reaped despite callback fault"],
+    ["B05", "receipt-persistence", 1, "raw emergency receipt retained and child closed"],
+    ["B06", "tail", 1, "tail failure retained and assessment refuses"],
+    ["B07", "quota", 0, "shared aggregate cap refusal, no launch"],
+    ["B08", "unlisted", 0, "out-of-store namespace failure before launch"],
+    ["B09", "stdout-failure", 1, "output error nonzero/unsafe with bounded stderr fallback"],
+    ["B10", "missing-failures", 1, "actual terminal missing failures refuses without throw"],
+    ["B11", "overflow", 1, "actual 65537 observed/65536 retained, CAPTURE_LIMIT, SIGTERM, exit0, close0, naturalfalse refuses"],
+    ["B12", "nonzero", 1, "allPASS output with actual exit7 refuses"],
+    ["B13", "config-tamper", 1, "multipart tamper denies before stub evaluation"],
+    ["B14", "caught-gate", 1, "caught third query denies before factory"],
+    ["B15", "late-caught-gate", 1, "caught post-factory query fails shared final-close qualification"],
+    ["B16", "invalid-cli", 0, "actual coordinator invalid mode, bounded report, no production configuration or staging"]
+  ],
+  "bounds": { "families": 33, "outerChildren": 16, "nestedStubChildren": 11, "totalChildren": 27, "concurrency": 1, "childOldSpaceMiB": 256, "deadlineMs": 30000, "termGraceMs": 2000, "killGraceMs": 1000, "stdoutBytes": 65536, "stderrBytes": 65536, "recordBytes": 262144, "totalBytes": 268435456 },
+  "failureRule": "Ordinary assertion failures aggregate only after actual reaping and immutable guards. Unsafe closure/integrity stops tail. No retry. Nested stub operation/setup counts are synthetic only; real C11 and semantic counts stay zero."
+}

@@ -1,0 +1,79 @@
+{
+  "schema": "indexed-arrays-static-addendum-seal-v3",
+  "date": "2026-08-28",
+  "status": "STATIC_METADATA_CHECKS_ONLY",
+  "scope": "tests/shell/indexed-arrays-design-20260828/addendum-v3/",
+  "explicitNonReplacement": "This separate static addendum seal does not clean/replace/reopen STOPPED_FINAL_INTEGRITY; no old census retry, guard change or whitelist.",
+  "files": [
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/BINDING-v3.json",
+      "bytes": 9999,
+      "sha256": "a8451da15f55da57e49c10240ad33fda65e33ce1ad7e85a36582c5bb6337de4a"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/DECISIONS.md",
+      "bytes": 36965,
+      "sha256": "0f5f07b550d4f1695dfe5df42da5ff9a3cb6bc22f1b20fede04049989666e9b8"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/PEAK.json",
+      "bytes": 4974,
+      "sha256": "79e72a3a9900330470d60b8dc6c23d14bc6fd3fd2da45e56cfc0cded6bd85b74"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v3/REPORT.md",
+      "bytes": 4290,
+      "sha256": "f1d868c7d0c4a177542729bb9f4861ca4e386750e999127e4186d4e9d47c7f34"
+    }
+  ],
+  "expectedFinalNames": [
+    "BINDING-v3.json",
+    "DECISIONS.md",
+    "PEAK.json",
+    "REPORT.md",
+    "STATIC-SEAL-v3.json"
+  ],
+  "selfAuthentication": "This seal does not hash itself. The atomic Git commit and separate /tmp candidate receipt authenticate its final bytes.",
+  "additionAware": "Final checks enumerate every entry recursively in this new addendum only, rejecting unexpected files/directories/symlinks; no append-proof claim for old protected trees.",
+  "checks": {
+    "documentHashes": true,
+    "immutableGitBlobObjectIdsRecomputed": true,
+    "immutableReferenceCount": 24,
+    "selectedHistoricalDocumentBytesMatch": true,
+    "peakArithmetic": {
+      "objects": 27,
+      "strongEdges": 45,
+      "metadata": 2560,
+      "payload": 50,
+      "mapSlots": 11,
+      "vectorSlots": 10,
+      "forwardWork": 256,
+      "cleanupCredits": 189,
+      "cumulativeBytes": 2610,
+      "cumulativeSlots": 21,
+      "cumulativeReservedWork": 445
+    },
+    "wordCounts": {
+      "REPORT.md": 506,
+      "DECISIONS.md": 4918
+    }
+  },
+  "execution": {
+    "nativeCalls": 0,
+    "productCalls": 0,
+    "productImports": 0,
+    "tests": 0,
+    "builds": 0,
+    "supervisorCalls": 0,
+    "oldBinderCalls": 0,
+    "resourceProbes": 0,
+    "networkCalls": 0
+  },
+  "qualifications": [
+    "No independent review of this draft",
+    "No implementation-ready freeze",
+    "G1/G2/G3/G6/G7/G8 prior partial; G4/G5 prior unsettled",
+    "No actual resource/time/RSS measurements",
+    "No current full gate or DOTGLOB acceptance"
+  ]
+}

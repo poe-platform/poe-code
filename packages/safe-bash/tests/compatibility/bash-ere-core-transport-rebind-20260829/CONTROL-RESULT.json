@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "id": "P01-exact-two-source-shape",
+      "status": "PASS"
+    },
+    {
+      "id": "P02-global-clock-fit-and-UNRUN",
+      "status": "PASS"
+    },
+    {
+      "id": "P03-clock-regression-and-invalid-reservations",
+      "status": "PASS"
+    },
+    {
+      "id": "P04-full-emit-diff-includes-maps-declarations",
+      "status": "PASS"
+    },
+    {
+      "id": "P05-publication-reservation-and-remainder",
+      "status": "PASS"
+    },
+    {
+      "id": "P06-bound-recompute-and-source-syntax",
+      "status": "PASS"
+    }
+  ],
+  "pass": 6,
+  "fail": 0,
+  "producerExecuted": false,
+  "compiled": false,
+  "packed": false,
+  "product": false,
+  "Workers": 0
+}

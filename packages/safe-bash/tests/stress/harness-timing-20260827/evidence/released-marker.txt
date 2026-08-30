@@ -1,0 +1,15 @@
+BOUNDED REGEX PRODUCTION CHECKPOINT CLOSED FOR NEXT HARNESS TASK — NOT ACCEPTANCE
+Source b1939d7 plus F2 fix c467e8a; author evidence3524995/followup52059e7.
+Different verifier freeze9d4518e completed final actual checks:24/24 command
+output triples unchanged, but cohort final-cleanup assertion FAILS (24/25 checks);
+lifecycle5/7 including retained early-exit and final-cleanup failures; protocol
+15/15 (was14/15); early-selection2/2; complete-command pairedbench12/12;
+actual moved package runtime/types passes. These are separate cohorts.
+F1 requires approved invocation cleanup barrier/runtime owners; implementation
+stopped. Glob/walk file-selection remains host-regex ownership blocker. No
+production/default acceptance, no fullgatepass. Historical12 risk archived;
+new production6 entirely unused. Final verifier report/evidence commit is being
+finished; no further regex dynamic runs requested. All final test children
+closed, eventual exact Worker retirement recorded, not falsely awaited onexec.
+Harness-only canonical fixes/stress may now proceed, separately from source
+acceptance. Preserve fullgate51282a9 original13jq+1native-rg failures.

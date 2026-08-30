@@ -1,0 +1,77 @@
+{
+  "schema": "INDEPENDENT_SUPPLEMENTAL_F31_PREEXECUTION",
+  "classification": "DATA_SYNTHETIC_STUB_ONLY_NOT_ROOT_AUTHORITY",
+  "created": "2026-08-28T15:04:15.671Z",
+  "candidate": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "originalPresealCommit": "ad270991",
+  "originalEvidenceCommit": "1f513881",
+  "originalPresealSha256": "3100e110a01858cfad031daec356abc7a3449060aebf94f9a858135d250dd2a6",
+  "reason": "F04 covered missing receipt.failures. c6975254 defect2 specifically removes terminal.failures. Add exact composed wire control without rewriting or rerunning original30.",
+  "expected": "Actual body emits accepted synthetic RESULT; owned wire removes only terminal.failures. Actual outer/supervisor see natural exit0/close0 with complete bytes, assessor returns false (not throw). Restoring actual original terminal as DATA restores synthetic qualification. Original180 captures and all322inputs unchanged.",
+  "familiesAdded": 1,
+  "driverProcessesAdded": 1,
+  "childrenAdded": 1,
+  "aggregateFamilies": 31,
+  "aggregateOwnedProcesses": 19,
+  "owned": [
+    {
+      "path": "supplemental-child.mjs",
+      "bytes": 2018,
+      "mode": 420,
+      "sha256": "f2978ea7f2f9c3df940a0f1d0ae73f69f720654352a804f88d0d0e03bfbd20f1"
+    },
+    {
+      "path": "supplemental-guard.mjs",
+      "bytes": 1613,
+      "mode": 420,
+      "sha256": "23e6c989eb803d88a6852008269c623e621c704011d2d41697a9ed95b403248a"
+    },
+    {
+      "path": "supplemental-driver.mjs",
+      "bytes": 5104,
+      "mode": 420,
+      "sha256": "46da90142ce3196493b3b19ba5c13b6d50170bf1d061a75d3035dc31374a3394"
+    },
+    {
+      "path": "ORIGINAL-MANIFEST.json",
+      "bytes": 39084,
+      "mode": 420,
+      "sha256": "42c752f2c03dd772abaf18e803f91aa2ca03df0347661d6d6d0c8991ff34a9e2"
+    }
+  ],
+  "driver": {
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/supplemental-driver.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash"
+  },
+  "child": {
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/supplemental-guard.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/supplemental-child.mjs",
+      "terminal-missing-failures"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed",
+    "stdio": [
+      "ignore",
+      "pipe",
+      "pipe",
+      "pipe"
+    ],
+    "detached": true,
+    "deadlineMs": 10000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000
+  },
+  "allActualImportsBoundBy": "PRESEAL.json actualImports, no new candidate module; all322 repeated hash/mode verification",
+  "originalNoEdits": true,
+  "engines": 0,
+  "admission": 0
+}

@@ -1,0 +1,6 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["../../../src/commands/html-to-markdown/**/*.ts", "./*.ts"],
+  "exclude": []
+}

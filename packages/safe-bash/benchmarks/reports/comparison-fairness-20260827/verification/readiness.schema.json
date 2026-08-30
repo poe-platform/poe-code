@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Root-authorized completed comparison handoff for offline review",
+  "type": "object",
+  "required": ["schema", "status", "rootAuthorization", "replayRoot", "freezeProduct", "handoffs", "profileAudit", "artifactHashes", "controlBudgets", "callLedgers"],
+  "properties": {
+    "schema": { "const": 1 },
+    "status": { "const": "READY_FOR_OFFLINE_REVIEW" },
+    "rootAuthorization": { "type": "string", "minLength": 21 },
+    "replayRoot": { "const": "benchmarks/reports/current-integration/comparison-replay-20260827" },
+    "freezeProduct": { "type": "string", "pattern": "^/(private/)?tmp/safe-bash-comparison-replay-20260827-[^/]+/product$" },
+    "handoffs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["role", "path", "sha256"],
+        "properties": {
+          "role": { "enum": ["replay", "fairness"] },
+          "path": { "type": "string", "pattern": "^/(private/)?tmp/safe-bash-comparison-" },
+          "sha256": { "$ref": "#/$defs/hash" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "profileAudit": { "const": "benchmarks/reports/comparison-fairness-20260827/verification/profile-delta.json" },
+    "artifactHashes": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^benchmarks/reports/(current-integration/comparison-replay-20260827|comparison-fairness-20260827)/" },
+      "additionalProperties": { "$ref": "#/$defs/hash" }
+    },
+    "controlBudgets": {
+      "type": "object",
+      "required": ["original", "scratch-aligned"],
+      "properties": {
+        "original": { "$ref": "#/$defs/budget" },
+        "scratch-aligned": { "$ref": "#/$defs/budget" }
+      },
+      "additionalProperties": false
+    },
+    "callLedgers": {
+      "type": "object",
+      "required": ["original", "scratch-aligned"],
+      "properties": {
+        "original": { "type": ["string", "null"] },
+        "scratch-aligned": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false,
+      "description": "Null explicitly means missing capture, producing an acceptance blocker; never reconstruct actual IPC events from score rows."
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "budget": {
+      "type": "object",
+      "required": ["neutralityCalls", "transportCalls", "authorization"],
+      "properties": {
+        "neutralityCalls": { "type": "integer", "minimum": 0 },
+        "transportCalls": { "type": "integer", "minimum": 0 },
+        "authorization": { "type": "string", "minLength": 21 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

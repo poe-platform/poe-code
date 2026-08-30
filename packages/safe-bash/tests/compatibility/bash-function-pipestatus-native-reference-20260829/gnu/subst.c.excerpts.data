@@ -1,0 +1,152 @@
+6809:   return istring;
+6810: }
+6811: 
+6812: static void
+6813: uw_pop_var_context (void *ignore)
+6814: {
+6815:   variable_context--;
+6816:   pop_var_context ();
+6817: 
+6818:   sv_ifs ("IFS");		/* XXX here for now */
+6819: }
+6820: 
+6821: #if defined (ARRAY_VARS)
+6822: static void
+6823: uw_restore_pipestatus_array (void *a)
+6824: {
+6825:   restore_pipestatus_array (a);
+6826: }
+6827: #endif
+6828: 
+6829: /* If S == -1, it's a special value saying to close stdin */
+6830: static void
+6831: restore_stdout (int fd)
+6832: {
+6833:   if (fd == -1)
+6834:     close (1);
+6835:   else
+6836:     {
+6837:       dup2 (fd, 1);
+6838:       close (fd);
+6839:     }
+6840: }
+6841: 
+6842: static void
+6843: uw_restore_stdout (void *fd)
+6844: {
+6845:   restore_stdout ((intptr_t) fd);
+6846: }
+6847: 
+6848: static void
+6849: uw_anonclose (void *fdesc)
+6850: {
+6851:   STRING_INT_ALIST *af;
+6852: 
+6853:   af = (STRING_INT_ALIST *)fdesc;
+6854:   anonclose (af->token, af->word);
+6855:   free (af->word);
+6856: }
+6857: 
+6858: static void
+6859: uw_unbind_variable (void *name)
+6860: {
+6988:   unwind_protect_int (eof_encountered);
+6989:   add_unwind_protect (uw_pop_var_context, 0);
+6990:   add_unwind_protect (uw_maybe_restore_getopt_state, gs);
+6991: 
+6992:   if (parsing_command)
+6993:     {
+6994:       save_parser_state (&ps);
+6995:       add_unwind_protect (uw_restore_parser_state, &ps);
+6996:     }
+6997:       
+6998: #if defined (ARRAY_VARS)
+6999:   if (parsing_command == 0)
+7000:     {
+7001:       psa = save_pipestatus_array ();
+7002:       add_unwind_protect (uw_restore_pipestatus_array, psa);
+7003:     }
+7004: #endif
+7005: 
+7006:   unwind_protect_pointer (redirection_undo_list);
+7007:   redirection_undo_list = NULL;
+7008:   unwind_protect_pointer (exec_redirection_undo_list);
+7009:   exec_redirection_undo_list = NULL;
+7010:   
+7011:   subst_assign_varlist = 0;
+7012: 
+7013:   temporary_env = 0;
+7014:   push_context (lambdafunc.name, 1, temporary_env);		/* make local variables work */
+7015:   this_shell_function = &lambdafunc;
+7016: 
+7017:   unwind_protect_int (verbose_flag);
+7018:   change_flag ('v', FLAG_OFF);
+7019: 
+7020:   /* When inherit_errexit option is not enabled, command substitution does
+7021:      not inherit the -e flag.  It is enabled when Posix mode is enabled */
+7022:   if (inherit_errexit == 0)
+7023:     {
+7024:       unwind_protect_int (builtin_ignoring_errexit);
+7025:       builtin_ignoring_errexit = 0;
+7026:       add_unwind_protect (uw_restore_errexit, (void *) (intptr_t) errexit_flag);
+7027:       change_flag ('e', FLAG_OFF);
+7028:     }
+7029:   set_shellopts ();
+7030: 
+7031:   if (valsub == 0)
+7032:     {
+7033:       fflush (stdout);
+7034:       fpurge (stdout);
+7035: 
+7036:       stdout_valid = sh_validfd (1);
+7037:       saveout = stdout_valid ? move_to_high_fd (1, 1, -1) : -1;
+12432:     }
+12433:   return (result);
+12434: }
+12435: 
+12436: /**************************************************
+12437:  * 						  *
+12438:  *    Functions to expand an entire WORD_LIST	  *
+12439:  *						  *
+12440:  **************************************************/
+12441: 
+12442: /* Do any word-expansion-specific cleanup and jump to top_level */
+12443: static void
+12444: exp_jump_to_top_level (int v)
+12445: {
+12446:   set_pipestatus_from_exit (last_command_exit_value);
+12447: 
+12448:   /* Cleanup code goes here. */
+12449:   expand_no_split_dollar_star = 0;	/* XXX */
+12450:   if (expanding_redir)
+12451:     undo_partial_redirects ();
+12452:   expanding_redir = 0;
+12453:   assigning_in_environment = 0;
+12454: 
+12455:   if (parse_and_execute_level == 0)
+12456:     top_level_cleanup ();			/* from sig.c */
+12457: 
+12458:   jump_to_top_level (v);
+12459: }
+12460: 
+12461: /* Put NLIST (which is a WORD_LIST * of only one element) at the front of
+12462:    ELIST, and set ELIST to the new list. */
+12463: #define PREPEND_LIST(nlist, elist) \
+12464: 	do { nlist->next = elist; elist = nlist; } while (0)
+12465: 
+12466: /* Separate out any initial variable assignments from TLIST.  If set -k has
+12467:    been executed, remove all assignment statements from TLIST.  Initial
+12468:    variable assignments and other environment assignments are placed
+12469:    on SUBST_ASSIGN_VARLIST. */
+12470: static WORD_LIST *
+12471: separate_out_assignments (WORD_LIST *tlist)
+12472: {
+12473:   register WORD_LIST *vp, *lp;
+12474: 
+12475:   if (tlist == 0)
+12476:     return ((WORD_LIST *)NULL);
+12477: 
+12478:   if (subst_assign_varlist)
+12479:     dispose_words (subst_assign_varlist);	/* Clean up after previous error */
+12480: 
+12481:   subst_assign_varlist = (WORD_LIST *)NULL;

@@ -1,0 +1,27 @@
+{
+  "role": "signature-verifier",
+  "path": "/opt/homebrew/bin/gpgv",
+  "initial": {
+    "mode": 493,
+    "bytes": 31,
+    "dev": 16777232,
+    "ino": 167398528,
+    "mtimeMs": 1787774245850.887,
+    "ctimeMs": 1787774245850.907
+  },
+  "symbolicLink": true,
+  "linkText": "../Cellar/gnupg/2.5.21/bin/gpgv",
+  "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+  "target": {
+    "mode": 365,
+    "bytes": 538432,
+    "dev": 16777232,
+    "ino": 167393616,
+    "mtimeMs": 1787774245750.13,
+    "ctimeMs": 1787774246067.6006
+  },
+  "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4",
+  "disposition": "STABLE_REGULAR_METADATA_HASH_ONLY",
+  "executed": false,
+  "executedVersion": null
+}

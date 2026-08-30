@@ -1,0 +1,31 @@
+{
+  "id": "shell-concurrent-sibling-abort-isolation",
+  "mutant": "none",
+  "pass": true,
+  "events": [
+    "next:0",
+    "next-entered:release",
+    "next:0",
+    "next-entered:release",
+    "return",
+    "return-entered:release",
+    "rejected:0",
+    "healthy-sibling-next:release",
+    "return",
+    "return-entered:release",
+    "fulfilled:{\"stdout\":\"\\u0000�\",\"stderr\":\"\",\"stdoutBytes\":{\"0\":0,\"1\":255},\"stderrBytes\":{},\"exitCode\":0}",
+    "cancelled-sibling-next:reject",
+    "cancelled-sibling-return:reject"
+  ],
+  "input": {
+    "reads": 1,
+    "returns": 1,
+    "acquired": 1,
+    "concurrent": 0,
+    "maxConcurrent": 1
+  },
+  "output": [],
+  "stderr": [],
+  "strictUnhandled": true,
+  "cleanup": "all controlled gates released; all tracked executions and disposals settled; no children or servers created"
+}

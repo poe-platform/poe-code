@@ -1,0 +1,256 @@
+{
+  "reviewerAcceptance": false,
+  "sourceCommit": "866a6a58eb19d7a4271fb924ec4dd103c813d0a5",
+  "testOnlyCommit": "034a5f0819ed4e06d7035c77340a066eb7121b37",
+  "baseline": {
+    "productHead": "b4cde0bf2694c353222e21ebd8f49eeae329401e",
+    "engineHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "counts": {
+      "pass": 24,
+      "fail": 2,
+      "skip": 0
+    },
+    "productDefectCauses": 1
+  },
+  "unchangedPublicFixturesAcrossBaselineFixedRepeat": true,
+  "runs": [
+    {
+      "label": "fixed",
+      "startedAt": "2026-08-27T04:49:07.492Z",
+      "finishedAt": "2026-08-27T04:49:18.858Z",
+      "productHead": "866a6a58eb19d7a4271fb924ec4dd103c813d0a5",
+      "engineHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "productArchiveSha256": "acf88af7bdf5e6c88556cc1ee2854790a1ef192cee56f3de4b3f4303c0640cea",
+      "packageSha256": "d5119e405c5af202aedc7185f96a577ee75af6dcd226207d7833f6dad0bc77ed",
+      "cohorts": {
+        "public-boundary": {
+          "counts": {
+            "pass": 26,
+            "fail": 0,
+            "skip": 0
+          },
+          "failures": []
+        }
+      },
+      "typeDiagnostics": {
+        "baseline": 111,
+        "integration": 111,
+        "introduced": 0,
+        "isolatedUpstream": 8
+      },
+      "publicFixtureHashes": {
+        "cancel.child.mjs": {
+          "sha256": "f3b0ffb545ac8d07f422d191ce4f22c4e4999bfb286f0238eff3d91a29e61a0f",
+          "mode": 420
+        },
+        "helpers.mjs": {
+          "sha256": "1f7e513f24feb02030fc4307a4908fbd46a4f5cdb9b6549b52f98a2fdcec87fb",
+          "mode": 420
+        },
+        "supported.probe.mjs": {
+          "sha256": "ffef241f8a7077c888e21d4df17c172002c900bfc542fc2b540cc5f98a1b38d2",
+          "mode": 420
+        }
+      },
+      "privateDrift": {
+        "head": false,
+        "status": false,
+        "index": false,
+        "metadata": false,
+        "engine": false
+      },
+      "temporaryRemoved": true
+    },
+    {
+      "label": "repeat",
+      "startedAt": "2026-08-27T04:51:10.407Z",
+      "finishedAt": "2026-08-27T04:51:21.837Z",
+      "productHead": "034a5f0819ed4e06d7035c77340a066eb7121b37",
+      "engineHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "productArchiveSha256": "76176d7c703ab374025cec2d5404bae27b2d79ce15b9203288e52391bb5a0d9b",
+      "packageSha256": "d5119e405c5af202aedc7185f96a577ee75af6dcd226207d7833f6dad0bc77ed",
+      "cohorts": {
+        "public-boundary": {
+          "counts": {
+            "pass": 26,
+            "fail": 0,
+            "skip": 0
+          },
+          "failures": []
+        }
+      },
+      "typeDiagnostics": {
+        "baseline": 111,
+        "integration": 111,
+        "introduced": 0,
+        "isolatedUpstream": 8
+      },
+      "publicFixtureHashes": {
+        "cancel.child.mjs": {
+          "sha256": "f3b0ffb545ac8d07f422d191ce4f22c4e4999bfb286f0238eff3d91a29e61a0f",
+          "mode": 420
+        },
+        "helpers.mjs": {
+          "sha256": "1f7e513f24feb02030fc4307a4908fbd46a4f5cdb9b6549b52f98a2fdcec87fb",
+          "mode": 420
+        },
+        "supported.probe.mjs": {
+          "sha256": "ffef241f8a7077c888e21d4df17c172002c900bfc542fc2b540cc5f98a1b38d2",
+          "mode": 420
+        }
+      },
+      "privateDrift": {
+        "head": false,
+        "status": false,
+        "index": false,
+        "metadata": false,
+        "engine": false
+      },
+      "temporaryRemoved": true
+    },
+    {
+      "label": "conventional",
+      "startedAt": "2026-08-27T04:50:50.700Z",
+      "finishedAt": "2026-08-27T04:51:10.374Z",
+      "productHead": "034a5f0819ed4e06d7035c77340a066eb7121b37",
+      "engineHead": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+      "productArchiveSha256": "76176d7c703ab374025cec2d5404bae27b2d79ce15b9203288e52391bb5a0d9b",
+      "packageSha256": "d5119e405c5af202aedc7185f96a577ee75af6dcd226207d7833f6dad0bc77ed",
+      "cohorts": {
+        "conventional": {
+          "counts": {
+            "pass": 116,
+            "fail": 0,
+            "skip": 0
+          },
+          "failures": []
+        },
+        "bridges": {
+          "counts": {
+            "pass": 28,
+            "fail": 0,
+            "skip": 0
+          },
+          "failures": []
+        },
+        "desired-original-plus-action": {
+          "counts": {
+            "pass": 8,
+            "fail": 2,
+            "skip": 0
+          },
+          "failures": [
+            "desired action-abort observes original host rejection without hiding abort",
+            "UNRESOLVED desired raw engine behavior: pre-aborted pure run rejects original reason"
+          ]
+        },
+        "proposal-invariants": {
+          "counts": {
+            "pass": 2,
+            "fail": 7,
+            "skip": 0
+          },
+          "failures": [
+            "frozen branded closure preserves construct, static cycles and repeated identity",
+            "retained budget graph remains live",
+            "shared property and retained graph is not double charged",
+            "own special-name data and cycles never invoke prototype setters",
+            "branded collection and regex identity survives wrapping",
+            "pre-aborted call and construct reject exact reasons without effects",
+            "raw preabort preserves exact null and false reasons before host work"
+          ]
+        },
+        "proposal-reason-profile": {
+          "counts": {
+            "pass": 0,
+            "fail": 18,
+            "skip": 0
+          },
+          "failures": [
+            "preserves primitive null exactly",
+            "preserves primitive false exactly",
+            "preserves primitive 0 exactly",
+            "preserves primitive 0 exactly",
+            "preserves primitive  exactly",
+            "preserves primitive custom primitive reason exactly",
+            "preserves primitive 7 exactly",
+            "preserves primitive Symbol(cancel) exactly",
+            "shapes default with untouched exact cause",
+            "shapes frozen-default with untouched exact cause",
+            "shapes custom-error with untouched exact cause",
+            "shapes frozen-error with untouched exact cause",
+            "shapes frozen-record with untouched exact cause",
+            "shapes frozen-function with untouched exact cause",
+            "does not read reason getters, stringify it, or traverse its prototype",
+            "does not touch own reason accessors or stack formatting hooks",
+            "does not inspect caller options or run setup before rejection",
+            "entry span stays valid for empty, multiline, and invalid source"
+          ]
+        },
+        "unavailable-engine": {
+          "counts": {
+            "pass": 82,
+            "fail": 0,
+            "skip": 62
+          },
+          "failures": []
+        }
+      },
+      "classification": {
+        "conventional": {
+          "actual-engine-behavior": {
+            "pass": 53,
+            "fail": 0,
+            "skip": 0
+          },
+          "fixture-or-configuration": {
+            "pass": 60,
+            "fail": 0,
+            "skip": 0
+          },
+          "defect-characterization": {
+            "pass": 2,
+            "fail": 0,
+            "skip": 0
+          },
+          "structural-type-probe": {
+            "pass": 1,
+            "fail": 0,
+            "skip": 0
+          }
+        },
+        "bridges": {
+          "fixture-or-configuration": {
+            "pass": 22,
+            "fail": 0,
+            "skip": 0
+          },
+          "actual-engine-behavior": {
+            "pass": 5,
+            "fail": 0,
+            "skip": 0
+          },
+          "structural-type-probe": {
+            "pass": 1,
+            "fail": 0,
+            "skip": 0
+          }
+        }
+      },
+      "typeDiagnostics": {
+        "baseline": 111,
+        "integration": 111,
+        "introduced": 0,
+        "isolatedUpstream": 8
+      },
+      "privateDrift": {
+        "head": false,
+        "status": false,
+        "index": false,
+        "metadata": false,
+        "engine": false
+      },
+      "temporaryRemoved": true
+    }
+  ]
+}

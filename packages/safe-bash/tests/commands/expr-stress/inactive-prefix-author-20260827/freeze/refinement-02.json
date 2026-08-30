@@ -1,0 +1,8 @@
+{
+  "frozenAt": "2026-08-27T19:25:50.939Z",
+  "files": {
+    "capture-v2.mjs": "4e8958df1de2398a68f79a8b6b06e478e4a7101c23f21413f13ec2759552167a",
+    "freeze/inactive-prefix.test.revision-02.ts.data": "2674e60fafa49853f698a9e4bec8587e59d8accaac7445ae47edbef9cd097522"
+  },
+  "reason": "Preserve baseline-01 infrastructure failure. Fix TypeScript tuple-union includes inference in new test only; include runtime-selected regex worker in isolated scoped build. Original freeze, driver, baseline-01 artifacts unchanged. Product evaluate.ts still accepted baseline bytes."
+}

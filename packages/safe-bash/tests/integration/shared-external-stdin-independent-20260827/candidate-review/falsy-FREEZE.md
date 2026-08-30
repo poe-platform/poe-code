@@ -1,0 +1,7 @@
+# Explicitly authorized missing falsy coverage
+
+Coordination's NEW USER AUTHORIZATION read before closing on 2026-08-27 permits this tiny separate postfreeze cohort. Existing inventory: independent direct/Shell primary read0 and Error, normal return0, caller abort0/Error; author22 unread return undefined/null Error with throw/reject; author original34 direct readBytes return undefined/null/Error. Missing: direct and Shell primary-read null/undefined, and explicit abort(undefined) native reason semantics.
+
+Freeze exactly five structural benign cases: direct read null/undefined must reject by exact identity despite distinct secondary Error; Shell read null/undefined must preserve original status1/diagnostic, no output and one read/return, matching final primary-read requirement. The fifth aborts during already-entered unregistered return with abort(undefined), requiring exact signal.reason identity, native DOMException AbortError (NOT undefined), zero reads, one return; its controlled late return rejection is observed under strict mode. No opaque/pathological source or new API.
+
+This is separate post-inspection/postfreeze coverage, not a revision of either independent cohort or column6. Authenticated copy of the SAME built/moved package, no build/install/global tests. Commit these three files before running; runner verifies exact committed bytes. Readiness gate, 60-second exact-child watchdog, owned child close, full pre/post inventory including new entries, original source/consumer unchanged. No assertion correction or automatic rebaseline.

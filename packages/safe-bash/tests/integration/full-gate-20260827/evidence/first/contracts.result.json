@@ -1,0 +1,201 @@
+{
+  "executable": "npm",
+  "args": [
+    "run",
+    "test:contracts"
+  ],
+  "cwd": "/private/tmp/full-gate-execution-1tkDXu/source",
+  "pid": 29126,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 781,
+  "timeoutMs": 180000,
+  "outputBytes": 17948,
+  "observed": [
+    {
+      "pid": 29126,
+      "parent": 94682,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "npm"
+    },
+    {
+      "pid": 29144,
+      "parent": 29126,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "node --import tsx --test tests/contracts/**/*.test.ts"
+    },
+    {
+      "pid": 29150,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/command.stress.test.ts"
+    },
+    {
+      "pid": 29151,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/command.test.ts"
+    },
+    {
+      "pid": 29152,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/errors.test.ts"
+    },
+    {
+      "pid": 29153,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/exports.test.ts"
+    },
+    {
+      "pid": 29154,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/filesystem-comparison.test.ts"
+    },
+    {
+      "pid": 29155,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/filesystem-identity.test.ts"
+    },
+    {
+      "pid": 29156,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/filesystem.test.ts"
+    },
+    {
+      "pid": 29157,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/invoke.test.ts"
+    },
+    {
+      "pid": 29158,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/io.stress.test.ts"
+    },
+    {
+      "pid": 29159,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/io.test.ts"
+    },
+    {
+      "pid": 29160,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/path-error.stress.test.ts"
+    },
+    {
+      "pid": 29161,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/path.test.ts"
+    },
+    {
+      "pid": 29162,
+      "parent": 29144,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/contracts/stdin-provenance.test.ts"
+    },
+    {
+      "pid": 29166,
+      "parent": 29154,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "<defunct>"
+    },
+    {
+      "pid": 29167,
+      "parent": 29152,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 29168,
+      "parent": 29161,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "<defunct>"
+    },
+    {
+      "pid": 29169,
+      "parent": 29151,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 29170,
+      "parent": 29162,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 29172,
+      "parent": 29157,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/private/tmp/full-gate-execution-1tkDXu/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 29173,
+      "parent": 29153,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/private/tmp/full-gate-execution-1tkDXu/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    },
+    {
+      "pid": 29174,
+      "parent": 29156,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 29175,
+      "parent": 29160,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "(esbuild)"
+    },
+    {
+      "pid": 29177,
+      "parent": 29158,
+      "group": 29126,
+      "born": "Thu Aug 27 00:43:07 2026",
+      "command": "/private/tmp/full-gate-execution-1tkDXu/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "contracts",
+  "sourceChanges": []
+}

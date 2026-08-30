@@ -1,0 +1,9 @@
+{
+  "family": "ER-08",
+  "name": "withheld-reap",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-08-withheld-reap-input.json",
+  "raw": "ER-08-withheld-reap-raw.json"
+}

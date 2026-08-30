@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {Shell, MemoryFileSystem, agentCommands, ShellLimitError, createOutputOperation} from './candidate/dist/index.js';
+import {deferred, within} from './support.mjs';
+const results = [];
+for (const typed of [false, true]) for (const cleanupFails of [false, true]) {
+  const shell = new Shell({fs: new MemoryFileSystem()}); shell.use(agentCommands());
+  const started = deferred(); const cleanupEntered = deferred(); const release = deferred(); const thrown = deferred();
+  const selected = typed ? new ShellLimitError('maxCommands') : {failure: 'execution'};
+  const secondary = {failure: 'cleanup-one'}; const diagnostics = []; let operation; let middlewareThrew = false;
+  shell.register({name: 'producer', async execute(context) {
+    operation = createOutputOperation(context, context.stdout);
+    operation.registerCleanup(async () => {cleanupEntered.resolve(); await release.promise; if (cleanupFails) throw secondary;});
+    const pending = new Promise(resolve => operation.signal.addEventListener('abort', resolve, {once: true}));
+    started.resolve(); await pending; return {exitCode: 7};
+  }});
+  shell.use(async (context, next) => {
+    if (context.command === 'head') await started.promise;
+    const result = await next();
+    if (context.command === 'producer') {middlewareThrew = true; thrown.resolve(); throw selected;}
+    return result;
+  });
+  const pending = shell.exec('set -o pipefail; producer | head -n 0', {stderr: {async write(chunk) {diagnostics.push(Buffer.from(chunk).toString());}}});
+  const observed = pending.then(value => ({value}), error => ({error}));
+  try {
+    await within(cleanupEntered.promise, 'cleanup start'); await within(thrown.promise, 'middleware actual throw'); release.resolve();
+    const actual = await within(observed, 'diagnostic execution'); assert.equal(middlewareThrew, true); assert.equal(operation.signal.reason.code, 'EPIPE');
+    if (typed) {assert.equal(actual.error, selected); assert.deepEqual(diagnostics, []);}
+    else {assert.equal(diagnostics.join(''), 'shell: line 1: [object Object]\n'); if (cleanupFails) assert.equal(actual.error, secondary); else assert.equal(actual.value.exitCode, 1);}
+    results.push({typed, cleanupFails, middlewareThrew, selectedExecutionRejection: typed, diagnostics, actualExitCode: actual.value?.exitCode, rejectionIsSelected: actual.error === selected, rejectionIsCleanup: actual.error === secondary});
+  } finally {release.resolve(); await shell.dispose();}
+}
+console.log(JSON.stringify({diagnosis: 'First H12 binding used a normal command error, which is diagnosed and converted to status 1; it was never a selected public execution rejection. A public ShellLimitError injected by the same middleware is selected and retains identity with or without cleanup failure.', results}));

@@ -1,0 +1,41 @@
+{
+  "time": "2026-08-27T07:20:39.594Z",
+  "qualification": "Per-observation native cwd is authoritative; top-level native-walker cwd/files is unused helper initialization.",
+  "results": [
+    {
+      "id": "ignore-unclosed-class-is-literal",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/native-walker-Y6SOtV/.ignore",
+      "contents": "[\n",
+      "sha256": "95d2b1934931691669cc35a87619518015336213dda0a60fe1b09f9b8e3e993d",
+      "matchesFrozenFixture": true
+    },
+    {
+      "id": "ignore-unclosed-class-is-literal",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/native-walker-Y6SOtV/[",
+      "contents": "hit bracket\n",
+      "sha256": "9f5199d606e89b3b52403f32fe419105b978e54d4c4bf55932325d09c8beda13",
+      "matchesFrozenFixture": true
+    },
+    {
+      "id": "ignore-unclosed-class-is-literal",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/native-walker-Y6SOtV/alpha.txt",
+      "contents": "hit alpha\n",
+      "sha256": "fdf1b55647a61244b467e4105f401eb2af1085aa0746353250510d0b6092dfda",
+      "matchesFrozenFixture": true
+    },
+    {
+      "id": "ignore-malformed-brace-diagnostic",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/native-walker-bGaj8Y/.ignore",
+      "contents": "{a,b\n",
+      "sha256": "ba758668d068a82d0d03c066e0ee42ef1b4396d13a9e59f3c6e54f17bd4e314d",
+      "matchesFrozenFixture": true
+    },
+    {
+      "id": "ignore-malformed-brace-diagnostic",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/stress/regex-execution/production-continuation-review/.temporary/native-walker-bGaj8Y/alpha.txt",
+      "contents": "hit alpha\n",
+      "sha256": "fdf1b55647a61244b467e4105f401eb2af1085aa0746353250510d0b6092dfda",
+      "matchesFrozenFixture": true
+    }
+  ]
+}

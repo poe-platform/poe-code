@@ -1,0 +1,2401 @@
+[
+  {
+    "path": "tests/shell/first-read-probe.ts",
+    "sha256": "b138e5572240533efb8cde733e0c5a9bbd1c960e431b9291c0a17a300b1c7ed6",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 18,
+        "last": 120,
+        "lines": [
+          {
+            "line": 18,
+            "text": "let observed: AbortSignal | undefined;"
+          },
+          {
+            "line": 19,
+            "text": "let url: string | undefined;"
+          },
+          {
+            "line": 20,
+            "text": "let instance: Shell | undefined;"
+          },
+          {
+            "line": 21,
+            "text": ""
+          },
+          {
+            "line": 22,
+            "text": "function pendingSource(signal: AbortSignal): ByteSource {"
+          },
+          {
+            "line": 23,
+            "text": "  observed = signal;"
+          },
+          {
+            "line": 24,
+            "text": "  return (async function* () {"
+          },
+          {
+            "line": 25,
+            "text": "    reads++;"
+          },
+          {
+            "line": 26,
+            "text": "    active++;"
+          },
+          {
+            "line": 27,
+            "text": "    trace.event(\"source.next:pending-before-first-byte\");"
+          },
+          {
+            "line": 28,
+            "text": "    started.resolve();"
+          },
+          {
+            "line": 29,
+            "text": "    try {"
+          },
+          {
+            "line": 30,
+            "text": "      await new Promise<never>((_resolve, reject) => {"
+          },
+          {
+            "line": 31,
+            "text": "        signal.throwIfAborted();"
+          },
+          {
+            "line": 32,
+            "text": "        signal.addEventListener(\"abort\", () => reject(signal.reason), { once: true });"
+          },
+          {
+            "line": 33,
+            "text": "      });"
+          },
+          {
+            "line": 34,
+            "text": "    } finally {"
+          },
+          {
+            "line": 35,
+            "text": "      active--;"
+          },
+          {
+            "line": 36,
+            "text": "      returned++;"
+          },
+          {
+            "line": 37,
+            "text": "      trace.event(\"source.finally\");"
+          },
+          {
+            "line": 38,
+            "text": "      closed.resolve();"
+          },
+          {
+            "line": 39,
+            "text": "    }"
+          },
+          {
+            "line": 40,
+            "text": "  })();"
+          },
+          {
+            "line": 41,
+            "text": "}"
+          },
+          {
+            "line": 42,
+            "text": ""
+          },
+          {
+            "line": 43,
+            "text": "try {"
+          },
+          {
+            "line": 44,
+            "text": "  if (scenario === \"first-read-s3\") {"
+          },
+          {
+            "line": 45,
+            "text": "    ({ fs } = await s3Fixture(trace, { async getObjectStream(_input, options) {"
+          },
+          {
+            "line": 46,
+            "text": "      assert.ok(options?.abortSignal);"
+          },
+          {
+            "line": 47,
+            "text": "      return { Body: pendingSource(options.abortSignal), ContentLength: 13 };"
+          },
+          {
+            "line": 48,
+            "text": "    } }));"
+          },
+          {
+            "line": 49,
+            "text": "  } else if (scenario === \"first-read-webdav\" || scenario.startsWith(\"first-read-curl-\")) {"
+          },
+          {
+            "line": 50,
+            "text": "    const fixture = await httpFixture(trace, (request, response) => {"
+          },
+          {
+            "line": 51,
+            "text": "      if (request.method !== \"GET\") return false;"
+          },
+          {
+            "line": 52,
+            "text": "      active++;"
+          },
+          {
+            "line": 53,
+            "text": "      reads++;"
+          },
+          {
+            "line": 54,
+            "text": "      response.once(\"close\", () => { active--; returned++; closed.resolve(); });"
+          },
+          {
+            "line": 55,
+            "text": "      if (scenario !== \"first-read-curl-headers\") {"
+          },
+          {
+            "line": 56,
+            "text": "        response.writeHead(200, { \"Content-Length\": \"13\" });"
+          },
+          {
+            "line": 57,
+            "text": "        response.flushHeaders();"
+          },
+          {
+            "line": 58,
+            "text": "      }"
+          },
+          {
+            "line": 59,
+            "text": "      trace.event(\"http.GET:pending-before-first-byte\");"
+          },
+          {
+            "line": 60,
+            "text": "      setImmediate(() => started.resolve());"
+          },
+          {
+            "line": 61,
+            "text": "      return true;"
+          },
+          {
+            "line": 62,
+            "text": "    });"
+          },
+          {
+            "line": 63,
+            "text": "    fs = fixture.fs;"
+          },
+          {
+            "line": 64,
+            "text": "    const address = fixture.server.address();"
+          },
+          {
+            "line": 65,
+            "text": "    assert.ok(address && typeof address !== \"string\");"
+          },
+          {
+            "line": 66,
+            "text": "    url = `http://127.0.0.1:${address.port}/dav/input`;"
+          },
+          {
+            "line": 67,
+            "text": "  }"
+          },
+          {
+            "line": 68,
+            "text": "  const shell = new Shell({ fs });"
+          },
+          {
+            "line": 69,
+            "text": "  instance = shell;"
+          },
+          {
+            "line": 70,
+            "text": "  shell.use(agentCommands());"
+          },
+          {
+            "line": 71,
+            "text": "  if (url && scenario.startsWith(\"first-read-curl-\")) {"
+          },
+          {
+            "line": 72,
+            "text": "    shell.use(networkCommands({ authorize: request => request.url === url && request.method === \"GET\" }));"
+          },
+          {
+            "line": 73,
+            "text": "  }"
+          },
+          {
+            "line": 74,
+            "text": "  shell.commands.register({ name: \"pending-stream\", async execute({ stdout, signal }) {"
+          },
+          {
+            "line": 75,
+            "text": "    await pipeBytes(pendingSource(signal), stdout, signal);"
+          },
+          {
+            "line": 76,
+            "text": "    return { exitCode: 0 };"
+          },
+          {
+            "line": 77,
+            "text": "  } });"
+          },
+          {
+            "line": 78,
+            "text": "  shell.use(async (context, next) => {"
+          },
+          {
+            "line": 79,
+            "text": "    if (context.command === \"head\" && scenario !== \"first-read-head-zero\") await started.promise;"
+          },
+          {
+            "line": 80,
+            "text": "    if (context.command === \"cat\" || context.command === \"curl\") observed = context.signal;"
+          },
+          {
+            "line": 81,
+            "text": "    const result = await next();"
+          },
+          {
+            "line": 82,
+            "text": "    trace.event(`command.settled:${context.command}:${result.exitCode}`);"
+          },
+          {
+            "line": 83,
+            "text": "    return result;"
+          },
+          {
+            "line": 84,
+            "text": "  });"
+          },
+          {
+            "line": 85,
+            "text": "  if (scenario === \"first-read-head-zero\") {"
+          },
+          {
+            "line": 86,
+            "text": "    const stdin: ByteSource = { [Symbol.asyncIterator]() { return {"
+          },
+          {
+            "line": 87,
+            "text": "      async next() { reads++; throw new Error(\"head zero must not read\"); },"
+          },
+          {
+            "line": 88,
+            "text": "      async return() { returned++; return { done: true, value: undefined }; },"
+          },
+          {
+            "line": 89,
+            "text": "    }; } };"
+          },
+          {
+            "line": 90,
+            "text": "    const result = await bounded(shell.exec(\"head -n 0\", { stdin }), scenario);"
+          },
+          {
+            "line": 91,
+            "text": "    assert.equal(result.exitCode, 0);"
+          },
+          {
+            "line": 92,
+            "text": "    assert.equal(result.stdout, \"\");"
+          },
+          {
+            "line": 93,
+            "text": "    assert.equal(result.stderr, \"\");"
+          },
+          {
+            "line": 94,
+            "text": "    assert.equal(reads, 0);"
+          },
+          {
+            "line": 95,
+            "text": "    assert.equal(returned, 1);"
+          },
+          {
+            "line": 96,
+            "text": "  } else {"
+          },
+          {
+            "line": 97,
+            "text": "    const producer = scenario === \"first-read-local\" ? \"pending-stream\" : scenario.startsWith(\"first-read-curl-\") ? `curl ${url}` : \"cat /input\";"
+          },
+          {
+            "line": 98,
+            "text": "    const result = await bounded(shell.exec(`${producer} | head -n 0; true`, { signal: trace.controller.signal }), scenario);"
+          },
+          {
+            "line": 99,
+            "text": "    assert.equal(result.exitCode, 0);"
+          },
+          {
+            "line": 100,
+            "text": "    assert.equal(result.stdout, \"\");"
+          },
+          {
+            "line": 101,
+            "text": "    assert.equal(result.stderr, \"\");"
+          },
+          {
+            "line": 102,
+            "text": "    assert.equal(trace.controller.signal.aborted, false);"
+          },
+          {
+            "line": 103,
+            "text": "    assert.equal(observed?.aborted, true);"
+          },
+          {
+            "line": 104,
+            "text": "    assert.equal((observed?.reason as { code: string }).code, \"EPIPE\");"
+          },
+          {
+            "line": 105,
+            "text": "    await bounded(closed.promise, \"first-read closes before fixture teardown\");"
+          },
+          {
+            "line": 106,
+            "text": "    assert.equal(reads, 1);"
+          },
+          {
+            "line": 107,
+            "text": "    assert.equal(returned, 1);"
+          },
+          {
+            "line": 108,
+            "text": "    assert.equal(active, 0);"
+          },
+          {
+            "line": 109,
+            "text": "  }"
+          },
+          {
+            "line": 110,
+            "text": "  await new Promise<void>(resolve => setImmediate(resolve));"
+          },
+          {
+            "line": 111,
+            "text": "  assert.deepEqual(unhandled, []);"
+          },
+          {
+            "line": 112,
+            "text": "  console.log(`${scenario}: passed`);"
+          },
+          {
+            "line": 113,
+            "text": "} finally {"
+          },
+          {
+            "line": 114,
+            "text": "  console.log(JSON.stringify({ scenario, active, reads, returned, abortedBeforeTeardown: trace.controller.signal.aborted, events: trace.events }));"
+          },
+          {
+            "line": 115,
+            "text": "  trace.controller.abort(new Error(\"failed-test teardown, never acceptance rescue\"));"
+          },
+          {
+            "line": 116,
+            "text": "  await instance?.dispose();"
+          },
+          {
+            "line": 117,
+            "text": "  for (const cleanup of trace.cleanups.reverse()) await cleanup();"
+          },
+          {
+            "line": 118,
+            "text": "  process.removeListener(\"unhandledRejection\", onUnhandled);"
+          },
+          {
+            "line": 119,
+            "text": "  clearInterval(keepAlive);"
+          },
+          {
+            "line": 120,
+            "text": "}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests/shell/adapted-first-read-probe.ts",
+    "sha256": "743f93c910422eb4ad64ac77caacb9aacf71837f28b92a51a1993e8651c6b771",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 70,
+        "last": 105,
+        "lines": [
+          {
+            "line": 70,
+            "text": "  if (fs.readStream) {"
+          },
+          {
+            "line": 71,
+            "text": "    const readStream = fs.readStream.bind(fs);"
+          },
+          {
+            "line": 72,
+            "text": "    fs.readStream = (path, options) => { observed = options?.signal; return readStream(path, options); };"
+          },
+          {
+            "line": 73,
+            "text": "  }"
+          },
+          {
+            "line": 74,
+            "text": "  const shell = new Shell({ fs });"
+          },
+          {
+            "line": 75,
+            "text": "  instance = shell;"
+          },
+          {
+            "line": 76,
+            "text": "  shell.use(agentCommands());"
+          },
+          {
+            "line": 77,
+            "text": "  if (url && scenario.startsWith(\"first-read-curl-\")) {"
+          },
+          {
+            "line": 78,
+            "text": "    shell.use(networkCommands({ authorize: request => { observed = request.signal; return request.url === url && request.method === \"GET\"; } }));"
+          },
+          {
+            "line": 79,
+            "text": "  }"
+          },
+          {
+            "line": 80,
+            "text": "  shell.commands.register({ name: \"pending-stream\", async execute(context) {"
+          },
+          {
+            "line": 81,
+            "text": "    const operation = createOutputOperation(context, context.stdout);"
+          },
+          {
+            "line": 82,
+            "text": "    const source = pendingSource(operation.signal);"
+          },
+          {
+            "line": 83,
+            "text": "    operation.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });"
+          },
+          {
+            "line": 84,
+            "text": "    try {"
+          },
+          {
+            "line": 85,
+            "text": "      await pipeBytes(source, operation.output, operation.signal);"
+          },
+          {
+            "line": 86,
+            "text": "      return { exitCode: 0 };"
+          },
+          {
+            "line": 87,
+            "text": "    } catch (error) {"
+          },
+          {
+            "line": 88,
+            "text": "      context.signal.throwIfAborted();"
+          },
+          {
+            "line": 89,
+            "text": "      assert.equal(error, operation.signal.reason);"
+          },
+          {
+            "line": 90,
+            "text": "      return { exitCode: 141 };"
+          },
+          {
+            "line": 91,
+            "text": "    } finally { await operation.close(); }"
+          },
+          {
+            "line": 92,
+            "text": "  } });"
+          },
+          {
+            "line": 93,
+            "text": "  shell.use(async (context, next) => {"
+          },
+          {
+            "line": 94,
+            "text": "    if (context.command === \"head\" && scenario !== \"first-read-head-zero\") await started.promise;"
+          },
+          {
+            "line": 95,
+            "text": "    if ([\"cat\", \"curl\", \"pending-stream\"].includes(context.command)) {"
+          },
+          {
+            "line": 96,
+            "text": "      stage = context.signal;"
+          },
+          {
+            "line": 97,
+            "text": "      const sink = context.stdout.ownedOutput;"
+          },
+          {
+            "line": 98,
+            "text": "      assert.ok(sink);"
+          },
+          {
+            "line": 99,
+            "text": "      const write = sink.write.bind(sink);"
+          },
+          {
+            "line": 100,
+            "text": "      sink.write = async chunk => { writes++; trace.event(\"owned-output.write\"); await write(chunk); };"
+          },
+          {
+            "line": 101,
+            "text": "    }"
+          },
+          {
+            "line": 102,
+            "text": "    const result = await next();"
+          },
+          {
+            "line": 103,
+            "text": "    trace.event(`command.settled:${context.command}:${result.exitCode}`);"
+          },
+          {
+            "line": 104,
+            "text": "    return result;"
+          },
+          {
+            "line": 105,
+            "text": "  });"
+          }
+        ]
+      },
+      {
+        "first": 118,
+        "last": 148,
+        "lines": [
+          {
+            "line": 118,
+            "text": "    const producer = scenario === \"first-read-local\" ? \"pending-stream\" : scenario.startsWith(\"first-read-curl-\") ? `curl ${url}` : \"cat /input\";"
+          },
+          {
+            "line": 119,
+            "text": "    const result = await bounded(shell.exec(`${producer} | head -n 0; true`, { signal: trace.controller.signal }), scenario);"
+          },
+          {
+            "line": 120,
+            "text": "    assert.equal(result.exitCode, 0);"
+          },
+          {
+            "line": 121,
+            "text": "    assert.equal(result.stdout, \"\");"
+          },
+          {
+            "line": 122,
+            "text": "    assert.equal(result.stderr, \"\");"
+          },
+          {
+            "line": 123,
+            "text": "    assert.equal(trace.controller.signal.aborted, false);"
+          },
+          {
+            "line": 124,
+            "text": "    assert.equal(stage?.aborted, false);"
+          },
+          {
+            "line": 125,
+            "text": "    assert.notEqual(observed, stage);"
+          },
+          {
+            "line": 126,
+            "text": "    assert.equal(writes, 0);"
+          },
+          {
+            "line": 127,
+            "text": "    assert.equal(observed?.aborted, true);"
+          },
+          {
+            "line": 128,
+            "text": "    assert.equal((observed?.reason as { code: string }).code, \"EPIPE\");"
+          },
+          {
+            "line": 129,
+            "text": "    await bounded(closed.promise, \"first-read closes before fixture teardown\");"
+          },
+          {
+            "line": 130,
+            "text": "    assert.equal(reads, 1);"
+          },
+          {
+            "line": 131,
+            "text": "    assert.equal(returned, 1);"
+          },
+          {
+            "line": 132,
+            "text": "    assert.equal(active, 0);"
+          },
+          {
+            "line": 133,
+            "text": "  }"
+          },
+          {
+            "line": 134,
+            "text": "  await new Promise<void>(resolve => setImmediate(resolve));"
+          },
+          {
+            "line": 135,
+            "text": "  assert.deepEqual(unhandled, []);"
+          },
+          {
+            "line": 136,
+            "text": "  console.log(`${scenario}: passed`);"
+          },
+          {
+            "line": 137,
+            "text": "} finally {"
+          },
+          {
+            "line": 138,
+            "text": "  console.log(JSON.stringify({ scenario, active, reads, returned, writes, stageAborted: stage?.aborted, operationAborted: observed?.aborted, abortedBeforeTeardown: trace.controller.signal.aborted, events: trace.events }));"
+          },
+          {
+            "line": 139,
+            "text": "  trace.controller.abort(new Error(\"failed-test teardown, never acceptance rescue\"));"
+          },
+          {
+            "line": 140,
+            "text": "  await instance?.dispose();"
+          },
+          {
+            "line": 141,
+            "text": "  for (const cleanup of trace.cleanups.reverse()) await cleanup();"
+          },
+          {
+            "line": 142,
+            "text": "  process.removeListener(\"unhandledRejection\", onUnhandled);"
+          },
+          {
+            "line": 143,
+            "text": "  clearInterval(keepAlive);"
+          },
+          {
+            "line": 144,
+            "text": "}"
+          },
+          {
+            "line": 145,
+            "text": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests/stress/remote-cancellation/helpers.ts",
+    "sha256": "9e76ecf9ba6604fc2c4b94a96cf5b46ffed97de5e7d0c2524e138b4410e17678",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 20,
+        "last": 35,
+        "lines": [
+          {
+            "line": 20,
+            "text": "  const promise = new Promise<Value>((accept, fail) => { resolve = accept; reject = fail; });"
+          },
+          {
+            "line": 21,
+            "text": "  void promise.catch(() => {});"
+          },
+          {
+            "line": 22,
+            "text": "  return { promise, resolve, reject };"
+          },
+          {
+            "line": 23,
+            "text": "}"
+          },
+          {
+            "line": 24,
+            "text": ""
+          },
+          {
+            "line": 25,
+            "text": "export async function bounded<Value>(pending: PromiseLike<Value>, label: string, milliseconds = 1200): Promise<Value> {"
+          },
+          {
+            "line": 26,
+            "text": "  let timer: ReturnType<typeof setTimeout> | undefined;"
+          },
+          {
+            "line": 27,
+            "text": "  try {"
+          },
+          {
+            "line": 28,
+            "text": "    return await Promise.race([pending, new Promise<never>((_resolve, reject) => {"
+          },
+          {
+            "line": 29,
+            "text": "      timer = setTimeout(() => reject(new Error(`DEADLINE: ${label} (${milliseconds}ms)`)), milliseconds);"
+          },
+          {
+            "line": 30,
+            "text": "    })]);"
+          },
+          {
+            "line": 31,
+            "text": "  } finally { clearTimeout(timer); }"
+          },
+          {
+            "line": 32,
+            "text": "}"
+          },
+          {
+            "line": 33,
+            "text": ""
+          },
+          {
+            "line": 34,
+            "text": "export function observe<Value>(pending: PromiseLike<Value>) {"
+          },
+          {
+            "line": 35,
+            "text": "  return Promise.resolve(pending).then(value => ({ kind: \"value\" as const, value }), error => ({ kind: \"error\" as const, error: error as unknown }));"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/commands/streams.ts",
+    "sha256": "792bc1af0f2c9d5fbd7b947956873f3dfbb5fd34fcbdadcb15b1ef8fb423c169",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 187,
+        "last": 200,
+        "lines": [
+          {
+            "line": 187,
+            "text": "    define(\"cat\", async context => {"
+          },
+          {
+            "line": 188,
+            "text": "      const parsed = options(context.args, \"nbsvETAute\", { number: \"n\", \"number-nonblank\": \"b\", \"squeeze-blank\": \"s\", \"show-ends\": \"E\", \"show-tabs\": \"T\", \"show-nonprinting\": \"v\", \"show-all\": \"A\" });"
+          },
+          {
+            "line": 189,
+            "text": "      if (parsed.flags.has(\"A\")) for (const flag of [\"v\", \"E\", \"T\"]) parsed.flags.add(flag);"
+          },
+          {
+            "line": 190,
+            "text": "      if (parsed.flags.has(\"e\")) { parsed.flags.add(\"v\"); parsed.flags.add(\"E\"); }"
+          },
+          {
+            "line": 191,
+            "text": "      if (parsed.flags.has(\"t\")) { parsed.flags.add(\"v\"); parsed.flags.add(\"T\"); }"
+          },
+          {
+            "line": 192,
+            "text": "      const caller = context;"
+          },
+          {
+            "line": 193,
+            "text": "      const operation = parsed.operands.length && !parsed.operands.includes(\"-\") ? createOutputOperation(context, context.stdout) : undefined;"
+          },
+          {
+            "line": 194,
+            "text": "      if (operation) context = { ...context, signal: operation.signal, stdout: operation.output };"
+          },
+          {
+            "line": 195,
+            "text": "      try {"
+          },
+          {
+            "line": 196,
+            "text": "      const state = { exitCode: 0 };"
+          },
+          {
+            "line": 197,
+            "text": "      const source = combinedInput(context, parsed.operands, state);"
+          },
+          {
+            "line": 198,
+            "text": "      operation?.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });"
+          },
+          {
+            "line": 199,
+            "text": "      if (![...parsed.flags].some(flag => flag !== \"u\")) {"
+          },
+          {
+            "line": 200,
+            "text": "        for await (const chunk of source) await output(context, chunk);"
+          }
+        ]
+      },
+      {
+        "first": 231,
+        "last": 238,
+        "lines": [
+          {
+            "line": 231,
+            "text": "      }"
+          },
+          {
+            "line": 232,
+            "text": "      return state;"
+          },
+          {
+            "line": 233,
+            "text": "      } catch (error) {"
+          },
+          {
+            "line": 234,
+            "text": "        caller.signal.throwIfAborted();"
+          },
+          {
+            "line": 235,
+            "text": "        if (operation?.signal.aborted && operation.signal.reason instanceof FsError && operation.signal.reason.code === \"EPIPE\") return { exitCode: 141 };"
+          },
+          {
+            "line": 236,
+            "text": "        throw error;"
+          },
+          {
+            "line": 237,
+            "text": "      } finally { await operation?.close(); }"
+          },
+          {
+            "line": 238,
+            "text": "    }),"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/commands/network/curl.ts",
+    "sha256": "bfbdb77e185e4aa206efc768c89f6f02ee2e833d64856a93320e6ea47f494eb3",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 109,
+        "last": 122,
+        "lines": [
+          {
+            "line": 109,
+            "text": "async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,"
+          },
+          {
+            "line": 110,
+            "text": "  transport: NonNullable<NetworkCommandsOptions[\"transport\"]>, authorize: NetworkCommandsOptions[\"authorize\"]): Promise<number> {"
+          },
+          {
+            "line": 111,
+            "text": "  const lifetime = new AbortController();"
+          },
+          {
+            "line": 112,
+            "text": "  const timeout = setTimeout(() => lifetime.abort(new CurlError(28, \"Operation timed out\")), args.maxTimeMs);"
+          },
+          {
+            "line": 113,
+            "text": "  const transferSignal = AbortSignal.any([context.signal, lifetime.signal]);"
+          },
+          {
+            "line": 114,
+            "text": "  const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== \"-\" || args.dumpHeader !== undefined && args.dumpHeader !== \"-\";"
+          },
+          {
+            "line": 115,
+            "text": "  const operation = createOutputOperation({ ...context, signal: transferSignal }, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout);"
+          },
+          {
+            "line": 116,
+            "text": "  const signal = operation.signal;"
+          },
+          {
+            "line": 117,
+            "text": "  const start = performance.now();"
+          },
+          {
+            "line": 118,
+            "text": "  let response: HttpResponse | undefined;"
+          },
+          {
+            "line": 119,
+            "text": "  let failure: CurlError | undefined;"
+          },
+          {
+            "line": 120,
+            "text": "  const values = { ...writeOutDefaults };"
+          },
+          {
+            "line": 121,
+            "text": "  let format = args.writeOut;"
+          },
+          {
+            "line": 122,
+            "text": "  let formatReady = false;"
+          }
+        ]
+      },
+      {
+        "first": 178,
+        "last": 197,
+        "lines": [
+          {
+            "line": 178,
+            "text": "        values.url_effective = current.href;"
+          },
+          {
+            "line": 179,
+            "text": "        values.method = method;"
+          },
+          {
+            "line": 180,
+            "text": "        let allowed: boolean;"
+          },
+          {
+            "line": 181,
+            "text": "        try { allowed = await withSignal(() => authorize({ url: current.href, method, attempt, signal, ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }"
+          },
+          {
+            "line": 182,
+            "text": "        catch { signal.throwIfAborted(); throw new CurlError(7, \"Network authorization failed\"); }"
+          },
+          {
+            "line": 183,
+            "text": "        if (allowed !== true) throw new CurlError(7, \"Network access denied by host policy\");"
+          },
+          {
+            "line": 184,
+            "text": "        const headers = requestHeaders(args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);"
+          },
+          {
+            "line": 185,
+            "text": "        if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\\n${headers.map(([name]) => `> ${name}: [redacted]\\n`).join(\"\")}`), signal);"
+          },
+          {
+            "line": 186,
+            "text": "        const upload: ByteSource | undefined = currentBody && (async function* () {"
+          },
+          {
+            "line": 187,
+            "text": "          for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }"
+          },
+          {
+            "line": 188,
+            "text": "        })();"
+          },
+          {
+            "line": 189,
+            "text": "        response = await operation.acquire(async () => {"
+          },
+          {
+            "line": 190,
+            "text": "          const acquired = await transport({ url: current.href, method, headers, signal,"
+          },
+          {
+            "line": 191,
+            "text": "            registerCleanup: operation.registerCleanup, ...(upload ? { body: upload } : {}) });"
+          },
+          {
+            "line": 192,
+            "text": "          let cleanup: Promise<void> | undefined;"
+          },
+          {
+            "line": 193,
+            "text": "          return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };"
+          },
+          {
+            "line": 194,
+            "text": "        }, result => result.dispose());"
+          },
+          {
+            "line": 195,
+            "text": "        const block = responseHeaders(response, limits.maxHeaderBytes);"
+          },
+          {
+            "line": 196,
+            "text": "        headerBytes += block.length;"
+          },
+          {
+            "line": 197,
+            "text": "        if (headerBytes > limits.maxHeaderBytes) throw new CurlError(63, \"Combined response headers exceed host byte limit\");"
+          }
+        ]
+      },
+      {
+        "first": 280,
+        "last": 307,
+        "lines": [
+          {
+            "line": 280,
+            "text": "      }"
+          },
+          {
+            "line": 281,
+            "text": "      break;"
+          },
+          {
+            "line": 282,
+            "text": "    }"
+          },
+          {
+            "line": 283,
+            "text": "  } catch (error) {"
+          },
+          {
+            "line": 284,
+            "text": "    if (context.signal.aborted) throw context.signal.reason;"
+          },
+          {
+            "line": 285,
+            "text": "    if (pipeClosed(error)) closedOutput = true;"
+          },
+          {
+            "line": 286,
+            "text": "    else failure = signal.aborted && signal.reason instanceof CurlError ? signal.reason : networkError(error);"
+          },
+          {
+            "line": 287,
+            "text": "  } finally {"
+          },
+          {
+            "line": 288,
+            "text": "    clearTimeout(timeout);"
+          },
+          {
+            "line": 289,
+            "text": "    await operation.close();"
+          },
+          {
+            "line": 290,
+            "text": "    lifetime.abort();"
+          },
+          {
+            "line": 291,
+            "text": "  }"
+          },
+          {
+            "line": 292,
+            "text": "  values.size_download = String(downloaded);"
+          },
+          {
+            "line": 293,
+            "text": "  values.size_upload = String(uploaded);"
+          },
+          {
+            "line": 294,
+            "text": "  values.time_total = ((performance.now() - start) / 1000).toFixed(6);"
+          },
+          {
+            "line": 295,
+            "text": "  values.exitcode = String(failure?.exitCode ?? 0);"
+          },
+          {
+            "line": 296,
+            "text": "  values.errormsg = failure?.message ?? \"\";"
+          },
+          {
+            "line": 297,
+            "text": "  if (format !== undefined && formatReady) {"
+          },
+          {
+            "line": 298,
+            "text": "    try { await publish(writeOutFormat(format, values)); }"
+          },
+          {
+            "line": 299,
+            "text": "    catch { context.signal.throwIfAborted(); failure = new CurlError(23, \"Failed writing write-out result\"); }"
+          },
+          {
+            "line": 300,
+            "text": "  }"
+          },
+          {
+            "line": 301,
+            "text": "  if (failure && (!args.silent || args.showError)) await diagnostic(context, failure);"
+          },
+          {
+            "line": 302,
+            "text": "  return failure?.exitCode ?? (closedOutput ? 141 : 0);"
+          },
+          {
+            "line": 303,
+            "text": "}"
+          },
+          {
+            "line": 304,
+            "text": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/commands/network/transport.ts",
+    "sha256": "c9f3302aac3bba8fc1cd9c72571adb062dbc2e336da1a403c5c2d6207c2c0e05",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 25,
+        "last": 84,
+        "lines": [
+          {
+            "line": 25,
+            "text": "    }"
+          },
+          {
+            "line": 26,
+            "text": "    const stopped = new AbortController();"
+          },
+          {
+            "line": 27,
+            "text": "    const signal = AbortSignal.any([input.signal, stopped.signal]);"
+          },
+          {
+            "line": 28,
+            "text": "    return new Promise((resolve, reject) => {"
+          },
+          {
+            "line": 29,
+            "text": "      let request: ClientRequest | undefined;"
+          },
+          {
+            "line": 30,
+            "text": "      let finish: (() => void) | undefined;"
+          },
+          {
+            "line": 31,
+            "text": "      const closed = new Promise<void>(resolve => { finish = resolve; });"
+          },
+          {
+            "line": 32,
+            "text": "      let cleanup: Promise<void> | undefined;"
+          },
+          {
+            "line": 33,
+            "text": "      const dispose = (): Promise<void> => {"
+          },
+          {
+            "line": 34,
+            "text": "        cleanup ??= Promise.resolve().then(async () => {"
+          },
+          {
+            "line": 35,
+            "text": "          stopped.abort();"
+          },
+          {
+            "line": 36,
+            "text": "          if (request) { request.destroy(); await closed; }"
+          },
+          {
+            "line": 37,
+            "text": "        });"
+          },
+          {
+            "line": 38,
+            "text": "        return cleanup;"
+          },
+          {
+            "line": 39,
+            "text": "      };"
+          },
+          {
+            "line": 40,
+            "text": "      input.registerCleanup?.(dispose);"
+          },
+          {
+            "line": 41,
+            "text": "      request = (url.protocol === \"https:\" ? httpsRequest : httpRequest)(url, {"
+          },
+          {
+            "line": 42,
+            "text": "        method: input.method, headers, signal, maxHeaderSize, agent: false,"
+          },
+          {
+            "line": 43,
+            "text": "        ...(ca === undefined ? {} : { ca: ca as string | Buffer | (string | Buffer)[] }),"
+          },
+          {
+            "line": 44,
+            "text": "      }, response => {"
+          },
+          {
+            "line": 45,
+            "text": "        const responseHeaders: [string, string][] = [];"
+          },
+          {
+            "line": 46,
+            "text": "        for (let index = 0; index < response.rawHeaders.length; index += 2) {"
+          },
+          {
+            "line": 47,
+            "text": "          responseHeaders.push([response.rawHeaders[index]!, response.rawHeaders[index + 1]!]);"
+          },
+          {
+            "line": 48,
+            "text": "        }"
+          },
+          {
+            "line": 49,
+            "text": "        const body: ByteSource = (async function* () {"
+          },
+          {
+            "line": 50,
+            "text": "          try {"
+          },
+          {
+            "line": 51,
+            "text": "            for await (const chunk of response) {"
+          },
+          {
+            "line": 52,
+            "text": "              input.signal.throwIfAborted();"
+          },
+          {
+            "line": 53,
+            "text": "              yield new Uint8Array(chunk as Buffer);"
+          },
+          {
+            "line": 54,
+            "text": "            }"
+          },
+          {
+            "line": 55,
+            "text": "          } finally { response.destroy(); await dispose(); }"
+          },
+          {
+            "line": 56,
+            "text": "        })();"
+          },
+          {
+            "line": 57,
+            "text": "        resolve({"
+          },
+          {
+            "line": 58,
+            "text": "          status: response.statusCode ?? 0, statusText: response.statusMessage ?? \"\","
+          },
+          {
+            "line": 59,
+            "text": "          httpVersion: response.httpVersion, headers: responseHeaders, body,"
+          },
+          {
+            "line": 60,
+            "text": "          async dispose() { response.destroy(); await dispose(); },"
+          },
+          {
+            "line": 61,
+            "text": "        });"
+          },
+          {
+            "line": 62,
+            "text": "      });"
+          },
+          {
+            "line": 63,
+            "text": "      request.on(\"error\", reject);"
+          },
+          {
+            "line": 64,
+            "text": "      request.on(\"close\", () => { stopped.abort(); finish?.(); });"
+          },
+          {
+            "line": 65,
+            "text": "      const upload = async (): Promise<void> => {"
+          },
+          {
+            "line": 66,
+            "text": "        if (input.body) for await (const chunk of readBytes(input.body, signal)) {"
+          },
+          {
+            "line": 67,
+            "text": "          await withSignal(() => new Promise<void>((done, failed) => {"
+          },
+          {
+            "line": 68,
+            "text": "            request!.write(chunk, error => error ? failed(error) : done());"
+          },
+          {
+            "line": 69,
+            "text": "          }), signal);"
+          },
+          {
+            "line": 70,
+            "text": "        }"
+          },
+          {
+            "line": 71,
+            "text": "        request!.end();"
+          },
+          {
+            "line": 72,
+            "text": "      };"
+          },
+          {
+            "line": 73,
+            "text": "      void upload().catch(error => request!.destroy(error instanceof Error ? error : new Error(\"Upload canceled\")));"
+          },
+          {
+            "line": 74,
+            "text": "    });"
+          },
+          {
+            "line": 75,
+            "text": "  };"
+          },
+          {
+            "line": 76,
+            "text": "}"
+          },
+          {
+            "line": 77,
+            "text": ""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/contracts/output.ts",
+    "sha256": "709af26d3a8cca80fa31c9acce54c59f332c920f566556b30e7ac6b14b4d1009",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 12,
+        "last": 100,
+        "lines": [
+          {
+            "line": 12,
+            "text": "export function createOutputOperation(context: Pick<CommandContext, \"signal\" | \"registerCleanup\">, destination: ByteSink): OutputOperation {"
+          },
+          {
+            "line": 13,
+            "text": "  const controller = new AbortController();"
+          },
+          {
+            "line": 14,
+            "text": "  const signal = controller.signal;"
+          },
+          {
+            "line": 15,
+            "text": "  const capability = destination.ownedOutput;"
+          },
+          {
+            "line": 16,
+            "text": "  const callbacks: InvocationCleanup[] = [];"
+          },
+          {
+            "line": 17,
+            "text": "  const closedReason = new Error(\"Output operation is closed\");"
+          },
+          {
+            "line": 18,
+            "text": "  let accepting = true;"
+          },
+          {
+            "line": 19,
+            "text": "  let drain: Promise<void> | undefined;"
+          },
+          {
+            "line": 20,
+            "text": "  const assertOpen = (): void => {"
+          },
+          {
+            "line": 21,
+            "text": "    signal.throwIfAborted();"
+          },
+          {
+            "line": 22,
+            "text": "    if (!accepting) throw closedReason;"
+          },
+          {
+            "line": 23,
+            "text": "  };"
+          },
+          {
+            "line": 24,
+            "text": "  const close = (): Promise<void> => {"
+          },
+          {
+            "line": 25,
+            "text": "    if (drain) return drain;"
+          },
+          {
+            "line": 26,
+            "text": "    accepting = false;"
+          },
+          {
+            "line": 27,
+            "text": "    context.signal.removeEventListener(\"abort\", callerAbort);"
+          },
+          {
+            "line": 28,
+            "text": "    capability?.consumerClosed.removeEventListener(\"abort\", outputAbort);"
+          },
+          {
+            "line": 29,
+            "text": "    drain = Promise.resolve().then(async () => {"
+          },
+          {
+            "line": 30,
+            "text": "      const results = await Promise.allSettled(callbacks.map(async cleanup => cleanup()));"
+          },
+          {
+            "line": 31,
+            "text": "      const failures = results.filter(result => result.status === \"rejected\").map(result => result.reason);"
+          },
+          {
+            "line": 32,
+            "text": "      if (failures.length === 1) throw failures[0];"
+          },
+          {
+            "line": 33,
+            "text": "      if (failures.length) throw new AggregateError(failures, \"Output operation cleanup failed\");"
+          },
+          {
+            "line": 34,
+            "text": "    });"
+          },
+          {
+            "line": 35,
+            "text": "    void drain.catch(() => {});"
+          },
+          {
+            "line": 36,
+            "text": "    return drain;"
+          },
+          {
+            "line": 37,
+            "text": "  };"
+          },
+          {
+            "line": 38,
+            "text": "  const abort = (reason: unknown): void => {"
+          },
+          {
+            "line": 39,
+            "text": "    if (!accepting) return;"
+          },
+          {
+            "line": 40,
+            "text": "    controller.abort(reason);"
+          },
+          {
+            "line": 41,
+            "text": "    void close().catch(() => {});"
+          },
+          {
+            "line": 42,
+            "text": "  };"
+          },
+          {
+            "line": 43,
+            "text": "  const callerAbort = (): void => abort(context.signal.reason);"
+          },
+          {
+            "line": 44,
+            "text": "  const outputAbort = (): void => abort(capability?.consumerClosed.reason);"
+          },
+          {
+            "line": 45,
+            "text": "  const registerCleanup = (cleanup: InvocationCleanup): void => {"
+          },
+          {
+            "line": 46,
+            "text": "    assertOpen();"
+          },
+          {
+            "line": 47,
+            "text": "    callbacks.push(cleanup);"
+          },
+          {
+            "line": 48,
+            "text": "  };"
+          },
+          {
+            "line": 49,
+            "text": "  const wait = <Value>(pending: Promise<Value>): Promise<Value> => new Promise((resolve, reject) => {"
+          },
+          {
+            "line": 50,
+            "text": "    const aborted = (): void => reject(signal.reason);"
+          },
+          {
+            "line": 51,
+            "text": "    if (signal.aborted) aborted();"
+          },
+          {
+            "line": 52,
+            "text": "    else signal.addEventListener(\"abort\", aborted, { once: true });"
+          },
+          {
+            "line": 53,
+            "text": "    pending.then(value => {"
+          },
+          {
+            "line": 54,
+            "text": "      signal.removeEventListener(\"abort\", aborted);"
+          },
+          {
+            "line": 55,
+            "text": "      resolve(value);"
+          },
+          {
+            "line": 56,
+            "text": "    }, error => {"
+          },
+          {
+            "line": 57,
+            "text": "      signal.removeEventListener(\"abort\", aborted);"
+          },
+          {
+            "line": 58,
+            "text": "      reject(error);"
+          },
+          {
+            "line": 59,
+            "text": "    });"
+          },
+          {
+            "line": 60,
+            "text": "  });"
+          },
+          {
+            "line": 61,
+            "text": "  context.registerCleanup?.(close);"
+          },
+          {
+            "line": 62,
+            "text": "  if (context.signal.aborted) callerAbort();"
+          },
+          {
+            "line": 63,
+            "text": "  else if (capability?.consumerClosed.aborted) outputAbort();"
+          },
+          {
+            "line": 64,
+            "text": "  else {"
+          },
+          {
+            "line": 65,
+            "text": "    context.signal.addEventListener(\"abort\", callerAbort, { once: true });"
+          },
+          {
+            "line": 66,
+            "text": "    capability?.consumerClosed.addEventListener(\"abort\", outputAbort, { once: true });"
+          },
+          {
+            "line": 67,
+            "text": "  }"
+          },
+          {
+            "line": 68,
+            "text": "  return {"
+          },
+          {
+            "line": 69,
+            "text": "    signal,"
+          },
+          {
+            "line": 70,
+            "text": "    output: {"
+          },
+          {
+            "line": 71,
+            "text": "      async write(chunk) {"
+          },
+          {
+            "line": 72,
+            "text": "        assertOpen();"
+          },
+          {
+            "line": 73,
+            "text": "        await writeBytes(capability ?? destination, chunk, signal);"
+          },
+          {
+            "line": 74,
+            "text": "      },"
+          },
+          {
+            "line": 75,
+            "text": "    },"
+          },
+          {
+            "line": 76,
+            "text": "    registerCleanup,"
+          },
+          {
+            "line": 77,
+            "text": "    async acquire(start, release) {"
+          },
+          {
+            "line": 78,
+            "text": "      assertOpen();"
+          },
+          {
+            "line": 79,
+            "text": "      let resource: { value: Awaited<ReturnType<typeof start>> } | undefined;"
+          },
+          {
+            "line": 80,
+            "text": "      let released: Promise<void> | undefined;"
+          },
+          {
+            "line": 81,
+            "text": "      const dispose = (): Promise<void> => {"
+          },
+          {
+            "line": 82,
+            "text": "        if (!resource) return Promise.resolve();"
+          },
+          {
+            "line": 83,
+            "text": "        const value = resource.value;"
+          },
+          {
+            "line": 84,
+            "text": "        released ??= Promise.resolve().then(() => release(value));"
+          },
+          {
+            "line": 85,
+            "text": "        return released;"
+          },
+          {
+            "line": 86,
+            "text": "      };"
+          },
+          {
+            "line": 87,
+            "text": "      registerCleanup(dispose);"
+          },
+          {
+            "line": 88,
+            "text": "      const pending = Promise.resolve(start(signal)).then(async value => {"
+          },
+          {
+            "line": 89,
+            "text": "        resource = { value };"
+          },
+          {
+            "line": 90,
+            "text": "        if (!accepting) {"
+          },
+          {
+            "line": 91,
+            "text": "          await dispose();"
+          },
+          {
+            "line": 92,
+            "text": "          throw signal.aborted ? signal.reason : closedReason;"
+          },
+          {
+            "line": 93,
+            "text": "        }"
+          },
+          {
+            "line": 94,
+            "text": "        return value;"
+          },
+          {
+            "line": 95,
+            "text": "      });"
+          },
+          {
+            "line": 96,
+            "text": "      return wait(pending);"
+          },
+          {
+            "line": 97,
+            "text": "    },"
+          },
+          {
+            "line": 98,
+            "text": "    close,"
+          },
+          {
+            "line": 99,
+            "text": "  };"
+          },
+          {
+            "line": 100,
+            "text": "}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/contracts/io.ts",
+    "sha256": "52970acab76d8a7482d2867bf023acb18db26393c281b2fc388a63feb98fcce4",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 36,
+        "last": 126,
+        "lines": [
+          {
+            "line": 36,
+            "text": "  }"
+          },
+          {
+            "line": 37,
+            "text": "  const stream = new TransformStream<Uint8Array, Uint8Array>("
+          },
+          {
+            "line": 38,
+            "text": "    undefined,"
+          },
+          {
+            "line": 39,
+            "text": "    { highWaterMark: 1 },"
+          },
+          {
+            "line": 40,
+            "text": "    { highWaterMark, size: (chunk) => chunk.byteLength },"
+          },
+          {
+            "line": 41,
+            "text": "  );"
+          },
+          {
+            "line": 42,
+            "text": "  const reader = stream.readable.getReader();"
+          },
+          {
+            "line": 43,
+            "text": "  const writer = stream.writable.getWriter();"
+          },
+          {
+            "line": 44,
+            "text": "  let ended = false;"
+          },
+          {
+            "line": 45,
+            "text": "  let failed = false;"
+          },
+          {
+            "line": 46,
+            "text": "  let failure: unknown;"
+          },
+          {
+            "line": 47,
+            "text": "  let closePromise: Promise<void> | undefined;"
+          },
+          {
+            "line": 48,
+            "text": "  let abortPromise: Promise<void> | undefined;"
+          },
+          {
+            "line": 49,
+            "text": "  let finished = false;"
+          },
+          {
+            "line": 50,
+            "text": "  const consumer = new AbortController();"
+          },
+          {
+            "line": 51,
+            "text": "  const abort = (reason: unknown = new FsError(\"EPIPE\", { syscall: \"pipe\" })): Promise<void> => {"
+          },
+          {
+            "line": 52,
+            "text": "    if (abortPromise) return abortPromise;"
+          },
+          {
+            "line": 53,
+            "text": "    if (finished) return Promise.resolve();"
+          },
+          {
+            "line": 54,
+            "text": "    failed = true;"
+          },
+          {
+            "line": 55,
+            "text": "    failure = reason;"
+          },
+          {
+            "line": 56,
+            "text": "    ended = true;"
+          },
+          {
+            "line": 57,
+            "text": "    consumer.abort(reason);"
+          },
+          {
+            "line": 58,
+            "text": "    abortPromise = Promise.allSettled([reader.cancel(reason), writer.abort(reason)]).then(() => {});"
+          },
+          {
+            "line": 59,
+            "text": "    return abortPromise;"
+          },
+          {
+            "line": 60,
+            "text": "  };"
+          },
+          {
+            "line": 61,
+            "text": "  const onAbort = (): void => { void abort(signal?.reason); };"
+          },
+          {
+            "line": 62,
+            "text": "  const cleanup = (): void => signal?.removeEventListener(\"abort\", onAbort);"
+          },
+          {
+            "line": 63,
+            "text": "  void writer.closed.catch(() => {});"
+          },
+          {
+            "line": 64,
+            "text": "  void reader.closed.then(cleanup, cleanup);"
+          },
+          {
+            "line": 65,
+            "text": "  if (signal?.aborted) onAbort();"
+          },
+          {
+            "line": 66,
+            "text": "  else signal?.addEventListener(\"abort\", onAbort, { once: true });"
+          },
+          {
+            "line": 67,
+            "text": "  const iterator = (async function* (): AsyncGenerator<Uint8Array> {"
+          },
+          {
+            "line": 68,
+            "text": "    try {"
+          },
+          {
+            "line": 69,
+            "text": "      while (true) {"
+          },
+          {
+            "line": 70,
+            "text": "        if (failed) throw failure;"
+          },
+          {
+            "line": 71,
+            "text": "        const result = await reader.read();"
+          },
+          {
+            "line": 72,
+            "text": "        if (failed) throw failure;"
+          },
+          {
+            "line": 73,
+            "text": "        if (result.done) {"
+          },
+          {
+            "line": 74,
+            "text": "          finished = true;"
+          },
+          {
+            "line": 75,
+            "text": "          return;"
+          },
+          {
+            "line": 76,
+            "text": "        }"
+          },
+          {
+            "line": 77,
+            "text": "        yield result.value;"
+          },
+          {
+            "line": 78,
+            "text": "      }"
+          },
+          {
+            "line": 79,
+            "text": "    } finally {"
+          },
+          {
+            "line": 80,
+            "text": "      if (!finished) await abort();"
+          },
+          {
+            "line": 81,
+            "text": "      reader.releaseLock();"
+          },
+          {
+            "line": 82,
+            "text": "    }"
+          },
+          {
+            "line": 83,
+            "text": "  })();"
+          },
+          {
+            "line": 84,
+            "text": "  const readable: AsyncIterableIterator<Uint8Array> = {"
+          },
+          {
+            "line": 85,
+            "text": "    [Symbol.asyncIterator]() { return this; },"
+          },
+          {
+            "line": 86,
+            "text": "    next() { return iterator.next(); },"
+          },
+          {
+            "line": 87,
+            "text": "    async return() {"
+          },
+          {
+            "line": 88,
+            "text": "      if (!finished) await abort();"
+          },
+          {
+            "line": 89,
+            "text": "      try {"
+          },
+          {
+            "line": 90,
+            "text": "        return await iterator.return(undefined);"
+          },
+          {
+            "line": 91,
+            "text": "      } finally {"
+          },
+          {
+            "line": 92,
+            "text": "        reader.releaseLock();"
+          },
+          {
+            "line": 93,
+            "text": "      }"
+          },
+          {
+            "line": 94,
+            "text": "    },"
+          },
+          {
+            "line": 95,
+            "text": "    async throw(reason) {"
+          },
+          {
+            "line": 96,
+            "text": "      await abort(reason);"
+          },
+          {
+            "line": 97,
+            "text": "      try {"
+          },
+          {
+            "line": 98,
+            "text": "        return await iterator.throw(reason);"
+          },
+          {
+            "line": 99,
+            "text": "      } finally {"
+          },
+          {
+            "line": 100,
+            "text": "        reader.releaseLock();"
+          },
+          {
+            "line": 101,
+            "text": "      }"
+          },
+          {
+            "line": 102,
+            "text": "    },"
+          },
+          {
+            "line": 103,
+            "text": "  };"
+          },
+          {
+            "line": 104,
+            "text": "  const write = async (chunk: Uint8Array): Promise<void> => {"
+          },
+          {
+            "line": 105,
+            "text": "        if (failed) throw failure;"
+          },
+          {
+            "line": 106,
+            "text": "        if (ended) throw new FsError(\"EPIPE\", { syscall: \"write\" });"
+          },
+          {
+            "line": 107,
+            "text": "        if (!(chunk instanceof Uint8Array)) throw new TypeError(\"Byte sinks require Uint8Array chunks\");"
+          },
+          {
+            "line": 108,
+            "text": "        if (chunk.byteLength > 0) await writer.write(new Uint8Array(chunk));"
+          },
+          {
+            "line": 109,
+            "text": "  };"
+          },
+          {
+            "line": 110,
+            "text": "  return {"
+          },
+          {
+            "line": 111,
+            "text": "    readable,"
+          },
+          {
+            "line": 112,
+            "text": "    writable: {"
+          },
+          {
+            "line": 113,
+            "text": "      write,"
+          },
+          {
+            "line": 114,
+            "text": "      ownedOutput: { consumerClosed: consumer.signal, write },"
+          },
+          {
+            "line": 115,
+            "text": "    },"
+          },
+          {
+            "line": 116,
+            "text": "    close() {"
+          },
+          {
+            "line": 117,
+            "text": "      if (failed) return Promise.reject(failure);"
+          },
+          {
+            "line": 118,
+            "text": "      ended = true;"
+          },
+          {
+            "line": 119,
+            "text": "      closePromise ??= writer.close();"
+          },
+          {
+            "line": 120,
+            "text": "      return closePromise;"
+          },
+          {
+            "line": 121,
+            "text": "    },"
+          },
+          {
+            "line": 122,
+            "text": "    abort,"
+          },
+          {
+            "line": 123,
+            "text": "  };"
+          },
+          {
+            "line": 124,
+            "text": "}"
+          },
+          {
+            "line": 125,
+            "text": ""
+          },
+          {
+            "line": 126,
+            "text": "export function toByteSource(input: string | Uint8Array): ByteSource {"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "src/fs/webdav/webdav.ts",
+    "sha256": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "version": "authenticated v1/r1, not current live product",
+    "excerpts": [
+      {
+        "first": 277,
+        "last": 320,
+        "lines": [
+          {
+            "line": 277,
+            "text": "  private async *requestStream<T>(method: string, path: string, options: FsOptions, init: RequestInit,"
+          },
+          {
+            "line": 278,
+            "text": "    consume: (response: Response, signal: AbortSignal) => AsyncIterable<T>, collection = false,"
+          },
+          {
+            "line": 279,
+            "text": "    received?: (response: Response, late: boolean) => void): AsyncGenerator<T> {"
+          },
+          {
+            "line": 280,
+            "text": "    if (options.signal?.aborted) fail(\"ECANCELED\", method, path);"
+          },
+          {
+            "line": 281,
+            "text": "    const timeout = AbortSignal.timeout(this.timeoutMs);"
+          },
+          {
+            "line": 282,
+            "text": "    const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;"
+          },
+          {
+            "line": 283,
+            "text": "    const headers = new Headers(this.headers);"
+          },
+          {
+            "line": 284,
+            "text": "    for (const [name, value] of new Headers(init.headers)) headers.set(name, value);"
+          },
+          {
+            "line": 285,
+            "text": "    headers.set(\"Cache-Control\", \"no-cache\");"
+          },
+          {
+            "line": 286,
+            "text": "    let response: Response | undefined;"
+          },
+          {
+            "line": 287,
+            "text": "    const receive = (value: Response, late: boolean): void => {"
+          },
+          {
+            "line": 288,
+            "text": "      if (value.redirected || value.type === \"opaqueredirect\") fail(\"ENOTSUP\", method, path, \"transport followed or hid a redirect\");"
+          },
+          {
+            "line": 289,
+            "text": "      if (value.url && this.hrefPath(value.url) !== path) fail(\"EACCES\", method, path, \"transport changed the requested resource\");"
+          },
+          {
+            "line": 290,
+            "text": "      received?.(value, late);"
+          },
+          {
+            "line": 291,
+            "text": "    };"
+          },
+          {
+            "line": 292,
+            "text": "    try {"
+          },
+          {
+            "line": 293,
+            "text": "      let url = this.url(path, collection);"
+          },
+          {
+            "line": 294,
+            "text": "      for (let attempt = 0; ; attempt++) {"
+          },
+          {
+            "line": 295,
+            "text": "        signal.throwIfAborted();"
+          },
+          {
+            "line": 296,
+            "text": "        response = await new Promise<Response>((resolve, reject) => {"
+          },
+          {
+            "line": 297,
+            "text": "          let abandoned = false;"
+          },
+          {
+            "line": 298,
+            "text": "          const abort = (): void => {"
+          },
+          {
+            "line": 299,
+            "text": "            abandoned = true;"
+          },
+          {
+            "line": 300,
+            "text": "            signal.removeEventListener(\"abort\", abort);"
+          },
+          {
+            "line": 301,
+            "text": "            reject(signal.reason);"
+          },
+          {
+            "line": 302,
+            "text": "          };"
+          },
+          {
+            "line": 303,
+            "text": "          signal.addEventListener(\"abort\", abort, { once: true });"
+          },
+          {
+            "line": 304,
+            "text": "          try {"
+          },
+          {
+            "line": 305,
+            "text": "            Promise.resolve(this.transport(url, {"
+          },
+          {
+            "line": 306,
+            "text": "              ...init, method, headers, redirect: \"manual\", credentials: \"omit\", signal,"
+          },
+          {
+            "line": 307,
+            "text": "            })).then((value) => {"
+          },
+          {
+            "line": 308,
+            "text": "              signal.removeEventListener(\"abort\", abort);"
+          },
+          {
+            "line": 309,
+            "text": "              if (!abandoned) resolve(value);"
+          },
+          {
+            "line": 310,
+            "text": "              else {"
+          },
+          {
+            "line": 311,
+            "text": "                try { receive(value, true); }"
+          },
+          {
+            "line": 312,
+            "text": "                catch {}"
+          },
+          {
+            "line": 313,
+            "text": "                finally {"
+          },
+          {
+            "line": 314,
+            "text": "                  if (value.body && !value.body.locked) void value.body.cancel(signal.reason).catch(() => {});"
+          },
+          {
+            "line": 315,
+            "text": "                }"
+          },
+          {
+            "line": 316,
+            "text": "              }"
+          },
+          {
+            "line": 317,
+            "text": "            }, (error: unknown) => {"
+          },
+          {
+            "line": 318,
+            "text": "              signal.removeEventListener(\"abort\", abort);"
+          },
+          {
+            "line": 319,
+            "text": "              reject(error);"
+          },
+          {
+            "line": 320,
+            "text": "            }).catch(reject);"
+          }
+        ]
+      },
+      {
+        "first": 623,
+        "last": 644,
+        "lines": [
+          {
+            "line": 623,
+            "text": "  async *readStream(path: string, options: ReadStreamOptions = {}): AsyncGenerator<Uint8Array> {"
+          },
+          {
+            "line": 624,
+            "text": "    const normalized = normalize(path);"
+          },
+          {
+            "line": 625,
+            "text": "    const start = positive(options.start ?? 0, \"start\", true);"
+          },
+          {
+            "line": 626,
+            "text": "    const end = options.endExclusive === undefined ? Infinity : positive(options.endExclusive, \"endExclusive\", true);"
+          },
+          {
+            "line": 627,
+            "text": "    const chunkSize = positive(options.chunkSize ?? 64 * 1024, \"chunkSize\");"
+          },
+          {
+            "line": 628,
+            "text": "    if (end < start) fail(\"EINVAL\", \"readStream\", path, \"endExclusive precedes start\");"
+          },
+          {
+            "line": 629,
+            "text": "    if ((await this.stat(path, options)).type === \"directory\") fail(\"EISDIR\", \"readStream\", path);"
+          },
+          {
+            "line": 630,
+            "text": "    const filesystem = this;"
+          },
+          {
+            "line": 631,
+            "text": "    yield* this.requestStream(\"GET\", normalized, options, { headers: { \"Accept-Encoding\": \"identity\" } }, async function* (response, signal) {"
+          },
+          {
+            "line": 632,
+            "text": "      if (response.status !== 200) filesystem.httpError(response.status, \"GET\", path);"
+          },
+          {
+            "line": 633,
+            "text": "      let position = 0;"
+          },
+          {
+            "line": 634,
+            "text": "      for await (const chunk of filesystem.bodyChunks(response, filesystem.maxResponseBytes, signal)) {"
+          },
+          {
+            "line": 635,
+            "text": "        const first = Math.max(0, start - position);"
+          },
+          {
+            "line": 636,
+            "text": "        const last = Math.min(chunk.byteLength, end - position);"
+          },
+          {
+            "line": 637,
+            "text": "        for (let offset = first; offset < last; offset += chunkSize) {"
+          },
+          {
+            "line": 638,
+            "text": "          signal.throwIfAborted();"
+          },
+          {
+            "line": 639,
+            "text": "          yield chunk.slice(offset, Math.min(last, offset + chunkSize));"
+          },
+          {
+            "line": 640,
+            "text": "        }"
+          },
+          {
+            "line": 641,
+            "text": "        position += chunk.byteLength;"
+          },
+          {
+            "line": 642,
+            "text": "        if (position >= end) return;"
+          },
+          {
+            "line": 643,
+            "text": "      }"
+          },
+          {
+            "line": 644,
+            "text": "    });"
+          }
+        ]
+      }
+    ]
+  }
+]

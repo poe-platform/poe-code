@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "classification": "SEALED_BEFORE_ONE_SYNTHETIC_QUALIFICATION",
+  "createdUTC": "2026-08-28T04:53:27.419Z",
+  "files": [
+    {
+      "path": "BINDING.json",
+      "bytes": 10468,
+      "sha256": "331b919da8fc358e6694508c354850e2123560aa7e9ae6c2706ae02f2bdc7a63",
+      "mode": "644"
+    },
+    {
+      "path": "COVERAGE.json",
+      "bytes": 119895,
+      "sha256": "776b0ace1701da02ca0048a5b943033f580e6f8de8d7e3e34e38880194867cbb",
+      "mode": "644"
+    },
+    {
+      "path": "PREPARATION.md",
+      "bytes": 9788,
+      "sha256": "045def8e8e99d2f73147816dcc3d899660c9c4161555c36e792eee89689e2c95",
+      "mode": "644"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 6424,
+      "sha256": "01e9d7c2b63cbf3bee574afcffddc2c93a287c4cd7bba317dae3932142cc6dae",
+      "mode": "644"
+    },
+    {
+      "path": "core.mjs",
+      "bytes": 6085,
+      "sha256": "3895185f7962d316bfde115614ab7d33e683a7b8c4a05886917df5b374abefdc",
+      "mode": "644"
+    },
+    {
+      "path": "executor.mjs",
+      "bytes": 5956,
+      "sha256": "39b09bb1465733b719dc8f316094c2a78eaaf1811b0eed56d243f6e76ad73c0d",
+      "mode": "644"
+    },
+    {
+      "path": "guard.mjs",
+      "bytes": 1843,
+      "sha256": "bc20a1dee050575b2e0e342d7cf5709136e5cb32b88520fc7c451e93c4a57ae4",
+      "mode": "644"
+    },
+    {
+      "path": "mocks.mjs",
+      "bytes": 10860,
+      "sha256": "05fb3afc93cb6e3d3c297a070cde21402614031c4145bb6b3777d69ed7859ce8",
+      "mode": "644"
+    },
+    {
+      "path": "module-worker.mjs",
+      "bytes": 2803,
+      "sha256": "b946ed7347b5796d6208c2542d226e1f76a83cd657d3bf0ce05d018f1e7c9339",
+      "mode": "644"
+    },
+    {
+      "path": "protocol.mjs",
+      "bytes": 1771,
+      "sha256": "7679902b53dfdb881a7f3babc8765d2c153690fbcc94086ca195a7ddf00a303c",
+      "mode": "644"
+    },
+    {
+      "path": "qualify.mjs",
+      "bytes": 27049,
+      "sha256": "bdaf5be9dfddf5658214b66115c20fdc427dd78221af471920fe89c391005dec",
+      "mode": "644"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 2925,
+      "sha256": "ce9d1b3b7797bce69450d84bf79b86c0acbb08ed78d59bd1bc845dbe450fea21",
+      "mode": "644"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 4782,
+      "sha256": "0e0dc464fdd505204301cf543711aac7c787825256b05ad9af750f2a375da063",
+      "mode": "644"
+    },
+    {
+      "path": "synthetic-module.mjs",
+      "bytes": 1386,
+      "sha256": "6cb1854c2f5a7cbeba746e39cafd2956d58f9b8e7b38e123521a31b3bcd17bc9",
+      "mode": "644"
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "bytes": 1319,
+      "sha256": "9d6cd4608a8291f4f8ae3507f022b69fb3e53f84bf21bce6779b349198c35f88",
+      "mode": "644"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": "755"
+    },
+    {
+      "path": "/usr/bin/git",
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "mode": "755"
+    }
+  ],
+  "toolVersions": {
+    "node": "v22.22.2",
+    "git": "2.50.1 (Apple Git-155)"
+  },
+  "plannedProbeIds": [
+    "bindings",
+    "candidate-absent-before-load",
+    "candidate-incomplete-before-load",
+    "byte-typeguard",
+    "all-frozen-chunk-schedules",
+    "borrowed-copy-finalization",
+    "owned-finalizer-mutation",
+    "poison-acquisition",
+    "poison-metadata",
+    "gated-backpressure",
+    "cleanup-register-before-admit",
+    "cleanup-late-acquire-overlap",
+    "cleanup-failure-drains-sibling",
+    "caller-errno-identity",
+    "wx-race-preserves-creator",
+    "wx-unsupported-no-fallback",
+    "alias-identity",
+    "stream-fallback-same-flags",
+    "partial-publication-no-rollback",
+    "csv-cr-bom-quote-vectors",
+    "csv-invalid-raw-cr",
+    "fallback-old-new-capacity",
+    "ordinary-failure-aggregation",
+    "cleanup-fatal-stops-dependent",
+    "integrity-fatal-stops-dependent",
+    "executor-receipt-before-assertion",
+    "semantic-no-substring-waiver",
+    "installed-physically-moved",
+    "finite-trace-over-four-mib",
+    "append-proof-integrity",
+    "mode-integrity",
+    "traversal-rejection",
+    "symlink-rejection",
+    "hash-diagnostic-identity",
+    "missing-input-rejection",
+    "empty-directory-append-rejection",
+    "cap-maxArgs",
+    "cap-maxArgumentBytes",
+    "cap-maxInputFiles",
+    "cap-maxInputBytes",
+    "cap-maxChunks",
+    "cap-maxChunkBytes",
+    "cap-maxRecordBytes",
+    "cap-maxCellBytes",
+    "cap-maxColumns",
+    "cap-maxRecords",
+    "cap-maxSelectorBytes",
+    "cap-maxSelectorNodes",
+    "cap-maxSelectorDepth",
+    "cap-maxSelectedColumns",
+    "cap-maxLastRows",
+    "cap-maxWork",
+    "cap-maxOutputBytes",
+    "cap-maxRetainedBytes",
+    "SOURCE-generic-module-executor",
+    "SOURCE-valid",
+    "SOURCE-denyload",
+    "SOURCE-sourcefallback",
+    "SOURCE-builtin",
+    "SOURCE-ambient",
+    "SOURCE-eval",
+    "SOURCE-ordinary",
+    "SOURCE-overflow",
+    "SOURCE-timeout",
+    "INSTALLED_MOVED-generic-module-executor",
+    "INSTALLED_MOVED-valid",
+    "INSTALLED_MOVED-denyload",
+    "INSTALLED_MOVED-sourcefallback",
+    "INSTALLED_MOVED-builtin",
+    "INSTALLED_MOVED-ambient",
+    "INSTALLED_MOVED-eval",
+    "INSTALLED_MOVED-ordinary",
+    "INSTALLED_MOVED-overflow",
+    "INSTALLED_MOVED-timeout"
+  ],
+  "qualificationInvocationsAuthorized": 1,
+  "plannedChildren": 21,
+  "plannedIntentionalTimeouts": 2,
+  "plannedOrdinaryNonzeroChildren": 2,
+  "plannedOutputOverflowControls": 2,
+  "finiteTrace": {
+    "payloadBytes": 5242880,
+    "chunkBytes": 65536,
+    "fullArtifactBytes": 5242954,
+    "separateOrdinaryLogBound": 16384
+  },
+  "controlScope": "All counts are synthetic helper controls; family coverage partial and generic cap counters not product boundary generators.",
+  "staticChecks": {
+    "syntax": "All 12 .mjs scripts passed node --check; no runtime imports/fixture executions",
+    "json": "BINDING and COVERAGE parsed",
+    "failedSyntaxAttempts": 0,
+    "failedSyntheticAttempts": 0,
+    "preSealCorrections": "Static review refined manifest/JSON bounds, event/directory bounds, published mock length, independent cleanup receipt order, physical source-fallback poison and append-aware evidence directories. None was a failed qualification run."
+  },
+  "product": 0,
+  "implementationSourceInspection": 0,
+  "nativeOracle": 0,
+  "sealRule": "Git commit seals this file; no circular self hash. PRE-RUN names actual recipe commit and this file digest."
+}

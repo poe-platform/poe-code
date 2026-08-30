@@ -1,0 +1,37 @@
+{
+  "entries": [
+    {
+      "path": "synthetic-module.mjs",
+      "bytes": 1386,
+      "sha256": "6cb1854c2f5a7cbeba746e39cafd2956d58f9b8e7b38e123521a31b3bcd17bc9",
+      "mode": "644"
+    }
+  ],
+  "manifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/synthetic-evidence/layout.json",
+    "bytes": 167,
+    "sha256": "7930247bf319dbe6d1c158668babb5a9a34d04254c290193a5e16fbd69e7718e",
+    "mode": "644"
+  },
+  "outside": {
+    "bytes": 1386,
+    "sha256": "6cb1854c2f5a7cbeba746e39cafd2956d58f9b8e7b38e123521a31b3bcd17bc9",
+    "mode": "644"
+  },
+  "loader": {
+    "bytes": 1843,
+    "sha256": "bc20a1dee050575b2e0e342d7cf5709136e5cb32b88520fc7c451e93c4a57ae4",
+    "mode": "644"
+  },
+  "supervisor": {
+    "bytes": 4782,
+    "sha256": "0e0dc464fdd505204301cf543711aac7c787825256b05ad9af750f2a375da063",
+    "mode": "644"
+  },
+  "worker": {
+    "bytes": 1319,
+    "sha256": "9d6cd4608a8291f4f8ae3507f022b69fb3e53f84bf21bce6779b349198c35f88",
+    "mode": "644"
+  },
+  "preparedBeforeFirstChild": true
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "independent-public-node-executable-v1",
+  "candidate": "a6d20781d3c099fb7b3d36c10696beb06615af1b",
+  "source": "bb4dd0571a0335b20e29448bf88126ca02c1a32d",
+  "fullPackage": "274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9",
+  "inputs": [
+    {
+      "path": "launch.mjs",
+      "bytes": 7719,
+      "sha256": "f725f87de8b4d218dea2ab8fb10f581284e804792a0a29849fd9020e827ac817"
+    },
+    {
+      "path": "RECIPE-v2.json.gz.base64",
+      "bytes": 4935277,
+      "sha256": "5d4966d788ece490017b0b3e24271203df5896a4a8feb167ee922ae8bbbd1d32"
+    },
+    {
+      "path": "BINDINGS-v2.json",
+      "bytes": 3285,
+      "sha256": "89efe946aa4fb098505ed6751c8dde15e15d997df84a7f10834f38891a438698"
+    },
+    {
+      "path": "NOVEL-PRESEAL.json",
+      "bytes": 2757,
+      "sha256": "67e38a65a1d325931f5b7cd2c6119c86ef21caad5d3a1c652d509a5e101126df"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "plan": {
+    "retained": 651,
+    "module": 183,
+    "publicVersionMapped": 72,
+    "novel": 36,
+    "totalMain": 942,
+    "directChildren": 71,
+    "owners": 1,
+    "outer": 1,
+    "executionProcessTotal": 73,
+    "administrationReserved": 48,
+    "allOsAdmissionEnvelope": 121,
+    "rootAllOsCap": 192,
+    "NodeMaximum": 156,
+    "NodeEnforcedCap": 192,
+    "RegexCap": 8,
+    "loaderAdmissions": 23,
+    "totalKnownWorkerAdmissionCap": 256,
+    "guestCap": 192
+  },
+  "grant": {
+    "seconds": 4500,
+    "ALLprocesses": 192,
+    "peak": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824,
+    "NodeWorkers": 192,
+    "RegexWorkers": 8,
+    "loaderAdmissions": 40,
+    "allKnownWorkerAdmissions": 256,
+    "guestEntries": 192
+  },
+  "admission": "No activation until this executable preseal committed. Exact71 child labels +1 owner +1 launcher=73 execution processes;48 separately reserved admin slots=121 planned envelope, not measured all-process proof. Ordinary repair needs versioned remaining-cap accounting.",
+  "roles": "Source-built/installed/physically moved:217 retained+61 module+24 versionmapped public+12 novel each. Actual application Workers tracked separately from23 fixed internal-loader admissions; internal exits unobserved, hosting process closure only.",
+  "timing": "Post-author source/DATA inspection, before independent compiler/product/Worker/guest execution",
+  "activation": "exec node launch.mjs ACTIVATE-COMMITTED-a6d20781"
+}

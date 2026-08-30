@@ -1,0 +1,19 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+40 !== 38
+
+    at runDataControls (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/data-controls.mjs:100:10)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/child.mjs:19:11 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 40,
+  expected: 38,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

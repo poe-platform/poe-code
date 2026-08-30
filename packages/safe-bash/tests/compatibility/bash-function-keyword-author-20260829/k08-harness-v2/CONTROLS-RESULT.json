@@ -1,0 +1,14 @@
+{
+  "schema": "k08-harness-v2-qualified-controls",
+  "previousAttempt": "preliminary-v1/ATTEMPT.json",
+  "result": {
+    "code": 0,
+    "signal": null,
+    "stdout": "{\"schema\":\"k08-harness-v2-data-results\",\"groups\":[{\"id\":\"B1-01\",\"pass\":true},{\"id\":\"B1-02\",\"pass\":true},{\"id\":\"B1-03\",\"pass\":true},{\"id\":\"B1-04\",\"pass\":true},{\"id\":\"B1-05\",\"pass\":true},{\"id\":\"B1-06\",\"pass\":true},{\"id\":\"B2-07\",\"pass\":true},{\"id\":\"B2-08\",\"pass\":true},{\"id\":\"B2-09\",\"pass\":true},{\"id\":\"B2-10\",\"pass\":true},{\"id\":\"B3-11\",\"pass\":true},{\"id\":\"B3-12\",\"pass\":true},{\"id\":\"B3-13\",\"pass\":true},{\"id\":\"B4-14\",\"pass\":true},{\"id\":\"B4-15\",\"pass\":true},{\"id\":\"B4-16\",\"pass\":true}],\"syntaxOnlyFiles\":[\"auth.mjs\",\"direct-child.mjs\",\"collector-core.mjs\",\"preauth.mjs\",\"helper-driver.mjs\",\"case-adapter.mjs\",\"target-owner.mjs\",\"collector.mjs\",\"case-driver.mjs\",\"activation.mjs\",\"qualification.mjs\",\"controls.mjs\"],\"productCalls\":0,\"harmlessLifecycleFixtures\":0,\"qualification\":\"PURE DATA/syntax, not actual child timing or product execution\"}\n",
+    "stderr": "(node:75846) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+  },
+  "groups": 16,
+  "scope": "PURE DATA and syntax only, no actual lifecycle fixtures or product",
+  "actualProductCalls": 0,
+  "actualLifecycleFixtures": 0
+}

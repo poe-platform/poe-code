@@ -1,0 +1,4344 @@
+TAP version 13
+# Subtest: pinned native accepts metadata between-sections: rename from target
+ok 1 - pinned native accepts metadata between-sections: rename from target
+  ---
+  duration_ms: 54.814
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: rename to sentinel
+ok 2 - pinned native accepts metadata between-sections: rename to sentinel
+  ---
+  duration_ms: 27.830792
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: copy from target
+ok 3 - pinned native accepts metadata between-sections: copy from target
+  ---
+  duration_ms: 26.417708
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: copy to sentinel
+ok 4 - pinned native accepts metadata between-sections: copy to sentinel
+  ---
+  duration_ms: 26.1215
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: new file mode 120000
+ok 5 - pinned native accepts metadata between-sections: new file mode 120000
+  ---
+  duration_ms: 23.893125
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: deleted file mode 120000
+ok 6 - pinned native accepts metadata between-sections: deleted file mode 120000
+  ---
+  duration_ms: 29.600667
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: old mode 120000
+ok 7 - pinned native accepts metadata between-sections: old mode 120000
+  ---
+  duration_ms: 27.497041
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: new mode 120000
+ok 8 - pinned native accepts metadata between-sections: new mode 120000
+  ---
+  duration_ms: 23.068875
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: similarity index 100%
+ok 9 - pinned native accepts metadata between-sections: similarity index 100%
+  ---
+  duration_ms: 21.272541
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: dissimilarity index 100%
+ok 10 - pinned native accepts metadata between-sections: dissimilarity index 100%
+  ---
+  duration_ms: 20.0015
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: GIT binary patch
+ok 11 - pinned native accepts metadata between-sections: GIT binary patch
+  ---
+  duration_ms: 24.232084
+  type: 'test'
+  ...
+# Subtest: pinned native accepts metadata between-sections: unknown extension metadata
+ok 12 - pinned native accepts metadata between-sections: unknown extension metadata
+  ---
+  duration_ms: 26.198459
+  type: 'test'
+  ...
+# Subtest: pinned native creates missing parent default strip
+ok 13 - pinned native creates missing parent default strip
+  ---
+  duration_ms: 18.068916
+  type: 'test'
+  ...
+# Subtest: pinned native creates missing parent explicit -p0
+ok 14 - pinned native creates missing parent explicit -p0
+  ---
+  duration_ms: 19.393
+  type: 'test'
+  ...
+# Subtest: pinned native conflict, not invalid syntax: normal-overlapping-old-hunks
+ok 15 - pinned native conflict, not invalid syntax: normal-overlapping-old-hunks
+  ---
+  duration_ms: 16.979125
+  type: 'test'
+  ...
+# Subtest: pinned native conflict, not invalid syntax: context-overlapping-hunks
+ok 16 - pinned native conflict, not invalid syntax: context-overlapping-hunks
+  ---
+  duration_ms: 15.326542
+  type: 'test'
+  ...
+# Subtest: GNU default partial publication and diagnostics: normal-overlapping-old-hunks
+not ok 17 - GNU default partial publication and diagnostics: normal-overlapping-old-hunks
+  ---
+  duration_ms: 39.608166
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:1:150'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: normal-overlapping-old-hunks
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a6b6565700a656e640a',
+    -       hex: '2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a',
+    -       path: '/sandbox/work/reject',
+    -       type: 'file'
+    -     },
+    -     {
+    -       hex: '6e65770a6b6565700a656e640a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: unsupported option: --forward\n',
+    +   stdout: ''
+    -   exitCode: 1,
+    -   stderr: '',
+    -   stdout: 'patching file target\n' +
+    -     'misordered hunks! output would be garbled\n' +
+    -     'Hunk #2 FAILED at 1.\n' +
+    -     '1 out of 2 hunks FAILED -- saving rejects to file reject\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 1
+    stdout: |-
+      patching file target
+      misordered hunks! output would be garbled
+      Hunk #2 FAILED at 1.
+      1 out of 2 hunks FAILED -- saving rejects to file reject
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/reject'
+        type: 'file'
+        hex: '2a2a2a202f6465762f6e756c6c0a2d2d2d202f6465762f6e756c6c0a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a20310a2d206f6c640a2d2d2d2031202d2d2d2d2d0a2b206e65770a'
+      5:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a6b6565700a656e640a'
+      6:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  actual:
+    exitCode: 2
+    stdout: ''
+    stderr: |-
+      patch: unsupported option: --forward
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:6:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: GNU default partial publication and diagnostics: context-overlapping-hunks
+not ok 18 - GNU default partial publication and diagnostics: context-overlapping-hunks
+  ---
+  duration_ms: 26.003583
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:1:150'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: context-overlapping-hunks
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a6b6565700a656e640a',
+    -       hex: '2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a',
+    -       path: '/sandbox/work/reject',
+    -       type: 'file'
+    -     },
+    -     {
+    -       hex: '6e65770a6b6565700a656e640a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: unsupported option: --forward\n',
+    +   stdout: ''
+    -   exitCode: 1,
+    -   stderr: '',
+    -   stdout: 'patching file target\n' +
+    -     'misordered hunks! output would be garbled\n' +
+    -     'Hunk #2 FAILED at 1.\n' +
+    -     '1 out of 2 hunks FAILED -- saving rejects to file reject\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 1
+    stdout: |-
+      patching file target
+      misordered hunks! output would be garbled
+      Hunk #2 FAILED at 1.
+      1 out of 2 hunks FAILED -- saving rejects to file reject
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/reject'
+        type: 'file'
+        hex: '2a2a2a207461726765740a2d2d2d207461726765740a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a0a2a2a2a2031202a2a2a2a0a21206f6c640a2d2d2d2031202d2d2d2d0a21206e65770a'
+      5:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a6b6565700a656e640a'
+      6:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  actual:
+    exitCode: 2
+    stdout: ''
+    stderr: |-
+      patch: unsupported option: --forward
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/work'
+        type: 'directory'
+      3:
+        path: '/sandbox/work/other'
+        type: 'file'
+        hex: '6f6c640a'
+      4:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a6b6565700a656e640a'
+      5:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts:6:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: normal-empty-insert
+ok 19 - normal-empty-insert
+  ---
+  duration_ms: 26.226125
+  type: 'test'
+  ...
+# Subtest: normal-empty-insert-incomplete
+ok 20 - normal-empty-insert-incomplete
+  ---
+  duration_ms: 14.2525
+  type: 'test'
+  ...
+# Subtest: normal-delete-to-empty
+ok 21 - normal-delete-to-empty
+  ---
+  duration_ms: 13.966167
+  type: 'test'
+  ...
+# Subtest: normal-both-incomplete
+ok 22 - normal-both-incomplete
+  ---
+  duration_ms: 18.842125
+  type: 'test'
+  ...
+# Subtest: normal-blank-data
+ok 23 - normal-blank-data
+  ---
+  duration_ms: 14.559875
+  type: 'test'
+  ...
+# Subtest: normal-tab-prefix
+ok 24 - normal-tab-prefix
+  ---
+  duration_ms: 1.039917
+  type: 'test'
+  ...
+# Subtest: normal-patch-looking-data
+ok 25 - normal-patch-looking-data
+  ---
+  duration_ms: 11.281625
+  type: 'test'
+  ...
+# Subtest: normal-crlf-data
+ok 26 - normal-crlf-data
+  ---
+  duration_ms: 11.007625
+  type: 'test'
+  ...
+# Subtest: normal-suppress-blank-empty
+ok 27 - normal-suppress-blank-empty
+  ---
+  duration_ms: 3.016959
+  type: 'test'
+  ...
+# Subtest: normal-empty-patch-noop
+ok 28 - normal-empty-patch-noop
+  ---
+  duration_ms: 11.652375
+  type: 'test'
+  ...
+# Subtest: normal-leading-empty-lines
+ok 29 - normal-leading-empty-lines
+  ---
+  duration_ms: 11.32725
+  type: 'test'
+  ...
+# Subtest: normal-two-ordered-hunks
+ok 30 - normal-two-ordered-hunks
+  ---
+  duration_ms: 12.979417
+  type: 'test'
+  ...
+# Subtest: context-empty-insert
+ok 31 - context-empty-insert
+  ---
+  duration_ms: 11.982708
+  type: 'test'
+  ...
+# Subtest: context-delete-to-empty
+ok 32 - context-delete-to-empty
+  ---
+  duration_ms: 12.726167
+  type: 'test'
+  ...
+# Subtest: context-empty-insert-incomplete
+ok 33 - context-empty-insert-incomplete
+  ---
+  duration_ms: 11.577834
+  type: 'test'
+  ...
+# Subtest: context-both-incomplete
+ok 34 - context-both-incomplete
+  ---
+  duration_ms: 10.437833
+  type: 'test'
+  ...
+# Subtest: context-omitted-old-with-context
+ok 35 - context-omitted-old-with-context
+  ---
+  duration_ms: 9.010834
+  type: 'test'
+  ...
+# Subtest: context-omitted-new-with-context
+ok 36 - context-omitted-new-with-context
+  ---
+  duration_ms: 12.403708
+  type: 'test'
+  ...
+# Subtest: context-incomplete-shared-tail
+ok 37 - context-incomplete-shared-tail
+  ---
+  duration_ms: 10.522083
+  type: 'test'
+  ...
+# Subtest: context-patch-looking-data
+ok 38 - context-patch-looking-data
+  ---
+  duration_ms: 11.783375
+  type: 'test'
+  ...
+# Subtest: context-crlf-data
+ok 39 - context-crlf-data
+  ---
+  duration_ms: 10.937041
+  type: 'test'
+  ...
+# Subtest: context-crlf-transport
+ok 40 - context-crlf-transport
+  ---
+  duration_ms: 16.529459
+  type: 'test'
+  ...
+# Subtest: context-suppress-blank-empty
+ok 41 - context-suppress-blank-empty
+  ---
+  duration_ms: 13.255667
+  type: 'test'
+  ...
+# Subtest: context-blank-context-line
+ok 42 - context-blank-context-line
+  ---
+  duration_ms: 12.575334
+  type: 'test'
+  ...
+# Subtest: mixed-normal-context
+ok 43 - mixed-normal-context
+  ---
+  duration_ms: 9.945792
+  type: 'test'
+  ...
+# Subtest: mixed-context-unified
+ok 44 - mixed-context-unified
+  ---
+  duration_ms: 11.764833
+  type: 'test'
+  ...
+# Subtest: mixed-unified-normal
+ok 45 - mixed-unified-normal
+  ---
+  duration_ms: 12.000584
+  type: 'test'
+  ...
+# Subtest: mixed-context-normal-unified
+ok 46 - mixed-context-normal-unified
+  ---
+  duration_ms: 13.38525
+  type: 'test'
+  ...
+# Subtest: normal-truncated-new-body
+ok 47 - normal-truncated-new-body
+  ---
+  duration_ms: 11.288292
+  type: 'test'
+  ...
+# Subtest: normal-truncated-final-lf
+ok 48 - normal-truncated-final-lf
+  ---
+  duration_ms: 13.237875
+  type: 'test'
+  ...
+# Subtest: normal-missing-change-separator
+ok 49 - normal-missing-change-separator
+  ---
+  duration_ms: 12.088
+  type: 'test'
+  ...
+# Subtest: normal-old-count-underflow
+ok 50 - normal-old-count-underflow
+  ---
+  duration_ms: 17.814875
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-new-count-overflow
+ok 51 - atomic-extension-normal-new-count-overflow
+  ---
+  duration_ms: 9.744917
+  type: 'test'
+  ...
+# Subtest: normal-descending-range
+ok 52 - normal-descending-range
+  ---
+  duration_ms: 8.805583
+  type: 'test'
+  ...
+# Subtest: normal-append-old-range
+ok 53 - normal-append-old-range
+  ---
+  duration_ms: 8.793667
+  type: 'test'
+  ...
+# Subtest: normal-delete-new-range
+ok 54 - normal-delete-new-range
+  ---
+  duration_ms: 9.513375
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-overlapping-old-hunks
+not ok 55 - atomic-extension-normal-overlapping-old-hunks
+  ---
+  duration_ms: 10.671917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:801'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"atomic-extension-normal-overlapping-old-hunks","before":"old\nkeep\nend\n","patch":"1c1\n< old\n---\n> new\n1c1\n< old\n---\n> new\n"}
+    + actual - expected
+    
+      {
+    +   nativeIssues: [
+    +     'GNU oracle execution failed: captured2 is not a function'
+    +   ],
+    +   productIssues: [
+    +     'GNU hunk conflict must return status 1, got 2',
+    +     'missing second-hunk conflict diagnostic: patch: unsupported option: --forward\n'
+    +   ]
+    -   nativeIssues: [],
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: 'GNU hunk conflict must return status 1, got 2'
+      1: |-
+        missing second-hunk conflict diagnostic: patch: unsupported option: --forward
+        
+    nativeIssues:
+      0: 'GNU oracle execution failed: captured2 is not a function'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:58:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: GNU-normal-new-coordinates-are-advisory
+ok 56 - GNU-normal-new-coordinates-are-advisory
+  ---
+  duration_ms: 8.472333
+  type: 'test'
+  ...
+# Subtest: normal-unsafe-integer
+ok 57 - normal-unsafe-integer
+  ---
+  duration_ms: 0.258666
+  type: 'test'
+  ...
+# Subtest: normal-marker-before-body
+ok 58 - normal-marker-before-body
+  ---
+  duration_ms: 11.926417
+  type: 'test'
+  ...
+# Subtest: normal-incomplete-nonfinal-new-line
+ok 59 - normal-incomplete-nonfinal-new-line
+  ---
+  duration_ms: 9.457792
+  type: 'test'
+  ...
+# Subtest: context-missing-new-range
+ok 60 - context-missing-new-range
+  ---
+  duration_ms: 7.508959
+  type: 'test'
+  ...
+# Subtest: context-old-count-mismatch
+ok 61 - context-old-count-mismatch
+  ---
+  duration_ms: 8.516583
+  type: 'test'
+  ...
+# Subtest: context-zero-nonempty-range
+ok 62 - context-zero-nonempty-range
+  ---
+  duration_ms: 9.022292
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-overlapping-hunks
+not ok 63 - atomic-extension-context-overlapping-hunks
+  ---
+  duration_ms: 9.297875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:1:801'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"id":"atomic-extension-context-overlapping-hunks","before":"old\nkeep\nend\n","patch":"*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n"}
+    + actual - expected
+    
+      {
+    +   nativeIssues: [
+    +     'GNU oracle execution failed: captured2 is not a function'
+    +   ],
+    +   productIssues: [
+    +     'GNU hunk conflict must return status 1, got 2',
+    +     'missing second-hunk conflict diagnostic: patch: unsupported option: --forward\n'
+    +   ]
+    -   nativeIssues: [],
+    -   productIssues: []
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    productIssues:
+    nativeIssues:
+  actual:
+    productIssues:
+      0: 'GNU hunk conflict must return status 1, got 2'
+      1: |-
+        missing second-hunk conflict diagnostic: patch: unsupported option: --forward
+        
+    nativeIssues:
+      0: 'GNU oracle execution failed: captured2 is not a function'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts:58:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: context-unsafe-integer
+ok 64 - context-unsafe-integer
+  ---
+  duration_ms: 8.480417
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-old-half
+ok 65 - context-missing-changed-old-half
+  ---
+  duration_ms: 11.111833
+  type: 'test'
+  ...
+# Subtest: context-missing-changed-new-half
+ok 66 - context-missing-changed-new-half
+  ---
+  duration_ms: 11.134708
+  type: 'test'
+  ...
+# Subtest: context-halves-disagree
+ok 67 - context-halves-disagree
+  ---
+  duration_ms: 9.390208
+  type: 'test'
+  ...
+# Subtest: context-duplicate-newline-marker
+ok 68 - context-duplicate-newline-marker
+  ---
+  duration_ms: 9.68475
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-valid-then-malformed-context
+ok 69 - atomic-extension-normal-valid-then-malformed-context
+  ---
+  duration_ms: 8.5255
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-valid-then-malformed-unified
+ok 70 - atomic-extension-context-valid-then-malformed-unified
+  ---
+  duration_ms: 8.473375
+  type: 'test'
+  ...
+# Subtest: atomic-extension-normal-valid-then-truncated-normal
+ok 71 - atomic-extension-normal-valid-then-truncated-normal
+  ---
+  duration_ms: 8.906041
+  type: 'test'
+  ...
+# Subtest: atomic-extension-context-valid-then-truncated-context
+ok 72 - atomic-extension-context-valid-then-truncated-context
+  ---
+  duration_ms: 11.163708
+  type: 'test'
+  ...
+# Subtest: mutation-0-normal
+ok 73 - mutation-0-normal
+  ---
+  duration_ms: 9.076792
+  type: 'test'
+  ...
+# Subtest: mutation-1-context
+ok 74 - mutation-1-context
+  ---
+  duration_ms: 8.80425
+  type: 'test'
+  ...
+# Subtest: mutation-2-normal
+ok 75 - mutation-2-normal
+  ---
+  duration_ms: 8.042459
+  type: 'test'
+  ...
+# Subtest: mutation-3-context
+ok 76 - mutation-3-context
+  ---
+  duration_ms: 8.573542
+  type: 'test'
+  ...
+# Subtest: mutation-4-normal
+ok 77 - mutation-4-normal
+  ---
+  duration_ms: 7.867958
+  type: 'test'
+  ...
+# Subtest: mutation-5-context
+ok 78 - mutation-5-context
+  ---
+  duration_ms: 8.801666
+  type: 'test'
+  ...
+# Subtest: mutation-6-normal
+ok 79 - mutation-6-normal
+  ---
+  duration_ms: 8.889833
+  type: 'test'
+  ...
+# Subtest: mutation-7-context
+ok 80 - mutation-7-context
+  ---
+  duration_ms: 11.08025
+  type: 'test'
+  ...
+# Subtest: normal-maxLines-empty-flood
+ok 81 - normal-maxLines-empty-flood
+  ---
+  duration_ms: 0.219
+  type: 'test'
+  ...
+# Subtest: normal-maxHunks-second-hunk
+ok 82 - normal-maxHunks-second-hunk
+  ---
+  duration_ms: 0.140584
+  type: 'test'
+  ...
+# Subtest: normal-maxWork-empty-flood
+ok 83 - normal-maxWork-empty-flood
+  ---
+  duration_ms: 0.10825
+  type: 'test'
+  ...
+# Subtest: normal-maxInput
+ok 84 - normal-maxInput
+  ---
+  duration_ms: 0.2885
+  type: 'test'
+  ...
+# Subtest: normal-maxOutput
+ok 85 - normal-maxOutput
+  ---
+  duration_ms: 0.318875
+  type: 'test'
+  ...
+# Subtest: normal-cancel-input
+ok 86 - normal-cancel-input
+  ---
+  duration_ms: 0.180625
+  type: 'test'
+  ...
+# Subtest: normal-cancel-parse
+ok 87 - normal-cancel-parse
+  ---
+  duration_ms: 10.214416
+  type: 'test'
+  ...
+# Subtest: context-maxLines-empty-flood
+ok 88 - context-maxLines-empty-flood
+  ---
+  duration_ms: 0.436709
+  type: 'test'
+  ...
+# Subtest: context-maxHunks-second-hunk
+ok 89 - context-maxHunks-second-hunk
+  ---
+  duration_ms: 0.310833
+  type: 'test'
+  ...
+# Subtest: context-maxWork-empty-flood
+ok 90 - context-maxWork-empty-flood
+  ---
+  duration_ms: 0.279708
+  type: 'test'
+  ...
+# Subtest: context-maxInput
+ok 91 - context-maxInput
+  ---
+  duration_ms: 0.165959
+  type: 'test'
+  ...
+# Subtest: context-maxOutput
+ok 92 - context-maxOutput
+  ---
+  duration_ms: 0.436625
+  type: 'test'
+  ...
+# Subtest: context-cancel-input
+ok 93 - context-cancel-input
+  ---
+  duration_ms: 0.144917
+  type: 'test'
+  ...
+# Subtest: context-cancel-parse
+ok 94 - context-cancel-parse
+  ---
+  duration_ms: 6.276167
+  type: 'test'
+  ...
+# Subtest: GNU-normal-suppress-blank-empty
+ok 95 - GNU-normal-suppress-blank-empty
+  ---
+  duration_ms: 17.924291
+  type: 'test'
+  ...
+# Subtest: GNU-context-suppress-blank-empty
+ok 96 - GNU-context-suppress-blank-empty
+  ---
+  duration_ms: 18.752416
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-middle-deletion
+ok 97 - GNU-context-zero-middle-deletion
+  ---
+  duration_ms: 16.476708
+  type: 'test'
+  ...
+# Subtest: GNU-context-zero-empty-insertion
+ok 98 - GNU-context-zero-empty-insertion
+  ---
+  duration_ms: 17.950542
+  type: 'test'
+  ...
+# Subtest: mail with safely quoted Unicode/tab target and signature really applies
+ok 99 - mail with safely quoted Unicode/tab target and signature really applies
+  ---
+  duration_ms: 13.344042
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 0 after-patch
+ok 100 - mail cannot conceal later section 0 after-patch
+  ---
+  duration_ms: 3.038208
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 0 after-signature
+ok 101 - mail cannot conceal later section 0 after-signature
+  ---
+  duration_ms: 1.126042
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 1 after-patch
+ok 102 - mail cannot conceal later section 1 after-patch
+  ---
+  duration_ms: 1.217208
+  type: 'test'
+  ...
+# Subtest: mail cannot conceal later section 1 after-signature
+ok 103 - mail cannot conceal later section 1 after-signature
+  ---
+  duration_ms: 0.607583
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 2 after-patch
+ok 104 - atomic extension mail cannot conceal later section 2 after-patch
+  ---
+  duration_ms: 0.91525
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 2 after-signature
+ok 105 - atomic extension mail cannot conceal later section 2 after-signature
+  ---
+  duration_ms: 1.497583
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 3 after-patch
+ok 106 - atomic extension mail cannot conceal later section 3 after-patch
+  ---
+  duration_ms: 2.029875
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 3 after-signature
+ok 107 - atomic extension mail cannot conceal later section 3 after-signature
+  ---
+  duration_ms: 0.999209
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 4 after-patch
+ok 108 - atomic extension mail cannot conceal later section 4 after-patch
+  ---
+  duration_ms: 0.9195
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 4 after-signature
+ok 109 - atomic extension mail cannot conceal later section 4 after-signature
+  ---
+  duration_ms: 0.916834
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 5 after-patch
+ok 110 - atomic extension mail cannot conceal later section 5 after-patch
+  ---
+  duration_ms: 1.499167
+  type: 'test'
+  ...
+# Subtest: atomic extension mail cannot conceal later section 5 after-signature
+ok 111 - atomic extension mail cannot conceal later section 5 after-signature
+  ---
+  duration_ms: 0.429208
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: rename from target
+not ok 112 - GNU default accepts interstitial metadata: rename from target
+  ---
+  duration_ms: 47.137958
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: rename from target
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: rename from target
+ok 113 - unsupported metadata cannot disappear after-signature: rename from target
+  ---
+  duration_ms: 0.927041
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: rename to sentinel
+not ok 114 - GNU default accepts interstitial metadata: rename to sentinel
+  ---
+  duration_ms: 39.264792
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: rename to sentinel
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: rename to sentinel
+ok 115 - unsupported metadata cannot disappear after-signature: rename to sentinel
+  ---
+  duration_ms: 0.596
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: copy from target
+not ok 116 - GNU default accepts interstitial metadata: copy from target
+  ---
+  duration_ms: 29.639333
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: copy from target
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: copy from target
+ok 117 - unsupported metadata cannot disappear after-signature: copy from target
+  ---
+  duration_ms: 0.472125
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: copy to sentinel
+not ok 118 - GNU default accepts interstitial metadata: copy to sentinel
+  ---
+  duration_ms: 28.037917
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: copy to sentinel
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: copy to sentinel
+ok 119 - unsupported metadata cannot disappear after-signature: copy to sentinel
+  ---
+  duration_ms: 0.782792
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: new file mode 120000
+not ok 120 - GNU default accepts interstitial metadata: new file mode 120000
+  ---
+  duration_ms: 26.142042
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: new file mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: new file mode 120000
+ok 121 - unsupported metadata cannot disappear after-signature: new file mode 120000
+  ---
+  duration_ms: 0.56725
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: deleted file mode 120000
+not ok 122 - GNU default accepts interstitial metadata: deleted file mode 120000
+  ---
+  duration_ms: 25.855458
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: deleted file mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: deleted file mode 120000
+ok 123 - unsupported metadata cannot disappear after-signature: deleted file mode 120000
+  ---
+  duration_ms: 0.61925
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: old mode 120000
+not ok 124 - GNU default accepts interstitial metadata: old mode 120000
+  ---
+  duration_ms: 22.792875
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: old mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: old mode 120000
+ok 125 - unsupported metadata cannot disappear after-signature: old mode 120000
+  ---
+  duration_ms: 0.640584
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: new mode 120000
+not ok 126 - GNU default accepts interstitial metadata: new mode 120000
+  ---
+  duration_ms: 23.859291
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: new mode 120000
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: new mode 120000
+ok 127 - unsupported metadata cannot disappear after-signature: new mode 120000
+  ---
+  duration_ms: 0.40125
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: similarity index 100%
+not ok 128 - GNU default accepts interstitial metadata: similarity index 100%
+  ---
+  duration_ms: 23.31825
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: similarity index 100%
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: similarity index 100%
+ok 129 - unsupported metadata cannot disappear after-signature: similarity index 100%
+  ---
+  duration_ms: 0.629958
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: dissimilarity index 100%
+not ok 130 - GNU default accepts interstitial metadata: dissimilarity index 100%
+  ---
+  duration_ms: 24.063083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: dissimilarity index 100%
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: dissimilarity index 100%
+ok 131 - unsupported metadata cannot disappear after-signature: dissimilarity index 100%
+  ---
+  duration_ms: 0.550459
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: GIT binary patch
+not ok 132 - GNU default accepts interstitial metadata: GIT binary patch
+  ---
+  duration_ms: 27.3375
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: GIT binary patch
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: unsupported metadata cannot disappear after-signature: GIT binary patch
+ok 133 - unsupported metadata cannot disappear after-signature: GIT binary patch
+  ---
+  duration_ms: 0.7025
+  type: 'test'
+  ...
+# Subtest: GNU default accepts interstitial metadata: unknown extension metadata
+not ok 134 - GNU default accepts interstitial metadata: unknown extension metadata
+  ---
+  duration_ms: 22.294209
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:2:1090'
+  failureType: 'testCodeFailure'
+  error: |-
+    GNU default publication/status/full-namespace parity: metadata between-sections: unknown extension metadata
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        after: [
+          {
+            path: '/',
+            type: 'directory'
+    ...
+          {
+    +       hex: '6f6c640a',
+    -       hex: '6e65770a',
+            path: '/sandbox/work/target',
+            type: 'file'
+          },
+          {
+            hex: '6f6c640a',
+    ...
+        ],
+    +   exitCode: 2,
+    +   stderr: 'patch: expected --- file header\n',
+    +   stdout: 'patching file first\n'
+    -   exitCode: 0,
+    -   stderr: '',
+    -   stdout: 'patching file first\npatching file target\n'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    exitCode: 0
+    stdout: |-
+      patching file first
+      patching file target
+      
+    stderr: ''
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6e65770a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  actual:
+    exitCode: 2
+    stdout: |-
+      patching file first
+      
+    stderr: |-
+      patch: expected --- file header
+      
+    before:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6f6c640a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+    after:
+      0:
+        path: '/'
+        type: 'directory'
+      1:
+        path: '/sandbox'
+        type: 'directory'
+      2:
+        path: '/sandbox/sentinel'
+        type: 'file'
+        hex: '6f7574736964652073656e74696e656c0a'
+      3:
+        path: '/sandbox/work'
+        type: 'directory'
+      4:
+        path: '/sandbox/work/dir'
+        type: 'directory'
+      5:
+        path: '/sandbox/work/dir/target'
+        type: 'file'
+        hex: '6f6c640a'
+      6:
+        path: '/sandbox/work/first'
+        type: 'file'
+        hex: '6e65770a'
+      7:
+        path: '/sandbox/work/sentinel'
+        type: 'file'
+        hex: '756e746f75636865640a'
+      8:
+        path: '/sandbox/work/target'
+        type: 'file'
+        hex: '6f6c640a'
+      9:
+        path: '/sandbox/work/�'
+        type: 'file'
+        hex: '6f6c640a'
+      10:
+        path: '/sentinel'
+        type: 'file'
+        hex: '666f6c6c6f7775702073656e74696e656c3a20756e6368616e6765640a'
+      11:
+        path: '/target'
+        type: 'file'
+        hex: '6f757473696465207461726765740a'
+  operator: 'deepStrictEqual'
+  stack: |-
+    assertDefaultParity (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts:22:10)
+    async TestContext.<anonymous> (/Users/kjopek/Workspace/safe-bash/tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts:46:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: mail preamble must not discard symlink metadata: new file mode 120000
+ok 135 - mail preamble must not discard symlink metadata: new file mode 120000
+  ---
+  duration_ms: 0.407541
+  type: 'test'
+  ...
+# Subtest: mail preamble must not discard symlink metadata: deleted file mode 120000
+ok 136 - mail preamble must not discard symlink metadata: deleted file mode 120000
+  ---
+  duration_ms: 0.316917
+  type: 'test'
+  ...
+# Subtest: absolute headers reject automatic selection but explicit target wins without changing decoys
+ok 137 - absolute headers reject automatic selection but explicit target wins without changing decoys
+  ---
+  duration_ms: 17.48925
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: traversal
+ok 138 - unsafe second header leaves all identities and bytes intact: traversal
+  ---
+  duration_ms: 3.18725
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: traversal before strip
+ok 139 - unsafe second header leaves all identities and bytes intact: traversal before strip
+  ---
+  duration_ms: 5.476417
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: drive
+ok 140 - unsafe second header leaves all identities and bytes intact: drive
+  ---
+  duration_ms: 1.730875
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: backslash
+ok 141 - unsafe second header leaves all identities and bytes intact: backslash
+  ---
+  duration_ms: 1.519875
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: nul
+ok 142 - unsafe second header leaves all identities and bytes intact: nul
+  ---
+  duration_ms: 1.668
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: escape
+ok 143 - unsafe second header leaves all identities and bytes intact: escape
+  ---
+  duration_ms: 3.529625
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: del
+ok 144 - unsafe second header leaves all identities and bytes intact: del
+  ---
+  duration_ms: 1.281459
+  type: 'test'
+  ...
+# Subtest: unsafe second header leaves all identities and bytes intact: carriage return
+ok 145 - unsafe second header leaves all identities and bytes intact: carriage return
+  ---
+  duration_ms: 1.775291
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "café.txt"
+ok 146 - safe filename is literal, not decoded or evaluated: "café.txt"
+  ---
+  duration_ms: 1.208125
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "café.txt"
+ok 147 - safe filename is literal, not decoded or evaluated: "café.txt"
+  ---
+  duration_ms: 0.978458
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "file with spaces"
+ok 148 - safe filename is literal, not decoded or evaluated: "file with spaces"
+  ---
+  duration_ms: 1.042875
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "leading space "
+ok 149 - safe filename is literal, not decoded or evaluated: "leading space "
+  ---
+  duration_ms: 1.292208
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "-flag"
+ok 150 - safe filename is literal, not decoded or evaluated: "-flag"
+  ---
+  duration_ms: 1.778209
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "%2e%2e%2ftarget"
+ok 151 - safe filename is literal, not decoded or evaluated: "%2e%2e%2ftarget"
+  ---
+  duration_ms: 0.672791
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "$(touch sentinel)"
+ok 152 - safe filename is literal, not decoded or evaluated: "$(touch sentinel)"
+  ---
+  duration_ms: 0.707458
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "semi;colon"
+ok 153 - safe filename is literal, not decoded or evaluated: "semi;colon"
+  ---
+  duration_ms: 1.226208
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "name\#comment"
+ok 154 - safe filename is literal, not decoded or evaluated: "name\#comment"
+  ---
+  duration_ms: 0.783208
+  type: 'test'
+  ...
+# Subtest: safe filename is literal, not decoded or evaluated: "name'quote"
+ok 155 - safe filename is literal, not decoded or evaluated: "name'quote"
+  ---
+  duration_ms: 0.695541
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=false
+ok 156 - atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.155208
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=true
+ok 157 - atomic extension single-final-write normalized sequence: target + ./target, reverse=false, dryRun=true
+  ---
+  duration_ms: 6.726417
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=false
+ok 158 - atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=false
+  ---
+  duration_ms: 1.283958
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=true
+ok 159 - atomic extension single-final-write normalized sequence: target + ./target, reverse=true, dryRun=true
+  ---
+  duration_ms: 0.800542
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=false
+ok 160 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=false
+  ---
+  duration_ms: 1.65025
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=true
+ok 161 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=false, dryRun=true
+  ---
+  duration_ms: 1.520708
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=false
+ok 162 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=false
+  ---
+  duration_ms: 2.251334
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=true
+ok 163 - atomic extension single-final-write normalized sequence: dir/target + dir/./target, reverse=true, dryRun=true
+  ---
+  duration_ms: 2.660708
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=false
+ok 164 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=false
+  ---
+  duration_ms: 2.3365
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=true
+ok 165 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=false, dryRun=true
+  ---
+  duration_ms: 1.454334
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=false
+ok 166 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=false
+  ---
+  duration_ms: 2.466917
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=true
+ok 167 - atomic extension single-final-write normalized sequence: a/target + b/target, reverse=true, dryRun=true
+  ---
+  duration_ms: 1.482458
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=false
+ok 168 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=false
+  ---
+  duration_ms: 2.964125
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=true
+ok 169 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=false, dryRun=true
+  ---
+  duration_ms: 1.3275
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=false
+ok 170 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=false
+  ---
+  duration_ms: 1.39225
+  type: 'test'
+  ...
+# Subtest: atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=true
+ok 171 - atomic extension single-final-write normalized sequence: a/./target + b/target, reverse=true, dryRun=true
+  ---
+  duration_ms: 2.924708
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: target + ./target
+ok 172 - atomic extension --force contradictory normalized sequence prevalidation: target + ./target
+  ---
+  duration_ms: 1.625708
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: dir/target + dir/./target
+ok 173 - atomic extension --force contradictory normalized sequence prevalidation: dir/target + dir/./target
+  ---
+  duration_ms: 1.300875
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: a/target + b/target
+ok 174 - atomic extension --force contradictory normalized sequence prevalidation: a/target + b/target
+  ---
+  duration_ms: 1.516792
+  type: 'test'
+  ...
+# Subtest: atomic extension --force contradictory normalized sequence prevalidation: a/./target + b/target
+ok 175 - atomic extension --force contradictory normalized sequence prevalidation: a/./target + b/target
+  ---
+  duration_ms: 4.414542
+  type: 'test'
+  ...
+# Subtest: timestamp fields cannot introduce a second target or escape cwd
+ok 176 - timestamp fields cannot introduce a second target or escape cwd
+  ---
+  duration_ms: 1.108708
+  type: 'test'
+  ...
+# Subtest: pre-existing final alias/parent rejection leaves full namespace unchanged
+ok 177 - pre-existing final alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 1.016166
+  type: 'test'
+  ...
+# Subtest: pre-existing ancestor alias/parent rejection leaves full namespace unchanged
+ok 178 - pre-existing ancestor alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.748708
+  type: 'test'
+  ...
+# Subtest: pre-existing dangling alias/parent rejection leaves full namespace unchanged
+ok 179 - pre-existing dangling alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.667167
+  type: 'test'
+  ...
+# Subtest: pre-existing cwd alias/parent rejection leaves full namespace unchanged
+ok 180 - pre-existing cwd alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.49125
+  type: 'test'
+  ...
+# Subtest: pre-existing input alias/parent rejection leaves full namespace unchanged
+ok 181 - pre-existing input alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.598834
+  type: 'test'
+  ...
+# Subtest: pre-existing hardlink alias/parent rejection leaves full namespace unchanged
+ok 182 - pre-existing hardlink alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.888834
+  type: 'test'
+  ...
+# Subtest: pre-existing directory alias/parent rejection leaves full namespace unchanged
+ok 183 - pre-existing directory alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 0.725209
+  type: 'test'
+  ...
+# Subtest: pre-existing file-parent alias/parent rejection leaves full namespace unchanged
+ok 184 - pre-existing file-parent alias/parent rejection leaves full namespace unchanged
+  ---
+  duration_ms: 4.189625
+  type: 'test'
+  ...
+# Subtest: GNU default creation and complete namespace: missing parent default strip
+ok 185 - GNU default creation and complete namespace: missing parent default strip
+  ---
+  duration_ms: 50.101042
+  type: 'test'
+  ...
+# Subtest: GNU default creation and complete namespace: missing parent explicit -p0
+ok 186 - GNU default creation and complete namespace: missing parent explicit -p0
+  ---
+  duration_ms: 26.172917
+  type: 'test'
+  ...
+# Subtest: dry-run mixed create/update/delete validates every result without mutation
+ok 187 - dry-run mixed create/update/delete validates every result without mutation
+  ---
+  duration_ms: 1.52825
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\n+++ sentinel" without output
+ok 188 - diff rejects header-injecting label "target\\n+++ sentinel" without output
+  ---
+  duration_ms: 0.692833
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\ttimestamp" without output
+ok 189 - diff rejects header-injecting label "target\\ttimestamp" without output
+  ---
+  duration_ms: 0.591208
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\r" without output
+ok 190 - diff rejects header-injecting label "target\\r" without output
+  ---
+  duration_ms: 0.31425
+  type: 'test'
+  ...
+# Subtest: diff rejects header-injecting label "target\\u0000" without output
+ok 191 - diff rejects header-injecting label "target\\u0000" without output
+  ---
+  duration_ms: 0.305125
+  type: 'test'
+  ...
+1..191
+# tests 191
+# suites 0
+# pass 175
+# fail 16
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1037.037709

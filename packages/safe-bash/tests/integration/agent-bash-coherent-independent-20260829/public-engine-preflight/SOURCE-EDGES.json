@@ -1,0 +1,1980 @@
+[
+  {
+    "path": "compiled/engine/dist/core.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./lint.js",
+        "resolved": "compiled/engine/dist/lint.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./run.js",
+        "resolved": "compiled/engine/dist/run.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./random.js",
+        "resolved": "compiled/engine/dist/random.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/error-codes.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/error/shape.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/graph-depth.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/arguments.js",
+        "resolved": "compiled/engine/dist/interp/arguments.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/arguments.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/interp/async.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./generator.js",
+        "resolved": "compiled/engine/dist/interp/generator.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../observability/otel.js",
+        "resolved": "compiled/engine/dist/observability/otel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./patterns.js",
+        "resolved": "compiled/engine/dist/interp/patterns.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise.js",
+        "resolved": "compiled/engine/dist/interp/promise.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./jobs.js",
+        "resolved": "compiled/engine/dist/interp/jobs.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./cancel.js",
+        "resolved": "compiled/engine/dist/interp/cancel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./var-hoist.js",
+        "resolved": "compiled/engine/dist/interp/var-hoist.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/budget.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/cancel.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise-tracker.js",
+        "resolved": "compiled/engine/dist/interp/promise-tracker.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise.js",
+        "resolved": "compiled/engine/dist/interp/promise.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/exceptions.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./host-call.js",
+        "resolved": "compiled/engine/dist/interp/host-call.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/generator.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/collections.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../iteration.js",
+        "resolved": "compiled/engine/dist/interp/iteration.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/console-json.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../host-bridge.js",
+        "resolved": "compiled/engine/dist/interp/host-bridge.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/error.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../exceptions.js",
+        "resolved": "compiled/engine/dist/interp/exceptions.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/math.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/misc.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../graph-depth.js",
+        "resolved": "compiled/engine/dist/graph-depth.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/object-array.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../iteration.js",
+        "resolved": "compiled/engine/dist/interp/iteration.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/globals/regex.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/host-bridge.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./async.js",
+        "resolved": "compiled/engine/dist/interp/async.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./exceptions.js",
+        "resolved": "compiled/engine/dist/interp/exceptions.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../observability/otel.js",
+        "resolved": "compiled/engine/dist/observability/otel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./host-call.js",
+        "resolved": "compiled/engine/dist/interp/host-call.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise-replay.js",
+        "resolved": "compiled/engine/dist/interp/promise-replay.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../snapshot/replay-data.js",
+        "resolved": "compiled/engine/dist/snapshot/replay-data.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/host-call.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:crypto",
+        "resolved": "node:crypto",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../snapshot/replay-data.js",
+        "resolved": "compiled/engine/dist/snapshot/replay-data.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../snapshot/validation.js",
+        "resolved": "compiled/engine/dist/snapshot/validation.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../snapshot/policy.js",
+        "resolved": "compiled/engine/dist/snapshot/policy.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/interpreter.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./promise-replay.js",
+        "resolved": "compiled/engine/dist/interp/promise-replay.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./jobs.js",
+        "resolved": "compiled/engine/dist/interp/jobs.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./async.js",
+        "resolved": "compiled/engine/dist/interp/async.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./host-call.js",
+        "resolved": "compiled/engine/dist/interp/host-call.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./exceptions.js",
+        "resolved": "compiled/engine/dist/interp/exceptions.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/array.js",
+        "resolved": "compiled/engine/dist/interp/methods/array.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/function.js",
+        "resolved": "compiled/engine/dist/interp/methods/function.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/map.js",
+        "resolved": "compiled/engine/dist/interp/methods/map.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/number.js",
+        "resolved": "compiled/engine/dist/interp/methods/number.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise.js",
+        "resolved": "compiled/engine/dist/interp/promise.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./iteration.js",
+        "resolved": "compiled/engine/dist/interp/iteration.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/generator.js",
+        "resolved": "compiled/engine/dist/interp/methods/generator.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/regex.js",
+        "resolved": "compiled/engine/dist/interp/methods/regex.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./patterns.js",
+        "resolved": "compiled/engine/dist/interp/patterns.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/string.js",
+        "resolved": "compiled/engine/dist/interp/methods/string.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./methods/set.js",
+        "resolved": "compiled/engine/dist/interp/methods/set.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./globals/error.js",
+        "resolved": "compiled/engine/dist/interp/globals/error.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./globals/collections.js",
+        "resolved": "compiled/engine/dist/interp/globals/collections.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./scope.js",
+        "resolved": "compiled/engine/dist/interp/scope.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./var-hoist.js",
+        "resolved": "compiled/engine/dist/interp/var-hoist.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./scope.js",
+        "resolved": "compiled/engine/dist/interp/scope.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/iteration.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/jobs.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:async_hooks",
+        "resolved": "node:async_hooks",
+        "inEmission": false
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/array.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/function.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/generator.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../iteration.js",
+        "resolved": "compiled/engine/dist/interp/iteration.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/map.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/number.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/regex.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../regex/engine.js",
+        "resolved": "compiled/engine/dist/interp/regex/engine.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/set.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/methods/string.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../regex/engine.js",
+        "resolved": "compiled/engine/dist/interp/regex/engine.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./regex.js",
+        "resolved": "compiled/engine/dist/interp/methods/regex.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/patterns.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/promise-replay.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:async_hooks",
+        "resolved": "node:async_hooks",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "../snapshot/validation.js",
+        "resolved": "compiled/engine/dist/snapshot/validation.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/promise-tracker.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:async_hooks",
+        "resolved": "node:async_hooks",
+        "inEmission": false
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/promise.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./exceptions.js",
+        "resolved": "compiled/engine/dist/interp/exceptions.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./jobs.js",
+        "resolved": "compiled/engine/dist/interp/jobs.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise-tracker.js",
+        "resolved": "compiled/engine/dist/interp/promise-tracker.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/regex/engine.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/regex/parse.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/interp/running-state.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/scope.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/interp/values.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../observability/otel.js",
+        "resolved": "compiled/engine/dist/observability/otel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise-tracker.js",
+        "resolved": "compiled/engine/dist/interp/promise-tracker.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./promise-replay.js",
+        "resolved": "compiled/engine/dist/interp/promise-replay.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./regex/parse.js",
+        "resolved": "compiled/engine/dist/interp/regex/parse.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../graph-depth.js",
+        "resolved": "compiled/engine/dist/graph-depth.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./arguments.js",
+        "resolved": "compiled/engine/dist/interp/arguments.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./arguments.js",
+        "resolved": "compiled/engine/dist/interp/arguments.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/interp/var-hoist.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/lint.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./lint/index.js",
+        "resolved": "compiled/engine/dist/lint/index.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/index.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./rules/AS001.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS001.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS003.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS003.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS004.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS004.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS005.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS005.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS006-007.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS006-007.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS008.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS008.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS009.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS009.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS010.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS010.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS011.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS011.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS013.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS013.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS015.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS015.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-async-not-needed.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-await-non-promise.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-destructure-null-default.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-export-import-meta.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-floating-promise.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-frontmatter-field-unused.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-import-cycle.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-jsdoc-type.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-large-literal.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-missing-async.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-mutating-frozen.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-needless-template.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-shadow-global.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-unbounded-loop.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-unreachable.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./rules/AS-unused-import.js",
+        "resolved": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../parse/tokenizer.js",
+        "resolved": "compiled/engine/dist/parse/tokenizer.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-async-not-needed.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-await-non-promise.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-destructure-null-default.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-export-import-meta.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-floating-promise.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./module-registry.js",
+        "resolved": "compiled/engine/dist/lint/rules/module-registry.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-frontmatter-field-unused.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-import-cycle.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/format-error.js",
+        "resolved": "compiled/engine/dist/parse/format-error.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./module-registry.js",
+        "resolved": "compiled/engine/dist/lint/rules/module-registry.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-jsdoc-type.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./module-registry.js",
+        "resolved": "compiled/engine/dist/lint/rules/module-registry.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-large-literal.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-missing-async.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-mutating-frozen.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-needless-template.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-shadow-global.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./known-globals.js",
+        "resolved": "compiled/engine/dist/lint/rules/known-globals.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-unbounded-loop.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-unreachable.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS-unused-import.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS001.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS003.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./known-globals.js",
+        "resolved": "compiled/engine/dist/lint/rules/known-globals.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS004.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./module-registry.js",
+        "resolved": "compiled/engine/dist/lint/rules/module-registry.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS005.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./module-registry.js",
+        "resolved": "compiled/engine/dist/lint/rules/module-registry.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS006-007.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS008.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS009.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS010.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS011.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS013.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./module-registry.js",
+        "resolved": "compiled/engine/dist/lint/rules/module-registry.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/AS015.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/known-globals.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/lint/rules/module-registry.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../../parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/modules/registry.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/cancel.js",
+        "resolved": "compiled/engine/dist/interp/cancel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/host-bridge.js",
+        "resolved": "compiled/engine/dist/interp/host-bridge.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../snapshot/policy.js",
+        "resolved": "compiled/engine/dist/snapshot/policy.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/observability/otel.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/parse.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/parse/assign-ids.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/parse/format-error.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/parse/hash.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/parse/parse-export.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/parse/parse-import-meta.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/parse/parser.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./tokenizer.js",
+        "resolved": "compiled/engine/dist/parse/tokenizer.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./assign-ids.js",
+        "resolved": "compiled/engine/dist/parse/assign-ids.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./format-error.js",
+        "resolved": "compiled/engine/dist/parse/format-error.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./parse-export.js",
+        "resolved": "compiled/engine/dist/parse/parse-export.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./parse-import-meta.js",
+        "resolved": "compiled/engine/dist/parse/parse-import-meta.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/regex/parse.js",
+        "resolved": "compiled/engine/dist/interp/regex/parse.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/parse/tokenizer.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/random.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:crypto",
+        "resolved": "node:crypto",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/math.js",
+        "resolved": "compiled/engine/dist/interp/globals/math.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/restore.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./parse/hash.js",
+        "resolved": "compiled/engine/dist/parse/hash.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/validation.js",
+        "resolved": "compiled/engine/dist/snapshot/validation.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/dump-format.js",
+        "resolved": "compiled/engine/dist/snapshot/dump-format.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/run.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./parse/hash.js",
+        "resolved": "compiled/engine/dist/parse/hash.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./random.js",
+        "resolved": "compiled/engine/dist/random.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./parse/parser.js",
+        "resolved": "compiled/engine/dist/parse/parser.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./restore.js",
+        "resolved": "compiled/engine/dist/restore.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/promise-replay.js",
+        "resolved": "compiled/engine/dist/interp/promise-replay.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/cancel.js",
+        "resolved": "compiled/engine/dist/interp/cancel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/running-state.js",
+        "resolved": "compiled/engine/dist/interp/running-state.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/promise-tracker.js",
+        "resolved": "compiled/engine/dist/interp/promise-tracker.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/host-call.js",
+        "resolved": "compiled/engine/dist/interp/host-call.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/console-json.js",
+        "resolved": "compiled/engine/dist/interp/globals/console-json.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/collections.js",
+        "resolved": "compiled/engine/dist/interp/globals/collections.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/error.js",
+        "resolved": "compiled/engine/dist/interp/globals/error.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/math.js",
+        "resolved": "compiled/engine/dist/interp/globals/math.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/regex.js",
+        "resolved": "compiled/engine/dist/interp/globals/regex.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/misc.js",
+        "resolved": "compiled/engine/dist/interp/globals/misc.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/globals/object-array.js",
+        "resolved": "compiled/engine/dist/interp/globals/object-array.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/host-bridge.js",
+        "resolved": "compiled/engine/dist/interp/host-bridge.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/interpreter.js",
+        "resolved": "compiled/engine/dist/interp/interpreter.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/promise.js",
+        "resolved": "compiled/engine/dist/interp/promise.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./interp/values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./modules/registry.js",
+        "resolved": "compiled/engine/dist/modules/registry.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./observability/otel.js",
+        "resolved": "compiled/engine/dist/observability/otel.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/dump.js",
+        "resolved": "compiled/engine/dist/snapshot/dump.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/dump-format.js",
+        "resolved": "compiled/engine/dist/snapshot/dump-format.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/scheduler.js",
+        "resolved": "compiled/engine/dist/snapshot/scheduler.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/serialize.js",
+        "resolved": "compiled/engine/dist/snapshot/serialize.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/replay-inputs.js",
+        "resolved": "compiled/engine/dist/snapshot/replay-inputs.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./snapshot/replay-data.js",
+        "resolved": "compiled/engine/dist/snapshot/replay-data.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/arguments.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/backend.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:crypto",
+        "resolved": "node:crypto",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "node:fs/promises",
+        "resolved": "node:fs/promises",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "node:path",
+        "resolved": "node:path",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "../error-codes.js",
+        "resolved": "compiled/engine/dist/error-codes.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./dump-format.js",
+        "resolved": "compiled/engine/dist/snapshot/dump-format.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/dump-format.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../graph-depth.js",
+        "resolved": "compiled/engine/dist/graph-depth.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/arguments.js",
+        "resolved": "compiled/engine/dist/interp/arguments.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./arguments.js",
+        "resolved": "compiled/engine/dist/snapshot/arguments.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/dump.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./dump-format.js",
+        "resolved": "compiled/engine/dist/snapshot/dump-format.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/budget.js",
+        "resolved": "compiled/engine/dist/interp/budget.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/policy.js",
+    "imports": []
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/replay-data.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../graph-depth.js",
+        "resolved": "compiled/engine/dist/graph-depth.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./arguments.js",
+        "resolved": "compiled/engine/dist/snapshot/arguments.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./validation.js",
+        "resolved": "compiled/engine/dist/snapshot/validation.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/replay-inputs.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../interp/values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./replay-data.js",
+        "resolved": "compiled/engine/dist/snapshot/replay-data.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/scheduler.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "./backend.js",
+        "resolved": "compiled/engine/dist/snapshot/backend.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/serialize.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../parse/hash.js",
+        "resolved": "compiled/engine/dist/parse/hash.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../graph-depth.js",
+        "resolved": "compiled/engine/dist/graph-depth.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "./arguments.js",
+        "resolved": "compiled/engine/dist/snapshot/arguments.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../interp/values.js",
+        "resolved": "compiled/engine/dist/interp/values.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/engine/dist/snapshot/validation.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "../error/shape.js",
+        "resolved": "compiled/engine/dist/error/shape.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "node:util",
+        "resolved": "node:util",
+        "inEmission": false
+      },
+      {
+        "kind": "static",
+        "specifier": "./dump-format.js",
+        "resolved": "compiled/engine/dist/snapshot/dump-format.js",
+        "inEmission": true
+      },
+      {
+        "kind": "static",
+        "specifier": "../graph-depth.js",
+        "resolved": "compiled/engine/dist/graph-depth.js",
+        "inEmission": true
+      }
+    ]
+  },
+  {
+    "path": "compiled/support/errors.js",
+    "imports": [
+      {
+        "kind": "static",
+        "specifier": "node:util",
+        "resolved": "node:util",
+        "inEmission": false
+      }
+    ]
+  }
+]

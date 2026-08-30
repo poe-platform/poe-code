@@ -1,0 +1,288 @@
+COMMAND ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","--unhandled-rejections=strict","--import","tsx","--test","--test-concurrency=1","--test-reporter=tap","tests/contracts/io.test.ts","tests/shell/streaming.test.ts","tests/commands/text.test.ts","tests/commands/stream-format/rev.test.ts"]
+EXIT 0 SIGNAL null
+TAP version 13
+# Subtest: rev Apple native {"args":[],"input":"abc\\n\\nlast"}
+ok 1 - rev Apple native {"args":[],"input":"abc\\n\\nlast"}
+  ---
+  duration_ms: 10.827291
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":""}
+ok 2 - rev Apple native {"args":[],"input":""}
+  ---
+  duration_ms: 4.681542
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,0,98,255,10]}}
+ok 3 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,0,98,255,10]}}
+  ---
+  duration_ms: 4.351334
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":"é🙂\\n","locale":"C"}
+ok 4 - rev Apple native {"args":[],"input":"é🙂\\n","locale":"C"}
+  ---
+  duration_ms: 4.23025
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":"é🙂\\n","locale":"POSIX"}
+ok 5 - rev Apple native {"args":[],"input":"é🙂\\n","locale":"POSIX"}
+  ---
+  duration_ms: 4.27425
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,255,98,10]},"locale":""}
+ok 6 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,255,98,10]},"locale":""}
+  ---
+  duration_ms: 4.156459
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":"é🙂\\n","locale":"en_US.UTF-8"}
+ok 7 - rev Apple native {"args":[],"input":"é🙂\\n","locale":"en_US.UTF-8"}
+  ---
+  duration_ms: 5.144209
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":"á🙂\\n﻿x\\n","locale":"en_US.UTF-8"}
+ok 8 - rev Apple native {"args":[],"input":"á🙂\\n﻿x\\n","locale":"en_US.UTF-8"}
+  ---
+  duration_ms: 4.930458
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,0,98,10]},"locale":"en_US.UTF-8"}
+ok 9 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,0,98,10]},"locale":"en_US.UTF-8"}
+  ---
+  duration_ms: 5.793458
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,255,98,10,99,10]},"locale":"en_US.UTF-8","failure":true}
+ok 10 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,255,98,10,99,10]},"locale":"en_US.UTF-8","failure":true}
+  ---
+  duration_ms: 5.215083
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[255,10]},"locale":"en_US.UTF-8","failure":true}
+ok 11 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[255,10]},"locale":"en_US.UTF-8","failure":true}
+  ---
+  duration_ms: 4.893417
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,195]},"locale":"en_US.UTF-8","failure":true}
+ok 12 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,195]},"locale":"en_US.UTF-8","failure":true}
+  ---
+  duration_ms: 4.312958
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,195,10]},"locale":"en_US.UTF-8","failure":true}
+ok 13 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[97,195,10]},"locale":"en_US.UTF-8","failure":true}
+  ---
+  duration_ms: 4.280458
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":[],"input":{"type":"Buffer","data":[195,169,255,10]},"locale":"en_US.UTF-8","failure":true}
+ok 14 - rev Apple native {"args":[],"input":{"type":"Buffer","data":[195,169,255,10]},"locale":"en_US.UTF-8","failure":true}
+  ---
+  duration_ms: 4.122958
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":["--"],"input":"ab"}
+ok 15 - rev Apple native {"args":["--"],"input":"ab"}
+  ---
+  duration_ms: 4.240375
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":["-x"],"failure":true}
+ok 16 - rev Apple native {"args":["-x"],"failure":true}
+  ---
+  duration_ms: 3.673333
+  type: 'test'
+  ...
+# Subtest: rev Apple native {"args":["-"],"failure":true}
+ok 17 - rev Apple native {"args":["-"],"failure":true}
+  ---
+  duration_ms: 3.973667
+  type: 'test'
+  ...
+# Subtest: rev guest locale precedence, no ambient host fallback
+ok 18 - rev guest locale precedence, no ambient host fallback
+  ---
+  duration_ms: 1.07025
+  type: 'test'
+  ...
+# Subtest: rev rejects malformed current file then continues next operand
+ok 19 - rev rejects malformed current file then continues next operand
+  ---
+  duration_ms: 3.146125
+  type: 'test'
+  ...
+# Subtest: rev record cap does not substitute malformed bytes
+ok 20 - rev record cap does not substitute malformed bytes
+  ---
+  duration_ms: 0.304042
+  type: 'test'
+  ...
+# Subtest: sort uses byte ordering, numeric keys, reverse, stable and unique modes
+ok 21 - sort uses byte ordering, numeric keys, reverse, stable and unique modes
+  ---
+  duration_ms: 4.752375
+  type: 'test'
+  ...
+# Subtest: sort checks order, writes output safely after reading input, and handles zero records
+ok 22 - sort checks order, writes output safely after reading input, and handles zero records
+  ---
+  duration_ms: 1.128292
+  type: 'test'
+  ...
+# Subtest: uniq groups adjacent records and supports counts, repeated/unique selection and comparisons
+ok 23 - uniq groups adjacent records and supports counts, repeated/unique selection and comparisons
+  ---
+  duration_ms: 0.94025
+  type: 'test'
+  ...
+# Subtest: cut supports overlapping/open ranges, complement, literal fields and UTF-8 characters
+ok 24 - cut supports overlapping/open ranges, complement, literal fields and UTF-8 characters
+  ---
+  duration_ms: 1.803708
+  type: 'test'
+  ...
+# Subtest: byte sources preserve binary bytes and UTF-8 text
+ok 25 - byte sources preserve binary bytes and UTF-8 text
+  ---
+  duration_ms: 0.643292
+  type: 'test'
+  ...
+# Subtest: byte sources snapshot Uint8Array and Buffer inputs at creation
+ok 26 - byte sources snapshot Uint8Array and Buffer inputs at creation
+  ---
+  duration_ms: 0.089375
+  type: 'test'
+  ...
+# Subtest: collectors enforce explicit byte limits and close overflowing sources
+ok 27 - collectors enforce explicit byte limits and close overflowing sources
+  ---
+  duration_ms: 0.277667
+  type: 'test'
+  ...
+# Subtest: collectors copy reused buffers and decode UTF-8 split across chunks
+ok 28 - collectors copy reused buffers and decode UTF-8 split across chunks
+  ---
+  duration_ms: 0.137833
+  type: 'test'
+  ...
+# Subtest: collectors reject pre-aborted operations
+ok 29 - collectors reject pre-aborted operations
+  ---
+  duration_ms: 0.077334
+  type: 'test'
+  ...
+# Subtest: pipes stream while the producer runs and apply byte-based backpressure
+ok 30 - pipes stream while the producer runs and apply byte-based backpressure
+  ---
+  duration_ms: 4.423667
+  type: 'test'
+  ...
+# Subtest: pipe writes take ownership through byte copies, including Buffer inputs
+ok 31 - pipe writes take ownership through byte copies, including Buffer inputs
+  ---
+  duration_ms: 0.206458
+  type: 'test'
+  ...
+# Subtest: pipe cancellation rejects blocked producers and readers
+ok 32 - pipe cancellation rejects blocked producers and readers
+  ---
+  duration_ms: 0.528584
+  type: 'test'
+  ...
+# Subtest: breaking consumption produces EPIPE for pending writers
+ok 33 - breaking consumption produces EPIPE for pending writers
+  ---
+  duration_ms: 0.266
+  type: 'test'
+  ...
+# Subtest: returning an unread pipe releases blocked producers
+ok 34 - returning an unread pipe releases blocked producers
+  ---
+  duration_ms: 0.377334
+  type: 'test'
+  ...
+# Subtest: closed and pre-aborted pipes reject further writes
+ok 35 - closed and pre-aborted pipes reject further writes
+  ---
+  duration_ms: 0.20375
+  type: 'test'
+  ...
+# Subtest: pipe watermarks must be positive finite safe integers
+ok 36 - pipe watermarks must be positive finite safe integers
+  ---
+  duration_ms: 0.065875
+  type: 'test'
+  ...
+# Subtest: pipeBytes awaits sink acceptance before requesting the next chunk
+ok 37 - pipeBytes awaits sink acceptance before requesting the next chunk
+  ---
+  duration_ms: 0.121791
+  type: 'test'
+  ...
+# Subtest: writeText encodes UTF-8 and propagates sink failures
+ok 38 - writeText encodes UTF-8 and propagates sink failures
+  ---
+  duration_ms: 0.107167
+  type: 'test'
+  ...
+# Subtest: pipes preserve bytes and launch downstream before upstream completes
+ok 39 - pipes preserve bytes and launch downstream before upstream completes
+  ---
+  duration_ms: 6.194542
+  type: 'test'
+  ...
+# Subtest: early downstream exit and unused pipeline input do not deadlock
+ok 40 - early downstream exit and unused pipeline input do not deadlock
+  ---
+  duration_ms: 3.583667
+  type: 'test'
+  ...
+# Subtest: pipeline redirects replace endpoints without leaving blocked writers
+ok 41 - pipeline redirects replace endpoints without leaving blocked writers
+  ---
+  duration_ms: 2.012792
+  type: 'test'
+  ...
+# Subtest: streaming external sinks receive exact bytes and results retain captures
+ok 42 - streaming external sinks receive exact bytes and results retain captures
+  ---
+  duration_ms: 0.834959
+  type: 'test'
+  ...
+# Subtest: AbortSignal reaches commands and releases blocked pipelines
+ok 43 - AbortSignal reaches commands and releases blocked pipelines
+  ---
+  duration_ms: 1.112208
+  type: 'test'
+  ...
+# Subtest: output, command, loop, source and expansion budgets reject deterministically
+ok 44 - output, command, loop, source and expansion budgets reject deterministically
+  ---
+  duration_ms: 3.390042
+  type: 'test'
+  ...
+# Subtest: middleware, asynchronous plugins and filesystem factories compose
+ok 45 - middleware, asynchronous plugins and filesystem factories compose
+  ---
+  duration_ms: 0.392
+  type: 'test'
+  ...
+# Subtest: parallel exec calls cannot leak environment, cwd or status
+ok 46 - parallel exec calls cannot leak environment, cwd or status
+  ---
+  duration_ms: 4.99825
+  type: 'test'
+  ...
+1..46
+# tests 46
+# suites 0
+# pass 46
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 676.933917

@@ -1,0 +1,15 @@
+{
+  "started": "2026-08-27T21:47:32.376Z",
+  "finished": "2026-08-27T21:47:32.491Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-SWsRGi/followup/corrected/negative.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-SWsRGi/physically-moved/node_modules/virtual-bash",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/expr-stress/sink-profile-migration-v3-20260827/independent/quota-followup-01/corrected-1-literal-sink-marker.json"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/expr-sink-independent-v3-SWsRGi/physically-moved",
+  "status": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": ""
+}

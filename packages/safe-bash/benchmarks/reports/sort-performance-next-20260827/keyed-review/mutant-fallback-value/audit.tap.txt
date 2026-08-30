@@ -1,0 +1,47 @@
+TAP version 13
+# Subtest: entry-above
+ok 1 - entry-above
+  ---
+  duration_ms: 32.077916
+  type: 'test'
+  ...
+# Subtest: oversized-extracted-small-prefix
+not ok 2 - oversized-extracted-small-prefix
+  ---
+  duration_ms: 4.785958
+  type: 'test'
+  location: '/private/tmp/sort-key-review-candidate-8vQChD/mutant-fallback-value/public-worker.mjs:11:25'
+  failureType: 'testCodeFailure'
+  error: |-
+    oversized-extracted-small-prefix: stdout
+    + actual - expected
+    
+      {
+        bytes: 174806,
+    +   sha256: '28711deee8c6a9164ab203fe686cc2a0d3dde12947bba31a6d6aa8aa9a86dc4e'
+    -   sha256: 'd9eb19e470f777bcddf85da647b524098a0805f7f1ccbba9ac541eadb713251d'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    bytes: 174806
+    sha256: 'd9eb19e470f777bcddf85da647b524098a0805f7f1ccbba9ac541eadb713251d'
+  actual:
+    bytes: 174806
+    sha256: '28711deee8c6a9164ab203fe686cc2a0d3dde12947bba31a6d6aa8aa9a86dc4e'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/sort-key-review-candidate-8vQChD/mutant-fallback-value/public-worker.mjs:43:34)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 193.770333

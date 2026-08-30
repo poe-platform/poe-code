@@ -1,0 +1,15 @@
+{
+  "args": [
+    "diff-tree",
+    "--no-commit-id",
+    "--name-only",
+    "-r",
+    "-z",
+    "d959e0514b0df945524d7b00326a212d70035f05"
+  ],
+  "closed": true,
+  "captureBytes": 194,
+  "pid": 98512,
+  "code": 0,
+  "signal": null
+}

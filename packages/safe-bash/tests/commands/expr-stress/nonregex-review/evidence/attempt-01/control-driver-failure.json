@@ -1,0 +1,10 @@
+{
+  "command": "node --input-type=module - (inline driver importing controls.mjs)",
+  "status": 1,
+  "error": "Error [ERR_INPUT_TYPE_NOT_ALLOWED]: --input-type can only be used with string input via --eval, --print, or STDIN",
+  "errorCode": "ERR_INPUT_TYPE_NOT_ALLOWED",
+  "classification": "harness defect: outer Worker inherited parent --input-type flag for a file entrypoint",
+  "correction": "explicit execArgv: [] and independently awaited worker exit; no product changes",
+  "receiptLimit": "Initial failed driver did not reach result serialization; no partial measurement counts promoted. controls-first.json is the subsequent completed corrected driver.",
+  "workers": "failed worker/process exited; no ongoing task worker"
+}

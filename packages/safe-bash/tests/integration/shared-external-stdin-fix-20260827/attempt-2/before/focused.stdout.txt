@@ -1,0 +1,288 @@
+TAP version 13
+# Subtest: unread external return throw preserves Error identity
+not ok 1 - unread external return throw preserves Error identity
+  ---
+  duration_ms: 3.958333
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:965'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:35:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+  ...
+# Subtest: unread external return throw preserves undefined identity
+not ok 2 - unread external return throw preserves undefined identity
+  ---
+  duration_ms: 0.445125
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:965'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:35:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: unread external return throw preserves null identity
+not ok 3 - unread external return throw preserves null identity
+  ---
+  duration_ms: 0.322916
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:965'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:35:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: grep early stop preserves external return throw
+not ok 4 - grep early stop preserves external return throw
+  ---
+  duration_ms: 14.395958
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:1509'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:52:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: egrep early stop preserves external return throw
+not ok 5 - egrep early stop preserves external return throw
+  ---
+  duration_ms: 11.69475
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:1509'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:52:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: fgrep early stop preserves external return throw
+not ok 6 - fgrep early stop preserves external return throw
+  ---
+  duration_ms: 11.536417
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:1509'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:52:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: unread external return reject preserves Error identity
+not ok 7 - unread external return reject preserves Error identity
+  ---
+  duration_ms: 0.303458
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:965'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:35:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: unread external return reject preserves undefined identity
+not ok 8 - unread external return reject preserves undefined identity
+  ---
+  duration_ms: 0.18525
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:965'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:35:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: unread external return reject preserves null identity
+not ok 9 - unread external return reject preserves null identity
+  ---
+  duration_ms: 0.203083
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:965'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:35:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: grep early stop preserves external return reject
+not ok 10 - grep early stop preserves external return reject
+  ---
+  duration_ms: 11.873959
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:1509'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:52:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: egrep early stop preserves external return reject
+not ok 11 - egrep early stop preserves external return reject
+  ---
+  duration_ms: 11.690583
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:1509'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:52:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: fgrep early stop preserves external return reject
+not ok 12 - fgrep early stop preserves external return reject
+  ---
+  duration_ms: 12.005583
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:1509'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:52:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: nonzero command result does not erase an awaited external return failure
+not ok 13 - nonzero command result does not erase an awaited external return failure
+  ---
+  duration_ms: 0.329667
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:2070'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:66:9)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: owning close shares a rejected completion and returns once
+not ok 14 - owning close shares a rejected completion and returns once
+  ---
+  duration_ms: 0.099959
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:2483'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:80:3)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: EOF does not call an unnecessary rejecting return
+ok 15 - EOF does not call an unnecessary rejecting return
+  ---
+  duration_ms: 0.249416
+  type: 'test'
+  ...
+# Subtest: selected execution rejection outranks an external close rejection
+ok 16 - selected execution rejection outranks an external close rejection
+  ---
+  duration_ms: 0.393166
+  type: 'test'
+  ...
+# Subtest: a reported primary read failure is not replaced by a secondary return failure
+ok 17 - a reported primary read failure is not replaced by a secondary return failure
+  ---
+  duration_ms: 0.272
+  type: 'test'
+  ...
+# Subtest: caller abort during an awaited return wins and observes its late rejection
+ok 18 - caller abort during an awaited return wins and observes its late rejection
+  ---
+  duration_ms: 0.847542
+  type: 'test'
+  ...
+# Subtest: disposal still interrupts an unregistered external return wait
+ok 19 - disposal still interrupts an unregistered external return wait
+  ---
+  duration_ms: 0.208
+  type: 'test'
+  ...
+# Subtest: pending opaque next does not force awaiting a rejected return
+ok 20 - pending opaque next does not force awaiting a rejected return
+  ---
+  duration_ms: 0.591458
+  type: 'test'
+  ...
+# Subtest: opaque generator queued return remains outside the public abort barrier
+ok 21 - opaque generator queued return remains outside the public abort barrier
+  ---
+  duration_ms: 0.368542
+  type: 'test'
+  ...
+# Subtest: sequential borrowers retain the cursor until one final rejecting owner close
+not ok 22 - sequential borrowers retain the cursor until one final rejecting owner close
+  ---
+  duration_ms: 0.365084
+  type: 'test'
+  location: '/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:1:7793'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (/private/tmp/shared-stdin-fix-pd8eh6/before/candidate/tests/shell/input-return-cleanup.test.ts:213:5)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 7
+# fail 15
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 574.542834

@@ -1,0 +1,112 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--import",
+    "tsx",
+    "--test",
+    "tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+  ],
+  "cwd": "/private/tmp/full-gate-b494-diagnose-btuFy0/source",
+  "pid": 36339,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 395,
+  "timeoutMs": 30000,
+  "outputBytes": 443,
+  "observed": [
+    {
+      "pid": 36339,
+      "parent": 34404,
+      "group": 36339,
+      "born": "Thu Aug 27 06:25:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx --test tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+    },
+    {
+      "pid": 36341,
+      "parent": 36339,
+      "group": 36339,
+      "born": "Thu Aug 27 06:25:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --import tsx tests/stress/byte-ownership-20260827/remaining-consumers/direct-curl/direct-curl.test.ts"
+    },
+    {
+      "pid": 36343,
+      "parent": 36341,
+      "group": 36339,
+      "born": "Thu Aug 27 06:25:57 2026",
+      "command": "/private/tmp/full-gate-b494-diagnose-btuFy0/source/node_modules/@esbuild/darwin-arm64/bin/esbuild --service=0.28.2 --ping"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "tracked-artifact-reproducer-tests",
+  "accounting": {
+    "summary": {
+      "tests": 2,
+      "suites": 0,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 233.837709
+    },
+    "counts": {
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "reconciled": true,
+    "reconciliation": {
+      "completeFooter": true,
+      "testInstances": true,
+      "statuses": {
+        "pass": true,
+        "fail": true,
+        "skipped": true,
+        "todo": true,
+        "cancelled": true
+      }
+    },
+    "cases": [
+      {
+        "id": "tap-line-3",
+        "line": 3,
+        "indent": 0,
+        "ordinal": 1,
+        "name": "direct-registered-curl-buffer-307-replay",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      },
+      {
+        "id": "tap-line-9",
+        "line": 9,
+        "indent": 0,
+        "ordinal": 2,
+        "name": "direct-registered-curl-native-uint8array-307-replay",
+        "status": "pass",
+        "type": "test",
+        "failureType": null,
+        "location": null,
+        "code": null,
+        "error": null
+      }
+    ],
+    "suites": [],
+    "skips": [],
+    "characterizations": [],
+    "nonpassing": [],
+    "disclaimer": "A passing negative guard is not automatically a defect characterization. Explicit known-limitation/policy names are separately listed, not waived or promoted to feature acceptance."
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "candidate": "/tmp/safe-bash-tree-final-436bda3-k1mKIO/candidate",
+  "api": "standalone src/commands/tree/index.ts",
+  "invocations": [
+    {
+      "argv": [
+        "-n",
+        "--charset=ASCII",
+        "-i",
+        "-f",
+        "--noreport",
+        "basic"
+      ],
+      "limits": {},
+      "cwd": "/",
+      "env": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TERM": "dumb",
+        "TZ": "UTC"
+      },
+      "stdout": [
+        {
+          "attemptedBase64": "YmFzaWMK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvQWxwaGEudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvYi1kaXIK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvYi1kaXIvZHJvcC5iaW4K",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvYi1kaXIva2VlcC50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvYi1kaXIvbmVzdGVkCg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvYi1kaXIvbmVzdGVkL2xhc3QudHh0Cg==",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvYi50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvZW1wdHkK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvc2tpcC1kaXIK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvc2tpcC1kaXIvaGlkZGVuLWJ5LWZpbHRlci50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvei1kaXIK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvei1kaXIvZGVlcC50eHQK",
+          "state": "fulfilled"
+        },
+        {
+          "attemptedBase64": "YmFzaWMvemV0YS50eHQK",
+          "state": "fulfilled"
+        }
+      ],
+      "stderr": [],
+      "startedAt": "2026-08-27T09:27:28.521Z",
+      "result": {
+        "exitCode": 0
+      },
+      "finishedAt": "2026-08-27T09:27:28.523Z"
+    }
+  ],
+  "shells": []
+}
